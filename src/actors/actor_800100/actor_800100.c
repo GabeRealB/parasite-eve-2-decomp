@@ -2821,7 +2821,7 @@ s32 func_actor_800100_80166B40(GpRec18* arg0, GpCoord* arg1, GpCoord* arg2)
             dist += abs(arg1->workm.t[1] - rec->point.vy);
             dist += abs(arg1->workm.t[2] - rec->point.vz);
             if (dist < minDist) {
-                func_800E0FEC(rec, (GpDeltaScratch*)block, 1, &idx);
+                func_800E0FEC(rec, &block->delta, 1, &idx);
                 idx = func_800E1ACC((u8*)&idx);
                 if (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1][idx]->field_2 != 0) {
                     minDist = dist;
@@ -2831,21 +2831,21 @@ s32 func_actor_800100_80166B40(GpRec18* arg0, GpCoord* arg1, GpCoord* arg2)
         }
     }
     if (minDist != 0x7FFFFFFF) {
-        i                = 1;
-        block->sub       = 0;
-        block->flg       = 1;
-        block->t[0]      = arg0[bestIdx].point.vx;
-        block->t[1]      = arg0[bestIdx].point.vy;
-        block->t[2]      = arg0[bestIdx].point.vz;
-        block->offset.vx = rand() & 7;
-        block->offset.vy = rand() & 7;
-        block->offset.vz = rand() & 7;
+        i                       = 1;
+        block->coord.sub        = 0;
+        block->coord.flg        = 1;
+        block->coord.workm.t[0] = arg0[bestIdx].point.vx;
+        block->coord.workm.t[1] = arg0[bestIdx].point.vy;
+        block->coord.workm.t[2] = arg0[bestIdx].point.vz;
+        block->offset.vx        = rand() & 7;
+        block->offset.vy        = rand() & 7;
+        block->offset.vz        = rand() & 7;
         if (arg2 != NULL) {
-            arg2->workm.t[0] = block->t[0] + block->offset.vx;
-            arg2->workm.t[1] = block->t[1] + block->offset.vy;
-            arg2->workm.t[2] = block->t[2] + block->offset.vz;
+            arg2->workm.t[0] = block->coord.workm.t[0] + block->offset.vx;
+            arg2->workm.t[1] = block->coord.workm.t[1] + block->offset.vy;
+            arg2->workm.t[2] = block->coord.workm.t[2] + block->offset.vz;
         }
-        Gp_SpawnEff(0x6003B, (GpCoord*)&block->flg, 0, &block->offset);
+        Gp_SpawnEff(0x6003B, &block->coord, 0, &block->offset);
     } else {
         i = 0;
     }

@@ -5863,113 +5863,64 @@ void func_80105B74(VECTOR3* arg0)
 
 s32 Gp_PickNearestRec18(GpRec18* arg0, GpCoord* arg1, GpCoord* arg2)
 {
-    s32 minDist;
+    s32            minDist;
+    s32            idx;
+    GpPickScratch* block;
+    GpRec18*       rec;
+    s32            i;
+    s32            bestIdx;
+    s32            dist;
 
     minDist = 0x7FFFFFFF;
-    if (Gp_CountRec18Hi(arg0, 0x30000) == 0) {
-        s32               idx;
-        s32*              pidx;
-        register void**   scratch asm("v1");
-        GpPickScratch*    block;
-        register GpRec18* rec asm("s1");
-        s32               i;
-        s32               bestIdx;
-        s32               dist;
-        GpRec18*          picked;
-
-        scratch = SCRATCH_HEAD_ADDR;
-        i       = 0;
-        bestIdx = i;
-        pidx    = &idx;
-        rec     = arg0;
-        {
-            register GpPickScratch* p asm("v0");
-            p                              = SCRATCH_HEAD_AT(scratch, GpPickScratch);
-            p                              = p - 1;
-            block                          = p;
-            SCRATCH_HEAD_AT(scratch, void) = p;
-        }
-        do {
-            if (rec->key & 0x100000) {
-                s32 fy;
-                s32 dy;
-                {
-                    register s32 dx asm("v0");
-                    dx   = arg1->workm.t[0] - rec->point.vx;
-                    fy   = rec->point.vy;
-                    dist = dx;
-                    if (dx < 0) {
-                        dist = -dist;
-                    }
-                }
-                {
-                    register s32 t2 asm("v0");
-                    register s32 fz asm("a0");
-                    dy = arg1->workm.t[1] - fy;
-                    t2 = arg1->workm.t[2];
-                    if (dy < 0) {
-                        dy = -dy;
-                    }
-                    fz    = rec->point.vz;
-                    dist += dy;
-                    t2    = t2 - fz;
-                    TOUCH_REG2(t2, dist);
-                    if (t2 < 0) {
-                        t2 = -t2;
-                    }
-                    dist += t2;
-                }
-                if (dist < minDist) {
-                    func_800E0FEC(rec, (GpDeltaScratch*)block, 1, pidx);
-                    idx = func_800E1ACC((u8*)pidx);
-                    {
-                        GameSession* session = gGameSession;
-                        if (Gp_RoomParamTables[session->at4.loc.stage - 1][session->at4.loc.area - 1][idx]->field_2 != 0) {
-                            minDist = dist;
-                            bestIdx = i;
-                        }
-                    }
-                }
-            }
-            i++;
-            rec++;
-        } while (i < 6);
-        if (minDist != 0x7FFFFFFF) {
-            i                = 1;
-            picked           = (GpRec18*)(bestIdx * 0x18 + (s32)arg0);
-            block->sub       = 0;
-            block->flg       = i;
-            block->t[0]      = picked->point.vx;
-            block->t[1]      = picked->point.vy;
-            block->t[2]      = picked->point.vz;
-            block->offset.vx = rand() & 7;
-            block->offset.vy = rand() & 7;
-            block->offset.vz = rand() & 7;
-            if (arg2 != 0) {
-                arg2->workm.t[0] = block->t[0] + block->offset.vx;
-                arg2->workm.t[1] = block->t[1] + block->offset.vy;
-                arg2->workm.t[2] = block->t[2] + block->offset.vz;
-            }
-            if (Player_Status.weapon != 0x1D) {
-                if (Player_Status.weaponSlotItem == 0xE) {
-                    GpCoord* coord;
-                    SVECTOR* vec;
-                    coord = (GpCoord*)&block->flg;
-                    vec   = &block->offset;
-                    Gp_SpawnEff(0x6008D, coord, 0x300, vec);
-                    Gp_SpawnEff(0x60080, coord, 0x300, vec);
-                    Gp_SpawnEff(0x60070, coord, 0xC0013300, vec);
-                } else {
-                    Gp_SpawnEff(0x6003B, (GpCoord*)&block->flg, 0, &block->offset);
-                }
-            }
-        } else {
-            i = 0;
-        }
-        SCRATCH_POP(GpPickScratch);
-        return i;
+    if (Gp_CountRec18Hi(arg0, 0x30000) != 0) {
+        return 0;
     }
-    return 0;
+    block = SCRATCH_PUSH(GpPickScratch);
+    for (i = 0, bestIdx = 0; i < 6; i++) {
+        rec = &arg0[i];
+        if (rec->key & 0x100000) {
+            dist  = abs(arg1->workm.t[0] - rec->point.vx);
+            dist += abs(arg1->workm.t[1] - rec->point.vy);
+            dist += abs(arg1->workm.t[2] - rec->point.vz);
+            if (dist < minDist) {
+                func_800E0FEC(rec, &block->delta, 1, &idx);
+                idx = func_800E1ACC((u8*)&idx);
+                if (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1][idx]->field_2 != 0) {
+                    minDist = dist;
+                    bestIdx = i;
+                }
+            }
+        }
+    }
+    if (minDist != 0x7FFFFFFF) {
+        i                       = 1;
+        block->coord.sub        = 0;
+        block->coord.flg        = 1;
+        block->coord.workm.t[0] = arg0[bestIdx].point.vx;
+        block->coord.workm.t[1] = arg0[bestIdx].point.vy;
+        block->coord.workm.t[2] = arg0[bestIdx].point.vz;
+        block->offset.vx        = rand() & 7;
+        block->offset.vy        = rand() & 7;
+        block->offset.vz        = rand() & 7;
+        if (arg2 != NULL) {
+            arg2->workm.t[0] = block->coord.workm.t[0] + block->offset.vx;
+            arg2->workm.t[1] = block->coord.workm.t[1] + block->offset.vy;
+            arg2->workm.t[2] = block->coord.workm.t[2] + block->offset.vz;
+        }
+        if (Player_Status.weapon != 0x1D) {
+            if (Player_Status.weaponSlotItem == 0xE) {
+                Gp_SpawnEff(0x6008D, &block->coord, 0x300, &block->offset);
+                Gp_SpawnEff(0x60080, &block->coord, 0x300, &block->offset);
+                Gp_SpawnEff(0x60070, &block->coord, 0xC0013300, &block->offset);
+            } else {
+                Gp_SpawnEff(0x6003B, &block->coord, 0, &block->offset);
+            }
+        }
+    } else {
+        i = 0;
+    }
+    SCRATCH_POP(GpPickScratch);
+    return i;
 }
 
 s32 func_80105ED4(Task* arg0)

@@ -482,20 +482,15 @@ typedef struct _GpAimScratch {
 } GpAimScratch;
 STATIC_ASSERT_SIZEOF(GpAimScratch, 0x68);
 
-/// 0x68-byte scratch from `G_SCRATCH_HEAD` used by `Gp_PickNearestRec18`.
-/// The first 0x10 bytes are the `GpDeltaScratch` passed to `func_800E0FEC`.
-/// Offset 0x10 is a temp `GpCoord` (`flg` at 0x10, `workm.t[]` at
-/// 0x48, `sub` at 0x5C) passed to `Gp_SpawnEff`. `offset` is three
-/// `rand() & 7` halfwords passed as that call's last argument and added
-/// onto `arg2->workm.t[]` when `arg2` is non-NULL.
+/// Scratch-pad block for picking the nearest collision record. `delta`
+/// receives the push-back of the record being classified, which is
+/// discarded (only the record mask returned alongside it is used), `coord`
+/// is the node the pick effect is spawned on, and `offset` a small random
+/// jitter added to that position.
 typedef struct _GpPickScratch {
-    /* 0x00 */ byte    pad_0[0x10];
-    /* 0x10 */ u32     flg;
-    /* 0x14 */ byte    pad_14[0x34];
-    /* 0x48 */ s32     t[3];
-    /* 0x54 */ byte    pad_54[8];
-    /* 0x5C */ void*   sub;
-    /* 0x60 */ SVECTOR offset;
+    GpDeltaScratch delta;
+    GpCoord        coord;
+    SVECTOR        offset;
 } GpPickScratch;
 STATIC_ASSERT_SIZEOF(GpPickScratch, 0x68);
 
