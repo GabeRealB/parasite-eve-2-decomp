@@ -1200,92 +1200,65 @@ void Actor01900_Fn02018(GpEnemy* enemy, Task* actor)
 /// `id`, and releases the scratch again.
 void Actor01900_Fn02664(Task* arg0, s16 yaw, s32 id)
 {
-    SVECTOR*        head;
-    SVECTOR*        carved;
     SVECTOR*        dir;
-    Actor01900Work* work;
-    GpCoord*        coord;
-    s32             ang;
     s32             absAng;
-    s32             headOn;
-    s32             pick;
-    u32             rnd;
+    Actor01900Work* work;
 
-    ang    = yaw;
-    head   = SCRATCH_HEAD(SVECTOR);
-    carved = head - 1;
-    TOUCH_REG(carved);
-    SCRATCH_HEAD(SVECTOR) = carved;
-    dir                   = carved;
-    SOFT_BARRIER();
-    absAng = ang;
-    if (yaw < 0) {
-        SOFT_TOUCH_REG(absAng);
-        absAng = -absAng;
-    }
-    headOn = absAng < 0x200;
+    dir    = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    absAng = (yaw >= 0) ? yaw : -yaw;
     work   = arg0->work;
-    if (headOn) {
-        rnd         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rnd;
-        SOFT_BARRIER();
-        pick = (rnd >> 0x10) & 3;
-        switch (pick) {
+    if (absAng < 0x200) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        switch ((s32)(Gp_LcgState >> 16) & 3) {
             case 0:
-                head[-1] = Actor01900_D1722C[0];
+                *dir = Actor01900_D1722C[0];
                 break;
             case 1:
-                head[-1] = Actor01900_D1722C[1];
+                *dir = Actor01900_D1722C[1];
                 break;
             case 2:
-                head[-1] = Actor01900_D1722C[2];
+                *dir = Actor01900_D1722C[2];
                 break;
             case 3:
-                head[-1] = Actor01900_D1722C[3];
+                *dir = Actor01900_D1722C[3];
                 break;
             default:
                 *dir = Actor01900_D1722C[4];
                 break;
         }
-    } else if (absAng >= 0x601) {
-        rnd         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rnd;
-        SOFT_BARRIER();
-        pick = (rnd >> 0x10) & 2;
-        switch (pick) {
+    } else if (absAng > 0x600) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        switch ((s32)(Gp_LcgState >> 16) & 2) {
             case 0:
-                head[-1] = Actor01900_D1722C[5];
+                *dir = Actor01900_D1722C[5];
                 break;
             case 1:
-                head[-1] = Actor01900_D1722C[6];
+                *dir = Actor01900_D1722C[6];
                 break;
             default:
                 *dir = Actor01900_D1722C[7];
                 break;
         }
     } else if (yaw > 0) {
-        rnd         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rnd;
-        if ((rnd >> 0x10) & 1) {
-            head[-1] = Actor01900_D1722C[8];
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((Gp_LcgState >> 16) & 1) {
+            *dir = Actor01900_D1722C[8];
         } else {
-            head[-1] = Actor01900_D1722C[9];
+            *dir = Actor01900_D1722C[9];
         }
     } else {
-        rnd         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rnd;
-        if ((rnd >> 0x10) & 1) {
-            head[-1] = Actor01900_D1722C[10];
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((Gp_LcgState >> 16) & 1) {
+            *dir = Actor01900_D1722C[10];
         } else {
-            head[-1] = Actor01900_D1722C[11];
+            *dir = Actor01900_D1722C[11];
         }
     }
-    coord                      = arg0->extra.tmd->coords;
+    work->field_8B8.coord      = &arg0->extra.tmd->coords[1];
     work->field_8B8.spawnArgLo = 0x300;
     work->field_8B8.spawnArgHi = 2;
-    work->field_8B8.coord      = coord + 1;
-    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, arg0->extra.tmd->coords + dir->pad, dir, &work->field_8B8);
-    SCRATCH_HEAD(SVECTOR) = SCRATCH_HEAD(SVECTOR) + 1;
+    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, &arg0->extra.tmd->coords[dir->pad], dir, &work->field_8B8);
+    SCRATCH_POP_BYTES(8);
 }
 
 /// First `GpRec18` among the twelve at `records` whose id has high word 2,
