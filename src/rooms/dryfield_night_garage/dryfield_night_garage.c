@@ -668,8 +668,8 @@ const u8 D_dryfield_night_garage_8017D6EC[] = "Notice";
 
 /// "Charge", with a stray non-zero byte after its terminator that C cannot
 /// place, so the string stays assembly.
-extern u8 D_dryfield_night_garage_8017D6F4[];
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage", D_dryfield_night_garage_8017D6F4);
+/// "Charge", followed by the non-zero padding the original toolchain left.
+const char D_dryfield_night_garage_8017D6F4[8] = "Charge\0\xF0";
 
 /// The shop's "Select" panel. On its first frame it allocates the
 /// `RoomShopList` work block, fills it through

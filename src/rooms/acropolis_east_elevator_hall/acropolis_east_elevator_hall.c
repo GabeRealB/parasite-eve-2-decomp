@@ -41,7 +41,7 @@ extern s32        D_acropolis_east_elevator_hall_8018631C;
 
 /// Name word handed to `func_80724608`: `"Player"`, followed by one stray
 /// non-zero byte C cannot reproduce, so it stays assembly.
-extern char D_acropolis_east_elevator_hall_8017D5E0[];
+extern const char D_acropolis_east_elevator_hall_8017D5E0[];
 
 /// The mirror task's descriptors: entry 0 spawns the mirror itself, entry 1
 /// one reflection of a held object.
@@ -792,7 +792,8 @@ void func_acropolis_east_elevator_hall_8017F478(Task* task)
     task->state++;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", D_acropolis_east_elevator_hall_8017D5E0);
+/// "Player", followed by the non-zero padding the original toolchain left.
+const char D_acropolis_east_elevator_hall_8017D5E0[8] = "Player\0\x0F";
 
 void func_acropolis_east_elevator_hall_8017F4E8(Task* task)
 {

@@ -676,8 +676,9 @@ const u8 D_shelter_1f_heliport_8017D6EC[] = "Notice";
 
 /// "Charge", with a stray non-zero byte after its terminator that C cannot
 /// place, so the string stays assembly.
-extern u8 D_shelter_1f_heliport_8017D6F4[];
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", D_shelter_1f_heliport_8017D6F4);
+/// "Charge", followed by the non-zero padding the original toolchain left.
+const char D_shelter_1f_heliport_8017D6F4[8] = "Charge\0"
+                                               "2";
 
 /// The shop's "Select" panel. On its first frame it allocates the
 /// `RoomShopList` work block, fills it through `func_shelter_1f_heliport_8017E378`
