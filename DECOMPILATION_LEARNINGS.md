@@ -141896,3 +141896,42 @@ The statement order `i++; lineIndex++; code = arg0[i];` puts the other
 increment between the advance and the load, so only the load is cross-jumped.
 A surviving tail duplicate that is only partly merged shows where an extra
 statement stood in the original arm.
+## `bgez a0; move v1,a0; addiu v1,a0,3` - the dividend is read again after the `/ 4`, so write the division at every use (func_shelter_b2_septic_tank_8017FD70, 2026-09-26)
+
+Symptom: a signed `/ 4` whose bias add reads the *dividend* into a separate
+temp (`move v1,a0` in the delay slot, `addiu v1,a0,3`), although the dividend
+is dead afterwards. A single `vbase = (row / 4) * 0x38;` reused for the V
+coordinates gives `bgez v0; addiu v0,v0,3` instead (the temp coalesces into
+the dividend), and it also lets sched1 sink the U-coordinate stores below the
+next statement. The tree held it with `SOFT_USE_REG(row)` after the division
+and three `SOFT_BARRIER()`s between the UV stores.
+
+Fix: spell the texture coordinates out per corner, recomputing from the two
+`s16` cells each time:
+
+```c
+col      = arg1 % 4;
+prim->u0 = col * 0x38;
+row      = arg1 % 8;
+prim->v0 = row / 4 * 0x38 + 0x70;
+prim->u1 = col * 0x38 + 0x37;
+prim->v1 = row / 4 * 0x38 + 0x70;
+...
+prim->v3 = row / 4 * 0x38 + 0xA7;
+```
+
+CSE folds the repeats to one quotient, but `row`'s last mention (before CSE)
+is now the final `v3`, so it stays the canonical register of the
+`t = row` copy that `expand_divmod` makes, and `t += 3` becomes `row + 3` into
+the temp. That is exactly what the `SOFT_USE_REG` imitated. The barriers were
+only there to hold the store order, and the per-corner form matches it with
+no help.
+
+Still open in the same function: the stores for `vec.vy`/`vec.vz`, `gte_ldv0`
+and the flag load go through a short-lived copy (`move v1,t1`) of the block
+pointer, while the carve `t1` is stored to the head and used in the `if`
+body. CSE turns every reader of a plain `p = block` copy into `block` (the
+older register), and it cannot keep `p` as canonical without giving it the
+`if` body too. So two `SOFT_TOUCH_REG*` lines still keep the copy opaque.
+Helpers, the compound push, a nested push and every ordering of
+`p`/`block`/`*scratch` fell short.
