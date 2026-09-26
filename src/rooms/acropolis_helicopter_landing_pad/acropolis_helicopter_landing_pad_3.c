@@ -5,6 +5,7 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include <psyq/abs.h>
 
 #include "gameplay/1A8.h"
 #include "gameplay/268.h"
@@ -1097,32 +1098,18 @@ static s32 func_acropolis_helicopter_landing_pad_801819C0(GpCoord* coord, GpRec1
 /// while `gGameSession->viewReady` is 1.
 static s32 func_acropolis_helicopter_landing_pad_80181B64(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
-    void**                  scratch;
-    void**                  tail;
-    u8*                     head;
     OverlayBisectorScratch* st;
-    u16                     vz;
-    s16                     d;
-    s16                     dz;
-    s32                     t;
     s32                     hit;
 
     if (gGameSession->viewReady == 1) {
         return 0;
     }
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    {
-        register u8* tmp asm("v0");
-        tmp = head - sizeof(OverlayBisectorScratch);
-        st  = (OverlayBisectorScratch*)tmp;
-    }
+    SCRATCH_PUSH(OverlayBisectorScratch);
+    st         = SCRATCH_HEAD(OverlayBisectorScratch);
     st->eye.vx = (u16)coord->coord.t[0];
     st->eye.vy = (u16)coord->coord.t[1];
-    vz         = (u16)coord->coord.t[2];
-    *scratch   = st;
-    st->eye.vz = vz;
+    st->eye.vz = (u16)coord->coord.t[2];
 
     overlayToWorld(coord->sub, &st->eye);
 
@@ -1143,31 +1130,15 @@ static s32 func_acropolis_helicopter_landing_pad_80181B64(GpCoord* coord, GpRec1
         } else {
             st->delta.vx     = (u16)recs[st->i].point.vx - (u16)st->eye.vx;
             st->delta.vy     = (u16)recs[st->i].point.vy - (u16)st->eye.vy;
-            dz               = (u16)recs[st->i].point.vz - (u16)st->eye.vz;
-            st->delta.vz     = dz;
-            st->angle[st->i] = ratan2(st->delta.vx, dz);
+            st->delta.vz     = (u16)recs[st->i].point.vz - (u16)st->eye.vz;
+            st->angle[st->i] = ratan2(st->delta.vx, st->delta.vz);
 
             st->delta.vx     = (u16)st->aim.vx - (u16)st->eye.vx;
             st->delta.vy     = (u16)st->aim.vy - (u16)st->eye.vy;
-            dz               = (u16)st->aim.vz - (u16)st->eye.vz;
-            st->delta.vz     = dz;
-            st->angle[st->i] = (u16)st->angle[st->i] - ratan2(st->delta.vx, dz);
+            st->delta.vz     = (u16)st->aim.vz - (u16)st->eye.vz;
+            st->angle[st->i] = (u16)st->angle[st->i] - ratan2(st->delta.vx, st->delta.vz);
 
-            d = st->angle[st->i];
-            if (st->angle[st->i] < 0) {
-            wrapUp1:
-                if (d < -0x800) {
-                    d += 0x1000;
-                    goto wrapUp1;
-                }
-            } else {
-            wrapDown1:
-                if (d > 0x800) {
-                    d -= 0x1000;
-                    goto wrapDown1;
-                }
-            }
-            st->angle[st->i] = d;
+            st->angle[st->i] = overlayWrapAngle(st->angle[st->i]);
         }
     }
 
@@ -1188,27 +1159,8 @@ static s32 func_acropolis_helicopter_landing_pad_80181B64(GpCoord* coord, GpRec1
             }
             if (st->angle[st->j] != 0x7FFE) {
                 st->diff = (u16)st->angle[st->j] - (u16)st->angle[st->i];
-                d        = st->diff;
-                if (st->diff < 0) {
-                wrapUp2:
-                    if (d < -0x800) {
-                        d += 0x1000;
-                        goto wrapUp2;
-                    }
-                } else {
-                wrapDown2:
-                    if (d > 0x800) {
-                        d -= 0x1000;
-                        goto wrapDown2;
-                    }
-                }
-                t        = d;
-                st->diff = t;
-                SOFT_BARRIER();
-                if (t < 0) {
-                    t = -t;
-                }
-                if (t >= 0x401) {
+                st->diff = overlayWrapAngle(st->diff);
+                if (abs(st->diff) > 0x400) {
                     break;
                 }
                 if (st->angle[st->j] != 0x7FFE) {
@@ -1233,9 +1185,8 @@ static s32 func_acropolis_helicopter_landing_pad_80181B64(GpCoord* coord, GpRec1
         }
     }
 
-    tail = (void**)G_SCRATCH_HEAD;
-    hit  = st->hit;
-    SCRATCH_POP_BYTES_AT(tail, sizeof(OverlayBisectorScratch));
+    hit = st->hit;
+    SCRATCH_POP(OverlayBisectorScratch);
     return hit;
 }
 
