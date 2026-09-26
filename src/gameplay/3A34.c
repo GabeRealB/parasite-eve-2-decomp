@@ -2330,21 +2330,12 @@ void Gp_DrawTargetCursor(void)
 {
     GpLinkNode*    node;
     GameSession*   sess;
-    u8             stateA;
-    void**         scratch;
-    u8*            head;
     _GpPanScratch* block;
     POLY_FT4*      prim;
-    DisplayState*  ds;
-    register s32   small asm("s4");
+    s32            easing;
     s32            frame;
-    s32            tu;
-    s32            tv;
-    s32            u0;
-    s32            u1;
-    u32            mask;
-    s32            val;
-    s32            n;
+    s32            u;
+    s32            v;
 
     node = Gp_LinkList;
     if (Pad_RemapState->field_A != 0) {
@@ -2355,11 +2346,10 @@ void Gp_DrawTargetCursor(void)
     if (sess->field_65 == 1) {
         return;
     }
-    stateA = (u8)Gp_StateC08.field_A;
-    if ((u8)(stateA - 2) < 2) {
+    if (Gp_StateC08.field_A == 2 || Gp_StateC08.field_A == 3) {
         return;
     }
-    if ((s8)stateA == 1) {
+    if (Gp_StateC08.field_A == 1) {
         return;
     }
     if (sess->eventState != 0) {
@@ -2368,35 +2358,17 @@ void Gp_DrawTargetCursor(void)
     if (sess->hideHud != 0) {
         return;
     }
-    if (node != NULL) {
-        scratch = SCRATCH_HEAD_ADDR;
-        do {
-            if (node->state.b.targeted == 0) {
-                goto next;
-            }
-            if (node->state.b.flags & 1) {
-                goto next;
-            }
-            head                                    = SCRATCH_HEAD_AT(scratch, u8);
-            ((_GpPanScratch*)(head - 0x18))->vec.vx = (u16)GP_NODE_ENEMY(node)->bodyPos.vx;
-            {
-                register u8* tmp asm("v0");
-                tmp   = head - 0x18;
-                block = (_GpPanScratch*)tmp;
-            }
-            block->vec.vy                           = (u16)GP_NODE_ENEMY(node)->bodyPos.vy;
-            block->vec.vz                           = (u16)GP_NODE_ENEMY(node)->bodyPos.vz;
-            SCRATCH_HEAD_AT(scratch, _GpPanScratch) = block;
+    for (; node != NULL; node = node->next) {
+        if (node->state.b.targeted != 0 && !(node->state.b.flags & 1)) {
+            easing        = 0;
+            block         = SCRATCH_PUSH(_GpPanScratch);
+            block->vec.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
+            block->vec.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
+            block->vec.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
             Gp_UpdateCoord(GP_NODE_ENEMY(node)->coord);
-            small = 0;
             gte_SetRotMatrix(&GP_NODE_ENEMY(node)->coord->workm);
             gte_SetTransMatrix(&GP_NODE_ENEMY(node)->coord->workm);
-            gte_ldv0(&block->vec);
-            gte_rtps();
-            gte_stsxy(&((_GpPanScratch*)(head - 0x18))->sx);
-            gte_stdp(&((_GpPanScratch*)(head - 0x18))->dp);
-            gte_stflg(&((_GpPanScratch*)(head - 0x18))->flag);
-            gte_stszotz(&((_GpPanScratch*)(head - 0x18))->otz);
+            gte_RotTransPers(&block->vec, &block->sx, &block->dp, &block->flag, &block->otz);
             if (D_80115260 != node) {
                 if (D_80115260 == NULL) {
                     D_80115264 = 0xFF;
@@ -2408,86 +2380,44 @@ void Gp_DrawTargetCursor(void)
             if (D_80115264 < 5) {
                 D_8010F9EC += ((block->sx << 8) - D_8010F9EC) >> 1;
                 D_8010F9F0 += ((block->sy << 8) - D_8010F9F0) >> 1;
-                if (block->sx != (D_8010F9EC >> 8)) {
-                    goto inc;
+                if (block->sx == (D_8010F9EC >> 8) && block->sy == (D_8010F9F0 >> 8)) {
+                    D_80115264 = 0xFF;
+                } else {
+                    D_80115264++;
                 }
-                if (block->sy == (D_8010F9F0 >> 8)) {
-                    val = 0xFF;
-                    goto store;
-                }
-            inc:
-                val = D_80115264 + 1;
-            store:
-                D_80115264 = val;
-                __asm__ volatile("" : : "m"(D_80115264));
-                small     = 1;
+                easing    = 1;
                 block->sx = D_8010F9EC >> 8;
                 block->sy = D_8010F9F0 >> 8;
             } else {
                 D_8010F9EC = block->sx << 8;
                 D_8010F9F0 = block->sy << 8;
             }
-            ds              = &gDisplayState;
-            (u16) block->sy = (u16)block->sy - (s8)(u8)ds->vramYOffset;
-            n               = ds->animFrame;
-            n               = (u32)n % 24U;
-            frame           = (u32)n / 3U;
-            prim            = (POLY_FT4*)gGpuPrimCursor;
-            gGpuPrimCursor  = prim + 1;
-            if (small == 1) {
-                prim->x0 = prim->x2 = (u16)block->sx - 8;
-                prim->x1 = prim->x3 = (u16)block->sx + 8;
-                prim->y0 = prim->y1 = (u16)block->sy - 8;
-                prim->y2 = prim->y3 = (u16)block->sy + 8;
+            block->sy     -= gDisplayState.vramYOffset;
+            frame          = gDisplayState.animFrame % 24 / 3;
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            if (easing == 1) {
+                prim->x0 = prim->x2 = block->sx - 8;
+                prim->x1 = prim->x3 = block->sx + 8;
+                prim->y0 = prim->y1 = block->sy - 8;
+                prim->y2 = prim->y3 = block->sy + 8;
             } else {
-                prim->x0 = prim->x2 = (u16)block->sx - 0x10;
-                prim->x1 = prim->x3 = (u16)block->sx + 0x10;
-                prim->y0 = prim->y1 = (u16)block->sy - 0x10;
-                prim->y2 = prim->y3 = (u16)block->sy + 0x10;
+                prim->x0 = prim->x2 = block->sx - 0x10;
+                prim->x1 = prim->x3 = block->sx + 0x10;
+                prim->y0 = prim->y1 = block->sy - 0x10;
+                prim->y2 = prim->y3 = block->sy + 0x10;
             }
-            mask = 0xFFFFFF;
-            tu   = (frame & 3) << 5;
-            u0   = tu + 0x40;
-            TOUCH_REG4(tu, u0, frame, mask);
-            tv = (frame >> 2) << 5;
-            u1 = tu + 0x60;
-            TOUCH_REG2(tv, u1);
-            prim->v0    = tv;
-            prim->v1    = tv;
-            prim->v2    = tv + 0x20;
-            prim->v3    = tv + 0x20;
+            u = (frame & 3) << 5;
+            v = (frame >> 2) << 5;
+            setUV4(prim, u + 0x40, v, u + 0x60, v, u + 0x40, v + 0x20, u + 0x60, v + 0x20);
             prim->clut  = 0x3C81;
             prim->tpage = 0x3E;
             setlen(prim, 9);
             setcode(prim, 0x2F);
-            prim->u0 = u0;
-            prim->u1 = u1;
-            prim->u2 = u0;
-            prim->u3 = u1;
-            {
-                register u32 hi asm("a1");
-                u32*         otp;
-                u32*         pp;
-                u32          paddr;
-                u32          t0;
-                register u32 t1 asm("v1");
-                otp            = (u32*)gGpuCurrentOt;
-                hi             = 0xFF000000;
-                pp             = (u32*)prim;
-                *pp            = (*pp & hi) | (*otp & mask);
-                paddr          = (u32)prim & mask;
-                t0             = *(u32*)scratch;
-                t1             = *otp;
-                t0            += 0x18;
-                t1             = t1 & hi;
-                t1             = t1 | paddr;
-                *(u32*)scratch = t0;
-                *otp           = t1;
-            }
+            addPrim(gGpuCurrentOt, prim);
+            SCRATCH_POP(_GpPanScratch);
             break;
-        next:
-            node = node->next;
-        } while (node != NULL);
+        }
     }
     if (node == NULL) {
         D_80115260 = NULL;
