@@ -2136,23 +2136,10 @@ static void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     SVECTOR*    vec;
     GpLinkNode* node;
     GpEnemy*    enemy;
-    GpEnemy*    claim;
-    s32         rx2;
-    s32         ry2;
-    s32         temp_y;
-    s32         temp_x;
-    s32         idx;
     u16         val;
-    s32         packed;
-    s32         tmp;
-    s32         t;
-    s32         x;
-    s32         y;
-    s32         x2;
-    s32         y2;
-    s32         z2;
-    s32         scaled;
-    u8*         head;
+    s32         idx;
+    s32         ry2;
+    s32         rx2;
 
     if (arg0 == 0) {
         if (arg3 == 0) {
@@ -2162,77 +2149,49 @@ static void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         }
     }
 
-    arg2  += 0x64;
-    temp_y = arg2 * arg2;
-    arg1  += 0x64;
-    temp_x = arg1 * arg1;
-
-    head             = SCRATCH_HEAD(u8);
-    node             = Gp_LinkList;
-    head            -= 8;
-    SCRATCH_HEAD(u8) = head;
-    vec              = (SVECTOR*)head;
-    ry2              = temp_y >> 8;
-    rx2              = temp_x >> 8;
+    arg2 += 0x64;
+    arg1 += 0x64;
+    ry2   = (arg2 * arg2) >> 8;
+    rx2   = (arg1 * arg1) >> 8;
+    node  = Gp_LinkList;
+    SCRATCH_PUSH(SVECTOR);
+    vec = SCRATCH_HEAD(SVECTOR);
 
     if (node != NULL) {
         do {
             if ((node->state.word & 5) != 1) {
-                vec->vx = (u16)GP_NODE_ENEMY(node)->playerRelPos.vx;
-                vec->vy = (u16)GP_NODE_ENEMY(node)->playerRelPos.vy;
-                vec->vz = (u16)GP_NODE_ENEMY(node)->playerRelPos.vz;
+                vec->vx = GP_NODE_ENEMY(node)->playerRelPos.vx;
+                vec->vy = GP_NODE_ENEMY(node)->playerRelPos.vy;
+                vec->vz = GP_NODE_ENEMY(node)->playerRelPos.vz;
                 if (arg3 != 0) {
                     vec->vz -= arg1;
                 }
-                t = vec->vy;
-                if (t >= -arg2 && t < 0x65) {
-                    tmp    = (u16)vec->vx;
-                    packed = tmp << 16;
-                    t      = packed >> 16;
-                    if (t >= -arg1 && !(arg1 < t)) {
-                        t = vec->vz;
-                        if (t >= -arg1 && !(arg1 < t)) {
-                            scaled  = packed >> 20;
-                            vec->vx = scaled;
-                            asm volatile("" ::"r"(packed), "r"(scaled) : "memory");
-                            x       = vec->vx;
-                            x2      = x * x;
-                            t       = (u16)vec->vz;
-                            t     <<= 16;
-                            t     >>= 20;
-                            z2      = t * t;
-                            vec->vy = ((u16)vec->vy << 16) >> 20;
-                            COMPILER_BARRIER();
-                            y       = vec->vy;
-                            y2      = y * y;
-                            vec->vz = t;
-                            if ((u32)(ry2 * (x2 + z2) + rx2 * y2) <= (u32)(ry2 * rx2)) {
-                                goto apply;
-                            }
+                if (vec->vy >= -arg2 && vec->vy < 0x65 && vec->vx >= -arg1 && vec->vx <= arg1 && vec->vz >= -arg1 &&
+                    vec->vz <= arg1) {
+                    vec->vx >>= 4;
+                    vec->vy >>= 4;
+                    vec->vz >>= 4;
+                    if ((u32)(ry2 * (vec->vx * vec->vx + vec->vz * vec->vz) + rx2 * (vec->vy * vec->vy)) <=
+                        (u32)(ry2 * rx2)) {
+                        enemy = GP_NODE_ENEMY(node);
+                        if (arg0 == 0) {
+                            enemy->colorMode |= 0x80;
+                        } else {
+                            val  = Gp_StateC08.field_0;
+                            idx  = (val / 100U - 1) * 9;
+                            idx += ((val % 100U) / 10U - 1) * 3;
+                            idx += val % 10U;
+                            idx += 0x28000;
+                            Gp_ClaimSlot18(enemy, idx);
                         }
                     }
                 }
-                goto next_node;
-            apply:;
-                enemy = GP_NODE_ENEMY(node);
-                claim = enemy;
-                if (arg0 == 0) {
-                    enemy->colorMode |= 0x80;
-                } else {
-                    val  = Gp_StateC08.field_0;
-                    idx  = (val / 100U - 1) * 9;
-                    idx += ((val % 100U) / 10U - 1) * 3;
-                    idx += val % 10U;
-                    idx += 0x28000;
-                    Gp_ClaimSlot18(claim, idx);
-                }
             }
-        next_node:
             node = node->next;
         } while (node != NULL);
     }
 
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_POP(SVECTOR);
 }
 
 static void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
