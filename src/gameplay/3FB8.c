@@ -4776,35 +4776,23 @@ s32 func_80103DD4(VECTOR3* arg0, VECTOR3* arg1)
 
 s16 func_80103E7C(s16 arg0, s16 arg1)
 {
-    u8*             head;
-    GpAngleScratch* block;
-    register s32    tmp asm("v0");
-    s32             delta;
-    u16             ret;
+    void**          head = SCRATCH_HEAD_ADDR;
+    GpAngleScratch* d;
 
-    head  = SCRATCH_HEAD(u8);
-    delta = arg1 - arg0;
-    tmp   = (s32)(head - 0xC);
-    block = (GpAngleScratch*)tmp;
-    TOUCH_REG_USE(block, tmp);
-    ((GpAngleScratch*)(head - 0xC))->field_0 = delta;
-    delta                                   += 0x1000;
-    block->field_4                           = delta;
-    tmp                                      = ((GpAngleScratch*)(head - 0xC))->field_0;
-    SCRATCH_HEAD(GpAngleScratch)             = block;
-    delta                                    = tmp - 0x1000;
-    block->field_8                           = delta;
-    if (ABS(((GpAngleScratch*)(head - 0xC))->field_0) < ABS(block->field_4) &&
-        ABS(((GpAngleScratch*)(head - 0xC))->field_0) < ABS(delta)) {
-        ret = ((GpAngleScratch*)(head - 0xC))->field_0;
-    } else if (ABS(block->field_4) < ABS(block->field_8)) {
-        ret = block->field_4;
+    SCRATCH_PUSH_AT(head, GpAngleScratch);
+    d          = SCRATCH_HEAD_AT(head, GpAngleScratch);
+    d->field_0 = arg1 - arg0;
+    d->field_4 = d->field_0 + 0x1000;
+    d->field_8 = d->field_0 - 0x1000;
+    if (ABS(d->field_0) < ABS(d->field_4) && ABS(d->field_0) < ABS(d->field_8)) {
+        arg0 = d->field_0;
+    } else if (ABS(d->field_4) < ABS(d->field_8)) {
+        arg0 = d->field_4;
     } else {
-        ret = block->field_8;
+        arg0 = d->field_8;
     }
-    tmp = (s32)SCRATCH_HEAD_ADDR;
-    SCRATCH_POP_BYTES_AT(tmp, 0xC);
-    return ret;
+    SCRATCH_POP(GpAngleScratch);
+    return arg0;
 }
 
 void Gp_TrackLockTarget(Task* arg0)

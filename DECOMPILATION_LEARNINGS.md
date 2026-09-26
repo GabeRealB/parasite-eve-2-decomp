@@ -44346,6 +44346,18 @@ static __inline__ void update_actor_color(Actor01600Ctx* ctx, GsCOORDINATE2* att
 rematerialises the address. Neither `volatile` on the pointed-to type nor a
 `COMPILER_BARRIER()` between the accesses stops the `cse` merge.
 
+The reverse holds too: the same source compiles to two different shapes
+depending on whether it is inlined. `func_80103E7C` is an out-of-line copy of
+the `_gpShortestTurn` helper, and its target holds the head address in a
+register (`lui/ori v1` shared by the push's load and store, then a fresh
+`lui/ori` for the pop). Inlining the helper there gives the per-access form
+instead (79%), and so does changing the helper. The standalone body matches
+unpinned when the push goes through a local and the pop does not:
+`void** head = SCRATCH_HEAD_ADDR; SCRATCH_PUSH_AT(head, T); d = SCRATCH_HEAD_AT(head, T);`
+… `SCRATCH_POP(T);`. So when an inline helper and a standalone function share
+a body but differ only in how the head address is formed, treat that as the
+inline boundary at work, not as evidence of a different source.
+
 ## One `move $a0, $s2` shared by both arms of an if/else
 
 When both arms of an `if`/`else` call a function with the same first argument,
