@@ -2978,36 +2978,25 @@ void Gp_DrawEffSprite7C(GpCoord* arg0, s32 arg1, u32 arg2)
 
 void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade)
 {
-    register u8*      head asm("v1");
-    GpQuadScratch*    block;
-    register SVECTOR* v asm("a2");
-    s32               i;
-    GpQuadCorner*     tbl;
-    POLY_FT4*         prim;
+    GpQuadScratch* block;
+    s32            i;
+    POLY_FT4*      prim;
 
     if (shade >= 0 && Gp_State1C->eventState < 2) {
-        head             = SCRATCH_HEAD(u8) - 0x38;
-        block            = (GpQuadScratch*)head;
-        SCRATCH_HEAD(u8) = head;
+        block = SCRATCH_PUSH(GpQuadScratch);
         gte_SetTransMatrix(&GsWSMATRIX);
-        i   = 0;
-        v   = block->vec;
-        tbl = D_80111E38;
-        do {
-            v->vx = tbl->x * size;
-            v->vy = 0;
-            v->vz = tbl->y * size;
+        for (i = 0; i < 4; i++) {
+            block->vec[i].vx = D_80111E38[i].x * size;
+            block->vec[i].vy = 0;
+            block->vec[i].vz = D_80111E38[i].y * size;
             gte_SetRotMatrix(&gGfxViewCoord.workm);
-            gte_ldv0(v);
+            gte_ldv0(&block->vec[i]);
             gte_rtv0();
-            gte_stsv(v);
-            (u16) v->vx = (u16)v->vx + (u16)pos->vx;
-            tbl++;
-            (u16) v->vy = (u16)v->vy + (u16)pos->vy;
-            i++;
-            (u16) v->vz = (u16)v->vz + (u16)pos->vz;
-            v++;
-        } while (i < 4);
+            gte_stsv(&block->vec[i]);
+            block->vec[i].vx += pos->vx;
+            block->vec[i].vy += pos->vy;
+            block->vec[i].vz += pos->vz;
+        }
 
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec[0]);
