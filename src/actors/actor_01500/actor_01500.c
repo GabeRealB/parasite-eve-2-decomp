@@ -1469,7 +1469,7 @@ static void Actor01500_Fn028B0(Task* actor)
 /// Animation tick. When the pose the actor asks for differs from the one its
 /// slots were last queued for, every slot is re-seeded from the per-state
 /// animation id table and the frame counter is cleared; while the two agree
-/// each slot is ticked and the frame counter accumulates the slot index.
+/// each slot is ticked and the frame counter advances by one.
 static void Actor01500_Fn02958(Task* arg0)
 {
     Actor101500Work* work;
@@ -1477,21 +1477,18 @@ static void Actor01500_Fn02958(Task* arg0)
     s32              value;
 
     work = arg0->work;
-    i    = 1;
     if ((s16)work->field_352 != work->field_354) {
         work->field_354 = work->field_352;
         work->field_356 = 0;
         value           = Actor01500_D0A050[(s16)work->field_352];
-        for (; i < 7; i++) {
+        for (i = 1; i < 7; i++) {
             func_800B4114(work, i, (s16)work->field_352, 0, value);
         }
     } else {
-        TOUCH_REG(i);
-        work->field_356 += i;
-        do {
+        work->field_356++;
+        for (i = 1; i < 7; i++) {
             Gp_AnimTickIndex((GpAnimCtx*)work, i);
-            i++;
-        } while (i < 7);
+        }
     }
 }
 
