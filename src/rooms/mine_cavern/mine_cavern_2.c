@@ -2171,11 +2171,8 @@ static void func_mine_cavern_80183890(GpEnemy* enemy, Task* task)
 }
 
 /// The two cue lines `func_mine_cavern_801838F4` prints on its first two ticks.
-/// The section attribute is load-bearing: at 8 bytes these fall under the
-/// compiler's small-data threshold and would otherwise be emitted into
-/// `.sdata`, which the linker script does not lay out.
-const char D_mine_cavern_8017D7E8[8] __attribute__((section(".rodata"))) = "BOMB1\n";
-const char D_mine_cavern_8017D7F0[8] __attribute__((section(".rodata"))) = "BOMB2\n";
+static const char D_mine_cavern_8017D7E8[] = "BOMB1\n";
+static const char D_mine_cavern_8017D7F0[] = "BOMB2\n";
 
 /// The cavern enemy's state handlers, run by `func_mine_cavern_80183A68`.
 static const GpEnemyTaskFuncTable5 D_mine_cavern_8017D7F8 = {
