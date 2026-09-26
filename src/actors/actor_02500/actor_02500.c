@@ -677,16 +677,14 @@ void Actor02500_Fn01144(Task* actor)
 void Actor02500_Fn012F0(Task* actor)
 {
     TmdObject*            obj;
-    TmdObject*            loadedObj;
     Actor02500Work*       work;
     GpCoord*              coord;
     s16                   timer2;
     s16                   timer3;
     s16                   timer4;
     s16                   effectTimer;
-    s16                   state;
     s32                   sound;
-    s32                   radius;
+    s32                   dist;
     s32                   dx;
     s32                   dz;
     s32                   index;
@@ -696,14 +694,11 @@ void Actor02500_Fn012F0(Task* actor)
     ActorFaceScratch*     scratch;
     Actor02500OffsetPair* pair;
 
-    scratch   = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
-    loadedObj = actor->extra.tmd;
-    __asm__("" : "+r"(loadedObj) : : "v0");
-    work = actor->work;
-    __asm__ volatile("addu %0,%1,$0" : "=r"(obj) : "r"(loadedObj), "r"(work));
-    state = work->field_324;
-    coord = obj->coords;
-    switch (state) {
+    coord   = actor->extra.tmd->coords;
+    obj     = actor->extra.tmd;
+    work    = actor->work;
+    scratch = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
+    switch (work->field_324) {
         case 0:
             obj->flags                                       = 0x80;
             ((GpEnemy*)actor->spawnArg2)->node.state.b.flags = 1;
@@ -712,7 +707,8 @@ void Actor02500_Fn012F0(Task* actor)
             scratch->delta.vx                                = dx;
             dz                                               = Player_Status.coordMtx->t[2] - work->field_318;
             scratch->delta.vz                                = dz;
-            if (SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0 || Gp_StateF0.field_21 != 0 || Gp_StateF0.field_8 != 0) {
+            dist                                             = SquareRoot0((dx * dx) + (dz * dz));
+            if (dist < 0x7D0 || Gp_StateF0.field_21 != 0 || Gp_StateF0.field_8 != 0) {
                 Gp_StateF0.field_21 = 1;
                 work->field_324     = 2;
                 work->field_32E     = ((u16)((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) * 0xA;
@@ -774,17 +770,15 @@ void Actor02500_Fn012F0(Task* actor)
         if (!(effectTimer & 3)) {
             random      = (Gp_LcgState * 5) + 0x71357911;
             i           = 0;
-            radius      = ((random >> 0x10) & 0x3F) + 0x12C;
-            Gp_LcgState = (s32)random;
+            dist        = ((random >> 0x10) & 0x3F) + 0x12C;
+            Gp_LcgState = random;
             index       = (((u16)work->field_330 >> 2) ^ 1) & 1;
             for (; i < 4; i++) {
-                pair            = &Actor02500_D05BE8[index];
-                scratch->rot.vx = (s16)((s32)(pair->x * radius) >> 0xC);
+                pair            = &Actor02500_D05BE8[index + i * 2];
+                scratch->rot.vx = (pair->x * dist) >> 0xC;
                 scratch->rot.vy = 0;
-                scratch->rot.vz = (s16)((s32)(pair->z * radius) >> 0xC);
+                scratch->rot.vz = (pair->z * dist) >> 0xC;
                 Gp_SpawnEff(0x60054, actor->extra.tmd->coords, 0x80002400, &scratch->rot);
-                index += 2;
-                SOFT_TOUCH_REG_USE(index, radius);
             }
         }
     }

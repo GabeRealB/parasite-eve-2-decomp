@@ -142626,3 +142626,23 @@ variable (`addiu v1,a1,0xc`, `lhu -0x6(v1)`). Plain indexing,
 single stepped pointer per matrix without help, and `&block->col0` for the GTE
 operand folds to the old head minus 0x10 on its own once the block is taken
 with `SCRATCH_PUSH`.
+
+## A table walked with a stepped index keeps `sll`/`addu` per iteration only as `T[base + i * 2]`; a one-ref priority gap is a reused local (Actor02500_Fn012F0, 2026-09-26)
+
+Target loop: the table base hoisted into `$sN`, and every iteration recomputing
+`sll v1,s0,2; addu v1,v1,s6` from a register that steps by 2, beside a separate
+counter compared against 4. Writing the step as its own variable
+(`pair = &T[index]; ... index += 2;`) makes `index` a biv, and `loop.c`
+strength-reduces the address into a walking pointer (`addiu s0,s0,8`); the old
+match stopped that with `SOFT_TOUCH_REG_USE(index, radius)`. Indexing from the
+counter, `pair = &T[index + i * 2]`, gives the target: `index + i * 2` is the
+reduced giv (the register stepping by 2) and the address giv is left alone.
+
+The same touch also paid for an allocation. Without it the counter and the
+radius were at `3589` against `3571` in `allocno_compare` (7 refs / 39 insns vs
+5 / 28), one reference apart. Using the radius variable for the earlier
+`SquareRoot0` distance test as well (`dist = SquareRoot0(...); if (dist < 0x7D0
+...)`) adds two refs and a two-insn range, and the order flips with no change to
+the code. When a touch's only job is extra refs on a value, look for an earlier,
+short-lived value of the same kind that the original may have kept in the same
+local.
