@@ -529,23 +529,16 @@ extern FsImgBuffers* Fs_ImgBuffers;
 
 // Still-unlabeled FS bss (same segment; keep address names until understood)
 /// Per-slot image-load status bytes (indexed by `D5B498_8006ADF4`).
-extern u8    D_8006C4C8[0xC];
-extern s16   Fs_BootLoadSlot;
-extern u16   Fs_BootLoadPhase;
-extern u16   D5B498_8006AC9C;
-extern u8    D_8006AC9E;
-extern u8    D_8006AC9F;
-extern s16   D_8006ACA0;
-extern s16   D_8006ACA2;
-extern s16   D_8006ACA4;
-extern s16   D_8006ACA6;
-extern s16   D_8006ACA8;
-extern void* Fs_BootTimSecondary;
-extern void* Fs_BootTimPrimary;
-// Fade/clear color; written as halfword, often re-read as byte for TILE RGB.
-extern volatile s16 D_8006ACB4;
+extern u8 D_8006C4C8[0xC];
+#ifndef BOOTLOAD_C
+extern s16          Fs_BootLoadSlot;
+extern u16          Fs_BootLoadPhase;
+extern u16          D5B498_8006AC9C;
+extern void*        Fs_BootTimSecondary;
+extern void*        Fs_BootTimPrimary;
 extern FsLoadParams Fs_LoadParams;
 extern s16          D5B498_8006ACC0;
+#endif
 extern u8           D5B498_8006ACC8;
 extern u16          D5B498_8006ACD4;
 extern FsWorkEntry  Fs_WorkEntries[0x1F];

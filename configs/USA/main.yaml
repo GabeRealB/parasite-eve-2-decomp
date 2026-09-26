@@ -512,7 +512,8 @@ segments:
       - [0x5b470, o, libcd/c_004, .bss]
       - [0x5b480, o, libcd/c_005, .bss] # StFunc1, StFunc2
       - [0x5b488, o, libcd/c_011, .bss]
-      - { start: 0x5b498, type: bss, name: fs, vram: 0x8006AC98, bss_size: 0x3F68 } # Fs_* tables / sector buf
+      - { start: 0x5b498, type: .bss, name: bootload, vram: 0x8006AC98 }
+      - { start: 0x5b4c8, type: bss, name: fs, vram: 0x8006ACC8, bss_size: 0x3F38 } # Fs_* tables / sector buf
       - [0x5f400, o, libspu/spu, .bss] # _spu_RQ
       - { start: 0x5f418, type: bss, name: "5F418", vram: 0x8006EC18, bss_size: 0x2500 } # OT / GPU buffers
       - [0x61918, o, libgs/gs_123, .bss] # GsIDMATRIX, GsWSMATRIX, GsWSMATRIX_ORG, GsIDMATRIX2

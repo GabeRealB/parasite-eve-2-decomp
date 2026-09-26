@@ -1,11 +1,32 @@
 #include "common.h"
 
+#define BOOTLOAD_C
+
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/mem.h"
 #include "main/text.h"
+
+s16        Fs_BootLoadSlot;
+u16        Fs_BootLoadPhase;
+u16        D5B498_8006AC9C;
+static u8  D_8006AC9E;
+static u8  D_8006AC9F;
+static s16 D_8006ACA0;
+static s16 D_8006ACA2;
+static s16 D_8006ACA4;
+static s16 D_8006ACA6;
+static s16 D_8006ACA8;
+void*      Fs_BootTimSecondary;
+void*      Fs_BootTimPrimary;
+// Fade/clear color; written as halfword, often re-read as byte for TILE RGB.
+static volatile s16 D_8006ACB4;
+FsLoadParams        Fs_LoadParams;
+/// Unreferenced.
+static s32 D_8006ACBC;
+s16        D5B498_8006ACC0;
 
 static s32 Fade_StepIn(s32 arg0)
 {
