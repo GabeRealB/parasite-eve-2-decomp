@@ -1620,53 +1620,34 @@ static s16 Gp_CapTextHeight(u16* arg0)
 
 static s16 Gp_CapTextTopY(u16* arg0)
 {
-    s32                 lineH;
-    s32                 total;
-    s32                 i;
-    s32                 seenBreak;
-    u16                 code;
-    s32                 shifted;
-    register s32        next asm("v1");
-    volatile GlyphUvwh* glyph;
-    register s32        v0tmp asm("v0");
+    s16  lineH     = 0;
+    s16  total     = 0;
+    s16  i         = 0;
+    s16  seenBreak = 0;
+    u16* text      = arg0;
+    s16  code      = text[0];
 
-    lineH     = 0;
-    total     = lineH;
-    i         = lineH;
-    code      = arg0[0];
-    shifted   = code << 16;
-    seenBreak = lineH;
-    v0tmp     = -1;
-    if (shifted >> 16 != v0tmp) {
-        do {
-            v0tmp = seenBreak;
-            if (shifted >> 16 == -2) {
-                if (v0tmp != 0) {
-                    if (lineH == 0) {
-                        lineH = 2;
-                    }
-                    total += lineH;
-                } else {
-                    seenBreak = 1;
+    while (code != -1) {
+        if (code == -2) {
+            if (seenBreak) {
+                if (lineH == 0) {
+                    lineH = 2;
                 }
-                lineH = 0;
-            } else if (shifted >> 16 != -3) {
-                if (shifted >> 16 >= 0) {
-                    glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)Gp_CapGlyphs);
-                    if (lineH < glyph->h + 2) {
-                        v0tmp = glyph->h;
-                        lineH = v0tmp + 2;
-                    }
+                total += lineH;
+            } else {
+                seenBreak = 1;
+            }
+            lineH = 0;
+        } else if (code != -3) {
+            if (code >= 0) {
+                if (lineH < Gp_CapGlyphs[code & 0x3FF].h + 2) {
+                    lineH = Gp_CapGlyphs[code & 0x3FF].h + 2;
                 }
             }
-            next    = i + 1;
-            code    = arg0[(s16)next];
-            i       = next;
-            shifted = code << 16;
-            v0tmp   = -1;
-        } while (shifted >> 16 != v0tmp);
+        }
+        code = text[++i];
     }
-    return (s16)(0xD0 - total);
+    return 0xD0 - total;
 }
 
 static s32 func_800E6BB8(u16* arg0)
