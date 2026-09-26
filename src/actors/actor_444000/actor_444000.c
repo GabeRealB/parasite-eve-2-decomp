@@ -6411,6 +6411,29 @@ out:
     SCRATCH_POP_BYTES(sizeof(Actor403200SpawnScratch));
 }
 
+/// Gives `model` the texture page and palette of the third placement in the
+/// current area, and reprocesses its stream when it already has one.
+static inline void _actor444000TintEscort(TmdObject* model)
+{
+    GpAreaKey    key;
+    GpAreaKey*   sessionKey;
+    GpAreaPlace* entry;
+
+    sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+    key.stage  = sessionKey->stage;
+    key.area   = sessionKey->area;
+    key.room   = sessionKey->room;
+    key.view   = sessionKey->view;
+    Gp_SyncAreaKeyIndex(&key);
+    entry        = (GpAreaPlace*)((s32)Gp_GetNestedAreaRec(&key)->field_0 + 0x20);
+    model->tpage = entry->tpage;
+    model->clut  = entry->clut;
+    if (model->buffer != NULL) {
+        tmdProcessStream(model);
+        tmdProcessStream(model);
+    }
+}
+
 /// Runs the arena attack sequence: restores the host and escort models, handles
 /// animation cues and spawns the additional escort, then keeps the host facing
 /// the player's coordinate matrix through the shared drive step.
@@ -6421,19 +6444,12 @@ static void func_actor_444000_80141DFC(Task* arg0)
     Actor403200Work* buffers;
     GpEnemy*         obj;
     GpEnemy*         child;
-    GpAreaKey*       sessionKey;
-    GpAreaRec*       rec;
-    GpAreaPlace*     entry;
     GpCoord*         coord;
     GpCoord*         headCoord;
     TmdObject*       tmd;
     TmdObject*       escortTmd;
-    TmdObject*       model;
     SVECTOR          vec;
     SVECTOR*         v;
-    GpAreaKey        key;
-    GpAreaKey*       keyPtr;
-    u8               areaByte0;
     s16              i;
     s16              j;
     s16              angle;
@@ -6504,25 +6520,7 @@ static void func_actor_444000_80141DFC(Task* arg0)
             child->workType = 0x900;
             work->field_EF0 = child;
             if (child != NULL) {
-                model      = child->task->extra.tmd;
-                sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
-                key.stage  = sessionKey->stage;
-                key.area   = sessionKey->area;
-                key.room   = sessionKey->room;
-                areaByte0  = sessionKey->view;
-                SOFT_BARRIER();
-                keyPtr = &key;
-                TOUCH_REG(keyPtr);
-                key.view = areaByte0;
-                Gp_SyncAreaKeyIndex(keyPtr);
-                rec          = Gp_GetNestedAreaRec(&key);
-                entry        = (GpAreaPlace*)((s32)rec->field_0 + 0x20);
-                model->tpage = entry->tpage;
-                model->clut  = entry->clut;
-                if (model->buffer != NULL) {
-                    tmdProcessStream(model);
-                    tmdProcessStream(model);
-                }
+                _actor444000TintEscort(child->task->extra.tmd);
                 work->field_EFE = 0;
             }
             break;
