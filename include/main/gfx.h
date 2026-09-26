@@ -63,6 +63,7 @@ s32  Gfx_ApplyMatrixNoSf(SVECTOR* arg0, SVECTOR* arg1);
 
 /// Color/light matrix written by Gfx_SetDefaultFlatLight / Gfx_SetLightAmbient.
 extern MATRIX D_80074080;
+#ifndef GAMEMAIN_C
 /// The view rotation: the coordinate `gGfxViewCoord` hangs off, whose `coord`
 /// holds the view's rotation, parented in turn to `Gfx_ViewOffsetCoord`.
 extern GpCoord gGfxViewRotCoord;
@@ -76,6 +77,7 @@ extern GpCoord Gfx_ViewOffsetCoord;
 /// are the two coordinates above it in the chain, which is why its own matrix
 /// holds a translation alone.
 extern GpCoord gGfxViewCoord;
+#endif
 
 /// Two neighbouring elements of a matrix's rotation, `m[r][c]` and the one after
 /// it, written or read as one word; code sets and copies rotations this way.

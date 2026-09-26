@@ -65,7 +65,9 @@ STATIC_ASSERT_SIZEOF(PlayerStatus, 0x80);
 // Globals
 // =============================================================================
 
+#ifndef GAMEMAIN_C
 extern WipSysFlags Wip_SysFlags;
+#endif
 /// A status record laid out like `Player_Status`, directly before it. Code
 /// indexes from it by actor slot and by character id, so index 1 reaches
 /// `Player_Status`; a saved game spawns its character from

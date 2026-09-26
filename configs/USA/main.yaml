@@ -516,7 +516,7 @@ segments:
       - { start: 0x5b4c8, type: .bss, name: fs, vram: 0x8006ACC8 }
       - { start: 0x5f3b8, type: .bss, name: cdvol, vram: 0x8006EBB8, bss_size: 0x48 }
       - [0x5f400, o, libspu/spu, .bss] # _spu_RQ
-      - { start: 0x5f418, type: bss, name: "5F418", vram: 0x8006EC18, bss_size: 0x2500 } # OT / GPU buffers
+      - { start: 0x5f418, type: .bss, name: gamemain, vram: 0x8006EC18, bss_size: 0x2500 }
       - [0x61918, o, libgs/gs_123, .bss] # GsIDMATRIX, GsWSMATRIX, GsWSMATRIX_ORG, GsIDMATRIX2
       - [0x61998, pad]
       - [0x619a8, o, libgte/patchgte, .bss]

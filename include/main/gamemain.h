@@ -26,8 +26,4 @@ extern volatile s32 D_8005EC74;
 extern volatile s32 D_8005EC78;
 extern volatile s32 GameMain_HaltFlags;
 
-/// Immediate-mode TILE / DR_TPAGE scratch for the "now loading" overlay.
-extern TILE     D_8006EC18;
-extern DR_TPAGE D_8006EC28;
-
 #endif // GAMEMAIN_H

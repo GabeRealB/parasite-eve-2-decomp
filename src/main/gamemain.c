@@ -1,5 +1,7 @@
 #include "common.h"
 
+#define GAMEMAIN_C
+
 #include <psyq/libapi.h>
 #include <psyq/libetc.h>
 #include <psyq/inline_c.h>
@@ -32,6 +34,25 @@ static s32   D_8005EC7C         = 0;
 volatile s32 GameMain_HaltFlags = 0;
 /// Unreferenced.
 static u32 D_8005EC84[4] = { 0, 0x01FF03FF, 0, 0 };
+
+/// Immediate-mode TILE / DR_TPAGE scratch for the "now loading" overlay.
+static TILE         D_8006EC18;
+static DR_TPAGE     D_8006EC28;
+volatile u8         D_8006EC30;
+u_long              Gpu_OtTags[2 * GPU_OT_ENTRIES];
+volatile u8         D_80070E38;
+GpCoord             gGfxViewRotCoord;
+GpCoord             Gfx_ViewOffsetCoord;
+u8*                 Gpu_SysPrimCursor;
+GpuOtBuf            Gpu_OtBuffers[2];
+GpCoord             gGfxViewCoord;
+u32                 Gp_LcgState;
+static volatile s32 D_80070F64; // VSync countdown
+DisplayState        gDisplayState;
+u_long*             gGpuCurrentOt;
+WipSysFlags         Wip_SysFlags;
+/// Unreferenced.
+static u8 D_800710C8[0x50];
 
 static void GameMain_Init(void)
 {

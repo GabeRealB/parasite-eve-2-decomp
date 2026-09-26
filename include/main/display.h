@@ -98,6 +98,7 @@ STATIC_ASSERT_SIZEOF(GpuOtBuf, 0x14);
 // Globals
 // =============================================================================
 
+#ifndef GAMEMAIN_C
 /// The one instance of the display pipeline's state.
 ///
 /// It lives in the main executable's BSS and every overlay that draws reaches
@@ -107,8 +108,10 @@ extern DisplayState gDisplayState;
 
 extern u_long   Gpu_OtTags[2 * GPU_OT_ENTRIES];
 extern GpuOtBuf Gpu_OtBuffers[2];
-extern GsOT     Gpu_OrderingTables[2];
+#endif
+extern GsOT Gpu_OrderingTables[2];
 
+#ifndef GAMEMAIN_C
 /// The ordering table the frame being built is linked into.
 ///
 /// Drawing is dispatched as tasks that take no ordering table of their own, so
@@ -116,6 +119,7 @@ extern GsOT     Gpu_OrderingTables[2];
 /// the previous value back afterwards. Primitives are linked at an index from
 /// this base, which is not always the table's own start.
 extern u_long* gGpuCurrentOt;
+#endif
 
 /// The primitive buffer allocation cursor.
 ///
@@ -146,12 +150,15 @@ extern u8* gGpuPrimCursor;
 #define PRIM_RGBC(r, g, b, code) \
     ((u32)(r) | ((u32)(g) << 8) | ((u32)(b) << 16) | ((u32)(code) << 24))
 
-extern u8*          Gpu_SysPrimCursor;         // primitive buffer cursor
-extern u8           Gpu_PrimBufStatic[0x6000]; // 2 x 0x3000, base of Gpu_SysPrimCursor
-extern void*        Gpu_PrimBufBase;           // base gGpuPrimCursor is reset from
-extern volatile u8  D_8006EC30;                // the flip's copy of at100.flags.imageSource, read from the VSync callback
-extern volatile u8  D_80070E38;                // the flip's copy of at100.flags.flipMode, read from the VSync callback
-extern volatile s32 D_80070F64;                // VSync countdown
+#ifndef GAMEMAIN_C
+extern u8* Gpu_SysPrimCursor;           // primitive buffer cursor
+#endif
+extern u8    Gpu_PrimBufStatic[0x6000]; // 2 x 0x3000, base of Gpu_SysPrimCursor
+extern void* Gpu_PrimBufBase;           // base gGpuPrimCursor is reset from
+#ifndef GAMEMAIN_C
+extern volatile u8 D_8006EC30;          // the flip's copy of at100.flags.imageSource, read from the VSync callback
+extern volatile u8 D_80070E38;          // the flip's copy of at100.flags.flipMode, read from the VSync callback
+#endif
 
 // --- APIs ---
 void  Gpu_ClearOTag(s16 tableIdx);
@@ -186,7 +193,11 @@ void Display_SetPrimBufSmall(void);
 /// start.
 static inline void gpuBeginOt(s32 buf)
 {
-    u_long* ot;
+    // Declared here, not relied on from above, because the unit defining these
+    // hides the file-scope externs to keep its own definition order.
+    extern u_long* gGpuCurrentOt;
+    extern u_long  Gpu_OtTags[];
+    u_long*        ot;
 
     gGpuCurrentOt = Gpu_OtTags + buf * GPU_OT_ENTRIES;
     ClearOTagR(gGpuCurrentOt, GPU_OT_ENTRIES);
