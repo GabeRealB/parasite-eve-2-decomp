@@ -906,86 +906,38 @@ void func_shelter_b4_upper_sewer_8017F1FC(GpCoord* arg0, s32 arg1, s32 arg2, s32
 /// extent below.
 void func_shelter_b4_upper_sewer_8017F5E8(GpCoord* arg0, s16 arg1, s16 arg2)
 {
-    void**         scratch;
-    u8*            head;
     GpRingScratch* block;
-    GpRingScratch* p;
     POLY_FT4*      prim;
-    DisplayState*  ds;
-    s16            cell;
-    s16            cell2;
-    s32            u0;
-    s32            vbase;
-    s32            v0u;
-    s32            x;
-    s16            xy;
-    u16            vy;
-    u16            vz;
 
-    scratch                                 = (void**)G_SCRATCH_HEAD;
-    head                                    = *scratch;
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
-    block                                   = (GpRingScratch*)(head - 0x18);
-    vy                                      = (u16)arg0->workm.t[1];
-    SOFT_TOUCH_REG_USE(block, vy);
-    p = block;
-    SOFT_TOUCH_REG(p);
-    p->vec.vy = vy;
-    vz        = (u16)arg0->workm.t[2];
-    *scratch  = block;
-    p->vec.vz = vz;
+    block         = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&p->vec);
+    gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
-    if (p->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&block->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
         prim->tpage = 0x2B;
         prim->clut  = 0x43D2;
-        cell        = arg1 % 4;
-        u0          = cell * 0x38;
-        prim->u0    = u0;
-        cell2       = arg1 % 8;
-        x           = cell2;
-        vbase       = (x / 4) * 0x38;
-        SOFT_USE_REG(x);
-        v0u = vbase + 0x70;
-        SOFT_BARRIER();
-        head     = (u8*)(u0 + 0x37);
-        prim->v0 = v0u;
-        prim->u1 = (s32)head;
-        prim->v1 = v0u;
-        prim->u2 = u0;
-        SOFT_BARRIER();
-        prim->v2 = vbase - 0x59;
-        prim->u3 = (s32)head;
-        SOFT_BARRIER();
-        prim->v3    = vbase - 0x59;
+        setUVWH(prim, (arg1 % 4) * 0x38, (arg1 % 8) / 4 * 0x38 + 0x70, 0x37, 0x37);
         block->step = (arg2 * 0x37) / block->otz;
-        xy          = (u16)block->sx - (u16)block->step;
-        prim->x2    = xy;
-        prim->x0    = xy;
-        xy          = (u16)block->sx + (u16)block->step;
-        prim->x3    = xy;
-        prim->x1    = xy;
-        xy          = ((u16)block->sy - (u16)block->step) - (block->step >> 1);
-        ds          = &gDisplayState;
-        prim->y1    = xy;
-        prim->y0    = xy;
-        xy          = (u16)block->sy + (block->step >> 1);
-        prim->y3    = xy;
-        prim->y2    = xy;
-        addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
+        prim->x0 = prim->x2 = block->sx - block->step;
+        prim->x1 = prim->x3 = block->sx + block->step;
+        prim->y0 = prim->y1 = block->sy - block->step - (block->step >> 1);
+        prim->y2 = prim->y3 = block->sy + (block->step >> 1);
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a glowing capsule between the points `arg0[0]` and `arg0[1]`,
