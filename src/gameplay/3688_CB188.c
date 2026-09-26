@@ -3669,43 +3669,40 @@ void Gp_DiscardWarnTask(Task* arg0)
     Task*     child;
     UiObject* childObj;
     UiObject* parentObj;
+    UiObject* obj;
+    s32       mode;
+    u8*       text;
+    UiObject* spawned;
 
     rec = Gp_SelItemRec;
     id  = *rec;
 
-    {
-        register UiObject* obj asm("s2");
-        s32                mode;
-        u8*                text;
-        UiObject*          spawned;
-
-        obj           = arg0->spawnArg2;
-        obj->field_2E = 0;
-        mode          = 0x10;
-        if (Gp_ItemDescs[id].field_3 & 1) {
-            mode = 1;
-        } else if (((u32)(id - 0xA0) < 0x20U) && (Gp_CountEquippedRelated(&Mc_SaveData[0].carriedItems, id) > 0)) {
-            mode = 3;
-        } else if (Gp_IsEquippedItem(id) != 0) {
-            mode = 2;
-        }
-        if (mode != 0x10) {
-            arg0->spawnArg1 = mode;
-            Gp_NoticePanelTask(arg0);
-            return;
-        }
-        text = Gp_PromptTexts;
-        if (arg0->state == 0) {
-            Ui_SizeFromTextWide((UiPanel*)obj, text);
-            spawned = func_800CD89C(obj);
-            if (spawned != NULL) {
-                spawned->field_C = (obj->field_C + obj->field_10) - 0x18;
-            }
-            arg0->state += 1;
-        }
-        Ui_DrawTextColored((UiPanel*)obj, Gp_StrAttention2);
-        Text_DrawMultiLine(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, text, 0x606060, 1, 0);
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    mode          = 0x10;
+    if (Gp_ItemDescs[id].field_3 & 1) {
+        mode = 1;
+    } else if (((u32)(id - 0xA0) < 0x20U) && (Gp_CountEquippedRelated(&Mc_SaveData[0].carriedItems, id) > 0)) {
+        mode = 3;
+    } else if (Gp_IsEquippedItem(id) != 0) {
+        mode = 2;
     }
+    if (mode != 0x10) {
+        arg0->spawnArg1 = mode;
+        Gp_NoticePanelTask(arg0);
+        return;
+    }
+    text = Gp_PromptTexts;
+    if (arg0->state == 0) {
+        Ui_SizeFromTextWide((UiPanel*)obj, text);
+        spawned = func_800CD89C(obj);
+        if (spawned != NULL) {
+            spawned->field_C = (obj->field_C + obj->field_10) - 0x18;
+        }
+        arg0->state += 1;
+    }
+    Ui_DrawTextColored((UiPanel*)obj, Gp_StrAttention2);
+    Text_DrawMultiLine(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, text, 0x606060, 1, 0);
 
     child = arg0->firstChild;
     if (child != NULL) {
@@ -3714,16 +3711,12 @@ void Gp_DiscardWarnTask(Task* arg0)
             parentObj = arg0->parent->spawnArg2;
             if (childObj->field_2C == 0x33) {
                 if ((u32)(id - 0x80) < 0x20U) {
-                    McItemSlot*   ret;
                     McItemSlot*   slot;
-                    register s32  a0id asm("a0");
                     PlayerStatus* cfg;
 
-                    ret  = Gp_GetItemSlot(id);
-                    a0id = id;
-                    slot = ret;
+                    slot = Gp_GetItemSlot(id);
                     cfg  = &Player_Status;
-                    Gp_ClearEquipSlot(a0id);
+                    Gp_ClearEquipSlot(id);
                     slot->field_4 = 0;
                     if (cfg->weapon == (id - 0x7F)) {
                         cfg->weapon = 0;
