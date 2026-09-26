@@ -141196,11 +141196,11 @@ of `lw %lo(T)(v0)`; and the compare and the queued call using a literal slot 0.
 **Cause.** The body is a real function (`Gp_SetPreviewItem(item, slot)`)
 inlined with a `u8 slot` parameter and a *variable* argument. The argument copy
 and the parameter's narrowing are the first two pseudos; `table[slot]` with the
-narrowed pseudo folds only after CSE, which is why the load goes through the
-register; the loop's `i == slot` is hoisted by loop.c and cse2 turns it into the
-third copy.
+narrowed pseudo folds to offset 0 without CSE substituting `%lo(T)`, which is
+why the load goes through the register. The third copy is probably the loop's
+`i == slot` operand set up by loop.c; that part was not traced in the dumps.
 
 **Fix.** Write the helper as `static inline void f(s32 item, u8 slot)` indexing
 the global directly (`T[slot]`, `T[i] = ...`) and call it with the variable. A
-macro, an `s32` parameter with `(u8)` casts, or a pointer walk each lose one of
-the three copies.
+macro or an `s32` parameter with `(u8)` casts keeps the indexed load
+(`sll`/`addu`), and a `p++` walk loses the preheader copy.
