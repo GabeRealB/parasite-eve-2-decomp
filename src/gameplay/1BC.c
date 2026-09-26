@@ -1434,17 +1434,15 @@ static void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
 /// `gGpuCurrentOt[Task::spawnArg1]`, or (`spawnArg1 == 0`) into the head
 /// of the current ordering table, backing up 0xA entries when the current
 /// OT is not one of the two `Gpu_OrderingTables` roots.
-void Gp_FadeWorkTask(Task* arg0)
+void Gp_FadeWorkTask(Task* t)
 {
-    register Task* t asm("t2");
-    register s32   y asm("a1");
-    GpFadeWork*    work;
-    TILE*          tile;
-    DR_TPAGE*      dr;
-    s32            color;
-    s8             yoff;
+    GpFadeWork* work;
+    TILE*       tile;
+    DR_TPAGE*   dr;
+    s32         color;
+    s16         y;
+    s8          yoff;
 
-    t    = arg0;
     work = t->spawnArg2;
 
     if (t->state == 0) {

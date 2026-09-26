@@ -143637,3 +143637,13 @@ instruction off. The seed had rebuilt the two-statement form around a
 `SCHED_BARRIER` and a `TOUCH_REG_USE` on a hoisted table pointer; neither was
 needed once the loop was a plain `for (i = 0; i < gCount; i++)` over the
 two-statement step and the table was read back through the relocated field.
+
+## A constant local feeding a `short` field is `s16`, or CSE re-materialises it (Gp_FadeWorkTask, 2026-09-26)
+
+A fill primitive stored `-120` into `tile->y0` and later `y0 = y - yoff`,
+keeping `-120` live in one register (`li a1,-0x78; sh a1; ... subu a1,a1,a0`).
+With `s32 y`, expand shortens the subtraction to HImode because its result is
+stored to a `short`, reading `(subreg:HI y)`; CSE then substitutes the known
+constant for that subreg as a fresh HImode pseudo, so a second `li` appears and
+`y` lands elsewhere. The seed pinned `y` to `$a1`. Declaring `y` with the
+field's type, `s16`, keeps one pseudo and matches unpinned.
