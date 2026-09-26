@@ -1705,22 +1705,18 @@ static void Actor03700_Fn033F0(Task* task)
     s32              i;
 
     work = (Actor103700Work*)task->work;
-    i    = 1;
     if (work->field_248 != work->field_24A) {
-        work->field_24A = (u16)work->field_248;
+        work->field_24A = work->field_248;
         work->field_24C = 0;
-        do {
+        for (i = 1; i < 6; i++) {
             func_800B4114(work, i, work->field_248, 0, 4);
-            i++;
-        } while (i < 6);
-        return;
+        }
+    } else {
+        work->field_24C++;
+        for (i = 1; i < 6; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
     }
-    TOUCH_REG(i);
-    work->field_24C += i;
-    do {
-        Gp_AnimTickIndex(&work->anim, i);
-        i++;
-    } while (i < 6);
 }
 
 /// Refreshes the actor's colour from the world position of its root
