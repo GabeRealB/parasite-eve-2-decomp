@@ -133,9 +133,10 @@ re-split harder: replay the worktree's own commits instead (`CAN_REPLAY` in
 `vacuum_overlay.sh`), which needs no correspondence between the trees and keeps
 each commit's attempt count.
 
-**The trailing data stays in assembly, with named exceptions.** It is models,
-animation banks and clip tables - game content, which never moves into `src/`.
-The few symbols decompiled code actually references are program structure, and
+**The trailing data stays in assembly, with named exceptions.** It is mostly
+models and animation banks, which are assets and never move into `src/` (see
+"Assets" below); clip tables are undecided. The symbols decompiled code
+actually references are program structure, and
 the manifest's `data` key cuts them out of the blob and gives the run to a C
 unit (`weapons/p229`). splat lists an object in the linker script at its first
 subsegment, so a run at the *end* of a package - the zeroed work arrays - needs
@@ -538,26 +539,33 @@ Game content lives in files, not in the executable: `assets/USA/pe2img`
 (textures), `pe2clut` (palettes), `pe2pkg` (room/actor overlays), `pe2cap2`,
 `audio`, `movie`, `bs`. See [`doc/ASSET_FORMATS.md`](doc/ASSET_FORMATS.md).
 
-Some content *is* embedded in the binaries, though, and it must stay in the
-generated trees:
+**Only assets have to stay out of `src/` and `include/`.** Everything else a
+binary embeds - data, rodata, bss, tables, strings - may be declared in C. The
+settled asset categories are **fonts** (glyph pixels *and* glyph metrics),
+**images**, **CLUTs**, **models** and **animations**. The known embedded ones:
 
-| What | Where | Note |
+| Asset | Where | Note |
 |---|---|---|
 | Memory-card save header | `Mc_SaveHeaderMagic` + the block after it (main `.data`) | `"SC"` magic, Shift-JIS title, 16-colour CLUT, three 16x16 4bpp icon frames |
 | UI font glyph metrics | `Font_Glyphs0/1/2` (main `.data`) | 224/224/91 x `FontGlyph`; pixels come from a CLUT image, see ASSET_FORMATS 7.6 |
-| Item / balance tables | `Gp_ItemDescs`, `Gp_IdParamHi` (gameplay `.data`) | |
-| UI and dialogue text | the `.asciz` pools in gameplay `.rodata` | |
-| Meshes and animation clips | gameplay `.data` trailing region and room/actor `.pe2pkg` overlays | no separate chunk type; see [`doc/OVERLAYS.md`](doc/OVERLAYS.md) |
+| Meshes and animation banks | gameplay `.data` trailing region and room/actor `.pe2pkg` overlays | no separate chunk type; see [`doc/OVERLAYS.md`](doc/OVERLAYS.md) |
 
-What **is** fine to write into C is program structure whose "data" is
-references to our own decompiled symbols, or small constants that encode
-logic: function-pointer dispatch tables (`Display_TaskStates`,
-`Mc_FileSelectStates`, `Gp_ItemMenuStates`), index tables such as
-`Gp_FaceEdgePairs`, and the short strings a matched function needs in its own
-`.rodata`. That is the existing pattern - data moves into C when matching
-forces it into the owning TU's section, not as a cleanup exercise.
+**Undecided - look at each case before moving it:** clip tables, and dialogue
+and script text (the `.asciz` pools in gameplay `.rodata`). For these the
+choice is not only C versus assembly: data that can exist in several versions,
+such as text in several translations, may be better produced by a build step
+from an extracted source than hard-coded in C.
 
-Content embedded in a binary is handled twice over, and neither route puts it
+**Not assets, so eligible for C:** program tables such as the item and balance
+tables (`Gp_ItemDescs`, `Gp_IdParamHi`), function-pointer dispatch tables
+(`Display_TaskStates`, `Mc_FileSelectStates`, `Gp_ItemMenuStates`), index
+tables such as `Gp_FaceEdgePairs`, constants, UI strings and zero-initialised
+state. Declaring one in C means placing it in the unit that owns it, at the
+position and alignment the original had - the same care as a `rodata` cut
+(see "Generated overlay configs" above) - so move objects one at a time and
+check the build after each.
+
+An asset embedded in a binary is handled twice over, and neither route puts it
 in git. For the **build**, a splat `databin` / `rodatabin` segment writes the
 bytes to `asm/USA/incbin/` (per worktree, like the rest of `asm/`) and emits a
 small `.s` that `.incbin`s them back, so the build keeps matching. For **inspection**, catalogue it by address in
