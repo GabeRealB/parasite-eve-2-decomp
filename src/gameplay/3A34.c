@@ -4783,43 +4783,25 @@ static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos)
     SCRATCH_POP_BYTES(0x30);
 }
 
-void func_800DEF80(GpObj* arg0, GpObj4C* arg1)
+void func_800DEF80(GpObj* node, GpObj4C* other)
 {
-    GpObj*            node;
-    void**            scratch;
-    GpObj4C*          other;
     GpQuadHitScratch* block;
-    u8*               head;
     s32               distSq;
     s32               kind;
     s32               dot;
-    s32               m0;
-    s32               m1;
-    s32               m2;
-    s16               faceDot;
     s32               dist;
-    s32               nodeRadius;
-    s32               rad;
-    s32               i, off, tmp2, tmp5;
-    VECTOR *          va, *vb, *vec4;
-    GpU16Pair*        pair;
-    u8*               t;
-    void**            sp;
+    s32               tmp;
+    s32               i;
+    VECTOR *          va, *vb;
+    s16               faceDot;
 
-    node    = arg0;
-    scratch = SCRATCH_HEAD_ADDR;
-    TOUCH_REG2(node, scratch);
-    /* Preserve the scratch pointer priority across the four early exits. */
-    SOFT_USE_REG2(scratch, scratch);
-    head                           = SCRATCH_HEAD_AT(scratch, u8);
-    other                          = arg1;
-    SCRATCH_HEAD_AT(scratch, void) = (void*)(head - 0x98);
-    block                          = SCRATCH_HEAD_AT(scratch, GpQuadHitScratch);
-    Gp_ObjWorldPosInline(node, (VECTOR*)(head - 0x18));
+    SCRATCH_PUSH(GpQuadHitScratch);
+    block = SCRATCH_HEAD(GpQuadHitScratch);
+    Gp_ObjWorldPosInline(node, &block->nodePos);
     gte_SetRotMatrix(&other->field_8->workm);
     gte_ldv0(&other->field_C);
     gte_rtv0();
-    gte_stlvnl((VECTOR*)(head - 0x58));
+    gte_stlvnl(&block->world);
     block->world.vx += other->field_8->workm.t[0];
     block->world.vy += other->field_8->workm.t[1];
     block->world.vz += other->field_8->workm.t[2];
@@ -4829,82 +4811,64 @@ void func_800DEF80(GpObj* arg0, GpObj4C* arg1)
     block->delta.vz = block->world.vz - block->nodePos.vz;
     distSq          = block->delta.vx * block->delta.vx + block->delta.vy * block->delta.vy +
              block->delta.vz * block->delta.vz;
-    nodeRadius = (u16)node->radius;
-    /* Keep the node radius in a separate allocation from the radius sum. */
-    SOFT_TOUCH_REG(nodeRadius);
-    SOFT_TOUCH_REG(nodeRadius);
-    SOFT_TOUCH_REG(nodeRadius);
-    rad = (u16)other->field_44 + nodeRadius;
-    if (rad * rad < distSq) {
-        SCRATCH_POP_BYTES_AT(scratch, 0x98);
+    tmp = other->field_44 + node->radius;
+    if (tmp * tmp < distSq) {
+        SCRATCH_POP(GpQuadHitScratch);
         return;
     }
 
     kind = other->field_4A & 7;
     if (kind == 2) {
+        GpCoord* c;
+        s32      m0, m1, m2, a;
+
+        c    = node->coord;
+        a    = other->field_3C.vx;
+        m0   = a * c->coord.m[0][2];
+        a    = other->field_3C.vy;
+        m1   = a * c->coord.m[1][2];
+        a    = other->field_3C.vz;
+        m2   = a * c->coord.m[2][2];
+        dot  = m0 + m1;
+        dot += m2;
+        if (dot > -0xC00000) {
+            SCRATCH_POP(GpQuadHitScratch);
+            return;
+        }
+    } else if (kind == 4) {
+        if (distSq <= 0x3D08F) {
+            other->field_4B = 1;
+            SCRATCH_POP(GpQuadHitScratch);
+            return;
+        }
+        block->local.vx = other->field_C.vx;
+        block->local.vy = node->coord->coord.t[1] + node->pos.vy;
+        block->local.vz = other->field_C.vz;
+        gte_SetRotMatrix(&other->field_8->workm);
+        gte_ldv0(&block->local);
+        gte_rtv0();
+        gte_stlvnl(&block->delta);
+        block->delta.vx = block->nodePos.vx - (block->delta.vx + other->field_8->workm.t[0]);
+        block->delta.vy = block->nodePos.vy - (block->delta.vy + other->field_8->workm.t[1]);
+        block->delta.vz = block->nodePos.vz - (block->delta.vz + other->field_8->workm.t[2]);
+        VectorNormal(&block->delta, &block->delta);
         {
             GpCoord* c;
-            s32      a;
+            s32      n0, n1, n2;
+
             c    = node->coord;
-            a    = other->field_3C.vx;
-            m0   = a * c->coord.m[0][2];
-            a    = other->field_3C.vy;
-            m1   = a * c->coord.m[1][2];
-            a    = other->field_3C.vz;
-            m2   = a * c->coord.m[2][2];
-            dot  = m0 + m1;
-            dot += m2;
+            n0   = block->delta.vx * c->workm.m[0][2];
+            n1   = block->delta.vy * c->workm.m[1][2];
+            n2   = block->delta.vz * c->workm.m[2][2];
+            dot  = n0 + n1;
+            dot += n2;
         }
-        if (dot <= -0xC00000) {
-            goto collide;
+        if (dot > -0xC00000) {
+            SCRATCH_POP(GpQuadHitScratch);
+            return;
         }
-        SCRATCH_POP_BYTES_AT(scratch, 0x98);
-        return;
-    }
-    if (kind != 4) {
-        goto collide;
-    }
-    if (0x3D08F < distSq) {
-        goto case4_far;
-    }
-    other->field_4B = 1;
-    SCRATCH_POP_BYTES_AT(scratch, 0x98);
-    return;
-
-case4_far:
-    block->local.vx = (u16)other->field_C.vx;
-    block->local.vy =
-        (u16)(node->coord)->coord.t[1] + (u16)node->pos.vy;
-    block->local.vz = (u16)other->field_C.vz;
-    gte_SetRotMatrix(&other->field_8->workm);
-    gte_ldv0((SVECTOR*)(head - 8));
-    gte_rtv0();
-    gte_stlvnl((VECTOR*)(head - 0x38));
-    block->delta.vx =
-        block->nodePos.vx - (block->delta.vx + other->field_8->workm.t[0]);
-    block->delta.vy =
-        block->nodePos.vy - (block->delta.vy + other->field_8->workm.t[1]);
-    block->delta.vz =
-        block->nodePos.vz - (block->delta.vz + other->field_8->workm.t[2]);
-    VectorNormal((VECTOR*)(head - 0x38), (VECTOR*)(head - 0x38));
-    {
-        GpCoord* c;
-        s32      n0, n1, n2;
-        c    = node->coord;
-        n0   = block->delta.vx * c->workm.m[0][2];
-        n1   = block->delta.vy * c->workm.m[1][2];
-        n2   = block->delta.vz * c->workm.m[2][2];
-        dot  = n0 + n1;
-        dot += n2;
-    }
-    if (dot <= -0xC00000) {
-        goto collide;
     }
 
-    SCRATCH_POP_BYTES_AT(scratch, 0x98);
-    return;
-
-collide:
     gte_ldv0(&other->field_14[0]);
     gte_rtv0();
     gte_stlvnl(&block->verts[0]);
@@ -4923,53 +4887,23 @@ collide:
              block->normal.vz * block->nodePos.vz) >>
             12) -
            faceDot;
-    if (dist >= 0) {
-        goto fail;
+    if (dist >= 0 || dist < -node->radius) {
+        SCRATCH_POP(GpQuadHitScratch);
+        return;
     }
-    if (dist >= -(s32)(u16)node->radius) {
-        goto do_edges;
-    }
-fail:
-    sp = (void**)0x1F800000;
-    /* Keep the two scratch-release paths distinct during cross-jumping. */
-    SOFT_TOUCH_REG(sp);
-    sp = (void**)((s32)sp | 0x3FC);
-    goto do_restore;
 
-restore_reload:
-    sp = SCRATCH_HEAD_ADDR;
-    goto do_restore;
-
-do_edges:
-    i    = 1;
-    vec4 = &block->verts[1];
-    off  = 0x1C;
-    do {
-        gte_ldv0((SVECTOR*)((u8*)other + off));
+    for (i = 1; i < 4; i++) {
+        gte_ldv0(&other->field_14[i]);
         gte_rtv0();
-        gte_stlvnl(vec4);
-        vec4->vx += block->world.vx;
-        TOUCH_REG(vec4);
-        off      += 8;
-        vec4->vy += block->world.vy;
-        i++;
-        vec4->vz += block->world.vz;
-        vec4++;
-    } while (i < 4);
+        gte_stlvnl(&block->verts[i]);
+        block->verts[i].vx += block->world.vx;
+        block->verts[i].vy += block->world.vy;
+        block->verts[i].vz += block->world.vz;
+    }
 
-    i    = 1;
-    t    = (u8*)Gp_FaceEdgePairs;
-    pair = (GpU16Pair*)(t + 4);
-    do {
-        TOUCH_REG(block);
-        {
-            s32 ia;
-            s32 ib;
-            ia = pair->field_0;
-            ib = pair->field_2;
-            va = &block->verts[ia];
-            vb = &block->verts[ib];
-        }
+    for (i = 1; i < 5; i++) {
+        va              = &block->verts[(u16)Gp_FaceEdgePairs[i].field_0];
+        vb              = &block->verts[(u16)Gp_FaceEdgePairs[i].field_2];
         block->delta.vx = va->vx - vb->vx;
         block->delta.vy = va->vy - vb->vy;
         block->delta.vz = va->vz - vb->vz;
@@ -4977,22 +4911,18 @@ do_edges:
         gte_ldopv2(&block->delta);
         gte_op12();
         gte_stlvnl(&block->cross);
-        tmp2   = (block->cross.vx * block->nodePos.vx) + (block->cross.vy * block->nodePos.vy);
-        tmp2  += block->cross.vz * block->nodePos.vz;
-        tmp2 >>= 12;
-        tmp5   = (block->cross.vx * va->vx) + (block->cross.vy * va->vy) + (block->cross.vz * va->vz);
-        i++;
-        tmp2 -= tmp5 >> 12;
-        if (tmp2 >= 0) {
-            goto restore_reload;
+        tmp   = block->cross.vx * block->nodePos.vx + block->cross.vy * block->nodePos.vy;
+        tmp  += block->cross.vz * block->nodePos.vz;
+        tmp >>= 12;
+        tmp  -= (block->cross.vx * va->vx + block->cross.vy * va->vy + block->cross.vz * va->vz) >> 12;
+        if (tmp >= 0) {
+            SCRATCH_POP(GpQuadHitScratch);
+            return;
         }
-        pair++;
-    } while (i < 5);
+    }
 
-    sp              = SCRATCH_HEAD_ADDR;
     other->field_4B = 1;
-do_restore:
-    SCRATCH_POP_BYTES_AT(sp, 0x98);
+    SCRATCH_POP(GpQuadHitScratch);
 }
 
 void func_800DF6AC(GpObj* arg0, GpObj4C* arg1, VECTOR3* arg2)

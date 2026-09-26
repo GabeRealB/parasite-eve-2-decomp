@@ -141317,3 +141317,28 @@ through `block`, and it sinks to where the target has it, still storing the
 carve. local-alloc's `optimize_reg_copy_1` then rewrites that read of the carve
 to read the copy (`.sched` stores the temp, `.lreg` the block pseudo), which is
 why the ROM stores `s0`. Try this before any asm when the store is late.
+
+### Quad-edge collision tests: indexed forms and one reused scalar replace every pin (func_800DEF80, 2026-09-26)
+
+**Symptom.** The seed kept the scratch address in a `void**` local held by
+`TOUCH_REG2`, touched a node radius three times, and put `TOUCH_REG(vec)` and
+`TOUCH_REG(block)` inside the corner and edge loops, with a hand-built
+`0x1F800000 | 0x3FC` on one release path. Without them, the loops hoisted
+`&block->normal/delta/cross` into saved registers and split the corner
+pointer into two givs, and the radius sum `lhu 0x44; lhu 0x1c; addu v1,v1,v0`
+came out with its loads swapped.
+
+**Fix.** Four source changes, no pins:
+- `SCRATCH_PUSH(T)` / `block = SCRATCH_HEAD(T)` / `SCRATCH_POP(T)` with no
+  address local. CSE holds `0x1F8003FC` in `s1` for the early exits by
+  itself and drops it once dead, so the late pops each build a fresh
+  `lui/ori` and cross-jump to one shared `lw/addiu/sw`.
+- `&block->verts[i]` (entry [58]) and `Gp_FaceEdgePairs[i].field_0` indexed by
+  the loop counter, not a walked pointer. The table's giv is what keeps the
+  member addresses in the loop body; the start comes out as `addiu t3,v0,4`
+  off the symbol.
+- One scalar for the radius sum *and* the later edge-side value. Set in two
+  blocks, it is a global pseudo, and the sum's loads keep source order.
+- A block-scoped `GpCoord* c` in each of the two facing tests, not one
+  function-scope pointer. The shared one made the two tests allocate alike,
+  so jump2 merged more than the compare.
