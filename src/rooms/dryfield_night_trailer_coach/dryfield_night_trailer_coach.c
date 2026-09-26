@@ -2654,39 +2654,28 @@ static void func_dryfield_night_trailer_coach_8018231C(Task* task)
 
 void func_dryfield_night_trailer_coach_8018243C(Task* task)
 {
-    register s32 cap asm("a0");
-    s32          flag;
-
     switch (task->state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
             if (GameFlag_GetNibble(0x61) == 0) {
                 func_800E8614((s32)&D_dryfield_night_trailer_coach_801880A8, 1);
-                SOFT_BARRIER();
-                goto inc;
+                task->state++;
+                break;
             }
-            if (GameFlag_GetNibble(0xE0) == 0) {
-                if (GameFlag_GetNibble(0x7A) >= 4) {
-                    GameFlag_SetNibble(0xE0, 1);
-                    func_800E8614((s32)&D_dryfield_night_trailer_coach_80188510, 0);
-                    goto kill;
-                }
+            if (GameFlag_GetNibble(0xE0) == 0 && GameFlag_GetNibble(0x7A) >= 4) {
+                GameFlag_SetNibble(0xE0, 1);
+                func_800E8614((s32)&D_dryfield_night_trailer_coach_80188510, 0);
+            } else {
+                func_800E8614((s32)&D_dryfield_night_trailer_coach_80188348, 0);
             }
-            func_800E8614((s32)&D_dryfield_night_trailer_coach_80188348, 0);
-        kill:
             taskKill(task);
-            return;
+            break;
         case 2:
             if (Gp_GetCapEventKey() == 0xB) {
-                cap  = (s32)&D_dryfield_night_trailer_coach_801881F8;
-                flag = 0;
-                goto do_8614;
-            }
-            if (Gp_GetCapEventKey() == 0xC) {
-                cap = (s32)&D_dryfield_night_trailer_coach_80188708;
-                goto a1_1;
-            }
-            if (Gp_GetCapEventKey() == 0xD) {
+                func_800E8614((s32)&D_dryfield_night_trailer_coach_801881F8, 0);
+            } else if (Gp_GetCapEventKey() == 0xC) {
+                func_800E8614((s32)&D_dryfield_night_trailer_coach_80188708, 1);
+            } else if (Gp_GetCapEventKey() == 0xD) {
                 if (GameFlag_GetNibble(0x5B) == 0) {
                     GameFlag_SetNibble(0x5B, 1);
                     GameFlag_SetNibble(0x4C, 0);
@@ -2696,25 +2685,20 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
                     func_800E3FAC(0xA2, 0x13);
                     Mc_SaveData[0].sceneEvent = 2;
                 } else {
-                    cap = (s32)&D_dryfield_night_trailer_coach_80188858;
-                a1_1:
-                    flag = 1;
-                do_8614:
-                    func_800E8614(cap, flag);
+                    func_800E8614((s32)&D_dryfield_night_trailer_coach_80188858, 1);
                 }
             }
-            goto inc;
+            task->state++;
+            break;
         case 1:
         case 3:
-            if (gGameSession->eventState != 0) {
-                return;
+            if (gGameSession->eventState == 0) {
+                task->state++;
             }
-        inc:
-            task->state = task->state + 1;
-            return;
+            break;
         case 4:
             taskKill(task);
-            return;
+            break;
     }
 }
 
