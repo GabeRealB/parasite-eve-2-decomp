@@ -15,75 +15,41 @@ void func_80044698(void)
 {
 }
 
+/// A neutral grey colour word with every channel at the low byte of `level`.
+static inline s32 _uiGrey(s32 level)
+{
+    level &= 0xFF;
+    return (level << 16) | (level << 8) | level;
+}
+
 void Ui_DrawWindowBorder(RECT* arg0, s32 arg1, s32 arg2)
 {
-    RECT         sp10;
-    POLY_GT4*    p;
-    POLY_GT4*    p2;
-    DR_MODE*     dr;
-    s16          temp;
-    s16          mid;
-    u16          y;
-    register s32 color asm("v0");
-    s32          color0;
-    s32          color2;
-    register s32 color3 asm("a1");
-    s32          val;
-    s32          t;
-    register s32 c asm("a0");
-    u8           u;
-    u8           h;
-    s16          sx;
-    u16          ux;
-    DR_MODE*     r;
-    s32          y0r;
+    RECT      sp10;
+    POLY_GT4* p;
+    POLY_GT4* p2;
+    DR_MODE*  dr;
+    s32       val;
+    s32       t;
 
     p  = (POLY_GT4*)gGpuPrimCursor;
     p2 = p + 1;
 
-    temp  = arg0->x;
-    p->x2 = temp;
-    p->x0 = temp;
+    p->x0 = p->x2 = arg0->x;
+    p2->x0 = p2->x2 = arg0->x + arg0->w;
+    p->x1 = p->x3 = p2->x1 = p2->x3 = arg0->w >> 1;
+    p2->y0 = p2->y1 = p->y0 = p->y1 = arg0->y + arg0->h;
+    p2->y2 = p2->y3 = p->y2 = p->y3 = arg0->y;
 
-    temp   = arg0->x + arg0->w;
-    p2->x2 = temp;
-    p2->x0 = temp;
-
-    mid    = arg0->w >> 1;
-    p2->x3 = mid;
-    p2->x1 = mid;
-    p->x3  = mid;
-    p->x1  = mid;
-
-    temp   = arg0->y + arg0->h;
-    p->y1  = temp;
-    p->y0  = temp;
-    p2->y1 = temp;
-    p2->y0 = temp;
-
-    y      = arg0->y;
-    p->y3  = y;
-    p->y2  = y;
-    p2->y3 = y;
-    p2->y2 = y;
-
-    r              = (DR_MODE*)(p + 2);
-    gGpuPrimCursor = r;
-    if (p->x0 < p2->x0) {
-        y0r = p->y0;
-        if (p->y2 < y0r) {
-            dr = r;
-            goto body;
-        }
+    gGpuPrimCursor = p + 2;
+    if (p->x0 >= p2->x0 || p->y0 <= p->y2) {
+        return;
     }
-    goto end;
-body:
+
+    dr             = (DR_MODE*)gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
 
-    sp10.h = 0xFF;
-    sp10.w = 0xFF;
-    sp10.y = 0;
-    sp10.x = 0;
+    sp10.w = sp10.h = 0xFF;
+    sp10.x = sp10.y = 0;
     setTexWindow(dr, &sp10);
     addPrim(gGpuCurrentOt + arg2, dr);
 
@@ -100,135 +66,86 @@ body:
     }
 
     if (arg1 & 0x10000) {
-        color  = 0x606060;
-        color0 = 0x505050;
-        color2 = 0x808080;
-        color3 = 0x707070;
-        goto store_colors;
-    }
-    if ((arg1 & 0xF) == 4) {
-        color = rsin(gDisplayState.animFrame << 6) + 0x1000;
-        val   = color >> 7;
+        PRIM_COLOR_WORD(p, 1)  = 0x606060;
+        PRIM_COLOR_WORD(p2, 1) = 0x606060;
+        PRIM_COLOR_WORD(p, 0)  = 0x505050;
+        PRIM_COLOR_WORD(p2, 0) = 0x505050;
+        PRIM_COLOR_WORD(p, 3)  = 0x808080;
+        PRIM_COLOR_WORD(p2, 3) = 0x808080;
+        PRIM_COLOR_WORD(p2, 2) = 0x707070;
+        PRIM_COLOR_WORD(p, 2)  = 0x707070;
+    } else if ((arg1 & 0xF) == 4) {
+        val = (rsin(gDisplayState.animFrame << 6) + 0x1000) >> 7;
 
-        color = 0xB0;
-        t     = color - val;
-        c     = t & 0xFF;
-        if (t <= 0) {
-            t = 1;
-            SOFT_TOUCH_REG(t);
-            c = t & 0xFF;
-        }
-        color                  = 0x80;
-        t                      = color - val;
-        color                  = (c << 16) | (c << 8) | c;
-        PRIM_COLOR_WORD(p, 1)  = color;
-        PRIM_COLOR_WORD(p2, 1) = color;
+        t = 0xB0 - val;
         if (t <= 0) {
             t = 1;
         }
-        c                      = t & 0xFF;
-        color                  = 0x40;
-        t                      = color - val;
-        color                  = (c << 16) | (c << 8) | c;
-        PRIM_COLOR_WORD(p, 0)  = color;
-        PRIM_COLOR_WORD(p2, 0) = color;
+        PRIM_COLOR_WORD(p2, 1) = PRIM_COLOR_WORD(p, 1) = _uiGrey(t);
+
+        t = 0x80 - val;
         if (t <= 0) {
             t = 1;
         }
-        c                      = t & 0xFF;
-        color                  = 0x30;
-        t                      = color - val;
-        color                  = (c << 16) | (c << 8) | c;
-        PRIM_COLOR_WORD(p, 3)  = color;
-        PRIM_COLOR_WORD(p2, 3) = color;
+        PRIM_COLOR_WORD(p2, 0) = PRIM_COLOR_WORD(p, 0) = _uiGrey(t);
+
+        t = 0x40 - val;
         if (t <= 0) {
             t = 1;
         }
-        color                  = t & 0xFF;
-        color0                 = (color << 16) | (color << 8) | color;
-        PRIM_COLOR_WORD(p2, 2) = color0;
-        PRIM_COLOR_WORD(p, 2)  = color0;
+        PRIM_COLOR_WORD(p2, 3) = PRIM_COLOR_WORD(p, 3) = _uiGrey(t);
+
+        t = 0x30 - val;
+        if (t <= 0) {
+            t = 1;
+        }
+        PRIM_COLOR_WORD(p, 2) = PRIM_COLOR_WORD(p2, 2) = _uiGrey(t);
     } else {
-        color  = 0xA8A8A8;
-        color0 = 0x808080;
-        color2 = 0x404040;
-        color3 = 0x303030;
-    store_colors:
-        PRIM_COLOR_WORD(p, 1)  = color;
-        PRIM_COLOR_WORD(p2, 1) = color;
-        PRIM_COLOR_WORD(p, 0)  = color0;
-        PRIM_COLOR_WORD(p2, 0) = color0;
-        PRIM_COLOR_WORD(p, 3)  = color2;
-        PRIM_COLOR_WORD(p2, 3) = color2;
-        PRIM_COLOR_WORD(p2, 2) = color3;
-        PRIM_COLOR_WORD(p, 2)  = color3;
+        PRIM_COLOR_WORD(p, 1)  = 0xA8A8A8;
+        PRIM_COLOR_WORD(p2, 1) = 0xA8A8A8;
+        PRIM_COLOR_WORD(p, 0)  = 0x808080;
+        PRIM_COLOR_WORD(p2, 0) = 0x808080;
+        PRIM_COLOR_WORD(p, 3)  = 0x404040;
+        PRIM_COLOR_WORD(p2, 3) = 0x404040;
+        PRIM_COLOR_WORD(p2, 2) = 0x303030;
+        PRIM_COLOR_WORD(p, 2)  = 0x303030;
     }
 
-    p->v1 = 0;
-    p->v0 = 0;
-    h     = arg0->h;
-    p->v3 = h;
-    p->v2 = h;
-
-    p2->v1 = 0;
-    p2->v0 = 0;
-    h      = arg0->h;
-    p2->v3 = h;
-    p2->v2 = h;
+    p->v0 = p->v1 = 0;
+    p->v2 = p->v3 = arg0->h;
+    p2->v0 = p2->v1 = 0;
+    p2->v2 = p2->v3 = arg0->h;
 
     if (p->x0 < 0) {
-        sx = p2->x0;
-        ux = p2->x0;
-        if (sx < 0) {
-            p->x3 = ux;
-            p->x1 = ux;
+        if (p2->x0 < 0) {
+            p->x1 = p->x3 = p2->x0;
         } else {
-            p->x3 = 0;
-            p->x1 = 0;
+            p->x1 = p->x3 = 0;
         }
-        setlen(p, 0xC);
-        setcode(p, 0x3C);
-        p->u2 = 0;
-        p->u0 = 0;
-        u     = (u8)p->x1 - (u8)p->x0;
-        p->u3 = u;
-        p->u1 = u;
+        setPolyGT4(p);
+        p->u0 = p->u2 = 0;
+        p->u1 = p->u3 = p->x1 - p->x0;
         addPrim(gGpuCurrentOt + arg2, p);
     }
 
     if (p2->x0 >= 0) {
-        sx = p->x0;
-        ux = p->x0;
-        if (sx >= 0) {
-            p2->x3 = ux;
-            p2->x1 = ux;
-            p2->u3 = 0;
-            p2->u1 = 0;
+        if (p->x0 >= 0) {
+            p2->x1 = p2->x3 = p->x0;
+            p2->u1 = p2->u3 = 0;
         } else {
-            p2->x3 = 0;
-            p2->x1 = 0;
-            u      = p->u1 & 0x1F;
-            p2->u3 = u;
-            p2->u1 = u;
+            p2->x1 = p2->x3 = 0;
+            p2->u1 = p2->u3 = p->u1 & 0x1F;
         }
-        setlen(p2, 0xC);
-        setcode(p2, 0x3C);
-        u      = p2->u1 + ((u8)p2->x0 - (u8)p2->x1);
-        p2->u2 = u;
-        p2->u0 = u;
+        setPolyGT4(p2);
+        p2->u0 = p2->u2 = p2->u1 + (p2->x0 - p2->x1);
         addPrim(gGpuCurrentOt + arg2, p2);
     }
 
     dr             = (DR_MODE*)gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
-    sp10.x         = 0;
-    sp10.y         = 0;
-    sp10.w         = 0x20;
-    sp10.h         = 0x20;
+    setRECT(&sp10, 0, 0, 0x20, 0x20);
     setTexWindow(dr, &sp10);
     addPrim(gGpuCurrentOt + arg2, dr);
-end:
-    return;
 }
 
 void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
