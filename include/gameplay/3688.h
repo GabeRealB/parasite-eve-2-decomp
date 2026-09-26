@@ -251,22 +251,22 @@ u8   Gp_GetMapRoomId(void);
 s32  func_800D4D2C(s32 arg0);
 
 /// Item specification panel task, its list, and display text.
-extern u8     D_8009707C[];
-extern UiList D_8010E910;
-extern u8*    D_8010E7C0[];
-extern u8*    Gp_CaliberNameTbl[];
-extern u8*    Gp_FeatNameTbl[];
-extern u8     Gp_StrAddHp[];
-extern u8     Gp_StrAddMp[];
-extern u8     Gp_StrApplicableWpn[];
-extern u8     Gp_StrAttachments3[];
-extern u8     Gp_StrCapacity[];
-extern u8     Gp_StrNextReplay[];
-extern u8     Gp_StrOperation[];
-extern u8     Gp_StrPowerCaps[];
-extern u8     Gp_StrSpecial[];
-extern u8     Gp_StrSpecialFeat[];
-extern u8     Gp_StrSpecs[];
+extern const char D_8009707C[];
+extern UiList     D_8010E910;
+extern u8*        D_8010E7C0[];
+extern u8*        Gp_CaliberNameTbl[];
+extern u8*        Gp_FeatNameTbl[];
+extern const char Gp_StrAddHp[];
+extern const char Gp_StrAddMp[];
+extern const char Gp_StrApplicableWpn[];
+extern const char Gp_StrAttachments3[];
+extern const char Gp_StrCapacity[];
+extern const char Gp_StrNextReplay[];
+extern const char Gp_StrOperation[];
+extern const char Gp_StrPowerCaps[];
+extern const char Gp_StrSpecial[];
+extern const char Gp_StrSpecialFeat[];
+extern const char Gp_StrSpecs[];
 
 void func_800C5F70(Task* arg0);
 void func_800CF330(Task* arg0);

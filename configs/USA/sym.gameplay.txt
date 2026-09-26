@@ -1462,6 +1462,11 @@ Gp_StrSpecial               = 0x800970BC;
 Gp_StrApplicableWpn         = 0x800970C4;
 Gp_StrNotice                = 0x800970D8;
 Gp_StrKeyItem               = 0x800970E0;
+gGpStrWeight                = 0x800970EC;
+gGpStrRate                  = 0x800970F4;
+gGpStrRange                 = 0x800970FC;
+gGpStrPower                 = 0x80097104;
+gGpStrAttachDot             = 0x8009710C;
 Gp_StrAttention             = 0x80097114;
 Gp_StrSelectWeapon          = 0x80097120;
 Gp_StrEquip                 = 0x80097130;
@@ -1469,6 +1474,7 @@ Gp_StrSelectAmmo            = 0x80097138;
 Gp_StrSelectArmor           = 0x80097144;
 Gp_StrReload                = 0x80097154;
 Gp_StrAttach                = 0x8009715C;
+gGpStrEmpty                 = 0x80097164;
 
 // Gameplay naming pass 13 (feat/caliber strings, ally hurt)
 Gp_AnimBlkTbl               = 0x80113368;
