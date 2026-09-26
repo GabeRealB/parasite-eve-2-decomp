@@ -5,6 +5,7 @@
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/text.h"
+#include "main/task.h"
 
 static void Task_AllocIdMap(Task* arg0);
 static void Stage_LoadOrCountdownTask(Task* arg0);
@@ -12,6 +13,48 @@ static void Stage_ApplyTableEntryWhenIdle(Task* arg0);
 static void Stage_KillWhenIdle(Task* arg0);
 
 static void Prim_DrawTile(PrimDrawParams* arg0);
+static void Stage_DispatchTaskTable(Task* arg0);
+
+u8 gStageMusicLoadState  = 0xFF;
+u8 gStageSceneMusicEntry = 0;
+/// Nonzero while the 0x60010001 ambient sound, started by a table entry of
+/// 0x80, is playing.
+static u8 gStageAmbientOn = 0;
+u8        gStageRoomSong  = 0;
+/// Where the current scene's rows begin in the stage's music table.
+static u8 gStageMusicRow = 0;
+/// The song last started from the music table.
+static u8          gStageCurrentSong = 0;
+static TaskIdPair* D_8006273C[]      = {
+    (TaskIdPair*)0x8017C1B4,
+    (TaskIdPair*)0x8017BDE0,
+    (TaskIdPair*)0x8017D238,
+    (TaskIdPair*)0x8017BE28,
+    (TaskIdPair*)0x8017CB54,
+};
+static TaskIdPair* D_80062750[] = {
+    (TaskIdPair*)0x8017C304,
+    (TaskIdPair*)0x8017C004,
+    (TaskIdPair*)0x8017D594,
+    (TaskIdPair*)0x8017C2D8,
+    (TaskIdPair*)0x8017CDFC,
+};
+static u8 D_80062764[] = { 8, 7, 0xB, 0xC, 0xA };
+static u8 D_8006276C[] = { 9, 8, 0xC, 9, 0x14 };
+TaskDesc  D_80062774   = { 0, 0xC0, Stage_DispatchTaskTable };
+TaskDesc  D_80062780[] = {
+    { 0, 0xC0, taskKill },
+    { 0, 0xC0, taskKill },
+    { 0, 0xC0, taskKill },
+    { 0, 0xC0, taskKill },
+    { 0, 0xC0, (TaskFunc)0x80704BC8 },
+    { 0, 0xC0, (TaskFunc)0x80703FE8 },
+    { 0, 0xC0, (TaskFunc)0x80704A78 },
+    { 1, 0xC0, (TaskFunc)0x80704AD0, { (TmdSource*)0x80725F44 } },
+};
+static u8 D_800627E0[] = {
+#include "assets/caption_glyphs.inc"
+};
 
 static const TaskFuncTable4 Stage_TaskStates = { {
     Task_AllocIdMap,

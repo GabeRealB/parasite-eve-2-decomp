@@ -281,9 +281,6 @@ extern TaskDesc D_800678F4[];
 extern TaskDesc D_80068B7C[];
 extern TaskDesc D_80062774;
 
-extern TaskIdPair* D_8006273C[];
-extern TaskIdPair* D_80062750[];
-
 void Task_KillMaybeSpawn(Task* arg0);
 
 #endif // TASK_H
