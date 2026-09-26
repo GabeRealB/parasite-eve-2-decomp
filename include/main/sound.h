@@ -405,8 +405,7 @@ typedef struct _MidiNoteSlot {
 STATIC_ASSERT_SIZEOF(MidiNoteSlot, 0xC);
 
 /// 0x10-byte linear interpolator state used by LinInterp_Setup / LinInterp_Apply /
-/// LinInterp_Step. Embedded at MidiSong::field_14; BSS object LinInterp_CdStream sits
-/// 0x14 bytes after CdAudio_Loc.
+/// LinInterp_Step. Embedded at MidiSong::field_14 and in the CD audio player's state.
 typedef struct _LinInterp {
     /* 0x0 */ s32 field_0;
     /* 0x4 */ s32 field_4;
@@ -792,7 +791,6 @@ extern SndBank Snd_Banks[];
 #ifndef SNDEVT_C
 extern SndLoadState SndLoad_State;
 #endif
-extern LinInterp LinInterp_CdStream;
 #ifndef SNDEVT_C
 extern volatile u8 D_80082120;
 #endif

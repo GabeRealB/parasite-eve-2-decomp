@@ -68,13 +68,6 @@ extern volatile s8  D_80082134;
 extern volatile u8  D_80082135;
 extern volatile u8  D_80082136;
 #endif
-extern volatile s32 D_80082750;
-extern u8           D_80082754;
-extern volatile s32 D_80082770;
-extern s32          D_80082778;
-extern volatile u8  D_8008277C;
-extern u8           D_800827B0[];
-extern volatile u8  D_800827E4;
 
 #ifndef LOADUI_C
 extern u8  D_8007A394;

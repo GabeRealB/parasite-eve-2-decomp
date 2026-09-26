@@ -16,7 +16,7 @@ typedef struct _CdAudioPhase {
 } CdAudioPhase;
 STATIC_ASSERT_SIZEOF(CdAudioPhase, 0x6);
 
-/// BSS object CdAudio_Loc (size 0x10). Sector / pitch state for CD audio player.
+/// Sector / pitch state for CD audio player.
 typedef struct _CdAudioLoc {
     /* 0x0 */ u8  field_0; // status
     /* 0x1 */ u8  field_1; // ready / done flag
@@ -64,29 +64,6 @@ typedef struct _CdAudioTblEntry {
 } CdAudioTblEntry;
 STATIC_ASSERT_SIZEOF(CdAudioTblEntry, 0x4);
 
-/// BSS block covering CdAudio_Loc (0x10) + D_800827B0 (0x4). Immediately precedes
-/// LinInterp_CdStream; used when codegen holds &LinInterp_CdStream and reaches back 0x14 bytes.
-typedef struct _CdAudioLocEx {
-    /* 0x00 */ u8  field_0;
-    /* 0x01 */ u8  field_1;
-    /* 0x02 */ u16 field_2;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-} CdAudioLocEx;
-STATIC_ASSERT_SIZEOF(CdAudioLocEx, 0x14);
-
-/// Extended view of the CdAudio_Loc BSS block for SPU voice indices at +0x3E/+0x3F
-/// (used by CdAudio_DrivePhase0 / CdAudio_DriveRead). The zero-init in CdAudio_Init covers
-/// 0x44 bytes from CdAudio_Loc, so these offsets sit inside that block.
-typedef struct _CdAudioVoices {
-    /* 0x00 */ u8 pad[0x3E];
-    /* 0x3E */ s8 field_3E;
-    /* 0x3F */ s8 field_3F;
-} CdAudioVoices;
-STATIC_ASSERT_SIZEOF(CdAudioVoices, 0x40);
-
 // --- APIs (from unknown_syms) ---
 s32  CdAudio_Begin(void);
 void CdAudio_Init(void);
@@ -97,16 +74,14 @@ s32  CdAudio_RequestStopB(void);
 void CdAudio_CopyVoiceData(s8 arg0, s32* arg1);
 void CdAudio_AllocVoices(s8* arg0, s8* arg1);
 
-extern volatile CdAudioTbl   CdAudio_Tbl;
-extern volatile CdAudioCtl   CdAudio_Ctl;
-extern CdAudioTblEntry*      CdAudio_TblEntries;
+#ifndef CDAUDIO_C
 extern volatile CdAudioPhase CdAudio_Phase;
-extern volatile CdAudioLoc   CdAudio_Loc;
-extern u8                    D_80068AF0[];
-extern s32                   (*CdAudio_DriveFns[])(void);
-extern u16                   D_80068BB8[];
-extern u16                   D_80068C78[];
-extern u16                   D_80068D78[];
-extern u16                   D_80068E78[];
+#endif
+extern u8  D_80068AF0[];
+extern s32 (*CdAudio_DriveFns[])(void);
+extern u16 D_80068BB8[];
+extern u16 D_80068C78[];
+extern u16 D_80068D78[];
+extern u16 D_80068E78[];
 
 #endif // CDAUDIO_H

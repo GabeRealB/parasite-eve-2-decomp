@@ -2778,7 +2778,6 @@ Spu_KeyOnMaskExtra             = 0x8007EBAC; // type:u32
 Spu_KeyOffMask             = 0x8007EBB0; // type:u32
 Spu_ReverbCfg         = 0x8007EBB8; // type:SpuReverbConfig size:0x24
 CdAudio_Phase                  = 0x80082798; // type:CdAudioPhase size:0x6
-CdStream_Params             = 0x800827C4; // type:CdStreamParams size:0x20
 CdStream_State              = 0x80082818; // type:CdStreamState size:0x58
 CdStream_Channels           = 0x80082870; // type:CdStreamChannels size:0x80
 CdReady_Queue               = 0x800828F0; // type:CdReadyQueue size:0x58
@@ -2803,7 +2802,6 @@ _gSndBankSlots              = 0x80082148; // type:SndBankSlot
 SndLoad_State               = 0x800820F0; // type:SndLoadState size:0x30
 Midi_Song                   = 0x8007F300; // type:MidiSong
 Gpu_OtBuffers               = 0x80070EE8; // type:GpuOtBuf size:0x28
-LinInterp_CdStream          = 0x800827B4; // type:LinInterp size:0x10
 
 // SndEvt / UiPanel / Tmd / TaskIdMap / GameSession renames
 _gSndEvtPool                = 0x8007EBF0; // type:SndEvt
@@ -2815,7 +2813,7 @@ gTmdList                    = 0x800711B8; // type:TmdListHead size:0x8
 gTmdDisp2dList              = 0x800711C0; // type:TmdListHead size:0x8
 
 // CdAudio / AudioTick / Spu range / Stream slot renames
-CdAudio_Loc                 = 0x800827A0; // type:CdAudioLoc
+_gCdAudioState              = 0x800827A0; // size:0x44
 CdAudio_Tbl                 = 0x80082758; // type:CdAudioTbl size:0x18
 CdAudio_Ctl                 = 0x80082780; // type:CdAudioCtl size:0x14
 Stream_Slots                = 0x8006D4F0; // type:StreamSlot size:0x258

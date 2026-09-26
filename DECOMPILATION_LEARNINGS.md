@@ -143404,6 +143404,30 @@ inside the inline fixes that without changing the order. A block-scope `extern`
 does not count as a first file-scope declaration, so the unit's definitions
 still set the `.bss` order. Turning the inline into a macro instead changed
 register allocation at its call site.
+
+### Folding labels into one struct: read the member's first field through its pointer, not through the global (CdAudio_DrivePhase0, 2026-09-26)
+
+When separate labels become members of one object, `Label.f0` rewritten as
+`G.m.f0` is not the same code. With `p = &G.m` (offset 0x14) live in a
+register, the target read `f0` as `lw v1,%lo(G+0x14)(s0)`, keeping the `%hi`
+register alive across a call beside `p = s0 + %lo`:
+
+```
+lui   s0,%hi(G+0x14)            lui   v0,%hi(G)
+addiu s1,s0,%lo(G+0x14)         addiu s0,v0,%lo(G+0x14)
+jal   LinInterp_Step            jal   LinInterp_Step
+lw    v1,%lo(G+0x14)(s0)        lw    v1,0(s0)
+```
+
+`G.m.f0` expands from `&G` (a register holding `G`, then `mem(reg+0x14)`), and
+cse's related-value lookup rewrites `&G` as `p - 0x14`, so the load folds onto
+`p`. `p->f0` is `mem(p)`, and cse substitutes `p`'s cheapest equivalent, the
+`lo_sum` of its `%hi` register, which gives the target. So write the
+offset-0 field through the member pointer (`p->f0 == p->f4`); the old
+`Label.f0` spelling only worked because the label was its own symbol. The same
+related-value rewrite is what turns a direct `G.other.f` read into `p - 0x14`
+plus a displacement, so a container reached back from a member pointer needs
+no `PARENT_OF` - name the global's member and cse does the step.
 ### A parameter copy scheduled mid-block, not at entry, is a narrower local taken from it (func_dryfield_night_water_hole_8017FF84, 2026-09-26)
 
 **Symptom.** The target moves an argument into another register in the middle

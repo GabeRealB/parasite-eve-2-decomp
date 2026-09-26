@@ -108,9 +108,8 @@ typedef struct _CdReadyQueue {
 } CdReadyQueue;
 STATIC_ASSERT_SIZEOF(CdReadyQueue, 0x58);
 
-/// BSS object CdStream_Params (size 0x20). CD/SPU stream setup block for
-/// CdAudio_DriveStream / CdStream_Start: sector position, buffer, callbacks, and
-/// voice indices.
+/// CD/SPU stream setup block for CdAudio_DriveStream / CdStream_Start: sector
+/// position, buffer, callbacks, and voice indices.
 typedef struct _CdStreamParams {
     /* 0x00 */ s32   startSector;
     /* 0x04 */ s32   spuBase;
@@ -140,7 +139,5 @@ void CdStream_Drive(void);
 
 // Gameplay callback imported by the resident CD stream handler.
 s32 func_800AF590(void);
-
-extern CdStreamParams CdStream_Params;
 
 #endif // CDSTREAM_H
