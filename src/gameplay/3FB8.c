@@ -87,7 +87,7 @@ void func_8010AC54(Task* arg0);
 void func_8010AD64(Task* arg0);
 void Gp_PlayerStepSfx(Task* arg0);
 void func_800FDB18(s32 arg0, GpCoord* arg1, SVECTOR* arg2, GpEffArg* arg3);
-void Gp_DrawEffTri(GpCoord* arg0, s32 arg1, s32 arg2, u8* arg3);
+void Gp_DrawEffTri(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 void func_800FCD00(Task* arg0);
 
 void Gp_EffSprTask55(Task* arg0)
@@ -1364,55 +1364,39 @@ lcg:
                 mem->step | 0x8000, 0);
 }
 
-void Gp_DrawEffTri(GpCoord* arg0, s32 arg1, s32 arg2, u8* arg3)
+void Gp_DrawEffTri(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
-    register u8*   rgb asm("s7");
-    register u8*   head asm("t1");
     GpRingScratch* block;
     POLY_G3*       prim;
     s16            step;
     s32            i;
-    register s32   lcg asm("a0");
+    s32            lcg;
     s32            ang;
     s16            scale;
     s16            count;
-    u16            vz;
 
-    rgb  = arg3;
-    head = SCRATCH_HEAD(u8);
-    USE_REG(head);
-    {
-        register u16 vx asm("v0");
-        vx                                      = (u16)arg0->workm.t[0];
-        ((GpRingScratch*)(head - 0x18))->vec.vx = vx;
-    }
-    {
-        register u8* tmp asm("v0");
-        tmp   = head - 0x18;
-        block = (GpRingScratch*)tmp;
-    }
-    block->vec.vy               = (u16)arg0->workm.t[1];
-    vz                          = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpRingScratch) = block;
-    block->vec.vz               = vz;
-    count                       = arg2;
-    step                        = 0x1000 / count;
-    scale                       = arg1;
+    SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_HEAD(GpRingScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
+    count         = arg2;
+    step          = 0x1000 / count;
+    scale         = arg1;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        USE_REG(head);
+        gte_stszotz(&block->otz);
         block->otz++;
         for (i = 0; i < step * count; i += step) {
             lcg            = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState    = lcg;
             prim           = (POLY_G3*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
-            Gp_LcgState    = lcg;
             setPolyG3(prim);
             setRGB0(prim, rgb[0], rgb[1], rgb[2]);
             setRGB1(prim, 0, 0, 0);
@@ -1430,7 +1414,7 @@ void Gp_DrawEffTri(GpCoord* arg0, s32 arg1, s32 arg2, u8* arg3)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(GpRingScratch);
 }
 
 void Gp_EffCtlTaskF4(Task* arg0)
