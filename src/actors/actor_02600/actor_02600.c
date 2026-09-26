@@ -1895,31 +1895,11 @@ static void Actor02600_Fn03910(Task* arg0)
     coord->coord.t[2] += (coord->coord.m[2][2] * work->field_398) >> 12;
 }
 
-/// Switches the work's animation id, resetting the slots to the blend value the
-/// table gives for the new id; otherwise ticks every slot one frame.
+/// Out-of-line form of `_actor02600TickAnim`: switches the work's animation
+/// id, or ticks every slot one frame when it is unchanged.
 static void Actor02600_Fn039A4(Task* arg0)
 {
-    Actor105500Work* work;
-    s32              i;
-    s32              value;
-
-    work = arg0->work;
-    i    = 1;
-    if (work->field_392 != work->field_394) {
-        work->field_394 = work->field_392;
-        work->field_396 = 0;
-        value           = Actor02600_D08A10[work->field_392];
-        for (; i < 8; i++) {
-            func_800B4114(work, i, work->field_392, 0, value);
-        }
-    } else {
-        TOUCH_REG(i);
-        work->field_396 += i;
-        do {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
-            i++;
-        } while (i < 8);
-    }
+    _actor02600TickAnim(arg0);
 }
 
 /// Passes the world position of the model's root coordinate to
