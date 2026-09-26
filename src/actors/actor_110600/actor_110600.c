@@ -2960,29 +2960,6 @@ static void func_actor_110600_80137684(Task* arg0)
     }
 }
 
-static __inline__ s32 Actor110600_OutOfRange(SVECTOR* d)
-{
-    OverlayRangeScratch* blk;
-    s32                  dz2;
-    s32                  dz;
-    u8*                  head;
-
-    head                              = SCRATCH_HEAD(u8);
-    blk                               = (OverlayRangeScratch*)(head - 0xC);
-    SCRATCH_HEAD(OverlayRangeScratch) = blk;
-    blk->dx                           = d->vx;
-    blk->dz                           = d->vz;
-    blk->r                            = 0xBB8;
-    blk->dx                          *= blk->dx;
-    dz                                = blk->dz;
-    dz2                               = dz * dz;
-    blk->dz                           = dz2;
-    blk->r                           *= blk->r;
-    SCRATCH_HEAD(u8)                  = head;
-    __asm__("" : "=r"(dz), "+r"(dz2) : "m"(blk->r));
-    return (blk->dx + dz2) >= blk->r;
-}
-
 static void func_actor_110600_801377FC(Task* arg0)
 {
     Actor110600Work* work;
@@ -3014,7 +2991,7 @@ static void func_actor_110600_801377FC(Task* arg0)
     delta.vx        = (u16)Player_Status.coordMtx->t[0] - (u16)coord->coord.t[0];
     d->vy           = (u16)Player_Status.coordMtx->t[1] - (u16)coord->coord.t[1];
     d->vz           = (u16)Player_Status.coordMtx->t[2] - (u16)coord->coord.t[2];
-    if (!Actor110600_OutOfRange(d)) {
+    if (!actorOutsideRadius(d, 0xBB8)) {
         work->field_0 = 0x15;
     }
 }
