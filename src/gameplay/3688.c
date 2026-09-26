@@ -4256,33 +4256,22 @@ void Gp_DrawCollectedRow(DialogPrompt* arg0, UiObject* arg1)
 
 void Gp_KeyItemMenuTask(Task* arg0)
 {
-    UiObject*    obj;
-    UiList*      menu;
-    s32          count;
-    s32          count8;
-    register s32 sel asm("v1");
-    Task*        child;
-    Task*        next;
-    Task*        head;
-    UiObject*    childObj;
-    s32          flag;
-    s32          minusOne;
-    s32          six;
-    s32          one;
+    UiObject* obj;
+    UiList*   menu;
+    Task*     child;
+    Task*     next;
+    Task*     head;
+    UiObject* childObj;
+    s32       flag;
 
     obj           = arg0->spawnArg2;
     menu          = &D_8010E960;
     obj->field_2E = 0;
     Ui_DrawText((UiPanel*)obj, Gp_StrKeyItem);
     if (arg0->state == 0) {
-        count         = Gp_CountCollectedBits();
-        sel           = menu->field_10;
-        menu->field_4 = count;
-        SOFT_BARRIER();
-        menu->field_5 = count;
-        count8        = count & 0xFF;
-        if (count8 < sel) {
-            menu->field_10 = count8;
+        menu->field_5 = menu->field_4 = Gp_CountCollectedBits();
+        if (menu->field_4 < menu->field_10) {
+            menu->field_10 = menu->field_4;
         }
         Ui_InitList(menu, (UiMiniObj*)obj);
         menu->field_A = 1;
@@ -4294,14 +4283,9 @@ void Gp_KeyItemMenuTask(Task* arg0)
         menu->field_9  = 0;
         arg0->state    = arg0->state + 1;
     } else {
-        count         = Gp_CountCollectedBits();
-        sel           = menu->field_10;
-        menu->field_4 = count;
-        SOFT_BARRIER();
-        menu->field_5 = count;
-        count8        = count & 0xFF;
-        if (count8 < sel) {
-            menu->field_10 = count8;
+        menu->field_5 = menu->field_4 = Gp_CountCollectedBits();
+        if (menu->field_4 < menu->field_10) {
+            menu->field_10 = menu->field_4;
         }
         Ui_ComputeVisibleRows(menu, (s32)obj);
         menu->field_A = 1;
@@ -4332,28 +4316,20 @@ void Gp_KeyItemMenuTask(Task* arg0)
     }
     head = arg0->firstChild;
     if (head != NULL) {
-        minusOne = -1;
-        child    = head;
-        six      = 6;
-        one      = 1;
+        child = head;
         do {
             childObj = child->spawnArg2;
             flag     = childObj->field_2E;
             next     = child->nextSibling;
-            if (flag == minusOne) {
-                goto case_m1;
+            switch (flag) {
+                case -1:
+                    obj->field_2E = flag;
+                    break;
+                case 6:
+                    Ui_TeardownTree(childObj, childObj->owner);
+                    obj->status = 1;
+                    break;
             }
-            if (flag == six) {
-                goto case_6;
-            }
-            goto loop_cont;
-        case_m1:
-            obj->field_2E = flag;
-            goto loop_cont;
-        case_6:
-            Ui_TeardownTree(childObj, childObj->owner);
-            obj->status = one;
-        loop_cont:
             head  = arg0->firstChild;
             child = next;
             if (head == NULL) {

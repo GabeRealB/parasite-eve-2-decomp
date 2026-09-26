@@ -143076,3 +143076,22 @@ its own `p = &Mc_SaveData` writes `0x5BE(p)`, while the caller reads through
 address RTL, so the two spellings are never equated and the load stays. When a
 constant store "should" fold but the target reloads, look for a sibling
 function that performs those stores and inline it.
+
+## A load hoisted above two narrow stores of one value, then compared masked, is a chained assignment (Gp_KeyItemMenuTask, 2026-09-26)
+
+The target stored a call result to two `u8` members (`sb v0,4(s0)`, `sb v0,5(s0)`),
+but loaded the `s32` selection `lw v1,0x10(s0)` *before* both stores and
+compared it against a separate `andi a0,v0,0xFF`, storing `a0` back when larger.
+The seed held that with a `sel` local read first, a `SOFT_BARRIER` between the
+stores and a `v1` pin.
+
+It is `list->b = list->a = n; if (list->a < list->sel) list->sel = list->a;`.
+The chained assignment's value is the converted `(u8)n`, so the compare uses
+that pseudo instead of reloading the member, and the separate `andi` register
+comes with it; the `field_10` load then schedules ahead of the byte stores.
+Two separate stores of `n` followed by `n & 0xFF` put the `andi` into `v0`
+after both stores instead.
+
+A two-case `switch` over a child's flag inside a sibling-walk loop also accounts
+for the `-1`/`6`/`1` constants sitting in callee-saved registers across the
+loop: loop.c hoists them, so no constant locals are needed.
