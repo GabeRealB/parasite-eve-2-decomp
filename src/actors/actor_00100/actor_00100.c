@@ -123,25 +123,6 @@ typedef struct Actor00100MoveWork {
     /* 0x14 */ s16 index;
 } Actor00100MoveWork;
 
-static __inline__ s32 Actor00100_PatrolOutsideRadius(SVECTOR* pos, s32 radius)
-{
-    OverlayRangeScratch* head;
-    OverlayRangeScratch* scratch;
-    s32                  x;
-    head    = SCRATCH_HEAD(OverlayRangeScratch);
-    scratch = (SCRATCH_HEAD(OverlayRangeScratch) = head - 1);
-    x       = pos->vx;
-    SOFT_TOUCH_REG_USE(x, scratch);
-    scratch->dx  = x;
-    scratch->dz  = pos->vz;
-    scratch->r   = radius;
-    scratch->dx *= scratch->dx;
-    scratch->dz *= scratch->dz;
-    scratch->r  *= scratch->r;
-    SCRATCH_POP(OverlayRangeScratch);
-    return scratch->dx + scratch->dz >= scratch->r;
-}
-
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 
 /// Declared locally with a signed `arg2`; see the note in `gameplay/1BC.h`.
@@ -2020,10 +2001,10 @@ static void Actor00100_Fn04864(Task* arg0)
         scratch->delta.vy = Player_Status.coordMtx->t[1] - playerCoord->coord.t[1];
         scratch->delta.vz = Player_Status.coordMtx->t[2] - playerCoord->coord.t[2];
         if ((ctx->placeKey >> 12) == gDisplayState.animFrame % 15) {
-            if (!Actor00100_PatrolOutsideRadius(&scratch->delta, 2000)) {
+            if (!overlayOutOfRange(&scratch->delta, 2000)) {
                 Gp_ArmStateF0(1);
                 work->field_0 = 0x26;
-            } else if (!Actor00100_PatrolOutsideRadius(&scratch->delta, 4000)) {
+            } else if (!overlayOutOfRange(&scratch->delta, 4000)) {
                 coord          = arg0->extra.tmd->coords;
                 angle          = ratan2(scratch->delta.vx, scratch->delta.vz);
                 delta          = angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
