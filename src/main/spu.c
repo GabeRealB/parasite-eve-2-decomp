@@ -34,14 +34,14 @@ void AsyncCb_Poll(void)
     current = AsyncCb_Queue.field_0;
     if (AsyncCb_Queue.field_1 != current) {
         entry = &AsyncCb_Queue.entries[current];
-        flags = entry->field_0;
+        flags = entry->field_0.word;
         if (flags & 1) {
             if (entry->field_8(entry) != 0) {
                 if (entry->field_C != NULL) {
                     entry->field_C(entry);
                 }
-                entry->field_0       &= ~1;
-                entry->field_0       &= ~4;
+                entry->field_0.word  &= ~1;
+                entry->field_0.word  &= ~4;
                 idx                   = (u8)AsyncCb_Queue.field_0 + 1;
                 AsyncCb_Queue.field_0 = idx;
                 if (idx >= 4) {
@@ -50,8 +50,8 @@ void AsyncCb_Poll(void)
             }
         } else if (!((flags >> 2) & 1) || ((flags >> 1) & 1) || (entry->field_10 == NULL) ||
                    (ret = entry->field_10(entry), mask = ~8,
-                    entry->field_0 = (entry->field_0 & mask) | ((ret & 1) * 8), ((ret & 1) == 0))) {
-            entry->field_0       &= ~4;
+                    entry->field_0.word = (entry->field_0.word & mask) | ((ret & 1) * 8), ((ret & 1) == 0))) {
+            entry->field_0.word  &= ~4;
             idx                   = (u8)AsyncCb_Queue.field_0 + 1;
             AsyncCb_Queue.field_0 = idx;
             if (idx >= 4) {
@@ -96,11 +96,11 @@ s16 func_8004DE18(void* arg0)
         entry->field_8        = ((AsyncCbEntry*)arg0)->field_8;
         entry->field_C        = ((AsyncCbEntry*)arg0)->field_C;
         entry->field_10       = ((AsyncCbEntry*)arg0)->field_10;
-        entry->field_0       |= 1;
-        entry->field_0       &= ~4;
-        entry->field_0       &= ~8;
-        entry->field_0       &= ~0xFF0;
-        entry->field_0       |= 2;
+        entry->field_0.word  |= 1;
+        entry->field_0.word  &= ~4;
+        entry->field_0.word  &= ~8;
+        entry->field_0.word  &= ~0xFF0;
+        entry->field_0.word  |= 2;
         current               = AsyncCb_Queue.field_1;
         AsyncCb_Queue.field_1 = next;
         return current + 1;
@@ -114,9 +114,9 @@ void AsyncCb_Cancel(s32 arg0)
 
     if ((arg0 << 0x10) != 0) {
         entry = &AsyncCb_Queue.entries[(s16)(arg0 - 1)];
-        flags = entry->field_0;
+        flags = entry->field_0.word;
         if (flags & 1) {
-            entry->field_0 = (flags & ~1) | 4;
+            entry->field_0.word = (flags & ~1) | 4;
         }
     }
 }

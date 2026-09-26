@@ -528,14 +528,29 @@ typedef struct _SpuVoiceRef {
 } SpuVoiceRef;
 STATIC_ASSERT_SIZEOF(SpuVoiceRef, 0x8);
 
+/// Status word of an AsyncCbEntry. The queue manipulates it as a whole word;
+/// the poll callback reads and advances its own fields.
+typedef union {
+    s32 word;
+    struct {
+        u32 : 1;
+        /// Set when the entry is queued, cleared by the poll callback on its
+        /// first call.
+        u32 firstPoll : 1;
+        u32           : 2;
+        /// Step of the poll callback's own state machine, zeroed on queueing.
+        u32 pollState : 8;
+    } bits;
+} AsyncCbFlags;
+
 /// Callback-queue slot used by AsyncCb_Queue.entries (stride 0x14).
 /// field_0 flags: bit0 active, bit1 arm, bit2 pending, bit3 result.
 typedef struct _AsyncCbEntry {
-    /* 0x00 */ s32  field_0;                            // flags
-    /* 0x04 */ s32  field_4;                            // data
-    /* 0x08 */ s32  (*field_8)(struct _AsyncCbEntry*);  // pollFn
-    /* 0x0C */ void (*field_C)(struct _AsyncCbEntry*);  // doneFn
-    /* 0x10 */ s32  (*field_10)(struct _AsyncCbEntry*); // errorFn
+    /* 0x00 */ AsyncCbFlags field_0;                            // flags
+    /* 0x04 */ s32          field_4;                            // data
+    /* 0x08 */ s32          (*field_8)(struct _AsyncCbEntry*);  // pollFn
+    /* 0x0C */ void         (*field_C)(struct _AsyncCbEntry*);  // doneFn
+    /* 0x10 */ s32          (*field_10)(struct _AsyncCbEntry*); // errorFn
 } AsyncCbEntry;
 STATIC_ASSERT_SIZEOF(AsyncCbEntry, 0x14);
 

@@ -143925,3 +143925,18 @@ also lives in another block, so global-alloc places it after local-alloc has
 spent `$v1` on the `%hi`. Reusing a function-wide variable (`status`, `val`)
 does that, but the variable's other life must then also fit `$a0`. Check that
 before reaching for a pin; if no variable qualifies, the `$a0` pin is still open.
+## Two loads of one word around a byte store: a bitfield read and a `volatile` global (CdStream_InitDisc, 2026-09-26)
+
+The target read the flags word twice, `lw v0; lw v1; srl/andi` on both, and
+only then `sb v0,g` - with the `andi 0xff` kept even though a byte store
+truncates anyway. The seed built it with two `*(volatile u32*)` reads pinned to
+`v0`/`v1`. The kept `andi` is the tell: combine never folds into an insn that
+touches a `volatile` object, so `g` is `volatile`. The word is a bitfield
+(`(x & ~0xFF0) | 0x20` stores are `p->bits.state = 2`), and
+`g = p->bits.state; switch (p->bits.state)` then gives both loads and lets
+sched1 hoist the second above the store, since a struct member through a
+pointer does not conflict with a fixed-address scalar. With a plain `u32`
+member instead of a bitfield, CSE merged the two loads even across the
+volatile store; with a scalar `u32*`, the store kept the second load below it.
+GCC 2.8 has no anonymous unions: give a union of word and bitfield view a
+member name and update the word users.
