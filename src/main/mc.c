@@ -1613,57 +1613,52 @@ static void Mc_StateVerifyFinish(Task* arg0, McWork* arg1)
     _mcDrawPrompt(arg0, 5);
 }
 
+/// Checksum the 0x200-byte work buffer into the work's sum / complement pair,
+/// clearing the pair first.
+static inline void _mcWriteWorkChecksum(McWork* work)
+{
+    s16  sum;
+    s32  count;
+    u8*  src;
+    u16* dst;
+    s32  i;
+
+    sum    = 0;
+    count  = 0x200;
+    src    = (u8*)work->field_18;
+    dst    = &work->field_A1C;
+    i      = 0;
+    dst[0] = 0;
+    dst[1] = ~0;
+    do {
+        i   += 1;
+        sum += (s8)*src;
+        src += 1;
+    } while (i < count);
+    dst[0] = sum;
+    dst[1] = ~sum;
+}
+
 static void Mc_StateFinishWrite(Task* arg0, McWork* arg1)
 {
-    s32           ret;
-    u32           status;
-    s32           idx;
-    s32           i;
-    s32           ch;
-    s32           one;
-    s16           sum;
-    s16           tmp;
-    s32           limit;
-    s32           slotIdx;
-    u8*           ptr1;
-    u8*           ptr0;
-    u8*           src;
-    u16*          dst;
-    UiObject*     obj;
-    McPromptPair* entry;
-    McPromptPair* base;
+    u32 status;
+    s32 slotIdx;
+    s32 size;
+    s32 i;
+    s32 ch;
+    u8* ptr1;
+    u8* ptr0;
 
     status = arg1->field_14;
     if (status < 4U) {
         if (status == 0) {
             slotIdx = 8 - arg1->field_24;
             if (slotIdx == 0) {
-                sum   = 0;
-                limit = 0x200;
-                MOVE_ZERO(slotIdx);
-                dst             = &arg1->field_A1C;
-                src             = (u8*)arg1->field_18;
-                arg1->field_A1C = 0;
-                dst[1]          = 0xFFFF;
-                do {
-                    slotIdx += 1;
-                    tmp      = (s8)*src;
-                    sum      = sum + tmp;
-                    src     += 1;
-                } while (slotIdx < limit);
-                dst[0] = sum;
-                dst[1] = ~sum;
+                _mcWriteWorkChecksum(arg1);
             } else {
-                {
-                    register McBufferSlot* slots asm("v0");
-                    register s32           size asm("a2");
-                    void*                  dest;
-
-                    slots = Mc_BufferSlots;
-                    size  = slots[slotIdx].field_4;
-                    dest  = slots[slotIdx].field_0;
-                    memcpy(dest, (void*)arg1->field_18, size << 1);
-                }
+                size   = Mc_BufferSlots[slotIdx].field_4;
+                size <<= 1;
+                memcpy(Mc_BufferSlots[slotIdx].field_0, (void*)arg1->field_18, size);
             }
             arg1->field_1C += Mc_BufferSlots[8 - arg1->field_24].field_8;
             arg0->state     = 0xE;
@@ -1690,19 +1685,9 @@ static void Mc_StateFinishWrite(Task* arg0, McWork* arg1)
         arg0->state = 6;
     }
 
-    one = 1;
     memFree((void*)arg1->field_18);
     arg1->field_18 = 0;
-
-    obj           = arg0->spawnArg2;
-    idx           = arg1->field_8;
-    ret           = Ui_LookupTable(obj, 1);
-    obj->field_2E = 0;
-    Ui_DrawTitle(obj, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[idx];
-    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
-    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
+    _mcDrawPrompt(arg0, arg1->field_8);
 }
 
 /// Inline form of Mc_VerifySaveHdrChecksum: whether a save header names a valid

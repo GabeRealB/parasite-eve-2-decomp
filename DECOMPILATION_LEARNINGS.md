@@ -143247,3 +143247,19 @@ load to `lb`. Declaring the accumulator `u16` and comparing directly,
 asm("v1")` plus a `volatile u8*` walker in such a loop stands for this. The
 loop counter compares against a `limit` local (`slt` with a register), since a
 literal bound lets loop.c reverse it into a `bgez` countdown.
+## A call argument loaded too late: `size <<= 1` as its own statement drops sched1's launch boost (Mc_StateFinishWrite, 2026-09-26)
+
+**Symptom:** `memcpy(slots[i].field_0, src, slots[i].field_4 << 1)` came out
+`lw a0,0(v1); lw a2,4(v1)` where the target loads the size first. `.sched`
+showed the size load at `7f000001` beside the `a0` load at priority 1: a
+single-set pseudo gets the birthing boost, and the backward scheduler places it
+last. The seed pinned `size asm("a2")` and the table base `asm("v0")`.
+
+**Fix:** `size = slots[i].field_4; size <<= 1; memcpy(..., size);`. A
+self-referential set is not removed by cse, so the pseudo has two sets, no
+boost, and the luid tie puts the size load first. `size += size` works too;
+`size *= 2` does not, because the multiply expands through a temporary that
+cse substitutes and flow then deletes. Sharing `size` with a local of another
+branch also removes the boost, but it makes the pseudo global, which leaves
+two local quantities instead of three and flips the table base from `v0` to
+`v1` (see the three-quantity exception in `CODEGEN_MODEL.md` §10).
