@@ -861,48 +861,13 @@ static __inline__ void Actor401000_BindMatrices(Task* actor)
     obj->colorMtx = &work->field_BA8;
 }
 
-/// Rebuilds the root coordinate's scaled Y rotation and drops both obstacle
-/// tables while the rotation scratch block is still held.
+/// Rebuilds the root coordinate's Y rotation at the actor's 0x1194 scale and
+/// drops both obstacle tables.
 static __inline__ void Actor401000_InitPose(GpCoord* coord, Actor401000Work* work)
 {
-    void*                 scratch_base;
-    u8*                   head;
-    u8*                   tail;
-    ActorScaleRotScratch* blk;
-    GpRec18*              rec;
-    s16                   ang;
-    u16                   m22;
-
-    scratch_base                       = PSX_SCRATCH;
-    head                               = scratch_base;
-    head                               = *(u8**)(head + 0x3FC);
-    blk                                = (ActorScaleRotScratch*)(head - 0x34);
-    SCRATCH_HEAD(ActorScaleRotScratch) = blk;
-    ang                                = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->angle                         = ang;
-    Gfx_RotMatrixY(&blk->m, (s32)ang, 1);
-    blk->scale.vz = 0x1194;
-    blk->scale.vy = 0x1194;
-    blk->scale.vx = 0x1194;
-    ScaleMatrix(&blk->m, &blk->scale);
-    coord->coord.m[0][0] = (u16)((ActorScaleRotScratch*)(head - 0x34))->m.m[0][0];
-    coord->coord.m[0][1] = (u16)blk->m.m[0][1];
-    coord->coord.m[0][2] = (u16)blk->m.m[0][2];
-    coord->coord.m[1][0] = (u16)blk->m.m[1][0];
-    coord->coord.m[1][1] = (u16)blk->m.m[1][1];
-    coord->coord.m[1][2] = (u16)blk->m.m[1][2];
-    coord->coord.m[2][0] = (u16)blk->m.m[2][0];
-    coord->coord.m[2][1] = (u16)blk->m.m[2][1];
-    __asm__ volatile("lui %0, 0x1F80" : "=r"(tail));
-    tail       = *(u8**)(tail + 0x3FC);
-    m22        = (u16)blk->m.m[2][2];
-    rec        = work->field_A30;
-    coord->flg = 0;
-    tail       = tail + 0x34;
-    __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(tail) : "memory");
-    coord->coord.m[2][2] = m22;
-    work->field_C7C      = 0;
-    Gp_ClearRec18Occupied(rec);
+    actorRescaleYaw(coord, 0x1194);
+    work->field_C7C = 0;
+    Gp_ClearRec18Occupied(work->field_A30);
     Gp_ClearRec18Occupied(work->field_8F0);
 }
 
