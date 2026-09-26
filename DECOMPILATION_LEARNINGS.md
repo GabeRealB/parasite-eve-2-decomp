@@ -144141,3 +144141,10 @@ branch's load, took `LAUNCH_PRIORITY` and landed in the delay slot. Loading the
 halfword into a `u16 height` local first, then `size = height * 12`, adds one
 more birthing insn that takes that slot instead, so the `addu` precedes the
 condition's load, that load reuses `$v0`, and the store fills the delay slot.
+### A reload after a store that a barrier forced is reorg deleting the join block's redundant load; load that field first in the join (Ui_LayoutListPanel, 2026-09-26)
+
+Target: `lbu v1,4(s1); lw v0,0x10(s1); slt; bnez L; addiu v0,v1,-1; sw v0,0x10(s1); lbu v1,4(s1)` and at `L` only `lb v0,5(s1)`, then `slt v0,v0,v1`. The seed wrote `n = f4; if (f10 >= n) { f10 = n - 1; SOFT_COMPILER_BARRIER(); n = f4; }` to put the reload inside the if. Without the barrier cse drops that reload (the store to `f10` provably misses `f4`), so the reload is not a store-alias effect. It is reorg: when the join block loads `f4` before `f5`, the taken branch already holds that value, so dbr redirects it past the redundant `lbu` and the load appears to sit at the end of the if body. Writing the second test with `f4` first, `if (f4 <= f5)`, makes sched1 put that load first. `if (f5 >= f4)` loads `f5` first and keeps both loads at the join.
+
+### `if (t < 0) x += t;` reads `x` before the branch only when no store sits between computing `t` and the if (Ui_LayoutListPanel, 2026-09-26)
+
+For `t = K - (s->x + s->w); if (t < 0) s->x += t;`, cse reuses the HImode `x` loaded for `t` inside the if, and combine splits it into an `lhu` that sched puts before the branch, with the `addu` in the delay slot. A store to another field of `s` between the two statements (`s->h += growth;`) makes cse reload `x` in the if body, which puts the store in the delay slot instead. The seed used a register pin and a `(u16)` pre-read to get the same shape. The fix was statement order: do the `h` update first, then compute `t`. sched still hoists the `x`/`w` loads above the `h` store.

@@ -1039,12 +1039,9 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
     UiListSignedRows*        arg0;
     UiPanelSignedLayoutFull* arg1;
     RECT                     sp10;
-    s16                      temp_v0;
-    u8                       temp_a2_u8;
-    s8                       temp_v1;
-    s32                      temp_v1_2;
     s32                      height;
-    s32                      temp_a2;
+    s32                      overflow;
+    s32                      growth;
 
     arg0 = (UiListSignedRows*)arg0_;
     arg1 = (UiPanelSignedLayoutFull*)arg1_;
@@ -1055,34 +1052,16 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
         arg0->field_5 = arg0->field_4;
     }
 
-    {
-        s32          f5;
-        s32          f7;
-        register s32 f18 asm("a0");
-        s32          f1a;
-        s32          w;
-        s32          x;
-        u32          xv;
-
-        f5              = arg0->field_5;
-        f7              = arg0->field_7;
-        f5              = f5 * f7;
-        temp_a2         = 0x98;
-        w               = arg1->field_C.w;
-        x               = arg1->field_C.x;
-        f18             = arg1->field_18;
-        temp_a2         = temp_a2 - (x + w);
-        f1a             = arg1->field_1A;
-        f5              = f5 - (f1a - f18);
-        arg1->field_C.h = arg1->field_C.h + f5;
-        xv              = (u16)arg1->field_C.x;
-        if (temp_a2 < 0) {
-            arg1->field_C.x = xv + temp_a2;
-        }
+    growth           = arg0->field_5 * arg0->field_7;
+    growth          -= arg1->field_1A - arg1->field_18;
+    arg1->field_C.h += growth;
+    overflow         = 0x98 - (arg1->field_C.x + arg1->field_C.w);
+    if (overflow < 0) {
+        arg1->field_C.x += overflow;
     }
-    temp_a2 = 0x70 - (arg1->field_C.y + arg1->field_C.h);
-    if (temp_a2 < 0) {
-        arg1->field_C.y += temp_a2;
+    overflow = 0x70 - (arg1->field_C.y + arg1->field_C.h);
+    if (overflow < 0) {
+        arg1->field_C.y += overflow;
     }
 
     Ui_InsetRect2(arg1, &arg1->field_C, &sp10);
@@ -1108,36 +1087,30 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
     sp10.x         = arg1->field_20 + arg1->field_1C;
     sp10.y         = arg1->field_22 + arg1->field_18;
     sp10.w         = arg1->field_1E - arg1->field_1C;
-    temp_v0        = arg1->field_1A - arg1->field_18;
-    height         = temp_v0;
-    sp10.h         = temp_v0;
-    height         = height - arg0->field_17;
+    sp10.h         = arg1->field_1A - arg1->field_18;
+    height         = sp10.h;
+    height        -= arg0->field_17;
     if (arg0->field_7 == 0) {
         arg0->field_7 = 0xA;
     }
-    temp_a2_u8 = arg0->field_4;
-    temp_v1    = arg0->field_7;
-    if (height >= (temp_a2_u8 * temp_v1)) {
-        arg0->field_5 = temp_a2_u8;
+    if (height >= arg0->field_4 * arg0->field_7) {
+        arg0->field_5 = arg0->field_4;
     } else {
-        arg0->field_5 = height / temp_v1;
+        arg0->field_5 = height / arg0->field_7;
         if (arg0->field_5 <= 0) {
             arg0->field_5 = 1;
         }
     }
-    temp_v1_2 = arg0->field_4;
-    if (arg0->field_10 >= temp_v1_2) {
-        arg0->field_10 = temp_v1_2 - 1;
-        SOFT_COMPILER_BARRIER();
-        temp_v1_2 = arg0->field_4;
+    if (arg0->field_10 >= arg0->field_4) {
+        arg0->field_10 = arg0->field_4 - 1;
     }
-    if (arg0->field_5 >= temp_v1_2) {
+    if (arg0->field_4 <= arg0->field_5) {
         arg0->field_9 = 0;
     }
-    arg0->field_A                   = 0;
-    *(volatile s16*)&arg0->field_14 = 0;
-    arg0->field_16                  = 0;
-    *(volatile s32*)&arg0->field_C  = 0;
+    arg0->field_A  = 0;
+    arg0->field_14 = 0;
+    arg0->field_16 = 0;
+    arg0->field_C  = 0;
     if (Mc_SaveData[0].cursorMode != 0) {
         arg0->field_10 = 0;
         arg0->field_9  = 0;
