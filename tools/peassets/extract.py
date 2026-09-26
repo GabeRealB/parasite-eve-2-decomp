@@ -1127,22 +1127,6 @@ def write_pack_manifests(args, output_path: Path, store: "AssetStore", rom_root)
         logging.exception("Failed to write pack/ISO manifests")
 
 
-def run_package_analysis(output_path: Path, store: "AssetStore", *, skip: bool) -> None:
-    """Carve assets that live inside the inflated packages.
-
-    Model streams are contiguous, so they become raw assets of their own.
-    Needs the full package set, so it no-ops after a minimal extract.
-    """
-    if skip:
-        return
-    try:
-        from pkg_model import extract_package_models
-
-        extract_package_models(output_path, store)
-    except Exception:
-        logging.exception("Failed to carve package model streams")
-
-
 def store_embedded_assets(output_path: Path, store: "AssetStore", *, skip: bool) -> int:
     """Carve catalogued assets out of the binaries and into the normal store.
 
@@ -1375,7 +1359,6 @@ def main():
 
     write_pack_manifests(args, output_path, store, rom_root)
 
-    run_package_analysis(output_path, store, skip=args.skip_embedded)
     logging.info("All done!")
 
 

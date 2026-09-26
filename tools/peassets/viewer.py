@@ -1507,20 +1507,19 @@ class AssetViewer(tk.Tk):
         self._setup_animations(ov, emb, mesh)
         self.preview_nb.select(self.mesh_view)
 
-        stream = emb.detail.get("stream") or {}
-        src = emb.detail.get("source")
+        src = emb.detail.get("source") or {}
         lines = [
             f"# model stream  {ov.name} @0x{emb.offset:05X}",
-            f"# {emb.size} bytes, {stream.get('packets')} packets",
-            f"# opcodes: " + ", ".join(f"0x{o:X}" for o in stream.get("ops", [])),
+            f"# {emb.size} bytes, {src.get('packets')} packets",
+            f"# opcodes: " + ", ".join(f"0x{o:X}" for o in src.get("ops", [])),
             "",
         ]
         if src:
             lines += [
                 "TmdSource:",
-                f"  record   @{src['source_offset']}",
-                f"  vertices @{src['verts_offset']}  ({src['vertex_count']})",
-                f"  normals  @{src['norms_offset']}  ({src['normal_count']})",
+                f"  record   @0x{src['source_offset']:05X}",
+                f"  vertices @0x{src['verts_offset']:05X}  ({src['vertex_count']})",
+                f"  normals  @0x{src['norms_offset']:05X}  ({src['normal_count']})",
                 f"  {mesh.stored_normals} of {len(faces)} faces oriented by a "
                 f"stored normal; the rest fall back to winding",
             ]

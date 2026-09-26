@@ -8,10 +8,11 @@ out of the package body.
 
 Two things shape the design:
 
-* **Scanning is on demand.** ``pkg_model.find_streams`` walks every 4-byte
-  offset and re-walks each candidate, so scanning all 448 packages up front
-  costs seconds for a tree the user may never expand. Callers scan one package
-  when its node opens, and :func:`scan_overlay` caches the result.
+* **Models are declared.** The manifest lists every model with its
+  `TmdSource` record, so a package's models are read from those records
+  (``pkg_model.declared_records``), not searched for. Animation blocks are
+  still located on demand when a node opens, and :func:`scan_overlay` caches
+  the result.
 * **The manifest is the index.** Overlay names are manifest keys and a package
   is ``assets/USA/pe2pkg/<key>.pe2pkg``, so nothing here needs stages.json or a
   disc id - the tree still works after a ``-iso_min`` extract.
@@ -76,12 +77,19 @@ def list_overlays(manifest: dict[str, Any], pkg_dir: Path) -> dict[str, list[Ove
         if not isinstance(spec, dict) or "overlays" not in spec:
             continue
         load = int(spec.get("load_addr", 0))
+        slot_addr = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
         rows: list[Overlay] = []
-        for name, entry in spec["overlays"].items():
+        # An entry with `slots` builds one package per slot, each at its slot's
+        # address.
+        packages = [
+            (slot["package"], slot_addr.get(slot.get("slot"), load))
+            for name, entry in spec["overlays"].items()
+            for slot in (entry.get("slots") or [{"package": name}])
+        ]
+        for name, addr in packages:
             path = pkg_dir / f"{name}.pe2pkg"
             if not path.is_file():
                 continue
-            addr = int(entry.get("load_addr", load)) if isinstance(entry, dict) else load
             try:
                 size = path.stat().st_size
             except OSError:
@@ -105,6 +113,18 @@ def package_bytes(path: Path) -> bytes:
     return data
 
 
+_records: dict[str, tuple[int, list[int]]] | None = None
+
+
+def _declared(overlay: Overlay) -> list[int]:
+    """File offsets of the overlay's declared `TmdSource` records."""
+    global _records
+    if _records is None:
+        root = find_repo_root(overlay.path.parent) or Path(__file__).resolve().parents[2]
+        _records = pkg_model.declared_records(root)
+    return sorted(_records.get(overlay.name, (0, []))[1])
+
+
 def scan_overlay(overlay: Overlay, *, anim_candidates=None) -> list[Embedded]:
     """Every embedded asset in one package, cached by path."""
     if overlay.path in _scan_cache:
@@ -117,25 +137,15 @@ def scan_overlay(overlay: Overlay, *, anim_candidates=None) -> list[Embedded]:
         return []
 
     out: list[Embedded] = []
-    streams = pkg_model.find_streams(data)
     base = overlay.load_addr
-    srcs = pkg_model.find_sources(data, base, {base + int(s["offset"], 16) for s in streams})
-    for s in streams:
-        off = int(s["offset"], 16)
-        src = srcs.get(base + off)
-        # A stream without a TmdSource has no vertex array to point at, so it
-        # can be listed but not drawn; say so in the label rather than
-        # offering an empty viewport.
-        verts = int(src["vertex_count"]) if src else 0
-        end = off + int(s["bytes"])
-        named = pkg_model.model_name(data[off:end])
-        detail = {"stream": s, "source": src, "name": named}
-        label = named or f"model @0x{off:05X}"
-        if src:
-            label += f"  ({verts} verts)"
-        else:
-            label += "  (no TmdSource)"
-        out.append(Embedded("model", off, s["bytes"], label, detail))
+    for rec in _declared(overlay):
+        src = pkg_model.read_source(data, base, rec)
+        off = src["stream_offset"]
+        size = src["end"] - off
+        named = pkg_model.model_name(data[off : src["end"]])
+        detail = {"source": src, "name": named}
+        label = (named or f"model @0x{off:05X}") + f"  ({src['vertex_count']} verts)"
+        out.append(Embedded("model", off, size, label, detail))
 
     for block in _anim_blocks(overlay, data, anim_candidates):
         off = int(block["block_offset"], 16)
@@ -284,8 +294,8 @@ def decode_model(overlay: Overlay, emb: Embedded) -> Mesh:
     data = overlay.path.read_bytes()
     count = int(src["vertex_count"])
     ncount = int(src["normal_count"])
-    raw_v = tmd_export.read_vertices(data, int(src["verts_offset"], 16), count)
-    raw_n = tmd_export.read_vertices(data, int(src["norms_offset"], 16), ncount)
+    raw_v = tmd_export.read_vertices(data, src["verts_offset"], count)
+    raw_n = tmd_export.read_vertices(data, src["norms_offset"], ncount)
     faces, nrefs, parts, skipped = tmd_export.decode_stream_geometry(
         data, emb.offset, count, ncount
     )
@@ -349,10 +359,10 @@ def raw_arrays(overlay: Overlay, emb: Embedded):
         return [], []
     data = overlay.path.read_bytes()
     verts = tmd_export.read_vertices(
-        data, int(src["verts_offset"], 16), int(src["vertex_count"])
+        data, src["verts_offset"], int(src["vertex_count"])
     )
     norms = tmd_export.read_vertices(
-        data, int(src["norms_offset"], 16), int(src["normal_count"])
+        data, src["norms_offset"], int(src["normal_count"])
     )
     return verts, norms
 

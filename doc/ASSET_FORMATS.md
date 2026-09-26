@@ -785,9 +785,6 @@ Angles use `4096` for a full turn and the rotation order is PsyQ's `RotMatrix`
   transform opcodes.
 - **Import.** Round-tripping OBJ back to a stream needs byte-exact re-encoding
   of the tail words, so export has to come first.
-- **False positives.** The stream validator checks structure, not semantics; a
-  short run in a package that is otherwise ~0% covered is the shape to
-  distrust. `MIN_PACKETS` in `pkg_model.py` is the knob.
 
 ### 9.5 Where they end up
 
@@ -850,9 +847,10 @@ straight out of the package:
   characteristic `V - E + F` into Txt/hex as a sanity check on the face decode;
 - an **anim** node lists the block's sets and clips.
 
-Scanning is on demand and cached per package: `find_streams` walks every 4-byte
-offset and re-walks each candidate, so scanning all 448 packages up front would
-stall the window. A package is scanned when its node is first expanded.
+A package's models are the ones the overlay manifest declares, each read from
+its `TmdSource` record (`pkg_model.declared_records` / `read_source`); nothing
+is searched for. Animation blocks are still located when a package's node is
+first expanded, and cached per package.
 
 The mesh comes from the same decoder as `tmd_export.py`, Y-flip included, so a
 model that looks upright in the viewport looks upright in Blender. Only faces

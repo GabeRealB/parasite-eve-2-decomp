@@ -593,20 +593,15 @@ What remains is narrower.
 - **Import.** Writing a stream back needs the `handler_slot` written as it
   appears on disc rather than as the runtime pointer, and the tpage/clut bias
   (§5.1) undone.
-- **The 37 unsourced streams.** 535 of the 572 located streams have a
-  `TmdSource`; the rest are either real meshes reached from code the scan does
-  not see, or remaining false positives. The validator checks structure, not
-  semantics, so it cannot tell them apart. A short run in a package that is
-  otherwise ~0% covered is the shape to distrust, and `MIN_PACKETS` is the
-  remaining knob.
-
-  This was 249 until the source matcher learned about **leading skip words**. A
-  `TmdSource` may point at a stream that opens with one or more `0xFFFFFFFE`
-  skips — `Tmd_InitSourceStream` steps over them before reading the first id —
-  while the walker starts at the first packet, so the two addresses differ by
-  the skips and an exact comparison threw the source away. The 41-packet body
-  mesh in every Kyle overlay is one of these: its source declares
-  `0x15D4`, the first packet is at `0x15D8`.
+- **Where models are is settled.** The overlay manifest declares every model
+  with its `TmdSource` record (597 across 203 packages), and the build checks
+  each record decodes and that its model object is exactly the arrays and stream
+  it points at. A record may point at a stream that opens with one or more
+  `0xFFFFFFFE` skips - `Tmd_InitSourceStream` steps over them - so the stream's
+  first packet can sit past the address the record declares; the Kyle body mesh
+  declares `0x15D4` and its first packet is at `0x15D8`. The 37 streams an
+  opcode walk used to find without a record are no longer catalogued; whether
+  anything draws them, through a record built at run time, is open.
 
 ---
 

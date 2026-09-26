@@ -222,21 +222,19 @@ def main() -> int:
     out_root = Path(args.out)
     out_root.mkdir(parents=True, exist_ok=True)
     total = 0
+    records = pkg_model.declared_records(Path(__file__).resolve().parents[2])
     for name, path, base in packages_for(args.family):
         data = path.read_bytes()
-        streams = pkg_model.find_streams(data)
-        srcs = pkg_model.find_sources(data, base, {base + int(s["offset"], 16) for s in streams})
         dest = out_root / name
         written = []
-        for s in streams:
-            off = int(s["offset"], 16)
-            src = srcs.get(base + off)
-            if not src:
-                continue
+        load, recs = records.get(name, (base, []))
+        for rec in sorted(recs):
+            src = pkg_model.read_source(data, load, rec)
+            off = src["stream_offset"]
             vcount = src["vertex_count"]
             if vcount < args.min_verts:
                 continue
-            verts = read_vertices(data, int(src["verts_offset"], 16), vcount)
+            verts = read_vertices(data, src["verts_offset"], vcount)
             verts = pose_vertices(verts, src.get("skeleton"))
             faces, skipped = decode_stream(data, off, vcount)
             if not faces:

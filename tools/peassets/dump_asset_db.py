@@ -355,11 +355,10 @@ def collect_models(
     no chunk, so its position goes in `EMBEDDED_ASSETS` beside the save header,
     which is the table for things located by address inside a container.
 
-    Meshes are found from their `TmdSource` record (`pkg_model.find_sources_direct`),
-    which is decided by the decompiled struct rather than by a scan heuristic, so
-    this does not need the extractor to have run - the packages themselves are the
-    source of truth. One entry per distinct mesh: 129 of them are shared between
-    packages, and dedup is by SHA-1 like every other asset.
+    Meshes are the models the overlay manifest declares, each decoded from its
+    `TmdSource` record (`pkg_model.read_source`), so nothing is searched for.
+    One entry per distinct mesh: 129 of them are shared between packages, and
+    dedup is by SHA-1 like every other asset.
 
     Names are preserved across regeneration by SHA-1, the same contract as extra
     ASSETS fields and TREE keys. Without that the generated name would follow
@@ -371,7 +370,7 @@ def collect_models(
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import pkg_model
 
-    bases = pkg_model._load_addrs(assets_root)
+    records = pkg_model.declared_records(Path(__file__).resolve().parents[2])
     known = {rec["sha1"]: aid for aid, rec in old.items() if rec.get("type") == "model"}
     out: dict[str, dict[str, Any]] = {}
     placed: dict[str, dict[str, Any]] = {}
@@ -379,16 +378,14 @@ def collect_models(
     for pkg in sorted(pkg_dir.glob("*.pe2pkg")):
         if pkg.stem in ("gameplay", "title"):
             continue
-        base = bases.get(pkg.stem)
-        if base is None:
+        if pkg.stem not in records:
             continue
+        base, sources = records[pkg.stem]
         data = pkg.read_bytes()
-        for stream_va in sorted(pkg_model.find_sources_direct(data, base)):
-            off = stream_va - base
-            walked = pkg_model.walk_stream(data, off)
-            if not walked:
-                continue
-            blob = data[off : walked[1]]
+        for src in sorted((pkg_model.read_source(data, base, o) for o in sources),
+                          key=lambda r: r["stream_offset"]):
+            off = src["stream_offset"]
+            blob = data[off : src["end"]]
             digest = hashlib.sha1(blob).hexdigest()
             if digest in seen:
                 continue

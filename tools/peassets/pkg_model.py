@@ -21,19 +21,12 @@ The handler slot is why this must be read from the file rather than from RAM:
 back into the stream**, so a stream that has been through the game once no
 longer looks like the on-disc form.
 
-This module finds streams by walking: a candidate offset is a stream if every
-id is one of the 61 opcodes the switch knows and the walk reaches the
-terminator inside the file. Two things stop that from over-reporting:
+Where the models are is declared, not searched for: the overlay manifest lists
+every model with its `TmdSource` record (`kind = "modelSource"`), and
+:func:`declared_records` hands those to the asset tooling. :func:`read_source`
+decodes a record and walks its stream.
 
-* A valid stream is also "valid" from each of its own packets, so starts that
-  are a later packet of another start are dropped.
-* That is not sufficient on its own: a shorter run can begin inside another
-  stream's payload without sitting on its packet boundaries. So the longest run
-  is kept first and anything overlapping an already-kept range is discarded.
-  Reported coverage above 100% of the file size means this step regressed.
-* A single packet proves nothing, so a run needs at least two.
-
-It reports where the streams are and how big, not what they draw. Turning a
+It reports where each model is and how big, not what it draws. Turning a
 packet into geometry needs the per-opcode payload semantics from the handlers
 in ``src/main/hasm/Tmd_StreamHandlers_Ops.s``, which is a separate job.
 """
@@ -44,6 +37,7 @@ import hashlib
 import json
 import logging
 import struct
+import sys
 from pathlib import Path
 
 # Opcodes accepted by the Tmd_InitSourceStream switch, in source order of value.
@@ -62,14 +56,7 @@ STREAM_END = 0xFFFFFFFF
 STREAM_SKIP = 0xFFFFFFFE
 HEADER_WORDS = 3
 MAX_PACKETS = 8192
-MIN_PACKETS = 2
 
-# Opcodes that never begin a real model. Measured against ground truth: of the
-# 293 streams a TmdSource actually points at, none starts with 0x0 or 0x4,
-# while 215 of the 415 unreferenced candidates do. Both are cheap to hit by
-# accident - 0x0 matches a run of zero padding, whose dims word is also 0, so a
-# zeroed region parses as a chain of empty packets.
-BAD_FIRST_OPCODES = frozenset({0x0, 0x4})
 
 
 def walk_stream(data: bytes, off: int) -> tuple[list[dict], int] | None:
@@ -106,50 +93,6 @@ def walk_stream(data: bytes, off: int) -> tuple[list[dict], int] | None:
         if off > n:
             return None
     return None
-
-
-def find_streams(data: bytes) -> list[dict]:
-    """Every maximal model stream in a package body."""
-    valid: dict[int, tuple[list[dict], int]] = {}
-    for off in range(0, max(0, len(data) - HEADER_WORDS * 4), 4):
-        (idv,) = struct.unpack_from("<I", data, off)
-        if idv not in TMD_OPCODES:
-            continue
-        if idv in BAD_FIRST_OPCODES:
-            continue
-        walked = walk_stream(data, off)
-        if walked and len(walked[0]) >= MIN_PACKETS:
-            valid[off] = walked
-
-    # A valid stream is also valid from each of its own packets, and a shorter
-    # run can start inside another's payload without being a packet boundary of
-    # it - so dropping "later packet" starts alone still double-counts. Keep the
-    # longest run first and discard anything overlapping what is already kept;
-    # coverage above 100% of the file means this step regressed.
-    inner = {p["offset"] for packets, _ in valid.values() for p in packets[1:]}
-    kept: list[tuple[int, int]] = []
-    out = []
-    for off, (packets, end) in sorted(
-        valid.items(), key=lambda kv: kv[1][1] - kv[0], reverse=True
-    ):
-        if off in inner:
-            continue
-        if any(off < k_end and end > k_start for k_start, k_end in kept):
-            continue
-        kept.append((off, end))
-        out.append(
-            {
-                "offset": f"0x{off:05X}",
-                "end": f"0x{end:05X}",
-                "bytes": end - off,
-                "packets": len(packets),
-                "parts": max((p["part"] for p in packets), default=0) + 1,
-                "ops": sorted({p["op"] for p in packets}),
-                "packet_list": packets,
-            }
-        )
-    out.sort(key=lambda s: int(s["offset"], 16))
-    return out
 
 
 TMD_SOURCE_SIZE = 0x24
@@ -284,103 +227,25 @@ def read_source(data: bytes, base: int, off: int) -> dict:
         "vertex_count": (norms - verts) // 8,
         "normal_count": (stream_va - norms) // 8,
         "packets": len(walked[0]),
+        "ops": sorted({p["op"] for p in walked[0]}),
         "skeleton": read_skeleton(data, base, off),
     }
 
 
-def find_sources_direct(data: bytes, base: int) -> dict[int, dict]:
-    """Every `TmdSource` in a package, found from the record itself.
+def declared_records(repo_root: Path) -> dict[str, tuple[int, list[int]]]:
+    """package -> (load address, file offsets of its `TmdSource` records).
 
-    `find_sources` needs the stream first and can only confirm what the opcode
-    walk already found. That inverts badly: `find_streams` demands MIN_PACKETS
-    packets to keep its false-positive rate down, so every single-packet model
-    was invisible - both of tonfa_baton's, and 61 across the disc.
-
-    Nothing here is inferred. The layout is `include/main/tmd.h`, decompiled:
-    `handlersResolved` is the one-shot init flag `Tmd_InitSourceStream` tests
-    against 0, `partCount` sizes both `partVerts` (u32 each) and `skeleton`
-    (`TmdBone`, 0x24 each), and the opcode set is the 61 cases of that
-    function's switch.
-    Six independent constraints on one 0x24-byte record is far past what noise
-    supplies: across 407 packages all 597 hits walk to a terminator, and every
-    stream ends exactly on its own source's offset - the `[verts][norms][stream]
-    [source]` layout, predicted and then confirmed 597 times over.
+    From the overlay manifest, whose model declarations the build checks
+    against every package.
     """
-    n = len(data)
-    end = base + n
-    out: dict[int, dict] = {}
-    for off in range(0, max(0, n - TMD_SOURCE_SIZE), 4):
-        (flag,) = struct.unpack_from("<I", data, off + SRC_INIT_FLAG)
-        if flag != 0:
-            continue
-        (parts,) = struct.unpack_from("<I", data, off + SRC_PARTS)
-        if not 1 <= parts <= MAX_PARTS:
-            continue
-        partverts, verts, norms, skel, raw_va = struct.unpack_from(
-            "<5I", data, off + SRC_PARTVERTS
-        )
-        if not all(base <= p < end for p in (partverts, verts, norms, skel, raw_va)):
-            continue
-        if not verts < norms < raw_va:
-            continue
-        if skel - base + parts * TMD_BONE_SIZE > n or partverts - base + parts * 4 > n:
-            continue
-        stream_va = _skip_leading_skips(data, base, raw_va)
-        soff = stream_va - base
-        if soff + 4 > n:
-            continue
-        (idv,) = struct.unpack_from("<I", data, soff)
-        if idv not in TMD_OPCODES:
-            continue
-        out[stream_va] = {
-            "source_offset": f"0x{off:05X}",
-            "skeleton": read_skeleton(data, base, off),
-            "stream_declared": f"0x{raw_va - base:05X}",
-            "verts_offset": f"0x{verts - base:05X}",
-            "norms_offset": f"0x{norms - base:05X}",
-            "vertex_count": (norms - verts) // 8,
-            "normal_count": (stream_va - norms) // 8,
-        }
-    return out
+    sys.path.insert(0, str(repo_root / "tools"))
+    import tomllib
+    from gen_overlay_configs import declared_models
 
-
-def find_sources(data: bytes, base: int, stream_vas: set[int]) -> dict[int, dict]:
-    """Locate the `TmdSource` record that owns each stream.
-
-    A source is a 0x24-byte record whose `+0x20` reaches the start of a stream
-    we already validated (allowing for leading skip words) and whose `+0x14` /
-    `+0x18` are the vertex and normal arrays. Anchoring on a known stream is
-    what keeps this from matching noise: three in-range pointers alone occur by
-    chance all over a package.
-
-    Models are laid out `[verts][norms][stream][source]`, so the array lengths
-    come from the gaps.
-    """
-    end = base + len(data)
-    out: dict[int, dict] = {}
-    for off in range(0, max(0, len(data) - TMD_SOURCE_SIZE), 4):
-        (raw_va,) = struct.unpack_from("<I", data, off + SRC_STREAM)
-        if not base <= raw_va < end:
-            continue
-        stream_va = _skip_leading_skips(data, base, raw_va)
-        if stream_va not in stream_vas:
-            continue
-        verts, norms = struct.unpack_from("<2I", data, off + SRC_VERTS)
-        if not (base <= verts < end and base <= norms < end):
-            continue
-        # The gaps are the array sizes, so the three must be in order.
-        if not verts < norms < stream_va:
-            continue
-        skel = read_skeleton(data, base, off)
-        out[stream_va] = {
-            "source_offset": f"0x{off:05X}",
-            "skeleton": skel,
-            "stream_declared": f"0x{raw_va - base:05X}",
-            "verts_offset": f"0x{verts - base:05X}",
-            "norms_offset": f"0x{norms - base:05X}",
-            "vertex_count": (norms - verts) // 8,
-            "normal_count": (stream_va - norms) // 8,
-        }
+    manifest = tomllib.loads((repo_root / "configs/USA/overlays.toml").read_text(encoding="utf-8"))
+    out: dict[str, tuple[int, list[int]]] = {}
+    for m in declared_models(manifest):
+        out.setdefault(m["package"], (m["load"], []))[1].append(m["source"])
     return out
 
 
@@ -399,95 +264,3 @@ def model_name(stream: bytes) -> str | None:
         if rec.get("type") == "model" and rec.get("sha1") == digest:
             return aid
     return None
-
-
-def extract_package_models(output_path: Path, store=None, *, limit: int | None = None) -> int:
-    """Carve *uncatalogued* model streams into ``raw/model/``.
-
-    Every mesh with a `TmdSource` is an `EMBEDDED_ASSETS` placement, so
-    `store_embedded_assets` already carves it on any extraction mode. What is
-    left is the 35 streams the opcode walk finds that no source overlaps:
-    either models drawn without a `TmdSource`, or walk false positives. This
-    is therefore the discovery path, and re-carving the catalogued ones here
-    would only duplicate work the store would dedup away.
-
-    Streams are contiguous byte ranges, so each one is a self-contained asset.
-    There is no inflated form yet - ``.tmd`` is in ``RAW_ONLY_EXTS`` - because
-    the packet payloads are located but not interpreted (ASSET_FORMATS §9.4).
-    """
-    pkg_dir = output_path / "pe2pkg"
-    if not pkg_dir.is_dir() or store is None:
-        return 0
-    packages = sorted(p for p in pkg_dir.glob("*.pe2pkg") if p.stem not in ("gameplay", "title"))
-    if limit:
-        packages = packages[:limit]
-    if not packages:
-        logging.info("package models: only the split overlays present, skipping")
-        return 0
-
-    bases = _load_addrs(output_path)
-    total = 0
-    sourced = 0
-    located = 0
-    for pkg in packages:
-        data = pkg.read_bytes()
-        base = bases.get(pkg.stem)
-        # Sources first: a TmdSource is self-validating, so it finds models the
-        # opcode walk cannot - anything under MIN_PACKETS packets. The walk is
-        # kept for streams no source points at, which are the ones we are least
-        # sure about, so they stay behind its stricter guard.
-        srcs = find_sources_direct(data, base) if base is not None else {}
-        # Overlap, not equality. A source names the stream's real start; the
-        # walk can latch onto a plausible opcode a few words earlier and report
-        # the same model from a different offset - actor_400600's 18-part mesh
-        # is sourced at 0x0C1EC and walked from 0x0C1DC. Comparing starts calls
-        # that orphaned and carves it twice.
-        spans = []
-        for stream_va in srcs:
-            walked = walk_stream(data, stream_va - base)
-            if walked:
-                spans.append((stream_va - base, walked[1]))
-        streams = [
-            {**stream, "src": None}
-            for stream in find_streams(data)
-            if not any(
-                int(stream["offset"], 16) < c_end and int(stream["end"], 16) > c_start
-                for c_start, c_end in spans
-            )
-        ]
-        located += len(streams)
-        for stream in streams:
-            off = int(stream["offset"], 16)
-            end = int(stream["end"], 16)
-            src = stream.get("src")
-            if src:
-                sourced += 1
-            # Prefer the catalogued name. Streams are deduped by SHA-1, so
-            # without this the first package scanned names the mesh, and that
-            # is alphabetical order rather than anything meaningful - Kyle's
-            # body would land under `actor_120400_model_015D8`.
-            asset_id = model_name(data[off:end]) or f"{pkg.stem}_model_{off:05X}"
-            _raw_path, _stem, is_new = store.put_embedded(
-                data[off:end],
-                ext=".tmd",
-                asset_id=asset_id,
-                canonical=f"{pkg.name}@0x{off:05X}",
-                info={
-                    "model_source": pkg.name,
-                    "model_offset": stream["offset"],
-                    "model_packets": stream["packets"],
-                    "model_ops": [f"0x{o:X}" for o in stream["ops"]],
-                    **(src or {}),
-                },
-            )
-            total += int(is_new)
-
-    if total:
-        logging.info(
-            "Stored %d unique model stream(s) under raw/model/ (%d of %d located "
-            "have a TmdSource giving vertex/normal arrays)",
-            total,
-            sourced,
-            located,
-        )
-    return total
