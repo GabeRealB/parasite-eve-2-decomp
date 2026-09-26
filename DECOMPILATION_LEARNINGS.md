@@ -311,6 +311,12 @@ Preprocessed inputs: `base_7.c`
 `9d0d7cddd6373e599287f453445c9735053ff441ff12026f572eee9315c359c4`;
 `base_8.c` `3f7d5a43174fee1fb389520f4b0ef3d7817d0c57798bbece7402ca2f5250b130`.
 
+## A store that sinks below loop-init constants was a `do { } while (0)` statement macro (func_actor_121300_PlayAll, 2026-09-27)
+
+Target: `lw s2,0x1c(a0)` / `li v0,2` / `sh v0,0x4a0(s2)` / `li s0,1` / `li s3,0xa`, then the loop. Plain C puts both `li`s above the `lw`. sched1 gives the `sh` priority 2 (it depends on the `lw`, which has a load delay), and the loop-init `i = 1` and hoisted `10` only priority 1, so the store is scheduled last in the block. The tree held the order with `SCHED_BARRIER()`.
+
+Writing the store as a one-statement macro, `#define SET_ANIM_ID(w, a) do { (w)->field_4A0 = (a); } while (0)`, matches with no barrier. The macro's loop notes make everything after them depend on everything before, so sched1 keeps the source order. The mechanism is the same fence as the `func_actor_104900_8013279C` entry above. Here it costs no refs because the fenced statement has no pseudo that competes in allocation. A `static inline` setter does *not* work, because its return label is deleted before sched1.
+
 ## Separate conditional stores preserve a global reload; declaration order breaks a global priority tie (func_actor_420700_80132644, 2026-09-20)
 
 The retry seed used a ternary store and a volatile first read of the actor

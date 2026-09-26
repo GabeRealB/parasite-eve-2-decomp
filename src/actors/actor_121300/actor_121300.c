@@ -841,14 +841,19 @@ static void func_actor_121300_80133730(Task* arg0)
     }
 }
 
+/// Records `anim` as the animation the actor's slots are playing.
+#define SET_ANIM_ID(work, anim)     \
+    do {                            \
+        (work)->field_4A0 = (anim); \
+    } while (0)
+
 static inline void func_actor_121300_PlayAll(Task* arg0, s32 anim)
 {
     Actor121300Work* work;
     u16              i;
 
-    work            = (Actor121300Work*)arg0->work;
-    work->field_4A0 = anim;
-    SCHED_BARRIER();
+    work = (Actor121300Work*)arg0->work;
+    SET_ANIM_ID(work, anim);
     for (i = 1; i < 0x13; i++) {
         func_800B4114(&work->rig.anim, i, anim, 0, 10);
     }
