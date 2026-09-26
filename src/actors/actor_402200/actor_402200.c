@@ -2169,44 +2169,6 @@ static inline void Actor402200_ReseedAnim(Task* arg0)
     }
 }
 
-/// Inlined copy of `func_actor_402200_80137FB0`: relights the actor from its root
-/// coordinate and consumes a pending `field_6EA` tint request.
-static inline void Actor402200_UpdateTint(Task* arg0)
-{
-    Actor402200Work* work;
-    GpCoord*         obj;
-    VECTOR           vec;
-    s16              r;
-    s16              g;
-    s16              b;
-
-    obj    = arg0->extra.tmd->coords;
-    work   = arg0->work;
-    vec.vx = obj->workm.t[0];
-    vec.vy = obj->workm.t[1];
-    vec.vz = obj->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2, &vec, 0, 0);
-    switch (work->field_6EA) {
-        case 1:
-            r = 0;
-            g = 0;
-            b = 0x400;
-            Gp_SetObjTrans(arg0->extra.tmd, r, g, b);
-            work->field_6EA = 0;
-            break;
-        case 2:
-            r = 0xFFF;
-            g = 0xFFF;
-            b = 0xFFF;
-            Gp_SetObjTrans(arg0->extra.tmd, r, g, b);
-            work->field_6EA = 0;
-            break;
-        case 0:
-        default:
-            return;
-    }
-}
-
 /// Inlined copy of `func_actor_402200_8013806C`: draws the ground shadow quad.
 static inline void Actor402200_DrawShadow(Task* arg0)
 {
@@ -2257,7 +2219,7 @@ void func_actor_402200_801368E0(GpEnemy* arg0, Task* arg1)
             coord->flg                     = 0;
             arg1->extra.tmd->coords[3].flg = 0;
             Gp_UpdateCoord(coord);
-            Actor402200_UpdateTint(arg1);
+            actor402200UpdateTint(arg1);
             Actor402200_DrawShadow(arg1);
             return;
         case 2:
@@ -2303,7 +2265,7 @@ void func_actor_402200_801368E0(GpEnemy* arg0, Task* arg1)
     coord->flg                     = 0;
     arg1->extra.tmd->coords[3].flg = 0;
     Gp_UpdateCoord(coord);
-    Actor402200_UpdateTint(arg1);
+    actor402200UpdateTint(arg1);
     Actor402200_DrawShadow(arg1);
     SCRATCH_POP_BYTES(sizeof(SVECTOR));
 }
@@ -2884,44 +2846,10 @@ void func_actor_402200_80137EEC(Task* arg0)
     }
 }
 
-/// Relights the actor from its root part's world position and consumes a
-/// pending `field_6EA` tint request: 1 hands the display object the translate
-/// (0, 0, 0x400), 2 the full (0xFFF, 0xFFF, 0xFFF), and either clears the
-/// request.
+/// Out-of-line `actor402200UpdateTint`, for the callers after the inline one.
 void func_actor_402200_80137FB0(Task* arg0)
 {
-    Actor402200Work* work;
-    GpCoord*         obj;
-    VECTOR           vec;
-    s16              r;
-    s16              g;
-    s16              b;
-
-    obj    = arg0->extra.tmd->coords;
-    work   = arg0->work;
-    vec.vx = obj->workm.t[0];
-    vec.vy = obj->workm.t[1];
-    vec.vz = obj->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2, &vec, 0, 0);
-    switch (work->field_6EA) {
-        case 1:
-            r = 0;
-            g = 0;
-            b = 0x400;
-            Gp_SetObjTrans(arg0->extra.tmd, r, g, b);
-            work->field_6EA = 0;
-            break;
-        case 2:
-            r = 0xFFF;
-            g = 0xFFF;
-            b = 0xFFF;
-            Gp_SetObjTrans(arg0->extra.tmd, r, g, b);
-            work->field_6EA = 0;
-            break;
-        case 0:
-        default:
-            return;
-    }
+    actor402200UpdateTint(arg0);
 }
 
 /// Draws the ground shadow quad, 0x300 across, under the fourth part's

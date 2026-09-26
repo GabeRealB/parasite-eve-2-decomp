@@ -78734,7 +78734,8 @@ the identical tails back into one; writing the call once after the switch
 cannot produce it, because the argument setup is one instruction stream in one
 block and no pass moves a load across the `jal`.
 
-`func_actor_402200_80137FB0` is the worked example. With the dispatch and the
+`func_actor_402200_80137FB0` is the worked example (its body is now the shared
+`actor402200UpdateTint` in `include/actors/actor.h`). With the dispatch and the
 statement order already right, the build sat at `regs=11` with `$s0`/`$s1`
 swapped; writing `Gp_SetObjTrans(...)` and the state clear out in *both* arms
 took it to 0 differences, and the two instructions the target has and the build

@@ -966,10 +966,8 @@ STATIC_ASSERT_SIZEOF(Actor402200Spot, 0x8);
 /// it to 1 while the remaining-enemy count is positive, and the handler
 /// branches on 0 / 1 thereafter.
 ///
-/// `field_6EA` is a pending tint request: `func_actor_402200_80137FB0` reads it
-/// once a frame and, while it is 1 or 2, hands the display object the matching
-/// translate (0, 0, 0x400 or full 0xFFF) and clears it, so each request is
-/// consumed on the frame it is raised.
+/// `field_6EA` is a pending request that `actor402200UpdateTint` applies and
+/// clears; see there for the values.
 ///
 /// `field_718` arms a one-shot vocal cue and `field_71A` is its frame counter.
 /// While the flag is clear the body does nothing; once it is set the counter
@@ -2566,6 +2564,45 @@ static __inline__ void actorTintEffect(GpEffWork* eff, GpEnemy* enemy)
 {
     if (eff != NULL) {
         actorTintModel(eff->task->extra.tmd, enemy);
+    }
+}
+
+/// Relights the actor from its root coordinate, then applies and clears a
+/// pending request in `field_6EA`: 1 and 2 set the translation of the model's
+/// colour matrix to (0, 0, 0x400) and (0xFFF, 0xFFF, 0xFFF) respectively.
+static __inline__ void actor402200UpdateTint(Task* task)
+{
+    Actor402200Work* work;
+    GpCoord*         obj;
+    VECTOR           vec;
+    s16              r;
+    s16              g;
+    s16              b;
+
+    obj    = task->extra.tmd->coords;
+    work   = task->work;
+    vec.vx = obj->workm.t[0];
+    vec.vy = obj->workm.t[1];
+    vec.vz = obj->workm.t[2];
+    Gp_UpdateActorColor(task->spawnArg2, &vec, 0, 0);
+    switch (work->field_6EA) {
+        case 1:
+            r = 0;
+            g = 0;
+            b = 0x400;
+            Gp_SetObjTrans(task->extra.tmd, r, g, b);
+            work->field_6EA = 0;
+            break;
+        case 2:
+            r = 0xFFF;
+            g = 0xFFF;
+            b = 0xFFF;
+            Gp_SetObjTrans(task->extra.tmd, r, g, b);
+            work->field_6EA = 0;
+            break;
+        case 0:
+        default:
+            return;
     }
 }
 
