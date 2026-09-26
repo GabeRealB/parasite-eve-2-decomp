@@ -4910,33 +4910,22 @@ void func_actor_403600_8014174C(Task* arg0)
 void func_actor_403600_801417A8(Task* arg0, s32 arg1)
 {
     SVECTOR          rotation;
-    MATRIX*          matrix;
     Actor403600Work* work;
     s16              angle;
-    s32              absAngle;
-    u16              wrapped;
 
-    work  = arg0->work;
-    angle = work->field_75E + (arg1 & 0xFF);
-    SOFT_TOUCH_REG(angle);
-    SOFT_TOUCH_REG(angle);
-    absAngle = angle;
-    if (angle < 0) {
-        SOFT_TOUCH_REG(absAngle);
-        absAngle = -absAngle;
-    }
+    work            = arg0->work;
+    angle           = work->field_75E + (arg1 & 0xFF);
     work->field_75E = angle;
-    if (absAngle >= 0x801) {
-        wrapped = angle - 0x1000;
-        if (angle <= 0) {
-            wrapped = 0x1000 - angle;
+    if (ABS(angle) > 0x800) {
+        if (angle > 0) {
+            work->field_75E = angle - 0x1000;
+        } else {
+            work->field_75E = 0x1000 - angle;
         }
-        work->field_75E = wrapped;
     }
-    matrix = &work->field_4B8.coord;
-    Gfx_MatrixToEuler(matrix, &rotation);
+    Gfx_MatrixToEuler(&work->field_4B8.coord, &rotation);
     rotation.vz += work->field_75E;
-    RotMatrix(&rotation, matrix);
+    RotMatrix(&rotation, &work->field_4B8.coord);
 }
 
 s32 func_actor_403600_80141840(Task* arg0)
