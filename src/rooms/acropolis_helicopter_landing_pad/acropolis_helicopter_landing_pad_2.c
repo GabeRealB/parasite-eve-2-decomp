@@ -521,12 +521,10 @@ void func_acropolis_helicopter_landing_pad_8017E76C(Task* task)
 
 void func_acropolis_helicopter_landing_pad_8017E81C(Task* arg0)
 {
-    register s32 tmp asm("v0");
-    register s32 hi asm("v1");
-    s32          packed;
-    s32          lo;
-    s32          scaled;
-    s32          val;
+    s32 packed;
+    s32 lo;
+    s32 scaled;
+    s32 val;
 
     packed = (s32)arg0->spawnArg2;
     lo     = packed & 0xFF;
@@ -541,23 +539,16 @@ void func_acropolis_helicopter_landing_pad_8017E81C(Task* arg0)
                 Display_ClampField126(0);
                 taskKill(arg0);
             } else {
-                tmp         = ABS(arg0->spawnArg1);
-                hi          = lo - tmp;
-                tmp         = packed >> 8;
-                scaled      = hi * tmp;
+                val         = lo - ABS(arg0->spawnArg1);
+                scaled      = val * (packed >> 8);
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                hi          = (u32)Gp_LcgState >> 16;
-                hi          = scaled * hi;
-                hi          = hi / lo;
-                val         = hi >> 16;
+                val         = (scaled * (s32)(Gp_LcgState >> 16)) / lo >> 16;
                 if (arg0->spawnArg1 & 1) {
                     val = ABS(val);
-                    Display_ClampField126(val);
                 } else {
-                    tmp = ABS(val);
-                    val = -tmp;
-                    Display_ClampField126(val);
+                    val = -ABS(val);
                 }
+                Display_ClampField126(val);
                 arg0->spawnArg1++;
             }
             break;
