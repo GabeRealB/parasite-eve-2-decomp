@@ -551,7 +551,8 @@ segments:
       - { start: 0x6eae0, type: .bss, name: spu, vram: 0x8007E2E0 }
       - { start: 0x6f3e0, type: .bss, name: sndevt, vram: 0x8007EBE0 }
       - { start: 0x72938, type: .bss, name: sndscript, vram: 0x80082138 }
-      - { start: 0x72f50, type: bss, name: "72F50", vram: 0x80082750 } # remaining .bss
+      - { start: 0x72f50, type: bss, name: "72F50", vram: 0x80082750 } # cdaudio
+      - { start: 0x72fe8, type: .bss, name: cdstream, vram: 0x800827E8 }
   # The file's contents end where bss begins (0x80068F80); the bss subsegments'
   # start offsets above are placeholders past it. splat places the end of bss at
   # this offset plus the segment's bss_size, so marking the end any later counts

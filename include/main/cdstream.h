@@ -141,13 +141,6 @@ void CdStream_Drive(void);
 // Gameplay callback imported by the resident CD stream handler.
 s32 func_800AF590(void);
 
-extern s32          D_800827E8;
-extern volatile s32 D_8008280C;
-extern volatile s32 D_80082814;
-
-extern CdStreamParams         CdStream_Params;
-extern volatile CdStreamState CdStream_State;
-extern CdStreamChannels       CdStream_Channels;
-extern volatile CdReadyQueue  CdReady_Queue;
+extern CdStreamParams CdStream_Params;
 
 #endif // CDSTREAM_H

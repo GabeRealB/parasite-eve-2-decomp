@@ -53,7 +53,6 @@ extern volatile s32 D_800689E4;
 extern volatile s16 D_800689EC;
 extern volatile u8  D_80068B5D;
 extern volatile u8  D_80068B65;
-extern CdlLOC       D_800827F8;
 extern s32          D_80068A78;
 #ifndef SNDEVT_C
 extern s32          D_800820E0;
@@ -76,8 +75,6 @@ extern s32          D_80082778;
 extern volatile u8  D_8008277C;
 extern u8           D_800827B0[];
 extern volatile u8  D_800827E4;
-extern volatile u16 D_80082808;
-extern volatile u16 D_80082810;
 
 #ifndef LOADUI_C
 extern u8  D_8007A394;

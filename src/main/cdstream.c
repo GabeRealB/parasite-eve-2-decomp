@@ -1,4 +1,5 @@
 #include "common.h"
+
 #include "main/mem.h"
 
 #include <psyq/libapi.h>
@@ -7,6 +8,20 @@
 #include "main/cdaudio.h"
 #include "main/cdstream.h"
 #include "main/devkit.h"
+
+static s32 D_800827E8;
+/// Unreferenced.
+static u8     D_800827F0[8];
+static CdlLOC D_800827F8;
+/// Unreferenced.
+static u8                     D_80082800[8];
+static volatile u16           D_80082808;
+static volatile s32           D_8008280C;
+static volatile u16           D_80082810;
+static volatile s32           D_80082814;
+static volatile CdStreamState CdStream_State;
+static CdStreamChannels       CdStream_Channels;
+static volatile CdReadyQueue  CdReady_Queue;
 
 /* The second byte of D_80068B5C and of D_80068B64 is written as the first
  * symbol's address plus one. Declaring either pair as a struct or an array
