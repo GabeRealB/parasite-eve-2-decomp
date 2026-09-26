@@ -143879,3 +143879,14 @@ defined in order before the table, each word-aligned like the original pool.
 In a union member of an initializer, GCC 2.8 accepts a designator
 (`{ .value = 20100 }`), which initialises a `TaskDesc`'s integer argument
 without casting it to the union's first, pointer, member.
+## `lh` then `lhu` of one `s16` global before a branch is one plain read, not `volatile` (Fade_StepIn, 2026-09-26)
+
+`if (g > 0x100) { ...; return 1; } g += step; return 0;` with a plain
+`s16 g` emits `lh v1,g; slti; lhu v0,g; beqz; addu v0,v0,step` - two loads of
+the same halfword in one block. Combine folds the compare's sign extension into
+its own `lh` from memory and leaves the original `HImode` load, now used only by
+the `+=`, as the `lhu`. Seeing two loads, the seed had declared `g` `volatile`
+and split the read into a non-volatile `*(s16*)&g` and a volatile copy. The
+same function's pins on the `0x140` constant (`t7`) and on the return value
+(`v0`) went away with an `s16` step parameter and an early `return 1` in the
+finished case; no pin or cast was needed.
