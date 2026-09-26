@@ -895,12 +895,9 @@ done:
 }
 
 /// Applies the decaying hit tilt `field_688` to part 3 of the model: the tilt's
-/// rotation matrix is multiplied column by column into that part's matrix,
-/// then X and Y each step 0x20 toward zero, snapping to zero within 0x20.
-/// Once both have settled, `field_6B4` is cleared.
-///
-/// The scratch head is taken through `ActorScratchStack` rather than as
-/// `SCRATCH_HEAD`, which does not compile the same.
+/// rotation matrix is multiplied into that part's matrix, then X and Y each
+/// step 0x20 toward zero, snapping to zero within 0x20. Once both have
+/// settled, `field_6B4` is cleared.
 static void Actor02300_Fn01698(Task* arg0)
 {
     Actor105600Work* work;
@@ -914,23 +911,12 @@ static void Actor02300_Fn01698(Task* arg0)
     s32              nextY;
     s32              active;
 
-    matrix                                     = (MATRIX*)((ActorScratchStack*)G_SCRATCH_HEAD)->head - 1;
-    ((ActorScratchStack*)G_SCRATCH_HEAD)->head = matrix;
-    active                                     = 0;
-    work                                       = arg0->work;
-    coord                                      = arg0->extra.tmd->coords;
+    matrix = SCRATCH_PUSH(MATRIX);
+    active = 0;
+    work   = arg0->work;
+    coord  = arg0->extra.tmd->coords;
     RotMatrix(&work->field_688, matrix);
-    USE_REG(matrix);
-    gte_SetRotMatrix(&coord[3].coord);
-    gte_ldclmv(matrix);
-    gte_rtir();
-    gte_stclmv(&coord[3].coord);
-    gte_ldclmv((char*)matrix + 2);
-    gte_rtir();
-    gte_stclmv((char*)&coord[3].coord + 2);
-    gte_ldclmv((char*)matrix + 4);
-    gte_rtir();
-    gte_stclmv((char*)&coord[3].coord + 4);
+    gte_MulMatrix0(&coord[3].coord, matrix, &coord[3].coord);
     angleX = work->field_688.vx;
     if (angleX != 0) {
         absX = __builtin_abs(angleX);
