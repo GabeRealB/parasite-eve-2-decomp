@@ -103,6 +103,7 @@ typedef struct {
 } TmdObject;
 STATIC_ASSERT_SIZEOF(TmdObject, 0x34);
 
+#ifndef PAD_C
 /// Head of the model list: the anchor every attached `TmdObject` hangs from.
 ///
 /// A model is linked here when its task attaches it and unlinked when the task
@@ -122,6 +123,7 @@ extern TmdListHead gTmdList;
 extern TmdListHead gTmdDisp2dList;
 /// Cleared by Tmd_InitLists during system init.
 extern s32 D_80071210;
+#endif
 
 /// One frame of the scratch a model's packet stream is walked in: what
 /// `tmdProcessStream` pushes on `G_SCRATCH_HEAD` and passes to every stream

@@ -122,8 +122,10 @@ STATIC_ASSERT_SIZEOF(PadRemapState, 0x1C);
 // Globals
 // =============================================================================
 
-extern PadState       Pad_States[2];
-extern PadRawPort     Pad_RawPorts[2];
+extern PadState Pad_States[2];
+#ifndef PAD_C
+extern PadRawPort Pad_RawPorts[2];
+#endif
 extern PadRemapState* Pad_RemapState;
 extern PadRemapState  D_8007A370;
 

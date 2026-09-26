@@ -520,7 +520,7 @@ segments:
       - [0x61918, o, libgs/gs_123, .bss] # GsIDMATRIX, GsWSMATRIX, GsWSMATRIX_ORG, GsIDMATRIX2
       - [0x61998, pad]
       - [0x619a8, o, libgte/patchgte, .bss]
-      - { start: 0x619b8, type: bss, name: "619B8", vram: 0x800711B8, bss_size: 0x60 }
+      - { start: 0x619b8, type: .bss, name: pad, vram: 0x800711B8, bss_size: 0x60 }
       - [0x61a18, o, libpad/padmain, .bss]
       - [0x61a38, o, libpad/padcmd, .bss]
       - [0x61a48, o, libpad/padportd, .bss]

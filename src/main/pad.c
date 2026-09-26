@@ -1,9 +1,16 @@
 #include "common.h"
 
+#define PAD_C
+
 #include <psyq/libpad.h>
 
 #include "main/pad.h"
 #include "main/tmd.h"
+
+TmdListHead gTmdList;
+TmdListHead gTmdDisp2dList;
+PadRawPort  Pad_RawPorts[2];
+s32         D_80071210;
 
 void Pad_Init(void)
 {
