@@ -3297,51 +3297,36 @@ void func_800BC4E4(void)
 
 s32 Gp_CanMoveItems(void)
 {
-    s32                  ret;
-    register McItemScan* src asm("s3");
-    McItemRec*           table;
-    s32                  flag;
-    McItemRec*           rec;
-    s32                  count;
-    s32                  i;
-    register s32         off asm("v0");
-    u32                  destHi;
-    s32                  start;
+    McItemScan* src;
+    McItemRec*  table;
+    s32         row;
+    s32         count;
+    s32         blocked;
+    s32         ret;
+    s32         i;
 
-    src   = &Gp_MoveScanSrc;
-    ret   = 0;
-    table = Gp_GetItemTable(src);
-    start = Gp_MoveScanSrc.firstRow;
-    count = Gp_CountScanItems(src + 1);
-    flag  = ret;
-    if (Gp_CountScanItems(src) <= 0) {
-        return ret;
-    }
-    TOUCH_REG(ret);
-    i = ret;
-    if (ret < src->rowCount) {
-        destHi = 0x80110000; /* %hi(Gp_MoveScanDst); must precede the rec address */
-        off    = start << 2;
-        rec    = (McItemRec*)(off + (s32)table);
-        do {
-            if (rec->itemId != 0) {
-                if ((u8)(rec->itemId + 0x60) < 0x20) {
-                    if (Gp_FindItemInScan(rec->itemId, (McItemScan*)(destHi + (s32)(s16)0xD62C)) == 0) {
+    src     = &Gp_MoveScanSrc;
+    ret     = 0;
+    table   = Gp_GetItemTable(src);
+    row     = src->firstRow;
+    count   = Gp_CountScanItems(src + 1);
+    blocked = 0; /* nothing sets it, yet the original still tests it */
+    if (Gp_CountScanItems(src) > 0) {
+        for (i = 0; i < src->rowCount; i++, row++) {
+            if (table[row].itemId != 0) {
+                /* 0xA0-0xBF items need no new row if the destination already holds one */
+                if ((u8)(table[row].itemId + 0x60) < 0x20) {
+                    if (Gp_FindItemInScan(table[row].itemId, &Gp_MoveScanDst) == 0) {
                         count++;
                     }
                 } else {
                     count++;
                 }
             }
-            i++;
-            rec++;
-        } while (i < src->rowCount);
-    }
-    if (flag != 0) {
-        return ret;
-    }
-    if (Gp_MoveScanDst.rowCount >= count) {
-        ret = 1;
+        }
+        if (blocked == 0 && Gp_MoveScanDst.rowCount >= count) {
+            ret = 1;
+        }
     }
     return ret;
 }
