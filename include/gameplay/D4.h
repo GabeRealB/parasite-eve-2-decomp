@@ -296,7 +296,8 @@ typedef struct _GpTbl5 {
 } GpTbl5;
 STATIC_ASSERT_SIZEOF(GpTbl5, 5);
 
-extern GpTbl5 Gp_ConfigCdTable;
+extern const GpTbl5         Gp_ConfigCdTable;
+extern const TaskFuncTable6 Gp_LoadWaitFns;
 
 /// 8-byte pair of byte-table pointers at `D_801149FC`. `Gp_MsgPlayerDirFacing`
 /// indexes by `(Gp_DirByte & 0x70) >> 4`. `Gp_DirFlags & 0x100` selects
@@ -345,6 +346,9 @@ STATIC_ASSERT_SIZEOF(GpAreaApplyRec, 4);
 /// CdCmd 0x21 payload. No-op when `field_21` is 0 or the mapped byte is 0.
 void Gp_EnqueueWeaponCd(void);
 void Gp_EnqueueViewCd(Task* task);
+void Gp_LoadWaitCdBusy(Task* task);
+void Gp_LoadWaitIdle(Task* task);
+void Gp_LoadWaitDone(Task* task);
 void Gp_PumpTmdStream(Task* task);
 /// Walk the inner area rec's 0x10-byte CdCmd 0x21 list (`Gp_CdRecCur`),
 /// matching each id against the 0xC-byte list (`D_80114C68`). Returns 1

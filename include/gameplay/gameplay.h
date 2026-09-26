@@ -66,7 +66,7 @@ typedef struct GpHudStatusBits {
 } GpHudStatusBits;
 STATIC_ASSERT_SIZEOF(GpHudStatusBits, 0xE);
 
-extern GpHudStatusBits D_8009389C;
+extern const GpHudStatusBits D_8009389C;
 
 /// 0x50-byte stack scratch of the party HP/MP HUD (`func_800A57B0`), reused
 /// in phases: `s.buf` is the `Text_ItoaUnsigned` digit buffer with `s.req` the

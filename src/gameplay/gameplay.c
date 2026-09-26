@@ -62,11 +62,6 @@ extern u16      D_80114BB0[];
 extern RECT     D_80114BD0;
 extern CVECTOR  D_80114BA8;
 extern u8       Gp_DebugAttachLevels[];
-extern u8       D_8009388C[]; // "R1"
-extern u8       D_80093890[]; // "R2"
-extern u8       D_80093894[]; // "%"
-extern u8       D_80093898[]; // "&"
-extern u8       D_800938AC[]; // "????"
 extern s32      Pad_MaskConfirm;
 extern s32      Pad_MaskCancel;
 extern s16      D_80114C40;
@@ -74,6 +69,11 @@ extern DR_STP   D_80114C50;
 extern s32      D_80115724;
 
 extern McItemRec* Gp_SelItemRec;
+extern const char D_8009388C[];
+extern const char D_80093890[];
+extern const char D_80093894[];
+extern const char D_80093898[];
+extern const char D_800938AC[];
 
 void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
@@ -8165,3 +8165,23 @@ void Gp_ViewLoadImage(Task* task)
         }
     }
 }
+
+const char            D_8009388C[] = "R1";
+const char            D_80093890[] = "R2";
+const char            D_80093894[] = "%";
+const char            D_80093898[] = "&";
+const GpHudStatusBits D_8009389C   = { { 0x1, 0x2, 0x4, 0x10, 0x20, 0x40, 0x80 } };
+/// "????". The three bytes after the terminator are not zero: the original
+/// toolchain left them in the alignment gap, so the array is sized to hold them.
+const char D_800938AC[8] = "????\0&!K";
+
+const TaskFuncTable6 Gp_LoadWaitFns = { {
+    Gp_ViewBeginLoad,
+    Gp_EnqueueViewCd,
+    Gp_ViewLoadImage,
+    Gp_LoadWaitCdBusy,
+    Gp_LoadWaitIdle,
+    Gp_LoadWaitDone,
+} };
+
+const GpTbl5 Gp_ConfigCdTable = { { 4, 3, 2, 5, 6 } };

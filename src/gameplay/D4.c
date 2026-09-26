@@ -36,7 +36,6 @@ void func_80724748(GpAreaKey* arg0);
 void func_80724E2C(void);
 
 extern TaskDesc       D_80183824[];
-extern TaskFuncTable6 Gp_LoadWaitFns;
 extern TaskFuncTable3 Gp_SessionStates;
 extern TaskFuncTable8 Gp_LoadStateFns;
 extern TaskFuncTable3 Gp_RoomObjStates;
