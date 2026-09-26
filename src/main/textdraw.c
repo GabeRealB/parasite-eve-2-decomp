@@ -9,101 +9,76 @@ void textNoopCallback(Task* task)
 {
 }
 
-s32 Text_MeasureGlyphWidth(TextDrawReq* arg0, u8* arg1, u8* arg2)
+/// Kerning between two adjacent glyphs: unless the previous glyph's trailing
+/// byte (`prev`, its field_9) and the next glyph's field_8 sum to -1..1 as a
+/// byte, the pen position `x` is pulled in by one pixel for font table 5 and
+/// by two for the others. The string drawer applies the same rule.
+#define TEXT_APPLY_KERNING(x, prev, glyph, req)         \
+    do {                                                \
+        if ((u8)((prev) + (glyph)->field_8 + 1) >= 3) { \
+            if ((req)->glyphTable == 5) {               \
+                (x) -= 1;                               \
+            } else {                                    \
+                (x) -= 2;                               \
+            }                                           \
+        }                                               \
+    } while (0)
+
+s32 Text_MeasureGlyphWidth(TextDrawReq* req, u8* str, u8* table)
 {
-    register TextDrawReq* ctx asm("t5");
-    register s32          width asm("t0");
-    FontGlyph*            glyph;
-    s32                   c;
-    s32                   prev9;
-    s32                   nl;
-    s32                   end_flag;
-    s32                   ch;
-    s32                   bs;
-    s32                   idx;
+    s32        width;
+    FontGlyph* glyph;
+    u8         kern;
+    s32        stop;
+    u8         c;
+    s32        idx;
 
-    ctx   = arg0;
     width = 0;
-    glyph = (FontGlyph*)arg2;
-    SOFT_TOUCH_REG3(ctx, width, glyph);
-    c = *arg1;
-    if (c == 0) {
-        goto end;
-    }
-    prev9 = width;
-    nl    = 0xA;
-
-    do {
-        if ((c & 0xFF) == nl) {
-            goto end;
+    glyph = (FontGlyph*)table;
+    kern  = 0;
+    for (c = *str; c != 0; c = *str) {
+        if (c == '\n') {
+            break;
         }
-        end_flag = 0;
-        if ((c & 0xFF) == 0x5C) {
-            bs    = 0x5C;
-            arg1 += 1;
+        stop = 0;
+        if (c == '\\') {
             do {
-                ch = *arg1;
-                if ((u32)(ch - 0x42) < 0x36U) {
-                    switch (ch) {
-                        case 0x42:
-                        case 0x43:
-                        case 0x44:
-                        case 0x53:
-                        case 0x55:
-                        case 0x57:
-                        case 0x62:
-                        case 0x63:
-                        case 0x64:
-                        case 0x73:
-                        case 0x75:
-                        case 0x77:
-                            arg1 += 2;
-                            break;
-                        case 0x4E:
-                        case 0x6E:
-                            end_flag = 1;
-                        default:
-                            break;
-                    }
+                str++;
+                switch (*str) {
+                    case 'B':
+                    case 'C':
+                    case 'D':
+                    case 'S':
+                    case 'U':
+                    case 'W':
+                    case 'b':
+                    case 'c':
+                    case 'd':
+                    case 's':
+                    case 'u':
+                    case 'w':
+                        str += 2;
+                        break;
+                    case 'N':
+                    case 'n':
+                        stop = 1;
+                        break;
                 }
-                ch = *arg1;
-                if (ch != 0 && ch != nl) {
-                    goto check_bs;
+                if (*str == 0 || *str == '\n') {
+                    stop = 1;
                 }
-                end_flag = 1;
-                SOFT_COMPILER_BARRIER();
-                ch = *arg1;
-            check_bs:
-                arg1 += 1;
-                if (ch != bs) {
-                    arg1 -= 1;
-                    break;
-                }
-            } while (1);
+            } while (*str == c);
         }
-        if (end_flag != 0) {
-            goto end;
+        if (stop) {
+            break;
         }
-        idx   = *arg1;
-        idx  -= 0x20;
-        glyph = (FontGlyph*)(arg2 + idx * 0xC);
-        ch    = prev9;
-        ch   += glyph->field_8;
-        ch   += 1;
-        if ((u8)ch >= 3U) {
-            if (ctx->glyphTable == 5) {
-                width -= 1;
-            } else {
-                width -= 2;
-            }
-        }
-        arg1  += 1;
-        prev9  = glyph->field_9;
-        c      = *arg1;
+        idx   = *str - ' ';
+        glyph = &((FontGlyph*)table)[idx];
+        TEXT_APPLY_KERNING(width, kern, glyph, req);
+        str++;
+        kern   = glyph->field_9;
         width += glyph->w + (s8)glyph->field_6 + (s8)glyph->off_x;
-    } while (c != 0);
-
-end:
+    }
     return width - (s8)glyph->field_6;
 }
 
