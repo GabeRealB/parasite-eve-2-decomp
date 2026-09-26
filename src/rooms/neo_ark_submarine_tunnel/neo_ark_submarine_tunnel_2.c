@@ -27,7 +27,7 @@ extern s16 D_neo_ark_submarine_tunnel_80181DF4[][3];
 
 void func_neo_ark_submarine_tunnel_8017FC58(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_neo_ark_submarine_tunnel_8017FEDC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_neo_ark_submarine_tunnel_80180300(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_neo_ark_submarine_tunnel_80180300(GpCoord* arg0, s16 arg1, u8* rgb);
 void func_neo_ark_submarine_tunnel_80180840(GpCoord* coord, s16 size);
 void func_neo_ark_submarine_tunnel_80180D6C(GpCoord* arg0, s32 arg1);
 
@@ -359,45 +359,31 @@ void func_neo_ark_submarine_tunnel_8017FEDC(GpCoord* arg0, s32 arg1, s32 arg2, u
 /// Queues a gouraud disc of eight wedges around the projected world position
 /// of `arg0`, shaded `rgb` at the centre and black at the rim, of radius
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
-void func_neo_ark_submarine_tunnel_80180300(GpCoord* arg0, s32 arg1, u8* rgb)
+void func_neo_ark_submarine_tunnel_80180300(GpCoord* arg0, s16 arg1, u8* rgb)
 {
-    void**         scratch;
-    u8*            head;
     GpRingScratch* block;
     POLY_G4*       prim;
     s32            ang;
-    register s32   ang2 asm("s1");
-    u16            vz;
+    s32            otz;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    USE_REG(head);
-    {
-        register u16 vx asm("v0");
-        vx                                      = (u16)arg0->workm.t[0];
-        ((GpRingScratch*)(head - 0x18))->vec.vx = vx;
-    }
-    {
-        register u8* tmp asm("v0");
-        tmp   = head - 0x18;
-        block = (GpRingScratch*)tmp;
-    }
-    block->vec.vy = (u16)arg0->workm.t[1];
-    vz            = (u16)arg0->workm.t[2];
-    *scratch      = block;
-    block->vec.vz = vz;
+    block         = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
+
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        block->otz++;
-        block->step = ((s16)arg1 * 64) / block->otz;
-        ang         = 0;
-        do {
+        gte_stszotz(&block->otz);
+        otz         = block->otz + 1;
+        block->otz  = otz;
+        block->step = (arg1 * 64) / otz;
+
+        for (ang = 0; ang < 0x1000; ang += 0x200) {
             prim           = (POLY_G4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
@@ -405,24 +391,21 @@ void func_neo_ark_submarine_tunnel_80180300(GpCoord* arg0, s32 arg1, u8* rgb)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, rgb[0], rgb[1], rgb[2]);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = (u16)block->sx + ((block->step * rsin(ang)) >> 12);
-            prim->y0 = (u16)block->sy + ((block->step * rcos(ang)) >> 12);
-            ang2     = ang + 0x100;
-            prim->x1 = (u16)block->sx + ((block->step * rsin(ang2)) >> 12);
-            prim->y1 = (u16)block->sy + ((block->step * rcos(ang2)) >> 12);
-            prim->x2 = (u16)block->sx;
-            prim->y2 = (u16)block->sy;
-            ang2     = ang + 0x200;
-            prim->x3 = (u16)block->sx + ((block->step * rsin(ang2)) >> 12);
-            prim->y3 = (u16)block->sy + ((block->step * rcos(ang2)) >> 12);
-            ang      = ang2;
+            prim->x0 = block->sx + ((block->step * rsin(ang)) >> 12);
+            prim->y0 = block->sy + ((block->step * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->step * rsin(ang + 0x100)) >> 12);
+            prim->y1 = block->sy + ((block->step * rcos(ang + 0x100)) >> 12);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->step * rsin(ang + 0x200)) >> 12);
+            prim->y3 = block->sy + ((block->step * rcos(ang + 0x200)) >> 12);
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
+        }
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// A glowing burst effect task. Each frame it draws a disc and the glow of
