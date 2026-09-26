@@ -896,25 +896,18 @@ static s32 func_actor_210600_8014C0EC(GpCoord* coord, GpRec18* recs, s16 count, 
 /// `D_actor_210600_8015D318` instead.
 static s32 func_actor_210600_8014C638(GpCoord* coord, GpRec18* movement, s16 arg2)
 {
-    void**            scratch;
-    u8*               head;
     OverlayDeltaFlag* s;
-    register void*    p asm("v1");
     s32               val;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    p                              = head - 0x14;
-    s                              = p;
-    SCRATCH_HEAD_AT(scratch, void) = p;
-    s->moved                       = 0;
-    if (func_800E0C10(movement, &s->delta, (s32)arg2, NULL) != 0) {
-        coord->coord.t[0]          = coord->coord.t[0] + ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
-        coord->coord.t[2]          = coord->coord.t[2] + s->delta.vz.h.hi;
-        D_actor_210600_8015D318.vx = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+    s        = SCRATCH_PUSH(OverlayDeltaFlag);
+    s->moved = 0;
+    if (func_800E0C10(movement, &s->delta, arg2, NULL) != 0) {
+        coord->coord.t[0]         += s->delta.vx.w >> 16;
+        coord->coord.t[2]         += s->delta.vz.w >> 16;
+        D_actor_210600_8015D318.vx = s->delta.vx.w >> 16;
         D_actor_210600_8015D318.vy = s->delta.vy.w >> 16;
         D_actor_210600_8015D318.vz = s->delta.vz.w >> 16;
-        val                        = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w;
+        val                        = s->delta.vx.w;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;
@@ -938,7 +931,7 @@ static s32 func_actor_210600_8014C638(GpCoord* coord, GpRec18* movement, s16 arg
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_POP(OverlayDeltaFlag);
     return s->moved;
 }
 
