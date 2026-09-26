@@ -549,123 +549,64 @@ static s32 Midi_InitSequence(u8 arg0, u16 arg1)
 
 s32 Midi_Tick(void)
 {
-    MidiSong*    obj;
-    s32          i;
-    s32          j;
-    register s32 off asm("s3");
-    u8*          cursor;
-    s32          status;
-    s32          two;
-    s32          eight;
-    register s32 ffff asm("s5");
+    MidiSong* song;
+    s32       i;
+    s32       j;
 
-    i     = 0;
-    eight = 8;
-    two   = 2;
-    ffff  = 0xFFFF;
-    obj   = &Midi_Song;
-
-loop:
-    if (obj->field_1 == 0xFF) {
-        goto end;
+    for (i = 0; i < 1; i++) {
+        song = &Midi_Song + i;
+        if (song->field_1 == 0xFF) {
+            break;
+        }
+        switch (song->field_0) {
+            case 0:
+                break;
+            case 0x40:
+            case 0x80:
+                if (song->field_14.field_0 == song->field_14.field_4) {
+                    if (song->field_0 == 0x40) {
+                        song->field_0 = 2;
+                    } else {
+                        song->field_0 = 4;
+                        goto stop;
+                    }
+                }
+                /* fallthrough */
+            case 8:
+                LinInterp_Step(&song->field_14);
+                song->field_C = 0xFFFF;
+                /* fallthrough */
+            case 2:
+            play:
+                for (j = 0; j < song->field_3; j++) {
+                    if (song->entries[j].field_5 == 0) {
+                        Midi_DriveTrack(song, &song->entries[j]);
+                    }
+                }
+                song->field_4 = song->field_6;
+                song->field_5 = song->field_7;
+                break;
+            case 4:
+            stop:
+                Midi_ResetTrackFlags(song);
+                Midi_KeyOffVoices(song);
+                song->field_0 = 0;
+                break;
+            case 0x10:
+                if (song->field_0 == 8 && (u32)song->field_14.field_0 >= (u32)song->field_14.field_4) {
+                    song->field_C = 0xFFFF;
+                    song->field_0 = 2;
+                    goto play;
+                }
+                LinInterp_Step(&song->field_14);
+                song->field_C = 0xFFFF;
+                goto play;
+        }
+        if (song->field_C != 0) {
+            Midi_UpdateVoiceVolumes(song);
+            song->field_C = 0;
+        }
     }
-    status = obj->field_0;
-    if (status == eight) {
-        goto case_8;
-    }
-    if (status >= 9) {
-        goto high;
-    }
-    if (status == two) {
-        goto case_2;
-    }
-    if (status < 3) {
-        goto end_switch;
-    }
-    if (status == 4) {
-        goto case_4;
-    }
-    goto end_switch;
-
-high:
-    if (status == 0x40) {
-        goto case_40_80;
-    }
-    if (status >= 0x41) {
-        goto higher;
-    }
-    if (status == 0x10) {
-        goto case_10;
-    }
-    goto end_switch;
-
-higher:
-    if (status != 0x80) {
-        goto end_switch;
-    }
-
-case_40_80:
-    if (obj->field_14.field_0 != obj->field_14.field_4) {
-        goto case_8;
-    }
-    if (obj->field_0 == 0x40) {
-        obj->field_0 = two;
-        goto case_8;
-    }
-    obj->field_0 = 4;
-    goto case_4;
-
-case_8:
-    LinInterp_Step(&obj->field_14);
-    obj->field_C = ffff;
-case_2:
-    j = 0;
-    if (obj->field_3 != 0) {
-        /* Walks the tracks with a byte offset and a separate byte cursor: indexing
-         * obj->entries builds the same three counters but allocates them in the
-         * other order. */
-        off    = 0x4C;
-        cursor = (u8*)obj;
-        do {
-            if (cursor[0x51] == 0) {
-                Midi_DriveTrack(obj, (MidiTrack*)((u8*)obj + off));
-            }
-            off    += 0x3C;
-            cursor += 0x3C;
-        } while (++j < (s32)obj->field_3);
-    }
-    obj->field_4 = obj->field_6;
-    obj->field_5 = obj->field_7;
-    goto end_switch;
-
-case_4:
-    Midi_ResetTrackFlags(obj);
-    Midi_KeyOffVoices(obj);
-    obj->field_0 = 0;
-    goto end_switch;
-
-case_10:
-    if (eight != status) {
-        goto case_8;
-    }
-    if ((u32)obj->field_14.field_0 < (u32)obj->field_14.field_4) {
-        goto case_8;
-    }
-    obj->field_C = ffff;
-    obj->field_0 = two;
-    goto case_2;
-
-end_switch:
-    if (obj->field_C != 0) {
-        Midi_UpdateVoiceVolumes(obj);
-        obj->field_C = 0;
-    }
-    i   += 1;
-    obj += 1;
-    if (i <= 0) {
-        goto loop;
-    }
-end:
     return 0;
 }
 
