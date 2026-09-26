@@ -743,7 +743,8 @@ void func_dryfield_gas_station_8017E8DC(Task* task)
 /// Title of the "Telephone" menu. A byte after its terminator is not zero,
 /// so the string stays assembly.
 extern const char D_dryfield_gas_station_8017D638[];
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station", D_dryfield_gas_station_8017D638);
+/// "Telephone", followed by the non-zero padding the original toolchain left.
+const char D_dryfield_gas_station_8017D638[12] = "Telephone\0\0\x12";
 
 /// Task body of the "Telephone" menu: shows its list once the save has a
 /// clear or the demo scene flag set (otherwise it spawns the fallback panel),

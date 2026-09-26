@@ -748,7 +748,8 @@ void func_shelter_b3_incinerator_control_room_8017E8B0(Task* task)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", D_shelter_b3_incinerator_control_room_8017D638);
+/// "Telephone", followed by the non-zero padding the original toolchain left.
+const char D_shelter_b3_incinerator_control_room_8017D638[12] = "Telephone\0\x14\xCF";
 
 /// Task body of the telephone menu. Until the save has a clear or has reached
 /// demo scene 1 it spawns `D_800611E4` in place of the list; otherwise it lays

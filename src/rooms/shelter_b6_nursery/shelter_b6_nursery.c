@@ -802,7 +802,8 @@ void func_shelter_b6_nursery_8017E910(Task* task)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery", D_shelter_b6_nursery_8017D638);
+/// "Telephone", followed by the non-zero padding the original toolchain left.
+const char D_shelter_b6_nursery_8017D638[12] = "Telephone\0\x1FQ";
 
 /// Telephone menu task. Until the save has reached demo scene 1 or been
 /// cleared once, it only opens the `D_800611E4` panel; after that it lays out

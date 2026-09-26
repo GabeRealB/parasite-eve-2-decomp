@@ -751,7 +751,8 @@ void func_shelter_1f_tent_8017E8AC(Task* task)
         } while (child != task->firstChild);
     }
 }
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent", D_shelter_1f_tent_8017D638);
+/// "Telephone", followed by the non-zero padding the original toolchain left.
+const char D_shelter_1f_tent_8017D638[12] = "Telephone\0\x0C-";
 
 /// Task body of the telephone menu. Until the save has a clear or has reached
 /// demo scene 1 it spawns `D_800611E4` in place of the list; otherwise it lays
