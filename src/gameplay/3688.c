@@ -2391,11 +2391,29 @@ void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj)
     }
 }
 
+/// Sets the weapon menu's row count from the current weapon's item: one row
+/// for weapon index 0 and for item 0x92, otherwise three when the item's
+/// slot has an attachment (`attachId` != 0xFF) and two when it does not.
+static inline void _gpWeaponMenuSetRows(UiList* menu)
+{
+    s32         id;
+    McItemSlot* slot;
+
+    id   = Player_Status.weapon + 0x7F;
+    slot = Gp_GetItemSlot(id);
+    if (id < 0x80 || id == 0x92) {
+        menu->field_4 = 1;
+    } else if (slot->attachId != 0xFF) {
+        menu->field_4 = 3;
+    } else {
+        menu->field_4 = 2;
+    }
+}
+
 void Gp_WeaponMenuTask(Task* arg0)
 {
     UiObject* obj;
     UiList*   menu;
-    s32       id;
     s32       status;
     Task*     owner;
     Task*     child;
@@ -2415,63 +2433,14 @@ void Gp_WeaponMenuTask(Task* arg0)
     obj->field_2E = 0;
     Ui_DrawText((UiPanel*)obj, Gp_StrWeaponTitle);
     if (arg0->state == 0) {
-        McItemSlot*  slot;
-        register s32 n asm("v0");
-
-        id   = Player_Status.weapon + 0x7F;
-        slot = Gp_GetItemSlot(id);
-        n    = id < 0x80;
-        if (n) {
-            n = 1;
-            goto store1;
-        }
-        n = 0x92;
-        if (id == n) {
-            n = 1;
-            goto store1;
-        }
-        n = 0xFF;
-        if (slot->attachId != n) {
-            n = 3;
-            goto store1;
-        }
-        n = 2;
-    store1:
-        menu->field_4 = n;
-        SOFT_BARRIER();
+        _gpWeaponMenuSetRows(menu);
         menu->field_10 = 0;
         Ui_InitList(menu, (UiMiniObj*)obj);
         arg0->state = arg0->state + 1;
     }
-    {
-        McItemSlot*  slot;
-        register s32 n asm("v0");
-
-        id   = Player_Status.weapon + 0x7F;
-        slot = Gp_GetItemSlot(id);
-        n    = id < 0x80;
-        if (n) {
-            n = 1;
-            goto store2;
-        }
-        SOFT_BARRIER();
-        n = 0x92;
-        if (id == n) {
-            n = 1;
-            goto store2;
-        }
-        n = 0xFF;
-        if (slot->attachId != n) {
-            n = 3;
-            goto store2;
-        }
-        n = 2;
-    store2:
-        menu->field_4 = n;
-        SOFT_BARRIER();
-        Ui_ComputeVisibleRows(menu, (s32)obj);
-        Ui_UpdateListNoAnim(menu, obj);
-    }
+    _gpWeaponMenuSetRows(menu);
+    Ui_ComputeVisibleRows(menu, (s32)obj);
+    Ui_UpdateListNoAnim(menu, obj);
     if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone((Task*)obj) == 0)) {
         Ui_SetState4((Task*)obj, obj->owner);
     } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone((Task*)obj) == 1)) {
