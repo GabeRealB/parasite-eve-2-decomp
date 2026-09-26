@@ -142548,3 +142548,26 @@ count to `size`. It removes every other pin and the barrier, and leaves one
 `register u8* ptr asm("v1")` in the helper, the same pin the standalone carries.
 The `-1` fill value has to be a local: a constant is hoisted into the outer
 loop's preheader instead of the function entry.
+
+## The 0x4380 glow sprite (`* 39 / otz`, 40-texel column) is `setUVWH` + `setRGB0` then `setSemiTrans` (func_dryfield_night_back_street_8017E108, 2026-09-26)
+
+The one-`POLY_FT4` glow drawer copied across ~35 rooms (clut `(n & 0x3F) | 0x4380`,
+tpage 0x2B, UV column `n * 40`, radius `(s16)arg2 * 39 / otz`) was matched with a
+`register ... asm("v1")` pin on the sign-extended size, two `SOFT_USE_REG`s on
+`u0`/`u1` and a `COMPILER_BARRIER` before the code-byte store. None is needed:
+
+```c
+block = SCRATCH_PUSH(RoomDraw13Scratch);
+...
+setUVWH(prim, idx * 40, 0, 0x27, 0x27);
+setRGB0(prim, blend, blend, blend);
+setSemiTrans(prim, 1);
+block->radius = ((s16)arg2 * 39) / block->otz;
+...
+SCRATCH_POP(RoomDraw13Scratch);
+```
+
+The order of the last two macros is the whole fix: `setSemiTrans` before
+`setRGB0` scores 95.7% with `u1` in the wrong register, after it the body
+matches. The `head - 0x10` casts on the scratch block were not needed either.
+Every copy with the same pin can take this body with its own names.
