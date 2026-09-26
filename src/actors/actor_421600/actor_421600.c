@@ -2207,9 +2207,6 @@ static void func_actor_421600_80135F6C(Task* arg0)
     SVECTOR          offset;
     Actor421600Work* work;
     TmdObject*       obj;
-    s32              nextState;
-    s32              state;
-    u16              flags;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -2217,21 +2214,13 @@ static void func_actor_421600_80135F6C(Task* arg0)
         ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
         obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
-        flags = work->field_B6C.flags;
-        TOUCH_REG(flags);
-        work->field_832       = 0x10;
-        work->field_B6C.flags = flags | 0x4000;
-        state                 = work->field_82E;
-        do {
-            nextState = 0xD;
-        } while (0);
-        if (state == nextState) {
-            nextState = 1;
+        work->field_832        = 0x10;
+        work->field_B6C.flags |= 0x4000;
+        if (work->field_82E == 0xD) {
+            work->field_828 = 1;
         } else {
-            nextState = 2;
+            work->field_828 = 2;
         }
-        work->field_828 = nextState;
-        SOFT_BARRIER();
         work->field_83E = 0;
         work->field_840 = 0;
         func_actor_421600_80134604(arg0);
