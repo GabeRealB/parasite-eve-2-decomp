@@ -141683,3 +141683,26 @@ the loop. The emitted layout (2 then the merged 1/3) is identical either way.
 **Fix.** When a body you had to duplicate for jump2 is involved, try the
 numeric case order before chasing loop size - "cases in body order" holds only
 for bodies that survive to the output.
+
+## An if/else read-modify-write on one field is two stores; the `?:` of the two values is one (Gp_EffModelTask, 2026-09-26)
+
+The converse of "A `?:` stored straight into a field is one *store per arm*":
+when the arms are *computed* values, not constants, the `?:` goes through a
+temporary and the RTL carries a single store, while the equivalent if/else
+carries one per arm. The object is the same either way - jump2 merges the
+if/else's two `sh` into the join - but `flow.c` counts both. In
+`Gp_EffModelTask` that was the whole `$s2`/`$s3` swap between the model pointer
+and its coordinate (hidden behind a pin and two `COMPILER_BARRIER`s):
+
+```c
+if (gDisplayState.animFrame & 1) {   /* extra: 8 refs, 3*8/151 = 0.159 > coord's 0.155 */
+    extra->flags &= 0xFF7F;
+} else {
+    extra->flags |= 0x80;
+}
+extra->flags = (gDisplayState.animFrame & 1) ? extra->flags & 0xFF7F
+                                             : extra->flags | 0x80;
+                                     /* 7 refs, 2*7/151 = 0.093: coord wins */
+```
+
+Check it in `.flow` by counting `(set (mem … (reg/v N)))` at the field's offset.

@@ -1134,12 +1134,6 @@ void Gp_EffModelTask(Task* arg0)
     GpCoord*   coord;
     SVECTOR*   vel;
     s16        flag;
-    s32        t2;
-    s32        scale;
-    u16        tx;
-    u16        ty;
-    u16        tz;
-    s32        dz;
 
     extra = arg0->extra.tmd;
     mem   = arg0->spawnArg2;
@@ -1371,59 +1365,35 @@ void Gp_EffModelTask(Task* arg0)
     }
     Gfx_RotMatrixXYZ(&coord->coord, &mem->pos, 0);
     MatrixNormal(&coord->coord, &coord->coord);
-    gte_lddp(*(u16*)&mem->scale);
+    gte_lddp(mem->scale);
     vel = &mem->move;
     gte_ldsv(vel);
     gte_gpf12();
     gte_stsv(&delta);
     coord->coord.t[0] += delta.vx;
     coord->coord.t[1] += delta.vy;
-    t2                 = coord->coord.t[2] + delta.vz;
+    coord->coord.t[2] += delta.vz;
     coord->flg         = 0;
-    coord->coord.t[2]  = t2;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&delta);
     gte_rtv0();
     gte_stsv(&dir);
-    tx           = (u16)coord->workm.t[0];
-    pos.vx       = tx;
-    ty           = (u16)coord->workm.t[1];
-    pos.vy       = ty;
-    tz           = (u16)coord->workm.t[2];
-    (u16) dir.vx = (u16)dir.vx + tx;
-    (u16) dir.vy = (u16)dir.vy + ty;
-    pos.vz       = tz;
-    (u16) dir.vz = (u16)dir.vz + tz;
+    pos.vx  = (u16)coord->workm.t[0];
+    pos.vy  = (u16)coord->workm.t[1];
+    pos.vz  = (u16)coord->workm.t[2];
+    dir.vx += pos.vx;
+    dir.vy += pos.vy;
+    dir.vz += pos.vz;
     if (func_800DE7CC(&dir, &pos, &dir, &pos) == 1) {
-        register SVECTOR* r0 asm("a0");
-        r0 = vel;
-        USE_REG(r0);
         coord->coord.t[0] -= delta.vx;
         coord->coord.t[1] -= delta.vy;
         coord->coord.t[2] -= delta.vz;
-        COMPILER_BARRIER();
-        {
-            u16          t10;
-            u16          t11;
-            register s32 t12 asm("a1");
-            s32          sum;
-            t10 = *(volatile u16*)&pos.vx;
-            t11 = *(volatile u16*)&mem->move;
-            t12 = *(volatile u16*)&mem->move.vy;
-            sum = ((s32)(t10 << 16) >> 17) + ((s32)(t11 << 16) >> 17);
-            USE_REG(t12);
-            mem->move.vx = sum;
-            t12        <<= 16;
-            t12        >>= 17;
-            COMPILER_BARRIER();
-            mem->move.vy = (u16)pos.vy + t12;
-        }
-        dz           = (s32)((u16)mem->move.vz << 16) >> 17;
-        mem->move.vz = ((s32)((u16)pos.vz << 16) >> 17) + dz;
+        mem->move.vx       = (pos.vx >> 1) + (mem->move.vx >> 1);
+        mem->move.vy       = pos.vy + (mem->move.vy >> 1);
+        mem->move.vz       = (pos.vz >> 1) + (mem->move.vz >> 1);
         VectorNormalSS(vel, vel);
-        scale      = (mem->scale * 2) / 3;
-        mem->scale = scale;
-        gte_lddp(scale);
+        mem->scale = (mem->scale * 2) / 3;
+        gte_lddp(mem->scale);
         gte_ldsv(vel);
         gte_gpf12();
         gte_stsv(&delta);
@@ -1435,11 +1405,7 @@ void Gp_EffModelTask(Task* arg0)
     }
     mem->age++;
     if (mem->angle < mem->age) {
-        if (gDisplayState.animFrame & 1) {
-            extra->flags &= 0xFF7F;
-        } else {
-            extra->flags |= 0x80;
-        }
+        extra->flags = (gDisplayState.animFrame & 1) ? extra->flags & 0xFF7F : extra->flags | 0x80;
         if (mem->angle * 2 < mem->age) {
             goto release;
         }
