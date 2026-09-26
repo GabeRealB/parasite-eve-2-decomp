@@ -567,33 +567,24 @@ static void func_actor_460200_80132AC8(Task* task)
 /// `withArg` selects between the two start paths `func_actor_460200_801325FC`
 /// dispatches on, and only the first carries `animArg`. Returns -1, without
 /// touching the work block, when the clip id is out of range.
-///
-/// The `SOFT_BARRIER()` is a codegen pin, not a semantic one. Without it GCC's
-/// delay-slot pass fills the `beqz` from the fall-through arm (`state = 1`);
-/// the ROM has the *else* arm's `state = 2` there, which the pass only reaches
-/// once an `asm` at the head of the fall-through stops it searching that
-/// thread. See DECOMPILATION_LEARNINGS.md, "An empty asm at the head of the
-/// then-arm moves the delay slot to the else arm".
 s32 func_actor_460200_80132B2C(Task* task, s32 arg1, GpAnimArg* args)
 {
     Actor160600Work* work;
 
     work = (Actor160600Work*)task->work;
-    if (args->field_4 >= 0x10) {
-        return -1;
+    if (args->field_4 < 0x10) {
+        work->st.animId = args->field_4;
+        if (args->field_8 != 0) {
+            work->st.state = 1;
+            work->animArg  = args->field_C;
+        } else {
+            work->st.state = 2;
+        }
+        work->st.field_6 = 0;
+        func_actor_460200_801325FC(task);
+        return 0;
     }
-
-    work->st.animId = args->field_4;
-    if (args->field_8 != 0) {
-        SOFT_BARRIER();
-        work->st.state = 1;
-        work->animArg  = args->field_C;
-    } else {
-        work->st.state = 2;
-    }
-    work->st.field_6 = 0;
-    func_actor_460200_801325FC(task);
-    return 0;
+    return -1;
 }
 
 /// Script opcode: set the visibility flags of this actor's model and of the
