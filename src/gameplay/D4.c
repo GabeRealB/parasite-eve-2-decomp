@@ -2785,72 +2785,63 @@ void Gp_ApplyNewGameAreaFlags(void)
     }
 }
 
+/// Bit 2 of the area object's flags byte, as 0 or 1; 0 when the stage has no
+/// table or the area no object. The bit-2 counterpart of `Gp_GetAreaFlag2`.
+static inline s32 _gpGetAreaFlag4(GpAreaKey* key)
+{
+    GpAreaRec* rec;
+    GpAreaObj* obj;
+    s32        val;
+
+    rec = Gp_AreaTables[key->stage];
+    if (rec != NULL) {
+        obj = rec[key->area].field_4;
+        if (obj != NULL) {
+            val = obj->field_1 & 4;
+            return val != 0;
+        }
+    }
+    return 0;
+}
+
 void Gp_RebuildAreaIdBits(void)
 {
-    GpAreaKey           key;
-    GameSession*        gs;
-    GpAreaKey*          sess;
-    GpAreaRec*          tbl;
-    GpAreaObj*          obj;
-    GpAreaRec**         tables;
-    register GpAreaKey* keyp asm("s4");
-    s32                 flag;
-    s32                 bits;
-    s32                 i;
-    register s32        one asm("s0");
-    register s32        count asm("s5");
-    u8                  stage;
+    GpAreaKey  key;
+    GpAreaKey* sess;
+    s32        count;
+    s32        i;
+    u8         stage;
 
-    gs        = gGameSession;
-    sess      = &gs->at4.loc;
+    sess      = &gGameSession->at4.loc;
     stage     = sess->stage;
     key.room  = 1;
     key.view  = 2;
     key.stage = stage;
-    if (gs->at4.loc.stage - 1 < 5) {
+    if (gGameSession->at4.loc.stage - 1 < 5) {
         count = Gp_AreaIdCounts[sess->stage - 1];
-        if (count > 0) {
-            i      = 1;
-            keyp   = &key;
-            tables = Gp_AreaTables;
-            one    = i;
-            do {
-                key.area = i;
-                tbl      = tables[keyp->stage];
-                flag     = 0;
-                if (tbl != NULL) {
-                    obj = tbl[keyp->area].field_4;
-                    if (obj != NULL) {
-                        flag = obj->field_1 & 4;
-                        flag = flag != 0;
+        for (i = 1; i <= count; i++) {
+            key.area = i;
+            if (_gpGetAreaFlag4(&key) == 1) {
+                if (Gp_GetAreaFlag2(&key) == 1) {
+                    if (key.area <= 32) {
+                        Gp_AreaIdBits[0] &= ~(1 << (key.area - 1));
                     } else {
-                        MOVE_ZERO(flag);
+                        Gp_AreaIdBits[1] &= ~(1 << (key.area - 33));
                     }
-                }
-                if (flag == one) {
-                    if (Gp_GetAreaFlag2(&key) == one) {
-                        if (key.area < 0x21U) {
-                            goto clear_lo;
-                        }
-                        goto clear_hi;
-                    }
-                    if (key.area < 0x21U) {
-                        Gp_AreaIdBits[0] |= one << (key.area - 1);
-                    } else {
-                        bits = Gp_AreaIdBits[1] | (one << (key.area - 0x21));
-                        goto store_hi;
-                    }
-                } else if (key.area < 0x21U) {
-                clear_lo:
-                    Gp_AreaIdBits[0] &= ~(one << (key.area - 1));
                 } else {
-                clear_hi:
-                    bits = Gp_AreaIdBits[1] & ~(one << (key.area - 0x21));
-                store_hi:
-                    Gp_AreaIdBits[1] = bits;
+                    if (key.area <= 32) {
+                        Gp_AreaIdBits[0] |= 1 << (key.area - 1);
+                    } else {
+                        Gp_AreaIdBits[1] |= 1 << (key.area - 33);
+                    }
                 }
-                i++;
-            } while (count >= i);
+            } else {
+                if (key.area <= 32) {
+                    Gp_AreaIdBits[0] &= ~(1 << (key.area - 1));
+                } else {
+                    Gp_AreaIdBits[1] &= ~(1 << (key.area - 33));
+                }
+            }
         }
     }
 }
