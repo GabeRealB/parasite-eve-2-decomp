@@ -141799,3 +141799,28 @@ mem->angle, 0x80, rgb)`). Other orders land 40-60 differences off. An
 `static inline` helper taking `u8* rgb` does *not* match (95%): the parameter
 is a pseudo holding `sp+0x10`, CSE keeps it in `$s0` and every channel is
 addressed `n($s0)`.
+## `sh -K(head)` then `addiu v0,head,-K` / `move sN,v0` in a GTE sprite is just `block = SCRATCH_PUSH(T)` (func_necrosis_8012FE64, 2026-09-26)
+
+Symptom: the `GpFxQuadScratch` quad drawers (necrosis, apobiosis, energyball)
+store `vec.vx` at `-0x1C(head)` before the block pointer exists, carve it into
+`$v0`, copy it to a callee-saved register, and store the *copy* to the head
+after `vec.vy`. The tree reproduced it with a `$v0` pin on the carve, a
+`volatile` head load, a pinned `vx` and `(T*)(head - 0x1C)` casts at every GTE
+store, plus `$a1` pins on the scratch address and a copy of `arg1`.
+
+Fix: the compound push, written the obvious way:
+
+```c
+block         = SCRATCH_PUSH(GpFxQuadScratch);
+block->vec.vx = arg0->workm.t[0];
+...
+gte_stsxy(&block->sx);
+```
+
+The value of `*G -= 1` is a short-lived pseudo that local-alloc colours `$v0`
+and joins to `block` by a copy (see the `Actor01900_Fn06F40` entry); CSE still
+knows it equals `head - 0x1C`, so the first store and the `sx`/`flag`/`otz`
+addresses come out `-K(head)` without any cast. With `$v0` taken the field
+loads move to `$v1`, the scratch address to `$a1`, and `arg1` to `$t1` with a
+second copy in `$a1` - every other pin in the old body followed from the one
+missing copy.
