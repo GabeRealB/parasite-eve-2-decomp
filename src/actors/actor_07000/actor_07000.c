@@ -2465,6 +2465,23 @@ static const TaskFuncTable3 Actor07000_D000E0 = {
     { Actor07000_Fn04B18, Actor07000_Fn04E60, Actor07000_Fn068B4 },
 };
 
+static __inline__ void update_animation(Task* task)
+{
+    Actor107000Spawn2Work* work;
+    s32                    i;
+    work = (Actor107000Spawn2Work*)task->work;
+    if (work->field_370 != (s16)work->field_372) {
+        work->field_372 = work->field_370;
+        work->field_374 = 0;
+        for (i = 1; i < 7; i++)
+            func_800B4114((GpAnimCtx*)work, i, work->field_370, 0, 8);
+    } else {
+        work->field_374++;
+        for (i = 1; i < 7; i++)
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+    }
+}
+
 /// Death handler of the specimen's second form, entry 2 of
 /// `Actor07000_D0003C`. `Gp_StateF0.field_4` mode 1 does nothing and mode 2 hides the
 /// model. Otherwise `field_36C` steps the death: phase 0 (unless `field_394`
@@ -2480,94 +2497,62 @@ static const TaskFuncTable3 Actor07000_D000E0 = {
 static void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1)
 {
     ActorShared80136288Work* work;
-    ActorShared80136288Work* work2;
     TmdObject*               obj;
     GpCoord*                 coord;
     GpCoord*                 part;
-    u16                      ticks;
-    s32                      state;
-    s32                      one;
-    s32                      i;
 
     obj   = arg1->extra.tmd;
-    state = Gp_StateF0.field_4;
     work  = (ActorShared80136288Work*)arg1->work;
     coord = obj->coords;
     part  = &coord[1];
-    one   = 1;
-    if (state == one) {
-        goto case1;
-    }
-    if (state >= 2) {
-        goto ge2;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case2:
-    obj->flags               = obj->flags | 0x80;
-    arg0->node.state.b.flags = one;
-    return;
-default_body:
-    switch (work->field_36C) {
-        case 0:
-            if (work->field_394 == 0) {
-                SndEvt_EnqueueType6(0xD, 0, 0);
-                obj->flags = 2;
-                Actor07000_Fn05FF8(arg1);
-            }
-            arg0->recs = 0;
-            Gp_UnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&work->field_1DC);
-            Gp_UnlinkObj(&work->field_22C);
-            Gp_UnlinkObj(&work->field_2AC);
-            Gp_ReleaseStateF0Add(arg1, 0x2A);
-            work->field_370 = 0xC;
-            work->field_36E = 0;
-            work->field_36C = 1;
-            break;
+    switch (Gp_StateF0.field_4) {
         case 1:
-            if (work->field_394 == 0) {
-                Actor07000_Fn06088(arg1);
-            } else {
-                obj->flags = 0x80;
-            }
-            ticks           = work->field_36E + 1;
-            work->field_36E = ticks;
-            if ((s16)ticks >= 0x3D) {
-                work->field_36C = 2;
-            }
             break;
         case 2:
-            SndEvt_EnqueueType7(0xD, 1);
-            obj->flags  = 0x80;
-            part->sub   = coord;
-            arg1->state = 3;
+            obj->flags              |= 0x80;
+            arg0->node.state.b.flags = 1;
+            break;
+        case 0:
+        default:
+            switch (work->field_36C) {
+                case 0:
+                    if (work->field_394 == 0) {
+                        SndEvt_EnqueueType6(0xD, 0, 0);
+                        obj->flags = 2;
+                        Actor07000_Fn05FF8(arg1);
+                    }
+                    arg0->recs = 0;
+                    Gp_UnlinkNode(&arg0->node);
+                    Gp_UnlinkObj(&work->field_1DC);
+                    Gp_UnlinkObj(&work->field_22C);
+                    Gp_UnlinkObj(&work->field_2AC);
+                    Gp_ReleaseStateF0Add(arg1, 0x2A);
+                    work->field_370 = 0xC;
+                    work->field_36E = 0;
+                    work->field_36C = 1;
+                    break;
+                case 1:
+                    if (work->field_394 == 0) {
+                        Actor07000_Fn06088(arg1);
+                    } else {
+                        obj->flags = 0x80;
+                    }
+                    work->field_36E++;
+                    if ((s16)work->field_36E >= 0x3D) {
+                        work->field_36C = 2;
+                    }
+                    break;
+                case 2:
+                    SndEvt_EnqueueType7(0xD, 1);
+                    obj->flags  = 0x80;
+                    part->sub   = coord;
+                    arg1->state = 3;
+                    break;
+            }
+            Gp_SetLightMode(arg0, 1);
+            update_animation(arg1);
             break;
     }
-    Gp_SetLightMode(arg0, 1);
-    work2 = (ActorShared80136288Work*)arg1->work;
-    i     = 1;
-    if (work2->field_370 != (s16)work2->field_372) {
-        work2->field_372 = work2->field_370;
-        work2->field_374 = 0;
-        do {
-            func_800B4114((GpAnimCtx*)work2, i, work2->field_370, 0, 8);
-            i++;
-        } while (i < 7);
-        return;
-    }
-    TOUCH_REG(i);
-    work2->field_374 = (u16)(work2->field_374 + i);
-    do {
-        Gp_AnimTickIndex((GpAnimCtx*)work2, i);
-        i++;
-    } while (i < 7);
-case1:
-    return;
 }
 
 /// Picks the reaction branch in `field_382` from the collision record at
@@ -2975,22 +2960,6 @@ static __inline__ void update_color(GpEnemy* enemy, GpCoord* coord)
     block->vz            = coord->workm.t[2];
     Gp_UpdateActorColor(enemy, block, 0, 0);
     SCRATCH_POP_BYTES(0x10);
-}
-static __inline__ void update_animation(Task* task)
-{
-    Actor107000Spawn2Work* work;
-    s32                    i;
-    work = (Actor107000Spawn2Work*)task->work;
-    if (work->field_370 != (s16)work->field_372) {
-        work->field_372 = work->field_370;
-        work->field_374 = 0;
-        for (i = 1; i < 7; i++)
-            func_800B4114((GpAnimCtx*)work, i, work->field_370, 0, 8);
-    } else {
-        work->field_374++;
-        for (i = 1; i < 7; i++)
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
-    }
 }
 static __inline__ void rotate_parts(Task* arg0)
 {
