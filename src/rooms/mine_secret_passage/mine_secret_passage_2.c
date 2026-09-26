@@ -582,7 +582,7 @@ void func_mine_secret_passage_8017EDF8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rg
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / (otz + 1)`. The RGB triple in `rgb` lights only the
 /// centre vertex so each wedge fades to black.
-void func_mine_secret_passage_8017F21C(GpCoord* arg0, s32 arg1, u8* rgb)
+void func_mine_secret_passage_8017F21C(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -604,7 +604,7 @@ void func_mine_secret_passage_8017F21C(GpCoord* arg0, s32 arg1, u8* rgb)
         gte_stszotz(&block->otz);
         otz           = block->otz + 1;
         block->otz    = otz;
-        block->radius = ((s16)arg1 * 64) / otz;
+        block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
             prim           = (POLY_G4*)gGpuPrimCursor;

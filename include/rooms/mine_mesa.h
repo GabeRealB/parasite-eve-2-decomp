@@ -44,7 +44,7 @@ void func_mine_mesa_8017F4D4(GpCoord* coord, s32 inner, s32 width, u8* rgb);
 /// Draws a gouraud disc of eight wedges around the projection of `coord`, lit
 /// by `rgb` at the centre and fading to black; `radius` is a signed
 /// half-extent scaled by depth.
-void func_mine_mesa_8017F900(GpCoord* coord, s32 radius, u8* rgb);
+void func_mine_mesa_8017F900(GpCoord* coord, s16 radius, u8* rgb);
 
 /// Draws a two-ring glow of gouraud wedges around the projection of `coord`,
 /// tinted by `rgb`; `radius` is a signed half-extent scaled by depth.

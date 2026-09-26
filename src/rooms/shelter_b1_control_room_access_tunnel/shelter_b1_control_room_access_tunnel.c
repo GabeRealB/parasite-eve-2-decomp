@@ -39,7 +39,7 @@ extern SVECTOR D_shelter_b1_control_room_access_tunnel_80181EE4[];
 extern SVECTOR D_shelter_b1_control_room_access_tunnel_80181EEC;
 
 void func_shelter_b1_control_room_access_tunnel_8017E57C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b1_control_room_access_tunnel_8017E9A8(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_b1_control_room_access_tunnel_8017E9A8(GpCoord* arg0, s16 arg1, u8* rgb);
 void func_shelter_b1_control_room_access_tunnel_8017F22C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 void func_shelter_b1_control_room_access_tunnel_8017F8AC(GpCoord* arg0, s16 arg1, u8* arg2);
 
@@ -462,7 +462,7 @@ void func_shelter_b1_control_room_access_tunnel_8017E57C(GpCoord* arg0, s32 arg1
 /// unless the GTE flags an error, queues eight gouraud `POLY_G4` wedges of
 /// radius `arg1 * 64 / (otz + 1)`, coloured `rgb` at the centre and black at
 /// the rim.
-void func_shelter_b1_control_room_access_tunnel_8017E9A8(GpCoord* arg0, s32 arg1, u8* rgb)
+void func_shelter_b1_control_room_access_tunnel_8017E9A8(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -484,7 +484,7 @@ void func_shelter_b1_control_room_access_tunnel_8017E9A8(GpCoord* arg0, s32 arg1
         gte_stszotz(&block->otz);
         otz           = block->otz + 1;
         block->otz    = otz;
-        block->radius = ((s16)arg1 * 64) / otz;
+        block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
             prim           = (POLY_G4*)gGpuPrimCursor;

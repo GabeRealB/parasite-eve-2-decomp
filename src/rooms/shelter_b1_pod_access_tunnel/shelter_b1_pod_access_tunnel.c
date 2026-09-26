@@ -78,7 +78,7 @@ void func_shelter_b1_pod_access_tunnel_8017E5B4(Task* task);
 void func_shelter_b1_pod_access_tunnel_8017E66C(s32 tpage, s16 arg1);
 void func_shelter_b1_pod_access_tunnel_8017E8F4(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_b1_pod_access_tunnel_8017F3DC(GpCoord* coord, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b1_pod_access_tunnel_8017F808(GpCoord* coord, s32 arg1, u8* rgb);
+void func_shelter_b1_pod_access_tunnel_8017F808(GpCoord* coord, s16 arg1, u8* rgb);
 void func_shelter_b1_pod_access_tunnel_8018008C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 void func_shelter_b1_pod_access_tunnel_8018070C(GpCoord* coord, s16 arg1, u8* rgb);
 
@@ -929,7 +929,7 @@ void func_shelter_b1_pod_access_tunnel_8017F3DC(GpCoord* arg0, s32 arg1, s32 arg
 /// Queues a gouraud disc of eight wedges around the projected world position
 /// of `arg0`, shaded `rgb` at the centre and black at the rim, of radius
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
-void func_shelter_b1_pod_access_tunnel_8017F808(GpCoord* arg0, s32 arg1, u8* rgb)
+void func_shelter_b1_pod_access_tunnel_8017F808(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -951,7 +951,7 @@ void func_shelter_b1_pod_access_tunnel_8017F808(GpCoord* arg0, s32 arg1, u8* rgb
         gte_stszotz(&block->otz);
         otz           = block->otz + 1;
         block->otz    = otz;
-        block->radius = ((s16)arg1 * 64) / otz;
+        block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
             prim           = (POLY_G4*)gGpuPrimCursor;

@@ -41,7 +41,7 @@ void func_shelter_b4_lower_sewer_8017F038(GpCoord* arg0, s32 arg1, s32 arg2);
 void func_shelter_b4_lower_sewer_8017F828(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_shelter_b4_lower_sewer_8017FC14(GpCoord* arg0, s32 arg1, s32 arg2);
 void func_shelter_b4_lower_sewer_80180154(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b4_lower_sewer_80180580(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_b4_lower_sewer_80180580(GpCoord* arg0, s16 arg1, u8* rgb);
 void func_shelter_b4_lower_sewer_80180E04(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 void func_shelter_b4_lower_sewer_80181484(GpCoord* arg0, s16 arg1, u8* arg2);
 
@@ -829,7 +829,7 @@ void func_shelter_b4_lower_sewer_80180154(GpCoord* arg0, s32 arg1, s32 arg2, u8*
 /// `POLY_G4` wedges of on-screen radius `(s16)arg1 * 64 / (otz + 1)` are
 /// queued around the projected point, coloured `rgb` at the centre and black
 /// at the rim.
-void func_shelter_b4_lower_sewer_80180580(GpCoord* arg0, s32 arg1, u8* rgb)
+void func_shelter_b4_lower_sewer_80180580(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -851,7 +851,7 @@ void func_shelter_b4_lower_sewer_80180580(GpCoord* arg0, s32 arg1, u8* rgb)
         gte_stszotz(&block->otz);
         otz           = block->otz + 1;
         block->otz    = otz;
-        block->radius = ((s16)arg1 * 64) / otz;
+        block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
             prim           = (POLY_G4*)gGpuPrimCursor;

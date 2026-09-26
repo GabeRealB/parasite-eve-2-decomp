@@ -58,7 +58,7 @@ void func_neo_ark_forest_zone_8017DA80(Task* arg0);
 void func_neo_ark_forest_zone_8017DB40(Task* arg0);
 void func_neo_ark_forest_zone_8017E074(GpCoord* arg0, s32 arg1, s16 arg2);
 void func_neo_ark_forest_zone_8017E6C4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_neo_ark_forest_zone_8017EAF0(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_neo_ark_forest_zone_8017EAF0(GpCoord* arg0, s16 arg1, u8* rgb);
 void func_neo_ark_forest_zone_8017F374(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 void func_neo_ark_forest_zone_8017F9F4(GpCoord* arg0, s16 arg1, u8* arg2);
 
@@ -617,7 +617,7 @@ void func_neo_ark_forest_zone_8017E6C4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rg
 /// the GTE flag is non-negative, queues eight gouraud `POLY_G4` wedges filling
 /// a disc around the projected point, `rgb` at the centre and black at the rim.
 /// `arg1` is the radius in world units, scaled by depth.
-void func_neo_ark_forest_zone_8017EAF0(GpCoord* arg0, s32 arg1, u8* rgb)
+void func_neo_ark_forest_zone_8017EAF0(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -639,7 +639,7 @@ void func_neo_ark_forest_zone_8017EAF0(GpCoord* arg0, s32 arg1, u8* rgb)
         gte_stszotz(&block->otz);
         otz           = block->otz + 1;
         block->otz    = otz;
-        block->radius = ((s16)arg1 * 64) / otz;
+        block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
             prim           = (POLY_G4*)gGpuPrimCursor;

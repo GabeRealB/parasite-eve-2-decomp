@@ -57,7 +57,7 @@ void func_shelter_1f_parking_garage_8017DF04(Task* task);
 void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_shelter_1f_parking_garage_8017E868(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_1f_parking_garage_8017EEB0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s16 arg1, u8* rgb);
 void func_shelter_1f_parking_garage_8017FB60(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 void func_shelter_1f_parking_garage_801801E0(GpCoord* arg0, s16 arg1, u8* arg2);
 
@@ -816,7 +816,7 @@ void func_shelter_1f_parking_garage_8017EEB0(GpCoord* arg0, s32 arg1, s32 arg2, 
 /// error. `arg1` is the half-extent (the on-screen radius is
 /// `(s16)arg1 * 64 / (otz + 1)`); the centre takes the colour `rgb` and the
 /// rim is black.
-void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s32 arg1, u8* rgb)
+void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -838,7 +838,7 @@ void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s32 arg1, u8* rgb)
         gte_stszotz(&block->otz);
         otz           = block->otz + 1;
         block->otz    = otz;
-        block->radius = ((s16)arg1 * 64) / otz;
+        block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
             prim           = (POLY_G4*)gGpuPrimCursor;

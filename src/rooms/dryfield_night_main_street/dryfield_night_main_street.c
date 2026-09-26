@@ -1203,7 +1203,7 @@ void func_dryfield_night_main_street_8017FFF8(GpCoord* arg0, s32 arg1, s32 arg2,
 /// Draws a glow at the coordinate's projected position: eight gouraud quads
 /// fanned around it, of radius `arg1` scaled by 64 over the OTZ. The centre
 /// takes `rgb` and the rim is black.
-void func_dryfield_night_main_street_8018041C(GpCoord* arg0, s32 arg1, u8* rgb)
+void func_dryfield_night_main_street_8018041C(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1225,7 +1225,7 @@ void func_dryfield_night_main_street_8018041C(GpCoord* arg0, s32 arg1, u8* rgb)
         gte_stszotz(&block->otz);
         otz           = block->otz + 1;
         block->otz    = otz;
-        block->radius = ((s16)arg1 * 64) / otz;
+        block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
             prim           = (POLY_G4*)gGpuPrimCursor;

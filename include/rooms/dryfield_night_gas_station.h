@@ -72,7 +72,7 @@ void func_dryfield_night_gas_station_80182024(GpCoord* coord, s32 inner, s32 wid
 /// Draws a gouraud disc of eight wedges around the projection of `coord`, lit
 /// by `rgb` at the centre and fading to black; `radius` is a signed
 /// half-extent scaled by depth.
-void func_dryfield_night_gas_station_80182450(GpCoord* coord, s32 radius, u8* rgb);
+void func_dryfield_night_gas_station_80182450(GpCoord* coord, s16 radius, u8* rgb);
 
 /// Draws a two-ring glow of gouraud wedges around the projection of `coord`,
 /// tinted by `rgb`; `radius` is a signed half-extent scaled by depth.

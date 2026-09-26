@@ -2441,7 +2441,7 @@ void func_dryfield_night_gas_station_80182024(GpCoord* arg0, s32 arg1, s32 arg2,
 /// projects, queues eight gouraud `POLY_G4` wedges around it, lit by `rgb` at
 /// the centre and black at the rim; `arg1` is a signed half-extent scaled by
 /// depth.
-void func_dryfield_night_gas_station_80182450(GpCoord* arg0, s32 arg1, u8* rgb)
+void func_dryfield_night_gas_station_80182450(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -2463,7 +2463,7 @@ void func_dryfield_night_gas_station_80182450(GpCoord* arg0, s32 arg1, u8* rgb)
         gte_stszotz(&block->otz);
         otz           = block->otz + 1;
         block->otz    = otz;
-        block->radius = ((s16)arg1 * 64) / otz;
+        block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
             prim           = (POLY_G4*)gGpuPrimCursor;

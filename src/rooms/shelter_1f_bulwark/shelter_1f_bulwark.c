@@ -51,7 +51,7 @@ extern RoomLatchedEvent D_shelter_1f_bulwark_80180ED0;
 void func_shelter_1f_bulwark_8017DBD4(Task* task);
 void func_shelter_1f_bulwark_8017DC18(Task* task);
 void func_shelter_1f_bulwark_8017E630(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s16 arg1, u8* rgb);
 void func_shelter_1f_bulwark_8017F2E0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 void func_shelter_1f_bulwark_8017F960(GpCoord* arg0, s16 arg1, u8* arg2);
 
@@ -577,7 +577,7 @@ void func_shelter_1f_bulwark_8017E630(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb
 /// Draws a glow disc of eight gouraud wedges around the coordinate's world
 /// position, skipped when the projection fails. The centre is tinted with
 /// `rgb` and the rim is black; `arg1` is the radius before depth scaling.
-void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s32 arg1, u8* rgb)
+void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -599,7 +599,7 @@ void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s32 arg1, u8* rgb)
         gte_stszotz(&block->otz);
         otz           = block->otz + 1;
         block->otz    = otz;
-        block->radius = ((s16)arg1 * 64) / otz;
+        block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
             prim           = (POLY_G4*)gGpuPrimCursor;

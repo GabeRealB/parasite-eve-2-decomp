@@ -34,7 +34,7 @@ extern SVECTOR D_dryfield_night_r08_80180674;
 void func_dryfield_night_r08_8017DB4C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_dryfield_night_r08_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_dryfield_night_r08_8017E854(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_dryfield_night_r08_8017EC80(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_dryfield_night_r08_8017EC80(GpCoord* arg0, s16 arg1, u8* rgb);
 void func_dryfield_night_r08_8017F504(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 void func_dryfield_night_r08_8017FB84(GpCoord* arg0, s16 arg1, u8* arg2);
 
@@ -488,7 +488,7 @@ void func_dryfield_night_r08_8017E854(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb
 /// GTE flag is non-negative, queues eight `POLY_G4` wedges fanned around the
 /// projected centre with radius `(s16)arg1 * 64 / (otz + 1)`. Only the centre
 /// vertex takes the `rgb` tint, so each wedge fades to black at the rim.
-void func_dryfield_night_r08_8017EC80(GpCoord* arg0, s32 arg1, u8* rgb)
+void func_dryfield_night_r08_8017EC80(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -510,7 +510,7 @@ void func_dryfield_night_r08_8017EC80(GpCoord* arg0, s32 arg1, u8* rgb)
         gte_stszotz(&block->otz);
         otz           = block->otz + 1;
         block->otz    = otz;
-        block->radius = ((s16)arg1 * 64) / otz;
+        block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
             prim           = (POLY_G4*)gGpuPrimCursor;

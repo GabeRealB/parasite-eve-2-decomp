@@ -64,7 +64,7 @@ extern SVECTOR D_acropolis_forked_road_8018220C;
 
 void func_acropolis_forked_road_8017EC70(GpCoord* arg0, s32 arg1, s16 arg2);
 void func_acropolis_forked_road_8017F224(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_acropolis_forked_road_8017F650(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_acropolis_forked_road_8017F650(GpCoord* arg0, s16 arg1, u8* rgb);
 void func_acropolis_forked_road_8017FED4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 void func_acropolis_forked_road_80180554(GpCoord* arg0, s16 arg1, u8* arg2);
 
@@ -765,7 +765,7 @@ void func_acropolis_forked_road_8017F224(GpCoord* arg0, s32 arg1, s32 arg2, u8* 
 /// Queues a gouraud disc of eight wedges around the projected world position
 /// of `arg0`, shaded `rgb` at the centre and black at the rim, of radius
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
-void func_acropolis_forked_road_8017F650(GpCoord* arg0, s32 arg1, u8* rgb)
+void func_acropolis_forked_road_8017F650(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -787,7 +787,7 @@ void func_acropolis_forked_road_8017F650(GpCoord* arg0, s32 arg1, u8* rgb)
         gte_stszotz(&block->otz);
         otz           = block->otz + 1;
         block->otz    = otz;
-        block->radius = ((s16)arg1 * 64) / otz;
+        block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
             prim           = (POLY_G4*)gGpuPrimCursor;

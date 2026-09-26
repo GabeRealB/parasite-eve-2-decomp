@@ -38,7 +38,7 @@ extern SVECTOR D_dryfield_night_back_street_801803A4;
 void func_dryfield_night_back_street_8017D920(SVECTOR* arg0, s32 arg1);
 void func_dryfield_night_back_street_8017E108(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_dryfield_night_back_street_8017E634(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_dryfield_night_back_street_8017EA60(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_dryfield_night_back_street_8017EA60(GpCoord* arg0, s16 arg1, u8* rgb);
 void func_dryfield_night_back_street_8017F2E4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 void func_dryfield_night_back_street_8017F964(GpCoord* arg0, s16 arg1, u8* arg2);
 
@@ -524,7 +524,7 @@ void func_dryfield_night_back_street_8017E634(GpCoord* arg0, s32 arg1, s32 arg2,
 /// Draws a glow of eight gouraud wedges around the coordinate's projected
 /// position, when it projects. The radius is `(s16)arg1 * 64 / (otz + 1)`;
 /// only the centre vertex takes the colour `rgb`, so each wedge fades to black.
-void func_dryfield_night_back_street_8017EA60(GpCoord* arg0, s32 arg1, u8* rgb)
+void func_dryfield_night_back_street_8017EA60(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -546,7 +546,7 @@ void func_dryfield_night_back_street_8017EA60(GpCoord* arg0, s32 arg1, u8* rgb)
         gte_stszotz(&block->otz);
         otz           = block->otz + 1;
         block->otz    = otz;
-        block->radius = ((s16)arg1 * 64) / otz;
+        block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
             prim           = (POLY_G4*)gGpuPrimCursor;

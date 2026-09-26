@@ -776,7 +776,7 @@ void func_shelter_b2_pod_access_tunnel_8017FB98(GpCoord* arg0, s32 arg1, s32 arg
 /// projects, queues eight gouraud `POLY_G4` wedges filling a disc around the
 /// point, `rgb` at the centre and black at the rim. `arg1` is the radius,
 /// scaled by 64 over `otz + 1`.
-void func_shelter_b2_pod_access_tunnel_8017FFBC(GpCoord* arg0, s32 arg1, u8* rgb)
+void func_shelter_b2_pod_access_tunnel_8017FFBC(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -798,7 +798,7 @@ void func_shelter_b2_pod_access_tunnel_8017FFBC(GpCoord* arg0, s32 arg1, u8* rgb
         gte_stszotz(&block->otz);
         otz           = block->otz + 1;
         block->otz    = otz;
-        block->radius = ((s16)arg1 * 64) / otz;
+        block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
             prim           = (POLY_G4*)gGpuPrimCursor;
