@@ -353,7 +353,7 @@ static void Actor01600_Fn06810(GpEnemy* arg0, Task* arg1);
 static void Actor01600_Fn06880(Task* arg0);
 static void Actor01600_Fn06A84(Task* arg0);
 static void Actor01600_Fn06F10(Task* arg0);
-static u8   Actor01600_Fn06F78(Task* arg0);
+static u8   Actor01600_Fn06F78(void);
 static void Actor01600_Fn06FDC(Task* arg0, s32 arg1);
 
 /// Takes a 0x10-byte `VECTOR` from `G_SCRATCH_HEAD`, fills it with `attach`'s
@@ -2379,9 +2379,6 @@ static void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
     s16             timer;
     s16             count;
     s32             mode;
-    /* Both calls below take the task; pinning it to the argument register
-       emits the one shared `move $a0, $s2` the branch delay slot uses. */
-    register Task* task asm("a0");
 
     obj    = arg1->extra.tmd;
     work   = arg1->work;
@@ -2424,13 +2421,12 @@ static void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
             Gp_UnlinkObj((GpObj*)work->collision.field_2EC);
             Gp_UnlinkObj((GpObj*)work->field_3CC);
             state = &Gp_StateF0;
-            task  = arg1;
             if (state->field_1C >= 3) {
-                if (Actor01600_Fn06F78(task) == 1) {
+                if (Actor01600_Fn06F78() == 1) {
                     state->field_1C = state->field_1C + 1;
                 }
             } else {
-                Gp_ReleaseStateF0Add(task, 0x10);
+                Gp_ReleaseStateF0Add(arg1, 0x10);
             }
             work->field_502 = 1;
             break;
@@ -3909,8 +3905,8 @@ static void Actor01600_Fn06F10(Task* arg0)
 /// Walks the sibling ring of task slot 4's children and reports whether any of
 /// them has already been flagged `0x80` in its `field_2C` object. Returns 0xFF
 /// when the slot has no children at all, 1 on the first flagged sibling and 0
-/// when the whole ring is clean. The task argument is unused.
-static u8 Actor01600_Fn06F78(Task* arg0)
+/// when the whole ring is clean.
+static u8 Actor01600_Fn06F78(void)
 {
     Task* head;
     Task* iter;

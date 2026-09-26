@@ -144348,3 +144348,15 @@ barrier; the goto ladder became a plain `switch` (case 1 duplicating the shared
 tail, which cross-jumping merges). When a callee ignores trailing parameters,
 check whether the caller only "passes" them because they are already in the
 registers.
+
+## A `register asm("a0")` pin that makes both arms share one `move a0` means one arm's callee takes no argument (Actor01600_Fn04054, 2026-09-27)
+Target: `bnez v0,else` with `move a0,s2` in its delay slot, then
+`jal f / nop` on the fall-through and `jal g / li a1,0x10` at `else`. Passing the
+task to both calls gives a `move a0,s2` in *each* arm (dbr fills the `jal`'s
+slot with its own copy and steals the other arm's copy into the branch slot), so
+the seed pinned a local to `$a0` above the `if`. The real cause was `f`: its
+body overwrites `$a0` before reading it, so it took no parameter. Declared
+`f(void)`, only `g` sets `$a0`; dbr steals that copy into the branch slot
+because `$a0` is dead on the fall-through, and `f`'s slot stays `nop`. When a
+shared argument copy sits before a branch, check whether every callee in the
+arms actually reads it.
