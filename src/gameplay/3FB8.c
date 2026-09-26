@@ -5076,42 +5076,34 @@ s32 func_80104508(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
 
 s32 func_80104684(Task* arg0, s32 arg1, s32 arg2)
 {
-    GameActor*     actor;
-    TmdObject*     extra;
-    void           (*func)(TmdObject*);
-    Task*          child;
-    Task*          cur;
-    s32            hi;
-    register Task* temp asm("v0");
-    u16            flags;
+    GameActor* actor;
+    TmdObject* extra;
+    void       (*func)(TmdObject*);
+    Task*      node;
+    Task*      child;
+    Task*      cur;
 
     actor = arg0->work;
     extra = arg0->extra.tmd;
     func  = NULL;
     switch (arg2) {
         case 0:
-            asm("lui %0, %%hi(Tmd_AllocBuffers)" : "=r"(hi));
-            flags = extra->flags;
-            asm("addiu %0, %1, %%lo(Tmd_AllocBuffers)" : "=r"(func) : "r"(hi));
-            extra->flags = (flags | 0x80) & 0xFFFB;
+            func         = Tmd_AllocBuffers;
+            extra->flags = (extra->flags | 0x80) & 0xFFFB;
             break;
         case 1:
             extra->flags = extra->flags & 0xFF7B;
             break;
         case 2:
-            asm("lui %0, %%hi(Tmd_FreeBuffers)" : "=r"(hi));
-            flags = extra->flags;
-            asm("addiu %0, %1, %%lo(Tmd_FreeBuffers)" : "=r"(func) : "r"(hi));
-            extra->flags = flags | 0x84;
+            func         = Tmd_FreeBuffers;
+            extra->flags = extra->flags | 0x84;
             break;
         case 3:
             extra->flags = extra->flags | 0x84;
             break;
         case 4:
-            asm("lui %0, %%hi(Tmd_AllocBuffers)" : "=r"(hi));
-            flags = extra->flags;
-            asm("addiu %0, %1, %%lo(Tmd_AllocBuffers)" : "=r"(func) : "r"(hi));
-            extra->flags = flags & 0xFF7B;
+            func         = Tmd_AllocBuffers;
+            extra->flags = extra->flags & 0xFF7B;
             break;
     }
     if (func != NULL) {
@@ -5130,27 +5122,22 @@ s32 func_80104684(Task* arg0, s32 arg1, s32 arg2)
         }
     }
     if (actor->field_91C != NULL) {
-        {
-            register TmdObject* dest asm("v1");
-            dest        = actor->field_91C->extra.tmd;
-            dest->flags = extra->flags;
-        }
-        temp = actor->field_91C->firstChild;
-        if (temp != NULL) {
-            child                   = temp;
+        actor->field_91C->extra.tmd->flags = extra->flags;
+        node                               = actor->field_91C;
+        node                               = node->firstChild;
+        if (node != NULL) {
+            child                   = node;
             child->extra.tmd->flags = extra->flags;
             cur                     = child;
             if (func != NULL) {
                 func(extra);
             }
-            if (child->nextSibling != child) {
-                do {
-                    cur                   = cur->nextSibling;
-                    cur->extra.tmd->flags = extra->flags;
-                    if (func != NULL) {
-                        func(extra);
-                    }
-                } while (cur->nextSibling != child);
+            while (cur->nextSibling != child) {
+                cur                   = cur->nextSibling;
+                cur->extra.tmd->flags = extra->flags;
+                if (func != NULL) {
+                    func(extra);
+                }
             }
         }
     }

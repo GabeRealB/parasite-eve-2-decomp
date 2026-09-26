@@ -115191,6 +115191,30 @@ the pin does double duty: it also marks `$v0` live over the value's range, so
 tracer shows the post-pin block down to two quantities (`q0 [91] -> $v1`,
 `q1 [107] -> $v0`), which also sidesteps the broken sort.
 
+### Leaving three quantities without a pin: route a chained load's intermediate through the user variable (func_80104684, 2026-09-26)
+
+A pin is not the only way out of the broken sort; taking one quantity out of the
+block works as well. `func_80104684` stores through `p->extra.tmd`, then reloads
+`p` and loads `p->firstChild` into a variable tested at the end of the block.
+With `first = actor->field_91C->firstChild;` the block has three quantities
+(the tmd pointer, the flags value and the reloaded `field_91C` temp), so they
+are allocated in birth order. The tmd pointer then takes `$v0` where retail has
+it in `$v1`. `trace_gcc.py` shows `q0 span=4 -> $v0`, `q1 span=2 -> $v1`,
+`q2 span=2 -> $v0`.
+
+```c
+node = actor->field_91C;     /* intermediate lands in `node` itself */
+node = node->firstChild;
+if (node != NULL) { child = node; ... }
+```
+
+`node` is live into the next block, so it is a global allocno and not a
+local-alloc quantity. The block drops to two quantities and the real priority
+sort runs: the flags value (span 2) goes first, takes `$v0`, and the tmd
+pointer falls to `$v1`, which is what retail does. Global allocation is unchanged. The same lever
+applies to any three-quantity block whose third member is the intermediate of an
+`a->b->c` chain feeding a variable that outlives the block.
+
 ## `arr[i]` strength-reduces to a walking pointer; a scalar byte offset does not (toolchain, 2026-09-16)
 
 The same two-element masking loop compiles two ways in GCC 2.8.1, and which one
