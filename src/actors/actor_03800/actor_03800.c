@@ -1487,20 +1487,41 @@ static void Actor03800_Fn02848(Task* arg0)
     coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->field_35C) >> 0xC;
 }
 
+/// Switches the work's animation id, resetting the slots to the blend value the
+/// table gives for the new id; otherwise ticks every slot one frame.
+static inline void _actor03800TickAnim(Task* task)
+{
+    Actor103800Work* work;
+    s32              i;
+    s32              value;
+
+    work = task->work;
+    if ((s16)work->field_348 != work->field_34A) {
+        work->field_34A = work->field_348;
+        work->field_34C = 0;
+        value           = Actor03800_D05F90[(s16)work->field_348];
+        for (i = 1; i < 6; i++) {
+            func_800B4114(work, i, (s16)work->field_348, 0, value);
+        }
+    } else {
+        work->field_34C++;
+        for (i = 1; i < 6; i++) {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        }
+    }
+}
+
 static void Actor03800_Fn02998(GpEnemy* arg0, Task* arg1)
 {
     Actor103800Work* work;
     TmdObject*       obj;
     GpCoord*         coord;
-    Actor103800Work* work2;
     GpCoord*         c;
     VECTOR           vec;
     s32              state;
-    s32              i;
     s16              st;
     s16              phase;
     s16              anim;
-    s16              val;
     s32              snd;
     s32              pan;
 
@@ -1570,24 +1591,7 @@ death:
         obj->flags      = 0x80;
         work->field_354 = 3;
     }
-    work2 = arg1->work;
-    i     = 1;
-    if ((s16)work2->field_348 != work2->field_34A) {
-        work2->field_34A = work2->field_348;
-        work2->field_34C = 0;
-        val              = Actor03800_D05F90[(s16)work2->field_348];
-        do {
-            func_800B4114(work2, i, (s16)work2->field_348, 0, val);
-            i++;
-        } while (i < 6);
-    } else {
-        TOUCH_REG(i);
-        work2->field_34C += i;
-        do {
-            Gp_AnimTickIndex((GpAnimCtx*)work2, i);
-            i++;
-        } while (i < 6);
-    }
+    _actor03800TickAnim(arg1);
     c      = ((Actor103800Work*)arg1->work)->field_344;
     vec.vx = c->workm.t[0];
     vec.vy = c->workm.t[1];
@@ -1611,24 +1615,7 @@ dying:
         work->field_354 = 2;
         obj->flags      = 0x80;
     }
-    work2 = arg1->work;
-    i     = 1;
-    if ((s16)work2->field_348 != work2->field_34A) {
-        work2->field_34A = work2->field_348;
-        work2->field_34C = 0;
-        val              = Actor03800_D05F90[(s16)work2->field_348];
-        do {
-            func_800B4114(work2, i, (s16)work2->field_348, 0, val);
-            i++;
-        } while (i < 6);
-    } else {
-        TOUCH_REG(i);
-        work2->field_34C += i;
-        do {
-            Gp_AnimTickIndex((GpAnimCtx*)work2, i);
-            i++;
-        } while (i < 6);
-    }
+    _actor03800TickAnim(arg1);
     c      = ((Actor103800Work*)arg1->work)->field_344;
     vec.vx = c->workm.t[0];
     vec.vy = c->workm.t[1];
