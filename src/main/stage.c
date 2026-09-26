@@ -11,6 +11,15 @@
 
 #include "psyq/libpress.h"
 
+const TaskFuncTable6 Display_TaskStates = { {
+    Stage_WaitCdActivate,
+    Stage_WaitCdAndSpawn,
+    Display_TransitionTask,
+    Display_TaskLoadStep,
+    Stage_WaitCdEntry,
+    Stage_FinishCdFollowUp,
+} };
+
 void Display_StepFadeOverlay(void)
 {
     StageCtx* p;

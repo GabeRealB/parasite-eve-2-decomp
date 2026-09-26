@@ -4,6 +4,20 @@
 #include "main/gfx.h"
 #include "main/mc.h"
 
+const u16 Display_WidthTable[] = {
+    0x100,
+    0x140,
+    0x180,
+    0x200,
+    0x280,
+    0,
+};
+
+const u16 Display_HeightTable[] = {
+    0xF0,
+    0x1E0,
+};
+
 void Display_SetMode(s32 arg0)
 {
     DisplayState* ds;
