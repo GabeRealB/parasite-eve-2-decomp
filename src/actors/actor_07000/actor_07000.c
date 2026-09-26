@@ -170,6 +170,11 @@ STATIC_ASSERT_SIZEOF(Actor107000SpawnWork, 0x2E4);
 
 void ActorsShared801349d8(Task*);
 
+/// Rebinds the animation id `field_2B8` to the specimen's two helper slots
+/// unless `field_2D2` suppresses the rebind. When the id has changed since the
+/// last frame `field_2BA` follows it, the frame count `field_2BC` restarts and
+/// both slots are pointed at the new id; otherwise the count ticks and the
+/// slots advance by one frame.
 static __inline__ void Actor107000_TickAnim(Task* task)
 {
     Actor107000Work* work = (Actor107000Work*)task->work;
@@ -1620,35 +1625,11 @@ static void Actor07000_Fn027D0(Task* task)
     coord->coord.t[1] += 0x80;
 }
 
-/// Rebinds the animation id `field_2B8` to the specimen's two helper slots
-/// unless `field_2D2` suppresses the rebind. When the id has changed since the
-/// last frame `field_2BA` follows it, the frame count `field_2BC` restarts and
-/// both slots are pointed at the new id; otherwise the count ticks and the
-/// slots advance by one frame.
+/// The specimen's animation rebind, `Actor107000_TickAnim`, as an
+/// out-of-line function.
 static void Actor07000_Fn02860(Task* arg0)
 {
-    Actor107000Work* work;
-    s32              i;
-
-    work = (Actor107000Work*)arg0->work;
-    if (work->field_2D2 == 0) {
-        i = 1;
-        if (work->field_2B8 != work->field_2BA) {
-            work->field_2BA = work->field_2B8;
-            work->field_2BC = 0;
-            do {
-                func_800B4114((GpAnimCtx*)work, i, work->field_2B8, 0, 0);
-                i++;
-            } while (i < 3);
-            return;
-        }
-        TOUCH_REG(i);
-        work->field_2BC = (u16)(work->field_2BC + i);
-        do {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
-            i++;
-        } while (i < 3);
-    }
+    Actor107000_TickAnim(arg0);
 }
 
 /// Colours the caged specimen from the world position of the model's second
