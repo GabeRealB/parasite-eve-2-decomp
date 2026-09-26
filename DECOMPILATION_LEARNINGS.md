@@ -142866,3 +142866,28 @@ slot: `const char s[12] = "Telephone\0\x14\xCF";`. Where the object is a struct
 whose size a by-value copy pins (a 3-byte level table), the stray byte becomes
 its own one-byte object after it. Beware `"\0" "5"`: a digit right after `\0`
 must start a new literal or C reads an octal escape.
+## A pin that holds an argument register through a run of constant stores is store order; a pinned load's destination is not (func_actor_403600_8013EA04, 2026-09-26)
+
+**Symptom.** A switch arm stored `1, 1, 0x28` from `a1`, reloaded `a1 = 1` for
+the call, and moved the `Task*` into `a0` at the top of the block. The seed
+held it with `register … asm("a1")` for the constants and `asm("a0")` for the
+task. Every chain register one step past `a1` in the target (`a2/a3/t0` for
+the LCG state, its constant and `%hi`) is the tell: `a1` is reserved over the
+range where sched1 placed the call's argument setup, and that placement is a
+priority tie decided by source order.
+
+**Fix.** Plain stores, the file's rand helper, `func(task, 1)` - and sweep the
+order of the arm's statements. 20 of 2520 orders match the pinned build
+(`field_774, field_732, field_746, field_73E, flags |=, rand, rand`); moving the
+call into an inline helper changed nothing. A shell loop around `cpp | cc1 |
+maspsx | dist.py` scores a variant in well under a second, which makes a sweep
+of that size practical where `build.sh` (which also dumps) is not.
+
+**What did not yield.** A second pin in the same function held an `lh` of a
+field into `a0` ahead of a compare. Unpinned, sched1 queues that load for its
+load-delay slot and boosts it, so it lands after the state computation and
+local-alloc gives it `v1`; pinned, the load is never blocked, stays at its
+source position and overlaps the live LCG load, which forces `a0`. Every
+statement order (630), every block-scope declaration order (168), and the
+helper shape plateau at one of the two halves - `a0` with the load two slots
+early, or the load in place in `v1`.

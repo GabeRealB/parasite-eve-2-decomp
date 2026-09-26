@@ -3350,9 +3350,7 @@ s32 func_actor_403600_8013E7D4(s32 arg0, s32 arg1)
 
 void func_actor_403600_8013EA04(Task* arg0)
 {
-    s16              temp_a3;
     u32              temp_a0_3;
-    u32              temp_a2;
     s32              temp_lo;
     s32              temp_lo_3;
     s32              temp_s0;
@@ -3369,16 +3367,12 @@ void func_actor_403600_8013EA04(Task* arg0)
     u32              temp_a0_2;
     u32              temp_a0_4;
     u32              temp_a1;
-    u32              temp_a2_2;
     u32              temp_v0;
     u32              temp_v0_2;
-    u32              temp_v0_4;
     u32              var_v0;
     u32              var_v1;
     s32              temp_lo_2;
     s32              temp_lo_4;
-    register s32     case_value asm("a1");
-    register Task*   call_actor asm("a0");
     s32              var_a2;
     Actor403600Work* temp_s2;
     GpEnemy*         temp_t0;
@@ -3544,24 +3538,14 @@ void func_actor_403600_8013EA04(Task* arg0)
             temp_s2->field_73E = 0x1E;
             return;
         case 3:
-            temp_v0_4                = (Gp_LcgState * 5) + 0x71357911;
-            call_actor               = arg0;
-            case_value               = 1;
-            temp_s2->field_774       = case_value;
-            temp_s2->field_746       = case_value;
-            temp_a2                  = temp_v0_4 * 5;
-            temp_a2_2                = temp_a2 + 0x71357911;
-            case_value               = 0x28;
-            temp_s2->field_73E       = case_value;
-            case_value               = 1;
-            temp_s2->field_732       = 0;
-            Gp_LcgState              = temp_v0_4;
-            temp_s2->field_782       = (s16)((temp_v0_4 >> 0xF) & 6);
-            Gp_LcgState              = temp_a2_2;
-            temp_s2->field_5C0.flags = (u16)(temp_s2->field_5C0.flags | 0x4000);
-            temp_a3                  = ((temp_a2_2 >> 0x10) % 0x14) + 0x28;
-            temp_s2->field_734       = temp_a3;
-            func_actor_403600_8013CCEC(call_actor, case_value);
+            temp_s2->field_774        = 1;
+            temp_s2->field_732        = 0;
+            temp_s2->field_746        = 1;
+            temp_s2->field_73E        = 0x28;
+            temp_s2->field_5C0.flags |= 0x4000;
+            temp_s2->field_782        = (_actor403600Rand() & 3) * 2;
+            temp_s2->field_734        = (_actor403600Rand() % 20) + 0x28;
+            func_actor_403600_8013CCEC(arg0, 1);
             return;
         case 4:
             temp_a0_3          = Gp_LcgState * 5;
