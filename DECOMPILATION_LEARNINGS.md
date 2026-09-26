@@ -144235,3 +144235,23 @@ in `global-alloc`'s priority order.
 ### A pinned parameter copy can stand in for a sched1 order that decides local-alloc (func_acropolis_square_80180DAC, 2026-09-26)
 
 A gouraud-rectangle routine pinned `dx = arg1` to `$v1` so the target's `move v1,a1` and `lui a1,%hi(gGpuPrimCursor)` came out. Unpinned, arg1 stayed in `$a1` and the cursor's `%hi` took `$v1`. The deciding event is block-local: in the target, sched1 puts the `field_22` load above the cursor store, so that load's quantity holds `$v1` across the `%hi` quantity's range, local-alloc gives `%hi` `$a1`, and global-alloc then moves arg1 to `$v1`. Writing the colour-0 word before the tag rather than between `setlen` and `setcode` (`PRIM_COLOR_WORD(p, 0) = c; setPolyG4(p);`) moved that load and matched with no pin. When a pin sits on a parameter copy, look at `.lreg` for the block-local quantity that takes the register, then permute nearby independent statements.
+
+## A load sunk past an unrelated global store: accumulate into an `s32` in place, so the destination is multi-set but dies once (func_acropolis_fire_escape_8017F010, 2026-09-26)
+
+A gradient-rectangle builder loads the panel's `y` (`lhu v1,0x22(t1)`) just
+before `sw v0,%lo(gGpuPrimCursor)(a1)`. The load is in-struct and the cursor
+store is a fixed-address scalar, so the scheduler treats them as independent,
+and a single-set `s16 y` load is "birthing": sched1 sinks it after the store.
+The two values then never overlap, local-alloc gives the `%hi` temp `$v1`, and
+the parameter it would otherwise share with ends up in `$a1`. The tree pinned
+the parameter to `$v1` to compensate.
+
+`y = y + arg2 + 1` does not help: with `-O2` every intermediate gets a fresh
+temp, so `y` dies into it and becomes a multi-death global. What matched is an
+`s32 y` loaded alone and then updated in place, `y += arg2; y++;`: each
+compound assignment is one `(set y (plus y ...))`, so `y` is set three times
+(not birthing, and the load stays where the C put it) but dies only once, so
+it stays a local quantity that overlaps the `%hi` temp. The bottom edge needs
+its own single-set local (`bottom = y + arg4 - 1`), otherwise a further
+in-place update drifts forward too. Combine still narrows the `s32` load to
+`lhu`, since every use is truncated to 16 bits.
