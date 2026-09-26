@@ -382,6 +382,11 @@ extern struct _GpAreaRec* Gp_AreaTableStg5;
 /// `Gp_RebuildAreaIdBits` loops area ids `1..count` when the stage is 1–5.
 extern s8 Gp_AreaIdCounts[];
 
+/// The bytes 1 to 50 in order. Room data uses it as the view list of a
+/// location whose views are numbered in their own order, so the rooms share
+/// this one instead of carrying a copy each.
+extern u8 D_8010CAF8[];
+
 /// For each area id `1..Gp_AreaIdCounts[stage-1]`, set or clear the matching
 /// bit in `Gp_AreaIdBits`. The bit is set only when that area object's
 /// `field_1` bit 2 is set and `Gp_GetAreaFlag2` returns 0.

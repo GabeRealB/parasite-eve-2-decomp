@@ -1395,7 +1395,7 @@ label = "cutscene or one-off room; no map names it"
 id = 309
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { unit = "dryfield_r04/dryfield_r04", data = "0x4" },
 ]
 
 [rooms.overlays.dryfield_back_street]

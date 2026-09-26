@@ -1327,6 +1327,7 @@ Gp_RoomParams               = 0x80115428; // size:0x8
 // Gameplay naming pass 8 (collected bits, item map, load CD, Obj4C)
 Gp_ItemMaps                 = 0x8010D2F8; // size:0x20
 Gp_AreaIdCounts             = 0x8010CAF0;
+D_8010CAF8                  = 0x8010CAF8; // view order the room tables share
 Gp_DefaultScan              = 0x8010D520; // size:0x4
 Gp_ScanPtrs                 = 0x8010D550;
 Gp_ItemTable2               = 0x80114C20;

@@ -189,7 +189,7 @@ Mc_SaveData = 0x80072168; // absolute:True
 D_80073B08 = 0x80073B08; // absolute:True
 Player_Status = 0x80073B88; // absolute:True
 
-// --- from gameplay (196 symbols)
+// --- from gameplay (197 symbols)
 Gp_UpdateCoord = 0x80098F58; // absolute:True
 Gp_AttachTmd = 0x8009902C; // absolute:True
 Gp_IsDebugAttachRoom = 0x800A74C4; // absolute:True
@@ -364,6 +364,7 @@ Gp_EnterActorMode2 = 0x80104838; // absolute:True
 func_80104E00 = 0x80104E00; // absolute:True
 func_801066DC = 0x801066DC; // absolute:True
 Gp_EndPlayerActorTask = 0x8010B674; // absolute:True
+D_8010CAF8 = 0x8010CAF8; // absolute:True
 Gp_SprtTables = 0x8010CB68; // absolute:True
 Gp_RoomParamTables = 0x8010CBB8; // absolute:True
 Gp_AreaTables = 0x8010CBCC; // absolute:True
