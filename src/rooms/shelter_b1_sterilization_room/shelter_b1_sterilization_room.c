@@ -399,10 +399,10 @@ void func_shelter_b1_sterilization_room_8017D794(DialogPrompt* arg0, UiObject* a
 }
 
 /// Title of the "Play Data" panel.
-const char D_shelter_b1_sterilization_room_8017D610[] = "Play Data";
+static const char D_shelter_b1_sterilization_room_8017D610[] = "Play Data";
 
 /// Drawn in place of the percentage for a row holding every recorded use.
-const u8 D_shelter_b1_sterilization_room_8017D61C[] = "100.0%";
+static const u8 D_shelter_b1_sterilization_room_8017D61C[] = "100.0%";
 
 void func_shelter_b1_sterilization_room_8017DF60(DialogPrompt* arg0, UiObject* arg1)
 {
@@ -1280,7 +1280,7 @@ void func_shelter_b1_sterilization_room_8017F550(Task* task)
 /// The three states of the room's main task, run by
 /// `func_shelter_b1_sterilization_room_80180518`: set-up, the per-frame
 /// handler and the kill.
-const TaskFuncTable3 D_shelter_b1_sterilization_room_8017D6A4 = {
+static const TaskFuncTable3 D_shelter_b1_sterilization_room_8017D6A4 = {
     {
         func_shelter_b1_sterilization_room_8017FABC,
         func_shelter_b1_sterilization_room_80180464,
@@ -1722,7 +1722,7 @@ static void func_shelter_b1_sterilization_room_80180828(Task* task)
 /// Draws the room's two backdrop halves as opaque `SPRT`s in OT slot 8, tinted
 /// by `shade`. The source rows, both the sprites' `v` and the tpage row, follow
 /// the display buffer being drawn.
-void func_shelter_b1_sterilization_room_80180A2C(s32 shade)
+static void func_shelter_b1_sterilization_room_80180A2C(s32 shade)
 {
     SPRT* p;
     s16   tpageY;
@@ -1774,7 +1774,7 @@ void func_shelter_b1_sterilization_room_80180A2C(s32 shade)
 
 /// Redraw the room's two backdrop halves as semi-transparent `SPRT`s in OT
 /// slot 8, tinting both with `shade`, then append each half's tpage.
-void func_shelter_b1_sterilization_room_80180BF0(s32 shade)
+static void func_shelter_b1_sterilization_room_80180BF0(s32 shade)
 {
     SPRT* p;
 

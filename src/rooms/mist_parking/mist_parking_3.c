@@ -20,6 +20,8 @@
 
 extern GpXformArg D_mist_parking_8018FC3C;
 
+static s32 func_mist_parking_80183AC4(Task* task, s32 arg1, GpXformArg* placement, s32 arg3);
+
 void func_mist_parking_80183634(s32 arg0)
 {
     Task* t = D_mist_parking_80195324;
@@ -195,7 +197,7 @@ static void func_mist_parking_80183A28(Task* task)
 /// coordinate frame's translation, its angles the frame's rotation, from
 /// which `RotMatrixZYX` rebuilds the matrix; clearing `flg` makes the frame
 /// be recomputed.
-s32 func_mist_parking_80183AC4(Task* task, s32 arg1, GpXformArg* placement, s32 arg3)
+static s32 func_mist_parking_80183AC4(Task* task, s32 arg1, GpXformArg* placement, s32 arg3)
 {
     GpCoord* coord;
 

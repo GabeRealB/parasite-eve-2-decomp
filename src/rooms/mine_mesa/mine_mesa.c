@@ -117,6 +117,11 @@ static void func_mine_mesa_8017EB38(void);
 static void func_mine_mesa_80180184(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_mine_mesa_801817BC(void);
 
+static void func_mine_mesa_8017EFA8(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_mine_mesa_8017F4D4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_mine_mesa_8017F900(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_mine_mesa_80180804(GpCoord* arg0, s16 arg1, u8* arg2);
+
 /// Runs this room's pending event once the request for it has been accepted.
 /// State 0 plays the caption command recorded in `D_mine_mesa_80189B60` and
 /// saves a point; state 1 spawns the helper task 0x31 the request asked for;
@@ -981,7 +986,7 @@ static void func_mine_mesa_8017ED08(Task* arg0)
 /// `(s16)arg1 * 40` at v=0..0x27. `arg2` is a signed half-extent; the
 /// on-screen radius is `(s16)arg2 * 39 / otz`. RGB is the frame-counter blend
 /// byte `((animFrame & 1) * 16) + 0x20` on all three channels.
-void func_mine_mesa_8017EFA8(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_mine_mesa_8017EFA8(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw13Scratch* block;
     POLY_FT4*          prim;
@@ -1095,7 +1100,7 @@ static void func_mine_mesa_8017F230(Task* task)
 /// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the edge at the
 /// second radius, and each wedge fades to black at the first.
-void func_mine_mesa_8017F4D4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_mine_mesa_8017F4D4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1154,7 +1159,7 @@ void func_mine_mesa_8017F4D4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / (otz + 1)`. The RGB triple in `rgb` lights only the
 /// inner vertex so each wedge fades to black.
-void func_mine_mesa_8017F900(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_mine_mesa_8017F900(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1487,7 +1492,7 @@ static void func_mine_mesa_8018057C(Task* task)
 /// `(s16)arg1 * 64 / (otz + 1)` (outer) and `(s16)arg1 * 8 / (otz + 1)`
 /// (inner). Only the centre vertex is tinted, so each wedge fades to a black
 /// rim.
-void func_mine_mesa_80180804(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_mine_mesa_80180804(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

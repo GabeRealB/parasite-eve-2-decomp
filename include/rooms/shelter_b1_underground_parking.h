@@ -47,19 +47,6 @@ extern UiObjectDesc D_shelter_b1_underground_parking_80186B34;
 /// The item id the shop list's cursor last rested on.
 extern s32 D_shelter_b1_underground_parking_80186FB0;
 
-/// Exit callback of the save prompt: releases `Wip_UiHolder` if the task holds
-/// it, then frees the UI object and kills the task.
-void func_shelter_b1_underground_parking_8017F7D0(Task* task);
-
-/// Returns the 0xFFFF-terminated list of item ids the shop list starts from.
-u16* func_shelter_b1_underground_parking_8017F80C(s32 mode);
-
-/// Resets both action-prompt slots and steps the caller on one state.
-void func_shelter_b1_underground_parking_801848BC(Task* task);
-
-/// Glow markers the room's view handler draws at world-space points.
-void func_shelter_b1_underground_parking_80184C54(SVECTOR* pos, s32 size, s32 angle, s32 tint);
-
 /// Flag tested as zero / non-zero when drawing the room's view-dependent
 /// markers: it selects 0x180 or 0x60 as the second argument of their draw
 /// calls. Its meaning is unproven.

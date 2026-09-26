@@ -47,10 +47,4 @@ extern RoomEventReq D_shelter_b2_elevator_hall_80184D88;
 /// spawns task 0x11 and ends.
 void func_shelter_b2_elevator_hall_8017D774(Task* task);
 
-/// Projects `arg0`'s world position through `GsWSMATRIX` and, when it
-/// projects, queues a disc of sixteen gouraud `POLY_G4` wedges of on-screen
-/// radius `arg1 * 64 / (otz + 1)`, coloured `arg2` at the centre and black at
-/// the rim.
-void func_shelter_b2_elevator_hall_8017FB8C(GpCoord* arg0, s16 arg1, u8* arg2);
-
 #endif // ROOMS_SHELTER_B2_ELEVATOR_HALL_H

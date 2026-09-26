@@ -924,7 +924,7 @@ static void func_shelter_b2_elevator_hall_8017F768(GpCoord* arg0, s32 arg1, s32 
 /// the GTE flags the projection, queues a fan of eight gouraud `POLY_G4`
 /// wedges around it, of radius `arg1 * 64 / (otz + 1)`: black at the rim and
 /// coloured `arg2` at the centre.
-void func_shelter_b2_elevator_hall_8017FB8C(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b2_elevator_hall_8017FB8C(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;

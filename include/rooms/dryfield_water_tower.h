@@ -11,9 +11,6 @@
 /// `func_dryfield_water_tower_8017E1DC`, the two the cap script spawns.
 extern TaskDesc D_dryfield_water_tower_80182384[];
 
-/// Shows or hides the view's sprites from nibble 0x55.
-void func_dryfield_water_tower_8017DCB4(void);
-
 /// Sets the current view's skip-OT-link byte: a zero low byte skips the view's
 /// sprites, non-zero draws them.
 void func_dryfield_water_tower_801802D8(u8 arg0);

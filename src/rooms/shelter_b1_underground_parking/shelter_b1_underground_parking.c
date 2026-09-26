@@ -283,6 +283,10 @@ static void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1
 static void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b1_underground_parking_80186890(s16 arg0);
 
+static void func_shelter_b1_underground_parking_8017F7D0(Task* task);
+static void func_shelter_b1_underground_parking_801848BC(Task* task);
+static void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
+
 void func_shelter_b1_underground_parking_8017DA50(DialogPrompt* arg0, UiObject* arg1)
 {
     u8  buf[0x20];
@@ -1235,7 +1239,7 @@ void func_shelter_b1_underground_parking_8017F708(DialogPrompt* prompt, UiObject
 
 /// Task exit callback for the save-prompt UI: if this task still owns
 /// `Wip_UiHolder`, clear it, then free the spawned UI object and kill the task.
-void func_shelter_b1_underground_parking_8017F7D0(Task* task)
+static void func_shelter_b1_underground_parking_8017F7D0(Task* task)
 {
     WipUiHolder* holder;
 
@@ -1252,7 +1256,7 @@ void func_shelter_b1_underground_parking_8017F7D0(Task* task)
 /// 0x30-0x33 and 0x40 each have one, every other value shares one) and the
 /// high half the entry within it (0-3). A high half outside 0-3 gets a single
 /// fallback list.
-u16* func_shelter_b1_underground_parking_8017F80C(s32 mode)
+static u16* func_shelter_b1_underground_parking_8017F80C(s32 mode)
 {
     if (Mc_SaveData.gameMode < 2) {
         switch ((u16)mode) {
@@ -3801,7 +3805,7 @@ static void func_shelter_b1_underground_parking_801848A4(void)
 /// the caller on one state: clears each slot's leading words and its two
 /// trailing shorts, parks the target id at 0x100 with `field_E` at 0xF, and
 /// marks the slot as highlighted (`mode` 1).
-void func_shelter_b1_underground_parking_801848BC(Task* task)
+static void func_shelter_b1_underground_parking_801848BC(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     s32               i;
@@ -3920,7 +3924,7 @@ static void func_shelter_b1_underground_parking_80184A18(void)
 /// inner vertex is scaled by the frame-counter blend byte
 /// `((field_8 & 1) * 8 | 0x20)`: red is `blend * ((arg3 << 16) >> 24)`, green
 /// `blend * (((arg3 << 16) >> 20) & 1)`, blue `blend * (arg3 & 1)`.
-void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw11Scratch* block;

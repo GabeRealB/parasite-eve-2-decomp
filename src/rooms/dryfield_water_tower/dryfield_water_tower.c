@@ -46,6 +46,8 @@ extern TaskDesc D_dryfield_water_tower_801803D8;
 static void func_dryfield_water_tower_8017DD6C(Task* arg0);
 static void func_dryfield_water_tower_8017DDD0(Task* task);
 
+static void func_dryfield_water_tower_8017DCB4(void);
+
 /// The room's event gate. A request whose flag nibble is already set (or clear,
 /// for a negative `flagId`) answers 1. One whose prerequisite item is missing
 /// runs the request's CAP command and answers 0. Otherwise the message and
@@ -276,7 +278,7 @@ s32 func_dryfield_water_tower_8017DC64(s32 arg0, s32 arg1, s32 arg2)
 
 /// Shows or hides the view's sprites from nibble 0x55: modes 0 and 1 draw
 /// them, 2 and 3 skip them, and any other value leaves them alone.
-void func_dryfield_water_tower_8017DCB4(void)
+static void func_dryfield_water_tower_8017DCB4(void)
 {
     s32 mode = GameFlag_GetNibble(0x55);
 

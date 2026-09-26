@@ -106,11 +106,13 @@ extern u16 D_mist_parking_80186398[];
 extern u16 D_mist_parking_801863A4[];
 extern u16 D_mist_parking_80186534[];
 
+static void func_mist_parking_80181E50(Task* task);
+
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists and the high halfword one of
 /// the group's four; `Mc_SaveData.gameMode` 2 and above has groups of its own,
 /// and anything unmatched falls back to `D_mist_parking_80186534`.
-u16* func_mist_parking_8017D8F8(s32 mode)
+static u16* func_mist_parking_8017D8F8(s32 mode)
 {
     if (Mc_SaveData.gameMode < 2) {
         switch ((u16)mode) {
@@ -437,7 +439,7 @@ void func_mist_parking_8017DF68(DialogPrompt* prompt, UiObject* obj)
 /// Adds an item id to the room's shop list, keeping one entry per item kind:
 /// ids 0xF..0x32 are three consecutive levels of the same kind, so an entry of
 /// the same kind is overwritten only by a higher level.
-void func_mist_parking_8017E3F4(RoomShopList* shop, UiObject* obj, s32 item)
+static void func_mist_parking_8017E3F4(RoomShopList* shop, UiObject* obj, s32 item)
 {
     Task*         task = obj->owner;
     s32           mode = task->spawnArg1;
@@ -482,7 +484,7 @@ extern RoomShopTier D_mist_parking_801863B0[13];
 /// three modes do not carry. Mode 3 additionally offers the twelve two-bit
 /// stock levels the save keeps in `Mc_SaveData.shopStock`, whose first slot
 /// needs a level of 2 rather than 1.
-void func_mist_parking_8017E540(RoomShopList* shop, UiObject* obj)
+static void func_mist_parking_8017E540(RoomShopList* shop, UiObject* obj)
 {
     RoomShopList* list;
     u16*          ids;
@@ -1793,7 +1795,7 @@ extern UiObjectDesc D_mist_parking_80186930;
 /// counter as a 12-bit fraction of the top row's. Both are scaled down by
 /// halving until the top counter fits in 17 bits, so the multiply and the
 /// shift cannot overflow.
-void func_mist_parking_80180C98(UiList* list, UiObject* obj)
+static void func_mist_parking_80180C98(UiList* list, UiObject* obj)
 {
     RoomItemUsage* work;
     s32            count;
@@ -2364,7 +2366,7 @@ void func_mist_parking_80181D88(DialogPrompt* prompt, UiObject* obj)
 /// Exit callback of a prompt task that registers its UI object as
 /// `Wip_UiHolder`: releases the holder if the task still owns it, then frees
 /// the UI object and kills the task.
-void func_mist_parking_80181E50(Task* task)
+static void func_mist_parking_80181E50(Task* task)
 {
     WipUiHolder* holder;
 

@@ -38,6 +38,11 @@ extern MistParkingScanState D_mist_parking_80195328;
 
 static void func_mist_parking_801833F8(Task* task);
 
+static void func_mist_parking_8018307C(Task* task);
+static void func_mist_parking_801830F8(Task* task);
+static void func_mist_parking_80183304(Task* task);
+static void func_mist_parking_80183434(Task* arg0);
+
 /// State handlers of the same shape for a task that attaches a model to a
 /// parent's part and then idles; nothing in the room reads this table.
 static const TaskFuncTable3 D_mist_parking_8017D7E8 = {
@@ -48,7 +53,7 @@ static const TaskFuncTable3 D_mist_parking_8017D7E8 = {
     },
 };
 /// State handlers of the text-block task `func_mist_parking_801832AC` runs.
-const TaskFuncTable3 D_mist_parking_8017D7F4 = {
+static const TaskFuncTable3 D_mist_parking_8017D7F4 = {
     {
         func_mist_parking_80183304,
         func_mist_parking_801833F8,
@@ -260,7 +265,7 @@ void func_mist_parking_80182F60(Task* task)
 /// Attaches the task's model to the coordinate frame of part `spawnArg1` of
 /// the model of the task in `spawnArg2`, sharing its light and colour
 /// matrices, reparents the task under that one and steps it on.
-void func_mist_parking_8018307C(Task* task)
+static void func_mist_parking_8018307C(Task* task)
 {
     Task*      parent;
     s32        part;
@@ -284,7 +289,7 @@ void func_mist_parking_8018307C(Task* task)
 }
 
 /// The empty per-frame state of `D_mist_parking_8017D7E8`.
-void func_mist_parking_801830F8(Task* task)
+static void func_mist_parking_801830F8(Task* task)
 {
 }
 
@@ -362,7 +367,7 @@ extern u8* D_mist_parking_8018DF24[4];
 /// Allocates a two-line text block, parks it at `Task::work`, spawns it and
 /// steps the task on; `func_mist_parking_80183434` is set as the exit
 /// callback.
-void func_mist_parking_80183304(Task* task)
+static void func_mist_parking_80183304(Task* task)
 {
     RoomTextBlock* block;
     TextLineNode*  node;
@@ -424,7 +429,7 @@ static void func_mist_parking_801833F8(Task* task)
 
 /// Exit callback of the text-block task: kills it and calls
 /// `Stage_SetEndingFlag`.
-void func_mist_parking_80183434(Task* arg0)
+static void func_mist_parking_80183434(Task* arg0)
 {
     taskKill(arg0);
     Stage_SetEndingFlag();

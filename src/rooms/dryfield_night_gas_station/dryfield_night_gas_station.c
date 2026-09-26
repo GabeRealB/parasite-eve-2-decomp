@@ -146,6 +146,12 @@ static void func_dryfield_night_gas_station_80182CD4(GpCoord* arg0, GpCoord* arg
 
 static void func_dryfield_night_gas_station_8017F3E0(Task* task);
 
+static void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_gas_station_80181AF8(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_gas_station_80182024(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_dryfield_night_gas_station_80182450(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_dryfield_night_gas_station_80183354(GpCoord* arg0, s16 arg1, u8* arg2);
+
 /// Draws one row of the "Play Data" statistics list: the label for row
 /// `arg0->field_8` and its value (play time, save count, battles won and
 /// escaped, the two percentages, clear count, maximum EXP and BP).
@@ -403,10 +409,10 @@ void func_dryfield_night_gas_station_8017D660(DialogPrompt* arg0, UiObject* arg1
 }
 
 /// Title of the "Play Data" panel.
-const char D_dryfield_night_gas_station_8017D610[] = "Play Data";
+static const char D_dryfield_night_gas_station_8017D610[] = "Play Data";
 
 /// Drawn in place of the percentage for a row holding every recorded use.
-const u8 D_dryfield_night_gas_station_8017D61C[] = "100.0%";
+static const u8 D_dryfield_night_gas_station_8017D61C[] = "100.0%";
 
 /// Draws one row of an item or PE usage list: the entry's name and icon, its
 /// share of all uses as a percentage with two decimals, and a gouraud bar of
@@ -2088,7 +2094,7 @@ static void func_dryfield_night_gas_station_80180E9C(Task* task)
 /// two centres. `arg1` is a signed half-extent scaled by depth; the lit
 /// vertices take `arg2` as three 4-bit channels, blended with the frame
 /// counter's low bit, and the rim is black.
-void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -2234,7 +2240,7 @@ void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// 0x2B, clut `(arg1 & 0x3F) | 0x4380` and the 40-texel texture column
 /// `arg1`. `arg2` is a signed half-extent scaled by depth; the grey level
 /// follows the frame counter's low bit.
-void func_dryfield_night_gas_station_80181AF8(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_gas_station_80181AF8(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw13Scratch* block;
     POLY_FT4*          prim;
@@ -2352,7 +2358,7 @@ static void func_dryfield_night_gas_station_80181D80(Task* task)
 /// position, when it projects. The ring runs from radius
 /// `(s16)arg1 * 64 / (otz + 1)`, which is black, to
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`, which takes the colour `rgb`.
-void func_dryfield_night_gas_station_80182024(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_dryfield_night_gas_station_80182024(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -2410,7 +2416,7 @@ void func_dryfield_night_gas_station_80182024(GpCoord* arg0, s32 arg1, s32 arg2,
 /// projects, queues eight gouraud `POLY_G4` wedges around it, lit by `rgb` at
 /// the centre and black at the rim; `arg1` is a signed half-extent scaled by
 /// depth.
-void func_dryfield_night_gas_station_80182450(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_dryfield_night_gas_station_80182450(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -2735,7 +2741,7 @@ static void func_dryfield_night_gas_station_801830CC(Task* task)
 /// projects, queues two rings of gouraud `POLY_G4` wedges: an inner one
 /// lit by `arg2` at full strength and an outer one at half, both black at the
 /// rim. `arg1` is a signed half-extent scaled by depth.
-void func_dryfield_night_gas_station_80183354(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_dryfield_night_gas_station_80183354(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

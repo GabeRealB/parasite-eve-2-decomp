@@ -36,10 +36,6 @@ STATIC_ASSERT_SIZEOF(DnmlExamineWork, 0xA);
 /// clears every entry's `hit` flag on the way in.
 extern OverlayHotspot D_dryfield_night_motel_lobby_80182820[];
 
-/// The eleven states of the room's examine task, run by
-/// `func_dryfield_night_motel_lobby_80180D58`.
-extern const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0;
-
 /// Draws the keypad's seven digit slots, or blanks them all to `0xA` while the
 /// keypad is not yet in use; see `DnmlExamineWork`.
 void func_dryfield_night_motel_lobby_801802A8(Task* task);

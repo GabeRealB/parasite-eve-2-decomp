@@ -175,7 +175,7 @@ void func_dryfield_night_factory_801802C8(Task* task)
 
 /// State handlers of the room entry task: set-up, an empty tick and
 /// `taskKill`.
-const TaskFuncTable3 D_dryfield_night_factory_8017D638 = {
+static const TaskFuncTable3 D_dryfield_night_factory_8017D638 = {
     { func_dryfield_night_factory_80180438, func_dryfield_night_factory_801809EC, taskKill },
 };
 
@@ -474,7 +474,7 @@ static void func_dryfield_night_factory_80180A4C(Task* task)
 /// `func_dryfield_night_factory_8018169C`: set-up, prompt arming, the idle
 /// hotspot scan, prompt spawning, the prompt state, the exit and the wait for
 /// the message handler's trigger.
-const TaskFuncTable7 D_dryfield_night_factory_8017D678 = {
+static const TaskFuncTable7 D_dryfield_night_factory_8017D678 = {
     {
         func_dryfield_night_factory_8018182C,
         func_dryfield_night_factory_80181938,
@@ -1059,7 +1059,7 @@ static void func_dryfield_night_factory_80181BB4(Task* task)
 /// depth. `arg2` packs the tint as four nibbles `[shift][r][g][b]`; bit 0 of
 /// the animation frame, shifted by the top nibble, is added to every channel
 /// so the disc flickers on alternate frames.
-void func_dryfield_night_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw05Scratch* block;

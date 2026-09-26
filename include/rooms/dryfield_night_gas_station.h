@@ -41,34 +41,4 @@ extern Task* D_dryfield_night_gas_station_801907A8;
 /// that the "Play Data" and usage panels open beside their lists.
 extern UiObjectDesc D_dryfield_night_gas_station_80183FAC;
 
-/// Panel titles drawn by the room's "Play Data" menu tasks.
-extern const char D_dryfield_night_gas_station_8017D610[];
-
-/// The "100.0%" string drawn for a full-share usage row.
-extern const u8 D_dryfield_night_gas_station_8017D61C[];
-
-/// Draws one semi-transparent gouraud capsule between the projections of the
-/// world-space points `pos[0]` and `pos[1]`; `size` is a signed half-extent
-/// scaled by depth and `rgb` a 4-bit-per-channel colour.
-void func_dryfield_night_gas_station_801812B4(SVECTOR* pos, s32 size, s32 rgb);
-
-/// Draws one semi-transparent textured quad centred on the projection of the
-/// world-space point `pos`; `column` picks the texture column and `size` is a
-/// signed half-extent scaled by depth.
-void func_dryfield_night_gas_station_80181AF8(SVECTOR* pos, s32 column, s32 size);
-
-/// Draws a gouraud ring of sixteen wedges around the projection of `coord`,
-/// black at the half-extent `inner` and tinted by `rgb` at `inner + width`,
-/// both scaled by depth.
-void func_dryfield_night_gas_station_80182024(GpCoord* coord, s32 inner, s32 width, u8* rgb);
-
-/// Draws a gouraud disc of eight wedges around the projection of `coord`, lit
-/// by `rgb` at the centre and fading to black; `radius` is a signed
-/// half-extent scaled by depth.
-void func_dryfield_night_gas_station_80182450(GpCoord* coord, s16 radius, u8* rgb);
-
-/// Draws a two-ring glow of gouraud wedges around the projection of `coord`,
-/// tinted by `rgb`; `radius` is a signed half-extent scaled by depth.
-void func_dryfield_night_gas_station_80183354(GpCoord* coord, s16 radius, u8* rgb);
-
 #endif // ROOMS_DRYFIELD_NIGHT_GAS_STATION_H

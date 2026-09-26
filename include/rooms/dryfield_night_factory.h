@@ -134,22 +134,11 @@ extern OverlayHotspot D_dryfield_night_factory_80186EBC[];
 extern GpGridParams D_dryfield_night_factory_80187BF0;
 extern GpGridParams D_dryfield_night_factory_80187BF8;
 
-/// State handlers of the room entry task: set-up, an empty tick and
-/// `taskKill`.
-extern const TaskFuncTable3 D_dryfield_night_factory_8017D638;
-
-/// The state handlers of the room's script task, run through
-/// `func_dryfield_night_factory_8018169C`.
-extern const TaskFuncTable7 D_dryfield_night_factory_8017D678;
-
 /// Shows (non-zero) or hides (zero) the second sprite command of view 9 of the
 /// current room, in stage 2 only.
 void func_dryfield_night_factory_80181620(s32 show);
 
 /// As `func_dryfield_night_factory_80181620`, for view 11.
 void func_dryfield_night_factory_80181B38(s32 show);
-
-/// Draws a tinted, flickering glow disc at the world-space point `pos`.
-void func_dryfield_night_factory_80181C14(SVECTOR* pos, s32 size, s32 tint);
 
 #endif // ROOMS_DRYFIELD_NIGHT_FACTORY_H

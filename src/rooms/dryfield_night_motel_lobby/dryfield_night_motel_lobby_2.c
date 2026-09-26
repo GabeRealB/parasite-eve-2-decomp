@@ -62,7 +62,7 @@ static void func_dryfield_night_motel_lobby_8018122C(Task* arg0);
 
 /// The eleven states of the room's examine task, run by
 /// `func_dryfield_night_motel_lobby_80180D58`.
-const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0 = {
+static const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0 = {
     {
         func_dryfield_night_motel_lobby_80180E98,
         func_dryfield_night_motel_lobby_80180FA4,
