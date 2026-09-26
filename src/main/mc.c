@@ -1723,71 +1723,48 @@ static void Mc_StateBlankFileName(Task* arg0, McWork* arg1)
 
 static void Mc_StateSyncOpen(Task* arg0, McWork* arg1)
 {
-    register Task*   a0 asm("s5");
-    register McWork* a1 asm("s3");
-    s32              ret;
-    s32              syncResult;
-    u32              status;
-    s32              idx;
-    UiObject*        obj;
-    McPromptPair*    entry;
-    McPromptPair*    base;
-    char*            fileName;
+    s32   syncResult;
+    u32   status;
+    char* fileName;
 
-    a0            = arg0;
-    a1            = arg1;
-    obj           = a0->spawnArg2;
-    idx           = a1->field_8;
-    ret           = Ui_LookupTable(obj, 1);
-    obj->field_2E = 0;
-    Ui_DrawTitle(obj, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[idx];
-    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
-    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+    _mcDrawPrompt(arg0, arg1->field_8);
 
-    syncResult = MemCardSync(1, (long*)&a1->field_10, (long*)&a1->field_14);
+    syncResult = MemCardSync(1, (long*)&arg1->field_10, (long*)&arg1->field_14);
     if (syncResult != -1) {
         if (syncResult == 1) {
-            if (a1->field_10 == syncResult) {
-                if (a1->field_14 != 0) {
-                    a0->state = 6;
+            if (arg1->field_10 == syncResult) {
+                if (arg1->field_14 != 0) {
+                    arg0->state = 6;
                 }
             }
-            a1->field_4 -= 1;
-            if (a1->field_4 == 0) {
+            arg1->field_4 -= 1;
+            if (arg1->field_4 == 0) {
                 fileName = Mc_FileName;
                 MemCardClose();
-                status       = MemCardOpen(a1->field_C, fileName, 1);
-                a1->field_14 = status;
+                status         = MemCardOpen(arg1->field_C, fileName, 1);
+                arg1->field_14 = status;
                 switch (status) {
                     case 0:
-                        a1->field_1C = 0;
-                        a0->state    = 0xE;
+                        arg1->field_1C = 0;
+                        arg0->state    = 0xE;
                         break;
                     case 1:
-                        a0->state = 6;
-                        break;
                     case 2:
-                        a0->state = 6;
-                        break;
-                    case 3:
-                        a0->state = 6;
-                        break;
-                    case 4:
-                        a0->state = 6;
+                        arg0->state = 6;
                         break;
                     case 5:
-                        a0->state = 0xB;
+                        arg0->state = 0xB;
                         break;
+                    case 3:
+                    case 4:
                     default:
-                        a0->state = 6;
+                        arg0->state = 6;
                         break;
                 }
             }
         }
     } else {
-        MemCardExist(a1->field_C);
+        MemCardExist(arg1->field_C);
     }
 }
 

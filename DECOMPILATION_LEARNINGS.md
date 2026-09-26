@@ -143973,3 +143973,18 @@ the file's state-machine idiom: `ret = 0; switch (*state) { case 0: ...;
 if (--*timer > 0) break; /* fallthrough */ default: ret = 1; break; }`. The
 same body written with a second `ret = 1` in its own arm turns into a
 store-flag (`slti`) and loses the callee-saved local altogether.
+
+## Identical case bodies each count a reference to the pointer they store through; fallthrough labels remove them (Mc_StateSyncOpen, 2026-09-26)
+
+A `MemCardOpen` status switch wrote `arg0->state = 6;` in five separate cases.
+`jump2` later merges the bodies into one table target, but flow counts the
+references first, so the task pointer had 10 refs over 170 (doubled) insns:
+`3*10/170 = 0.176` beat the helper's shared constant `1` (`2*4/54 = 0.148`)
+and took `$s4`, where the target has the constant in `$s4` and the task in
+`$s5`. Folding labels onto a shared body (`case 1: case 2:` and
+`case 3: case 4: default:`) drops the task to 7 refs (`2*7/158 = 0.089`).
+Keep at least five counted case nodes - a range counts twice - or the switch
+turns into a comparison tree: folding all of 1-4 with `default` leaves four
+and loses the jump table. At 8 refs (`3*8/162`) the two priorities tie
+exactly and the older pseudo still wins, so compute the ratio, do not guess.
+The two register pins the body held stood for exactly this.
