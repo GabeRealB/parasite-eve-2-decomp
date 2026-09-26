@@ -1620,24 +1620,22 @@ static __inline__ s32 Gp_HasStockedItemInline(s32 arg0)
 s32 func_800B9D80(s32 arg0)
 {
     PlayerStatus* cfg;
-    register s32  flags asm("v1");
-    register s32  ret asm("a3");
+    GpItemAttr*   attr;
+    s32           flags;
+    s32           ret;
     s32           stateA;
     s32           stateB;
-    s32           bit;
 
     ret    = 0;
-    flags  = ret;
-    stateA = ret;
-    stateB = ret;
+    flags  = 0;
+    stateA = 0;
+    stateB = 0;
     cfg    = &Player_Status;
     if (cfg->armor != 0) {
-        flags  = cfg->armor;
-        flags  = flags * (s32)sizeof(GpItemAttr);
-        flags += (s32)&Gp_RelatedQty0[0x1E];
-        flags  = *(s32*)flags;
+        attr  = &Gp_ItemAttrs[cfg->armor + 0x5F];
+        flags = attr->flags;
     }
-    if ((Gp_StateC08.field_14 > 0) || ((s8)Gp_StateC08.field_17 != 0)) {
+    if ((Gp_StateC08.field_14 > 0) || (Gp_StateC08.field_17 != 0)) {
         stateA = 1;
     }
     if ((Gp_StateC08.field_14 > 0) || (Gp_StateC08.field_16 != 0)) {
@@ -1651,18 +1649,18 @@ s32 func_800B9D80(s32 arg0)
             }
             break;
         case 0x102:
-            if (stateA || (bit = flags & 0x1000)) {
+            if (stateA || (flags & 0x1000)) {
                 ret = 1;
             }
             break;
         case 0x104:
-            if (stateA || (bit = flags & 2)) {
+            if (stateA || (flags & 2)) {
                 ret = 1;
             }
             break;
         case 0x108:
             ret = Gp_HasStockedItemInline(0xB);
-            if (stateB || (bit = flags & 0x20)) {
+            if (stateB || (flags & 0x20)) {
                 ret = 1;
             }
             break;
@@ -1670,7 +1668,7 @@ s32 func_800B9D80(s32 arg0)
             break;
         case 0x120:
             ret = Gp_HasStockedItemInline(0xE);
-            if (stateB || (bit = flags & 0x200)) {
+            if (stateB || (flags & 0x200)) {
                 ret = 1;
             }
             break;
@@ -1680,187 +1678,54 @@ s32 func_800B9D80(s32 arg0)
             }
             break;
         case 0x200:
-            if ((bit = flags & 0x10) != 0) {
+            if (flags & 0x10) {
                 ret = 1;
             }
             break;
         case 0x400:
-            if ((bit = flags & 1) != 0) {
+            if (flags & 1) {
                 ret = 1;
             }
             break;
         case 0x800:
-            if ((bit = flags & 4) != 0) {
+            if (flags & 4) {
                 ret = 1;
             }
             break;
         case 0x1000:
-            if ((bit = flags & 0x100) != 0) {
+            if (flags & 0x100) {
                 ret = 1;
             }
             break;
         case 0x2000:
-            if ((bit = flags & 8) != 0) {
+            if (flags & 8) {
                 ret = 1;
             }
             break;
         case 0x4000:
-            if ((bit = flags & 0x40) != 0) {
+            if (flags & 0x40) {
                 ret = 1;
             }
             break;
         case 0x8000:
-            if ((bit = flags & 0x80) != 0) {
+            if (flags & 0x80) {
                 ret = 1;
             }
             break;
         case 0x10000:
-            stateA = 0;
-            {
-                McItemScan* scan;
-                McItemRec*  table;
-                s32         i;
-                s32         count;
-
-                scan = &Mc_SaveData[0].carriedItems;
-                ret  = 0x36;
-                switch (scan->table) {
-                    case 2:
-                        table = Gp_ItemTable2;
-                        break;
-                    case 1:
-                        table = Gp_ItemTable1;
-                        break;
-                    default:
-                        table = Mc_SaveData[0].itemRows;
-                        break;
-                }
-                i      = 0;
-                table += scan->firstRow;
-                count  = scan->rowCount;
-                for (; i < count; i++) {
-                    if (table->attachSlot > 0) {
-                        if (table->itemId == ret) {
-                            stateA = 1;
-                            break;
-                        }
-                    }
-                    table++;
-                }
-            }
-            ret = stateA;
+            ret = Gp_HasStockedItemInline(0x36);
             break;
         case 0x20000:
-            stateA = 0;
-            {
-                McItemScan* scan;
-                McItemRec*  table;
-                s32         i;
-                s32         count;
-
-                scan = &Mc_SaveData[0].carriedItems;
-                ret  = 0x39;
-                switch (scan->table) {
-                    case 2:
-                        table = Gp_ItemTable2;
-                        break;
-                    case 1:
-                        table = Gp_ItemTable1;
-                        break;
-                    default:
-                        table = Mc_SaveData[0].itemRows;
-                        break;
-                }
-                i      = 0;
-                table += scan->firstRow;
-                count  = scan->rowCount;
-                for (; i < count; i++) {
-                    if (table->attachSlot > 0) {
-                        if (table->itemId == ret) {
-                            stateA = 1;
-                            break;
-                        }
-                    }
-                    table++;
-                }
-            }
-            ret = stateA;
+            ret = Gp_HasStockedItemInline(0x39);
             break;
         case 0x40000:
-            stateA = 0;
-            {
-                McItemScan* scan;
-                McItemRec*  table;
-                s32         i;
-                s32         count;
-
-                scan = &Mc_SaveData[0].carriedItems;
-                ret  = 0x38;
-                switch (scan->table) {
-                    case 2:
-                        table = Gp_ItemTable2;
-                        break;
-                    case 1:
-                        table = Gp_ItemTable1;
-                        break;
-                    default:
-                        table = Mc_SaveData[0].itemRows;
-                        break;
-                }
-                i      = 0;
-                table += scan->firstRow;
-                count  = scan->rowCount;
-                for (; i < count; i++) {
-                    if (table->attachSlot > 0) {
-                        if (table->itemId == ret) {
-                            stateA = 1;
-                            break;
-                        }
-                    }
-                    table++;
-                }
-            }
-            ret = stateA;
+            ret = Gp_HasStockedItemInline(0x38);
             break;
         case 0x80000:
-            stateA = 0;
-            {
-                McItemScan* scan;
-                McItemRec*  table;
-                s32         i;
-                s32         count;
-
-                scan = &Mc_SaveData[0].carriedItems;
-                ret  = 0x37;
-                switch (scan->table) {
-                    case 2:
-                        table = Gp_ItemTable2;
-                        break;
-                    case 1:
-                        table = Gp_ItemTable1;
-                        break;
-                    default:
-                        table = Mc_SaveData[0].itemRows;
-                        break;
-                }
-                i      = 0;
-                bit    = scan->firstRow;
-                table += bit;
-                count  = scan->rowCount;
-                for (; i < count; i++) {
-                    if (table->attachSlot > 0) {
-                        if (table->itemId == ret) {
-                            stateA = 1;
-                            break;
-                        }
-                    }
-                    table++;
-                }
-            }
-            ret = stateA;
+            ret = Gp_HasStockedItemInline(0x37);
             break;
         case 0x100000:
-            if (Gp_HasStockedItemInline(0x40) || (bit = flags & 1)) {
+            if (Gp_HasStockedItemInline(0x40) || (flags & 1)) {
                 ret = 1;
             }
             break;

@@ -105,6 +105,8 @@ STATIC_ASSERT_SIZEOF(GpEnemyPlace, 0x10);
 
 /// 8-byte item attribute row. `Gp_ItemAttrs` is indexed by raw item id
 /// (`Gp_GetModLevel`); ids 0x60–0x7F land in the `Gp_ModStatAttrs` slice.
+/// `flags` is a bit set of abilities granted while an armor row's item is
+/// equipped.
 /// field_4 is the unsigned bonus added to `Player_Status.hpMax` by
 /// `Gp_RecalcMaxHp` when `Player_Status.armor` (item id − 0x5F) is
 /// non-zero. field_5 is the unsigned base added to
@@ -112,14 +114,11 @@ STATIC_ASSERT_SIZEOF(GpEnemyPlace, 0x10);
 /// unsigned bonus added to `Player_Status.mpMax` by `Gp_RecalcMaxMp`
 /// when `field_23` is non-zero.
 typedef struct _GpItemAttr {
-    /* 0x00 */ u8 field_0;
-    /* 0x01 */ u8 field_1;
-    /* 0x02 */ u8 field_2;
-    /* 0x03 */ u8 field_3;
-    /* 0x04 */ u8 field_4;
-    /* 0x05 */ u8 field_5;
-    /* 0x06 */ u8 field_6;
-    /* 0x07 */ u8 field_7;
+    /* 0x00 */ s32 flags;
+    /* 0x04 */ u8  field_4;
+    /* 0x05 */ u8  field_5;
+    /* 0x06 */ u8  field_6;
+    /* 0x07 */ u8  field_7;
 } GpItemAttr;
 STATIC_ASSERT_SIZEOF(GpItemAttr, 0x8);
 
