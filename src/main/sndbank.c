@@ -149,7 +149,7 @@ TaskDesc D_800678F4[] = {
     { 0x0, 0xC0, taskKill },
     { 0x0, 0xC0, taskKill },
     { 0x0, 0xC0, taskKill },
-    { 0x1, 0x52, func_mm1_8011DBD8, { &D_mm1_8012D444 } },
+    { 0x1, 0x52, func_mm1_8011DBD0, { &D_mm1_8012D444 } },
     { 0x1, 0x52, func_kyle_800102_801682B4, { &D_kyle_800102_801775A8 } },
     { 0x0, 0xC0, taskKill },
     { 0x0, 0xC0, taskKill },

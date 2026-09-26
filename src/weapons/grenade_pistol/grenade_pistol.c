@@ -336,7 +336,7 @@ static const TaskFuncTable4 D_grenade_pistol_8011D1C4 = { {
     func_grenade_pistol_8011DB8C,
 } };
 
-void func_grenade_pistol_8011DBD0(Task* arg0)
+void SLOT_FUNC(8011DBD0)(Task* arg0)
 {
     TaskFuncTable4 sp;
 

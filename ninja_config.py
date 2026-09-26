@@ -517,7 +517,10 @@ def package_defines() -> dict[str, dict]:
         for name, entry in spec.get("overlays", {}).items():
             for slot in entry.get("slots") or []:
                 if slot.get("defines"):
-                    out[f"src/{family}/{slot['package']}/"] = dict(slot["defines"])
+                    defines = dict(slot["defines"])
+                    if slot.get("prefix"):
+                        defines["SLOT_PREFIX"] = slot["prefix"]
+                    out[f"src/{family}/{slot['package']}/"] = defines
     return out
 
 

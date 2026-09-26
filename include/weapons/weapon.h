@@ -51,6 +51,14 @@ typedef struct WeaponGrenadeScratch {
 } WeaponGrenadeScratch;
 STATIC_ASSERT_SIZEOF(WeaponGrenadeScratch, 0x38);
 
+/// Name of a public symbol in a source several packages are built from: the
+/// package's SLOT_PREFIX (declared in the overlay manifest) in place of a fixed
+/// package name, so each build exports its own. `SLOT_FUNC(8011DBD0)` is
+/// `func_mm1_8011DBD0` in the MM1's build.
+#define SLOT_FUNC(addr)           SLOT_FUNC_(SLOT_PREFIX, addr)
+#define SLOT_FUNC_(prefix, addr)  SLOT_FUNC__(prefix, addr)
+#define SLOT_FUNC__(prefix, addr) func_##prefix##_##addr
+
 /// Task entries the resident task descriptor tables name. A table in main or
 /// gameplay reaches each of these by name, so they are the family's interface
 /// to the resident code.
@@ -58,7 +66,7 @@ void func_tonfa_baton_8011DB98(Task* arg0);
 void func_grenade_pistol_8011DBD0(Task* arg0);
 void func_m4a1_grenade_8011DE68(Task* arg0);
 void func_hypervelocity_8011F6C0(Task* arg0);
-void func_mm1_8011DBD8(Task* arg0); // mm1's build of func_grenade_pistol_8011DBD0
+void func_mm1_8011DBD0(Task* arg0);
 
 /// Models those descriptors attach.
 extern TmdSource D_unused_85_8011D53C;
