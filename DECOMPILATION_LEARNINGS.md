@@ -141435,3 +141435,29 @@ it falls to global-alloc behind the pointers.
 **Fix.** Declare the temporaries inside each loop body (`do { s32 mid; s32 next;
 ... }`). When the lowest `$s` registers hold values that live only within one
 iteration, try giving them per-block scope before touching anything else.
+
+## A loop over a table window wants its row as a second counter (Gp_ResetInventory, 2026-09-26)
+
+**Symptom.** A loop zeroing rows `firstRow .. firstRow + rowCount` of a
+`McItemRec` table: the target computes `firstRow * 4 + table` *after* the
+zero-trip test, walks it by 4, and stores at `0/1/2($v1)`. The seed pinned the
+row pointer to `$v1` to get there.
+
+**What does not work.** Offsetting the pointer first and walking it
+(`table += first; ...; table++`) makes the pointer a biv, and the `+1`/`+2`
+field stores become combined `DEST_ADDR` givs reduced into a second register
+(see "A walked pointer's second field becomes a second induction variable").
+`&table[first + i]` is not reduced at all (`first + i` is its own giv and the
+shift of it is not recognised). `table + first + i` reduces, but loop-invariant
+motion builds the base as `table + first*4` (operands swapped) and the counter
+increment falls into the load-delay slot.
+
+**Fix.** Give the row its own counter: `for (i = 0, row = scan->firstRow; i <
+scan->rowCount; i++, row++) table[row].x = 0;`. `row` is a biv used only in a
+`DEST_REG` giv, so it is eliminated, and strength reduction emits the base as
+`(mult row 4) + table` in the preheader, in the target's order.
+
+The same function zeroes the `4 x 3` `Gp_DebugAttachLevels` block with a plain
+`for (i..4) for (j..3) levels[j + i * 3] = 0;`, matching without the pinned
+per-row copy the "A `4 x 3` clear loop" entry needed in its overlay; that
+entry's two traps are not universal.

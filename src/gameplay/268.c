@@ -2087,116 +2087,95 @@ s32 func_800B9D80(s32 arg0)
     return ret;
 }
 
-void Gp_ResetInventory(void)
+/// Empties the ammunition and attachment of weapon item `item`, the same clear
+/// `Gp_ClearEquipSlot` performs.
+static inline void _gpClearEquipSlot(s32 item)
 {
-    PlayerStatus*        cfg;
-    register s32         item asm("a1");
-    McItemSlot*          slot;
-    s32                  found;
-    s32                  i;
-    GpItemMap*           p;
-    McItemScan*          scan;
-    McItemRec*           tmp;
-    register McItemRec*  table asm("v1");
-    s32                  count;
-    s32                  start;
-    s32                  off;
-    McSaveData*          save;
-    McItemScan*          dest;
-    register McItemScan* src asm("t4");
-    PlayerStatus*        pcfg;
-    u16                  hp;
-    u16                  mp;
-    u8*                  levels;
-    s32                  col;
-    GpStateC08*          state;
-    s32                  val;
+    McItemSlot* slot;
+    s32         found;
+    s32         i;
 
-    cfg = &Player_Status;
-    val = cfg->weapon;
-    if (val != 0) {
-        asm("addiu %0, %1, 0x7F" : "=r"(item) : "r"(val));
-        if ((u32)(val - 1) < 0x20U) {
-            found = 0;
-            slot  = &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[item];
-            for (i = found, p = Gp_ItemMaps; i < 8; i++, p++) {
-                if (item == p->field_1) {
-                    found = 1;
-                    break;
-                }
-            }
-            if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
-                slot->ammoId  = 0;
-                slot->ammoQty = 0;
-            }
-            if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
-                if (slot->attachId != 0xFF) {
-                    slot->attachId = 0;
-                }
-                slot->attachQty = 0;
-            }
-        }
-        cfg->weapon = 0;
+    if ((u32)(item - 0x80) >= 0x20) {
+        return;
     }
 
-    scan = &Gp_DefaultScan;
+    found = 0;
+    slot  = &Mc_SaveData.weaponItems[item - 0x80];
+    for (i = 0; i < 8; i++) {
+        if (item == Gp_ItemMaps[i].field_1) {
+            found = 1;
+            break;
+        }
+    }
+
+    if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
+        slot->ammoId  = 0;
+        slot->ammoQty = 0;
+    }
+
+    if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
+        if (slot->attachId != 0xFF) {
+            slot->attachId = 0;
+        }
+        slot->attachQty = 0;
+    }
+}
+
+/// Zeroes every row of the table window `scan`, as `Gp_ClearScanItems` does.
+static inline void _gpClearScanItems(McItemScan* scan)
+{
+    McItemRec* table;
+    s32        i;
+    s32        row;
+
     switch (scan->table) {
         case 2:
-            tmp = Gp_ItemTable2;
+            table = Gp_ItemTable2;
             break;
         case 1:
-            tmp = Gp_ItemTable1;
+            table = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData.itemRows;
+            table = Mc_SaveData.itemRows;
             break;
     }
-    table = tmp;
-    i     = 0;
-    count = scan->rowCount;
-    start = scan->firstRow;
-    if (count != 0) {
-        off   = start << 2;
-        table = (McItemRec*)(off + (s32)table);
-        do {
-            i++;
-            table->itemId     = 0;
-            table->attachSlot = 0;
-            table->qty        = 0;
-            table++;
-        } while (i < scan->rowCount);
+    for (i = 0, row = scan->firstRow; i < scan->rowCount; i++, row++) {
+        table[row].itemId     = 0;
+        table[row].attachSlot = 0;
+        table[row].qty        = 0;
+    }
+}
+
+void Gp_ResetInventory(void)
+{
+    PlayerStatus* status;
+    s32           i;
+    s32           j;
+
+    status = &Player_Status;
+    if (status->weapon != 0) {
+        _gpClearEquipSlot(status->weapon + 0x7F);
+        status->weapon = 0;
     }
 
-    save = &Mc_SaveData;
-    dest = &save->carriedItems;
-    asm volatile("lui %0, %%hi(Gp_DefaultScan)" : "=r"(table));
-    item = 0x6C;
-    asm volatile("addiu %0, %1, %%lo(Gp_DefaultScan)" : "=r"(src) : "r"(table));
-    USE_REG(table);
-    *dest = *src;
-    Gp_AddItem(dest, item, 1);
+    _gpClearScanItems(&Gp_DefaultScan);
+    Mc_SaveData.carriedItems = Gp_DefaultScan;
+    Gp_AddItem(&Mc_SaveData.carriedItems, 0x6C, 1);
     Gp_EquipMod(0x6C);
 
-    pcfg     = &Player_Status;
-    hp       = pcfg->hpMax;
-    mp       = pcfg->mpMax;
-    pcfg->hp = hp;
-    pcfg->mp = mp;
+    Player_Status.hp = Player_Status.hpMax;
+    Player_Status.mp = Player_Status.mpMax;
     Gp_ApplyItemMap();
 
-    item   = 0;
-    levels = Gp_DebugAttachLevels;
-    i      = item;
-    for (; item < 4; item++, i += 3) {
-        for (col = 0; col < 3; col++) {
-            *(u8*)((col + i) + (s32)levels) = 0;
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 3; j++) {
+            Gp_DebugAttachLevels[j + i * 3] = 0;
         }
     }
     Gp_DebugAttachLevels[0] = 1;
 
-    state          = &Gp_StateC08;
-    state->field_5 = 0;
-    state->field_B = 0;
+    Gp_StateC08.field_5 = 0;
+    Gp_StateC08.field_B = 0;
 }
 
 void Gp_ClearInventory(void)
