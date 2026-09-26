@@ -330,42 +330,23 @@ static void func_neo_ark_woodland_path_8017ED00(Task* task)
 /// modulated by the grey `(arg2, arg2, arg2)`.
 static void func_neo_ark_woodland_path_8017F154(GpCoord* arg0, s32 arg1, s16 arg2)
 {
-    void**         scratch;
-    u8*            head;
     GpQuadScratch* block;
-    SVECTOR*       v;
     s32            i;
-    GpQuadCorner*  tbl;
-    MATRIX*        wm;
     POLY_FT4*      prim;
-    s32            prod;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    i       = 0;
-    wm      = &arg0->workm;
-    tbl     = D_80111E38;
-    head    = SCRATCH_HEAD_AT(scratch, u8) - sizeof(GpQuadScratch);
-    SOFT_TOUCH_REG(head);
-    block    = (GpQuadScratch*)head;
-    v        = block->vec;
-    *scratch = block;
-    do {
-        prod  = tbl->x * arg1;
-        v->vy = 0;
-        v->vx = prod;
-        TOUCH_REG(v);
-        v->vz = tbl->y * arg1;
-        gte_SetRotMatrix(wm);
-        gte_ldv0(v);
+    block = SCRATCH_PUSH(GpQuadScratch);
+    for (i = 0; i < 4; i++) {
+        block->vec[i].vx = D_80111E38[i].x * arg1;
+        block->vec[i].vy = 0;
+        block->vec[i].vz = D_80111E38[i].y * arg1;
+        gte_SetRotMatrix(&arg0->workm);
+        gte_ldv0(&block->vec[i]);
         gte_rtv0();
-        gte_stsv(v);
-        (u16) v->vx = (u16)v->vx + (u16)arg0->workm.t[0];
-        tbl++;
-        (u16) v->vy = (u16)v->vy + (u16)arg0->workm.t[1];
-        i++;
-        (u16) v->vz = (u16)v->vz + (u16)arg0->workm.t[2];
-        v++;
-    } while (i < 4);
+        gte_stsv(&block->vec[i]);
+        block->vec[i].vx += arg0->workm.t[0];
+        block->vec[i].vy += arg0->workm.t[1];
+        block->vec[i].vz += arg0->workm.t[2];
+    }
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -398,19 +379,18 @@ static void func_neo_ark_woodland_path_8017F154(GpCoord* arg0, s32 arg1, s16 arg
         prim->v2    = 0x2F;
         prim->u3    = 7;
         prim->v3    = 0x2F;
-        prim->x0    = (u16)block->sxy0.vx;
-        prim->y0    = (u16)block->sxy0.vy;
-        prim->x1    = (u16)block->sxy1.vx;
-        prim->y1    = (u16)block->sxy1.vy;
-        prim->x2    = (u16)block->sxy2.vx;
-        prim->y2    = (u16)block->sxy2.vy;
-        prim->x3    = (u16)block->sxy3.vx;
-        prim->y3    = (u16)block->sxy3.vy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        prim->x0    = block->sxy0.vx;
+        prim->y0    = block->sxy0.vy;
+        prim->x1    = block->sxy1.vx;
+        prim->y1    = block->sxy1.vy;
+        prim->x2    = block->sxy2.vx;
+        prim->y2    = block->sxy2.vy;
+        prim->x3    = block->sxy3.vx;
+        prim->y3    = block->sxy3.vy;
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_POP(GpQuadScratch);
 }
 
 /// `Gp_State1C` effect task drawing a growing, fading quad through
