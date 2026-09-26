@@ -2163,8 +2163,8 @@ void Gp_InitModeEquip(void)
 }
 
 /// Writes the low two bits of each record's `field_6` into the 2-bit slot
-/// `field_0` of `dest`, for every record list in `table`, as
-/// `Gp_ApplyBit2List` does.
+/// `field_0` of `dest`, for every record list in `table`. Shared by
+/// `Gp_ApplyBit2List` and `Gp_ApplyBit2Bank`.
 static inline void _gpApplyBit2List(GpBit2List* table, u32* dest)
 {
     GpBit2Rec* rec;
@@ -2829,59 +2829,9 @@ void Gp_SetItemSeenBit(s32 arg0, s32 arg1)
     p->itemSeenBits[word] |= bit;
 }
 
-void Gp_ApplyBit2List(GpBit2List* arg0, u32* dest)
+void Gp_ApplyBit2List(GpBit2List* table, u32* dest)
 {
-    GpBit2List*  table;
-    GpBit2Rec*   rec;
-    register u32 id asm("a0");
-    u32          word;
-    u32          val;
-    register s32 tmp asm("v0");
-    s32          three;
-    register u16 term asm("t3");
-    u16          inner;
-
-    table = arg0;
-    if (table == NULL) {
-        return;
-    }
-    rec = table->field_0;
-    if (rec == (GpBit2Rec*)-1) {
-        return;
-    }
-    term  = 0xFFFF;
-    three = 3;
-    do {
-        if (rec != NULL) {
-            id  = rec->field_0;
-            tmp = id & 0xF;
-            if (id != term) {
-                inner = 0xFFFF;
-                do {
-                    tmp       = tmp * 2;
-                    tmp       = three << tmp;
-                    id        = (u32)(dest + (id >> 4));
-                    word      = *(u32*)id;
-                    word     &= ~tmp;
-                    *(u32*)id = word;
-                    val       = rec->field_6;
-                    tmp       = rec->field_0;
-                    rec++;
-                    val      &= 3;
-                    tmp      &= 0xF;
-                    tmp      *= 2;
-                    tmp       = val << tmp;
-                    word     |= tmp;
-                    *(u32*)id = word;
-                    id        = rec->field_0;
-                    tmp       = id & 0xF;
-                } while (id != inner);
-            }
-        }
-        table++;
-        rec = table->field_0;
-        tmp = -1;
-    } while (rec != (GpBit2Rec*)tmp);
+    _gpApplyBit2List(table, dest);
 }
 
 void Gp_SetBit2Flag(s32 arg0, u8 arg1, s32 arg2)
