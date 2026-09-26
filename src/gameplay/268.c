@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 #include <psyq/memory.h>
 
+#include "debug/debug.h"
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"

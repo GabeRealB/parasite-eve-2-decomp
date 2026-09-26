@@ -38,7 +38,10 @@
 #   { unit = "...", rodata = "...", text = "...", data = "..." }
 #       a translation unit, giving the offset it begins at in each section it
 #       owns. Rodata and data reached from a unit are keys on it, because its
-#       source includes them; there is no separate rodata object.
+#       source includes them; there is no separate rodata object. `tail = true`
+#       on the last unit says its data runs to the image's last byte, where a
+#       package ends part-way through a word; without it the generator covers
+#       that partial word with a segment of its own.
 #
 #   { kind = "data", at = "..." }    a data run nothing has claimed
 #   { kind = "model", at = "..." }   a model's arrays and display list
@@ -1068,7 +1071,7 @@ label = "63-entry Shift-JIS enemy name table"
 # table, and the table's own pointer list points at it. The value being unique
 # among the packages is a coincidence - no other package uses 0.
 objects = [
-  { kind = "data", at = "0x0" },
+  { unit = "nmc_names/nmc_names", data = "0x0", tail = true },
 ]
 
 

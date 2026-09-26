@@ -66,10 +66,13 @@ def trailing_segment(name: str, data: bytes) -> list[str]:
     which is what `title.yaml` spells out by hand for its own 0x14AA size.
 
     Which segment depends on what those bytes are. `pad` emits zeros, so it is
-    only correct when the tail *is* zeros (tonfa_baton). Two packages end on
-    real content - map_dryfield on b' &' and nmc_names on the last bytes of its
-    ASCII ramp - and those need `databin`, which writes the bytes out and
-    .incbin's them back rather than inventing them.
+    only correct when the tail *is* zeros. A tail with content needs `databin`,
+    which writes the bytes out and .incbin's them back rather than inventing
+    them.
+
+    A unit whose C defines the image through its last byte is marked
+    `tail = true` in the manifest, and then no segment is added: the partial
+    word is the end of its last object, which the compiler emits itself.
     """
     tail = data[len(data) & ~3 :]
     if not tail:
@@ -251,7 +254,11 @@ def object_subsegments(
                 else:
                     lines.append((at, f"      - [0x{at:X}, {sect}, {path}]"))
     out = [line for _, line in sorted(lines, key=lambda t: t[0])]
-    out.extend(trailing_segment(name, data))
+    tails = [i for i, obj in enumerate(objects) if obj.get("tail", False)]
+    if tails and (tails != [len(objects) - 1] or "data" not in objects[-1]):
+        raise SystemExit(f"{name}: only the last object, a unit with data, can be `tail = true`")
+    if not tails:
+        out.extend(trailing_segment(name, data))
     return "\n".join(out)
 
 

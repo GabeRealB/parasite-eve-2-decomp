@@ -189,9 +189,6 @@ extern u8 Gp_ItemSortKeyA0[];
 extern u16        Gp_CollectedIds[];
 extern McItemRec  Gp_ItemTable2[];
 extern McItemRec* Gp_ItemTable1;
-/// Overlay string table for item ids `>= 0x500`, indexed by `id - 0x500`
-/// (`Gp_GetItemText`).
-extern char* Gp_ItemTextHi[];
 
 s32  func_800B7420(s32 arg0);
 void Gp_RecalcMaxMp(void);
