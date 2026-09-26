@@ -143626,3 +143626,14 @@ side temps take `$v0` first and `t` gets `$v1`. Each separate statement
 matters - `t = (hi & M) << 8` computes the AND into a local temp instead.
 Likewise `x = (x >> 3) & M; x = M - x;` as two statements adds refs to `x`
 and changes its global rank relative to its neighbours.
+
+## `p = gPtr++` adds a copy that `p = gPtr; gPtr = p + 1;` does not (func_replay_bonus_80118B6C, 2026-09-26)
+
+A loop walking a global cursor (`rec = gLines; gLines = rec + 1; rec->x += base;`)
+loads the global straight into the register `rec` lives in. Written as a
+post-increment, `rec = gLines++`, GCC expands the increment into a temp and
+copies it into `rec` (`lw v0; move a0,v0; addiu v0,v0,8`), a register and an
+instruction off. The seed had rebuilt the two-statement form around a
+`SCHED_BARRIER` and a `TOUCH_REG_USE` on a hoisted table pointer; neither was
+needed once the loop was a plain `for (i = 0; i < gCount; i++)` over the
+two-statement step and the table was read back through the relocated field.

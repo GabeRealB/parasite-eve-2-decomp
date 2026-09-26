@@ -885,38 +885,24 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
 
 static s32 func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index)
 {
-    ReplayBonusStfLine*  rec;
-    ReplayBonusStfLine** slot;
-    ReplayBonusStfTable* table;
-    s32                  count;
-    s32                  i;
-    s32                  val;
+    ReplayBonusStfLine* rec;
+    s32                 i;
 
     if (strncmp(file->magic, "STF", 3) != 0) {
         return 0;
     }
 
     if (file->field_C > 0) {
-        i               = 0;
-        slot            = &D_replay_bonus_80119298;
-        file->field_C  += (s32)file;
-        file->field_8  += (s32)file;
-        file->field_10 += (s32)file;
-        file->field_14 += (s32)file;
-        SCHED_BARRIER();
-        table = (ReplayBonusStfTable*)file->field_10;
-        TOUCH_REG_USE(table, i);
-        *slot                   = (ReplayBonusStfLine*)(file->field_10 + 4);
-        count                   = table->count;
-        D_replay_bonus_801192A0 = count;
-        if (count > 0) {
-            do {
-                rec                     = D_replay_bonus_80119298;
-                i                      += 1;
-                val                     = (s32)rec->cmds;
-                D_replay_bonus_80119298 = rec + 1;
-                rec->cmds               = (ReplayBonusStfCmd*)(val + (s32)file);
-            } while (i < D_replay_bonus_801192A0);
+        file->field_C          += (s32)file;
+        file->field_8          += (s32)file;
+        file->field_10         += (s32)file;
+        file->field_14         += (s32)file;
+        D_replay_bonus_80119298 = ((ReplayBonusStfTable*)file->field_10)->lines;
+        D_replay_bonus_801192A0 = ((ReplayBonusStfTable*)file->field_10)->count;
+        for (i = 0; i < D_replay_bonus_801192A0; i++) {
+            rec                     = D_replay_bonus_80119298;
+            D_replay_bonus_80119298 = rec + 1;
+            rec->cmds               = (ReplayBonusStfCmd*)((s32)rec->cmds + (s32)file);
         }
     }
 
