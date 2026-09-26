@@ -1,5 +1,7 @@
 #include "common.h"
 
+#define FS_C
+
 #include <psyq/libapi.h>
 #include <psyq/libcd.h>
 #include <psyq/libetc.h>
@@ -26,6 +28,92 @@ static void Fs_SeekToPosCb(u8 status, u8* result);
 
 /// Unreferenced.
 static s32 D_8005EBC0 = 0;
+
+static u8   D5B498_8006ACC8;
+static s32  Fs_Stage0HedSector;
+static s32  Fs_SeekSector;
+static u16  D5B498_8006ACD4;
+static RECT Fs_ImageRect;
+/// Unreferenced.
+static u8          D_8006ACE0[8];
+static FsWorkEntry Fs_WorkEntries[0x1F];
+static u8          D5B498_8006ADE0;
+static u8          D5B498_8006ADE1;
+static u8          D_8006ADE2;
+static FsUnkADE8   D_8006ADE8;
+static u8          D5B498_8006ADF4;
+static s32         D_8006ADF8;
+/// Unreferenced.
+static u8             D_8006AE00[8];
+static u16            Fs_FileOffsetsCat0[0x30];
+static u16            Fs_FileOffsetsCat5[0x40];
+static FsCdfFileSmall Fs_FileTableCat3[0x1e];
+static u8             Fs_FileTableCat3Len;
+static FsCdfFileSmall Fs_FileTableCat4[0x46];
+static u8             Fs_FileTableCat4Len;
+static FsCdfFileSmall Fs_FileTableCat1[0x3c];
+static u8             Fs_FileTableCat1Len;
+/// Unreferenced.
+static u8             D_8006B180[8];
+static FsCdfFileSmall Fs_FileTableCat2[0x160];
+static u16            Fs_FileTableCat2Len;
+/// Unreferenced.
+static u8        D_8006B710[8];
+static FsCdfFile Fs_FileTable[0x10e];
+static u16       Fs_FileTableLen;
+/// Unreferenced.
+static u8          D_8006BF90[8];
+static u32         Fs_FileOffsetsCat90[0x8];
+static FsCdfFolder Fs_FolderTable[50];
+static u16         Fs_FolderTableLen;
+/// Unreferenced.
+static u8 D_8006C150[8];
+/// Absolute sector offsets for folder-local file ids (indexed by file id).
+/// Filled by `Fs_BuildFolderTables` from the folder file list in `Fs_CdSector`.
+static s32 D_8006C158[0x33];
+s32        Fs_ReqSector;
+u8         Fs_CdOpStatus;
+u8*        Fs_ChunkReadPtr;
+static u8  Fs_LoadPhase;
+static u8  Fs_Streaming;
+u8         Fs_ChunkMode;
+s8         D5B498_8006C233;
+s8         D5B498_8006C234;
+/// Referenced only by the table at the start of the image.
+u8           D_8006C238[0x100];
+FsFolderSlot D_8006C338[50];
+/// Per-slot image-load status bytes (indexed by `D5B498_8006ADF4`).
+static u8  D_8006C4C8[0xC];
+u8*        D_8006C4D4;
+FsSector   Fs_CdSector;
+static u8  D_8006CCD8[0x800];
+u8*        Fs_ChunkWritePtr;
+static u8  D5B498_8006D4E0[0x10];
+StreamSlot Stream_Slots[15];
+u16        D5B498_8006D748;
+/// Referenced only by the table at the start of the image.
+u8         D_8006D750[0x100];
+void*      D5B498_8006D850;
+static s32 Fs_ChunkEndSector;
+u16        D5B498_8006D858;
+u16        D5B498_8006D85A;
+/// Unreferenced.
+static s32    D_8006D85C;
+s32           D_8006D860;
+static s32    D_8006D864;
+s32           D_8006D868;
+static u8     Fs_ChunkEndFlag;
+static u_long D5B498_8006D870[0x460];
+s32           Fs_StageCdfSectors[FS_CDF_STAGE_COUNT];
+s16           D_8006EA08;
+s16           D_8006EA0A;
+s32           D_8006EA0C;
+s32           Fs_VBlank;
+static s32    Fs_CurrSector;
+u8            Fs_CdErrorCount;
+u16           D5B498_8006EA1A;
+FsCdfStream   Fs_Streams[0xa];
+u16           D5B498_8006EBB0;
 
 static void Fs_ResetBootLoadState(void)
 {

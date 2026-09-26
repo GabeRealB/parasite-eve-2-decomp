@@ -482,54 +482,30 @@ extern CdCmdQueue CdCmd_Queue;
 // =============================================================================
 
 // Load / seek control
-extern s32 Fs_Stage0HedSector;
-extern s32 Fs_SeekSector;
+#ifndef FS_C
 extern s32 Fs_ReqSector;
-extern s32 Fs_CurrSector;
 extern s32 Fs_VBlank;
 extern u8  Fs_CdOpStatus;
-extern u8  Fs_LoadPhase;
-extern u8  Fs_Streaming;
 extern u8  Fs_ChunkMode;
-extern u8  Fs_ChunkEndFlag;
 extern u8* Fs_ChunkWritePtr;
-extern s32 Fs_ChunkEndSector;
 extern u8  Fs_CdErrorCount;
+#endif
 
 // STAGE0.HED-derived tables
-extern u16            Fs_FileOffsetsCat0[0x30];
-extern u16            Fs_FileOffsetsCat5[0x40];
-extern u32            Fs_FileOffsetsCat90[0x8];
-extern FsCdfFileSmall Fs_FileTableCat1[0x3c];
-extern u8             Fs_FileTableCat1Len;
-extern FsCdfFileSmall Fs_FileTableCat2[0x160];
-extern u16            Fs_FileTableCat2Len;
-extern FsCdfFileSmall Fs_FileTableCat3[0x1e];
-extern u8             Fs_FileTableCat3Len;
-extern FsCdfFileSmall Fs_FileTableCat4[0x46];
-extern u8             Fs_FileTableCat4Len;
-extern FsCdfFile      Fs_FileTable[0x10e];
-extern u16            Fs_FileTableLen;
-extern FsCdfFolder    Fs_FolderTable[50];
-extern u16            Fs_FolderTableLen;
-extern s32            Fs_StageCdfSectors[FS_CDF_STAGE_COUNT];
-extern FsCdfStream    Fs_Streams[0xa];
-
-/// Absolute sector offsets for folder-local file ids (indexed by file id).
-/// Filled by `Fs_BuildFolderTables` from the folder file list in `Fs_CdSector`.
-extern s32 D_8006C158[0x33];
+#ifndef FS_C
+extern s32         Fs_StageCdfSectors[FS_CDF_STAGE_COUNT];
+extern FsCdfStream Fs_Streams[0xa];
+#endif
 
 // Buffers / media
-extern FsSector      Fs_CdSector;
-extern RECT          Fs_ImageRect;
+#ifndef FS_C
+extern FsSector Fs_CdSector;
+#endif
 extern SpuCommonAttr Fs_SpuAttr;
 
 // Boot load-buffer pointer (data unit `boot_loadbuf`)
 extern FsImgBuffers* Fs_ImgBuffers;
 
-// Still-unlabeled FS bss (same segment; keep address names until understood)
-/// Per-slot image-load status bytes (indexed by `D5B498_8006ADF4`).
-extern u8 D_8006C4C8[0xC];
 #ifndef BOOTLOAD_C
 extern s16          Fs_BootLoadSlot;
 extern u16          Fs_BootLoadPhase;
@@ -539,33 +515,22 @@ extern void*        Fs_BootTimPrimary;
 extern FsLoadParams Fs_LoadParams;
 extern s16          D5B498_8006ACC0;
 #endif
-extern u8           D5B498_8006ACC8;
-extern u16          D5B498_8006ACD4;
-extern FsWorkEntry  Fs_WorkEntries[0x1F];
-extern u8           D5B498_8006ADE0;
-extern u8           D5B498_8006ADE1;
-extern u8           D_8006ADE2;
-extern FsUnkADE8    D_8006ADE8;
+#ifndef FS_C
 extern s32          D_8006D868;
-extern s32          D_8006D864;
 extern s32          D_8006D860;
-extern u8           D_8006CCD8[];
-extern s32          D_8006ADF8;
-extern u8           D5B498_8006ADF4;
 extern u8*          D_8006C4D4;
 extern FsFolderSlot D_8006C338[50];
 extern u8*          Fs_ChunkReadPtr;
 extern s8           D5B498_8006C233;
 extern s8           D5B498_8006C234;
-extern u8           D5B498_8006D4E0[0x10];
 extern u16          D5B498_8006D748;
 extern void*        D5B498_8006D850;
 extern u16          D5B498_8006D858;
 extern u16          D5B498_8006D85A;
-extern u_long       D5B498_8006D870[0x460];
 extern u16          D5B498_8006EA1A;
 extern u16          D5B498_8006EBB0;
-extern s16          D5B498_8006EBF0;
+#endif
+extern s16 D5B498_8006EBF0;
 
 // Args used by Fs_OnCdError
 #define FS_ERROR_SOFT 0x0

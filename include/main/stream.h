@@ -30,7 +30,9 @@ typedef struct _StreamSlot {
 STATIC_ASSERT_SIZEOF(StreamSlot, 0x28);
 
 // Globals
+#ifndef FS_C
 extern StreamSlot Stream_Slots[15];
+#endif
 
 // --- APIs ---
 void        Mdec_ResolveStreamBuffer(u8* arg0);
