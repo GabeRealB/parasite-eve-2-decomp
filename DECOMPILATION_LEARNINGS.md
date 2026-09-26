@@ -144287,3 +144287,25 @@ worth reusing: the key local of both inlined copies lands in the same frame slot
 the caller's `key` had, so moving a stack struct into a helper need not grow the
 frame; and once the barrier is gone, try return type, parameter width and local
 width of a helper before reshaping the loop, since each moves the RTL count by 1-2.
+
+## A last bit test that stays a branch, not `sltiu`, shares its `return 1` with the guard above it (Actor00100_Fn0B264, 2026-09-27)
+
+The target ends `bnez v1,end` / `move v0,zero` (delay) / `li v0,1`, where `end`
+is also where an earlier `bgtz hp,end` / `li v0,1` goes. Every spelling with an
+early `if (hp > 0) return 1;` - `if (flags & 2) return 0; return 1;`,
+`return !(flags & 2);`, an if/else on a local - came out as `sltiu v0,v0,1`:
+jump's store-flag path rewrites the final 0/1 pair, and the seed kept the branch
+with a `SOFT_BARRIER` in the `ret = 1` arm. Inverting the guard so both `1`s are
+one statement matched with no barrier:
+
+```c
+if (enemy->hp <= 0) {
+    if (flags & 0x80) return 0;
+    if (flags & 2)    return 0;
+}
+return 1;
+```
+
+The inner `return 0`s jump to the return label and the trailing `return 1` is
+reached from the guard as well, so there is no lone `x = 0 / x = 1` diamond for
+store-flag to fold.
