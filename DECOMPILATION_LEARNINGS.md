@@ -143713,3 +143713,18 @@ body matched with `break`. The same function's `goto next` / `goto linkPrims`
 were cross-jumping: an `i++; continue;` at each skip site plus a trailing
 `i++` after an `if (visible) { draw }` all merge into the first site's block,
 and per-case `p->u0 = K; p->v0 = 0;` merge into one tail with `K` in `$v0`.
+## The reload copy into an asm input needs the `block = SCRATCH_HEAD` copy between store and asm (func_800D9A30, 2026-09-26)
+
+Same `move t0,v0; sw v0,0x18(s0); mtc2 t0,$8` shape as func_800D9794, but the
+target also stores `block->in` before the head is written back, which invites
+`block = SCRATCH_HEAD(T) - 1; ...; SCRATCH_HEAD(T) = block;`. That form scores
+one instruction short: `mtc2 v0,$8` with no copy. Reload's `find_equiv_reg`
+walks back from the asm, finds `(set (mem s0+24) v0)` with nothing setting
+`s0` in between, and hands the asm `v0` directly. Written as
+`SCRATCH_PUSH(T); block = SCRATCH_HEAD(T);`, CSE rewrites the stores to use the
+push's pseudo, and sched1 places the leftover `block = <push pseudo>` copy
+between the store and the asm. That breaks the equivalence, reload loads into
+its spill register, and post-reload CSE turns the load into the copy. sched1
+also moves the `block->in` stores ahead of the head store, because a constant
+scratch address does not alias the block, so push-first reproduces the
+target's store order too.
