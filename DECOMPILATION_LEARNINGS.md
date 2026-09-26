@@ -142024,3 +142024,24 @@ index (`i = first; ... row = i; for (i = 0; ...)`) keeps `move row,i` ahead of
 `(off + base)` operand order for an address outside a memory reference comes
 from spelling it as the memory reference (`if (table[row].itemId == 0) dest =
 &table[row];`), which CSE then shares.
+## A pinned matrix pointer across if/else arms that fill a matrix is an inline fill helper; a loop temp can inherit a call-argument preference (Gp_DebugPanTask, 2026-09-26)
+
+Four `if`/`else if` arms each wrote `m = extra->colorMtx` and then filled the
+matrix rows with constants. The target holds the pointer in `$v0` and the
+constants in `$v1`. Unpinned, `m` is one variable spanning every arm, so it is
+a global allocno. local-alloc then gives each arm's block-local constant `$v0`
+first, and `m` drops to `$v1`. The fix was a
+`static inline void _gpSetColorMtx(MATRIX* m, s16 r, s16 g, s16 b)` called in
+every arm, and in a fifth site that had never been pinned. Each call's
+parameter is block-local, so local-alloc allocates it alongside the constants
+and it lands in `$v0`.
+
+Unresolved in the same function, recorded so the next attempt starts further
+on: a `do { task = kids[i]; if (task) { extra = task->extra.tmd; ... } }` loop
+wants `task` in `$v0`, but gets `$a0`. `expand_preferences` (`global.c`) is one
+forward pass. At `extra = task->...`, `task` dies without conflicting with
+`extra`, so it takes all of `extra`'s preferences, including `$a0` from
+`func(extra, ...)` call arguments elsewhere. None of these removed it: a
+separate loop variable (it lands in `$v0`, not the target's `$s2`), a
+per-loop or per-block helper, a `for` loop, a pointer walk, an inline wrapper
+around the call, or 15 minutes of the permuter. Two `v0` pins remain.

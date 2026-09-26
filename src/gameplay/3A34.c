@@ -1526,6 +1526,15 @@ const char D_8009745C[] = {
     0x42,
 };
 
+/// Fills a light colour matrix so all three lights share one colour: every
+/// column of the red, green and blue rows gets `r`, `g` and `b`.
+static inline void _gpSetColorMtx(MATRIX* mtx, s16 r, s16 g, s16 b)
+{
+    mtx->m[0][0] = mtx->m[0][1] = mtx->m[0][2] = r;
+    mtx->m[1][0] = mtx->m[1][1] = mtx->m[1][2] = g;
+    mtx->m[2][0] = mtx->m[2][1] = mtx->m[2][2] = b;
+}
+
 void Gp_DebugPanTask(Task* arg0)
 {
     Task*          slot;
@@ -1596,35 +1605,18 @@ void Gp_DebugPanTask(Task* arg0)
             if ((gDisplayState.loopCount & 1) == 0) {
                 val >>= 1;
             }
-            mtx->m[0][0] = mtx->m[0][1] = mtx->m[0][2] = 0x200;
-            mtx->m[1][0] = mtx->m[1][1] = mtx->m[1][2] = val;
-            mtx->m[2][0] = mtx->m[2][1] = mtx->m[2][2] = 0x200;
-            D_80114F28                                 = 0;
+            _gpSetColorMtx(mtx, 0x200, val, 0x200);
+            D_80114F28 = 0;
         } else if ((gDisplayState.animFrame % 3) == 0 && cfg->hp > 0 && gGameSession->eventState == 0) {
-            {
-                register MATRIX* colorMtx asm("v0");
-                if (Gp_StateC08.field_14 > 0 || (Gp_StateC08.field_16 != 0 && (s8)Gp_StateC08.field_17 != 0)) {
-                    colorMtx          = extra->colorMtx;
-                    colorMtx->m[0][0] = colorMtx->m[0][1] = colorMtx->m[0][2] = 0x400;
-                    colorMtx->m[1][0] = colorMtx->m[1][1] = colorMtx->m[1][2] = 0x2000;
-                    colorMtx->m[2][0] = colorMtx->m[2][1] = colorMtx->m[2][2] = 0x2000;
-                } else if (Gp_StateC08.field_16 != 0) {
-                    colorMtx          = extra->colorMtx;
-                    colorMtx->m[0][0] = colorMtx->m[0][1] = colorMtx->m[0][2] = 0x400;
-                    colorMtx->m[1][0] = colorMtx->m[1][1] = colorMtx->m[1][2] = 0x400;
-                    colorMtx->m[2][0] = colorMtx->m[2][1] = colorMtx->m[2][2] = 0x2000;
-                } else if ((s8)Gp_StateC08.field_17 != 0) {
-                    colorMtx          = extra->colorMtx;
-                    colorMtx->m[0][0] = colorMtx->m[0][1] = colorMtx->m[0][2] = 0x2000;
-                    colorMtx->m[1][0] = colorMtx->m[1][1] = colorMtx->m[1][2] = 0x2000;
-                    colorMtx->m[2][0] = colorMtx->m[2][1] = colorMtx->m[2][2] = 0x400;
-                }
-                if (cfg->peStateFlags & 0x80) {
-                    colorMtx          = extra->colorMtx;
-                    colorMtx->m[0][0] = colorMtx->m[0][1] = colorMtx->m[0][2] = 0x2000;
-                    colorMtx->m[1][0] = colorMtx->m[1][1] = colorMtx->m[1][2] = 0x400;
-                    colorMtx->m[2][0] = colorMtx->m[2][1] = colorMtx->m[2][2] = 0x400;
-                }
+            if (Gp_StateC08.field_14 > 0 || (Gp_StateC08.field_16 != 0 && (s8)Gp_StateC08.field_17 != 0)) {
+                _gpSetColorMtx(extra->colorMtx, 0x400, 0x2000, 0x2000);
+            } else if (Gp_StateC08.field_16 != 0) {
+                _gpSetColorMtx(extra->colorMtx, 0x400, 0x400, 0x2000);
+            } else if ((s8)Gp_StateC08.field_17 != 0) {
+                _gpSetColorMtx(extra->colorMtx, 0x2000, 0x2000, 0x400);
+            }
+            if (cfg->peStateFlags & 0x80) {
+                _gpSetColorMtx(extra->colorMtx, 0x2000, 0x400, 0x400);
             }
         }
     }
