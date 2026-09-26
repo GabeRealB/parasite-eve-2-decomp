@@ -2618,28 +2618,22 @@ static void Actor00300_Fn04ED4(Task* arg0)
     s32              val;
 
     work = arg0->work;
-    i    = 1;
     if (work->field_66E != work->field_670) {
-        TOUCH_REG(i);
         work->field_670 = work->field_66E;
         work->field_672 = 0;
         if (work->field_69E == 0) {
             val = Actor00300_D16394[work->field_66E];
         } else {
             val = 8;
-            i   = 1;
         }
-        do {
+        for (i = 1; i < 0x13; i++) {
             func_800B4114((GpAnimCtx*)work, i, work->field_66E, 0, val);
-            i++;
-        } while (i < 0x13);
+        }
     } else {
-        TOUCH_REG(i);
-        work->field_672 += i;
-        do {
+        work->field_672++;
+        for (i = 1; i < 0x13; i++) {
             Gp_AnimTickIndex((GpAnimCtx*)work, i);
-            i++;
-        } while (i < 0x13);
+        }
     }
 }
 

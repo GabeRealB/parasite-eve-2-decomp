@@ -143384,3 +143384,31 @@ original's style, not as a hack.
 The scratch push in the same function needed no pin at all: plain
 `block = SCRATCH_PUSH(T)` gives the `addiu v0` / `move s3,v0` pair, and every
 `((T*)(head - K))->field` cast access became `block->field`.
+
+## The anim reseed/tick body's `TOUCH_REG(i)` is two plain `for (i = 1; ...)` loops (Actor00300_Fn04ED4, 2026-09-26)
+
+Actors that reseed animation slots 1..N when their animation id changes, and
+otherwise tick them, share a body whose target shows three odd things: `li s0,1`
+in the delay slot of the id-compare `beq`, a second `li s0,1` on only one arm of
+the reseed branch, and the tick branch's frame count bumped with `addu v0,v0,s0`
+instead of `addiu v0,v0,1`. Seeds reproduce that with an `i = 1` above the `if`
+plus `TOUCH_REG(i)` in both branches. None of it is in the source:
+
+```c
+if (work->animId != work->prevAnimId) {
+    ...
+    if (work->flag == 0) { val = table[work->animId]; } else { val = 8; }
+    for (i = 1; i < 0x13; i++) { func_800B4114(work, i, work->animId, 0, val); }
+} else {
+    work->frame++;
+    for (i = 1; i < 0x13; i++) { Gp_AnimTickIndex(work, i); }
+}
+```
+
+sched1 hoists the tick loop's `i = 1` above the increment and `reload_cse`
+substitutes that register for the `1`, giving the `addu`. reorg then steals the
+tick branch's `li s0,1` into the `beq` delay slot, and on the reseed side the
+`j` into the shared loop skips its `li s0,1` as redundant with the delay slot,
+leaving the load on the fall-through arm only. The same TOUCH_REG shape sits in
+several sibling actors (`actor_402200`, `actor_05500`, `actor_02600`,
+`actor_04600`).
