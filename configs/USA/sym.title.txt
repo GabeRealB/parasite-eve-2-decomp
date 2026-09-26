@@ -9,13 +9,11 @@
 // named in sym.main.txt (main BSS stubs at the same VRAM).
 
 // ---------------------------------------------------------------------------
-// Overlay package header (src/title/title_rodata.c)
+// Read-only data (src/title/title.c, after the package id)
 // ---------------------------------------------------------------------------
-Title_Header = 0x80093800; // size:0x4
-// 5-way phase table immediately after Title_Header (Title_Dispatch).
 Title_PhaseTable = 0x80093804; // size:0x14
 Title_DemoStartMsg = 0x80093818;
-Title_DemoCardRestoreMsg = 0x80093830;
+Title_DemoCardRestoreMsg = 0x80093830; // size:0x2C
 
 // Switch jtables in title.c .rodata (overlay 0x5C / 0x7C).
 jtbl_8009385C = 0x8009385C; // type:jtbl size:0x20

@@ -30,9 +30,31 @@ extern s32          Pad_MaskConfirm;
 
 void func_807246B4(void);
 
-/* Package header: title_rodata.c. This TU’s .rodata is only switch jtables. */
+static void Title_FlagAdvanceTask(Task* arg0);
+static void Title_InitTask(Task* arg0);
+static void Title_MenuTask(Task* task);
 
-void Title_InitTask(Task* arg0)
+/// The title task's states, which `Title_Dispatch` copies and indexes by
+/// `Task::state`: set-up, the flag advance, the menu in two states and the kill.
+static const TaskFuncTable5 Title_PhaseTable = {
+    .funcs = {
+        Title_InitTask,
+        Title_FlagAdvanceTask,
+        Title_MenuTask,
+        Title_MenuTask,
+        taskKill,
+    },
+};
+
+/// Debug line printed when the title screen hands over to the attract demo.
+static const char Title_DemoStartMsg[] = "##########DEMO START\n";
+
+/// Debug line printed before and after a demo restores its save data, with
+/// the stage and scene it names. The two bytes after the terminator are never
+/// read.
+static const char Title_DemoCardRestoreMsg[44] = "####DEMO_CARD_RESTORE STAGE %d, SCENE %d\n\0\x22\xE1";
+
+static void Title_InitTask(Task* arg0)
 {
     register s32  flag asm("s2");
     DisplayState* ds;
@@ -104,7 +126,7 @@ static void Title_DrawSpriteRow(s32 y, s32 v, s32 color)
     addPrim(gGpuCurrentOt, dr);
 }
 
-void Title_MenuTask(Task* task)
+static void Title_MenuTask(Task* task)
 {
     TitleWork* work = (TitleWork*)task->work;
     s32        timer;
@@ -296,7 +318,7 @@ void Title_RestoreDemoCard(void)
     printf(Title_DemoCardRestoreMsg, Mc_SaveData.at4.loc.stage, Mc_SaveData.at4.loc.area);
 }
 
-void Title_FlagAdvanceTask(Task* arg0)
+static void Title_FlagAdvanceTask(Task* arg0)
 {
     s32* p = &arg0->state;
 

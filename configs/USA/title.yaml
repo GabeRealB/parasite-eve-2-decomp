@@ -76,12 +76,8 @@ segments:
     # looked up in the empty global segment and never emitted.
     # Runtime still loads at 0x80093800 (main BSS).
     subsegments:
-      # Package header + demo strings (title_rodata.c); 0x0–0x5C
-      - [0x0, c, title_rodata]
-      # Switch jtables belong to title.c (first symbols in that object's .rodata).
-      # Without this sibling, splat assigns 0x5C–0x9C to title_rodata and objdiff
-      # compares title.c.o against a text-only expected object.
-      - [0x5C, .rodata, title]
+      - [0x0, .rodata, packageid] # the package id
+      - [0x4, .rodata, title] # the phase table, the demo strings and the jump tables
       - [0x9C, c, title]
       # Menu item strings ("New Game", "Load Game", …) + tables
       # Plain `data` (not `.data`): dotted sibling is not linked as its own object.
