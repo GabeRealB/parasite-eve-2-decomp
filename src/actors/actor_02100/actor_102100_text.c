@@ -994,19 +994,49 @@ static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0)
     SCRATCH_POP_BYTES(8);
 }
 
+/// Rewrites the far vector: a fixed 0x2710 offset rotated by the facing matrix
+/// into `field_B0`, mirrored into `field_E8`. The offset is built in an
+/// `SVECTOR` borrowed from `G_SCRATCH_HEAD` for the rotation.
+static __inline__ void Actor02100_SetVector(Task* arg0)
+{
+    Actor02100Work* work;
+    SVECTOR*        shortVec;
+
+    work         = arg0->work;
+    shortVec     = SCRATCH_PUSH(SVECTOR);
+    shortVec->vx = 0;
+    shortVec->vy = 0;
+    shortVec->vz = 0x2710;
+    gte_SetRotMatrix(&work->field_144);
+    gte_ldv0(shortVec);
+    gte_rtv0();
+    gte_stsv(&work->field_B0);
+    work->field_E8 = work->field_B0;
+    SCRATCH_POP(SVECTOR);
+}
+
+/// Stores the near vector the GTE has just rotated into `field_128[1]`,
+/// advances it by the fixed 0x12C offset and releases the input block the
+/// rotation borrowed from `G_SCRATCH_HEAD`.
+static __inline__ void _actor02100StoreNearVector(Actor02100Work* work)
+{
+    gte_stsv(&work->field_128[1]);
+    work->field_128[1].vz += 0x12C;
+    SCRATCH_POP(Actor02100Fn014E4Scratch);
+}
+
 /// Rebuilds the same two direction vectors as `Actor02100_AimAndBuildVectors`
 /// from the facing matrix the actor already holds, without re-aiming. The two
-/// arms of the frame test hold the same code: the original duplicates this step
-/// rather than sharing it, and the branch has no effect on what is written.
+/// arms of the frame test hold the same code, each rotating the near vector's
+/// input and finishing through `_actor02100StoreNearVector`; the branch has no
+/// effect on what is written. The far vector follows through
+/// `Actor02100_SetVector`.
 static __inline__ void Actor02100_BuildVectors(Task* arg0, Actor02100Work* currentWork)
 {
     Actor02100Fn014E4Scratch* scratch;
     Actor02100Fn014E4Scratch* scratch2;
     Actor02100Work*           work;
-    Actor02100Work*           nextWork;
-    SVECTOR*                  shortVec;
     u8*                       head;
-    u8*                       headTail;
 
     if (currentWork->field_17A == 0xE) {
         work                  = arg0->work;
@@ -1023,6 +1053,7 @@ static __inline__ void Actor02100_BuildVectors(Task* arg0, Actor02100Work* curre
         head -= 8;
         gte_ldv0((SVECTOR*)head);
         gte_rtv0();
+        _actor02100StoreNearVector(work);
     } else {
         work                  = arg0->work;
         work->field_128[0].vz = 0x12C;
@@ -1038,25 +1069,9 @@ static __inline__ void Actor02100_BuildVectors(Task* arg0, Actor02100Work* curre
         head -= 8;
         gte_ldv0((SVECTOR*)head);
         gte_rtv0();
+        _actor02100StoreNearVector(work);
     }
-    gte_stsv(&work->field_128[1]);
-    work->field_128[1].vz += 0x12C;
-    SCRATCH_POP_BYTES(0x18);
-    SOFT_COMPILER_BARRIER();
-
-    headTail         = SCRATCH_HEAD(u8);
-    shortVec         = (SVECTOR*)(headTail - 8);
-    nextWork         = arg0->work;
-    SCRATCH_HEAD(u8) = (u8*)shortVec;
-    shortVec->vx     = 0;
-    shortVec->vy     = 0;
-    shortVec->vz     = 0x2710;
-    gte_SetRotMatrix(&nextWork->field_144);
-    gte_ldv0(shortVec);
-    gte_rtv0();
-    gte_stsv(&nextWork->field_B0);
-    nextWork->field_E8 = nextWork->field_B0;
-    SCRATCH_POP_BYTES(8);
+    Actor02100_SetVector(arg0);
 }
 
 /// Four-state sweep with a charge-up, a strike and a recovery wait. State 0 aims
@@ -1236,27 +1251,6 @@ static __inline__ void Actor02100_OrientScratch(Task* arg0)
     scratch->transformed.vy = work->field_108.vy - scratch->delta.vy;
     scratch->transformed.vz = work->field_108.vz - scratch->delta.vz;
     Gp_OrientAlong(&scratch->transformed, &work->field_144, 0);
-}
-
-/// Rewrites the far vector: a fixed 0x2710 offset rotated by the facing matrix
-/// into `field_B0`, mirrored into `field_E8`. The offset is built in an
-/// `SVECTOR` borrowed from `G_SCRATCH_HEAD` for the rotation.
-static __inline__ void Actor02100_SetVector(Task* arg0)
-{
-    Actor02100Work* work;
-    SVECTOR*        shortVec;
-
-    work         = arg0->work;
-    shortVec     = SCRATCH_PUSH(SVECTOR);
-    shortVec->vx = 0;
-    shortVec->vy = 0;
-    shortVec->vz = 0x2710;
-    gte_SetRotMatrix(&work->field_144);
-    gte_ldv0(shortVec);
-    gte_rtv0();
-    gte_stsv(&work->field_B0);
-    work->field_E8 = work->field_B0;
-    SCRATCH_POP(SVECTOR);
 }
 
 /// Refreshes the two vectors the actor's facing matrix defines: the near one at

@@ -144360,3 +144360,27 @@ body overwrites `$a0` before reading it, so it took no parameter. Declared
 because `$a0` is dead on the fall-through, and `f`'s slot stays `nop`. When a
 shared argument copy sits before a branch, check whether every callee in the
 arms actually reads it.
+
+## Identical arms cross-jumped only from a `gte_*` macro onward: that tail was a shared inline helper (Actor02100_BuildVectors, 2026-09-27)
+
+Cross-jumping compares `asm` insns including the source file and line their
+`ASM_OPERANDS` carry, so two arms that write the same `gte_ldv0`/`gte_rtv0` on
+different lines never merge, while the same statements reached through one
+inline helper do. A target whose identical arms merge exactly from a `gte_stsv`
+on (the `j` sits right before it) had that `gte_stsv` and what follows in a
+helper both arms call:
+
+```c
+static __inline__ void _storeNear(Work* work)
+{
+    gte_stsv(&work->near);
+    work->near.vz += 0x12C;
+    SCRATCH_POP(Scratch);
+}
+/* each arm: ...; gte_ldv0(...); gte_rtv0(); _storeNear(work); */
+```
+
+The tail also moved the scratch pop *before* the join, so CSE, which restarts
+at the join label, no longer forwarded the popped head into the next
+`SCRATCH_PUSH`'s reload. The tree had faked that with a memory barrier after a
+single post-join pop.
