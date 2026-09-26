@@ -595,269 +595,256 @@ void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
     task->state           = 1;
 }
 
+/// Scratchpad block the hit and push tick works in: the push-out delta, its
+/// normal, the two points of the sight test (the first also serves as the
+/// effect offset), and the normal rotated into the grid's frame.
+typedef struct _Actor00300HitScratch {
+    GpDeltaScratch delta;
+    VECTOR         normal;
+    SVECTOR        from;
+    SVECTOR        to;
+    VECTOR         push;
+} _Actor00300HitScratch;
+
+/// Copies the world positions of two coordinates into the scratch block and
+/// runs `Actor00300_Fn04B14` on the segment between them. When it reports no
+/// hit, `field_6A0` is rearmed to 0x1C2 and `field_6A2` raised; otherwise
+/// `field_6A0` is cleared.
+#define _ACTOR00300_TEST_SIGHT_LINE(work, scratch, start, end)           \
+    do {                                                                 \
+        (scratch)->from.vx = (start)->workm.t[0];                        \
+        (scratch)->from.vy = (start)->workm.t[1];                        \
+        (scratch)->from.vz = (start)->workm.t[2];                        \
+        (scratch)->to.vx   = (end)->workm.t[0];                          \
+        (scratch)->to.vy   = (end)->workm.t[1];                          \
+        (scratch)->to.vz   = (end)->workm.t[2];                          \
+        if (Actor00300_Fn04B14(&(scratch)->from, &(scratch)->to) != 0) { \
+            (work)->field_6A0 = 0;                                       \
+        } else {                                                         \
+            (work)->field_6A0 = 0x1C2;                                   \
+            (work)->field_6A2 = 1;                                       \
+        }                                                                \
+    } while (0)
+
 void Actor00300_Fn00E54(Task* arg0)
 {
-    TmdObject*       obj;
-    s32              clamped;
-    s32              one;
-    s32              critical;
-    u32              lastId;
-    Actor100300Work* work;
-    Actor100300Work* rec;
-    GpDeltaScratch*  scratchPrev;
-    GpDeltaScratch*  scratch;
-    GpEnemy*         enemy;
-    GpCoord*         srcCoord;
-    GpCoord*         coord;
-    s16              damage;
-    s16              hpLeft;
-    s16              cooldown;
-    s32              rngX;
-    s32              rngY;
-    s32              relZ;
-    s32              relZ2;
-    s32              rngHi;
-    s32              idParam2;
-    s32              hitKind;
-    s32              toX;
-    s32              toY;
-    s32              toZ;
-    s32              relX;
-    s32              relY;
-    s32              dist;
-    s32              bestDist;
-    u32              recId;
-    u32              rng;
-    u32              rngBit;
-    u32              curId;
-    u32              tmp;
-    u32              param0;
-    u32              rngState;
+    Actor100300Work*       work;
+    GpDeltaScratch*        head;
+    _Actor00300HitScratch* scratch;
+    GpEnemy*               enemy;
+    GpCoord*               self;
+    GpCoord*               other;
+    s32                    maxPush;
+    s32                    critical;
+    u32                    lastId;
+    s32                    i;
+    s32                    dz;
+    s32                    val;
+    s32                    x;
+    s32                    y;
+    s32                    z;
+    s32                    push;
+    s32                    clamped;
+    s16                    cooldown;
+    s16                    rng;
+    s32                    bit;
+    u32                    random;
+    s32                    tilt;
+    s32                    byte1;
 
-    bestDist    = 0;
-    critical    = 0;
-    lastId      = 0;
-    work        = arg0->work;
-    tmp         = (u32)SCRATCH_HEAD_ADDR;
-    scratchPrev = SCRATCH_HEAD_AT(tmp, GpDeltaScratch);
-    srcCoord    = (GpCoord*)work->rec558;
-    clamped     = (s32)(scratchPrev - 4);
-    SOFT_TOUCH_REG_USE(clamped, srcCoord);
-    scratch                              = (GpDeltaScratch*)clamped;
-    obj                                  = arg0->extra.tmd;
-    SCRATCH_HEAD_AT(tmp, GpDeltaScratch) = scratch;
-    enemy                                = arg0->spawnArg2;
-    coord                                = obj->coords;
-    hitKind                              = func_800E0C10((GpRec18*)srcCoord, scratch, 4, NULL);
-    switch (hitKind) {
+    maxPush  = 0;
+    critical = 0;
+    lastId   = 0;
+    work     = arg0->work;
+    head     = SCRATCH_HEAD(GpDeltaScratch);
+    self     = arg0->extra.tmd->coords;
+    SCRATCH_PUSH(_Actor00300HitScratch);
+    scratch = SCRATCH_HEAD(_Actor00300HitScratch);
+    enemy   = arg0->spawnArg2;
+
+    switch (func_800E0C10(work->rec558, &scratch->delta, 4, NULL)) {
+        case 0:
+            break;
         case 1:
-            coord->coord.t[0] += scratchPrev[-4].vx.h.hi;
-            coord->coord.t[1] += scratch->vy.h.hi;
-            coord->coord.t[2] += scratch->vz.h.hi;
+            self->coord.t[0] += head[-4].vx.h.hi;
+            self->coord.t[1] += scratch->delta.vy.h.hi;
+            self->coord.t[2] += scratch->delta.vz.h.hi;
             break;
         case 2:
-            coord->coord.t[0] = work->field_5F8;
-            coord->coord.t[1] = work->field_5FC;
-            coord->coord.t[2] = work->field_600;
-            break;
-        case 0:
+            self->coord.t[0] = work->field_5F8;
+            self->coord.t[1] = work->field_5FC;
+            self->coord.t[2] = work->field_600;
             break;
     }
     Gp_ClearRec18Occupied(work->rec558);
+
     if (work->obj4D0.flags & 0x4000) {
-        hitKind = func_800E0C10(work->rec4F0, scratch, 3, NULL);
-        switch (hitKind) {
+        switch (func_800E0C10(work->rec4F0, &scratch->delta, 3, NULL)) {
+            case 0:
+                break;
             case 1:
-                coord->coord.t[0] += scratch->vx.h.hi;
-                coord->coord.t[2] += scratch->vz.h.hi;
+                self->coord.t[0] += scratch->delta.vx.h.hi;
+                self->coord.t[2] += scratch->delta.vz.h.hi;
                 break;
             case 2:
-                coord->coord.t[0] = work->field_5F8;
-                coord->coord.t[2] = work->field_600;
-                break;
-            case 0:
+                self->coord.t[0] = work->field_5F8;
+                self->coord.t[2] = work->field_600;
                 break;
         }
     }
+
     if (work->field_66C != 0) {
-        cooldown        = (u16)work->field_66C - 1;
-        work->field_66C = cooldown;
-        if ((cooldown << 16) <= 0 && enemy->hp > 0) {
+        if (--work->field_66C <= 0 && enemy->hp > 0) {
             work->field_66C = 0;
         }
     }
-    one = 1;
-    /* The contact walk steps a work pointer one table record at a time and
-       reads the record through it, keeping the record's offset in the
-       displacement as the ROM does. */
-    rec = work;
-    do {
-        SOFT_TOUCH_REG_USE(one, scratch);
-        recId = rec->rec4F0[0].key;
-        tmp   = recId >> 0x10;
-        switch (tmp) {
+
+    for (i = 0; i < 3; i++) {
+        switch ((u32)work->rec4F0[i].key >> 16) {
             case 0:
             case 1:
                 break;
             case 2:
-                if (work->field_66C == 0) {
-                    param0 = Gp_GetIdParam0((s32)recId) & 0xFFFF;
-                    switch (param0) {
-                        case 1:
-                            if (work->field_694 == 0) {
-                                work->field_694 = one;
-                            }
-                            break;
-                        case 2:
-                            Gp_SetObjFlag2(enemy, (s32)rec->rec4F0[0].key, 0);
-                            break;
-                        case 3:
-                            Gp_SetObjFlag4(enemy, (s32)rec->rec4F0[0].key, 0);
-                            break;
-                        case 4:
-                        case 6:
-                            work->field_682 = one;
-                        case 0:
-                        case 5:
-                        case 8:
-                        case 9:
-                        default:
-                            break;
-                        case 7:
-                            critical = 1;
-                            break;
-                    }
-                    srcCoord        = Gp_ActorSlots[(u8)rec->rec4F0[0].key >> 7]->extra.tmd->coords;
-                    scratch->vx.w   = (s32)(srcCoord->coord.t[0] - coord->coord.t[0]);
-                    scratch->vy.w   = srcCoord->coord.t[1] - coord->coord.t[1];
-                    relZ            = srcCoord->coord.t[2] - coord->coord.t[2];
-                    scratch->vz.w   = relZ;
-                    dist            = (scratch->vx.w * coord->coord.m[0][2]) + (scratch->vy.w * coord->coord.m[1][2]) + (relZ * coord->coord.m[2][2]);
-                    work->field_692 = (s16)((u32)~dist >> 31);
-                    relX            = scratch->vx.w;
-                    relY            = scratch->vy.w;
-                    relZ2           = scratch->vz.w;
-                    damage          = Gp_ComputeDamage(rec->rec4F0[0].key, SquareRoot0((relX * relX) + (relY * relY) + (relZ2 * relZ2)), 0, 0);
-                    work->field_690 = damage;
-                    if (critical != 0) {
-                        work->field_690 = (s16)((s32)(damage << 0x10) >> 0x11);
-                    } else if (Gp_RollEnemyChance(enemy, rec->rec4F0[0].key, 0) != 0) {
-                        work->field_690 *= 4;
-                        Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords + 3, 0, NULL);
-                    }
-                    func_800E2C78(enemy, (s32)rec->rec4F0[0].key, (s32)work->field_690, 0);
-                    func_800DA6E8(&enemy->node, (s32)work->field_690, 0);
-                    hpLeft    = (u16)enemy->hp - (u16)work->field_690;
-                    enemy->hp = hpLeft;
-                    if ((hpLeft << 0x10) <= 0) {
-                        if (work->field_682 == 0) {
-                            work->field_684 = 5;
-                            if ((u32)((u16)work->field_66E - 0xB) < 2U) {
-                                work->field_686 = 2;
-                            } else {
-                                goto block_48;
-                            }
+                if (work->field_66C != 0) {
+                    break;
+                }
+                switch (Gp_GetIdParam0(work->rec4F0[i].key) & 0xFFFF) {
+                    case 1:
+                        if (work->field_694 == 0) {
+                            work->field_694 = 1;
+                        }
+                        break;
+                    case 2:
+                        Gp_SetObjFlag2(enemy, work->rec4F0[i].key, 0);
+                        break;
+                    case 3:
+                        Gp_SetObjFlag4(enemy, work->rec4F0[i].key, 0);
+                        break;
+                    case 4:
+                        work->field_682 = 1;
+                        break;
+                    case 6:
+                        work->field_682 = 1;
+                        break;
+                    case 7:
+                        critical = 1;
+                        break;
+                    case 0:
+                    case 5:
+                    case 8:
+                    case 9:
+                        break;
+                }
+                other               = Gp_ActorSlots[(u8)work->rec4F0[i].key >> 7]->extra.tmd->coords;
+                scratch->delta.vx.w = other->coord.t[0] - self->coord.t[0];
+                scratch->delta.vy.w = other->coord.t[1] - self->coord.t[1];
+                dz                  = other->coord.t[2] - self->coord.t[2];
+                scratch->delta.vz.w = dz;
+                val                 = (scratch->delta.vx.w * self->coord.m[0][2]) + (scratch->delta.vy.w * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
+                work->field_692     = val >= 0;
+                work->field_690     = Gp_ComputeDamage(work->rec4F0[i].key,
+                                                       SquareRoot0((scratch->delta.vx.w * scratch->delta.vx.w) + (scratch->delta.vy.w * scratch->delta.vy.w) + (scratch->delta.vz.w * scratch->delta.vz.w)),
+                                                       0, 0);
+                if (critical != 0) {
+                    work->field_690 >>= 1;
+                } else if (Gp_RollEnemyChance(enemy, work->rec4F0[i].key, 0) != 0) {
+                    work->field_690 *= 4;
+                    Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
+                }
+                func_800E2C78(enemy, work->rec4F0[i].key, work->field_690, 0);
+                func_800DA6E8(&enemy->node, work->field_690, 0);
+                enemy->hp -= work->field_690;
+                if (enemy->hp <= 0) {
+                    if (work->field_682 == 0) {
+                        work->field_684 = 5;
+                        if ((u16)(work->field_66E - 0xB) < 2) {
+                            work->field_686 = 2;
                         } else {
-                            work->field_684 = 8;
                             work->field_686 = 0;
-                            arg0->state     = 2;
                         }
                     } else {
-                        work->field_682 = 0;
-                        if (((work->field_690 >= 0x50) || (work->field_694 != 0)) && (work->field_684 != 5)) {
-                            work->field_684 = 5;
-                        block_48:
-                            work->field_686 = 0;
-                        } else {
-                            rngState = (Gp_LcgState * 5) + 0x71357911;
-                            rng      = rngState >> 0x10;
-                            rngX     = (rng & 0x7F) + 0x40;
-                            TOUCH_MEM(Gp_LcgState);
-                            rngBit = rng & 1;
-                            SOFT_BARRIER();
-                            Gp_LcgState = (s32)rngState;
-                            if (!rngBit) {
-                                rngX = -rngX;
-                            }
-                            work->field_65C.vx = rngX;
-                            rngHi              = (s32)(rng << 0x10) >> 0x18;
-                            rngY               = (rngHi & 0x7F) + 0x40;
-                            if (!(rngHi & 1)) {
-                                rngY = -rngY;
-                            }
-                            work->field_65C.vy = rngY;
-                            work->field_664    = one;
+                        work->field_684 = 8;
+                        work->field_686 = 0;
+                        arg0->state     = 2;
+                    }
+                } else {
+                    work->field_682 = 0;
+                    if ((work->field_690 >= 0x50 || work->field_694 != 0) && work->field_684 != 5) {
+                        work->field_684 = 5;
+                        work->field_686 = 0;
+                    } else {
+                        random = Gp_LcgState * 5 + 0x71357911;
+                        rng    = random >> 16;
+                        tilt   = (rng & 0x7F) + 0x40;
+                        TOUCH_MEM(Gp_LcgState);
+                        bit         = rng & 1;
+                        Gp_LcgState = random;
+                        if (!bit) {
+                            tilt = -tilt;
                         }
+                        work->field_65C.vx = tilt;
+                        byte1              = rng >> 8;
+                        val                = (byte1 & 0x7F) + 0x40;
+                        if (!(byte1 & 1)) {
+                            val = -val;
+                        }
+                        work->field_65C.vy = val;
+                        work->field_664    = 1;
                     }
-                    curId = rec->rec4F0[0].key;
-                    if (lastId != curId) {
-                        lastId = curId;
-                        SCHED_BARRIER();
-                        func_800FDB18(Gp_GetIdParam1((s32)curId) & 0xFFFF, arg0->extra.tmd->coords + 3, NULL, &work->effArg5F0);
-                    }
-                    idParam2 = Gp_GetIdParam2((s32)rec->rec4F0[0].key);
-                    if ((idParam2 << 0x10) > 0) {
-                        work->field_66C = (s16)idParam2;
-                    }
+                }
+                if (lastId != work->rec4F0[i].key) {
+                    lastId = work->rec4F0[i].key;
+                    func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, &arg0->extra.tmd->coords[3], NULL, &work->effArg5F0);
+                }
+                cooldown = Gp_GetIdParam2(work->rec4F0[i].key);
+                if (cooldown > 0) {
+                    work->field_66C = cooldown;
                 }
                 break;
             case 3:
-                srcCoord      = arg0->extra.tmd->coords + 3;
-                toX           = srcCoord->workm.t[0] - rec->rec4F0[0].point.vx;
-                scratch->vx.w = toX;
-                toY           = srcCoord->workm.t[1] - rec->rec4F0[0].point.vy;
-                scratch->vy.w = toY;
-                toZ           = srcCoord->workm.t[2] - rec->rec4F0[0].point.vz;
-                scratch->vz.w = toZ;
-                dist          = rec->rec4F0[0].depth - SquareRoot0((toX * toX) + (toY * toY) + (toZ * toZ));
-                clamped       = dist;
-                if (dist <= 0)
+                other               = &arg0->extra.tmd->coords[3];
+                x                   = other->workm.t[0] - work->rec4F0[i].point.vx;
+                scratch->delta.vx.w = x;
+                y                   = other->workm.t[1] - work->rec4F0[i].point.vy;
+                scratch->delta.vy.w = y;
+                z                   = other->workm.t[2] - work->rec4F0[i].point.vz;
+                scratch->delta.vz.w = z;
+                push                = work->rec4F0[i].depth - SquareRoot0((x * x) + (y * y) + (z * z));
+                clamped             = push;
+                if (push <= 0) {
                     clamped = 0;
-                dist        = clamped;
-                scratchPrev = scratch + 1;
-                if (bestDist < dist) {
-                    bestDist = dist;
-                    SOFT_TOUCH_REG2(scratchPrev, scratch);
-                    VectorNormal((VECTOR*)scratch, (VECTOR*)scratchPrev);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, (VECTOR*)scratchPrev, (VECTOR*)(scratch + 3));
+                }
+                push = clamped;
+                if (maxPush < push) {
+                    maxPush = push;
+                    VectorNormal((VECTOR*)&scratch->delta, &scratch->normal);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &scratch->normal, &scratch->push);
                 }
                 break;
         }
-        rec = (Actor100300Work*)((u8*)rec + 0x18);
-        SOFT_TOUCH_REG3(rec, bestDist, scratch);
-    } while ((s32)rec < (s32)&work->obj38.pos);
-    if (bestDist > 0) {
-        coord->coord.t[0] += (s32)(bestDist * scratch[3].vx.w) >> 0xC;
-        coord->coord.t[2] += (s32)(bestDist * scratch[3].vz.w) >> 0xC;
+    }
+
+    if (maxPush > 0) {
+        self->coord.t[0] += (maxPush * scratch->push.vx) >> 12;
+        self->coord.t[2] += (maxPush * scratch->push.vz) >> 12;
     }
     Gp_ClearRec18Occupied(work->rec4F0);
     if (work->rec5D8.flags & 1) {
         work->obj5B8.flags &= 0x7FFF;
         Gp_ClearRec18Occupied(&work->rec5D8);
         Gp_SpendMp(0x14);
-        work->field_666                += 0x14;
-        ((SVECTOR*)(scratch + 2))[0].vx = -0x1F4U;
-        ((SVECTOR*)(scratch + 2))[0].vy = 0x1F4U;
-        ((SVECTOR*)(scratch + 2))[0].vz = 0U;
-        Gp_SpawnEff(D_80115744, work->field_43C->extra.tmd->coords, 0x20001, (SVECTOR*)(scratch + 2));
+        work->field_666 += 0x14;
+        scratch->from.vx = -0x1F4;
+        scratch->from.vy = 0x1F4;
+        scratch->from.vz = 0;
+        Gp_SpawnEff(D_80115744, work->field_43C->extra.tmd->coords, 0x20001, &scratch->from);
     }
     work->field_6A2 = 0;
     if ((work->rec4A0[1].key & 0xFFFF0000) == 0x10000) {
-        srcCoord                        = gameGetPtrSlot(3)->extra.tmd->coords + 3;
-        ((SVECTOR*)(scratch + 2))[0].vx = (u16)srcCoord->workm.t[0];
-        ((SVECTOR*)(scratch + 2))[0].vy = (u16)srcCoord->workm.t[1];
-        ((SVECTOR*)(scratch + 2))[0].vz = (u16)srcCoord->workm.t[2];
-        ((SVECTOR*)(scratch + 2))[1].vx = (u16)coord->workm.t[0];
-        ((SVECTOR*)(scratch + 2))[1].vy = (u16)coord->workm.t[1];
-        ((SVECTOR*)(scratch + 2))[1].vz = (u16)coord->workm.t[2];
-        if (Actor00300_Fn04B14(&((SVECTOR*)(scratch + 2))[0], &((SVECTOR*)(scratch + 2))[1]) == 0) {
-            work->field_6A0 = 0x1C2;
-            work->field_6A2 = 1;
-        } else {
-            work->field_6A0 = 0;
-        }
+        other = &gameGetPtrSlot(3)->extra.tmd->coords[3];
+        _ACTOR00300_TEST_SIGHT_LINE(work, scratch, other, self);
     } else if (work->field_6A0 > 0) {
-        work->field_6A0 = (u16)work->field_6A0 - 1;
+        work->field_6A0--;
     }
     Gp_ClearRec18Occupied(&work->rec4A0[1]);
     SCRATCH_POP_BYTES(0x40);
