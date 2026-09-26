@@ -15,10 +15,10 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 #include "psyq/libpress.h"
-extern u8           D_replay_bonus_801157A8[];
-extern u8           D_replay_bonus_801157B0[];
-extern u8           D_replay_bonus_801157C4[];
-extern u8           D_replay_bonus_801157C8[];
+extern const char   D_replay_bonus_801157A8[];
+extern const char   D_replay_bonus_801157B0[];
+extern const char   D_replay_bonus_801157C4[];
+extern const char   D_replay_bonus_801157C8[];
 extern u8           D_replay_bonus_80119014[];
 extern u8           D_replay_bonus_8011906C[];
 extern UiObjectDesc D_replay_bonus_80119154;
@@ -266,27 +266,10 @@ void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx)
     }
     list->field_10 = (s8)list->field_9;
 }
-#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
-__asm__(".section .rodata\n"
-        "\t.align 2\n"
-        "\t.globl D_replay_bonus_80115774\n"
-        "D_replay_bonus_80115774:\n"
-        "\t.asciz \"Complete Bonus\"\n"
-        "\t.align 2\n"
-        "\t.globl D_replay_bonus_80115784\n"
-        "D_replay_bonus_80115784:\n"
-        "\t.asciz \"GET ITEM\"\n"
-        "\t.align 2\n"
-        "\t.globl D_replay_bonus_80115790\n"
-        "D_replay_bonus_80115790:\n"
-        "\t.asciz \"BONUS BP\"\n"
-        "\t.align 2\n"
-        "\t.globl D_replay_bonus_8011579C\n"
-        "D_replay_bonus_8011579C:\n"
-        "\t.asciz \"TOTAL BP\"\n"
-        "\t.align 2\n"
-        ".section .text\n");
-#endif
+const char D_replay_bonus_80115774[] = "Complete Bonus";
+const char D_replay_bonus_80115784[] = "GET ITEM";
+const char D_replay_bonus_80115790[] = "BONUS BP";
+const char D_replay_bonus_8011579C[] = "TOTAL BP";
 
 static inline s32 _replayBonusItemPrice(s32 id)
 {
@@ -557,23 +540,9 @@ void func_replay_bonus_80115ED0(Task* arg0)
     }
 }
 
-#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
-__asm__(".section .rodata\n"
-        "\t.align 2\n"
-        "\t.globl D_replay_bonus_801157A8\n"
-        "D_replay_bonus_801157A8:\n"
-        "\t.asciz \"Balance\"\n"
-        "\t.align 2\n"
-        "\t.globl D_replay_bonus_801157B0\n"
-        "D_replay_bonus_801157B0:\n"
-        "\t.asciz \"NEXT REPLAY BONUS\"\n"
-        "\t.align 2\n"
-        "\t.globl D_replay_bonus_801157C4\n"
-        "D_replay_bonus_801157C4:\n"
-        "\t.asciz \"EXP\"\n"
-        "\t.align 2\n"
-        ".section .text\n");
-#endif
+const char D_replay_bonus_801157A8[] = "Balance";
+const char D_replay_bonus_801157B0[] = "NEXT REPLAY BONUS";
+const char D_replay_bonus_801157C4[] = "EXP";
 
 void func_replay_bonus_801166AC(Task* arg0)
 {
@@ -664,7 +633,7 @@ void func_replay_bonus_801166AC(Task* arg0)
     }
 }
 
-INCLUDE_RODATA("aya/nonmatchings/replay_bonus/replay_bonus", D_replay_bonus_801157C8);
+const char D_replay_bonus_801157C8[] = "BP";
 
 void func_replay_bonus_80116964(Task* arg0)
 {
