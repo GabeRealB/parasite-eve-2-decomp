@@ -574,12 +574,11 @@ static void Actor01500_Fn00CA4(Task* actor)
             if (work->field_36E != 0) {
                 pose2 = 8;
             }
-            __asm__("" : "+r"(pose2), "=r"(val));
             work->field_352 = pose2;
             val             = Actor01500_D09FC8[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+            work->field_364 = 0;
             work->field_358 = 1;
             work->field_37A = 1;
-            work->field_364 = 0;
             work->field_34C = 0x400F0002;
             work->field_380 = 0xF;
             work->field_362 = val;
