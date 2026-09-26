@@ -141505,3 +141505,20 @@ Fix: write the flag where the code means it - once the first record is filed:
 
 Moving `ret = 1` among the statements *before* the call changed nothing; only
 the post-call position does.
+
+## A search loop that sets a found flag: `goto` the shared exit, not `break` or an inline helper (func_800DEC80, 2026-09-26)
+
+**Symptom.** Three `for (;;)` table walks set `found = 1` on a hit and leave it
+alone on the end-of-table marker; the target's miss paths branch straight to
+the code after the walks. Two natural rewrites lose that shape:
+
+- `for (slot = t;; slot++) { ... break; }` scores ~68%: the walk's body is
+  duplicated and the loops rotate.
+- An inline helper returning 1/0 (`found = find(...)`) reproduces the loops but
+  materialises `move tN,zero` on the shared miss exit (~98%), because the
+  `return 0` is a real set of `found`; `if (find(...)) found = 1;` is worse, the
+  return values merge through a register (~68%).
+
+**Fix.** Write each walk as `for (;;) { ...; slot++; }` and `goto` one label
+after all of them on both hit and miss. jump2 then cross-jumps the identical
+hit tails exactly as the target does.

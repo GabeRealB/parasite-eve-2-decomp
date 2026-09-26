@@ -4547,41 +4547,30 @@ void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
 
 void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
-    GpObj*                  obj;
-    void**                  scratch;
-    register u8*            head asm("v0");
-    register s32            found asm("t1");
-    GpActorD4Rec*           rec;
-    register GpNormScratch* block asm("a0");
-    register VECTOR*        pos asm("t0");
-    register SVECTOR*       src asm("a3");
-    SVECTOR*                local;
-    s32                     temp;
-    GpRec18*                slot;
-    s32                     flags;
+    GpNormScratch* block;
+    GpActorD4Rec*  rec;
+    SVECTOR*       src;
+    GpRec18*       slot;
+    s32            flags;
+    s32            i;
+    GpActorD4Rec*  shape;
 
-    obj     = arg0;
-    scratch = SCRATCH_HEAD_ADDR;
-    TOUCH_REG2(obj, scratch);
-    head                         = SCRATCH_HEAD_AT(scratch, u8);
-    found                        = 0;
-    head                        -= 0x18;
-    SCRATCH_HEAD_AT(scratch, u8) = head;
-    rec                          = obj->ctx.d4rec;
-    block                        = (GpNormScratch*)head;
+    block = SCRATCH_PUSH(GpNormScratch);
+    i     = 0;
+    rec   = arg0->ctx.d4rec;
 
     if (arg3 == 0) {
-        if (obj->flags & 0x800) {
-            temp = (s32)rec;
-            TOUCH_REG(temp);
-            slot = ((GpActorD4Rec*)temp)->recs;
+        if (arg0->flags & 0x800) {
+            shape = rec;
+            TOUCH_REG(shape);
+            slot = shape->recs;
             for (;;) {
                 flags = slot->flags;
                 if (flags & 1) {
                     arg1->vx = slot->point.vx;
                     arg1->vy = slot->point.vy;
                     arg1->vz = slot->point.vz;
-                    found    = 1;
+                    i        = 1;
                     goto done_search;
                 }
                 if (flags & 2) {
@@ -4589,15 +4578,15 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
                 }
                 slot++;
             }
-        } else if (obj->flags & 0x400) {
-            slot = obj->ctx.d4rec->recs;
+        } else if (arg0->flags & 0x400) {
+            slot = arg0->ctx.d4rec->recs;
             for (;;) {
                 if (slot->flags & 1) {
                     if ((slot->key & 0xFFFF0000) == 0x100000) {
                         arg1->vx = slot->point.vx;
                         arg1->vy = slot->point.vy;
                         arg1->vz = slot->point.vz;
-                        found    = 1;
+                        i        = 1;
                         goto done_search;
                     }
                 }
@@ -4607,47 +4596,38 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
                 slot++;
             }
         }
-    } else if (obj->flags & 0x400) {
-        slot = obj->ctx.d4rec->recs;
+    } else if (arg0->flags & 0x400) {
+        slot = arg0->ctx.d4rec->recs;
         for (;;) {
             if (slot->flags & 1) {
                 if ((slot->key & 0xFFFF0000) == 0x100000) {
                     arg1->vx = slot->point.vx;
                     arg1->vy = slot->point.vy;
                     arg1->vz = slot->point.vz;
-                    found    = 1;
+                    i        = 1;
                     goto done_search;
                 }
             }
             if (slot->flags & 2) {
-                break;
+                goto done_search;
             }
             slot++;
         }
     }
 
 done_search:
-    gte_SetRotMatrix(&obj->coord->workm);
-    if (found < 2) {
-        local = &block->local;
-        temp  = found << 4;
-        pos   = (VECTOR*)(temp + (s32)arg1);
-        temp  = found << 3;
-        src   = (SVECTOR*)(temp + (s32)rec);
-        do {
-            block->local.vx = (u16)src->vx + (u16)obj->pos.vx;
-            block->local.vy = (u16)src->vy + (u16)obj->pos.vy;
-            block->local.vz = (u16)src->vz + (u16)obj->pos.vz;
-            gte_ldv0(local);
-            gte_rtv0();
-            gte_stlvnl(&block->vec);
-            pos->vx = block->vec.vx + (obj->coord)->workm.t[0];
-            pos->vy = block->vec.vy + (obj->coord)->workm.t[1];
-            pos->vz = block->vec.vz + (obj->coord)->workm.t[2];
-            src++;
-            found++;
-            pos++;
-        } while (found < 2);
+    gte_SetRotMatrix(&arg0->coord->workm);
+    for (; i < 2; i++) {
+        src             = &rec->end0 + i; // end0 and end1 are adjacent
+        block->local.vx = (u16)src->vx + (u16)arg0->pos.vx;
+        block->local.vy = (u16)src->vy + (u16)arg0->pos.vy;
+        block->local.vz = (u16)src->vz + (u16)arg0->pos.vz;
+        gte_ldv0(&block->local);
+        gte_rtv0();
+        gte_stlvnl(&block->vec);
+        arg1[i].vx = block->vec.vx + (arg0->coord)->workm.t[0];
+        arg1[i].vy = block->vec.vy + (arg0->coord)->workm.t[1];
+        arg1[i].vz = block->vec.vz + (arg0->coord)->workm.t[2];
     }
 
     block->vec.vx = arg1[0].vx - arg1[1].vx;
@@ -4655,7 +4635,7 @@ done_search:
     block->vec.vz = arg1[0].vz - arg1[1].vz;
     VectorNormalS(&block->vec, arg2);
 
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(GpNormScratch);
 }
 
 static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos)
