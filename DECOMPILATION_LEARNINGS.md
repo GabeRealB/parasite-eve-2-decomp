@@ -142704,3 +142704,26 @@ Two side effects worth knowing:
 - A macro that takes `&arr[i]` and uses `(rec)->f` is **not** `arr[i].f`: the
   address form compiled differently (98.1% vs 100%). Pass the element as an
   lvalue and write `(rec).f` inside the macro.
+## A field of a stack struct stored through the call's argument register means the struct was an inline helper's first local (func_actor_143000_80133CF0, 2026-09-26)
+
+**Symptom.** `addiu a0,sp,0x18` for `StoreImage(&r2, ...)`, and one of `r2`'s
+fields stored as `sh v0,4(a0)` while its neighbours use `0x18(sp)` / `0x1a(sp)`.
+Plain `r2.w = 0x140` always gives `0x1c(sp)`. The seed built it with a pointer
+local `rp = &r2` plus `SOFT_TOUCH_REG_USE(rp, n)`.
+
+**Cause.** When a `static inline` function is expanded, `integrate.c`
+(`copy_rtx_and_substitute`, virtual-stack-vars case) gives its frame a base
+pseudo emitted at `insns_at_start`, and every local is reached as
+`(plus base off)`. For the helper's *first* local that base equals `&local`, so
+the call argument and the field stores share one register. `cse` folds some of
+those addresses back to `sp+k` (offset 0 and the read-modify-write here), but not
+all.
+
+**Fix.** `static inline void h(RECT* src, u32* buf) { RECT r2 = *src; r2.x = ...;
+r2.w = ...; r2.y += ...; StoreImage(&r2, buf); }` reproduces the `4(a0)` store
+with no pin. Here it was not enough on its own: the target also has the
+address live across an earlier `p->count` store (it takes `a0`, pushing the
+count to `a1`) and the offset multiply finished before the struct copy, which
+the seed gets from a no-output `asm` (implicitly volatile, so a full sched
+barrier). No barrier-free spelling found gets past 89.4%, and a `do {} while (0)`
+barrier around `r.h` (loop notes block sched) only reaches 98%.
