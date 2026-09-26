@@ -142061,3 +142061,21 @@ but the ranks are not - the "`n_refs` is counted before combine" mechanism.
 **Fix.** When a pin only adds refs to a pointer whose later accesses carry constant
 offsets, rewrite those offsets as increments/decrements of the pointer between the
 accesses.
+
+## A sequence of literal stores can be the same macro as a later field-based copy; CSE folded the object's known fields (Gp_DrawItemPrompt, 2026-09-26)
+
+A HUD prompt fills a stack `UiObject` (`baseX = 0`, `baseY = 0`,
+`drawOrder = -3`), then draws a label four times with literal stores
+(`x = 0x63`, `y = y + 9`, `otIndex = -2`), and later twice more with
+`x = obj.baseX + 4 + xBase`, `otIndex = obj.drawOrder + 1`. The literal copies
+had needed a `register u8* str asm("a1")` pin, the field-based ones faked
+`%hi/%lo` pairs. All six are one plain-brace macro that stores every field and
+calls the draw function per branch. In the first copies CSE substitutes the
+stored field values and the known `xBase`, which reproduces the literals; the
+full per-branch call lets cross-jumping merge the tails, leaving the string's
+`lui a1 / addiu a1,a1` in each arm. Wrapping the same macro body in
+`do { } while (0)` broke the match (loop weighting), so use bare braces.
+
+A `t = -3; obj.drawOrder = t;` temp in the same function was a `u16` field
+declaration: the store emitted `li 0xfffd` without it. Every reader cast the
+field to `s16`, and declaring it `s16` matched the whole tree.

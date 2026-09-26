@@ -4438,6 +4438,36 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
     }
 }
 
+/// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
+/// the prompt's left edge.
+#define DRAW_PROMPT_LABEL(req, dx, line, color, str) \
+    {                                                \
+        req.x          = obj.baseX + (dx) + xBase;   \
+        req.y          = (obj.baseY + 9) + (line);   \
+        req.otIndex    = obj.drawOrder + 1;          \
+        req.field_8    = (color);                    \
+        req.glyphTable = 5;                          \
+        req.centerMode = 0;                          \
+        req.field_E    = 1;                          \
+        func_8002E53C(&req, (str));                  \
+    }
+
+/// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
+#define DRAW_PROMPT_COUNT(req, line, count)                 \
+    {                                                       \
+        req.field_8    = 0x606060;                          \
+        req.glyphTable = 5;                                 \
+        req.centerMode = 2;                                 \
+        req.field_E    = 0;                                 \
+        req.x          = obj.baseX + 0x94;                  \
+        req.y          = (obj.baseY + 9) + (line);          \
+        req.otIndex    = obj.drawOrder + 1;                 \
+        func_8002E53C(&req, Text_ItoaSigned(buf, (count))); \
+        if ((count) == 0) {                                 \
+            flag = 1;                                       \
+        }                                                   \
+    }
+
 void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
 {
     u8            buf[0x10];
@@ -4454,7 +4484,6 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     s32           flag;
     s32           xBase;
     s32           y;
-    s32           t;
 
     cfg    = &Player_Status;
     slot   = Gp_GetItemSlot(cfg->weapon + 0x7F);
@@ -4468,28 +4497,22 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     if (gGameSession->hideHud != 0) {
         return;
     }
-    t = cfg->weapon;
-    if (t == 0) {
+    if (cfg->weapon == 0) {
         return;
     }
-    item = t + 0x7F;
+    item = cfg->weapon + 0x7F;
     if (item == 0x92) {
         return;
     }
     count1 = slot->ammoQty;
-    if (slot->attachId != 0) {
-        if (slot->attachId != 0xFF) {
-            count2 = slot->attachQty;
-        }
-        height = 0xE;
-    } else {
-        height = 0xE;
+    if (slot->attachId != 0 && slot->attachId != 0xFF) {
+        count2 = slot->attachQty;
     }
+    height        = 0xE;
     flag          = 0;
-    t             = -3;
     obj.baseX     = 0;
     obj.baseY     = 0;
-    obj.drawOrder = t;
+    obj.drawOrder = -3;
     obj.mode      = 0;
     xBase         = 0x5F;
     if (slot->attachId != 0xFF) {
@@ -4497,120 +4520,35 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     }
     y = 0x64 - height;
     y = y - gDisplayState.vramYOffset;
-    {
-        s32          color;
-        register u8* str asm("a1");
-        TextDrawReq* p;
-        s32          x;
-
-        if (Mc_SaveData.buttonLayout != 2) {
-            if (item != 0x96) {
-                color = 0x606060;
-                p     = &req;
-                str   = D_8009388C;
-                x     = 0x63;
-            } else {
-                color = 0x606060;
-                p     = &req;
-                str   = D_80093890;
-                x     = 0x63;
-            }
+    if (Mc_SaveData.buttonLayout != 2) {
+        if (item != 0x96) {
+            DRAW_PROMPT_LABEL(req, 4, y, 0x606060, D_8009388C);
         } else {
-            if (item != 0x96) {
-                color = 0x503060;
-                p     = &req;
-                str   = D_80093894;
-                x     = 0x65;
-            } else {
-                color = 0x506030;
-                p     = &req;
-                str   = D_80093898;
-                x     = 0x65;
-            }
+            DRAW_PROMPT_LABEL(req, 4, y, 0x606060, D_80093890);
         }
-        req.x          = x;
-        req.y          = y + 9;
-        req.otIndex    = -2;
-        req.glyphTable = 5;
-        req.field_8    = color;
-        req.centerMode = 0;
-        req.field_E    = 1;
-        func_8002E53C(p, str);
+    } else {
+        if (item != 0x96) {
+            DRAW_PROMPT_LABEL(req, 6, y, 0x503060, D_80093894);
+        } else {
+            DRAW_PROMPT_LABEL(req, 6, y, 0x506030, D_80093898);
+        }
     }
     if (slot->ammoId != 0) {
-        s32 five;
-
-        req.field_8    = 0x606060;
-        five           = 5;
-        req.glyphTable = five;
-        req.centerMode = 2;
-        req.field_E    = 0;
-        req.x          = obj.baseX + 0x94;
-        req.y          = (obj.baseY + 9) + y;
-        req.otIndex    = (s16)obj.drawOrder + 1;
-        func_8002E53C(&req, Text_ItoaSigned(buf, count1));
-        if (count1 == 0) {
-            flag = 1;
-        }
+        DRAW_PROMPT_COUNT(req, y, count1);
     } else {
         flag = 1;
     }
     Ui_LayoutWithMode0(&obj, 0x79, (y + 4), 0x1B, 7, 0x102010);
     if (slot->attachId != 0xFF) {
-        u8*          str;
-        TextDrawReq* p;
-        s32          v;
-        s32          by;
-
         flag = 0;
         y   += 0xA;
         if (Mc_SaveData.buttonLayout != 2) {
-            v = 0x606060;
-            p = &req2;
-            asm("lui %0, %%hi(D_80093890)" : "=r"(str));
-            req2.field_8    = v;
-            v               = 5;
-            req2.glyphTable = v;
-            v               = obj.baseX;
-            by              = 1;
-            req2.field_E    = by;
-            by              = obj.baseY;
-            asm("addiu %0, %0, %%lo(D_80093890)" : "+r"(str) : "r"(by));
-            req2.centerMode = 0;
-            v              += 4;
+            DRAW_PROMPT_LABEL(req2, 4, y, 0x606060, D_80093890);
         } else {
-            v = 0x506030;
-            p = &req2;
-            asm("lui %0, %%hi(D_80093898)" : "=r"(str));
-            req2.field_8    = v;
-            v               = 5;
-            req2.glyphTable = v;
-            v               = obj.baseX;
-            by              = 1;
-            req2.field_E    = by;
-            by              = obj.baseY;
-            asm("addiu %0, %0, %%lo(D_80093898)" : "+r"(str) : "r"(by));
-            req2.centerMode = 0;
-            v              += 6;
+            DRAW_PROMPT_LABEL(req2, 6, y, 0x506030, D_80093898);
         }
-        v           += xBase;
-        req2.x       = v;
-        by          += 9;
-        req2.y       = by + y;
-        req2.otIndex = (s16)obj.drawOrder + 1;
-        func_8002E53C(p, str);
         if (slot->attachId != 0) {
-            req2.field_8    = 0x606060;
-            req2.glyphTable = 5;
-            req2.centerMode = 2;
-            req2.field_E    = 0;
-            req2.x          = obj.baseX + 0x94;
-            req2.y          = (obj.baseY + 9) + y;
-            req2.otIndex    = (s16)obj.drawOrder + 1;
-            func_8002E53C(&req2, Text_ItoaSigned(buf, count2));
-            if (count2 == 0) {
-                flag = 1;
-            }
+            DRAW_PROMPT_COUNT(req2, y, count2);
         } else {
             flag = 1;
         }
@@ -4627,6 +4565,9 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
         Ui_DrawTextInRect(&rect, -1, 0x40002, NULL);
     }
 }
+
+#undef DRAW_PROMPT_LABEL
+#undef DRAW_PROMPT_COUNT
 
 /// Inline copy of `Gp_GetAttachLevel`.
 static __inline__ s32 getAttachLevel(s32 idx)

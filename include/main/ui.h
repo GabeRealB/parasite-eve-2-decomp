@@ -42,7 +42,7 @@ typedef struct _UiObject {
     /* 0x0E */ u16   field_E;
     /* 0x10 */ u16   field_10;
     /* 0x12 */ u16   field_12;
-    /* 0x14 */ u16   drawOrder;
+    /* 0x14 */ s16   drawOrder;
     /* 0x16 */ s16   timer;
     /* 0x18 */ u16   field_18; // layout offset
     /* 0x1A */ u16   field_1A; // layout offset
