@@ -38,7 +38,7 @@
 /// `Mc_SaveData.gameMode`. `func_mist_shooting_gallery_8017FAE8` copies the whole thing
 /// onto its stack before indexing it.
 typedef struct MistShootingGalleryModeTexts {
-    /* 0x0 */ u8* text[4];
+    /* 0x0 */ const char* text[4];
 } MistShootingGalleryModeTexts;
 STATIC_ASSERT_SIZEOF(MistShootingGalleryModeTexts, 0x10);
 
@@ -46,8 +46,8 @@ STATIC_ASSERT_SIZEOF(MistShootingGalleryModeTexts, 0x10);
 /// `MistShootingGalleryGauges`; `label` is the word printed beside it
 /// ("EASY", "GOOD", "RICH", ...).
 typedef struct MistShootingGalleryRating {
-    /* 0x0 */ s32 gauge;
-    /* 0x4 */ u8* label;
+    /* 0x0 */ s32         gauge;
+    /* 0x4 */ const char* label;
 } MistShootingGalleryRating;
 STATIC_ASSERT_SIZEOF(MistShootingGalleryRating, 0x8);
 
@@ -63,7 +63,7 @@ STATIC_ASSERT_SIZEOF(MistShootingGalleryRatings, 0x20);
 /// The six gauge strings the DATA panel draws through
 /// `MistShootingGalleryRating::gauge`; also stackGpGridParamscopied before use.
 typedef struct MistShootingGalleryGauges {
-    /* 0x00 */ u8* bars[6];
+    /* 0x00 */ const char* bars[6];
 } MistShootingGalleryGauges;
 STATIC_ASSERT_SIZEOF(MistShootingGalleryGauges, 0x18);
 
@@ -85,24 +85,35 @@ extern s32          D_mist_shooting_gallery_8018E0C0;
 extern TaskDesc D_mist_shooting_gallery_80184F8C;
 extern TaskDesc D_mist_shooting_gallery_801850D0;
 
-extern u8 D_mist_shooting_gallery_8017D65C[]; // "TOTAL SCORE"
+/// Text in the room's trailing data that the tables below point at.
+extern char D_mist_shooting_gallery_80184DD4[];
+extern char D_mist_shooting_gallery_80184E24[];
+extern char D_mist_shooting_gallery_80184E70[];
+extern char D_mist_shooting_gallery_80184EC4[];
+extern char D_mist_shooting_gallery_80184F18[];
+extern char D_mist_shooting_gallery_80184F1C[];
+extern char D_mist_shooting_gallery_80184F20[];
+extern char D_mist_shooting_gallery_80184F24[];
+extern char D_mist_shooting_gallery_80184F2C[];
 
-extern MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8;
-extern MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708;
-extern u8                           D_mist_shooting_gallery_8017D718[];
-extern u8                           D_mist_shooting_gallery_8017D720[];
-extern u8                           D_mist_shooting_gallery_8017D728[];
-extern u8                           D_mist_shooting_gallery_8017D730[];
+extern const char D_mist_shooting_gallery_8017D65C[]; // "TOTAL SCORE"
 
-extern MistShootingGalleryRatings D_mist_shooting_gallery_8017D778;
-extern MistShootingGalleryRatings D_mist_shooting_gallery_8017D7AC;
-extern MistShootingGalleryRatings D_mist_shooting_gallery_8017D7E8;
-extern MistShootingGalleryGauges  D_mist_shooting_gallery_8017D808;
-extern char                       D_mist_shooting_gallery_8017D820[];
-extern u8                         D_mist_shooting_gallery_8017D828[];
-extern u8                         D_mist_shooting_gallery_8017D838[];
-extern u8                         D_mist_shooting_gallery_8017D844[];
-extern u8                         D_mist_shooting_gallery_8017D850[];
+extern const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8;
+extern const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708;
+extern const char                         D_mist_shooting_gallery_8017D718[];
+extern const char                         D_mist_shooting_gallery_8017D720[];
+extern const char                         D_mist_shooting_gallery_8017D728[];
+extern const char                         D_mist_shooting_gallery_8017D730[];
+
+extern const MistShootingGalleryRatings D_mist_shooting_gallery_8017D778;
+extern const MistShootingGalleryRatings D_mist_shooting_gallery_8017D7AC;
+extern const MistShootingGalleryRatings D_mist_shooting_gallery_8017D7E8;
+extern const MistShootingGalleryGauges  D_mist_shooting_gallery_8017D808;
+extern const char                       D_mist_shooting_gallery_8017D820[];
+extern const char                       D_mist_shooting_gallery_8017D828[];
+extern const char                       D_mist_shooting_gallery_8017D838[];
+extern const char                       D_mist_shooting_gallery_8017D844[];
+extern const char                       D_mist_shooting_gallery_8017D850[];
 
 extern void     func_8002E53C(TextDrawReq* req, u8* text);
 extern void     func_8014A398(void);
@@ -161,7 +172,7 @@ extern RoomsShared8018055cCourse D_mist_shooting_gallery_80185314[];
 
 /// The jukebox menu's title, "SELECT". A stray 0xE1 byte follows its
 /// terminator, so the block stays in assembly.
-extern char D_mist_shooting_gallery_8017DB04[];
+extern const char D_mist_shooting_gallery_8017DB04[];
 
 /// The jukebox's track list, whose row callback is
 /// `func_mist_shooting_gallery_8018055C`.
@@ -368,7 +379,7 @@ void func_mist_shooting_gallery_8017E090(Task* task)
         }
     }
 }
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D65C);
+const char D_mist_shooting_gallery_8017D65C[] = "TOTAL SCORE";
 
 void func_mist_shooting_gallery_8017E234(Task* task)
 {
@@ -650,15 +661,15 @@ void func_mist_shooting_gallery_8017E854(Task* task)
         obj->field_2E = 6;
     }
 }
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D6A0);
+const char D_mist_shooting_gallery_8017D6A0[] = "Replay Mode";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D6AC);
+const char D_mist_shooting_gallery_8017D6AC[] = "Bounty Mode";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D6B8);
+const char D_mist_shooting_gallery_8017D6B8[] = "Scavenger Mode";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D6C8);
+const char D_mist_shooting_gallery_8017D6C8[] = "Nightmare Mode";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D6D8);
+const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8 = { { D_mist_shooting_gallery_8017D6A0, D_mist_shooting_gallery_8017D6AC, D_mist_shooting_gallery_8017D6B8, D_mist_shooting_gallery_8017D6C8 } };
 
 void func_mist_shooting_gallery_8017EAE0(Task* task)
 {
@@ -821,15 +832,15 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     func_8002E53C(&req4, "BP");
     Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, 3, 2);
 }
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D708);
+const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708 = { { D_mist_shooting_gallery_80184DD4, D_mist_shooting_gallery_80184E24, D_mist_shooting_gallery_80184E70, D_mist_shooting_gallery_80184EC4 } };
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D718);
+const char D_mist_shooting_gallery_8017D718[] = "EASY";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D720);
+const char D_mist_shooting_gallery_8017D720[] = "NORMAL";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D728);
+const char D_mist_shooting_gallery_8017D728[] = "HARD";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D730);
+const char D_mist_shooting_gallery_8017D730[] = "VERY HARD";
 
 void func_mist_shooting_gallery_8017F128(Task* task)
 {
@@ -1170,39 +1181,40 @@ void func_mist_shooting_gallery_8017FDD0(Task* arg0)
             break;
     }
 }
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D75C);
+const char D_mist_shooting_gallery_8017D75C[] = "GOOD";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D764);
+const char D_mist_shooting_gallery_8017D764[] = "EXHAUSTED";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D770);
+const char D_mist_shooting_gallery_8017D770[] = "SICK";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D778);
+const MistShootingGalleryRatings D_mist_shooting_gallery_8017D778 = { { { 5, D_mist_shooting_gallery_8017D75C }, { 5, D_mist_shooting_gallery_8017D75C }, { 4, D_mist_shooting_gallery_8017D764 }, { 1, D_mist_shooting_gallery_8017D770 } } };
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D798);
+const char D_mist_shooting_gallery_8017D798[] = "STRONG";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D7A0);
+const char D_mist_shooting_gallery_8017D7A0[] = "VERY STRONG";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D7AC);
+const MistShootingGalleryRatings D_mist_shooting_gallery_8017D7AC = { { { 2, D_mist_shooting_gallery_8017D718 }, { 4, D_mist_shooting_gallery_8017D798 }, { 3, D_mist_shooting_gallery_8017D720 }, { 5, D_mist_shooting_gallery_8017D7A0 } } };
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D7CC);
+const char D_mist_shooting_gallery_8017D7CC[] = "RICH";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D7D4);
+const char D_mist_shooting_gallery_8017D7D4[] = "VERY POOR";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D7E0);
+const char D_mist_shooting_gallery_8017D7E0[] = "POOR";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D7E8);
+const MistShootingGalleryRatings D_mist_shooting_gallery_8017D7E8 = { { { 4, D_mist_shooting_gallery_8017D7CC }, { 3, D_mist_shooting_gallery_8017D720 }, { 1, D_mist_shooting_gallery_8017D7D4 }, { 2, D_mist_shooting_gallery_8017D7E0 } } };
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D808);
+const MistShootingGalleryGauges D_mist_shooting_gallery_8017D808 = { { D_mist_shooting_gallery_80184F18, D_mist_shooting_gallery_80184F18, D_mist_shooting_gallery_80184F1C, D_mist_shooting_gallery_80184F20, D_mist_shooting_gallery_80184F24, D_mist_shooting_gallery_80184F2C } };
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D820);
+const char D_mist_shooting_gallery_8017D820[] = "DATA";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D828);
+const char D_mist_shooting_gallery_8017D828[] = "MISSION LEVEL";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D838);
+const char D_mist_shooting_gallery_8017D838[] = "CONDITION";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D844);
+const char D_mist_shooting_gallery_8017D844[] = "ENEMY LEVEL";
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D850);
+/// "SUPPLY LEVEL", followed by the non-zero padding the original toolchain left.
+const char D_mist_shooting_gallery_8017D850[16] = "SUPPLY LEVEL\0\xD0\x0E\xF0";
 
 /// The room's handler for message 0x13F1: accepts it and does nothing.
 s32 func_mist_shooting_gallery_8017FEB0(Task* task, s32 msgId, s32 arg2, s32 arg3)
@@ -1289,7 +1301,40 @@ const TaskFuncTable3 D_mist_shooting_gallery_8017D860 = {
 
 /// The jukebox's track names ("1. Crazy King", ...), reached only through the
 /// track lists in `.data`.
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D86C);
+/// Numbered names the room lists. Nothing in the code refers to them: the
+/// room's data holds them in records that pair each with a small number.
+const char D_mist_shooting_gallery_8017D86C[] = "3. Heaven-sent Killer";
+const char D_mist_shooting_gallery_8017D884[] = "2. Eager For Blood";
+const char D_mist_shooting_gallery_8017D898[] = "1. Crazy King";
+const char D_mist_shooting_gallery_8017D8A8[] = "3. Crawling Waste Emperor";
+const char D_mist_shooting_gallery_8017D8C4[] = "2. Pick Up The Gauntlet";
+const char D_mist_shooting_gallery_8017D8DC[] = "3. Hunter's Moon";
+const char D_mist_shooting_gallery_8017D8F0[] = "2. Quadrumanous Leader";
+const char D_mist_shooting_gallery_8017D908[] = "3. Genic Reactor";
+const char D_mist_shooting_gallery_8017D91C[] = "2. Rebel Forces";
+const char D_mist_shooting_gallery_8017D92C[] = "1. Yellow Rain";
+const char D_mist_shooting_gallery_8017D93C[] = "3. Pick Up The Gauntlet";
+const char D_mist_shooting_gallery_8017D954[] = "2. Ambush!";
+const char D_mist_shooting_gallery_8017D960[] = "4. Dark Voice Of The Heart";
+const char D_mist_shooting_gallery_8017D97C[] = "3. Requiem";
+const char D_mist_shooting_gallery_8017D988[] = "2. Rock And Fire";
+const char D_mist_shooting_gallery_8017D99C[] = "1. Ghost Town";
+const char D_mist_shooting_gallery_8017D9AC[] = "4. Snooper";
+const char D_mist_shooting_gallery_8017D9B8[] = "3. Wild Hunt";
+const char D_mist_shooting_gallery_8017D9C8[] = "2. Lightning Operation";
+const char D_mist_shooting_gallery_8017D9E0[] = "1. L.A. Maze";
+const char D_mist_shooting_gallery_8017D9F0[] = "4. Genic Reactor";
+const char D_mist_shooting_gallery_8017DA04[] = "3. Mental Agony";
+const char D_mist_shooting_gallery_8017DA14[] = "2. Wishwash";
+const char D_mist_shooting_gallery_8017DA20[] = "1. Curse Your Fate!";
+const char D_mist_shooting_gallery_8017DA34[] = "4. Killing Field";
+const char D_mist_shooting_gallery_8017DA48[] = "3. Fool's Paradise";
+const char D_mist_shooting_gallery_8017DA5C[] = "2. Gazing into The Void";
+const char D_mist_shooting_gallery_8017DA74[] = "1. Man Made Nature";
+const char D_mist_shooting_gallery_8017DA88[] = "4. Lazing Away the Morning";
+const char D_mist_shooting_gallery_8017DAA4[] = "3. Out Of Phase 2";
+const char D_mist_shooting_gallery_8017DAB8[] = "2. The Vagrants";
+const char D_mist_shooting_gallery_8017DAC8[] = "1. Tower Rendezvous";
 
 /// The room task: copies the threeGpGridParamsstate table
 /// `D_mist_shooting_gallery_8017D860` onto the stack and runs the entry for the
@@ -1396,7 +1441,8 @@ const RoomsShared8018055cMenu D_mist_shooting_gallery_8017DADC = {
     },
 };
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017DB04);
+/// "SELECT", followed by the non-zero padding the original toolchain left.
+const char D_mist_shooting_gallery_8017DB04[8] = "SELECT\0\xE1";
 
 /// Row callback of the jukebox list: draws the row's track name, and on
 /// confirm, when the row is not the one already chosen, plays the select

@@ -278,8 +278,8 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
     taskKill(task);
 }
 
-/// The mission titles the saloon lists, reached through the records in the
-/// room's data.
+/// Numbered names the room lists. Nothing in the code refers to them: the
+/// room's data holds them in records that pair each with a small number.
 const char D_dryfield_night_saloon_g_r_8017D600[] = "3. Heaven-sent Killer";
 const char D_dryfield_night_saloon_g_r_8017D618[] = "2. Eager For Blood";
 const char D_dryfield_night_saloon_g_r_8017D62C[] = "1. Crazy King";
