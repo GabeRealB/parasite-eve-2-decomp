@@ -447,27 +447,29 @@ static void Prim_DrawTPage(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 static s32 Prim_DrawFadeTile(RECT* arg0, u8* arg1, s16* arg2)
 {
     PrimDrawParams sp;
-    register s32   ret asm("s0");
+    s32            ret;
 
     ret = 0;
-    if (*arg1 != 0) {
-        ret = 1;
-    } else {
-        sp.x         = arg0->x;
-        sp.y         = arg0->y;
-        sp.w         = arg0->w;
-        sp.h         = arg0->h;
-        sp.b         = 0;
-        sp.g         = 0;
-        sp.r         = 0;
-        sp.shadeMode = 1;
-        Prim_DrawTile(&sp);
-        SOFT_TOUCH_REG(ret);
-        Prim_DrawTPage(ret, ret, ret, 5);
-        *arg2 = *arg2 - 1;
-        if (*arg2 <= 0) {
+    switch (*arg1) {
+        case 0:
+            sp.x         = arg0->x;
+            sp.y         = arg0->y;
+            sp.w         = arg0->w;
+            sp.h         = arg0->h;
+            sp.b         = 0;
+            sp.g         = 0;
+            sp.r         = 0;
+            sp.shadeMode = 1;
+            Prim_DrawTile(&sp);
+            Prim_DrawTPage(0, 0, 0, 5);
+            *arg2 = *arg2 - 1;
+            if (*arg2 > 0) {
+                break;
+            }
+            /* The countdown has run out: the fade is finished. */
+        default:
             ret = 1;
-        }
+            break;
     }
     return ret;
 }

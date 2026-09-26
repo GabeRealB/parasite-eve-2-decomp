@@ -143953,3 +143953,23 @@ branch has nowhere different to go. The seed kept it with a `$v1` pin and a
 to the return label that is not a jump-to-next (the outer fall-through sits
 between), so it and both branches stay, and the second byte's load picks
 `$v1` on its own because the return value already holds `$v0`.
+## `move aN,s0` for a zero call argument is `reload_cse`, and needs the call's block to fall through from the `s0 = 0` (Prim_DrawFadeTile, 2026-09-26)
+
+**Symptom.** The target passes a constant 0 as a copy of a callee-saved
+result local (`move a0,s0; move a1,s0; move a2,s0`), and a pin plus a
+`SOFT_TOUCH_REG` were holding it there. Without them the compile emits
+`move a0,zero; move a1,a0; move a2,a0` and nothing else differs.
+
+**Mechanism.** CSE always folds the local to `const_int 0` at the call. The
+register copy comes later, from `reload_cse_regs`, which rewrites a constant
+load as a copy of a hard register already holding that value. It forgets
+everything at a `CODE_LABEL`, so it only fires when the code between
+`ret = 0` and the call contains no label. `if (*state != 0) ret = 1; else
+{ ...call... }` places the call after the else label, so it cannot fire.
+
+**Fix.** Make the call's code the fallthrough of the test, with the local
+joining at a label so CSE cannot fold the returned value either. Here that was
+the file's state-machine idiom: `ret = 0; switch (*state) { case 0: ...;
+if (--*timer > 0) break; /* fallthrough */ default: ret = 1; break; }`. The
+same body written with a second `ret = 1` in its own arm turns into a
+store-flag (`slti`) and loses the callee-saved local altogether.
