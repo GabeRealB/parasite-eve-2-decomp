@@ -1772,14 +1772,11 @@ void func_acropolis_fire_escape_80180154(Task* task)
 /// `Gp_ReleaseState1CMem`.
 void func_acropolis_fire_escape_80180B20(Task* task)
 {
-    u8*                             head;
-    u8*                             raw;
     AcropolisFireEscapeGlowScratch* blk;
     POLY_G4*                        prim;
     LINE_G3*                        line;
     GpCoord*                        coord;
     void*                           mem;
-    u16                             vz;
     s32                             i;
     s32                             pulse;
     s32                             level;
@@ -1799,23 +1796,18 @@ void func_acropolis_fire_escape_80180B20(Task* task)
     coord = task->extra.tmd->coords;
     mem   = task->spawnArg2;
     Gp_UpdateCoord(coord);
-    head = SCRATCH_HEAD(void);
-    raw  = head - 0x18;
-    SOFT_TOUCH_REG(raw);
-    blk                = (AcropolisFireEscapeGlowScratch*)raw;
-    blk->vec.vx        = (u16)coord->workm.t[0];
-    blk->vec.vy        = (u16)coord->workm.t[1];
-    vz                 = (u16)coord->workm.t[2];
-    SCRATCH_HEAD(void) = blk;
-    blk->vec.vz        = vz;
+    blk         = SCRATCH_PUSH(AcropolisFireEscapeGlowScratch);
+    blk->vec.vx = (u16)coord->workm.t[0];
+    blk->vec.vy = (u16)coord->workm.t[1];
+    blk->vec.vz = (u16)coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((AcropolisFireEscapeGlowScratch*)(head - 0x18))->vec);
+    gte_ldv0(&blk->vec);
     gte_rtps();
-    gte_stsxy(&((AcropolisFireEscapeGlowScratch*)(head - 0x18))->sx);
+    gte_stsxy(&blk->sx);
     gte_stszotz(&blk->otz);
-    if (((AcropolisFireEscapeGlowScratch*)(head - 0x18))->otz >= 0x11) {
+    if (blk->otz >= 0x11) {
         pulse  = gDisplayState.animFrame;
         pulse *= task->spawnArg1 & 0xFF;
         flip   = (task->spawnArg1 >> 16) & 1;
@@ -1969,6 +1961,6 @@ void func_acropolis_fire_escape_80180B20(Task* task)
             }
         }
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(AcropolisFireEscapeGlowScratch);
     Gp_ReleaseState1CMem(mem, task);
 }

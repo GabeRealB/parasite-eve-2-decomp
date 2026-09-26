@@ -141342,3 +141342,28 @@ came out with its loads swapped.
 - A block-scoped `GpCoord* c` in each of the two facing tests, not one
   function-scope pointer. The shared one made the two tests allocate alike,
   so jump2 merged more than the compare.
+
+### A phony loop can act as a CSE boundary, not a weight: only loop constructs reproduce it (func_acropolis_fire_escape_80180B20, 2026-09-26)
+
+**Problem.** A glow routine draws two `POLY_G4` wedges per iteration of a
+short loop. Its seed wrapped the first wedge and the second wedge's header in
+`do { } while (0)`, plus five register touches. Removing only the wrapper cost
+2.4%; wrapping whole wedges or any sub-step in *every* wedge was far worse.
+
+**Mechanism.** The weight explanation (phony-loop entries above) did not fit.
+Scanning the extent showed that a single *empty* `do {} while (0)` anywhere
+between the second wedge's `setRGB2` and its last coordinate store fixed all
+of the upstream allocation. Its loop note ends CSE's extended basic block, so
+the second wedge recomputes the table base, `&gDisplayState` and the
+`0xFFFFFF` mask instead of reusing the first wedge's pseudos. loop.c then
+merges those as `done move-insn matches` with doubled savings and a shorter
+life, which changes what it hoists and so the global ranks.
+`while (0) {}` and `for (;;) break;` do the same. `if (x) {}` and an unused
+`goto`/label do not, because jump deletes them before CSE runs, and an inline
+helper does not either.
+
+**Use.** If a seed's phony loop still matters after the other hacks are
+stripped, try an empty one at each statement boundary with a fast cc1-only
+diff before assuming reference weighting. If one position works, the original
+had some loop construct there. In this function no plausible macro was
+found, so the wrapper stayed.
