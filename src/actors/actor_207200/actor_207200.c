@@ -371,6 +371,29 @@ static void func_actor_207200_8014A588(Task* arg0)
     SCRATCH_HEAD(ActorDeltaFrame38) = SCRATCH_HEAD(ActorDeltaFrame38) + 1;
 }
 
+/// Rebinds the small enemy's animation id `field_28C` to its two helper
+/// slots: a changed id is remembered in `field_28E`, its frame count restarts
+/// and both slots switch to it with a blend of 8; otherwise the count ticks and
+/// the slots advance.
+static __inline__ void _actor207200TickAnim(Task* task)
+{
+    Actor207200Work* work = task->work;
+    s32              i;
+
+    if (work->field_28C != work->field_28E) {
+        work->field_28E = work->field_28C;
+        work->field_290 = 0;
+        for (i = 1; i < 3; i++) {
+            func_800B4114((GpAnimCtx*)work, i, work->field_28C, 0, 8);
+        }
+    } else {
+        work->field_290++;
+        for (i = 1; i < 3; i++) {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        }
+    }
+}
+
 /// Dying-state tick of the small enemy, under the shared `Gp_StateF0.field_4` mode
 /// byte: 1 does nothing and 2 hides the model. Otherwise the root part's
 /// matrix is saved into `field_264` and refolded with the decaying Y scale.
@@ -383,8 +406,6 @@ static void func_actor_207200_8014AA74(GpEnemy* arg0, Task* arg1)
     Actor207200Work* work;
     TmdObject*       obj;
     GpCoord*         coord;
-    s32              i;
-    Actor207200Work* anim;
 
     work  = arg1->work;
     obj   = arg1->extra.tmd;
@@ -421,23 +442,7 @@ static void func_actor_207200_8014AA74(GpEnemy* arg0, Task* arg1)
         Gp_UnlinkObj(&work->field_FC.obj);
         Gp_UnlinkObj(&work->field_184.obj);
     }
-    anim = arg1->work;
-    i    = 1;
-    if (anim->field_28C != (s16)anim->field_28E) {
-        anim->field_28E = anim->field_28C;
-        anim->field_290 = 0;
-        do {
-            func_800B4114((GpAnimCtx*)anim, i, anim->field_28C, 0, 8);
-            i++;
-        } while (i < 3);
-        return;
-    }
-    TOUCH_REG(i);
-    anim->field_290 = (u16)(anim->field_290 + i);
-    do {
-        Gp_AnimTickIndex((GpAnimCtx*)anim, i);
-        i++;
-    } while (i < 3);
+    _actor207200TickAnim(arg1);
 }
 
 /// The small enemy's state handlers - spawn, live tick and dying tick - which
@@ -573,26 +578,7 @@ static void func_actor_207200_8014AE70(Task* task)
 /// otherwise the counter ticks and both slots advance.
 static void func_actor_207200_8014AF2C(Task* arg0)
 {
-    Actor207200Work* work;
-    s32              i;
-
-    work = arg0->work;
-    i    = 1;
-    if (work->field_28C != (s16)work->field_28E) {
-        work->field_28E = work->field_28C;
-        work->field_290 = 0;
-        do {
-            func_800B4114((GpAnimCtx*)work, i, work->field_28C, 0, 8);
-            i++;
-        } while (i < 3);
-        return;
-    }
-    TOUCH_REG(i);
-    work->field_290 = (u16)(work->field_290 + i);
-    do {
-        Gp_AnimTickIndex((GpAnimCtx*)work, i);
-        i++;
-    } while (i < 3);
+    _actor207200TickAnim(arg0);
 }
 
 /// Colours the actor from the *second* attach coordinate of its model: takes a

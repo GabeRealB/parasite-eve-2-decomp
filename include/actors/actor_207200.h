@@ -40,7 +40,7 @@ typedef struct Actor207200Work {
     /* 0x288 */ s16            field_288;
     /* 0x28A */ s16            field_28A; // frames spent in the current state
     /* 0x28C */ s16            field_28C; // animation id the work is playing
-    /* 0x28E */ u16            field_28E; // id the three helper slots last saw
+    /* 0x28E */ s16            field_28E; // id the three helper slots last saw
     /* 0x290 */ u16            field_290; // frames spent on the current id
     /* 0x292 */ s16            field_292;
     /* 0x294 */ byte           pad_294[0xC];
