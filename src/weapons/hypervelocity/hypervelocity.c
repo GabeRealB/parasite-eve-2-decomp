@@ -595,38 +595,27 @@ static void func_hypervelocity_8011E494(GpCoord* coord, s16 age, s16 spin, s16 a
 /// ROM does not do.
 static void func_hypervelocity_8011E8A0(GpCoord* ground, s32 spin)
 {
-    register u8*          head asm("v1");
     OverlayGroundScratch* sc;
     POLY_FT4*             prim;
-    GpQuadCorner*         tbl;
-    register SVECTOR*     v asm("a2");
     s32                   i;
     s32                   otz;
     s32                   flag;
     s32                   u;
 
-    head             = SCRATCH_HEAD(u8) - sizeof(OverlayGroundScratch);
-    sc               = (OverlayGroundScratch*)head;
-    SCRATCH_HEAD(u8) = head;
+    sc = SCRATCH_PUSH(OverlayGroundScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    i   = 0;
-    v   = sc->vec;
-    tbl = D_80111E38;
-    do {
-        v->vx = tbl->x * spin;
-        v->vy = 0;
-        v->vz = tbl->y * spin;
+    for (i = 0; i < 4; i++) {
+        sc->vec[i].vx = D_80111E38[i].x * spin;
+        sc->vec[i].vy = 0;
+        sc->vec[i].vz = D_80111E38[i].y * spin;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(v);
+        gte_ldv0(&sc->vec[i]);
         gte_rtv0();
-        gte_stsv(v);
-        (u16) v->vx = (u16)v->vx + (u16)ground->workm.t[0];
-        tbl++;
-        (u16) v->vy = (u16)v->vy + (u16)ground->workm.t[1];
-        i++;
-        (u16) v->vz = (u16)v->vz + (u16)ground->workm.t[2];
-        v++;
-    } while (i < 4);
+        gte_stsv(&sc->vec[i]);
+        sc->vec[i].vx += ground->workm.t[0];
+        sc->vec[i].vy += ground->workm.t[1];
+        sc->vec[i].vz += ground->workm.t[2];
+    }
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&sc->vec[0]);
@@ -670,7 +659,7 @@ static void func_hypervelocity_8011E8A0(GpCoord* ground, s32 spin)
         prim->y3    = sc->sxy3.vy;
         addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    SCRATCH_POP_BYTES(sizeof(OverlayGroundScratch));
+    SCRATCH_POP(OverlayGroundScratch);
 }
 
 /// Draws the discharge cone `func_hypervelocity_8011F270` leaves behind: two
