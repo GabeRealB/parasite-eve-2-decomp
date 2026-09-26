@@ -577,96 +577,69 @@ void Mc_StateFormat(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateSyncFileSelect(Task* arg0, McWork* arg1)
+/// Tear down the task's child UI and report status on the task's own object.
+static inline void _mcCloseChild(Task* task, s32 status)
 {
-    Task*              task;
-    register s32       one asm("s5");
-    register UiObject* saved asm("s3");
-    register s32       syncResult asm("s1");
-    McWork*            work;
-    s32                ret;
-    s32                i;
-    s32                next;
-    Task*              child;
-    UiObject*          obj;
-    UiObject*          childObj;
-    UiObject*          flag;
-    u8*                src;
-    u8*                dst;
-    McPromptPair*      entry;
-    McPromptPair*      base;
+    Task*     child;
+    UiObject* obj;
+    UiObject* flag;
 
-    task          = arg0;
-    work          = arg1;
-    one           = 1;
-    saved         = task->spawnArg2;
-    work->field_8 = 0x16;
+    child = task->firstChild;
+    if (child != NULL) {
+        obj         = child->spawnArg2;
+        flag        = task->spawnArg2;
+        obj->status = 0;
+        Ui_TeardownTree(obj, obj->owner);
+        flag->status = status;
+    }
+}
+
+void Mc_StateSyncFileSelect(Task* task, McWork* work)
+{
+    UiObject* obj;
+    s32       syncResult;
+    s32       i;
+    Task*     child;
+    UiObject* childObj;
+    u8*       src;
+    u8*       dst;
+
     obj           = task->spawnArg2;
-    ret           = Ui_LookupTable(obj, 1);
-    obj->field_2E = 0;
-    Ui_DrawTitle(obj, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[0x16];
-    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
-    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
+    work->field_8 = 0x16;
+    _mcDrawPrompt(task, 0x16);
 
-    syncResult = MemCardSync(one, (long*)&work->field_10, (long*)&work->field_14);
-    if (syncResult != -1) {
-        if (syncResult == one) {
-            if (work->field_14 != 0) {
-                {
-                    register Task* ch asm("v1");
-                    ch          = task->firstChild;
-                    task->state = 7;
-                    if (ch != NULL) {
-                        childObj         = ch->spawnArg2;
-                        flag             = task->spawnArg2;
-                        childObj->status = 0;
-                        Ui_TeardownTree(childObj, childObj->owner);
-                        flag->status = syncResult;
-                    }
-                }
-            } else {
-                goto block_6;
-            }
-        } else {
-            goto block_6;
+    syncResult = MemCardSync(1, (long*)&work->field_10, (long*)&work->field_14);
+    if (syncResult == -1) {
+        MemCardExist(work->field_C);
+    } else if (syncResult == 1 && work->field_14 != 0) {
+        task->state = 7;
+        _mcCloseChild(task, syncResult);
+        return;
+    }
+    child = task->firstChild;
+    if (child == NULL) {
+        if (Ui_SpawnFromDesc(D_80061200, (s32)work, 1, 2, obj) != 0) {
+            D_8006116C.field_4 = work->field_288;
+            obj->field_2C      = 0;
+            obj->status        = 0;
         }
     } else {
-        MemCardExist(work->field_C);
-    block_6:
-        child = task->firstChild;
-        if (child == NULL) {
-            if (Ui_SpawnFromDesc(D_80061200, (s32)work, 1, 2, saved) != 0) {
-                do {
-                    D_80061170 = work->field_288;
-                } while (0);
-                saved->field_2C = 0;
-                saved->status   = 0;
-            }
-        } else {
-            childObj = child->spawnArg2;
-            if (childObj->field_2E == 6) {
-                saved->field_2C  = childObj->field_2C;
-                childObj->status = 0;
-                Ui_TeardownTree(childObj, childObj->owner);
-                saved->status = 1;
-                if (saved->field_2C >= 0) {
-                    src = (u8*)work->field_30[saved->field_2C].name;
-                    dst = Mc_FileName;
-                    i   = 0;
-                    do {
-                        *dst = *src;
-                        src += 1;
-                        i   += 1;
-                        dst += 1;
-                    } while (i < 0x14);
-                    next = 0xC;
-                    *dst = 0;
-                } else {
-                    next = 3;
+        childObj = child->spawnArg2;
+        if (childObj->field_2E == 6) {
+            obj->field_2C    = childObj->field_2C;
+            childObj->status = 0;
+            Ui_TeardownTree(childObj, childObj->owner);
+            obj->status = 1;
+            if (obj->field_2C >= 0) {
+                src = (u8*)work->field_30[obj->field_2C].name;
+                dst = Mc_FileName;
+                for (i = 0; i < 0x14; i++) {
+                    *dst++ = *src++;
                 }
-                task->state = next;
+                *dst        = 0;
+                task->state = 0xC;
+            } else {
+                task->state = 3;
             }
         }
     }
