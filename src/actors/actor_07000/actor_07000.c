@@ -2596,52 +2596,39 @@ case1:
     return;
 }
 
-/// Both `Gp_LcgState` draws fold `(state >> 16) % 100` down to under 11 for a
-/// hit, and each is taken through its own local so the two divides stay separate
-/// objects: the compiler keeps the second draw's quotient alive across the
-/// scaling chain, and `SCHED_BARRIER` holds the reaction branch's assignment on
-/// the far side of it. The two barriers are load-bearing, not decoration —
-/// dropping either one re-schedules the `branch` write to before the chain and
-/// the whole block's allocation follows it.
+/// Picks the reaction branch in `field_382` from the collision record at
+/// `field_214` and the distance to the model in pointer slot 3. With no occupant
+/// of kind 0x10000, or at 3000 or more, the branch is cleared. Otherwise a
+/// `Gp_LcgState` draw under 11 of 100 selects branch 3; failing that, 2500 or
+/// more selects 2, and closer in a second draw picks 2 on the same odds or 1.
+/// A chosen branch restarts the animation bookkeeping. The record is released
+/// either way.
 static void Actor07000_Fn046B8(Task* arg0, s32 arg1)
 {
-    u32              sp10;
+    u32              dist;
     Actor107000Work* work;
     u32              rng;
-    u32              rng2;
-    u32              hi;
-    u32              quotient;
-    u32              roll;
-    s32              hit;
-    s16              branch;
 
     work = (Actor107000Work*)arg0->work;
-    Actor07000_Fn047F4(arg0->extra.tmd->coords, &sp10);
-    if (Gp_CountRec18Hi(&work->field_214, 0x10000) == 0 || sp10 >= 0xBB8U) {
+    Actor07000_Fn047F4(arg0->extra.tmd->coords, &dist);
+    if (Gp_CountRec18Hi(&work->field_214, 0x10000) == 0 || dist >= 3000) {
         work->field_382 = 0;
         work->field_36E = 0;
     } else {
         rng         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rng;
-        if ((u16)((rng >> 0x10) % 100U) < 0xBU) {
-            branch = 3;
-        } else if (sp10 >= 0x9C4U) {
-            branch = 2;
+        if ((u16)((rng >> 16) % 100) < 11) {
+            work->field_382 = 3;
+        } else if (dist >= 2500) {
+            work->field_382 = 2;
         } else {
-            rng2        = rng * 5 + 0x71357911;
-            Gp_LcgState = rng2;
-            hi          = rng2 >> 0x10;
-            quotient    = hi / 100U;
-            SCHED_BARRIER();
-            roll = (u16)(hi - quotient * 100U);
-            SCHED_BARRIER();
-            hit    = (roll < 0xBU);
-            branch = 2;
-            if (!hit) {
-                branch = 1;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((u16)((Gp_LcgState >> 16) % 100) < 11) {
+                work->field_382 = 2;
+            } else {
+                work->field_382 = 1;
             }
         }
-        work->field_382 = branch;
         work->field_374 = 0;
         work->field_372 = 0;
     }
