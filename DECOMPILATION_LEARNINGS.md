@@ -142332,3 +142332,13 @@ so nothing but the conditional jump precedes it. The same loop notes weighted
 the arm's pseudos (`REG_N_REFS` by loop depth), which gave the target's
 allocation without the pins. The first switch had to stay an inline function
 outside the macro: with it inside a loop too, the barrier search skips it.
+
+Second instance, a pointer walk (Gp_CollideObjGridDir, 2026-09-26): a
+`for (;; cell++)` over a face list had `cell` pinned to `s5` and an empty-asm
+barrier after the first skip test. The trace put `cell` at priority 794, needing
+2962-3663 to take `s5` over two loop givs. Writing `cell++; continue;` on four
+skip paths and `cell++` at the end gave 24 weighted refs (3601), and the first
+copy's label ended CSE's skip-block path, so the reload of the global the barrier
+forced came back on its own. One path, the test directly before an out-of-line
+block reached by `goto`, still had to `goto next` into the end copy. Duplicated
+there too, jump2 merged every tail into that copy instead of the last one.

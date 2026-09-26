@@ -3787,7 +3787,7 @@ void Gp_CollideObjGridDir(GpObj* arg0)
     GpGridFace*       face;
     GpRec18*          slot;
     GpObjDirRec*      rec;
-    register s16*     cell asm("s5");
+    s16*              cell;
     s32               id;
     s32               i;
     s32               n;
@@ -3795,7 +3795,7 @@ void Gp_CollideObjGridDir(GpObj* arg0)
     s32               val;
     s32               faceDot;
     s32               edgeDot;
-    s32               dist;
+    u16               dist;
     s32               extra;
     s32               faceKind;
     u16               flags;
@@ -3811,17 +3811,18 @@ void Gp_CollideObjGridDir(GpObj* arg0)
     if ((u16)block->grid.vx < Gp_GridParams->field_1C && (u16)block->grid.vz < Gp_GridParams->field_1E) {
         cell = Gp_GridParams->field_10[block->grid.vx * Gp_GridParams->field_1E + block->grid.vz];
         if (cell != NULL) {
-            for (;; cell++) {
+            for (;;) {
                 id = *cell;
                 if (id == -1) {
                     goto done;
                 }
                 face = &Gp_GridParams->field_C[id];
                 if (face->verts[0] == 0 && face->verts[1] == 0) {
+                    cell++;
                     continue;
                 }
-                COMPILER_BARRIER();
                 if (Gp_GridParams->field_4[face->field_8].vy < -0xDDA) {
+                    cell++;
                     continue;
                 }
 
@@ -3840,26 +3841,21 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                 if (rec->dir.vx * block->normal.vx + rec->dir.vy * block->normal.vy +
                         rec->dir.vz * block->normal.vz >
                     0x280000) {
+                    cell++;
                     continue;
                 }
 
                 faceDot = (block->normal.vx * block->verts[0].vx + block->normal.vy * block->verts[0].vy +
                            block->normal.vz * block->verts[0].vz) >>
                           12;
-                {
-                    register s32 planeDist asm("v0");
-
-                    planeDist = ((block->normal.vx * block->pos.vx + block->normal.vy * block->pos.vy +
-                                  block->normal.vz * block->pos.vz) >>
-                                 12) -
-                                faceDot;
-                    dist = planeDist;
-                    TOUCH_REG(planeDist);
-                    if ((u16)arg0->radius >= ABS((s16)planeDist)) {
-                        goto edges;
-                    }
+                dist = ((block->normal.vx * block->pos.vx + block->normal.vy * block->pos.vy +
+                         block->normal.vz * block->pos.vz) >>
+                        12) -
+                       faceDot;
+                if ((u16)arg0->radius >= ABS((s16)dist)) {
+                    goto edges;
                 }
-                continue;
+                goto next_face;
 
             mark_outside:
                 outside = 1;
@@ -3912,6 +3908,7 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                 }
             edges_done:
                 if (outside) {
+                    cell++;
                     continue;
                 }
 
@@ -3946,7 +3943,8 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                     slot++;
                 }
 
-            next_face:;
+            next_face:
+                cell++;
             }
         }
     }
