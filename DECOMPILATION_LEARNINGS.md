@@ -143235,3 +143235,15 @@ when flow counts references: in `.lreg` the counter went from 11 to 13 refs
 over the same 14 insns, which ranks it above the bound (11 refs over 12) in
 global allocation. The two spellings emit identical instructions otherwise, so
 a hand-inverted loop with a pinned counter is worth one `while` attempt first.
+
+### A `u16` checksum accumulator: `lbu`+sign-extend with no copy, where `s16` needs a pin (Mc_StateSaveSlotUi, 2026-09-26)
+
+In a byte-sum loop compared against a stored `u16` checksum, an `s16 sum` gives
+the `lbu`/`sll 24`/`sra 24` load but adds into a second register and copies it
+back (`addu v1,a2,v0` ... `move a2,v1`); an `s32 sum` drops the copy but folds the
+load to `lb`. Declaring the accumulator `u16` and comparing directly,
+`return save->hdrChecksum == sum;`, gives both the long load and the in-place
+`addu v1,v1,v0`, with the `andi 0xFFFF` after the loop. A `register s16 sum
+asm("v1")` plus a `volatile u8*` walker in such a loop stands for this. The
+loop counter compares against a `limit` local (`slt` with a register), since a
+literal bound lets loop.c reverse it into a `bgez` countdown.
