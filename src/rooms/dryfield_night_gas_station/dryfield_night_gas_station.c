@@ -2113,20 +2113,16 @@ static void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s3
     s32                      tr;
     s32                      tg;
     s32                      scaled;
-    s32                      sum;
+    s32                      conn;
     u8                       r;
     u8                       g;
     u8                       b;
 
-    p1      = arg0 + 1;
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    {
-        register u8* tmp asm("v0");
-        tmp      = head - 0x1C;
-        block    = (OverlayPointPairScratch*)tmp;
-        *scratch = tmp;
-    }
+    p1       = arg0 + 1;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    *scratch = head - 0x1C;
+    block    = (OverlayPointPairScratch*)(head - 0x1C);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -2180,23 +2176,18 @@ static void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s3
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-                    prim = (POLY_G4*)gGpuPrimCursor;
-                    USE_REG(prim);
-                    t   = ang - angStart;
-                    t <<= 1;
-                    TOUCH_REG(t);
-                    sum            = angStart + t;
-                    t              = sum;
+                    conn           = angStart + ((ang - angStart) * 2);
+                    prim           = (POLY_G4*)gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
                     setRGB1(prim, 0, 0, 0);
                     setRGB2(prim, r, g, b);
                     setRGB3(prim, r, g, b);
-                    prim->x0 = block->sx0 + ((block->r0 * rsin(t)) >> 12);
-                    prim->y0 = block->sy0 + ((block->r0 * rcos(t)) >> 12);
-                    prim->x1 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y1 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
+                    prim->x0 = block->sx0 + ((block->r0 * rsin(conn)) >> 12);
+                    prim->y0 = block->sy0 + ((block->r0 * rcos(conn)) >> 12);
+                    prim->x1 = block->sx1 + ((block->r1 * rsin(conn)) >> 12);
+                    prim->y1 = block->sy1 + ((block->r1 * rcos(conn)) >> 12);
                     prim->x2 = block->sx0;
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx1;
