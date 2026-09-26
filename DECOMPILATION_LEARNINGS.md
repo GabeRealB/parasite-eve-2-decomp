@@ -144478,3 +144478,30 @@ sites. Making the function one call to the helper matched at once: compiled
 out of line, the helper's `for (i = 1; ...)` loops produce the shared `1`
 register and the `addu` with it on their own. Before steering a function's
 body, grep its file for an inline helper that does the same thing.
+## Keep a copy's negate from folding onto its source without a barrier: load the narrow variable, widen a copy, copy before the test (Actor04000_Fn04FA4, 2026-09-27)
+
+Target: `lh v1; beqz v1; move s0,v1` then `abs(v1)`, `negu s0,s0`, `bgez v1` -
+an abs/sign clamp on the loaded value and a negate of its *copy*. Every
+same-type spelling fails one of two ways: `step = -rot` (or a copy and negate
+in one block) is folded by combine into `negu s0,v1`; putting the negate in an
+`else` keeps the copy but cse's `make_regs_eqv` makes the longer-lived copy the
+class head, so `abs` reads `s0`. The earlier entry "CSE rewrites `a = -a`..."
+reached for a `SOFT_TOUCH_REG` here.
+
+Plain C does it when the stored variable is the narrow one and the test
+variable a widened copy, taken before the `!= 0` test:
+
+```c
+s16 step;  s32 rot;
+step = work->angle;        /* s16 field */
+rot  = step;
+if (rot != 0) {
+    step = -step;
+    if (abs(rot) > 0x92) { step = (rot < 0) ? 0x92 : -0x92; }
+    f(step);               /* call takes s32: sll/sra at the argument */
+    work->angle += step;
+}
+```
+
+The `sll 16; sra 16` on the call argument is the tell that the stepped value
+was an `s16` local in the first place.

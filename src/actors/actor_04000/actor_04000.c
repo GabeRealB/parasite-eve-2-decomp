@@ -1622,9 +1622,8 @@ static void Actor04000_Fn04FA4(GpEnemy* arg0, Task* arg1)
     Actor104000Work* work;
     s32              id;
     s32              pan;
-    s32              mag;
     s32              rot;
-    s32              step;
+    s16              step;
 
     work = arg1->work;
     if (work->field_4 != 0) {
@@ -1664,19 +1663,14 @@ static void Actor04000_Fn04FA4(GpEnemy* arg0, Task* arg1)
         work->field_479                     = 0;
         Gfx_RotMatrixZ(&arg1->extra.tmd->coords->coord, -work->field_19C, 0);
     } else {
-        rot = work->field_19C;
+        step = work->field_19C;
+        rot  = step;
         if (rot != 0) {
-            mag  = __builtin_abs(rot);
-            step = rot;
-            SOFT_TOUCH_REG(step);
             step = -step;
-            if (mag >= 0x93) {
-                step = -0x92;
-                if (rot < 0) {
-                    step = 0x92;
-                }
+            if (abs(rot) > 0x92) {
+                step = (rot < 0) ? 0x92 : -0x92;
             }
-            Gfx_RotMatrixZ(&arg1->extra.tmd->coords->coord, (s16)step, 0);
+            Gfx_RotMatrixZ(&arg1->extra.tmd->coords->coord, step, 0);
             work->field_19C += step;
         }
     }
