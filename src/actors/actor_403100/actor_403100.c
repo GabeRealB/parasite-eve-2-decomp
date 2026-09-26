@@ -1113,6 +1113,62 @@ s32 func_actor_403100_80133928(void)
     }
     return 0;
 }
+/// Wraps the root yaw `field_82` to 12 bits and replaces the rotation of the
+/// root coordinate with the one `func_8004BFF8` builds from it.
+static inline void _actor403100SetRootYaw(Task* task)
+{
+    MATRIX   rotation;
+    MATRIX*  dest;
+    GpCoord* coords;
+
+    coords                            = task->extra.tmd->coords;
+    D_actor_403100_80155808->field_82 = (s32)((u16)D_actor_403100_80155808->field_82 << 20) >> 20;
+    gfxSetRotIdentity(&rotation);
+    func_8004BFF8(D_actor_403100_80155808->field_82, &rotation);
+    dest          = &coords->coord;
+    dest->m[0][0] = rotation.m[0][0];
+    dest->m[0][1] = rotation.m[0][1];
+    dest->m[0][2] = rotation.m[0][2];
+    dest->m[1][0] = rotation.m[1][0];
+    dest->m[1][1] = rotation.m[1][1];
+    dest->m[1][2] = rotation.m[1][2];
+    dest->m[2][0] = rotation.m[2][0];
+    dest->m[2][1] = rotation.m[2][1];
+    dest->m[2][2] = rotation.m[2][2];
+    coords->flg   = 0;
+}
+
+/// Scales the root coordinate's matrix by `factor` on all three axes.
+static inline void _actor403100ScaleRoot(Task* task, s16 factor)
+{
+    VECTOR   scale;
+    MATRIX   scaling;
+    GpCoord* coords;
+
+    coords   = task->extra.tmd->coords;
+    scale.vx = factor;
+    scale.vy = scale.vx;
+    scale.vz = scale.vx;
+    gfxSetRotIdentity(&scaling);
+    ScaleMatrix(&scaling, &scale);
+    MulMatrix(&coords->coord, &scaling);
+}
+
+/// Hands the world position of `coord` to `Gp_UpdateActorColor`, staged in a
+/// `VECTOR` taken off the scratch stack.
+static inline void _actor403100UpdateColor(Task* task, GpCoord* coord)
+{
+    VECTOR* pos;
+
+    pos                  = SCRATCH_HEAD(VECTOR) - 1;
+    pos->vx              = coord->workm.t[0];
+    pos->vy              = coord->workm.t[1];
+    pos->vz              = coord->workm.t[2];
+    SCRATCH_HEAD(VECTOR) = pos;
+    Gp_UpdateActorColor(task->spawnArg2, pos, 0, 0);
+    SCRATCH_POP_BYTES(sizeof(VECTOR));
+}
+
 void func_actor_403100_801339EC(Task* arg0)
 {
     void (*handlers[5])(Task*) = {
@@ -1122,89 +1178,33 @@ void func_actor_403100_801339EC(Task* arg0)
         (void (*)(Task*))func_actor_403100_8013E5FC,
         func_actor_403100_8013E624
     };
-    OverlayMat       rotation;
-    VECTOR           scale;
-    OverlayMat       scaling;
-    GpCoord*         coords;
-    GpCoord*         center;
-    GpCoord*         coords2;
-    MATRIX*          mtx;
-    MATRIX*          mtx2;
-    GpCoord*         side;
-    GpCoord*         scaled;
-    Actor403100Work* work;
-    s32              flash;
-    u8*              head;
-    u8*              head2;
-    MATRIX*          dest;
-    VECTOR*          pos;
-    s32              brightness;
+    GpCoord* coords;
+    GpCoord* side;
+    GpCoord* center;
+    s32      flash;
+    s32      brightness;
 
     handlers[(s16)D_actor_403100_80155808->field_5F8](arg0);
     func_actor_403100_801327CC(arg0);
-    coords                            = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->field_82 = (s32)((u16)D_actor_403100_80155808->field_82 << 20) >> 20;
-    mtx                               = &rotation.mat;
-    rotation.ident.m00_m01            = 0x1000;
-    rotation.ident.m02_m10            = 0;
-    MATRIX_PAIR(mtx, 1, 1)            = 0x1000;
-    rotation.ident.m20_m21            = 0;
-    mtx->m[2][2]                      = 0x1000;
-    func_8004BFF8(D_actor_403100_80155808->field_82, &rotation.mat);
-    dest                    = &coords->coord;
-    dest->m[0][0]           = rotation.mat.m[0][0];
-    dest->m[0][1]           = rotation.mat.m[0][1];
-    dest->m[0][2]           = rotation.mat.m[0][2];
-    dest->m[1][0]           = rotation.mat.m[1][0];
-    dest->m[1][1]           = rotation.mat.m[1][1];
-    dest->m[1][2]           = rotation.mat.m[1][2];
-    dest->m[2][0]           = rotation.mat.m[2][0];
-    dest->m[2][1]           = rotation.mat.m[2][1];
-    dest->m[2][2]           = rotation.mat.m[2][2];
-    coords->flg             = 0;
-    scaled                  = arg0->extra.tmd->coords;
-    scale.vx                = D_actor_403100_80155808->field_5D8;
-    scale.vy                = scale.vx;
-    scale.vz                = scale.vx;
-    mtx2                    = &scaling.mat;
-    scaling.ident.m00_m01   = 0x1000;
-    scaling.ident.m02_m10   = 0;
-    MATRIX_PAIR(mtx2, 1, 1) = 0x1000;
-    scaling.ident.m20_m21   = 0;
-    mtx2->m[2][2]           = 0x1000;
-    ScaleMatrix(&scaling.mat, &scale);
-    MulMatrix(&scaled->coord, &scaling.mat);
+    _actor403100SetRootYaw(arg0);
+    _actor403100ScaleRoot(arg0, D_actor_403100_80155808->field_5D8);
     func_actor_403100_801328DC(arg0);
-    coords2        = arg0->extra.tmd->coords;
-    coords2[8].flg = 0;
-    coords2[7].flg = 0;
-    coords2[6].flg = 0;
-    coords2[5].flg = 0;
-    coords2[4].flg = 0;
-    coords2[3].flg = 0;
-    coords2[2].flg = 0;
-    coords2[1].flg = 0;
-    coords2[0].flg = 0;
-    side           = &coords2[4];
-    center         = &coords2[3];
-
-    Gp_UpdateCoord(&coords2[8]);
+    coords        = arg0->extra.tmd->coords;
+    coords[8].flg = 0;
+    coords[7].flg = 0;
+    coords[6].flg = 0;
+    coords[5].flg = 0;
+    coords[4].flg = 0;
+    coords[3].flg = 0;
+    coords[2].flg = 0;
+    coords[1].flg = 0;
+    coords[0].flg = 0;
+    side          = &coords[4];
+    center        = &coords[3];
+    Gp_UpdateCoord(&coords[8]);
     Gp_UpdateCoord(side);
-    __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
-    head                               = *(u8**)(head + 0x3FC);
-    pos                                = (VECTOR*)(head - 16);
-    pos->vx                            = center->workm.t[0];
-    pos->vy                            = center->workm.t[1];
-    pos->vz                            = center->workm.t[2];
-    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = pos;
-    Gp_UpdateActorColor(arg0->spawnArg2, pos, 0, 0);
-    work  = D_actor_403100_80155808;
-    flash = work->field_5FE;
-    __asm__("lui %0, 0x1F80" : "=r"(head2) : "r"(work));
-    head2 = *(u8**)(head2 + 0x3FC);
-    SOFT_TOUCH_REG_USE(head2, flash);
-    head2 += 16;
-    __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(head2) : "memory");
+    _actor403100UpdateColor(arg0, center);
+    flash = D_actor_403100_80155808->field_5FE;
     if (flash != 0) {
         if (flash >= 16) {
             brightness = rsin(gDisplayState.animFrame << 9) << 13;
@@ -2378,47 +2378,6 @@ static inline void _actor403100RunHook(void)
     hooks.funcs[D_actor_403100_80155808->field_5F2]();
 }
 
-/// Wraps the root yaw `field_82` to 12 bits and replaces the rotation of the
-/// root coordinate with the one `func_8004BFF8` builds from it.
-static inline void _actor403100SetRootYaw(Task* task)
-{
-    MATRIX   rotation;
-    MATRIX*  dest;
-    GpCoord* coords;
-
-    coords                            = task->extra.tmd->coords;
-    D_actor_403100_80155808->field_82 = (s32)((u16)D_actor_403100_80155808->field_82 << 20) >> 20;
-    gfxSetRotIdentity(&rotation);
-    func_8004BFF8(D_actor_403100_80155808->field_82, &rotation);
-    dest          = &coords->coord;
-    dest->m[0][0] = rotation.m[0][0];
-    dest->m[0][1] = rotation.m[0][1];
-    dest->m[0][2] = rotation.m[0][2];
-    dest->m[1][0] = rotation.m[1][0];
-    dest->m[1][1] = rotation.m[1][1];
-    dest->m[1][2] = rotation.m[1][2];
-    dest->m[2][0] = rotation.m[2][0];
-    dest->m[2][1] = rotation.m[2][1];
-    dest->m[2][2] = rotation.m[2][2];
-    coords->flg   = 0;
-}
-
-/// Scales the root coordinate's matrix by `factor` on all three axes.
-static inline void _actor403100ScaleRoot(Task* task, s32 factor)
-{
-    VECTOR   scale;
-    MATRIX   scaling;
-    GpCoord* coords;
-
-    coords   = task->extra.tmd->coords;
-    scale.vx = factor;
-    scale.vy = scale.vx;
-    scale.vz = scale.vx;
-    gfxSetRotIdentity(&scaling);
-    ScaleMatrix(&scaling, &scale);
-    MulMatrix(&coords->coord, &scaling);
-}
-
 /// Adds the angles `field_A0`, `field_A2` and `field_A4` to the rotation of
 /// model part 6 and updates the part.
 static inline void _actor403100TurnPart6(Task* task)
@@ -2489,21 +2448,6 @@ static inline void _actor403100PitchArms(Task* task)
     dest->m[2][0] = rotation.m[2][0];
     dest->m[2][1] = rotation.m[2][1];
     dest->m[2][2] = rotation.m[2][2];
-}
-
-/// Hands the world position of `coord` to `Gp_UpdateActorColor`, staged in a
-/// `VECTOR` taken off the scratch stack.
-static inline void _actor403100UpdateColor(Task* task, GpCoord* coord)
-{
-    VECTOR* pos;
-
-    pos                  = SCRATCH_HEAD(VECTOR) - 1;
-    pos->vx              = coord->workm.t[0];
-    pos->vy              = coord->workm.t[1];
-    pos->vz              = coord->workm.t[2];
-    SCRATCH_HEAD(VECTOR) = pos;
-    Gp_UpdateActorColor(task->spawnArg2, pos, 0, 0);
-    SCRATCH_POP_BYTES(sizeof(VECTOR));
 }
 
 void func_actor_403100_80136830(Task* arg0)

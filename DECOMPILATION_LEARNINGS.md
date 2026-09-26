@@ -142388,3 +142388,13 @@ exit and the `age >= 0x1F` exit, with the early path jumping into the second
 one's call. Two calls cross-jumped by jump2 give the same layout but count both
 in flow's live lengths; one call reached by `goto release;` from the early exit,
 with the label inside the `age` block, gives the layout and the allocation.
+## An inline helper's parameter width moves the argument load: declare it as wide as the field passed (func_actor_403100_801339EC, 2026-09-26)
+
+A `static inline` helper that scales a coordinate by `factor` was called with
+an `s16` work field. Declared `s32 factor`, the field's `lh` was scheduled
+ahead of the helper's own `task->extra.tmd->coords` load (96.2%); declared
+`s16 factor`, it lands after it, as the ROM has (exact). `u16` gave 98.7%.
+Where a helper's argument load sits in the wrong place relative to the body,
+try the parameter at the width of the field the callers pass before reaching
+for a block-scoped copy of the body - both a hand-inlined copy and a `{ }`
+block scored worse than either helper form here.
