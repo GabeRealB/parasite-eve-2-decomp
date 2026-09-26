@@ -144610,3 +144610,17 @@ their loads, gives `x0` (and `x1`) the extra ref, and cse still emits `lh` from
 memory for the subtraction beside the `lhu` into the local; `dy` stays a
 difference of the fields, computed before `y0 = …`, so `y0` remains a copy of
 its load. Computing `dy` from the locals too adds the ref to `y0` and breaks it.
+
+## `lw v0,off(a); move sN,v0; lw sM,k(sN)` without a pin: the pointer was dereferenced before it was bound (func_actor_206100_8014C458, 2026-09-27)
+
+The target loads `task->extra.tmd` into `$v0`, copies it to a callee-saved
+register, then reads `->coords` through the copy. `obj = task->extra.tmd;
+coord = obj->coords;` loads straight into `$s6` and drops the `move` (99.0%,
+with the struct copy after it reallocated too); the seed kept the copy with a
+`SOFT_TOUCH_REG_USE` helper and a volatile read. Writing the chained read
+first, `coord = task->extra.tmd->coords;` then `obj = task->extra.tmd;`, gives
+the load a temporary that cse keeps as the class head: `obj` becomes a copy of
+it, the temporary is still live for `coord` so combine cannot merge the copy,
+and local-alloc's `optimize_reg_copy_1` then points `coord`'s read at the copy.
+When a pointer local is a `move` of its own load, try initialising whatever
+dereferences it before the local itself.

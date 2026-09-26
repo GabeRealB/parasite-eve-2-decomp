@@ -1785,23 +1785,14 @@ static __inline__ void Actor206100_UpdateColor(Task* task)
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
-/// Keep the model load and its long-lived saved copy as separate values.
-static __inline__ TmdObject* Actor206100_ModelCopy(TmdObject* input)
-{
-    TmdObject* result;
-    result = input;
-    SOFT_TOUCH_REG_USE(result, input);
-    return result;
-}
-
 /// Updates the active enemy, emits its beam, and gates lock-on by its height
 /// after transforming the selected model part through the parent chain.
 static void func_actor_206100_8014C458(Task* task)
 {
     Actor206100Work*       work   = (Actor206100Work*)task->work;
-    TmdObject*             obj    = Actor206100_ModelCopy(*(TmdObject* volatile*)&task->extra.tmd);
+    GpCoord*               coord  = task->extra.tmd->coords;
+    TmdObject*             obj    = task->extra.tmd;
     GpEnemy*               enemy  = (GpEnemy*)task->spawnArg2;
-    GpCoord*               coord  = obj->coords;
     TaskFuncTable9         states = D_actor_206100_80149E70;
     Actor206100VecScratch  scratch;
     VECTOR                 scale;
