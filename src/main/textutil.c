@@ -85,56 +85,52 @@ s32 Text_ParseLine(u8** arg0, u8* arg1)
     return ret;
 }
 
+/// One line of Text_DrawMultiLine: relative to obj's origin, or at an absolute
+/// position when obj is NULL; skipped when obj is in mode 5.
+static inline void _textDrawLine(UiObject* obj, s32 x, s32 y, u8* text, s32 arg4, s32 arg5, s32 arg6)
+{
+    TextDrawReq req;
+    TextDrawReq req2;
+    s32         temp;
+
+    if (obj != NULL) {
+        if (obj->mode != 5) {
+            req.x          = obj->baseX + x;
+            req.y          = (obj->baseY + y) - 3;
+            temp           = (s16)obj->drawOrder;
+            req.field_8    = arg4;
+            req.otIndex    = temp + 1;
+            req.glyphTable = 4;
+            req.centerMode = arg6;
+            req.field_E    = arg5;
+            func_8002E53C(&req, text);
+        }
+    } else {
+        req2.x          = x;
+        req2.y          = y;
+        req2.otIndex    = 4;
+        req2.field_8    = arg4;
+        req2.glyphTable = 4;
+        req2.centerMode = arg6;
+        req2.field_E    = arg5;
+        func_8002E53C(&req2, text);
+    }
+}
+
 s32 Text_DrawMultiLine(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
 {
-    u8                    sp10[0x40];
-    TextDrawReq           sp50[2];
-    u8*                   cur;
-    s32                   temp;
-    UiObject*             obj;
-    register s32          x asm("s2");
-    register s32          y asm("s1");
-    register TextDrawReq* p asm("s0");
-    register u8*          buf asm("s4");
-    register s32          ret asm("s5");
-    register s32          four asm("s6");
-    s32                   a6;
-    s32                   a5;
+    u8  buf[0x40];
+    u8* cur;
+    s32 x;
+    s32 y;
+    s32 ret;
 
-    a5   = arg5;
-    a6   = arg6;
-    obj  = arg0;
-    x    = arg1;
-    y    = arg2;
-    p    = sp50;
-    buf  = sp10;
-    four = 4;
-    cur  = arg3;
-
+    x   = arg1;
+    y   = arg2;
+    cur = arg3;
     do {
-        ret = Text_ParseLine(&cur, sp10);
-        if (obj != NULL) {
-            if (obj->mode != 5) {
-                sp50[0].x          = obj->baseX + x;
-                sp50[0].y          = (obj->baseY + y) - 3;
-                temp               = (s16)obj->drawOrder;
-                sp50[0].field_8    = arg4;
-                sp50[0].otIndex    = temp + 1;
-                p->glyphTable      = 4;
-                sp50[0].centerMode = a6;
-                sp50[0].field_E    = a5;
-                func_8002E53C(p, buf);
-            }
-        } else {
-            sp50[1].x          = x;
-            sp50[1].y          = y;
-            p[1].otIndex       = four;
-            sp50[1].field_8    = arg4;
-            p[1].glyphTable    = four;
-            sp50[1].centerMode = a6;
-            sp50[1].field_E    = a5;
-            func_8002E53C(&sp50[1], buf);
-        }
+        ret = Text_ParseLine(&cur, buf);
+        _textDrawLine(arg0, x, y, buf, arg4, arg5, arg6);
         x  = arg1;
         y += 0xF;
     } while (ret != -1);
