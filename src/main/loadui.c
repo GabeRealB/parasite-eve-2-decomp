@@ -1,4 +1,7 @@
 #include "common.h"
+
+#define LOADUI_C
+
 #include "main/stage.h"
 
 #include "main/unknown_syms.h"
@@ -11,6 +14,12 @@
 #include "psyq/libetc.h"
 
 static const GBytes4 D_80013F18;
+
+static u16 D_8007A390;
+static u8  D_8007A392;
+static u8  D_8007A393;
+u8         D_8007A394;
+s16        D_8007A396;
 
 u8       D_800626E8    = 0;
 TaskDesc D_800626EC[6] = {

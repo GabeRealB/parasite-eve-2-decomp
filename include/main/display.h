@@ -109,7 +109,9 @@ extern DisplayState gDisplayState;
 extern u_long   Gpu_OtTags[2 * GPU_OT_ENTRIES];
 extern GpuOtBuf Gpu_OtBuffers[2];
 #endif
+#ifndef OTUTIL_C
 extern GsOT Gpu_OrderingTables[2];
+#endif
 
 #ifndef GAMEMAIN_C
 /// The ordering table the frame being built is linked into.
@@ -151,13 +153,14 @@ extern u8* gGpuPrimCursor;
     ((u32)(r) | ((u32)(g) << 8) | ((u32)(b) << 16) | ((u32)(code) << 24))
 
 #ifndef GAMEMAIN_C
-extern u8* Gpu_SysPrimCursor;           // primitive buffer cursor
+extern u8* Gpu_SysPrimCursor; // primitive buffer cursor
 #endif
-extern u8    Gpu_PrimBufStatic[0x6000]; // 2 x 0x3000, base of Gpu_SysPrimCursor
-extern void* Gpu_PrimBufBase;           // base gGpuPrimCursor is reset from
+#ifndef OTUTIL_C
+extern u8 Gpu_PrimBufStatic[0x6000]; // 2 x 0x3000, base of Gpu_SysPrimCursor
+#endif
 #ifndef GAMEMAIN_C
-extern volatile u8 D_8006EC30;          // the flip's copy of at100.flags.imageSource, read from the VSync callback
-extern volatile u8 D_80070E38;          // the flip's copy of at100.flags.flipMode, read from the VSync callback
+extern volatile u8 D_8006EC30; // the flip's copy of at100.flags.imageSource, read from the VSync callback
+extern volatile u8 D_80070E38; // the flip's copy of at100.flags.flipMode, read from the VSync callback
 #endif
 
 // --- APIs ---

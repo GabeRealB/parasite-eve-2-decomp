@@ -1,4 +1,7 @@
 #include "common.h"
+
+#define FONT_C
+
 #include "mapui/mapui.h"
 #include "main/stage.h"
 
@@ -16,6 +19,10 @@ static void Stage_KillWhenIdle(Task* arg0);
 
 static void Prim_DrawTile(PrimDrawParams* arg0);
 static void Stage_DispatchTaskTable(Task* arg0);
+
+static u8  D_8007A398;
+static s16 D_8007A39A;
+u16        D_8007A39C;
 
 u8 gStageMusicLoadState  = 0xFF;
 u8 gStageSceneMusicEntry = 0;

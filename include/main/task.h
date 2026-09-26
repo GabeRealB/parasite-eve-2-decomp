@@ -257,7 +257,9 @@ extern TaskNode gTaskDefaultList;
 /// Head of the side list the display code runs on. A display mode makes it the
 /// active list, so the tasks spawned for that mode land here rather than on the
 /// main list, and the display frame walks it.
+#ifndef OTUTIL_C
 extern TaskNode gTaskDisplayList;
+#endif
 
 /// Six task descriptors. Entry 5 is a model descriptor whose model is not
 /// fixed: callers store the model in its `arg` just before spawning effect

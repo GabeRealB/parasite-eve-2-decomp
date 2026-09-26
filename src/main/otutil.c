@@ -1,5 +1,7 @@
 #include "common.h"
 
+#define OTUTIL_C
+
 #include <psyq/libapi.h>
 #include <psyq/libetc.h>
 
@@ -11,6 +13,14 @@
 #include "gameplay/3688.h"
 
 static void Display_ResetHeapFromSession(void);
+
+u8            Gpu_PrimBufStatic[0x6000];
+static void*  Gpu_PrimBufBase;
+static s32    D_8007A0E4;
+GsOT          Gpu_OrderingTables[2];
+TaskNode      gTaskDisplayList;
+static s32    D_8007A118;
+static u_long D_8007A120[0x80];
 
 static TaskDesc D_8006268C = { 0, 0xC0, Gp_MenuRootTask };
 

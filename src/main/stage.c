@@ -1,4 +1,5 @@
 #include "common.h"
+
 #include "main/display.h"
 #include "main/mem.h"
 
@@ -23,6 +24,15 @@ static void Stage_WaitCdActivate(Task* arg0);
 static void Stage_WaitCdAndSpawn(Task* arg0);
 static void Stage_WaitCdEntry(Task* arg0);
 static void Display_DispatchTaskTable(Task* arg0);
+
+static StageCtx      D_8007A320;
+static s32           D_8007A358;
+static u16           D_8007A35C;
+static u16           D_8007A35E;
+static void*         D_8007A360;
+static u8*           Mdec_DecodeBase; // resolved decode base (Mdec_ResolveStreamBuffer)
+static CdCmd58Entry* Stage_CdEntry;   // matched CdCmd_Queue.field_58 entry
+static PadRemapState D_8007A370;
 
 /// Active stage/flow context pointer.
 static StageCtx* Stage_Ctx      = &D_8007A320;

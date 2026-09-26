@@ -93,20 +93,15 @@ extern volatile u8  D_800827E4;
 extern volatile u16 D_80082808;
 extern volatile u16 D_80082810;
 
-extern s32    D_8007A0E4;
-extern u_long D_8007A120[0x80];
-extern s32    D_8007A118;
-extern s32    D_8007A358;
-extern u16    D_8007A35E;
-extern void*  D_8007A360;
-extern u8     D_8007A392;
-extern u8     D_8007A394;
-extern s16    D_8007A396;
-extern u8     D_8007A398;
-extern s16    D_8007A39A;
-extern u16    D_8007A39C;
-extern u8     D_8007E0CC;
-extern s32    D_8007E0D4;
+#ifndef LOADUI_C
+extern u8  D_8007A394;
+extern s16 D_8007A396;
+#endif
+#ifndef FONT_C
+extern u16 D_8007A39C;
+#endif
+extern u8  D_8007E0CC;
+extern s32 D_8007E0D4;
 
 extern u8 D_80725C54[];
 

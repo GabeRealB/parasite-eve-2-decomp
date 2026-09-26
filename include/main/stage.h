@@ -40,8 +40,6 @@ STATIC_ASSERT_SIZEOF(StageCtx, 0x38);
 // Globals
 // =============================================================================
 
-extern StageCtx D_8007A320;
-
 // The stage's background-music state, kept by the task that loads an area's
 // music (`Task_AllocIdMap` and the states after it) and by the requests that
 // start it.

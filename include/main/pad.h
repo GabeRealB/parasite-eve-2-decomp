@@ -129,7 +129,6 @@ extern PadState Pad_States[2];
 extern PadRawPort Pad_RawPorts[2];
 #endif
 extern PadRemapState* Pad_RemapState;
-extern PadRemapState  D_8007A370;
 
 // Button masks checked with Pad_CheckButtons: confirm (0x40), cancel
 // (0xA0) and menu-open (0x900). Gp_PadSuppressMask masks out 0x900

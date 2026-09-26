@@ -568,11 +568,8 @@ extern u8 D_800630B0[];
 /// as its VLC table and decode area, chunked file loads stream into them, and
 /// overlays borrow them for primitives and saved state, so the bytes have no
 /// single type and each user views them as its own.
-extern void*         D_8005C36C;
-extern void*         D_8005C370;
-extern void*         D_8005C374;
-extern u8*           Mdec_DecodeBase; // resolved decode base (Mdec_ResolveStreamBuffer)
-extern CdCmd58Entry* Stage_CdEntry;   // matched CdCmd_Queue.field_58 entry
-extern u16           D_8007A35C;
+extern void* D_8005C36C;
+extern void* D_8005C370;
+extern void* D_8005C374;
 
 #endif
