@@ -1547,27 +1547,14 @@ void Gp_ItemRowSelect(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3)
 
 void Gp_SetPreviewItem(s32 arg0, s32 arg1)
 {
-    register s32  idx asm("v1");
-    register s32  val asm("t1");
-    register s32* p asm("v1");
-    s32*          table;
-    s32           i;
-    s32           slot;
+    s32 i;
 
-    table = Gp_PreviewItems;
-    idx   = arg1 & 0xFF;
-    if (arg0 != table[idx]) {
-        i = 0;
-        do {
-            slot = idx;
-            val  = -1;
-            p    = table;
-        } while (0);
-        for (; i < 3; i++, p++) {
-            if (i == slot) {
-                *p = arg0;
+    if (arg0 != Gp_PreviewItems[arg1 & 0xFF]) {
+        for (i = 0; i < 3; i++) {
+            if (i == (arg1 & 0xFF)) {
+                Gp_PreviewItems[i] = arg0;
             } else {
-                *p = val;
+                Gp_PreviewItems[i] = -1;
             }
         }
         Gp_EnqueueItemPreviewCd(arg0, arg1 & 0xFF);
