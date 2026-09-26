@@ -1,1 +1,4 @@
 // Overlay-local symbols for map_dryfield_full (file 900003).
+D_map_dryfield_full_801799A4 = 0x801799A4; // table main indexes by map
+D_map_dryfield_full_8017D238 = 0x8017D238; // table main indexes by map
+D_map_dryfield_full_8017D594 = 0x8017D594; // table main indexes by map

@@ -1,1 +1,4 @@
 // Overlay-local symbols for map_shelter (file 900004).
+D_map_shelter_80179B40 = 0x80179B40; // table main indexes by map
+D_map_shelter_8017BE28 = 0x8017BE28; // table main indexes by map
+D_map_shelter_8017C2D8 = 0x8017C2D8; // table main indexes by map

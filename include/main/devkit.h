@@ -10,6 +10,7 @@
 
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/fs.h"
 
 void func_807011D8(Task* arg0);
 void func_80701400(Task* arg0);
@@ -45,5 +46,15 @@ void func_80725BB8(Task* arg0);
 extern TmdSource D_80725F44;
 extern TmdSource D_8072C8F0;
 extern TmdSource D_8075BED4;
+
+/// Fixed addresses no image defines, which main points at: the image-buffer
+/// region, the work area at 0x801FD000, the load addresses of the three actor
+/// slots, and 4MB into the dev kit's memory.
+extern FsImgBuffers D_801D7000;
+extern u8           D_801FD000[];
+extern u8           D_80131E20[];
+extern u8           D_80149E20[];
+extern u8           D_80161E20[];
+extern u8           D_80400000[];
 
 #endif /* MAIN_DEVKIT_H */

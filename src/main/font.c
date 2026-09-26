@@ -1,4 +1,5 @@
 #include "common.h"
+#include "mapui/mapui.h"
 #include "main/stage.h"
 
 #include "main/unknown_syms.h"
@@ -27,18 +28,18 @@ static u8 gStageMusicRow = 0;
 /// The song last started from the music table.
 static u8          gStageCurrentSong = 0;
 static TaskIdPair* D_8006273C[]      = {
-    (TaskIdPair*)0x8017C1B4,
-    (TaskIdPair*)0x8017BDE0,
-    (TaskIdPair*)0x8017D238,
-    (TaskIdPair*)0x8017BE28,
-    (TaskIdPair*)0x8017CB54,
+    D_map_akropolis_8017C1B4,
+    D_map_dryfield_8017BDE0,
+    D_map_dryfield_full_8017D238,
+    D_map_shelter_8017BE28,
+    D_map_neo_ark_8017CB54,
 };
 static TaskIdPair* D_80062750[] = {
-    (TaskIdPair*)0x8017C304,
-    (TaskIdPair*)0x8017C004,
-    (TaskIdPair*)0x8017D594,
-    (TaskIdPair*)0x8017C2D8,
-    (TaskIdPair*)0x8017CDFC,
+    D_map_akropolis_8017C304,
+    D_map_dryfield_8017C004,
+    D_map_dryfield_full_8017D594,
+    D_map_shelter_8017C2D8,
+    D_map_neo_ark_8017CDFC,
 };
 static u8 D_80062764[] = { 8, 7, 0xB, 0xC, 0xA };
 static u8 D_8006276C[] = { 9, 8, 0xC, 9, 0x14 };

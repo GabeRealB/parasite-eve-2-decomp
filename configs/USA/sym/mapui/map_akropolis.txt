@@ -2,3 +2,7 @@
 // "Key Item" heading plus the blob that follows it; referenced by the matched
 // func_map_akropolis_80179D78, so keep it out of that function's .s file.
 D_map_akropolis_8017997C = 0x8017997C; // force_not_migration:True
+D_map_akropolis_8017A048 = 0x8017A048; // table main indexes by map
+D_map_akropolis_8017A0F8 = 0x8017A0F8; // table main indexes by map
+D_map_akropolis_8017C1B4 = 0x8017C1B4; // table main indexes by map
+D_map_akropolis_8017C304 = 0x8017C304; // table main indexes by map

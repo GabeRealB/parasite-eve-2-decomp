@@ -40,9 +40,10 @@ Checks, in order:
    image's ELF. A name only the split assembly still carries is a label, not a
    declaration, and is not reported.
 
-Two kinds of memory belong to no image of ours but are real targets: the
-kernel's area below the executable and a development unit's RAM past 2 MB,
-where debug tooling the game calls into lived. They are modelled as regions
+Three kinds of memory belong to no image of ours but are real targets: the
+kernel's area below the executable, the fixed buffers at the top of retail RAM,
+and a development unit's RAM past 2 MB, where debug tooling the game calls into
+lived. They are modelled as regions
 always resident with everything. The packages one manifest entry builds from a
 single source (its `slots`) count as one image, compared by file offset, since
 each slot may load them at a different address.
@@ -67,9 +68,15 @@ CORE = {'main': 'SLUS_010.42', 'gameplay': 'gameplay', 'title': 'title'}
 NEVER_TOGETHER = {frozenset(('title', 'gameplay'))}
 ALWAYS = 'SLUS_010.42'
 # Memory the game addresses that no image of ours occupies: the kernel's area
-# below the executable, and the RAM a development unit had past the retail
-# console's 2 MB, where debug tooling the game calls into was resident.
-EXTERNAL = {'kernel': (0x80000000, 0x80010000), 'devkit-ram': (0x80200000, 0x80800000)}
+# below the executable, the fixed buffers at the top of the retail console's
+# RAM (the image buffers boot points Fs_ImgBuffers at, and the work area above
+# them), and the RAM a development unit had past the retail 2 MB, where debug
+# tooling the game calls into was resident.
+EXTERNAL = {
+    'kernel': (0x80000000, 0x80010000),
+    'fixed-buffers': (0x801D7000, 0x80200000),
+    'devkit-ram': (0x80200000, 0x80800000),
+}
 
 
 class Decl:

@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "mapui/mapui.h"
 #include "main/unknown_syms.h"
 #include "main/cdaudio.h"
 #include "main/fs.h"
@@ -14,11 +15,11 @@ static u16   CdCmd_EntryIter;
 
 static s32* D_8005DCB4[] = {
     NULL,
-    (s32*)0x8017A0F8,
-    (s32*)0x80179B4C,
+    D_map_akropolis_8017A0F8,
+    D_map_dryfield_80179B4C,
     NULL,
     NULL,
-    (s32*)0x80179EC8,
+    D_map_neo_ark_80179EC8,
     NULL,
     NULL,
     NULL,

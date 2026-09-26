@@ -4,6 +4,8 @@
 #include <psyq/libetc.h>
 #include <psyq/libpress.h>
 
+#include "mapui/mapui.h"
+#include "main/devkit.h"
 #include "main/boot.h"
 #include "main/cdaudio.h"
 #include "main/display.h"
@@ -19,22 +21,22 @@
 /// Early-image build stamp string @ VA 0x80012750 ("2000/05/01 19:24 ver2.49").
 static const char Boot_BuildStamp[] = "2000/05/01 19:24 ver2.49";
 
-FsImgBuffers* Fs_ImgBuffers = (FsImgBuffers*)0x801D7000;
+FsImgBuffers* Fs_ImgBuffers = &D_801D7000;
 /// Unreferenced.
-static void* D_8005C368 = (void*)0x801FD000;
-void*        D_8005C36C = (void*)0x80131E20;
-void*        D_8005C370 = (void*)0x80149E20;
-void*        D_8005C374 = (void*)0x80161E20;
+static void* D_8005C368 = D_801FD000;
+void*        D_8005C36C = D_80131E20;
+void*        D_8005C370 = D_80149E20;
+void*        D_8005C374 = D_80161E20;
 /// Unreferenced.
-static void* D_8005C378 = (void*)0x80400000;
+static void* D_8005C378 = D_80400000;
 
 static GfxImageSlot* Gfx_ImageSlotTables[] = {
     NULL,
-    (GfxImageSlot*)0x8017A048,
-    (GfxImageSlot*)0x80179A14,
-    (GfxImageSlot*)0x801799A4,
-    (GfxImageSlot*)0x80179B40,
-    (GfxImageSlot*)0x80179DB8,
+    D_map_akropolis_8017A048,
+    D_map_dryfield_80179A14,
+    D_map_dryfield_full_801799A4,
+    D_map_shelter_80179B40,
+    D_map_neo_ark_80179DB8,
 };
 
 void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1)
