@@ -303,11 +303,38 @@ extern u8           Mc_DefaultChecksumSrc[];
 extern McPromptPair Mc_PromptTable[];
 extern McSaveData   Mc_SaveData;
 /// "Memory Card" string passed to Ui_DrawTitle by Mc_DrawPrompt.
-extern char Mc_StrMemoryCard[];
+extern const char Mc_StrMemoryCard[];
 /// "*" wildcard passed to MemCardGetDirentry by Mc_StateScanDirFlags.
-extern char D_80013A5C[];
 /// Jump table of 44 McStateFunc handlers used by Mc_DispatchStateTable.
-extern McStateFuncTable44 Mc_PromptStates;
+extern const McStateFuncTable44 Mc_PromptStates;
+
+/// Memory-card states defined in `mc.c`, entries of `Mc_PromptStates`.
+void Mc_WriteSlotChecksumsEx(Task* arg0, McWork* arg1);
+void Mc_StateAcceptMode1(Task* arg0, McWork* arg1);
+void Mc_StateSyncAdvance(Task* arg0, McWork* arg1);
+void Mc_StateDrawPromptAdvance(Task* arg0, McWork* arg1);
+void Mc_StatePromptChoiceB(Task* arg0, McWork* arg1);
+void Mc_StateDrawPrompt4(Task* arg0, McWork* arg1);
+void Mc_StateEnterDialog4(Task* arg0, McWork* arg1);
+void Mc_StateWriteFile(Task* arg0, McWork* arg1);
+void Mc_StatePromptChoiceGeneric(Task* arg0, McWork* arg1);
+void Mc_StateWriteData(Task* arg0, McWork* arg1);
+void Mc_StateClosePrompt(Task* arg0, McWork* arg1);
+void Mc_StateSyncPromptFile3(Task* arg0, McWork* arg1);
+void Mc_StatePromptChoice9(Task* arg0, McWork* arg1);
+void Mc_StateColdBoot(Task* arg0, McWork* arg1);
+void Mc_StateEnterPrompt0(Task* arg0, McWork* arg1);
+void Mc_StateSyncPrompt13(Task* arg0, McWork* arg1);
+void Mc_StatePromptCountdown(Task* arg0, McWork* arg1);
+void Mc_StateDrawPromptTo1F(Task* arg0, McWork* arg1);
+void Mc_StateCountdownPrompt4(Task* arg0, McWork* arg1);
+void Mc_StateDrawPrompt1Advance(Task* arg0, McWork* arg1);
+void Mc_StateReadHeader(Task* arg0, McWork* arg1);
+void Mc_StateUiCountdown2(Task* arg0, McWork* arg1);
+void Mc_StateUiCountdownF(Task* arg0, McWork* arg1);
+void Mc_StateUiCountdownE(Task* arg0, McWork* arg1);
+void Mc_StateEnterPromptE(Task* arg0, McWork* arg1);
+void Mc_StateEnterPromptD(Task* arg0, McWork* arg1);
 /// Jump table of 26 McStateFunc handlers used by Mc_DispatchStateTable26.
 extern McStateFuncTable26 Mc_FileSelectStates;
 /// Global McWork instance used by the memcard state dispatcher.
@@ -315,37 +342,33 @@ extern McWork D_80071730;
 /// Memcard product-code prefix (12 bytes, e.g. "BASLUS-01042").
 extern u8 D_80060DC8[];
 /// 64-byte character table for random memcard filename body.
-extern u8   D_80060E08[];
-extern u8   D_80060A54[];
-extern u8   D_80060A58[];
-extern u8   D_80060A5C[];
-extern u8   D_80060A64[];
-extern char D_80013BB4[];
-extern u8   D_800733F0[2][0x6C];
-extern u8   D_800734C8[2][0xB0];
-extern u8   D_80073628[2][0x24];
-extern u8   D_80073670[2][0xE4];
-extern u8   D_80073838[2][0xA4];
-extern u8   D_80073980[0x208];
+extern u8 D_80060E08[];
+extern u8 D_80060A54[];
+extern u8 D_80060A58[];
+extern u8 D_80060A5C[];
+extern u8 D_80060A64[];
+extern u8 D_800733F0[2][0x6C];
+extern u8 D_800734C8[2][0xB0];
+extern u8 D_80073628[2][0x24];
+extern u8 D_80073670[2][0xE4];
+extern u8 D_80073838[2][0xA4];
+extern u8 D_80073980[0x208];
 /// Stores the result of rand() after each dispatcher tick.
 extern s32 D_80073C08;
 
 // Save-slot detail labels and indexed descriptions.
-extern s8  D_80013998[];
-extern s8  D_800139A0[];
-extern s8  D_800139A4[];
-extern u8* D_800675F0[];
-extern u16 Mc_SaveHeaderBody[];
-extern u8  D_800139A8[];
-extern u8  D_80013B6C[];
-extern u8  D_80013B74[];
-extern u8  D_80013BA4[];
-extern u8  D_80013BA8[];
-extern u8  D_80013BAC[];
-extern u8  D_80013BB0[];
-extern u8  D_80060A48[];
-extern u8  D_80060CCC[];
-extern u8* D_800611B8[];
-extern u8* D_80067418[];
+extern u8*        D_800675F0[];
+extern u16        Mc_SaveHeaderBody[];
+extern const char D_800139A8[];
+extern const char D_80013B6C[];
+extern const char D_80013B74[];
+extern const char D_80013BA4[];
+extern const char D_80013BA8[];
+extern const char D_80013BAC[];
+extern const char D_80013BB0[];
+extern u8         D_80060A48[];
+extern u8         D_80060CCC[];
+extern u8*        D_800611B8[];
+extern u8*        D_80067418[];
 
 #endif // MC_H

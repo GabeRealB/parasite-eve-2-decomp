@@ -7,6 +7,18 @@
 #include "main/text.h"
 #include "main/ui.h"
 
+const char D_80013B64[] = "Select";
+const char D_80013B6C[] = "TIME";
+const char D_80013B74[] = "CLEAR";
+const char D_80013B7C[] = "Nightmare";
+const char D_80013B88[] = "Scavenger";
+const char D_80013B94[] = "Bounty";
+const char D_80013B9C[] = "Replay";
+const char D_80013BA4[] = " (";
+const char D_80013BA8[] = "EXP";
+const char D_80013BAC[] = "---";
+const char D_80013BB0[] = "BP";
+
 void func_80036A1C(void)
 {
     char pad[0x10];
@@ -114,7 +126,7 @@ void McMenu_FileInformation(Task* arg0)
         arg0->spawnArg1     = data;
     }
     data = arg0->spawnArg1;
-    Ui_DrawTitle(obj, D_80013BB4);
+    Ui_DrawTitle(obj, "File Information");
     if (arg0->killCountdown == 1) {
         menu = &D_80061194;
     } else {

@@ -8,6 +8,8 @@
 #include "psyq/libmcrd.h"
 #include "psyq/strings.h"
 
+const char Mc_StrMemoryCard[] = "Memory Card";
+
 s32 Mc_PromptDialog(Task* arg0, s32 arg1, s32 arg2)
 {
     s32           ret;
@@ -336,13 +338,13 @@ void func_80030AB0(McWork* work)
         }
     }
     Mc_SaveData.saveNumber      = number;
-    title                       = Mc_EncodeTitleLiteral(D_80013998, title);
+    title                       = Mc_EncodeTitleLiteral("PE2 ", title);
     title                       = Mc_EncodeTitleText((s8*)Text_FormatTime(buffer, Mc_SaveData.playTime), title);
-    title                       = Mc_EncodeTitleLiteral(D_800139A0, title);
+    title                       = Mc_EncodeTitleLiteral(" ", title);
     Mc_DefaultChecksumSrc[0x43] = 0;
     Mc_DefaultChecksumSrc[0x42] = 0;
     title                       = (u16*)Mc_CopyTitleBytes(D_800675F0[(s8)Mc_SaveData.savePoint], (u8*)title);
-    title                       = Mc_EncodeTitleLiteral(D_800139A4, title);
+    title                       = Mc_EncodeTitleLiteral("(", title);
     title                       = Mc_EncodeTitleText((s8*)Text_ItoaSigned(buffer, Mc_SaveData.saveNumber), title);
     title                       = Mc_EncodeTitleLiteral((s8*)D_800139A8, title);
     *title                      = 0;
@@ -356,6 +358,59 @@ void func_80030AB0(McWork* work)
     Mc_SaveData.bufferChecksum    = 0;
     Mc_SaveData.bufferChecksumInv = 0xFFFF;
 }
+
+const char D_800139A8[] = ")";
+
+void Mc_StateScanDirFlags(Task* arg0, McWork* arg1);
+void Mc_StateListDirectory(Task* arg0, McWork* arg1);
+void Mc_StateFileSelect(Task* arg0, McWork* arg1);
+
+const McStateFuncTable44 Mc_PromptStates = { {
+    Mc_ResetWork,
+    Mc_WriteSlotChecksumsEx,
+    Mc_StateAcceptMode1,
+    Mc_StateSyncAdvance,
+    Mc_StateCompareBuffers,
+    Mc_StateDrawPromptAdvance,
+    Mc_StateOpenRead,
+    Mc_StatePromptChoiceB,
+    Mc_StateDrawPrompt4,
+    Mc_StateCreateFile,
+    Mc_StateEnterDialog4,
+    Mc_StateWriteFile,
+    Mc_StateSyncAdvance,
+    Mc_StatePadFileName,
+    Mc_StatePromptChoiceGeneric,
+    Mc_StateBackupBuffers,
+    Mc_StateWriteData,
+    Mc_StateSyncAdvance,
+    Mc_StateFreeBuffer,
+    Mc_StateClosePrompt,
+    Mc_StateSyncPromptFile3,
+    Mc_StatePromptChoice9,
+    Mc_StateColdBoot,
+    Mc_StateFormat,
+    Mc_StateEnterPrompt0,
+    Mc_StateSyncPrompt13,
+    Mc_StateNameEntry,
+    Mc_StatePromptCountdown,
+    Mc_StateDrawPromptTo1F,
+    Mc_StateCountdownPrompt4,
+    Mc_KillIfCountdown,
+    Mc_StateDrawPrompt1Advance,
+    Mc_StateScanDirFlags,
+    Mc_StateListDirectory,
+    Mc_StateOpenSelected,
+    Mc_StateReadHeader,
+    Mc_StateSyncAdvance,
+    Mc_StateOpenNext,
+    Mc_StateFileSelect,
+    Mc_StateUiCountdown2,
+    Mc_StateUiCountdownF,
+    Mc_StateUiCountdownE,
+    Mc_StateEnterPromptE,
+    Mc_StateEnterPromptD,
+} };
 
 void Mc_StateScanDirFlags(Task* arg0, McWork* arg1)
 {
@@ -376,7 +431,7 @@ void Mc_StateScanDirFlags(Task* arg0, McWork* arg1)
             arg1->field_A24[i] = -1;
         }
         MemCardGetDirentry(
-            arg1->field_C, D_80013A5C, arg1->field_30, &arg1->field_288, 0,
+            arg1->field_C, "*", arg1->field_30, &arg1->field_288, 0,
             0xF);
 
         arg1->field_28C = 0;

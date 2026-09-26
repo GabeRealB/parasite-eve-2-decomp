@@ -123,14 +123,13 @@ segments:
       - [0x3d44, .rodata, "textdraw"] # glyph measurement and text draw jump tables, then the number strings
       - [0x40d8, .rodata, "textutil"] # jtbl from Text_ParseLine
 
-      - [0x418c, rodata, mcprompt_1] # Mc_PromptDialog jump tables (unmatched residual)
+      - [0x418C, .rodata, mcprompt] # its title strings, Mc_PromptStates and the "*" wildcard
+      - [0x4260, pad] # zero gap nothing refers to: likely the end of mcprompt's rodata
       # Jump tables from matched mc.c (includes jtbl_80013A64 from Mc_StateCompareBuffers).
       - [0x4264, .rodata, "mc"]
 
       # Residual mc strings (unique names so they do not steal .rodata siblings).
-      - [0x4364, rodata, mcmenu_1] # "Select"
-      - [0x436C, rodata, mc_2] # TIME / CLEAR / difficulty / EXP / BP (func_800330D8)
-      - [0x43B4, rodata, mcmenu_2] # "File Information"
+      - [0x4364, .rodata, mcmenu] # "Select", the save-summary labels mc.c draws, then "File Information"
       - [0x43c8, o, libmcrd/libmcrd, .rdata]
       - [0x4658, o, libmcrd/userfunc, .rdata]
       - [0x4678, o, libmcrd/low, .rdata]

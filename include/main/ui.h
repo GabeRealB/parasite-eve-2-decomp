@@ -210,7 +210,7 @@ extern UiObjectDesc D_80061200[];
 extern UiObjectDesc D_8006121C[];
 extern UiObjectDesc D_800612D0[];
 extern UiObjectDesc D_80067678;
-extern char         D_80013B64[]; // "Select"
+extern const char   D_80013B64[]; // "Select"
 
 /// Object used by 34E98.c handlers (e.g. Ui_AnimOpenStep / Ui_ObjectStates table).
 /// field_4 low nibble selects layout padding (Ui_InsetLayout); high nibble of the

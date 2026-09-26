@@ -2904,3 +2904,7 @@ Mc_FileSelectStates         = 0x80013ACC;
 Mc_PromptStates             = 0x800139AC;
 Tmd_TaskStates              = 0x80013EDC;
 Ui_ObjectStates             = 0x80013F2C;
+D_80013B7C = 0x80013B7C;
+D_80013B88 = 0x80013B88;
+D_80013B94 = 0x80013B94;
+D_80013B9C = 0x80013B9C;
