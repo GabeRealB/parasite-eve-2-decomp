@@ -258,23 +258,11 @@ void func_actor_461800_8013229C(void)
 /// buffer exists.
 void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
 {
-    VECTOR       vec;
-    GpAreaKey    key;
-    GpAreaKey*   keyp;
-    GpCoord*     coord;
-    TmdObject*   obj;
-    u8           areaByte0;
-    u8           areaByte1;
-    u32          raw1, index1;
-    Task*        spawned1;
-    TmdObject*   model1;
-    GpAreaPlace* entry1;
-    GpAreaKey*   sessionKey1;
-    u32          raw2, index2;
-    Task*        spawned2;
-    TmdObject*   model2;
-    GpAreaPlace* entry2;
-    GpAreaKey*   sessionKey2;
+    VECTOR     vec;
+    GpCoord*   coord;
+    TmdObject* obj;
+    Task*      spawned1;
+    Task*      spawned2;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
@@ -306,53 +294,13 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     spawned1 = Task_SpawnFromTable(&D_actor_461800_80139F8C, 1, 8, 0);
     if (spawned1 != NULL) {
         D_actor_461800_80143894->helper1 = spawned1;
-        sessionKey1                      = (GpAreaKey*)&gGameSession->at4.loc;
-        raw1                             = ((GpEnemy*)task->spawnArg2)->placeKey;
-        model1                           = spawned1->extra.tmd;
-        key.stage                        = sessionKey1->stage;
-        key.area                         = sessionKey1->area;
-        areaByte1                        = sessionKey1->room;
-        SOFT_BARRIER();
-        keyp = &key;
-        TOUCH_REG(keyp);
-        key.room  = areaByte1;
-        areaByte0 = gGameSession->at4.loc.view;
-        index1    = raw1 >> 12;
-        key.view  = areaByte0;
-        Gp_SyncAreaKeyIndex(keyp);
-        entry1        = (GpAreaPlace*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model1->tpage = entry1->tpage;
-        model1->clut  = entry1->clut;
-        if (model1->buffer != NULL) {
-            tmdProcessStream(model1);
-            tmdProcessStream(model1);
-        }
+        actorTintModel(spawned1->extra.tmd, (GpEnemy*)task->spawnArg2);
     }
 
     spawned2 = Task_SpawnFromTable(&D_actor_461800_80139F8C, 2, 0xC, 0);
     if (spawned2 != NULL) {
         D_actor_461800_80143894->helper2 = spawned2;
-        sessionKey2                      = (GpAreaKey*)&gGameSession->at4.loc;
-        raw2                             = ((GpEnemy*)task->spawnArg2)->placeKey;
-        model2                           = spawned2->extra.tmd;
-        key.stage                        = sessionKey2->stage;
-        key.area                         = sessionKey2->area;
-        areaByte1                        = sessionKey2->room;
-        SOFT_BARRIER();
-        keyp = &key;
-        TOUCH_REG(keyp);
-        key.room  = areaByte1;
-        areaByte0 = gGameSession->at4.loc.view;
-        index2    = raw2 >> 12;
-        key.view  = areaByte0;
-        Gp_SyncAreaKeyIndex(keyp);
-        entry2        = (GpAreaPlace*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model2->tpage = entry2->tpage;
-        model2->clut  = entry2->clut;
-        if (model2->buffer != NULL) {
-            tmdProcessStream(model2);
-            tmdProcessStream(model2);
-        }
+        actorTintModel(spawned2->extra.tmd, (GpEnemy*)task->spawnArg2);
     }
 
     D_actor_461800_80143894->st.travel  = 0;

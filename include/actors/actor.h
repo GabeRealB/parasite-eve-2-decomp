@@ -2534,43 +2534,38 @@ static __inline__ s32 actorFindHit(SVECTOR* pos, GpRec18* records)
     return 0;
 }
 
-/// Gives a freshly spawned effect model the texture page and palette of the
-/// enemy's placement in the current area, and reprocesses its stream when it
-/// already has one.
-static __inline__ void actorTintEffect(GpEffWork* eff, GpEnemy* enemy)
+/// Gives `model` the texture page and palette of the enemy's placement in the
+/// current area, and reprocesses its stream when it already has one.
+static __inline__ void actorTintModel(TmdObject* model, GpEnemy* enemy)
 {
     GpAreaKey    key;
     GpAreaKey*   sessionKey;
-    GpAreaKey*   keyPtr;
-    u8           areaByte0;
     GpAreaRec*   rec;
-    GpAreaPlace* entry;
-    TmdObject*   model;
+    GpAreaPlace* place;
     s32          idx;
-    u32          raw;
 
+    sessionKey = &gGameSession->at4.loc;
+    idx        = enemy->placeKey >> 12;
+    key.stage  = sessionKey->stage;
+    key.area   = sessionKey->area;
+    key.room   = sessionKey->room;
+    key.view   = sessionKey->view;
+    Gp_SyncAreaKeyIndex(&key);
+    rec          = Gp_GetNestedAreaRec(&key);
+    place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    model->tpage = place->tpage;
+    model->clut  = place->clut;
+    if (model->buffer != NULL) {
+        tmdProcessStream(model);
+        tmdProcessStream(model);
+    }
+}
+
+/// `actorTintModel` for a freshly spawned effect, when the spawn succeeded.
+static __inline__ void actorTintEffect(GpEffWork* eff, GpEnemy* enemy)
+{
     if (eff != NULL) {
-        sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
-        raw        = enemy->placeKey;
-        model      = eff->task->extra.tmd;
-        key.stage  = sessionKey->stage;
-        key.area   = sessionKey->area;
-        key.room   = sessionKey->room;
-        areaByte0  = gGameSession->at4.loc.view;
-        idx        = raw >> 12;
-        SOFT_BARRIER();
-        keyPtr = &key;
-        TOUCH_REG(keyPtr);
-        key.view = areaByte0;
-        Gp_SyncAreaKeyIndex(keyPtr);
-        rec          = Gp_GetNestedAreaRec(&key);
-        entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-        model->tpage = entry->tpage;
-        model->clut  = entry->clut;
-        if (model->buffer != NULL) {
-            tmdProcessStream(model);
-            tmdProcessStream(model);
-        }
+        actorTintModel(eff->task->extra.tmd, enemy);
     }
 }
 

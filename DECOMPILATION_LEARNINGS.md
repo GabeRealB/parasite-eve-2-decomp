@@ -142196,3 +142196,32 @@ once, finding the first case's copy.
 
 When a merged tail sits in the wrong copy, change how the other copies exit
 rather than adding a barrier.
+
+## A `move` before the last of three identical byte stores is a field read back, not a second local (Actor05500_Fn02C94, 2026-09-26)
+
+A grey level stored to `r`, `g` and `b` of a primitive: the target stores `r`
+and `g` from one register, copies it (`move v0,v1`), and stores `b` from the
+copy, which lets jump2 cross-jump the `b1` store with the constant arm. The tree
+faked the second register with a `blue` local and two `TOUCH_REG`s. Writing
+`line->r0 = x; line->g0 = line->r0; line->b0 = line->r0;` matches with no
+hacks: cse replaces the reads of `r0` with the stored QImode value, which is a
+pseudo of its own, so the copy comes back naturally. `b = g = r = x` and
+three stores of one variable both fold to a single register.
+
+## `&key` passed to two calls from a non-zero frame offset: the key belongs to an inline helper, not to a pointer local and `TOUCH_REG` (func_actor_461800_80132390, 2026-09-26)
+The area-key sequence (`Gp_SyncAreaKeyIndex(&key)` then
+`Gp_GetNestedAreaRec(&key)`, target `addiu a0,sp,N` at both calls) was
+matched here and in `actorTintEffect` with the `SOFT_BARRIER(); keyp = &key;
+TOUCH_REG(keyp);` recipe of the entries above, because a caller-scope key at a
+non-zero offset gives one merged, call-crossing pseudo. Declaring the key
+inside a `static inline` helper that does the whole lookup
+(`actorTintModel(model, enemy)` in `include/actors/actor.h`) matches with no
+barrier. The helper's RTL is expanded in its own frame, where `key` sits at
+offset 0, so each argument is a direct `(set a0 (reg fp))` with no pseudo;
+integration copies those insns and only remaps the frame base to the caller's
+slot (`.cse` shows `(set a0 (plus fp 40))` twice, nothing for cse to merge).
+One slot serves every expansion, so the frame size is unchanged - but drop the
+caller's now-unused `key` declaration, or it keeps its own 8 bytes. The
+operand order `(idx << 4) + (s32)rec->field_0` still matters (`&field_0[idx]`
+is 95.6%). `actorTintEffect` became a wrapper over the same helper and all its
+users still match.
