@@ -1923,7 +1923,7 @@ void Actor01100_Fn041BC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 }
 
 /// Scale `Actor01100_Fn05678` applies to the model's matrix: 0x10 on each axis.
-const ActorsShared801385e0Scale Actor01100_D000CC = { 0x10, 0x10, 0x10, 0 };
+const VECTOR Actor01100_D000CC = { 0x10, 0x10, 0x10, 0 };
 
 /// First-frame distance handler: while the latch at 0xBA8 is still clear it
 /// sets motion 6, zeroes the countdown at 0xB8C and steps the latch. If actor
@@ -2563,33 +2563,41 @@ void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     }
 }
 
+/// Spawns a 0x10032 effect showing `model` at the task's model part 6, hands
+/// it the task model's texture page and CLUT, and, when the effect's model has
+/// a stream buffer, processes that stream twice.
+static __inline__ void _actor01100SpawnModelEff(Task* task, u8* model)
+{
+    GpEffWork* eff;
+    TmdObject* owner;
+    TmdObject* tmd;
+
+    D_80067330.tmd = model;
+    eff            = Gp_SpawnEff(0x10032, &task->extra.tmd->coords[6], 0x200, 0);
+    if (eff != NULL) {
+        owner      = task->extra.tmd;
+        tmd        = eff->task->extra.tmd;
+        tmd->tpage = owner->tpage;
+        tmd->clut  = owner->clut;
+        if (tmd->buffer != NULL) {
+            tmdProcessStream(tmd);
+            tmdProcessStream(tmd);
+        }
+    }
+}
+
 void Actor01100_Fn05678(
     GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    TmdObject*                 extra;
-    TmdObject*                 spawned;
-    TmdObject*                 tmd;
-    GpCoord*                   coords;
-    GpEffWork*                 eff;
-    PlayerStatus*              status;
-    GameActor*                 actor;
-    ActorsShared801385e0Scale  scale;
-    ActorsShared801385e0Scale* sc;
-    ActorsShared801385e0Scale* sym;
-    MATRIX*                    mtx;
-    SVECTOR*                   sv;
-    u8*                        head;
-    u32                        scratch;
-    s16                        time;
-    s16                        walk;
-    s16                        nextTime;
-    s32                        i;
-    s32                        off;
-    u8                         saved;
-    u8                         latch;
-    u8*                        tmdA;
-    u8*                        tmdB;
-    u8*                        tmdC;
+    TmdObject*    extra;
+    GpCoord*      coords;
+    PlayerStatus* status;
+    GameActor*    actor;
+    VECTOR        scale;
+    s16           time;
+    s16           walk;
+    s32           i;
+    GpObj*        obj;
 
     extra = task->extra.tmd;
     if (((GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
@@ -2602,15 +2610,12 @@ void Actor01100_Fn05678(
     }
 
     if (work->field_BA8 == 0) {
-        i               = 0;
-        off             = OFFSET_OF(ActorsShared80138efcWork, objs[0]);
         work->field_B92 = 0;
         enemy->hp       = 0;
-        do {
-            ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-            off                                += sizeof(GpObj);
-            i++;
-        } while (i < 4);
+        for (i = 0; i < 4; i++) {
+            obj         = &work->objs[i];
+            obj->flags &= 0x3FFF;
+        }
         if (enemy->spawnState == 0x10) {
             Gp_SetLightMode(enemy, 2);
             enemy->spawnState = 0;
@@ -2624,150 +2629,70 @@ void Actor01100_Fn05678(
         work->field_BAB           = 0x20;
         enemy->node.state.b.flags = 1;
         if (enemy->spawnState == 3) {
-            tmdA           = &Actor01100_D0D8F4;
-            D_80067330.tmd = tmdA;
-            eff            = Gp_SpawnEff(0x10032, &task->extra.tmd->coords[6], 0x200, 0);
-            if (eff != NULL) {
-                spawned    = task->extra.tmd;
-                tmd        = eff->task->extra.tmd;
-                tmd->tpage = spawned->tpage;
-                tmd->clut  = spawned->clut;
-                if (tmd->buffer != NULL) {
-                    tmdProcessStream(tmd);
-                    tmdProcessStream(tmd);
-                }
-            }
-            tmdB           = &Actor01100_D0E4DC;
-            D_80067330.tmd = tmdB;
-            eff            = Gp_SpawnEff(0x10032, &task->extra.tmd->coords[6], 0x200, 0);
-            if (eff != NULL) {
-                spawned    = task->extra.tmd;
-                tmd        = eff->task->extra.tmd;
-                tmd->tpage = spawned->tpage;
-                tmd->clut  = spawned->clut;
-                if (tmd->buffer != NULL) {
-                    tmdProcessStream(tmd);
-                    tmdProcessStream(tmd);
-                }
-            }
-            tmdC           = &Actor01100_D0D8F4;
-            D_80067330.tmd = tmdC;
-            eff            = Gp_SpawnEff(0x10032, &task->extra.tmd->coords[6], 0x200, 0);
-            if (eff != NULL) {
-                spawned    = task->extra.tmd;
-                tmd        = eff->task->extra.tmd;
-                tmd->tpage = spawned->tpage;
-                tmd->clut  = spawned->clut;
-                if (tmd->buffer != NULL) {
-                    tmdProcessStream(tmd);
-                    tmdProcessStream(tmd);
-                }
-            }
-            latch    = (u8)work->field_BA8;
-            nextTime = 0x34;
-            goto bump;
-        }
-        if (enemy->spawnState == 1) {
-            work->field_BA4 = 0x11;
+            _actor01100SpawnModelEff(task, &Actor01100_D0D8F4);
+            _actor01100SpawnModelEff(task, &Actor01100_D0E4DC);
+            _actor01100SpawnModelEff(task, &Actor01100_D0D8F4);
+            work->field_B8C = 0x34;
+            work->field_BA8++;
         } else {
-            work->field_BA4 = 0x12;
+            if (enemy->spawnState == 1) {
+                work->field_BA4 = 0x11;
+            } else {
+                work->field_BA4 = 0x12;
+            }
+            work->field_B8C = 0x20;
+            work->field_BA8++;
         }
-        latch    = (u8)work->field_BA8;
-        nextTime = 0x20;
-        goto bump;
     } else if (work->field_BA8 == 1) {
-        time            = (u16)work->field_B8C - 1;
+        time            = work->field_B8C - 1;
         work->field_B8C = time;
         if (time == 0xC) {
             Gp_SpawnEff(0x600A5, task->extra.tmd->coords, 5, 0);
         } else if (time <= 0) {
             extra->flags |= 2;
             Gp_SetLightMode(enemy, 2);
-            latch    = (u8)work->field_BA8;
-            nextTime = 0x20;
-            goto bump;
+            work->field_B8C = 0x20;
+            work->field_BA8++;
         }
     } else if (work->field_BA8 == 2) {
-        time            = (u16)work->field_B8C - 1;
+        time            = work->field_B8C - 1;
         work->field_B8C = time;
-        if ((time << 16) == 0) {
-            spawned         = task->extra.tmd;
-            spawned->flags |= 0x80;
-            latch           = (u8)work->field_BA8;
-            __asm__("addiu %0, $zero, 4" : "=r"(nextTime) : "r"(latch), "m"(spawned->flags));
-        bump:
-            work->field_B8C = nextTime;
-            __asm__("addiu %0, %0, 1" : "+r"(latch) : "m"(work->field_B8C));
-            work->field_BA8 = latch;
+        if (time == 0) {
+            task->extra.tmd->flags |= 0x80;
+            work->field_B8C         = 4;
+            work->field_BA8++;
         }
     } else {
-        time            = (u16)work->field_B8C - 1;
+        time            = work->field_B8C - 1;
         work->field_B8C = time;
-        if (((time << 16) == 0) && ((GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(5, 24, 0, 0))) {
+        if ((time == 0) && ((GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(5, 24, 0, 0))) {
             work->field_BA6 = 0x10;
         }
     }
 
     walk = work->field_B8E;
     if (walk >= 0x31) {
-        work->field_B8E = (s16)((u16)work->field_B8E - 0x30);
+        work->field_B8E -= 0x30;
     } else if (walk < -0x30) {
-        work->field_B8E = (s16)((u16)work->field_B8E + 0x30);
+        work->field_B8E += 0x30;
     }
 
     arg->field_64 = 3;
-    saved         = enemy->spawnState;
-    if (saved == 3) {
-        sym    = &Actor01100_D000CC;
+    if (enemy->spawnState == 3) {
         coords = task->extra.tmd->coords;
-        __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
-        scratch = *(u32*)(head + 0x3FC);
-        scale   = *sym;
-        sc      = &scale;
-        sv      = (SVECTOR*)(scratch - 8);
-        mtx     = &coords[3].coord;
-        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
-
-        gte_ReadMatrixColumn(mtx, 0, sv);
-        gte_lddp(sc->vx);
-        gte_ldsv(sv);
-        gte_gpf12();
-        gte_stsv(sv);
-        gte_WriteMatrixColumn(sv, mtx, 0);
-
-        gte_ReadMatrixColumn(mtx, 1, sv);
-        gte_lddp(sc->vy);
-        gte_ldsv(sv);
-        gte_gpf12();
-        gte_stsv(sv);
-        gte_WriteMatrixColumn(sv, mtx, 1);
-
-        gte_ReadMatrixColumn(mtx, 2, sv);
-        gte_lddp(sc->vz);
-        gte_ldsv(sv);
-        gte_gpf12();
-        gte_stsv(sv);
-        gte_WriteMatrixColumn(sv, mtx, 2);
-
-        __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
-        scratch       = *(u32*)(head + 0x3FC);
+        scale  = Actor01100_D000CC;
+        gfxScaleMatrixColumns(&coords[3].coord, &scale);
         coords[3].flg = 0;
-        scratch      += 8;
-        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(scratch) : "memory");
-        if (enemy->spawnState == saved) {
-            if (!(extra->flags & 2)) {
-                goto skip_fade;
-            }
+        if ((enemy->spawnState == 3) && !(extra->flags & 2)) {
+            return;
         }
     }
 
     if (work->coord.coord.m[1][1] >= 0x801) {
-        work->coord.coord.m[1][1] = (s16)((u16)work->coord.coord.m[1][1] - 0x20);
-        work->coord.flg           = 0;
-        work->coord.coord.t[1]    = work->coord.coord.t[1] + 2;
+        work->coord.coord.m[1][1] -= 0x20;
+        work->coord.flg            = 0;
+        work->coord.coord.t[1]     = work->coord.coord.t[1] + 2;
     }
-skip_fade:
-    return;
 }
 
 /// Countdown handler built around the halfword at 0xB8C.
