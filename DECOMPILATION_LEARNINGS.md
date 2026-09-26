@@ -142415,3 +142415,22 @@ that giv's 2, and `2 - add_cost` is 0.
 **Fix.** No local: write `poly->...` and `&poly[1]` (e.g. `addPrim(ot, &poly[1])`). The
 representative no longer mentions a single-set register, the benefits sum, and the giv is
 reduced to the retail separate register.
+## A walk to a terminator flag: index it, and exit with `break` from `for (;;)` (Gp_LinkRoomObjects, 2026-09-26)
+
+Retail walks an array of records until one has bit `0x80` set, keeping a
+single `s0` for the element (`sw ..,8(s0)`, `lbu/sb 0x4A(s0)`, `addiu s0,s0,0x4C`
+in the back-branch delay slot). A pointer iterator (`obj++`) makes `obj` a biv
+that is also a call argument, so loop.c reduces the field address as a second
+giv (`addiu s0,s1,0x4A`); the old source blocked that with `TOUCH_REG(obj)`.
+Indexing instead (`list[i].field`, `&list[i]` as the argument) leaves one
+reduced giv and matches the loop.
+
+The exit spelling then settles allocation. The loop's hoisted `&gGfxViewCoord`
+carries a `REG_EQUIV`, so its live length is doubled, and it competed with the
+list pointer that lives across the loop (both 3 refs). With
+`do { ... } while (!(list[i++].flag & 0x80))` the lengths were 24 vs 25 and the
+coordinate took `s1`; `for (i = 0;; i++) { ...; if (list[i].flag & 0x80) break; }`
+keeps one more insn in the loop through sched1 (gone by final), making it 26 vs
+26, and the lower-numbered list pointer wins the tie - the `register asm("s1")`
+pin it replaced. Where a hoisted constant address and a loop-spanning local swap
+callee-saved registers, try the other exit spelling before anything else.

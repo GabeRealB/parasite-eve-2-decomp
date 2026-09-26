@@ -1886,17 +1886,13 @@ void Gp_AllocSprtLists(void)
 
 void Gp_LinkRoomObjects(Task* task)
 {
-    GpAreaKey*        sess;
-    GpRoomObjRec*     recs;
-    GpRoomObjRec*     rec;
-    GpGridParams*     grid;
-    GpObj4A*          list1;
-    register GpObj4A* list2 asm("s1");
-    GpObj3A*          list3;
-    GpObj4A*          obj;
-    GpObj3A*          obj3;
-    GpCoord*          coord;
-    u8                flags;
+    GpAreaKey*    sess;
+    GpRoomObjRec* recs;
+    GpGridParams* grid;
+    GpObj4A*      list1;
+    GpObj4A*      list2;
+    GpObj3A*      list3;
+    s32           i;
 
     sess = &gGameSession->at4.loc;
     Gp_LoadStageView();
@@ -1906,49 +1902,42 @@ void Gp_LinkRoomObjects(Task* task)
     Gp_ClearObj3AList(0);
     recs = Gp_RoomObjTables[sess->stage - 1]->field_0[sess->area - 1];
     if (recs != NULL) {
-        rec   = (GpRoomObjRec*)(sess->room * sizeof(GpRoomObjRec) + (s32)recs);
-        recs  = rec - 1;
-        grid  = rec[-1].field_0;
-        list1 = recs->field_4;
-        list2 = recs->field_8;
-        list3 = recs->field_C;
+        grid  = recs[sess->room - 1].field_0;
+        list1 = recs[sess->room - 1].field_4;
+        list2 = recs[sess->room - 1].field_8;
+        list3 = recs[sess->room - 1].field_C;
         if (grid != NULL) {
             grid->field_0 = &gGfxViewCoord;
             Gp_GridParams = grid;
         }
         if (list1 != NULL) {
-            coord = &gGfxViewCoord;
-            obj   = list1;
-            do {
-                obj->field_8 = coord;
-                Gp_LinkObj4A(1, obj);
-                flags         = obj->field_4A | 0x40;
-                obj->field_4A = flags;
-                TOUCH_REG(obj);
-                obj++;
-            } while (!(flags & 0x80));
+            for (i = 0;; i++) {
+                list1[i].field_8 = &gGfxViewCoord;
+                Gp_LinkObj4A(1, &list1[i]);
+                list1[i].field_4A |= 0x40;
+                if (list1[i].field_4A & 0x80) {
+                    break;
+                }
+            }
         }
         if (list2 != NULL) {
-            coord = &gGfxViewCoord;
-            obj   = list2;
-            do {
-                obj->field_8 = coord;
-                Gp_LinkObj4A(0, obj);
-                flags         = obj->field_4A | 0x40;
-                obj->field_4A = flags;
-                TOUCH_REG(obj);
-                obj++;
-            } while (!(flags & 0x80));
+            for (i = 0;; i++) {
+                list2[i].field_8 = &gGfxViewCoord;
+                Gp_LinkObj4A(0, &list2[i]);
+                list2[i].field_4A |= 0x40;
+                if (list2[i].field_4A & 0x80) {
+                    break;
+                }
+            }
         }
         if (list3 != NULL) {
-            obj3 = list3;
-            do {
-                Gp_LinkObj3A(0, obj3);
-                flags          = obj3->field_3A | 0x40;
-                obj3->field_3A = flags;
-                TOUCH_REG(obj3);
-                obj3++;
-            } while (!(flags & 0x80));
+            for (i = 0;; i++) {
+                Gp_LinkObj3A(0, &list3[i]);
+                list3[i].field_3A |= 0x40;
+                if (list3[i].field_3A & 0x80) {
+                    break;
+                }
+            }
         }
     }
     gGfxViewCoord.flg = 0;
