@@ -142851,21 +142851,30 @@ and nothing else moves. String *literals* do not work the same way: they come
 out in first-use order within the unit, so a pool whose order differs from the
 order its strings are first used needs named `const char[]` objects instead.
 
-**Alignment decides ownership.** A unit whose `.rodata` holds a jump table can
-be 8-aligned as a whole, so it cannot start at an address that is only
-4-aligned - objects in front of such a table at a 4-aligned address belong to a
-different unit (the gameplay header strings needed their own `header.c`). The
-converse check is useful too: when a unit's rodata starts at an address that is
-not 8-aligned, its sections are only 4-aligned, and a zero word or empty string
-before the next unit is real data, not padding the linker will recreate.
+**Read the layout as evidence about units.** The linker scripts place input
+sections with `SUBALIGN(4)`, so the build never recreates a gap by itself. A
+zero word or empty string that nothing refers to, sitting where one unit's
+rodata meets the next, is most likely where an original source file ended:
+record it as a `[offset, pad]` subsegment, not as a C object. Before that,
+check whether the next item in the same unit is a jump table - its own `.align`
+inside the section produces the gap, and then nothing is needed at all. Rodata
+interleaved between two files, or a table whose entries point into several
+files, is evidence that those files were one unit.
 
-**Non-zero padding.** The original toolchain sometimes left garbage, not
-zeros, in the alignment gap after a string ("Telephone\0" then two random
-bytes, varying from room to room). Reproduce it with an array sized to the
-slot: `const char s[12] = "Telephone\0\x14\xCF";`. Where the object is a struct
-whose size a by-value copy pins (a 3-byte level table), the stray byte becomes
-its own one-byte object after it. Beware `"\0" "5"`: a digit right after `\0`
-must start a new literal or C reads an octal escape.
+**Non-zero bytes after a terminator.** Some strings are followed by non-zero
+bytes before the next aligned object. Check the functions that consume the
+string before calling them padding: here every consumer stops at the
+terminator, and the bytes differ between otherwise identical copies of the same
+room code, so they are toolchain leftovers. Reproduce them with an array sized
+to the slot, `const char s[12] = "Telephone\0\x14\xCF";`; where a by-value copy
+pins a struct's size, the stray byte becomes a one-byte object after it. Beware
+`"\0" "5"`: a digit right after `\0` must start a new literal.
+
+**Prefer literals for one-function strings.** A debug message or label used by
+a single function is more plausibly a literal in that function than a global.
+Literals come out in first-use order within their unit, so where a string's
+position does not fit that, the mismatch is itself a clue that the function
+belongs to a different unit.
 ## A pin that holds an argument register through a run of constant stores is store order; a pinned load's destination is not (func_actor_403600_8013EA04, 2026-09-26)
 
 **Symptom.** A switch arm stored `1, 1, 0x28` from `a1`, reloaded `a1 = 1` for
