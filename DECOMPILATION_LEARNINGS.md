@@ -66765,12 +66765,31 @@ wins. Inverting the `if` does not help: that gives `bnez`, `NE` predicts taken,
 and the target thread is tried first — but then the arms and the branch
 polarity are both wrong.
 
-The lever is `stop_search_p`, which ends `fill_slots_from_thread` immediately on
-an insn with `asm_noperands (PATTERN (insn)) >= 0`. Putting `SOFT_BARRIER()` at
-the head of the then-arm makes the fall-through scan stop before it sees
-anything, so `delay_list` comes back empty and the pass takes the else arm's
-`li` instead. The barrier emits no instruction, so the object is otherwise
-unchanged — `func_actor_150400_801326A4` went 92.37% → 100% on that one line.
+An empty `asm` at the head of the then-arm reaches the ROM's shape
+(`stop_search_p` ends the fall-through scan on an asm insn, so the pass falls
+back to the target thread), but it is a matching hack, not the fix. In
+`func_actor_150400_801326A4` it stood in for the shape of the enclosing guard.
+Writing the range check as a test wrapping the whole body, with the failure
+return after it, matches with no barrier:
+
+```c
+if (args->field_4 < 6) {          /* not: if (args->field_4 >= 6) return -1; */
+    work->st.animId = args->field_4;
+    if (args->field_8 != 0) { work->st.state = 1; work->animArg = args->field_C; }
+    else                    { work->st.state = 2; }
+    work->st.field_6 = 0;
+    func(task);
+    return 0;
+}
+return -1;
+```
+
+The inner `if`/`else` compiles to identical RTL either way up to `sched2`; only
+the placement of the `return -1` block differs (after the body instead of
+before it). With it after, `reorg` takes the else arm's constant with no
+barrier. Which reorg decision the block position moves is not yet pinned
+down. When this delay-slot shape appears under an early-return guard, try
+the wrapping form first.
 
 Two shapes that look like the same codegen but are not, and should not be
 confused with this one:
