@@ -696,11 +696,9 @@ static void Actor02600_Fn012E8(Task* arg0)
 
 static void Actor02600_Fn0143C(Task* arg0)
 {
-    Actor105500Work*  work;
-    GpCoord*          coord;
-    SVECTOR*          scratchEnd;
-    register SVECTOR* allocated asm("v1");
-    SVECTOR*          rotation;
+    Actor105500Work* work;
+    GpCoord*         coord;
+    SVECTOR*         rotation;
     s16(*motion0)[2];
     s16(*motion1)[2];
     s16 state;
@@ -710,13 +708,10 @@ static void Actor02600_Fn0143C(Task* arg0)
     s32 pan1;
     u32 random;
 
-    scratchEnd                          = *(SVECTOR**)PSX_SCRATCH_ADDR(0x3FC);
-    allocated                           = scratchEnd - 1;
-    rotation                            = allocated;
-    *(SVECTOR**)PSX_SCRATCH_ADDR(0x3FC) = allocated;
-    work                                = arg0->work;
-    state                               = work->field_39C;
-    coord                               = arg0->extra.tmd->coords;
+    rotation = SCRATCH_PUSH(SVECTOR);
+    work     = arg0->work;
+    state    = work->field_39C;
+    coord    = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
             work->field_3C8 = 0;
@@ -827,7 +822,7 @@ static void Actor02600_Fn0143C(Task* arg0)
             }
             break;
     }
-    *(s32*)PSX_SCRATCH_ADDR(0x3FC) += 8;
+    SCRATCH_POP(SVECTOR);
 }
 
 /// Behaviour state 6, entered when a hit does damage. On entry it starts
