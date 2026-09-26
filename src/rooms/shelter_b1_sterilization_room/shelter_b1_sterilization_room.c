@@ -754,7 +754,8 @@ void func_shelter_b1_sterilization_room_8017E978(Task* task)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", D_shelter_b1_sterilization_room_8017D638);
+/// "Telephone", followed by the non-zero padding the original toolchain left.
+const char D_shelter_b1_sterilization_room_8017D638[12] = "Telephone\0\0 ";
 
 void func_shelter_b1_sterilization_room_8017EB2C(Task* task)
 {

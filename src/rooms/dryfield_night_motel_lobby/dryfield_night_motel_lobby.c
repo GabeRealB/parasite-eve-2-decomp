@@ -750,7 +750,8 @@ void func_dryfield_night_motel_lobby_8017E92C(Task* task)
 /// The "Telephone" title `func_dryfield_night_motel_lobby_8017EAE0` draws over
 /// its menu once the menu is open. The two bytes after its terminator are not
 /// zero, so it stays assembly.
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby", D_dryfield_night_motel_lobby_8017D638);
+/// "Telephone", followed by the non-zero padding the original toolchain left.
+const char D_dryfield_night_motel_lobby_8017D638[12] = "Telephone\0\1\x0E";
 
 void func_dryfield_night_motel_lobby_8017EAE0(Task* task)
 {

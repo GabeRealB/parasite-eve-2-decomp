@@ -788,7 +788,8 @@ void func_mine_refuge_8017E8C4(Task* task)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge", D_mine_refuge_8017D638);
+/// "Telephone", followed by the non-zero padding the original toolchain left.
+const char D_mine_refuge_8017D638[12] = "Telephone\0\x1A\x1C";
 
 /// Task body of the telephone menu. Until the save has a clear or has reached
 /// demo scene 1 it spawns `D_800611E4` in place of the list; otherwise it lays

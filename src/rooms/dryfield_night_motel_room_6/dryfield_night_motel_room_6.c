@@ -784,7 +784,8 @@ void func_dryfield_night_motel_room_6_8017E8C0(Task* task)
 /// `func_dryfield_night_motel_room_6_8017EA74` runs. Two non-zero bytes follow
 /// its terminator, so it stays assembly.
 extern const char D_dryfield_night_motel_room_6_8017D638[];
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel_room_6", D_dryfield_night_motel_room_6_8017D638);
+/// "Telephone", followed by the non-zero padding the original toolchain left.
+const char D_dryfield_night_motel_room_6_8017D638[12] = "Telephone\0\xDF\xDC";
 
 /// Task of the telephone menu panel. Until the save allows it (demo scene 1
 /// or a clear) it only spawns the generic panel; otherwise it lays out its

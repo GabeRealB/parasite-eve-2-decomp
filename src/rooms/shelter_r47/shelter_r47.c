@@ -772,7 +772,9 @@ void func_shelter_r47_8017EA50(Task* task)
 
 /// Title of the "Telephone" panel. The word holding its terminator carries two
 /// more non-zero bytes, so it stays assembly.
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47", D_shelter_r47_8017D638);
+/// "Telephone", followed by the non-zero padding the original toolchain left.
+const char D_shelter_r47_8017D638[12] = "Telephone\0\xDC"
+                                        "2";
 
 extern const char D_shelter_r47_8017D638[];
 

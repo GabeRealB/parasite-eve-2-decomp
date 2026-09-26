@@ -201,7 +201,7 @@ extern u8 D_shelter_b1_underground_parking_80187068[];
 
 /// The charge panel's title, and the quantity and item map of the slot it is
 /// animating.
-extern u8         D_shelter_b1_underground_parking_8017D774[];
+extern const char D_shelter_b1_underground_parking_8017D774[];
 extern s32        D_shelter_b1_underground_parking_8018D744;
 extern GpItemMap* D_shelter_b1_underground_parking_8018D748;
 
@@ -902,7 +902,8 @@ void func_shelter_b1_underground_parking_8017EC34(Task* task)
 
 /// Title of the menu below. The two bytes after its terminator are not zero,
 /// so it stays assembly.
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", D_shelter_b1_underground_parking_8017D638);
+/// "Telephone", followed by the non-zero padding the original toolchain left.
+const char D_shelter_b1_underground_parking_8017D638[12] = "Telephone\0<\x9E";
 
 void func_shelter_b1_underground_parking_8017EDE8(Task* task)
 {
@@ -2061,7 +2062,8 @@ void func_shelter_b1_underground_parking_80181230(Task* task)
 
 /// Title of the charge panel; the byte after its terminator is not zero, so
 /// it stays assembly.
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", D_shelter_b1_underground_parking_8017D774);
+/// "Charge", followed by the non-zero padding the original toolchain left.
+const char D_shelter_b1_underground_parking_8017D774[8] = "Charge\0o";
 
 /// The charge station's transfer panel: steps through the mapped item slots,
 /// takes the slot's current level as the bar's starting value and its related

@@ -597,8 +597,8 @@ const u8 D_mist_parking_8017D6EC[] = "Notice";
 
 /// "Charge", with a stray non-zero byte after its terminator that C cannot
 /// place, so the string stays assembly.
-extern u8 D_mist_parking_8017D6F4[];
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", D_mist_parking_8017D6F4);
+/// "Charge", followed by the non-zero padding the original toolchain left.
+const char D_mist_parking_8017D6F4[8] = "Charge\0\xE2";
 
 /// Messages of the shop's panels.
 extern u8 D_mist_parking_80186450[];
@@ -1773,7 +1773,8 @@ const char D_mist_parking_8017D768[] = "PE Data";
 /// non-zero bytes after its terminator that C cannot place, so the string
 /// stays assembly.
 extern const char D_mist_parking_8017D770[];
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", D_mist_parking_8017D770);
+/// "Telephone", followed by the non-zero padding the original toolchain left.
+const char D_mist_parking_8017D770[12] = "Telephone\0\xF2\xEF";
 
 /// Lists of the usage panel and of the play-data menu, and the descriptor of
 /// the frame the usage panel spawns.

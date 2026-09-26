@@ -1469,7 +1469,8 @@ void func_acropolis_square_80180650(Task* task)
 /// "Telephone", the title of the menu panel `func_acropolis_square_80180804`
 /// runs. Two non-zero bytes follow its terminator, so it stays assembly.
 extern const char D_acropolis_square_8017D648[];
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_square/acropolis_square", D_acropolis_square_8017D648);
+/// "Telephone", followed by the non-zero padding the original toolchain left.
+const char D_acropolis_square_8017D648[12] = "Telephone\0\xDC\xDD";
 
 /// Task of the telephone menu panel. Until the save allows it (demo scene 1
 /// or a clear) it only spawns the generic panel; otherwise it lays out its

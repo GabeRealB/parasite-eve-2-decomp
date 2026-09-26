@@ -622,8 +622,8 @@ const u8 D_dryfield_trailer_coach_8017D6EC[] = "Notice";
 
 /// "Charge", with a stray non-zero byte after its terminator that C cannot
 /// place, so the string stays assembly.
-extern u8 D_dryfield_trailer_coach_8017D6F4[];
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", D_dryfield_trailer_coach_8017D6F4);
+/// "Charge", followed by the non-zero padding the original toolchain left.
+const char D_dryfield_trailer_coach_8017D6F4[8] = "Charge\0\xEF";
 
 /// Messages and labels of the shop's panels.
 extern u8 D_dryfield_trailer_coach_80183D48[];
@@ -1687,7 +1687,8 @@ const u8 D_dryfield_trailer_coach_8017D754[] = "100.0%";
 const char        D_dryfield_trailer_coach_8017D75C[] = "Weapon Data";
 const char        D_dryfield_trailer_coach_8017D768[] = "PE Data";
 extern const char D_dryfield_trailer_coach_8017D770[];
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", D_dryfield_trailer_coach_8017D770);
+/// "Telephone", followed by the non-zero padding the original toolchain left.
+const char D_dryfield_trailer_coach_8017D770[12] = "Telephone\0\xD0\xFF";
 
 void func_dryfield_trailer_coach_80180798(DialogPrompt* arg0, UiObject* arg1)
 {
