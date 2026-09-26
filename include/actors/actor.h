@@ -2559,6 +2559,34 @@ static __inline__ void actorTintModel(TmdObject* model, GpEnemy* enemy)
     }
 }
 
+/// `actorTintModel` for the model carried by the spawned task `spawned`.
+static __inline__ void actorTintTask(Task* spawned, GpEnemy* enemy)
+{
+    GpAreaKey    key;
+    GpAreaKey*   sessionKey;
+    GpAreaRec*   rec;
+    GpAreaPlace* place;
+    TmdObject*   model;
+    s32          idx;
+
+    sessionKey = &gGameSession->at4.loc;
+    idx        = enemy->placeKey >> 12;
+    model      = spawned->extra.tmd;
+    key.stage  = sessionKey->stage;
+    key.area   = sessionKey->area;
+    key.room   = sessionKey->room;
+    key.view   = sessionKey->view;
+    Gp_SyncAreaKeyIndex(&key);
+    rec          = Gp_GetNestedAreaRec(&key);
+    place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    model->tpage = place->tpage;
+    model->clut  = place->clut;
+    if (model->buffer != NULL) {
+        tmdProcessStream(model);
+        tmdProcessStream(model);
+    }
+}
+
 /// `actorTintModel` for a freshly spawned effect, when the spawn succeeded.
 static __inline__ void actorTintEffect(GpEffWork* eff, GpEnemy* enemy)
 {

@@ -245,37 +245,6 @@ void func_actor_146300_80132418(s32 arg0)
     }
 }
 
-/// Gives the model carried by the spawned task `spawned` the texture page and
-/// palette of the enemy's placement in the current area, and reprocesses its
-/// stream when it already has one. `actorTintModel` does the same for a model
-/// already in hand.
-static inline void _actor146300TintSpawn(Task* spawned, GpEnemy* enemy)
-{
-    GpAreaKey    key;
-    GpAreaKey*   sessionKey;
-    GpAreaRec*   rec;
-    GpAreaPlace* place;
-    TmdObject*   model;
-    s32          idx;
-
-    sessionKey = &gGameSession->at4.loc;
-    idx        = enemy->placeKey >> 12;
-    model      = spawned->extra.tmd;
-    key.stage  = sessionKey->stage;
-    key.area   = sessionKey->area;
-    key.room   = sessionKey->room;
-    key.view   = sessionKey->view;
-    Gp_SyncAreaKeyIndex(&key);
-    rec          = Gp_GetNestedAreaRec(&key);
-    place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-    model->tpage = place->tpage;
-    model->clut  = place->clut;
-    if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
-    }
-}
-
 /// Spawn routine, state 0 of the task handler `func_actor_146300_801326CC`:
 /// allocates the 0x4EC work block and publishes it in `D_actor_146300_80142828`
 /// and the task's `work` slot (destroying the enemy if the allocation fails),
@@ -319,7 +288,7 @@ static void func_actor_146300_801324AC(GpEnemy* enemy, Task* task)
     D_actor_146300_8014282C      = task;
     helper                       = Task_SpawnFromTable(D_actor_146300_801427C8, 1, 0, 0);
     D_actor_146300_80142830      = helper;
-    _actor146300TintSpawn(helper, enemy);
+    actorTintTask(helper, enemy);
     Task_Reparent(task, D_actor_146300_80142830);
     obj->lightMtx = &D_actor_146300_80142828->light;
     obj->colorMtx = &D_actor_146300_80142828->color;

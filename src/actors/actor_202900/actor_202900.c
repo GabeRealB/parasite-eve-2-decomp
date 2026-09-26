@@ -58,19 +58,9 @@ static s32  func_actor_202900_8014A394(void);
 /// the first step body.
 static void func_actor_202900_80149E24(GpEnemy* enemy, Task* task)
 {
-    VECTOR       vec;
-    GpAreaKey    key;
-    GpCoord*     coord;
-    TmdObject*   obj;
-    TmdObject*   model;
-    Task*        spawned;
-    GpAreaRec*   rec;
-    GpAreaPlace* place;
-    GpAreaKey*   sessionKey;
-    GpAreaKey*   keyPtr;
-    s32          idx;
-    u32          raw;
-    u8           areaByte0;
+    VECTOR     vec;
+    GpCoord*   coord;
+    TmdObject* obj;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
@@ -88,29 +78,8 @@ static void func_actor_202900_80149E24(GpEnemy* enemy, Task* task)
     obj->otOffset                = 1;
     obj->flags                   = 0;
     D_actor_202900_80156E58      = task;
-    spawned                      = Task_SpawnFromTable(D_actor_202900_80156E24, 1, 0, 0);
-    D_actor_202900_80156E5C      = spawned;
-    sessionKey                   = (GpAreaKey*)&gGameSession->at4.loc;
-    raw                          = enemy->placeKey;
-    model                        = spawned->extra.tmd;
-    key.stage                    = sessionKey->stage;
-    key.area                     = sessionKey->area;
-    key.room                     = sessionKey->room;
-    areaByte0                    = sessionKey->view;
-    idx                          = raw >> 12;
-    SOFT_BARRIER();
-    keyPtr = &key;
-    TOUCH_REG(keyPtr);
-    key.view = areaByte0;
-    Gp_SyncAreaKeyIndex(keyPtr);
-    rec          = Gp_GetNestedAreaRec(&key);
-    place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-    model->tpage = place->tpage;
-    model->clut  = place->clut;
-    if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
-    }
+    D_actor_202900_80156E5C      = Task_SpawnFromTable(D_actor_202900_80156E24, 1, 0, 0);
+    actorTintTask(D_actor_202900_80156E5C, enemy);
     obj->lightMtx = &D_actor_202900_80156E54->light;
     obj->colorMtx = &D_actor_202900_80156E54->color;
     vec.vx        = coord->workm.t[0];
