@@ -810,8 +810,9 @@ done:
     SCRATCH_POP_BYTES(8);
 }
 
-/// The scratch head is taken through `ActorScratchStack` rather than as
-/// `SCRATCH_HEAD`, which does not compile the same.
+/// Turns the model's fourth coordinate by the angles in `field_688`, then
+/// eases the x and y angles back toward zero by 0x20 a call; once both have
+/// settled, clears `field_6B4`.
 static void Actor02000_Fn01698(Task* arg0)
 {
     Actor105600Work* work;
@@ -825,23 +826,12 @@ static void Actor02000_Fn01698(Task* arg0)
     s32              nextY;
     s32              active;
 
-    matrix                                     = (MATRIX*)((ActorScratchStack*)G_SCRATCH_HEAD)->head - 1;
-    ((ActorScratchStack*)G_SCRATCH_HEAD)->head = matrix;
-    active                                     = 0;
-    work                                       = arg0->work;
-    coord                                      = arg0->extra.tmd->coords;
+    matrix = SCRATCH_PUSH(MATRIX);
+    active = 0;
+    work   = arg0->work;
+    coord  = arg0->extra.tmd->coords;
     RotMatrix(&work->field_688, matrix);
-    USE_REG(matrix);
-    gte_SetRotMatrix(&coord[3].coord);
-    gte_ldclmv(matrix);
-    gte_rtir();
-    gte_stclmv(&coord[3].coord);
-    gte_ldclmv((char*)matrix + 2);
-    gte_rtir();
-    gte_stclmv((char*)&coord[3].coord + 2);
-    gte_ldclmv((char*)matrix + 4);
-    gte_rtir();
-    gte_stclmv((char*)&coord[3].coord + 4);
+    gte_MulMatrix0(&coord[3].coord, matrix, &coord[3].coord);
     angleX = work->field_688.vx;
     if (angleX != 0) {
         absX = __builtin_abs(angleX);
