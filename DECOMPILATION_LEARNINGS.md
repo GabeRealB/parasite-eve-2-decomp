@@ -142079,3 +142079,21 @@ full per-branch call lets cross-jumping merge the tails, leaving the string's
 A `t = -3; obj.drawOrder = t;` temp in the same function was a `u16` field
 declaration: the store emitted `li 0xfffd` without it. Every reader cast the
 field to `s16`, and declaring it `s16` matched the whole tree.
+## `a < b` and `b > a` are different code: the operands expand in written order (func_800C5F70, 2026-09-26)
+
+A page-down clamp ran `menu->field_9 += menu->field_5;` and then tested
+`(menu->field_4 - (s8)menu->field_5) < (s8)menu->field_9`. Everything matched
+except the registers around it, until a `SOFT_USE_REG` kept `field_5` alive
+across the add. Writing the test as `(s8)menu->field_9 > (menu->field_4 -
+(s8)menu->field_5)` matched with no hack. A comparison's operands are expanded
+left to right. That order decides where the fresh loads of `field_4` and
+`field_5` sit relative to the sign-extension of the stored sum, so sched1
+builds different lifetimes and local-alloc hands out different registers.
+When a hack only fixes the registers next to a comparison, try flipping the
+comparison before anything else.
+
+The same function had a steering `titleReq = &req30` alias. `req30` was
+accessed partly through the pointer and partly directly. That mixture is what
+an inlined helper taking `TextDrawReq*` leaves behind: it is the
+`_gpDrawItemNameUnmarkedAt` body with the request passed in rather than
+declared locally.

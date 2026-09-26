@@ -3528,65 +3528,84 @@ after_index:
     CdCmd_EnqueueLoadFile(type, index & 0xFF, arg1 & 0xFF);
 }
 
+/// Draws `item` as `_gpDrawItemNameUnmarkedAt` does, but fills the caller's
+/// `req` instead of a request of its own.
+static inline void _gpDrawItemNameUnmarkedInto(UiObject* obj, TextDrawReq* req, s32 x, s32 y, s32 color,
+                                               s32 item)
+{
+    s32 temp;
+
+    if (obj->mode != 5) {
+        req->x          = obj->baseX + 0x11 + x;
+        req->y          = obj->baseY + (y - 6);
+        req->otIndex    = (s16)obj->drawOrder + 1;
+        req->field_8    = color;
+        req->glyphTable = 0;
+        req->centerMode = 0;
+        req->field_E    = 1;
+        func_8002E53C(req, Gp_GetItemText(item, 0, 0));
+        temp = item - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(obj, x, y, temp % 3 + 1, color);
+        }
+        Gp_DrawItemIcon(obj, x, y, item, 0);
+    }
+}
+
 void func_800C5F70(Task* arg0)
 {
-    TextDrawReq  req20;
-    TextDrawReq  req30;
-    u8           buf40[0x20];
-    TextDrawReq  req60;
-    TextDrawReq  req70;
-    TextDrawReq  req80;
-    TextDrawReq  req90;
-    TextDrawReq  reqA0;
-    TextDrawReq  reqB0;
-    u8           bufC0[0x20];
-    u8           bufE0[0x20];
-    TextDrawReq  req100;
-    TextDrawReq  req110;
-    TextDrawReq  req120;
-    TextDrawReq  req130;
-    TextDrawReq  req140;
-    TextDrawReq  req150;
-    s32          ready;
-    u32          flags;
-    UiList*      menu;
-    UiObject*    obj;
-    s32          item;
-    s32          featCount;
-    s32          altColor;
-    s32          state;
-    s32          lines;
-    u8*          p;
-    u8*          payload;
-    s32          y;
-    s32          i;
-    s32          spriteCount;
-    s32          h;
-    s32          x;
-    SPRT*        sprt;
-    s32          saved;
-    GpItemAttr*  attr;
-    u8**         names;
-    u8*          text;
-    GpRec10*     rec;
-    GpRec10*     recBase;
-    s32          idx;
-    s32          temp;
-    s32          caliber;
-    s32          recIndex;
-    s32          spriteW;
-    u8           spriteV;
-    s32          titleY;
-    s32          titleColor;
-    TextDrawReq* titleReq;
-    s32          textColor;
-    s32          spriteI;
-    s32          baseY;
-    s32          spriteMode;
-    u8*          drawPayload;
-    u8           row;
-    GpItemDesc*  descBase;
-    GpItemDesc*  desc;
+    TextDrawReq req20;
+    TextDrawReq req30;
+    u8          buf40[0x20];
+    TextDrawReq req60;
+    TextDrawReq req70;
+    TextDrawReq req80;
+    TextDrawReq req90;
+    TextDrawReq reqA0;
+    TextDrawReq reqB0;
+    u8          bufC0[0x20];
+    u8          bufE0[0x20];
+    TextDrawReq req100;
+    TextDrawReq req110;
+    TextDrawReq req120;
+    TextDrawReq req130;
+    TextDrawReq req140;
+    TextDrawReq req150;
+    s32         ready;
+    u32         flags;
+    UiList*     menu;
+    UiObject*   obj;
+    s32         item;
+    s32         featCount;
+    s32         altColor;
+    s32         state;
+    s32         lines;
+    u8*         p;
+    u8*         payload;
+    s32         y;
+    s32         i;
+    s32         spriteCount;
+    s32         h;
+    s32         x;
+    SPRT*       sprt;
+    s32         saved;
+    GpItemAttr* attr;
+    u8**        names;
+    u8*         text;
+    GpRec10*    rec;
+    GpRec10*    recBase;
+    s32         idx;
+    s32         temp;
+    s32         caliber;
+    s32         recIndex;
+    s32         spriteW;
+    s32         textColor;
+    s32         featIndex;
+    s32         spriteI;
+    s32         baseY;
+    s32         spriteMode;
+    GpItemDesc* descBase;
+    GpItemDesc* desc;
 
     ready = 0;
     flags = ready;
@@ -3685,26 +3704,19 @@ void func_800C5F70(Task* arg0)
             Ui_DrawHBar((UiPanel*)obj, obj->field_1C, (s16)obj->field_1E, 5);
         }
         if (ready == 1) {
-            x         = 2;
-            payload   = Fs_GetChunkPayload();
-            i         = 0;
-            y         = (s16)obj->field_18 + 0x1E;
-            textColor = 0x606060;
-        draw_lines: {
-            drawPayload = payload;
-            TOUCH_REG_USE(drawPayload, x);
-            req20.x          = obj->baseX + x;
-            req20.y          = obj->baseY + y;
-            y               += 0xF;
-            req20.otIndex    = (s16)obj->drawOrder + 1;
-            req20.field_8    = textColor;
-            req20.glyphTable = 0;
-            req20.centerMode = 0;
-            req20.field_E    = 1;
-            func_8002E53C(&req20, Text_SkipLines(drawPayload, i++));
-        }
-            if (i < 5) {
-                goto draw_lines;
+            x       = 2;
+            payload = Fs_GetChunkPayload();
+            y       = (s16)obj->field_18 + 0x1E;
+            for (i = 0; i < 5; i++) {
+                req20.x          = obj->baseX + x;
+                req20.y          = obj->baseY + y;
+                y               += 0xF;
+                req20.otIndex    = (s16)obj->drawOrder + 1;
+                req20.field_8    = 0x606060;
+                req20.glyphTable = 0;
+                req20.centerMode = 0;
+                req20.field_E    = 1;
+                func_8002E53C(&req20, Text_SkipLines(payload, i));
             }
             if (item >= 0x500) {
                 Text_DrawMultiLine(obj, obj->field_1C + 2, 0x34, Text_SkipLines(payload, 5),
@@ -3742,10 +3754,8 @@ void func_800C5F70(Task* arg0)
                         }
                     } else if (Pad_CheckButtons(0, 1, 8) != 0) {
                         if ((s8)menu->field_9 < (menu->field_4 - (s8)menu->field_5)) {
-                            row           = menu->field_5;
-                            menu->field_9 = (s8)menu->field_9 + row;
-                            SOFT_USE_REG(row);
-                            if ((menu->field_4 - (s8)menu->field_5) < (s8)menu->field_9) {
+                            menu->field_9 += menu->field_5;
+                            if ((s8)menu->field_9 > (menu->field_4 - (s8)menu->field_5)) {
                                 menu->field_9 = menu->field_4 - menu->field_5;
                             }
                             menu->field_10 = ((s8)menu->field_9 + (s8)menu->field_5) - 1;
@@ -3772,17 +3782,16 @@ void func_800C5F70(Task* arg0)
                         sprt->x0       = x;
                         sprt->y0       = y - 8;
                         spriteMode     = Mc_SaveData.buttonLayout;
-                        spriteV        = 0x58;
                         if (spriteMode != 2) {
                             h        = 8;
                             sprt->y0 = y - 4;
                             if (spriteI == 0) {
                                 sprt->u0 = 0x90;
+                                sprt->v0 = 0x58;
                             } else {
                                 sprt->u0 = 0xB0;
+                                sprt->v0 = 0x58;
                             }
-                            SOFT_USE_REG(spriteV);
-                            sprt->v0 = spriteV;
                         } else if (spriteI == 0) {
                             sprt->u0 = 0x10;
                             sprt->v0 = 0x60;
@@ -3885,7 +3894,7 @@ void func_800C5F70(Task* arg0)
                 req70.centerMode = 0;
                 req70.field_E    = 1;
                 func_8002E53C(&req70, Gp_StrAttachments3);
-                textColor        = 0;
+                featIndex        = 0;
                 req80.x          = obj->baseX + 0x78 + x;
                 req80.y          = obj->baseY + y;
                 req80.otIndex    = (s16)obj->drawOrder + 1;
@@ -3922,9 +3931,9 @@ void func_800C5F70(Task* arg0)
                         }
                     }
                     flags >>= 1;
-                    textColor++;
+                    featIndex++;
                     names++;
-                } while (textColor < 0xD);
+                } while (featIndex < 0xD);
                 x                = obj->field_1C + 2;
                 reqB0.x          = obj->baseX + x;
                 reqB0.y          = obj->baseY + 0x40;
@@ -4026,23 +4035,7 @@ void func_800C5F70(Task* arg0)
         } else {
             func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags | 0x100);
         }
-        titleColor = 0x606060;
-        titleY     = (s16)obj->field_18 + 0xF;
-        titleReq   = &req30;
-        if (obj->mode != 5) {
-            req30.x           = obj->baseX + 0x13;
-            req30.y           = obj->baseY + (titleY - 6);
-            req30.otIndex     = (s16)obj->drawOrder + 1;
-            titleReq->field_8 = titleColor;
-            req30.glyphTable  = 0;
-            req30.centerMode  = 0;
-            titleReq->field_E = 1;
-            func_8002E53C(titleReq, Gp_GetItemText(item, 0, 0));
-            if ((u32)(item - 0xF) < 0x24U) {
-                func_800C2538(obj, 2, titleY, ((item - 0xF) % 3) + 1, titleColor);
-            }
-            Gp_DrawItemIcon(obj, 2, titleY, item, 0);
-        }
+        _gpDrawItemNameUnmarkedInto(obj, &req30, 2, (s16)obj->field_18 + 0xF, 0x606060, item);
         if ((obj->status == 1) && (CdCmd_IsIdle() & 0xFFFF)) {
             if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskConfirm | 0x10) != 0) {
                 if (!(arg0->spawnArg1 & 0x20000)) {
