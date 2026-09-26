@@ -1066,126 +1066,69 @@ McItemRec* Gp_SetScanItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
 
 McItemRec* Gp_AddItem(McItemScan* arg0, s32 arg1, s32 arg2)
 {
-    register McItemRec* tmp asm("v0");
-    McItemRec*          table;
-    register McItemRec* dest asm("t2");
-    s32                 found;
-    s32                 start;
-    s32                 i;
-    register s32        idx asm("v1");
-    s32                 off;
-    McItemRec*          result;
-    McItemRec*          rec;
-    GpItemA0*           attrs;
-    s32                 temp;
-    s32                 count;
+    McItemRec* table;
+    McItemRec* dest;
+    s32        found;
+    s32        row;
+    s32        i;
 
-    switch (arg0->table) {
-        case 2:
-            tmp = Gp_ItemTable2;
-            break;
-        case 1:
-            tmp = Gp_ItemTable1;
-            break;
-        default:
-            tmp = Mc_SaveData.itemRows;
-            break;
-    }
+    table = _gpScanTable(arg0);
     dest  = NULL;
-    table = tmp;
     if (arg2 < 0) {
-        temp = arg1 - 0xA0;
-        if ((u32)temp < 0x20U) {
+        if ((u32)(arg1 - 0xA0) < 0x20) {
             if (arg2 == -2) {
-                arg2 = Gp_StackLimits[temp].field_2;
+                arg2 = Gp_StackLimits[arg1 - 0xA0].field_2;
             } else {
-                arg2 = Gp_StackLimits[temp].field_0;
+                arg2 = Gp_StackLimits[arg1 - 0xA0].field_0;
             }
         } else {
             arg2 = 1;
         }
     }
 
-    start = arg0->firstRow;
-    idx   = arg1 - 0xA0;
+    row   = arg0->firstRow;
     found = 0;
-    if ((u32)idx < 0x20U) {
-        i = found;
-        if (arg0->rowCount != 0) {
-            attrs = Gp_StackLimits;
-            idx   = (idx << 2) + (s32)attrs;
-            do {
-                rec = (McItemRec*)((start << 2) + (s32)table);
-                if (rec->itemId == arg1) {
-                    arg2 += rec->qty;
-                    if (((GpItemA0*)idx)->field_2 < arg2) {
-                        arg2 = ((GpItemA0*)idx)->field_2;
-                    }
-                    rec->qty = arg2;
-                    dest     = rec;
-                    found    = 1;
-                    break;
+    if ((u32)(arg1 - 0xA0) < 0x20) {
+        for (i = 0; i < arg0->rowCount; i++, row++) {
+            if (table[row].itemId == arg1) {
+                arg2 += table[row].qty;
+                if (Gp_StackLimits[arg1 - 0xA0].field_2 < arg2) {
+                    arg2 = Gp_StackLimits[arg1 - 0xA0].field_2;
                 }
-                i++;
-                start++;
-            } while (i < arg0->rowCount);
+                table[row].qty = arg2;
+                dest           = &table[row];
+                found          = 1;
+                break;
+            }
         }
-        result = dest;
-        if (found != 0) {
-            goto ret;
+        if (found) {
+            return dest;
         }
-        start = arg0->firstRow;
-        if (arg0->rowCount == 0) {
-            goto done;
-        }
-        i     = 0;
-        attrs = Gp_StackLimits;
-        idx   = arg1 - 0xA0;
-        idx   = (idx << 2) + (s32)attrs;
-        off   = start << 2;
-        rec   = (McItemRec*)(off + (s32)table);
-        do {
-            if (rec->itemId == 0) {
-                rec->itemId = arg1;
-                if (((GpItemA0*)idx)->field_2 < arg2) {
-                    arg2 = ((GpItemA0*)idx)->field_2;
+        row = arg0->firstRow;
+        for (i = 0; i < arg0->rowCount; i++, row++) {
+            if (table[row].itemId == 0) {
+                table[row].itemId = arg1;
+                if (Gp_StackLimits[arg1 - 0xA0].field_2 < arg2) {
+                    arg2 = Gp_StackLimits[arg1 - 0xA0].field_2;
                 }
-                dest             = rec;
+                dest             = &table[row];
                 dest->qty        = arg2;
                 dest->attachSlot = 0;
-                goto done;
+                break;
             }
-            i++;
-            rec++;
-        } while (i < arg0->rowCount);
-        return dest;
-    }
-
-    goto loop_header;
-fill:
-    dest             = (McItemRec*)idx;
-    dest->itemId     = arg1;
-    dest->qty        = 1;
-    dest->attachSlot = 0;
-    goto done;
-loop_header:
-    count = arg0->rowCount;
-    i     = 0;
-    if (count != 0) {
-        off = start << 2;
-        idx = off + (s32)table;
-        do {
-            if (((McItemRec*)idx)->itemId == 0) {
-                goto fill;
+        }
+    } else {
+        for (i = 0; i < arg0->rowCount; i++, row++) {
+            if (table[row].itemId == 0) {
+                dest             = &table[row];
+                dest->itemId     = arg1;
+                dest->qty        = 1;
+                dest->attachSlot = 0;
+                break;
             }
-            i++;
-            idx += 4;
-        } while (i < count);
+        }
     }
-done:
-    result = dest;
-ret:
-    return result;
+    return dest;
 }
 
 char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2)
