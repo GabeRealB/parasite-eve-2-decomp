@@ -18,7 +18,9 @@ static void CdStream_Drive(void);
 static void CdStream_Start(CdStreamParams* arg0);
 static void CdStream_Stop(void);
 
-s32 CdAudio_DriveStream(void)
+static s32 CdAudio_DriveNull(void);
+
+static s32 CdAudio_DriveStream(void)
 {
     volatile CdAudioPhase* p;
     volatile CdAudioLocEx* audio;
@@ -109,7 +111,7 @@ s32 CdAudio_DriveStream(void)
 /* Alignment pad after CdAudio_DriveStream's 5-entry jump table so CdAudio_DriveSeek's
  * compiler-generated jtbl lands at 0x800141DC. */
 
-s32 CdAudio_DrivePhase0(void)
+static s32 CdAudio_DrivePhase0(void)
 {
     volatile CdAudioPhase*  p;
     s16                     ret;
@@ -161,8 +163,195 @@ typedef struct {
 
 static void CdAudio_ReadyCallback(s32 arg0);
 static void CdAudio_FeedSector(s32 arg0);
+static s32  CdAudio_DrivePhase1(void);
+static s32  CdAudio_DriveSeek(void);
+static s32  CdAudio_DriveRead(void);
 
-s32 CdAudio_DriveSeek(void)
+static u8 D_80068A80[] = {
+    0x64,
+    0x64,
+    0x64,
+    0x64,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x7C,
+    0x7F,
+    0x78,
+    0x7C,
+    0x72,
+    0x7C,
+    0x7E,
+    0x6E,
+    0x52,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x78,
+    0x6E,
+    0x6F,
+    0x76,
+    0x62,
+    0x6E,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x75,
+    0x64,
+    0x73,
+    0x78,
+    0x78,
+    0x78,
+    0x78,
+    0x0,
+    0x5F,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x64,
+    0x78,
+    0x7B,
+    0x7D,
+    0x75,
+    0x7E,
+    0x0,
+    0x7E,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x64,
+    0x7E,
+    0x7B,
+    0x7F,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x69,
+    0x50,
+    0x7B,
+    0x7D,
+    0x7F,
+    0x7F,
+    0x7D,
+    0x7A,
+    0x66,
+    0x61,
+    0x78,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+};
+u8 D_80068AF0[] = {
+    0x0,
+    0x5A,
+    0x5A,
+    0x7F,
+    0x7F,
+    0x7F,
+    0x7F,
+    0x7F,
+    0x7F,
+    0x7F,
+    0x76,
+    0x7F,
+    0x7E,
+    0x7F,
+    0x7F,
+    0x7F,
+    0x7F,
+    0x73,
+    0x7F,
+    0x7F,
+    0x73,
+    0x6E,
+    0x54,
+    0x54,
+    0x19,
+    0x19,
+    0x19,
+    0x19,
+    0x19,
+    0x78,
+    0x6E,
+    0x5F,
+    0x73,
+    0x5F,
+    0x5F,
+    0x7F,
+    0x7F,
+    0x73,
+    0x73,
+    0x70,
+};
+static s32 D_80068B18[1] = { 0x51010 };
+static s32 D_80068B1C    = 0x51010;
+/// Unreferenced.
+static s32 D_80068B20[2]               = { 0x51010, 0x51010 };
+static s16 D_80068B28[]                = { 3, 1 };
+static s32 D_80068B2C[]                = { 0x63810, 0x63810 };
+s32        (*CdAudio_DriveFns[])(void) = {
+    CdAudio_DriveNull,
+    CdAudio_DriveStream,
+    CdAudio_DrivePhase1,
+    CdAudio_DrivePhase0,
+    CdAudio_DriveNull,
+    CdAudio_DriveSeek,
+    CdAudio_DriveRead,
+    CdAudio_DriveNull,
+};
+volatile s32 D_80068B54 = 0;
+volatile s32 D_80068B58 = 0;
+volatile u8  D_80068B5C = 0;
+/// Unreferenced.
+static u8          D_80068B5D = 0;
+static u8          D_80068B5E = 0;
+volatile u8        D_80068B5F = 0;
+static volatile u8 D_80068B60 = 0;
+static volatile u8 D_80068B61 = 0;
+volatile u8        D_80068B62 = 0;
+static volatile u8 D_80068B63 = 0;
+
+static s32 CdAudio_DriveSeek(void)
 {
     u8                   phase;
     SectorHdr*           hdr;
@@ -281,7 +470,7 @@ error:
     return 0;
 }
 
-s32 CdAudio_DriveRead(void)
+static s32 CdAudio_DriveRead(void)
 {
     volatile CdAudioVoices* voices;
     volatile CdAudioCtl*    stream;
@@ -799,12 +988,12 @@ static void CdAudio_JumpWithPitch(s32 arg0, s32 arg1)
     CdAudio_Loc.field_0   = 6;
 }
 
-s32 CdAudio_DriveNull(void)
+static s32 CdAudio_DriveNull(void)
 {
     return 0;
 }
 
-s32 CdAudio_DrivePhase1(void)
+static s32 CdAudio_DrivePhase1(void)
 {
     s16 ret;
 

@@ -730,27 +730,12 @@ s32     Midi_IsChannelFree(u8 arg0);
 /// The queue takes the event as it stands, so the caller writes the arguments
 /// first; a `NULL` event is ignored.
 void         sndEvtEnqueue(SndEvt* event);
-void         SndEvt_HandleInitSequence(SndEvt* arg0);
-void         SndEvt_HandleStartFadeOut(SndEvt* arg0);
-void         SndEvt_HandleFadeOn(SndEvt* arg0);
-void         SndEvt_HandleFadeOff(SndEvt* arg0);
-void         SndEvt_HandleSetVolume(SndEvt* arg0);
-void         SndEvt_HandleAllocVoice(SndEvt* arg0);
-void         SndEvt_HandleType7(SndEvt* arg0);
-void         SndEvt_HandleFadeMatchingOn(SndEvt* arg0);
-void         SndEvt_HandleFadeMatchingOff(SndEvt* arg0);
-void         SndEvt_HandlePanRamp(SndEvt* arg0);
 void         Midi_SetMasterVolume(s32 arg0);
 s32          Midi_GetMasterVolume(void);
 s32          SndEvt_EnqueueType5(s32 arg0, s32 arg1);
 void         SndEvt_EnqueueType5Pending(void);
 void         SndEvt_FlushType5Pending(void);
-u8*          Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2);
 s32          SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1);
-s32          Midi_IncPtr(s32 arg0, s32 arg1);
-u8*          Midi_KeyOffChannel(s32 arg0, u8* arg1, MidiSong* arg2);
-u8*          Midi_SetProgram(s32 arg0, u8* arg1, MidiOpcodeCtx* arg2);
-u8*          Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* arg2);
 s32          SndLoad_ProcessSector(s32* arg0);
 void         SndLoad_FromSectorMode8(void* arg0);
 void         SndLoad_BeginFromBuffer(u8 arg0, void* arg1);
@@ -798,9 +783,8 @@ s32          Snd_ReverbWarmupCb(s32* arg0);
 s32          Snd_InitBanks(u32);
 void         Spu_ResetCommonAttr(void);
 
-typedef u8*        (*MidiHandler)(s32, u8*, MidiSong*, MidiTrack*);
-extern MidiHandler Midi_EventFns[];
-extern void        (*SndEvt_Handlers[])(SndEvt*);
+typedef u8* (*MidiHandler)(s32, u8*, MidiSong*, MidiTrack*);
+extern void (*SndEvt_Handlers[])(SndEvt*);
 
 extern HeapBlockHeader* SndHeap_Start;
 extern u8               SndHeap_Buffer[SNDHEAP_SIZE];
@@ -819,7 +803,6 @@ extern MidiSong         Midi_Song;
 extern SndBank          Snd_Banks[];
 extern SndScript        SndScript_Slots[8];
 extern SndLoadState     SndLoad_State;
-extern SndBankInitEntry Snd_BankInitTable[];
 extern LinInterp        LinInterp_CdStream;
 extern volatile u8      D_80082120;
 

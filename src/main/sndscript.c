@@ -34,6 +34,14 @@ static void         Snd_SetBusyFlag(s32 arg0);
 static s8           func_80055EF8(SndVoicePick* arg0, s32 arg1);
 static SndBankSlot* sndBankSlotFind(u16 bankId, s32 byType);
 
+static u8               D_80068A54[]        = { 0xFF, 0xFF, 0xFF, 0xFF, 0x20, 0x26, 0x20, 0x26, 0x2E, 0x05, 0x1E, 0xFF };
+static SndBankInitEntry Snd_BankInitTable[] = {
+    { 0x0002, 0x20FF, 0x00CE, 0x0210, 0x73810 },
+    { 0x000E, 0xE0FF, 0x0078, 0x0168, 0x6F810 },
+};
+s32        D_80068A78   = 0;
+static s16 D_80068A7C[] = { 1, 2 };
+
 void Snd_InitFromStage(s32 arg0, s32 arg1)
 {
     u8* var_s0;

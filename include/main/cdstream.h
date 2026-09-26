@@ -151,9 +151,6 @@ extern CdStreamParams         CdStream_Params;
 extern volatile CdStreamState CdStream_State;
 extern CdStreamChannels       CdStream_Channels;
 extern volatile CdReadyQueue  CdReady_Queue;
-extern u8                     D_80068B5E;
-extern volatile u8            D_80068B60;
-extern volatile u8            D_80068B61;
 extern volatile u8            D_80068B67;
 
 #endif // CDSTREAM_H

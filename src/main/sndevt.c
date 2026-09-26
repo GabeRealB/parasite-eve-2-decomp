@@ -50,6 +50,163 @@ static void  SndEvt_Free(SndEvt* arg0);
 static void* SndLoad_AllocBuffer(s32 arg0, s32 arg1, u32 arg2);
 static void  SndLoad_Init(s32 arg0, void* arg1);
 static s32   SndLoad_LookupMode(s32 arg0, s32 arg1, s32 arg2);
+static void  func_80050AAC(void);
+static void  SndEvt_HandleVolumeRamp(SndEvt* arg0);
+static void  SndEvt_HandleRefCountInc(void);
+static void  SndEvt_HandleRefCountDec(void);
+static void  SndEvt_HandleKeyOffMatching(void);
+static u8*   Midi_HandleMetaSysex(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3);
+
+void (*SndEvt_Handlers[])(SndEvt*) = {
+    func_80050AAC,
+    SndEvt_HandleInitSequence,
+    SndEvt_HandleStartFadeOut,
+    SndEvt_HandleFadeOn,
+    SndEvt_HandleFadeOff,
+    SndEvt_HandleSetVolume,
+    SndEvt_HandleAllocVoice,
+    SndEvt_HandleType7,
+    SndEvt_HandleFadeMatchingOn,
+    SndEvt_HandleFadeMatchingOff,
+    SndEvt_HandlePanRamp,
+    SndEvt_HandleVolumeRamp,
+    func_80050AAC,
+    SndEvt_HandleRefCountInc,
+    SndEvt_HandleRefCountDec,
+    SndEvt_HandleKeyOffMatching,
+};
+static u8*  Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2);
+static u8*  Midi_Event3(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3);
+static s32  Midi_IncPtr(s32 arg0, s32 arg1);
+static u8*  Midi_KeyOffChannel(s32 arg0, u8* arg1, MidiSong* arg2);
+static u8*  Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* arg2);
+static u8*  Midi_SetProgram(s32 arg0, u8* arg1, MidiOpcodeCtx* arg2);
+static void SndEvt_HandleAllocVoice(SndEvt* arg0);
+static void SndEvt_HandleFadeMatchingOff(SndEvt* arg0);
+static void SndEvt_HandleFadeMatchingOn(SndEvt* arg0);
+static void SndEvt_HandleFadeOff(SndEvt* arg0);
+static void SndEvt_HandleFadeOn(SndEvt* arg0);
+static void SndEvt_HandleInitSequence(SndEvt* arg0);
+static void SndEvt_HandlePanRamp(SndEvt* arg0);
+static void SndEvt_HandleSetVolume(SndEvt* arg0);
+static void SndEvt_HandleStartFadeOut(SndEvt* arg0);
+static void SndEvt_HandleType7(SndEvt* arg0);
+
+static MidiHandler Midi_EventFns[] = {
+    Midi_KeyOffChannel,
+    Midi_Event1,
+    Midi_IncPtr,
+    Midi_Event3,
+    Midi_SetProgram,
+    Midi_IncPtr,
+    Midi_PitchBend,
+    Midi_HandleMetaSysex,
+};
+volatile s32        D_800689E4   = 0xFF;
+static volatile s32 D_800689E8   = 0;
+volatile s16        D_800689EC   = 0;
+static u8           D_800689F0[] = {
+    0x60,
+    0x0,
+    0x0,
+    0x3E,
+    0x5A,
+    0x46,
+    0x79,
+    0x58,
+    0x5A,
+    0x7F,
+    0x6A,
+    0x6A,
+    0x64,
+    0x0,
+    0x0,
+    0x54,
+    0x0,
+    0x50,
+    0x6D,
+    0x0,
+    0x50,
+    0x50,
+    0x50,
+    0x50,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x60,
+    0x60,
+    0x60,
+    0x61,
+    0x62,
+    0x63,
+    0x64,
+    0x50,
+    0x33,
+    0x7A,
+    0x0,
+    0x50,
+    0x3A,
+    0x5E,
+    0x7F,
+    0x45,
+    0x5A,
+    0x62,
+    0x55,
+    0x50,
+    0x7F,
+    0x5A,
+    0x50,
+    0x50,
+    0x50,
+    0x5E,
+    0x55,
+    0x7F,
+    0x55,
+    0x5E,
+    0x72,
+    0x55,
+    0x50,
+    0x7F,
+    0x5A,
+    0x50,
+    0x5A,
+    0x76,
+    0x7D,
+    0x78,
+    0x74,
+    0x56,
+    0x7F,
+    0x7F,
+    0x7F,
+    0x7F,
+    0x69,
+    0x60,
+    0x50,
+    0x70,
+    0x7F,
+    0x7B,
+    0x52,
+    0x6A,
+    0x60,
+    0x60,
+    0x60,
+    0x57,
+    0x60,
+    0x60,
+    0x62,
+    0x7F,
+    0x60,
+    0x60,
+    0x56,
+    0x78,
+    0x7C,
+    0x7C,
+    0x60,
+    0x5A,
+    0x60,
+};
 
 void SndEvt_Process(void)
 {
@@ -158,36 +315,36 @@ static void SndEvt_Free(SndEvt* arg0)
     }
 }
 
-void func_80050AAC(void)
+static void func_80050AAC(void)
 {
 }
 
-void SndEvt_HandleInitSequence(SndEvt* arg0)
+static void SndEvt_HandleInitSequence(SndEvt* arg0)
 {
     Midi_InitSequence(arg0->args.midi.song, arg0->args.midi.fadeFrames);
 }
 
-void SndEvt_HandleStartFadeOut(SndEvt* arg0)
+static void SndEvt_HandleStartFadeOut(SndEvt* arg0)
 {
     Midi_StartFadeOut(arg0->args.midi.song, arg0->args.midi.fadeFrames);
 }
 
-void SndEvt_HandleFadeOn(SndEvt* arg0)
+static void SndEvt_HandleFadeOn(SndEvt* arg0)
 {
     Midi_FadeVolume(arg0->args.midi.song, 1);
 }
 
-void SndEvt_HandleFadeOff(SndEvt* arg0)
+static void SndEvt_HandleFadeOff(SndEvt* arg0)
 {
     Midi_FadeVolume(arg0->args.midi.song, 0);
 }
 
-void SndEvt_HandleSetVolume(SndEvt* arg0)
+static void SndEvt_HandleSetVolume(SndEvt* arg0)
 {
     Midi_SetVolumeScale(arg0->args.midi.song, arg0->args.midi.volumeScale);
 }
 
-void SndEvt_HandleAllocVoice(SndEvt* arg0)
+static void SndEvt_HandleAllocVoice(SndEvt* arg0)
 {
     SndEvtVoiceArgs* args;
 
@@ -195,7 +352,7 @@ void SndEvt_HandleAllocVoice(SndEvt* arg0)
     SndVoice_AllocSlot(args->id, args->pan, args->level.attenuation, args->bank, args->params);
 }
 
-void SndEvt_HandleType7(SndEvt* arg0)
+static void SndEvt_HandleType7(SndEvt* arg0)
 {
     SndEvtVoiceArgs* args;
 
@@ -203,17 +360,17 @@ void SndEvt_HandleType7(SndEvt* arg0)
     SndScript_StopMatching(args->id, args->stopFrames);
 }
 
-void SndEvt_HandleFadeMatchingOn(SndEvt* arg0)
+static void SndEvt_HandleFadeMatchingOn(SndEvt* arg0)
 {
     SndVoice_FadeMatching(arg0->args.voice.id, 1);
 }
 
-void SndEvt_HandleFadeMatchingOff(SndEvt* arg0)
+static void SndEvt_HandleFadeMatchingOff(SndEvt* arg0)
 {
     SndVoice_FadeMatching(arg0->args.voice.id, 0);
 }
 
-void SndEvt_HandlePanRamp(SndEvt* arg0)
+static void SndEvt_HandlePanRamp(SndEvt* arg0)
 {
     s32              temp_v0;
     SndEvtVoiceArgs* args;
@@ -225,7 +382,7 @@ void SndEvt_HandlePanRamp(SndEvt* arg0)
     }
 }
 
-void SndEvt_HandleVolumeRamp(SndEvt* arg0)
+static void SndEvt_HandleVolumeRamp(SndEvt* arg0)
 {
     s32              temp_v0;
     SndEvtVoiceArgs* args;
@@ -237,17 +394,17 @@ void SndEvt_HandleVolumeRamp(SndEvt* arg0)
     }
 }
 
-void SndEvt_HandleRefCountInc(void)
+static void SndEvt_HandleRefCountInc(void)
 {
     SndVoice_IncRefCount();
 }
 
-void SndEvt_HandleRefCountDec(void)
+static void SndEvt_HandleRefCountDec(void)
 {
     SndVoice_TickRefCount();
 }
 
-void SndEvt_HandleKeyOffMatching(void)
+static void SndEvt_HandleKeyOffMatching(void)
 {
     SndVoice_KeyOffMatching();
 }
@@ -1041,7 +1198,7 @@ static inline u8* _midiNoteOff(s32 status, u8* data, MidiSong* song)
     return ptr + 2;
 }
 
-u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2)
+static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2)
 {
     s16           priorities[2];
     SpuVoiceRef   ref;
@@ -1141,7 +1298,7 @@ u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2)
     return arg1;
 }
 
-u8* Midi_Event3(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3)
+static u8* Midi_Event3(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3)
 {
     u8  channel;
     u8  ctrl;
@@ -1226,7 +1383,7 @@ u8* Midi_Event3(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3)
     return arg1 + 3;
 }
 
-u8* Midi_HandleMetaSysex(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3)
+static u8* Midi_HandleMetaSysex(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3)
 {
     u8  sp0;
     s32 var_a0;
@@ -1344,23 +1501,23 @@ static void Midi_InitChannelTable(s32* arg0)
     }
 }
 
-s32 Midi_IncPtr(s32 arg0, s32 arg1)
+static s32 Midi_IncPtr(s32 arg0, s32 arg1)
 {
     return arg1 + 1;
 }
 
-u8* Midi_KeyOffChannel(s32 arg0, u8* arg1, MidiSong* arg2)
+static u8* Midi_KeyOffChannel(s32 arg0, u8* arg1, MidiSong* arg2)
 {
     return _midiNoteOff(arg0, arg1, arg2);
 }
 
-u8* Midi_SetProgram(s32 arg0, u8* arg1, MidiOpcodeCtx* arg2)
+static u8* Midi_SetProgram(s32 arg0, u8* arg1, MidiOpcodeCtx* arg2)
 {
     arg2->field_484[arg0 & 0xF].field_4 = arg1[1];
     return arg1 + 2;
 }
 
-u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* arg2)
+static u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* arg2)
 {
     SpuVoiceRef   sp10;
     u8            channel;

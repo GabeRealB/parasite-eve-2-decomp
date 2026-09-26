@@ -487,7 +487,10 @@ segments:
       - [0x589b4, o, libspu/zerobuf, .data] # _spu_zerobuf
       - [0x58db4, o, libspu/s_n2p, .data]
       - [0x58ed4, o, libspu/s_rmp2, .data] # _spu_rev_param
-      - [0x59184, data, "59184"] # remaining .data (callbacks, etc.)
+      - [0x59184, .data, sndevt]
+      - [0x59254, .data, sndscript]
+      - [0x59280, .data, cdaudio]
+      - [0x59364, .data, cdstream]
 
       # .sbss section (8 bytes at $gp). splat 0.50 leaves vram unset unless
       # given explicitly, then skips writing the empty noload .s.
