@@ -8051,30 +8051,21 @@ void Gp_LoadStageView(void)
 
 void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2)
 {
-    u8*               head;
-    register MATRIX*  src asm("a3");
     _GpRelMatScratch* tmp;
-    VECTOR*           vec;
-    VECTOR*           out;
 
-    head                           = SCRATCH_HEAD(u8);
-    src                            = arg0;
-    tmp                            = (_GpRelMatScratch*)(head - 0x30);
+    tmp                            = SCRATCH_HEAD(_GpRelMatScratch) - 1;
     SCRATCH_HEAD(_GpRelMatScratch) = tmp;
-    TOUCH_REG3(tmp, src, head);
 
-    gte_TransposeMatrix(src, &tmp->rot);
+    gte_TransposeMatrix(arg0, &tmp->rot);
 
     gte_MulMatrix0(&tmp->rot, arg1, arg2);
 
-    tmp->delta.vx = arg1->t[0] - src->t[0];
-    tmp->delta.vy = arg1->t[1] - src->t[1];
-    tmp->delta.vz = arg1->t[2] - src->t[2];
-    vec           = (VECTOR*)(head - 0x10);
-    out           = (VECTOR*)arg2->t;
-    ApplyMatrixLV(&tmp->rot, vec, out);
+    tmp->delta.vx = arg1->t[0] - arg0->t[0];
+    tmp->delta.vy = arg1->t[1] - arg0->t[1];
+    tmp->delta.vz = arg1->t[2] - arg0->t[2];
+    ApplyMatrixLV(&tmp->rot, &tmp->delta, (VECTOR*)arg2->t);
 
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_POP(_GpRelMatScratch);
 }
 
 s32 Gp_TrySpawnViewTask(s32 arg0)
