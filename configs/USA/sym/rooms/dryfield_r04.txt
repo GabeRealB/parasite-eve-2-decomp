@@ -1,1 +1,2 @@
 // Overlay-local symbols for dryfield_r04.
+D_dryfield_r04_8017E1F4 = 0x8017E1F4; // collision grid header

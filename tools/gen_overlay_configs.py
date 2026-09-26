@@ -219,9 +219,10 @@ def object_subsegments(
             write_package_id(family, name)
             lines.append((0x0, f"      - [0x0, .rodata, {package_id_unit(family, name)}]"))
             continue
-        if kind in ("data", "model", "modelSource", "rodata"):
+        if kind in ("data", "model", "modelSource", "collision", "collisionSource", "rodata"):
             at = int(str(obj["at"]), 16)
-            typ = {"model": "databin", "modelSource": "data", "data": "data", "rodata": "rodata"}[kind]
+            typ = {"model": "databin", "modelSource": "data", "collision": "databin",
+                   "collisionSource": "data", "data": "data", "rodata": "rodata"}[kind]
             lines.append((at, f"      - [0x{at:X}, {typ}, {name}_{kind}_{at:05X}]"))
             continue
         unit = str(obj["unit"])

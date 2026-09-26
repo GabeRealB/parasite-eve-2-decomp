@@ -544,7 +544,12 @@ Game content lives in files, not in the executable: `assets/USA/pe2img`
 **Only assets have to stay out of `src/` and `include/`.** Everything else a
 binary embeds - data, rodata, bss, tables, strings - may be declared in C. The
 settled asset categories are **fonts** (glyph pixels *and* glyph metrics),
-**images**, **CLUTs**, **models** and **animations**. The known embedded ones:
+**images**, **CLUTs**, **models**, **animations** and **collision geometry**.
+Collision geometry is a room's grid - normals, vertices, faces and per-cell face
+lists - which describes a shape the way a model does; the manifest cuts it out as
+a `collision` object with its `GpGridParams` header as a `collisionSource`.
+Camera views are not assets: a view is a matrix and a position, data like any
+placement. The known embedded ones:
 
 | Asset | Where | Note |
 |---|---|---|

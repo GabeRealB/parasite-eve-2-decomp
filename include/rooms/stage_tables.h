@@ -47,10 +47,12 @@ extern GpSprtRec       D_dryfield_general_store_8018402C[];
 extern GpRoomParamRec* D_dryfield_general_store_801856D8[];
 
 // dryfield_r04
-extern GpRoomObjRec    D_dryfield_r04_8017D5C4[];
-extern u8*             D_dryfield_r04_8017D5D4[];
-extern GpViewCountRec  D_dryfield_r04_8017D5D8[];
-extern GpWarpRec       D_dryfield_r04_8017D5E4[];
+extern GpRoomObjRec   D_dryfield_r04_8017D5C4[];
+extern u8*            D_dryfield_r04_8017D5D4[];
+extern GpViewCountRec D_dryfield_r04_8017D5D8[];
+extern GpWarpRec      D_dryfield_r04_8017D5E4[];
+/// The location's collision grid header; the grid is an asset.
+extern GpGridParams    D_dryfield_r04_8017E1F4;
 extern GpViewRec       D_dryfield_r04_8017E218[];
 extern GpSprtRec       D_dryfield_r04_8017E280[];
 extern GpRoomParamRec* D_dryfield_r04_8017E2AC[];

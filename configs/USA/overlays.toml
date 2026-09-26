@@ -50,6 +50,11 @@
 #       descriptors point at the record, so it is an object of its own and
 #       takes its name from the overlay's symbols; the model before it is the
 #       asset. The generator checks each record against the package.
+#   { kind = "collision", at = "..." }   a room's collision grid: its normals,
+#       vertices, faces and per-cell face lists - geometry, so an asset
+#   { kind = "collisionSource", at = "..." }
+#       the grid's header (`GpGridParams`), which points at those arrays and
+#       gives the grid's size; the room's records name it
 #       all assembly, named from the offset given, so inserting a neighbour
 #       never renames them -- the defect the old ordinal names carried.
 #
@@ -1397,6 +1402,9 @@ id = 309
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_r04/dryfield_r04", data = "0x4" },
+  { kind = "collision", at = "0x5C" },
+  { kind = "collisionSource", at = "0xC34" },
+  { unit = "dryfield_r04/dryfield_r04_2", data = "0xC58" },
 ]
 
 [rooms.overlays.dryfield_back_street]
