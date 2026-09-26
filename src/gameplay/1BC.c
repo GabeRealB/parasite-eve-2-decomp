@@ -2402,29 +2402,27 @@ static void func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
 void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
                      void* arg7)
 {
-    GpAnimSlot*    slot;
-    GpAnimSet*     set;
-    GpAnimRec*     recs;
-    GpAnimRec*     rec;
-    u16            idx;
-    u16            val;
-    s32            off;
-    register s32   extra asm("s3");
-    register void* sets asm("s1");
+    GpAnimSlot* slot;
+    GpAnimSet*  set;
+    GpAnimRec*  recs;
+    GpAnimRec*  rec;
+    u16         idx;
+    u16         val;
+    s32         off;
 
-    extra = arg4;
-    sets  = arg7;
-    off   = arg1 << 4;
-    slot  = &arg0->slots[arg1];
+    off  = arg1 << 4;
+    slot = &arg0->slots[arg1];
     func_800B3448(arg0, arg1, arg2, (s32)arg0->poses + off);
     slot->curSet = 0x7FFF;
-    if (sets != NULL) {
-        arg0->sets = sets;
-        slot->sets = sets;
+    if (arg7 != NULL) {
+        arg0->sets = arg7;
+        slot->sets = arg7;
     }
     set  = slot->sets[arg3];
     recs = set->recs;
-    idx  = set->trackStart[slot->trackIndex] + extra;
+    /* arg4 is an offset into the track's records; rebase it to a record index. */
+    arg4 = (u16)(set->trackStart[slot->trackIndex] + arg4);
+    idx  = arg4;
     while ((s8)recs[idx].flags < 0) {
         rec = (GpAnimRec*)((idx << 2) + (s32)recs);
         if (rec->flags < 0xC0) {
