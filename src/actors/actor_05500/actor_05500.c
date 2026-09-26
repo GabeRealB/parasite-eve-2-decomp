@@ -1124,29 +1124,43 @@ done:
     SCRATCH_POP_BYTES(0x18);
 }
 
+/// Switches the work's animation id, resetting the slots to the blend value the
+/// table gives for the new id; otherwise ticks every slot one frame.
+static inline void _actor05500TickAnim(Task* task)
+{
+    Actor105500Work* work;
+    s32              i;
+    s32              value;
+
+    work = task->work;
+    if (work->field_392 != work->field_394) {
+        work->field_394 = work->field_392;
+        work->field_396 = 0;
+        value           = Actor05500_D08A18[work->field_392];
+        for (i = 1; i < 8; i++) {
+            func_800B4114(work, i, work->field_392, 0, value);
+        }
+    } else {
+        work->field_396++;
+        for (i = 1; i < 8; i++) {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        }
+    }
+}
+
 static void Actor05500_Fn02364(GpEnemy* arg0, Task* arg1)
 {
     VECTOR           vec;
     Actor105500Work* work;
-    Actor105500Work* initialWork;
-    Actor105500Work* dyingWork;
     GpCoord*         coord;
     GpCoord*         colorCoord;
     TmdObject*       obj;
-    s16              initialAnim;
-    s16              dyingAnim;
-    s16              releasePhase;
-    s16              state;
     s32              releaseId;
-    s32              initialIndex;
-    s32              dyingIndex;
-    u16              age;
-    u16              destroyAge;
 
     obj   = arg1->extra.tmd;
     work  = arg1->work;
     coord = obj->coords;
-    switch ((s32)Gp_StateF0.field_4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             vec.vx = coord->workm.t[0];
             vec.vy = coord->workm.t[1];
@@ -1158,8 +1172,7 @@ static void Actor05500_Fn02364(GpEnemy* arg0, Task* arg1)
             return;
         case 0:
         default:
-            state = work->field_39C;
-            switch (state) {
+            switch (work->field_39C) {
                 case 0:
                     work->field_3A0 = 0x1000;
                     work->field_370 = coord->coord;
@@ -1175,31 +1188,14 @@ static void Actor05500_Fn02364(GpEnemy* arg0, Task* arg1)
                     }
                     Gp_ReleaseStateF0Add(arg1, releaseId);
                     Gp_SetStateF0Byte3(2);
-                    work->field_39E = 0U;
+                    work->field_39E = 0;
                     work->field_39C = 1;
                     Gp_SetLightMode(arg0, 1);
                     if (work->field_3BA != 0) {
                         obj->flags = 0x80;
                     }
                     work->field_392 = 0xB;
-                    initialWork     = arg1->work;
-                    initialIndex    = 1;
-                    if (initialWork->field_392 != initialWork->field_394) {
-                        initialWork->field_394 = (s16)(u16)initialWork->field_392;
-                        initialWork->field_396 = 0U;
-                        initialAnim            = Actor05500_D08A18[initialWork->field_392];
-                        do {
-                            func_800B4114(initialWork, initialIndex, (s32)initialWork->field_392, 0, (s32)initialAnim);
-                            initialIndex += 1;
-                        } while (initialIndex < 8);
-                    } else {
-                        TOUCH_REG(initialIndex);
-                        initialWork->field_396 += initialIndex;
-                        do {
-                            Gp_AnimTickIndex((GpAnimCtx*)initialWork, initialIndex);
-                            initialIndex += 1;
-                        } while (initialIndex < 8);
-                    }
+                    _actor05500TickAnim(arg1);
                     colorCoord = arg1->extra.tmd->coords;
                     vec.vx     = colorCoord->workm.t[0];
                     vec.vy     = colorCoord->workm.t[1];
@@ -1207,63 +1203,41 @@ static void Actor05500_Fn02364(GpEnemy* arg0, Task* arg1)
                     Gp_UpdateActorColor(arg1->spawnArg2, &vec, 0, 0);
                     return;
                 case 1:
-                    releasePhase = work->field_3BA;
-                    if (releasePhase != 0) {
-                        if (releasePhase >= 2) {
+                    if (work->field_3BA != 0) {
+                        if (work->field_3BA >= 2) {
                             work->field_3BA = 0;
-                            Tmd_FreeBuffers((TmdObject*)obj);
+                            Tmd_FreeBuffers(obj);
                             obj->flags |= 4;
                             Actor05500_Fn03C54(arg1);
                             Actor05500_Fn03D40(arg1);
                         } else {
-                            work->field_3BA = (s16)((u16)work->field_3BA + 1);
+                            work->field_3BA++;
                         }
                     }
                     Actor05500_Fn03B60(arg1);
-                    age             = work->field_39E + 1;
-                    work->field_39E = age;
-                    if ((s16)age == 0xA) {
+                    work->field_39E++;
+                    if (work->field_39E == 0xA) {
                         obj->flags = 2;
                     }
-                    if ((s16)work->field_39E == 0xF) {
+                    if (work->field_39E == 0xF) {
                         Gp_SpawnEff(0x600A5, coord, 2, NULL);
                     }
-                    if ((s16)work->field_39E >= 0x3C) {
+                    if (work->field_39E >= 0x3C) {
                         work->field_39C = 2;
-                        work->field_39E = 0U;
+                        work->field_39E = 0;
                         obj->flags      = 0x80;
                     }
-                    dyingWork  = arg1->work;
-                    dyingIndex = 1;
-                    if (dyingWork->field_392 != dyingWork->field_394) {
-                        dyingWork->field_394 = (s16)(u16)dyingWork->field_392;
-                        dyingWork->field_396 = 0U;
-                        dyingAnim            = Actor05500_D08A18[dyingWork->field_392];
-                        do {
-                            func_800B4114(dyingWork, dyingIndex, (s32)dyingWork->field_392, 0, (s32)dyingAnim);
-                            dyingIndex += 1;
-                        } while (dyingIndex < 8);
-                    } else {
-                        TOUCH_REG(dyingIndex);
-                        dyingWork->field_396 += dyingIndex;
-                        do {
-                            Gp_AnimTickIndex((GpAnimCtx*)dyingWork, dyingIndex);
-                            dyingIndex += 1;
-                        } while (dyingIndex < 8);
-                    }
-
+                    _actor05500TickAnim(arg1);
                     colorCoord = arg1->extra.tmd->coords;
                     vec.vx     = colorCoord->workm.t[0];
                     vec.vy     = colorCoord->workm.t[1];
                     vec.vz     = colorCoord->workm.t[2];
                     Gp_UpdateActorColor(arg1->spawnArg2, &vec, 0, 0);
                     return;
-
                 case 2:
-                    destroyAge      = work->field_39E + 1;
-                    work->field_39E = destroyAge;
-                    if ((s16)destroyAge >= 0x3C) {
-                        Gp_DestroyEnemy((GpEnemy*)arg0, arg1);
+                    work->field_39E++;
+                    if (work->field_39E >= 0x3C) {
+                        Gp_DestroyEnemy(arg0, arg1);
                     }
                     return;
             }
