@@ -684,76 +684,53 @@ static void SndEvt_EnqueueTypeF(void)
 
 s32 SndScript_StopMatching(s32 arg0, s32 arg1)
 {
-    s32 i;
-    s32 hi;
+    SndScript* p;
+    s32        i;
+    s32        group;
+    s32        ret;
 
     if (!(arg0 & 0xFF)) {
-        register SndScript* p asm("v1");
-        s32                 four;
-        s32                 k60;
-        s32                 k80;
-        s32                 mask;
-        s32                 flag;
-        s32                 hi;
-
-        i    = 0;
-        mask = 0xF0000000;
-        k80  = 0x80000000;
-        k60  = 0x60000000;
-        four = 4;
-        flag = (arg1 == 1);
-        __asm__ volatile(
-            "lui %0, %%hi(SndScript_Slots)\n\t"
-            "addiu %1, %0, %%lo(SndScript_Slots)"
-            : "=&r"(hi), "=r"(p));
-        do {
-            hi = p->field_0 & mask;
-            if ((hi == arg0) || ((arg0 == k80) && (hi != k60))) {
-                if ((p->field_16 != four) && (p->field_16 != 0)) {
-                    p->field_C  = flag;
-                    p->field_16 = four;
+        for (i = 0; i < 8; i++) {
+            p     = &SndScript_Slots[i];
+            group = p->field_0 & 0xF0000000;
+            if ((group == arg0) || ((arg0 == 0x80000000) && (group != 0x60000000))) {
+                if ((p->field_16 != 4) && (p->field_16 != 0)) {
+                    p->field_C  = (arg1 == 1);
+                    p->field_16 = 4;
                 }
             }
-            i++;
-            p++;
-        } while (i < 8);
+        }
         return -2;
-    } else {
-        register s32 ret asm("v1");
-        SndScript*   p;
-
-        i = 0;
-        do {
-            p = &SndScript_Slots[i];
-            if ((p->field_0 == arg0) || ((p->field_0 | 0xFF00) == arg0)) {
-                switch (p->field_16) {
-                    case 2:
-                        if (arg1 == 0) {
-                            goto set_status_4;
-                        }
-                        if (arg1 == 1) {
-                            p->field_C = arg1;
-                            goto set_status_4;
-                        }
-                        LinInterp_Setup(&p->field_50, (u8)D_80082748, 0, arg1);
-                        p->field_16 = 0x80;
-                        break;
-                    case 4:
-                    case 8:
-                    case 16:
-                    set_status_4:
-                        p->field_16 = 4;
-                        break;
-                    case 1:
-                        p->field_16 = 0;
-                        break;
-                }
-            }
-            ret = i;
-            i   = ret + 1;
-        } while (i < 8);
-        return ret;
     }
+
+    ret = 0;
+    for (i = 0; i < 8; i++) {
+        p = &SndScript_Slots[i];
+        if ((p->field_0 == arg0) || ((p->field_0 | 0xFF00) == arg0)) {
+            switch (p->field_16) {
+                case 2:
+                    if (arg1 != 0) {
+                        if (arg1 != 1) {
+                            LinInterp_Setup(&p->field_50, (u8)D_80082748, 0, arg1);
+                            p->field_16 = 0x80;
+                            break;
+                        }
+                        p->field_C = arg1;
+                    }
+                    /* fallthrough */
+                case 4:
+                case 8:
+                case 16:
+                    p->field_16 = 4;
+                    break;
+                case 1:
+                    p->field_16 = 0;
+                    break;
+            }
+        }
+        ret = i;
+    }
+    return ret;
 }
 
 static void SndVoice_StepMasterLevel(void)

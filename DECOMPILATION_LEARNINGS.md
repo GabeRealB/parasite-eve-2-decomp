@@ -144039,3 +144039,24 @@ touches *last*. Writing `track->field_38 = 0xE0F;` before `track->field_2C +=
 len;` based the register at 0x2C (`sw ...,0xc(s0)`); swapping the two statements
 based it at 0x38 and matched. When a walking pointer comes out at the wrong
 offset, sweep the order of the loop's final field accesses before anything else.
+
+## A loop's "last index" result keeps `addiu i,ret,1` only when it is initialised before the loop (SndScript_StopMatching, 2026-09-26)
+
+Target loop tail: `move v1,s1; addiu s1,v1,1; slti v0,s1,8`, then `move v0,v1`
+after the loop - a result holding the last index visited, with the increment
+reading the *copy*. `ret = i++;` or `ret = i; i = ret + 1;` both come out as
+`addiu s1,s1,1`: cse2 puts `ret` in `i`'s quantity and, since `ret`'s whole
+life (loop tail to the return) sits inside the extended block it is scanning,
+`make_regs_eqv` leaves `i` canonical and rewrites `ret + 1` to `i + 1`. The seed
+pinned `ret` to `$v1` to stop that. The other disjunct of the same test promotes
+the copy when its *first* set lies before the block start, so give the result an
+initial value ahead of the loop:
+
+```c
+ret = 0;
+for (i = 0; i < 8; i++) {
+    ...
+    ret = i;
+}
+return ret;
+```
