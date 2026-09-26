@@ -1606,104 +1606,80 @@ static void Actor02300_Fn028AC(GpEnemy* enemy, Task* actor)
     }
 }
 
-/// Per-frame state of the enemy (entry 1 of `Actor02300_D00078`). Unless
-/// `Gp_StateF0.field_4` holds the scene (1 only redraws, 2 hides the model and its
-/// lock-on node), it turns a pending knock-back into entry 0xA, runs the hit
-/// tick and the `field_6A6` state handler, turns toward `field_6A4`, steps the
-/// root coordinate forward by `field_69C`, advances or reseeds the animation
-/// slots, applies the hit tilt and the sound cues, and every third frame while
-/// `field_6C4` is 0 puffs dust at part 3. It then draws the model with its
-/// ground shadow.
-static void Actor02300_Fn02EA0(GpEnemy* ctx, Task* actor)
+/// Takes a pending reaction: while `field_6B8` is 0, bit 1 of the spawn
+/// context's `reactionFlags` is cleared and the enemy switches to entry 0xA of
+/// the `field_6A6` table with animation 0x14.
+static inline void _actor02300ApplyReaction(Task* actor)
 {
-    VECTOR3          pos;
     GpEnemy*         spawn;
-    TmdObject*       model;
-    Actor105600Work* moveWork;
-    Actor105600Work* animWork;
     Actor105600Work* work;
-    Actor105600Work* flagWork;
-    GpCoord*         moveCoord;
-    GpCoord*         part;
-    GpCoord*         coord;
-    GpCoord*         root;
-    s16              duration;
-    s32              i;
     u8               flags;
 
+    spawn = actor->spawnArg2;
+    flags = spawn->reactionFlags;
     work  = actor->work;
-    model = actor->extra.tmd;
-    coord = model->coords;
-    switch (Gp_StateF0.field_4) {
-        case 0:
-            model->flags            = 0;
-            ctx->node.state.b.flags = 0;
-            break;
-        case 1:
-            goto draw;
-        case 2:
-            model->flags            = 0x80;
-            ctx->node.state.b.flags = 1;
-            return;
+    if ((flags & 2) && (work->field_6B8 == 0)) {
+        spawn->reactionFlags = flags & 0xFD;
+        work->field_6A6      = 0xA;
+        work->field_694      = 0x14;
+        work->field_6A8      = 0;
+        work->field_6E0      = 1;
     }
+}
 
-    if (ctx->reactionFlags != 0) {
-        spawn    = actor->spawnArg2;
-        flags    = spawn->reactionFlags;
-        flagWork = actor->work;
-        if ((flags & 2) && (flagWork->field_6B8 == 0)) {
-            spawn->reactionFlags = flags & 0xFD;
-            flagWork->field_6A6  = 0xA;
-            flagWork->field_694  = 0x14;
-            flagWork->field_6A8  = 0;
-            flagWork->field_6E0  = 1;
+/// Saves the root coordinate's translation in `field_678`..`field_680`, then
+/// moves it `field_69C` along its facing, raising it by 0x80 while `field_6DE`
+/// is below 2.
+static inline void _actor02300StepRoot(Task* actor)
+{
+    GpCoord*         coord;
+    Actor105600Work* work;
+
+    coord              = actor->extra.tmd->coords;
+    work               = actor->work;
+    work->field_678    = coord->coord.t[0];
+    work->field_67C    = coord->coord.t[1];
+    work->field_680    = coord->coord.t[2];
+    coord->coord.t[0] += (s32)(coord->coord.m[0][2] * work->field_69C) >> 0xC;
+    if (work->field_6DE < 2) {
+        coord->coord.t[1] += 0x80;
+    }
+    coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->field_69C) >> 0xC;
+}
+
+/// Advances animation slots 1..0x12 by one frame, or, when `field_694` names a
+/// new animation, restarts the frame count and cross-fades every slot to it
+/// over the animation's `Actor02300_D03F44` duration.
+static inline void _actor02300TickAnim(Task* actor)
+{
+    Actor105600Work* work;
+    s16              duration;
+    s32              i;
+
+    work = actor->work;
+    if (work->field_694 != work->field_696) {
+        work->field_696 = work->field_694;
+        work->field_698 = 0;
+        duration        = Actor02300_D03F44[work->field_694];
+        for (i = 1; i < 0x13; i++) {
+            func_800B4114(&work->rig.anim, i, work->field_694, 0, duration);
+        }
+    } else {
+        work->field_698++;
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
-    Actor02300_Fn00084(actor);
-    Actor02300_D15D38[work->field_6A6](actor);
-    if (work->field_69E != 0) {
-        Actor02300_Fn0150C(actor);
-    }
-    moveCoord              = actor->extra.tmd->coords;
-    moveWork               = actor->work;
-    moveWork->field_678    = moveCoord->coord.t[0];
-    moveWork->field_67C    = moveCoord->coord.t[1];
-    moveWork->field_680    = moveCoord->coord.t[2];
-    moveCoord->coord.t[0] += (s32)(moveCoord->coord.m[0][2] * moveWork->field_69C) >> 0xC;
-    if (moveWork->field_6DE < 2) {
-        moveCoord->coord.t[1] += 0x80;
-    }
-    moveCoord->coord.t[2] += (s32)(moveCoord->coord.m[2][2] * moveWork->field_69C) >> 0xC;
-    animWork               = actor->work;
-    i                      = 1;
-    if (animWork->field_694 != animWork->field_696) {
-        animWork->field_696 = (s16)(u16)animWork->field_694;
-        animWork->field_698 = 0;
-        duration            = Actor02300_D03F44[animWork->field_694];
-        do {
-            func_800B4114(&animWork->rig.anim, i, animWork->field_694, 0, duration);
-            i += 1;
-        } while (i < 0x13);
-    } else {
-        TOUCH_REG(i);
-        animWork->field_698 = (u16)animWork->field_698 + i;
-        do {
-            Gp_AnimTickIndex(&animWork->rig.anim, i);
-            i += 1;
-        } while (i < 0x13);
-    }
-    if (work->field_6B4 != 0) {
-        Actor02300_Fn01698(actor);
-    }
-    Actor02300_Fn018A4(actor);
-    coord->flg                      = 0;
-    actor->extra.tmd->coords[3].flg = 0;
-    Gp_UpdateCoord(coord);
-    if (work->field_6C4 == 0) {
-        Actor02300_SpawnDust(actor);
-    }
-draw:
-    USE_REG(coord);
+}
+
+/// Updates the enemy's colour from `coord`'s world position and draws the
+/// ground quad under part 3.
+static inline void _actor02300Draw(Task* actor, GpCoord* coord)
+{
+    VECTOR3  pos;
+    GpCoord* root;
+    GpCoord* part;
+
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
@@ -1714,6 +1690,60 @@ draw:
     pos.vy = root->workm.t[1];
     pos.vz = part->workm.t[2];
     Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
+}
+
+/// Per-frame state of the enemy (entry 1 of `Actor02300_D00078`). Unless
+/// `Gp_StateF0.field_4` holds the scene (1 only redraws, 2 hides the model and its
+/// lock-on node), it turns a pending knock-back into entry 0xA, runs the hit
+/// tick and the `field_6A6` state handler, turns toward `field_6A4`, steps the
+/// root coordinate forward by `field_69C`, advances or reseeds the animation
+/// slots, applies the hit tilt and the sound cues, and every third frame while
+/// `field_6C4` is 0 puffs dust at part 3. It then draws the model with its
+/// ground shadow.
+static void Actor02300_Fn02EA0(GpEnemy* ctx, Task* actor)
+{
+    TmdObject*       model;
+    Actor105600Work* work;
+    GpCoord*         coord;
+
+    work  = actor->work;
+    model = actor->extra.tmd;
+    coord = model->coords;
+    switch (Gp_StateF0.field_4) {
+        case 0:
+            model->flags            = 0;
+            ctx->node.state.b.flags = 0;
+            break;
+        case 1:
+            _actor02300Draw(actor, coord);
+            return;
+        case 2:
+            model->flags            = 0x80;
+            ctx->node.state.b.flags = 1;
+            return;
+    }
+
+    if (ctx->reactionFlags != 0) {
+        _actor02300ApplyReaction(actor);
+    }
+    Actor02300_Fn00084(actor);
+    Actor02300_D15D38[work->field_6A6](actor);
+    if (work->field_69E != 0) {
+        Actor02300_Fn0150C(actor);
+    }
+    _actor02300StepRoot(actor);
+    _actor02300TickAnim(actor);
+    if (work->field_6B4 != 0) {
+        Actor02300_Fn01698(actor);
+    }
+    Actor02300_Fn018A4(actor);
+    coord->flg                      = 0;
+    actor->extra.tmd->coords[3].flg = 0;
+    Gp_UpdateCoord(coord);
+    if (work->field_6C4 == 0) {
+        Actor02300_SpawnDust(actor);
+    }
+    _actor02300Draw(actor, coord);
 }
 
 /// The lunge's own tick, run out of a 0x10-byte `G_SCRATCH_HEAD` block. State
