@@ -189,8 +189,6 @@ static void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx)
     u16*       p;
     u8         item;
     u8         id;
-    s32        vis;
-    s8         tmp;
 
     rec   = Mc_SaveData.itemRows;
     count = 0;
@@ -251,13 +249,10 @@ static void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx)
         i += 1;
     } while (i < 0x200);
 
-    vis           = 9;
-    list->field_5 = vis;
-    TOUCH_REG(vis);
-    tmp           = count - vis;
-    list->field_9 = tmp;
+    list->field_5 = 9;
     list->field_4 = count;
-    if (tmp < 0) {
+    list->field_9 = list->field_4 - list->field_5;
+    if ((s8)list->field_9 < 0) {
         list->field_9 = 0;
     }
     list->field_10 = (s8)list->field_9;
