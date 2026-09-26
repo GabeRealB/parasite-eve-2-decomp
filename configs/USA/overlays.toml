@@ -618,6 +618,10 @@ objects = [
 
 # ======== mappic (17 entries) ========
 
+# A map picture package holds flat outline models and nothing else: each model
+# is followed by its TmdSource record, back to back from the package id to the
+# end of the image. The map UI overlays point at those records.
+
 [mappic]
 description = "Map picture"
 imports = "configs/USA/sym/mappic.imports.txt"
@@ -629,36 +633,110 @@ global_vram_end = 0x8012EF30
 id = 63
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0xA8" },
+  { kind = "model", at = "0xCC" },
+  { kind = "modelSource", at = "0x1F8" },
   { kind = "model", at = "0x21C" },
   { kind = "modelSource", at = "0x2F4" },
-  { kind = "data", at = "0x318" },
+  { kind = "model", at = "0x318" },
+  { kind = "modelSource", at = "0x3A0" },
+  { kind = "model", at = "0x3C4" },
+  { kind = "modelSource", at = "0x430" },
+  { kind = "model", at = "0x454" },
+  { kind = "modelSource", at = "0x4C0" },
+  { kind = "model", at = "0x4E4" },
+  { kind = "modelSource", at = "0x5C4" },
+  { kind = "model", at = "0x5E8" },
+  { kind = "modelSource", at = "0x6A4" },
+  { kind = "model", at = "0x6C8" },
+  { kind = "modelSource", at = "0x754" },
+  { kind = "model", at = "0x778" },
+  { kind = "modelSource", at = "0x83C" },
+  { kind = "model", at = "0x860" },
+  { kind = "modelSource", at = "0x8CC" },
+  { kind = "model", at = "0x8F0" },
+  { kind = "modelSource", at = "0x95C" },
+  { kind = "model", at = "0x980" },
+  { kind = "modelSource", at = "0x9EC" },
+  { kind = "model", at = "0xA10" },
+  { kind = "modelSource", at = "0xA7C" },
+  { kind = "model", at = "0xAA0" },
+  { kind = "modelSource", at = "0xBCC" },
 ]
 
 [mappic.overlays.mappic_s1_02]
 id = 64
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0x70" },
 ]
 
 [mappic.overlays.mappic_s2_00]
 id = 77
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0x70" },
+  { kind = "model", at = "0x94" },
+  { kind = "modelSource", at = "0x188" },
+  { kind = "model", at = "0x1AC" },
+  { kind = "modelSource", at = "0x218" },
+  { kind = "model", at = "0x23C" },
+  { kind = "modelSource", at = "0x2A8" },
+  { kind = "model", at = "0x2CC" },
+  { kind = "modelSource", at = "0x38C" },
 ]
 
 [mappic.overlays.mappic_s2_02]
 id = 78
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0x8C" },
+  { kind = "model", at = "0xB0" },
+  { kind = "modelSource", at = "0x11C" },
+  { kind = "model", at = "0x140" },
+  { kind = "modelSource", at = "0x1AC" },
+  { kind = "model", at = "0x1D0" },
+  { kind = "modelSource", at = "0x258" },
+  { kind = "model", at = "0x27C" },
+  { kind = "modelSource", at = "0x2E8" },
+  { kind = "model", at = "0x30C" },
+  { kind = "modelSource", at = "0x378" },
+  { kind = "model", at = "0x39C" },
+  { kind = "modelSource", at = "0x424" },
+  { kind = "model", at = "0x448" },
+  { kind = "modelSource", at = "0x4B4" },
+  { kind = "model", at = "0x4D8" },
+  { kind = "modelSource", at = "0x544" },
+  { kind = "model", at = "0x568" },
+  { kind = "modelSource", at = "0x5D4" },
+  { kind = "model", at = "0x5F8" },
+  { kind = "modelSource", at = "0x664" },
+  { kind = "model", at = "0x688" },
+  { kind = "modelSource", at = "0x764" },
+  { kind = "model", at = "0x788" },
+  { kind = "modelSource", at = "0x7F4" },
+  { kind = "model", at = "0x818" },
+  { kind = "modelSource", at = "0x884" },
+  { kind = "model", at = "0x8A8" },
+  { kind = "modelSource", at = "0x964" },
+  { kind = "model", at = "0x988" },
+  { kind = "modelSource", at = "0x9F4" },
+  { kind = "model", at = "0xA18" },
+  { kind = "modelSource", at = "0xAA0" },
+  { kind = "model", at = "0xAC4" },
+  { kind = "modelSource", at = "0xB4C" },
+  { kind = "model", at = "0xB70" },
+  { kind = "modelSource", at = "0xBDC" },
   { kind = "model", at = "0xC00" },
   { kind = "modelSource", at = "0xC6C" },
   { kind = "model", at = "0xC90" },
   { kind = "modelSource", at = "0xD34" },
-  { kind = "data", at = "0xD58" },
+  { kind = "model", at = "0xD58" },
+  { kind = "modelSource", at = "0xE30" },
   { kind = "model", at = "0xE54" },
   { kind = "modelSource", at = "0xEC0" },
 ]
@@ -667,26 +745,78 @@ objects = [
 id = 79
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0xA8" },
+  { kind = "model", at = "0xCC" },
+  { kind = "modelSource", at = "0x154" },
+  { kind = "model", at = "0x178" },
+  { kind = "modelSource", at = "0x250" },
 ]
 
 [mappic.overlays.mappic_s3_00]
 id = 71
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0xC4" },
+  { kind = "model", at = "0xE8" },
+  { kind = "modelSource", at = "0x154" },
+  { kind = "model", at = "0x178" },
+  { kind = "modelSource", at = "0x26C" },
+  { kind = "model", at = "0x290" },
+  { kind = "modelSource", at = "0x2FC" },
+  { kind = "model", at = "0x320" },
+  { kind = "modelSource", at = "0x38C" },
 ]
 
 [mappic.overlays.mappic_s3_02]
 id = 72
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0x8C" },
+  { kind = "model", at = "0xB0" },
+  { kind = "modelSource", at = "0x11C" },
+  { kind = "model", at = "0x140" },
+  { kind = "modelSource", at = "0x1AC" },
+  { kind = "model", at = "0x1D0" },
+  { kind = "modelSource", at = "0x258" },
+  { kind = "model", at = "0x27C" },
+  { kind = "modelSource", at = "0x2E8" },
+  { kind = "model", at = "0x30C" },
+  { kind = "modelSource", at = "0x378" },
+  { kind = "model", at = "0x39C" },
+  { kind = "modelSource", at = "0x43C" },
+  { kind = "model", at = "0x460" },
+  { kind = "modelSource", at = "0x4CC" },
+  { kind = "model", at = "0x4F0" },
+  { kind = "modelSource", at = "0x55C" },
+  { kind = "model", at = "0x580" },
+  { kind = "modelSource", at = "0x5EC" },
+  { kind = "model", at = "0x610" },
+  { kind = "modelSource", at = "0x67C" },
+  { kind = "model", at = "0x6A0" },
+  { kind = "modelSource", at = "0x77C" },
+  { kind = "model", at = "0x7A0" },
+  { kind = "modelSource", at = "0x80C" },
+  { kind = "model", at = "0x830" },
+  { kind = "modelSource", at = "0x89C" },
+  { kind = "model", at = "0x8C0" },
+  { kind = "modelSource", at = "0x97C" },
+  { kind = "model", at = "0x9A0" },
+  { kind = "modelSource", at = "0xA0C" },
+  { kind = "model", at = "0xA30" },
+  { kind = "modelSource", at = "0xAB8" },
+  { kind = "model", at = "0xADC" },
+  { kind = "modelSource", at = "0xB64" },
+  { kind = "model", at = "0xB88" },
+  { kind = "modelSource", at = "0xBF4" },
   { kind = "model", at = "0xC18" },
   { kind = "modelSource", at = "0xC84" },
   { kind = "model", at = "0xCA8" },
   { kind = "modelSource", at = "0xD4C" },
-  { kind = "data", at = "0xD70" },
+  { kind = "model", at = "0xD70" },
+  { kind = "modelSource", at = "0xE48" },
   { kind = "model", at = "0xE6C" },
   { kind = "modelSource", at = "0xED8" },
 ]
@@ -695,7 +825,12 @@ objects = [
 id = 73
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0xA8" },
+  { kind = "model", at = "0xCC" },
+  { kind = "modelSource", at = "0x154" },
+  { kind = "model", at = "0x178" },
+  { kind = "modelSource", at = "0x250" },
 ]
 
 [mappic.overlays.mappic_s4_00]
@@ -704,68 +839,192 @@ objects = [
   { kind = "packageId" },
   { kind = "model", at = "0x4" },
   { kind = "modelSource", at = "0x8C" },
-  { kind = "data", at = "0xB0" },
+  { kind = "model", at = "0xB0" },
+  { kind = "modelSource", at = "0x1A8" },
 ]
 
 [mappic.overlays.mappic_s4_02]
 id = 66
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0x70" },
+  { kind = "model", at = "0x94" },
+  { kind = "modelSource", at = "0x100" },
+  { kind = "model", at = "0x124" },
+  { kind = "modelSource", at = "0x190" },
+  { kind = "model", at = "0x1B4" },
+  { kind = "modelSource", at = "0x220" },
+  { kind = "model", at = "0x244" },
+  { kind = "modelSource", at = "0x2B0" },
+  { kind = "model", at = "0x2D4" },
+  { kind = "modelSource", at = "0x35C" },
 ]
 
 [mappic.overlays.mappic_s4_03]
 id = 67
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0xA8" },
+  { kind = "model", at = "0xCC" },
+  { kind = "modelSource", at = "0x154" },
+  { kind = "model", at = "0x178" },
+  { kind = "modelSource", at = "0x1E4" },
+  { kind = "model", at = "0x208" },
+  { kind = "modelSource", at = "0x290" },
+  { kind = "model", at = "0x2B4" },
+  { kind = "modelSource", at = "0x33C" },
+  { kind = "model", at = "0x360" },
+  { kind = "modelSource", at = "0x3E8" },
+  { kind = "model", at = "0x40C" },
+  { kind = "modelSource", at = "0x4C8" },
+  { kind = "model", at = "0x4EC" },
+  { kind = "modelSource", at = "0x558" },
+  { kind = "model", at = "0x57C" },
+  { kind = "modelSource", at = "0x654" },
+  { kind = "model", at = "0x678" },
+  { kind = "modelSource", at = "0x734" },
+  { kind = "model", at = "0x758" },
+  { kind = "modelSource", at = "0x7E0" },
+  { kind = "model", at = "0x804" },
+  { kind = "modelSource", at = "0x8C0" },
+  { kind = "model", at = "0x8E4" },
+  { kind = "modelSource", at = "0x9A0" },
+  { kind = "model", at = "0x9C4" },
+  { kind = "modelSource", at = "0xA30" },
+  { kind = "model", at = "0xA54" },
+  { kind = "modelSource", at = "0xAC0" },
+  { kind = "model", at = "0xAE4" },
+  { kind = "modelSource", at = "0xBBC" },
 ]
 
 [mappic.overlays.mappic_s4_04]
 id = 68
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0xA8" },
+  { kind = "model", at = "0xCC" },
+  { kind = "modelSource", at = "0x154" },
+  { kind = "model", at = "0x178" },
+  { kind = "modelSource", at = "0x1E4" },
+  { kind = "model", at = "0x208" },
+  { kind = "modelSource", at = "0x290" },
+  { kind = "model", at = "0x2B4" },
+  { kind = "modelSource", at = "0x33C" },
+  { kind = "model", at = "0x360" },
+  { kind = "modelSource", at = "0x3E8" },
+  { kind = "model", at = "0x40C" },
+  { kind = "modelSource", at = "0x538" },
+  { kind = "model", at = "0x55C" },
+  { kind = "modelSource", at = "0x5C8" },
+  { kind = "model", at = "0x5EC" },
+  { kind = "modelSource", at = "0x6C4" },
+  { kind = "model", at = "0x6E8" },
+  { kind = "modelSource", at = "0x78C" },
 ]
 
 [mappic.overlays.mappic_s4_05]
 id = 69
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0xC0" },
+  { kind = "model", at = "0xE4" },
+  { kind = "modelSource", at = "0x21C" },
+  { kind = "model", at = "0x240" },
+  { kind = "modelSource", at = "0x2C8" },
+  { kind = "model", at = "0x2EC" },
+  { kind = "modelSource", at = "0x3FC" },
 ]
 
 [mappic.overlays.mappic_s4_06]
 id = 70
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0xC0" },
   { kind = "model", at = "0xE4" },
   { kind = "modelSource", at = "0x188" },
   { kind = "model", at = "0x1AC" },
   { kind = "modelSource", at = "0x268" },
-  { kind = "data", at = "0x28C" },
+  { kind = "model", at = "0x28C" },
+  { kind = "modelSource", at = "0x330" },
 ]
 
 [mappic.overlays.mappic_s5_00]
 id = 74
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0x11C" },
+  { kind = "model", at = "0x140" },
+  { kind = "modelSource", at = "0x1AC" },
+  { kind = "model", at = "0x1D0" },
+  { kind = "modelSource", at = "0x2E8" },
+  { kind = "model", at = "0x30C" },
+  { kind = "modelSource", at = "0x378" },
+  { kind = "model", at = "0x39C" },
+  { kind = "modelSource", at = "0x408" },
+  { kind = "model", at = "0x42C" },
+  { kind = "modelSource", at = "0x498" },
+  { kind = "model", at = "0x4BC" },
+  { kind = "modelSource", at = "0x560" },
+  { kind = "model", at = "0x584" },
+  { kind = "modelSource", at = "0x65C" },
+  { kind = "model", at = "0x680" },
+  { kind = "modelSource", at = "0x6EC" },
+  { kind = "model", at = "0x710" },
+  { kind = "modelSource", at = "0x77C" },
+  { kind = "model", at = "0x7A0" },
+  { kind = "modelSource", at = "0x8B8" },
+  { kind = "model", at = "0x8DC" },
+  { kind = "modelSource", at = "0x948" },
+  { kind = "model", at = "0x96C" },
+  { kind = "modelSource", at = "0xAA4" },
+  { kind = "model", at = "0xAC8" },
+  { kind = "modelSource", at = "0xBA4" },
+  { kind = "model", at = "0xBC8" },
+  { kind = "modelSource", at = "0xC84" },
+  { kind = "model", at = "0xCA8" },
+  { kind = "modelSource", at = "0xD88" },
+  { kind = "model", at = "0xDAC" },
+  { kind = "modelSource", at = "0xE54" },
+  { kind = "model", at = "0xE78" },
+  { kind = "modelSource", at = "0xF1C" },
 ]
 
 [mappic.overlays.mappic_s5_02]
 id = 75
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0x114" },
+  { kind = "model", at = "0x138" },
+  { kind = "modelSource", at = "0x1F4" },
+  { kind = "model", at = "0x218" },
+  { kind = "modelSource", at = "0x2F4" },
+  { kind = "model", at = "0x318" },
+  { kind = "modelSource", at = "0x384" },
 ]
 
 [mappic.overlays.mappic_s5_03]
 id = 76
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0x70" },
+  { kind = "model", at = "0x94" },
+  { kind = "modelSource", at = "0x100" },
+  { kind = "model", at = "0x124" },
+  { kind = "modelSource", at = "0x1E0" },
+  { kind = "model", at = "0x204" },
+  { kind = "modelSource", at = "0x2C0" },
+  { kind = "model", at = "0x2E4" },
+  { kind = "modelSource", at = "0x388" },
+  { kind = "model", at = "0x3AC" },
+  { kind = "modelSource", at = "0x418" },
 ]
 
 

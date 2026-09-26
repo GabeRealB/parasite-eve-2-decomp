@@ -594,7 +594,7 @@ What remains is narrower.
   appears on disc rather than as the runtime pointer, and the tpage/clut bias
   (§5.1) undone.
 - **Where models are is settled.** The overlay manifest declares every model
-  with its `TmdSource` record (626 across 213 packages), and the build checks
+  with its `TmdSource` record (764 across 225 packages), and the build checks
   each record decodes and that its model object is exactly the arrays and stream
   it points at. A record may point at a stream that opens with one or more
   `0xFFFFFFFE` skips - `Tmd_InitSourceStream` steps over them - so the stream's
@@ -605,6 +605,8 @@ What remains is narrower.
   carry no normals (`norms == stream`) - flat-shaded props, including the
   geometry in 10 `mappic` packages - and they are declared like every other
   model; the other 6 are runs of opcode-0 packets with no record behind them.
+  Every `mappic` package is nothing but such models, each followed by its
+  record.
 
 ---
 
