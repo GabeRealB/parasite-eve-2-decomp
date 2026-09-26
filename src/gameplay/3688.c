@@ -5434,63 +5434,55 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
     }
 }
 
+/// Whether `id` is an armour item (0x60-0x7F). Armour item `id` is armour
+/// number `id - 0x5F` in `PlayerStatus.armor`.
+static inline s32 _gpIsArmorItem(u8 id)
+{
+    return (u32)(id - 0x60) < 0x20U;
+}
+
+/// Returns the item id of the `index`-th carried row (from 0) holding armour
+/// other than the equipped piece, or 0 when there is none.
+static inline s32 _gpFindSpareArmor(s32 index)
+{
+    PlayerStatus* cfg;
+    McItemScan*   scan;
+    McItemRec*    rec;
+    s32           i;
+    s32           found;
+
+    scan  = &Mc_SaveData.carriedItems;
+    cfg   = &Player_Status;
+    rec   = Gp_GetItemTable(scan);
+    found = i = 0;
+    rec       = &rec[scan->firstRow];
+    for (; i < scan->rowCount; i++) {
+        if (_gpIsArmorItem(rec->itemId) && (cfg->armor != rec->itemId - 0x5F)) {
+            index--;
+            if (index < 0) {
+                found = rec->itemId;
+                break;
+            }
+        }
+        rec++;
+    }
+    return found;
+}
+
 void Gp_DrawArmorSelectRow(DialogPrompt* arg0, UiObject* arg1)
 {
-    TextDrawReq         req;
-    PlayerStatus*       cfg;
-    McItemScan*         scan;
-    s32                 remaining;
-    McItemRec*          rec;
-    volatile McItemRec* table;
-    s32                 i;
-    register s32        count asm("t0");
-    s32                 found;
-    s32                 item;
-    register s32        id asm("t0");
-    s32                 x;
-    s32                 y;
-    s32                 color;
-    s32                 one;
-    s32                 temp;
-    s32                 baseY;
-    s32                 status;
-    register s32        idx asm("v1");
-    register s32        n asm("a1");
+    TextDrawReq req;
+    s32         item;
+    s32         x;
+    s32         y;
+    s32         color;
+    s32         one;
+    s32         temp;
+    s32         baseY;
+    s32         status;
 
-    scan      = &Mc_SaveData.carriedItems;
-    cfg       = &Player_Status;
-    remaining = arg0->field_8;
-    rec       = Gp_GetItemTable(scan);
-    i         = 0;
-    found     = i;
-    idx       = ((volatile McItemScan*)&Mc_SaveData.carriedItems)->firstRow;
-    count     = scan->rowCount;
-    idx      *= 4;
-    table     = (volatile McItemRec*)((s32)rec + idx);
-    if (count != 0) {
-        n = count;
-        do {
-        loop:
-            if ((u32)(table->itemId - 0x60) < 0x20U) {
-                id = table->itemId;
-                if (cfg->armor != id - 0x5F) {
-                    remaining--;
-                    if (remaining < 0) {
-                        found = id;
-                        break;
-                    }
-                }
-            }
-            i++;
-            table++;
-            if (i < n) {
-                goto loop;
-            }
-        } while (0);
-    }
-
+    item   = _gpFindSpareArmor(arg0->field_8);
     status = arg1->status;
-    item   = found;
     if (((status >> 16) == 1) || (status == 1)) {
         if (arg0->field_10 == arg0->field_8) {
             if (item == 0) {
@@ -5533,13 +5525,6 @@ void Gp_DrawArmorSelectRow(DialogPrompt* arg0, UiObject* arg1)
             arg1->status = 0;
         }
     }
-}
-
-/// Whether `id` is an armour item (0x60-0x7F). Armour item `id` is armour
-/// number `id - 0x5F` in `PlayerStatus.armor`.
-static inline s32 _gpIsArmorItem(u8 id)
-{
-    return (u32)(id - 0x60) < 0x20U;
 }
 
 /// Counts the carried rows holding armour other than the piece the player has
