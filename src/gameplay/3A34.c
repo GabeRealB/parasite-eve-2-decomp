@@ -6555,9 +6555,3 @@ void Gp_EvtCapTask(Task* arg0)
             break;
     }
 }
-
-const TaskFuncTable3 D_800974C8 = { {
-    func_800E31E8,
-    (TaskFunc)func_800E4020,
-    taskKill,
-} };

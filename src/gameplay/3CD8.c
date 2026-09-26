@@ -6,6 +6,7 @@
 #include <psyq/strings.h>
 
 #include "gameplay/1A8.h"
+#include "gameplay/268.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -30,21 +31,6 @@
 typedef struct {
     u8 vertical;
 } _GpCapLayout;
-
-extern const TaskFuncTable3 D_800974C8;
-
-void Gp_InitCapTask(Task* task);
-void Gp_CapTaskState1(void);
-
-const char         Gp_StrCapMagic[] = "CAP";
-const _GpCapLayout D_80097518       = { 0 };
-const char         Gp_StrEvsFmt[]   = "evs%d_%d_%d.txt";
-
-const TaskFuncTable3 Gp_CapTaskStates = { {
-    Gp_InitCapTask,
-    (TaskFunc)Gp_CapTaskState1,
-    taskKill,
-} };
 
 extern TaskDesc      Gp_EvtSpawnTable[];
 extern TaskDesc      D_8010FB4C[];
@@ -118,25 +104,207 @@ extern s16           D_801156BC;
 extern GpOverlayIds* D_801156F4;
 extern u8            D_801156F9;
 
-s32  Stage_HasTransitionFlags(void);
-s32  Stage_RequestImageCapture(void);
-void func_8001D5C4(void);
-u16  func_800E5578(s32 arg0, s32 arg1, u8 arg2, u16 arg3);
-void func_800E62C0(void);
-void func_800E44A0(Task* arg0);
-void func_80724120(void);
-void func_80724324(void);
-void func_807244CC(char* arg0);
-void func_8072455C(s16 arg0, s32 arg1);
-void func_807245B8(void);
-void func_80724714(void);
-void Gp_CapExit(Task* arg0);
-s32  Gp_StartCapSlot(s16 arg0, s16 arg1, s16 arg2);
-s32  Gp_AbortCap(void);
-void Gp_LoadCapFile(s32 arg0);
-void Gp_ApplyCapEvtFlags(void);
-s32  Gp_FindCapEvt(s32 arg0);
-s32  Gp_LookupSlot4(s32 arg0);
+s32              Stage_HasTransitionFlags(void);
+s32              Stage_RequestImageCapture(void);
+void             func_8001D5C4(void);
+u16              func_800E5578(s32 arg0, s32 arg1, u8 arg2, u16 arg3);
+void             func_800E62C0(void);
+void             func_800E44A0(Task* arg0);
+void             func_80724120(void);
+void             func_80724324(void);
+void             func_807244CC(char* arg0);
+void             func_8072455C(s16 arg0, s32 arg1);
+void             func_807245B8(void);
+void             func_80724714(void);
+void             Gp_CapExit(Task* arg0);
+s32              Gp_StartCapSlot(s16 arg0, s16 arg1, s16 arg2);
+s32              Gp_AbortCap(void);
+void             Gp_LoadCapFile(s32 arg0);
+void             Gp_ApplyCapEvtFlags(void);
+s32              Gp_FindCapEvt(s32 arg0);
+s32              Gp_LookupSlot4(s32 arg0);
+extern GpAnimArg D_8010FB10;
+extern GpAnimArg D_8010FB24;
+
+void func_800E31E8(Task* arg0);
+
+const TaskFuncTable3 D_800974C8 = { {
+    func_800E31E8,
+    (TaskFunc)func_800E4020,
+    taskKill,
+} };
+
+void Gp_RunCapCmd(s32 arg0, s16 arg1)
+{
+    register GpCapCmd* rec asm("s2");
+    s32                flagId;
+    s32                val;
+    s32                i;
+
+    for (;;) {
+        rec    = (GpCapCmd*)Gp_CapCmds[arg0];
+        flagId = rec->field_3 | (rec->field_7 << 8);
+        switch (rec->field_0) {
+            case 0:
+                Gp_StartCapSlot(arg0, arg1, 0);
+                return;
+            case 1:
+                if (rec->field_1 & 2) {
+                    val = GameFlag_GetNibble(flagId);
+                } else {
+                    val = rec->field_4;
+                }
+                if (rec->field_1 & 4) {
+                    if (rec->field_2 < val) {
+                        arg0 = rec->field_8;
+                        continue;
+                    }
+                }
+                Gp_StartCapSlot(arg0, arg1, val);
+                if ((val < rec->field_2) || (rec->field_1 & 4)) {
+                    val++;
+                } else if (rec->field_1 & 1) {
+                    val = 0;
+                }
+                if (rec->field_1 & 2) {
+                    GameFlag_SetNibble(flagId, val);
+                } else {
+                    rec->field_4 = val;
+                }
+                return;
+            case 2:
+                Gp_StartCapSlot(arg0, arg1, GameFlag_GetNibble(flagId));
+                return;
+            case 3:
+                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F0, arg0, 0);
+                return;
+            case 4:
+                i   = 0;
+                val = i;
+                if (rec->field_6 != 0) {
+                    do {
+                        if (Gp_GetCurBit2Flag(rec->field_5 + i) == 0 ||
+                            Gp_GetCurBit2Flag(rec->field_5 + i) == 1 ||
+                            Gp_GetCurBit2Flag(rec->field_5 + i) == 3) {
+                            val++;
+                        }
+                        i++;
+                    } while (i < rec->field_6);
+                }
+                if (rec->field_1 & 4) {
+                    if (val == 0) {
+                        arg0 = rec->field_8;
+                        continue;
+                    }
+                }
+                Gp_StartCapSlot(arg0, arg1, val);
+                return;
+        }
+        return;
+    }
+}
+
+void Gp_EvtCapWeaponTask(Task* arg0)
+{
+    s32        flags;
+    GameActor* actor;
+    s32        mode;
+    GpAnimArg  recB;
+    GpAnimArg  recA;
+
+    flags = (s32)arg0->spawnArg2;
+    actor = gameGetPtrSlot(3)->work;
+    switch (arg0->state) {
+        case 0:
+            if ((flags & 1) && (flags != 0xFF)) {
+                recA                 = Gp_WeaponMsgRec;
+                recA.animBlock.index = Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon;
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&recA, 0);
+            }
+            recB                 = D_8010FB10;
+            recB.animBlock.index = Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon;
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FA, 0, 0);
+            arg0->state++;
+            break;
+        case 1:
+            arg0->state++;
+            break;
+        case 2:
+            if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+                arg0->state++;
+            }
+            if (actor->field_954 != 2) {
+                taskKill(arg0);
+            }
+            break;
+        case 3:
+            if ((flags & 1) && (flags != 0xFF)) {
+                Gp_StateF0.field_4 = 1;
+            }
+            if ((flags & 2) && (flags != 0xFF)) {
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F3, 0, 0);
+            }
+            if ((flags & 4) && (flags != 0xFF)) {
+                mode = 2;
+            } else if ((flags & 1) == 0) {
+                mode = 3;
+            } else {
+                mode = 0;
+            }
+            if (flags == 0xFF) {
+                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F0, arg0->spawnArg1, mode);
+            } else {
+                Gp_RunCapCmd(arg0->spawnArg1, mode);
+            }
+            arg0->state++;
+            break;
+        case 4:
+            if (Gp_CapBusy() == 0) {
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F3, 1, 0);
+                arg0->state++;
+            }
+            break;
+        case 5:
+            if (D_80115598 != 0) {
+                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F2, (s32)arg0->spawnArg2 + 0x64, 0);
+            }
+            recB                 = D_8010FB24;
+            recB.animBlock.index = Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon;
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FA, 1, 0);
+            arg0->state++;
+            break;
+        case 6:
+            arg0->state++;
+            break;
+        case 7:
+            if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+                arg0->state++;
+            }
+            if (actor->field_954 != 2) {
+                taskKill(arg0);
+                Gp_StateF0.field_4 = 0;
+            }
+            break;
+        case 8:
+            taskKill(arg0);
+            Gp_StateF0.field_4 = 0;
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+            break;
+    }
+}
+
+void Gp_InitCapTask(Task* task);
+void Gp_CapTaskState1(void);
+
+const char         Gp_StrCapMagic[] = "CAP";
+const _GpCapLayout D_80097518       = { 0 };
+const char         Gp_StrEvsFmt[]   = "evs%d_%d_%d.txt";
+
+const TaskFuncTable3 Gp_CapTaskStates = { {
+    Gp_InitCapTask,
+    (TaskFunc)Gp_CapTaskState1,
+    taskKill,
+} };
 
 void Gp_SetNibbleIf(s32 arg0, s32 arg1)
 {
