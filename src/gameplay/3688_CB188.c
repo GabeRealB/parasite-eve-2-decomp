@@ -742,14 +742,12 @@ static void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
     u8*           text;
     s32           width;
     s32           temp;
-    s32           color;
-    s32           one;
     PlayerStatus* cfg;
     McSaveData*   save;
-    register s32  n asm("a1");
+    s32           n;
     s32           i;
-    register s32  row;
-    register s32  col;
+    s32           row;
+    s32           col;
 
     text = Gp_GetItemText(arg2, 0, 0);
     if (arg1->state == 0) {
@@ -763,15 +761,13 @@ static void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         ((UiPanel*)arg0)->field_C.y = ((-((UiPanel*)arg0)->field_C.h) >> 1) - 0x14;
         Gp_RemoveItem(&Mc_SaveData[0].carriedItems, (McItemRec*)Gp_SelItemRec, 1);
 
-        i    = (arg2 - 0xF) / 3;
-        n    = arg2 - 0xF;
-        col  = i / 3;
-        row  = col;
-        col  = i - row * 3;
-        save = &Mc_SaveData[0];
-        TOUCH_REG4(row, col, i, n);
-        n   = n - i * 3 + 1;
-        cfg = &Player_Status;
+        i   = (arg2 - 0xF) / 3;
+        n   = arg2 - 0xF;
+        row = col = i / 3;
+        col       = i - row * 3;
+        save      = &Mc_SaveData[0];
+        n         = n - i * 3 + 1;
+        cfg       = &Player_Status;
         if (save->attachLevels[col + row * 3] < n) {
             save->attachLevels[col + row * 3] = n;
         }
@@ -783,16 +779,14 @@ static void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
     }
 
     Ui_DrawText((UiPanel*)arg0, Gp_StrInvoke);
-    color = 0x606060;
-    one   = 1;
-    Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0xF, Gp_StrInvoked, color, one, 0);
-    width = Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0x1E, text, 0x37A78, one, 0);
-    Text_DrawPrompt(arg0, width, (s16)arg0->field_18 + 0x1E, Gp_StrDot, color, one, 0);
+    Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0xF, Gp_StrInvoked, 0x606060, 1, 0);
+    width = Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0x1E, text, 0x37A78, 1, 0);
+    Text_DrawPrompt(arg0, width, (s16)arg0->field_18 + 0x1E, Gp_StrDot, 0x606060, 1, 0);
     arg1->killCountdown--;
-    if (arg0->status == one) {
-        if (Pad_CheckButtons(0, one, Pad_MaskMenu) != 0) {
+    if (arg0->status == 1) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             arg0->field_2E = -1;
-        } else if ((arg1->killCountdown <= 0) || (Pad_CheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        } else if ((arg1->killCountdown <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
             arg0->field_2E      = 9;
             arg1->killCountdown = 0x7FFF;
         }

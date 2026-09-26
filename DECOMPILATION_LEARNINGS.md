@@ -143686,3 +143686,16 @@ caller's, which is the order the struct forced. Separately, `goto` into one
 shared `index = arg0` gave that pseudo too few refs to beat its sibling for
 `$s2`; an `if`/`else if` chain repeating the assignment in each arm adds the
 refs, and jump2 cross-jumps the copies back into the single target block.
+
+## `row*3` recomputed next to `col = i - row*3` means `col` first held the quotient (Gp_InvokePeItemPanel, 2026-09-26)
+
+The target splits a slot into page and column and indexes with
+`col + row * 3`, recomputing `row*3` (`move a0,a2` then two `sll/addu` pairs).
+Written with `row = i / 3; col = i % 3` (or `i - row * 3`), CSE shares the one
+`row*3` and combine folds `(i - r3) + r3` back to `i`: the index loses both
+multiplies, and the insns combine deletes leave `(use)` of their dead pseudos,
+which reload gives stack slots, so the frame also grows by 0x18. The seed
+hid the values behind a `TOUCH_REG4`. What the target did is compute the
+quotient into `col` and copy it: `row = col = i / 3; col = i - row * 3;`.
+With `col` set twice and `row` a copy, CSE does not share the second
+`row*3`, combine has nothing to cancel, and the `move` is the copy.
