@@ -2526,25 +2526,13 @@ static void func_dryfield_dilapidated_house_80182F14(GpCoord* arg0, s16 arg1, s1
 /// `arg3 + 0x400`, so the sprite shrinks with depth.
 static void func_dryfield_dilapidated_house_801832A8(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**                    scratch;
-    u8*                       head;
-    GpFxQuadScratch*          block;
-    register GpFxQuadScratch* p asm("v0");
-    register u16              vx asm("v0");
-    POLY_FT4*                 prim;
-    s32                       ang;
-    u16                       vz;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
-    vx                                        = (u16)arg0->workm.t[0];
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
-    p                                         = (GpFxQuadScratch*)(head - 0x1C);
-    block                                     = p;
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    vz                                        = (u16)arg0->workm.t[2];
-    block->vec.vz                             = vz;
-    *scratch                                  = block;
+    block         = SCRATCH_PUSH(GpFxQuadScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
@@ -2552,10 +2540,10 @@ static void func_dryfield_dilapidated_house_801832A8(GpCoord* arg0, s16 arg1, s1
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&block->otz);
         block->otz++;
         if (arg1 & 1) {
             setRGB0(prim, 0xC0, 0x60, 0x40);
@@ -2570,16 +2558,14 @@ static void func_dryfield_dilapidated_house_801832A8(GpCoord* arg0, s16 arg1, s1
             setSemiTrans(prim, 1);
             setShadeTex(prim, 1);
         }
-        ang       = arg3;
-        block->dx = (((arg2 * 55) / block->otz) * rsin(ang)) >> 12;
-        block->dy = (((arg2 * 55) / block->otz) * rcos(ang)) >> 12;
+        block->dx = (((arg2 * 55) / block->otz) * rsin(arg3)) >> 12;
+        block->dy = (((arg2 * 55) / block->otz) * rcos(arg3)) >> 12;
         prim->x0  = block->sx + (u16)block->dx;
         prim->x3  = block->sx - (u16)block->dx;
         prim->y0  = block->sy - (u16)block->dy;
         prim->y3  = block->sy + (u16)block->dy;
-        ang       = ang + 0x400;
-        block->dx = (((arg2 * 55) / block->otz) * rsin(ang)) >> 12;
-        block->dy = (((arg2 * 55) / block->otz) * rcos(ang)) >> 12;
+        block->dx = (((arg2 * 55) / block->otz) * rsin(arg3 + 0x400)) >> 12;
+        block->dy = (((arg2 * 55) / block->otz) * rcos(arg3 + 0x400)) >> 12;
         prim->x1  = block->sx + (u16)block->dx;
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
@@ -2588,8 +2574,7 @@ static void func_dryfield_dilapidated_house_801832A8(GpCoord* arg0, s16 arg1, s1
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
-    DEF_REG(head);
+    SCRATCH_POP(GpFxQuadScratch);
 }
 
 /// Draws the flame band: two 16-vertex rings of radius `arg1` and
