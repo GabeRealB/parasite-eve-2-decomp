@@ -1052,8 +1052,7 @@ static void Gp_LoadWaitCompanion(Task* task)
     s8            yoff;
     u8            param1[8];
     u8            param2[8];
-    s32           flag;
-    McSaveData*   save;
+    u8            flag;
 
     color  = 8;
     queued = CdCmd_Queue.field_224;
@@ -1078,35 +1077,20 @@ static void Gp_LoadWaitCompanion(Task* task)
         addPrim(gGpuCurrentOt - 0x10, dr);
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
-        GameSession* session;
-        s32          cmd;
-        u8*          p1;
-        u8*          p2;
-        register s32 tmp asm("v0");
-        register s32 room asm("v1");
-
-        session   = gGameSession;
-        cmd       = 0x21;
-        tmp       = session->at4.loc.stage;
-        p1        = param1;
-        param1[3] = tmp;
-        tmp       = session->at4.loc.area;
-        p2        = param2;
-        param1[2] = tmp;
-        room      = session->at4.loc.room;
+        param1[3] = gGameSession->at4.loc.stage;
+        param1[2] = gGameSession->at4.loc.area;
+        param1[1] = gGameSession->at4.loc.room;
         param1[0] = 0;
         param1[4] = 0;
         param2[0] = 1;
         param2[1] = 0;
         param2[2] = 0;
         param2[3] = 0;
-        param1[1] = room;
-        CdCmd_Enqueue(cmd, p1, p2);
+        CdCmd_Enqueue(0x21, param1, param2);
         flag = Gp_PickCompanion();
-        if ((u8)flag) {
+        if (flag != 0) {
             gGameSession->companionType = flag;
-            save                        = &Mc_SaveData[0];
-            Gp_EnqueueCompanionCd((u8)save->companionType, (u8)save->companionVariant);
+            Gp_EnqueueCompanionCd(Mc_SaveData[0].companionType, Mc_SaveData[0].companionVariant);
         }
         task->state++;
     }
