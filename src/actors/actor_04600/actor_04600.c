@@ -1909,6 +1909,29 @@ static void Actor04600_Fn0346C(Task* arg0)
     SCRATCH_HEAD(ActorDeltaFrame38) = SCRATCH_HEAD(ActorDeltaFrame38) + 1;
 }
 
+/// Rebinds the second enemy's animation id `field_28C` to its two helper
+/// slots: a changed id is remembered in `field_28E`, its frame count restarts
+/// and both slots switch to it with a blend of 8; otherwise the count ticks and
+/// the slots advance.
+static __inline__ void _actor04600Enemy2TickAnim(Task* task)
+{
+    Actor104600Enemy2Work* work = task->work;
+    s32                    i;
+
+    if (work->field_28C != work->field_28E) {
+        work->field_28E = work->field_28C;
+        work->field_290 = 0;
+        for (i = 1; i < 3; i++) {
+            func_800B4114((GpAnimCtx*)work, i, work->field_28C, 0, 8);
+        }
+    } else {
+        work->field_290++;
+        for (i = 1; i < 3; i++) {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        }
+    }
+}
+
 /// Dying-state tick of the second enemy, under the `Gp_StateF0.field_4` mode byte: 1
 /// does nothing and 2 hides the model. Otherwise the root's matrix is saved
 /// into `field_264` and refolded with the decaying Y scale. Once `field_288` is
@@ -1921,8 +1944,6 @@ static void Actor04600_Fn03958(GpEnemy* arg0, Task* arg1)
     Actor104600Enemy2Work* work;
     TmdObject*             obj;
     GpCoord*               coord;
-    s32                    i;
-    Actor104600Enemy2Work* anim;
 
     work  = arg1->work;
     obj   = arg1->extra.tmd;
@@ -1959,23 +1980,7 @@ static void Actor04600_Fn03958(GpEnemy* arg0, Task* arg1)
         Gp_UnlinkObj(&work->field_FC);
         Gp_UnlinkObj(&work->field_184);
     }
-    anim = arg1->work;
-    i    = 1;
-    if (anim->field_28C != (s16)anim->field_28E) {
-        anim->field_28E = anim->field_28C;
-        anim->field_290 = 0;
-        do {
-            func_800B4114((GpAnimCtx*)anim, i, anim->field_28C, 0, 8);
-            i++;
-        } while (i < 3);
-        return;
-    }
-    TOUCH_REG(i);
-    anim->field_290 = (u16)(anim->field_290 + i);
-    do {
-        Gp_AnimTickIndex((GpAnimCtx*)anim, i);
-        i++;
-    } while (i < 3);
+    _actor04600Enemy2TickAnim(arg1);
 }
 
 /// Task states of the second enemy as `Actor04600_Fn03B80` dispatches them:
@@ -2106,32 +2111,11 @@ static void Actor04600_Fn03D54(Task* task)
     }
 }
 
-/// Drives the second enemy's animation slots 1 and 2 from its animation id
-/// `field_28C`. When it differs from the remembered `field_28E` it is
-/// remembered, the frame count restarts and both slots switch to it with a
-/// blend of 8; otherwise the count ticks and both slots advance.
+/// The second enemy's animation rebind, `_actor04600Enemy2TickAnim`, as an
+/// out-of-line function.
 static void Actor04600_Fn03E10(Task* arg0)
 {
-    Actor104600Enemy2Work* work;
-    s32                    i;
-
-    work = arg0->work;
-    i    = 1;
-    if (work->field_28C != (s16)work->field_28E) {
-        work->field_28E = work->field_28C;
-        work->field_290 = 0;
-        do {
-            func_800B4114((GpAnimCtx*)work, i, work->field_28C, 0, 8);
-            i++;
-        } while (i < 3);
-        return;
-    }
-    TOUCH_REG(i);
-    work->field_290 = (u16)(work->field_290 + i);
-    do {
-        Gp_AnimTickIndex((GpAnimCtx*)work, i);
-        i++;
-    } while (i < 3);
+    _actor04600Enemy2TickAnim(arg0);
 }
 
 /// Colours the second enemy from the world position of its model's second
