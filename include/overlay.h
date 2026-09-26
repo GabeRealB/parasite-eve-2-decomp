@@ -483,7 +483,10 @@ STATIC_ASSERT_SIZEOF(OverlayWalkerRoute, 0x8);
 /// `field_6C` / `field_6D` skip the movement and avoidance steps while set.
 /// `field_6E` indexes the actor configuration table the walker is measured
 /// against, `field_73` is the signed advance applied to `cursor` on arrival,
-/// and `field_62` / `field_64` are movement deltas cleared on arrival.
+/// `field_5A` is the most the walker may turn in one frame, `field_62` counts
+/// the consecutive frames it has been turning and `field_64` is an extra
+/// allowance added to that limit; the counter and allowance are cleared on
+/// arrival.
 typedef struct OverlayWalker {
     OverlayWalkerNav*   nav;
     OverlayWalkerRoute* route;
@@ -499,12 +502,12 @@ typedef struct OverlayWalker {
     s16                 scale;
     s16                 field_56;
     s16                 avoidCount;
-    s16                 field_5A;
+    u16                 field_5A;
     u16                 field_5C;
     u16                 field_5E;
     u16                 field_60;
-    s16                 field_62;
-    s16                 field_64;
+    u16                 field_62;
+    u16                 field_64;
     byte                pad_66[0x2];
     u8                  state;
     u8                  field_69;

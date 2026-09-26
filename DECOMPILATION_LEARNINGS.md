@@ -142646,3 +142646,22 @@ radius were at `3589` against `3571` in `allocno_compare` (7 refs / 39 insns vs
 the code. When a touch's only job is extra refs on a value, look for an earlier,
 short-lived value of the same kind that the original may have kept in the same
 local.
+## A lone dead load before a store, with the stored field reloaded after it, is an if/else with identical arms and a *two-branch* test (func_actor_110600_80133550, 2026-09-26)
+
+**Symptom.** `lhu v1,0x62(s2)` whose value is never read, then
+`sh zero,0x64(s2)`, then `lhu v1,0x64(s2)` reading the zero back. Seeded with
+`CLOBBER_REG` / `SOFT_USE_REG` / `SOFT_COMPILER_BARRIER`.
+
+**Cause.** Both arms of `if (cond(f)) b = 0; else b = 0;` are merged by the
+post-reload cross-jump. Until then the arms are separate blocks, so `cse` never
+forwards the stored 0 and the join reloads the field. `jump2` then deletes the
+dead branch with `delete_computation`, which walks back from the jump through
+plain `INSN`s deleting each setter whose register dies. A single compare lets
+it reach and delete the load. With two branches (`else if`, `&&`), the walk
+from the second compare stops at the first `JUMP_INSN`. The first compare
+carries no `REG_DEAD` for the value, so the load survives. A range such as
+`f >= 10 && f < 30` is folded into one compare by `fold` and does not work.
+
+**Fix.** `if (f > 60) b = 0; else if (f > 30) b = 0; else b = 0;` (tiers that
+all grant nothing). The compare is gone from the output, so only the load's
+width constrains the source: `lhu` needed the field declared `u16`.

@@ -900,7 +900,6 @@ void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos)
     u8*                       head;
     s16                       diff, t;
     s32                       angle;
-    u16                       frames;
 
     if (Mc_SaveData.unknown_5C0 == 1)
         return;
@@ -930,16 +929,19 @@ void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos)
         work->field_62++;
     else
         work->field_62 = 0;
-    frames = (u16)work->field_62;
-    CLOBBER_REG(v0);
-    SOFT_USE_REG(frames);
-    work->field_64 = 0;
-    SOFT_COMPILER_BARRIER();
-    if ((u16)work->field_5A + (u16)work->field_64 < s->angle)
-        s->angle = (u16)work->field_5A + (u16)work->field_64;
-    if (s->angle < -((u16)work->field_5A + (u16)work->field_64))
-        s->angle = -((u16)work->field_5A + (u16)work->field_64);
-    if ((u16)work->field_5A == 0)
+    // Extra turn allowance by how long the walker has kept turning; every
+    // tier grants nothing, so the limit is always `field_5A` alone.
+    if (work->field_62 > 60)
+        work->field_64 = 0;
+    else if (work->field_62 > 30)
+        work->field_64 = 0;
+    else
+        work->field_64 = 0;
+    if (work->field_5A + work->field_64 < s->angle)
+        s->angle = work->field_5A + work->field_64;
+    if (s->angle < -(work->field_5A + work->field_64))
+        s->angle = -(work->field_5A + work->field_64);
+    if (work->field_5A == 0)
         s->angle = 0;
     s->angle += ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
     memcpy(work->coord->coord.m, work->scaleMtx.m, sizeof(work->scaleMtx.m));
