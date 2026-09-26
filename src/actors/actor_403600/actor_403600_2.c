@@ -4952,35 +4952,22 @@ void func_actor_403600_801417A8(Task* arg0, s32 arg1)
 
 s32 func_actor_403600_80141840(Task* arg0)
 {
-    s32              targetY;
-    s32              currentY;
+    Actor403600Work* work;
     s32              count;
     s32              deltaX;
     s32              deltaY;
     s32              deltaZ;
-    register s32     left asm("v0");
-    register s32     right asm("v1");
-    s16              amount;
-    Actor403600Work* work;
-    s16*             rise;
+    s32              targetY;
+    s32              currentY;
 
-    count = 0;
-    left  = 1;
-    SOFT_BARRIER();
+    count           = 0;
     work            = arg0->work;
-    work->field_746 = left;
+    work->field_746 = 1;
     func_actor_403600_8013DDF4(arg0, 0xA0);
 
-    left   = work->field_6F0.vx;
-    right  = work->field_4B8.coord.t[0];
-    amount = 0x12C;
-    deltaX = left - right;
-    SOFT_BARRIER();
-    if (deltaX < 0) {
-        deltaX = -deltaX;
-    }
-    work->field_73C = amount;
-    if (deltaX < 0x1F5) {
+    work->field_73C = 0x12C;
+    deltaX          = work->field_6F0.vx - work->field_4B8.coord.t[0];
+    if (ABS(deltaX) < 0x1F5) {
         count                      = 1;
         work->field_4B8.coord.t[0] = work->field_6B0.vx;
     }
@@ -4988,29 +4975,18 @@ s32 func_actor_403600_80141840(Task* arg0)
     targetY  = work->field_6F0.vy;
     currentY = work->field_4B8.coord.t[1];
     deltaY   = targetY - currentY;
-    if (deltaY < 0) {
-        deltaY = -deltaY;
-    }
-    if (deltaY < 0x1F5) {
+    if (ABS(deltaY) < 0x1F5) {
         count                     += 1;
         work->field_4B8.coord.t[1] = work->field_6B0.vy;
     } else if (targetY < currentY) {
-        /* Stored through a plain halfword pointer: as a structure store it
-         * lets the compiler read `gDisplayState.animFrame` ahead of it. */
-        rise                        = &work->field_74A;
-        *rise                       = -0x12C;
+        work->field_74A             = -0x12C;
         work->field_4B8.coord.t[1] += rsin(gDisplayState.animFrame << 8) >> 6;
     } else {
-        work->field_74A = amount;
+        work->field_74A = 0x12C;
     }
 
-    left   = work->field_6F0.vz;
-    right  = work->field_4B8.coord.t[2];
-    deltaZ = left - right;
-    if (deltaZ < 0) {
-        deltaZ = -deltaZ;
-    }
-    if (deltaZ < 0x1F5) {
+    deltaZ = work->field_6F0.vz - work->field_4B8.coord.t[2];
+    if (ABS(deltaZ) < 0x1F5) {
         work->field_4B8.coord.t[2] = work->field_6B0.vz;
         count                     += 1;
     }
