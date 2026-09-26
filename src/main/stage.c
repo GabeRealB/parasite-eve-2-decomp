@@ -419,76 +419,51 @@ static void Display_FlipOtAndDispatch(s32 arg0)
 
 static void Display_InvertFramebufferGray(void)
 {
-    s32          i;
-    u32          maskR;
-    u32          maskG;
-    u32          maskB;
-    u32          maskAll;
-    u32*         p0;
-    u32*         p1;
-    u32          a0;
-    u32          a2;
-    u32          a1;
-    register u32 v0 asm("v0");
-    register u32 v1 asm("v1");
+    s32  i;
+    u32* p0;
+    u32* p1;
+    u32  hi;
+    u32  lo;
+    u32  gray;
+    u32  t;
 
-    v0      = 0xFFFDA800;
-    i       = 0;
-    maskR   = 0x001F001F;
-    maskG   = 0x03E003E0;
-    maskB   = 0x1F001F00;
-    maskAll = 0x1F1F1F1F;
-    v1      = Gpu_PrimHeapBase;
-    p0      = (u32*)(v1 + v0);
-    p1      = p0 + 1;
+    /* The 320x240 15-bit screen capture sits directly below the primitive
+     * heap. Each pass converts four pixels (two words) at once: the red,
+     * green and blue channels of all four are packed into the bytes of one
+     * word, weighted 3:4:1 into a grey level, inverted, and written back as
+     * grey pixels. */
+    p0 = (u32*)(Gpu_PrimHeapBase - 0x25800);
+    p1 = p0 + 1;
+    for (i = 0; i < 0x4B00; i++) {
+        hi    = *p1;
+        lo    = *p0;
+        t     = hi & 0x001F001F;
+        t   <<= 8;
+        t    |= lo & 0x001F001F;
+        gray  = t * 3;
+        t     = hi & 0x03E003E0;
+        t   <<= 3;
+        lo  >>= 5;
+        t    |= lo & 0x001F001F;
+        gray += t * 4;
+        hi  >>= 2;
+        t     = hi & 0x1F001F00;
+        lo  >>= 5;
+        t    |= lo & 0x001F001F;
+        gray += t;
+        gray  = (gray >> 3) & 0x1F1F1F1F;
+        gray  = 0x1F1F1F1F - gray;
 
-    do {
-        i += 1;
-        a0 = *p1;
-        a2 = *p0;
-
-        v1 = (a0 & maskR) << 8;
-        v0 = a2 & maskR;
-        v1 = v1 | v0;
-        v0 = v1 << 1;
-        a1 = v0 + v1;
-
-        v1 = (a0 & maskG) << 3;
-        a2 = a2 >> 5;
-        v0 = a2 & maskR;
-        v1 = v1 | v0;
-        v0 = v1 << 2;
-        a1 = a1 + v0;
-
-        a0 = a0 >> 2;
-        v1 = a0 & maskB;
-        a2 = a2 >> 5;
-        v0 = a2 & maskR;
-        v1 = v1 | v0;
-        a1 = a1 + v1;
-
-        v0 = a1 >> 3;
-        a1 = v0 & maskAll;
-        a1 = maskAll - a1;
-
-        a2 = a1 & maskR;
-        v0 = a2 << 10;
-        v1 = a2 << 5;
-        v0 = v0 | v1;
-        a2 = a2 | v0;
-
-        a0 = a1 & maskB;
-        a0 = a0 >> 8;
-        v0 = a0 << 10;
-        v1 = a0 << 5;
-        v0 = v0 | v1;
-        a0 = a0 | v0;
-
-        *p0 = a2;
-        *p1 = a0;
-        p1 += 2;
-        p0 += 2;
-    } while (i < 0x4B00);
+        lo   = gray & 0x001F001F;
+        lo  |= (lo << 10) | (lo << 5);
+        hi   = gray & 0x1F001F00;
+        hi >>= 8;
+        hi  |= (hi << 10) | (hi << 5);
+        *p0  = lo;
+        *p1  = hi;
+        p1  += 2;
+        p0  += 2;
+    }
 }
 
 void Stage_InitOtAndSpawn(void)
