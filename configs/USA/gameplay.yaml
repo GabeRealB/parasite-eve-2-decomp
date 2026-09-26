@@ -76,8 +76,7 @@ segments:
       - [0x0, .rodata, packageid] # the package id
       - [0x4, .rodata, header] # strings, colours and Gp_PlayClockStates
       - [0x78, .rodata, gameplay] # jtbl from Gp_ApplyAttachStats, then the prompt labels, Gp_LoadWaitFns and Gp_ConfigCdTable
-      - [0xD4, .rodata, D4] # jtbl from Gp_EnqueueWeaponCd
-      - [0x118, rodata, rodata_D4]
+      - [0xD4, .rodata, D4] # jtbl from Gp_EnqueueWeaponCd, then the session, load, room-object and direction tables
       - [0x1A8, .rodata, 1A8] # jtbl from Gp_LookupStageFlag
       - [0x1BC, .rodata, 1BC] # jtbls from func_800AF590 and Gp_StepCdAudioCmd
       - [0x1F8, rodata, rodata_1BC_2] # Gp_StrNewEnemyNull string + Gp_EnemyWaitFuncs tables

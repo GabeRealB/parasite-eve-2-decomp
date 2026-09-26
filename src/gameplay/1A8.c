@@ -15,29 +15,29 @@
 
 void func_800AD6BC(void);
 
-extern TaskFuncTable3   Gp_DirTaskStates;
-extern GpVoidFuncTable6 Gp_WarpPhaseFns;
-extern GpVoidFuncTable5 D_80093990;
-extern u16              D_80114CD0;
-extern u16              Gp_DirFlags;
-extern u16              D_80114CD4;
-extern u16              Gp_DirPhase;
-extern u8               Gp_DirByte;
-extern u8               Gp_DirNibble;
-extern u8               Gp_DirAlt;
-extern u8               Gp_DirAltNibble;
-extern u8               D_80114CDC;
-extern u8               D_80114CDD;
-extern u8               D_80114CDE;
-extern s16              D_80114CE0;
-extern u16              Gp_DirFadeLevel;
-extern u8               D_80114CF8;
-extern s16              D_80114D08;
-extern u16              D_8017A738[];
-extern u16              D_8017A824[];
-extern u16              D_8017A9A0[];
-extern u16              D_8017AA0C[];
-extern u16              D_8017AD88[];
+extern const TaskFuncTable3   Gp_DirTaskStates;
+extern const GpVoidFuncTable6 Gp_WarpPhaseFns;
+extern const GpVoidFuncTable5 D_80093990;
+extern u16                    D_80114CD0;
+extern u16                    Gp_DirFlags;
+extern u16                    D_80114CD4;
+extern u16                    Gp_DirPhase;
+extern u8                     Gp_DirByte;
+extern u8                     Gp_DirNibble;
+extern u8                     Gp_DirAlt;
+extern u8                     Gp_DirAltNibble;
+extern u8                     D_80114CDC;
+extern u8                     D_80114CDD;
+extern u8                     D_80114CDE;
+extern s16                    D_80114CE0;
+extern u16                    Gp_DirFadeLevel;
+extern u8                     D_80114CF8;
+extern s16                    D_80114D08;
+extern u16                    D_8017A738[];
+extern u16                    D_8017A824[];
+extern u16                    D_8017A9A0[];
+extern u16                    D_8017AA0C[];
+extern u16                    D_8017AD88[];
 
 /// The flag entry `table[idx]`: its low 11 bits select a flag nibble, and its
 /// bit 0x800 is added onto that nibble's value.
