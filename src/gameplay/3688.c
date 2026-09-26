@@ -5149,21 +5149,14 @@ draw:
     }
 }
 
-void Gp_DrawRemoveAmmoRow(DialogPrompt* arg0, UiObject* arg1)
+void Gp_DrawRemoveAmmoRow(DialogPrompt* prompt, UiObject* obj)
 {
-    DialogPrompt* prompt;
-    UiObject*     obj;
-    s32           item;
-    s32           spawnArg;
-    s32           status;
-    s32*          table;
-    s32           i;
-    s32           slot;
-    s32           minusOne;
-    s32*          p;
-    McItemRec*    rec;
-    s32           qty;
-    McItemSlot*   attach;
+    s32         item;
+    s32         spawnArg;
+    s32         status;
+    McItemRec*  rec;
+    s32         qty;
+    McItemSlot* attach;
     union {
         struct {
             u8          buf[0x20];
@@ -5172,8 +5165,6 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* arg0, UiObject* arg1)
         TextDrawReq req;
     } draw;
 
-    prompt   = arg0;
-    obj      = arg1;
     item     = Gp_AttachListIds[prompt->field_8];
     spawnArg = (u16)obj->owner->spawnArg1;
     status   = obj->status;
@@ -5184,21 +5175,7 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* arg0, UiObject* arg1)
             } else {
                 Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
                 if (Gp_ReloadMode == 0) {
-                    table = Gp_PreviewItems;
-                    if (item != table[2]) {
-                        i        = 0;
-                        slot     = 2;
-                        minusOne = -1;
-                        p        = table;
-                        for (; i < 3; i++, table++) {
-                            if (i == slot) {
-                                p[2] = item;
-                            } else {
-                                *table = minusOne;
-                            }
-                        }
-                        Gp_EnqueueItemPreviewCd(item, 2);
-                    }
+                    _gpSetPreviewItem(item, 2);
                 }
             }
         }
@@ -5219,14 +5196,12 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* arg0, UiObject* arg1)
             s32 x;
             s32 y;
             s32 color;
-            s32 baseY;
 
             x                         = prompt->field_18;
             y                         = prompt->field_1A;
             color                     = prompt->field_1C;
             draw.count.req.x          = obj->baseX + 0x84 + x;
-            baseY                     = obj->baseY - 3;
-            draw.count.req.y          = baseY + y;
+            draw.count.req.y          = obj->baseY + (y - 3);
             draw.count.req.otIndex    = (s16)obj->drawOrder + 1;
             draw.count.req.field_8    = color;
             draw.count.req.glyphTable = 5;
@@ -5241,17 +5216,13 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* arg0, UiObject* arg1)
             s32 y;
             s32 color;
             s32 temp;
-            s32 baseY;
-            s32 five;
 
             x     = prompt->field_18;
             y     = prompt->field_1A;
             color = prompt->field_1C;
-            five  = 5;
-            if (obj->mode != five) {
+            if (obj->mode != 5) {
                 draw.req.x          = obj->baseX + 0x11 + x;
-                baseY               = obj->baseY - 6;
-                draw.req.y          = baseY + y;
+                draw.req.y          = obj->baseY + (y - 6);
                 draw.req.otIndex    = (s16)obj->drawOrder + 1;
                 draw.req.field_8    = color;
                 draw.req.glyphTable = 0;
@@ -5281,50 +5252,19 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* arg0, UiObject* arg1)
 
     if (prompt->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            {
-                UiObjectDesc* a0v;
-                s32           a1v;
-                register s32  a2v asm("a2");
-                register s32  a3v asm("a3");
-                char*         slot;
-                a0v = &D_8010EEF8;
-                a1v = (spawnArg << 8) | item;
-                a2v = 1;
-                a3v = a2v;
-                TOUCH_REG4(a0v, a1v, a2v, a3v);
-                slot              = (char*)&draw;
-                slot              = slot - 8;
-                *(UiObject**)slot = obj;
-                ((void (*)(UiObjectDesc*, s32, s32, s32))Ui_SpawnFromDesc)(a0v, a1v, a2v, a3v);
-            }
-        } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
-            if (item == 0) {
-                goto pad_done;
-            }
+            Ui_SpawnFromDesc(&D_8010EEF8, (spawnArg << 8) | item, 1, 1, obj);
+            obj->status = 0;
+        } else if ((Pad_CheckButtons(0, 1, 0x10) != 0) && (item != 0)) {
             SndEvt_EnqueueType6(3, 0, 0);
-            {
-                char* slot;
-                slot              = (char*)&draw;
-                slot              = slot - 8;
-                *(UiObject**)slot = obj;
+            // Both arms open the same prompt; the ammo row's handler, which
+            // this one follows, passes a different argument in each.
+            if (spawnArg != 0) {
+                Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, obj);
+            } else {
+                Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, obj);
             }
-            {
-                register UiObjectDesc* a0v asm("a0");
-                register s32           a1v asm("a1");
-                register s32           a2v asm("a2");
-                register s32           a3v asm("a3");
-                a0v = &D_8010EFA0;
-                a1v = item | 0x10000;
-                a2v = 1;
-                a3v = a2v;
-                TOUCH_REG4(a0v, a1v, a2v, a3v);
-                ((void (*)(UiObjectDesc*, s32, s32, s32))Ui_SpawnFromDesc)(a0v, a1v, a2v, a3v);
-            }
-        } else {
-            goto pad_done;
+            obj->status = 0;
         }
-        obj->status = 0;
-    pad_done:;
     }
 }
 

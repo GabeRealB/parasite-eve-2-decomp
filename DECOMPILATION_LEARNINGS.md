@@ -141239,3 +141239,25 @@ variable is substituted and costs nothing.
 **Fix.** While a variable has to stay pinned, call the helper's variant that
 takes the loaded fields (`_gpDrawItemNameAt(obj, p->field_18, ...)`) rather than
 the pointer, so the reads happen in the caller against the pinned register.
+### A call whose 5th-argument `sw` comes first, then jumps into a shared `jal`: an if/else with identical arms (Gp_DrawRemoveAmmoRow, 2026-09-26)
+
+**Symptom.** Two arms each spawn a dialog with a stack argument and clear a
+field afterwards. After cross-jumping, arm 1 does `…; move a3,a2; j L` with
+`sw sN,0x10(sp)` in the delay slot, and arm 2 does `sw sN,0x10(sp)` *first*,
+then the register args, and falls into `L: jal; nop; sw zero,0(sN)`. With one
+`field = 0` per arm, sched1 puts the `sw` last in both (the following store
+gives it the larger `potential_hazard`), and cross-jumping then swallows
+arm 1's whole argument setup. With one shared store after the if/else, both
+put it first. The seed forced the order with register pins, `TOUCH_REG4` and a
+hand-written store to the argument slot.
+
+**Cause.** Arm 2's call must end its sched block, so a label has to sit
+between its `jal` and its store at sched time, and then disappear. An inner
+`if (c) f(same); else f(same);` does exactly that: jump2 cross-jumps the two
+identical arms into one, the conditional branch becomes a jump to the next
+insn, and `delete_jump` also deletes the computation of `c`, even a global
+load. The final code carries no trace of the test.
+
+**Fix.** Give arm 1 its own store (`spawn; obj->status = 0;`) and write arm 2
+as an if/else whose arms make the same call, followed by the store. Sibling
+functions with a real version of that conditional are the clue.
