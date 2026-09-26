@@ -1,5 +1,7 @@
 #include "common.h"
 
+#define MC_C
+
 #include <psyq/libmcrd.h>
 #include <psyq/memory.h>
 #include <psyq/rand.h>
@@ -36,6 +38,26 @@ static void Mc_StateOpenSelected(Task* arg0, McWork* arg1);
 static void Mc_StatePadFileName(Task* arg0, McWork* arg1);
 static s32  Mc_VerifySaveHdrChecksum(McSaveData* arg0);
 static void Mc_StateSaveSlotUi(DialogPrompt* arg0, UiObject* arg1);
+
+/// Work area of the memory-card dialogs, passed to every state handler.
+static McWork D_80071730;
+McSaveData    Mc_SaveData;
+/// Second bank of the save's buffer slot: `Mc_BufferSlots[1]` reaches it as the
+/// 0x944 bytes after `Mc_SaveData`, so the original object held both banks.
+/// Split in two here because a separate 0x944-byte object would be aligned to 8.
+static u8 D_80072AAC[4];
+static u8 D_80072AB0[0x940];
+u8        D_800733F0[2][0x6C];
+u8        D_800734C8[2][0xB0];
+u8        D_80073628[2][0x24];
+u8        D_80073670[2][0xE4];
+u8        D_80073838[2][0xA4];
+u8        D_80073980[0x200];
+/// Unreferenced.
+static u8    D_80073B80[8];
+PlayerStatus Player_Status;
+/// Last `rand()` result drawn by `Mc_DispatchStateTable`; nothing reads it.
+static s32 D_80073C08;
 
 static const char Mc_StrMemoryCard[] = "Memory Card";
 

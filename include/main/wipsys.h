@@ -73,7 +73,9 @@ extern WipSysFlags Wip_SysFlags;
 /// `Player_Status`; a saved game spawns its character from
 /// `D_80073B08[characterId].pos`. What index 0 holds is unproven.
 extern PlayerStatus D_80073B08[1];
+#ifndef MC_C
 extern PlayerStatus Player_Status;
+#endif
 
 // --- APIs ---
 /// Seed Player_Status for a new game: 100/100 HP and MP, no equipment.

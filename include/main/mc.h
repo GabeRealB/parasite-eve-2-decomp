@@ -257,25 +257,25 @@ void Mc_InitBufferSlots(void);
 // =============================================================================
 
 extern McBufferSlot Mc_BufferSlots[9];
-extern McSaveData   Mc_SaveData;
+#ifndef MC_C
+extern McSaveData Mc_SaveData;
+#endif
 /// "Memory Card" string passed to Ui_DrawTitle by Mc_DrawPrompt.
 /// "*" wildcard passed to MemCardGetDirentry by Mc_StateScanDirFlags.
 /// Jump table of 44 McStateFunc handlers used by Mc_DispatchStateTable.
 
-/// Global McWork instance used by the memcard state dispatcher.
-extern McWork D_80071730;
-extern u8     D_80060A54[];
-extern u8     D_80060A58[];
-extern u8     D_80060A5C[];
-extern u8     D_80060A64[];
-extern u8     D_800733F0[2][0x6C];
-extern u8     D_800734C8[2][0xB0];
-extern u8     D_80073628[2][0x24];
-extern u8     D_80073670[2][0xE4];
-extern u8     D_80073838[2][0xA4];
-extern u8     D_80073980[0x208];
-/// Stores the result of rand() after each dispatcher tick.
-extern s32 D_80073C08;
+extern u8 D_80060A54[];
+extern u8 D_80060A58[];
+extern u8 D_80060A5C[];
+extern u8 D_80060A64[];
+#ifndef MC_C
+extern u8 D_800733F0[2][0x6C];
+extern u8 D_800734C8[2][0xB0];
+extern u8 D_80073628[2][0x24];
+extern u8 D_80073670[2][0xE4];
+extern u8 D_80073838[2][0xA4];
+extern u8 D_80073980[0x200];
+#endif
 
 // Save-slot detail labels and indexed descriptions.
 extern u8*        D_800675F0[];

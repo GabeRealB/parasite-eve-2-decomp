@@ -529,7 +529,7 @@ segments:
       - { start: 0x61ed8, type: .bss, name: task, vram: 0x800716D8, bss_size: 0x18 }
       - [0x61ef0, o, libapi/free3, .bss]
       - { start: 0x61f10, type: .bss, name: textdraw, vram: 0x80071710 }
-      - { start: 0x61f30, type: bss, name: "61F30", vram: 0x80071730, bss_size: 0x24E0 }
+      - { start: 0x61f30, type: .bss, name: mc, vram: 0x80071730, bss_size: 0x24E0 }
       - [0x64410, o, libc2/rand, .bss]
       - [0x64420, o, libcard/patch, .bss]
       - [0x64430, o, libcard/end, .bss]
