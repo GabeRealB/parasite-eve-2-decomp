@@ -1406,16 +1406,6 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
     s16                  i;
     s16                  sx;
     s16                  sy;
-    s32                  v;
-    u32                  r;
-    s32                  s;
-    s32                  q;
-    s32                  w;
-    s32                  wz;
-    s32                  bx;
-    s32                  by;
-    s32                  bz;
-    s32                  size;
 
     work  = (DumpingHoleShard*)arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -1437,27 +1427,9 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             coord->coord.t[0] = ofs.vx + cfg->pos.vx;
             coord->coord.t[1] = ofs.vy + cfg->pos.vy;
             coord->coord.t[2] = ofs.vz + cfg->pos.vz;
-            bx                = cfg->vel.vx;
-            if (DUMPING_HOLE_RAND() & 1) {
-                w = bx + (DUMPING_HOLE_RAND() & 0x1F);
-            } else {
-                w = bx - (DUMPING_HOLE_RAND() & 0x1F);
-            }
-            work->vel.vx = w;
-            by           = cfg->vel.vy;
-            if (DUMPING_HOLE_RAND() & 1) {
-                w = by + (DUMPING_HOLE_RAND() & 0x1F);
-            } else {
-                w = by - (DUMPING_HOLE_RAND() & 0x1F);
-            }
-            work->vel.vy = w;
-            bz           = cfg->vel.vz;
-            if (DUMPING_HOLE_RAND() & 1) {
-                wz = bz + (DUMPING_HOLE_RAND() & 0x1F);
-            } else {
-                wz = bz - (DUMPING_HOLE_RAND() & 0x1F);
-            }
-            work->vel.vz      = wz;
+            work->vel.vx      = cfg->vel.vx + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x1F) : -(DUMPING_HOLE_RAND() & 0x1F));
+            work->vel.vy      = cfg->vel.vy + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x1F) : -(DUMPING_HOLE_RAND() & 0x1F));
+            work->vel.vz      = cfg->vel.vz + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x1F) : -(DUMPING_HOLE_RAND() & 0x1F));
             work->fall        = cfg->fall;
             work->rotSpeed.vx = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x7F) : -(DUMPING_HOLE_RAND() & 0x7F);
             work->rotSpeed.vy = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x7F) : -(DUMPING_HOLE_RAND() & 0x7F);
@@ -1478,76 +1450,13 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
                 work->rotSpeed.vz -= 100;
             }
             work->verts[0].vx = 0;
-            size              = cfg->size;
-            wz                = (DUMPING_HOLE_RAND() & 1) ? size + (u16)(cfg->size / 10) : size;
-            work->verts[0].vy = wz;
+            work->verts[0].vy = cfg->size + ((DUMPING_HOLE_RAND() & 1) ? cfg->size / 10 : 0);
             work->verts[0].vz = 0;
-            v                 = cfg->size * rsin(0x2AA);
-            if (v < 0) {
-                v += 0xFFF;
-            }
-            r           = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState = r;
-            r         >>= 16;
-            // Matching carrier, not reconstructed source: the empty asm ties
-            // the shift below to the draw, so it is scheduled after the store.
-            SOFT_TOUCH_REG_USE(v, r);
-            q = v >> 12;
-            if (r & 1) {
-                w = q + (u16)(cfg->size / 10);
-            } else {
-                w = q;
-            }
-            work->verts[1].vx = w;
-            v                 = cfg->size * rsin(0x155);
-            if (v < 0) {
-                v += 0xFFF;
-            }
-            r = Gp_LcgState * 5 + 0x71357911;
-            SOFT_TOUCH_REG_USE(v, r);
-            s           = v >> 12;
-            Gp_LcgState = r;
-            r         >>= 16;
-            q           = -s;
-            if (r & 1) {
-                w = q - (u16)(cfg->size / 10);
-            } else {
-                w = q;
-            }
-            work->verts[1].vy = w;
+            work->verts[1].vx = cfg->size * rsin(0x2AA) / 4096 + ((DUMPING_HOLE_RAND() & 1) ? cfg->size / 10 : 0);
+            work->verts[1].vy = -(cfg->size * rsin(0x155) / 4096) - ((DUMPING_HOLE_RAND() & 1) ? cfg->size / 10 : 0);
             work->verts[1].vz = 0;
-            v                 = cfg->size * rsin(0x2AA);
-            if (v < 0) {
-                v += 0xFFF;
-            }
-            r = Gp_LcgState * 5 + 0x71357911;
-            SOFT_TOUCH_REG_USE(v, r);
-            s           = v >> 12;
-            Gp_LcgState = r;
-            r         >>= 16;
-            q           = -s;
-            if (r & 1) {
-                w = q - (u16)(cfg->size / 10);
-            } else {
-                w = q;
-            }
-            work->verts[2].vx = w;
-            v                 = cfg->size * rsin(0x155);
-            if (v < 0) {
-                v += 0xFFF;
-            }
-            r = Gp_LcgState * 5 + 0x71357911;
-            SOFT_TOUCH_REG_USE(v, r);
-            s           = v >> 12;
-            Gp_LcgState = r;
-            r         >>= 16;
-            q           = -s;
-            if (r & 1) {
-                w = q - (u16)(cfg->size / 10);
-            } else {
-                w = q;
-            }
-            work->verts[2].vy = w;
+            work->verts[2].vx = -(cfg->size * rsin(0x2AA) / 4096) - ((DUMPING_HOLE_RAND() & 1) ? cfg->size / 10 : 0);
+            work->verts[2].vy = -(cfg->size * rsin(0x155) / 4096) - ((DUMPING_HOLE_RAND() & 1) ? cfg->size / 10 : 0);
             work->verts[2].vz = 0;
             arg0->state++;
             break;

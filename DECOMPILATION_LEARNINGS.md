@@ -142571,3 +142571,22 @@ The order of the last two macros is the whole fix: `setSemiTrans` before
 `setRGB0` scores 95.7% with `u1` in the wrong register, after it the body
 matches. The `head - 0x10` casts on the scratch block were not needed either.
 Every copy with the same pin can take this body with its own names.
+
+## A random jitter on a quotient is `q + (RAND() & 1 ? d : 0)`, not a branch on a precomputed `q` (func_shelter_b3_dumping_hole_8018005C, 2026-09-26)
+
+Target shape after `x * rsin(a)` and the `bgez`/`addiu 0xFFF` of a `/ 4096`: the
+LCG step runs first, and the `sra 12` (or `sra` + `negu`) lands after its store,
+often in the delay slot of the `beqz` on the draw, with each arm ending in its
+own `addu`/`subu` or `move`. Computing the quotient into a local and then
+`if (rand & 1) w = q + d; else w = q;` lets sched1 hoist the shift into the
+LCG load delay, the quotient takes `$v0` and every register shifts; the old
+match tied the shift to the draw with `SOFT_TOUCH_REG_USE`. The source is one
+expression per field:
+
+```c
+work->verts[1].vx = size * rsin(0x2AA) / 4096 + ((RAND() & 1) ? size / 10 : 0);
+work->verts[1].vy = -(size * rsin(0x155) / 4096) - ((RAND() & 1) ? size / 10 : 0);
+```
+
+The same spelling, `base + (RAND() & 1 ? RAND() & 0x1F : -(RAND() & 0x1F))`,
+replaces an `if/else` over a `base` local for velocity jitter.
