@@ -4215,21 +4215,20 @@ void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     MATRIX*                dest;
     s32                    sum;
     s32                    offsetY;
-    s32                    mode3;
-    u16                    copyValue;
+    s32                    part;
 
-    coords    = arg0->extra.tmd->coords;
-    allocated = SCRATCH_HEAD(Actor403100AimScratch) - 1;
-    __asm__("move %0,%1" : "=r"(matrices) : "r"(allocated));
-    angles                                 = &allocated->angles;
-    MATRIX_PAIR(&allocated->mats[0], 0, 0) = 0x1000;
-    MATRIX_PAIR(matrices, 0, 2)            = 0;
-    MATRIX_PAIR(matrices, 1, 1)            = 0x1000;
-    MATRIX_PAIR(matrices, 2, 0)            = 0;
-    matrices->m[2][2]                      = 0x1000;
-    root                                   = arg0->extra.tmd->coords;
-    SCRATCH_HEAD(MATRIX)                   = matrices;
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &root[3].workm, &worldMatrix);
+    coords = arg0->extra.tmd->coords;
+    head   = &coords[3];
+    middle = &coords[2];
+    lower  = &coords[1];
+    part   = 3;
+    SCRATCH_PUSH(Actor403100AimScratch);
+    allocated = SCRATCH_HEAD(Actor403100AimScratch);
+    matrices  = allocated->mats;
+    angles    = &allocated->angles;
+    gfxSetRotIdentity(matrices);
+    root = arg0->extra.tmd->coords;
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &root[part].workm, &worldMatrix);
     delta.vx = D_actor_403100_80155808->field_98 - worldMatrix.t[0];
     offsetY  = worldMatrix.t[1] + 0x600;
     delta.vy = D_actor_403100_80155808->field_9A - offsetY;
@@ -4238,26 +4237,21 @@ void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     angles->vx = (ratan2(-local.vy, local.vz) << 20) >> 20;
     angles->vy = (ratan2(local.vx, local.vz) << 20) >> 20;
     angles->vz = 0;
-    head       = &coords[3];
-    middle     = &coords[2];
-    lower      = &coords[1];
-    mode3      = 3;
     if (arg1 == 0) {
         func_actor_403100_8013CEAC((u16*)angles, 8, 0x280, -0x2C0);
         func_actor_403100_8013CF60(angles, 8, 2, 1, 4);
         func_actor_403100_8013D06C();
         RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
     } else if (arg1 == 1) {
-        Gp_MtxToEuler(&coords[3].coord, &headRotation);
+        Gp_MtxToEuler(&coords[part].coord, &headRotation);
         D_actor_403100_80155808->field_B0 += ((s32)(((u16)headRotation.vx - (u16)D_actor_403100_80155808->field_B0) << 20) >> 23);
         D_actor_403100_80155808->field_B4 += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->field_B4) << 20) >> 23);
         func_actor_403100_8013CF60(angles, 8, 4, 1, 4);
         RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
     } else if (arg1 == 2) {
-        Gp_MtxToEuler(&coords[3].coord, &headRotation);
+        Gp_MtxToEuler(&coords[part].coord, &headRotation);
         Gp_MtxToEuler(&coords[2].coord, &middleRotation);
         Gp_MtxToEuler(&coords[1].coord, &lowerRotation);
-        SOFT_USE_REG(mode3);
         sum                                = (u16)headRotation.vx + ((u16)middleRotation.vx + (u16)lowerRotation.vx);
         headRotation.vx                    = sum;
         headRotation.vy                    = (u16)headRotation.vy + ((u16)middleRotation.vy + (u16)lowerRotation.vy);
@@ -4266,13 +4260,13 @@ void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
         D_actor_403100_80155808->field_B2 += ((s32)(((u16)headRotation.vy - (u16)D_actor_403100_80155808->field_B2) << 20) >> 23);
         D_actor_403100_80155808->field_B4 += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->field_B4) << 20) >> 23);
         RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
-    } else if (arg1 == mode3) {
+    } else if (arg1 == 3) {
         func_actor_403100_8013CEAC((u16*)angles, 0x10, 0x280, -0x280);
         func_actor_403100_8013CF60(angles, 0x10, 4, 2, 8);
         func_actor_403100_8013D06C();
         RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
     } else if (arg1 == 4) {
-        Gp_MtxToEuler(&coords[3].coord, &headRotation);
+        Gp_MtxToEuler(&coords[part].coord, &headRotation);
         D_actor_403100_80155808->field_B0 += ((s32)(((u16)headRotation.vx - (u16)D_actor_403100_80155808->field_B0) << 20) >> 23);
         D_actor_403100_80155808->field_B4 += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->field_B4) << 20) >> 23);
         func_actor_403100_8013CF60(angles, 0x10, 4, 2, 8);
@@ -4289,18 +4283,16 @@ void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     TransposeMatrix(&lower->coord, transpose2);
     MulMatrix(transpose, transpose2);
     MulMatrix(transpose, matrices);
-    head->coord.m[0][0] = (u16)transpose->m[0][0];
-    copyValue           = (u16)transpose->m[0][1];
-    SOFT_USE_REG(copyValue);
     dest          = &head->coord;
-    dest->m[0][1] = copyValue;
-    dest->m[0][2] = (u16)transpose->m[0][2];
-    dest->m[1][0] = (u16)transpose->m[1][0];
-    dest->m[1][1] = (u16)transpose->m[1][1];
-    dest->m[1][2] = (u16)transpose->m[1][2];
-    dest->m[2][0] = (u16)transpose->m[2][0];
-    dest->m[2][1] = (u16)transpose->m[2][1];
-    dest->m[2][2] = (u16)transpose->m[2][2];
+    dest->m[0][0] = transpose->m[0][0];
+    dest->m[0][1] = transpose->m[0][1];
+    dest->m[0][2] = transpose->m[0][2];
+    dest->m[1][0] = transpose->m[1][0];
+    dest->m[1][1] = transpose->m[1][1];
+    dest->m[1][2] = transpose->m[1][2];
+    dest->m[2][0] = transpose->m[2][0];
+    dest->m[2][1] = transpose->m[2][1];
+    dest->m[2][2] = transpose->m[2][2];
     SCRATCH_POP(Actor403100AimScratch);
     lower->flg  = 0;
     middle->flg = 0;

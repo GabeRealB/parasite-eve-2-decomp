@@ -142727,3 +142727,36 @@ count to `a1`) and the offset multiply finished before the struct copy, which
 the seed gets from a no-output `asm` (implicitly volatile, so a full sched
 barrier). No barrier-free spelling found gets past 89.4%, and a `do {} while (0)`
 barrier around `r.h` (loop notes block sched) only reaches 98%.
+
+## `li s0,K` before an `if`/`else if` chain, `bne x,s0`: a variable equal to K, set before the calls (func_actor_403100_8013B5E0, 2026-09-26)
+
+**Symptom.** One arm of a compare chain tests against a constant held in a
+callee-saved register loaded ahead of the chain (`li s0,3` in the block before
+the first `bnez`), while every other arm loads its constant into `$v0` in a
+delay slot. A literal `arg1 == 3` loads it late into `$v0`; a local
+`k = 3; ... arg1 == k` written just before the chain gets the early `li` but in
+`$v1`, because nothing keeps the value live across a call.
+
+**Mechanism.** cse canonicalises the compare's constant register to an older
+pseudo already known to hold 3, so a literal `== 3` is enough once *some*
+variable equal to 3 exists (here the part index used for `&root[part]`, which
+cse folds into the address). If that variable is assigned before the calls,
+flow counts it as crossing them, and sched1 (calls do not end a block) sinks the
+lone `li` to the end of the block while keeping `REG_N_CALLS_CROSSED`, so
+global-alloc gives it `s0`. Among the equal-priority insns sched1 sinks there,
+source order decides the position: the `li` lands after the pointer setups
+written before it.
+
+**Fix.** Set the index variable early, after the part pointers, use it where
+it is natural, and keep the compare literal:
+```c
+coords = task->extra.tmd->coords;
+head   = &coords[3];
+middle = &coords[2];
+lower  = &coords[1];
+part   = 3;
+...
+Gp_WorldToLocal(&gGfxViewCoord.workm, &root[part].workm, &m);
+...
+} else if (arg1 == 3) {
+```
