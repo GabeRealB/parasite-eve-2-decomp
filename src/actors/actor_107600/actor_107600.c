@@ -1422,12 +1422,7 @@ void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
     TmdObject*      extra;
     MATRIX*         colorMtx;
     s32             mode;
-    u8*             head;
     GpColorScratch* block;
-    SVECTOR*        col0;
-    SVECTOR*        col1;
-    GpMtxCol*       src;
-    GpMtxCol*       dst;
     s32             i;
     s32             w0;
     s32             w1;
@@ -1436,16 +1431,7 @@ void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
     colorMtx = extra->colorMtx;
     mode     = arg0->colorMode & 3;
     if ((!(extra->flags & 0x80) && (extra->buffer != NULL)) || (gGameSession->field_65 != 1)) {
-        {
-            void**                   scratch;
-            register GpColorScratch* tmp asm("v0");
-
-            scratch                        = SCRATCH_HEAD_ADDR;
-            head                           = SCRATCH_HEAD_AT(scratch, void);
-            tmp                            = (GpColorScratch*)(head - 0x30);
-            block                          = tmp;
-            SCRATCH_HEAD_AT(scratch, void) = tmp;
-        }
+        block = SCRATCH_PUSH(GpColorScratch);
         func_800D7A9C(extra, arg1, 0, 3);
         if ((s8)arg0->colorBlend <= 0) {
             func_actor_107600_801344E8(arg0, colorMtx, mode);
@@ -1461,41 +1447,31 @@ void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
             block->mtx.m[2][2] = colorMtx->m[2][2];
             func_actor_107600_801344E8(arg0, colorMtx, mode);
             func_actor_107600_801344E8(arg0, &block->mtx, (arg0->colorMode >> 2) & 3);
-            i    = 0;
-            col0 = (SVECTOR*)(head - 0x10);
-            col1 = (SVECTOR*)(head - 8);
-            src  = (GpMtxCol*)colorMtx;
-            w0   = (s8)arg0->colorBlend << 8;
-            dst  = (GpMtxCol*)block;
-            w1   = 0x1000 - w0;
-            do {
-                block->col0.vx = src->x;
-                block->col0.vy = src->y;
-                TOUCH_REG(src);
-                block->col0.vz = src->z;
-                block->col1.vx = dst->x;
-                block->col1.vy = dst->y;
-                TOUCH_REG(dst);
-                block->col1.vz = dst->z;
+            w0 = (s8)arg0->colorBlend << 8;
+            w1 = 0x1000 - w0;
+            for (i = 0; i < 3; i++) {
+                block->col0.vx = colorMtx->m[0][i];
+                block->col0.vy = colorMtx->m[1][i];
+                block->col0.vz = colorMtx->m[2][i];
+                block->col1.vx = block->mtx.m[0][i];
+                block->col1.vy = block->mtx.m[1][i];
+                block->col1.vz = block->mtx.m[2][i];
                 gte_lddp(w1);
-                gte_ldsv(col0);
+                gte_ldsv(&block->col0);
                 gte_gpf12();
                 gte_lddp(w0);
-                gte_ldsv(col1);
+                gte_ldsv(&block->col1);
                 gte_gpl12();
-                gte_stsv(col0);
-                src->x = block->col0.vx;
-                dst    = (GpMtxCol*)&dst->_0;
-                src->y = block->col0.vy;
-                i++;
-                src->z = block->col0.vz;
-                src    = (GpMtxCol*)&src->_0;
-            } while (i < 3);
+                gte_stsv(&block->col0);
+                colorMtx->m[0][i] = block->col0.vx;
+                colorMtx->m[1][i] = block->col0.vy;
+                colorMtx->m[2][i] = block->col0.vz;
+            }
             if (Gp_StateF0.field_4 == 0) {
                 arg0->colorBlend--;
             }
         }
-        SCRATCH_HEAD(u8) = (u8*)SCRATCH_HEAD(void) + 0x30;
+        SCRATCH_POP(GpColorScratch);
     }
 }
 

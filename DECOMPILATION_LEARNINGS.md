@@ -142606,3 +142606,15 @@ address an anti-dependence on the first store, which is the ordering
 (`addu; sb; addu; sb`, both through `$v0`) that the offset form needed a
 `SOFT_BARRIER` for. Writing `work->slots[i].rate` directly instead folds both
 into one walking pointer. Try the reused pointer before a hand-built offset.
+
+## A `MATRIX` column walk is `m[0][i]`, `m[1][i]`, `m[2][i]`, not a column-overlay pointer (func_actor_107600_80134608, 2026-09-26)
+
+A loop reading one column of a 3x3 per iteration compiles to a pointer that
+steps by 2 and loads at `0`, `6` and `0xC`. Modelling that as a 14-byte
+"column" struct walked by hand (`src = (Col*)&src->_1`) needed `TOUCH_REG` on
+both pointers to stop loop splitting each field into its own induction
+variable (`addiu v1,a1,0xc`, `lhu -0x6(v1)`). Plain indexing,
+`colorMtx->m[0][i]` … `m[2][i]` with a `for (i = 0; i < 3; i++)`, gives the
+single stepped pointer per matrix without help, and `&block->col0` for the GTE
+operand folds to the old head minus 0x10 on its own once the block is taken
+with `SCRATCH_PUSH`.
