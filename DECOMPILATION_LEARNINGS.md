@@ -141416,3 +141416,22 @@ block-scoped second pointer or moving the colour temporaries.
 `.sched` ready lists whether they tie at the previous call's priority. Only
 a data dependence on something late moves one of them. Look for a
 plausible source expression that has one before reaching for a barrier.
+
+## Low callee-saved registers on short temporaries mean the temporaries are block-local (func_shelter_b2_pod_bottom_8017F994, 2026-09-26)
+
+**Symptom.** Two `do`-loops each compute `ang + 0x100`/`ang + 0x200` (and
+`ang + 0x400`/`ang + 0x800`) across `rsin`/`rcos` calls. The target gives those
+angles `$s0`/`$s1` while the prim and scratch-block pointers, used far more
+often, sit in `$s2`/`$s3`. With one function-level pair of temporaries the
+pointers win `$s0`/`$s1` on refs-per-length and the colouring is permuted; the
+seed pinned four registers to hold it.
+
+**Mechanism.** A loop body that calls but never branches is one basic block. A
+pseudo used in only that block is allocated by local-alloc, which runs before
+global-alloc and takes the lowest free callee-saved registers for call-crossing
+values. Reusing the same variable in both loops makes it a two-block pseudo, so
+it falls to global-alloc behind the pointers.
+
+**Fix.** Declare the temporaries inside each loop body (`do { s32 mid; s32 next;
+... }`). When the lowest `$s` registers hold values that live only within one
+iteration, try giving them per-block scope before touching anything else.
