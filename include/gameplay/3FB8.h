@@ -599,7 +599,7 @@ extern u8 D_80115768;
 
 /// Four-entry `Task::state` dispatcher: `Gp_InitPlayerWork`, `Gp_PlayerWorkState1`,
 /// `Gp_PlayerWorkState2`, `Gp_TeardownSlot0`.
-extern TaskFuncTable4 Gp_PlayerWorkStates;
+extern const TaskFuncTable4 Gp_PlayerWorkStates;
 
 /// Four-entry `Task::state` dispatcher: `func_8010B590`, `func_8010B5C0`,
 /// `func_8010B5E4`, `func_8010B5F0`.
@@ -610,16 +610,16 @@ extern const TaskFuncTable4 D_80097AB0;
 extern TaskFuncTable33 D_800978BC;
 
 /// `field_954` dispatcher: `Gp_TickPlayerNormal`, `Gp_TickPlayerMode1`, `Gp_TickPlayerMode2`.
-extern TaskFuncTable3 Gp_PlayerModeFns;
+extern const TaskFuncTable3 Gp_PlayerModeFns;
 
 /// `field_956` dispatcher copied by `Gp_TickPlayerNormal`.
-extern TaskFuncTable8 D_8009794C;
+extern const TaskFuncTable8 D_8009794C;
 
 /// `field_96C` dispatcher: three slots of `Gp_PlayerMode1State0`, then `Gp_PlayerMode1State3`.
-extern TaskFuncTable4 Gp_PlayerMode1States;
+extern const TaskFuncTable4 Gp_PlayerMode1States;
 
 /// `field_956` dispatcher copied by `Gp_TickPlayerMode2`.
-extern TaskFuncTable12 Gp_PlayerMode2States;
+extern const TaskFuncTable12 Gp_PlayerMode2States;
 
 /// u8 Task_Spawn type bases. `func_80104258` indexes
 /// `D_80112DFC[arg2 + Player_Status.field_26 - 2]`.

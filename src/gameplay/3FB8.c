@@ -24,15 +24,15 @@
 #include <psyq/libgte.h>
 #include <psyq/rand.h>
 
-extern TaskDesc       D_80113340[];
-extern GpEffArg       D_80113358;
-extern TaskFuncTable3 Gp_EffTask07States;
-extern u16            Gp_WeaponIdBase[];
-extern GpAnimBlk*     Gp_PlayerAnimBlkTbl[];
-extern u16            D_80112DF4[];
-extern u16            D_80113F9C[];
-extern u16            Gp_AllyIdBase[];
-extern void*          Gp_AnimBlkTbl[];
+extern TaskDesc             D_80113340[];
+extern GpEffArg             D_80113358;
+extern const TaskFuncTable3 Gp_EffTask07States;
+extern u16                  Gp_WeaponIdBase[];
+extern GpAnimBlk*           Gp_PlayerAnimBlkTbl[];
+extern u16                  D_80112DF4[];
+extern u16                  D_80113F9C[];
+extern u16                  Gp_AllyIdBase[];
+extern void*                Gp_AnimBlkTbl[];
 
 s32  Gp_ApplyHpDamage(s32 arg0);
 void Gp_TickActorAnimState(Task* arg0);
@@ -89,6 +89,33 @@ void Gp_PlayerStepSfx(Task* arg0);
 void func_800FDB18(s32 arg0, GpCoord* arg1, SVECTOR* arg2, GpEffArg* arg3);
 void Gp_DrawEffTri(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 void func_800FCD00(Task* arg0);
+
+void Gp_EffTask07State0(Task* arg0);
+void Gp_PlayerWorkState1(Task* arg0);
+void Gp_PlayerWorkState2(Task* arg0);
+void func_80108FA0(Task* arg0);
+void Gp_PlayerNormalState1(Task* arg0);
+void Gp_PlayerNormalState2(Task* arg0);
+void func_801090E8(Task* arg0);
+void func_80109138(Task* arg0);
+void Gp_PlayerNormalState5(Task* arg0);
+void Gp_PlayerNormalState6(Task* arg0);
+void func_8010771C(Task* arg0);
+void Gp_TickPlayerNormal(Task* arg0);
+void Gp_TickPlayerMode1(Task* arg0);
+void Gp_TickPlayerMode2(Task* arg0);
+void Gp_PlayerMode1State3(void);
+void Gp_PlayerMode2State0(Task* arg0);
+void Gp_PlayerMode2State1(Task* arg0);
+void Gp_PlayerMode2State2(Task* arg0);
+void Gp_PlayerMode2State3(Task* arg0);
+void Gp_PlayerMode2State5(Task* arg0);
+void Gp_PlayerMode2State6(Task* arg0);
+void Gp_PlayerMode2State7(Task* arg0);
+void Gp_PlayerMode2State8(Task* arg0);
+void Gp_PlayerMode2State9(Task* arg0);
+void Gp_PlayerMode2StateA(Task* arg0);
+void Gp_PlayerMode2StateB(Task* arg0);
 
 void Gp_EffSprTask55(Task* arg0)
 {
@@ -663,16 +690,11 @@ void Gp_EffSprTask30(Task* arg0)
     }
 }
 
-#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
-__asm__(".section .rodata\n"
-        "\t.align 2\n"
-        "\t.globl Gp_EffTask07States\n"
-        "Gp_EffTask07States:\n"
-        "\t.word Gp_EffTask07State0\n"
-        "\t.word Gp_EffTask07State1\n"
-        "\t.word taskKill\n"
-        ".section .text\n");
-#endif
+const TaskFuncTable3 Gp_EffTask07States = { {
+    Gp_EffTask07State0,
+    Gp_EffTask07State1,
+    taskKill,
+} };
 
 void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
 {
@@ -2139,17 +2161,12 @@ void func_800FDB18(s32 arg0, GpCoord* arg1, SVECTOR* arg2, GpEffArg* arg3)
     }
 }
 
-#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
-__asm__(".section .rodata\n"
-        "\t.align 2\n"
-        "\t.globl Gp_PlayerWorkStates\n"
-        "Gp_PlayerWorkStates:\n"
-        "\t.word Gp_InitPlayerWork\n"
-        "\t.word Gp_PlayerWorkState1\n"
-        "\t.word Gp_PlayerWorkState2\n"
-        "\t.word Gp_TeardownSlot0\n"
-        ".section .text\n");
-#endif
+const TaskFuncTable4 Gp_PlayerWorkStates = { {
+    Gp_InitPlayerWork,
+    Gp_PlayerWorkState1,
+    Gp_PlayerWorkState2,
+    Gp_TeardownSlot0,
+} };
 
 void Gp_EffCtlTask7F(Task* arg0)
 {
@@ -6112,24 +6129,25 @@ void func_801066DC(Task* arg0, s16 arg1)
     }
 }
 
-INCLUDE_RODATA("gameplay/nonmatchings/3FB8", Gp_PlayerModeFns);
+const TaskFuncTable3 Gp_PlayerModeFns = { {
+    Gp_TickPlayerNormal,
+    Gp_TickPlayerMode1,
+    Gp_TickPlayerMode2,
+} };
 
-#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
-__asm__(".section .rodata\n"
-        "\t.align 2\n"
-        "\t.globl D_8009794C\n"
-        "D_8009794C:\n"
-        "\t.word func_80108FA0\n"
-        "\t.word Gp_PlayerNormalState1\n"
-        "\t.word Gp_PlayerNormalState2\n"
-        "\t.word func_801090E8\n"
-        "\t.word func_80109138\n"
-        "\t.word Gp_PlayerNormalState5\n"
-        "\t.word Gp_PlayerNormalState6\n"
-        "\t.word func_8010771C\n"
-        "\t.word 0x00000000\n"
-        ".section .text\n");
-#endif
+const TaskFuncTable8 D_8009794C = { {
+    func_80108FA0,
+    Gp_PlayerNormalState1,
+    Gp_PlayerNormalState2,
+    func_801090E8,
+    func_80109138,
+    Gp_PlayerNormalState5,
+    Gp_PlayerNormalState6,
+    func_8010771C,
+} };
+
+/// A zero word after `D_8009794C`. Nothing refers to it.
+const s32 D_8009796C = 0;
 
 void Gp_TickPlayerNormal(Task* arg0)
 {
@@ -7453,17 +7471,12 @@ void func_80108E0C(Task* arg0, GpLinkNode* arg1)
     arg1->state.b.targeted = 1;
 }
 
-#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
-__asm__(".section .rodata\n"
-        "\t.align 2\n"
-        "\t.globl Gp_PlayerMode1States\n"
-        "Gp_PlayerMode1States:\n"
-        "\t.word Gp_PlayerMode1State0\n"
-        "\t.word Gp_PlayerMode1State0\n"
-        "\t.word Gp_PlayerMode1State0\n"
-        "\t.word Gp_PlayerMode1State3\n"
-        ".section .text\n");
-#endif
+const TaskFuncTable4 Gp_PlayerMode1States = { {
+    Gp_PlayerMode1State0,
+    Gp_PlayerMode1State0,
+    Gp_PlayerMode1State0,
+    (TaskFunc)Gp_PlayerMode1State3,
+} };
 
 void Gp_TickPlayerMode1(Task* arg0)
 {
@@ -7477,25 +7490,20 @@ void Gp_TickPlayerMode1(Task* arg0)
     Gp_StepPlayerMove(arg0);
 }
 
-#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
-__asm__(".section .rodata\n"
-        "\t.align 2\n"
-        "\t.globl Gp_PlayerMode2States\n"
-        "Gp_PlayerMode2States:\n"
-        "\t.word Gp_PlayerMode2State0\n"
-        "\t.word Gp_PlayerMode2State1\n"
-        "\t.word Gp_PlayerMode2State2\n"
-        "\t.word Gp_PlayerMode2State3\n"
-        "\t.word Gp_PlayerMode2State4\n"
-        "\t.word Gp_PlayerMode2State5\n"
-        "\t.word Gp_PlayerMode2State6\n"
-        "\t.word Gp_PlayerMode2State7\n"
-        "\t.word Gp_PlayerMode2State8\n"
-        "\t.word Gp_PlayerMode2State9\n"
-        "\t.word Gp_PlayerMode2StateA\n"
-        "\t.word Gp_PlayerMode2StateB\n"
-        ".section .text\n");
-#endif
+const TaskFuncTable12 Gp_PlayerMode2States = { {
+    Gp_PlayerMode2State0,
+    Gp_PlayerMode2State1,
+    Gp_PlayerMode2State2,
+    Gp_PlayerMode2State3,
+    Gp_PlayerMode2State4,
+    Gp_PlayerMode2State5,
+    Gp_PlayerMode2State6,
+    Gp_PlayerMode2State7,
+    Gp_PlayerMode2State8,
+    Gp_PlayerMode2State9,
+    Gp_PlayerMode2StateA,
+    Gp_PlayerMode2StateB,
+} };
 
 void Gp_TickPlayerMode2(Task* arg0)
 {
