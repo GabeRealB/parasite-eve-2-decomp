@@ -367,4 +367,44 @@ extern TmdSource D_acropolis_roof_garden_80186E70;
 extern TmdSource D_acropolis_helicopter_landing_pad_801836EC;
 extern TmdSource D_acropolis_helicopter_landing_pad_80187F50;
 
+/// Task entries the Neo Ark map UI overlay's stage tables name: each room's
+/// entry task, started for its location, and the enemy descriptors' tasks.
+void func_shelter_1f_parking_garage_8017DF14(Task* task);
+void func_shelter_1f_vehicular_airlock_8017D5E4(Task* task);
+void func_shelter_1f_vehicular_airlock_8017DA48(Task* task);
+void func_shelter_1f_bulwark_8017DC20(Task* task);
+void func_shelter_1f_heliport_80180768(Task* task);
+void func_shelter_1f_airlock_8017D678(Task* task);
+void func_shelter_1f_guardroom_8017D880(Task* task);
+void func_neo_ark_observatory_8017FDDC(Task* task);
+void func_neo_ark_eve_access_tunnel_8017E038(Task* task);
+void func_neo_ark_eve_elevator_8017D6C4(Task* task);
+void func_neo_ark_north_promenade_8017D6C8(Task* task);
+void func_neo_ark_forest_zone_8017DBBC(Task* task);
+void func_neo_ark_submarine_tunnel_8017F434(Task* task);
+void func_neo_ark_pavilion_8017EBF4(Task* task);
+void func_neo_ark_island_8017EB10(Task* task);
+void func_neo_ark_garden_8017EA44(Task* task);
+void func_neo_ark_power_plant_2_8017D854(Task* task);
+void func_neo_ark_power_plant_1_8017D9C0(Task* task);
+void func_neo_ark_savanna_zone_8017D954(Task* task);
+void func_neo_ark_south_promenade_8017D678(Task* task);
+void func_neo_ark_altar_8017D9E8(Task* task);
+void func_neo_ark_shrine_8017D948(Task* task);
+void func_shelter_b6_nursery_8017FF9C(Task* task);
+void func_shelter_b6_growth_room_8017D7D4(Task* task);
+void func_shelter_b6_corridor_8017E144(Task* task);
+void func_shelter_b6_training_room_8017D8E8(Task* task);
+void func_neo_ark_r26_8017D720(Task* task);
+void func_neo_ark_bridge_8017E8FC(Task* task);
+void func_shelter_1f_tent_8017FDB8(Task* task);
+void func_neo_ark_woodland_path_8017E9B0(Task* task);
+void func_neo_ark_submarine_gallery_8017EBCC(Task* task);
+void func_neo_ark_r31_8017D990(Task* task);
+void func_neo_ark_pyramid_8017DB98(Task* task);
+void func_neo_ark_substation_8017D81C(Task* task);
+
+/// Models the Neo Ark map UI overlay's enemy descriptors attach.
+extern TmdSource D_shelter_1f_vehicular_airlock_80182004;
+
 #endif /* ROOMS_ROOM_H */

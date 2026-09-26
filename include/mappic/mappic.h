@@ -67,4 +67,38 @@ extern TmdSource D_mappic_s2_03_8012EFD8;
 extern TmdSource D_mappic_s2_03_8012F084;
 extern TmdSource D_mappic_s2_03_8012F180;
 
+// mappic_s5_00
+extern TmdSource D_mappic_s5_00_8012F04C;
+extern TmdSource D_mappic_s5_00_8012F0DC;
+extern TmdSource D_mappic_s5_00_8012F218;
+extern TmdSource D_mappic_s5_00_8012F2A8;
+extern TmdSource D_mappic_s5_00_8012F338;
+extern TmdSource D_mappic_s5_00_8012F3C8;
+extern TmdSource D_mappic_s5_00_8012F490;
+extern TmdSource D_mappic_s5_00_8012F58C;
+extern TmdSource D_mappic_s5_00_8012F61C;
+extern TmdSource D_mappic_s5_00_8012F6AC;
+extern TmdSource D_mappic_s5_00_8012F7E8;
+extern TmdSource D_mappic_s5_00_8012F878;
+extern TmdSource D_mappic_s5_00_8012F9D4;
+extern TmdSource D_mappic_s5_00_8012FAD4;
+extern TmdSource D_mappic_s5_00_8012FBB4;
+extern TmdSource D_mappic_s5_00_8012FCB8;
+extern TmdSource D_mappic_s5_00_8012FD84;
+extern TmdSource D_mappic_s5_00_8012FE4C;
+
+// mappic_s5_02
+extern TmdSource D_mappic_s5_02_8012F044;
+extern TmdSource D_mappic_s5_02_8012F124;
+extern TmdSource D_mappic_s5_02_8012F224;
+extern TmdSource D_mappic_s5_02_8012F2B4;
+
+// mappic_s5_03
+extern TmdSource D_mappic_s5_03_8012EFA0;
+extern TmdSource D_mappic_s5_03_8012F030;
+extern TmdSource D_mappic_s5_03_8012F110;
+extern TmdSource D_mappic_s5_03_8012F1F0;
+extern TmdSource D_mappic_s5_03_8012F2B8;
+extern TmdSource D_mappic_s5_03_8012F348;
+
 #endif /* MAPPIC_MAPPIC_H */

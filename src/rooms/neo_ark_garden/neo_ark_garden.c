@@ -816,7 +816,7 @@ static const TaskFuncTable3 D_neo_ark_garden_8017D614 = {
 
 /// Tick of the room's entry task: copies its state table to the stack and
 /// calls the handler for the task's state.
-static void func_neo_ark_garden_8017EA44(Task* task)
+void func_neo_ark_garden_8017EA44(Task* task)
 {
     TaskFuncTable3 sp;
 

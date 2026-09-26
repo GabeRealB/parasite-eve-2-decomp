@@ -174,17 +174,6 @@ typedef struct _GpRoomBoundVec {
 } GpRoomBoundVec;
 STATIC_ASSERT_SIZEOF(GpRoomBoundVec, 8);
 
-/// 8-byte record in tables pointed to by `Gp_RoomCoordTables`. Indexed 1-based
-/// by `GpAreaKey.room`. `Gp_GetRoomCoordRec` returns the record
-/// (or NULL). `Gp_GetRoomCoordSet` returns `field_0` as a `GpRoomCoordSet*` (or 0).
-/// `Gp_GetRoomBound` walks `field_4` as a nested `GpRoomBoundVec` table, falling
-/// back to `Gp_RoomBoundDefault`.
-typedef struct _GpRoomCoordRec {
-    /* 0x0 */ s32             field_0;
-    /* 0x4 */ GpRoomBoundVec* field_4;
-} GpRoomCoordRec;
-STATIC_ASSERT_SIZEOF(GpRoomCoordRec, 8);
-
 /// A room view's own lights, returned by `Gp_GetRoomCoordSet`
 /// (`GpRoomCoordRec.field_0`): its directional, point and spot lights.
 /// `Gp_UpdateRoomCoords` parents each light to `gGfxViewCoord` on first run,
@@ -199,6 +188,17 @@ typedef struct _GpRoomCoordSet {
     /* 0x14 */ GpSpotLight*  arr6C; // spot lights
 } GpRoomCoordSet;
 STATIC_ASSERT_SIZEOF(GpRoomCoordSet, 0x18);
+
+/// 8-byte record in tables pointed to by `Gp_RoomCoordTables`. Indexed 1-based
+/// by `GpAreaKey.room`. `Gp_GetRoomCoordRec` returns the record (or NULL).
+/// `Gp_GetRoomCoordSet` returns `field_0`, the room view's lights (or NULL).
+/// `Gp_GetRoomBound` walks `field_4` as a nested `GpRoomBoundVec` table, falling
+/// back to `Gp_RoomBoundDefault`.
+typedef struct _GpRoomCoordRec {
+    /* 0x0 */ GpRoomCoordSet* field_0;
+    /* 0x4 */ GpRoomBoundVec* field_4;
+} GpRoomCoordRec;
+STATIC_ASSERT_SIZEOF(GpRoomCoordRec, 8);
 
 /// Record in the 8-entry arrays pointed to by `Gp_RoomParamTables`.
 /// `Gp_LoadRoomParams` copies `field_3` into `Gp_RoomParams[]`. Nearby helpers

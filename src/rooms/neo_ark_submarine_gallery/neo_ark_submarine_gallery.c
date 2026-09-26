@@ -885,7 +885,7 @@ static void func_neo_ark_submarine_gallery_8017EBC4(Task* arg0)
 
 /// Entry task tick: dispatches on the task's state through
 /// `D_neo_ark_submarine_gallery_8017D614`, copied to the stack first.
-static void func_neo_ark_submarine_gallery_8017EBCC(Task* task)
+void func_neo_ark_submarine_gallery_8017EBCC(Task* task)
 {
     TaskFuncTable3 sp;
 

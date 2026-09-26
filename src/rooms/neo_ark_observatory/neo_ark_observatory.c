@@ -1156,7 +1156,7 @@ static const TaskFuncTable3 D_neo_ark_observatory_8017D698 = {
 };
 
 /// Room entry task: dispatches through a stack copy of its state table.
-static void func_neo_ark_observatory_8017FDDC(Task* task)
+void func_neo_ark_observatory_8017FDDC(Task* task)
 {
     TaskFuncTable3 sp;
 

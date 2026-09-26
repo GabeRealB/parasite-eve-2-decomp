@@ -1054,7 +1054,7 @@ static void func_neo_ark_submarine_tunnel_8017F414(Task* task)
 /// Room task tick: copies the three-entry state table
 /// `D_neo_ark_submarine_tunnel_8017D614` to the stack and calls the entry for
 /// the task's state.
-static void func_neo_ark_submarine_tunnel_8017F434(Task* task)
+void func_neo_ark_submarine_tunnel_8017F434(Task* task)
 {
     TaskFuncTable3 sp;
 

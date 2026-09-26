@@ -19,6 +19,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// `Gp_StateF0.field_4` (0x801153F4), the byte the room's cutscene driver sets on
@@ -251,7 +252,7 @@ static void func_neo_ark_pyramid_8017DB5C(Task* task)
 
 /// Task tick that dispatches on the task's state through the three-entry
 /// handler table `D_neo_ark_pyramid_8017D5C4`, copied to the stack first.
-static void func_neo_ark_pyramid_8017DB98(Task* task)
+void func_neo_ark_pyramid_8017DB98(Task* task)
 {
     TaskFuncTable3 sp;
 

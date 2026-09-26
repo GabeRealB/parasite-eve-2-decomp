@@ -219,4 +219,137 @@ extern GpAreaPlace D_map_akropolis_8017BDEC[];
 extern GpGiveRec D_map_akropolis_8017C0DC[];
 extern GpGiveRec D_map_akropolis_8017C16C[];
 
+// map_neo_ark
+
+/// This stage's `Gp_MapFlagIds` entry, indexed by map room id.
+extern u8 D_map_neo_ark_80179F1C[];
+/// This stage's `Gp_MapRecTables` entry: where each room sits on the map, by room.
+extern GpMapRec D_map_neo_ark_80179F24[];
+/// This stage's `Gp_MapMarkTables` entry: the room markers, each a model in the
+/// map picture its map room id selects.
+extern GpMapMark D_map_neo_ark_8017A110[];
+/// This stage's `D_8010F0E0` entry, ended by a room id of 0.
+extern GpMapFlagIcon D_map_neo_ark_8017A230[];
+/// This stage's `D_8010F0CC` entry, ended by a room id of 0.
+extern GpMapIcon D_map_neo_ark_8017A26C[];
+/// This stage's `Gp_MapNameTables` entry: the room names, indexed by room - 1.
+extern GpMapName D_map_neo_ark_8017A28C[];
+/// This stage's `Gp_Bit2Banks` list table, by room, ended by a -1 list.
+extern GpBit2List D_map_neo_ark_8017A6EC[];
+/// This stage's `D_8010FABC` entry: the task each room starts, keyed by
+/// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.
+extern GpTaskDesc D_map_neo_ark_8017A804[];
+/// This stage's flag table for `Gp_LookupStageFlag`.
+extern u16 D_map_neo_ark_8017A9A0[];
+/// This stage's entries in `Gp_RoomCoordTables`, `Gp_WarpTables`,
+/// `Gp_ViewCountTables`, `Gp_RoomObjTables`, `Gp_ViewTables`,
+/// `Gp_ViewIndexTables`, `Gp_SprtTables` and `Gp_RoomParamTables`: each leads to
+/// one pointer per room, into that room's package or, for some rooms, at a
+/// record this overlay holds itself.
+extern GpRoomCoordRec*  D_map_neo_ark_8017A9FC[];
+extern GpWarpRec*       D_map_neo_ark_8017AA80[];
+extern GpViewCountTbl   D_map_neo_ark_8017AB88;
+extern GpRoomObjTbl     D_map_neo_ark_8017ACA0;
+extern GpViewTbl        D_map_neo_ark_8017AD28;
+extern GpViewIndexTbl   D_map_neo_ark_8017ADB0;
+extern GpSprtTbl        D_map_neo_ark_8017AE38;
+extern GpRoomParamRec** D_map_neo_ark_8017AE3C[];
+/// Area placement lists, each ended by an entry id of 0xFF. The rooms' area
+/// records point at them, one list per location; one location's list runs on
+/// into the next one's.
+extern GpAreaPlace D_map_neo_ark_8017AEC0[];
+extern GpAreaPlace D_map_neo_ark_8017AED0[];
+extern GpAreaPlace D_map_neo_ark_8017AF00[];
+extern GpAreaPlace D_map_neo_ark_8017AF30[];
+extern GpAreaPlace D_map_neo_ark_8017AF80[];
+extern GpAreaPlace D_map_neo_ark_8017AFD0[];
+extern GpAreaPlace D_map_neo_ark_8017AFF0[];
+extern GpAreaPlace D_map_neo_ark_8017B010[];
+extern GpAreaPlace D_map_neo_ark_8017B030[];
+extern GpAreaPlace D_map_neo_ark_8017B080[];
+extern GpAreaPlace D_map_neo_ark_8017B0F0[];
+extern GpAreaPlace D_map_neo_ark_8017B120[];
+extern GpAreaPlace D_map_neo_ark_8017B160[];
+extern GpAreaPlace D_map_neo_ark_8017B190[];
+extern GpAreaPlace D_map_neo_ark_8017B1C0[];
+extern GpAreaPlace D_map_neo_ark_8017B1F0[];
+extern GpAreaPlace D_map_neo_ark_8017B210[];
+extern GpAreaPlace D_map_neo_ark_8017B2C0[];
+extern GpAreaPlace D_map_neo_ark_8017B300[];
+extern GpAreaPlace D_map_neo_ark_8017B330[];
+extern GpAreaPlace D_map_neo_ark_8017B360[];
+extern GpAreaPlace D_map_neo_ark_8017B390[];
+extern GpAreaPlace D_map_neo_ark_8017B3C0[];
+extern GpAreaPlace D_map_neo_ark_8017B3D0[];
+extern GpAreaPlace D_map_neo_ark_8017B410[];
+extern GpAreaPlace D_map_neo_ark_8017B470[];
+extern GpAreaPlace D_map_neo_ark_8017B4B0[];
+extern GpAreaPlace D_map_neo_ark_8017B4E0[];
+extern GpAreaPlace D_map_neo_ark_8017B530[];
+extern GpAreaPlace D_map_neo_ark_8017B550[];
+extern GpAreaPlace D_map_neo_ark_8017B590[];
+extern GpAreaPlace D_map_neo_ark_8017B5C0[];
+extern GpAreaPlace D_map_neo_ark_8017B600[];
+extern GpAreaPlace D_map_neo_ark_8017B610[];
+extern GpAreaPlace D_map_neo_ark_8017B630[];
+extern GpAreaPlace D_map_neo_ark_8017B6E0[];
+extern GpAreaPlace D_map_neo_ark_8017B700[];
+extern GpAreaPlace D_map_neo_ark_8017B780[];
+extern GpAreaPlace D_map_neo_ark_8017B7D0[];
+extern GpAreaPlace D_map_neo_ark_8017B850[];
+extern GpAreaPlace D_map_neo_ark_8017B8B0[];
+extern GpAreaPlace D_map_neo_ark_8017B8D0[];
+extern GpAreaPlace D_map_neo_ark_8017B950[];
+extern GpAreaPlace D_map_neo_ark_8017B9E0[];
+extern GpAreaPlace D_map_neo_ark_8017BA60[];
+extern GpAreaPlace D_map_neo_ark_8017BB00[];
+extern GpAreaPlace D_map_neo_ark_8017BB70[];
+extern GpAreaPlace D_map_neo_ark_8017BBF0[];
+extern GpAreaPlace D_map_neo_ark_8017BC70[];
+extern GpAreaPlace D_map_neo_ark_8017BCE0[];
+extern GpAreaPlace D_map_neo_ark_8017BD50[];
+extern GpAreaPlace D_map_neo_ark_8017BD80[];
+extern GpAreaPlace D_map_neo_ark_8017BDB0[];
+extern GpAreaPlace D_map_neo_ark_8017BDC0[];
+extern GpAreaPlace D_map_neo_ark_8017BDD0[];
+extern GpAreaPlace D_map_neo_ark_8017BE40[];
+extern GpAreaPlace D_map_neo_ark_8017BE70[];
+extern GpAreaPlace D_map_neo_ark_8017BEB0[];
+extern GpAreaPlace D_map_neo_ark_8017BEF0[];
+extern GpAreaPlace D_map_neo_ark_8017BF40[];
+extern GpAreaPlace D_map_neo_ark_8017BF90[];
+extern GpAreaPlace D_map_neo_ark_8017C020[];
+extern GpAreaPlace D_map_neo_ark_8017C050[];
+extern GpAreaPlace D_map_neo_ark_8017C070[];
+extern GpAreaPlace D_map_neo_ark_8017C090[];
+extern GpAreaPlace D_map_neo_ark_8017C0E0[];
+extern GpAreaPlace D_map_neo_ark_8017C0F0[];
+extern GpAreaPlace D_map_neo_ark_8017C140[];
+extern GpAreaPlace D_map_neo_ark_8017C1D0[];
+extern GpAreaPlace D_map_neo_ark_8017C210[];
+extern GpAreaPlace D_map_neo_ark_8017C270[];
+extern GpAreaPlace D_map_neo_ark_8017C2A0[];
+extern GpAreaPlace D_map_neo_ark_8017C2E0[];
+extern GpAreaPlace D_map_neo_ark_8017C320[];
+extern GpAreaPlace D_map_neo_ark_8017C350[];
+extern GpAreaPlace D_map_neo_ark_8017C380[];
+extern GpAreaPlace D_map_neo_ark_8017C3C0[];
+extern GpAreaPlace D_map_neo_ark_8017C3F0[];
+extern GpAreaPlace D_map_neo_ark_8017C420[];
+extern GpAreaPlace D_map_neo_ark_8017C450[];
+extern GpAreaPlace D_map_neo_ark_8017C4A0[];
+extern GpAreaPlace D_map_neo_ark_8017C4D0[];
+extern GpAreaPlace D_map_neo_ark_8017C510[];
+extern GpAreaPlace D_map_neo_ark_8017C530[];
+extern GpAreaPlace D_map_neo_ark_8017C550[];
+extern GpAreaPlace D_map_neo_ark_8017C580[];
+extern GpAreaPlace D_map_neo_ark_8017C620[];
+extern GpAreaPlace D_map_neo_ark_8017C690[];
+extern GpAreaPlace D_map_neo_ark_8017C720[];
+extern GpAreaPlace D_map_neo_ark_8017C760[];
+/// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items granted by
+/// location, each ended by a key of -1.
+extern GpGiveRec D_map_neo_ark_8017C9B0[];
+extern GpGiveRec D_map_neo_ark_8017CB0C[];
+
 #endif /* MAPUI_STAGE_TABLES_H */

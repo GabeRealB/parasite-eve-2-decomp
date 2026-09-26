@@ -20,6 +20,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
@@ -154,7 +155,7 @@ static void func_neo_ark_power_plant_2_8017D758(Task* task)
 
 /// Dispatches the room's message-driven task through its three-state table
 /// `D_neo_ark_power_plant_2_8017D5C4`, copied onto the stack before the call.
-static void func_neo_ark_power_plant_2_8017D854(Task* task)
+void func_neo_ark_power_plant_2_8017D854(Task* task)
 {
     TaskFuncTable3 sp;
 

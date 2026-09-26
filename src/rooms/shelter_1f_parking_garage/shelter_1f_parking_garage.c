@@ -419,7 +419,7 @@ static void func_shelter_1f_parking_garage_8017DF04(Task* task)
 
 /// The room's controller task: copies its three-entry state table to the
 /// stack and runs the entry for the current state.
-static void func_shelter_1f_parking_garage_8017DF14(Task* task)
+void func_shelter_1f_parking_garage_8017DF14(Task* task)
 {
     TaskFuncTable3 sp;
 

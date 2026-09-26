@@ -264,7 +264,7 @@ static const TaskFuncTable4 D_neo_ark_forest_zone_8017D5D8 = { {
 
 /// The room setup task: runs the state handler its state selects, through a
 /// copy of the state table on the stack.
-static void func_neo_ark_forest_zone_8017DBBC(Task* task)
+void func_neo_ark_forest_zone_8017DBBC(Task* task)
 {
     TaskFuncTable4 sp;
 

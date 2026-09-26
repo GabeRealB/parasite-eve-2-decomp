@@ -9,6 +9,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
@@ -198,7 +199,7 @@ static void func_neo_ark_power_plant_1_8017D928(Task* task)
 
 /// Runs the room task's current state: the handler `Task::state` selects from
 /// `D_neo_ark_power_plant_1_8017D5C4`, copied onto the stack before the call.
-static void func_neo_ark_power_plant_1_8017D9C0(Task* task)
+void func_neo_ark_power_plant_1_8017D9C0(Task* task)
 {
     TaskFuncTable3 sp;
 

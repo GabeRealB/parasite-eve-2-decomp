@@ -1537,7 +1537,7 @@ static void func_shelter_b6_nursery_8017FF8C(Task* task)
 
 /// Runs the room's message task: calls the state handler `task->state` selects
 /// from a stack copy of its three-entry table.
-static void func_shelter_b6_nursery_8017FF9C(Task* task)
+void func_shelter_b6_nursery_8017FF9C(Task* task)
 {
     TaskFuncTable3 sp;
 

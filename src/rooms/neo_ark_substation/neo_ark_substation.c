@@ -16,6 +16,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
@@ -141,7 +142,7 @@ static void func_neo_ark_substation_8017D814(Task* task)
 
 /// Runs the room's message task's current state through a stack copy of
 /// `D_neo_ark_substation_8017D5C4`.
-static void func_neo_ark_substation_8017D81C(Task* task)
+void func_neo_ark_substation_8017D81C(Task* task)
 {
     TaskFuncTable3 sp;
 

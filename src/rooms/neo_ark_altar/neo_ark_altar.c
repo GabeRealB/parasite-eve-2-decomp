@@ -12,6 +12,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/neo_ark_altar.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// 0xFF-terminated area-record list applied the first time the altar fires.
@@ -182,7 +183,7 @@ static void func_neo_ark_altar_8017D9E0(Task* task)
 
 /// Runs the room's message task's current state through a stack copy of
 /// `D_neo_ark_altar_8017D5C4`.
-static void func_neo_ark_altar_8017D9E8(Task* task)
+void func_neo_ark_altar_8017D9E8(Task* task)
 {
     TaskFuncTable3 sp;
 

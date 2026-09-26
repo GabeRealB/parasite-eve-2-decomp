@@ -366,7 +366,7 @@ static const TaskFuncTable3 D_shelter_b6_corridor_8017D5C4 = {
 
 /// Runs the room task's current state from its three-entry table, which it
 /// copies onto the stack before the call.
-static void func_shelter_b6_corridor_8017E144(Task* task)
+void func_shelter_b6_corridor_8017E144(Task* task)
 {
     TaskFuncTable3 sp;
 

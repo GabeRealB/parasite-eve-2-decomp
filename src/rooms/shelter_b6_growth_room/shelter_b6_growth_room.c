@@ -6,6 +6,7 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern TaskDesc       D_80135E78;
@@ -88,7 +89,7 @@ static const TaskFuncTable3 D_shelter_b6_growth_room_8017D5C4 = {
 
 /// The room task: copies its state table onto the stack and calls the entry
 /// for the current state.
-static void func_shelter_b6_growth_room_8017D7D4(Task* task)
+void func_shelter_b6_growth_room_8017D7D4(Task* task)
 {
     TaskFuncTable3 sp;
 

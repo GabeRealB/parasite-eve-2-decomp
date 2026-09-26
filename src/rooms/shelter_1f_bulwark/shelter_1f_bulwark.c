@@ -243,7 +243,7 @@ static void func_shelter_1f_bulwark_8017DC18(Task* task)
 
 /// The room's controller task: copies its three-entry state table (set up,
 /// idle, kill) to the stack and runs the entry for the current state.
-static void func_shelter_1f_bulwark_8017DC20(Task* task)
+void func_shelter_1f_bulwark_8017DC20(Task* task)
 {
     TaskFuncTable3 sp;
 

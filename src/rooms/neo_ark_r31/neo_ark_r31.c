@@ -7,6 +7,7 @@
 #include "main/fs.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 
 extern s32 D_neo_ark_r31_8017DC54;
 
@@ -139,7 +140,7 @@ static const TaskFuncTable3 D_neo_ark_r31_8017D5C4 = {
 };
 
 /// Room task: dispatches through a stack copy of its state table.
-static void func_neo_ark_r31_8017D990(Task* task)
+void func_neo_ark_r31_8017D990(Task* task)
 {
     TaskFuncTable3 sp;
 

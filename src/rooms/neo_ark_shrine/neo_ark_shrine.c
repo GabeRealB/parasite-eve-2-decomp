@@ -14,6 +14,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/neo_ark_shrine.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
@@ -139,7 +140,7 @@ static const TaskFuncTable3 D_neo_ark_shrine_8017D5C4 = {
 
 /// Room task: runs the state handler `D_neo_ark_shrine_8017D5C4` names for
 /// `Task::state`, through a copy of the table taken onto the stack.
-static void func_neo_ark_shrine_8017D948(Task* task)
+void func_neo_ark_shrine_8017D948(Task* task)
 {
     TaskFuncTable3 sp;
 

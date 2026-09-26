@@ -7,6 +7,7 @@
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
@@ -89,7 +90,7 @@ static const TaskFuncTable3 D_neo_ark_r26_8017D5C4 = {
 };
 
 /// Room task: dispatches through a stack copy of its state table.
-static void func_neo_ark_r26_8017D720(Task* task)
+void func_neo_ark_r26_8017D720(Task* task)
 {
     TaskFuncTable3 sp;
 

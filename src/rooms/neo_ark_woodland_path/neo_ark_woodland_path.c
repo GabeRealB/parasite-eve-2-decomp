@@ -806,7 +806,7 @@ static const TaskFuncTable3 D_neo_ark_woodland_path_8017D614 = {
 
 /// Task tick that dispatches on the task's state through the three-entry
 /// handler table `D_neo_ark_woodland_path_8017D614`, copied to the stack first.
-static void func_neo_ark_woodland_path_8017E9B0(Task* task)
+void func_neo_ark_woodland_path_8017E9B0(Task* task)
 {
     TaskFuncTable3 sp;
 

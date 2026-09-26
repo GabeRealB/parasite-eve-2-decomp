@@ -65,7 +65,7 @@ static void            Gp_CollideLists(GpObj* a, GpObj* b);
 static void            Gp_DebugPanTask(Task* arg0);
 static void            Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
 static GpRoomBoundVec* Gp_GetRoomBound(GpAreaKey* arg0);
-static s32             Gp_GetRoomCoordSet(GpAreaKey* arg0);
+static GpRoomCoordSet* Gp_GetRoomCoordSet(GpAreaKey* arg0);
 static void            Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 static void            Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1);
 static void            Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1);
@@ -731,7 +731,7 @@ void Gp_UpdateRoomCoords(Task* task)
     s32             i;
     s32             j;
 
-    set = (GpRoomCoordSet*)Gp_GetRoomCoordSet(&gGameSession->at4.loc);
+    set = Gp_GetRoomCoordSet(&gGameSession->at4.loc);
     if (set == NULL) {
         taskKill(task);
         return;
@@ -1009,7 +1009,7 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
     u32             dist;
     s32             i;
 
-    set           = (GpRoomCoordSet*)Gp_GetRoomCoordSet(&gGameSession->at4.loc);
+    set           = Gp_GetRoomCoordSet(&gGameSession->at4.loc);
     best          = 0x7FFFFFFF;
     arg1->kind    = -1;
     arg1->field_4 = 0;
@@ -1214,7 +1214,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     GpPointLight* light;
 
     startr   = start;
-    set      = (GpRoomCoordSet*)Gp_GetRoomCoordSet(&gGameSession->at4.loc);
+    set      = Gp_GetRoomCoordSet(&gGameSession->at4.loc);
     colorMtx = extra->colorMtx;
     nOcc     = 0;
     if (set == NULL) {
@@ -1968,13 +1968,13 @@ static s32 Gp_CountRoomCoords(void)
     return count;
 }
 
-static s32 Gp_GetRoomCoordSet(GpAreaKey* arg0)
+static GpRoomCoordSet* Gp_GetRoomCoordSet(GpAreaKey* arg0)
 {
     GpRoomCoordRec** mid;
     GpRoomCoordRec*  rec;
-    s32              result;
+    GpRoomCoordSet*  result;
 
-    result = 0;
+    result = NULL;
     mid    = Gp_RoomCoordTables[arg0->stage - 1];
     rec    = NULL;
     if (mid != NULL) {

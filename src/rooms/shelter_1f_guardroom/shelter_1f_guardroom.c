@@ -9,6 +9,7 @@
 #include "main/sound.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "rooms/room.h"
 
 extern GpCapCmd** Gp_CapCmds;
 
@@ -145,7 +146,7 @@ static void func_shelter_1f_guardroom_8017D878(Task* task)
 
 /// The room's event task: copies its state table onto the stack and calls the
 /// entry for the current state.
-static void func_shelter_1f_guardroom_8017D880(Task* task)
+void func_shelter_1f_guardroom_8017D880(Task* task)
 {
     TaskFuncTable3 sp;
 

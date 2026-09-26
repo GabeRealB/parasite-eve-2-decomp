@@ -66,7 +66,7 @@ static void func_shelter_1f_vehicular_airlock_80180290(GpCoord* arg0, s16 arg1, 
 
 /// Sets bit 0x80 of the task's model flags while the 2-bit game flag its spawn
 /// argument names reads 2, and clears it otherwise.
-static void func_shelter_1f_vehicular_airlock_8017D5E4(Task* task)
+void func_shelter_1f_vehicular_airlock_8017D5E4(Task* task)
 {
     TmdObject* obj = task->extra.tmd;
 
@@ -223,7 +223,7 @@ static const TaskFuncTable3 D_shelter_1f_vehicular_airlock_8017D5D8 = {
 /// (`func_shelter_1f_vehicular_airlock_8017DA40`) and `taskKill`. The table is
 /// copied onto the stack first, so the call goes through a local copy rather
 /// than the rodata.
-static void func_shelter_1f_vehicular_airlock_8017DA48(Task* task)
+void func_shelter_1f_vehicular_airlock_8017DA48(Task* task)
 {
     TaskFuncTable3 sp;
 

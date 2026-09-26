@@ -113,7 +113,7 @@ static void func_neo_ark_north_promenade_8017D6C0(Task* task)
 
 /// Dispatches the room's message-driven task through its three-state table,
 /// copied onto the stack before the call.
-static void func_neo_ark_north_promenade_8017D6C8(Task* task)
+void func_neo_ark_north_promenade_8017D6C8(Task* task)
 {
     TaskFuncTable3 sp;
 

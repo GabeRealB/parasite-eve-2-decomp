@@ -13,6 +13,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 
 extern u8 D_801156F9;
 
@@ -138,7 +139,7 @@ static const TaskFuncTable3 D_shelter_b6_training_room_8017D5C4 = {
 
 /// Runs a task through the room's three-state table, copied onto the stack
 /// first and indexed by the task's state.
-static void func_shelter_b6_training_room_8017D8E8(Task* task)
+void func_shelter_b6_training_room_8017D8E8(Task* task)
 {
     TaskFuncTable3 sp;
 

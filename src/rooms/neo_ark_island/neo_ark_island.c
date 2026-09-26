@@ -876,7 +876,7 @@ static void func_neo_ark_island_8017EB08(Task* task)
 
 /// Task tick that dispatches on the task's state through the three-entry
 /// handler table `D_neo_ark_island_8017D614`, copied to the stack first.
-static void func_neo_ark_island_8017EB10(Task* task)
+void func_neo_ark_island_8017EB10(Task* task)
 {
     TaskFuncTable3 sp;
 

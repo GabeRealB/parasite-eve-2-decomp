@@ -608,8 +608,7 @@ id = 284
 text = ["0x6C", "0x468"]
 objects = [
   { kind = "packageId" },
-  { unit = "map_neo_ark/map_neo_ark", rodata = "0x4", text = "0x6C" },
-  { kind = "data", at = "0x468" },
+  { unit = "map_neo_ark/map_neo_ark", rodata = "0x4", text = "0x6C", data = "0x468", tail = true },
 ]
 
 [mapui.overlays.map_shelter]

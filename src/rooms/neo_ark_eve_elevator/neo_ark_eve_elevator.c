@@ -5,6 +5,7 @@
 #include "main/fs.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
@@ -80,7 +81,7 @@ static void func_neo_ark_eve_elevator_8017D6BC(Task* task)
 
 /// The room's event task: runs the handler for its current state, through a
 /// stack copy of the state table.
-static void func_neo_ark_eve_elevator_8017D6C4(Task* task)
+void func_neo_ark_eve_elevator_8017D6C4(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -477,7 +477,7 @@ static void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task)
 
 /// Runs the task's current state through a stack copy of the room's
 /// three-entry state table.
-static void func_neo_ark_eve_access_tunnel_8017E038(Task* task)
+void func_neo_ark_eve_access_tunnel_8017E038(Task* task)
 {
     TaskFuncTable3 sp;
 
