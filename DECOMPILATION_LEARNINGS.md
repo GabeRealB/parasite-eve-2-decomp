@@ -36021,7 +36021,7 @@ on to a second inline helper called in that branch. That puts the copy
 in the branch's own block, where sched1 cannot move it, and delay-slot
 filling then drops it into the `beqz` delay slot. `Gp_UiBoostAttach` is
 the example: `func_800B996C_RemoveItem` hands its else branch to
-`_gpConsumeScanQty`, which removed a `USE_REG` and five register pins.
+`_gpConsumeScanQty`, which removed a `USE_REG` and six register pins.
 
 ## Hold the previous `$s0` dest live so `addiu s0, v0, N` fills the `jal` delay
 
