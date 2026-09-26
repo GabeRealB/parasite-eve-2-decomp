@@ -6318,8 +6318,6 @@ void func_800E31E8(Task* arg0)
     s32         kind;
     GpTaskDesc* table;
     GpTaskDesc* desc;
-    Task*       slotTask;
-    s32         slot;
 
     gGameSession->eventState = 0;
     gGameSession->hideHud    = 0;
@@ -6349,19 +6347,15 @@ loop:
     if (desc->flagsAndPriority == kind &&
         (desc->task.arg.value == room || desc->task.arg.value == area)) {
         Task_SpawnFromTable(&table->task, index, 0, 0);
-        goto done;
+        arg0->state++;
+        return;
     }
     if ((u16)(desc++)->flagsAndPriority != 0xFFFF) {
         index++;
         goto loop;
     }
-    slotTask = arg0;
-    TOUCH_REG(slotTask);
-    slot = 7;
-    TOUCH_REG(slot);
     arg0->msgTable = D_8010FAD4;
-    Game_SetPtrSlot(slotTask, slot);
-done:
+    Game_SetPtrSlot(arg0, 7);
     arg0->state++;
 }
 

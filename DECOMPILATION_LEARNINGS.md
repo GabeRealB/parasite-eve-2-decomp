@@ -143760,3 +143760,22 @@ object) are loop.c's own reductions of `for (i = 1; i < N; i++)` loops over
 way, and with the scratch block as a struct, the body matched outright. The
 preceding function in the unit ran the same quad test hack-free, and its body
 was the template: check neighbours for the same algorithm before steering loops.
+## A store in the `jal` delay slot with the argument setup above it: the call did not end its block (func_800E31E8, 2026-09-26)
+
+Target: `move a0,s1; li a1,7; lui/addiu v0,X; jal f; sw v0,0x24(s1)` and then
+the shared `state++` tail. Written as `t->msgTable = X; f(t, 7);` falling into
+a `done:` label that the other path also reaches, the object keeps source
+order (`lui; addiu; sw; move a0; jal; li a1` in the slot), 98.2% `reorder=3`.
+The seed forced it with `TOUCH_REG` on an argument copy and on the constant.
+
+The cause is `sched.c`'s `TAIL_PRIORITY` loop: when a CALL_INSN is the last
+insn of its block, the pass gives it the tail priority and makes every other
+insn in the block depend on it in RTL order, so the arguments stay glued to the
+call and the store stays above them. With anything after the call in the same
+block, the store is ranked like any memory op and ends up nearest the `jal`, so
+reorg puts it in the slot. The fix was to write each path's own tail,
+`f(t, 7); t->state++;` here and `spawn(...); t->state++; return;` on the other
+path. sched1 then schedules the call mid-block, and jump2's post-reload
+cross-jump merges the two `state++` copies into the one tail the target shows.
+A call directly before a merge point, whose delay slot holds a store rather than
+an argument setup, points to a duplicated tail after the call.
