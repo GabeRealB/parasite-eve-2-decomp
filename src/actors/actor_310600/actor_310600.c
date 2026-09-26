@@ -84,25 +84,25 @@ extern TaskDesc D_80182AD8[];
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_310600_80161E64(Task* task);
-void func_actor_310600_80161FA0(Task* task);
-void func_actor_310600_8016231C(Task* arg0);
-s32  func_actor_310600_8016246C(Task* task, s32 arg1, GpAnimArg* cmd, s32 arg3);
-s32  func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3);
-void func_actor_310600_801627A4(Task* task);
-void func_actor_310600_801628B0(Task* task);
-void func_actor_310600_80162948(Task* task);
-void func_actor_310600_801629C4(Task* task);
-void func_actor_310600_80162A24(Task* arg0);
-void func_actor_310600_80162A58(Task* arg0);
-void func_actor_310600_80162A74(void);
-void func_actor_310600_80162A7C(Task* task);
-void func_actor_310600_80162AD8(Task* task);
-void func_actor_310600_80162B98(Task* task);
+static void func_actor_310600_80161E64(Task* task);
+static void func_actor_310600_80161FA0(Task* task);
+static void func_actor_310600_8016231C(Task* arg0);
+s32         func_actor_310600_8016246C(Task* task, s32 arg1, GpAnimArg* cmd, s32 arg3);
+s32         func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3);
+static void func_actor_310600_801627A4(Task* task);
+static void func_actor_310600_801628B0(Task* task);
+static void func_actor_310600_80162948(Task* task);
+static void func_actor_310600_801629C4(Task* task);
+static void func_actor_310600_80162A24(Task* arg0);
+static void func_actor_310600_80162A58(Task* arg0);
+static void func_actor_310600_80162A74(void);
+static void func_actor_310600_80162A7C(Task* task);
+static void func_actor_310600_80162AD8(Task* task);
+static void func_actor_310600_80162B98(Task* task);
 
 /// State handlers of the child part task, which `func_actor_310600_8016274C`
 /// runs by `Task::state`: setup, tick and exit.
-const TaskFuncTable3 D_actor_310600_80161E24 = { {
+static const TaskFuncTable3 D_actor_310600_80161E24 = { {
     func_actor_310600_801627A4,
     func_actor_310600_801628B0,
     taskKill,
@@ -110,7 +110,7 @@ const TaskFuncTable3 D_actor_310600_80161E24 = { {
 
 /// A second child handler triple - attach to the parent's part, an empty tick,
 /// exit. No dispatcher in this package reads it.
-const TaskFuncTable3 D_actor_310600_80161E30 = { {
+static const TaskFuncTable3 D_actor_310600_80161E30 = { {
     func_actor_310600_80162948,
     func_actor_310600_801629C4,
     taskKill,
@@ -118,7 +118,7 @@ const TaskFuncTable3 D_actor_310600_80161E30 = { {
 
 /// The actor's own state handlers, which `func_actor_310600_801629CC` runs by
 /// `Task::state`: spawn/setup, per-frame tick and teardown.
-const TaskFuncTable3 D_actor_310600_80161E3C = { {
+static const TaskFuncTable3 D_actor_310600_80161E3C = { {
     func_actor_310600_80161E64,
     func_actor_310600_80161FA0,
     func_actor_310600_80162A24,
@@ -126,7 +126,7 @@ const TaskFuncTable3 D_actor_310600_80161E3C = { {
 
 /// The actor's movement steps, which `func_actor_310600_80162A7C` runs by
 /// `field_47E`: turn to face the target point, start moving, stop on arrival.
-const TaskFuncTable3 D_actor_310600_80161E48 = { {
+static const TaskFuncTable3 D_actor_310600_80161E48 = { {
     func_actor_310600_80162AD8,
     func_actor_310600_80162B98,
     func_actor_310600_8016231C,
@@ -134,9 +134,9 @@ const TaskFuncTable3 D_actor_310600_80161E48 = { {
 
 /// The constant local-space offset `func_actor_310600_80162B98` rotates,
 /// `{ 0, 0, 0x200000, 0 }` -- straight ahead along the part's own +Z.
-const VECTOR D_actor_310600_80161E54 = { 0, 0, 0x200000, 0 };
+static const VECTOR D_actor_310600_80161E54 = { 0, 0, 0x200000, 0 };
 
-void func_actor_310600_80161E64(Task* task)
+static void func_actor_310600_80161E64(Task* task)
 {
     Actor310600Work* work;
     GpObj*           obj;
@@ -195,7 +195,7 @@ void func_actor_310600_80161E64(Task* task)
 /// flag at `field_4D` is set the second part is re-derived and re-lit.
 /// `field_477` is the teardown countdown: it frees the model buffers on the
 /// tick it reaches zero and then stops at -1.
-void func_actor_310600_80161FA0(Task* task)
+static void func_actor_310600_80161FA0(Task* task)
 {
     TmdObject*       ext               = task->extra.tmd;
     Actor310600Work* work              = (Actor310600Work*)task->work;
@@ -285,7 +285,7 @@ void func_actor_310600_80161FA0(Task* task)
 /// are cleared and the handler returns without re-arming. Otherwise each
 /// threshold is pulled down to the gap just measured, so the next tick that
 /// fails to shrink it is the one that fires.
-void func_actor_310600_8016231C(Task* arg0)
+static void func_actor_310600_8016231C(Task* arg0)
 {
     Actor310600Work* work;
     GpCoord*         coord;
@@ -468,7 +468,7 @@ void func_actor_310600_8016274C(Task* task)
 /// -2, hangs the child's root coordinate off the parent's part `spawnArg1`,
 /// shares the parent's light and colour matrices, reparents the task under the
 /// parent and steps to the next state.
-void func_actor_310600_801627A4(Task* task)
+static void func_actor_310600_801627A4(Task* task)
 {
     Task*      parent;
     TmdObject* obj;
@@ -506,7 +506,7 @@ void func_actor_310600_801627A4(Task* task)
 /// task named by `spawnArg2` - are copied onto the calling task's own object.
 /// When bit 0x4 comes off, the child's draw buffers are rebuilt through
 /// `Tmd_AllocBuffers`.
-void func_actor_310600_801628B0(Task* task)
+static void func_actor_310600_801628B0(Task* task)
 {
     TmdObject* parentObject;
     TmdObject* object;
@@ -532,7 +532,7 @@ void func_actor_310600_801628B0(Task* task)
 /// child's root coordinate is chained under that part's coordinate, the
 /// parent's light and colour matrices are shared, and the task is reparented
 /// so it is updated with the parent.
-void func_actor_310600_80162948(Task* task)
+static void func_actor_310600_80162948(Task* task)
 {
     Task*      parent;
     s32        part;
@@ -557,7 +557,7 @@ void func_actor_310600_80162948(Task* task)
 
 /// Tick state of the second child handler triple `D_actor_310600_80161E30`:
 /// does nothing.
-void func_actor_310600_801629C4(Task* task)
+static void func_actor_310600_801629C4(Task* task)
 {
 }
 
@@ -569,13 +569,13 @@ void func_actor_310600_801629CC(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_actor_310600_80162A24(Task* arg0)
+static void func_actor_310600_80162A24(Task* arg0)
 {
     Gp_UnlinkObj(&((Actor310600Work*)arg0->work)->obj);
     Gp_EnemyTaskExit(arg0);
 }
 
-void func_actor_310600_80162A58(Task* arg0)
+static void func_actor_310600_80162A58(Task* arg0)
 {
     TmdObject*       ext;
     Actor310600Work* work;
@@ -589,7 +589,7 @@ void func_actor_310600_80162A58(Task* arg0)
 /// Entry 0 of the two-entry stack table `func_actor_310600_80161FA0` dispatches
 /// through by `field_47C`: the idle handler, which does nothing. Entry 1 is
 /// `func_actor_310600_80162A7C`; both are called with no argument.
-void func_actor_310600_80162A74(void)
+static void func_actor_310600_80162A74(void)
 {
 }
 
@@ -598,7 +598,7 @@ void func_actor_310600_80162A74(void)
 /// bump as they finish, so the table steps through the handlers in turn. Copies
 /// the table onto the stack first, the same dispatch `func_actor_310600_801629CC`
 /// performs over `state`.
-void func_actor_310600_80162A7C(Task* task)
+static void func_actor_310600_80162A7C(Task* task)
 {
     Actor310600Work* work;
     TaskFuncTable3   fns;
@@ -613,7 +613,7 @@ void func_actor_310600_80162A7C(Task* task)
 /// rebuilds the local matrix from that yaw alone. Clearing `flg` makes
 /// `_gpUpdateCoordTree` recompute the world matrix from it, and bumping
 /// `field_47E` moves the actor on to the next handler of its state table.
-void func_actor_310600_80162AD8(Task* task)
+static void func_actor_310600_80162AD8(Task* task)
 {
     Actor310600Work* work;
     GpCoord*         coord;
@@ -646,7 +646,7 @@ void func_actor_310600_80162AD8(Task* task)
 /// `D_actor_310600_80161E54` through the root part's matrix into `work->step`,
 /// opens the per-axis stop threshold to 0x7FFF, which disables it for the update
 /// loop, and advances `field_47E` again so the dispatcher runs the next handler.
-void func_actor_310600_80162B98(Task* task)
+static void func_actor_310600_80162B98(Task* task)
 {
     Actor310600Work* work;
     GpCoord*         coord;

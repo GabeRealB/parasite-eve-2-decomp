@@ -81,11 +81,11 @@ void func_8017E090(s32, s32);
 void func_8017EE08(s32, s32);
 void func_80182A14(s32, s32);
 
-void func_actor_205200_8014AB98(Task* arg0);
-void func_actor_205200_8014ACD4(Task* arg0);
-s32  func_actor_205200_8014B914(s32 arg0);
-void func_actor_205200_8014B9D4(GpEnemy* arg0, Task* arg1);
-void func_actor_205200_8014BA94(Task* arg0);
+static void func_actor_205200_8014AB98(Task* arg0);
+static void func_actor_205200_8014ACD4(Task* arg0);
+static s32  func_actor_205200_8014B914(s32 arg0);
+static void func_actor_205200_8014B9D4(GpEnemy* arg0, Task* arg1);
+static void func_actor_205200_8014BA94(Task* arg0);
 
 /// Screen-wave task, spawned through `D_actor_205200_8014CA44` with the
 /// context `func_actor_205200_8014AB98` fills. State 0 seeds random phases and
@@ -282,7 +282,7 @@ void func_actor_205200_80149E54(Task* arg0)
     SCRATCH_POP(OverlayWaveScratch);
 }
 
-void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task)
+static void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task)
 {
     Actor205200CtrlWork* work;
     u16                  kind;
@@ -337,7 +337,7 @@ void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task)
     task->state    = 1;
 }
 
-void func_actor_205200_8014A958(GpEnemy* enemy, Task* task)
+static void func_actor_205200_8014A958(GpEnemy* enemy, Task* task)
 {
     Actor205200CtrlWork* work = task->work;
     s16                  state;
@@ -403,7 +403,7 @@ void func_actor_205200_8014A958(GpEnemy* enemy, Task* task)
     }
 }
 
-void func_actor_205200_8014AB98(Task* arg0)
+static void func_actor_205200_8014AB98(Task* arg0)
 {
     Actor205200CtrlWork* work  = arg0->work;
     s32                  state = work->field_26;
@@ -435,7 +435,7 @@ void func_actor_205200_8014AB98(Task* arg0)
     }
 }
 
-void func_actor_205200_8014ACD4(Task* arg0)
+static void func_actor_205200_8014ACD4(Task* arg0)
 {
     Actor205200CtrlWork* work = arg0->work;
     GpViewRec*           view;
@@ -462,7 +462,7 @@ void func_actor_205200_8014ACD4(Task* arg0)
     }
 }
 
-void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
+static void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
 {
     GpCoord*             coord;
     Actor205200CtrlWork* pwork;
@@ -529,7 +529,7 @@ void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
 /// arms the hit-stun timer `field_70`, the effect timer `field_74` and the
 /// spark cooldown `field_76`. `arg1` is passed as 1 by
 /// `func_actor_205200_8014B9D4` and unused.
-void func_actor_205200_8014B048(Task* arg0, s32 arg1)
+static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
 {
     VECTOR*              vec;
     Actor205200Part*     part;
@@ -614,7 +614,7 @@ void func_actor_205200_8014B048(Task* arg0, s32 arg1)
     SCRATCH_POP(VECTOR);
 }
 
-void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
+static void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
 {
     Actor205200Part*     part;
     GpCoord*             coord;
@@ -717,7 +717,7 @@ void func_actor_205200_8014B8C0(Task* task)
     fns[task->state](task->spawnArg2, task);
 }
 
-s32 func_actor_205200_8014B914(s32 arg0)
+static s32 func_actor_205200_8014B914(s32 arg0)
 {
     s32 delta;
 
@@ -747,7 +747,7 @@ s32 func_actor_205200_8014B94C(Task* arg0, s32 arg1, GpCmdArg* arg2)
 
 /// State handlers of a part task - spawn, per-frame tick and teardown - that
 /// `func_actor_205200_8014B978` dispatches through by state.
-const GpEnemyTaskFuncTable3 D_actor_205200_80149E24 = {
+static const GpEnemyTaskFuncTable3 D_actor_205200_80149E24 = {
     func_actor_205200_8014AE0C,
     func_actor_205200_8014B9D4,
     func_actor_205200_8014B484,
@@ -771,7 +771,7 @@ void func_actor_205200_8014B978(Task* arg0)
 /// The dispatch is written as gotos because that is the shape the switch's
 /// binary decision tree leaves behind - mode 0 shares the body with the
 /// default path, so its `break` is a jump into it.
-void func_actor_205200_8014B9D4(GpEnemy* arg0, Task* arg1)
+static void func_actor_205200_8014B9D4(GpEnemy* arg0, Task* arg1)
 {
     Actor205200Part*     part;
     Actor205200CtrlWork* parentWork;
@@ -817,7 +817,7 @@ case1:
 }
 
 /// Counts a part's effect timer down and queues effect 7 every 0x40 ticks.
-void func_actor_205200_8014BA94(Task* arg0)
+static void func_actor_205200_8014BA94(Task* arg0)
 {
     Actor205200Part* part;
     u16              timer;

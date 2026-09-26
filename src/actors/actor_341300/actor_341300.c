@@ -52,14 +52,14 @@ extern TaskDesc D_actor_341300_80165208;
 
 extern Task* D_actor_341300_80165AA4;
 
-void func_actor_341300_8016398C(s32 arg0);
-void func_actor_341300_801639CC(s32 arg0);
+static void func_actor_341300_8016398C(s32 arg0);
+static void func_actor_341300_801639CC(s32 arg0);
 
 /// Draws the two textured quads at fixed positions: each is four fixed
 /// model-space corners projected through `gGfxViewCoord.workm`, emitted as a
 /// POLY_FT4 at the depth `RotTransPers3` returns, and skipped when the
 /// projection flags an error.
-void func_actor_341300_80161E84(void)
+static void func_actor_341300_80161E84(void)
 {
     s16     x[8];
     s16     y[8];
@@ -258,7 +258,7 @@ void func_actor_341300_80162588(s16 arg0)
 
 /// Offset from the player's third coordinate that `func_actor_341300_801625AC`
 /// spawns its four effects at.
-const SVECTOR D_actor_341300_80161E64 = { 100, -200, -100, 0 };
+static const SVECTOR D_actor_341300_80161E64 = { 100, -200, -100, 0 };
 
 void func_actor_341300_801625AC(void)
 {
@@ -276,7 +276,7 @@ void func_actor_341300_80162680(s8 arg0)
     Mc_SaveData.sceneEvent = arg0;
 }
 
-void func_actor_341300_8016268C(void)
+static void func_actor_341300_8016268C(void)
 {
     D_actor_341300_80165AA4 = 0;
 }
@@ -634,14 +634,14 @@ void func_actor_341300_801631D4(Task* arg0)
     }
 }
 
-void func_actor_341300_8016398C(s32 arg0)
+static void func_actor_341300_8016398C(s32 arg0)
 {
     if ((arg0 << 0x10) == 0) {
         D_actor_341300_80165A2C = Task_SpawnFromTable(&D_actor_341300_80165A68, 0, 0, 0);
     }
 }
 
-void func_actor_341300_801639CC(s32 arg0)
+static void func_actor_341300_801639CC(s32 arg0)
 {
     if (((arg0 << 0x10) == 0) && (D_actor_341300_80165A2C != NULL)) {
         taskKill(D_actor_341300_80165A2C);

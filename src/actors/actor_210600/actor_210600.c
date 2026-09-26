@@ -111,7 +111,7 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.
-void func_actor_210600_80149E30(GpCoord* coord, s16 yaw)
+static void func_actor_210600_80149E30(GpCoord* coord, s16 yaw)
 {
     MATRIX*  rotation;
     GpCoord* out;
@@ -133,7 +133,7 @@ void func_actor_210600_80149E30(GpCoord* coord, s16 yaw)
 /// scratch block, and its length is scaled down to 0x100 when longer. Returns
 /// whether any record of those kinds was met. Does nothing, returning 0, while
 /// `Mc_SaveData.field_5C1` or the session's `viewReady` is 1.
-s32 func_actor_210600_8014A13C(GpCoord* coord, GpRec18* recs, s16 count)
+static s32 func_actor_210600_8014A13C(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -191,7 +191,7 @@ s32 func_actor_210600_8014A13C(GpCoord* coord, GpRec18* recs, s16 count)
 /// it, the total XZ step accumulating in `pos`. Returns whether a kind 0x10000
 /// record was among them; returns 0 at once while the session's `viewReady`
 /// or `Mc_SaveData.field_5C1` is 1.
-s32 func_actor_210600_8014A484(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 func_actor_210600_8014A484(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -306,7 +306,7 @@ s32 func_actor_210600_8014A484(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR
 /// `D_actor_210600_8015D310`. Returns the "moved" flag: set when the X or Z
 /// delta is nonzero; where a delta also has a fractional part, the coordinate
 /// and the latched step are nudged one unit further away from zero.
-s32 func_actor_210600_8014A9D0(GpCoord* coord, GpRec18* movement, s16 arg2)
+static s32 func_actor_210600_8014A9D0(GpCoord* coord, GpRec18* movement, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -360,7 +360,7 @@ s32 func_actor_210600_8014A9D0(GpCoord* coord, GpRec18* movement, s16 arg2)
 /// frame's position, relative to the point one unit in front of it. Returns
 /// whether any push was applied; returns 0 at once when
 /// `gGameSession->viewReady` is 1.
-s32 func_actor_210600_8014AB74(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_actor_210600_8014AB74(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;
@@ -511,7 +511,7 @@ s32 func_actor_210600_8014AB74(GpCoord* coord, GpRec18* recs, s16 count, s16 pus
 /// the clip into `field_880`; step 2 does the same through
 /// `Gp_AnimResetSlot`. Both settle on step 3 and clear the frame counter at
 /// `field_884`, which is counted from here on while every slot is ticked.
-void func_actor_210600_8014B2C0(Task* task)
+static void func_actor_210600_8014B2C0(Task* task)
 {
     Actor210600Work* work;
     Actor210600Work* start;
@@ -599,7 +599,7 @@ static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
 /// at 0.75 scale, and when animation slot 1 holds clip 7 while slot 0 did not
 /// on the previous update, spawns the effect `Gp_GetIdParam1(0x1001)` on the
 /// model's second part. `enemy` is unused.
-void func_actor_210600_8014B434(GpEnemy* enemy, Task* task)
+static void func_actor_210600_8014B434(GpEnemy* enemy, Task* task)
 {
     Actor210600Work* work;
     SVECTOR          vec;
@@ -703,7 +703,7 @@ s32 func_actor_210600_8014B770(Task* task, s32 msgId, GpCmdArg* msg)
 /// through a 0x34-byte block borrowed from `G_SCRATCH_HEAD` and handed back
 /// once the matrix is copied. Marks the coordinate dirty. Nothing in the
 /// overlay calls it: the update body carries the same code inline.
-void func_actor_210600_8014B7B0(GpCoord* coord, s16 scale)
+static void func_actor_210600_8014B7B0(GpCoord* coord, s16 scale)
 {
     void**                scratch;
     ActorScaleRotScratch* head;
@@ -746,7 +746,7 @@ void func_actor_210600_8014B7B0(GpCoord* coord, s16 scale)
 /// clip 1, the message table is installed, and the model root is parented to
 /// `gGfxViewCoord` and rebuilt once before its world position is handed to
 /// `func_800D7A9C`. Advances the task to the next state.
-void func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task)
+static void func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     GpCoord*         coord;
@@ -795,7 +795,7 @@ void func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task)
 
 /// The actor's three task states - spawn, update and teardown - which
 /// `func_actor_210600_8014BA3C` runs by `Task::state`.
-const GpEnemyTaskFuncTable3 D_actor_210600_80149E24 = {
+static const GpEnemyTaskFuncTable3 D_actor_210600_80149E24 = {
     {
         func_actor_210600_8014B8C8,
         func_actor_210600_8014B434,
@@ -814,7 +814,7 @@ void func_actor_210600_8014BA3C(Task* arg0)
 }
 
 /// A second copy of `func_actor_210600_80149E30`; the package carries both.
-void func_actor_210600_8014BA98(GpCoord* coord, s16 yaw)
+static void func_actor_210600_8014BA98(GpCoord* coord, s16 yaw)
 {
     MATRIX*  rotation;
     GpCoord* out;
@@ -831,7 +831,7 @@ void func_actor_210600_8014BA98(GpCoord* coord, s16 yaw)
 }
 
 /// A second copy of `func_actor_210600_8014A13C`; the package carries both.
-s32 func_actor_210600_8014BDA4(GpCoord* coord, GpRec18* recs, s16 count)
+static s32 func_actor_210600_8014BDA4(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -883,7 +883,7 @@ s32 func_actor_210600_8014BDA4(GpCoord* coord, GpRec18* recs, s16 count)
 }
 
 /// A second copy of `func_actor_210600_8014A484`; the package carries both.
-s32 func_actor_210600_8014C0EC(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 func_actor_210600_8014C0EC(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -995,7 +995,7 @@ s32 func_actor_210600_8014C0EC(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR
 
 /// A second copy of `func_actor_210600_8014A9D0`, latching its step into
 /// `D_actor_210600_8015D318` instead.
-s32 func_actor_210600_8014C638(GpCoord* coord, GpRec18* movement, s16 arg2)
+static s32 func_actor_210600_8014C638(GpCoord* coord, GpRec18* movement, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -1044,7 +1044,7 @@ s32 func_actor_210600_8014C638(GpCoord* coord, GpRec18* movement, s16 arg2)
 }
 
 /// A second copy of `func_actor_210600_8014AB74`; the package carries both.
-s32 func_actor_210600_8014C7DC(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_actor_210600_8014C7DC(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;

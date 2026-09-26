@@ -183,38 +183,38 @@ typedef struct Actor105100Gate {
 } Actor105100Gate;
 STATIC_ASSERT_SIZEOF(Actor105100Gate, 0x5AC);
 
-void func_actor_105100_80132414(GpCoord* arg0, s32 arg1);
-void func_actor_105100_801327B4(GpEnemy* arg0, Task* arg1);
-void func_actor_105100_80132AA0(GpEnemy* arg0, Task* arg1);
-void func_actor_105100_80132C2C(Task* arg0);
-void func_actor_105100_80133134(Task* arg0);
-void func_actor_105100_8013329C(Task* arg0, GpEnemy* arg1);
-void func_actor_105100_8013345C(Task* arg0, GpEnemy* arg1);
-void func_actor_105100_801336B8(Task* arg0, GpEnemy* arg1);
-void func_actor_105100_80133A14(Task* arg0, GpEnemy* arg1);
-void func_actor_105100_80133CE4(Task* arg0);
-void func_actor_105100_80134130(Task* arg0);
-void func_actor_105100_80134284(GpEnemy* arg0, Task* arg1);
-void func_actor_105100_801347D4(GpEnemy* arg0, Task* arg1);
-void func_actor_105100_80134B00(GpEnemy* arg0, Task* arg1);
-void func_actor_105100_80135278(GpEnemy* arg0, Task* arg1);
-void func_actor_105100_801354E8(GpEnemy* arg0, Task* arg1);
-void func_actor_105100_80135674(Task* arg0);
-void func_actor_105100_801359B4(Task* arg0);
-void func_actor_105100_80135B40(Task* arg0);
-void func_actor_105100_80135E54(Task* arg0);
-void func_actor_105100_80135F50(Task* arg0);
-void func_actor_105100_80135FCC(Task* arg0);
-void func_actor_105100_801360AC(Task* arg0);
-void func_actor_105100_801361C4(Task* arg0);
-void func_actor_105100_801362A0(Task* arg0);
-void func_actor_105100_80136318(Task* arg0);
-void func_actor_105100_80136408(Task* arg0);
-void func_actor_105100_801364CC(Task* arg0);
-void func_actor_105100_80136524(Task* arg0);
-void func_actor_105100_80136574(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3);
-void func_actor_105100_801366D8(GpEnemy* arg0, Task* arg1);
-void func_actor_105100_80136788(GpEnemy* arg0, Task* arg1);
+static void func_actor_105100_80132414(GpCoord* arg0, s32 arg1);
+static void func_actor_105100_801327B4(GpEnemy* arg0, Task* arg1);
+static void func_actor_105100_80132AA0(GpEnemy* arg0, Task* arg1);
+static void func_actor_105100_80132C2C(Task* arg0);
+static void func_actor_105100_80133134(Task* arg0);
+static void func_actor_105100_8013329C(Task* arg0, GpEnemy* arg1);
+static void func_actor_105100_8013345C(Task* arg0, GpEnemy* arg1);
+static void func_actor_105100_801336B8(Task* arg0, GpEnemy* arg1);
+static void func_actor_105100_80133A14(Task* arg0, GpEnemy* arg1);
+static void func_actor_105100_80133CE4(Task* arg0);
+static void func_actor_105100_80134130(Task* arg0);
+static void func_actor_105100_80134284(GpEnemy* arg0, Task* arg1);
+static void func_actor_105100_801347D4(GpEnemy* arg0, Task* arg1);
+static void func_actor_105100_80134B00(GpEnemy* arg0, Task* arg1);
+static void func_actor_105100_80135278(GpEnemy* arg0, Task* arg1);
+static void func_actor_105100_801354E8(GpEnemy* arg0, Task* arg1);
+static void func_actor_105100_80135674(Task* arg0);
+static void func_actor_105100_801359B4(Task* arg0);
+static void func_actor_105100_80135B40(Task* arg0);
+static void func_actor_105100_80135E54(Task* arg0);
+static void func_actor_105100_80135F50(Task* arg0);
+static void func_actor_105100_80135FCC(Task* arg0);
+static void func_actor_105100_801360AC(Task* arg0);
+static void func_actor_105100_801361C4(Task* arg0);
+static void func_actor_105100_801362A0(Task* arg0);
+static void func_actor_105100_80136318(Task* arg0);
+static void func_actor_105100_80136408(Task* arg0);
+static void func_actor_105100_801364CC(Task* arg0);
+static void func_actor_105100_80136524(Task* arg0);
+static void func_actor_105100_80136574(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3);
+static void func_actor_105100_801366D8(GpEnemy* arg0, Task* arg1);
+static void func_actor_105100_80136788(GpEnemy* arg0, Task* arg1);
 
 void    func_8017FC40(GpCoord* arg0, s32 arg1, u16 arg2);
 void    func_8018294C(Task* arg0);
@@ -274,7 +274,7 @@ extern SVECTOR D_actor_105100_801414E0[];
 
 /// The enemy task's state handlers, indexed by `Task::state`: spawn/setup,
 /// per-frame tick and teardown.
-const GpEnemyTaskFuncTable3 D_actor_105100_80131E24 = {
+static const GpEnemyTaskFuncTable3 D_actor_105100_80131E24 = {
     {
         func_actor_105100_801327B4,
         func_actor_105100_80132AA0,
@@ -285,7 +285,7 @@ const GpEnemyTaskFuncTable3 D_actor_105100_80131E24 = {
 /// Projects `coord` onto two `POLY_FT4` billboards, lights `Gp_RoomCoords[2]`
 /// as a point light at that position, and traces the ground for the ground-quad
 /// helper when `Gp_State1C->groundTrace` is set.
-void func_actor_105100_80131EBC(GpCoord* coord, s16 size)
+static void func_actor_105100_80131EBC(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
     POLY_FT4*      prim;
@@ -420,7 +420,7 @@ void func_actor_105100_80131EBC(GpCoord* coord, s16 size)
 /// When all four project, a semi-transparent `POLY_FT4` is queued one step
 /// behind their depth, its texture alternating between two frames with the
 /// display's animation frame.
-void func_actor_105100_80132414(GpCoord* arg0, s32 arg1)
+static void func_actor_105100_80132414(GpCoord* arg0, s32 arg1)
 {
     void**                scratch;
     u8*                   head;
@@ -528,7 +528,7 @@ void func_actor_105100_80132414(GpCoord* arg0, s32 arg1)
 ///
 /// A failed allocation tears the enemy down instead and leaves the task on this
 /// handler; otherwise the task moves to the tick handler (`state` 1).
-void func_actor_105100_801327B4(GpEnemy* arg0, Task* arg1)
+static void func_actor_105100_801327B4(GpEnemy* arg0, Task* arg1)
 {
     Actor105100Work* work;
     TmdObject*       obj;
@@ -613,7 +613,7 @@ void func_actor_105100_801327B4(GpEnemy* arg0, Task* arg1)
     arg1->state        = 1;
 }
 
-void func_actor_105100_80132AA0(GpEnemy* arg0, Task* arg1)
+static void func_actor_105100_80132AA0(GpEnemy* arg0, Task* arg1)
 {
     GpCoord*         coord;
     TmdObject*       obj;
@@ -693,7 +693,7 @@ default_body:
 /// and accumulated `field_5BE` past 0x1A4 (or the stagger flag) sends it to
 /// step 6. A new id sparks `func_800FDB18` once, and `Gp_GetIdParam2` arms the
 /// cooldown. The tail releases both record tables and steps `field_5C0`.
-void func_actor_105100_80132C2C(Task* arg0)
+static void func_actor_105100_80132C2C(Task* arg0)
 {
     s32                    flag;
     s32                    lastId;
@@ -842,7 +842,7 @@ void func_actor_105100_80132C2C(Task* arg0)
 /// (`Gp_StateF0.field_1D` bit 2) and steps the `field_5AA` timer down while it is
 /// positive. Step 0 also raises bit 1 of `Gp_StateF0.field_1D` once the HP drops
 /// under the cap in `D_actor_105100_8014139C`.
-void func_actor_105100_80133134(Task* arg0)
+static void func_actor_105100_80133134(Task* arg0)
 {
     Actor105100Work* work;
     GpEnemy*         ctx;
@@ -915,7 +915,7 @@ extern u16 D_actor_105100_801413A8[16];
 /// entry the high nibble selects, and the `field_5B2` interval counter counts
 /// attempts until it reaches 3, which sends the schedule on to step 3 (the
 /// thrown pose) instead of back to the reroll.
-void func_actor_105100_8013329C(Task* arg0, GpEnemy* arg1)
+static void func_actor_105100_8013329C(Task* arg0, GpEnemy* arg1)
 {
     Actor105100Work* work;
     Actor105100Gate* gate;
@@ -1014,7 +1014,7 @@ extern TaskDesc D_actor_105100_80141464;
 /// Sub-step 2 waits out `field_592` to `0x1A`, then drops the whole step back
 /// to pose 1, sub-step 0 and gate 0, rerolls `field_59A` to a `0` .. `0x3F`
 /// window and fires the type-7 event on the id sub-step 1 built, clearing it.
-void func_actor_105100_8013345C(Task* arg0, GpEnemy* arg1)
+static void func_actor_105100_8013345C(Task* arg0, GpEnemy* arg1)
 {
     Actor105100Work* work;
     GpCoord*         coord;
@@ -1112,7 +1112,7 @@ extern u16 D_actor_105100_801413C8[16];
 ///
 /// Sub-step 3 waits `field_592` to `0x1A`, kills the puff, drops the gate,
 /// and rerolls `field_59A` to a `0` .. `0x3F` window.
-void func_actor_105100_801336B8(Task* arg0, GpEnemy* arg1)
+static void func_actor_105100_801336B8(Task* arg0, GpEnemy* arg1)
 {
     Actor105100Work* work;
     GpCoord*         coord;
@@ -1233,7 +1233,7 @@ void func_actor_105100_801336B8(Task* arg0, GpEnemy* arg1)
 /// The pan and depth are cast at the call rather than through locals: the
 /// sign extension then occupies the argument's own temporary (`$s0`) instead
 /// of `work`'s register, which is what the original allocation needs.
-void func_actor_105100_80133A14(Task* arg0, GpEnemy* arg1)
+static void func_actor_105100_80133A14(Task* arg0, GpEnemy* arg1)
 {
     Actor105100Work* work;
     GpCoord*         self;
@@ -1309,7 +1309,7 @@ void func_actor_105100_80133A14(Task* arg0, GpEnemy* arg1)
 /// grab animation and spawns the effect; state 1 drags the player towards the
 /// actor for 0x10 frames and hands over after 0x1E/0x20; state 2 waits for the
 /// animation to finish and clears `field_5A2`.
-void func_actor_105100_80133CE4(Task* arg0)
+static void func_actor_105100_80133CE4(Task* arg0)
 {
     Actor105100Work*    work;
     GpCoord*            coord;
@@ -1402,7 +1402,7 @@ void func_actor_105100_80133CE4(Task* arg0)
     SCRATCH_POP_BYTES(sizeof(ActorAttackScratch));
 }
 
-void func_actor_105100_80134130(Task* arg0)
+static void func_actor_105100_80134130(Task* arg0)
 {
     s32              snd;
     s32              pan;
@@ -1433,7 +1433,7 @@ void func_actor_105100_80134130(Task* arg0)
 /// refreshes the actor colour; mode 2 hides the model and returns. Otherwise it
 /// walks `field_598`: unlink the collision bodies, play the death clip, fire
 /// the 0x13F4 cutscene, shrink the model, then destroy the enemy.
-void func_actor_105100_80134284(GpEnemy* arg0, Task* arg1)
+static void func_actor_105100_80134284(GpEnemy* arg0, Task* arg1)
 {
     SVECTOR          dir;
     VECTOR           pos;
@@ -1593,7 +1593,7 @@ void func_actor_105100_80134284(GpEnemy* arg0, Task* arg1)
 /// because the original's register allocation and scheduling depend on it:
 /// the state is read before the Y store, which goes through a plain `long*`,
 /// and the third table index and address live in temporaries reused later.
-void func_actor_105100_801347D4(GpEnemy* arg0, Task* arg1)
+static void func_actor_105100_801347D4(GpEnemy* arg0, Task* arg1)
 {
     Task*                parent;
     Actor105100Work*     parentWork;
@@ -1703,7 +1703,7 @@ void func_actor_105100_801347D4(GpEnemy* arg0, Task* arg1)
 
 /// The projectile task's state handlers, indexed by `Task::state`: setup,
 /// per-frame flight and teardown.
-const GpEnemyTaskFuncTable3 D_actor_105100_80131E90 = {
+static const GpEnemyTaskFuncTable3 D_actor_105100_80131E90 = {
     {
         func_actor_105100_801347D4,
         (GpEnemyTaskFunc)func_actor_105100_80134B00,
@@ -1725,7 +1725,7 @@ const GpEnemyTaskFuncTable3 D_actor_105100_80131E90 = {
 /// contact record reports a hit or the time runs out: the projectile is
 /// re-keyed and widened to the burst, which is spawned with its own effect and
 /// sound, and a last step fades the body out and destroys the task.
-void func_actor_105100_80134B00(GpEnemy* arg0, Task* arg1)
+static void func_actor_105100_80134B00(GpEnemy* arg0, Task* arg1)
 {
     Actor105100ProjWork*    work;
     Actor105100Work*        parentWork;
@@ -1903,7 +1903,7 @@ body:
     SCRATCH_POP(Actor105100ProjScratch);
 }
 
-void func_actor_105100_80135278(GpEnemy* arg0, Task* arg1)
+static void func_actor_105100_80135278(GpEnemy* arg0, Task* arg1)
 {
     Task*            parent;
     Actor105100Work* work;
@@ -1955,7 +1955,7 @@ void func_actor_105100_80135278(GpEnemy* arg0, Task* arg1)
 /// sub-handlers, retimes the pose every 6/0xB/0x10 frames of the countdown in
 /// `field_48`, and ends the fight (`state = 2`) once that countdown, the work's
 /// `field_24` and the parent's `field_5AC` all say so.
-void func_actor_105100_801354E8(GpEnemy* arg0, Task* arg1)
+static void func_actor_105100_801354E8(GpEnemy* arg0, Task* arg1)
 {
     Actor105100Rec*  rec;
     Actor105100Work* parentWork;
@@ -2034,7 +2034,7 @@ done:
 /// stores the per-frame step (total length over `obj38.pos.vx`) plus how many
 /// frames the first leg takes; pass 1 walks that step and re-aims at the
 /// second point when the countdown hits 0; pass 2 keeps walking.
-void func_actor_105100_80135674(Task* arg0)
+static void func_actor_105100_80135674(Task* arg0)
 {
     Actor105100Work* work;
     Actor105100Rec*  rec;
@@ -2105,7 +2105,7 @@ void func_actor_105100_80135674(Task* arg0)
 /// normalises it into the record's own 0x38 vector and stores the step it then
 /// travels per frame -- the delta's length over `obj38.field_10`; the second
 /// (`field_46 == 1`) applies that step to the coordinate every frame.
-void func_actor_105100_801359B4(Task* arg0)
+static void func_actor_105100_801359B4(Task* arg0)
 {
     Actor105100Work* work;
     Actor105100Rec*  rec;
@@ -2144,7 +2144,7 @@ void func_actor_105100_801359B4(Task* arg0)
     SCRATCH_POP(VECTOR);
 }
 
-void func_actor_105100_80135B40(Task* arg0)
+static void func_actor_105100_80135B40(Task* arg0)
 {
     ActorFaceScratch* sc;
     GpCoord*          coord;
@@ -2214,7 +2214,7 @@ done:
 /// Unless the player is in an event, draws from the gameplay LCG and on one
 /// frame in four spawns effect `D_80115728` on `arg0`, offset in a random
 /// horizontal direction; `arg1` is or-ed into the spawn flags.
-void func_actor_105100_80135CEC(GpCoord* arg0, s32 arg1)
+static void func_actor_105100_80135CEC(GpCoord* arg0, s32 arg1)
 {
     SVECTOR sp10;
     SVECTOR sp18;
@@ -2242,7 +2242,7 @@ void func_actor_105100_80135DF8(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-void func_actor_105100_80135E54(Task* arg0)
+static void func_actor_105100_80135E54(Task* arg0)
 {
     GpEnemy*         enemy;
     Actor105100Work* work;
@@ -2287,7 +2287,7 @@ void func_actor_105100_80135E54(Task* arg0)
 /// Second step of the `field_598` schedule: arms pose 2 with the `field_59A`
 /// timer at 0x3C frames, then, when the timer runs out, hands the pose back to
 /// the schedule entry step and returns it to 0.
-void func_actor_105100_80135F50(Task* arg0)
+static void func_actor_105100_80135F50(Task* arg0)
 {
     Actor105100Work* work;
     s32              state;
@@ -2315,7 +2315,7 @@ void func_actor_105100_80135F50(Task* arg0)
     }
 }
 
-void func_actor_105100_80135FCC(Task* arg0)
+static void func_actor_105100_80135FCC(Task* arg0)
 {
     GpEnemy* enemy;
     GpCoord* coord;
@@ -2342,7 +2342,7 @@ void func_actor_105100_80135FCC(Task* arg0)
 /// effect slot and drops the `obj4E4.flags` pose bit, then waits on
 /// `Gp_TickObjFlag2` before clearing the enemy's flag-2 bit. On the last stage
 /// it waits out the `field_592` timer and returns the schedule to step 0.
-void func_actor_105100_801360AC(Task* arg0)
+static void func_actor_105100_801360AC(Task* arg0)
 {
     Actor105100Work* work;
     GpEnemy*         enemy;
@@ -2394,7 +2394,7 @@ void func_actor_105100_801360AC(Task* arg0)
 /// First stage of the `field_598` schedule: arms the pose and the effect slot,
 /// and on the next stage waits out the `field_592` timer before handing the
 /// state back on, either aborting (0) or resuming (8) depending on `field_5C2`.
-void func_actor_105100_801361C4(Task* arg0)
+static void func_actor_105100_801361C4(Task* arg0)
 {
     Actor105100Work* work;
     GpEffWork*       eff;
@@ -2434,7 +2434,7 @@ void func_actor_105100_801361C4(Task* arg0)
     }
 }
 
-void func_actor_105100_801362A0(Task* arg0)
+static void func_actor_105100_801362A0(Task* arg0)
 {
     Actor105100Work* work;
     s32              snd;
@@ -2468,7 +2468,7 @@ void func_actor_105100_801362A0(Task* arg0)
 /// `field_5B4` / `field_5AC` stores sit between them), and the first pointer is
 /// still live at the tail for `obj4E4.flags` and `field_55C`, so the second one
 /// needs a register of its own.
-void func_actor_105100_80136318(Task* arg0)
+static void func_actor_105100_80136318(Task* arg0)
 {
     Actor105100Work* work;
     Actor105100Work* sndWork;
@@ -2514,7 +2514,7 @@ void func_actor_105100_80136318(Task* arg0)
     arg0->state = 2;
 }
 
-void func_actor_105100_80136408(Task* arg0)
+static void func_actor_105100_80136408(Task* arg0)
 {
     Actor105100Work* work;
     s32              i;
@@ -2543,7 +2543,7 @@ void func_actor_105100_80136408(Task* arg0)
 /// Relights the actor at its model's world position: copies the model
 /// coordinate's translation into a `VECTOR` and hands it with the context to
 /// `Gp_UpdateActorColor`, with no blend parameters.
-void func_actor_105100_801364CC(Task* arg0)
+static void func_actor_105100_801364CC(Task* arg0)
 {
     GpCoord* coord;
     VECTOR   vec;
@@ -2557,7 +2557,7 @@ void func_actor_105100_801364CC(Task* arg0)
 
 /// The child collision task's state handlers, indexed by `Task::state`:
 /// setup, per-frame reaction and teardown.
-const GpEnemyTaskFuncTable3 D_actor_105100_80131EB0 = {
+static const GpEnemyTaskFuncTable3 D_actor_105100_80131EB0 = {
     {
         func_actor_105100_80135278,
         (GpEnemyTaskFunc)func_actor_105100_801354E8,
@@ -2565,7 +2565,7 @@ const GpEnemyTaskFuncTable3 D_actor_105100_80131EB0 = {
     },
 };
 
-void func_actor_105100_80136524(Task* arg0)
+static void func_actor_105100_80136524(Task* arg0)
 {
     GpCoord* coord;
     VECTOR3  vec;
@@ -2589,7 +2589,7 @@ void func_actor_105100_80136524(Task* arg0)
 /// calls - is copied into `$s0` by `reload_cse_regs`. Folding the two into one
 /// variable allocates `blk`'s register for the store as well and loses the
 /// copy, the delay-slot fill and the frame layout.
-void func_actor_105100_80136574(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
+static void func_actor_105100_80136574(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
 {
     ActorScaleScratch* head;
     ActorScaleScratch* blk;
@@ -2632,7 +2632,7 @@ void func_actor_105100_8013667C(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-void func_actor_105100_801366D8(GpEnemy* arg0, Task* arg1)
+static void func_actor_105100_801366D8(GpEnemy* arg0, Task* arg1)
 {
     Actor105100Work* work;
 
@@ -2650,7 +2650,7 @@ void func_actor_105100_8013672C(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-void func_actor_105100_80136788(GpEnemy* arg0, Task* arg1)
+static void func_actor_105100_80136788(GpEnemy* arg0, Task* arg1)
 {
     Gp_UnlinkObj(arg1->work);
     Gp_DestroyEnemy(arg0, arg1);

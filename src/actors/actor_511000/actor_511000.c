@@ -91,39 +91,39 @@ STATIC_ASSERT_SIZEOF(Actor511000Work2, 0x4D4);
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_511000_80131E78(Task* arg0);
-void func_actor_511000_80132048(Task* arg0);
-void func_actor_511000_801321A8(Task* task);
-void func_actor_511000_80132224(Task* task);
-void func_actor_511000_80132284(Task* task);
-void func_actor_511000_80132390(Task* task);
-void func_actor_511000_80132480(Task* task);
-void func_actor_511000_801325A4(Task* task);
-void func_actor_511000_801329C4(Task* task);
-void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb);
-void func_actor_511000_80133034(Task* task);
-void func_actor_511000_801330F0(Task* task);
-void func_actor_511000_80133220(Task* task);
-void func_actor_511000_80133240(Task* task);
-void func_actor_511000_801332E4(Task* task);
-void func_actor_511000_801333A4(Task* task);
-void func_actor_511000_801333C4(Task* task);
-void func_actor_511000_80133498(Task* task);
-void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 index);
-void func_actor_511000_80133760(Task* task);
-void func_actor_511000_801337F0(Task* task);
-void func_actor_511000_80133958(GpEnemy* enemy, Task* task);
-void func_actor_511000_80133B80(GpEnemy* enemy, Task* task);
-void func_actor_511000_80133F48(GpEnemy* enemy, Task* task);
-void func_actor_511000_80133F88(GpEnemy* enemy, Task* task);
-void func_actor_511000_8013401C(GpEnemy* enemy, Task* task);
-void func_actor_511000_8013405C(GpEnemy* enemy, Task* task);
-void func_actor_511000_801340F0(GpEnemy* enemy, Task* task);
-void func_actor_511000_80134130(GpEnemy* enemy, Task* task);
+static void func_actor_511000_80131E78(Task* arg0);
+static void func_actor_511000_80132048(Task* arg0);
+static void func_actor_511000_801321A8(Task* task);
+static void func_actor_511000_80132224(Task* task);
+static void func_actor_511000_80132284(Task* task);
+static void func_actor_511000_80132390(Task* task);
+static void func_actor_511000_80132480(Task* task);
+static void func_actor_511000_801325A4(Task* task);
+static void func_actor_511000_801329C4(Task* task);
+static void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb);
+static void func_actor_511000_80133034(Task* task);
+static void func_actor_511000_801330F0(Task* task);
+static void func_actor_511000_80133220(Task* task);
+static void func_actor_511000_80133240(Task* task);
+static void func_actor_511000_801332E4(Task* task);
+static void func_actor_511000_801333A4(Task* task);
+static void func_actor_511000_801333C4(Task* task);
+static void func_actor_511000_80133498(Task* task);
+static void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 index);
+static void func_actor_511000_80133760(Task* task);
+static void func_actor_511000_801337F0(Task* task);
+static void func_actor_511000_80133958(GpEnemy* enemy, Task* task);
+static void func_actor_511000_80133B80(GpEnemy* enemy, Task* task);
+static void func_actor_511000_80133F48(GpEnemy* enemy, Task* task);
+static void func_actor_511000_80133F88(GpEnemy* enemy, Task* task);
+static void func_actor_511000_8013401C(GpEnemy* enemy, Task* task);
+static void func_actor_511000_8013405C(GpEnemy* enemy, Task* task);
+static void func_actor_511000_801340F0(GpEnemy* enemy, Task* task);
+static void func_actor_511000_80134130(GpEnemy* enemy, Task* task);
 
 /// State table of a child chained under a part of its spawner's model: the
 /// attach state, an empty tick and the kill.
-const TaskFuncTable3 D_actor_511000_80131E24 = {
+static const TaskFuncTable3 D_actor_511000_80131E24 = {
     func_actor_511000_801321A8,
     func_actor_511000_80132224,
     taskKill,
@@ -132,7 +132,7 @@ const TaskFuncTable3 D_actor_511000_80131E24 = {
 /// State table of a child chained under a part of its spawner's model that
 /// also follows the spawner's visibility: the attach state, the flag-mirroring
 /// tick and the kill.
-const TaskFuncTable3 D_actor_511000_80131E30 = {
+static const TaskFuncTable3 D_actor_511000_80131E30 = {
     func_actor_511000_80132284,
     func_actor_511000_80132390,
     taskKill,
@@ -140,7 +140,7 @@ const TaskFuncTable3 D_actor_511000_80131E30 = {
 
 /// State table of the task that owns the `Actor511000Work2` block: its spawn
 /// state, the per-frame tick and the enemy task exit.
-const TaskFuncTable3 D_actor_511000_80131E3C = {
+static const TaskFuncTable3 D_actor_511000_80131E3C = {
     func_actor_511000_80132480,
     (TaskFunc)func_actor_511000_80131E78,
     Gp_EnemyTaskExit,
@@ -148,7 +148,7 @@ const TaskFuncTable3 D_actor_511000_80131E3C = {
 
 /// State table of the task that owns the `Actor511000Work` block: its spawn
 /// state, the per-frame tick and the kill.
-const TaskFuncTable3 D_actor_511000_80131E48 = {
+static const TaskFuncTable3 D_actor_511000_80131E48 = {
     func_actor_511000_80133034,
     func_actor_511000_801330F0,
     func_actor_511000_80133220,
@@ -156,7 +156,7 @@ const TaskFuncTable3 D_actor_511000_80131E48 = {
 
 /// State table of a child placed at a translation preset under its spawner:
 /// the attach state, the spinning tick and the kill.
-const TaskFuncTable3 D_actor_511000_80131E54 = {
+static const TaskFuncTable3 D_actor_511000_80131E54 = {
     func_actor_511000_80133240,
     func_actor_511000_801332E4,
     func_actor_511000_801333A4,
@@ -164,14 +164,14 @@ const TaskFuncTable3 D_actor_511000_80131E54 = {
 
 /// State table of a child posed from the kill-countdown rotations: the attach
 /// state, the tick that follows the countdown and the kill.
-const TaskFuncTable3 D_actor_511000_80131E60 = {
+static const TaskFuncTable3 D_actor_511000_80131E60 = {
     func_actor_511000_801333C4,
     func_actor_511000_801329C4,
     func_actor_511000_80133498,
 };
 
 /// The enemy's three state handlers - spawn, per-frame tick and teardown.
-const GpEnemyTaskFuncTable3 D_actor_511000_80131E6C = {
+static const GpEnemyTaskFuncTable3 D_actor_511000_80131E6C = {
     func_actor_511000_80133958,
     func_actor_511000_80133B80,
     Gp_DestroyEnemy,
@@ -236,7 +236,7 @@ extern void* D_actor_511000_801550C0;
 /// model part 1, refreshes that part's coordinate and colour when the session
 /// asks, runs the texture-upload state, and ticks the `field_480` countdown
 /// that frees the model's buffers when it reaches zero.
-void func_actor_511000_80131E78(Task* arg0)
+static void func_actor_511000_80131E78(Task* arg0)
 {
     Actor511000Work2* work;
     TmdObject*        extra;
@@ -289,7 +289,7 @@ void func_actor_511000_80131E78(Task* arg0)
 /// share their whole tail, which is what makes the compiler emit one copy of
 /// it that step 1 jumps into; step 3 only differs in clearing the step
 /// instead of advancing it.
-void func_actor_511000_80132048(Task* arg0)
+static void func_actor_511000_80132048(Task* arg0)
 {
     Actor511000Work2* work;
     RECT              rect;
@@ -339,7 +339,7 @@ void func_actor_511000_80132150(Task* task)
 /// coordinate under the parent's part named by `spawnArg1`, takes the parent
 /// model's light and colour matrices, reparents the task under the spawner
 /// named by `spawnArg2` and advances to the next state.
-void func_actor_511000_801321A8(Task* task)
+static void func_actor_511000_801321A8(Task* task)
 {
     Task*      parent;
     s32        part;
@@ -364,7 +364,7 @@ void func_actor_511000_801321A8(Task* task)
 
 /// Tick state of the first state table's child: nothing to do, the chained
 /// coordinate follows the spawner by itself.
-void func_actor_511000_80132224(Task* task)
+static void func_actor_511000_80132224(Task* task)
 {
 }
 
@@ -376,7 +376,7 @@ void func_actor_511000_8013222C(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_actor_511000_80132284(Task* task)
+static void func_actor_511000_80132284(Task* task)
 {
     Task*      parent;
     TmdObject* obj;
@@ -413,7 +413,7 @@ void func_actor_511000_80132284(Task* task)
 /// model flag bits 0x80 (hidden) and 0x4 (draw buffers allocated) onto this
 /// task's model, rebuilding the buffers through `Tmd_AllocBuffers` when the
 /// spawner's are gone.
-void func_actor_511000_80132390(Task* task)
+static void func_actor_511000_80132390(Task* task)
 {
     TmdObject* parentObject;
     TmdObject* object;
@@ -446,7 +446,7 @@ void func_actor_511000_80132428(Task* task)
 /// deferred-kill bit into the model, draws the ground shadow under the model's
 /// second part, starts the actor's two child tasks and hands the model's
 /// matrices to the light/color rebuilder, then advances to the tick handler.
-void func_actor_511000_80132480(Task* task)
+static void func_actor_511000_80132480(Task* task)
 {
     Actor511000Work2* work;
     TmdObject*        extra;
@@ -482,7 +482,7 @@ void func_actor_511000_80132480(Task* task)
 /// Republishes the work block's light/color matrices onto the TMD object and
 /// rebuilds model part 1's world matrix from it, then hands that part's
 /// translation to the ground-shadow helper.
-void func_actor_511000_801325A4(Task* task)
+static void func_actor_511000_801325A4(Task* task)
 {
     Actor511000Work2* work;
     GpCoord*          coords;
@@ -694,7 +694,7 @@ s32 func_actor_511000_80132904(Task* arg0, s32 arg1, s32 mode)
 /// `func_actor_511000_80132B14`.
 /// The table is loaded into its own local before indexing: `&table[d]` on the
 /// symbol directly shifts `d` ahead of the `lui`/`addiu` pair.
-void func_actor_511000_801329C4(Task* task)
+static void func_actor_511000_801329C4(Task* task)
 {
     Task*      parent;
     TmdObject* extra;
@@ -743,7 +743,7 @@ void func_actor_511000_801329C4(Task* task)
 /// additive draw-mode `DR_TPAGE`. Both `pts` and the offset table walk by
 /// pointer and `scale` is a variable, which is what keeps the `mult` and the
 /// retail induction-variable order.
-void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
+static void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
 {
     SVECTOR   pos;
     DVECTOR   pts[16];
@@ -835,7 +835,7 @@ void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
 /// the `field_C` CLUT, which `D_actor_511000_80147EA4` uploads.
 /// The destination is formed as `work + i` before the field offset so the
 /// `addu` keeps the index first and CSE cannot fold the 0xC into a store.
-void func_actor_511000_80132E6C(Actor511000Work* work)
+static void func_actor_511000_80132E6C(Actor511000Work* work)
 {
     CVECTOR col[3];
     s32     i;
@@ -892,7 +892,7 @@ void func_actor_511000_80132E6C(Actor511000Work* work)
 /// 0x80), places it at rot/trans index 0, binds light/color, installs the
 /// message table, and publishes `work->field_C` through
 /// `D_actor_511000_80147EB0` before advancing to the per-frame state.
-void func_actor_511000_80133034(Task* task)
+static void func_actor_511000_80133034(Task* task)
 {
     Actor511000Work* work;
     TmdObject*       extra;
@@ -923,7 +923,7 @@ void func_actor_511000_80133034(Task* task)
 /// the matching rotations, and finally runs the `Tmd_FreeBuffers` countdown the
 /// spawn state armed at -1, freeing the buffers and latching the field back to
 /// -1 on the frame the countdown reaches zero.
-void func_actor_511000_801330F0(Task* task)
+static void func_actor_511000_801330F0(Task* task)
 {
     Actor511000Work* work;
     TmdObject*       obj;
@@ -960,7 +960,7 @@ void func_actor_511000_801330F0(Task* task)
     }
 }
 
-void func_actor_511000_80133220(Task* task)
+static void func_actor_511000_80133220(Task* task)
 {
     taskKill(task);
 }
@@ -968,7 +968,7 @@ void func_actor_511000_80133220(Task* task)
 /// Inherits the parent model's light/color and visibility bit, chains this
 /// actor's root coordinate under the parent's, places it at the spawnArg1
 /// translation, and reparents the task.
-void func_actor_511000_80133240(Task* task)
+static void func_actor_511000_80133240(Task* task)
 {
     Task*      parent;
     TmdObject* extra;
@@ -999,7 +999,7 @@ void func_actor_511000_80133240(Task* task)
 /// pitch (0x44) by 0x3E8, wrapping each to 0x1000. The rotation matrix is then
 /// rebuilt from the angles and the coordinate's `flg` cleared. With the parent
 /// visible the rotation is left alone and the visibility bit is set instead.
-void func_actor_511000_801332E4(Task* task)
+static void func_actor_511000_801332E4(Task* task)
 {
     TmdObject* extra;
     TmdObject* parentExtra;
@@ -1028,7 +1028,7 @@ void func_actor_511000_801332E4(Task* task)
     extra->flags |= 0x80;
 }
 
-void func_actor_511000_801333A4(Task* task)
+static void func_actor_511000_801333A4(Task* task)
 {
     taskKill(task);
 }
@@ -1037,7 +1037,7 @@ void func_actor_511000_801333A4(Task* task)
 /// actor's root coordinate under the parent's, places it at the spawnArg1
 /// translation, copies `D_actor_511000_80147AC4` onto the Euler angles,
 /// rebuilds the rotation matrix, and reparents the task.
-void func_actor_511000_801333C4(Task* task)
+static void func_actor_511000_801333C4(Task* task)
 {
     Task*      parent;
     TmdObject* extra;
@@ -1067,7 +1067,7 @@ void func_actor_511000_801333C4(Task* task)
     task->state += 1;
 }
 
-void func_actor_511000_80133498(Task* task)
+static void func_actor_511000_80133498(Task* task)
 {
     taskKill(task);
 }
@@ -1151,7 +1151,7 @@ s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg)
 /// `rots[index]` onto the root coordinate's Euler angles, `trans[index]` into
 /// its local translation, rebuilds the rotation matrix and marks the
 /// coordinate dirty.
-void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 index)
+static void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 index)
 {
     GpCoord* coord;
     SVECTOR* rot;
@@ -1176,7 +1176,7 @@ void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 i
 /// `D_actor_511000_80148FE4[spawnArg1]` into the root coordinate's local
 /// translation, zeros the Euler angles, rebuilds the rotation matrix and
 /// marks the coordinate dirty.
-void func_actor_511000_80133760(Task* task)
+static void func_actor_511000_80133760(Task* task)
 {
     GpCoord* coord;
 
@@ -1193,7 +1193,7 @@ void func_actor_511000_80133760(Task* task)
 
 /// Binds the task's TMD object to the work-block light/color matrices, clears
 /// the root coordinate flag, and rebuilds lighting from the world translation.
-void func_actor_511000_801337F0(Task* task)
+static void func_actor_511000_801337F0(Task* task)
 {
     GpCoord*         coord;
     Actor511000Work* work;
@@ -1238,7 +1238,7 @@ void func_actor_511000_80133900(Task* task)
 /// animation state, installs the message table, then spawns table entries 1
 /// and 2 - tinting each child's model from the current area's record - and
 /// entry 3, and advances to state 1. An allocation failure destroys the enemy.
-void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
+static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
 {
     GpAreaKey              key;
     GpAreaKey*             sessionKey;
@@ -1322,7 +1322,7 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     task->state = 1;
 }
 
-void func_actor_511000_80133B80(GpEnemy* enemy, Task* task)
+static void func_actor_511000_80133B80(GpEnemy* enemy, Task* task)
 {
     TmdObject*             extra;
     VECTOR*                pos;
@@ -1452,7 +1452,7 @@ void func_actor_511000_80133EF4(Task* task)
 /// Spawn state of the model child attached to the spawner's part 8: chains
 /// the root coordinate under that part, takes the spawner work block's light
 /// and colour matrices, shows the model and advances to the tick state.
-void func_actor_511000_80133F48(GpEnemy* enemy, Task* task)
+static void func_actor_511000_80133F48(GpEnemy* enemy, Task* task)
 {
     Task*                  parent;
     TmdObject*             obj;
@@ -1473,7 +1473,7 @@ void func_actor_511000_80133F48(GpEnemy* enemy, Task* task)
     task->state   = 1;
 }
 
-void func_actor_511000_80133F88(GpEnemy* arg0, Task* arg1)
+static void func_actor_511000_80133F88(GpEnemy* arg0, Task* arg1)
 {
     arg1->extra.tmd->coords->flg = 0;
     Gp_UpdateCoord(arg1->extra.tmd->coords);
@@ -1486,7 +1486,7 @@ void func_actor_511000_80133FC8(Task* task)
     fns[task->state](task->spawnArg2, task);
 }
 
-void func_actor_511000_8013401C(GpEnemy* enemy, Task* task)
+static void func_actor_511000_8013401C(GpEnemy* enemy, Task* task)
 {
     Task*                  parent;
     TmdObject*             obj;
@@ -1507,7 +1507,7 @@ void func_actor_511000_8013401C(GpEnemy* enemy, Task* task)
     task->state   = 1;
 }
 
-void func_actor_511000_8013405C(GpEnemy* arg0, Task* arg1)
+static void func_actor_511000_8013405C(GpEnemy* arg0, Task* arg1)
 {
     arg1->extra.tmd->coords->flg = 0;
     Gp_UpdateCoord(arg1->extra.tmd->coords);
@@ -1520,7 +1520,7 @@ void func_actor_511000_8013409C(Task* task)
     fns[task->state](task->spawnArg2, task);
 }
 
-void func_actor_511000_801340F0(GpEnemy* enemy, Task* task)
+static void func_actor_511000_801340F0(GpEnemy* enemy, Task* task)
 {
     Task*                  parent;
     TmdObject*             obj;
@@ -1541,7 +1541,7 @@ void func_actor_511000_801340F0(GpEnemy* enemy, Task* task)
     task->state   = 1;
 }
 
-void func_actor_511000_80134130(GpEnemy* arg0, Task* arg1)
+static void func_actor_511000_80134130(GpEnemy* arg0, Task* arg1)
 {
     arg1->extra.tmd->coords->flg = 0;
     Gp_UpdateCoord(arg1->extra.tmd->coords);

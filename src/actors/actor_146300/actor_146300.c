@@ -76,12 +76,12 @@ extern s32 D_actor_146300_80142824;
 /// `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_146300_80132728(GpEnemy* enemy, Task* task);
-void func_actor_146300_801327A4(Task* task);
-void func_actor_146300_801327CC(Task* task);
-void func_actor_146300_80132840(void);
-void func_actor_146300_8013288C(void);
-void func_actor_146300_8013291C(void);
+static void func_actor_146300_80132728(GpEnemy* enemy, Task* task);
+static void func_actor_146300_801327A4(Task* task);
+static void func_actor_146300_801327CC(Task* task);
+static void func_actor_146300_80132840(void);
+static void func_actor_146300_8013288C(void);
+static void func_actor_146300_8013291C(void);
 
 void func_actor_146300_80131ECC(Task* task)
 {
@@ -189,7 +189,7 @@ void func_actor_146300_80131ECC(Task* task)
     }
 }
 
-void func_actor_146300_8013224C(void)
+static void func_actor_146300_8013224C(void)
 {
     switch (GameFlag_GetNibble(0x7B)) {
         case 2:
@@ -291,7 +291,7 @@ static inline void _actor146300TintSpawn(Task* spawned, GpEnemy* enemy)
 /// root translation, the animation stream is bound, the animation state is
 /// seeded with mode 2 / id 0xB, the message table is published and the
 /// per-frame update runs once before the state advances.
-void func_actor_146300_801324AC(GpEnemy* enemy, Task* task)
+static void func_actor_146300_801324AC(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor146300Work* work;
@@ -354,7 +354,7 @@ void func_actor_146300_801326CC(Task* task)
 /// State 1 of the task handler `func_actor_146300_801326CC`: refreshes the model
 /// root's world matrix, relights the model from a point 0x320 above its
 /// translation, then runs the per-frame update.
-void func_actor_146300_80132728(GpEnemy* enemy, Task* task)
+static void func_actor_146300_80132728(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -372,7 +372,7 @@ void func_actor_146300_80132728(GpEnemy* enemy, Task* task)
 
 /// `Task::exitCallback` the spawn routine installs: hands the task's `GpEnemy`
 /// (parked in `Task::spawnArg2`) back to `Gp_DestroyEnemy`.
-void func_actor_146300_801327A4(Task* task)
+static void func_actor_146300_801327A4(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
@@ -382,7 +382,7 @@ void func_actor_146300_801327A4(Task* task)
 /// ticks the animation. Steps 1 and 2 each return through their own copy of the
 /// switch to mode 3; the two are identical, so jump.c cross-jumps them and only
 /// the second survives.
-void func_actor_146300_801327CC(Task* task)
+static void func_actor_146300_801327CC(Task* task)
 {
     if (D_actor_146300_80142828->st.state == 1) {
         func_actor_146300_8013291C();
@@ -400,7 +400,7 @@ void func_actor_146300_801327CC(Task* task)
 }
 
 /// Ticks animation slots 1..0x13 of the work block's animation context.
-void func_actor_146300_80132840(void)
+static void func_actor_146300_80132840(void)
 {
     s32 i;
 
@@ -414,7 +414,7 @@ void func_actor_146300_80132840(void)
 /// Marks animation slots 1..0x13 of the work block reset-pending and reseeds
 /// each of them from the current animation id, then records that id as the one
 /// now playing.
-void func_actor_146300_8013288C(void)
+static void func_actor_146300_8013288C(void)
 {
     s32 i;
 
@@ -430,7 +430,7 @@ void func_actor_146300_8013288C(void)
 /// Reseeds animation slots 1..0x13 of the work block from the current animation
 /// id with the latched reset argument `D_actor_146300_8014279C`, and records
 /// that id as the one now playing.
-void func_actor_146300_8013291C(void)
+static void func_actor_146300_8013291C(void)
 {
     s32 i;
 

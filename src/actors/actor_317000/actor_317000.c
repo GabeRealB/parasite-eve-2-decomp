@@ -54,23 +54,23 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// `func_actor_317000_8016267C`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_317000_8016CF50[];
 
-void func_actor_317000_80161E68(Task* task);
-void func_actor_317000_801620BC(Task* task);
-void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3, s32 arg4);
-void func_actor_317000_8016267C(Task* arg0);
-void func_actor_317000_80162724(Task* arg0);
-void func_actor_317000_80162744(Task* arg0);
-void func_actor_317000_80162760(Task* arg0);
-void func_actor_317000_80162768(Task* arg0);
-void func_actor_317000_801627D0(Task* arg0);
-void func_actor_317000_801628D8(Task* task);
-void func_actor_317000_80162950(Task* arg0);
-s32  func_actor_317000_80162A10(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
-s32  func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3);
+static void func_actor_317000_80161E68(Task* task);
+static void func_actor_317000_801620BC(Task* task);
+static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3, s32 arg4);
+static void func_actor_317000_8016267C(Task* arg0);
+static void func_actor_317000_80162724(Task* arg0);
+static void func_actor_317000_80162744(Task* arg0);
+static void func_actor_317000_80162760(Task* arg0);
+static void func_actor_317000_80162768(Task* arg0);
+static void func_actor_317000_801627D0(Task* arg0);
+static void func_actor_317000_801628D8(Task* task);
+static void func_actor_317000_80162950(Task* arg0);
+s32         func_actor_317000_80162A10(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
+s32         func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3);
 
 /// The actor's three task states, which `func_actor_317000_80162624` runs by
 /// `Task::state`: spawn, per-frame tick and exit.
-const TaskFuncTable3 D_actor_317000_80161E24 = { {
+static const TaskFuncTable3 D_actor_317000_80161E24 = { {
     func_actor_317000_8016267C,
     func_actor_317000_80161E68,
     func_actor_317000_80162724,
@@ -78,7 +78,7 @@ const TaskFuncTable3 D_actor_317000_80161E24 = { {
 
 /// The four step handlers `func_actor_317000_80162768` runs by
 /// `Actor317000Work::walk.motionStep`.
-const TaskFuncTable4 D_actor_317000_80161E30 = { {
+static const TaskFuncTable4 D_actor_317000_80161E30 = { {
     func_actor_317000_801627D0,
     func_actor_317000_801628D8,
     func_actor_317000_80162950,
@@ -87,7 +87,7 @@ const TaskFuncTable4 D_actor_317000_80161E30 = { {
 
 /// The constant local-space offset `func_actor_317000_801628D8` rotates
 /// through the root coordinate into `Actor317000Work::step`.
-const VECTOR D_actor_317000_80161E40 = { 0, 0xFF800000, 0x400000, 0 };
+static const VECTOR D_actor_317000_80161E40 = { 0, 0xFF800000, 0x400000, 0 };
 
 /// Per-frame tick. Runs the state body `Actor317000Work::walk.motion` selects
 /// from a two-entry stack table, then integrates the 16.16 position: `step` is
@@ -97,7 +97,7 @@ const VECTOR D_actor_317000_80161E40 = { 0, 0xFF800000, 0x400000, 0 };
 /// `gGameSession->viewReady` is set, `field_4C6` ramps up by 0x40 to 0x1000 or
 /// down by 0x80 to 0 on `field_4C5`, and the aim body runs against slot 3.
 /// A non-negative `field_4C8` counts down and frees the model buffers at 0.
-void func_actor_317000_80161E68(Task* task)
+static void func_actor_317000_80161E68(Task* task)
 {
     TmdObject*       ext                 = task->extra.tmd;
     Actor317000Work* work                = (Actor317000Work*)task->work;
@@ -160,7 +160,7 @@ void func_actor_317000_80161E68(Task* task)
 /// target already, which clears the work's dispatch index and its companion
 /// halfword; otherwise the matrix's yaw is stepped toward the target by that
 /// same 0x40 and `RotMatrix` rebuilds the node from the adjusted angles.
-void func_actor_317000_801620BC(Task* task)
+static void func_actor_317000_801620BC(Task* task)
 {
     Actor317000Work* work;
     GpCoord*         coord;
@@ -226,7 +226,7 @@ void func_actor_317000_801620BC(Task* task)
 /// reads of `task->extra.tmd->coords` are re-derived rather than sharing the
 /// first, which is what keeps the task argument live in `$s1` across the
 /// calls and puts `&target[4]` in its own register.
-void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3, s32 arg4)
+static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3, s32 arg4)
 {
     GpCoord*    coord;
     GpCoord*    target;
@@ -376,7 +376,7 @@ void func_actor_317000_80162624(Task* task)
 /// through the mode-0 call, then installs the message table and the exit
 /// handler. An allocation failure ends the task instead of leaving a
 /// half-built actor behind.
-void func_actor_317000_8016267C(Task* arg0)
+static void func_actor_317000_8016267C(Task* arg0)
 {
     Actor317000Work* work;
 
@@ -405,14 +405,14 @@ void func_actor_317000_8016267C(Task* arg0)
 /// Exit handler, both the third entry of `D_actor_317000_80161E24` and the
 /// `Task::exitCallback` `func_actor_317000_8016267C` installs: ends the task
 /// through `Gp_EnemyTaskExit`.
-void func_actor_317000_80162724(Task* arg0)
+static void func_actor_317000_80162724(Task* arg0)
 {
     Gp_EnemyTaskExit(arg0);
 }
 
 /// Points the display object's light and colour matrices at the work block's
 /// own copies, `Actor317000Work::light` and `color`.
-void func_actor_317000_80162744(Task* arg0)
+static void func_actor_317000_80162744(Task* arg0)
 {
     TmdObject*       ext;
     Actor317000Work* work;
@@ -425,7 +425,7 @@ void func_actor_317000_80162744(Task* arg0)
 
 /// Index 0 of the two-entry table `func_actor_317000_80161E68` dispatches on
 /// `Actor317000Work::walk.motion`: does nothing.
-void func_actor_317000_80162760(Task* arg0)
+static void func_actor_317000_80162760(Task* arg0)
 {
 }
 
@@ -433,7 +433,7 @@ void func_actor_317000_80162760(Task* arg0)
 /// `Actor317000Work::walk.motion`: copies the four step handlers
 /// `D_actor_317000_80161E30` onto the stack and runs the one
 /// `Actor317000Work::walk.motionStep` selects, read sign-extended.
-void func_actor_317000_80162768(Task* arg0)
+static void func_actor_317000_80162768(Task* arg0)
 {
     TaskFuncTable4   sp;
     Actor317000Work* work;
@@ -451,7 +451,7 @@ void func_actor_317000_80162768(Task* arg0)
 /// whose `field_4` is the literal 2, clearing the `field_4C4` flag and
 /// advancing `walk.motionStep`. Either way the root coordinate is rebuilt as the
 /// identity matrix rotated by `vec`.
-void func_actor_317000_801627D0(Task* arg0)
+static void func_actor_317000_801627D0(Task* arg0)
 {
     Actor317000Work* work;
     GpMtxWords*      words;
@@ -499,7 +499,7 @@ void func_actor_317000_801627D0(Task* arg0)
 /// `walk.motionStep` advance `func_actor_317000_801627D0` ends with: rotates the constant local-space
 /// offset `D_actor_317000_80161E40` through the root part's matrix into
 /// `work->walk.step`, then raises the flag at 0x4C4 and moves the dispatcher on.
-void func_actor_317000_801628D8(Task* task)
+static void func_actor_317000_801628D8(Task* task)
 {
     Actor317000Work* work;
     GpCoord*         coord;
@@ -522,7 +522,7 @@ void func_actor_317000_801628D8(Task* task)
 /// 0x7D3 with the latched `model.nextAnimId` state, and sound 0x400A000B is queued
 /// panned and attenuated from the root coordinate's matrix. The `field_4C4`
 /// flag the previous body raised is cleared and the dispatcher advances again.
-void func_actor_317000_80162950(Task* arg0)
+static void func_actor_317000_80162950(Task* arg0)
 {
     GpCoord*         coord;
     Actor317000Work* work;

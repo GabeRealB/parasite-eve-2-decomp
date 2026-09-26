@@ -7,7 +7,6 @@
 #include "main/wipsys.h"
 #include "main/coord.h"
 
-s32                          Actor00100_Fn01388(GpCoord*, GpRec18*, s16, SVECTOR*);
 extern Actor00100AnimCommand Actor00100_D1B9AC;
 extern SVECTOR               Actor00100_D1BA90;
 

@@ -65,25 +65,25 @@ extern void* D_80067704[1];
 /* Model stream in this overlay's own data. */
 extern u8 Actor02600_D05F10[];
 
-void Actor02600_Fn02364(GpEnemy* arg0, Task* arg1);
-void Actor02600_Fn02780(GpEnemy* arg0, Task* arg1);
-void Actor02600_Fn02954(Task* actor, s32 frame);
-void Actor02600_Fn02C94(Task* actor);
-void Actor02600_Fn02FFC(GpEnemy* ctx, Task* actor);
-void Actor02600_Fn03558(GpEnemy* arg0, Task* arg1);
-void Actor02600_Fn0366C(Task* arg0);
-void Actor02600_Fn03784(Task* arg0);
-void Actor02600_Fn0385C(Task* arg0);
-void Actor02600_Fn03910(Task* arg0);
-void Actor02600_Fn039A4(Task* arg0);
-void Actor02600_Fn03A68(Task* arg0);
-void Actor02600_Fn03AC0(Task* arg0);
-void Actor02600_Fn03B58(Task* arg0);
-void Actor02600_Fn03C4C(Task* actor);
-void Actor02600_Fn03D38(Task* actor);
-void Actor02600_Fn03E2C(GpEnemy* enemy, Task* task);
+static void Actor02600_Fn02364(GpEnemy* arg0, Task* arg1);
+static void Actor02600_Fn02780(GpEnemy* arg0, Task* arg1);
+static void Actor02600_Fn02954(Task* actor, s32 frame);
+static void Actor02600_Fn02C94(Task* actor);
+static void Actor02600_Fn02FFC(GpEnemy* ctx, Task* actor);
+static void Actor02600_Fn03558(GpEnemy* arg0, Task* arg1);
+static void Actor02600_Fn0366C(Task* arg0);
+static void Actor02600_Fn03784(Task* arg0);
+static void Actor02600_Fn0385C(Task* arg0);
+static void Actor02600_Fn03910(Task* arg0);
+static void Actor02600_Fn039A4(Task* arg0);
+static void Actor02600_Fn03A68(Task* arg0);
+static void Actor02600_Fn03AC0(Task* arg0);
+static void Actor02600_Fn03B58(Task* arg0);
+static void Actor02600_Fn03C4C(Task* actor);
+static void Actor02600_Fn03D38(Task* actor);
+static void Actor02600_Fn03E2C(GpEnemy* enemy, Task* task);
 
-void Actor02600_Fn0006C(Task* arg0)
+static void Actor02600_Fn0006C(Task* arg0)
 {
     Actor105500Work*       work;
     Actor105500HitScratch* head;
@@ -307,7 +307,7 @@ void Actor02600_Fn0006C(Task* arg0)
 
 /// State handlers of the projectile task `Actor02600_Fn03DD0` dispatches,
 /// indexed by `Task::state`: setup, per-frame tick and `Gp_DestroyEnemy`.
-const GpEnemyTaskFuncTable3 Actor02600_D0002C = {
+static const GpEnemyTaskFuncTable3 Actor02600_D0002C = {
     {
         Actor02600_Fn03E2C,
         Actor02600_Fn02780,
@@ -317,7 +317,7 @@ const GpEnemyTaskFuncTable3 Actor02600_D0002C = {
 
 /// State handlers of the actor task `Actor02600_Fn03F80` dispatches, indexed
 /// by `Task::state`: spawn, per-frame tick and the dying sequence.
-const GpEnemyTaskFuncTable3 Actor02600_D00038 = {
+static const GpEnemyTaskFuncTable3 Actor02600_D00038 = {
     {
         Actor02600_Fn02FFC,
         Actor02600_Fn03558,
@@ -325,7 +325,7 @@ const GpEnemyTaskFuncTable3 Actor02600_D00038 = {
     },
 };
 
-void Actor02600_Fn00754(Task* arg0)
+static void Actor02600_Fn00754(Task* arg0)
 {
     Actor105500Work* work;
     GpCoord*         coord;
@@ -374,7 +374,7 @@ void Actor02600_Fn00754(Task* arg0)
     *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
 }
 
-void Actor02600_Fn00914(Task* arg0)
+static void Actor02600_Fn00914(Task* arg0)
 {
     Actor105500Work* work;
     GpCoord*         coord;
@@ -421,7 +421,7 @@ void Actor02600_Fn00914(Task* arg0)
     *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
 }
 
-void Actor02600_Fn00A94(Task* arg0)
+static void Actor02600_Fn00A94(Task* arg0)
 {
     register Task*   actor asm("s5") = arg0;
     Actor105500Work* work;
@@ -550,7 +550,7 @@ void Actor02600_Fn00A94(Task* arg0)
     *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
 }
 
-void Actor02600_Fn00FA0(Task* arg0)
+static void Actor02600_Fn00FA0(Task* arg0)
 {
     Actor105500Work*  work;
     GpCoord*          coord;
@@ -638,7 +638,7 @@ void Actor02600_Fn00FA0(Task* arg0)
     }
 }
 
-void Actor02600_Fn012E8(Task* arg0)
+static void Actor02600_Fn012E8(Task* arg0)
 {
     Actor105500Work* work;
     GpCoord*         coord;
@@ -669,7 +669,7 @@ void Actor02600_Fn012E8(Task* arg0)
     }
 }
 
-void Actor02600_Fn0143C(Task* arg0)
+static void Actor02600_Fn0143C(Task* arg0)
 {
     Actor105500Work*  work;
     GpCoord*          coord;
@@ -811,7 +811,7 @@ void Actor02600_Fn0143C(Task* arg0)
 /// panned to the actor. Once the
 /// animation has run 0x15 frames it goes to state 7 when `field_3D2` is 1,
 /// otherwise to state 3 with animation 1 and a random 0..15 in `field_39E`.
-void Actor02600_Fn01A0C(Task* arg0)
+static void Actor02600_Fn01A0C(Task* arg0)
 {
     Actor105500Work* work;
     GpCoord*         coord;
@@ -854,7 +854,7 @@ void Actor02600_Fn01A0C(Task* arg0)
     }
 }
 
-void Actor02600_Fn01B30(Task* arg0)
+static void Actor02600_Fn01B30(Task* arg0)
 {
     TmdObject*       obj;
     Actor105500Work* work;
@@ -998,7 +998,7 @@ void Actor02600_Fn01B30(Task* arg0)
 /// between model nodes 3 and 5; every 0x24 frames sound 0x401A0005 is played
 /// with the top nibble of the context's `field_8` in bits 8-11, panned to the
 /// actor.
-void Actor02600_Fn020D4(Task* arg0)
+static void Actor02600_Fn020D4(Task* arg0)
 {
     Actor105500Work* work;
     GpCoord*         coord;
@@ -1041,7 +1041,7 @@ void Actor02600_Fn020D4(Task* arg0)
 /// heading back from the coordinate, turns it toward `field_3A4` by at most
 /// `field_3A6` the shorter way round the circle, keeps the result in
 /// `field_3A2` and rebuilds the coordinate's rotation as that pure yaw.
-void Actor02600_Fn02214(Task* arg0)
+static void Actor02600_Fn02214(Task* arg0)
 {
     Actor105500Work*  work;
     GpCoord*          coord;
@@ -1120,7 +1120,7 @@ done:
 /// effect of `Actor02600_Fn03C4C` in its place), spawns effect 0x600A5 at frame
 /// 0xF and moves to step 2 at frame 0x3C; step 2 destroys the enemy 0x3C
 /// frames later.
-void Actor02600_Fn02364(GpEnemy* arg0, Task* arg1)
+static void Actor02600_Fn02364(GpEnemy* arg0, Task* arg1)
 {
     VECTOR           vec;
     Actor105500Work* work;
@@ -1278,7 +1278,7 @@ void Actor02600_Fn02364(GpEnemy* arg0, Task* arg1)
 /// forward axis by `field_3A`, and the counter is bumped; at 0xF frames the
 /// object is unlinked and the actor switches to state 2, otherwise `field_3A`
 /// decays by an LCG-derived 0..0x1F and clamps at zero.
-void Actor02600_Fn02780(GpEnemy* arg0, Task* arg1)
+static void Actor02600_Fn02780(GpEnemy* arg0, Task* arg1)
 {
     Actor105500Work* work;
     GpCoord*         coord;
@@ -1345,7 +1345,7 @@ void Actor02600_Fn02780(GpEnemy* arg0, Task* arg1)
 /// clears the near plane, emits the semi-transparent `POLY_FT4` for it. The
 /// model whose texture is drawn is the *parent* task's (`Task::parent`), not
 /// this actor's, so the atlas and tpage come from whoever spawned it.
-void Actor02600_Fn02954(Task* actor, s32 frame)
+static void Actor02600_Fn02954(Task* actor, s32 frame)
 {
     POLY_FT4*         poly;
     GpCoord*          coord;
@@ -1437,7 +1437,7 @@ void Actor02600_Fn02954(Task* actor, s32 frame)
 /// drawn when either end projects nearer than depth 30. The line runs from grey
 /// 0x80 to 0xC0; while `field_3BC` counts down (never below 1) both ends are
 /// scaled by `field_3BC / 45`.
-void Actor02600_Fn02C94(Task* actor)
+static void Actor02600_Fn02C94(Task* actor)
 {
     Actor105500LineScratch* s;
     Actor105500Work*        work;
@@ -1518,7 +1518,7 @@ void Actor02600_Fn02C94(Task* actor)
 /// on a table row and rotate it to face that row's angle, or fall through to
 /// the "walk to the player" state, 2 and 3 lift the coordinate and arm a
 /// timer. Modes >= 10 re-read the variant index from the parameters.
-void Actor02600_Fn02FFC(GpEnemy* ctx, Task* actor)
+static void Actor02600_Fn02FFC(GpEnemy* ctx, Task* actor)
 {
     SVECTOR          rot;
     GpRec18*         rec0;
@@ -1710,7 +1710,7 @@ void Actor02600_Fn02FFC(GpEnemy* ctx, Task* actor)
 /// collision records, runs the behaviour state, the effect step while
 /// `field_3B0` is set and the turn step while `field_3A6` is, moves and
 /// animates the actor and refreshes its coordinate.
-void Actor02600_Fn03558(GpEnemy* arg0, Task* arg1)
+static void Actor02600_Fn03558(GpEnemy* arg0, Task* arg1)
 {
     s32              state;
     TmdObject*       obj;
@@ -1772,7 +1772,7 @@ case1:
 /// points in `field_40`; outside `field_3C8` 1 the actor then enters state 9 when they
 /// run out (setting `field_30` to 2) or state 6 otherwise. Both flags are
 /// cleared once `Gp_ObjFlag4Expired` returns non-zero.
-void Actor02600_Fn0366C(Task* arg0)
+static void Actor02600_Fn0366C(Task* arg0)
 {
     Actor105500Work* work;
     s32              damage;
@@ -1814,7 +1814,7 @@ void Actor02600_Fn0366C(Task* arg0)
 
 /// Runs the handler of the work's current behaviour state (`field_39A`, 0-8);
 /// state 9, entered when the hit points run out, runs nothing.
-void Actor02600_Fn03784(Task* arg0)
+static void Actor02600_Fn03784(Task* arg0)
 {
     switch (((Actor105500Work*)arg0->work)->field_39A) {
         case 0:
@@ -1853,7 +1853,7 @@ void Actor02600_Fn03784(Task* arg0)
 /// and turn steps; each frame after that `Gp_TickObjFlag2` is ticked on the
 /// context, and when it returns non-zero the actor goes to state 3
 /// with animation 0xB, `field_3D2` cleared and a random 0..15 in `field_39E`.
-void Actor02600_Fn0385C(Task* arg0)
+static void Actor02600_Fn0385C(Task* arg0)
 {
     Actor105500Work* work;
     s16              state;
@@ -1886,7 +1886,7 @@ void Actor02600_Fn0385C(Task* arg0)
 /// `field_35C` first. The horizontal step follows the coordinate's forward
 /// axis (`coord.m[*][2]`) scaled by the speed `field_398`, where 0x1000 is one
 /// unit; `field_3A8` is added to the height unscaled.
-void Actor02600_Fn03910(Task* arg0)
+static void Actor02600_Fn03910(Task* arg0)
 {
     GpCoord*         coord;
     Actor105500Work* work;
@@ -1905,7 +1905,7 @@ void Actor02600_Fn03910(Task* arg0)
 
 /// Switches the work's animation id, resetting the slots to the blend value the
 /// table gives for the new id; otherwise ticks every slot one frame.
-void Actor02600_Fn039A4(Task* arg0)
+static void Actor02600_Fn039A4(Task* arg0)
 {
     Actor105500Work* work;
     s32              i;
@@ -1932,7 +1932,7 @@ void Actor02600_Fn039A4(Task* arg0)
 
 /// Passes the world position of the model's root coordinate to
 /// `Gp_UpdateActorColor` for the context, with both trailing arguments 0.
-void Actor02600_Fn03A68(Task* arg0)
+static void Actor02600_Fn03A68(Task* arg0)
 {
     GpCoord* coord;
     VECTOR   vec;
@@ -1948,7 +1948,7 @@ void Actor02600_Fn03A68(Task* arg0)
 /// position is cast down to the ground by `func_800EA1A8` and the shade comes
 /// from `func_800EA318`; otherwise the coordinate's own world translation is
 /// used at full shade.
-void Actor02600_Fn03AC0(Task* arg0)
+static void Actor02600_Fn03AC0(Task* arg0)
 {
     Actor105500Work* work;
     GpCoord*         coord;
@@ -1974,7 +1974,7 @@ void Actor02600_Fn03AC0(Task* arg0)
 /// above 0x200, and the root coordinate becomes the matrix `field_370` scaled
 /// on Y by `field_3A0` (0x1000 = 1), built through a 0x30-byte scratchpad
 /// block that is released again.
-void Actor02600_Fn03B58(Task* arg0)
+static void Actor02600_Fn03B58(Task* arg0)
 {
     GpCoord*           coord;
     ActorScaleScratch* head;
@@ -2004,7 +2004,7 @@ void Actor02600_Fn03B58(Task* arg0)
     SCRATCH_POP(ActorScaleScratch);
 }
 
-void Actor02600_Fn03C4C(Task* actor)
+static void Actor02600_Fn03C4C(Task* actor)
 {
     GpAreaKey    key;
     GpAreaKey*   sessionKey;
@@ -2047,7 +2047,7 @@ void Actor02600_Fn03C4C(Task* actor)
 /// block taken from the scratchpad and released again: an identity rotation
 /// is written word-wise, `ScaleMatrix` scales its diagonal to 0x100 and
 /// `MulMatrix` multiplies it into `field_8[2].coord`.
-void Actor02600_Fn03D38(Task* actor)
+static void Actor02600_Fn03D38(Task* actor)
 {
     void**             scratch;
     ActorScaleScratch* head;
@@ -2086,7 +2086,7 @@ void Actor02600_Fn03DD0(Task* arg0)
 /// relative to the view coordinate), and links the work's collision object
 /// with its single record, carrying the parent work's `field_3AC`. The enemy
 /// is destroyed when the allocation fails.
-void Actor02600_Fn03E2C(GpEnemy* enemy, Task* task)
+static void Actor02600_Fn03E2C(GpEnemy* enemy, Task* task)
 {
     Task*                        parent;
     TmdObject*                   parentObj;

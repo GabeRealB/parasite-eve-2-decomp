@@ -359,7 +359,7 @@ void func_actor_450900_80132724(void)
 /// `D_actor_450900_80136470` below 0x30C, `D_actor_450900_80136680` at or above
 /// it. The three calls are written out at each site - the `jal` is shared only
 /// because `jump.c` cross-jumps the identical tails.
-void func_actor_450900_801327A8(void)
+static void func_actor_450900_801327A8(void)
 {
     if (GameFlag_GetNibble(0xD8) != 0) {
         if (D_actor_450900_80135E74 == 0) {
@@ -380,7 +380,7 @@ void func_actor_450900_801327A8(void)
 /// below -0x76C, spawns entry 4 of `D_actor_450900_80135E78`
 /// (`func_actor_450900_8013235C`); otherwise it starts capture slot 0xB with
 /// `Gp_StartCapSlot`.
-void func_actor_450900_80132834(void)
+static void func_actor_450900_80132834(void)
 {
     GpCoord* coord;
 

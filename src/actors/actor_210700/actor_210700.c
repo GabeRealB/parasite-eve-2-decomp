@@ -82,16 +82,16 @@ extern GpImgRec D_actor_210700_8015858C;
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_210700_80149F90(Task* task);
-void func_actor_210700_8014A0AC(Task* task);
-void func_actor_210700_8014A1E8(Task* task);
-void func_actor_210700_8014A208(Task* arg0);
-s32  func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* msg, s32 arg3);
-s32  func_actor_210700_8014A344(Task* task, s32 arg1, GpXformArg* args, s32 arg3);
+static void func_actor_210700_80149F90(Task* task);
+static void func_actor_210700_8014A0AC(Task* task);
+static void func_actor_210700_8014A1E8(Task* task);
+static void func_actor_210700_8014A208(Task* arg0);
+s32         func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* msg, s32 arg3);
+s32         func_actor_210700_8014A344(Task* task, s32 arg1, GpXformArg* args, s32 arg3);
 
 /// The actor's three task states - spawn, tick and teardown - which
 /// `func_actor_210700_80149F38` runs by `Task::state`.
-const TaskFuncTable3 D_actor_210700_80149E24 = { {
+static const TaskFuncTable3 D_actor_210700_80149E24 = { {
     func_actor_210700_80149F90,
     func_actor_210700_8014A0AC,
     func_actor_210700_8014A1E8,
@@ -102,7 +102,7 @@ const TaskFuncTable3 D_actor_210700_80149E24 = { {
 /// it underflows posts that step's image over the 0x18x0x10 rect at y 0x28.
 /// Steps 1 and 2 then reload the countdown from `field_538` and advance to the
 /// next step; step 3 returns to idle.
-void func_actor_210700_80149E30(Task* arg0)
+static void func_actor_210700_80149E30(Task* arg0)
 {
     Actor210700Work* work;
     RECT             rect;
@@ -159,7 +159,7 @@ void func_actor_210700_80149F38(Task* task)
 /// ground shadow under the model's second part, points the model at the work
 /// block's light / colour matrices, installs the message table and the exit
 /// callback, and advances to the tick state.
-void func_actor_210700_80149F90(Task* task)
+static void func_actor_210700_80149F90(Task* task)
 {
     Actor210700Work* work;
     TmdObject*       extra;
@@ -203,7 +203,7 @@ void func_actor_210700_80149F90(Task* task)
 /// view is ready it invalidates and rebuilds that part's coordinate and hands
 /// it to `func_800D7A9C`. It then runs the texture-upload step and counts
 /// `field_53E` down, freeing the model buffers on the frame it reaches 0.
-void func_actor_210700_8014A0AC(Task* task)
+static void func_actor_210700_8014A0AC(Task* task)
 {
     Actor210700Work* work;
     TmdObject*       ext;
@@ -238,14 +238,14 @@ void func_actor_210700_8014A0AC(Task* task)
 
 /// The actor's teardown state and `Task::exitCallback`: hands the task to
 /// `Gp_EnemyTaskExit`.
-void func_actor_210700_8014A1E8(Task* task)
+static void func_actor_210700_8014A1E8(Task* task)
 {
     Gp_EnemyTaskExit(task);
 }
 
 /// Points the model at the work block's light and colour matrices, so the
 /// actor is lit from its own block rather than the defaults.
-void func_actor_210700_8014A208(Task* arg0)
+static void func_actor_210700_8014A208(Task* arg0)
 {
     TmdObject*       ext;
     Actor210700Work* work;

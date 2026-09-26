@@ -44,19 +44,19 @@ extern Task* D_actor_202900_80156E58;
 /// actor's, and the task is killed when the actor's exit callback runs.
 extern Task* D_actor_202900_80156E5C;
 
-void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task);
-void func_actor_202900_8014A158(Task* arg0);
-void func_actor_202900_8014A194(Task* arg0);
-void func_actor_202900_8014A208(void);
-void func_actor_202900_8014A260(void);
-void func_actor_202900_8014A304(void);
-s32  func_actor_202900_8014A394(void);
+static void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task);
+static void func_actor_202900_8014A158(Task* arg0);
+static void func_actor_202900_8014A194(Task* arg0);
+static void func_actor_202900_8014A208(void);
+static void func_actor_202900_8014A260(void);
+static void func_actor_202900_8014A304(void);
+static s32  func_actor_202900_8014A394(void);
 
 /// Setup handler, state 0 of the actor's update: allocates and publishes the
 /// work block, starts the second task and textures its model from the area
 /// record the actor was placed from, then seeds the animation context and runs
 /// the first step body.
-void func_actor_202900_80149E24(GpEnemy* enemy, Task* task)
+static void func_actor_202900_80149E24(GpEnemy* enemy, Task* task)
 {
     VECTOR       vec;
     GpAreaKey    key;
@@ -164,7 +164,7 @@ void func_actor_202900_8014A088(Task* arg0)
 /// point 0x320 above its origin to `func_800D7A9C`, runs the step dispatcher,
 /// and while animation 1 plays enqueues a sound event each time the second
 /// animation slot reaches frame 0x15.
-void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task)
+static void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -183,7 +183,7 @@ void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task)
 }
 
 /// Exit callback: kills the second task and destroys the enemy.
-void func_actor_202900_8014A158(Task* arg0)
+static void func_actor_202900_8014A158(Task* arg0)
 {
     taskKill(D_actor_202900_80156E5C);
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
@@ -195,7 +195,7 @@ void func_actor_202900_8014A158(Task* arg0)
 /// second survives. `arg0` is handed the actor but the body ignores it: it
 /// reaches the work block through the global, like the overlay's other
 /// functions.
-void func_actor_202900_8014A194(Task* arg0)
+static void func_actor_202900_8014A194(Task* arg0)
 {
     if (D_actor_202900_80156E54->st.state == 1) {
         func_actor_202900_8014A304();
@@ -213,7 +213,7 @@ void func_actor_202900_8014A194(Task* arg0)
 }
 
 /// Ticks animation slots 1..0x12 of the actor's animation context.
-void func_actor_202900_8014A208(void)
+static void func_actor_202900_8014A208(void)
 {
     s32 i;
 
@@ -230,7 +230,7 @@ void func_actor_202900_8014A208(void)
 ///
 /// The third argument is the loop counter itself, and the two scaled induction variables are the
 /// compiler's own, not a pair of source level pointers.
-void func_actor_202900_8014A260(void)
+static void func_actor_202900_8014A260(void)
 {
     s32 i;
 
@@ -251,7 +251,7 @@ void func_actor_202900_8014A260(void)
 /// counter copy (as m2c does) makes the preheader's `a2` initialisation a
 /// separate pseudo, and the scheduler then orders the prologue saves around it
 /// instead of leaving each `sw` paired with the load that overwrites it.
-void func_actor_202900_8014A304(void)
+static void func_actor_202900_8014A304(void)
 {
     s32 i;
 
@@ -272,7 +272,7 @@ void func_actor_202900_8014A304(void)
 /// Hoisting makes the local a copy of the masked word, and combine then folds
 /// the compare's zero-extension into a `move`; masking where the value is read
 /// keeps the `andi $a1,$a0,0xffff`.
-s32 func_actor_202900_8014A394(void)
+static s32 func_actor_202900_8014A394(void)
 {
     u16 frame;
 

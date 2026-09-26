@@ -48,17 +48,17 @@ typedef struct Actor215100CharRec {
 } Actor215100CharRec;
 STATIC_ASSERT_SIZEOF(Actor215100CharRec, 0x8);
 
-void func_actor_215100_8014C874(Task* task);
-void func_actor_215100_8014CA80(GpEnemy* enemy, Task* task);
-void func_actor_215100_8014CB04(Task* task);
-void func_actor_215100_8014CB2C(Task* task);
-void func_actor_215100_8014CBB8(Task* task);
-void func_actor_215100_8014CC04(Task* task);
-void func_actor_215100_8014CC7C(Task* task);
+static void func_actor_215100_8014C874(Task* task);
+static void func_actor_215100_8014CA80(GpEnemy* enemy, Task* task);
+static void func_actor_215100_8014CB04(Task* task);
+static void func_actor_215100_8014CB2C(Task* task);
+static void func_actor_215100_8014CBB8(Task* task);
+static void func_actor_215100_8014CC04(Task* task);
+static void func_actor_215100_8014CC7C(Task* task);
 
-s32 func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-s16 func_actor_215100_8014C17C(u16* arg0, s32 arg1);
-s32 func_actor_215100_8014C360(u16* arg0);
+static s32 func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+static s16 func_actor_215100_8014C17C(u16* arg0, s32 arg1);
+static s32 func_actor_215100_8014C360(u16* arg0);
 
 /// Imports from the 0x80180000 overlay; no header names them yet.
 void              func_80180390(s32 arg0);
@@ -119,14 +119,14 @@ extern Actor215100CharRec D_actor_215100_8015E678;
 /// `field_0`.
 extern OverlayCapWindow D_actor_215100_80154514[];
 extern u8               D_80115690;
-void                    func_actor_215100_8014B0D4(void);
-s32                     func_actor_215100_8014B1B0(GpCapFile* file);
-s32                     func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
-s16                     func_actor_215100_8014BDFC(u16* arg0);
-s16                     func_actor_215100_8014C06C(u16* arg0);
-s16                     func_actor_215100_8014C298(u16* arg0);
-s32                     func_actor_215100_8014C418(s32 arg0);
-void                    func_actor_215100_8014BEE8(void);
+static void             func_actor_215100_8014B0D4(void);
+static s32              func_actor_215100_8014B1B0(GpCapFile* file);
+static s32              func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
+static s16              func_actor_215100_8014BDFC(u16* arg0);
+static s16              func_actor_215100_8014C06C(u16* arg0);
+static s16              func_actor_215100_8014C298(u16* arg0);
+static s32              func_actor_215100_8014C418(s32 arg0);
+static void             func_actor_215100_8014BEE8(void);
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
@@ -147,7 +147,7 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// opening at 0x201 and 0xA01, and one of the 0x1000 / 0x4000 pad masks held.
 /// Either mask runs the handoff `func_actor_215100_8014AA54` uses: the weapon
 /// message, caption command 0x14 and the scene task `D_actor_215100_8014CF6C`.
-void func_actor_215100_8014A398(void)
+static void func_actor_215100_8014A398(void)
 {
     Task*      task;
     GameActor* actor;
@@ -320,7 +320,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
     }
 }
 
-void func_actor_215100_8014A908(void)
+static void func_actor_215100_8014A908(void)
 {
     D_actor_215100_8014D038 = 0;
     if (D_actor_215100_8015E670 < 3) {
@@ -336,7 +336,7 @@ void func_actor_215100_8014A908(void)
     SndEvt_EnqueueType2(0, 0x1E);
 }
 
-void func_actor_215100_8014A9A0(void)
+static void func_actor_215100_8014A9A0(void)
 {
     if (D_actor_215100_8015E670 == 5) {
         D_actor_215100_8014D038 = 0;
@@ -361,7 +361,7 @@ void func_actor_215100_8014A9A0(void)
 /// it not-taken and fills its slot from the fall-through rather than from the
 /// shared `return 2` tail. Without the loop the branch reaches the same label
 /// by a copied `li v0,2`, one instruction longer.
-s32 func_actor_215100_8014AA54(Actor215100CharRec* arg0)
+static s32 func_actor_215100_8014AA54(Actor215100CharRec* arg0)
 {
     if (D_actor_215100_8014D038 != 0) {
         if (arg0->field_5 != 0) {
@@ -390,7 +390,7 @@ s32 func_actor_215100_8014AA54(Actor215100CharRec* arg0)
     return 2;
 }
 
-void func_actor_215100_8014AB6C(void)
+static void func_actor_215100_8014AB6C(void)
 {
     if (D_actor_215100_8014D038 != 0) {
         func_80184954();
@@ -504,7 +504,7 @@ void func_actor_215100_8014AEC4(s32 arg0)
     Gp_ResetCap();
 }
 
-void func_actor_215100_8014AF0C(void)
+static void func_actor_215100_8014AF0C(void)
 {
     switch (GameFlag_GetNibble(0xF5)) {
         case 0:
@@ -528,7 +528,7 @@ void func_actor_215100_8014AF0C(void)
 /// finds one, starts that entry's script at its own line key with the task's
 /// `spawnArg1` as the line delay. It then ticks the clock down one, unless the
 /// caption system is busy or `Gp_StateF0.field_4` is up.
-void func_actor_215100_8014AFAC(Task* task, s32 arg1)
+static void func_actor_215100_8014AFAC(Task* task, s32 arg1)
 {
     s32 i;
     s32 script;
@@ -562,7 +562,7 @@ void func_actor_215100_8014AFAC(Task* task, s32 arg1)
     }
 }
 
-void func_actor_215100_8014B0D4(void)
+static void func_actor_215100_8014B0D4(void)
 {
     if ((D_actor_215100_8015E658 != NULL) &&
         (D_actor_215100_8015E658[D_actor_215100_8015E662].field_8 != -1) &&
@@ -579,7 +579,7 @@ void func_actor_215100_8014B0D4(void)
 /// Relocates a caption file in place, the counterpart of gameplay's
 /// `Gp_RelocCapFile`, and publishes its glyph and script tables. Returns 0
 /// when the "CAP" magic is missing.
-s32 func_actor_215100_8014B1B0(GpCapFile* file)
+static s32 func_actor_215100_8014B1B0(GpCapFile* file)
 {
     s32            i;
     s32            count;
@@ -637,7 +637,7 @@ s32 func_actor_215100_8014B1B0(GpCapFile* file)
 /// `D_actor_215100_8015E650`, keyed on `arg1`, and parks its per-line metrics in
 /// the globals `func_actor_215100_8014B0D4` reads. Returns 1 when there is no
 /// such script, 0 once it is playing; `arg2` is the line delay.
-s32 func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2)
+static s32 func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2)
 {
     GpEvt12* caption;
     s16      entry;
@@ -658,7 +658,7 @@ s32 func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+static s32 func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u16*       text;
     u16*       body;
@@ -853,7 +853,7 @@ s32 func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 /// the first `-2` adds its height (the tallest glyph's `h + 2`, or 2 when empty)
 /// and the total is subtracted from `D_actor_215100_8015E660`. Gameplay's
 /// `Gp_CapTextTopY` is the same walk against a fixed 0xD0.
-s16 func_actor_215100_8014BDFC(u16* arg0)
+static s16 func_actor_215100_8014BDFC(u16* arg0)
 {
     s16  lineH     = 0;
     s16  total     = 0;
@@ -889,7 +889,7 @@ s16 func_actor_215100_8014BDFC(u16* arg0)
 /// (`D_actor_215100_8015E668`, `D_actor_215100_8015E66A`) whose grey level
 /// ramps up to 15 and back down to 9. Same body as gameplay's `Gp_DrawCapCaret`
 /// without the VRAM Y offset.
-void func_actor_215100_8014BEE8(void)
+static void func_actor_215100_8014BEE8(void)
 {
     POLY_G3* prim;
     s32      c1;
@@ -936,7 +936,7 @@ void func_actor_215100_8014BEE8(void)
 /// running maximum, `-3` and `0x8400`-masked codes indent it by 3 and 0x10, and
 /// each glyph code (non-negative, `& 0x3FF` indexing `D_actor_215100_8015E654`)
 /// advances it by that glyph's `w - 1`.
-s16 func_actor_215100_8014C06C(u16* arg0)
+static s16 func_actor_215100_8014C06C(u16* arg0)
 {
     s16 lineW;
     s16 maxW;
@@ -975,7 +975,7 @@ s16 func_actor_215100_8014C06C(u16* arg0)
 /// Same walk as `func_actor_215100_8014C06C`, but keeps the width of the
 /// selected line instead of the widest; gameplay's `Gp_CapCenterXLine`
 /// compiles to the same bytes.
-s16 func_actor_215100_8014C17C(u16* arg0, s32 arg1)
+static s16 func_actor_215100_8014C17C(u16* arg0, s32 arg1)
 {
     s16 lineW;
     s16 selectedW;
@@ -1019,7 +1019,7 @@ s16 func_actor_215100_8014C17C(u16* arg0, s32 arg1)
 /// final `2 -> 0` clamp. `i` is initialised just before the loop test and
 /// declared ahead of `total` so their global-alloc priorities tie and the
 /// pseudo order hands `i` $t0.
-s16 func_actor_215100_8014C298(u16* arg0)
+static s16 func_actor_215100_8014C298(u16* arg0)
 {
     s32                 lineH;
     s32                 i;
@@ -1078,7 +1078,7 @@ s16 func_actor_215100_8014C298(u16* arg0)
 /// 0xD, and any other negative code is stepped over like a glyph without
 /// touching the maximum. A maximum still at 0 — the stream opened with `-2` —
 /// comes back as 2.
-s32 func_actor_215100_8014C360(u16* arg0)
+static s32 func_actor_215100_8014C360(u16* arg0)
 {
     s32                 height;
     s32                 i;
@@ -1134,7 +1134,7 @@ s32 func_actor_215100_8014C360(u16* arg0)
     return height;
 }
 
-s32 func_actor_215100_8014C418(s32 arg0)
+static s32 func_actor_215100_8014C418(s32 arg0)
 {
     s32      flag;
     s32      id;
@@ -1193,19 +1193,19 @@ void func_actor_215100_8014C4A8(Task* task)
     func_actor_215100_8014B0D4();
 }
 
-void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2)
+static void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2)
 {
     func_actor_215100_8014B2B8(arg0, arg1, 0xD0);
     Task_SpawnFromTable(&D_actor_215100_801544FC, 0, arg2, 0);
 }
 
-void func_actor_215100_8014C58C(s16 arg0, s16 arg1, s16 arg2)
+static void func_actor_215100_8014C58C(s16 arg0, s16 arg1, s16 arg2)
 {
     func_actor_215100_8014B2B8(arg0, arg1, 0xD0);
     Display_InitModeObj(&D_actor_215100_80154508, arg2, 0, 0);
 }
 
-void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2)
+static void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2)
 {
     s32 count;
     s32 i;
@@ -1229,7 +1229,7 @@ void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2)
 /// CLUT from the area placement the enemy's `placeKey` selects, sets up the
 /// animation context on clip 0xC, installs the message table whose handlers
 /// are the actor's script opcodes, and starts the animation.
-void func_actor_215100_8014C660(GpEnemy* enemy, Task* task)
+static void func_actor_215100_8014C660(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     GpAreaKey        key;
@@ -1308,7 +1308,7 @@ void func_actor_215100_8014C660(GpEnemy* enemy, Task* task)
 /// state 2 resets them, each then moving on to state 3; state 3 walks the
 /// root coordinate 12 units forward per frame while clip 4 still has `travel`
 /// left, switching to clip 1 when it runs out, and ticks the slots.
-void func_actor_215100_8014C874(Task* task)
+static void func_actor_215100_8014C874(Task* task)
 {
     Actor160600Work* work;
     s16              animId;
@@ -1359,7 +1359,7 @@ void func_actor_215100_8014CA2C(Task* task)
 /// State-1 handler of the actor's dispatcher: recomputes the root part's
 /// world matrix, hands the position 800 units above it to the model's
 /// light/colour step, then runs the animation step and draws the shadow.
-void func_actor_215100_8014CA80(GpEnemy* enemy, Task* task)
+static void func_actor_215100_8014CA80(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -1377,7 +1377,7 @@ void func_actor_215100_8014CA80(GpEnemy* enemy, Task* task)
 }
 
 /// Exit callback: hands the task's `GpEnemy` back to `Gp_DestroyEnemy`.
-void func_actor_215100_8014CB04(Task* task)
+static void func_actor_215100_8014CB04(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
@@ -1385,7 +1385,7 @@ void func_actor_215100_8014CB04(Task* task)
 /// Draws the actor's ground shadow under its root part, unless the model's
 /// `flags` bit 0x80 is set or it has no buffer. The position is the root
 /// part's world translation, staged on the scratchpad stack.
-void func_actor_215100_8014CB2C(Task* task)
+static void func_actor_215100_8014CB2C(Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -1404,7 +1404,7 @@ void func_actor_215100_8014CB2C(Task* task)
 }
 
 /// Ticks animation slots 1..0x13.
-void func_actor_215100_8014CBB8(Task* task)
+static void func_actor_215100_8014CBB8(Task* task)
 {
     Actor160600Work* work;
     s32              i;
@@ -1419,7 +1419,7 @@ void func_actor_215100_8014CBB8(Task* task)
 
 /// Resets animation slots 1..0x13 to clip `animId` and records it as the
 /// applied clip.
-void func_actor_215100_8014CC04(Task* task)
+static void func_actor_215100_8014CC04(Task* task)
 {
     Actor160600Work* work;
     s32              i;
@@ -1436,7 +1436,7 @@ void func_actor_215100_8014CC04(Task* task)
 
 /// Reseeds animation slots 1..0x13 with clip `animId` and argument `animArg`,
 /// and records the clip as the applied one.
-void func_actor_215100_8014CC7C(Task* task)
+static void func_actor_215100_8014CC7C(Task* task)
 {
     Actor160600Work* work;
     s32              i;

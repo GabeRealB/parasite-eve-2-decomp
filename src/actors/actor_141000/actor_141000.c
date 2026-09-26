@@ -127,34 +127,34 @@ extern GpMsgEntry D_actor_141000_8013D788[];
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_141000_80132C7C(Task* task);
-void func_actor_141000_80132D3C(Task* task);
-void func_actor_141000_80132E04(Task* task);
-void func_actor_141000_80132E24(Task* arg0);
-void func_actor_141000_80132EB0(Task* arg0);
-void func_actor_141000_80132EF4(Task* arg0);
-void func_actor_141000_80132FC8(Task* arg0);
-s32  func_actor_141000_80132FD0(GpCoord* arg0, s32 arg1);
-void func_actor_141000_8013308C(GpCoord* arg0, s32 arg1);
-void func_actor_141000_80133204(Task* task);
-void func_actor_141000_80133260(Task* arg0);
-void func_actor_141000_801332A0(Task* task);
-void func_actor_141000_80133490(Task* arg0);
-void func_actor_141000_801335D4(Task* arg0);
-void func_actor_141000_8013392C(Task* arg0);
-void func_actor_141000_801339BC(Task* arg0);
-void func_actor_141000_801339DC(Task* arg0);
-void func_actor_141000_801339F8(Task* arg0);
-void func_actor_141000_80133A00(Task* arg0);
-void func_actor_141000_80133A68(Task* task);
-void func_actor_141000_80133B28(Task* arg0);
-void func_actor_141000_80133BD8(Task* arg0);
-s32  func_actor_141000_80133CD8(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
+static void func_actor_141000_80132C7C(Task* task);
+static void func_actor_141000_80132D3C(Task* task);
+static void func_actor_141000_80132E04(Task* task);
+static void func_actor_141000_80132E24(Task* arg0);
+static void func_actor_141000_80132EB0(Task* arg0);
+static void func_actor_141000_80132EF4(Task* arg0);
+static void func_actor_141000_80132FC8(Task* arg0);
+static s32  func_actor_141000_80132FD0(GpCoord* arg0, s32 arg1);
+static void func_actor_141000_8013308C(GpCoord* arg0, s32 arg1);
+static void func_actor_141000_80133204(Task* task);
+static void func_actor_141000_80133260(Task* arg0);
+static void func_actor_141000_801332A0(Task* task);
+static void func_actor_141000_80133490(Task* arg0);
+static void func_actor_141000_801335D4(Task* arg0);
+static void func_actor_141000_8013392C(Task* arg0);
+static void func_actor_141000_801339BC(Task* arg0);
+static void func_actor_141000_801339DC(Task* arg0);
+static void func_actor_141000_801339F8(Task* arg0);
+static void func_actor_141000_80133A00(Task* arg0);
+static void func_actor_141000_80133A68(Task* task);
+static void func_actor_141000_80133B28(Task* arg0);
+static void func_actor_141000_80133BD8(Task* arg0);
+s32         func_actor_141000_80133CD8(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
 
 /// The model actor's attach states: chain under the spawner, then draw the
 /// sixteen quads every frame, then `taskKill`. Dispatched by
 /// `func_actor_141000_801331AC`.
-const TaskFuncTable3 D_actor_141000_80131E24 = { {
+static const TaskFuncTable3 D_actor_141000_80131E24 = { {
     func_actor_141000_80133204,
     func_actor_141000_80133260,
     taskKill,
@@ -162,7 +162,7 @@ const TaskFuncTable3 D_actor_141000_80131E24 = { {
 
 /// The controller's three states - spawn, per-frame tick and `taskKill` -
 /// dispatched by `func_actor_141000_80132C24`.
-const TaskFuncTable3 D_actor_141000_80131E30 = { {
+static const TaskFuncTable3 D_actor_141000_80131E30 = { {
     func_actor_141000_80132C7C,
     func_actor_141000_80132D3C,
     taskKill,
@@ -171,7 +171,7 @@ const TaskFuncTable3 D_actor_141000_80131E30 = { {
 /// The controller's four animation states, dispatched by
 /// `func_actor_141000_80132D3C` through the controller work block's `state`
 /// halfword.
-const TaskFuncTable4 D_actor_141000_80131E3C = { {
+static const TaskFuncTable4 D_actor_141000_80131E3C = { {
     func_actor_141000_80132E24,
     func_actor_141000_80132EB0,
     func_actor_141000_80132EF4,
@@ -180,7 +180,7 @@ const TaskFuncTable4 D_actor_141000_80131E3C = { {
 
 /// The model actor's three states - spawn, per-frame tick and exit -
 /// dispatched by `func_actor_141000_801338C0`.
-const TaskFuncTable3 D_actor_141000_80131E4C = { {
+static const TaskFuncTable3 D_actor_141000_80131E4C = { {
     func_actor_141000_8013392C,
     func_actor_141000_801332A0,
     func_actor_141000_801339BC,
@@ -188,7 +188,7 @@ const TaskFuncTable3 D_actor_141000_80131E4C = { {
 
 /// The model actor's four main-body states, dispatched by
 /// `func_actor_141000_80133A00` through `Actor141000Work::walk.motionStep`.
-const TaskFuncTable4 D_actor_141000_80131E58 = { {
+static const TaskFuncTable4 D_actor_141000_80131E58 = { {
     func_actor_141000_80133A68,
     func_actor_141000_80133B28,
     func_actor_141000_80133490,
@@ -198,11 +198,11 @@ const TaskFuncTable4 D_actor_141000_80131E58 = { {
 /// The local-space offset the main body's state 1 (`func_actor_141000_80133B28`)
 /// rotates into `Actor141000Work::step`: straight ahead along the part's own
 /// axis, halved first while `field_4C8` is clear.
-const VECTOR D_actor_141000_80131E68 = { 0, 0, 0x300000 };
+static const VECTOR D_actor_141000_80131E68 = { 0, 0, 0x300000 };
 
 /// Draws the sixteen gouraud quads, each followed by a semi-transparency
 /// tpage change, at `arg2` depth minus 20.
-void func_actor_141000_80131E94(Task* arg0, Actor141000Point* arg1, s32 arg2)
+static void func_actor_141000_80131E94(Task* arg0, Actor141000Point* arg1, s32 arg2)
 {
     CVECTOR   colors[24];
     s8*       quad;
@@ -301,7 +301,7 @@ void func_actor_141000_80131E94(Task* arg0, Actor141000Point* arg1, s32 arg2)
     }
 }
 
-void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* arg2, s32* arg3)
+static void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* arg2, s32* arg3)
 {
     SVECTOR         a;
     SVECTOR         b;
@@ -436,7 +436,7 @@ void func_actor_141000_80132C24(Task* task)
 /// task from `D_actor_141000_801348D8` and installs `func_actor_141000_80132E04`
 /// as the exit callback before advancing to the per-frame state. A failed allocation kills
 /// the task instead of leaving a half-built controller behind.
-void func_actor_141000_80132C7C(Task* task)
+static void func_actor_141000_80132C7C(Task* task)
 {
     Actor141000CtrlWork* work;
     TmdObject*           obj;
@@ -464,7 +464,7 @@ void func_actor_141000_80132C7C(Task* task)
 /// halfword selects, sign-extended. A pending effect bit spawns the controller's
 /// effect through the model's root coordinate, and the session's teardown flag
 /// kills the task instead of letting it tick again.
-void func_actor_141000_80132D3C(Task* task)
+static void func_actor_141000_80132D3C(Task* task)
 {
     Actor141000CtrlWork* work;
     TaskFuncTable4       sp;
@@ -482,7 +482,7 @@ void func_actor_141000_80132D3C(Task* task)
 
 /// `Task::exitCallback` the controller's spawn state installs: it only hands
 /// the task to `taskKill`.
-void func_actor_141000_80132E04(Task* task)
+static void func_actor_141000_80132E04(Task* task)
 {
     taskKill(task);
 }
@@ -490,7 +490,7 @@ void func_actor_141000_80132E04(Task* task)
 /// State 0 of the handler table at 0x80131E3C: ramps the actor's Z scale by
 /// 1/16 a frame and, on reaching 1.0, clamps it there and advances the state
 /// index `state` the dispatcher at 0x80132D3C walks.
-void func_actor_141000_80132E24(Task* arg0)
+static void func_actor_141000_80132E24(Task* arg0)
 {
     Actor141000CtrlWork* work;
     u16                  scale;
@@ -508,7 +508,7 @@ void func_actor_141000_80132E24(Task* arg0)
 
 /// State 1 of the handler table at 0x80131E3C: holds for 0x1F frames, then
 /// advances the state index `state` the dispatcher at 0x80132D3C walks.
-void func_actor_141000_80132EB0(Task* arg0)
+static void func_actor_141000_80132EB0(Task* arg0)
 {
     Actor141000CtrlWork* work;
     u16                  ticks;
@@ -527,7 +527,7 @@ void func_actor_141000_80132EB0(Task* arg0)
 /// 0x80132D3C walks. Every eighth frame it spawns another actor from index 2
 /// of `D_actor_141000_801348D8` and copies this actor's world position onto
 /// the new one.
-void func_actor_141000_80132EF4(Task* arg0)
+static void func_actor_141000_80132EF4(Task* arg0)
 {
     Actor141000CtrlWork* work;
     TmdObject*           obj;
@@ -558,7 +558,7 @@ void func_actor_141000_80132EF4(Task* arg0)
     }
 }
 
-void func_actor_141000_80132FC8(Task* arg0)
+static void func_actor_141000_80132FC8(Task* arg0)
 {
 }
 
@@ -569,7 +569,7 @@ void func_actor_141000_80132FC8(Task* arg0)
 /// position into the root's translation, drop X by 40 and clear `flg`.
 /// Returns non-zero on the frame that ran past the table, which is what the
 /// state-2 handler at 0x80132EF4 advances `state` on.
-s32 func_actor_141000_80132FD0(GpCoord* arg0, s32 arg1)
+static s32 func_actor_141000_80132FD0(GpCoord* arg0, s32 arg1)
 {
     GpMtxWords* words;
     SVECTOR*    pos;
@@ -599,7 +599,7 @@ s32 func_actor_141000_80132FD0(GpCoord* arg0, s32 arg1)
     return ret;
 }
 
-void func_actor_141000_8013308C(GpCoord* arg0, s32 arg1)
+static void func_actor_141000_8013308C(GpCoord* arg0, s32 arg1)
 {
     VECTOR scale;
 
@@ -659,7 +659,7 @@ void func_actor_141000_801331AC(Task* task)
 /// Chains this actor's root coordinate under the spawner's root coordinate,
 /// hands the task to the spawner with `Task_Reparent`, arms `killCountdown` at
 /// 0x7FF and advances the state.
-void func_actor_141000_80133204(Task* task)
+static void func_actor_141000_80133204(Task* task)
 {
     task->extra.tmd->coords->sub = ((Task*)task->spawnArg2)->extra.tmd->coords;
     Task_Reparent((Task*)task->spawnArg2, task);
@@ -667,7 +667,7 @@ void func_actor_141000_80133204(Task* task)
     task->state        += 1;
 }
 
-void func_actor_141000_80133260(Task* arg0)
+static void func_actor_141000_80133260(Task* arg0)
 {
     Actor141000Point sp10[24];
     s32              spD0;
@@ -681,7 +681,7 @@ void func_actor_141000_80133260(Task* arg0)
 /// by `step` and moves the coordinate by their integer part, ticks the
 /// animation slots and ground shadow while visible, runs the texture-upload
 /// state, and counts `field_4C9` down to the buffer free.
-void func_actor_141000_801332A0(Task* task)
+static void func_actor_141000_801332A0(Task* task)
 {
     TmdObject*       ext      = task->extra.tmd;
     Actor141000Work* work     = (Actor141000Work*)task->work;
@@ -729,7 +729,7 @@ void func_actor_141000_801332A0(Task* task)
 /// shrinking below `limit`, plays anim 0x7D3 with a preset carrying the
 /// `model.nextAnimId` byte, clears `step` and advances the state; otherwise records
 /// the distance as the new `limit`.
-void func_actor_141000_80133490(Task* arg0)
+static void func_actor_141000_80133490(Task* arg0)
 {
     Actor141000Work* work;
     GpCoord*         coord;
@@ -777,7 +777,7 @@ void func_actor_141000_80133490(Task* arg0)
 /// starting over for step 3. Steps 1 and 2 share their whole tail, which is
 /// what makes the compiler emit one copy of it that step 1 jumps into; step 3
 /// only differs in clearing the step instead of advancing it.
-void func_actor_141000_801335D4(Task* arg0)
+static void func_actor_141000_801335D4(Task* arg0)
 {
     Actor141000Work* work;
     RECT             rect;
@@ -901,7 +901,7 @@ void func_actor_141000_801338C0(Task* task)
 /// and colour matrices onto the display object, then installs the message
 /// table and the exit callback `func_actor_141000_801339BC`. An allocation failure ends the task
 /// instead of leaving a half-built actor behind.
-void func_actor_141000_8013392C(Task* arg0)
+static void func_actor_141000_8013392C(Task* arg0)
 {
     Actor141000Work* work;
 
@@ -928,12 +928,12 @@ void func_actor_141000_8013392C(Task* arg0)
 
 /// `Task::exitCallback` the model actor's spawn state installs: it only hands
 /// the task to `Gp_EnemyTaskExit`.
-void func_actor_141000_801339BC(Task* arg0)
+static void func_actor_141000_801339BC(Task* arg0)
 {
     Gp_EnemyTaskExit(arg0);
 }
 
-void func_actor_141000_801339DC(Task* arg0)
+static void func_actor_141000_801339DC(Task* arg0)
 {
     TmdObject*       ext;
     Actor141000Work* work;
@@ -944,12 +944,12 @@ void func_actor_141000_801339DC(Task* arg0)
     ext->colorMtx = &work->model.color;
 }
 
-void func_actor_141000_801339F8(Task* arg0)
+static void func_actor_141000_801339F8(Task* arg0)
 {
 }
 
 /// Dispatches the actor's four main-body handlers by state.
-void func_actor_141000_80133A00(Task* arg0)
+static void func_actor_141000_80133A00(Task* arg0)
 {
     TaskFuncTable4   sp;
     Actor141000Work* work;
@@ -964,7 +964,7 @@ void func_actor_141000_80133A00(Task* arg0)
 /// Normalises the offset from the part's own translation, takes its yaw with
 /// `ratan2` and rebuilds the local matrix from that yaw alone, then clears
 /// `flg` so the world matrix is recomputed and advances the state.
-void func_actor_141000_80133A68(Task* task)
+static void func_actor_141000_80133A68(Task* task)
 {
     Actor141000Work* work;
     GpCoord*         coord;
@@ -999,7 +999,7 @@ void func_actor_141000_80133A68(Task* task)
 /// variant `func_actor_141000_80133F6C` latches through message 0x7DB -- then
 /// opens the per-axis stop threshold to 0x7FFF, which disables it for the
 /// update loop, and advances the state.
-void func_actor_141000_80133B28(Task* arg0)
+static void func_actor_141000_80133B28(Task* arg0)
 {
     Actor141000Work* work;
     GpCoord*         coord;
@@ -1029,7 +1029,7 @@ void func_actor_141000_80133B28(Task* arg0)
 /// to the target and plays anim 0x7D3 with a preset carrying the `model.nextAnimId`
 /// byte, clearing the two body counters. Either way the root coordinate is
 /// rebuilt as the identity matrix rotated by `vec`.
-void func_actor_141000_80133BD8(Task* arg0)
+static void func_actor_141000_80133BD8(Task* arg0)
 {
     Actor141000Work* work;
     GpMtxWords*      words;

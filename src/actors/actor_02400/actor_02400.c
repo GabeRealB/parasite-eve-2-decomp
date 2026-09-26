@@ -122,27 +122,27 @@ extern s16      Actor02400_D045DC[];
 extern s16      Actor02400_D0463C[];
 extern TaskDesc Actor02400_D0465C[];
 
-void Actor02400_Fn005BC(GpCoord* arg0, s32 arg1);
-void Actor02400_Fn0095C(GpEnemy* enemy, Task* task);
-void Actor02400_Fn024F8(GpEnemy* enemy, Task* task);
-void Actor02400_Fn02790(GpEnemy* enemy, Task* task);
-void Actor02400_Fn02AF0(GpEnemy* enemy, Task* task);
-void Actor02400_Fn02E0C(GpEnemy* enemy, Task* task);
-void Actor02400_Fn033B4(GpEnemy* enemy, Task* task);
-void Actor02400_Fn02EDC(Task* task);
-void Actor02400_Fn02F94(Task* task);
-void Actor02400_Fn03098(Task* task);
-void Actor02400_Fn03140(Task* task);
-void Actor02400_Fn031D0(Task* task);
-void Actor02400_Fn03228(Task* task);
-void Actor02400_Fn03278(Task* task);
+static void Actor02400_Fn005BC(GpCoord* arg0, s32 arg1);
+static void Actor02400_Fn0095C(GpEnemy* enemy, Task* task);
+static void Actor02400_Fn024F8(GpEnemy* enemy, Task* task);
+static void Actor02400_Fn02790(GpEnemy* enemy, Task* task);
+static void Actor02400_Fn02AF0(GpEnemy* enemy, Task* task);
+static void Actor02400_Fn02E0C(GpEnemy* enemy, Task* task);
+static void Actor02400_Fn033B4(GpEnemy* enemy, Task* task);
+static void Actor02400_Fn02EDC(Task* task);
+static void Actor02400_Fn02F94(Task* task);
+static void Actor02400_Fn03098(Task* task);
+static void Actor02400_Fn03140(Task* task);
+static void Actor02400_Fn031D0(Task* task);
+static void Actor02400_Fn03228(Task* task);
+static void Actor02400_Fn03278(Task* task);
 
 /// Draws the glow around `coord`: lights `Gp_RoomCoords[2]` there
 /// with a randomly flickering intensity, then projects `coord` and queues two
 /// `POLY_FT4` billboards around it, the outer one half again as large as
 /// `size`. With `Gp_State1C->groundTrace` set it traces the ground below and
 /// draws the ground quad there at twice the outer size.
-void Actor02400_Fn00064(GpCoord* coord, s16 size)
+static void Actor02400_Fn00064(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
     POLY_FT4*      prim;
@@ -277,7 +277,7 @@ void Actor02400_Fn00064(GpCoord* coord, s16 size)
 /// all four project, a semi-transparent `POLY_FT4` is queued one step behind
 /// their depth, its texture alternating between two frames with the display's
 /// animation frame.
-void Actor02400_Fn005BC(GpCoord* arg0, s32 arg1)
+static void Actor02400_Fn005BC(GpCoord* arg0, s32 arg1)
 {
     void**                scratch;
     u8*                   head;
@@ -372,7 +372,7 @@ void Actor02400_Fn005BC(GpCoord* arg0, s32 arg1)
 
 /// The main body's state handlers, run by `Actor02400_Fn02DB0` for the task's
 /// state: spawn, per-frame tick and death.
-const GpEnemyTaskFuncTable3 Actor02400_D00004 = {
+static const GpEnemyTaskFuncTable3 Actor02400_D00004 = {
     { Actor02400_Fn0095C, Actor02400_Fn02E0C, Actor02400_Fn024F8 },
 };
 
@@ -380,7 +380,7 @@ const GpEnemyTaskFuncTable3 Actor02400_D00004 = {
 /// and parameter variant from the placement, links the enemy node and both
 /// collision bodies, starts the scale at 0x600 with a random idle countdown,
 /// and moves the task to state 1.
-void Actor02400_Fn0095C(GpEnemy* enemy, Task* task)
+static void Actor02400_Fn0095C(GpEnemy* enemy, Task* task)
 {
     TmdObject*      obj;
     GpCoord*        coord;
@@ -459,7 +459,7 @@ void Actor02400_Fn0095C(GpEnemy* enemy, Task* task)
 /// kill sets the task to state 2; a solid contact (kind 3) pushes the body
 /// out along the deepest overlap. A hit on the second body's record costs the
 /// player the variant's MP.
-void Actor02400_Fn00C08(Task* task)
+static void Actor02400_Fn00C08(Task* task)
 {
     ActorPushFrame* scratch;
     GpCoord*        coord;
@@ -667,7 +667,7 @@ move_done:
 
 /// The projectile's state handlers, run by `Actor02400_Fn03358` for the task's
 /// state: spawn, flight and teardown.
-const GpEnemyTaskFuncTable3 Actor02400_D0003C = {
+static const GpEnemyTaskFuncTable3 Actor02400_D0003C = {
     { Actor02400_Fn02790, Actor02400_Fn02AF0, Actor02400_Fn033B4 },
 };
 
@@ -675,7 +675,7 @@ const GpEnemyTaskFuncTable3 Actor02400_D0003C = {
 /// checking the global wake flag each time it runs out, and wakes the body
 /// (mode 1, phase 2, unit scale) when the player comes within 1500 units on
 /// the ground plane or once a projectile has been spawned.
-void Actor02400_Fn01420(Task* task)
+static void Actor02400_Fn01420(Task* task)
 {
     Actor02400Work* work;
     GpCoord*        coord;
@@ -730,7 +730,7 @@ void Actor02400_Fn01420(Task* task)
 /// `field_148`. Once `field_14C` reports a hit on the second body, the body
 /// resets into mode 2, rolls its second part at random, plays the sound and
 /// takes hold of the `D_80115734` effect it spawns.
-void Actor02400_Fn01590(Task* task)
+static void Actor02400_Fn01590(Task* task)
 {
     Actor02400Work*   work;
     GpCoord*          coord;
@@ -859,7 +859,7 @@ void Actor02400_Fn01590(Task* task)
 /// by a further hit), phase 1 lowers it and after 7 frames either moves on to
 /// mode 3 when `field_14C` is set or returns to mode 1 with a random wait.
 /// Every frame the Y scale swings between 0xF00 and 0x1100.
-void Actor02400_Fn01A10(Task* task)
+static void Actor02400_Fn01A10(Task* task)
 {
     Actor02400Work* work;
     s32             state;
@@ -920,7 +920,7 @@ void Actor02400_Fn01A10(Task* task)
 /// `Actor02400_D0465C`, raises the wake flag, releases the effect and plays
 /// the sound, and phase 3 shrinks the scale back to its floor before returning
 /// to mode 1 with a random wait.
-void Actor02400_Fn01B90(Task* task)
+static void Actor02400_Fn01B90(Task* task)
 {
     Actor02400Work* work;
     GpCoord*        coord;
@@ -1029,7 +1029,7 @@ void Actor02400_Fn01B90(Task* task)
 /// Mode 5, stunned: shrinks the scale toward its floor, sets the held effect
 /// to state 4 and lets it go, and keeps the second body unhittable; after 360
 /// frames returns to mode 1 with a random wait.
-void Actor02400_Fn01F74(Task* task)
+static void Actor02400_Fn01F74(Task* task)
 {
     Actor02400Work* work = task->work;
 
@@ -1063,7 +1063,7 @@ void Actor02400_Fn01F74(Task* task)
 /// Rebuilds the model coordinate from the saved matrix `field_100`, scaled per
 /// axis by `field_128..field_12C`, keeping the coordinate's translation. The
 /// first body's height and the second body's reach follow the Y and Z scale.
-void Actor02400_Fn0208C(Task* task)
+static void Actor02400_Fn0208C(Task* task)
 {
     GpCoord*                coord;
     Actor02400Work*         work;
@@ -1103,7 +1103,7 @@ void Actor02400_Fn0208C(Task* task)
 /// rebuilds the root coordinate's rotation from the result. The yaw wraps at
 /// 0x1000: when the remaining turn would overshoot through the wrap the body
 /// snaps to the target instead.
-void Actor02400_Fn02264(Task* task)
+static void Actor02400_Fn02264(Task* task)
 {
     Actor02400Work*   work;
     GpCoord*          coord;
@@ -1174,7 +1174,7 @@ done:
 
 /// Every 25 frames plays the body's idle sound, panned and placed from the
 /// root coordinate and made louder the taller the body has grown.
-void Actor02400_Fn023B4(Task* task)
+static void Actor02400_Fn023B4(Task* task)
 {
     GpCoord*        object;
     s16             scale;
@@ -1213,7 +1213,7 @@ void Actor02400_Fn023B4(Task* task)
 /// releases the held effect; phase 1 squashes the body flat, turning it
 /// semi-transparent at frame 10, spawning the death effect at frame 15 and
 /// hiding it at frame 60; phase 2 destroys the enemy.
-void Actor02400_Fn024F8(GpEnemy* arg0, Task* arg1)
+static void Actor02400_Fn024F8(GpEnemy* arg0, Task* arg1)
 {
     VECTOR          pos;
     Actor02400Work* work;
@@ -1292,7 +1292,7 @@ void Actor02400_Fn024F8(GpEnemy* arg0, Task* arg1)
 /// parent's Z axis as its direction, links its three collision bodies (keys
 /// picked by the parent's variant), arms the 90-frame lifetime, detaches from
 /// the parent and moves the task to state 1.
-void Actor02400_Fn02790(GpEnemy* arg0, Task* arg1)
+static void Actor02400_Fn02790(GpEnemy* arg0, Task* arg1)
 {
     Actor02400Work*      parentWork;
     Task*                parent;
@@ -1396,7 +1396,7 @@ void Actor02400_Fn02790(GpEnemy* arg0, Task* arg1)
 /// and draws its glow. Once the lifetime `field_B0` runs out, its record is
 /// hit, or its swept shape touches a surface whose room parameter blocks it,
 /// it spawns the burst effect and moves the task to state 2.
-void Actor02400_Fn02AF0(GpEnemy* arg0, Task* arg1)
+static void Actor02400_Fn02AF0(GpEnemy* arg0, Task* arg1)
 {
     Actor02400ChildWork* work;
     GpCoord*             coord;
@@ -1443,7 +1443,7 @@ void Actor02400_Fn02AF0(GpEnemy* arg0, Task* arg1)
 /// While no event is running, one frame in four on average spawns the
 /// `D_80115728` effect at `arg0` with the flags in `arg1`, drifting outward at
 /// a random angle on the ground plane. Nothing in the package calls it.
-void Actor02400_Fn02CA4(GpCoord* arg0, s32 arg1)
+static void Actor02400_Fn02CA4(GpCoord* arg0, s32 arg1)
 {
     SVECTOR sp10;
     SVECTOR sp18;
@@ -1477,7 +1477,7 @@ void Actor02400_Fn02DB0(Task* arg0)
 /// model; in mode 1 it only refreshes the colour and the ground mark. Otherwise
 /// it resolves contacts, runs the current mode, turns, steps forward, moves
 /// the two front parts, rescales the model and updates its coordinate first.
-void Actor02400_Fn02E0C(GpEnemy* enemy, Task* task)
+static void Actor02400_Fn02E0C(GpEnemy* enemy, Task* task)
 {
     GpCoord*   coord;
     TmdObject* obj;
@@ -1512,7 +1512,7 @@ case1:
 /// Runs the handler of the body's current mode `field_13C`: dormant, awake,
 /// recoiling, spawning, hurt or stunned. The awake, recoiling and spawning
 /// modes also play the idle sound.
-void Actor02400_Fn02EDC(Task* task)
+static void Actor02400_Fn02EDC(Task* task)
 {
     switch (((Actor02400Work*)task->work)->field_13C) {
         case 0:
@@ -1542,7 +1542,7 @@ void Actor02400_Fn02EDC(Task* task)
 /// Mode 4, hurt: swings the Y scale between 0x1400 and 0x1800 in steps of
 /// 0x200, releases the held effect (state 4) and keeps the second body
 /// unhittable; after 16 frames returns to mode 1 with a random wait.
-void Actor02400_Fn02F94(Task* task)
+static void Actor02400_Fn02F94(Task* task)
 {
     Actor02400Work* work;
     Task**          held;
@@ -1585,7 +1585,7 @@ void Actor02400_Fn02F94(Task* task)
 /// Moves the model's two front parts: coordinates 2 and 3 slide out along
 /// their Z axis while `field_134` is set and back while it is clear, part 2
 /// down to 0 and part 3 down to 0x1E.
-void Actor02400_Fn03098(Task* task)
+static void Actor02400_Fn03098(Task* task)
 {
     Actor02400Work* work;
     GpCoord*        coord;
@@ -1624,7 +1624,7 @@ void Actor02400_Fn03098(Task* task)
 /// Saves the root coordinate's position into `field_120..field_124`, then
 /// steps it forward along its own Z axis by the speed `field_138` and drops it
 /// 0x80.
-void Actor02400_Fn03140(Task* task)
+static void Actor02400_Fn03140(Task* task)
 {
     Actor02400Work* work;
     GpCoord*        coord;
@@ -1641,7 +1641,7 @@ void Actor02400_Fn03140(Task* task)
 }
 
 /// Refreshes the body's colour from where its root coordinate stands.
-void Actor02400_Fn031D0(Task* task)
+static void Actor02400_Fn031D0(Task* task)
 {
     GpCoord* coord;
     VECTOR   vec;
@@ -1654,7 +1654,7 @@ void Actor02400_Fn031D0(Task* task)
 }
 
 /// Draws the body's ground mark at its root coordinate's world position.
-void Actor02400_Fn03228(Task* task)
+static void Actor02400_Fn03228(Task* task)
 {
     GpCoord* coord;
     VECTOR3  vec;
@@ -1668,7 +1668,7 @@ void Actor02400_Fn03228(Task* task)
 
 /// Squashes the dying body: restores the saved model matrix `field_100` into
 /// the root coordinate and scales it on Y by `field_12A`.
-void Actor02400_Fn03278(Task* task)
+static void Actor02400_Fn03278(Task* task)
 {
     void**             scratch;
     ActorScaleScratch* head;
@@ -1710,7 +1710,7 @@ void Actor02400_Fn03358(Task* arg0)
 
 /// Teardown handler of the projectile: phase 0 unlinks its three collision
 /// bodies and waits 60 frames, then phase 1 destroys the enemy.
-void Actor02400_Fn033B4(GpEnemy* arg0, Task* arg1)
+static void Actor02400_Fn033B4(GpEnemy* arg0, Task* arg1)
 {
     Actor02400ChildWork* work;
     u16                  temp_v0;

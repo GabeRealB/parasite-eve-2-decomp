@@ -435,17 +435,5 @@ s32  func_actor_503500_80136208(void);
 s16  func_actor_503500_80136218(void);
 void func_actor_503500_80137290(s32 arg0);
 void func_actor_503500_801372AC(s32 arg0);
-void func_actor_503500_80137678(Task* arg0);
-void func_actor_503500_80137C90(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
-void func_actor_503500_80138454(Task* arg0);
-void func_actor_503500_80138490(Task* arg0, s32 arg1);
-void func_actor_503500_80139014(Task* arg0);
-void func_actor_503500_80139A20(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
-void func_actor_503500_80139EFC(Task* arg0);
-void func_actor_503500_8013A7B0(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out);
-void func_actor_503500_8013AB38(Task* arg0);
-void func_actor_503500_8013BD0C(Task* arg0);
-void func_actor_503500_8013EE5C(Task* arg0, Actor503500Work* work, GpRec18* rec, s32 count);
-void func_actor_503500_8014176C(SVECTOR* pts, GpCoord* coords);
 
 #endif

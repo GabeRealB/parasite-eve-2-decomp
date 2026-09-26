@@ -86,18 +86,18 @@ void func_801353D0(ActorEffectState* state, GpCoord* coord);
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_361100_80161FF8(Task* arg0);
-void func_actor_361100_80162B18(Task* task);
-void func_actor_361100_80162D28(Task* arg0);
-void func_actor_361100_80162DE4(Task* arg0);
-void func_actor_361100_80162E04(Task* arg0);
-void func_actor_361100_801631C4(Task* task);
-void func_actor_361100_80163410(Task* arg0);
-void func_actor_361100_80163494(Task* arg0);
-void func_actor_361100_801634B4(Task* arg0);
+static void func_actor_361100_80161FF8(Task* arg0);
+static void func_actor_361100_80162B18(Task* task);
+static void func_actor_361100_80162D28(Task* arg0);
+static void func_actor_361100_80162DE4(Task* arg0);
+static void func_actor_361100_80162E04(Task* arg0);
+static void func_actor_361100_801631C4(Task* task);
+static void func_actor_361100_80163410(Task* arg0);
+static void func_actor_361100_80163494(Task* arg0);
+static void func_actor_361100_801634B4(Task* arg0);
 
 /// `Task::state` handlers `func_actor_361100_80162CBC` dispatches through.
-const TaskFuncTable3 D_actor_361100_80161E24 = {
+static const TaskFuncTable3 D_actor_361100_80161E24 = {
     {
         func_actor_361100_80162D28,
         func_actor_361100_80162B18,
@@ -106,7 +106,7 @@ const TaskFuncTable3 D_actor_361100_80161E24 = {
 };
 
 /// `Task::state` handlers `func_actor_361100_801633A4` dispatches through.
-const TaskFuncTable3 D_actor_361100_80161E30 = {
+static const TaskFuncTable3 D_actor_361100_80161E30 = {
     {
         func_actor_361100_80163410,
         func_actor_361100_801631C4,
@@ -207,7 +207,7 @@ void func_actor_361100_80161E3C(Task* arg0)
 /// slot the retail frame carries). The `do { } while (0)` around the wave latch
 /// raises the loop weight of `wave`'s references so it outranks the two masks
 /// for `$t3`, as retail does.
-void func_actor_361100_80161FF8(Task* arg0)
+static void func_actor_361100_80161FF8(Task* arg0)
 {
     DisplayState*          disp;
     OverlayRippleScratch*  block;
@@ -653,7 +653,7 @@ void func_actor_361100_80162AEC(s32 bits)
     gGameSession->flowFlags |= bits;
 }
 
-void func_actor_361100_80162B0C(void)
+static void func_actor_361100_80162B0C(void)
 {
     D_actor_361100_80171BE0 = 0;
 }
@@ -670,7 +670,7 @@ void func_actor_361100_80162B0C(void)
 /// one integrates the 0x490 group `func_actor_361100_801630D4` arms and draws
 /// a ground shadow under the second part, this one the 0x480 group
 /// `func_actor_361100_80163750` arms.
-void func_actor_361100_80162B18(Task* task)
+static void func_actor_361100_80162B18(Task* task)
 {
     TmdObject*       ext  = task->extra.tmd;
     Actor361100Work* work = (Actor361100Work*)task->work;
@@ -737,7 +737,7 @@ void func_actor_361100_80162CBC(Task* task)
 /// `func_actor_361100_80162E04` state with `D_actor_361100_8016BAF0`
 /// installed at `Task::msgTable`. The task exits through
 /// `func_actor_361100_80162DE4` if the allocation fails.
-void func_actor_361100_80162D28(Task* arg0)
+static void func_actor_361100_80162D28(Task* arg0)
 {
     Actor361100Work* work;
     GpCoord*         coord;
@@ -772,12 +772,12 @@ void func_actor_361100_80162D28(Task* arg0)
     arg0->state       += 1;
 }
 
-void func_actor_361100_80162DE4(Task* arg0)
+static void func_actor_361100_80162DE4(Task* arg0)
 {
     Gp_EnemyTaskExit(arg0);
 }
 
-void func_actor_361100_80162E04(Task* arg0)
+static void func_actor_361100_80162E04(Task* arg0)
 {
     TmdObject*       ext;
     Actor361100Work* work;
@@ -948,7 +948,7 @@ s32 func_actor_361100_801630D4(Task* task, s32 arg1, GpCmdArg* msg)
 /// re-ranks it through `func_800D7A9C`. `field_4A2` counts the second part's
 /// buffers down to the free. Every use of the second part's coordinate
 /// (`TmdObject::coords[1]`) is re-read from `task`, not cached.
-void func_actor_361100_801631C4(Task* task)
+static void func_actor_361100_801631C4(Task* task)
 {
     TmdObject*       ext  = task->extra.tmd;
     Actor361100Work* work = (Actor361100Work*)task->work;
@@ -1009,7 +1009,7 @@ void func_actor_361100_801633A4(Task* task)
     }
 }
 
-void func_actor_361100_80163410(Task* arg0)
+static void func_actor_361100_80163410(Task* arg0)
 {
     Actor361100Work* work;
 
@@ -1029,12 +1029,12 @@ void func_actor_361100_80163410(Task* arg0)
     arg0->state       += 1;
 }
 
-void func_actor_361100_80163494(Task* arg0)
+static void func_actor_361100_80163494(Task* arg0)
 {
     Gp_EnemyTaskExit(arg0);
 }
 
-void func_actor_361100_801634B4(Task* arg0)
+static void func_actor_361100_801634B4(Task* arg0)
 {
     TmdObject*       ext;
     Actor361100Work* work;

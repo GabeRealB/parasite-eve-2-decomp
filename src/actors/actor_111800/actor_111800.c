@@ -59,7 +59,7 @@ void func_80182360(s32);
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.
-void func_actor_111800_80131E40(GpCoord* coord, s16 yaw)
+static void func_actor_111800_80131E40(GpCoord* coord, s16 yaw)
 {
     MATRIX*  rotation;
     GpCoord* out;
@@ -111,7 +111,7 @@ static inline void _actor111800Reseed(Task* task, u16 id, u16 frames)
 /// into `field_492`, then runs the seven-step sequence in `field_484` (reseed,
 /// ramp the two angles, wait, reverse the first angle, reseed again, wait,
 /// then drop the model coordinate's Z and clear its flag).
-void func_actor_111800_8013214C(Task* task)
+static void func_actor_111800_8013214C(Task* task)
 {
     Actor111800Work* work;
     GpCoord*         coord;
@@ -191,7 +191,7 @@ void func_actor_111800_8013214C(Task* task)
 /// stored straight from `$v0` and the failing branch tests that register, which
 /// is what leaves the surviving copy of it to be emitted *after* the branch --
 /// one declaration earlier and the copy lands before the test.
-void func_actor_111800_80132390(Task* task)
+static void func_actor_111800_80132390(Task* task)
 {
     Actor111800Work* work;
     Actor111800Work* work2;

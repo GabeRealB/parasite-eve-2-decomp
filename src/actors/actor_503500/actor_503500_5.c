@@ -118,8 +118,8 @@ typedef struct Actor503500Effect4CC {
 } Actor503500Effect4CC;
 STATIC_ASSERT_SIZEOF(Actor503500Effect4CC, 0x4CC);
 
-void func_actor_503500_801464E8(Task* arg0);
-void func_actor_503500_80146508(Task* arg0);
+static void func_actor_503500_801464E8(Task* arg0);
+static void func_actor_503500_80146508(Task* arg0);
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_503500_8014642C`; terminator id 0x7FFFFFFF.
@@ -138,14 +138,14 @@ extern Actor503500UVec D_actor_503500_801715C4;
 extern Actor503500UVec D_actor_503500_801715CC;
 /// Local offset of the display node `func_actor_503500_801455A4` links.
 extern Actor503500UVec D_actor_503500_801715D4;
-void                   func_actor_503500_80145480(Task* arg0);
-void                   func_actor_503500_801450A0(Task* arg0);
-void                   func_actor_503500_801454E0(Task* arg0);
-void                   func_actor_503500_80145754(Task* arg0);
-void                   func_actor_503500_80145950(Task* arg0);
-void                   func_actor_503500_801459B0(Task* arg0);
-void                   func_actor_503500_80145C50(Task* arg0);
-void                   func_actor_503500_80145F18(Task* arg0);
+static void            func_actor_503500_80145480(Task* arg0);
+static void            func_actor_503500_801450A0(Task* arg0);
+static void            func_actor_503500_801454E0(Task* arg0);
+static void            func_actor_503500_80145754(Task* arg0);
+static void            func_actor_503500_80145950(Task* arg0);
+static void            func_actor_503500_801459B0(Task* arg0);
+static void            func_actor_503500_80145C50(Task* arg0);
+static void            func_actor_503500_80145F18(Task* arg0);
 /// libgte routine right after `RotMatrixX` in the main executable (likely
 /// `RotMatrixY`); rotates `m` in place by `angle`.
 void func_8004BFF8(s32 angle, MATRIX* m);
@@ -155,25 +155,25 @@ void func_8004BFF8(s32 angle, MATRIX* m);
 extern GpU16Pair*      D_actor_503500_8016E7DC[];
 extern Actor503500UVec D_actor_503500_801715DC;
 extern Actor503500UVec D_actor_503500_801715E4;
-void                   func_actor_503500_80145E98(Task* arg0);
-void                   func_actor_503500_8014618C(Task* arg0);
-void                   func_actor_503500_80146524(Task* arg0);
+static void            func_actor_503500_80145E98(Task* arg0);
+static void            func_actor_503500_8014618C(Task* arg0);
+static void            func_actor_503500_80146524(Task* arg0);
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void         func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 extern void* D_actor_503500_80176520[];
-void         func_actor_503500_80144E8C(Task* arg0);
-void         func_actor_503500_80145428(Task* arg0);
-void         func_actor_503500_801455A4(Task* arg0);
-void         func_actor_503500_801458F8(Task* arg0);
-void         func_actor_503500_80145A2C(Task* arg0);
-void         func_actor_503500_80145E1C(Task* arg0);
-void         func_actor_503500_8014642C(Task* arg0);
-void         func_actor_503500_80145FDC(Task* task);
-void         func_actor_503500_801464E8(Task* arg0);
+static void  func_actor_503500_80144E8C(Task* arg0);
+static void  func_actor_503500_80145428(Task* arg0);
+static void  func_actor_503500_801455A4(Task* arg0);
+static void  func_actor_503500_801458F8(Task* arg0);
+static void  func_actor_503500_80145A2C(Task* arg0);
+static void  func_actor_503500_80145E1C(Task* arg0);
+static void  func_actor_503500_8014642C(Task* arg0);
+static void  func_actor_503500_80145FDC(Task* task);
+static void  func_actor_503500_801464E8(Task* arg0);
 
 /// `Task::state` handlers `func_actor_503500_8014554C` dispatches through.
-const TaskFuncTable3 D_actor_503500_801321F4 = {
+static const TaskFuncTable3 D_actor_503500_801321F4 = {
     {
         func_actor_503500_80144E8C,
         func_actor_503500_80145428,
@@ -181,7 +181,7 @@ const TaskFuncTable3 D_actor_503500_801321F4 = {
     },
 };
 
-void func_actor_503500_80144E8C(Task* arg0)
+static void func_actor_503500_80144E8C(Task* arg0)
 {
     Actor503500WorkD0* work;
     GpCoord*           coord;
@@ -259,7 +259,7 @@ void func_actor_503500_80144E8C(Task* arg0)
     arg0->state       += 1;
 }
 
-void func_actor_503500_801450A0(Task* arg0)
+static void func_actor_503500_801450A0(Task* arg0)
 {
     Actor503500WorkD0* work;
     GpActorD4Rec*      d4;
@@ -369,7 +369,7 @@ void func_actor_503500_801450A0(Task* arg0)
     }
 }
 
-void func_actor_503500_80145428(Task* arg0)
+static void func_actor_503500_80145428(Task* arg0)
 {
     GpCoord* coord;
     s32      state;
@@ -386,7 +386,7 @@ void func_actor_503500_80145428(Task* arg0)
     func_actor_503500_801450A0(arg0);
 }
 
-void func_actor_503500_80145480(Task* arg0)
+static void func_actor_503500_80145480(Task* arg0)
 {
     TmdObject* ext;
 
@@ -398,7 +398,7 @@ void func_actor_503500_80145480(Task* arg0)
     taskKill(arg0);
 }
 
-void func_actor_503500_801454E0(Task* arg0)
+static void func_actor_503500_801454E0(Task* arg0)
 {
     Actor503500WorkRec4* work;
     GpRec18*             rec;
@@ -423,7 +423,7 @@ void func_actor_503500_8014554C(Task* task)
 }
 
 /// `Task::state` handlers `func_actor_503500_801459D4` dispatches through.
-const TaskFuncTable3 D_actor_503500_80132218 = {
+static const TaskFuncTable3 D_actor_503500_80132218 = {
     {
         func_actor_503500_801455A4,
         func_actor_503500_801458F8,
@@ -431,7 +431,7 @@ const TaskFuncTable3 D_actor_503500_80132218 = {
     },
 };
 
-void func_actor_503500_801455A4(Task* arg0)
+static void func_actor_503500_801455A4(Task* arg0)
 {
     Actor503500Work44* work;
     GpCoord*           coord;
@@ -482,7 +482,7 @@ void func_actor_503500_801455A4(Task* arg0)
     arg0->state       += 1;
 }
 
-void func_actor_503500_80145754(Task* arg0)
+static void func_actor_503500_80145754(Task* arg0)
 {
     Actor503500Work44* work;
     GpCoord*           coord;
@@ -524,7 +524,7 @@ void func_actor_503500_80145754(Task* arg0)
     arg0->state += 1;
 }
 
-void func_actor_503500_801458F8(Task* arg0)
+static void func_actor_503500_801458F8(Task* arg0)
 {
     GpCoord* coord;
     s32      state;
@@ -541,7 +541,7 @@ void func_actor_503500_801458F8(Task* arg0)
     func_actor_503500_80145754(arg0);
 }
 
-void func_actor_503500_80145950(Task* arg0)
+static void func_actor_503500_80145950(Task* arg0)
 {
     TmdObject* ext;
 
@@ -553,7 +553,7 @@ void func_actor_503500_80145950(Task* arg0)
     taskKill(arg0);
 }
 
-void func_actor_503500_801459B0(Task* arg0)
+static void func_actor_503500_801459B0(Task* arg0)
 {
     Gp_ClearRec18Occupied(&((Actor503500ObjWork*)arg0->work)->rec);
 }
@@ -567,7 +567,7 @@ void func_actor_503500_801459D4(Task* task)
 }
 
 /// `Task::state` handlers `func_actor_503500_80145F84` dispatches through.
-const TaskFuncTable3 D_actor_503500_80132224 = {
+static const TaskFuncTable3 D_actor_503500_80132224 = {
     {
         func_actor_503500_80145A2C,
         func_actor_503500_80145E1C,
@@ -575,7 +575,7 @@ const TaskFuncTable3 D_actor_503500_80132224 = {
     },
 };
 
-void func_actor_503500_80145A2C(Task* arg0)
+static void func_actor_503500_80145A2C(Task* arg0)
 {
     Actor503500WorkAC* work;
     GpCoord*           coord;
@@ -648,7 +648,7 @@ void func_actor_503500_80145A2C(Task* arg0)
     arg0->state       += 1;
 }
 
-void func_actor_503500_80145C50(Task* arg0)
+static void func_actor_503500_80145C50(Task* arg0)
 {
     Actor503500WorkAC* work;
     GpCoord*           coord;
@@ -693,7 +693,7 @@ void func_actor_503500_80145C50(Task* arg0)
     }
 }
 
-void func_actor_503500_80145E1C(Task* arg0)
+static void func_actor_503500_80145E1C(Task* arg0)
 {
     GpCoord* coord;
     s32      state;
@@ -713,7 +713,7 @@ void func_actor_503500_80145E1C(Task* arg0)
     }
 }
 
-void func_actor_503500_80145E98(Task* arg0)
+static void func_actor_503500_80145E98(Task* arg0)
 {
     TmdObject* ext;
 
@@ -727,7 +727,7 @@ void func_actor_503500_80145E98(Task* arg0)
     taskKill(arg0);
 }
 
-void func_actor_503500_80145F18(Task* arg0)
+static void func_actor_503500_80145F18(Task* arg0)
 {
     Actor503500WorkRec4* work;
     GpRec18*             rec;
@@ -752,7 +752,7 @@ void func_actor_503500_80145F84(Task* task)
 }
 
 /// `Task::state` handlers `func_actor_503500_801463C0` dispatches through.
-const TaskFuncTable3 D_actor_503500_80132230 = {
+static const TaskFuncTable3 D_actor_503500_80132230 = {
     {
         func_actor_503500_8014642C,
         func_actor_503500_80145FDC,
@@ -764,7 +764,7 @@ const TaskFuncTable3 D_actor_503500_80132230 = {
 /// handler `field_4C0` selects, adds the 16.16 velocity `field_4B0` onto the
 /// accumulator `field_4A0`, moves the coordinate by the integer part and keeps
 /// only the fraction, then ticks the animation slots and the actor colour.
-void func_actor_503500_80145FDC(Task* task)
+static void func_actor_503500_80145FDC(Task* task)
 {
     VECTOR                pos;
     TmdObject*            ext      = task->extra.tmd;
@@ -812,7 +812,7 @@ void func_actor_503500_80145FDC(Task* task)
 /// rotation every frame while squashing its Y scale `field_4C6` from 0x1000 down
 /// to 0x200, firing the light and spark cues on the way before advancing the
 /// task at frame 150.
-void func_actor_503500_8014618C(Task* arg0)
+static void func_actor_503500_8014618C(Task* arg0)
 {
     VECTOR                scale;
     GpCoord*              coord;
@@ -893,7 +893,7 @@ void func_actor_503500_801463C0(Task* task)
     }
 }
 
-void func_actor_503500_8014642C(Task* arg0)
+static void func_actor_503500_8014642C(Task* arg0)
 {
     Actor503500Effect4CC* work;
     GpCoord*              coord;
@@ -930,12 +930,12 @@ void func_actor_503500_8014642C(Task* arg0)
 /// `Task::exitCallback` of the effect task `func_actor_503500_8014642C`
 /// initialises, and the third entry of its state table: hands the task to
 /// `Gp_EnemyTaskExit`.
-void func_actor_503500_801464E8(Task* arg0)
+static void func_actor_503500_801464E8(Task* arg0)
 {
     Gp_EnemyTaskExit(arg0);
 }
 
-void func_actor_503500_80146508(Task* arg0)
+static void func_actor_503500_80146508(Task* arg0)
 {
     TmdObject*            ext;
     Actor503500Effect4CC* work;
@@ -946,7 +946,7 @@ void func_actor_503500_80146508(Task* arg0)
     ext->colorMtx = &work->model.color;
 }
 
-void func_actor_503500_80146524(Task* arg0)
+static void func_actor_503500_80146524(Task* arg0)
 {
 }
 

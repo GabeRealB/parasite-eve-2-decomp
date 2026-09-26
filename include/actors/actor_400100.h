@@ -239,17 +239,7 @@ extern char  Actor00100_D11F90;
 extern char  Actor00100_D12470;
 extern void* D_80114B78[1];
 
-void Actor00100_Fn09310(Task* arg0);
-
-void Actor00100_Fn04270(Task* argx);
-s32  Actor00100_Fn00A54(GpCoord* coord, GpRec18* movement, s16 arg2);
-s32  Actor00100_Fn00BF8(Task* arg0);
-void Actor00100_Fn02788(Task* arg0);
-void Actor00100_Fn0B658(Task* arg0);
-void Actor00100_Fn0B3B4(Task* task);
-s32  Actor00100_Fn0B264(Task* task);
-s32  Actor00100_Fn0B1A4(Task* arg0, s32 arg1, s32 arg2);
-
-s32 Actor00100_Fn00508(GpCoord* coord, GpRec18* records, s16 count, SVECTOR* pos);
+s32 Actor00100_Fn0B264(Task* task);
+s32 Actor00100_Fn0B1A4(Task* arg0, s32 arg1, s32 arg2);
 
 #endif

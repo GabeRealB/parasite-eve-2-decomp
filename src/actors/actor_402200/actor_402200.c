@@ -34,30 +34,30 @@ extern s16 D_actor_402200_801383AC[];
 extern Actor402200FrameStep D_actor_402200_801383D8[];
 
 /// Reacts to the damage just taken; see its definition.
-void func_actor_402200_801324E8(Task* arg0, s32 arg1);
+static void func_actor_402200_801324E8(Task* arg0, s32 arg1);
 
 /// Runs the one-shot vocal cue armed by `field_718`; see its definition.
-void func_actor_402200_801380D8(Task* arg0);
+static void func_actor_402200_801380D8(Task* arg0);
 
 /// Aims the actor at the player; see its definition.
-void func_actor_402200_80135D5C(Task* arg0);
+static void func_actor_402200_80135D5C(Task* arg0);
 
 /// Parks the actor's target position off the player; see its definition.
-void func_actor_402200_80132E34(Task* arg0);
+static void func_actor_402200_80132E34(Task* arg0);
 
 /// Reports whether the player stands in one of the kind-1 boxes; see its
 /// definition.
-s32 func_actor_402200_80132D78(Task* arg0);
+static s32 func_actor_402200_80132D78(Task* arg0);
 
 /// Draws the red trail between the two projected points; see its definition.
-void func_actor_402200_80136184(Task* arg0);
+static void func_actor_402200_80136184(Task* arg0);
 
 /// Rebuilds the root part's scaled rotation; see its definition.
-void func_actor_402200_80137CA4(Task* arg0);
+static void func_actor_402200_80137CA4(Task* arg0);
 
 /// Projects a coordinate and queues the frame-buffer pass at its depth; see
 /// its definition.
-void func_actor_402200_80138208(GpCoord* arg0, s32 arg1);
+static void func_actor_402200_80138208(GpCoord* arg0, s32 arg1);
 
 /// Per-roll wait lengths state 0 of `func_actor_402200_801329A4` scales by
 /// `16 - field_70C`, indexed by a 4-bit `Gp_LcgState` draw.
@@ -125,15 +125,15 @@ void    func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-void func_actor_402200_801368E0(GpEnemy* arg0, Task* arg1);
-void func_actor_402200_80137444(GpEnemy* arg0, Task* arg1);
-void func_actor_402200_80137A1C(GpEnemy* arg0, Task* arg1);
-void func_actor_402200_80137B74(Task* arg0);
-void func_actor_402200_80137D78(Task* arg0);
-void func_actor_402200_80137E48(Task* arg0);
-void func_actor_402200_80137EEC(Task* arg0);
-void func_actor_402200_80137FB0(Task* arg0);
-void func_actor_402200_8013806C(Task* arg0);
+static void func_actor_402200_801368E0(GpEnemy* arg0, Task* arg1);
+static void func_actor_402200_80137444(GpEnemy* arg0, Task* arg1);
+static void func_actor_402200_80137A1C(GpEnemy* arg0, Task* arg1);
+static void func_actor_402200_80137B74(Task* arg0);
+static void func_actor_402200_80137D78(Task* arg0);
+static void func_actor_402200_80137E48(Task* arg0);
+static void func_actor_402200_80137EEC(Task* arg0);
+static void func_actor_402200_80137FB0(Task* arg0);
+static void func_actor_402200_8013806C(Task* arg0);
 
 /// Per-frame hit handler: applies the `func_800E0C10` push-back from the
 /// `field_504` and (while bit 0x4000 of `field_49A` is set) `field_49C`
@@ -142,7 +142,7 @@ void func_actor_402200_8013806C(Task* arg0);
 /// damage from the distance to the player, applies it to the `GpEnemy`,
 /// spawns the hit sparks once per distinct id and hands the damage to
 /// `func_actor_402200_801324E8` unless the vocal cue is armed.
-void func_actor_402200_80131F54(Task* arg0)
+static void func_actor_402200_80131F54(Task* arg0)
 {
     s32                    lastId;
     Actor402200Work*       work;
@@ -315,7 +315,7 @@ void func_actor_402200_80131F54(Task* arg0)
 /// 5 for damage below 0x50 and 6 above. A sequence change restarts its state
 /// and clears bit 0x8000 of `field_582`; the `field_6F0` variants leave a
 /// sequence already held by `field_6F2` running.
-void func_actor_402200_801324E8(Task* arg0, s32 arg1)
+static void func_actor_402200_801324E8(Task* arg0, s32 arg1)
 {
     GpEnemy*         enemy = arg0->spawnArg2;
     s16              hp    = enemy->hp;
@@ -395,7 +395,7 @@ void func_actor_402200_801324E8(Task* arg0, s32 arg1)
 /// `field_70E` at 3 and its index in `field_708`. State 1 enters sequence 1
 /// (and `field_70E` 1) unless the first record is occupied, clears the target
 /// flags and the record, and drops back to state 0.
-void func_actor_402200_80132688(Task* arg0)
+static void func_actor_402200_80132688(Task* arg0)
 {
     u8*                    head;
     Actor402200BoxScratch* sc;
@@ -468,7 +468,7 @@ void func_actor_402200_80132688(Task* arg0)
 /// down, 2 picks state 3 or 4 from `field_70E` and an LCG draw offset by
 /// `field_710` (or 5 when `func_actor_402200_80132D78` reports a box hit), and 3-5
 /// settle the result, walking `field_70C` up to 12.
-void func_actor_402200_801329A4(Task* arg0)
+static void func_actor_402200_801329A4(Task* arg0)
 {
     Actor402200Work* work;
 
@@ -583,7 +583,7 @@ void func_actor_402200_801329A4(Task* arg0)
 /// whose box holds the player's world position (x between `field_8` and
 /// `field_C`, z between `field_E` and `field_A`), parks its index in
 /// `field_708` and answers 1. Otherwise it answers 0.
-s32 func_actor_402200_80132D78(Task* arg0)
+static s32 func_actor_402200_80132D78(Task* arg0)
 {
     Actor402200Work* work;
     s16              count;
@@ -613,7 +613,7 @@ s32 func_actor_402200_80132D78(Task* arg0)
 /// within a quarter turn either side while `field_6E8` is clear), derives
 /// `field_5DC` / `field_5E0` from it, adds the player's heading and places the
 /// target 0x4B out along the result, raising bit 0x4000 of `field_5BA`.
-void func_actor_402200_80132E34(Task* arg0)
+static void func_actor_402200_80132E34(Task* arg0)
 {
     u8*                       head;
     Actor402200OffsetScratch* sc;
@@ -684,7 +684,7 @@ void func_actor_402200_80132E34(Task* arg0)
 /// ends it early. State 5 either reacts to `field_6F4` or, at frame 0x1A,
 /// spawns the spark, sends message 0x400 and clears `Player_Status.hp`; state 7
 /// then loads file 9/0x1E and queues cue 0x70010001 once the CD is idle.
-void func_actor_402200_8013314C(Task* arg0)
+static void func_actor_402200_8013314C(Task* arg0)
 {
     Actor402200Work*        work;
     GpCoord*                coord;
@@ -951,7 +951,7 @@ void func_actor_402200_8013314C(Task* arg0)
 /// `field_70A` is positive, and 6 returns to state 0. State 5 reacts to the
 /// animation's `field_6C4`: 0x14 and 0x1C bind `field_56C` to a body part and
 /// queue the strike cue, and 0x23 ends the strike in state 6.
-void func_actor_402200_80133AEC(Task* arg0)
+static void func_actor_402200_80133AEC(Task* arg0)
 {
     Actor402200OffsetScratch* sc;
     Actor402200Work*          work;
@@ -1137,7 +1137,7 @@ void func_actor_402200_80133AEC(Task* arg0)
 /// than 0x180 (state 4). State 3 steps `field_6C8` through the frame table
 /// `D_actor_402200_801383D8` and fires its per-frame events; state 4 counts
 /// `field_6D4` down back to state 0.
-void func_actor_402200_80134194(Task* arg0)
+static void func_actor_402200_80134194(Task* arg0)
 {
     u8*                       head;
     Actor402200OffsetScratch* sc;
@@ -1302,7 +1302,7 @@ void func_actor_402200_80134194(Task* arg0)
 /// the frame it runs out, arms the `field_6DA`/`field_6DC`/`field_6DE`/
 /// `field_6E0` timers, clears the state and `field_6CC`, and queues the actor's
 /// cue, panned and depth-attenuated from the display object.
-void func_actor_402200_801347F4(Task* arg0)
+static void func_actor_402200_801347F4(Task* arg0)
 {
     Actor402200Work* work;
     GpCoord*         coord;
@@ -1353,7 +1353,7 @@ void func_actor_402200_801347F4(Task* arg0)
 /// `scale.vy` down before resetting the root matrix to identity. States 7-9
 /// flicker between two LCG-rolled timings, spawning effect 0x600E0 at the
 /// fourth part on odd animation frames.
-void func_actor_402200_80134968(Task* arg0)
+static void func_actor_402200_80134968(Task* arg0)
 {
     SVECTOR*         sc;
     Actor402200Work* work;
@@ -1599,7 +1599,7 @@ void func_actor_402200_80134968(Task* arg0)
 /// display object. State 1 waits for the animation to reach 0x37 frames and
 /// then puts the state back to 0, flipping the mode to 2 and raising
 /// `field_6CC` if it was 1.
-void func_actor_402200_8013539C(Task* arg0)
+static void func_actor_402200_8013539C(Task* arg0)
 {
     Actor402200Work* work;
     GpCoord*         coord;
@@ -1646,7 +1646,7 @@ void func_actor_402200_8013539C(Task* arg0)
 /// their own animation - `field_6C4` at 0x50 and 0x3B frames - and then put the
 /// state back to 0, flipping the mode to 2 and raising `field_6CC` when it was
 /// still 1.
-void func_actor_402200_801354B0(Task* arg0)
+static void func_actor_402200_801354B0(Task* arg0)
 {
     Actor402200Work* work;
     GpCoord*         coord;
@@ -1706,7 +1706,7 @@ void func_actor_402200_801354B0(Task* arg0)
 /// match. States 1 and 2 queue the actor's cue at frame 0x2C / 0x19 and, once
 /// `field_6C4` reaches 0x42 / 0x31, move to state 3 with an LCG-rolled
 /// `field_6D4` countdown; states 3 and 4 then alternate on that countdown.
-void func_actor_402200_80135630(Task* arg0)
+static void func_actor_402200_80135630(Task* arg0)
 {
     Actor402200Work* work;
     GpCoord*         coord;
@@ -1810,7 +1810,7 @@ void func_actor_402200_80135630(Task* arg0)
 /// frame counter to reach 0x10 or 0x16, then switch to animation 0x10 or 0x14,
 /// enter sequence 7 at state 3 and arm the `field_6D4` countdown from the
 /// `Gp_LcgState` LCG (0..0x3F).
-void func_actor_402200_8013592C(Task* arg0)
+static void func_actor_402200_8013592C(Task* arg0)
 {
     Actor402200Work* work;
     s16              state;
@@ -1854,13 +1854,13 @@ void func_actor_402200_8013592C(Task* arg0)
 /// picks by `Task::state`: the spawn setup, the frame handler that runs the
 /// sequences, and the frame handler that unlinks the enemy and saves its pose
 /// before running its own short sequence.
-const GpEnemyTaskFuncTable3 D_actor_402200_80131F18 = {
+static const GpEnemyTaskFuncTable3 D_actor_402200_80131F18 = {
     func_actor_402200_80137444,
     func_actor_402200_80137A1C,
     func_actor_402200_801368E0,
 };
 
-void func_actor_402200_80135A24(Task* arg0)
+static void func_actor_402200_80135A24(Task* arg0)
 {
     Actor402200Work* work;
     GpCoord*         coord;
@@ -1929,7 +1929,7 @@ void func_actor_402200_80135A24(Task* arg0)
 /// matching word of `D_actor_402200_80138420` with the `GpEnemy` work id's high
 /// nibble in bits 8-11, and a zero `field_712` disarms the body. The record's
 /// two bits are latched for the next frame at the end.
-void func_actor_402200_80135BE0(Task* arg0)
+static void func_actor_402200_80135BE0(Task* arg0)
 {
     s32              snd;
     s32              pan;
@@ -1964,7 +1964,7 @@ void func_actor_402200_80135BE0(Task* arg0)
 /// it projects two points into `field_6FC`..`field_704`: the same offset off
 /// the part, and a point 0x514 up and the `field_644` target's distance out
 /// from the root.
-void func_actor_402200_80135D5C(Task* arg0)
+static void func_actor_402200_80135D5C(Task* arg0)
 {
     u8*                    head;
     Actor402200AimScratch* sc;
@@ -2052,7 +2052,7 @@ void func_actor_402200_80135D5C(Task* arg0)
 /// projects into `field_6FC`..`field_704`: eight segments, each skipped while
 /// its interpolated depth is below 0x1E, and each drawn as two shaded quads
 /// offset along the screen normal, a centre line and a tpage.
-void func_actor_402200_80136184(Task* arg0)
+static void func_actor_402200_80136184(Task* arg0)
 {
     Actor402200TrailScratch* sc;
     Actor402200Work*         work;
@@ -2195,7 +2195,7 @@ static inline void Actor402200_DrawShadow(Task* arg0)
 /// `field_6CE` sequence runs: state 0 unlinks the actor and saves its pose,
 /// state 1 sprays a randomly angled effect every fourth frame, and state 2
 /// projects the actor before moving on to 3.
-void func_actor_402200_801368E0(GpEnemy* arg0, Task* arg1)
+static void func_actor_402200_801368E0(GpEnemy* arg0, Task* arg1)
 {
     u8*              head;
     SVECTOR*         sc;
@@ -2276,7 +2276,7 @@ void func_actor_402200_801368E0(GpEnemy* arg0, Task* arg1)
 /// to the view's sprite rectangle when that lies in front of `otz` (the whole
 /// current buffer otherwise), one on the 0x1C0/0x100 page. The primitives are
 /// prepended to one list, so they run in reverse order of queueing.
-void func_actor_402200_80136D9C(s32 otz)
+static void func_actor_402200_80136D9C(s32 otz)
 {
     u8*                head;
     u8*                allocated;
@@ -2415,7 +2415,7 @@ void func_actor_402200_80136D9C(s32 otz)
 /// work block's five collision objects with their `GpRec18` tables before
 /// moving the task on (`field_30` 1). Variants 1 and 2 only seed the animation
 /// and sequence state.
-void func_actor_402200_80137444(GpEnemy* arg0, Task* arg1)
+static void func_actor_402200_80137444(GpEnemy* arg0, Task* arg1)
 {
     u8               param1[4];
     u8               param2[4];
@@ -2612,7 +2612,7 @@ void func_actor_402200_80137444(GpEnemy* arg0, Task* arg1)
 /// sequence dispatch, the step forward, the animation reseed, the vocal cue,
 /// the coordinate refresh, the tint and shadow, the projection at depth +0xC,
 /// the fade and `func_8009EA50`.
-void func_actor_402200_80137A1C(GpEnemy* arg0, Task* arg1)
+static void func_actor_402200_80137A1C(GpEnemy* arg0, Task* arg1)
 {
     Actor402200Work* temp_s1;
     TmdObject*       temp_a1;
@@ -2674,7 +2674,7 @@ default_body:
 
 /// Runs the sequence `field_6CC` names (0 to 0xB), then the vocal cue unless
 /// the sequence is 1.
-void func_actor_402200_80137B74(Task* arg0)
+static void func_actor_402200_80137B74(Task* arg0)
 {
     s16              temp_v1;
     Actor402200Work* temp_s1;
@@ -2728,7 +2728,7 @@ void func_actor_402200_80137B74(Task* arg0)
 /// `field_674`, scaled per axis by `scale`: the saved matrix is
 /// copied into the root coordinate, and an identity scaled in a scratchpad
 /// matrix is multiplied into it.
-void func_actor_402200_80137CA4(Task* arg0)
+static void func_actor_402200_80137CA4(Task* arg0)
 {
     void**           scratch;
     OverlayMat*      head;
@@ -2758,7 +2758,7 @@ void func_actor_402200_80137CA4(Task* arg0)
 /// `field_6F0` is 1, otherwise 0x12 and state 2, and arms the timers
 /// `field_6DA`..`field_6DE`; states 1 and 2 wait for the frame counter to reach
 /// 0x10 or 0x16, then park 2 in the context's `field_30` and drop back to 0.
-void func_actor_402200_80137D78(Task* arg0)
+static void func_actor_402200_80137D78(Task* arg0)
 {
     Actor402200Work* work;
     s16              state;
@@ -2798,7 +2798,7 @@ void func_actor_402200_80137D78(Task* arg0)
 /// Saves the root's translation in `field_664`..`field_66C` and steps it
 /// `field_6C8` along the root's facing (its matrix's third column), adding
 /// 0x80 to its y while `field_714` is below 2.
-void func_actor_402200_80137E48(Task* arg0)
+static void func_actor_402200_80137E48(Task* arg0)
 {
     Actor402200Work* work;
     GpCoord*         coord;
@@ -2821,7 +2821,7 @@ void func_actor_402200_80137E48(Task* arg0)
 /// handing each slot the blend weight the id selects from
 /// `D_actor_402200_801383AC`; while the id is unchanged it instead ticks every
 /// slot one frame and walks the id's frame counter up.
-void func_actor_402200_80137EEC(Task* arg0)
+static void func_actor_402200_80137EEC(Task* arg0)
 {
     Actor402200Work* work;
     s32              i;
@@ -2847,7 +2847,7 @@ void func_actor_402200_80137EEC(Task* arg0)
 }
 
 /// Out-of-line `actor402200UpdateTint`, for the callers after the inline one.
-void func_actor_402200_80137FB0(Task* arg0)
+static void func_actor_402200_80137FB0(Task* arg0)
 {
     actor402200UpdateTint(arg0);
 }
@@ -2855,7 +2855,7 @@ void func_actor_402200_80137FB0(Task* arg0)
 /// Draws the ground shadow quad, 0x300 across, under the fourth part's
 /// horizontal position at the root's height, shaded by `field_6E2` - which a
 /// zero turns into -1 first, so a shadow nothing has raised is not drawn.
-void func_actor_402200_8013806C(Task* arg0)
+static void func_actor_402200_8013806C(Task* arg0)
 {
     Actor402200Work* work;
     GpCoord*         coord;
@@ -2874,7 +2874,7 @@ void func_actor_402200_8013806C(Task* arg0)
     Gp_DrawEffGroundQuad(&vec, 0x300, work->field_6E2);
 }
 
-void func_actor_402200_801380D8(Task* arg0)
+static void func_actor_402200_801380D8(Task* arg0)
 {
     Actor402200Work* work;
     s16              timer;
@@ -2913,7 +2913,7 @@ s32 func_actor_402200_801381E0(Task* task)
 /// Projects the origin of `arg0` to find its ordering-table depth, adds
 /// `arg1`, and queues the frame-buffer pass `func_actor_402200_80136D9C` there
 /// (at depth `arg1` when the projection fails).
-void func_actor_402200_80138208(GpCoord* arg0, s32 arg1)
+static void func_actor_402200_80138208(GpCoord* arg0, s32 arg1)
 {
     u8*                  head;
     ActorProjectScratch* block;
@@ -2944,7 +2944,7 @@ void func_actor_402200_80138208(GpCoord* arg0, s32 arg1)
 }
 /// Runs the enemy task's current state handler from
 /// `D_actor_402200_80131F18`, copying the table onto the stack first.
-void func_actor_402200_80138340(Task* task)
+static void func_actor_402200_80138340(Task* task)
 {
     GpEnemyTaskFuncTable3 sp;
 

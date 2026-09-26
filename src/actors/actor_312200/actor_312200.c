@@ -121,15 +121,15 @@ STATIC_ASSERT_SIZEOF(Actor312200Work, 0x984);
 /// to `func_800B4114` as the request's fifth argument.
 extern s8 D_actor_312200_80169F28[][5];
 
-void func_actor_312200_80163778(Task* task);
-void func_actor_312200_801637CC(Task* task);
+static void func_actor_312200_80163778(Task* task);
+static void func_actor_312200_801637CC(Task* task);
 
 /// Walks the first `count` contact records (stopping at a zero key) and keeps,
 /// in a scratch block carved off `G_SCRATCH_HEAD`, the push that would move
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
 /// 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1` is 1.
-s32 func_actor_312200_80161E30(GpCoord* coord, GpRec18* recs, s16 count)
+static s32 func_actor_312200_80161E30(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -188,7 +188,7 @@ s32 func_actor_312200_80161E30(GpCoord* coord, GpRec18* recs, s16 count)
 /// `*pos` accumulates the total nudge. Returns whether any record was of kind
 /// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1`
 /// is 1.
-s32 func_actor_312200_80162178(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 func_actor_312200_80162178(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -303,7 +303,7 @@ s32 func_actor_312200_80162178(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR
 /// `D_actor_312200_80169F88`. Returns 1 when the X or Z step is nonzero; a
 /// step with a fractional part moves the coordinate and the kept step one
 /// unit further from zero.
-s32 func_actor_312200_801626C4(GpCoord* coord, GpRec18* movement, s16 arg2)
+static s32 func_actor_312200_801626C4(GpCoord* coord, GpRec18* movement, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -357,7 +357,7 @@ s32 func_actor_312200_801626C4(GpCoord* coord, GpRec18* movement, s16 arg2)
 /// frame's position, relative to the point one unit in front of it. Returns
 /// whether any push was applied; returns 0 at once when
 /// `gGameSession->viewReady` is 1.
-s32 func_actor_312200_80162868(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_actor_312200_80162868(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;
@@ -506,7 +506,7 @@ s32 func_actor_312200_80162868(GpCoord* coord, GpRec18* recs, s16 count, s16 pus
 /// them, and both settle on 3 and clear the frame counter at `field_894`.
 /// Request state 2 on the second context resets its slots at rate 0x30, then
 /// the tail counts a frame and ticks every slot of the first context.
-void func_actor_312200_80162FB4(Task* task)
+static void func_actor_312200_80162FB4(Task* task)
 {
     Actor312200Work* work;
     Actor312200Work* start;
@@ -570,7 +570,7 @@ void func_actor_312200_80162FB4(Task* task)
 /// The model coordinate is parented to `gGfxViewCoord` and rebuilt once before
 /// its translation is propagated over the three part coordinates
 /// (`func_800D7A9C`, start 0, count 3).
-void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
+static void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     GpCoord*         coord;
@@ -651,7 +651,7 @@ void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
 /// scheduler pulls the handler table's first `lui` in front of the `work`
 /// load. The trailing `vec` is the original's own - three dead stores, but the
 /// frame and the rest of the schedule are built around them.
-void func_actor_312200_80163370(GpEnemy* enemy, Task* task)
+static void func_actor_312200_80163370(GpEnemy* enemy, Task* task)
 {
     TmdObject*       obj;
     Actor312200Work* work;
@@ -805,7 +805,7 @@ s32 func_actor_312200_801636CC(Task* task, s32 msgId, GpCmdArg* msg)
 /// On a live actor, sets the enemy's link-node flags to 1, raises the model's
 /// 0x80 bit (which takes it out of `Tmd_DrawActiveNodes`), clears
 /// `GpEnemy::field_4D` and drops bit 0x8000 of the `field_8BC` node's flags.
-void func_actor_312200_80163778(Task* task)
+static void func_actor_312200_80163778(Task* task)
 {
     Actor312200Work* work;
     GpEnemy*         enemy;
@@ -826,7 +826,7 @@ void func_actor_312200_80163778(Task* task)
 /// with the 0x896 timer armed at 0x10; once the 0x892 timer has counted those
 /// 0x10 ticks and the task's flag bit 0 is set, the state drops to 1 and the
 /// timer to 4. Either way the tick ends in the actor's anim/particle update.
-void func_actor_312200_801637CC(Task* task)
+static void func_actor_312200_801637CC(Task* task)
 {
     Actor312200Work* work;
 
@@ -845,7 +845,7 @@ void func_actor_312200_801637CC(Task* task)
 
 /// The actor's three state handlers, dispatched by
 /// `func_actor_312200_80163854`: spawn, per-frame tick and teardown.
-const GpEnemyTaskFuncTable3 D_actor_312200_80161E24 = {
+static const GpEnemyTaskFuncTable3 D_actor_312200_80161E24 = {
     func_actor_312200_80163178,
     func_actor_312200_80163370,
     Gp_DestroyEnemy,

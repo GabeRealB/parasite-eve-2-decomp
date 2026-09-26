@@ -133,30 +133,30 @@ void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1);
-void Actor03800_Fn003B8(Task* arg0);
-void Actor03800_Fn00974(Task* arg0);
-void Actor03800_Fn00A98(Task* arg0);
-void Actor03800_Fn026F8(Task* arg0);
-void Actor03800_Fn02848(Task* arg0);
-void Actor03800_Fn02998(GpEnemy* arg0, Task* arg1);
-void Actor03800_Fn02E50(Task* arg0);
-void Actor03800_Fn03008(Task* actor, u32 variant);
-void Actor03800_Fn031B8(GpEnemy* arg0, Task* arg1);
-void Actor03800_Fn032D8(Task* arg0);
-void Actor03800_Fn03420(Task* arg0);
-void Actor03800_Fn034B0(Task* arg0);
-void Actor03800_Fn03594(Task* arg0);
-void Actor03800_Fn03628(Task* arg0);
-void Actor03800_Fn036EC(Task* arg0);
-void Actor03800_Fn03744(Task* arg0);
-void Actor03800_Fn037E0(Task* arg0);
+static void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1);
+static void Actor03800_Fn003B8(Task* arg0);
+static void Actor03800_Fn00974(Task* arg0);
+static void Actor03800_Fn00A98(Task* arg0);
+static void Actor03800_Fn026F8(Task* arg0);
+static void Actor03800_Fn02848(Task* arg0);
+static void Actor03800_Fn02998(GpEnemy* arg0, Task* arg1);
+static void Actor03800_Fn02E50(Task* arg0);
+static void Actor03800_Fn03008(Task* actor, u32 variant);
+static void Actor03800_Fn031B8(GpEnemy* arg0, Task* arg1);
+static void Actor03800_Fn032D8(Task* arg0);
+static void Actor03800_Fn03420(Task* arg0);
+static void Actor03800_Fn034B0(Task* arg0);
+static void Actor03800_Fn03594(Task* arg0);
+static void Actor03800_Fn03628(Task* arg0);
+static void Actor03800_Fn036EC(Task* arg0);
+static void Actor03800_Fn03744(Task* arg0);
+static void Actor03800_Fn037E0(Task* arg0);
 
 /// State handlers `Actor03800_Fn0315C` dispatches, indexed by the task's state
 /// (`Task::state`): the spawn state that allocates the work block and
 /// moves to state 1, the per-frame tick, and the state-2 handler the tick hands
 /// over to, which carries the death sequence.
-const GpEnemyTaskFuncTable3 Actor03800_D00004 = {
+static const GpEnemyTaskFuncTable3 Actor03800_D00004 = {
     {
         Actor03800_Fn000B8,
         Actor03800_Fn031B8,
@@ -164,7 +164,7 @@ const GpEnemyTaskFuncTable3 Actor03800_D00004 = {
     },
 };
 
-void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
+static void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
 {
     GpObj*           obj;
     GpRec18*         records1;
@@ -268,7 +268,7 @@ void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
 /// `field_344`, while the model's coordinate is reset to an identity rotation
 /// at the origin and re-parented under it. `Gp_MulMatrix0`-style GTE column
 /// products then turn the detached coordinate by 0x400 / 0x800 about X.
-void Actor03800_Fn003B8(Task* arg0)
+static void Actor03800_Fn003B8(Task* arg0)
 {
     Actor103800Work* work;
     GpEnemy*         ctx;
@@ -418,7 +418,7 @@ void Actor03800_Fn003B8(Task* arg0)
     }
 }
 
-void Actor03800_Fn00974(Task* arg0)
+static void Actor03800_Fn00974(Task* arg0)
 {
     GpEnemy*         ctx;
     Actor103800Work* work;
@@ -460,7 +460,7 @@ void Actor03800_Fn00974(Task* arg0)
     }
 }
 
-void Actor03800_Fn00A98(Task* arg0)
+static void Actor03800_Fn00A98(Task* arg0)
 {
     s32              one;
     u32              lastId;
@@ -708,7 +708,7 @@ contact_test:
     SCRATCH_HEAD(GpDeltaScratch) += 3;
 }
 
-void Actor03800_Fn01150(Task* arg0)
+static void Actor03800_Fn01150(Task* arg0)
 {
     Actor103800Work* work;
     s32              turn;
@@ -765,7 +765,7 @@ void Actor03800_Fn01150(Task* arg0)
     }
 }
 
-void Actor03800_Fn012B4(Task* arg0)
+static void Actor03800_Fn012B4(Task* arg0)
 {
     Actor103800Work* work;
     s32              turn;
@@ -842,7 +842,7 @@ void Actor03800_Fn012B4(Task* arg0)
     }
 }
 
-void Actor03800_Fn01520(Task* arg0)
+static void Actor03800_Fn01520(Task* arg0)
 {
     Actor103800Work* work;
     GpCoord*         coord;
@@ -888,7 +888,7 @@ void Actor03800_Fn01520(Task* arg0)
     }
 }
 
-void Actor03800_Fn0166C(Task* arg0)
+static void Actor03800_Fn0166C(Task* arg0)
 {
     Actor03800MoveScratch* scratch;
     Actor103800Work*       work;
@@ -948,7 +948,7 @@ void Actor03800_Fn0166C(Task* arg0)
     SCRATCH_POP_BYTES(0x18);
 }
 
-void Actor03800_Fn01948(Task* arg0)
+static void Actor03800_Fn01948(Task* arg0)
 {
     Actor103800Work* work = arg0->work;
     GpCoord*         coord;
@@ -1008,7 +1008,7 @@ void Actor03800_Fn01948(Task* arg0)
     }
 }
 
-void Actor03800_Fn01AD0(Task* arg0)
+static void Actor03800_Fn01AD0(Task* arg0)
 {
     GpEnemy*         ctx;
     Actor103800Work* work;
@@ -1050,7 +1050,7 @@ void Actor03800_Fn01AD0(Task* arg0)
     }
 }
 
-void Actor03800_Fn01C50(Task* arg0)
+static void Actor03800_Fn01C50(Task* arg0)
 {
     SVECTOR          rotation;
     MATRIX           matrix;
@@ -1124,7 +1124,7 @@ void Actor03800_Fn01C50(Task* arg0)
 
 /// Second copy of the idle "look around" tick; identical body to
 /// `Actor03800_Fn02068`, which the overlay carries twice.
-void Actor03800_Fn01EEC(Task* arg0)
+static void Actor03800_Fn01EEC(Task* arg0)
 {
     Actor103800Work* work;
     s32              rand;
@@ -1186,7 +1186,7 @@ void Actor03800_Fn01EEC(Task* arg0)
 /// waits for the turn to finish and re-arms the countdown. Either way, an
 /// active `Gp_StateF0.field_2` bit (1 or 4) or a non-zero `field_36C` aborts
 /// back to state 0 with a short delay.
-void Actor03800_Fn02068(Task* arg0)
+static void Actor03800_Fn02068(Task* arg0)
 {
     Actor103800Work* work;
     s32              rand;
@@ -1243,7 +1243,7 @@ void Actor03800_Fn02068(Task* arg0)
     }
 }
 
-void Actor03800_Fn021E4(Task* arg0)
+static void Actor03800_Fn021E4(Task* arg0)
 {
     GpEnemy*               ctx;
     Actor103800Work*       work;
@@ -1327,7 +1327,7 @@ void Actor03800_Fn021E4(Task* arg0)
 /// clockwise side. States 1 and 2 drive `field_35C` by -/+0x7D while the yaw
 /// error `field_34C` is inside 8..0x10 and hand over to state 3 once it grows
 /// past 0x10; state 3 finishes the move and hands back to `field_352` 1.
-void Actor03800_Fn02584(Task* arg0)
+static void Actor03800_Fn02584(Task* arg0)
 {
     Actor103800Work* work;
     GpCoord*         coord;
@@ -1382,7 +1382,7 @@ void Actor03800_Fn02584(Task* arg0)
     }
 }
 
-void Actor03800_Fn026F8(Task* arg0)
+static void Actor03800_Fn026F8(Task* arg0)
 {
     Actor103800Work* work;
     GpCoord*         coord;
@@ -1451,7 +1451,7 @@ done:
     SCRATCH_POP_BYTES(8);
 }
 
-void Actor03800_Fn02848(Task* arg0)
+static void Actor03800_Fn02848(Task* arg0)
 {
     Actor103800Work* work;
     GpCoord*         coord;
@@ -1487,7 +1487,7 @@ void Actor03800_Fn02848(Task* arg0)
     coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->field_35C) >> 0xC;
 }
 
-void Actor03800_Fn02998(GpEnemy* arg0, Task* arg1)
+static void Actor03800_Fn02998(GpEnemy* arg0, Task* arg1)
 {
     Actor103800Work* work;
     TmdObject*       obj;
@@ -1661,7 +1661,7 @@ timer:
     work->field_354 = 2;
 }
 
-void Actor03800_Fn02E50(Task* actor)
+static void Actor03800_Fn02E50(Task* actor)
 {
     s16  variants[4];
     s32  selected;
@@ -1723,7 +1723,7 @@ void Actor03800_Fn02E50(Task* actor)
     }
 }
 
-void Actor03800_Fn03008(Task* actor, u32 variant)
+static void Actor03800_Fn03008(Task* actor, u32 variant)
 {
     GpAreaKey    key;
     GpAreaKey*   sessionKey;
@@ -1777,7 +1777,7 @@ void Actor03800_Fn03008(Task* actor, u32 variant)
     }
 }
 
-void Actor03800_Fn0315C(Task* arg0)
+static void Actor03800_Fn0315C(Task* arg0)
 {
     GpEnemyTaskFuncTable3 sp;
 
@@ -1785,7 +1785,7 @@ void Actor03800_Fn0315C(Task* arg0)
     sp.funcs[arg0->state](((GpEnemy*)arg0->spawnArg2), arg0);
 }
 
-void Actor03800_Fn031B8(GpEnemy* arg0, Task* arg1)
+static void Actor03800_Fn031B8(GpEnemy* arg0, Task* arg1)
 {
     Actor103800Work* work;
     s32              state;
@@ -1838,7 +1838,7 @@ case1:
     Actor03800_Fn03744(arg1);
 }
 
-void Actor03800_Fn032D8(Task* arg0)
+static void Actor03800_Fn032D8(Task* arg0)
 {
     Actor103800Work* work;
     s16              state;
@@ -1897,7 +1897,7 @@ void Actor03800_Fn032D8(Task* arg0)
     work->field_228 = mag;
 }
 
-void Actor03800_Fn03420(Task* arg0)
+static void Actor03800_Fn03420(Task* arg0)
 {
     Actor103800Work* work = arg0->work;
     s32              state;
@@ -1924,7 +1924,7 @@ void Actor03800_Fn03420(Task* arg0)
     }
 }
 
-void Actor03800_Fn034B0(Task* arg0)
+static void Actor03800_Fn034B0(Task* arg0)
 {
     TmdObject*       obj;
     GpEnemy*         ctx;
@@ -1958,7 +1958,7 @@ void Actor03800_Fn034B0(Task* arg0)
     }
 }
 
-void Actor03800_Fn03594(Task* arg0)
+static void Actor03800_Fn03594(Task* arg0)
 {
     Actor103800Work* work;
     GpCoord*         coord;
@@ -1975,7 +1975,7 @@ void Actor03800_Fn03594(Task* arg0)
     }
 }
 
-void Actor03800_Fn03628(Task* arg0)
+static void Actor03800_Fn03628(Task* arg0)
 {
     Actor103800Work* work2;
     s32              i;
@@ -2001,7 +2001,7 @@ void Actor03800_Fn03628(Task* arg0)
     }
 }
 
-void Actor03800_Fn036EC(Task* arg0)
+static void Actor03800_Fn036EC(Task* arg0)
 {
     GpCoord* coord;
     VECTOR   vec;
@@ -2013,7 +2013,7 @@ void Actor03800_Fn036EC(Task* arg0)
     Gp_UpdateActorColor(arg0->spawnArg2, &vec, 0, 0);
 }
 
-void Actor03800_Fn03744(Task* arg0)
+static void Actor03800_Fn03744(Task* arg0)
 {
     Actor103800Work* work;
     GpCoord*         coord;
@@ -2035,7 +2035,7 @@ void Actor03800_Fn03744(Task* arg0)
     }
 }
 
-void Actor03800_Fn037E0(Task* arg0)
+static void Actor03800_Fn037E0(Task* arg0)
 {
     Actor103800Work*   work;
     GpCoord*           coord;

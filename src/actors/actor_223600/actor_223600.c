@@ -126,13 +126,13 @@ void func_8004BFF8(s16 angle, MATRIX* matrix);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
-void func_actor_223600_8014CF3C(GpEnemy* arg0, Task* arg1);
+static void func_actor_223600_8014CF3C(GpEnemy* arg0, Task* arg1);
 
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.
-void func_actor_223600_80149E64(GpCoord* coord, s16 yaw)
+static void func_actor_223600_80149E64(GpCoord* coord, s16 yaw)
 {
     MATRIX*  rotation;
     GpCoord* out;
@@ -154,7 +154,7 @@ void func_actor_223600_80149E64(GpCoord* coord, s16 yaw)
 /// scratch block, and its length is scaled down to 0x100 when longer. Returns
 /// whether any record of those kinds was met. Does nothing, returning 0, while
 /// `Mc_SaveData.field_5C1` or the session's `viewReady` is 1.
-s32 func_actor_223600_8014A170(GpCoord* coord, GpRec18* recs, s16 count)
+static s32 func_actor_223600_8014A170(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -210,7 +210,7 @@ s32 func_actor_223600_8014A170(GpCoord* coord, GpRec18* recs, s16 count)
 /// for each bearing left steps `coord` 10 units away from it, accumulating the
 /// total XZ step in `pos`. Returns whether any kind 0x10000 record was met;
 /// returns 0 at once when the session's `viewReady` or `Mc_SaveData.field_5C1` is 1.
-s32 func_actor_223600_8014A4B8(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 func_actor_223600_8014A4B8(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -325,7 +325,7 @@ s32 func_actor_223600_8014A4B8(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR
 /// `D_actor_223600_80150B54`. Returns the "moved" flag: set when the X or Z
 /// delta is nonzero; where a delta also has a fractional part, the coordinate
 /// and the latched step are nudged one unit further away from zero.
-s32 func_actor_223600_8014AA04(GpCoord* coord, GpRec18* movement, s16 arg2)
+static s32 func_actor_223600_8014AA04(GpCoord* coord, GpRec18* movement, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -379,7 +379,7 @@ s32 func_actor_223600_8014AA04(GpCoord* coord, GpRec18* movement, s16 arg2)
 /// frame's position, relative to the point one unit in front of it. Returns
 /// whether any push was applied; returns 0 at once when
 /// `gGameSession->viewReady` is 1.
-s32 func_actor_223600_8014ABA8(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_actor_223600_8014ABA8(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;
@@ -588,7 +588,7 @@ void func_actor_223600_8014B2F4(task)
 /// in `field_4A` reaches one of that state's trigger ids (latched in
 /// `field_208`); in state 5, 0x400C0005 while bit 2 of `field_58` is set.
 /// Returns 0 otherwise.
-s32 func_actor_223600_8014B464(Actor223600Work* arg0)
+static s32 func_actor_223600_8014B464(Actor223600Work* arg0)
 {
     u16 id;
     s32 v;
@@ -677,7 +677,7 @@ static __inline__ void Actor223600_MoveForward(GpCoord* coord, s16 amount)
 /// position is sampled into `field_194`..`field_198` and its facing is
 /// normalised and scaled on the GTE, and the instance is published as the
 /// overlay's anchor `D_actor_223600_80150B5C`.
-void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
+static void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
 {
     SVECTOR          dir;
     Actor223600Work* work;
@@ -767,7 +767,7 @@ void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
 /// every later frame it counts the frame in `field_6`, turns the model by up to
 /// 0x10 towards the target (the clamped yaw kept in the scratch block) and
 /// walks it 5 units forward.
-void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
+static void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
 {
     Actor223600Work* work;
     Actor223600Turn* head;
@@ -850,7 +850,7 @@ void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
 /// world-X step reads, `vec`, which the column and normalise calls take, and
 /// `gte`, which the GTE round trip reads back -- and the two `G_SCRATCH_HEAD`
 /// pointers are the carve and the release, each materialised where it is used.
-void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
+static void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
 {
     Actor223600Work*  work;
     Actor223600Turn** push;
@@ -1077,7 +1077,7 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
 /// state word, copied onto the stack before the call. The copy is a three-word
 /// block move out of the unit's `.rodata`, which is why the table is a rodata
 /// object rather than a local initialiser.
-const GpEnemyTaskFuncTable3 D_actor_223600_80149E4C = {
+static const GpEnemyTaskFuncTable3 D_actor_223600_80149E4C = {
     {
         func_actor_223600_8014CF3C,
         func_actor_223600_8014B840,
@@ -1096,7 +1096,7 @@ const GpEnemyTaskFuncTable3 D_actor_223600_80149E4C = {
 /// bits 8-11, with the model's pan and depth -- and finally re-parks the model
 /// through `func_800D7A9C` while `field_20C` is set, latching `field_20C` once
 /// the session's `viewReady` or a dirty coordinate arrives.
-void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task)
+static void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task)
 {
     Actor223600Work*      work;
     GpEnemyTaskFuncTable3 fns;
@@ -1155,7 +1155,7 @@ void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task)
 
 /// The enemy's three task states -- spawn, per-frame tick and teardown -- which
 /// `func_actor_223600_8014CF6C` runs by `Task::state`.
-const GpEnemyTaskFuncTable3 D_actor_223600_80149E58 = {
+static const GpEnemyTaskFuncTable3 D_actor_223600_80149E58 = {
     {
         func_actor_223600_8014B540,
         func_actor_223600_8014CA00,
@@ -1246,7 +1246,7 @@ s32 func_actor_223600_8014CD54(Task* task, s32 arg1, GpXformArg* placement)
 /// with `ratan2` of `-m[2][0], m[2][2]` -- uniformly scaled by `scale`, working
 /// in a 0x34-byte block borrowed from the scratchpad. Marks the coordinate
 /// dirty.
-void func_actor_223600_8014CE24(GpCoord* coord, s16 scale)
+static void func_actor_223600_8014CE24(GpCoord* coord, s16 scale)
 {
     void**                scratch;
     ActorScaleRotScratch* head;
@@ -1284,7 +1284,7 @@ void func_actor_223600_8014CE24(GpCoord* coord, s16 scale)
 /// Idle state of this enemy (entry 0 of `D_actor_223600_80149E4C`). On the
 /// frame the state is entered (`field_4` set) it sets the display node's flags
 /// to 1 and the model's flags to 0x80; it does nothing on later frames.
-void func_actor_223600_8014CF3C(GpEnemy* arg0, Task* arg1)
+static void func_actor_223600_8014CF3C(GpEnemy* arg0, Task* arg1)
 {
     TmdObject* model;
 

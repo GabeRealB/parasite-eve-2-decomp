@@ -104,34 +104,34 @@ extern GpMsgEntry D_actor_335800_8016EB00[];
 /// `func_actor_335800_80163AA0`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_335800_80172EA8[];
 
-void func_actor_335800_80162640(Task* arg0);
-void func_actor_335800_80162844(Task* task);
-void func_actor_335800_80162B3C(Task* arg0);
-void func_actor_335800_80162E8C(Task* task);
-void func_actor_335800_80162F08(Task* task);
-void func_actor_335800_80162F7C(Task* arg0);
-void func_actor_335800_80162F9C(Task* arg0);
-void func_actor_335800_80162FF4(Task* arg0);
-void func_actor_335800_80162FFC(Task* task);
-void func_actor_335800_80163064(Task* task);
-void func_actor_335800_80163124(Task* task);
-void func_actor_335800_801631A4(Task* arg0);
-s32  func_actor_335800_801632A4(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
-void func_actor_335800_80163568(Task* task);
-void func_actor_335800_8016373C(Task* arg0);
-void func_actor_335800_80163AA0(Task* arg0);
-void func_actor_335800_80163B34(Task* arg0);
-void func_actor_335800_80163B54(Task* arg0);
-void func_actor_335800_80163B70(Task* arg0);
-void func_actor_335800_80163B78(Task* arg0);
-void func_actor_335800_80163BE0(Task* task);
-void func_actor_335800_80163CA0(Task* task);
-void func_actor_335800_80163D20(Task* arg0);
-s32  func_actor_335800_80163E20(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
+static void func_actor_335800_80162640(Task* arg0);
+static void func_actor_335800_80162844(Task* task);
+static void func_actor_335800_80162B3C(Task* arg0);
+static void func_actor_335800_80162E8C(Task* task);
+static void func_actor_335800_80162F08(Task* task);
+static void func_actor_335800_80162F7C(Task* arg0);
+static void func_actor_335800_80162F9C(Task* arg0);
+static void func_actor_335800_80162FF4(Task* arg0);
+static void func_actor_335800_80162FFC(Task* task);
+static void func_actor_335800_80163064(Task* task);
+static void func_actor_335800_80163124(Task* task);
+static void func_actor_335800_801631A4(Task* arg0);
+s32         func_actor_335800_801632A4(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
+static void func_actor_335800_80163568(Task* task);
+static void func_actor_335800_8016373C(Task* arg0);
+static void func_actor_335800_80163AA0(Task* arg0);
+static void func_actor_335800_80163B34(Task* arg0);
+static void func_actor_335800_80163B54(Task* arg0);
+static void func_actor_335800_80163B70(Task* arg0);
+static void func_actor_335800_80163B78(Task* arg0);
+static void func_actor_335800_80163BE0(Task* task);
+static void func_actor_335800_80163CA0(Task* task);
+static void func_actor_335800_80163D20(Task* arg0);
+s32         func_actor_335800_80163E20(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
 
 /// Spawn, tick and teardown handlers of the two part tasks the parent block
 /// spawns, dispatched by `func_actor_335800_80162E34`.
-const TaskFuncTable3 D_actor_335800_80161E24 = { {
+static const TaskFuncTable3 D_actor_335800_80161E24 = { {
     func_actor_335800_80162E8C,
     func_actor_335800_80162F08,
     taskKill,
@@ -139,7 +139,7 @@ const TaskFuncTable3 D_actor_335800_80161E24 = { {
 
 /// Spawn, tick and teardown handlers of the parent block, dispatched by
 /// `func_actor_335800_80162F10`.
-const TaskFuncTable3 D_actor_335800_80161E30 = { {
+static const TaskFuncTable3 D_actor_335800_80161E30 = { {
     func_actor_335800_80162640,
     func_actor_335800_80162844,
     func_actor_335800_80162F7C,
@@ -148,7 +148,7 @@ const TaskFuncTable3 D_actor_335800_80161E30 = { {
 /// Step handlers of the parent block's motion sequence, indexed by
 /// `ActorWalkState::motionStep`: turn to face `target`, start walking
 /// forward, walk until arrival, then turn to the placement yaw.
-const TaskFuncTable4 D_actor_335800_80161E3C = { {
+static const TaskFuncTable4 D_actor_335800_80161E3C = { {
     func_actor_335800_80163064,
     func_actor_335800_80163124,
     func_actor_335800_80162B3C,
@@ -157,11 +157,11 @@ const TaskFuncTable4 D_actor_335800_80161E3C = { {
 
 /// The constant local-space offset `func_actor_335800_80163124` rotates for
 /// the parent block: straight ahead along the part's own +Z.
-const VECTOR D_actor_335800_80161E4C = { 0, 0, 0x200000, 0 };
+static const VECTOR D_actor_335800_80161E4C = { 0, 0, 0x200000, 0 };
 
 /// Spawn, tick and teardown handlers of the child block, dispatched by
 /// `func_actor_335800_80163A34`.
-const TaskFuncTable3 D_actor_335800_80161E5C = { {
+static const TaskFuncTable3 D_actor_335800_80161E5C = { {
     func_actor_335800_80163AA0,
     func_actor_335800_80163568,
     func_actor_335800_80163B34,
@@ -169,7 +169,7 @@ const TaskFuncTable3 D_actor_335800_80161E5C = { {
 
 /// Step handlers of the child block's motion sequence, indexed by
 /// `ActorWalkState::motionStep`, in the same order as the parent's.
-const TaskFuncTable4 D_actor_335800_80161E68 = { {
+static const TaskFuncTable4 D_actor_335800_80161E68 = { {
     func_actor_335800_80163BE0,
     func_actor_335800_80163CA0,
     func_actor_335800_8016373C,
@@ -178,7 +178,7 @@ const TaskFuncTable4 D_actor_335800_80161E68 = { {
 
 /// The child block's copy of the forward offset, rotated by
 /// `func_actor_335800_80163CA0`.
-const VECTOR D_actor_335800_80161E78 = { 0, 0, 0x200000, 0 };
+static const VECTOR D_actor_335800_80161E78 = { 0, 0, 0x200000, 0 };
 
 /// Places the root part 1000 units short of its pose `D_actor_335800_80164F80`
 /// and moves it along Z at `killCountdown` (100) per frame; once past the pose
@@ -465,7 +465,7 @@ void func_actor_335800_80162588(Task* arg0)
     taskKill(arg0);
 }
 
-void func_actor_335800_80162640(Task* arg0)
+static void func_actor_335800_80162640(Task* arg0)
 {
     Actor335800MainWork* work;
     GpAreaKey            key;
@@ -541,7 +541,7 @@ void func_actor_335800_80162640(Task* arg0)
     arg0->state       += 1;
 }
 
-void func_actor_335800_80162844(Task* task)
+static void func_actor_335800_80162844(Task* task)
 {
     TmdObject*           ext      = task->extra.tmd;
     Actor335800MainWork* work     = (Actor335800MainWork*)task->work;
@@ -610,7 +610,7 @@ void func_actor_335800_80162844(Task* task)
 /// Arrival check for the parent block: once the X/Z distances from the root
 /// coordinate to `target` stop shrinking below `limit`, plays anim 0x7D3,
 /// clears `step` and advances `walk.motionStep`; otherwise records the distances.
-void func_actor_335800_80162B3C(Task* arg0)
+static void func_actor_335800_80162B3C(Task* arg0)
 {
     Actor335800MainWork* work;
     GpCoord*             coord;
@@ -718,7 +718,7 @@ void func_actor_335800_80162E34(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_actor_335800_80162E8C(Task* task)
+static void func_actor_335800_80162E8C(Task* task)
 {
     Task*      parent;
     s32        part;
@@ -741,7 +741,7 @@ void func_actor_335800_80162E8C(Task* task)
     task->state += 1;
 }
 
-void func_actor_335800_80162F08(Task* task)
+static void func_actor_335800_80162F08(Task* task)
 {
 }
 
@@ -758,12 +758,12 @@ void func_actor_335800_80162F10(Task* task)
     }
 }
 
-void func_actor_335800_80162F7C(Task* arg0)
+static void func_actor_335800_80162F7C(Task* arg0)
 {
     Gp_EnemyTaskExit(arg0);
 }
 
-void func_actor_335800_80162F9C(Task* arg0)
+static void func_actor_335800_80162F9C(Task* arg0)
 {
     TmdObject*           ext;
     Actor335800MainWork* work;
@@ -776,13 +776,13 @@ void func_actor_335800_80162F9C(Task* arg0)
     work->field_504 = 1;
 }
 
-void func_actor_335800_80162FF4(Task* arg0)
+static void func_actor_335800_80162FF4(Task* arg0)
 {
 }
 
 /// Motion handler 1 of the parent block: copies the step-handler table onto
 /// the stack and runs the entry `walk.motionStep` selects.
-void func_actor_335800_80162FFC(Task* task)
+static void func_actor_335800_80162FFC(Task* task)
 {
     Actor335800MainWork* work;
     TaskFuncTable4       fns;
@@ -795,7 +795,7 @@ void func_actor_335800_80162FFC(Task* task)
 /// Step 0: turns the root part to face `work->walk.target`, taking the yaw of the
 /// normalised offset from the part's own translation with `ratan2` and
 /// rebuilding the local matrix from that yaw alone, then advances the step.
-void func_actor_335800_80163064(Task* task)
+static void func_actor_335800_80163064(Task* task)
 {
     Actor335800MainWork* work;
     GpCoord*             coord;
@@ -826,7 +826,7 @@ void func_actor_335800_80163064(Task* task)
 /// Step 1: rotates the constant forward offset `D_actor_335800_80161E4C`
 /// through the root part's matrix into `work->walk.step`, opens the per-axis stop
 /// threshold to 0x7FFF, which disables it, and advances the step.
-void func_actor_335800_80163124(Task* task)
+static void func_actor_335800_80163124(Task* task)
 {
     Actor335800MainWork* work;
     GpCoord*             coord;
@@ -850,7 +850,7 @@ void func_actor_335800_80163124(Task* task)
 /// preset carrying the `model.nextAnimId` byte, clearing the two body counters.
 /// Either way the root coordinate is rebuilt as the identity matrix rotated by
 /// `vec`.
-void func_actor_335800_801631A4(Task* arg0)
+static void func_actor_335800_801631A4(Task* arg0)
 {
     Actor335800MainWork* work;
     GpMtxWords*          words;
@@ -1004,7 +1004,7 @@ s32 func_actor_335800_8016354C(Task* arg0, s32 arg1, GpCmdArg* arg2, s32 arg3)
 /// moves the coordinate by the integer part and keeps only the fraction, then
 /// ticks the animation slots, draws the ground shadow and rebuilds the colour
 /// matrix while visible, and counts `freeCountdown` down to the buffer free.
-void func_actor_335800_80163568(Task* task)
+static void func_actor_335800_80163568(Task* task)
 {
     TmdObject*       ext      = task->extra.tmd;
     Actor335800Work* work     = (Actor335800Work*)task->work;
@@ -1048,7 +1048,7 @@ void func_actor_335800_80163568(Task* task)
 /// Approach test for the child block, the twin of `func_actor_335800_80162B3C`:
 /// once the X/Z distance to `target` stops shrinking below `limit`, plays anim
 /// 0x7D3, clears `step` and advances the state; otherwise records the distance.
-void func_actor_335800_8016373C(Task* arg0)
+static void func_actor_335800_8016373C(Task* arg0)
 {
     Actor335800Work* work;
     GpCoord*         coord;
@@ -1166,7 +1166,7 @@ void func_actor_335800_80163A34(Task* task)
 /// republishes the light and colour matrices onto the display object, then
 /// installs the message table and the exit handler. An allocation failure
 /// ends the task instead of leaving a half-built actor behind.
-void func_actor_335800_80163AA0(Task* arg0)
+static void func_actor_335800_80163AA0(Task* arg0)
 {
     Actor335800Work* work;
 
@@ -1191,12 +1191,12 @@ void func_actor_335800_80163AA0(Task* arg0)
     arg0->state       += 1;
 }
 
-void func_actor_335800_80163B34(Task* arg0)
+static void func_actor_335800_80163B34(Task* arg0)
 {
     Gp_EnemyTaskExit(arg0);
 }
 
-void func_actor_335800_80163B54(Task* arg0)
+static void func_actor_335800_80163B54(Task* arg0)
 {
     TmdObject*       ext;
     Actor335800Work* work;
@@ -1207,13 +1207,13 @@ void func_actor_335800_80163B54(Task* arg0)
     ext->colorMtx = &work->model.color;
 }
 
-void func_actor_335800_80163B70(Task* arg0)
+static void func_actor_335800_80163B70(Task* arg0)
 {
 }
 
 /// Motion handler 1 of the child block: copies the four-handler table onto
 /// the stack and runs the entry `walk.motionStep` selects.
-void func_actor_335800_80163B78(Task* arg0)
+static void func_actor_335800_80163B78(Task* arg0)
 {
     TaskFuncTable4   sp;
     Actor335800Work* work;
@@ -1228,7 +1228,7 @@ void func_actor_335800_80163B78(Task* arg0)
 /// normalised offset from the part's own translation with `ratan2` and
 /// rebuilding the local matrix from that yaw alone, then advances
 /// `walk.motionStep` to the next handler.
-void func_actor_335800_80163BE0(Task* task)
+static void func_actor_335800_80163BE0(Task* task)
 {
     Actor335800Work* work;
     GpCoord*         coord;
@@ -1262,7 +1262,7 @@ void func_actor_335800_80163BE0(Task* task)
 /// part's matrix into `work->walk.step`, opens the per-axis stop threshold to
 /// 0x7FFF, which disables it for the update loop, and advances `walk.motionStep` so
 /// the dispatcher `func_actor_335800_80163B78` runs the next handler.
-void func_actor_335800_80163CA0(Task* task)
+static void func_actor_335800_80163CA0(Task* task)
 {
     Actor335800Work* work;
     GpCoord*         coord;
@@ -1287,7 +1287,7 @@ void func_actor_335800_80163CA0(Task* task)
 /// preset carrying the `model.nextAnimId` byte, clearing the motion index and step.
 /// Either way the root coordinate is rebuilt as the identity matrix rotated by
 /// `vec`.
-void func_actor_335800_80163D20(Task* arg0)
+static void func_actor_335800_80163D20(Task* arg0)
 {
     Actor335800Work* work;
     GpMtxWords*      words;

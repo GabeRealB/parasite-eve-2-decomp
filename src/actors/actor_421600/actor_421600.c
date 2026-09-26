@@ -422,15 +422,15 @@ extern Actor421600AnimWord D_actor_421600_801510A0;
 /// the store, independently of comparisons against the table base.
 extern Actor421600AnimWord Actor421600FallbackEnd __asm__("D_actor_421600_801510A4");
 
-void func_actor_421600_8013E668(Task* task);
-void func_actor_421600_8013E858(Task* arg0);
-void func_actor_421600_8013E8AC(Task* arg0);
-void func_actor_421600_8013E9D8(Task* arg0);
-void func_actor_421600_8013EAAC(Task* arg0);
-void func_actor_421600_8013EB7C(Task* arg0);
-void func_actor_421600_8013EC28(Task* arg0);
-void func_actor_421600_8013ED24(Task* arg0);
-void func_actor_421600_8013EE0C(Task* arg0);
+static void func_actor_421600_8013E668(Task* task);
+static void func_actor_421600_8013E858(Task* arg0);
+static void func_actor_421600_8013E8AC(Task* arg0);
+static void func_actor_421600_8013E9D8(Task* arg0);
+static void func_actor_421600_8013EAAC(Task* arg0);
+static void func_actor_421600_8013EB7C(Task* arg0);
+static void func_actor_421600_8013EC28(Task* arg0);
+static void func_actor_421600_8013ED24(Task* arg0);
+static void func_actor_421600_8013EE0C(Task* arg0);
 
 static __inline__ Actor421600UpdateScratch* Actor421600_AllocUpdateScratch(Actor421600UpdateScratch** head)
 {
@@ -455,7 +455,7 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 /// Set `coord`'s rotation to its view-space orientation turned by `yaw`,
 /// expressed back in its parent's frame, and refresh the coordinate. The work
 /// matrix is borrowed from the scratchpad stack.
-void func_actor_421600_80132004(GpCoord* coord, s16 yaw)
+static void func_actor_421600_80132004(GpCoord* coord, s16 yaw)
 {
     MATRIX*  rotation;
     GpCoord* out;
@@ -478,7 +478,7 @@ void func_actor_421600_80132004(GpCoord* coord, s16 yaw)
 /// coordinate 10 units along it in the XZ plane. `pos` receives the total
 /// displacement. Returns whether a kind-0x10000 record was among them. Does
 /// nothing, returning 0, while `gGameSession->viewReady` or `Mc_SaveData.field_5C1` is 1.
-s32 func_actor_421600_80132310(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 func_actor_421600_80132310(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -592,7 +592,7 @@ s32 func_actor_421600_80132310(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR
 /// to, and latch the integer part of that delta in `D_actor_421600_80151260`.
 /// A nonzero fractional X or Z part rounds the coordinate and the latched step
 /// one unit further from zero. Returns 1 when the X or Z delta is nonzero.
-s32 func_actor_421600_8013285C(GpCoord* coord, GpRec18* movement, s16 arg2)
+static s32 func_actor_421600_8013285C(GpCoord* coord, GpRec18* movement, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -802,7 +802,7 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, GpCmdArg* arg2)
 /// ends into view space at height `height`, widen them by `width` into a quad
 /// and emit it as a textured `POLY_FT4` shaded `shade`. Nothing is drawn when
 /// the two parts are the same.
-void func_actor_421600_80132EC0(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
+static void func_actor_421600_80132EC0(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
 {
     ActorBeamScratch* s;
     s16               angle;
@@ -882,7 +882,7 @@ void func_actor_421600_80132EC0(Task* actor, s16 firstJoint, s16 secondJoint, s1
 
 /// Moves an interior coordinate to the nearest padded X or Z edge.
 /// Returns 1 when moved, or 0 when already outside the rectangle.
-s32 func_actor_421600_80133334(GpCoord* arg0)
+static s32 func_actor_421600_80133334(GpCoord* arg0)
 {
     s16 dx;
     s16 dz;
@@ -923,7 +923,7 @@ s32 func_actor_421600_80133334(GpCoord* arg0)
     return 0;
 }
 
-void func_actor_421600_80133444(GpCoord* arg0)
+static void func_actor_421600_80133444(GpCoord* arg0)
 {
     SVECTOR              vec;
     SVECTOR*             dir;
@@ -969,7 +969,7 @@ void func_actor_421600_80133444(GpCoord* arg0)
     }
 }
 
-s32 func_actor_421600_801335BC(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 func_actor_421600_801335BC(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                      head;
     Actor421600AvoidScratch* s;
@@ -1083,7 +1083,7 @@ s32 func_actor_421600_801335BC(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR
     return s->blocked != 0;
 }
 
-void func_actor_421600_80133B30(Task* arg0)
+static void func_actor_421600_80133B30(Task* arg0)
 {
     GpAnimPose           pose;
     GpAnimPose           blendPose;
@@ -1136,7 +1136,7 @@ void func_actor_421600_80133B30(Task* arg0)
 /// case claimed the frame.
 ///
 /// `steer` is a matching carrier (see `CSE_STEER`); it has no effect.
-s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
+static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
 {
     SVECTOR offset;
     u32     prev;
@@ -1443,7 +1443,7 @@ s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
     return 0;
 }
 
-void func_actor_421600_80134604(Task* arg0)
+static void func_actor_421600_80134604(Task* arg0)
 {
     s32                  index;
     u32                  table;
@@ -1643,7 +1643,7 @@ static __inline__ void Actor421600_BindMatrices(Task* actor)
     obj->colorMtx = &work->field_E24;
 }
 
-void func_actor_421600_80134AD4(GpEnemy* enemy, Task* actor)
+static void func_actor_421600_80134AD4(GpEnemy* enemy, Task* actor)
 {
     SVECTOR          dir;
     s32              kind;
@@ -1827,7 +1827,7 @@ void func_actor_421600_80134AD4(GpEnemy* enemy, Task* actor)
 /// model part that entry names. Same body as the shared
 /// `Actor00100_Fn03340` / `func_actor_401300_80134BA4` pair, but it reads this
 /// overlay's own table, so it stays a per-overlay copy.
-void func_actor_421600_801350BC(Task* arg0, s16 arg1, s32 arg2)
+static void func_actor_421600_801350BC(Task* arg0, s16 arg1, s32 arg2)
 {
     SVECTOR*         sc;
     s32              mag;
@@ -1908,7 +1908,7 @@ static __inline__ s32 Actor421600_FindDamageHit(GpRec18* records,
     return 0;
 }
 
-void func_actor_421600_801354D8(Task* arg0)
+static void func_actor_421600_801354D8(Task* arg0)
 {
     s32                       callAngle;
     s32                       debugMode;
@@ -2202,7 +2202,7 @@ void func_actor_421600_801354D8(Task* arg0)
     }
 }
 
-void func_actor_421600_80135F6C(Task* arg0)
+static void func_actor_421600_80135F6C(Task* arg0)
 {
     SVECTOR          offset;
     Actor421600Work* work;
@@ -2292,7 +2292,7 @@ static __inline__ s16 Actor421600_Zone(GpCoord* coord)
     return D_actor_421600_801511C0[ix | (iz * 4)];
 }
 
-void func_actor_421600_80136138(Task* arg0)
+static void func_actor_421600_80136138(Task* arg0)
 {
     Actor421600Work*  work;
     ActorTurnScratch *head, *blk;
@@ -2484,7 +2484,7 @@ static __inline__ void Actor421600_ShrinkCoord(GpCoord* coord, s16 y)
 /// frame counter also drives the light state: 1 sets modes 0 and 1, 20 (and
 /// the fall-through from 1) sets mode 2, 38 sets `field_C` 0x80 and the
 /// `field_0` state 0x16. Counting stops at 0x401.
-void func_actor_421600_801366F4(Task* arg0)
+static void func_actor_421600_801366F4(Task* arg0)
 {
     Actor421600Work* work;
     GpEnemy*         ctx;
@@ -2532,7 +2532,7 @@ void func_actor_421600_801366F4(Task* arg0)
     }
 }
 
-void func_actor_421600_801369A0(Task* arg0)
+static void func_actor_421600_801369A0(Task* arg0)
 {
     Actor421600Work* work;
     GpEnemy*         ctx;
@@ -2640,7 +2640,7 @@ static __inline__ s16 Actor421600_HasRecord10(Task* arg0)
     return found;
 }
 
-void func_actor_421600_80136C88(Task* arg0)
+static void func_actor_421600_80136C88(Task* arg0)
 {
     Actor421600Work*  work;
     GpEnemy*          ctx;
@@ -2743,7 +2743,7 @@ void func_actor_421600_80136C88(Task* arg0)
     SCRATCH_POP(ActorTurnScratch);
 }
 
-void func_actor_421600_801373D4(Task* arg0)
+static void func_actor_421600_801373D4(Task* arg0)
 {
     PlayerStatus* config = &Player_Status;
     SVECTOR       initialDelta;
@@ -3161,7 +3161,7 @@ void func_actor_421600_801373D4(Task* arg0)
 /// coordinate. The `field_E90` id picks `field_0` on the 0x100 flag, 5 for
 /// 0x11402 and 0x1F otherwise -- the same pair `func_actor_421600_8013E9D8`
 /// writes.
-void func_actor_421600_8013848C(Task* arg0)
+static void func_actor_421600_8013848C(Task* arg0)
 {
     Actor421600Work* work;
     GpEnemy*         ctx;
@@ -3241,7 +3241,7 @@ void func_actor_421600_8013848C(Task* arg0)
     SCRATCH_HEAD(SVECTOR) += 2;
 }
 
-void func_actor_421600_80138750(Task* arg0)
+static void func_actor_421600_80138750(Task* arg0)
 {
     Actor421600Work* work;
     GpEnemy*         ctx;
@@ -3334,7 +3334,7 @@ void func_actor_421600_80138750(Task* arg0)
 /// 0x100000 kind turns it by `-0x55`, none by `-0xC8`, through
 /// `actorMoveForward`. Outside that frame window, and in both aim arms,
 /// the 0xB8C walk is what runs.
-void func_actor_421600_80138D24(Task* arg0)
+static void func_actor_421600_80138D24(Task* arg0)
 {
     Actor421600Work* work;
     GpEnemy*         ctx;
@@ -3395,7 +3395,7 @@ void func_actor_421600_80138D24(Task* arg0)
 /// 2.8.1 keeps them in a caller-saved and a callee-saved register respectively.
 /// One local assigned twice is one pseudo with one live range and costs a sixth
 /// saved register.
-void func_actor_421600_8013903C(Task* arg0)
+static void func_actor_421600_8013903C(Task* arg0)
 {
     Actor421600Work* work;
     GpEnemy*         ctx;
@@ -3471,7 +3471,7 @@ void func_actor_421600_8013903C(Task* arg0)
 /// reports a hit, and again when the squared XZ offset from `Player_Status.coordMtx` is
 /// under the squared 0x5DC radius, so the actor only takes the state while the
 /// player is close. Ends by clearing the model's `flg`.
-void func_actor_421600_801392A8(Task* arg0)
+static void func_actor_421600_801392A8(Task* arg0)
 {
     Actor421600Work*     work;
     GpEnemy*             ctx;
@@ -3537,7 +3537,7 @@ void func_actor_421600_801392A8(Task* arg0)
 /// in the arena by clamping X -- and Z only when X was already inside -- and
 /// otherwise `func_actor_421600_80133334` drags it back. Picks the state
 /// `field_0` out of `field_40` / `field_4C`.
-void func_actor_421600_8013947C(Task* arg0)
+static void func_actor_421600_8013947C(Task* arg0)
 {
     Actor421600Work* work;
     GpEnemy*         ctx;
@@ -3620,7 +3620,7 @@ void func_actor_421600_8013947C(Task* arg0)
     }
 }
 
-void func_actor_421600_80139718(Task* arg0)
+static void func_actor_421600_80139718(Task* arg0)
 {
     s32               radius = 0x5DC;
     Actor421600Work*  work;
@@ -3932,7 +3932,7 @@ void func_actor_421600_80139718(Task* arg0)
     arg0->extra.tmd->coords->flg = 0;
 }
 
-void func_actor_421600_8013A404(Task* arg0)
+static void func_actor_421600_8013A404(Task* arg0)
 {
     Actor421600Work* temp_s0;
     GpCoord*         temp_v0_2;
@@ -3987,7 +3987,7 @@ void func_actor_421600_8013A404(Task* arg0)
     }
 }
 
-void func_actor_421600_8013A554(Task* arg0)
+static void func_actor_421600_8013A554(Task* arg0)
 {
     SVECTOR                   effect;
     s16                       aimZ;
@@ -4228,7 +4228,7 @@ void func_actor_421600_8013A554(Task* arg0)
     SCRATCH_POP(Actor421600AttackScratch);
 }
 
-void func_actor_421600_8013B00C(Task* arg0)
+static void func_actor_421600_8013B00C(Task* arg0)
 {
     Actor421600Work*  work;
     ActorTurnScratch* head;
@@ -4390,7 +4390,7 @@ void func_actor_421600_8013B00C(Task* arg0)
 /// declaration-initialised `s8` leaves it a register operand so the fold never
 /// runs. The midpoint store then lands in the load-delay slot the subtractions
 /// leave open.
-void func_actor_421600_8013B4C4(Task* arg0)
+static void func_actor_421600_8013B4C4(Task* arg0)
 {
     Actor421600Work*  work;
     ActorTurnScratch* head;
@@ -4503,7 +4503,7 @@ void func_actor_421600_8013B4C4(Task* arg0)
     arg0->extra.tmd->coords->flg = 0;
 }
 
-void func_actor_421600_8013B8E0(Task* arg0)
+static void func_actor_421600_8013B8E0(Task* arg0)
 {
     Actor421600Work* temp_s1;
     TmdObject*       temp_a0;
@@ -4547,7 +4547,7 @@ static __inline__ s32 Actor421600_RouteZone(s32 x, s32 z)
     return D_actor_421600_801511D0[ix + (iz * 2)];
 }
 
-void func_actor_421600_8013BA70(Task* arg0)
+static void func_actor_421600_8013BA70(Task* arg0)
 {
     s32                      radius = 0x5DC;
     Actor421600Work*         work;
@@ -4896,7 +4896,7 @@ void func_actor_421600_8013BA70(Task* arg0)
 /// and spawn one effect each -- 0xA0005 on coordinate 9, 12, 1 and 3 -- whose
 /// model is tinted from the enemy's area record (`field_24` / `field_25`) and
 /// re-streamed. Frame 0xA writes the 0x16 state. The counter stops at 0x400.
-void func_actor_421600_8013C8E0(Task* arg0)
+static void func_actor_421600_8013C8E0(Task* arg0)
 {
     Actor421600Work* work;
     GpEnemy*         ctx;
@@ -4953,7 +4953,7 @@ void func_actor_421600_8013C8E0(Task* arg0)
     }
 }
 
-void func_actor_421600_8013CD3C(Task* arg0)
+static void func_actor_421600_8013CD3C(Task* arg0)
 {
     TmdObject*            obj;
     GpEnemy*              ctx;
@@ -5055,7 +5055,7 @@ void func_actor_421600_8013CD3C(Task* arg0)
     SCRATCH_POP(ActorTurnStepScratch);
 }
 
-void func_actor_421600_8013D1DC(Task* arg0)
+static void func_actor_421600_8013D1DC(Task* arg0)
 {
     TmdObject*            obj;
     GpEnemy*              ctx;
@@ -5154,47 +5154,47 @@ void func_actor_421600_8013D1DC(Task* arg0)
     SCRATCH_POP(ActorTurnStepScratch);
 }
 
-const Actor421600StateTable D_actor_421600_80131EFC = { { func_actor_421600_8013E858,
-                                                          func_actor_421600_80135F6C,
-                                                          func_actor_421600_80136138,
-                                                          func_actor_421600_8013A554,
-                                                          func_actor_421600_8013E8AC,
-                                                          func_actor_421600_8013B00C,
-                                                          func_actor_421600_8013B4C4,
-                                                          func_actor_421600_8013B8E0,
-                                                          func_actor_421600_8013C8E0,
-                                                          func_actor_421600_8013CD3C,
-                                                          func_actor_421600_8013D1DC,
-                                                          func_actor_421600_8013ED24,
-                                                          func_actor_421600_8013EE0C,
-                                                          NULL,
-                                                          NULL,
-                                                          NULL,
-                                                          NULL,
-                                                          func_actor_421600_8013A404,
-                                                          NULL,
-                                                          NULL,
-                                                          func_actor_421600_8013EC28,
-                                                          func_actor_421600_801366F4,
-                                                          func_actor_421600_801369A0,
-                                                          NULL,
-                                                          func_actor_421600_80136C88,
-                                                          NULL,
-                                                          NULL,
-                                                          NULL,
-                                                          func_actor_421600_801373D4,
-                                                          func_actor_421600_8013E9D8,
-                                                          func_actor_421600_8013848C,
-                                                          func_actor_421600_80138D24,
-                                                          func_actor_421600_8013903C,
-                                                          func_actor_421600_801392A8,
-                                                          func_actor_421600_8013EAAC,
-                                                          func_actor_421600_8013947C,
-                                                          func_actor_421600_8013EB7C,
-                                                          func_actor_421600_80138750,
-                                                          func_actor_421600_80139718,
-                                                          func_actor_421600_8013BA70 } };
-void                        func_actor_421600_8013D658(GpEnemy* enemy, Task* actor)
+static const Actor421600StateTable D_actor_421600_80131EFC = { { func_actor_421600_8013E858,
+                                                                 func_actor_421600_80135F6C,
+                                                                 func_actor_421600_80136138,
+                                                                 func_actor_421600_8013A554,
+                                                                 func_actor_421600_8013E8AC,
+                                                                 func_actor_421600_8013B00C,
+                                                                 func_actor_421600_8013B4C4,
+                                                                 func_actor_421600_8013B8E0,
+                                                                 func_actor_421600_8013C8E0,
+                                                                 func_actor_421600_8013CD3C,
+                                                                 func_actor_421600_8013D1DC,
+                                                                 func_actor_421600_8013ED24,
+                                                                 func_actor_421600_8013EE0C,
+                                                                 NULL,
+                                                                 NULL,
+                                                                 NULL,
+                                                                 NULL,
+                                                                 func_actor_421600_8013A404,
+                                                                 NULL,
+                                                                 NULL,
+                                                                 func_actor_421600_8013EC28,
+                                                                 func_actor_421600_801366F4,
+                                                                 func_actor_421600_801369A0,
+                                                                 NULL,
+                                                                 func_actor_421600_80136C88,
+                                                                 NULL,
+                                                                 NULL,
+                                                                 NULL,
+                                                                 func_actor_421600_801373D4,
+                                                                 func_actor_421600_8013E9D8,
+                                                                 func_actor_421600_8013848C,
+                                                                 func_actor_421600_80138D24,
+                                                                 func_actor_421600_8013903C,
+                                                                 func_actor_421600_801392A8,
+                                                                 func_actor_421600_8013EAAC,
+                                                                 func_actor_421600_8013947C,
+                                                                 func_actor_421600_8013EB7C,
+                                                                 func_actor_421600_80138750,
+                                                                 func_actor_421600_80139718,
+                                                                 func_actor_421600_8013BA70 } };
+static void                        func_actor_421600_8013D658(GpEnemy* enemy, Task* actor)
 {
     PlayerStatus*         config;
     VECTOR                pos;
@@ -5501,7 +5501,7 @@ void func_actor_421600_8013E424(void)
 
 /// The enemy task's state handlers - spawn, per-frame tick and teardown - run by
 /// `func_actor_421600_8013EEC8`.
-const GpEnemyTaskFuncTable3 D_actor_421600_80131FB0 = {
+static const GpEnemyTaskFuncTable3 D_actor_421600_80131FB0 = {
     {
         func_actor_421600_80134AD4,
         func_actor_421600_8013D658,
@@ -5605,7 +5605,7 @@ s32 func_actor_421600_8013E654(Task* task)
 
 /// `Task::exitCallback` teardown: kill the two helper tasks, unlink the three
 /// display nodes, clear the enemy's `recs`, then `Gp_DestroyEnemy`.
-void func_actor_421600_8013E668(Task* task)
+static void func_actor_421600_8013E668(Task* task)
 {
     Actor421600Work* work;
     GpEnemy*         enemy;
@@ -5631,7 +5631,7 @@ void func_actor_421600_8013E668(Task* task)
 /// Only parts 0, 1, 7, 9, 14 and 17 emit; each carries its own vertical offset
 /// in the effect's position argument. `flags` goes to `Gp_SpawnEff` with the
 /// top bit set.
-void func_actor_421600_8013E700(Task* arg0, s16 part, s16 flags)
+static void func_actor_421600_8013E700(Task* arg0, s16 part, s16 flags)
 {
     SVECTOR sp10;
     s32     spawn;
@@ -5674,14 +5674,14 @@ void func_actor_421600_8013E700(Task* arg0, s16 part, s16 flags)
 }
 
 /// Copy the `vx`/`vy`/`vz` of entry `arg1` of the pose table into `arg0`.
-void func_actor_421600_8013E7F8(SVECTOR* arg0, s32 arg1)
+static void func_actor_421600_8013E7F8(SVECTOR* arg0, s32 arg1)
 {
     arg0->vx = D_actor_421600_80151158[(s16)arg1].vx;
     arg0->vy = D_actor_421600_80151158[(s16)arg1].vy;
     arg0->vz = D_actor_421600_80151158[(s16)arg1].vz;
 }
 
-s8 func_actor_421600_8013E830(s32 arg0, s32 arg1)
+static s8 func_actor_421600_8013E830(s32 arg0, s32 arg1)
 {
     s8* p;
     s32 a;
@@ -5693,7 +5693,7 @@ s8 func_actor_421600_8013E830(s32 arg0, s32 arg1)
     return p[a + (b << 1)];
 }
 
-void func_actor_421600_8013E858(Task* arg0)
+static void func_actor_421600_8013E858(Task* arg0)
 {
     TmdObject*       obj;
     Actor421600Work* work;
@@ -5710,7 +5710,7 @@ void func_actor_421600_8013E858(Task* arg0)
     }
 }
 
-void func_actor_421600_8013E8AC(Task* arg0)
+static void func_actor_421600_8013E8AC(Task* arg0)
 {
     Actor421600Work* work;
     GpEnemy*         enemy;
@@ -5755,7 +5755,7 @@ void func_actor_421600_8013E8AC(Task* arg0)
 /// State handler: on the live-actor edge (`field_4` set) show the model, start
 /// animation 4 and step it once; afterwards step the animation and, once its
 /// flag 0x100 is up, go to state 5 when `field_E90` masks to 0x11402, else 2.
-void func_actor_421600_8013E9D8(Task* arg0)
+static void func_actor_421600_8013E9D8(Task* arg0)
 {
     TmdObject*       obj;
     Actor421600Work* work;
@@ -5788,7 +5788,7 @@ void func_actor_421600_8013E9D8(Task* arg0)
     }
 }
 
-void func_actor_421600_8013EAAC(Task* arg0)
+static void func_actor_421600_8013EAAC(Task* arg0)
 {
     TmdObject*       obj;
     Actor421600Work* work;
@@ -5815,7 +5815,7 @@ void func_actor_421600_8013EAAC(Task* arg0)
     }
 }
 
-void func_actor_421600_8013EB7C(Task* arg0)
+static void func_actor_421600_8013EB7C(Task* arg0)
 {
     TmdObject*       obj;
     Actor421600Work* work;
@@ -5840,7 +5840,7 @@ void func_actor_421600_8013EB7C(Task* arg0)
     }
 }
 
-void func_actor_421600_8013EC28(Task* arg0)
+static void func_actor_421600_8013EC28(Task* arg0)
 {
     Actor421600Work* work;
     GpEnemy*         enemy;
@@ -5878,7 +5878,7 @@ void func_actor_421600_8013EC28(Task* arg0)
     }
 }
 
-void func_actor_421600_8013ED24(Task* arg0)
+static void func_actor_421600_8013ED24(Task* arg0)
 {
     Actor421600Work* work;
     GpEnemy*         enemy;
@@ -5913,7 +5913,7 @@ void func_actor_421600_8013ED24(Task* arg0)
     }
 }
 
-void func_actor_421600_8013EE0C(Task* arg0)
+static void func_actor_421600_8013EE0C(Task* arg0)
 {
     TmdObject*       obj;
     Actor421600Work* work;
@@ -5944,7 +5944,7 @@ void func_actor_421600_8013EE0C(Task* arg0)
 
 /// The enemy task's per-frame entry: runs the handler for the task's current
 /// state - spawn, tick or teardown - from a stack copy of the state table.
-void func_actor_421600_8013EEC8(Task* task)
+static void func_actor_421600_8013EEC8(Task* task)
 {
     GpEnemyTaskFuncTable3 sp;
 

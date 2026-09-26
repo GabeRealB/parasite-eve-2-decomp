@@ -60,20 +60,20 @@ extern u16 D_actor_311900_8016EC18[][0x100];
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_311900_8016228C(GpEnemy* enemy, Task* task);
-void func_actor_311900_801623B0(GpEnemy* enemy, Task* task);
-void func_actor_311900_801624F8(GpEnemy* enemy, Task* task);
-void func_actor_311900_801625F0(GpEnemy* enemy, Task* task);
-s32  func_actor_311900_80162658(GpCoord* arg0, s16 arg1);
-void func_actor_311900_8016278C(Task* task);
-void func_actor_311900_8016281C(Task* task);
+static void func_actor_311900_8016228C(GpEnemy* enemy, Task* task);
+static void func_actor_311900_801623B0(GpEnemy* enemy, Task* task);
+static void func_actor_311900_801624F8(GpEnemy* enemy, Task* task);
+static void func_actor_311900_801625F0(GpEnemy* enemy, Task* task);
+static s32  func_actor_311900_80162658(GpCoord* arg0, s16 arg1);
+static void func_actor_311900_8016278C(Task* task);
+static void func_actor_311900_8016281C(Task* task);
 
 /// Fades the two 256-entry CLUT rows `arg2` / `arg2 + 1` of the palette table
 /// to grey, one step per call in the work block's `field_4C8`: step 0 reads the
 /// VRAM rows `arg1 + 0xF5` / `arg1 + 0xF6` back into the table, step 1 sets each
 /// entry's three 5-bit channels to their maximum (keeping the STP bit set), and
 /// step 2 uploads the rows again, leaving 3.
-void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2)
+static void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2)
 {
     RECT             rect;
     Actor311900Work* work;
@@ -166,7 +166,7 @@ void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2)
 /// both branches name the same local. Step 3 reads the block again into an alias
 /// of its own -- keeping `start` dead before `work` there is what leaves the
 /// slot walk on the `work` register cse2 picks for it.
-void func_actor_311900_80162100(Task* task)
+static void func_actor_311900_80162100(Task* task)
 {
     Actor311900Work* work;
     Actor311900Work* start;
@@ -210,7 +210,7 @@ void func_actor_311900_80162100(Task* task)
 /// The actor's first state table - `func_actor_311900_8016228C`'s setup,
 /// `func_actor_311900_801623B0`'s tick and teardown - dispatched through by
 /// `func_actor_311900_8016222C`.
-const GpEnemyTaskFuncTable3 D_actor_311900_80161E24 = {
+static const GpEnemyTaskFuncTable3 D_actor_311900_80161E24 = {
     func_actor_311900_8016228C,
     func_actor_311900_801623B0,
     Gp_DestroyEnemy,
@@ -219,7 +219,7 @@ const GpEnemyTaskFuncTable3 D_actor_311900_80161E24 = {
 /// The actor's second state table - `func_actor_311900_801624F8`'s setup,
 /// `func_actor_311900_801625F0`'s tick and teardown - dispatched through by
 /// `func_actor_311900_8016249C`.
-const GpEnemyTaskFuncTable3 D_actor_311900_80161E30 = {
+static const GpEnemyTaskFuncTable3 D_actor_311900_80161E30 = {
     func_actor_311900_801624F8,
     func_actor_311900_801625F0,
     Gp_DestroyEnemy,
@@ -252,7 +252,7 @@ void func_actor_311900_8016222C(Task* task)
 /// block's slot array and packed-pose run, seeds the tick's two work halfwords
 /// 0x474 / 0x478 and zeroes the 0x4C4 / 0x4C6 pair it counts in, and publishes
 /// the view-dependent light level exactly as the tick does.
-void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
+static void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
 {
     Actor311900Work* work;
     GpCoord*         coord;
@@ -290,7 +290,7 @@ void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
 /// block's `field_4C6` latch is up, counts frames in `field_4C4` and nudges the
 /// model along the coordinate part `func_actor_311900_80162658` walks. The
 /// counter reaching 0x5A raises game flag 0x102 and advances the state.
-void func_actor_311900_801623B0(GpEnemy* enemy, Task* task)
+static void func_actor_311900_801623B0(GpEnemy* enemy, Task* task)
 {
     Actor311900Work* work;
     GpCoord*         coord;
@@ -346,7 +346,7 @@ void func_actor_311900_8016249C(Task* task)
 /// two work halfwords 0x474 / 0x478 seed the tick's state. Note this handler,
 /// unlike `func_actor_311900_8016228C`, does not touch `field_4C4` / `field_4C6`
 /// or the model's `field_C`.
-void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
+static void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
 {
     Actor311900Work* work;
     GpCoord*         coord;
@@ -372,7 +372,7 @@ void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
     task->state += 1;
 }
 
-void func_actor_311900_801625F0(GpEnemy* enemy, Task* task)
+static void func_actor_311900_801625F0(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
 
@@ -398,7 +398,7 @@ void func_actor_311900_801625F0(GpEnemy* enemy, Task* task)
 /// frame update stores and the calls normalize, and `gte`, which the GTE round
 /// trip reads and writes back. The object keeps them apart, and that is what
 /// the copy ahead of the `if` is.
-s32 func_actor_311900_80162658(GpCoord* arg0, s16 arg1)
+static s32 func_actor_311900_80162658(GpCoord* arg0, s16 arg1)
 {
     SVECTOR* head;
     SVECTOR* vec;
@@ -433,7 +433,7 @@ s32 func_actor_311900_80162658(GpCoord* arg0, s16 arg1)
 /// from `Gp_DefaultMtx` / `Gp_DefaultMtx2`, and then overwrites each 3x3 with
 /// the values the actor lights its model with -- the light matrix flat except
 /// for `m[1][0]` and `m[2][2]`, the colour matrix fully pass-through.
-void func_actor_311900_8016278C(Task* task)
+static void func_actor_311900_8016278C(Task* task)
 {
     OverlayMat*      color;
     OverlayMat*      light;
@@ -486,7 +486,7 @@ void func_actor_311900_8016278C(Task* task)
 /// pair onto `TmdObject::lightMtx` / `field_20` between the identity seed and
 /// the per-actor values: the colour matrix goes fully pass-through, the light
 /// matrix flat except for a negated `m[0][0]`.
-void func_actor_311900_8016281C(Task* task)
+static void func_actor_311900_8016281C(Task* task)
 {
     OverlayMat*      color;
     OverlayMat*      light;

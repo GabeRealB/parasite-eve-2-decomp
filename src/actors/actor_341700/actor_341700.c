@@ -40,131 +40,131 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-void func_actor_341700_80162974(Task* task);
-void func_actor_341700_80162B8C(Task* task);
-void func_actor_341700_80162DCC(Task* arg0);
-void func_actor_341700_80163268(Task* arg0);
-void func_actor_341700_801633D4(Task* arg0);
-void func_actor_341700_80163600(Task* arg0);
-void func_actor_341700_801639C0(Task* arg0);
-void func_actor_341700_80163AF0(Task* arg0);
-void func_actor_341700_80163C58(Task* arg0);
-void func_actor_341700_80163E58(Task* arg0);
-void func_actor_341700_80163FBC(Task* arg0);
-void func_actor_341700_801640F8(Task* arg0, s16 arg1);
-void func_actor_341700_801649DC(Task* arg0);
-void func_actor_341700_80164B68(Task* task);
-void func_actor_341700_80164CDC(Task* arg0);
-void func_actor_341700_80164E9C(Task* arg0);
-void func_actor_341700_80165008(Task* arg0);
-void func_actor_341700_80165388(Task* arg0);
-void func_actor_341700_8016583C(Task* arg0);
-void func_actor_341700_80165984(Task* arg0);
-void func_actor_341700_80165AF0(Task* arg0);
-void func_actor_341700_80165C70(Task* arg0);
-void func_actor_341700_80165DDC(Task* arg0);
-void func_actor_341700_80166114(Task* arg0);
-void func_actor_341700_801663F0(Task* arg0);
-void func_actor_341700_80166568(Task* arg0);
-void func_actor_341700_801666F0(Task* arg0);
-void func_actor_341700_8016688C(Task* arg0);
-void func_actor_341700_801669F8(Task* arg0);
-void func_actor_341700_80166B94(Task* arg0);
-void func_actor_341700_80166D2C(Task* arg0);
-void func_actor_341700_80166E90(Task* arg0);
-void func_actor_341700_801670B0(Task* arg0);
-void func_actor_341700_8016724C(Task* arg0);
-void func_actor_341700_80167744(Task* arg0);
-void func_actor_341700_80167890(Task* arg0);
-void func_actor_341700_80167C30(Task* arg0);
-void func_actor_341700_80167E18(Task* arg0);
-void func_actor_341700_80168004(void);
-void func_actor_341700_80168124(Task* arg0);
-s16  func_actor_341700_80168178(Task* arg0);
-void func_actor_341700_801681C4(Task* arg0, s32 arg1);
-s32  func_actor_341700_80168234(Task* arg0);
-void func_actor_341700_80168370(Task* arg0, s16 arg1, SVECTOR3* arg2);
-s32  func_actor_341700_80168444(Task* arg0, s16 arg1);
-s16  func_actor_341700_80168468(Task* arg0);
-void func_actor_341700_801684A8(Task* arg0);
-void func_actor_341700_8016852C(Task* arg0);
-void func_actor_341700_8016859C(Task* arg0);
-void func_actor_341700_801685F0(Task* arg0, s32 step);
-void func_actor_341700_80168684(Task* arg0);
-void func_actor_341700_80168698(Task* arg0);
-void func_actor_341700_801686AC(Task* arg0);
-void func_actor_341700_801686C0(Task* arg0);
-void func_actor_341700_80168748(Task* arg0);
-void func_actor_341700_801687B4(Task* arg0);
-void func_actor_341700_80168820(Task* arg0);
-void func_actor_341700_80168874(Task* arg0);
-void func_actor_341700_801688C8(Task* arg0);
-void func_actor_341700_8016891C(Task* arg0);
-void func_actor_341700_801689A0(Task* arg0);
-void func_actor_341700_80168A14(Task* arg0);
-void func_actor_341700_80168A48(Task* arg0);
-void func_actor_341700_80168AC0(Task* arg0);
-void func_actor_341700_80168B40(Task* arg0);
-void func_actor_341700_80168BE0(Task* arg0);
-void func_actor_341700_80168C4C(Task* arg0);
-void func_actor_341700_80168D3C(Task* arg0);
-void func_actor_341700_80168DA0(Task* arg0);
-void func_actor_341700_80168EA0(Task* arg0);
-void func_actor_341700_80168F5C(Task* arg0);
-void func_actor_341700_80168F9C(Task* arg0);
-void func_actor_341700_80169018(Task* arg0);
-void func_actor_341700_8016908C(Task* arg0);
-void func_actor_341700_801691B0(Task* arg0);
-void func_actor_341700_80169218(Task* arg0);
-void func_actor_341700_80169254(Task* arg0);
-void func_actor_341700_80169380(Task* arg0);
-void func_actor_341700_80169440(Task* arg0);
-void func_actor_341700_80169520(Task* arg0);
-void func_actor_341700_801695A0(Task* task);
-void func_actor_341700_8016966C(Task* arg0);
-void func_actor_341700_801696C8(Task* arg0);
-void func_actor_341700_801696E0(Task* arg0);
-void func_actor_341700_80169724(Task* arg0);
-void func_actor_341700_801697B8(Task* arg0);
-void func_actor_341700_801697D4(Task* arg0);
-void func_actor_341700_80169888(Task* arg0);
-void func_actor_341700_8016999C(Task* arg0);
-void func_actor_341700_80169AB0(Task* arg0);
-void func_actor_341700_80169B40(Task* arg0);
-void func_actor_341700_80169BC8(Task* arg0);
-void func_actor_341700_80169C50(Task* arg0);
-void func_actor_341700_80169CC4(Task* arg0);
-void func_actor_341700_80169D54(Task* arg0);
-void func_actor_341700_80169DBC(Task* arg0);
-void func_actor_341700_80169E20(Task* arg0);
-void func_actor_341700_80169EE4(Task* arg0);
-void func_actor_341700_80169F38(Task* arg0);
-void func_actor_341700_80169FB0(Task* arg0);
-void func_actor_341700_8016A058(Task* arg0);
-void func_actor_341700_8016A08C(Task* arg0);
-void func_actor_341700_8016A0E0(Task* arg0);
-void func_actor_341700_8016A130(Task* arg0);
-void func_actor_341700_8016A1A8(Task* arg0);
-void func_actor_341700_8016A21C(Task* arg0);
-void func_actor_341700_8016A2CC(Task* arg0);
-void func_actor_341700_8016A460(Task* arg0);
-void func_actor_341700_8016A568(Task* arg0);
-void func_actor_341700_8016A630(Task* arg0);
-void func_actor_341700_8016A6C0(Task* arg0);
-void func_actor_341700_8016A758(Task* arg0);
-void func_actor_341700_8016A810(Task* arg0);
-void func_actor_341700_8016A890(Task* arg0);
-void func_actor_341700_8016A8EC(Task* arg0);
-void func_actor_341700_8016A8F4(Task* arg0);
-void func_actor_341700_8016A98C(Task* task);
-void func_actor_341700_8016AA58(Task* arg0);
-void func_actor_341700_8016AAB4(Task* arg0);
-void func_actor_341700_8016ABF4(Task* arg0);
-s32  func_actor_341700_8016AC0C(Task* arg0);
+static void func_actor_341700_80162974(Task* task);
+static void func_actor_341700_80162B8C(Task* task);
+static void func_actor_341700_80162DCC(Task* arg0);
+static void func_actor_341700_80163268(Task* arg0);
+static void func_actor_341700_801633D4(Task* arg0);
+static void func_actor_341700_80163600(Task* arg0);
+static void func_actor_341700_801639C0(Task* arg0);
+static void func_actor_341700_80163AF0(Task* arg0);
+static void func_actor_341700_80163C58(Task* arg0);
+static void func_actor_341700_80163E58(Task* arg0);
+static void func_actor_341700_80163FBC(Task* arg0);
+static void func_actor_341700_801640F8(Task* arg0, s16 arg1);
+static void func_actor_341700_801649DC(Task* arg0);
+static void func_actor_341700_80164B68(Task* task);
+static void func_actor_341700_80164CDC(Task* arg0);
+static void func_actor_341700_80164E9C(Task* arg0);
+static void func_actor_341700_80165008(Task* arg0);
+static void func_actor_341700_80165388(Task* arg0);
+static void func_actor_341700_8016583C(Task* arg0);
+static void func_actor_341700_80165984(Task* arg0);
+static void func_actor_341700_80165AF0(Task* arg0);
+static void func_actor_341700_80165C70(Task* arg0);
+static void func_actor_341700_80165DDC(Task* arg0);
+static void func_actor_341700_80166114(Task* arg0);
+static void func_actor_341700_801663F0(Task* arg0);
+static void func_actor_341700_80166568(Task* arg0);
+static void func_actor_341700_801666F0(Task* arg0);
+static void func_actor_341700_8016688C(Task* arg0);
+static void func_actor_341700_801669F8(Task* arg0);
+static void func_actor_341700_80166B94(Task* arg0);
+static void func_actor_341700_80166D2C(Task* arg0);
+static void func_actor_341700_80166E90(Task* arg0);
+static void func_actor_341700_801670B0(Task* arg0);
+static void func_actor_341700_8016724C(Task* arg0);
+static void func_actor_341700_80167744(Task* arg0);
+static void func_actor_341700_80167890(Task* arg0);
+static void func_actor_341700_80167C30(Task* arg0);
+static void func_actor_341700_80167E18(Task* arg0);
+static void func_actor_341700_80168004(void);
+static void func_actor_341700_80168124(Task* arg0);
+static s16  func_actor_341700_80168178(Task* arg0);
+static void func_actor_341700_801681C4(Task* arg0, s32 arg1);
+static s32  func_actor_341700_80168234(Task* arg0);
+static void func_actor_341700_80168370(Task* arg0, s16 arg1, SVECTOR3* arg2);
+static s32  func_actor_341700_80168444(Task* arg0, s16 arg1);
+static s16  func_actor_341700_80168468(Task* arg0);
+void        func_actor_341700_801684A8(Task* arg0);
+void        func_actor_341700_8016852C(Task* arg0);
+static void func_actor_341700_8016859C(Task* arg0);
+static void func_actor_341700_801685F0(Task* arg0, s32 step);
+static void func_actor_341700_80168684(Task* arg0);
+static void func_actor_341700_80168698(Task* arg0);
+static void func_actor_341700_801686AC(Task* arg0);
+static void func_actor_341700_801686C0(Task* arg0);
+static void func_actor_341700_80168748(Task* arg0);
+static void func_actor_341700_801687B4(Task* arg0);
+static void func_actor_341700_80168820(Task* arg0);
+static void func_actor_341700_80168874(Task* arg0);
+static void func_actor_341700_801688C8(Task* arg0);
+static void func_actor_341700_8016891C(Task* arg0);
+static void func_actor_341700_801689A0(Task* arg0);
+static void func_actor_341700_80168A14(Task* arg0);
+static void func_actor_341700_80168A48(Task* arg0);
+static void func_actor_341700_80168AC0(Task* arg0);
+static void func_actor_341700_80168B40(Task* arg0);
+static void func_actor_341700_80168BE0(Task* arg0);
+static void func_actor_341700_80168C4C(Task* arg0);
+static void func_actor_341700_80168D3C(Task* arg0);
+static void func_actor_341700_80168DA0(Task* arg0);
+static void func_actor_341700_80168EA0(Task* arg0);
+static void func_actor_341700_80168F5C(Task* arg0);
+static void func_actor_341700_80168F9C(Task* arg0);
+static void func_actor_341700_80169018(Task* arg0);
+static void func_actor_341700_8016908C(Task* arg0);
+static void func_actor_341700_801691B0(Task* arg0);
+static void func_actor_341700_80169218(Task* arg0);
+static void func_actor_341700_80169254(Task* arg0);
+static void func_actor_341700_80169380(Task* arg0);
+static void func_actor_341700_80169440(Task* arg0);
+static void func_actor_341700_80169520(Task* arg0);
+static void func_actor_341700_801695A0(Task* task);
+static void func_actor_341700_8016966C(Task* arg0);
+static void func_actor_341700_801696C8(Task* arg0);
+static void func_actor_341700_801696E0(Task* arg0);
+static void func_actor_341700_80169724(Task* arg0);
+static void func_actor_341700_801697B8(Task* arg0);
+static void func_actor_341700_801697D4(Task* arg0);
+static void func_actor_341700_80169888(Task* arg0);
+static void func_actor_341700_8016999C(Task* arg0);
+static void func_actor_341700_80169AB0(Task* arg0);
+static void func_actor_341700_80169B40(Task* arg0);
+static void func_actor_341700_80169BC8(Task* arg0);
+static void func_actor_341700_80169C50(Task* arg0);
+static void func_actor_341700_80169CC4(Task* arg0);
+static void func_actor_341700_80169D54(Task* arg0);
+static void func_actor_341700_80169DBC(Task* arg0);
+static void func_actor_341700_80169E20(Task* arg0);
+static void func_actor_341700_80169EE4(Task* arg0);
+static void func_actor_341700_80169F38(Task* arg0);
+static void func_actor_341700_80169FB0(Task* arg0);
+static void func_actor_341700_8016A058(Task* arg0);
+static void func_actor_341700_8016A08C(Task* arg0);
+static void func_actor_341700_8016A0E0(Task* arg0);
+static void func_actor_341700_8016A130(Task* arg0);
+static void func_actor_341700_8016A1A8(Task* arg0);
+static void func_actor_341700_8016A21C(Task* arg0);
+static void func_actor_341700_8016A2CC(Task* arg0);
+static void func_actor_341700_8016A460(Task* arg0);
+static void func_actor_341700_8016A568(Task* arg0);
+static void func_actor_341700_8016A630(Task* arg0);
+static void func_actor_341700_8016A6C0(Task* arg0);
+static void func_actor_341700_8016A758(Task* arg0);
+static void func_actor_341700_8016A810(Task* arg0);
+static void func_actor_341700_8016A890(Task* arg0);
+static void func_actor_341700_8016A8EC(Task* arg0);
+static void func_actor_341700_8016A8F4(Task* arg0);
+static void func_actor_341700_8016A98C(Task* task);
+static void func_actor_341700_8016AA58(Task* arg0);
+static void func_actor_341700_8016AAB4(Task* arg0);
+static void func_actor_341700_8016ABF4(Task* arg0);
+static s32  func_actor_341700_8016AC0C(Task* arg0);
 
 /// Six task-state handlers of the first enemy form, dispatched by
 /// `func_actor_341700_8016852C` on `Task::state`.
-const TaskFuncTable6 D_actor_341700_80161E24 = { {
+static const TaskFuncTable6 D_actor_341700_80161E24 = { {
     func_actor_341700_80162974,
     func_actor_341700_80165388,
     func_actor_341700_80163C58,
@@ -175,7 +175,7 @@ const TaskFuncTable6 D_actor_341700_80161E24 = { {
 
 /// Ten task-state handlers of the second enemy form, dispatched by
 /// `func_actor_341700_801684A8` on `Task::state`.
-const TaskFuncTable10 D_actor_341700_80161E3C = { {
+static const TaskFuncTable10 D_actor_341700_80161E3C = { {
     func_actor_341700_80162B8C,
     func_actor_341700_80165388,
     func_actor_341700_80163C58,
@@ -190,7 +190,7 @@ const TaskFuncTable10 D_actor_341700_80161E3C = { {
 
 /// Eleven state handlers, indexed by `Actor341700Work::field_420`; copied to
 /// the stack before dispatch.
-const TaskFuncTable11 D_actor_341700_80161E64 = { {
+static const TaskFuncTable11 D_actor_341700_80161E64 = { {
     func_actor_341700_80168684,
     func_actor_341700_80168698,
     func_actor_341700_801686AC,
@@ -205,21 +205,21 @@ const TaskFuncTable11 D_actor_341700_80161E64 = { {
 } };
 
 /// Sub-state handlers `func_actor_341700_8016891C` dispatches by `field_422`.
-const TaskFuncTable3 D_actor_341700_80161E90 = { {
+static const TaskFuncTable3 D_actor_341700_80161E90 = { {
     func_actor_341700_80168AC0,
     func_actor_341700_80168B40,
     func_actor_341700_80168BE0,
 } };
 
 /// Sub-state handlers `func_actor_341700_801686C0` dispatches by `field_422`.
-const TaskFuncTable3 D_actor_341700_80161E9C = { {
+static const TaskFuncTable3 D_actor_341700_80161E9C = { {
     func_actor_341700_80163268,
     func_actor_341700_801633D4,
     func_actor_341700_80168C4C,
 } };
 
 /// Sub-state handlers `func_actor_341700_80168748` dispatches by `field_422`.
-const TaskFuncTable5 D_actor_341700_80161EA8 = { {
+static const TaskFuncTable5 D_actor_341700_80161EA8 = { {
     func_actor_341700_80168D3C,
     func_actor_341700_80163600,
     func_actor_341700_801639C0,
@@ -228,7 +228,7 @@ const TaskFuncTable5 D_actor_341700_80161EA8 = { {
 } };
 
 /// Sub-state handlers `func_actor_341700_801687B4` dispatches by `field_422`.
-const TaskFuncTable5 D_actor_341700_80161EBC = { {
+static const TaskFuncTable5 D_actor_341700_80161EBC = { {
     func_actor_341700_80168EA0,
     func_actor_341700_80168F5C,
     func_actor_341700_80168F9C,
@@ -237,7 +237,7 @@ const TaskFuncTable5 D_actor_341700_80161EBC = { {
 } };
 
 /// Sub-state handlers `func_actor_341700_801691B0` dispatches by `field_422`.
-const TaskFuncTable4 D_actor_341700_80161ED0 = { {
+static const TaskFuncTable4 D_actor_341700_80161ED0 = { {
     func_actor_341700_80169218,
     func_actor_341700_80169254,
     func_actor_341700_80163E58,
@@ -249,7 +249,7 @@ const TaskFuncTable4 D_actor_341700_80161ED0 = { {
 /// between them, tinted grey by `shade`. The working set lives in a frame
 /// carved off the scratchpad and released again; nothing is drawn when the
 /// two parts are the same or the quad is off screen.
-void func_actor_341700_80162070(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade)
+static void func_actor_341700_80162070(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade)
 {
     ActorsShared80163354Scratch* s;
     s16                          angle;
@@ -333,7 +333,7 @@ extern TmdSource D_actor_341700_8016DE70;
 extern TmdSource D_actor_341700_8016E514;
 extern TmdSource D_actor_341700_8016EA84;
 
-void func_actor_341700_801624F8(Task* arg0)
+static void func_actor_341700_801624F8(Task* arg0)
 {
     GpEffWork* eff;
     GpEffWork* eff2;
@@ -384,7 +384,7 @@ void func_actor_341700_801624F8(Task* arg0)
 /// Each block keeps its own part pointer, and the identity goes through a
 /// mix of the stack matrix and `ident` (words 2 and 4 through the pointer):
 /// one shared part pointer comes out a saved register short.
-void func_actor_341700_801626C4(Task* arg0)
+static void func_actor_341700_801626C4(Task* arg0)
 {
     SVECTOR          rot;
     OverlayMat       mtx;
@@ -469,7 +469,7 @@ void func_actor_341700_801626C4(Task* arg0)
 /// `one` is a separate variable set before `Gp_IncStateF0Ref`: the ROM holds
 /// the constant in `$s0`, which GCC only picks for a pseudo that crosses a
 /// call (sched2 then sinks the `li` below the `jal`).
-void func_actor_341700_80162974(Task* task)
+static void func_actor_341700_80162974(Task* task)
 {
     GpEnemy*         enemy;
     GpCoord*         root;
@@ -551,7 +551,7 @@ void func_actor_341700_80162974(Task* task)
 /// `two` is a variable for the same reason as `one` in the sibling: the ROM
 /// keeps the constant in `$s5` across the calls. `kind` has to be its own
 /// variable too - masking `flags` in place reuses `$v1` for the result.
-void func_actor_341700_80162B8C(Task* task)
+static void func_actor_341700_80162B8C(Task* task)
 {
     TmdObject*       model;
     GpEnemy*         enemy;
@@ -731,7 +731,7 @@ static __inline__ void update_rotation(Task* arg0)
 /// handler, eases `field_424` toward zero, rebuilds the root rotation, and
 /// then picks the next state: the `field_448` request once dead, state 4 when
 /// dead, 8 / 9 for messages 4 / 5 while `field_438` is clear.
-void func_actor_341700_80162DCC(Task* arg0)
+static void func_actor_341700_80162DCC(Task* arg0)
 {
     GpEnemy*         enemy = arg0->spawnArg2;
     TmdObject*       obj   = arg0->extra.tmd;
@@ -786,7 +786,7 @@ void func_actor_341700_80162DCC(Task* arg0)
 /// random 0..0x7FF into `field_410` and advances the sub-state. The animation
 /// speed and the turn step `field_436` grow with the distance to the nearer
 /// player actor in `field_43A`, in bands of 1000.
-void func_actor_341700_80163268(Task* arg0)
+static void func_actor_341700_80163268(Task* arg0)
 {
     Actor341700Work* work;
     s32              soundId;
@@ -828,7 +828,7 @@ void func_actor_341700_80163268(Task* arg0)
     work->field_436 = step;
 }
 
-void func_actor_341700_801633D4(Task* arg0)
+static void func_actor_341700_801633D4(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
     s16              dist;
@@ -880,7 +880,7 @@ void func_actor_341700_801633D4(Task* arg0)
     }
 }
 
-void func_actor_341700_80163600(Task* arg0)
+static void func_actor_341700_80163600(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
     GpCoord*         root = arg0->extra.tmd->coords;
@@ -981,7 +981,7 @@ void func_actor_341700_80163600(Task* arg0)
 /// Plays sound 4 on the first frame and, once the hit flags are set, turns
 /// the enemy around, draws a 0x5A..0xD9 cooldown into `field_44A`, requests
 /// animation 0xD and moves the task to state 1.
-void func_actor_341700_801639C0(Task* arg0)
+static void func_actor_341700_801639C0(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -1017,7 +1017,7 @@ void func_actor_341700_801639C0(Task* arg0)
 /// adds the accelerating drop `field_42A` to its Y and to the second hit
 /// body, and once the root reaches the ground height saved in `field_92`
 /// requests landing animation 0x13 and advances the sub-state.
-void func_actor_341700_80163AF0(Task* arg0)
+static void func_actor_341700_80163AF0(Task* arg0)
 {
     Actor341700Work* work;
     s16              angle;
@@ -1057,7 +1057,7 @@ void func_actor_341700_80163AF0(Task* arg0)
 /// `field_448` requests it and the enemy is out of HP; 0 and 1 both colour
 /// it, run `func_actor_341700_80162070` for three part pairs and unhide it. The work block is reloaded through its own local
 /// for the state reset, as the original does.
-void func_actor_341700_80163C58(Task* arg0)
+static void func_actor_341700_80163C58(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra.tmd;
     Actor341700Work* work  = (Actor341700Work*)arg0->work;
@@ -1099,7 +1099,7 @@ void func_actor_341700_80163C58(Task* arg0)
 /// `field_434` back to zero while keeping the heading, adds the accelerating
 /// drop to the root Y, and on landing requests animation 0xC and advances the
 /// sub-state.
-void func_actor_341700_80163E58(Task* arg0)
+static void func_actor_341700_80163E58(Task* arg0)
 {
     Actor341700Work* work;
     GpCoord*         coord;
@@ -1145,7 +1145,7 @@ void func_actor_341700_80163E58(Task* arg0)
 
 /// Plays sounds 4 and 3 on the first two frames; once the hit flags are set,
 /// moves the task to state 3 with the state machine at state 3.
-void func_actor_341700_80163FBC(Task* arg0)
+static void func_actor_341700_80163FBC(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* next;
@@ -1230,7 +1230,7 @@ static __inline__ void calc_push(Task* arg0, GpCoord* coord, GpRec18* rec, SVECT
 /// Then ticks the status flags, applies `func_800E0C10`'s collision step
 /// (snapping back to `field_60` when it reports a conflict) and moves the
 /// root by the combined step and push-out.
-void func_actor_341700_801640F8(Task* arg0, s16 arg1)
+static void func_actor_341700_801640F8(Task* arg0, s16 arg1)
 {
     GpDeltaScratch   delta;
     SVECTOR          push;
@@ -1411,7 +1411,7 @@ void func_actor_341700_801640F8(Task* arg0, s16 arg1)
 /// the slots straight to it, and either records it as applied and moves to
 /// kind 3, which counts frames in `field_41A`. Every frame each slot then
 /// ticks at speed `field_41C`.
-void func_actor_341700_801649DC(Task* arg0)
+static void func_actor_341700_801649DC(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* start;
@@ -1460,7 +1460,7 @@ void func_actor_341700_801649DC(Task* arg0)
 /// `obj_3AC` (radius 0x170, keyed to the enemy, over the two records at
 /// `rec_3CC`, bit 0x8000 clear) and `obj_2CC` (radius 0x224, sharing
 /// `rec_2EC`, bit 0x4000 set).
-void func_actor_341700_80164B68(Task* task)
+static void func_actor_341700_80164B68(Task* task)
 {
     Actor341700Work* work = (Actor341700Work*)task->work;
 
@@ -1502,7 +1502,7 @@ void func_actor_341700_80164B68(Task* task)
 
 /// Nine state handlers, indexed by `Actor341700Work::field_420`; copied to the
 /// stack before dispatch.
-const TaskFuncTable9 D_actor_341700_80161F0C = { {
+static const TaskFuncTable9 D_actor_341700_80161F0C = { {
     func_actor_341700_80169380,
     func_actor_341700_80169440,
     func_actor_341700_80169520,
@@ -1518,7 +1518,7 @@ const TaskFuncTable9 D_actor_341700_80161F0C = { {
 /// 0 runs the current state handler (then colours it), 1 only colours it.
 /// Unless `field_451` is set, it then runs `func_actor_341700_80162070` for
 /// three part pairs.
-void func_actor_341700_80164CDC(Task* arg0)
+static void func_actor_341700_80164CDC(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra.tmd;
     Actor341700Work* work  = (Actor341700Work*)arg0->work;
@@ -1548,7 +1548,7 @@ void func_actor_341700_80164CDC(Task* arg0)
 /// on Y by `field_430` (0x40 smaller each frame), spawns effect 0x600A5 on
 /// frame 4, sets the enemy's light mode 2 on frame 16, and after frame 32
 /// hides the model and advances the state.
-void func_actor_341700_80164E9C(Task* arg0)
+static void func_actor_341700_80164E9C(Task* arg0)
 {
     Actor341700Work* work;
     TmdObject*       obj;
@@ -1594,7 +1594,7 @@ void func_actor_341700_80164E9C(Task* arg0)
 /// its horizontal distance in `field_43A`, and its heading relative to
 /// `field_7A` in `field_444`. Nothing but the position is updated while
 /// player slot 0 is empty.
-void func_actor_341700_80165008(Task* arg0)
+static void func_actor_341700_80165008(Task* arg0)
 {
     Actor341700Work* work;
     GpCoord*         coord;
@@ -1699,7 +1699,7 @@ static __inline__ s32 is_hit(Task* arg0)
 /// calls `func_actor_341700_801681C4` and moves to state 5. The request test
 /// compares against the constant 1, which CSE folds into the `field_44F`
 /// register; writing `== work->field_44F` reloads the byte instead.
-void func_actor_341700_801651E0(Task* arg0)
+static void func_actor_341700_801651E0(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 
@@ -1722,7 +1722,7 @@ void func_actor_341700_801651E0(Task* arg0)
 /// The five state handlers of the second enemy form, indexed by
 /// `Actor341700Work::field_420`; copied to the stack before dispatch. It sits
 /// between `func_actor_341700_801651E0`'s jump table and this function's own.
-const TaskFuncTable5 D_actor_341700_80161F48 = { {
+static const TaskFuncTable5 D_actor_341700_80161F48 = { {
     func_actor_341700_80169B40,
     func_actor_341700_80169BC8,
     func_actor_341700_80169C50,
@@ -1736,7 +1736,7 @@ const TaskFuncTable5 D_actor_341700_80161F48 = { {
 /// then picks the next state - 4 when dead, 8 / 9 for messages 4 / 5, and
 /// state 3 after a consumed `field_448` request. Mode 1 only recolours; both
 /// clear bit 0x80 of the model's `field_C`, which mode 2 sets.
-void func_actor_341700_80165388(Task* arg0)
+static void func_actor_341700_80165388(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra.tmd;
     GpEnemy*         enemy = arg0->spawnArg2;
@@ -1780,28 +1780,28 @@ void func_actor_341700_80165388(Task* arg0)
 }
 
 /// Sub-state handlers `func_actor_341700_80169B40` dispatches by `field_422`.
-const TaskFuncTable3 D_actor_341700_80161F70 = { {
+static const TaskFuncTable3 D_actor_341700_80161F70 = { {
     func_actor_341700_80169DBC,
     func_actor_341700_80169E20,
     func_actor_341700_80169EE4,
 } };
 
 /// Sub-state handlers `func_actor_341700_80169BC8` dispatches by `field_422`.
-const TaskFuncTable3 D_actor_341700_80161F7C = { {
+static const TaskFuncTable3 D_actor_341700_80161F7C = { {
     func_actor_341700_80169F38,
     func_actor_341700_80169FB0,
     func_actor_341700_8016583C,
 } };
 
 /// Sub-state handlers `func_actor_341700_80169C50` dispatches by `field_422`.
-const TaskFuncTable3 D_actor_341700_80161F88 = { {
+static const TaskFuncTable3 D_actor_341700_80161F88 = { {
     func_actor_341700_8016A0E0,
     func_actor_341700_8016A130,
     func_actor_341700_80165984,
 } };
 
 /// Sub-state handlers `func_actor_341700_80169D54` dispatches by `field_422`.
-const TaskFuncTable4 D_actor_341700_80161F94 = { {
+static const TaskFuncTable4 D_actor_341700_80161F94 = { {
     func_actor_341700_8016A1A8,
     func_actor_341700_8016A21C,
     func_actor_341700_80165AF0,
@@ -1810,7 +1810,7 @@ const TaskFuncTable4 D_actor_341700_80161F94 = { {
 
 /// Ten state handlers, indexed by `Actor341700Work::field_420`; copied to the
 /// stack before dispatch.
-const TaskFuncTable10 D_actor_341700_80161FA4 = { {
+static const TaskFuncTable10 D_actor_341700_80161FA4 = { {
     func_actor_341700_80166114,
     func_actor_341700_801663F0,
     func_actor_341700_80166568,
@@ -1824,7 +1824,7 @@ const TaskFuncTable10 D_actor_341700_80161FA4 = { {
 } };
 
 /// Sub-state handlers `func_actor_341700_801689A0` dispatches by `field_422`.
-const TaskFuncTable6 D_actor_341700_80161FCC = { {
+static const TaskFuncTable6 D_actor_341700_80161FCC = { {
     func_actor_341700_8016A2CC,
     func_actor_341700_8016A460,
     func_actor_341700_8016724C,
@@ -1835,7 +1835,7 @@ const TaskFuncTable6 D_actor_341700_80161FCC = { {
 
 /// Five state handlers, indexed by `Actor341700Work::field_420`; copied to
 /// the stack before dispatch.
-const TaskFuncTable5 D_actor_341700_80161FE4 = { {
+static const TaskFuncTable5 D_actor_341700_80161FE4 = { {
     func_actor_341700_8016A6C0,
     func_actor_341700_8016A758,
     func_actor_341700_8016A810,
@@ -1845,7 +1845,7 @@ const TaskFuncTable5 D_actor_341700_80161FE4 = { {
 
 /// Seven state handlers, indexed by `Actor341700Work::field_420`; copied to
 /// the stack before dispatch.
-const TaskFuncTable7 D_actor_341700_80161FF8 = { {
+static const TaskFuncTable7 D_actor_341700_80161FF8 = { {
     func_actor_341700_8016A8F4,
     func_actor_341700_8016A758,
     func_actor_341700_8016A810,
@@ -1860,7 +1860,7 @@ const TaskFuncTable7 D_actor_341700_80161FF8 = { {
 /// player actor is within 0xDAC and roughly ahead, it turns toward it and
 /// after 16 such frames arms `Gp_StateF0` and moves to state 3, and
 /// otherwise it sways between two fixed yaws by bit 6 of `field_442`.
-void func_actor_341700_8016583C(Task* arg0)
+static void func_actor_341700_8016583C(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
     Actor341700Work* state;
@@ -1903,7 +1903,7 @@ void func_actor_341700_8016583C(Task* arg0)
 /// Side-steps to the right of the heading at a speed scaled by `field_41C`
 /// on frames 0x1D..0x29; once the hit flags are set, moves the task and the
 /// state machine to state 3.
-void func_actor_341700_80165984(Task* arg0)
+static void func_actor_341700_80165984(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -1936,7 +1936,7 @@ void func_actor_341700_80165984(Task* arg0)
 
 /// The same side-step as `func_actor_341700_80165984`, but once the hit
 /// flags are set it requests animation 3 and advances the sub-state instead.
-void func_actor_341700_80165AF0(Task* arg0)
+static void func_actor_341700_80165AF0(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -1975,7 +1975,7 @@ void func_actor_341700_80165AF0(Task* arg0)
 /// Unless `func_actor_341700_80168178` takes over, side-steps to the left on
 /// frames 0x17..0x23 and, once the hit flags are set, returns the state
 /// machine to state 0.
-void func_actor_341700_80165C70(Task* arg0)
+static void func_actor_341700_80165C70(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -2036,7 +2036,7 @@ static __inline__ s16 take_hit_nibble3(Task* arg0)
 /// `func_actor_341700_80164CDC`: in mode 0 a pending hit (`take_hit_nibble3`) replaces
 /// the state handler, and the root rotation is rebuilt from 0x78..0x7C before
 /// `func_actor_341700_801640F8`.
-void func_actor_341700_80165DDC(Task* arg0)
+static void func_actor_341700_80165DDC(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra.tmd;
     Actor341700Work* work  = (Actor341700Work*)arg0->work;
@@ -2084,7 +2084,7 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 /// bits 8..11 pick from the current map's table (0x427 or 0x428, playing
 /// sound 6 on 0x427), requests animation 7 with an upward launch, and starts
 /// state 1, 4 or 7 by bits 4..7.
-void func_actor_341700_80166114(Task* arg0)
+static void func_actor_341700_80166114(Task* arg0)
 {
     Actor341700Work* work  = (Actor341700Work*)arg0->work;
     TmdObject*       obj   = arg0->extra.tmd;
@@ -2152,7 +2152,7 @@ void func_actor_341700_80166114(Task* arg0)
 /// Flies backwards off the heading, pitching up toward 0x800, under the
 /// accelerating drop `field_42A`; on landing turns around, requests
 /// animation 0x11, launches again and advances the state.
-void func_actor_341700_801663F0(Task* arg0)
+static void func_actor_341700_801663F0(Task* arg0)
 {
     Actor341700Work* work;
     s16              angle;
@@ -2192,7 +2192,7 @@ void func_actor_341700_801663F0(Task* arg0)
 
 /// Plays sound 9 on the first frame and hops forward 0x50 units a frame
 /// under the accelerating drop; on landing advances the state.
-void func_actor_341700_80166568(Task* arg0)
+static void func_actor_341700_80166568(Task* arg0)
 {
     Actor341700Work* work;
     GpCoord*         coord;
@@ -2223,7 +2223,7 @@ void func_actor_341700_80166568(Task* arg0)
     }
 }
 
-void func_actor_341700_801666F0(Task* arg0)
+static void func_actor_341700_801666F0(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -2267,7 +2267,7 @@ void func_actor_341700_801666F0(Task* arg0)
 /// Flies backwards off the heading, pitching toward 0x200, under the
 /// accelerating drop; on landing levels out, requests animation 0xC,
 /// launches again and advances the state.
-void func_actor_341700_8016688C(Task* arg0)
+static void func_actor_341700_8016688C(Task* arg0)
 {
     Actor341700Work* work;
     s16              angle;
@@ -2307,7 +2307,7 @@ void func_actor_341700_8016688C(Task* arg0)
 /// Plays sound 9 on the first frame and hops backwards 0x50 units a frame,
 /// easing the pitch back to zero, under the accelerating drop; on landing
 /// advances the state.
-void func_actor_341700_801669F8(Task* arg0)
+static void func_actor_341700_801669F8(Task* arg0)
 {
     Actor341700Work* work;
     GpCoord*         coord;
@@ -2343,7 +2343,7 @@ void func_actor_341700_801669F8(Task* arg0)
 /// Plays sound 9 on the first frame and backs off 0x14 units a frame; once
 /// the hit flags are set, disarms the outer hit body and moves the task to
 /// state 3 with the state machine at state 3.
-void func_actor_341700_80166B94(Task* arg0)
+static void func_actor_341700_80166B94(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -2387,7 +2387,7 @@ void func_actor_341700_80166B94(Task* arg0)
 /// Flies backwards off the heading, pitching toward 0x200, under the
 /// accelerating drop; on landing requests animation 0xC, launches high
 /// (-0x12C) and advances the state.
-void func_actor_341700_80166D2C(Task* arg0)
+static void func_actor_341700_80166D2C(Task* arg0)
 {
     Actor341700Work* work;
     s16              angle;
@@ -2425,7 +2425,7 @@ void func_actor_341700_80166D2C(Task* arg0)
 /// Plays sounds 9 and 3 on the first frame and backs off 0x5A units a frame,
 /// pitching toward 0x800, under the accelerating drop; on landing levels
 /// out, turns around, requests animation 0x11 and advances the state.
-void func_actor_341700_80166E90(Task* arg0)
+static void func_actor_341700_80166E90(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* anim;
@@ -2471,7 +2471,7 @@ void func_actor_341700_80166E90(Task* arg0)
     }
 }
 
-void func_actor_341700_801670B0(Task* arg0)
+static void func_actor_341700_801670B0(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -2518,7 +2518,7 @@ void func_actor_341700_801670B0(Task* arg0)
 /// `field_42A`. Past 120 frames (or once dead) it eases y in and marks
 /// `field_438`; while alive a hit flag plays sound 1. Within 800 units it
 /// advances `field_422`, otherwise a dead enemy queues its follow-up animation.
-void func_actor_341700_8016724C(Task* arg0)
+static void func_actor_341700_8016724C(Task* arg0)
 {
     TmdObject*       obj;
     Actor341700Work* work;
@@ -2663,7 +2663,7 @@ void func_actor_341700_8016724C(Task* arg0)
 /// `Gp_StateF0`'s hold if it points at this enemy, unlinks the enemy node and
 /// its three hit bodies, moves the task to state 5, tells slot-4 task 0 with
 /// message 0x13F4, and hides the model.
-void func_actor_341700_80167744(Task* arg0)
+static void func_actor_341700_80167744(Task* arg0)
 {
     Actor341700Work* objs;
     GpEnemy*         enemy;
@@ -2701,7 +2701,7 @@ void func_actor_341700_80167744(Task* arg0)
 /// `field_438`. Within 800 units it advances `field_422`; if the enemy's HP is
 /// gone instead, it queues the follow-up animation (or clears `field_438` when
 /// state 4 is pending).
-void func_actor_341700_80167890(Task* arg0)
+static void func_actor_341700_80167890(Task* arg0)
 {
     TmdObject*       obj;
     Actor341700Work* work;
@@ -2800,7 +2800,7 @@ void func_actor_341700_80167890(Task* arg0)
 /// Per-frame callback, the five-state counterpart of
 /// `func_actor_341700_80167E18`; unlike it, clears bit 0x80 of `field_C` on
 /// the way out of modes 0 and 1.
-void func_actor_341700_80167C30(Task* arg0)
+static void func_actor_341700_80167C30(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra.tmd;
     Actor341700Work* work  = (Actor341700Work*)arg0->work;
@@ -2833,7 +2833,7 @@ void func_actor_341700_80167C30(Task* arg0)
 /// Per-frame callback, the seven-state counterpart of
 /// `func_actor_341700_80164CDC`: in mode 0 it also spawns effect 3 on the
 /// model's second coord part every 32 frames.
-void func_actor_341700_80167E18(Task* arg0)
+static void func_actor_341700_80167E18(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra.tmd;
     Actor341700Work* work  = (Actor341700Work*)arg0->work;
@@ -2865,7 +2865,7 @@ void func_actor_341700_80167E18(Task* arg0)
 /// Queues CD command 0x21 once, guarded by `Gp_StateF0.field_25`: the first parameter
 /// is 2 or 3 in place 1 or 2 of stage 4 areas 0x27/0x28 and 1 everywhere
 /// else.
-void func_actor_341700_80168004(void)
+static void func_actor_341700_80168004(void)
 {
     u8 param1[8];
     u8 param2[8];
@@ -2906,7 +2906,7 @@ void func_actor_341700_80168004(void)
     }
 }
 
-void func_actor_341700_80168124(Task* arg0)
+static void func_actor_341700_80168124(Task* arg0)
 {
     Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
@@ -2919,7 +2919,7 @@ void func_actor_341700_80168124(Task* arg0)
 
 /// Once bit 7 of `Gp_StateF0.field_1F` is set, puts the task in state 3 with
 /// the state machine at state 5 and returns 1; otherwise returns 0.
-s16 func_actor_341700_80168178(Task* arg0)
+static s16 func_actor_341700_80168178(Task* arg0)
 {
     if ((s8)Gp_StateF0.field_1F & 0x80) {
         enter_state(arg0, 3);
@@ -2932,7 +2932,7 @@ s16 func_actor_341700_80168178(Task* arg0)
 /// Claims or releases `Gp_StateF0`'s hold for this enemy. With `arg1` set it
 /// claims the hold (bit 7 plus the enemy's slot) unless one is already held;
 /// with `arg1` clear it releases the hold if it is this enemy's.
-void func_actor_341700_801681C4(Task* arg0, s32 arg1)
+static void func_actor_341700_801681C4(Task* arg0, s32 arg1)
 {
     if ((arg1 << 0x10) != 0) {
         if (!((s8)Gp_StateF0.field_1F & 0x80)) {
@@ -2948,7 +2948,7 @@ void func_actor_341700_801681C4(Task* arg0, s32 arg1)
 /// sub-state 0, anything else is just cleared. Returns 1 when `field_41E` is 1
 /// and 0 otherwise. Each case reloads the work block through its own local;
 /// one shared local lands in `$a0` instead of `$v1`.
-s32 func_actor_341700_80168234(Task* arg0)
+static s32 func_actor_341700_80168234(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 
@@ -3036,7 +3036,7 @@ void func_actor_341700_8016833C(Task* task, s16 part, VECTOR3* pos)
 /// Moves the model so that part `arg1` lands on `arg2`: shifts the root
 /// translation by the part's offset from the root in view space and marks
 /// the part's coordinate dirty.
-void func_actor_341700_80168370(Task* arg0, s16 arg1, SVECTOR3* arg2)
+static void func_actor_341700_80168370(Task* arg0, s16 arg1, SVECTOR3* arg2)
 {
     MATRIX   local;
     MATRIX   world;
@@ -3055,14 +3055,14 @@ void func_actor_341700_80168370(Task* arg0, s16 arg1, SVECTOR3* arg2)
 }
 
 /// Scales `arg1` by the animation speed `field_41C`, in 1/16 units.
-s32 func_actor_341700_80168444(Task* arg0, s16 arg1)
+static s32 func_actor_341700_80168444(Task* arg0, s16 arg1)
 {
     return (s32)((((Actor341700Work*)arg0->work)->field_41C * arg1) << 0xC) >> 0x10;
 }
 
 /// Returns 1 when the hit flags are set - bit 0 of the flag halfword or bits
 /// 0x102 of the word - and 0 otherwise.
-s16 func_actor_341700_80168468(Task* arg0)
+static s16 func_actor_341700_80168468(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 
@@ -3089,7 +3089,7 @@ void func_actor_341700_8016852C(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void func_actor_341700_8016859C(Task* arg0)
+static void func_actor_341700_8016859C(Task* arg0)
 {
     Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
@@ -3102,7 +3102,7 @@ void func_actor_341700_8016859C(Task* arg0)
 
 /// Turns the heading `field_7A` by `step` toward the nearer player actor
 /// (the offset in `field_88` / `field_8C`), leaving it alone within 0x100.
-void func_actor_341700_801685F0(Task* arg0, s32 step)
+static void func_actor_341700_801685F0(Task* arg0, s32 step)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
     SVECTOR          vec;
@@ -3124,7 +3124,7 @@ void func_actor_341700_801685F0(Task* arg0, s32 step)
     }
 }
 
-void func_actor_341700_80168684(Task* arg0)
+static void func_actor_341700_80168684(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 
@@ -3132,7 +3132,7 @@ void func_actor_341700_80168684(Task* arg0)
     work->field_422 = 0;
 }
 
-void func_actor_341700_80168698(Task* arg0)
+static void func_actor_341700_80168698(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 
@@ -3140,7 +3140,7 @@ void func_actor_341700_80168698(Task* arg0)
     work->field_422 = 0;
 }
 
-void func_actor_341700_801686AC(Task* arg0)
+static void func_actor_341700_801686AC(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 
@@ -3150,7 +3150,7 @@ void func_actor_341700_801686AC(Task* arg0)
 
 /// Unless `func_actor_341700_80168234` consumes a pending request, runs the
 /// sub-state handler for `field_422` from a three-entry table.
-void func_actor_341700_801686C0(Task* arg0)
+static void func_actor_341700_801686C0(Task* arg0)
 {
     Actor341700Work* work;
     TaskFuncTable3   sp;
@@ -3163,7 +3163,7 @@ void func_actor_341700_801686C0(Task* arg0)
 }
 
 /// Runs the sub-state handler for `field_422` from a five-entry table.
-void func_actor_341700_80168748(Task* arg0)
+static void func_actor_341700_80168748(Task* arg0)
 {
     Actor341700Work* work;
     TaskFuncTable5   sp;
@@ -3174,7 +3174,7 @@ void func_actor_341700_80168748(Task* arg0)
 }
 
 /// Runs the sub-state handler for `field_422` from another five-entry table.
-void func_actor_341700_801687B4(Task* arg0)
+static void func_actor_341700_801687B4(Task* arg0)
 {
     Actor341700Work* work;
     TaskFuncTable5   sp;
@@ -3184,7 +3184,7 @@ void func_actor_341700_801687B4(Task* arg0)
     sp.funcs[(s16)work->field_422](arg0);
 }
 
-void func_actor_341700_80168820(Task* arg0)
+static void func_actor_341700_80168820(Task* arg0)
 {
     Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
@@ -3195,7 +3195,7 @@ void func_actor_341700_80168820(Task* arg0)
     states[(s16)work->field_422](arg0);
 }
 
-void func_actor_341700_80168874(Task* arg0)
+static void func_actor_341700_80168874(Task* arg0)
 {
     Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
@@ -3206,7 +3206,7 @@ void func_actor_341700_80168874(Task* arg0)
     states[(s16)work->field_422](arg0);
 }
 
-void func_actor_341700_801688C8(Task* arg0)
+static void func_actor_341700_801688C8(Task* arg0)
 {
     Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
@@ -3217,7 +3217,7 @@ void func_actor_341700_801688C8(Task* arg0)
     states[(s16)work->field_422](arg0);
 }
 
-void func_actor_341700_8016891C(Task* arg0)
+static void func_actor_341700_8016891C(Task* arg0)
 {
     Actor341700Work* work;
     TaskFuncTable3   sp;
@@ -3230,7 +3230,7 @@ void func_actor_341700_8016891C(Task* arg0)
     }
 }
 
-void func_actor_341700_801689A0(Task* arg0)
+static void func_actor_341700_801689A0(Task* arg0)
 {
     Actor341700Work* work;
     TaskFuncTable6   sp;
@@ -3241,7 +3241,7 @@ void func_actor_341700_801689A0(Task* arg0)
 }
 
 /// Requests animation 0xC and advances the sub-state.
-void func_actor_341700_80168A14(Task* arg0)
+static void func_actor_341700_80168A14(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 
@@ -3254,7 +3254,7 @@ void func_actor_341700_80168A14(Task* arg0)
 
 /// Once the hit flags are set, requests animation 0xB; once the enemy's
 /// flag-2 counter runs out, moves the state machine to state 3.
-void func_actor_341700_80168A48(Task* arg0)
+static void func_actor_341700_80168A48(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -3273,7 +3273,7 @@ void func_actor_341700_80168A48(Task* arg0)
     }
 }
 
-void func_actor_341700_80168AC0(Task* arg0)
+static void func_actor_341700_80168AC0(Task* arg0)
 {
     Actor341700Work* work;
 
@@ -3299,7 +3299,7 @@ void func_actor_341700_80168AC0(Task* arg0)
 
 /// Once the hit flags are set, requests animation 7 (when `field_44F` is 1)
 /// or 1, and advances the sub-state.
-void func_actor_341700_80168B40(Task* arg0)
+static void func_actor_341700_80168B40(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* slow;
@@ -3326,7 +3326,7 @@ void func_actor_341700_80168B40(Task* arg0)
 
 /// Once the hit flags are set, moves the state machine to state 3 (when
 /// `field_44F` is 1) or 5.
-void func_actor_341700_80168BE0(Task* arg0)
+static void func_actor_341700_80168BE0(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 
@@ -3345,7 +3345,7 @@ void func_actor_341700_80168BE0(Task* arg0)
     }
 }
 
-void func_actor_341700_80168C4C(Task* arg0)
+static void func_actor_341700_80168C4C(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
     s16              angle;
@@ -3368,7 +3368,7 @@ void func_actor_341700_80168C4C(Task* arg0)
 /// Saves the root Y as the ground height in `field_92`, requests animation 8
 /// at speed 0x10, clears the frame counter and the motion halfwords, sets
 /// `field_440` and advances the sub-state.
-void func_actor_341700_80168D3C(Task* arg0)
+static void func_actor_341700_80168D3C(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -3395,7 +3395,7 @@ void func_actor_341700_80168D3C(Task* arg0)
 /// Plays sound 4 on the first frame; once the hit flags are set, draws a
 /// 0x5A..0xD9 cooldown into `field_44A` and moves the state machine to
 /// state 3.
-void func_actor_341700_80168DA0(Task* arg0)
+static void func_actor_341700_80168DA0(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -3422,7 +3422,7 @@ void func_actor_341700_80168DA0(Task* arg0)
 
 /// Requests animation 9, clears the frame counter, advances the sub-state
 /// and, while the enemy has HP left, plays sound 2.
-void func_actor_341700_80168EA0(Task* arg0)
+static void func_actor_341700_80168EA0(Task* arg0)
 {
     Actor341700Work* work;
     GpEnemy*         enemy;
@@ -3445,7 +3445,7 @@ void func_actor_341700_80168EA0(Task* arg0)
 }
 
 /// Advances the sub-state once the frame counter has passed 0x50.
-void func_actor_341700_80168F5C(Task* arg0)
+static void func_actor_341700_80168F5C(Task* arg0)
 {
     u16              ticks;
     Actor341700Work* work;
@@ -3460,7 +3460,7 @@ void func_actor_341700_80168F5C(Task* arg0)
 
 /// Once the hit flags are set, releases this enemy's `Gp_StateF0` hold,
 /// requests animation 0xF and advances the sub-state.
-void func_actor_341700_80168F9C(Task* arg0)
+static void func_actor_341700_80168F9C(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -3479,7 +3479,7 @@ void func_actor_341700_80168F9C(Task* arg0)
 
 /// Once the hit flags are set, marks the enemy busy (`field_438`), requests
 /// animation 4 and advances the sub-state.
-void func_actor_341700_80169018(Task* arg0)
+static void func_actor_341700_80169018(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -3497,7 +3497,7 @@ void func_actor_341700_80169018(Task* arg0)
     }
 }
 
-void func_actor_341700_8016908C(Task* arg0)
+static void func_actor_341700_8016908C(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
     s16              angle;
@@ -3521,7 +3521,7 @@ void func_actor_341700_8016908C(Task* arg0)
 }
 
 /// Runs the sub-state handler for `field_422` from a four-entry table.
-void func_actor_341700_801691B0(Task* arg0)
+static void func_actor_341700_801691B0(Task* arg0)
 {
     Actor341700Work* work;
     TaskFuncTable4   sp;
@@ -3532,7 +3532,7 @@ void func_actor_341700_801691B0(Task* arg0)
 }
 
 /// Sets `field_432`, requests animation 7 and advances the sub-state.
-void func_actor_341700_80169218(Task* arg0)
+static void func_actor_341700_80169218(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -3551,7 +3551,7 @@ void func_actor_341700_80169218(Task* arg0)
 /// root coordinate. When `field_41E` is 1, latches that pitch into
 /// `field_434`, clears the flag and three motion halfwords, and advances the
 /// sub-state.
-void func_actor_341700_80169254(Task* arg0)
+static void func_actor_341700_80169254(Task* arg0)
 {
     Actor341700Work* work;
     GpCoord*         coord;
@@ -3594,7 +3594,7 @@ void func_actor_341700_80169254(Task* arg0)
 /// Death cry: plays sound 2, releases this enemy's `Gp_StateF0` hold and
 /// unlinks the enemy node. A pending request 4 hides the model and jumps to
 /// state 7; otherwise the state advances.
-void func_actor_341700_80169380(Task* arg0)
+static void func_actor_341700_80169380(Task* arg0)
 {
     GpEnemy*         enemy;
     Actor341700Work* work;
@@ -3618,7 +3618,7 @@ void func_actor_341700_80169380(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-void func_actor_341700_80169440(Task* arg0)
+static void func_actor_341700_80169440(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -3657,7 +3657,7 @@ void func_actor_341700_80169440(Task* arg0)
 }
 
 /// Ticks the animation and, once the hit flags are set, advances the state.
-void func_actor_341700_80169520(Task* arg0)
+static void func_actor_341700_80169520(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -3680,7 +3680,7 @@ void func_actor_341700_80169520(Task* arg0)
 /// three hit bodies, sets the Y scale `field_430` to 1.0, saves the root
 /// matrix in `savedRootMtx`, sets the enemy's light mode 1, clears the frame
 /// counter and advances the state.
-void func_actor_341700_801695A0(Task* task)
+static void func_actor_341700_801695A0(Task* task)
 {
     GpCoord*         coord = task->extra.tmd->coords;
     GpEnemy*         enemy = (GpEnemy*)task->spawnArg2;
@@ -3705,7 +3705,7 @@ void func_actor_341700_801695A0(Task* task)
 
 /// After 0x18 frames sets model flag 2, clears the frame counter, sets
 /// `field_451` and advances the state.
-void func_actor_341700_8016966C(Task* arg0)
+static void func_actor_341700_8016966C(Task* arg0)
 {
     u16              ticks;
     Actor341700Work* work;
@@ -3723,7 +3723,7 @@ void func_actor_341700_8016966C(Task* arg0)
     }
 }
 
-void func_actor_341700_801696C8(Task* arg0)
+static void func_actor_341700_801696C8(Task* arg0)
 {
     Actor341700Work* work;
 
@@ -3734,7 +3734,7 @@ void func_actor_341700_801696C8(Task* arg0)
 }
 
 /// Advances the state after two frames.
-void func_actor_341700_801696E0(Task* arg0)
+static void func_actor_341700_801696E0(Task* arg0)
 {
     u16              ticks;
     Actor341700Work* work;
@@ -3747,7 +3747,7 @@ void func_actor_341700_801696E0(Task* arg0)
     }
 }
 
-void func_actor_341700_80169724(Task* arg0)
+static void func_actor_341700_80169724(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -3771,7 +3771,7 @@ void func_actor_341700_80169724(Task* arg0)
     work2->field_422 = 0;
 }
 
-void func_actor_341700_801697B8(Task* arg0)
+static void func_actor_341700_801697B8(Task* arg0)
 {
     Actor341700Work* work;
 
@@ -3782,7 +3782,7 @@ void func_actor_341700_801697B8(Task* arg0)
 
 /// After 0x24 frames destroys the enemy, first telling slot-4 task 0 with
 /// message 0x13F4 when in place 1 of stage 4 areas 0x27/0x28.
-void func_actor_341700_801697D4(Task* arg0)
+static void func_actor_341700_801697D4(Task* arg0)
 {
     Actor341700Work* work;
     u16              ticks;
@@ -3798,7 +3798,7 @@ void func_actor_341700_801697D4(Task* arg0)
     }
 }
 
-void func_actor_341700_80169888(Task* arg0)
+static void func_actor_341700_80169888(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -3827,7 +3827,7 @@ void func_actor_341700_80169888(Task* arg0)
     work->field_422++;
 }
 
-void func_actor_341700_8016999C(Task* arg0)
+static void func_actor_341700_8016999C(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -3856,7 +3856,7 @@ void func_actor_341700_8016999C(Task* arg0)
     work->field_422++;
 }
 
-void func_actor_341700_80169AB0(Task* arg0)
+static void func_actor_341700_80169AB0(Task* arg0)
 {
     Actor341700Work* work;
     s32              cond;
@@ -3881,7 +3881,7 @@ void func_actor_341700_80169AB0(Task* arg0)
     }
 }
 
-void func_actor_341700_80169B40(Task* arg0)
+static void func_actor_341700_80169B40(Task* arg0)
 {
     Actor341700Work* work;
     TaskFuncTable3   sp;
@@ -3893,7 +3893,7 @@ void func_actor_341700_80169B40(Task* arg0)
     }
 }
 
-void func_actor_341700_80169BC8(Task* arg0)
+static void func_actor_341700_80169BC8(Task* arg0)
 {
     Actor341700Work* work;
     TaskFuncTable3   sp;
@@ -3905,7 +3905,7 @@ void func_actor_341700_80169BC8(Task* arg0)
     }
 }
 
-void func_actor_341700_80169C50(Task* arg0)
+static void func_actor_341700_80169C50(Task* arg0)
 {
     Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
@@ -3918,7 +3918,7 @@ void func_actor_341700_80169C50(Task* arg0)
     }
 }
 
-void func_actor_341700_80169CC4(Task* arg0)
+static void func_actor_341700_80169CC4(Task* arg0)
 {
     Actor341700Work* work;
     TaskFuncTable3   sp;
@@ -3933,7 +3933,7 @@ void func_actor_341700_80169CC4(Task* arg0)
 }
 
 /// Runs the sub-state handler for `field_422` from a four-entry table.
-void func_actor_341700_80169D54(Task* arg0)
+static void func_actor_341700_80169D54(Task* arg0)
 {
     Actor341700Work* work;
     TaskFuncTable4   sp;
@@ -3945,7 +3945,7 @@ void func_actor_341700_80169D54(Task* arg0)
 
 /// Requests animation 1, draws a 0x60..0x9F frame hold into `field_446`,
 /// clears the frame counter and advances the sub-state.
-void func_actor_341700_80169DBC(Task* arg0)
+static void func_actor_341700_80169DBC(Task* arg0)
 {
     Actor341700Work* work;
 
@@ -3965,7 +3965,7 @@ void func_actor_341700_80169DBC(Task* arg0)
 /// Once the hold in `field_446` runs out, picks state 4 or 1 at random.
 /// Before that, a player actor within 0xDAC moves the state machine to
 /// state 3 and one within 0x1388 advances the sub-state.
-void func_actor_341700_80169E20(Task* arg0)
+static void func_actor_341700_80169E20(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
     s16              dist;
@@ -3999,7 +3999,7 @@ void func_actor_341700_80169E20(Task* arg0)
 }
 
 /// Once the hit flags are set, moves the state machine to state 1.
-void func_actor_341700_80169EE4(Task* arg0)
+static void func_actor_341700_80169EE4(Task* arg0)
 {
     Actor341700Work* work;
     s32              cond;
@@ -4019,7 +4019,7 @@ void func_actor_341700_80169EE4(Task* arg0)
 
 /// Once the hit flags are set, requests animation 0xD and advances the
 /// sub-state.
-void func_actor_341700_80169F38(Task* arg0)
+static void func_actor_341700_80169F38(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -4044,7 +4044,7 @@ void func_actor_341700_80169F38(Task* arg0)
 /// Once the hit flags are set, requests animation 0xE, clears the frame and
 /// turn counters, draws a 0xB0..0xEF frame hold into `field_446` and
 /// advances the sub-state.
-void func_actor_341700_80169FB0(Task* arg0)
+static void func_actor_341700_80169FB0(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -4071,7 +4071,7 @@ void func_actor_341700_80169FB0(Task* arg0)
 }
 
 /// Requests animation 0xF and advances the sub-state.
-void func_actor_341700_8016A058(Task* arg0)
+static void func_actor_341700_8016A058(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 
@@ -4083,7 +4083,7 @@ void func_actor_341700_8016A058(Task* arg0)
 }
 
 /// Once the hit flags are set, returns the state machine to state 0.
-void func_actor_341700_8016A08C(Task* arg0)
+static void func_actor_341700_8016A08C(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -4103,7 +4103,7 @@ void func_actor_341700_8016A08C(Task* arg0)
 }
 
 /// Requests animation 0xF, advances the sub-state and arms `Gp_StateF0`.
-void func_actor_341700_8016A0E0(Task* arg0)
+static void func_actor_341700_8016A0E0(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 
@@ -4117,7 +4117,7 @@ void func_actor_341700_8016A0E0(Task* arg0)
 
 /// Once the hit flags are set, marks the enemy busy (`field_438`), requests
 /// animation 4 and advances the sub-state.
-void func_actor_341700_8016A130(Task* arg0)
+static void func_actor_341700_8016A130(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -4143,7 +4143,7 @@ void func_actor_341700_8016A130(Task* arg0)
 
 /// Unless `func_actor_341700_80168178` takes over, requests animation 0xF
 /// and advances the sub-state.
-void func_actor_341700_8016A1A8(Task* arg0)
+static void func_actor_341700_8016A1A8(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -4162,7 +4162,7 @@ void func_actor_341700_8016A1A8(Task* arg0)
 /// Unless `func_actor_341700_80168178` takes over, waits for the hit flags,
 /// then marks the enemy busy, requests animation 4 and advances the
 /// sub-state.
-void func_actor_341700_8016A21C(Task* arg0)
+static void func_actor_341700_8016A21C(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -4190,7 +4190,7 @@ void func_actor_341700_8016A21C(Task* arg0)
     }
 }
 
-void func_actor_341700_8016A2CC(Task* arg0)
+static void func_actor_341700_8016A2CC(Task* arg0)
 {
     Actor341700Work* work;
     GpCoord*         coords;
@@ -4239,7 +4239,7 @@ void func_actor_341700_8016A2CC(Task* arg0)
     }
 }
 
-void func_actor_341700_8016A460(Task* arg0)
+static void func_actor_341700_8016A460(Task* arg0)
 {
     Actor341700Work* work;
     s32              soundId;
@@ -4268,7 +4268,7 @@ void func_actor_341700_8016A460(Task* arg0)
 /// Plays sound 2, releases `Gp_StateF0`'s hold if it is this enemy's,
 /// unlinks the enemy node, detaches its records and unlinks its three hit
 /// bodies, hides the model and advances the state.
-void func_actor_341700_8016A568(Task* arg0)
+static void func_actor_341700_8016A568(Task* arg0)
 {
     Actor341700Work* work2;
     Actor341700Work* work;
@@ -4295,7 +4295,7 @@ void func_actor_341700_8016A568(Task* arg0)
 
 /// On frame 3 frees the model's buffers and sets model flag 4; after 0x24
 /// frames destroys the enemy.
-void func_actor_341700_8016A630(Task* arg0)
+static void func_actor_341700_8016A630(Task* arg0)
 {
     Actor341700Work* work;
     TmdObject*       model;
@@ -4314,7 +4314,7 @@ void func_actor_341700_8016A630(Task* arg0)
     }
 }
 
-void func_actor_341700_8016A6C0(Task* arg0)
+static void func_actor_341700_8016A6C0(Task* arg0)
 {
     Actor341700Work* work;
     GpEnemy*         enemy;
@@ -4329,7 +4329,7 @@ void func_actor_341700_8016A6C0(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-void func_actor_341700_8016A758(Task* arg0)
+static void func_actor_341700_8016A758(Task* arg0)
 {
     Actor341700Work* work;
     s16              anim;
@@ -4361,7 +4361,7 @@ void func_actor_341700_8016A758(Task* arg0)
 }
 
 /// Ticks the animation and, once the hit flags are set, advances the state.
-void func_actor_341700_8016A810(Task* arg0)
+static void func_actor_341700_8016A810(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
@@ -4382,7 +4382,7 @@ void func_actor_341700_8016A810(Task* arg0)
 
 /// Detaches the enemy's records and unlinks its three hit bodies, clears the
 /// frame counter and advances the state.
-void func_actor_341700_8016A890(Task* arg0)
+static void func_actor_341700_8016A890(Task* arg0)
 {
     Actor341700Work* work2;
     Actor341700Work* work;
@@ -4398,11 +4398,11 @@ void func_actor_341700_8016A890(Task* arg0)
 }
 
 /// Empty state handler.
-void func_actor_341700_8016A8EC(Task* arg0)
+static void func_actor_341700_8016A8EC(Task* arg0)
 {
 }
 
-void func_actor_341700_8016A8F4(Task* arg0)
+static void func_actor_341700_8016A8F4(Task* arg0)
 {
     Actor341700Work* work;
     GpEnemy*         enemy;
@@ -4420,7 +4420,7 @@ void func_actor_341700_8016A8F4(Task* arg0)
 /// Starts the death shrink, the same body as `func_actor_341700_801695A0`:
 /// detaches the records, unlinks the three hit bodies, sets the Y scale to
 /// 1.0, saves the root matrix, sets light mode 1 and advances the state.
-void func_actor_341700_8016A98C(Task* task)
+static void func_actor_341700_8016A98C(Task* task)
 {
     GpEnemy*         enemy = (GpEnemy*)task->spawnArg2;
     Actor341700Work* work  = (Actor341700Work*)task->work;
@@ -4445,7 +4445,7 @@ void func_actor_341700_8016A98C(Task* task)
 
 /// After 0x18 frames sets model flag 2, clears the frame counter, sets
 /// `field_451` and advances the state.
-void func_actor_341700_8016AA58(Task* arg0)
+static void func_actor_341700_8016AA58(Task* arg0)
 {
     u16              ticks;
     Actor341700Work* work;
@@ -4467,7 +4467,7 @@ void func_actor_341700_8016AA58(Task* arg0)
 /// restores the saved root matrix, scales it on Y by `field_430` (0x40
 /// smaller each frame), sets light mode 2 on frame 16, and after frame 32
 /// hides the model, clears the frame counter and advances the state.
-void func_actor_341700_8016AAB4(Task* arg0)
+static void func_actor_341700_8016AAB4(Task* arg0)
 {
     Actor341700Work* work;
     TmdObject*       obj;
@@ -4502,7 +4502,7 @@ void func_actor_341700_8016AAB4(Task* arg0)
     }
 }
 
-void func_actor_341700_8016ABF4(Task* arg0)
+static void func_actor_341700_8016ABF4(Task* arg0)
 {
     Actor341700Work* work;
 
@@ -4516,7 +4516,7 @@ void func_actor_341700_8016ABF4(Task* arg0)
 /// request 3 moves the state machine to state 8 and request 5 to state 9,
 /// anything else is just cleared. Returns 1 when `field_41E` is 1 and 0
 /// otherwise.
-s32 func_actor_341700_8016AC0C(Task* arg0)
+static s32 func_actor_341700_8016AC0C(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 

@@ -320,7 +320,7 @@ void func_actor_503500_80132F28(void)
     gGameSession->padScriptFlags = 0;
 }
 
-void func_actor_503500_80132F58(void)
+static void func_actor_503500_80132F58(void)
 {
     D_actor_503500_80176558 = NULL;
 }

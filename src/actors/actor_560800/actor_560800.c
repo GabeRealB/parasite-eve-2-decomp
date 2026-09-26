@@ -291,10 +291,10 @@ extern Task* D_actor_560800_801757AC;
 /// index.
 extern TaskDesc D_actor_560800_801718F0;
 
-void func_actor_560800_80133970(Task* arg0);
-void func_actor_560800_80134258(Task* arg0);
-void func_actor_560800_80134384(Task* arg0);
-void func_actor_560800_80134BFC(Task* arg0);
+static void func_actor_560800_80133970(Task* arg0);
+static void func_actor_560800_80134258(Task* arg0);
+static void func_actor_560800_80134384(Task* arg0);
+static void func_actor_560800_80134BFC(Task* arg0);
 
 extern TaskDesc D_actor_560800_8016EA28;
 extern TaskDesc D_actor_560800_8017575C;
@@ -308,7 +308,7 @@ extern void     D_actor_560800_8016F154;
 extern void     D_actor_560800_8016F34C;
 extern s32      D_actor_560800_8016F57C[];
 
-s32 func_actor_560800_80132498(Task* arg0);
+static s32 func_actor_560800_80132498(Task* arg0);
 
 /// Declared locally with a signed `arg2`; see the note in `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -369,7 +369,7 @@ void func_actor_560800_801321A0(Task* task)
     }
 }
 
-s32 func_actor_560800_80132340(Task* arg0)
+static s32 func_actor_560800_80132340(Task* arg0)
 {
     Actor560800Work* work;
     ActorAnimStep*   table;
@@ -453,7 +453,7 @@ static inline void Actor560800_ReseedAnim(Task* arg0, u16 id, s16 rate)
 /// The step is re-indexed at every use rather than held in a local, and the
 /// negative test is written as `>= 0` with an `else return 1`; both are needed
 /// for the register choice and the jump layout.
-s32 func_actor_560800_80132498(Task* arg0)
+static s32 func_actor_560800_80132498(Task* arg0)
 {
     Actor560800AnimWork* work;
     u16                  i;
@@ -924,7 +924,7 @@ void func_actor_560800_80133204(void)
     }
 }
 
-void func_actor_560800_80133540(u32 arg0)
+static void func_actor_560800_80133540(u32 arg0)
 {
     Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
 
@@ -1171,7 +1171,7 @@ static inline void Actor560800_SpawnSparksB(Task* task)
 /// and CSE would then share it; `Player_Status.coordMtx` is read as a struct member so the load is
 /// in-struct and schedules after the `field_2C` store; the explicit clears in 19,
 /// 28 and the last step of 35 decide which anim tails cross-jump together.
-void func_actor_560800_80133970(Task* arg0)
+static void func_actor_560800_80133970(Task* arg0)
 {
     Actor560800Work* work;
 
@@ -1270,7 +1270,7 @@ void func_actor_560800_80133970(Task* arg0)
 /// Handles the pending request in `field_38` and clears it: 1 and 28 reset the
 /// animation sub-task's `field_4C0` / `field_4CA`, 28 also reseeds its slots
 /// from clip 3 at the 0x10 rate, and 22 / 24 send 0x7D5 to `field_20`.
-void func_actor_560800_80134258(Task* task)
+static void func_actor_560800_80134258(Task* task)
 {
     Actor560800Work*     work;
     Actor560800AnimWork* anim;
@@ -1335,7 +1335,7 @@ static inline void Actor560800_ResetAnimSlots(Actor560800AnimWork* anim, s16 cli
     }
 }
 
-void func_actor_560800_80134384(Task* task)
+static void func_actor_560800_80134384(Task* task)
 {
     Actor560800Work*     work;
     Actor560800AnimWork* anim;
@@ -1505,7 +1505,7 @@ static inline void Actor560800_ResetSlots(Task* task, u16 id, u16 rate)
     }
 }
 
-void func_actor_560800_80134BFC(Task* arg0)
+static void func_actor_560800_80134BFC(Task* arg0)
 {
     Actor560800Work*     work;
     Actor560800AnimWork* ctx;
@@ -1797,7 +1797,7 @@ void func_actor_560800_80135AEC(s32 arg0)
     Gp_RestoreStreamRng();
 }
 
-void func_actor_560800_80135BD8(Task* arg0)
+static void func_actor_560800_80135BD8(Task* arg0)
 {
     Actor560800Work* work;
     Task*            sub5;
@@ -2353,7 +2353,7 @@ void func_actor_560800_80136A88(Task* task)
 /// Part 0's X rotation oscillates on a `D_actor_560800_801752E8` phase. The
 /// closing switch drives `field_27E`: close enough in Y/Z starts the dip in
 /// `field_24E`, which then returns to zero.
-void func_actor_560800_80136AA8(Task* arg0)
+static void func_actor_560800_80136AA8(Task* arg0)
 {
     Actor560800ChainScratch* top;
     Actor560800ModelWork*    work;
@@ -2540,7 +2540,7 @@ void func_actor_560800_80136AA8(Task* arg0)
 /// the part to `func_800B3F84` with the overlay's animation bank. The three
 /// `Gp_LcgState` draws taken along the way seed the handlers' random headings,
 /// and the slot count comes from the spawner's `spawnArg1`.
-void func_actor_560800_801376E0(Task* arg0)
+static void func_actor_560800_801376E0(Task* arg0)
 {
     Actor560800ModelWork* mem;
     Actor560800ModelWork* work;
@@ -3162,7 +3162,7 @@ void func_actor_560800_80138A4C(Task* task, s32 msgId, GpCmdArg* msg)
 /// to identity and scaled on X/Z by `field_278`, which swings between 0x1000 and
 /// 0x1800 in steps of 0x32 with `field_27C` as the direction. The dead `w = work`
 /// store is what the match needs: see DECOMPILATION_LEARNINGS.md, "birthing".
-void func_actor_560800_80138BCC(Task* task)
+static void func_actor_560800_80138BCC(Task* task)
 {
     Actor560800ModelWork* work;
     GpCoord*              coord;
@@ -3215,7 +3215,7 @@ void func_actor_560800_80138BCC(Task* task)
 /// this part and the one `Actor560800Work::field_C` names together. Each case
 /// needs its own matrix pointer: a shared one is set twice, loses sched1's
 /// birthing priority, and swaps the `work`/`field_8` loads.
-void func_actor_560800_80138D04(Task* task)
+static void func_actor_560800_80138D04(Task* task)
 {
     Actor560800ModelWork* work;
     GpCoord*              coord;

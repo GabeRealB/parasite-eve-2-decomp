@@ -20,7 +20,7 @@
 #include "main/tmd.h"
 #include "psyq/rand.h"
 
-void func_actor_460200_801325FC(Task* task);
+static void func_actor_460200_801325FC(Task* task);
 
 s32 func_actor_460200_80132B2C(Task* task, s32 arg1, GpAnimArg* args);
 
@@ -62,27 +62,27 @@ extern s32      D_actor_460200_80151538;
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_460200_80131FB0(void);
-void func_actor_460200_80132808(GpEnemy* enemy, Task* task);
-void func_actor_460200_80132950(Task* task);
-void func_actor_460200_80132978(Task* task);
-void func_actor_460200_80132A04(Task* task);
-void func_actor_460200_80132A50(Task* task);
-void func_actor_460200_80132AC8(Task* task);
-void func_actor_460200_80132F0C(Task* task);
-void func_actor_460200_8013311C(GpEnemy* enemy, Task* task);
-void func_actor_460200_8013322C(Task* task);
-void func_actor_460200_80133254(Task* task);
-void func_actor_460200_801332E0(Task* task);
-void func_actor_460200_8013332C(Task* task);
-void func_actor_460200_801333A4(Task* task);
-void func_actor_460200_801338C0(GpEnemy* enemy, Task* task);
-void func_actor_460200_80133A04(GpEnemy* enemy, Task* task);
-void func_actor_460200_80133A88(Task* task);
-void func_actor_460200_80133AB0(Task* task);
-void func_actor_460200_80133B3C(Task* task);
-void func_actor_460200_80133B88(Task* task);
-void func_actor_460200_80133C00(Task* task);
+static void func_actor_460200_80131FB0(void);
+static void func_actor_460200_80132808(GpEnemy* enemy, Task* task);
+static void func_actor_460200_80132950(Task* task);
+static void func_actor_460200_80132978(Task* task);
+static void func_actor_460200_80132A04(Task* task);
+static void func_actor_460200_80132A50(Task* task);
+static void func_actor_460200_80132AC8(Task* task);
+static void func_actor_460200_80132F0C(Task* task);
+static void func_actor_460200_8013311C(GpEnemy* enemy, Task* task);
+static void func_actor_460200_8013322C(Task* task);
+static void func_actor_460200_80133254(Task* task);
+static void func_actor_460200_801332E0(Task* task);
+static void func_actor_460200_8013332C(Task* task);
+static void func_actor_460200_801333A4(Task* task);
+static void func_actor_460200_801338C0(GpEnemy* enemy, Task* task);
+static void func_actor_460200_80133A04(GpEnemy* enemy, Task* task);
+static void func_actor_460200_80133A88(Task* task);
+static void func_actor_460200_80133AB0(Task* task);
+static void func_actor_460200_80133B3C(Task* task);
+static void func_actor_460200_80133B88(Task* task);
+static void func_actor_460200_80133C00(Task* task);
 
 void func_actor_460200_80131E24(Task* task)
 {
@@ -132,7 +132,7 @@ void func_actor_460200_80131E24(Task* task)
     }
 }
 
-void func_actor_460200_80131FB0(void)
+static void func_actor_460200_80131FB0(void)
 {
     s32          i;
     u32          maskR;
@@ -306,7 +306,7 @@ void func_actor_460200_80132204(s8 arg0)
     Mc_SaveData.sceneEvent = arg0;
 }
 
-void func_actor_460200_80132210(void)
+static void func_actor_460200_80132210(void)
 {
     Task* slot;
 
@@ -325,7 +325,7 @@ void func_actor_460200_80132210(void)
     }
 }
 
-void func_actor_460200_801322B8(void)
+static void func_actor_460200_801322B8(void)
 {
     switch (GameFlag_GetNibble(0x114)) {
         case 0:
@@ -346,7 +346,7 @@ void func_actor_460200_801322B8(void)
     }
 }
 
-void func_actor_460200_80132390(void)
+static void func_actor_460200_80132390(void)
 {
     switch (GameFlag_GetNibble(0x115)) {
         case 0:
@@ -382,7 +382,7 @@ void func_actor_460200_80132390(void)
 /// (`Gp_LcgState`): the low half of the first state feeds `arg2`'s effect id
 /// and the top bit of the second its palette selector, and the second state is
 /// stored back.
-void func_actor_460200_80132468(GpEnemy* enemy, Task* task)
+static void func_actor_460200_80132468(GpEnemy* enemy, Task* task)
 {
     Actor160600Work* work;
     TmdObject*       obj;
@@ -424,7 +424,7 @@ void func_actor_460200_80132468(GpEnemy* enemy, Task* task)
 /// animation slots (with and without `animArg`) and advance to state 3; state 3
 /// walks the root coordinate 12 units per frame while clip 4 has `travel`
 /// left, dropping back to clip 1 with argument 0xA when it runs out, then ticks the slots.
-void func_actor_460200_801325FC(Task* task)
+static void func_actor_460200_801325FC(Task* task)
 {
     Actor160600Work* work;
     s16              animId;
@@ -474,7 +474,7 @@ void func_actor_460200_801327B4(Task* task)
 ///
 /// Same body as `func_actor_460200_801338C0` with a different exit callback,
 /// animation bank and initial clip (`animId` 0xA rather than 2).
-void func_actor_460200_80132808(GpEnemy* enemy, Task* task)
+static void func_actor_460200_80132808(GpEnemy* enemy, Task* task)
 {
     Actor160600Work* work;
     void*            workMem;
@@ -515,7 +515,7 @@ void func_actor_460200_80132808(GpEnemy* enemy, Task* task)
     task->state += 1;
 }
 
-void func_actor_460200_80132950(Task* task)
+static void func_actor_460200_80132950(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
@@ -523,7 +523,7 @@ void func_actor_460200_80132950(Task* task)
 /// Draws the actor's ground shadow under its root part, unless the model is
 /// hidden (`flags` bit 0x80) or has no buffer. The position is the root part's
 /// world translation, staged on the scratchpad stack.
-void func_actor_460200_80132978(Task* task)
+static void func_actor_460200_80132978(Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -542,7 +542,7 @@ void func_actor_460200_80132978(Task* task)
 }
 
 /// Ticks animation slots 1..0x13.
-void func_actor_460200_80132A04(Task* task)
+static void func_actor_460200_80132A04(Task* task)
 {
     Actor160600Work* work;
     s32              i;
@@ -557,7 +557,7 @@ void func_actor_460200_80132A04(Task* task)
 
 /// Resets animation slots 1..0x13 to clip `animId` at rate 1, without a reseed
 /// argument, and records the clip as the applied one.
-void func_actor_460200_80132A50(Task* task)
+static void func_actor_460200_80132A50(Task* task)
 {
     Actor160600Work* work;
     s32              i;
@@ -574,7 +574,7 @@ void func_actor_460200_80132A50(Task* task)
 
 /// Reseeds animation slots 1..0x13 with clip `animId` and argument `animArg`,
 /// and records the clip as the applied one.
-void func_actor_460200_80132AC8(Task* task)
+static void func_actor_460200_80132AC8(Task* task)
 {
     Actor160600Work* work;
     s32              i;
@@ -716,7 +716,7 @@ s32 func_actor_460200_80132CAC(Task* task, s32 arg1, GpXformArg* target)
     return 0;
 }
 
-void func_actor_460200_80132D74(GpEnemy* enemy, Task* task)
+static void func_actor_460200_80132D74(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor161500Work* work;
@@ -768,7 +768,7 @@ void func_actor_460200_80132D74(GpEnemy* enemy, Task* task)
 /// animation slots (with and without `animArg`) and advance to state 3; state 3
 /// walks the root coordinate 0x1E units per frame while clip 4 has `travel`
 /// left, dropping back to clip 1 with argument 0xA and to state 1 when it runs out, then ticks the slots.
-void func_actor_460200_80132F0C(Task* task)
+static void func_actor_460200_80132F0C(Task* task)
 {
     Actor161500Work* work;
     s16              animId;
@@ -814,7 +814,7 @@ void func_actor_460200_801330C8(Task* task)
 /// lifted by 0x320 is used as the look-at point, and the work block's
 /// `turnWeight` rate is stepped +0x200 or -0x200 per tick depending on
 /// `turnUp`, clamped to 0x1000 and 0 respectively.
-void func_actor_460200_8013311C(GpEnemy* enemy, Task* task)
+static void func_actor_460200_8013311C(GpEnemy* enemy, Task* task)
 {
     Actor161500Work* work;
     GpCoord*         coord;
@@ -845,7 +845,7 @@ void func_actor_460200_8013311C(GpEnemy* enemy, Task* task)
     func_actor_460200_80133254(task);
 }
 
-void func_actor_460200_8013322C(Task* task)
+static void func_actor_460200_8013322C(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
@@ -853,7 +853,7 @@ void func_actor_460200_8013322C(Task* task)
 /// Draws the actor's ground shadow under its root part, unless the model is
 /// hidden (`flags` bit 0x80) or has no buffer. The position is the root part's
 /// world translation, staged on the scratchpad stack.
-void func_actor_460200_80133254(Task* task)
+static void func_actor_460200_80133254(Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -872,7 +872,7 @@ void func_actor_460200_80133254(Task* task)
 }
 
 /// Ticks animation slots 1..0x13.
-void func_actor_460200_801332E0(Task* task)
+static void func_actor_460200_801332E0(Task* task)
 {
     Actor161500Work* work;
     s32              i;
@@ -887,7 +887,7 @@ void func_actor_460200_801332E0(Task* task)
 
 /// Resets animation slots 1..0x13 to clip `animId` at rate 1, without a reseed
 /// argument, and records the clip as the applied one.
-void func_actor_460200_8013332C(Task* task)
+static void func_actor_460200_8013332C(Task* task)
 {
     Actor161500Work* work;
     s32              i;
@@ -904,7 +904,7 @@ void func_actor_460200_8013332C(Task* task)
 
 /// Reseeds animation slots 1..0x13 with clip `animId` and argument `animArg`,
 /// and records the clip as the applied one.
-void func_actor_460200_801333A4(Task* task)
+static void func_actor_460200_801333A4(Task* task)
 {
     Actor161500Work* work;
     s32              i;
@@ -1065,7 +1065,7 @@ void func_actor_460200_8013364C(Task* task)
 /// animation slots (with and without `animArg`) and advance to state 3; state 3
 /// walks the root coordinate 12 units per frame while clip 4 has `travel`
 /// left, dropping back to clip 1 with argument 0xA when it runs out, then ticks the slots.
-void func_actor_460200_801336B4(Task* task)
+static void func_actor_460200_801336B4(Task* task)
 {
     Actor160600Work* work;
     s16              animId;
@@ -1112,7 +1112,7 @@ void func_actor_460200_8013386C(Task* task)
 /// matrix pair its sub-model reads through `TmdObject::lightMtx`/`field_20`
 /// plus the animation state below), parks the enemy in `Actor160600Work::enemy`
 /// and runs the step body `func_actor_460200_801336B4` once in state 2.
-void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
+static void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
 {
     Actor160600Work* work;
     void*            workMem;
@@ -1153,7 +1153,7 @@ void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
     task->state += 1;
 }
 
-void func_actor_460200_80133A04(GpEnemy* arg0, Task* task)
+static void func_actor_460200_80133A04(GpEnemy* arg0, Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -1170,7 +1170,7 @@ void func_actor_460200_80133A04(GpEnemy* arg0, Task* task)
     func_actor_460200_80133AB0(task);
 }
 
-void func_actor_460200_80133A88(Task* task)
+static void func_actor_460200_80133A88(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
@@ -1178,7 +1178,7 @@ void func_actor_460200_80133A88(Task* task)
 /// Draws the actor's ground shadow under its root part, unless the model is
 /// hidden (`flags` bit 0x80) or has no buffer. The position is the root part's
 /// world translation, staged on the scratchpad stack.
-void func_actor_460200_80133AB0(Task* task)
+static void func_actor_460200_80133AB0(Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -1197,7 +1197,7 @@ void func_actor_460200_80133AB0(Task* task)
 }
 
 /// Ticks animation slots 1..0x13.
-void func_actor_460200_80133B3C(Task* task)
+static void func_actor_460200_80133B3C(Task* task)
 {
     Actor160600Work* work;
     s32              i;
@@ -1212,7 +1212,7 @@ void func_actor_460200_80133B3C(Task* task)
 
 /// Resets animation slots 1..0x13 to clip `animId` at rate 1, without a reseed
 /// argument, and records the clip as the applied one.
-void func_actor_460200_80133B88(Task* task)
+static void func_actor_460200_80133B88(Task* task)
 {
     Actor160600Work* work;
     s32              i;
@@ -1229,7 +1229,7 @@ void func_actor_460200_80133B88(Task* task)
 
 /// Reseeds animation slots 1..0x13 with clip `animId` and argument `animArg`,
 /// and records the clip as the applied one.
-void func_actor_460200_80133C00(Task* task)
+static void func_actor_460200_80133C00(Task* task)
 {
     Actor160600Work* work;
     s32              i;

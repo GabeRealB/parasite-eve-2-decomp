@@ -80,15 +80,15 @@ extern Task* D_actor_260400_80154C74;
 /// which the split covers as padding, so it has no symbol-file declaration.
 extern s16 D_actor_260400_80154C78;
 
-void func_actor_260400_8014A200(Task* task);
-void func_actor_260400_8014A5AC(GpEnemy* enemy, Task* task);
-void func_actor_260400_8014A630(Task* task);
-void func_actor_260400_8014A66C(Task* task);
-void func_actor_260400_8014A7AC(void);
-void func_actor_260400_8014A7F8(void);
-void func_actor_260400_8014A888(void);
+static void func_actor_260400_8014A200(Task* task);
+static void func_actor_260400_8014A5AC(GpEnemy* enemy, Task* task);
+static void func_actor_260400_8014A630(Task* task);
+static void func_actor_260400_8014A66C(Task* task);
+static void func_actor_260400_8014A7AC(void);
+static void func_actor_260400_8014A7F8(void);
+static void func_actor_260400_8014A888(void);
 
-void func_actor_260400_80149E38(void)
+static void func_actor_260400_80149E38(void)
 {
     switch (GameFlag_GetNibble(0xE3)) {
         case 0:
@@ -128,7 +128,7 @@ void func_actor_260400_80149F5C(s32 arg0)
     Gp_ResetCap();
 }
 
-void func_actor_260400_80149FA4(void)
+static void func_actor_260400_80149FA4(void)
 {
     s32 slot;
 
@@ -146,7 +146,7 @@ void func_actor_260400_80149FA4(void)
 /// stream. It then starts the helper task and textures the helper's model from
 /// the area placement record the spawning enemy names, before running the
 /// first update with the reset mode 2 / id 1 it seeds.
-void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task)
+static void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task)
 {
     VECTOR       vec;
     GpAreaKey    key;
@@ -225,7 +225,7 @@ void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task)
 /// approach mode in `D_actor_260400_80154C78` picks, and blend into animation
 /// 0xD with reset argument 10 when the walk ends; animation 3 turns the model
 /// while `turnFrames` counts down. Mode 3 then ticks the animation.
-void func_actor_260400_8014A200(Task* task)
+static void func_actor_260400_8014A200(Task* task)
 {
     GpCoord*         coord = task->extra.tmd->coords;
     Actor260400Work* work  = (Actor260400Work*)task->work;
@@ -285,7 +285,7 @@ void func_actor_260400_8014A550(Task* task)
 /// Per-frame state (state 1 of `func_actor_260400_8014A550`): refreshes the
 /// model root's world matrix, relights the model from a point 0x320 above its
 /// translation, then runs the update and draws the ground shadow.
-void func_actor_260400_8014A5AC(GpEnemy* enemy, Task* task)
+static void func_actor_260400_8014A5AC(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -304,7 +304,7 @@ void func_actor_260400_8014A5AC(GpEnemy* enemy, Task* task)
 
 /// `Task::exitCallback` the spawn routine installs: hands the task's `GpEnemy`
 /// back to `Gp_DestroyEnemy` and kills the helper task.
-void func_actor_260400_8014A630(Task* task)
+static void func_actor_260400_8014A630(Task* task)
 {
     Actor260400Work* work = (Actor260400Work*)task->work;
 
@@ -316,7 +316,7 @@ void func_actor_260400_8014A630(Task* task)
 /// is hidden (`flags & 0x80`) or has no buffer yet. The root's world
 /// translation is staged in a scratchpad `VECTOR3` rather than on the stack,
 /// and the quad is drawn at a fixed brightness of 0xC0.
-void func_actor_260400_8014A66C(Task* task)
+static void func_actor_260400_8014A66C(Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -363,7 +363,7 @@ void func_actor_260400_8014A6F8(Task* task)
 }
 
 /// Ticks animation slots 1..0x13 of the work block's animation context.
-void func_actor_260400_8014A7AC(void)
+static void func_actor_260400_8014A7AC(void)
 {
     s32 i;
 
@@ -377,7 +377,7 @@ void func_actor_260400_8014A7AC(void)
 /// Plain reseed: marks animation slots 1..0x13 of the work block reset-pending
 /// and reseeds each of them from the current animation id, then records that id
 /// as the one now playing.
-void func_actor_260400_8014A7F8(void)
+static void func_actor_260400_8014A7F8(void)
 {
     s32 i;
 
@@ -393,7 +393,7 @@ void func_actor_260400_8014A7F8(void)
 /// Blended reseed: reseeds animation slots 1..0x13 of the work block from the
 /// current animation id with the latched reset argument
 /// `D_actor_260400_80154BE4`, and records that id as the one now playing.
-void func_actor_260400_8014A888(void)
+static void func_actor_260400_8014A888(void)
 {
     s32 i;
 

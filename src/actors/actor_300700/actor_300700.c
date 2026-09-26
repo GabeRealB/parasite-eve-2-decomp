@@ -49,30 +49,30 @@ STATIC_ASSERT_SIZEOF(Actor300700SpawnWork, 0x2F4);
 
 extern ActorSpriteUv D_actor_300700_80165B9C[];
 
-void func_actor_300700_80163410(Task* arg0);
-void func_actor_300700_801637E4(Task* arg0);
-void func_actor_300700_80164794(Task* arg0);
-void func_actor_300700_80163D64(Task* arg0);
-void func_actor_300700_80164070(Task* arg0);
-void func_actor_300700_801643D0(Task* arg0);
-void func_actor_300700_801645F8(Task* arg0);
-void func_actor_300700_80164E38(Task* arg0, TmdObject* arg1, s32 arg2);
-void func_actor_300700_80164F68(Task* arg0);
-void func_actor_300700_80165000(Task* arg0);
-void func_actor_300700_801650C0(Task* arg0);
-void func_actor_300700_801651A0(Task* arg0);
-void func_actor_300700_80165230(Task* arg0);
-void func_actor_300700_801652F4(Task* arg0);
-void func_actor_300700_8016534C(Task* arg0);
-void func_actor_300700_8016539C(Task* arg0);
-void func_800B4114(Actor300700Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
+static void func_actor_300700_80163410(Task* arg0);
+void        func_actor_300700_801637E4(Task* arg0);
+void        func_actor_300700_80164794(Task* arg0);
+void        func_actor_300700_80163D64(Task* arg0);
+void        func_actor_300700_80164070(Task* arg0);
+void        func_actor_300700_801643D0(Task* arg0);
+void        func_actor_300700_801645F8(Task* arg0);
+void        func_actor_300700_80164E38(Task* arg0, TmdObject* arg1, s32 arg2);
+void        func_actor_300700_80164F68(Task* arg0);
+void        func_actor_300700_80165000(Task* arg0);
+void        func_actor_300700_801650C0(Task* arg0);
+void        func_actor_300700_801651A0(Task* arg0);
+void        func_actor_300700_80165230(Task* arg0);
+void        func_actor_300700_801652F4(Task* arg0);
+void        func_actor_300700_8016534C(Task* arg0);
+void        func_actor_300700_8016539C(Task* arg0);
+void        func_800B4114(Actor300700Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
-void func_actor_300700_801622B4(Task* arg0);
-void func_actor_300700_8016252C(Task* arg0);
-void func_actor_300700_801626C0(Task* arg0);
-void func_actor_300700_801628C8(Task* arg0);
-void func_actor_300700_801633B8(Task* arg0);
-void func_actor_300700_80162EFC(Task* arg0);
+static void func_actor_300700_801622B4(Task* arg0);
+static void func_actor_300700_8016252C(Task* arg0);
+static void func_actor_300700_801626C0(Task* arg0);
+static void func_actor_300700_801628C8(Task* arg0);
+static void func_actor_300700_801633B8(Task* arg0);
+static void func_actor_300700_80162EFC(Task* arg0);
 
 /// Per-variant base speed, indexed by `GpAreaPlace::rowIndex`.
 extern u16 D_actor_300700_80165B78[];
@@ -97,7 +97,7 @@ extern s16 D_actor_300700_8016936C[];
 extern u16 D_actor_300700_8016937C[];
 extern s16 D_actor_300700_8016939C[];
 
-void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
+static void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
 {
     Actor300700SpawnWork* work;
     GpCoord*              coord;
@@ -181,7 +181,7 @@ void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
     arg1->state        = 1;
 }
 
-void func_actor_300700_80162130(GpEnemy* arg0, Task* arg1)
+static void func_actor_300700_80162130(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*       obj;
     Actor300700Work* work;
@@ -249,7 +249,7 @@ default_body:
 /// recorded position. The second half turns the hit record's id halfword into
 /// an arm/damage reaction - state 2 measures the distance to the recorded
 /// opponent, rolls damage, and spawns the hit effect.
-void func_actor_300700_801622B4(Task* arg0)
+static void func_actor_300700_801622B4(Task* arg0)
 {
     Actor300700Work* work;
     GpCoord*         coord;
@@ -328,7 +328,7 @@ void func_actor_300700_801622B4(Task* arg0)
 /// value scaled by that sign is the pitch written into the scratch vector,
 /// which is handed to `RotMatrix` twice - once against `coord[2]`, once with
 /// the product negated against `coord[3]`.
-void func_actor_300700_8016252C(Task* arg0)
+static void func_actor_300700_8016252C(Task* arg0)
 {
     Actor300700Work* work;
     GpCoord*         coord;
@@ -376,7 +376,7 @@ void func_actor_300700_8016252C(Task* arg0)
     SCRATCH_POP_BYTES(8);
 }
 
-void func_actor_300700_801626C0(Task* arg0)
+static void func_actor_300700_801626C0(Task* arg0)
 {
     Actor300700Work*  work;
     GpCoord*          coord;
@@ -448,7 +448,7 @@ void func_actor_300700_801626C0(Task* arg0)
     SCRATCH_POP_BYTES(0x18);
 }
 
-void func_actor_300700_801628C8(Task* arg0)
+static void func_actor_300700_801628C8(Task* arg0)
 {
     Actor300700Work* work;
     GpCoord*         coord;
@@ -532,7 +532,7 @@ void func_actor_300700_801628C8(Task* arg0)
     }
 }
 
-void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
+static void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
 {
     Actor300700Work* work;
     GpCoord*         coord;
@@ -617,7 +617,7 @@ void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
     }
 }
 
-void func_actor_300700_80162EFC(Task* arg0)
+static void func_actor_300700_80162EFC(Task* arg0)
 {
     ActorQuadScratch* sc;
     Actor300700Work*  work;
@@ -705,7 +705,7 @@ void func_actor_300700_80162EFC(Task* arg0)
 }
 /// The first variant's state handlers, dispatched by `func_actor_300700_8016335C`
 /// on the task's state: spawn, per-frame update, and the handler for state 2.
-const GpEnemyTaskFuncTable3 D_actor_300700_80161E24 = {
+static const GpEnemyTaskFuncTable3 D_actor_300700_80161E24 = {
     {
         func_actor_300700_80161E80,
         func_actor_300700_80162130,
@@ -713,7 +713,7 @@ const GpEnemyTaskFuncTable3 D_actor_300700_80161E24 = {
     },
 };
 
-void func_actor_300700_8016335C(Task* arg0)
+static void func_actor_300700_8016335C(Task* arg0)
 {
     GpEnemyTaskFuncTable3 sp;
 
@@ -723,7 +723,7 @@ void func_actor_300700_8016335C(Task* arg0)
 
 /// Updates the actor's lighting colour from the world position of its model
 /// root, with both extra arguments zero.
-void func_actor_300700_801633B8(Task* arg0)
+static void func_actor_300700_801633B8(Task* arg0)
 {
     GpCoord* coord;
     VECTOR   vec;
@@ -735,7 +735,7 @@ void func_actor_300700_801633B8(Task* arg0)
     Gp_UpdateActorColor(arg0->spawnArg2, &vec, 0, 0);
 }
 
-void func_actor_300700_80163410(Task* arg0)
+static void func_actor_300700_80163410(Task* arg0)
 {
     GpCoord*           coord;
     ActorScaleScratch* head;

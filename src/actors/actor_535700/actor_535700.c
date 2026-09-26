@@ -66,21 +66,21 @@ extern u8         D_actor_535700_80146828[];
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_535700_80132108(Task* task);
-void func_actor_535700_801324D4(GpEnemy* enemy, Task* task);
-void func_actor_535700_80132558(Task* task);
-void func_actor_535700_80132580(Task* task);
-void func_actor_535700_80132648(void);
-void func_actor_535700_80132694(void);
-void func_actor_535700_80132730(void);
-void func_actor_535700_80132ABC(Task* task);
-void func_actor_535700_80132D68(Task* task);
-void func_actor_535700_80132F74(GpEnemy* enemy, Task* task);
-void func_actor_535700_80132FF8(Task* task);
-void func_actor_535700_80133020(Task* task);
-void func_actor_535700_801330BC(Task* task);
-void func_actor_535700_80133108(Task* task);
-void func_actor_535700_80133180(Task* task);
+static void func_actor_535700_80132108(Task* task);
+static void func_actor_535700_801324D4(GpEnemy* enemy, Task* task);
+static void func_actor_535700_80132558(Task* task);
+static void func_actor_535700_80132580(Task* task);
+static void func_actor_535700_80132648(void);
+static void func_actor_535700_80132694(void);
+static void func_actor_535700_80132730(void);
+static void func_actor_535700_80132ABC(Task* task);
+static void func_actor_535700_80132D68(Task* task);
+static void func_actor_535700_80132F74(GpEnemy* enemy, Task* task);
+static void func_actor_535700_80132FF8(Task* task);
+static void func_actor_535700_80133020(Task* task);
+static void func_actor_535700_801330BC(Task* task);
+static void func_actor_535700_80133108(Task* task);
+static void func_actor_535700_80133180(Task* task);
 
 /// The fade task: while `D_actor_535700_80146840` is non-zero, draws a
 /// full-screen black `TILE` into ordering table slot 0xA; once it reaches zero
@@ -139,7 +139,7 @@ void func_actor_535700_80131F2C(void)
 /// Every access to the block after the null check goes through the global
 /// rather than the `memCalloc` result, which is why the pointer is reloaded at
 /// each use.
-void func_actor_535700_80131FA0(GpEnemy* enemy, Task* task)
+static void func_actor_535700_80131FA0(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor151000Work* work;
@@ -187,7 +187,7 @@ void func_actor_535700_80131FA0(GpEnemy* enemy, Task* task)
 /// counts down (distance picked by `D_actor_535700_8014684C`), turns it while
 /// `turnFrames` counts down in animation 3, then ticks the animation and, once
 /// `footsteps` is set, plays the footsteps.
-void func_actor_535700_80132108(Task* task)
+static void func_actor_535700_80132108(Task* task)
 {
     GpCoord*         coord = task->extra.tmd->coords;
     Actor151000Work* work  = (Actor151000Work*)task->work;
@@ -250,7 +250,7 @@ void func_actor_535700_80132478(Task* task)
 /// State 1 of the first enemy's task: refreshes the model root's coordinate,
 /// hands `func_800D7A9C` the point 0x320 above it, then runs the runner and
 /// draws the ground shadow.
-void func_actor_535700_801324D4(GpEnemy* enemy, Task* task)
+static void func_actor_535700_801324D4(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -269,7 +269,7 @@ void func_actor_535700_801324D4(GpEnemy* enemy, Task* task)
 
 /// Exit callback the first enemy's spawn handler installs on its task: tears
 /// down the enemy the task was spawned for.
-void func_actor_535700_80132558(Task* task)
+static void func_actor_535700_80132558(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
@@ -278,7 +278,7 @@ void func_actor_535700_80132558(Task* task)
 /// flags nibble is 0x10 or 0x20 - the two feet - panned and attenuated from
 /// the second coordinate of the task's model. The record is latched in
 /// `stepRec` so each one fires once.
-void func_actor_535700_80132580(Task* task)
+static void func_actor_535700_80132580(Task* task)
 {
     Actor151000Work* work;
     GpCoord*         obj;
@@ -308,7 +308,7 @@ void func_actor_535700_80132580(Task* task)
 }
 
 /// Ticks animation slots 1..0x12 of the first enemy's animation context.
-void func_actor_535700_80132648(void)
+static void func_actor_535700_80132648(void)
 {
     s32 i;
 
@@ -322,7 +322,7 @@ void func_actor_535700_80132648(void)
 /// Resets animation slots 1..0x12 to clip `animId` at rate 1, without a reset
 /// argument, and latches the clip into `st.appliedAnimId`. Clears the footstep
 /// check's record first.
-void func_actor_535700_80132694(void)
+static void func_actor_535700_80132694(void)
 {
     s32 i;
 
@@ -339,7 +339,7 @@ void func_actor_535700_80132694(void)
 /// Starts animation slots 1..0x12 on clip `animId`, forwarding
 /// `D_actor_535700_8013DAA8` as the reset argument, and latches the clip into
 /// `st.appliedAnimId`. Clears the footstep check's record first.
-void func_actor_535700_80132730(void)
+static void func_actor_535700_80132730(void)
 {
     s32 i;
 
@@ -477,7 +477,7 @@ s32 func_actor_535700_80132960(Task* task, s32 arg1, VECTOR* target, s32 mode)
 /// model is hidden (`flags & 0x80`) or has no buffer yet. The root's world
 /// translation is staged in a scratchpad `VECTOR3`, and the quad's shade is
 /// the room's current `Gp_State1C` level.
-void func_actor_535700_80132ABC(Task* task)
+static void func_actor_535700_80132ABC(Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -508,7 +508,7 @@ void func_actor_535700_80132ABC(Task* task)
 /// materialization next to its own call and `TOUCH_REG` makes the second a
 /// fresh one. The `mem` / `work` pair reproduces the ROM's short-lived copy of
 /// the `memCalloc` result beside the long-lived one.
-void func_actor_535700_80132B58(GpEnemy* enemy, Task* task)
+static void func_actor_535700_80132B58(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     GpAreaKey        key;
@@ -588,7 +588,7 @@ void func_actor_535700_80132B58(GpEnemy* enemy, Task* task)
 /// state 3. State 3 walks the model 12 units a frame while the walk clip (4)
 /// has `travel` left, dropping back to clip 1 with reset argument 0xA when it
 /// runs out, then ticks the slots.
-void func_actor_535700_80132D68(Task* task)
+static void func_actor_535700_80132D68(Task* task)
 {
     Actor150400Work* work;
     s16              animId;
@@ -637,7 +637,7 @@ void func_actor_535700_80132F20(Task* task)
 /// State 1 of the second enemy's task: refreshes the model root's coordinate,
 /// hands `func_800D7A9C` the point 0x320 above it, then runs the state machine
 /// and draws the ground shadow.
-void func_actor_535700_80132F74(GpEnemy* enemy, Task* task)
+static void func_actor_535700_80132F74(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -656,7 +656,7 @@ void func_actor_535700_80132F74(GpEnemy* enemy, Task* task)
 
 /// Exit callback the second enemy's spawn handler installs on its task: tears
 /// down the enemy the task was spawned for.
-void func_actor_535700_80132FF8(Task* task)
+static void func_actor_535700_80132FF8(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
@@ -665,7 +665,7 @@ void func_actor_535700_80132FF8(Task* task)
 /// the model is hidden (`flags & 0x80`) or has no buffer yet. The root's world
 /// translation is staged in a scratchpad `VECTOR3`, and the quad's shade is
 /// the room's current `Gp_State1C` level.
-void func_actor_535700_80133020(Task* task)
+static void func_actor_535700_80133020(Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -684,7 +684,7 @@ void func_actor_535700_80133020(Task* task)
 }
 
 /// Ticks the second enemy's animation slots 1..0x12.
-void func_actor_535700_801330BC(Task* task)
+static void func_actor_535700_801330BC(Task* task)
 {
     Actor150400Work* work;
     s32              i;
@@ -699,7 +699,7 @@ void func_actor_535700_801330BC(Task* task)
 
 /// Resets the second enemy's animation slots 1..0x12 to clip `animId` at rate
 /// 1, without a reset argument, and latches the clip into `appliedAnimId`.
-void func_actor_535700_80133108(Task* task)
+static void func_actor_535700_80133108(Task* task)
 {
     Actor150400Work* work;
     s32              i;
@@ -715,7 +715,7 @@ void func_actor_535700_80133108(Task* task)
 /// Starts the second enemy's animation slots 1..0x12 on clip `animId`,
 /// forwarding `animArg` as the reset argument, and latches the clip into
 /// `appliedAnimId`.
-void func_actor_535700_80133180(Task* task)
+static void func_actor_535700_80133180(Task* task)
 {
     Actor150400Work* work;
     s32              i;

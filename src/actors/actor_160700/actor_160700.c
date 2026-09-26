@@ -36,15 +36,15 @@ extern s32 D_actor_160700_80136414;
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_160700_80132184(Task* task);
-void func_actor_160700_80132390(GpEnemy* enemy, Task* task);
-void func_actor_160700_80132414(Task* task);
-void func_actor_160700_8013243C(Task* task);
-void func_actor_160700_801324C8(Task* task);
-void func_actor_160700_80132514(Task* task);
-void func_actor_160700_8013258C(Task* task);
+static void func_actor_160700_80132184(Task* task);
+static void func_actor_160700_80132390(GpEnemy* enemy, Task* task);
+static void func_actor_160700_80132414(Task* task);
+static void func_actor_160700_8013243C(Task* task);
+static void func_actor_160700_801324C8(Task* task);
+static void func_actor_160700_80132514(Task* task);
+static void func_actor_160700_8013258C(Task* task);
 
-void func_actor_160700_80131E24(void)
+static void func_actor_160700_80131E24(void)
 {
     s32 slot;
 
@@ -56,7 +56,7 @@ void func_actor_160700_80131E24(void)
     }
 }
 
-void func_actor_160700_80131E70(void)
+static void func_actor_160700_80131E70(void)
 {
     switch (GameFlag_GetNibble(0x113)) {
         case 0:
@@ -84,7 +84,7 @@ void func_actor_160700_80131E70(void)
 /// CLUT from the area placement the enemy's `placeKey` selects, sets up the
 /// animation context on clip 1, installs the message table whose handlers are
 /// the actor's script opcodes, and starts the animation.
-void func_actor_160700_80131F70(GpEnemy* enemy, Task* task)
+static void func_actor_160700_80131F70(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     GpAreaKey        key;
@@ -163,7 +163,7 @@ void func_actor_160700_80131F70(GpEnemy* enemy, Task* task)
 /// state 2 resets them, each then moving on to state 3; state 3 walks the
 /// root coordinate 12 units forward per frame while clip 4 still has `travel`
 /// left, switching to clip 1 when it runs out, and ticks the slots.
-void func_actor_160700_80132184(Task* task)
+static void func_actor_160700_80132184(Task* task)
 {
     Actor160600Work* work;
     s16              animId;
@@ -214,7 +214,7 @@ void func_actor_160700_8013233C(Task* task)
 /// State-1 handler of the actor's dispatcher: recomputes the root part's
 /// world matrix, hands the position 800 units above it to the model's
 /// light/colour step, then runs the animation step and draws the shadow.
-void func_actor_160700_80132390(GpEnemy* enemy, Task* task)
+static void func_actor_160700_80132390(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -232,7 +232,7 @@ void func_actor_160700_80132390(GpEnemy* enemy, Task* task)
 }
 
 /// Exit callback: hands the task's `GpEnemy` back to `Gp_DestroyEnemy`.
-void func_actor_160700_80132414(Task* task)
+static void func_actor_160700_80132414(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
@@ -240,7 +240,7 @@ void func_actor_160700_80132414(Task* task)
 /// Draws the actor's ground shadow under its root part, unless the model's
 /// `flags` bit 0x80 (hidden) is set or it has no buffer. The position is the
 /// root part's world translation, staged on the scratchpad stack.
-void func_actor_160700_8013243C(Task* task)
+static void func_actor_160700_8013243C(Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -259,7 +259,7 @@ void func_actor_160700_8013243C(Task* task)
 }
 
 /// Ticks animation slots 1..0x13.
-void func_actor_160700_801324C8(Task* task)
+static void func_actor_160700_801324C8(Task* task)
 {
     Actor160600Work* work;
     s32              i;
@@ -274,7 +274,7 @@ void func_actor_160700_801324C8(Task* task)
 
 /// Resets animation slots 1..0x13 to clip `animId` and records it as the
 /// applied clip.
-void func_actor_160700_80132514(Task* task)
+static void func_actor_160700_80132514(Task* task)
 {
     Actor160600Work* work;
     s32              i;
@@ -291,7 +291,7 @@ void func_actor_160700_80132514(Task* task)
 
 /// Reseeds animation slots 1..0x13 with clip `animId` and argument `animArg`,
 /// and records the clip as the applied one.
-void func_actor_160700_8013258C(Task* task)
+static void func_actor_160700_8013258C(Task* task)
 {
     Actor160600Work* work;
     s32              i;

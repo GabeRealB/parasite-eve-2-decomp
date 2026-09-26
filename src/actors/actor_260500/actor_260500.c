@@ -54,13 +54,13 @@ extern s32        D_actor_260500_8014DCC0;
 extern GpMsgEntry D_actor_260500_80159D80[];
 extern u8         D_actor_260500_80159DBC[];
 
-void func_actor_260500_8014A110(Task* task);
-void func_actor_260500_8014A4BC(GpEnemy* enemy, Task* task);
-void func_actor_260500_8014A540(Task* task);
-void func_actor_260500_8014A568(void);
-void func_actor_260500_8014A5B4(void);
-void func_actor_260500_8014A644(void);
-void func_actor_260500_8014A99C(Task* task);
+static void func_actor_260500_8014A110(Task* task);
+static void func_actor_260500_8014A4BC(GpEnemy* enemy, Task* task);
+static void func_actor_260500_8014A540(Task* task);
+static void func_actor_260500_8014A568(void);
+static void func_actor_260500_8014A5B4(void);
+static void func_actor_260500_8014A644(void);
+static void func_actor_260500_8014A99C(Task* task);
 
 /// Loads cap file 2 and starts it (`func_800E6D4C(0x340, 0)`) when `arg0` is
 /// non-zero, otherwise resets the cap state.
@@ -77,7 +77,7 @@ void func_actor_260500_80149E38(s32 arg0)
 
 /// Sends message 0x7D4 (placement) with the record at
 /// `D_actor_260500_8014CB38` to the task in lookup slot 4, when there is one.
-void func_actor_260500_80149E80(void)
+static void func_actor_260500_80149E80(void)
 {
     s32 slot;
 
@@ -87,7 +87,7 @@ void func_actor_260500_80149E80(void)
     }
 }
 
-void func_actor_260500_80149EBC(void)
+static void func_actor_260500_80149EBC(void)
 {
     switch (GameFlag_GetNibble(0xE3)) {
         case 0:
@@ -119,7 +119,7 @@ void func_actor_260500_80149EBC(void)
 /// model from a point 0x320 above its translation and binds the animation
 /// stream. It then installs the message table and runs the first update with
 /// the reset mode 2 / id 4 it seeds.
-void func_actor_260500_80149FB0(GpEnemy* enemy, Task* task)
+static void func_actor_260500_80149FB0(GpEnemy* enemy, Task* task)
 {
     VECTOR     vec;
     GpCoord*   coord;
@@ -166,7 +166,7 @@ void func_actor_260500_80149FB0(GpEnemy* enemy, Task* task)
 /// approach mode in `D_actor_260500_80159E54` picks, and blend into animation
 /// 0xD with reset argument 10 when the walk ends; animation 3 turns the model
 /// while `turnFrames` counts down. Mode 3 then ticks the animation.
-void func_actor_260500_8014A110(Task* task)
+static void func_actor_260500_8014A110(Task* task)
 {
     GpCoord*         coord = task->extra.tmd->coords;
     Actor260500Work* work  = (Actor260500Work*)task->work;
@@ -226,7 +226,7 @@ void func_actor_260500_8014A460(Task* task)
 /// Per-frame state (state 1 of `func_actor_260500_8014A460`): refreshes the
 /// model root's world matrix, relights the model from a point 0x320 above its
 /// translation, then runs the update and draws the ground shadow.
-void func_actor_260500_8014A4BC(GpEnemy* enemy, Task* task)
+static void func_actor_260500_8014A4BC(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -245,13 +245,13 @@ void func_actor_260500_8014A4BC(GpEnemy* enemy, Task* task)
 
 /// `Task::exitCallback` the spawn routine installs: hands the task's `GpEnemy`
 /// back to `Gp_DestroyEnemy`.
-void func_actor_260500_8014A540(Task* task)
+static void func_actor_260500_8014A540(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
 
 /// Ticks animation slots 1..0x12 of the work block's animation context.
-void func_actor_260500_8014A568(void)
+static void func_actor_260500_8014A568(void)
 {
     s32 i;
 
@@ -265,7 +265,7 @@ void func_actor_260500_8014A568(void)
 /// Plain reseed: marks animation slots 1..0x12 of the work block reset-pending
 /// and reseeds each of them from the current animation id, then records that id
 /// as the one now playing.
-void func_actor_260500_8014A5B4(void)
+static void func_actor_260500_8014A5B4(void)
 {
     s32 i;
 
@@ -281,7 +281,7 @@ void func_actor_260500_8014A5B4(void)
 /// Blended reseed: reseeds animation slots 1..0x12 of the work block from the
 /// current animation id with the latched reset argument
 /// `D_actor_260500_80159D7C`, and records that id as the one now playing.
-void func_actor_260500_8014A644(void)
+static void func_actor_260500_8014A644(void)
 {
     s32 i;
 
@@ -409,7 +409,7 @@ s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
 /// is hidden (`flags & 0x80`) or has no buffer yet. The root's world
 /// translation is staged in a scratchpad `VECTOR3` rather than on the stack,
 /// and the quad is drawn at a fixed brightness of 0xC0.
-void func_actor_260500_8014A99C(Task* task)
+static void func_actor_260500_8014A99C(Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;

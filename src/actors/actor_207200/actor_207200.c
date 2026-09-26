@@ -28,17 +28,17 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-void func_actor_207200_8014ACF8(GpEnemy* arg0, Task* arg1);
-void func_actor_207200_8014A1C4(Task* arg0);
-void func_actor_207200_8014AE08(Task* arg0);
-void func_actor_207200_8014AE70(Task* task);
-void func_actor_207200_8014AF2C(Task* arg0);
-void func_actor_207200_8014B04C(Task* task);
-void func_actor_207200_8014B128(Task* arg0);
-void func_actor_207200_8014B21C(Task* task);
-void func_actor_207200_8014AFDC(GpEnemy* arg0, Task* task);
+static void func_actor_207200_8014ACF8(GpEnemy* arg0, Task* arg1);
+static void func_actor_207200_8014A1C4(Task* arg0);
+static void func_actor_207200_8014AE08(Task* arg0);
+static void func_actor_207200_8014AE70(Task* task);
+static void func_actor_207200_8014AF2C(Task* arg0);
+static void func_actor_207200_8014B04C(Task* task);
+static void func_actor_207200_8014B128(Task* arg0);
+static void func_actor_207200_8014B21C(Task* task);
+static void func_actor_207200_8014AFDC(GpEnemy* arg0, Task* task);
 
-void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
+static void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
 {
     ActorShared8014df20Work* work;
     TmdObject*               obj;
@@ -154,7 +154,7 @@ void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
 /// new 0x64..0xA3 frame wait when it has bottomed out; under animation 2 the
 /// second sound repeats every 0x28 frames. `field_2AC` picks between two sets
 /// of sound ids.
-void func_actor_207200_8014A1C4(Task* arg0)
+static void func_actor_207200_8014A1C4(Task* arg0)
 {
     ActorShared8014df20Work* work;
     GpCoord*                 obj;
@@ -259,7 +259,7 @@ void func_actor_207200_8014A1C4(Task* arg0)
 /// whose distance-scaled damage is nonzero plays the hit sound and sparks and
 /// puts the task into its death state after 5 frames; a zero-damage kind-2 hit
 /// applies the id's side effect instead.
-void func_actor_207200_8014A588(Task* arg0)
+static void func_actor_207200_8014A588(Task* arg0)
 {
     ActorShared8014df20Work* work;
     ActorDeltaFrame38*       sc;
@@ -378,7 +378,7 @@ void func_actor_207200_8014A588(Task* arg0)
 /// that, the kill countdown running out releases the state-0xF0 reference,
 /// sets `field_288` and unlinks the enemy's node and its three objects, and
 /// the two animation slots are rebound or advanced.
-void func_actor_207200_8014AA74(GpEnemy* arg0, Task* arg1)
+static void func_actor_207200_8014AA74(GpEnemy* arg0, Task* arg1)
 {
     Actor207200Work* work;
     TmdObject*       obj;
@@ -442,7 +442,7 @@ void func_actor_207200_8014AA74(GpEnemy* arg0, Task* arg1)
 
 /// The small enemy's state handlers - spawn, live tick and dying tick - which
 /// `func_actor_207200_8014AC9C` dispatches through by task state.
-const GpEnemyTaskFuncTable3 D_actor_207200_80149E24 = {
+static const GpEnemyTaskFuncTable3 D_actor_207200_80149E24 = {
     { func_actor_207200_80149E84, func_actor_207200_8014ACF8, func_actor_207200_8014AA74 }
 };
 
@@ -463,7 +463,7 @@ void func_actor_207200_8014AC9C(Task* arg0)
 /// five model helpers, clears the display flags of the first two parts and
 /// recomputes the second part's world matrix; the tail then colours the actor
 /// from that part.
-void func_actor_207200_8014ACF8(GpEnemy* arg0, Task* arg1)
+static void func_actor_207200_8014ACF8(GpEnemy* arg0, Task* arg1)
 {
     s32 state;
     s32 one;
@@ -510,7 +510,7 @@ case1:
 /// dropped on its own, bit 0x2 puts the work into reaction state 3 with its
 /// frame counter cleared, and bits 0xC are dropped last, after re-reading the
 /// byte.
-void func_actor_207200_8014AE08(Task* arg0)
+static void func_actor_207200_8014AE08(Task* arg0)
 {
     GpEnemy*         enemy;
     Actor207200Work* work;
@@ -540,7 +540,7 @@ void func_actor_207200_8014AE08(Task* arg0)
 /// and turns the light blend down, resets the remembered animation id to 1
 /// and the counters every fourth frame, and returns to state 0 once
 /// `Gp_TickObjFlag2` reports the reaction over.
-void func_actor_207200_8014AE70(Task* task)
+static void func_actor_207200_8014AE70(Task* task)
 {
     Actor207200Work* work;
 
@@ -571,7 +571,7 @@ void func_actor_207200_8014AE70(Task* task)
 /// When it differs from the remembered `field_28E` it is remembered, the
 /// frame counter restarts and both slots switch to it with a blend of 8;
 /// otherwise the counter ticks and both slots advance.
-void func_actor_207200_8014AF2C(Task* arg0)
+static void func_actor_207200_8014AF2C(Task* arg0)
 {
     Actor207200Work* work;
     s32              i;
@@ -599,7 +599,7 @@ void func_actor_207200_8014AF2C(Task* arg0)
 /// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's
 /// world position and hands it to `Gp_UpdateActorColor` with no blend
 /// parameters. `arg0` is the colour target, passed straight through.
-void func_actor_207200_8014AFDC(GpEnemy* arg0, Task* task)
+static void func_actor_207200_8014AFDC(GpEnemy* arg0, Task* task)
 {
     GpCoord* coord;
     void**   scratch;
@@ -624,7 +624,7 @@ void func_actor_207200_8014AFDC(GpEnemy* arg0, Task* task)
 /// flag and the model's 0x80 bit. Falling, leaving 0x12 clears the node flag
 /// and returns the object to light mode 0, and the counter bottoms out at 0
 /// with the model bits cleared.
-void func_actor_207200_8014B04C(Task* task)
+static void func_actor_207200_8014B04C(Task* task)
 {
     ActorShared8014df20Work* work;
     GpEnemy*                 enemy;
@@ -668,7 +668,7 @@ void func_actor_207200_8014B04C(Task* task)
 /// while above 0x200. The scaling matrix and its vector are staged in 0x30
 /// bytes of the scratch stack; the node's `flg` is cleared so the next
 /// `Gp_UpdateCoord` recomputes it.
-void func_actor_207200_8014B128(Task* arg0)
+static void func_actor_207200_8014B128(Task* arg0)
 {
     GpCoord*           coord;
     ActorScaleScratch* head;
@@ -701,7 +701,7 @@ void func_actor_207200_8014B128(Task* arg0)
 /// Exit callback of the small enemy: detaches the enemy's hit records,
 /// unlinks its node and the work's three objects, then runs the common enemy
 /// exit.
-void func_actor_207200_8014B21C(Task* task)
+static void func_actor_207200_8014B21C(Task* task)
 {
     ActorShared8014df20Work* work;
     GpEnemy*                 enemy;

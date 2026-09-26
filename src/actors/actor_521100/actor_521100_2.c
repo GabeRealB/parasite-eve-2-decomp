@@ -83,16 +83,16 @@ extern Task*   D_actor_521100_8016A3E0;
 extern Task*   D_actor_521100_8016A3E4;
 extern GpCoord D_actor_521100_8016A3E8;
 
-void func_actor_521100_80135DDC(GpEnemy* spawnArg2, Task* task);
-void func_actor_521100_80135F2C(Task* task);
-void func_actor_521100_801360C4(GpEnemy* spawnArg2, Task* task);
-void func_actor_521100_80136290(GpEnemy* arg0, Task* task);
-void func_actor_521100_80136680(GpEnemy* arg0, Task* task);
-void func_actor_521100_801366FC(Task* task);
-void func_actor_521100_80136724(void);
-void func_actor_521100_8013677C(void);
-void func_actor_521100_80136820(void);
-void func_actor_521100_801368B0(Task* task);
+static void func_actor_521100_80135DDC(GpEnemy* spawnArg2, Task* task);
+static void func_actor_521100_80135F2C(Task* task);
+static void func_actor_521100_801360C4(GpEnemy* spawnArg2, Task* task);
+static void func_actor_521100_80136290(GpEnemy* arg0, Task* task);
+static void func_actor_521100_80136680(GpEnemy* arg0, Task* task);
+static void func_actor_521100_801366FC(Task* task);
+static void func_actor_521100_80136724(void);
+static void func_actor_521100_8013677C(void);
+static void func_actor_521100_80136820(void);
+static void func_actor_521100_801368B0(Task* task);
 
 s32 func_actor_521100_80135D10(Task* arg0, s32 arg1, s32 arg2)
 {
@@ -143,7 +143,7 @@ s16 func_actor_521100_80135DC8(Task* arg0)
     return ((Actor521100Work*)arg0->work)->field_6B2;
 }
 
-void func_actor_521100_80135DDC(GpEnemy* spawnArg2, Task* task)
+static void func_actor_521100_80135DDC(GpEnemy* spawnArg2, Task* task)
 {
     VECTOR              vec;
     Actor521100Work4B4* mem;
@@ -193,7 +193,7 @@ void func_actor_521100_80135DDC(GpEnemy* spawnArg2, Task* task)
 /// `actorMoveForward`. The pause check the helper makes is why the step
 /// is skipped while the game is frozen - `travel` still ticks down, so a
 /// paused actor finishes its walk.
-void func_actor_521100_80135F2C(Task* task)
+static void func_actor_521100_80135F2C(Task* task)
 {
     Actor521100Work4B4* work;
     s16                 animId;
@@ -227,7 +227,7 @@ void func_actor_521100_80135F2C(Task* task)
 /// step 1 runs that body and drops the 0x600A5 effect once the counter reaches
 /// 0xF, and step 2 returns without animating. Every other step falls through
 /// to the slot tick and the colour step.
-void func_actor_521100_801360C4(GpEnemy* spawnArg2, Task* task)
+static void func_actor_521100_801360C4(GpEnemy* spawnArg2, Task* task)
 {
     GpCoord             sp10;
     TmdObject*          obj;
@@ -284,7 +284,7 @@ void func_actor_521100_801360C4(GpEnemy* spawnArg2, Task* task)
 /// Each draw reads `Gp_LcgState` back from the global: the initialiser's store
 /// is what the next draw's shift sees, and it is why one `lw` feeds all three
 /// and each draw's value gets its own register.
-void func_actor_521100_80136290(GpEnemy* arg0, Task* task)
+static void func_actor_521100_80136290(GpEnemy* arg0, Task* task)
 {
     Actor521100Work4B4* work;
     GpCoord*            coord;
@@ -366,7 +366,7 @@ void func_actor_521100_80136404(Task* task)
 }
 /// State table the overlay dispatches through, indexed by `Task::state`:
 /// create, update and teardown.
-const GpEnemyTaskFuncTable3 D_actor_521100_80131E68 = { {
+static const GpEnemyTaskFuncTable3 D_actor_521100_80131E68 = { {
     func_actor_521100_80135DDC,
     func_actor_521100_80136680,
     func_actor_521100_801360C4,
@@ -387,7 +387,7 @@ void func_actor_521100_80136604(Task* arg0)
     sp.table.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-void func_actor_521100_80136680(GpEnemy* arg0, Task* task)
+static void func_actor_521100_80136680(GpEnemy* arg0, Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -405,13 +405,13 @@ void func_actor_521100_80136680(GpEnemy* arg0, Task* task)
 
 /// `Task::exitCallback` the create state `func_actor_521100_80135DDC`
 /// installs: hands the task's `GpEnemy` back to `Gp_DestroyEnemy`.
-void func_actor_521100_801366FC(Task* task)
+static void func_actor_521100_801366FC(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
 
 /// Ticks animation slots 1..0x12 of the actor's animation context.
-void func_actor_521100_80136724(void)
+static void func_actor_521100_80136724(void)
 {
     s32 i;
 
@@ -425,7 +425,7 @@ void func_actor_521100_80136724(void)
 /// Re-inits animation slots 1..0x12 from `animId`, forcing each slot's set
 /// index to 1 first, and latches that id into `field_47E` as the one now
 /// playing.
-void func_actor_521100_8013677C(void)
+static void func_actor_521100_8013677C(void)
 {
     s32 i;
 
@@ -441,7 +441,7 @@ void func_actor_521100_8013677C(void)
 
 /// Reseeds animation slots 1..0x12 from `animId` and latches that id into
 /// `field_47E` as the one now playing.
-void func_actor_521100_80136820(void)
+static void func_actor_521100_80136820(void)
 {
     s32 i;
 
@@ -464,7 +464,7 @@ void func_actor_521100_80136820(void)
 /// The scratch pointer is taken with a chained assignment on purpose: the
 /// store and the callee-saved copy are what put the extra `move $s0, $v0`
 /// between the `addiu` and the `sw` (and the `nop` in the load's delay slot).
-void func_actor_521100_801368B0(Task* task)
+static void func_actor_521100_801368B0(Task* task)
 {
     MATRIX*             head;
     ActorScaleScratch*  scratch;

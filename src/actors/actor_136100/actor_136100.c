@@ -120,12 +120,12 @@ extern s32     D_actor_136100_801404EC;
 extern s32     D_actor_136100_8014063C;
 extern Task*   D_actor_136100_8014078C;
 
-void func_actor_136100_80132748(Task* arg0);
-void func_actor_136100_80133238(Task* arg0);
-void func_actor_136100_80134A18(Task* task);
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+static void func_actor_136100_80132748(Task* arg0);
+static void func_actor_136100_80133238(Task* arg0);
+static void func_actor_136100_80134A18(Task* task);
+void        func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-s32 func_actor_136100_80131EC4(Task* arg0)
+static s32 func_actor_136100_80131EC4(Task* arg0)
 {
     Actor136100Work* work;
     Actor136100Work* msgWork;
@@ -170,7 +170,7 @@ s32 func_actor_136100_80131EC4(Task* arg0)
     return 1;
 }
 
-s32 func_actor_136100_80131FBC(Task* arg0)
+static s32 func_actor_136100_80131FBC(Task* arg0)
 {
     Actor136100Work* work;
     Actor136100Work* animWork;
@@ -342,7 +342,7 @@ void func_actor_136100_80132284(Task* arg0)
 /// then wait six ticks on `field_4C8`) before sending the weapon record; 2..6
 /// send it straight away with their own animation.  A finished request is
 /// cleared.
-void func_actor_136100_801323F8(Task* arg0)
+static void func_actor_136100_801323F8(Task* arg0)
 {
     Actor136100Work* work = (Actor136100Work*)arg0->work;
     GpAnimArg        rec;
@@ -423,7 +423,7 @@ static inline void func_actor_136100_SetAnim(Task* task, s16 anim)
     }
 }
 
-void func_actor_136100_80132748(Task* arg0)
+static void func_actor_136100_80132748(Task* arg0)
 {
     Actor136100Work* work = (Actor136100Work*)arg0->work;
     GpAnimArg        rec;
@@ -530,7 +530,7 @@ static inline void func_actor_136100_PlayAnim(Task* task, u16 anim, s32 blend, s
 /// `field_4D6` sequence -- three sound-and-animation shots every 15 ticks
 /// (`field_4DA` countdown, `field_4D8` shot count) before a final animation.
 /// Every request that finishes clears `field_4D4`.
-void func_actor_136100_80132BC0(Task* arg0)
+static void func_actor_136100_80132BC0(Task* arg0)
 {
     Actor136100Work* work;
     s16              anim;
@@ -585,7 +585,7 @@ void func_actor_136100_80132BC0(Task* arg0)
 /// sequence (0x3F3 / 0x3E9 / 0x3F2 placement, wait for 0x3F0, six ticks on
 /// `field_4C8`), the others send the weapon record straight away.  A finished
 /// request is cleared.
-void func_actor_136100_80132E78(Task* arg0)
+static void func_actor_136100_80132E78(Task* arg0)
 {
     Actor136100Work* work = (Actor136100Work*)arg0->work;
     GpAnimArg        rec;
@@ -644,7 +644,7 @@ void func_actor_136100_80132E78(Task* arg0)
     work->field_4C4 = 0;
 }
 
-void func_actor_136100_80133238(Task* arg0)
+static void func_actor_136100_80133238(Task* arg0)
 {
     Actor136100Work* work;
     Actor136100Work* animWork;
@@ -750,7 +750,7 @@ void func_actor_136100_80133238(Task* arg0)
 /// 0x3ED), steps `field_4E2` to the next entry of the `D_actor_136100_8013F218`
 /// chain (negative ends it) and plays it with 0x3F4.  Then sends the 0x3E9
 /// placement selected by `field_4D4` (1..3) and clears the request.
-void func_actor_136100_80133558(Task* arg0)
+static void func_actor_136100_80133558(Task* arg0)
 {
     Actor136100Work* work;
     Actor136100Work* msgWork;
@@ -909,7 +909,7 @@ void func_actor_136100_8013379C(s32 arg0)
 /// the first hit (`func_800E8634`, advancing `field_4DC`) or its repeat cue after.
 /// `ready` must be `s16`: as `s32` the `!= 0` store fuses into the callee-saved
 /// home and the join copy into `$v0` disappears.
-s32 func_actor_136100_80133904(Task* task)
+static s32 func_actor_136100_80133904(Task* task)
 {
     Actor136100Work* work = (Actor136100Work*)task->work;
     u16              evtId;
@@ -962,7 +962,7 @@ s32 func_actor_136100_80133904(Task* task)
 /// The texture page / CLUT row come from the placement record at the nested
 /// area table's `field_0` list whose id matches neither 0xFF (end) nor 0x6A
 /// (the skip marker).
-void func_actor_136100_80133A88(Task* arg0)
+static void func_actor_136100_80133A88(Task* arg0)
 {
     Actor136100Work* work;
     TaskIdMap*       map;
@@ -1446,7 +1446,7 @@ void func_actor_136100_801349B4(s32 arg0)
 /// Reports the live entries of the actor's pointer table to the slot-3 task:
 /// counts the leading non-null words of `D_actor_136100_8013F180` and hands
 /// the table and that count to message 0x3F7.
-void func_actor_136100_80134A18(Task* arg0)
+static void func_actor_136100_80134A18(Task* arg0)
 {
     Actor136100Work* work = (Actor136100Work*)arg0->work;
     GpCopyArg        msg;

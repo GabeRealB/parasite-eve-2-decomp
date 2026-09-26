@@ -170,7 +170,7 @@ void func_actor_120500_80131E58(Task* arg0)
 /// 2, hiding the model; and 6 sends message 0x3E8 with the equipped-weapon
 /// animation, picked the same way `func_actor_120500_8013241C` picks it. Every
 /// other code, 0 and 1 included, just clears the request.
-void func_actor_120500_80132028(Task* arg0)
+static void func_actor_120500_80132028(Task* arg0)
 {
     Actor120500Work* work;
     Actor120500Work* w;
@@ -275,7 +275,7 @@ void func_actor_120500_80132028(Task* arg0)
 /// to `Gp_SetTmdBytes` before the animation banks seed the work block. Finally
 /// `Task::msgTable` takes the message table and every animation slot but slot
 /// 0 is reset at rate 0x10.
-void func_actor_120500_801322A0(Task* arg0)
+static void func_actor_120500_801322A0(Task* arg0)
 {
     Actor120500Work* work;
     Actor120500Work* slotsWork;

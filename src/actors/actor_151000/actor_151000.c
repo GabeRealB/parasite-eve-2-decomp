@@ -56,14 +56,14 @@ extern u8         D_actor_151000_8013D2EC[];
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_151000_80132084(Task* task);
-void func_actor_151000_80132450(GpEnemy* enemy, Task* task);
-void func_actor_151000_801324D4(Task* task);
-void func_actor_151000_801324FC(Task* task);
-void func_actor_151000_801325C4(void);
-void func_actor_151000_80132610(void);
-void func_actor_151000_801326AC(void);
-void func_actor_151000_80132A38(Task* task);
+static void func_actor_151000_80132084(Task* task);
+static void func_actor_151000_80132450(GpEnemy* enemy, Task* task);
+static void func_actor_151000_801324D4(Task* task);
+static void func_actor_151000_801324FC(Task* task);
+static void func_actor_151000_801325C4(void);
+static void func_actor_151000_80132610(void);
+static void func_actor_151000_801326AC(void);
+static void func_actor_151000_80132A38(Task* task);
 
 /// The fade task: while the countdown `D_actor_151000_8013D378` is non-zero,
 /// draws a full-screen black `TILE` into ordering table slot 0xA; once it is
@@ -108,7 +108,7 @@ void func_actor_151000_80131EE0(s32 frames)
 /// Every access to the block after the null check goes through the global
 /// rather than the `memCalloc` result, which is why the pointer is reloaded at
 /// each use.
-void func_actor_151000_80131F1C(GpEnemy* enemy, Task* task)
+static void func_actor_151000_80131F1C(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor151000Work* work;
@@ -157,7 +157,7 @@ void func_actor_151000_80131F1C(GpEnemy* enemy, Task* task)
 /// walk ends, queues clip 0xD through state 1; it turns the model while
 /// `turnFrames` counts down in clip 3, then ticks the animation and, once
 /// `footsteps` is set, plays the footsteps.
-void func_actor_151000_80132084(Task* task)
+static void func_actor_151000_80132084(Task* task)
 {
     GpCoord*         coord = task->extra.tmd->coords;
     Actor151000Work* work  = (Actor151000Work*)task->work;
@@ -220,7 +220,7 @@ void func_actor_151000_801323F4(Task* task)
 /// State 1 of the enemy's task: refreshes the model root's coordinate, hands
 /// `func_800D7A9C` the point 0x320 above it, then runs the runner and draws the
 /// ground shadow.
-void func_actor_151000_80132450(GpEnemy* enemy, Task* task)
+static void func_actor_151000_80132450(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -239,7 +239,7 @@ void func_actor_151000_80132450(GpEnemy* enemy, Task* task)
 
 /// Exit callback the spawn handler installs on the enemy's task: tears down
 /// the enemy the task was spawned for.
-void func_actor_151000_801324D4(Task* task)
+static void func_actor_151000_801324D4(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
@@ -248,7 +248,7 @@ void func_actor_151000_801324D4(Task* task)
 /// flags nibble is 0x10 or 0x20 - the two feet - panned and attenuated from
 /// the second coordinate of the task's model. The record is latched in
 /// `stepRec` so each one fires once.
-void func_actor_151000_801324FC(Task* task)
+static void func_actor_151000_801324FC(Task* task)
 {
     Actor151000Work* work;
     GpCoord*         obj;
@@ -278,7 +278,7 @@ void func_actor_151000_801324FC(Task* task)
 }
 
 /// Ticks animation slots 1..0x12 of the enemy's animation context.
-void func_actor_151000_801325C4(void)
+static void func_actor_151000_801325C4(void)
 {
     s32 i;
 
@@ -292,7 +292,7 @@ void func_actor_151000_801325C4(void)
 /// Resets animation slots 1..0x12 to clip `animId` at rate 1, without a
 /// reset argument, and latches the clip into `st.appliedAnimId`. Clears the footstep
 /// check's record first.
-void func_actor_151000_80132610(void)
+static void func_actor_151000_80132610(void)
 {
     s32 i;
 
@@ -309,7 +309,7 @@ void func_actor_151000_80132610(void)
 /// Starts animation slots 1..0x12 on clip `animId`, forwarding
 /// `D_actor_151000_8013D2AC` as the reset argument, and latches the clip into
 /// `st.appliedAnimId`. Clears the footstep check's record first.
-void func_actor_151000_801326AC(void)
+static void func_actor_151000_801326AC(void)
 {
     s32 i;
 
@@ -445,7 +445,7 @@ s32 func_actor_151000_801328DC(Task* task, s32 arg1, VECTOR* target, s32 mode)
 /// is hidden (`flags & 0x80`) or has no buffer yet. The root part's `workm`
 /// translation is staged in a scratchpad VECTOR3 rather than on the stack, and
 /// the quad takes the room's current ground shade.
-void func_actor_151000_80132A38(Task* task)
+static void func_actor_151000_80132A38(Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;

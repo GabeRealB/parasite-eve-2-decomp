@@ -36,12 +36,12 @@ extern u8 D_actor_110300_8013A084[];
 /// and a terminator.
 extern GpMsgEntry D_actor_110300_8013A054[];
 
-void func_actor_110300_80132020(GpEnemy* enemy, Task* task);
-void func_actor_110300_80132088(Task* task);
-void func_actor_110300_801320C4(Task* arg0);
-void func_actor_110300_80132138(void);
-void func_actor_110300_80132180(void);
-void func_actor_110300_80132208(void);
+static void func_actor_110300_80132020(GpEnemy* enemy, Task* task);
+static void func_actor_110300_80132088(Task* task);
+static void func_actor_110300_801320C4(Task* arg0);
+static void func_actor_110300_80132138(void);
+static void func_actor_110300_80132180(void);
+static void func_actor_110300_80132208(void);
 
 /// `func_800B4114` is declared locally with a signed `arg2`; see the note in
 /// `include/gameplay/1BC.h`.
@@ -54,7 +54,7 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// than the `memCalloc` result, which is why the pointer is reloaded at each
 /// use instead of staying in a callee-saved register. The task's message table
 /// becomes the one holding the animation-start and visibility handlers.
-void func_actor_110300_80131E24(GpEnemy* enemy, Task* task)
+static void func_actor_110300_80131E24(GpEnemy* enemy, Task* task)
 {
     VECTOR     vec;
     void*      work;
@@ -131,7 +131,7 @@ void func_actor_110300_80131FF8(Task* arg0)
 /// is copied into `$a0` (the first, unused, is the `GpEnemy*`): that copy is
 /// what the first call's argument, and the `Task::extra` load feeding it, are
 /// both read off.
-void func_actor_110300_80132020(GpEnemy* enemy, Task* task)
+static void func_actor_110300_80132020(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -148,7 +148,7 @@ void func_actor_110300_80132020(GpEnemy* enemy, Task* task)
 
 /// Exit callback the step-0 handler installs: kills the helper task, then
 /// destroys the actor.
-void func_actor_110300_80132088(Task* arg0)
+static void func_actor_110300_80132088(Task* arg0)
 {
     taskKill(D_actor_110300_8013A0A8);
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
@@ -157,7 +157,7 @@ void func_actor_110300_80132088(Task* arg0)
 /// Advances the animation per the work block's `st.state`: step 1 reseeds the
 /// slots through `func_800B4114`, step 2 resets them outright, and either moves
 /// on to step 3, which ticks them. The argument is never read.
-void func_actor_110300_801320C4(Task* arg0)
+static void func_actor_110300_801320C4(Task* arg0)
 {
     if (D_actor_110300_8013A0A0->st.state == 1) {
         func_actor_110300_80132208();
@@ -175,7 +175,7 @@ void func_actor_110300_801320C4(Task* arg0)
 }
 
 /// Ticks animation slots 1..0x13 of the work block's animation context.
-void func_actor_110300_80132138(void)
+static void func_actor_110300_80132138(void)
 {
     s32 i;
 
@@ -188,7 +188,7 @@ void func_actor_110300_80132138(void)
 
 /// Sets the rate of animation slots 1..0x13 to 1 and resets each of them to
 /// the current animation id, then records that id as the one now playing.
-void func_actor_110300_80132180(void)
+static void func_actor_110300_80132180(void)
 {
     s32 i;
 
@@ -204,7 +204,7 @@ void func_actor_110300_80132180(void)
 /// Reseeds animation slots 1..0x13 of the work block's animation context from
 /// the current animation id through `func_800B4114` (arguments 0 and 8), then
 /// records that id as the one now playing.
-void func_actor_110300_80132208(void)
+static void func_actor_110300_80132208(void)
 {
     s32 i;
 

@@ -51,7 +51,7 @@ extern s32 D_actor_310100_801798A8[];
 /// has just entered — from `D_actor_310100_801798A8` while the model is on the
 /// 0x6C display id, from the fixed 0x51050006 / 0x51050007 pair otherwise — then
 /// ticks slots 1..0x12 and returns slot 1's `field_10` bit 0.
-s32 func_actor_310100_80161E24(Task* task);
+static s32 func_actor_310100_80161E24(Task* task);
 
 /// State handler for the display model spawned by `func_actor_310100_80162C64`:
 /// the spawn tick seeds the tracker from the model's part-1 coordinate frame and
@@ -116,7 +116,7 @@ extern s16*     D_actor_310100_8017989C[];
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-s32 func_actor_310100_80161E24(Task* task)
+static s32 func_actor_310100_80161E24(Task* task)
 {
     Actor310100Work* work;
     GpAnimRec*       rec;
@@ -156,7 +156,7 @@ s32 func_actor_310100_80161E24(Task* task)
     return work->rig.slots[1].flags & 1;
 }
 
-void func_actor_310100_80161F80(Task* task)
+static void func_actor_310100_80161F80(Task* task)
 {
     GpAnimArg        arg;
     Actor310100Work* work;
@@ -330,14 +330,14 @@ void func_actor_310100_80162284(Task* task)
     }
 }
 
-void func_actor_310100_80161F80(Task* task);
+static void func_actor_310100_80161F80(Task* task);
 
 /// Spawns the display model for `D_actor_310100_801798FC`: allocates the 0x50C
 /// work block into `task->work`, hands it the view coordinate and the two TMD
 /// buffers, binds the animation set selected by the display id (0x6C or 0x6D),
 /// seeds its 18 slots, points `task->msgTable` at `D_actor_310100_801798B4` and
 /// applies the nested area record matching that id through `Gp_SetTmdBytes`.
-void func_actor_310100_80162414(Task* task, s32 arg1)
+static void func_actor_310100_80162414(Task* task, s32 arg1)
 {
     Actor310100Work* work;
     Actor310100Work* work2;
@@ -397,7 +397,7 @@ void func_actor_310100_80162414(Task* task, s32 arg1)
 /// the task's `spawnArg1` in `field_504` — the argument `func_actor_310100_80162C64`
 /// hands the display task it spawns — and reads it back as the payload the
 /// eighteen animation slots are reset with.
-void func_actor_310100_801625E4(Task* task, s32 arg1)
+static void func_actor_310100_801625E4(Task* task, s32 arg1)
 {
     Actor310100Work* work;
     Actor310100Work* work2;
@@ -732,7 +732,7 @@ void func_actor_310100_80162F34(Task* task)
     task->state = 3;
 }
 
-void func_actor_310100_801625E4(Task* task, s32 arg1);
+static void func_actor_310100_801625E4(Task* task, s32 arg1);
 
 /// Second state handler of the display model spawned from
 /// `D_actor_310100_801798FC` (descriptor arg 0x80168C00): the spawn tick hands

@@ -73,25 +73,25 @@ STATIC_ASSERT_SIZEOF(Actor443500Layout, 0x14);
 /// the note in `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_443500_80132078(Task* task);
-void func_actor_443500_801321F0(Task* task);
-void func_actor_443500_80132594(Task* task);
-void func_actor_443500_801326A0(Task* task);
-void func_actor_443500_801327A4(Task* arg0);
-void func_actor_443500_801327C4(Task* task);
-s32  func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
-s32  func_actor_443500_8013297C(Task* task, s32 anim, s32 mode, s32 arg3);
-void func_actor_443500_80132A68(s32 arg0);
+static void func_actor_443500_80132078(Task* task);
+static void func_actor_443500_801321F0(Task* task);
+static void func_actor_443500_80132594(Task* task);
+static void func_actor_443500_801326A0(Task* task);
+static void func_actor_443500_801327A4(Task* arg0);
+static void func_actor_443500_801327C4(Task* task);
+s32         func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
+s32         func_actor_443500_8013297C(Task* task, s32 anim, s32 mode, s32 arg3);
+static void func_actor_443500_80132A68(s32 arg0);
 
 /// State table of the actor's child task (`TaskDesc` entry 1): setup, the
 /// per-frame flag mirror and `taskKill`.
-const TaskFuncTable3 D_actor_443500_80131E24 = {
+static const TaskFuncTable3 D_actor_443500_80131E24 = {
     { func_actor_443500_80132594, func_actor_443500_801326A0, taskKill }
 };
 
 /// State table of the actor's main task (`TaskDesc` entry 0): the spawn
 /// handler, the per-frame tick and the exit callback.
-const TaskFuncTable3 D_actor_443500_80131E30 = {
+static const TaskFuncTable3 D_actor_443500_80131E30 = {
     { func_actor_443500_80132078, func_actor_443500_801321F0, func_actor_443500_801327A4 }
 };
 
@@ -196,7 +196,7 @@ void func_actor_443500_8013206C(s8 arg0)
 /// model, starts the actor's child task and copies the location it spawns over
 /// from the session key onto that child's model, then installs the animation
 /// table, the exit callback and the tick handler.
-void func_actor_443500_80132078(Task* task)
+static void func_actor_443500_80132078(Task* task)
 {
     Actor443500Work* work;
     GpAreaKey        key;
@@ -259,7 +259,7 @@ void func_actor_443500_80132078(Task* task)
 /// Type7 (view 3) cue, TypeA otherwise while the view is ready, and resets on
 /// slot 1's control-entry bit. A visible model gets a ground shadow and a
 /// rebuilt child-part matrix; `field_4BC` then counts down to free the buffers.
-void func_actor_443500_801321F0(Task* task)
+static void func_actor_443500_801321F0(Task* task)
 {
     Actor443500Work* work;
     TmdObject*       extra;
@@ -356,7 +356,7 @@ void func_actor_443500_8013253C(Task* task)
 /// the child's root coordinate off the parent's part `spawnArg1`, shares the
 /// parent's light and colour matrices, reparents the task under the parent and
 /// steps to the next state.
-void func_actor_443500_80132594(Task* task)
+static void func_actor_443500_80132594(Task* task)
 {
     Task*      parent;
     TmdObject* obj;
@@ -394,7 +394,7 @@ void func_actor_443500_80132594(Task* task)
 /// handler passed as `Task::spawnArg2` - onto the child's own model. When the
 /// parent's 0x4 is clear the child's is cleared too and its buffers are
 /// reallocated through `Tmd_AllocBuffers`.
-void func_actor_443500_801326A0(Task* task)
+static void func_actor_443500_801326A0(Task* task)
 {
     TmdObject* parentObject;
     TmdObject* object;
@@ -430,14 +430,14 @@ void func_actor_443500_80132738(Task* task)
 
 /// Exit callback the spawn handler installs, and the third state of the main
 /// task: hands the task to `Gp_EnemyTaskExit`.
-void func_actor_443500_801327A4(Task* arg0)
+static void func_actor_443500_801327A4(Task* arg0)
 {
     Gp_EnemyTaskExit(arg0);
 }
 
 /// Points the model's `TmdObject::lightMtx` / `colorMtx` at the work block's
 /// own `light` / `color` matrices, so the actor draws with its own lighting.
-void func_actor_443500_801327C4(Task* task)
+static void func_actor_443500_801327C4(Task* task)
 {
     TmdObject*       ext;
     Actor443500Work* work;
@@ -562,7 +562,7 @@ s32 func_actor_443500_8013297C(Task* task, s32 anim, s32 mode, s32 arg3)
 /// table at `D_8018828C`. When `arg0` is nonzero, shift the six live target
 /// positions by `(0, 0x7D0, 0)` afterwards. The per-frame tick calls this
 /// with 0 before showing the model.
-void func_actor_443500_80132A68(s32 arg0)
+static void func_actor_443500_80132A68(s32 arg0)
 {
     Actor443500Layout* dst;
     Actor443500Layout* src;

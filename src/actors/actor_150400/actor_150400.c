@@ -36,13 +36,13 @@ extern GpAreaApplyRec D_80183BE0;
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_150400_80132228(Task* task);
-void func_actor_150400_80132434(GpEnemy* enemy, Task* task);
-void func_actor_150400_801324B8(Task* task);
-void func_actor_150400_801324E0(Task* task);
-void func_actor_150400_8013257C(Task* task);
-void func_actor_150400_801325C8(Task* task);
-void func_actor_150400_80132640(Task* task);
+static void func_actor_150400_80132228(Task* task);
+static void func_actor_150400_80132434(GpEnemy* enemy, Task* task);
+static void func_actor_150400_801324B8(Task* task);
+static void func_actor_150400_801324E0(Task* task);
+static void func_actor_150400_8013257C(Task* task);
+static void func_actor_150400_801325C8(Task* task);
+static void func_actor_150400_80132640(Task* task);
 
 /// Per-frame callback of the model task `D_actor_150400_80132CF0` describes,
 /// spawned twice by `func_actor_150400_80131FB8` with `spawnArg1` 1 and 2.
@@ -110,7 +110,7 @@ void func_actor_150400_80131F9C(s32 arg0)
     D_actor_150400_8013C928->state = arg0;
 }
 
-void func_actor_150400_80131FB8(void)
+static void func_actor_150400_80131FB8(void)
 {
     D_actor_150400_8013C924 = Task_SpawnFromTable(&D_actor_150400_80132CF0, 0, 1, 0);
     D_actor_150400_8013C928 = Task_SpawnFromTable(&D_actor_150400_80132CF0, 0, 2, 0);
@@ -131,7 +131,7 @@ void func_actor_150400_80131FB8(void)
 /// ROM keeps a short-lived copy for the `work` store, the NULL test and
 /// `enemy`, and a longer-lived one for everything after, which one variable
 /// cannot express.
-void func_actor_150400_80132014(GpEnemy* enemy, Task* task)
+static void func_actor_150400_80132014(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     GpAreaKey        key;
@@ -213,7 +213,7 @@ void func_actor_150400_80132014(GpEnemy* enemy, Task* task)
 /// walks the root coordinate 0x11 units per frame while clip 4 has `travel`
 /// left, dropping back to clip 1 with argument 0xA when it runs out, then ticks
 /// the slots.
-void func_actor_150400_80132228(Task* task)
+static void func_actor_150400_80132228(Task* task)
 {
     Actor150400Work* work;
     s16              animId;
@@ -265,7 +265,7 @@ void func_actor_150400_801323E0(Task* task)
 /// root's coordinate, feeds its world translation (raised by 800 on y) to
 /// `func_800D7A9C`, then runs the animation step body and draws the ground
 /// shadow.
-void func_actor_150400_80132434(GpEnemy* enemy, Task* task)
+static void func_actor_150400_80132434(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -284,7 +284,7 @@ void func_actor_150400_80132434(GpEnemy* enemy, Task* task)
 
 /// Exit callback of the actor's task: hands its `GpEnemy` back to
 /// `Gp_DestroyEnemy`.
-void func_actor_150400_801324B8(Task* task)
+static void func_actor_150400_801324B8(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
@@ -293,7 +293,7 @@ void func_actor_150400_801324B8(Task* task)
 /// hidden (`flags` bit 0x80) or has no buffer. The position is the root part's
 /// world translation, staged on the scratchpad stack, and the shade follows the
 /// room's current `Gp_State1C` level.
-void func_actor_150400_801324E0(Task* task)
+static void func_actor_150400_801324E0(Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -312,7 +312,7 @@ void func_actor_150400_801324E0(Task* task)
 }
 
 /// Ticks animation slots 1..0x12.
-void func_actor_150400_8013257C(Task* task)
+static void func_actor_150400_8013257C(Task* task)
 {
     Actor150400Work* work;
     s32              i;
@@ -327,7 +327,7 @@ void func_actor_150400_8013257C(Task* task)
 
 /// Resets animation slots 1..0x12 to clip `animId` at rate 1, without a reseed
 /// argument, and records the clip as the applied one.
-void func_actor_150400_801325C8(Task* task)
+static void func_actor_150400_801325C8(Task* task)
 {
     Actor150400Work* work;
     s32              i;
@@ -342,7 +342,7 @@ void func_actor_150400_801325C8(Task* task)
 
 /// Reseeds animation slots 1..0x12 with clip `animId` and argument `animArg`,
 /// and records the clip as the applied one.
-void func_actor_150400_80132640(Task* task)
+static void func_actor_150400_80132640(Task* task)
 {
     Actor150400Work* work;
     s32              i;

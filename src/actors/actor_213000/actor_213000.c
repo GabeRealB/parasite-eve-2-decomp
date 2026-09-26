@@ -57,12 +57,12 @@ extern GpMsgEntry D_actor_213000_80157E1C[];
 /// Animation bank table the 0x7D3 handler indexes with the preset's `field_0`.
 extern void* D_actor_213000_80157DDC[];
 
-void func_actor_213000_8014A0DC(Task* task);
-void func_actor_213000_8014A158(Task* task);
-void func_actor_213000_8014A1B8(Task* task);
-void func_actor_213000_8014A2C4(Task* task);
-void func_actor_213000_8014A5D0(Task* task);
-void func_actor_213000_8014A6AC(Task* task);
+static void func_actor_213000_8014A0DC(Task* task);
+static void func_actor_213000_8014A158(Task* task);
+static void func_actor_213000_8014A1B8(Task* task);
+static void func_actor_213000_8014A2C4(Task* task);
+static void func_actor_213000_8014A5D0(Task* task);
+static void func_actor_213000_8014A6AC(Task* task);
 
 /// Spawn handler: allocates the work block, seeds its animation bytes and
 /// countdown, hides the model, then spawns the four children of the spawn
@@ -75,7 +75,7 @@ void func_actor_213000_8014A6AC(Task* task);
 /// model, installs the message table and `Gp_EnemyTaskExit` as the exit
 /// callback, and advances to the tick. A failed allocation exits the task
 /// instead.
-void func_actor_213000_80149E54(Task* task)
+static void func_actor_213000_80149E54(Task* task)
 {
     Actor213000Work* work;
     TmdObject*       obj;
@@ -155,7 +155,7 @@ void func_actor_213000_80149E54(Task* task)
 
 /// State table of the children spawned from table entries 1 and 2: attach to
 /// the parent, idle, kill.
-const TaskFuncTable3 D_actor_213000_80149E24 = {
+static const TaskFuncTable3 D_actor_213000_80149E24 = {
     {
         func_actor_213000_8014A0DC,
         func_actor_213000_8014A158,
@@ -178,7 +178,7 @@ void func_actor_213000_8014A084(Task* task)
 /// arguments (the parent task and the part index it was spawned with),
 /// inherits the parent's light and colour matrices, reparents the task so it
 /// runs with the parent, and advances to the idle state.
-void func_actor_213000_8014A0DC(Task* task)
+static void func_actor_213000_8014A0DC(Task* task)
 {
     Task*      parent;
     s32        part;
@@ -203,12 +203,12 @@ void func_actor_213000_8014A0DC(Task* task)
 
 /// The idle state of the children spawned from table entries 1 and 2: does
 /// nothing.
-void func_actor_213000_8014A158(Task* task)
+static void func_actor_213000_8014A158(Task* task)
 {
 }
 
 /// State table of the child spawned from table entry 4: setup, tick, kill.
-const TaskFuncTable3 D_actor_213000_80149E30 = {
+static const TaskFuncTable3 D_actor_213000_80149E30 = {
     {
         func_actor_213000_8014A1B8,
         func_actor_213000_8014A2C4,
@@ -232,7 +232,7 @@ void func_actor_213000_8014A160(Task* task)
 /// the child's root coordinate off the parent's part `spawnArg1`, shares the
 /// parent's light and colour matrices, reparents the task under the parent and
 /// steps to the tick state.
-void func_actor_213000_8014A1B8(Task* task)
+static void func_actor_213000_8014A1B8(Task* task)
 {
     Task*      parent;
     TmdObject* obj;
@@ -269,7 +269,7 @@ void func_actor_213000_8014A1B8(Task* task)
 /// child's model with the parent's (`spawnArg2`), copying bit 0x80, and
 /// copies bit 0x4 too; when the parent's 0x4 is clear the child's buffers are
 /// reallocated through `Tmd_AllocBuffers`.
-void func_actor_213000_8014A2C4(Task* task)
+static void func_actor_213000_8014A2C4(Task* task)
 {
     TmdObject* parentObject;
     TmdObject* object;
@@ -296,7 +296,7 @@ void func_actor_213000_8014A2C4(Task* task)
 /// colour matrices, mirrors the parent's model bits 0x80 (hidden) and 0x4 as
 /// the tick state does, draws the model at order-table offset -4, reparents
 /// the task under the parent and steps to the tick state.
-void func_actor_213000_8014A35C(Task* task)
+static void func_actor_213000_8014A35C(Task* task)
 {
     Task*      parent;
     TmdObject* obj;
@@ -342,7 +342,7 @@ void func_actor_213000_8014A35C(Task* task)
 /// Tick state of the child spawned from table entry 3: the same mirroring
 /// of the parent's model bits 0x80 (hidden) and 0x4 onto the child's model,
 /// reallocating the child's buffers when the parent's 0x4 is clear.
-void func_actor_213000_8014A488(Task* task)
+static void func_actor_213000_8014A488(Task* task)
 {
     TmdObject* parentObject;
     TmdObject* object;
@@ -364,7 +364,7 @@ void func_actor_213000_8014A488(Task* task)
 }
 
 /// State table of the child spawned from table entry 3: setup, tick, kill.
-const TaskFuncTable3 D_actor_213000_80149E3C = {
+static const TaskFuncTable3 D_actor_213000_80149E3C = {
     {
         func_actor_213000_8014A35C,
         func_actor_213000_8014A488,
@@ -383,7 +383,7 @@ void func_actor_213000_8014A520(Task* task)
 }
 
 /// The actor's three states: spawn, per-frame tick and teardown.
-const TaskFuncTable3 D_actor_213000_80149E48 = {
+static const TaskFuncTable3 D_actor_213000_80149E48 = {
     {
         func_actor_213000_80149E54,
         func_actor_213000_8014A5D0,
@@ -405,7 +405,7 @@ void func_actor_213000_8014A578(Task* task)
 /// started them, and once the view is ready rebuilds model part 1's world
 /// matrix and hands its translation to `func_800D7A9C`. The work block's
 /// countdown then frees the model's buffers as it reaches zero.
-void func_actor_213000_8014A5D0(Task* task)
+static void func_actor_213000_8014A5D0(Task* task)
 {
     Actor213000Work* work;
     TmdObject*       extra;
@@ -436,7 +436,7 @@ void func_actor_213000_8014A5D0(Task* task)
 /// Points the model's light and colour matrices at the work block's own pair,
 /// then rebuilds model part 1's world matrix and hands its translation to
 /// `func_800D7A9C`.
-void func_actor_213000_8014A6AC(Task* task)
+static void func_actor_213000_8014A6AC(Task* task)
 {
     Actor213000Work* work;
     GpCoord*         coords;

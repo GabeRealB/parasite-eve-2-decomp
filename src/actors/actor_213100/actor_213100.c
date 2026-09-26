@@ -65,12 +65,12 @@ extern u8 D_actor_213100_801521C0[];
 /// view: nonzero shows the actor and its child, zero hides both.
 extern s8 D_actor_213100_801521E0[];
 
-void func_actor_213100_8014A03C(Task* task);
-void func_actor_213100_8014A0B8(Task* task);
-void func_actor_213100_8014A118(Task* arg0);
-void func_actor_213100_8014A21C(Task* arg0);
-void func_actor_213100_8014A23C(Task* arg0);
-s32  func_actor_213100_8014A258(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
+static void func_actor_213100_8014A03C(Task* task);
+static void func_actor_213100_8014A0B8(Task* task);
+static void func_actor_213100_8014A118(Task* arg0);
+static void func_actor_213100_8014A21C(Task* arg0);
+static void func_actor_213100_8014A23C(Task* arg0);
+s32         func_actor_213100_8014A258(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
 
 /// Per-frame tick: ticks the work block's animation slots once they have been
 /// started, and while the model is shown samples the child part's
@@ -79,7 +79,7 @@ s32  func_actor_213100_8014A258(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
 /// translation to `func_800D7A9C`, and shows or hides this model and the
 /// child's together from the per-view table. The work block's countdown then
 /// frees the model's buffers as it reaches zero.
-void func_actor_213100_80149E3C(Task* task)
+static void func_actor_213100_80149E3C(Task* task)
 {
     Actor213100Work* work;
     TmdObject*       extra;
@@ -122,7 +122,7 @@ void func_actor_213100_80149E3C(Task* task)
 
 /// State table of the child the spawn state creates: attach to the parent,
 /// idle, kill.
-const TaskFuncTable3 D_actor_213100_80149E24 = {
+static const TaskFuncTable3 D_actor_213100_80149E24 = {
     {
         func_actor_213100_8014A03C,
         func_actor_213100_8014A0B8,
@@ -145,7 +145,7 @@ void func_actor_213100_80149FE4(Task* task)
 /// the part index it was spawned with), inherits the parent's light and colour
 /// matrices, reparents the task so it runs with the parent, and advances to
 /// the idle state.
-void func_actor_213100_8014A03C(Task* task)
+static void func_actor_213100_8014A03C(Task* task)
 {
     Task*      parent;
     s32        part;
@@ -169,12 +169,12 @@ void func_actor_213100_8014A03C(Task* task)
 }
 
 /// The child's idle state: does nothing.
-void func_actor_213100_8014A0B8(Task* task)
+static void func_actor_213100_8014A0B8(Task* task)
 {
 }
 
 /// The actor's three states: spawn, per-frame tick and teardown.
-const TaskFuncTable3 D_actor_213100_80149E30 = {
+static const TaskFuncTable3 D_actor_213100_80149E30 = {
     {
         func_actor_213100_8014A118,
         func_actor_213100_80149E3C,
@@ -199,7 +199,7 @@ void func_actor_213100_8014A0C0(Task* task)
 /// take the work block's matrices; the actor starts its animation by calling
 /// the 0x7D3 handler directly with the preset `{ 0, 5, 0, 0, 0 }`, then
 /// installs its message table and exit callback and advances to the tick.
-void func_actor_213100_8014A118(Task* arg0)
+static void func_actor_213100_8014A118(Task* arg0)
 {
     Actor213100Work* work;
     GpAnimArg        preset;
@@ -239,13 +239,13 @@ void func_actor_213100_8014A118(Task* arg0)
 
 /// The actor's teardown state and its `Task::exitCallback`: hands the task to
 /// `Gp_EnemyTaskExit`.
-void func_actor_213100_8014A21C(Task* arg0)
+static void func_actor_213100_8014A21C(Task* arg0)
 {
     Gp_EnemyTaskExit(arg0);
 }
 
 /// Points the model's light and colour matrices at the work block's own pair.
-void func_actor_213100_8014A23C(Task* arg0)
+static void func_actor_213100_8014A23C(Task* arg0)
 {
     TmdObject*       ext;
     Actor213100Work* work;

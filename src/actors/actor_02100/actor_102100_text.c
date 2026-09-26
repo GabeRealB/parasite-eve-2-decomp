@@ -212,21 +212,21 @@ extern s16                      Actor02100_D03E00[];
 extern Actor02100Fn02924Corners Actor02100_D03E1C[];
 extern s16                      Actor02100_D03E2C[];
 
-void Actor02100_Fn03168(Task* arg0);
-void Actor02100_Fn031C4(GpEnemy* arg0, Task* arg1);
-void Actor02100_Fn032E4(Task* arg0);
-void Actor02100_Fn035D4(GpEnemy* arg0, Task* arg1);
-s32  Actor02100_Fn014E4(Task* arg0);
+static void Actor02100_Fn03168(Task* arg0);
+static void Actor02100_Fn031C4(GpEnemy* arg0, Task* arg1);
+static void Actor02100_Fn032E4(Task* arg0);
+static void Actor02100_Fn035D4(GpEnemy* arg0, Task* arg1);
+static s32  Actor02100_Fn014E4(Task* arg0);
 
-void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1);
+static void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1);
 
-const GpEnemyTaskFuncTable3 Actor02100_D00004 = { {
+static const GpEnemyTaskFuncTable3 Actor02100_D00004 = { {
     Actor02100_Fn00048,
     Actor02100_Fn031C4,
     Actor02100_Fn035D4,
 } };
 
-void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
+static void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
 {
     GpRec18*                  table;
     GpRec18*                  contacts;
@@ -370,7 +370,7 @@ void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
     SCRATCH_HEAD(Actor02100Fn00048Scratch) = SCRATCH_HEAD(Actor02100Fn00048Scratch) + 1;
 }
 
-void Actor02100_Fn004C4(Task* arg0)
+static void Actor02100_Fn004C4(Task* arg0)
 {
     Actor02100Fn014E4Scratch* scratch;
     Actor02100Work*           work;
@@ -537,7 +537,7 @@ void Actor02100_Fn004C4(Task* arg0)
 /// first frame, retrigger it each frame, and run for `field_176 * 40` frames;
 /// each then stops the effect, clears the offset and starts the tail sound.
 /// Step 1 installs the negated offset, step 3 restores it and returns to 0.
-void Actor02100_Fn00ADC(Task* arg0)
+static void Actor02100_Fn00ADC(Task* arg0)
 {
     Actor02100Work* work;
     GpCoord*        coord;
@@ -643,8 +643,8 @@ void Actor02100_Fn00ADC(Task* arg0)
 
 #undef STOP_SOUND
 
-s32  Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1);
-void Actor02100_Fn011C4(Task* arg0);
+static s32  Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1);
+static void Actor02100_Fn011C4(Task* arg0);
 
 /// Line-of-sight scan. Takes a 0x20-byte block from `G_SCRATCH_HEAD`, builds
 /// the world-space delta from this actor's coordinate to the player's (entry 0
@@ -654,7 +654,7 @@ void Actor02100_Fn011C4(Task* arg0);
 /// clear. A hit latches the player onto `field_140` and switches the state
 /// machine to 2 (or 3 in mode 4). `field_186` throttles the scan to one run
 /// every 5 frames while the session is in state 1.
-void Actor02100_Fn00DCC(Task* arg0)
+static void Actor02100_Fn00DCC(Task* arg0)
 {
     Actor02100Work*  work;
     Actor02100Sight* blk;
@@ -763,7 +763,7 @@ void Actor02100_Fn00DCC(Task* arg0)
     SCRATCH_POP_BYTES(0x20);
 }
 
-void Actor02100_Fn011C4(Task* arg0)
+static void Actor02100_Fn011C4(Task* arg0)
 {
     Actor02100Fn011C4Scratch* scratch;
     Task*                     list;
@@ -839,7 +839,7 @@ void Actor02100_Fn011C4(Task* arg0)
     }
 }
 
-s32 Actor02100_Fn014E4(Task* arg0)
+static s32 Actor02100_Fn014E4(Task* arg0)
 {
     Actor02100Fn014E4Scratch* scratch;
     Actor02100Work*           work;
@@ -911,8 +911,8 @@ cleanup:
     return result;
 }
 
-void Actor02100_Fn02924(Task* arg0, s32 arg1);
-void Actor02100_Fn034E0(Task* arg0);
+static void Actor02100_Fn02924(Task* arg0, s32 arg1);
+static void Actor02100_Fn034E0(Task* arg0);
 
 /// Aims the actor at its stored target and rebuilds both direction vectors from
 /// the new facing. A fixed forward offset is rotated by the coordinate's matrix,
@@ -1070,7 +1070,7 @@ static __inline__ void Actor02100_BuildVectors(Task* arg0, Actor02100Work* curre
 /// variant index, hides them again after four frames and recovers. State 3 waits
 /// out the per-variant recovery count, restores the actor's stored position and
 /// returns to state 0.
-void Actor02100_Fn016EC(Task* arg0)
+static void Actor02100_Fn016EC(Task* arg0)
 {
     Actor02100Work* work;
     GpCoord*        coord;
@@ -1303,7 +1303,7 @@ static __inline__ void Actor02100_ReleaseScratch28(void)
 /// hits, then hides both objects; state 6 waits out the recovery frame count
 /// and returns to state 0. `Actor02100_Fn014E4` failing at any aim point drops
 /// straight to state 6.
-void Actor02100_Fn01FF0(Task* arg0)
+static void Actor02100_Fn01FF0(Task* arg0)
 {
     Actor02100Fn01FF0Block* root;
     Actor02100Work*         work;
@@ -1444,7 +1444,7 @@ void Actor02100_Fn01FF0(Task* arg0)
 /// selects the style: it picks the edge offsets out of `Actor02100_D03DD8` and
 /// the colour triplet out of `Actor02100_D03D88`, and style 1 draws its centre
 /// line in flat grey instead of the table colour.
-void Actor02100_Fn02924(Task* arg0, s32 arg1)
+static void Actor02100_Fn02924(Task* arg0, s32 arg1)
 {
     Actor02100Fn02924Corners* corners;
     POLY_G4*                  quad;
@@ -1613,7 +1613,7 @@ void Actor02100_Fn02924(Task* arg0, s32 arg1)
     SCRATCH_POP_BYTES(0x3C);
 }
 
-void Actor02100_Fn03168(Task* arg0)
+static void Actor02100_Fn03168(Task* arg0)
 {
     GpEnemyTaskFuncTable3 sp;
 
@@ -1621,8 +1621,8 @@ void Actor02100_Fn03168(Task* arg0)
     sp.funcs[arg0->state]((GpEnemy*)arg0->spawnArg2, arg0);
 }
 
-void Actor02100_Fn004C4(Task* arg0);
-void Actor02100_Fn03488(Task* arg0);
+static void Actor02100_Fn004C4(Task* arg0);
+static void Actor02100_Fn03488(Task* arg0);
 
 /// Per-frame tick, entry 1 of `Actor02100_D00004`. `Gp_StateF0.field_4` is the global
 /// gameplay mode: mode 1 only refreshes the actor colour, mode 2 parks the
@@ -1631,7 +1631,7 @@ void Actor02100_Fn03488(Task* arg0);
 /// drains the pending translation delta at `field_118` into the actor's
 /// coordinate, runs the state machine, and switches to state 4 - handing the
 /// task over to `Actor02100_Fn035D4` - once `Gp_StateF0.field_26` reports the kill.
-void Actor02100_Fn031C4(GpEnemy* arg0, Task* arg1)
+static void Actor02100_Fn031C4(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*      obj;
     Actor02100Work* work;
@@ -1686,11 +1686,11 @@ body:
     }
 }
 
-void Actor02100_Fn00ADC(Task* arg0);
-void Actor02100_Fn016EC(Task* arg0);
-void Actor02100_Fn01FF0(Task* arg0);
+static void Actor02100_Fn00ADC(Task* arg0);
+static void Actor02100_Fn016EC(Task* arg0);
+static void Actor02100_Fn01FF0(Task* arg0);
 
-void Actor02100_Fn032E4(Task* arg0)
+static void Actor02100_Fn032E4(Task* arg0)
 {
     s16 state;
 
@@ -1714,7 +1714,7 @@ void Actor02100_Fn032E4(Task* arg0)
     }
 }
 
-s32 Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1)
+static s32 Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1)
 {
     void**           scratch;
     u8*              head;
@@ -1746,7 +1746,7 @@ s32 Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1)
     return ret;
 }
 
-void Actor02100_Fn03488(Task* arg0)
+static void Actor02100_Fn03488(Task* arg0)
 {
     GpCoord* coord;
     VECTOR   vec;
@@ -1760,7 +1760,7 @@ void Actor02100_Fn03488(Task* arg0)
 
 /// Projects the two `field_128` points through the actor's own coordinate,
 /// storing screen x/y in `field_18C`/`field_190` and depth in `field_194`.
-void Actor02100_Fn034E0(Task* arg0)
+static void Actor02100_Fn034E0(Task* arg0)
 {
     Actor02100Screen* scratch;
     GpCoord*          coord;
@@ -1789,7 +1789,7 @@ void Actor02100_Fn034E0(Task* arg0)
     SCRATCH_POP_BYTES(8);
 }
 
-void Actor02100_Fn035D4(GpEnemy* arg0, Task* arg1)
+static void Actor02100_Fn035D4(GpEnemy* arg0, Task* arg1)
 {
     Actor02100Work* work;
     s16             state;

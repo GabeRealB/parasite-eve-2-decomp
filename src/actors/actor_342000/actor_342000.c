@@ -158,7 +158,7 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// `GpAnimSlot.flags` bit 0x100 set, passes them the
 /// `D_actor_342000_80164810` id and returns 1; otherwise returns 0. The gotos
 /// reproduce retail's block layout.
-s32 func_actor_342000_80161EA4(Task* arg0, u16 arg1)
+static s32 func_actor_342000_80161EA4(Task* arg0, u16 arg1)
 {
     Actor342000Work* work;
     Actor342000Work* ctx;
@@ -237,7 +237,7 @@ void func_actor_342000_8016201C(Task* arg0)
     func_800D7A9C(mdl, &pos, 0, 3);
 }
 
-void              func_actor_342000_80163F88(Task* arg0);
+static void       func_actor_342000_80163F88(Task* arg0);
 extern GpAnimSet* D_actor_342000_801647F8[];
 extern GpAnimSet* D_actor_342000_80164800[];
 extern GpAnimSet* D_actor_342000_80164808[];
@@ -279,7 +279,7 @@ static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w)
 /// The empty loops before `case 1:` / `case 2:` make reorg fill the dispatch
 /// delay slots from those arms; one `ctx` per case keeps each short-lived so
 /// the work pointer outranks it for `$s1`.
-void func_actor_342000_80162158(Task* arg0)
+static void func_actor_342000_80162158(Task* arg0)
 {
     TmdObject*       extra;
     Actor342000Work* work;
@@ -470,7 +470,7 @@ extern GpXformArg D_actor_342000_80164930;
 /// delay, and step 8's sound cue) and clears it. Cases 5 and 7 keep their
 /// weapon id locals block-scoped; sharing one pseudo across both cases moves
 /// the `Player_Status.weapon` load ahead of the flag load.
-void func_actor_342000_80162BBC(Task* arg0)
+static void func_actor_342000_80162BBC(Task* arg0)
 {
     Actor342000EventWork* work;
     Actor342000EventWork* ev;
@@ -640,7 +640,7 @@ static inline void Actor342000_Store(s32* dst, s32 value)
     *dst = value;
 }
 
-void func_actor_342000_80162F28(Task* arg0)
+static void func_actor_342000_80162F28(Task* arg0)
 {
     Actor342000EventWork* work;
     Actor342000Work*      actor;
@@ -1043,7 +1043,7 @@ void func_actor_342000_80163EAC(Task* arg0)
     }
 }
 
-void func_actor_342000_80163F88(Task* task)
+static void func_actor_342000_80163F88(Task* task)
 {
     Actor342000Work* work;
     GpCoord*         coord;

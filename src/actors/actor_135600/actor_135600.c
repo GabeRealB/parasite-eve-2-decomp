@@ -50,29 +50,29 @@ extern TaskDesc D_actor_135600_8013B0C4;
 /// 0x7DD and 0x7DB against the handlers below.
 extern GpMsgEntry D_actor_135600_8013B0F4[];
 
-void func_actor_135600_80132234(Task* task);
-void func_actor_135600_801324D0(Task* task);
-void func_actor_135600_801326E8(Task* task);
-void func_actor_135600_80132A38(Task* task);
-void func_actor_135600_80132AB4(Task* task);
-void func_actor_135600_80132B14(Task* task);
-void func_actor_135600_80132C18(Task* task);
-void func_actor_135600_80132C80(GpCoord* coord, MATRIX* mtx, SVECTOR* vec);
-void func_actor_135600_80132DBC(Task* task);
-void func_actor_135600_80132DDC(Task* task);
-void func_actor_135600_80132DF8(Task* task);
-void func_actor_135600_80132E00(Task* task);
-void func_actor_135600_80132E68(Task* task);
-void func_actor_135600_80132F28(Task* task);
-void func_actor_135600_80132FA8(Task* task);
-s32  func_actor_135600_801330A8(Task* task, s32 msgId, GpAnimArg* preset, s32 arg3);
-s32  func_actor_135600_801331C4(Task* task, s32 msgId, GpXformArg* args, s32 arg3);
-s32  func_actor_135600_80133240(Task* task, s32 msgId, s32 mode, s32 arg3);
+static void func_actor_135600_80132234(Task* task);
+static void func_actor_135600_801324D0(Task* task);
+static void func_actor_135600_801326E8(Task* task);
+static void func_actor_135600_80132A38(Task* task);
+static void func_actor_135600_80132AB4(Task* task);
+static void func_actor_135600_80132B14(Task* task);
+static void func_actor_135600_80132C18(Task* task);
+static void func_actor_135600_80132C80(GpCoord* coord, MATRIX* mtx, SVECTOR* vec);
+static void func_actor_135600_80132DBC(Task* task);
+static void func_actor_135600_80132DDC(Task* task);
+static void func_actor_135600_80132DF8(Task* task);
+static void func_actor_135600_80132E00(Task* task);
+static void func_actor_135600_80132E68(Task* task);
+static void func_actor_135600_80132F28(Task* task);
+static void func_actor_135600_80132FA8(Task* task);
+s32         func_actor_135600_801330A8(Task* task, s32 msgId, GpAnimArg* preset, s32 arg3);
+s32         func_actor_135600_801331C4(Task* task, s32 msgId, GpXformArg* args, s32 arg3);
+s32         func_actor_135600_80133240(Task* task, s32 msgId, s32 mode, s32 arg3);
 
 /// States of the two part tasks (`D_actor_135600_8013B0C4` entries 1 and 2),
 /// dispatched by `func_actor_135600_801329E0`: attach to the parent, idle,
 /// kill.
-const TaskFuncTable3 D_actor_135600_80131E24 = { {
+static const TaskFuncTable3 D_actor_135600_80131E24 = { {
     func_actor_135600_80132A38,
     func_actor_135600_80132AB4,
     taskKill,
@@ -81,7 +81,7 @@ const TaskFuncTable3 D_actor_135600_80131E24 = { {
 /// States of the marker task (entry 3), dispatched by
 /// `func_actor_135600_80132ABC`: attach to the parent with an offset, draw the
 /// marker, kill.
-const TaskFuncTable3 D_actor_135600_80131E30 = { {
+static const TaskFuncTable3 D_actor_135600_80131E30 = { {
     func_actor_135600_80132B14,
     func_actor_135600_80132C18,
     taskKill,
@@ -89,7 +89,7 @@ const TaskFuncTable3 D_actor_135600_80131E30 = { {
 
 /// States of the actor itself (entry 0), dispatched by
 /// `func_actor_135600_80132D64`: setup, per-frame tick, exit.
-const TaskFuncTable3 D_actor_135600_80131E3C = { {
+static const TaskFuncTable3 D_actor_135600_80131E3C = { {
     func_actor_135600_80132234,
     func_actor_135600_801324D0,
     func_actor_135600_80132DBC,
@@ -98,7 +98,7 @@ const TaskFuncTable3 D_actor_135600_80131E3C = { {
 /// Step handlers of the motion sequence, indexed by
 /// `Actor135600Work::walk.motionStep`: turn to face `target`, start walking forward,
 /// walk until arrival, then turn to the placement yaw.
-const TaskFuncTable4 D_actor_135600_80131E48 = { {
+static const TaskFuncTable4 D_actor_135600_80131E48 = { {
     func_actor_135600_80132E68,
     func_actor_135600_80132F28,
     func_actor_135600_801326E8,
@@ -107,7 +107,7 @@ const TaskFuncTable4 D_actor_135600_80131E48 = { {
 
 /// The constant local-space offset `func_actor_135600_80132F28` rotates:
 /// straight ahead along the part's own +Z.
-const VECTOR D_actor_135600_80131E58 = { 0, 0, 0x200000, 0 };
+static const VECTOR D_actor_135600_80131E58 = { 0, 0, 0x200000, 0 };
 
 /// Recomputes `coord`'s world matrix (`Gp_UpdateCoord`), composes its parent
 /// chain, then projects two offsets along the part's local Z - the near one 10 units
@@ -121,7 +121,7 @@ const VECTOR D_actor_135600_80131E58 = { 0, 0, 0x200000, 0 };
 /// the ordering table at the far point's depth. Nothing is drawn when that
 /// depth is behind the camera. The marker's draw state passes the countdown it
 /// runs on as `arg1`.
-s32 func_actor_135600_80131E68(GpCoord* coord, s32 arg1)
+static s32 func_actor_135600_80131E68(GpCoord* coord, s32 arg1)
 {
     SVECTOR    v0;
     SVECTOR    v1;
@@ -229,7 +229,7 @@ s32 func_actor_135600_80131E68(GpCoord* coord, s32 arg1)
 /// 0x400, applies animation 2, shows it (message 0x7D5 mode 1), publishes the
 /// message table `D_actor_135600_8013B0F4`, installs the exit callback and
 /// steps to the tick state.
-void func_actor_135600_80132234(Task* task)
+static void func_actor_135600_80132234(Task* task)
 {
     Actor135600Work* work;
     Task*            spawned;
@@ -354,7 +354,7 @@ void func_actor_135600_80132234(Task* task)
 /// 19 while `model.ticking` is set, rebuilds the second part's coordinate and the
 /// actor colour while `gGameSession->viewReady` is set, and counts `freeCountdown`
 /// down while non-negative, freeing the model's buffers when it reaches zero.
-void func_actor_135600_801324D0(Task* arg0)
+static void func_actor_135600_801324D0(Task* arg0)
 {
     TmdObject*       ext      = arg0->extra.tmd;
     Actor135600Work* work     = (Actor135600Work*)arg0->work;
@@ -404,7 +404,7 @@ void func_actor_135600_801324D0(Task* arg0)
 /// from the root coordinate to `target` stop shrinking below `limit`, plays the
 /// animation with a preset carrying the `model.nextAnimId` byte, clears `step` and
 /// advances `walk.motionStep`; otherwise records the distances as the new `limit`.
-void func_actor_135600_801326E8(Task* arg0)
+static void func_actor_135600_801326E8(Task* arg0)
 {
     Actor135600Work* work;
     GpCoord*         coord;
@@ -517,7 +517,7 @@ void func_actor_135600_801329E0(Task* task)
 /// the task's root coordinate under the parent's part coordinate the spawn
 /// arguments name, inherits the parent's light and colour matrices, reparents the task so it
 /// is updated with the parent, and advances to the next state.
-void func_actor_135600_80132A38(Task* task)
+static void func_actor_135600_80132A38(Task* task)
 {
     Task*      parent;
     s32        part;
@@ -541,7 +541,7 @@ void func_actor_135600_80132A38(Task* task)
 }
 
 /// Tick state of a part task: nothing to do, the parent drives it.
-void func_actor_135600_80132AB4(Task* task)
+static void func_actor_135600_80132AB4(Task* task)
 {
 }
 
@@ -561,7 +561,7 @@ void func_actor_135600_80132ABC(Task* task)
 /// degrees about Y, inherits the parent's light and colour matrices, and
 /// reparents the task so it is updated with the parent. The kill countdown is
 /// set to 0x1000, the value the marker's draw state runs on.
-void func_actor_135600_80132B14(Task* task)
+static void func_actor_135600_80132B14(Task* task)
 {
     OverlayMat m;
     MATRIX*    mtx;
@@ -607,7 +607,7 @@ void func_actor_135600_80132B14(Task* task)
 /// the kill countdown is still running, draws the marker at the countdown's
 /// length, cutting the countdown to 0x800 once the marker's angle reaches
 /// 0x1F5.
-void func_actor_135600_80132C18(Task* task)
+static void func_actor_135600_80132C18(Task* task)
 {
     s16 countdown;
 
@@ -624,7 +624,7 @@ void func_actor_135600_80132C18(Task* task)
 /// `vec`. The world parent initializes `mtx` to identity and `vec` to zero.
 /// The same algorithm as gameplay's `Gp_ComposeParentWorld`, but through the
 /// library `ApplyMatrixSV` / `MulMatrix0` rather than the GTE macros.
-void func_actor_135600_80132C80(GpCoord* coord, MATRIX* mtx, SVECTOR* vec)
+static void func_actor_135600_80132C80(GpCoord* coord, MATRIX* mtx, SVECTOR* vec)
 {
     SVECTOR tmp;
     MATRIX* m;
@@ -664,13 +664,13 @@ void func_actor_135600_80132D64(Task* task)
 }
 
 /// Exit state and exit callback of the actor: the `Gp_EnemyTaskExit` teardown.
-void func_actor_135600_80132DBC(Task* task)
+static void func_actor_135600_80132DBC(Task* task)
 {
     Gp_EnemyTaskExit(task);
 }
 
 /// Points the model's light and colour matrices at the work block's own pair.
-void func_actor_135600_80132DDC(Task* task)
+static void func_actor_135600_80132DDC(Task* task)
 {
     TmdObject*       ext;
     Actor135600Work* work;
@@ -683,13 +683,13 @@ void func_actor_135600_80132DDC(Task* task)
 
 /// Entry 0 of the tick's handler pair, selected by `walk.motion` while no motion
 /// sequence runs: does nothing.
-void func_actor_135600_80132DF8(Task* arg0)
+static void func_actor_135600_80132DF8(Task* arg0)
 {
 }
 
 /// Entry 1 of the tick's handler pair: runs the step of
 /// `D_actor_135600_80131E48` that `walk.motionStep` selects.
-void func_actor_135600_80132E00(Task* task)
+static void func_actor_135600_80132E00(Task* task)
 {
     Actor135600Work* work;
     TaskFuncTable4   fns;
@@ -702,7 +702,7 @@ void func_actor_135600_80132E00(Task* task)
 /// Step 0: turns the root part to face `work->walk.target`, taking the yaw of the
 /// normalised offset from the part's own translation with `ratan2` and
 /// rebuilding the local matrix from that yaw alone, then advances the step.
-void func_actor_135600_80132E68(Task* task)
+static void func_actor_135600_80132E68(Task* task)
 {
     Actor135600Work* work;
     GpCoord*         coord;
@@ -733,7 +733,7 @@ void func_actor_135600_80132E68(Task* task)
 /// Step 1: rotates the forward offset `D_actor_135600_80131E58` through the
 /// root part's matrix into `work->walk.step`, opens the per-axis stop threshold to
 /// 0x7FFF, which disables it, and advances the step.
-void func_actor_135600_80132F28(Task* task)
+static void func_actor_135600_80132F28(Task* task)
 {
     Actor135600Work* work;
     GpCoord*         coord;
@@ -757,7 +757,7 @@ void func_actor_135600_80132F28(Task* task)
 /// to the target, plays the animation with a preset carrying the `model.nextAnimId`
 /// byte and clears `walk.motion` / `walk.motionStep`, ending the sequence. Either way
 /// the root coordinate is rebuilt as the identity matrix rotated by `vec`.
-void func_actor_135600_80132FA8(Task* arg0)
+static void func_actor_135600_80132FA8(Task* arg0)
 {
     Actor135600Work* work;
     GpMtxWords*      words;

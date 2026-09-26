@@ -181,7 +181,7 @@ void func_actor_450200_8013219C(void)
         ratan2(target->coord.t[0] - looker->coord.t[0], target->coord.t[2] - looker->coord.t[2]) & 0xFFF;
 }
 
-void func_actor_450200_80132220(void)
+static void func_actor_450200_80132220(void)
 {
     switch (GameFlag_GetNibble(0x101)) {
         case 0:
@@ -202,7 +202,7 @@ void func_actor_450200_80132220(void)
     }
 }
 
-void func_actor_450200_801322F8(void)
+static void func_actor_450200_801322F8(void)
 {
     if (GameFlag_GetNibble(0xD7) != 0) {
         func_800E8614((s32)&D_actor_450200_80139098, 1);
@@ -214,7 +214,7 @@ void func_actor_450200_801322F8(void)
     }
 }
 
-void func_actor_450200_80132368(s32 x, s32 tpageX, s32 clutY, s32 semiTrans, s32 rgb, s32 shadeTex)
+static void func_actor_450200_80132368(s32 x, s32 tpageX, s32 clutY, s32 semiTrans, s32 rgb, s32 shadeTex)
 {
     SPRT*    p;
     DR_MODE* dr;

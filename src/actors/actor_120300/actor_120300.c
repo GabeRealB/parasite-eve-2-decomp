@@ -122,7 +122,7 @@ static inline void func_actor_120300_FillLight(Task* arg0, TmdObject* tmd, VECTO
 /// restarts all twenty slots on the id `D_actor_120300_80140980` selects for
 /// `field_4D4`, returning 1; a negative entry or an unset slot returns 0. The
 /// gotos reproduce retail's block layout.
-s32 func_actor_120300_80131EE0(Task* arg0)
+static s32 func_actor_120300_80131EE0(Task* arg0)
 {
     Actor120300Work* work;
     Actor120300Work* animWork;
@@ -362,7 +362,7 @@ static inline void _actor120300SetAnim(Task* task, u16 anim)
 /// `field_4C4` first; requests 20 and 21 step the facing in `field_4DC` by
 /// 0x30 towards the player's bearing or towards zero, copying it onto the
 /// player's aim yaw each tick.
-void func_actor_120300_80132338(Task* arg0)
+static void func_actor_120300_80132338(Task* arg0)
 {
     Actor120300Work* work;
     GameActor*       player;
@@ -563,7 +563,7 @@ static inline void _actor120300ResetAll(Task* task, u16 anim)
 /// change `field_4E0`. Code 1 is two-phase, stepped by `field_4CA`: phase 1
 /// slides the model on X until `coord.t[0] < 0xF3D`. Every other code, and
 /// code 1 once the slide ends, clears `field_4C8`.
-void func_actor_120300_80132C60(Task* arg0)
+static void func_actor_120300_80132C60(Task* arg0)
 {
     TmdObject*       tmd;
     GpCoord*         coord;
@@ -723,7 +723,7 @@ void func_actor_120300_80133330(s32 arg0)
 /// record 0x41A34 once and then only counts 0x4D8.  Each of the two phases
 /// returns 1 while the session at `gGameSession->eventState` is still 0, so the
 /// task that calls this keeps the actor alive until play starts.
-s32 func_actor_120300_801334A4(Task* arg0)
+static s32 func_actor_120300_801334A4(Task* arg0)
 {
     Actor120300Work* work;
 
@@ -781,7 +781,7 @@ s32 func_actor_120300_801334A4(Task* arg0)
 /// (the skip marker).  Animation slots 1..19 are then re-armed with slot count
 /// 0xE, and the two helper tasks the shared table's entries 2 and 3 spawn are
 /// reparented under this one, which also lifts `field_4E0` to 0x1000.
-void func_actor_120300_801335D8(Task* arg0)
+static void func_actor_120300_801335D8(Task* arg0)
 {
     Actor120300Work* work;
     TaskIdMap*       map;

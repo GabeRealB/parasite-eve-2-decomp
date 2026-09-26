@@ -42,17 +42,17 @@ STATIC_ASSERT_SIZEOF(Actor110600TsvScratch, 0x2C);
 /// Returns the patrol node nearest the walker: the squared XZ distance between
 /// each node and the low halfwords of the walker coordinate's translation,
 /// with the running best and the cursor staged in an `OverlayWalkerNearScratch`.
-u8 func_actor_110600_80132958(OverlayWalker* work);
+static u8 func_actor_110600_80132958(OverlayWalker* work);
 
 /// Returns the node the walker's route cursor steps onto, reseeding the scan's
 /// stored node byte for the `actor` variant of the walker. Same body as the
 /// acropolis bridge room's `func_acropolis_bridge_801843A0`.
-u8 func_actor_110600_801327EC(OverlayWalker* work, s32 actor);
+static u8 func_actor_110600_801327EC(OverlayWalker* work, s32 actor);
 
 /// Re-resolves the walker's patrol node against the route's byte table once
 /// the state or the node bytes have moved. Same body as the acropolis bridge
 /// room's `func_acropolis_bridge_80184638`.
-void func_actor_110600_80132A84(OverlayWalker* work, s16 actor);
+static void func_actor_110600_80132A84(OverlayWalker* work, s16 actor);
 
 /// One per-frame behaviour step the walker runs while its `field_6C` gate is
 /// clear: steps it toward its current patrol node. `func_800E0C10` produces the
@@ -63,16 +63,16 @@ void func_actor_110600_80132A84(OverlayWalker* work, s16 actor);
 /// below -0x20, and the plain step in between. `moving` records whether the
 /// frame produced any XZ motion at all. Same body as the acropolis bridge
 /// room's `func_acropolis_bridge_80184908`.
-void func_actor_110600_80132D54(OverlayWalker* work);
+static void func_actor_110600_80132D54(OverlayWalker* work);
 
 /// The second per-frame behaviour step, gated on `field_6D`. Same body as the
 /// acropolis bridge room's `func_acropolis_bridge_80184B94`.
-void func_actor_110600_80132FE0(OverlayWalker* work);
+static void func_actor_110600_80132FE0(OverlayWalker* work);
 
 /// Turns the walker towards `pos` by at most `field_5A` angle units a frame.
 /// The wrapped relative bearing drives the consecutive-turn counter, then
 /// becomes the absolute yaw the model's saved scale matrix is rebuilt around.
-void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos);
+static void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos);
 
 /// Event record `func_actor_110600_80134040` dispatches on: `w[0]` is the event
 /// kind (0x301, 0x401) and `w[1]` its sub-code, and the first three bytes are
@@ -274,7 +274,7 @@ typedef struct Actor110600StateTable {
 } Actor110600StateTable;
 STATIC_ASSERT_SIZEOF(Actor110600StateTable, 0x64);
 
-extern const Actor110600StateTable D_actor_110600_80131F3C;
+static const Actor110600StateTable D_actor_110600_80131F3C;
 
 /// One of the model objects `func_actor_110600_80134040` parks in the four
 /// display slots below. They live in main's data; this overlay only ever takes
@@ -314,54 +314,54 @@ s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, GpAnimArg* arg2);
 /// Rebuilds `coord`'s Y rotation from its current yaw (`ratan2` of
 /// `-m[2][0], m[2][2]`), scaled independently on each axis through a
 /// 0x34-byte block borrowed from the scratchpad. Marks the coordinate dirty.
-void func_actor_110600_80138680(GpCoord* coord, s16 sx, s16 sy, s16 sz);
+static void func_actor_110600_80138680(GpCoord* coord, s16 sx, s16 sy, s16 sz);
 
-s32  func_actor_110600_801387C0(Task* arg0);
-void func_actor_110600_801388A4(Task* arg0);
+s32         func_actor_110600_801387C0(Task* arg0);
+static void func_actor_110600_801388A4(Task* arg0);
 
 /// The remaining entries of `D_actor_110600_80131F3C` that are still only
 /// present as assembly, so that the table can name them. `func_actor_110600_80135A18`
 /// (state 4) and the ones above carry their own documentation.
-void func_actor_110600_80135454(Task* arg0);
-void func_actor_110600_80136B20(Task* arg0);
-void func_actor_110600_801372CC(Task* arg0);
-void func_actor_110600_801377FC(Task* arg0);
-void func_actor_110600_80138980(Task* arg0);
-void func_actor_110600_80138A70(Task* arg0);
-void func_actor_110600_80138AFC(Task* arg0);
-void func_actor_110600_80138BD0(Task* arg0);
+static void func_actor_110600_80135454(Task* arg0);
+static void func_actor_110600_80136B20(Task* arg0);
+static void func_actor_110600_801372CC(Task* arg0);
+static void func_actor_110600_801377FC(Task* arg0);
+static void func_actor_110600_80138980(Task* arg0);
+static void func_actor_110600_80138A70(Task* arg0);
+static void func_actor_110600_80138AFC(Task* arg0);
+static void func_actor_110600_80138BD0(Task* arg0);
 
 /// The actor's per-tick model update, driven from `Task::work` /
 /// `Task::spawnArg2` off the pointer it is handed.
-void func_actor_110600_80134728(Task* arg0);
+static void func_actor_110600_80134728(Task* arg0);
 
 /// Reports the sound cue the model is currently owed — 0 while there is none —
 /// which `func_actor_110600_80134728` queues as the id's low byte. Watches the
 /// pose of the animation slot the `field_892` state selects, reporting the cue
 /// once per pose and remembering it in `field_8AC`.
-s32 func_actor_110600_80134564(Actor110600AnimWork* anim);
+static s32 func_actor_110600_80134564(Actor110600AnimWork* anim);
 
 /// Aiming stage: wraps the yaw from the model's root coordinate to the camera
 /// target `Player_Status.coordMtx` against the coordinate's own yaw into `field_8A2`, ticks
 /// the model, and moves the actor to state 3 once the walker's `field_5C` bit 0
 /// arrives.
-void func_actor_110600_80135A18(Task* arg0);
+static void func_actor_110600_80135A18(Task* arg0);
 
 /// Picks one of twelve hit positions out of `D_actor_110600_801485C4` by damage
 /// magnitude `arg1`, then spawns effect `Gp_GetIdParam1(arg2)` on the model
 /// part that entry names.
-void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2);
+static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2);
 
 /// Per-tick walker step: advances the animation the `field_68` byte selects,
 /// resolves the patrol node the `field_6E` byte names against `D_80073B08`,
 /// and ramp-scales the model matrix between `field_5E` and `field_5C`.
-void func_actor_110600_80133A94(OverlayWalker* walker);
+static void func_actor_110600_80133A94(OverlayWalker* walker);
 
 /// Measures the walker's node against the coordinate it is moving towards,
 /// leaving the three per-axis deltas in the scratchpad, and reports whether it
 /// has arrived: 1 while the delta is inside either of two radii -- the walker's
 /// own `field_5C * 4`, or a flat 300 -- and 0 once it is outside both.
-s16 func_actor_110600_80132470(OverlayWalker* walker);
+static s16 func_actor_110600_80132470(OverlayWalker* walker);
 
 /// Steers the walker along its patrol route: resolves the node the route
 /// cursor names, and on the frame `func_actor_110600_80132470` reports arrival
@@ -369,13 +369,13 @@ s16 func_actor_110600_80132470(OverlayWalker* walker);
 /// the cursor onto the next node — wrapping back to the first at the 0xFF
 /// terminator. `pos` receives the position of the node it is heading for, so
 /// on the arrival frame it already describes the new node.
-void func_actor_110600_80132654(OverlayWalker* work, SVECTOR3* pos);
+static void func_actor_110600_80132654(OverlayWalker* work, SVECTOR3* pos);
 
 /// Enters work state 2 (`field_88C`) on a live actor: clear the model object,
 /// clear bit 0x8000 of `field_A90.flags` and set 0x4000 of `field_950.flags`,
 /// tag the enemy's link node, arm the `field_892` / `field_896` timers, then run
 /// 20 update ticks before parking `field_896` at -8 and ticking once more.
-void func_actor_110600_80138CA4(Task* arg0);
+static void func_actor_110600_80138CA4(Task* arg0);
 
 /// Re-enters work state 2 on a live actor: clear the model root coordinate,
 /// re-allocate its TMD buffers, tag the enemy's link node, arm `field_88C` /
@@ -384,7 +384,7 @@ void func_actor_110600_80138CA4(Task* arg0);
 /// halves `field_896` each tick — parking at -0x10 when the halving lands on 1
 /// and bouncing -1 back to 0x10 — and once `Gp_TickObjFlag2` reports 1, drops
 /// bit 1 of the enemy node's flags and moves the actor to state 3.
-void func_actor_110600_80138D7C(Task* arg0);
+static void func_actor_110600_80138D7C(Task* arg0);
 
 /// Placement opcode: seeds the model's root coordinate from `placement`, then
 /// rebuilds and rescales it from the actor's own heading.
@@ -393,7 +393,7 @@ s32 func_actor_110600_80133E48(Task* task, s32 arg1, GpXformArg* placement);
 /// Five-frame shake counter. Incremented each call, wraps at 5, and drives
 /// `Display_ClampField126` with the low bit (0 or 1). Returns 1 on wrap.
 extern s16 D_actor_110600_8014865C;
-s32        func_actor_110600_80138900(void);
+static s32 func_actor_110600_80138900(void);
 
 /// Recoil push stage `func_actor_110600_80137AF4` indexes for the speed it
 /// moves the actor by, and bumps once that push has landed. Reset to 0 first,
@@ -407,7 +407,7 @@ extern GpEffArg D_actor_110600_80148698;
 /// `Task::exitCallback` installed by the spawn handler: bump the two helper
 /// tasks' `state` if present, unlink the three display nodes, drop the enemy's
 /// `recs` slot, clear the screen shake, then `Gp_DestroyEnemy`.
-void func_actor_110600_801387F4(Task* task);
+static void func_actor_110600_801387F4(Task* task);
 
 /// Table of 0x80-byte actor config blocks the walker's `field_6E` byte indexes
 /// for the position state 1 steers towards.
@@ -420,14 +420,14 @@ void func_8004BFF8(s16 angle, MATRIX* matrix);
 /// The complaint the route re-plan prints when the two node lists share no
 /// slot at all. The string is spelled out rather than left a literal so the
 /// re-plan reaches it by name, the way the original object does.
-const char D_actor_110600_80131E24[] = "s->root_cnt == 0xff about \n";
+static const char D_actor_110600_80131E24[] = "s->root_cnt == 0xff about \n";
 
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it. The actor's body update turns two joints of its
 /// model with it, the second by a quarter of the angle.
-void func_actor_110600_80131FC0(GpCoord* coord, s16 yaw)
+static void func_actor_110600_80131FC0(GpCoord* coord, s16 yaw)
 {
     MATRIX*  rotation;
     GpCoord* out;
@@ -450,7 +450,7 @@ extern SVECTOR D_actor_110600_80148690;
 /// resolve to through `func_800E0C10`, rounding a fractional part away from
 /// zero, and stores the whole-unit step taken in `D_actor_110600_80148690`.
 /// Returns 1 when the X or Z delta is nonzero. Nothing in the actor calls it.
-s32 func_actor_110600_801322CC(GpCoord* coord, GpRec18* movement, s16 count)
+static s32 func_actor_110600_801322CC(GpCoord* coord, GpRec18* movement, s16 count)
 {
     void**            scratch;
     u8*               head;
@@ -498,7 +498,7 @@ s32 func_actor_110600_801322CC(GpCoord* coord, GpRec18* movement, s16 count)
     return s->moved;
 }
 
-s16 func_actor_110600_80132470(OverlayWalker* walker)
+static s16 func_actor_110600_80132470(OverlayWalker* walker)
 {
     OverlayWalkerArrivalDelta* d;
     u8*                        head;
@@ -523,7 +523,7 @@ s16 func_actor_110600_80132470(OverlayWalker* walker)
     return 0;
 }
 
-void func_actor_110600_80132654(OverlayWalker* work, SVECTOR3* pos)
+static void func_actor_110600_80132654(OverlayWalker* work, SVECTOR3* pos)
 {
     OverlayWalkerRoute* route;
     OverlayWalkerRoute* step;
@@ -565,7 +565,7 @@ void func_actor_110600_80132654(OverlayWalker* work, SVECTOR3* pos)
 /// from the translation of the actor config's matrix rather than from the
 /// walker's own coordinate; the walker uses it with the player (entry 1) to
 /// pick the node it retreats to.
-u8 func_actor_110600_801327EC(OverlayWalker* work, s32 actor)
+static u8 func_actor_110600_801327EC(OverlayWalker* work, s32 actor)
 {
     OverlayWalkerNearCfgScratch* block;
     u8*                          head;
@@ -596,7 +596,7 @@ u8 func_actor_110600_801327EC(OverlayWalker* work, s32 actor)
 /// each node and the low halfwords of the walker coordinate's translation,
 /// with the running best and the cursor staged in a scratch block. Same body
 /// as the acropolis bridge room's `func_acropolis_bridge_8018450C`.
-u8 func_actor_110600_80132958(OverlayWalker* work)
+static u8 func_actor_110600_80132958(OverlayWalker* work)
 {
     OverlayWalkerNearScratch* block;
     u8*                       head;
@@ -632,7 +632,7 @@ u8 func_actor_110600_80132958(OverlayWalker* work)
 /// slots, so a table with more matches than that is silently truncated; if no
 /// pair was found at all the routine only complains and leaves the cursor
 /// where it was.
-void func_actor_110600_80132A84(OverlayWalker* work, s16 actor)
+static void func_actor_110600_80132A84(OverlayWalker* work, s16 actor)
 {
     OverlayWalkerRouteScratch* s;
     u8*                        head;
@@ -693,7 +693,7 @@ void func_actor_110600_80132A84(OverlayWalker* work, s16 actor)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_actor_110600_80132D54(OverlayWalker* work)
+static void func_actor_110600_80132D54(OverlayWalker* work)
 {
     u8*                       head;
     OverlayWalkerMoveScratch* s;
@@ -778,7 +778,7 @@ void func_actor_110600_80132D54(OverlayWalker* work)
     SCRATCH_POP_BYTES(0x18);
 }
 
-void func_actor_110600_80132FE0(OverlayWalker* work)
+static void func_actor_110600_80132FE0(OverlayWalker* work)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -893,7 +893,7 @@ void func_actor_110600_80132FE0(OverlayWalker* work)
 /// Turns the walker towards `pos` by at most `field_5A` angle units a frame.
 /// The wrapped relative bearing drives the consecutive-turn counter, then
 /// becomes the absolute yaw the model's saved scale matrix is rebuilt around.
-void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos)
+static void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos)
 {
     OverlayWalkerTurnScratch* s;
     GpCoord*                  coord;
@@ -956,7 +956,7 @@ void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos)
 /// re-seeded from the node count -- one node index per step with the 0xFF
 /// terminator after the last -- with `field_4` and the cursor cleared, and the
 /// scratch frame released.
-void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle)
+static void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle)
 {
     Actor110600TsvScratch* blk;
     u8*                    head;
@@ -1113,7 +1113,7 @@ static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
 /// working frame is carved off `G_SCRATCH_HEAD` and handed back once the
 /// coordinate has been rebuilt. Same body as the acropolis bridge room's
 /// `func_acropolis_bridge_8018532C`.
-void func_actor_110600_80133A94(OverlayWalker* walker)
+static void func_actor_110600_80133A94(OverlayWalker* walker)
 {
     u8*                       head;
     OverlayWalkerTickScratch* block;
@@ -1264,7 +1264,7 @@ s32 func_actor_110600_80134040(Task* arg0, s32 arg1, Actor110600Event* arg2)
 /// `offset`, or inside it for a negative one, returns 1 outright. Otherwise
 /// returns whether the player stands at least `range + 0x96` from the point
 /// `offset` units ahead of `coord` along its facing.
-s32 func_actor_110600_801341A4(GpCoord* coord, s16 range, s16 offset)
+static s32 func_actor_110600_801341A4(GpCoord* coord, s16 range, s16 offset)
 {
     SVECTOR  v;
     SVECTOR  d;
@@ -1324,7 +1324,7 @@ s32 func_actor_110600_801341A4(GpCoord* coord, s16 range, s16 offset)
 /// `Gp_AnimWritePoseCopy` with `weight` at 0x8A0 and its complement; the rest
 /// only rewrite the primary slot and `Gp_AnimTickIndex` it. Same body as
 /// `func_actor_403000_801336B4`, which walks 24 slots instead of 19.
-void func_actor_110600_80134438(Task* arg0)
+static void func_actor_110600_80134438(Task* arg0)
 {
     GpAnimPose           pose;
     GpAnimPose           blendPose;
@@ -1358,7 +1358,7 @@ void func_actor_110600_80134438(Task* arg0)
 /// states 2, 21, 4 and 5 read slot 1, with state 2 the only one watching two
 /// ids (cues 2 and 1) and clearing the memory when neither is held. Every other
 /// way out re-reads the slot-1 pose into `field_8AC`.
-s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
+static s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
 {
     s32 id14;
     s32 id18;
@@ -1467,7 +1467,7 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// Finally the id `func_actor_110600_80134564` reports is queued through
 /// `SndEvt_EnqueueType6` with the model root's pan and depth; the bits 12..15
 /// of the enemy's `field_8` are appended to it.
-void func_actor_110600_80134728(Task* arg0)
+static void func_actor_110600_80134728(Task* arg0)
 {
     Actor110600AnimWork* work;
     Actor110600AnimWork* seekWork;
@@ -1646,7 +1646,7 @@ static __inline__ void Actor110600_InitScale(OverlayWalker* walker)
     SCRATCH_POP(VECTOR);
 }
 
-void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
+static void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
 {
     SVECTOR          pos;
     VECTOR           world;
@@ -1880,7 +1880,7 @@ void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
 /// delta is measured against the `field_C` / `field_E` hit spheres, and falling
 /// inside either moves the actor to state 4. Every tick the walker is stepped
 /// first and the model ticked last.
-void func_actor_110600_80135194(Task* arg0)
+static void func_actor_110600_80135194(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
@@ -1970,7 +1970,7 @@ static __inline__ s32 Actor110600_TickShake(void)
     return 0;
 }
 
-void func_actor_110600_80135454(Task* arg0)
+static void func_actor_110600_80135454(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
@@ -2071,7 +2071,7 @@ void func_actor_110600_80135454(Task* arg0)
 /// actor moves on (state 3) once the `field_5C` bit the walker sets arrives.
 /// Both translations are measured in their low 16 bits, so all three delta
 /// reads are `u16`.
-void func_actor_110600_80135A18(Task* arg0)
+static void func_actor_110600_80135A18(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
@@ -2154,7 +2154,7 @@ static __inline__ s32 Actor110600_HasRec10000(GpRec18* recs)
 /// (state 3). Finally, while the first `GpRec18` record still carries the
 /// 0x10000 kind tag, the model root's pan and depth are played as sound
 /// 0x401D000D and 0x8000 comes off `field_A90.flags`.
-void func_actor_110600_80135B84(Task* arg0)
+static void func_actor_110600_80135B84(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
@@ -2226,7 +2226,7 @@ void func_actor_110600_80135B84(Task* arg0)
     }
 }
 
-void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2)
+static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2)
 {
     SVECTOR* sc;
     s32      mag;
@@ -2303,7 +2303,7 @@ static __inline__ s32 Actor110600_FindHit(SVECTOR* point, GpRec18* recs, s16 cou
     return 0;
 }
 
-void func_actor_110600_80136210(Task* arg0)
+static void func_actor_110600_80136210(Task* arg0)
 {
     Actor110600Work*       work;
     GpEnemy*               enemy;
@@ -2452,7 +2452,7 @@ void func_actor_110600_80136210(Task* arg0)
 /// whose seventh bit is clear drops it to 0xE, and at 0xE the `field_5C` bit 0
 /// the walker sets on arrival — or on hitting something — puts it back to 0x18.
 /// Both retimes re-enter state 1 (`field_88C`) and tick once more.
-void func_actor_110600_80136888(Task* arg0)
+static void func_actor_110600_80136888(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
@@ -2513,7 +2513,7 @@ void func_actor_110600_80136888(Task* arg0)
 /// re-seeds the walker block, and at 0x1E that same bit picks what the actor
 /// does next: 0xB while the enemy's `field_40` is still positive, 0xC once it
 /// has run out.
-void func_actor_110600_801369D8(Task* arg0)
+static void func_actor_110600_801369D8(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
@@ -2605,7 +2605,7 @@ static __inline__ void Actor110600_ApplyShrink(Task* arg0, Actor110600Work* work
     coord->coord.m[2][2]               = m22;
 }
 
-void func_actor_110600_80136B20(Task* arg0)
+static void func_actor_110600_80136B20(Task* arg0)
 {
     Actor110600Work* work;
     GpEnemy*         enemy;
@@ -2679,7 +2679,7 @@ void func_actor_110600_80136B20(Task* arg0)
 /// 0x200 / 0x200 / 0x200 / 0x300 / 0x300). Each spawned model object takes its
 /// texture page and CLUT from the nested area record the actor's own area key
 /// resolves to, and is streamed twice once its aux buffer exists.
-void func_actor_110600_80136ECC(Task* arg0)
+static void func_actor_110600_80136ECC(Task* arg0)
 {
     Actor110600Work* work;
     GpEnemy*         enemy;
@@ -2835,7 +2835,7 @@ void func_actor_110600_80136ECC(Task* arg0)
 /// Offset, 100 units along Z, that `func_actor_110600_801372CC` hands
 /// `func_800FDB18` with the model's seventh coordinate when it spawns its
 /// three effects.
-const SVECTOR D_actor_110600_80131F1C = { 0, 0, 100, 0 };
+static const SVECTOR D_actor_110600_80131F1C = { 0, 0, 100, 0 };
 
 static __inline__ void Actor110600_RescaleRoot(Task* arg0, s16 scale)
 {
@@ -2870,7 +2870,7 @@ static __inline__ void Actor110600_RescaleRoot(Task* arg0, s16 scale)
     SCRATCH_POP_BYTES(0x34);
 }
 
-void func_actor_110600_801372CC(Task* arg0)
+static void func_actor_110600_801372CC(Task* arg0)
 {
     Actor110600Work* work;
     GpEnemy*         enemy;
@@ -2954,7 +2954,7 @@ void func_actor_110600_801372CC(Task* arg0)
 /// clearing the coordinate's `flg`. Once `field_894` has run up to 0x1F the
 /// stage drops the timer to 0x10, re-arms `field_88C` and steps to 0x21, where
 /// the `field_5C` bit 0 the actor sets walks it on to state 0xC.
-void func_actor_110600_80137684(Task* arg0)
+static void func_actor_110600_80137684(Task* arg0)
 {
     Actor110600Work* work;
     GpEnemy*         enemy;
@@ -3018,7 +3018,7 @@ static __inline__ s32 Actor110600_OutOfRange(SVECTOR* d)
     return (blk->dx + dz2) >= blk->r;
 }
 
-void func_actor_110600_801377FC(Task* arg0)
+static void func_actor_110600_801377FC(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
@@ -3063,7 +3063,7 @@ void func_actor_110600_801377FC(Task* arg0)
 /// `m[2][2]`) into `field_8A2`. Ticks the model and moves the actor to state 3
 /// once the `field_5C` bit the walker sets arrives. Same wrap as
 /// `func_actor_110600_80135A18`.
-void func_actor_110600_80137980(Task* arg0)
+static void func_actor_110600_80137980(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
@@ -3124,7 +3124,7 @@ void func_actor_110600_80137980(Task* arg0)
 /// added to the coordinate's translation, and the coordinate is marked dirty so
 /// the tree is recomputed. Stage 5 pushes nothing: it moves the actor to state
 /// 3 and leaves the counter parked.
-void func_actor_110600_80137AF4(Task* arg0)
+static void func_actor_110600_80137AF4(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
@@ -3194,7 +3194,7 @@ void func_actor_110600_80137AF4(Task* arg0)
 /// stage value and bouncing -1 back to 8, and after 0x35 ticks parks
 /// `field_896` / `field_898` at 0x38 and moves the actor to state 3. Every
 /// stage-1 tick also adds 0x27 to `field_BE4`.
-void func_actor_110600_80137DB0(Task* arg0)
+static void func_actor_110600_80137DB0(Task* arg0)
 {
     Actor110600Work* work;
     GpEnemy*         enemy;
@@ -3253,13 +3253,13 @@ void func_actor_110600_80137DB0(Task* arg0)
 
 /// Per-frame step the tick hands off to once the `field_8AA` countdown reaches
 /// zero.
-void func_actor_110600_80136210(Task* arg0);
+static void func_actor_110600_80136210(Task* arg0);
 
 /// The actor's state handlers, indexed by `Actor110600Work::field_0`. splat
 /// migrates the table into the `.s` of the function that reads it, so it is
 /// written out here to keep the block in the unit's `.rodata` now that
 /// `func_actor_110600_80137F2C` is decompiled.
-const Actor110600StateTable D_actor_110600_80131F3C = {
+static const Actor110600StateTable D_actor_110600_80131F3C = {
     func_actor_110600_801388A4,
     NULL,
     func_actor_110600_80135194,
@@ -3308,7 +3308,7 @@ const Actor110600StateTable D_actor_110600_80131F3C = {
 /// — the matrix state 12 scales — and keeps `field_8B8` out of the ground
 /// effect's way by clearing bit 0x8000 while the actor is in a death or hit
 /// pose.
-void func_actor_110600_80137F2C(GpEnemy* arg0, Task* arg1)
+static void func_actor_110600_80137F2C(GpEnemy* arg0, Task* arg1)
 {
     VECTOR                pos;
     Actor110600StateTable states;
@@ -3405,7 +3405,7 @@ void func_actor_110600_80138394(void)
 
 /// The enemy task's three state handlers - spawn, per-frame tick and teardown -
 /// that `func_actor_110600_80138EA8` dispatches through by `Task::state`.
-const GpEnemyTaskFuncTable3 D_actor_110600_80131FA0 = {
+static const GpEnemyTaskFuncTable3 D_actor_110600_80131FA0 = {
     func_actor_110600_80134AB4,
     func_actor_110600_80137F2C,
     Gp_DestroyEnemy,
@@ -3528,7 +3528,7 @@ s32 func_actor_110600_80138538(Task* arg0)
 /// matrix with `ratan2(-m[2][0], m[2][2])`) uniformly scaled by `scale`, using
 /// a 0x34-byte block taken from the scratchpad head, and marks the coordinate
 /// for refresh.
-void func_actor_110600_80138568(GpCoord* coord, s16 scale)
+static void func_actor_110600_80138568(GpCoord* coord, s16 scale)
 {
     void**                scratch;
     ActorScaleRotScratch* head;
@@ -3563,7 +3563,7 @@ void func_actor_110600_80138568(GpCoord* coord, s16 scale)
     coord->coord.m[2][2] = m22;
 }
 
-void func_actor_110600_80138680(GpCoord* coord, s16 sx, s16 sy, s16 sz)
+static void func_actor_110600_80138680(GpCoord* coord, s16 sx, s16 sy, s16 sz)
 {
     void**                scratch;
     ActorScaleRotScratch* head;
@@ -3608,7 +3608,7 @@ s32 func_actor_110600_801387C0(Task* arg0)
     return 1;
 }
 
-void func_actor_110600_801387F4(Task* task)
+static void func_actor_110600_801387F4(Task* task)
 {
     Actor110600Work* work;
     GpEnemy*         enemy;
@@ -3635,7 +3635,7 @@ void func_actor_110600_801387F4(Task* task)
     Gp_DestroyEnemy(enemy, task);
 }
 
-void func_actor_110600_801388A4(Task* arg0)
+static void func_actor_110600_801388A4(Task* arg0)
 {
     TmdObject*       obj;
     Actor110600Work* work;
@@ -3650,7 +3650,7 @@ void func_actor_110600_801388A4(Task* arg0)
     }
 }
 
-s32 func_actor_110600_80138900(void)
+static s32 func_actor_110600_80138900(void)
 {
     s16* p;
     s16  next;
@@ -3675,7 +3675,7 @@ s32 func_actor_110600_80138900(void)
     return 1;
 }
 
-void func_actor_110600_80138980(Task* arg0)
+static void func_actor_110600_80138980(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
@@ -3713,7 +3713,7 @@ void func_actor_110600_80138980(Task* arg0)
     }
 }
 
-void func_actor_110600_80138A70(Task* arg0)
+static void func_actor_110600_80138A70(Task* arg0)
 {
     Actor110600Work* work;
     u32              rng;
@@ -3739,7 +3739,7 @@ void func_actor_110600_80138A70(Task* arg0)
     }
 }
 
-void func_actor_110600_80138AFC(Task* arg0)
+static void func_actor_110600_80138AFC(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
@@ -3773,7 +3773,7 @@ void func_actor_110600_80138AFC(Task* arg0)
     }
 }
 
-void func_actor_110600_80138BD0(Task* arg0)
+static void func_actor_110600_80138BD0(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
@@ -3807,7 +3807,7 @@ void func_actor_110600_80138BD0(Task* arg0)
     }
 }
 
-void func_actor_110600_80138CA4(Task* arg0)
+static void func_actor_110600_80138CA4(Task* arg0)
 {
     Actor110600Work* work;
     GpEnemy*         enemy;
@@ -3839,7 +3839,7 @@ void func_actor_110600_80138CA4(Task* arg0)
     func_actor_110600_80134728(arg0);
 }
 
-void func_actor_110600_80138D7C(Task* arg0)
+static void func_actor_110600_80138D7C(Task* arg0)
 {
     Actor110600Work* work;
     GpEnemy*         enemy;

@@ -22,12 +22,12 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 
-void func_actor_403100_80132064(Task* arg0, SVECTOR* first, SVECTOR* second, s32 arg3);
-void func_actor_403100_8013B5E0(Task* arg0, s16 arg1);
-void func_actor_403100_8013CEAC(u16* arg0, s32 arg1, s32 arg2, s16 arg3);
-void func_actor_403100_8013CF60(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void func_actor_403100_8013D06C(void);
-s32  func_actor_403100_8013D460(GpCoord* coord, SVECTOR* pos);
+static void func_actor_403100_80132064(Task* arg0, SVECTOR* first, SVECTOR* second, s32 arg3);
+static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1);
+static void func_actor_403100_8013CEAC(u16* arg0, s32 arg1, s32 arg2, s16 arg3);
+static void func_actor_403100_8013CF60(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+static void func_actor_403100_8013D06C(void);
+static s32  func_actor_403100_8013D460(GpCoord* coord, SVECTOR* pos);
 
 typedef struct Actor403100QuadEntry {
     /* 0x00 */ u16 tpage;
@@ -260,38 +260,38 @@ typedef struct Actor403100Work {
 } Actor403100Work;
 STATIC_ASSERT_SIZEOF(Actor403100Work, 0x678);
 
-void func_actor_403100_8013480C(Task* arg0, s32 arg1);
+static void func_actor_403100_8013480C(Task* arg0, s32 arg1);
 
-void func_actor_403100_80133C94(void);
-void func_actor_403100_80133D88(Task* arg0);
-void func_actor_403100_80133E88(Task* arg0);
-void func_actor_403100_8013E5FC(void);
-void func_actor_403100_8013E624(Task* arg0);
-void func_8004BFF8(s16 angle, MATRIX* matrix);
+static void func_actor_403100_80133C94(void);
+static void func_actor_403100_80133D88(Task* arg0);
+static void func_actor_403100_80133E88(Task* arg0);
+static void func_actor_403100_8013E5FC(void);
+static void func_actor_403100_8013E624(Task* arg0);
+void        func_8004BFF8(s16 angle, MATRIX* matrix);
 
-void func_actor_403100_80132C3C(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4);
+static void func_actor_403100_80132C3C(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4);
 
 /* This routine ignores its incoming arguments; callers use both forms. */
-void func_actor_403100_801327CC();
-void func_actor_403100_801328DC(Task* arg0);
-void func_actor_403100_8013B128(Task* arg0);
-void func_actor_403100_8013B3C4(Task* arg0);
-void func_actor_403100_8013D11C(Task* arg0);
-void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3);
-void func_actor_403100_8013D1B8(s16 arg0, s16 arg1);
-void func_actor_403100_8013D24C(void);
-s32  func_actor_403100_8013D2F4(GpCoord* coord, MATRIX* matrix);
-s32  func_actor_403100_8013E33C(GpCoord* arg0, MATRIX* arg1, GpCoord* arg2);
-void func_actor_403100_8013D770(Task* arg0);
-void func_actor_403100_8013E02C(s16 arg0, s16 arg1, s16 arg2);
-void func_actor_403100_8013F610(void);
-void func_actor_403100_8013F658(void);
-void func_actor_403100_8013B5E0(Task* arg0, s16 arg1);
+static void func_actor_403100_801327CC();
+static void func_actor_403100_801328DC(Task* arg0);
+static void func_actor_403100_8013B128(Task* arg0);
+static void func_actor_403100_8013B3C4(Task* arg0);
+static void func_actor_403100_8013D11C(Task* arg0);
+static void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3);
+static void func_actor_403100_8013D1B8(s16 arg0, s16 arg1);
+static void func_actor_403100_8013D24C(void);
+static s32  func_actor_403100_8013D2F4(GpCoord* coord, MATRIX* matrix);
+static s32  func_actor_403100_8013E33C(GpCoord* arg0, MATRIX* arg1, GpCoord* arg2);
+static void func_actor_403100_8013D770(Task* arg0);
+static void func_actor_403100_8013E02C(s16 arg0, s16 arg1, s16 arg2);
+static void func_actor_403100_8013F610(void);
+static void func_actor_403100_8013F658(void);
+static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1);
 
 extern GpImgRec  D_actor_403100_801555EC;
 extern GpU16Pair D_actor_403100_80147614;
-void             func_actor_403100_801342B4(Task* arg0);
-void             func_actor_403100_8013C7B4(Task* arg0);
+static void      func_actor_403100_801342B4(Task* arg0);
+static void      func_actor_403100_8013C7B4(Task* arg0);
 
 extern u8 D_actor_403100_801557A8[];
 
@@ -301,16 +301,16 @@ void func_8017E250(s32 arg0, s32 arg1);
 extern TaskDesc D_actor_403100_8015560C;
 extern s16      D_actor_403100_80155794[5][2];
 
-void func_actor_403100_8013E964(void);
-void func_actor_403100_8013E96C(Task* arg0);
-void func_actor_403100_8013E9D8(Task* arg0);
-void func_actor_403100_8013EA60(Task* arg0);
-void func_actor_403100_8013EAD4(Task* arg0);
-void func_actor_403100_8013EB68(Task* arg0);
-void func_actor_403100_8013EBC8(Task* arg0);
-void func_actor_403100_8013EC4C(Task* arg0);
-void func_actor_403100_8013ECD0(Task* arg0);
-void func_actor_403100_8013ED48(void);
+static void func_actor_403100_8013E964(void);
+static void func_actor_403100_8013E96C(Task* arg0);
+static void func_actor_403100_8013E9D8(Task* arg0);
+static void func_actor_403100_8013EA60(Task* arg0);
+static void func_actor_403100_8013EAD4(Task* arg0);
+static void func_actor_403100_8013EB68(Task* arg0);
+static void func_actor_403100_8013EBC8(Task* arg0);
+static void func_actor_403100_8013EC4C(Task* arg0);
+static void func_actor_403100_8013ECD0(Task* arg0);
+static void func_actor_403100_8013ED48(void);
 
 /* Per-frame actor dispatcher tables and region query. */
 typedef struct {
@@ -318,7 +318,7 @@ typedef struct {
 } Actor403100VoidTable4;
 extern Actor403100RectEntry D_actor_403100_80155638[];
 extern s32                  D_80166098;
-s32                         func_actor_403100_8013D9C4(s16 x, s16 z, Actor403100RectEntry* regions);
+static s32                  func_actor_403100_8013D9C4(s16 x, s16 z, Actor403100RectEntry* regions);
 
 extern u8 D_actor_403100_801557B0[2][16];
 
@@ -426,82 +426,82 @@ void func_8017E128(s32 arg0);
 void func_80182730(void);
 
 /* Defined later in this file. */
-void func_actor_403100_801326DC(Actor403100Work* work);
-void func_actor_403100_8013712C(Task* arg0);
-void func_actor_403100_8013C008(s16 arg0, s16 arg1);
-void func_actor_403100_8013D74C(Task* arg0);
-s32  func_actor_403100_80133928(void);
-void func_actor_403100_801345E0(Task* arg0, Task* arg1);
+static void func_actor_403100_801326DC(Actor403100Work* work);
+static void func_actor_403100_8013712C(Task* arg0);
+static void func_actor_403100_8013C008(s16 arg0, s16 arg1);
+static void func_actor_403100_8013D74C(Task* arg0);
+static s32  func_actor_403100_80133928(void);
+static void func_actor_403100_801345E0(Task* arg0, Task* arg1);
 
-void func_actor_403100_8013E6F0(Task* arg0);
-void func_actor_403100_8013F12C(void);
-void func_actor_403100_8013E16C(void);
-void func_actor_403100_8013E174(void);
-void func_actor_403100_8013E1E4(void);
-void func_actor_403100_8013E2BC(void);
-void func_actor_403100_8013BA64(Task* arg0);
-void func_actor_403100_8013C214(Task* arg0);
-void func_actor_403100_8013CBE0(Task* arg0);
-void func_actor_403100_8013CDC0(void);
-void func_actor_403100_8013D2A0(s16 arg0);
-void func_actor_403100_8013D6B4(Task* arg0);
-void func_actor_403100_8013D700(Task* arg0);
-void func_actor_403100_80136830(Task* arg0);
-void func_actor_403100_80137268(void);
-void func_actor_403100_80137310(void);
-void func_actor_403100_8013BB8C(Task* arg0);
-void func_actor_403100_8013BDE4(Task* arg0);
-void func_actor_403100_8013BEF0(Task* arg0);
-void func_actor_403100_8013D88C(Task* arg0);
-void func_actor_403100_8013D8F4(Task* arg0);
-void func_actor_403100_8013DA6C(void);
-void func_actor_403100_8013DAC4(Task* arg0);
-void func_actor_403100_8013DB48(Task* arg0);
-void func_actor_403100_8013DC18(Task* arg0);
-void func_actor_403100_8013DCAC(Task* arg0);
-void func_actor_403100_8013DD78(Task* arg0);
-void func_actor_403100_8013DE0C(Task* arg0);
-void func_actor_403100_8013DEA0(Task* arg0);
-void func_actor_403100_8013DF0C(void);
-void func_actor_403100_8013DF64(void);
-void func_actor_403100_8013DFBC(Task* arg0);
-void func_actor_403100_8013E6A0(Task* arg0);
-void func_actor_403100_8013E784(Task* arg0);
-void func_actor_403100_8013E7C8(Task* arg0);
-void func_actor_403100_8013E88C(Task* arg0);
-void func_actor_403100_8013E920(Task* arg0);
-void func_actor_403100_8013ED50(Task* arg0);
-void func_actor_403100_8013EDDC(void);
-void func_actor_403100_8013EE28(Task* arg0);
-void func_actor_403100_8013EEB0(void);
-void func_actor_403100_8013EEB8(Task* arg0);
-void func_actor_403100_8013EF24(void);
-void func_actor_403100_8013EF2C(void);
-void func_actor_403100_8013EF34(void);
-void func_actor_403100_8013EF58(void);
-void func_actor_403100_8013EF60(void);
-void func_actor_403100_8013EFC0(void);
-void func_actor_403100_8013EFC8(Task* arg0);
-void func_actor_403100_8013F034(Task* arg0);
-void func_actor_403100_8013F0A8(Task* arg0);
-void func_actor_403100_8013F18C(void);
-void func_actor_403100_8013F1D8(void);
-void func_actor_403100_8013F230(void);
-void func_actor_403100_8013F270(void);
-void func_actor_403100_8013F2D8(void);
-void func_actor_403100_8013F344(void);
-void func_actor_403100_8013F3AC(void);
-void func_actor_403100_8013F3EC(Task* arg0);
-void func_actor_403100_8013F488(void);
-void func_actor_403100_8013F4E0(void);
-void func_actor_403100_8013F520(void);
-void func_actor_403100_8013F588(void);
-void func_actor_403100_8013F6B0(void);
-void func_actor_403100_8013F6F4(void);
-void func_actor_403100_8013F76C(void);
-void func_actor_403100_8013F7AC(void);
-void func_actor_403100_8013F7B4(void);
-void func_actor_403100_8013F7BC(void);
+static void func_actor_403100_8013E6F0(Task* arg0);
+static void func_actor_403100_8013F12C(void);
+static void func_actor_403100_8013E16C(void);
+static void func_actor_403100_8013E174(void);
+static void func_actor_403100_8013E1E4(void);
+static void func_actor_403100_8013E2BC(void);
+static void func_actor_403100_8013BA64(Task* arg0);
+static void func_actor_403100_8013C214(Task* arg0);
+static void func_actor_403100_8013CBE0(Task* arg0);
+static void func_actor_403100_8013CDC0(void);
+static void func_actor_403100_8013D2A0(s16 arg0);
+static void func_actor_403100_8013D6B4(Task* arg0);
+static void func_actor_403100_8013D700(Task* arg0);
+static void func_actor_403100_80136830(Task* arg0);
+static void func_actor_403100_80137268(void);
+static void func_actor_403100_80137310(void);
+static void func_actor_403100_8013BB8C(Task* arg0);
+static void func_actor_403100_8013BDE4(Task* arg0);
+static void func_actor_403100_8013BEF0(Task* arg0);
+static void func_actor_403100_8013D88C(Task* arg0);
+static void func_actor_403100_8013D8F4(Task* arg0);
+static void func_actor_403100_8013DA6C(void);
+static void func_actor_403100_8013DAC4(Task* arg0);
+static void func_actor_403100_8013DB48(Task* arg0);
+static void func_actor_403100_8013DC18(Task* arg0);
+static void func_actor_403100_8013DCAC(Task* arg0);
+static void func_actor_403100_8013DD78(Task* arg0);
+static void func_actor_403100_8013DE0C(Task* arg0);
+static void func_actor_403100_8013DEA0(Task* arg0);
+static void func_actor_403100_8013DF0C(void);
+static void func_actor_403100_8013DF64(void);
+static void func_actor_403100_8013DFBC(Task* arg0);
+static void func_actor_403100_8013E6A0(Task* arg0);
+static void func_actor_403100_8013E784(Task* arg0);
+static void func_actor_403100_8013E7C8(Task* arg0);
+static void func_actor_403100_8013E88C(Task* arg0);
+static void func_actor_403100_8013E920(Task* arg0);
+static void func_actor_403100_8013ED50(Task* arg0);
+static void func_actor_403100_8013EDDC(void);
+static void func_actor_403100_8013EE28(Task* arg0);
+static void func_actor_403100_8013EEB0(void);
+static void func_actor_403100_8013EEB8(Task* arg0);
+static void func_actor_403100_8013EF24(void);
+static void func_actor_403100_8013EF2C(void);
+static void func_actor_403100_8013EF34(void);
+static void func_actor_403100_8013EF58(void);
+static void func_actor_403100_8013EF60(void);
+static void func_actor_403100_8013EFC0(void);
+static void func_actor_403100_8013EFC8(Task* arg0);
+static void func_actor_403100_8013F034(Task* arg0);
+static void func_actor_403100_8013F0A8(Task* arg0);
+static void func_actor_403100_8013F18C(void);
+static void func_actor_403100_8013F1D8(void);
+static void func_actor_403100_8013F230(void);
+static void func_actor_403100_8013F270(void);
+static void func_actor_403100_8013F2D8(void);
+static void func_actor_403100_8013F344(void);
+static void func_actor_403100_8013F3AC(void);
+static void func_actor_403100_8013F3EC(Task* arg0);
+static void func_actor_403100_8013F488(void);
+static void func_actor_403100_8013F4E0(void);
+static void func_actor_403100_8013F520(void);
+static void func_actor_403100_8013F588(void);
+static void func_actor_403100_8013F6B0(void);
+static void func_actor_403100_8013F6F4(void);
+static void func_actor_403100_8013F76C(void);
+static void func_actor_403100_8013F7AC(void);
+static void func_actor_403100_8013F7B4(void);
+static void func_actor_403100_8013F7BC(void);
 
 static __inline__ s16 Actor403100_TestFlags(void)
 {
@@ -534,7 +534,7 @@ static __inline__ s16 Actor403100_TestFlags12C(void)
 }
 
 /// Per-frame hooks run before the behaviour mode, indexed by `field_5F2`.
-const Actor403100VoidTable4 D_actor_403100_80131E24 = {
+static const Actor403100VoidTable4 D_actor_403100_80131E24 = {
     {
         func_actor_403100_8013E16C,
         func_actor_403100_8013E174,
@@ -543,7 +543,7 @@ const Actor403100VoidTable4 D_actor_403100_80131E24 = {
     },
 };
 
-void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
+static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     SVECTOR     end;
     OverlayMat  matrix;
@@ -616,7 +616,7 @@ void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 ar
     }
 }
 
-void func_actor_403100_80132320(Task* arg0)
+static void func_actor_403100_80132320(Task* arg0)
 {
     D_actor_403100_80155808->field_47C.coord    = &arg0->extra.tmd->coords[3];
     D_actor_403100_80155808->field_47C.ctx.recs = (GpRec18*)D_actor_403100_80155808->pad_49C;
@@ -663,7 +663,7 @@ void func_actor_403100_80132320(Task* arg0)
     Gp_InitRec18Table((GpRec18*)D_actor_403100_80155808->pad_5B4, 1, 0);
     D_actor_403100_80155808->field_594.flags &= 0x7FFF;
 }
-void func_actor_403100_80132528(Task* arg0)
+static void func_actor_403100_80132528(Task* arg0)
 {
     SVECTOR    pos;
     SVECTOR    rotation;
@@ -713,7 +713,7 @@ void func_actor_403100_80132528(Task* arg0)
     D_actor_403100_80155808->field_5E2 = (s16)savedAngle;
     func_actor_403100_8013E02C(D_actor_403100_80155808->field_5DE, angle, 0);
 }
-void func_actor_403100_801326DC(Actor403100Work* work)
+static void func_actor_403100_801326DC(Actor403100Work* work)
 {
     s32 i;
 
@@ -730,7 +730,7 @@ void func_actor_403100_801326DC(Actor403100Work* work)
     }
     D_actor_403100_80155808->field_5DC = D_actor_403100_80155808->field_5DE;
 }
-void func_actor_403100_801327CC()
+static void func_actor_403100_801327CC()
 {
     s32 i;
     if (D_actor_403100_80155808->field_5DA == 1) {
@@ -752,7 +752,7 @@ void func_actor_403100_801327CC()
         Gp_AnimTickIndex(&D_actor_403100_80155808->field_B8.animation.anim, i);
     }
 }
-void func_actor_403100_801328DC(Task* arg0)
+static void func_actor_403100_801328DC(Task* arg0)
 {
     GpCoord* root;
     GpCoord* joint;
@@ -781,7 +781,7 @@ void func_actor_403100_801328DC(Task* arg0)
     Gp_UpdateCoord(joint);
     *(MATRIX**)PSX_SCRATCH_ADDR(0x3FC) += 1;
 }
-void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height)
+static void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height)
 {
     MATRIX    firstMatrix;
     MATRIX    secondMatrix;
@@ -894,7 +894,7 @@ void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoint, s16
         }
     }
 }
-void func_actor_403100_801331D4(Task* arg0)
+static void func_actor_403100_801331D4(Task* arg0)
 {
     SVECTOR  pos;
     GpCoord* joint;
@@ -930,7 +930,7 @@ void func_actor_403100_801331D4(Task* arg0)
         D_actor_403100_80155808->field_630 = SquareRoot0((dx2 * dx2) + (dz2 * dz2));
     }
 }
-void func_actor_403100_8013335C(Task* arg0)
+static void func_actor_403100_8013335C(Task* arg0)
 {
     s16 damage;
     s16 scaledDamage;
@@ -1077,7 +1077,7 @@ void func_actor_403100_8013335C(Task* arg0)
     D_actor_403100_80155808->field_5E4 = 0;
 }
 
-s32 func_actor_403100_80133928(void)
+static s32 func_actor_403100_80133928(void)
 {
     s16 state;
     s8  mode;
@@ -1167,7 +1167,7 @@ static inline void _actor403100UpdateColor(Task* task, GpCoord* coord)
     SCRATCH_POP_BYTES(sizeof(VECTOR));
 }
 
-void func_actor_403100_801339EC(Task* arg0)
+static void func_actor_403100_801339EC(Task* arg0)
 {
     void (*handlers[5])(Task*) = {
         (void (*)(Task*))func_actor_403100_80133C94,
@@ -1215,7 +1215,7 @@ void func_actor_403100_801339EC(Task* arg0)
         Display_ClampField126(0);
     }
 }
-void func_actor_403100_80133C94(void)
+static void func_actor_403100_80133C94(void)
 {
     s32 i;
 
@@ -1239,7 +1239,7 @@ void func_actor_403100_80133C94(void)
     D_actor_403100_80155808->field_608  = 0;
     D_actor_403100_80155808->field_5F8 += 1;
 }
-void func_actor_403100_80133D88(Task* arg0)
+static void func_actor_403100_80133D88(Task* arg0)
 {
     GpCoord* coord;
     u16      frame;
@@ -1278,7 +1278,7 @@ static __inline__ void _actor403100PlaceSpawned(GpCoord* coord, s32 i)
     coord->coord.t[2] = D_actor_403100_80155794[i][1];
 }
 
-void func_actor_403100_80133E88(Task* arg0)
+static void func_actor_403100_80133E88(Task* arg0)
 {
     SVECTOR  pos;
     Task*    task;
@@ -1364,7 +1364,7 @@ void func_actor_403100_80133E88(Task* arg0)
         D_actor_403100_80155808->field_5F8++;
     }
 }
-void func_actor_403100_801342B4(Task* arg0)
+static void func_actor_403100_801342B4(Task* arg0)
 {
     SVECTOR  pos1, pos2, offset1, offset2;
     GpCoord* coords;
@@ -1411,7 +1411,7 @@ void func_actor_403100_801342B4(Task* arg0)
         }
     }
 }
-void func_actor_403100_801345E0(Task* arg0, Task* arg1)
+static void func_actor_403100_801345E0(Task* arg0, Task* arg1)
 {
     Task*    task;
     GpCoord* coord;
@@ -1460,7 +1460,7 @@ static __inline__ void _actor403100SetObjFlags(GpObj* obj, s32 mask, s32 bits)
     obj->flags = (obj->flags & mask) | bits;
 }
 
-void func_actor_403100_8013480C(Task* arg0, s32 arg1)
+static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
 {
     SVECTOR           pos;
     GpDeltaScratch    delta;
@@ -1556,7 +1556,7 @@ void func_actor_403100_8013480C(Task* arg0, s32 arg1)
 }
 
 /// States of the task `func_actor_403100_8013E04C` runs, by `Task::state`.
-const TaskFuncTable3 D_actor_403100_80131E70 = {
+static const TaskFuncTable3 D_actor_403100_80131E70 = {
     {
         func_actor_403100_8013E6A0,
         func_actor_403100_8013E6F0,
@@ -1565,7 +1565,7 @@ const TaskFuncTable3 D_actor_403100_80131E70 = {
 };
 
 /// States of the task `func_actor_403100_8013E0A4` runs, by `Task::state`.
-const TaskFuncTable3 D_actor_403100_80131E7C = {
+static const TaskFuncTable3 D_actor_403100_80131E7C = {
     {
         func_actor_403100_8013E7C8,
         func_actor_403100_8013E88C,
@@ -1573,7 +1573,7 @@ const TaskFuncTable3 D_actor_403100_80131E7C = {
     },
 };
 
-void func_actor_403100_80134D50(Task* arg0)
+static void func_actor_403100_80134D50(Task* arg0)
 {
     TmdObject* object                 = arg0->extra.tmd;
     void       (*handlers[10])(Task*) = {
@@ -1636,7 +1636,7 @@ void func_actor_403100_80134D50(Task* arg0)
         D_actor_403100_80155808->field_658 = (u16)D_actor_403100_80155808->field_658 - 1;
     }
 }
-void func_actor_403100_8013506C(Task* arg0)
+static void func_actor_403100_8013506C(Task* arg0)
 {
     GpCoord* coord;
     u16      frame;
@@ -1664,7 +1664,7 @@ void func_actor_403100_8013506C(Task* arg0)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-void func_actor_403100_801351F8(Task* arg0)
+static void func_actor_403100_801351F8(Task* arg0)
 {
     u16 frame;
     s32 sound;
@@ -1695,7 +1695,7 @@ void func_actor_403100_801351F8(Task* arg0)
         D_actor_403100_80155808->field_9C = -0x960;
     }
 }
-void func_actor_403100_8013539C(Task* arg0)
+static void func_actor_403100_8013539C(Task* arg0)
 {
     GpCoord* coord;
     s32      i;
@@ -1721,7 +1721,7 @@ void func_actor_403100_8013539C(Task* arg0)
     func_actor_403100_801327CC(arg0);
     D_actor_403100_80155808->field_5FA += 1;
 }
-void func_actor_403100_801354A0(Task* arg0)
+static void func_actor_403100_801354A0(Task* arg0)
 {
     s32 sound;
     s32 pan;
@@ -1745,7 +1745,7 @@ void func_actor_403100_801354A0(Task* arg0)
     }
     func_actor_403100_801327CC(arg0);
 }
-void func_actor_403100_801355D4(Task* arg0)
+static void func_actor_403100_801355D4(Task* arg0)
 {
     GpCoord* coord;
     s32      i;
@@ -1774,7 +1774,7 @@ void func_actor_403100_801355D4(Task* arg0)
     D_actor_403100_80155808->field_5FA += 1;
 }
 
-void func_actor_403100_801356F4(Task* arg0)
+static void func_actor_403100_801356F4(Task* arg0)
 {
     s16*    frame;
     SVECTOR first;
@@ -1809,7 +1809,7 @@ void func_actor_403100_801356F4(Task* arg0)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-void func_actor_403100_8013588C(Task* arg0)
+static void func_actor_403100_8013588C(Task* arg0)
 {
     s32 sound;
     s32 pan;
@@ -1832,7 +1832,7 @@ void func_actor_403100_8013588C(Task* arg0)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-void func_actor_403100_801359DC(Task* arg0)
+static void func_actor_403100_801359DC(Task* arg0)
 {
     GpCoord*         coord;
     GpCoord*         joint;
@@ -1864,7 +1864,7 @@ void func_actor_403100_801359DC(Task* arg0)
     work->field_5FA  += 1;
     Gp_ApplyAreaRecs(&D_8018F2CC);
 }
-void func_actor_403100_80135AE0(Task* arg0)
+static void func_actor_403100_80135AE0(Task* arg0)
 {
     s32 sound;
     s32 pan;
@@ -1885,7 +1885,7 @@ void func_actor_403100_80135AE0(Task* arg0)
     D_actor_403100_80155808->field_5EC += 1;
 }
 
-void func_actor_403100_80135C00(Task* arg0)
+static void func_actor_403100_80135C00(Task* arg0)
 {
     s32 sound;
     s32 sound_2;
@@ -1951,7 +1951,7 @@ void func_actor_403100_80135C00(Task* arg0)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-void func_actor_403100_80135F30(Task* arg0)
+static void func_actor_403100_80135F30(Task* arg0)
 {
     s32        sound;
     s32        sound2;
@@ -1992,7 +1992,7 @@ void func_actor_403100_80135F30(Task* arg0)
         obj->otOffset                       = 0;
     }
 }
-void func_actor_403100_80136100(Task* arg0)
+static void func_actor_403100_80136100(Task* arg0)
 {
     s16      angle;
     s32      sound;
@@ -2041,7 +2041,7 @@ void func_actor_403100_80136100(Task* arg0)
     }
     coord->coord.t[2] = z;
 }
-void func_actor_403100_8013631C(Task* arg0)
+static void func_actor_403100_8013631C(Task* arg0)
 {
     s16      frame;
     s16      step;
@@ -2109,7 +2109,7 @@ void func_actor_403100_8013631C(Task* arg0)
         D_actor_403100_80155808->field_5FA = (u16)(D_actor_403100_80155808->field_5FA + 1);
     }
 }
-void func_actor_403100_80136610(Task* arg0)
+static void func_actor_403100_80136610(Task* arg0)
 {
     Actor403100Work* work;
     TmdObject*       obj;
@@ -2170,7 +2170,7 @@ void func_actor_403100_80136610(Task* arg0)
     D_actor_403100_80155808->field_5FA = 0;
 }
 /// Steps of the behaviour mode `func_actor_403100_8013E96C`, indexed by `field_5FA`.
-const TaskFuncTable3 D_actor_403100_80131EB0 = {
+static const TaskFuncTable3 D_actor_403100_80131EB0 = {
     {
         func_actor_403100_8013ED50,
         func_actor_403100_8013506C,
@@ -2179,7 +2179,7 @@ const TaskFuncTable3 D_actor_403100_80131EB0 = {
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013E9D8`, indexed by `field_5FA`.
-const TaskFuncTable3 D_actor_403100_80131EBC = {
+static const TaskFuncTable3 D_actor_403100_80131EBC = {
     {
         func_actor_403100_8013EE28,
         func_actor_403100_801351F8,
@@ -2188,7 +2188,7 @@ const TaskFuncTable3 D_actor_403100_80131EBC = {
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013EA60`, indexed by `field_5FA`.
-const TaskFuncTable4 D_actor_403100_80131EC8 = {
+static const TaskFuncTable4 D_actor_403100_80131EC8 = {
     {
         func_actor_403100_8013539C,
         func_actor_403100_8013EEB8,
@@ -2198,7 +2198,7 @@ const TaskFuncTable4 D_actor_403100_80131EC8 = {
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013EAD4`, indexed by `field_5FA`.
-const TaskFuncTable3 D_actor_403100_80131ED8 = {
+static const TaskFuncTable3 D_actor_403100_80131ED8 = {
     {
         func_actor_403100_801355D4,
         func_actor_403100_801356F4,
@@ -2207,7 +2207,7 @@ const TaskFuncTable3 D_actor_403100_80131ED8 = {
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013EB68`, indexed by `field_5FA`.
-const TaskFuncTable3 D_actor_403100_80131EE4 = {
+static const TaskFuncTable3 D_actor_403100_80131EE4 = {
     {
         (TaskFunc)func_actor_403100_8013EF34,
         func_actor_403100_8013588C,
@@ -2216,7 +2216,7 @@ const TaskFuncTable3 D_actor_403100_80131EE4 = {
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013EBC8`, indexed by `field_5FA`.
-const TaskFuncTable4 D_actor_403100_80131EF0 = {
+static const TaskFuncTable4 D_actor_403100_80131EF0 = {
     {
         func_actor_403100_801359DC,
         func_actor_403100_80135AE0,
@@ -2226,7 +2226,7 @@ const TaskFuncTable4 D_actor_403100_80131EF0 = {
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013EC4C`, indexed by `field_5FA`.
-const TaskFuncTable4 D_actor_403100_80131F00 = {
+static const TaskFuncTable4 D_actor_403100_80131F00 = {
     {
         func_actor_403100_8013EFC8,
         func_actor_403100_80135C00,
@@ -2236,7 +2236,7 @@ const TaskFuncTable4 D_actor_403100_80131F00 = {
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013ECD0`, indexed by `field_5FA`.
-const TaskFuncTable3 D_actor_403100_80131F10 = {
+static const TaskFuncTable3 D_actor_403100_80131F10 = {
     {
         func_actor_403100_8013F034,
         func_actor_403100_8013631C,
@@ -2246,7 +2246,7 @@ const TaskFuncTable3 D_actor_403100_80131F10 = {
 
 /// The actor's six top-level states, by `Task::state`; run by
 /// `func_actor_403100_8013E0FC`.
-const TaskFuncTable6 D_actor_403100_80131F1C = {
+static const TaskFuncTable6 D_actor_403100_80131F1C = {
     {
         func_actor_403100_80136610,
         func_actor_403100_80134D50,
@@ -2259,7 +2259,7 @@ const TaskFuncTable6 D_actor_403100_80131F1C = {
 
 /// Behaviour modes of the actor's main state, indexed by `field_5F8`. Each
 /// mode steps through its own table by `field_5FA`.
-const TaskFuncTable11 D_actor_403100_80131F34 = {
+static const TaskFuncTable11 D_actor_403100_80131F34 = {
     {
         (TaskFunc)func_actor_403100_8013DA6C,
         func_actor_403100_8013DAC4,
@@ -2355,7 +2355,7 @@ static inline void _actor403100PitchArms(Task* task)
     dest->m[2][2] = rotation.m[2][2];
 }
 
-void func_actor_403100_80136830(Task* arg0)
+static void func_actor_403100_80136830(Task* arg0)
 {
     TaskFuncTable11 stateHandlers;
     PlayerStatus*   config = &Player_Status;
@@ -2482,7 +2482,7 @@ void func_actor_403100_80136830(Task* arg0)
             return;
     }
 }
-void func_actor_403100_8013712C(Task* arg0)
+static void func_actor_403100_8013712C(Task* arg0)
 {
     Actor403100Entry* entries;
     GpObj*            obj;
@@ -2526,7 +2526,7 @@ void func_actor_403100_8013712C(Task* arg0)
     D_actor_403100_80155808->field_5FA += 1;
 }
 /// Steps of the behaviour mode `func_actor_403100_8013DAC4`, indexed by `field_5FA`.
-const TaskFuncTable3 D_actor_403100_80131F60 = {
+static const TaskFuncTable3 D_actor_403100_80131F60 = {
     {
         (TaskFunc)func_actor_403100_8013F18C,
         (TaskFunc)func_actor_403100_80137268,
@@ -2534,7 +2534,7 @@ const TaskFuncTable3 D_actor_403100_80131F60 = {
     },
 };
 
-void func_actor_403100_80137268(void)
+static void func_actor_403100_80137268(void)
 {
     s16 state;
 
@@ -2558,7 +2558,7 @@ void func_actor_403100_80137268(void)
             break;
     }
 }
-void func_actor_403100_80137310(void)
+static void func_actor_403100_80137310(void)
 {
     s32 halfHealth;
     s16 phase;
@@ -2624,7 +2624,7 @@ void func_actor_403100_80137310(void)
         D_actor_403100_80155808->field_5FA = 0;
     }
 }
-void func_actor_403100_801375B8(void)
+static void func_actor_403100_801375B8(void)
 {
     u16 angle;
     u32 random2;
@@ -2660,7 +2660,7 @@ void func_actor_403100_801375B8(void)
     D_actor_403100_80155808->field_664.b.field_666 = 0;
     D_actor_403100_80155808->pad_66A[4]            = 0;
 }
-void func_actor_403100_801376D8(Task* arg0)
+static void func_actor_403100_801376D8(Task* arg0)
 {
     Task* task;
     s32   sound;
@@ -2724,7 +2724,7 @@ void func_actor_403100_801376D8(Task* arg0)
         }
     }
 }
-void func_actor_403100_801379B4(Task* arg0)
+static void func_actor_403100_801379B4(Task* arg0)
 {
     Task* task;
     s32   sound;
@@ -2789,7 +2789,7 @@ void func_actor_403100_801379B4(Task* arg0)
         }
     }
 }
-void func_actor_403100_80137CA8(void)
+static void func_actor_403100_80137CA8(void)
 {
     u16 angleY;
     u16 angleX;
@@ -2823,7 +2823,7 @@ void func_actor_403100_80137CA8(void)
         D_actor_403100_80155808->field_5FA = 0;
     }
 }
-void func_actor_403100_80137DC4(Task* arg0)
+static void func_actor_403100_80137DC4(Task* arg0)
 {
     s32 sound;
     s32 sound2;
@@ -2848,7 +2848,7 @@ void func_actor_403100_80137DC4(Task* arg0)
         D_actor_403100_80155808->field_5FA = 0;
     }
 }
-void func_actor_403100_80137F4C(void)
+static void func_actor_403100_80137F4C(void)
 {
     Actor403100Entry* entry;
     GpObj*            obj;
@@ -2883,7 +2883,7 @@ void func_actor_403100_80137F4C(void)
     D_actor_403100_80155808->field_5EC  = 0;
     D_actor_403100_80155808->field_5FA += 1;
 }
-void func_actor_403100_80138048(Task* arg0)
+static void func_actor_403100_80138048(Task* arg0)
 {
     SVECTOR  offset;
     SVECTOR  velocity;
@@ -2972,7 +2972,7 @@ void func_actor_403100_80138048(Task* arg0)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-void func_actor_403100_8013842C(Task* arg0)
+static void func_actor_403100_8013842C(Task* arg0)
 {
     SVECTOR  offset;
     s32      sound;
@@ -3007,7 +3007,7 @@ void func_actor_403100_8013842C(Task* arg0)
         D_actor_403100_80155808->field_5FA = 0;
     }
 }
-void func_actor_403100_80138610(Task* arg0)
+static void func_actor_403100_80138610(Task* arg0)
 {
     u16      counter;
     u16      timer;
@@ -3037,7 +3037,7 @@ void func_actor_403100_80138610(Task* arg0)
         }
     }
 }
-void func_actor_403100_801386DC(Task* arg0)
+static void func_actor_403100_801386DC(Task* arg0)
 {
     u16      velocity;
     u16      accel;
@@ -3059,7 +3059,7 @@ void func_actor_403100_801386DC(Task* arg0)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-void func_actor_403100_80138790(Task* arg0)
+static void func_actor_403100_80138790(Task* arg0)
 {
     u16      velocity;
     u16      accel;
@@ -3080,7 +3080,7 @@ void func_actor_403100_80138790(Task* arg0)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-void func_actor_403100_80138844(Task* arg0)
+static void func_actor_403100_80138844(Task* arg0)
 {
     Task*    player;
     s32      sound;
@@ -3132,7 +3132,7 @@ void func_actor_403100_80138844(Task* arg0)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-void func_actor_403100_80138AB4(void)
+static void func_actor_403100_80138AB4(void)
 {
     Task* player;
     u16   frame;
@@ -3158,7 +3158,7 @@ void func_actor_403100_80138AB4(void)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-void func_actor_403100_80138C18(void)
+static void func_actor_403100_80138C18(void)
 {
     u16 velocityZ;
     u16 velocityX;
@@ -3183,7 +3183,7 @@ void func_actor_403100_80138C18(void)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-void func_actor_403100_80138D08(Task* arg0)
+static void func_actor_403100_80138D08(Task* arg0)
 {
     TmdObject*       obj;
     Actor403100Work* work;
@@ -3208,7 +3208,7 @@ void func_actor_403100_80138D08(Task* arg0)
         D_actor_403100_80155808->field_5FA            += 1;
     }
 }
-void func_actor_403100_80138DB0(Task* arg0)
+static void func_actor_403100_80138DB0(Task* arg0)
 {
     s32              sound;
     s32              pan;
@@ -3250,7 +3250,7 @@ void func_actor_403100_80138DB0(Task* arg0)
         }
     }
 }
-void func_actor_403100_80138F88(Task* arg0)
+static void func_actor_403100_80138F88(Task* arg0)
 {
     s32              message[6];
     Actor403100Work* work;
@@ -3316,7 +3316,7 @@ void func_actor_403100_80138F88(Task* arg0)
         D_actor_403100_80155808->field_656 = (u16)D_actor_403100_8015580C->hp;
     }
 }
-void func_actor_403100_8013922C(Task* arg0)
+static void func_actor_403100_8013922C(Task* arg0)
 {
     s32      message[6];
     s16      health;
@@ -3420,7 +3420,7 @@ void func_actor_403100_8013922C(Task* arg0)
         D_actor_403100_80155808->field_5FA = state;
     }
 }
-void func_actor_403100_801395EC(Task* arg0)
+static void func_actor_403100_801395EC(Task* arg0)
 {
     Actor403100Entry* entry;
     Actor403100Entry* entries;
@@ -3491,7 +3491,7 @@ void func_actor_403100_801395EC(Task* arg0)
         SndEvt_EnqueueType7(0x401F0004, 1);
     }
 }
-void func_actor_403100_80139818(Task* arg0)
+static void func_actor_403100_80139818(Task* arg0)
 {
     SVECTOR          position;
     SVECTOR          velocity;
@@ -3640,7 +3640,7 @@ void func_actor_403100_80139818(Task* arg0)
         }
     }
 }
-void func_actor_403100_80139E80(Task* arg0)
+static void func_actor_403100_80139E80(Task* arg0)
 {
     s16      angle;
     s32      y;
@@ -3698,7 +3698,7 @@ void func_actor_403100_80139E80(Task* arg0)
         D_actor_403100_80155808->field_5FA             += 1;
     }
 }
-void func_actor_403100_8013A064(Task* arg0)
+static void func_actor_403100_8013A064(Task* arg0)
 {
     GameActor* actor;
     Task*      task;
@@ -3748,7 +3748,7 @@ void func_actor_403100_8013A064(Task* arg0)
         D_actor_403100_80155808->field_5EC = 0;
     }
 }
-void func_actor_403100_8013A254(void)
+static void func_actor_403100_8013A254(void)
 {
     Task*            actor;
     Actor403100Work* work;
@@ -3803,7 +3803,7 @@ void func_actor_403100_8013A254(void)
         gGameSession->suppressDeathChecks = 0;
     }
 }
-void func_actor_403100_8013A4C8(Task* arg0)
+static void func_actor_403100_8013A4C8(Task* arg0)
 {
     Actor403100Entry* entries;
     GpObj*            obj;
@@ -3833,7 +3833,7 @@ void func_actor_403100_8013A4C8(Task* arg0)
     D_actor_403100_80155808->field_5EC  = 0;
     D_actor_403100_80155808->field_5FA += 1;
 }
-void func_actor_403100_8013A5AC(Task* arg0)
+static void func_actor_403100_8013A5AC(Task* arg0)
 {
     SVECTOR  offset;
     SVECTOR  velocity;
@@ -3886,7 +3886,7 @@ void func_actor_403100_8013A5AC(Task* arg0)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-void func_actor_403100_8013A81C(Task* arg0)
+static void func_actor_403100_8013A81C(Task* arg0)
 {
     SVECTOR  offset;
     s32      sound;
@@ -3921,7 +3921,7 @@ void func_actor_403100_8013A81C(Task* arg0)
         D_actor_403100_80155808->field_5FA = 0;
     }
 }
-void func_actor_403100_8013AA04(Task* arg0)
+static void func_actor_403100_8013AA04(Task* arg0)
 {
     s32 sound;
     s32 pan;
@@ -3962,7 +3962,7 @@ void func_actor_403100_8013AA04(Task* arg0)
         D_actor_403100_80155808->field_5FA             = 0;
     }
 }
-void func_actor_403100_8013AC04(void)
+static void func_actor_403100_8013AC04(void)
 {
     s32              state;
     s32              message;
@@ -4016,7 +4016,7 @@ void func_actor_403100_8013AC04(void)
         D_actor_403100_80155808->field_5FA = (u16)(D_actor_403100_80155808->field_5FA + 1);
     }
 }
-void func_actor_403100_8013AE28(void)
+static void func_actor_403100_8013AE28(void)
 {
     Task* player;
     s32   sound;
@@ -4078,7 +4078,7 @@ void func_actor_403100_8013AE28(void)
         gGameSession->suppressDeathChecks = 0;
     }
 }
-void func_actor_403100_8013B128(Task* arg0)
+static void func_actor_403100_8013B128(Task* arg0)
 {
     Actor403100Entry* entries;
     Actor403100Work*  work;
@@ -4150,7 +4150,7 @@ void func_actor_403100_8013B128(Task* arg0)
     finalWork->pad_670[3] = 1;
     finalWork->field_5FA  = (u16)(finalWork->field_5FA + 1);
 }
-void func_actor_403100_8013B3C4(Task* arg0)
+static void func_actor_403100_8013B3C4(Task* arg0)
 {
     s32      sound;
     s32      pan;
@@ -4197,7 +4197,7 @@ typedef struct Actor403100AimScratch {
 } Actor403100AimScratch;
 STATIC_ASSERT_SIZEOF(Actor403100AimScratch, 0x88);
 
-void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
+static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
 {
     SVECTOR                headRotation, middleRotation, lowerRotation;
     MATRIX                 worldMatrix;
@@ -4299,7 +4299,7 @@ void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     head->flg   = 0;
 }
 /// Steps of the behaviour mode `func_actor_403100_8013DB48`, indexed by `field_5FA`.
-const TaskFuncTable6 D_actor_403100_80131F84 = {
+static const TaskFuncTable6 D_actor_403100_80131F84 = {
     {
         (TaskFunc)func_actor_403100_801375B8,
         func_actor_403100_801376D8,
@@ -4311,7 +4311,7 @@ const TaskFuncTable6 D_actor_403100_80131F84 = {
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013DC18`, indexed by `field_5FA`.
-const TaskFuncTable5 D_actor_403100_80131F9C = {
+static const TaskFuncTable5 D_actor_403100_80131F9C = {
     {
         (TaskFunc)func_actor_403100_80137F4C,
         func_actor_403100_80138048,
@@ -4322,7 +4322,7 @@ const TaskFuncTable5 D_actor_403100_80131F9C = {
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013DCAC`, indexed by `field_5FA`.
-const TaskFuncTable9 D_actor_403100_80131FB0 = {
+static const TaskFuncTable9 D_actor_403100_80131FB0 = {
     {
         (TaskFunc)func_actor_403100_8013F2D8,
         (TaskFunc)func_actor_403100_8013F344,
@@ -4337,7 +4337,7 @@ const TaskFuncTable9 D_actor_403100_80131FB0 = {
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013DD78`, indexed by `field_5FA`.
-const TaskFuncTable11 D_actor_403100_80131FD4 = {
+static const TaskFuncTable11 D_actor_403100_80131FD4 = {
     {
         func_actor_403100_80138D08,
         func_actor_403100_80138DB0,
@@ -4354,7 +4354,7 @@ const TaskFuncTable11 D_actor_403100_80131FD4 = {
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013DE0C`, indexed by `field_5FA`.
-const TaskFuncTable5 D_actor_403100_80132000 = {
+static const TaskFuncTable5 D_actor_403100_80132000 = {
     {
         func_actor_403100_8013A4C8,
         func_actor_403100_8013A5AC,
@@ -4365,7 +4365,7 @@ const TaskFuncTable5 D_actor_403100_80132000 = {
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013DEA0`, indexed by `field_5FA`.
-const TaskFuncTable4 D_actor_403100_80132014 = {
+static const TaskFuncTable4 D_actor_403100_80132014 = {
     {
         (TaskFunc)func_actor_403100_8013F588,
         func_actor_403100_8013AA04,
@@ -4375,7 +4375,7 @@ const TaskFuncTable4 D_actor_403100_80132014 = {
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013DFBC`, indexed by `field_5FA`.
-const TaskFuncTable3 D_actor_403100_80132024 = {
+static const TaskFuncTable3 D_actor_403100_80132024 = {
     {
         (TaskFunc)func_actor_403100_8013F6B0,
         (TaskFunc)func_actor_403100_8013F6F4,
@@ -4384,7 +4384,7 @@ const TaskFuncTable3 D_actor_403100_80132024 = {
 };
 
 /// Handlers `func_actor_403100_8013BA64` dispatches on `field_5F6`.
-const TaskFuncTable6 D_actor_403100_80132030 = {
+static const TaskFuncTable6 D_actor_403100_80132030 = {
     {
         func_actor_403100_8013BB8C,
         func_actor_403100_8013BDE4,
@@ -4395,7 +4395,7 @@ const TaskFuncTable6 D_actor_403100_80132030 = {
     },
 };
 
-void func_actor_403100_8013BA64(Task* arg0)
+static void func_actor_403100_8013BA64(Task* arg0)
 {
     GpCoord*       coords   = arg0->extra.tmd->coords;
     TaskFuncTable6 handlers = D_actor_403100_80132030;
@@ -4414,7 +4414,7 @@ void func_actor_403100_8013BA64(Task* arg0)
         coords->coord.t[0] += (-1100 - coords->coord.t[0]) >> 3;
     }
 }
-void func_actor_403100_8013BB8C(Task* arg0)
+static void func_actor_403100_8013BB8C(Task* arg0)
 {
     s16                 mode;
     s32                 delta;
@@ -4487,7 +4487,7 @@ void func_actor_403100_8013BB8C(Task* arg0)
     }
     coords->coord.t[1] = -((rsin(D_actor_403100_80155808->field_600) << 13) >> 16);
 }
-void func_actor_403100_8013BDE4(Task* arg0)
+static void func_actor_403100_8013BDE4(Task* arg0)
 {
     s16      angle;
     s32      sound;
@@ -4512,7 +4512,7 @@ void func_actor_403100_8013BDE4(Task* arg0)
     }
     coords->coord.t[1] = -((rsin(D_actor_403100_80155808->field_600) << 13) >> 16);
 }
-void func_actor_403100_8013BEF0(Task* arg0)
+static void func_actor_403100_8013BEF0(Task* arg0)
 {
     s16      angle;
     s32      sound;
@@ -4537,7 +4537,7 @@ void func_actor_403100_8013BEF0(Task* arg0)
     }
     coords->coord.t[1] = -((rsin(D_actor_403100_80155808->field_600) << 13) >> 16);
 }
-void func_actor_403100_8013C008(s16 arg0, s16 arg1)
+static void func_actor_403100_8013C008(s16 arg0, s16 arg1)
 {
     POLY_FT4*             poly;
     Actor403100QuadEntry* entry;
@@ -4572,7 +4572,7 @@ void func_actor_403100_8013C008(s16 arg0, s16 arg1)
         addPrim((u32*)((((u32)(entry->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
     }
 }
-void func_actor_403100_8013C214(Task* arg0)
+static void func_actor_403100_8013C214(Task* arg0)
 {
     Task*            playerTask;
     GpCoord*         soundCoords;
@@ -4751,7 +4751,7 @@ static inline void Actor403100ResetStateInline(s16 anim, s16 angle, s16 frame)
     D_actor_403100_80155808->field_5DA = 1;
 }
 
-void func_actor_403100_8013C7B4(Task* arg0)
+static void func_actor_403100_8013C7B4(Task* arg0)
 {
     SVECTOR  pos0, pos1, delta;
     GpCoord* playerCoord;
@@ -4840,7 +4840,7 @@ void func_actor_403100_8013C7B4(Task* arg0)
     D_actor_403100_80155808->field_5E2 = (s16)savedAngle;
     Actor403100ResetStateInline(D_actor_403100_80155808->field_5DE, D_actor_403100_80155808->field_5E2, 0);
 }
-void func_actor_403100_8013CBE0(Task* arg0)
+static void func_actor_403100_8013CBE0(Task* arg0)
 {
     s16 next;
     s16 next2;
@@ -4899,7 +4899,7 @@ void func_actor_403100_8013CBE0(Task* arg0)
             break;
     }
 }
-void func_actor_403100_8013CDC0(void)
+static void func_actor_403100_8013CDC0(void)
 {
     s16 next;
     s16 next2;
@@ -4935,7 +4935,7 @@ void func_actor_403100_8013CDC0(void)
     }
 }
 
-void func_actor_403100_8013CEAC(u16* arg0, s32 arg1, s32 arg2, s16 arg3)
+static void func_actor_403100_8013CEAC(u16* arg0, s32 arg1, s32 arg2, s16 arg3)
 {
     s16 facing;
     s16 target;
@@ -4967,7 +4967,7 @@ void func_actor_403100_8013CEAC(u16* arg0, s32 arg1, s32 arg2, s16 arg3)
         }
     }
 }
-void func_actor_403100_8013CF60(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+static void func_actor_403100_8013CF60(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 {
     s16 facing;
     s16 target;
@@ -5008,7 +5008,7 @@ void func_actor_403100_8013CF60(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3, s32
     }
 }
 
-void func_actor_403100_8013D06C(void)
+static void func_actor_403100_8013D06C(void)
 {
     if (D_actor_403100_80155808->field_B4 >= 0x11) {
         D_actor_403100_80155808->field_B4 = (u16)D_actor_403100_80155808->field_B4 - 8;
@@ -5018,7 +5018,7 @@ void func_actor_403100_8013D06C(void)
     }
 }
 
-void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     GpXformArg msg;
 
@@ -5030,7 +5030,7 @@ void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
     msg.rot.vz = 0;
     Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&msg, 0);
 }
-void func_actor_403100_8013D11C(Task* arg0)
+static void func_actor_403100_8013D11C(Task* arg0)
 {
     GpCoord*      coords;
     GpCoord64*    slot;
@@ -5056,7 +5056,7 @@ void func_actor_403100_8013D11C(Task* arg0)
     Gp_LcgState                 = random;
     slot->data.coord.flg        = 0;
 }
-void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)
+static void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)
 {
     GpAnimArg msg;
 
@@ -5072,7 +5072,7 @@ void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
     }
 }
-void func_actor_403100_8013D24C(void)
+static void func_actor_403100_8013D24C(void)
 {
     s32 state;
 
@@ -5083,7 +5083,7 @@ void func_actor_403100_8013D24C(void)
         D_actor_403100_80155808->field_66F             = state;
     }
 }
-void func_actor_403100_8013D2A0(s16 arg0)
+static void func_actor_403100_8013D2A0(s16 arg0)
 {
     if (!(D_actor_403100_80155808->field_664.word & 0xFFFF00)) {
         if (arg0 == 1) {
@@ -5094,7 +5094,7 @@ void func_actor_403100_8013D2A0(s16 arg0)
     }
 }
 
-s32 func_actor_403100_8013D2F4(GpCoord* coord, MATRIX* matrix)
+static s32 func_actor_403100_8013D2F4(GpCoord* coord, MATRIX* matrix)
 {
     MATRIX   result;
     MATRIX   parent;
@@ -5122,7 +5122,7 @@ s32 func_actor_403100_8013D2F4(GpCoord* coord, MATRIX* matrix)
 /// each level's matrix. If the chain reaches the view coordinate the
 /// transformed point is written back to `pos` and 1 is returned; if it ends
 /// first, `pos` is left untouched and 0 is returned.
-s32 func_actor_403100_8013D460(GpCoord* coord, SVECTOR* pos)
+static s32 func_actor_403100_8013D460(GpCoord* coord, SVECTOR* pos)
 {
     SVECTOR  local;
     VECTOR   result;
@@ -5212,7 +5212,7 @@ void func_actor_403100_8013D608(Task* arg0, s32 arg1, s32 arg2)
             return;
     }
 }
-void func_actor_403100_8013D6B4(Task* arg0)
+static void func_actor_403100_8013D6B4(Task* arg0)
 {
     GpCoord* coord;
 
@@ -5225,7 +5225,7 @@ void func_actor_403100_8013D6B4(Task* arg0)
     D_actor_403100_80155808->field_5D4 = coord[6].coord.t[0];
     D_actor_403100_80155808->field_5F0 = D_actor_403100_80155808->field_5EE;
 }
-void func_actor_403100_8013D700(Task* arg0)
+static void func_actor_403100_8013D700(Task* arg0)
 {
     GpCoord* coord;
 
@@ -5238,14 +5238,14 @@ void func_actor_403100_8013D700(Task* arg0)
     coord[6].coord.t[0]                = D_actor_403100_80155808->field_5D4;
     D_actor_403100_80155808->field_5EE = D_actor_403100_80155808->field_5F0;
 }
-void func_actor_403100_8013D74C(Task* arg0)
+static void func_actor_403100_8013D74C(Task* arg0)
 {
     D_actor_403100_80155808->field_5EE             = 0;
     D_actor_403100_80155808->field_664.b.field_667 = 0;
     D_actor_403100_80155808->field_638             = 0;
     D_actor_403100_80155808->field_63A             = 0;
 }
-void func_actor_403100_8013D770(Task* arg0)
+static void func_actor_403100_8013D770(Task* arg0)
 {
     SVECTOR    rotation;
     OverlayMat matrix;
@@ -5282,7 +5282,7 @@ void func_actor_403100_8013D770(Task* arg0)
     dest->m[2][2] = matrix.mat.m[2][2];
     Gp_UpdateCoord(updated);
 }
-void func_actor_403100_8013D88C(Task* arg0)
+static void func_actor_403100_8013D88C(Task* arg0)
 {
     Gp_UnlinkObj(&D_actor_403100_80155808->field_47C);
     Gp_UnlinkObj(&D_actor_403100_80155808->field_414);
@@ -5291,7 +5291,7 @@ void func_actor_403100_8013D88C(Task* arg0)
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
 }
 
-void func_actor_403100_8013D8F4(Task* arg0)
+static void func_actor_403100_8013D8F4(Task* arg0)
 {
     D_actor_403100_80155808->field_658     = -1;
     D_actor_403100_80155808->field_618     = 0x1400;
@@ -5308,7 +5308,7 @@ void func_actor_403100_8013D8F4(Task* arg0)
     D_actor_403100_80155808->field_5F8 = 9;
     D_actor_403100_80155808->field_5FA = 0;
 }
-s32 func_actor_403100_8013D9C4(s16 x, s16 y, Actor403100RectEntry* entry)
+static s32 func_actor_403100_8013D9C4(s16 x, s16 y, Actor403100RectEntry* entry)
 {
     while (entry->value != -1) {
         if (x >= entry->x && entry->x + entry->w >= x &&
@@ -5319,14 +5319,14 @@ s32 func_actor_403100_8013D9C4(s16 x, s16 y, Actor403100RectEntry* entry)
     }
     return 0;
 }
-void func_actor_403100_8013DA6C(void)
+static void func_actor_403100_8013DA6C(void)
 {
     void (*fns[2])(void) = { (void (*)(void))func_actor_403100_8013712C, func_actor_403100_8013F12C };
 
     fns[(s16)D_actor_403100_80155808->field_5FA]();
 }
 
-void func_actor_403100_8013DAC4(Task* arg0)
+static void func_actor_403100_8013DAC4(Task* arg0)
 {
     TaskFuncTable3 sp;
 
@@ -5335,7 +5335,7 @@ void func_actor_403100_8013DAC4(Task* arg0)
         sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
     }
 }
-void func_actor_403100_8013DB48(Task* arg0)
+static void func_actor_403100_8013DB48(Task* arg0)
 {
     TaskFuncTable6 sp;
 
@@ -5346,7 +5346,7 @@ void func_actor_403100_8013DB48(Task* arg0)
         func_actor_403100_80132C3C(arg0, 7, 8, 0x400, -0xC80);
     }
 }
-void func_actor_403100_8013DC18(Task* arg0)
+static void func_actor_403100_8013DC18(Task* arg0)
 {
     TaskFuncTable5 sp;
 
@@ -5355,7 +5355,7 @@ void func_actor_403100_8013DC18(Task* arg0)
         sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
     }
 }
-void func_actor_403100_8013DCAC(Task* arg0)
+static void func_actor_403100_8013DCAC(Task* arg0)
 {
     TaskFuncTable9 sp;
 
@@ -5364,14 +5364,14 @@ void func_actor_403100_8013DCAC(Task* arg0)
     func_actor_403100_80132C3C(arg0, 6, 7, 0x400, -0xC80);
     func_actor_403100_80132C3C(arg0, 7, 8, 0x400, -0xC80);
 }
-void func_actor_403100_8013DD78(Task* arg0)
+static void func_actor_403100_8013DD78(Task* arg0)
 {
     TaskFuncTable11 sp;
 
     sp = D_actor_403100_80131FD4;
     sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
 }
-void func_actor_403100_8013DE0C(Task* arg0)
+static void func_actor_403100_8013DE0C(Task* arg0)
 {
     TaskFuncTable5 sp;
 
@@ -5380,26 +5380,26 @@ void func_actor_403100_8013DE0C(Task* arg0)
         sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
     }
 }
-void func_actor_403100_8013DEA0(Task* arg0)
+static void func_actor_403100_8013DEA0(Task* arg0)
 {
     TaskFuncTable4 sp;
 
     sp = D_actor_403100_80132014;
     sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
 }
-void func_actor_403100_8013DF0C(void)
+static void func_actor_403100_8013DF0C(void)
 {
     void (*fns[2])(void) = { func_actor_403100_8013F610, func_actor_403100_8013F658 };
 
     fns[(s16)D_actor_403100_80155808->field_5FA]();
 }
-void func_actor_403100_8013DF64(void)
+static void func_actor_403100_8013DF64(void)
 {
     void (*fns[2])(void) = { (void (*)(void))func_actor_403100_8013B128, (void (*)(void))func_actor_403100_8013B3C4 };
 
     fns[(s16)D_actor_403100_80155808->field_5FA]();
 }
-void func_actor_403100_8013DFBC(Task* arg0)
+static void func_actor_403100_8013DFBC(Task* arg0)
 {
     TaskFuncTable3 sp;
 
@@ -5407,7 +5407,7 @@ void func_actor_403100_8013DFBC(Task* arg0)
     func_actor_403100_8013D24C();
     sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
 }
-void func_actor_403100_8013E02C(s16 arg0, s16 arg1, s16 arg2)
+static void func_actor_403100_8013E02C(s16 arg0, s16 arg1, s16 arg2)
 {
     D_actor_403100_80155808->field_5FC = arg2;
     D_actor_403100_80155808->field_5E2 = arg1;
@@ -5440,11 +5440,11 @@ void func_actor_403100_8013E0FC(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void func_actor_403100_8013E16C(void)
+static void func_actor_403100_8013E16C(void)
 {
 }
 
-void func_actor_403100_8013E174(void)
+static void func_actor_403100_8013E174(void)
 {
     s16 timer;
 
@@ -5459,7 +5459,7 @@ void func_actor_403100_8013E174(void)
         func_actor_403100_8013D1B8(5, 0x3F4);
     }
 }
-void func_actor_403100_8013E1E4(void)
+static void func_actor_403100_8013E1E4(void)
 {
     GpAnimArg sp;
 
@@ -5474,7 +5474,7 @@ void func_actor_403100_8013E1E4(void)
         D_actor_403100_80155808->field_5F2 = 3;
     }
 }
-void func_actor_403100_8013E2BC(void)
+static void func_actor_403100_8013E2BC(void)
 {
     if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
@@ -5484,7 +5484,7 @@ void func_actor_403100_8013E2BC(void)
         D_actor_403100_80155808->field_5F2             = 0;
     }
 }
-s32 func_actor_403100_8013E33C(GpCoord* arg0, MATRIX* arg1, GpCoord* arg2)
+static s32 func_actor_403100_8013E33C(GpCoord* arg0, MATRIX* arg1, GpCoord* arg2)
 {
     MATRIX   matrix;
     GpCoord* coord;
@@ -5505,7 +5505,7 @@ s32 func_actor_403100_8013E33C(GpCoord* arg0, MATRIX* arg1, GpCoord* arg2)
         coord = coord->sub;
     }
 }
-s32 func_actor_403100_8013E450(GpCoord* arg0, MATRIX* arg1, GpCoord* arg2)
+static s32 func_actor_403100_8013E450(GpCoord* arg0, MATRIX* arg1, GpCoord* arg2)
 {
     MATRIX   matrix;
     MATRIX   normal;
@@ -5535,13 +5535,13 @@ s32 func_actor_403100_8013E450(GpCoord* arg0, MATRIX* arg1, GpCoord* arg2)
     MulRotMatrix(arg1);
     return 1;
 }
-void func_actor_403100_8013E5FC(void)
+static void func_actor_403100_8013E5FC(void)
 {
     D_actor_403100_8015580C->recs       = 0;
     D_actor_403100_80155808->field_5EC  = 0;
     D_actor_403100_80155808->field_5F8 += 1;
 }
-void func_actor_403100_8013E624(Task* arg0)
+static void func_actor_403100_8013E624(Task* arg0)
 {
     u16 timer;
 
@@ -5556,7 +5556,7 @@ void func_actor_403100_8013E624(Task* arg0)
         D_actor_403100_80155808->field_5FA = 0;
     }
 }
-void func_actor_403100_8013E6A0(Task* arg0)
+static void func_actor_403100_8013E6A0(Task* arg0)
 {
     GpCoord* coord;
 
@@ -5568,7 +5568,7 @@ void func_actor_403100_8013E6A0(Task* arg0)
     func_actor_403100_8013E6F0(arg0);
 }
 
-void func_actor_403100_8013E6F0(Task* arg0)
+static void func_actor_403100_8013E6F0(Task* arg0)
 {
     GpCoord* coord;
     u16      countdown;
@@ -5589,7 +5589,7 @@ void func_actor_403100_8013E6F0(Task* arg0)
     }
 }
 
-void func_actor_403100_8013E784(Task* arg0)
+static void func_actor_403100_8013E784(Task* arg0)
 {
     u16 temp_v0;
 
@@ -5600,7 +5600,7 @@ void func_actor_403100_8013E784(Task* arg0)
     }
 }
 
-void func_actor_403100_8013E7C8(Task* arg0)
+static void func_actor_403100_8013E7C8(Task* arg0)
 {
     GpCoord* coord;
     GpCoord* coord2;
@@ -5627,7 +5627,7 @@ void func_actor_403100_8013E7C8(Task* arg0)
     }
 }
 
-void func_actor_403100_8013E88C(Task* arg0)
+static void func_actor_403100_8013E88C(Task* arg0)
 {
     GpCoord* coord;
     u16      countdown;
@@ -5648,7 +5648,7 @@ void func_actor_403100_8013E88C(Task* arg0)
     }
 }
 
-void func_actor_403100_8013E920(Task* arg0)
+static void func_actor_403100_8013E920(Task* arg0)
 {
     u16 temp_v0;
 
@@ -5658,11 +5658,11 @@ void func_actor_403100_8013E920(Task* arg0)
         taskKill(arg0);
     }
 }
-void func_actor_403100_8013E964(void)
+static void func_actor_403100_8013E964(void)
 {
 }
 
-void func_actor_403100_8013E96C(Task* arg0)
+static void func_actor_403100_8013E96C(Task* arg0)
 {
     TaskFuncTable3 sp;
 
@@ -5670,7 +5670,7 @@ void func_actor_403100_8013E96C(Task* arg0)
     sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
     func_actor_403100_801327CC(arg0);
 }
-void func_actor_403100_8013E9D8(Task* arg0)
+static void func_actor_403100_8013E9D8(Task* arg0)
 {
     TaskFuncTable3 sp;
 
@@ -5679,7 +5679,7 @@ void func_actor_403100_8013E9D8(Task* arg0)
     func_actor_403100_801327CC(arg0);
     func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->field_61C);
 }
-void func_actor_403100_8013EA60(Task* arg0)
+static void func_actor_403100_8013EA60(Task* arg0)
 {
     TaskFuncTable4 sp;
     TmdObject*     obj;
@@ -5689,7 +5689,7 @@ void func_actor_403100_8013EA60(Task* arg0)
     obj->flags = 0;
     sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
 }
-void func_actor_403100_8013EAD4(Task* arg0)
+static void func_actor_403100_8013EAD4(Task* arg0)
 {
     TaskFuncTable3 sp;
     TmdObject*     obj;
@@ -5701,14 +5701,14 @@ void func_actor_403100_8013EAD4(Task* arg0)
     func_actor_403100_801327CC(arg0);
     func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->field_61C);
 }
-void func_actor_403100_8013EB68(Task* arg0)
+static void func_actor_403100_8013EB68(Task* arg0)
 {
     TaskFuncTable3 sp;
 
     sp = D_actor_403100_80131EE4;
     sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
 }
-void func_actor_403100_8013EBC8(Task* arg0)
+static void func_actor_403100_8013EBC8(Task* arg0)
 {
     TaskFuncTable4 sp;
     TmdObject*     obj;
@@ -5719,7 +5719,7 @@ void func_actor_403100_8013EBC8(Task* arg0)
     sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
     func_actor_403100_801327CC(arg0);
 }
-void func_actor_403100_8013EC4C(Task* arg0)
+static void func_actor_403100_8013EC4C(Task* arg0)
 {
     TaskFuncTable4 sp;
     TmdObject*     obj;
@@ -5730,7 +5730,7 @@ void func_actor_403100_8013EC4C(Task* arg0)
     sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
     func_actor_403100_801327CC(arg0);
 }
-void func_actor_403100_8013ECD0(Task* arg0)
+static void func_actor_403100_8013ECD0(Task* arg0)
 {
     TaskFuncTable3 sp;
     TmdObject*     obj;
@@ -5741,11 +5741,11 @@ void func_actor_403100_8013ECD0(Task* arg0)
     sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
     func_actor_403100_801327CC(arg0);
 }
-void func_actor_403100_8013ED48(void)
+static void func_actor_403100_8013ED48(void)
 {
 }
 
-void func_actor_403100_8013ED50(Task* arg0)
+static void func_actor_403100_8013ED50(Task* arg0)
 {
     GpCoord* coord;
 
@@ -5764,7 +5764,7 @@ void func_actor_403100_8013ED50(Task* arg0)
     D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
 }
 
-void func_actor_403100_8013EDDC(void)
+static void func_actor_403100_8013EDDC(void)
 {
     u16 frame;
 
@@ -5775,7 +5775,7 @@ void func_actor_403100_8013EDDC(void)
     }
 }
 
-void func_actor_403100_8013EE28(Task* arg0)
+static void func_actor_403100_8013EE28(Task* arg0)
 {
     GpCoord* coord;
 
@@ -5793,11 +5793,11 @@ void func_actor_403100_8013EE28(Task* arg0)
     D_actor_403100_80155808->field_5EC  = 0;
     D_actor_403100_80155808->field_5FA += 1;
 }
-void func_actor_403100_8013EEB0(void)
+static void func_actor_403100_8013EEB0(void)
 {
 }
 
-void func_actor_403100_8013EEB8(Task* arg0)
+static void func_actor_403100_8013EEB8(Task* arg0)
 {
     GpCoord* coord;
 
@@ -5810,26 +5810,26 @@ void func_actor_403100_8013EEB8(Task* arg0)
     }
     func_actor_403100_801327CC();
 }
-void func_actor_403100_8013EF24(void)
+static void func_actor_403100_8013EF24(void)
 {
 }
 
-void func_actor_403100_8013EF2C(void)
+static void func_actor_403100_8013EF2C(void)
 {
 }
 
-void func_actor_403100_8013EF34(void)
+static void func_actor_403100_8013EF34(void)
 {
     D_actor_403100_80155808->field_5EC = 0;
     D_actor_403100_80155808->field_5EE = 0;
     D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
 }
 
-void func_actor_403100_8013EF58(void)
+static void func_actor_403100_8013EF58(void)
 {
 }
 
-void func_actor_403100_8013EF60(void)
+static void func_actor_403100_8013EF60(void)
 {
     if (Actor403100_TestFlags12C()) {
         D_actor_403100_80155808->field_5FC  = 0xB4;
@@ -5839,11 +5839,11 @@ void func_actor_403100_8013EF60(void)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-void func_actor_403100_8013EFC0(void)
+static void func_actor_403100_8013EFC0(void)
 {
 }
 
-void func_actor_403100_8013EFC8(Task* arg0)
+static void func_actor_403100_8013EFC8(Task* arg0)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -5864,7 +5864,7 @@ void func_actor_403100_8013EFC8(Task* arg0)
     D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
 }
 
-void func_actor_403100_8013F034(Task* arg0)
+static void func_actor_403100_8013F034(Task* arg0)
 {
     GpCoord* coord;
 
@@ -5884,7 +5884,7 @@ void func_actor_403100_8013F034(Task* arg0)
     D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
 }
 
-void func_actor_403100_8013F0A8(Task* arg0)
+static void func_actor_403100_8013F0A8(Task* arg0)
 {
     TmdObject* obj;
 
@@ -5899,7 +5899,7 @@ void func_actor_403100_8013F0A8(Task* arg0)
     D_actor_403100_80155808->field_5F8 = 0;
     D_actor_403100_80155808->field_5FA = 0;
 }
-void func_actor_403100_8013F12C(void)
+static void func_actor_403100_8013F12C(void)
 {
     u16 frame;
 
@@ -5913,7 +5913,7 @@ void func_actor_403100_8013F12C(void)
     }
 }
 
-void func_actor_403100_8013F18C(void)
+static void func_actor_403100_8013F18C(void)
 {
     D_actor_403100_80155808->field_5FC = 4;
     D_actor_403100_80155808->field_5E2 = 0x10;
@@ -5926,14 +5926,14 @@ void func_actor_403100_8013F18C(void)
     D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
 }
 
-void func_actor_403100_8013F1D8(void)
+static void func_actor_403100_8013F1D8(void)
 {
     if (Actor403100_TestFlags104()) {
         D_actor_403100_80155808->field_5F8 = 1;
         D_actor_403100_80155808->field_5FA = 0;
     }
 }
-void func_actor_403100_8013F230(void)
+static void func_actor_403100_8013F230(void)
 {
     u16 frame;
 
@@ -5945,7 +5945,7 @@ void func_actor_403100_8013F230(void)
     }
 }
 
-void func_actor_403100_8013F270(void)
+static void func_actor_403100_8013F270(void)
 {
     D_actor_403100_80155808->field_5EC = 0;
     SndEvt_EnqueueType7(0x401F0004, 0xA);
@@ -5956,7 +5956,7 @@ void func_actor_403100_8013F270(void)
     D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
 }
 
-void func_actor_403100_8013F2D8(void)
+static void func_actor_403100_8013F2D8(void)
 {
     if ((func_actor_403100_80133928() << 0x10) == 0) {
         D_actor_403100_80155808->field_668.b.field_668 = 0;
@@ -5969,7 +5969,7 @@ void func_actor_403100_8013F2D8(void)
     }
 }
 
-void func_actor_403100_8013F344(void)
+static void func_actor_403100_8013F344(void)
 {
     if (((func_actor_403100_80133928() << 0x10) == 0) &&
         (D_actor_403100_80155808->field_5F6 == 5)) {
@@ -5981,7 +5981,7 @@ void func_actor_403100_8013F344(void)
     }
 }
 
-void func_actor_403100_8013F3AC(void)
+static void func_actor_403100_8013F3AC(void)
 {
     u16 frame;
 
@@ -5993,7 +5993,7 @@ void func_actor_403100_8013F3AC(void)
     }
 }
 
-void func_actor_403100_8013F3EC(Task* arg0)
+static void func_actor_403100_8013F3EC(Task* arg0)
 {
     GpCoord* coord;
 
@@ -6014,14 +6014,14 @@ void func_actor_403100_8013F3EC(Task* arg0)
     D_actor_403100_80155808->field_610  = 0;
     D_actor_403100_80155808->field_5FA += 1;
 }
-void func_actor_403100_8013F488(void)
+static void func_actor_403100_8013F488(void)
 {
     if (Actor403100_TestFlags()) {
         D_actor_403100_80155808->field_5F8 = 1;
         D_actor_403100_80155808->field_5FA = 0;
     }
 }
-void func_actor_403100_8013F4E0(void)
+static void func_actor_403100_8013F4E0(void)
 {
     u16 frame;
 
@@ -6032,7 +6032,7 @@ void func_actor_403100_8013F4E0(void)
         D_actor_403100_80155808->field_5FA = 0;
     }
 }
-void func_actor_403100_8013F520(void)
+static void func_actor_403100_8013F520(void)
 {
     D_actor_403100_80155808->field_5EC = 0;
     SndEvt_EnqueueType7(0x401F0004, 0xA);
@@ -6042,7 +6042,7 @@ void func_actor_403100_8013F520(void)
     D_actor_403100_80155808->field_5DA  = 1;
     D_actor_403100_80155808->field_5FA += 1;
 }
-void func_actor_403100_8013F588(void)
+static void func_actor_403100_8013F588(void)
 {
     if ((func_actor_403100_80133928() << 0x10) == 0) {
         D_actor_403100_80155808->field_5F6             = 4;
@@ -6057,7 +6057,7 @@ void func_actor_403100_8013F588(void)
         D_actor_403100_80155808->field_5FA            += 1;
     }
 }
-void func_actor_403100_8013F610(void)
+static void func_actor_403100_8013F610(void)
 {
     D_actor_403100_80155808->field_61C = 2;
     D_actor_403100_80155808->field_5F6 = 4;
@@ -6068,14 +6068,14 @@ void func_actor_403100_8013F610(void)
     D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
 }
 
-void func_actor_403100_8013F658(void)
+static void func_actor_403100_8013F658(void)
 {
     if (Actor403100_TestFlags104()) {
         D_actor_403100_80155808->field_5F8 = 1;
         D_actor_403100_80155808->field_5FA = 0;
     }
 }
-void func_actor_403100_8013F6B0(void)
+static void func_actor_403100_8013F6B0(void)
 {
     D_actor_403100_80155808->field_61C  = 2;
     D_actor_403100_80155808->field_5F6  = 4;
@@ -6085,7 +6085,7 @@ void func_actor_403100_8013F6B0(void)
     D_actor_403100_80155808->field_5DA  = 1;
     D_actor_403100_80155808->field_5FA += 1;
 }
-void func_actor_403100_8013F6F4(void)
+static void func_actor_403100_8013F6F4(void)
 {
     if (Actor403100_TestFlags104()) {
         D_actor_403100_80155808->field_5FC  = 4;
@@ -6096,7 +6096,7 @@ void func_actor_403100_8013F6F4(void)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-void func_actor_403100_8013F76C(void)
+static void func_actor_403100_8013F76C(void)
 {
     u16 frame;
 
@@ -6108,14 +6108,14 @@ void func_actor_403100_8013F76C(void)
     }
 }
 
-void func_actor_403100_8013F7AC(void)
+static void func_actor_403100_8013F7AC(void)
 {
 }
 
-void func_actor_403100_8013F7B4(void)
+static void func_actor_403100_8013F7B4(void)
 {
 }
 
-void func_actor_403100_8013F7BC(void)
+static void func_actor_403100_8013F7BC(void)
 {
 }

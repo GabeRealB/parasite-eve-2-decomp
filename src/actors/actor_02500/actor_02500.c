@@ -118,26 +118,26 @@ extern void*                D_80067704[1];
 /* Declared here with a signed id: see the note in gameplay/1BC.h. */
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void Actor02500_Fn00078(GpEnemy* ctx, Task* actor);
-void Actor02500_Fn01AC8(GpEnemy* ctx, Task* actor);
-void Actor02500_Fn01E60(GpEnemy* ctx, Task* actor);
-void Actor02500_Fn01F8C(Task* actor);
-void Actor02500_Fn02008(Task* actor);
-void Actor02500_Fn020D0(Task* actor);
-void Actor02500_Fn02178(Task* actor);
-void Actor02500_Fn021F8(Task* actor);
-void Actor02500_Fn02288(Task* actor);
-void Actor02500_Fn02318(Task* actor);
-void Actor02500_Fn023D8(Task* actor);
-void Actor02500_Fn02430(Task* actor);
-void Actor02500_Fn02480(Task* actor);
-void Actor02500_Fn025D0(GpEnemy* ctx, Task* task);
-void Actor02500_Fn02750(GpEnemy* ctx, Task* task);
-void Actor02500_Fn02874(GpEnemy* ctx, Task* task);
+static void Actor02500_Fn00078(GpEnemy* ctx, Task* actor);
+static void Actor02500_Fn01AC8(GpEnemy* ctx, Task* actor);
+static void Actor02500_Fn01E60(GpEnemy* ctx, Task* actor);
+static void Actor02500_Fn01F8C(Task* actor);
+static void Actor02500_Fn02008(Task* actor);
+static void Actor02500_Fn020D0(Task* actor);
+static void Actor02500_Fn02178(Task* actor);
+static void Actor02500_Fn021F8(Task* actor);
+static void Actor02500_Fn02288(Task* actor);
+static void Actor02500_Fn02318(Task* actor);
+static void Actor02500_Fn023D8(Task* actor);
+static void Actor02500_Fn02430(Task* actor);
+static void Actor02500_Fn02480(Task* actor);
+static void Actor02500_Fn025D0(GpEnemy* ctx, Task* task);
+static void Actor02500_Fn02750(GpEnemy* ctx, Task* task);
+static void Actor02500_Fn02874(GpEnemy* ctx, Task* task);
 
 /// State handlers of the enemy task `Actor02500_Fn01E04` dispatches, indexed
 /// by `Task::state`: spawn, per-frame tick and the dying sequence.
-const GpEnemyTaskFuncTable3 Actor02500_D00004 = {
+static const GpEnemyTaskFuncTable3 Actor02500_D00004 = {
     {
         Actor02500_Fn00078,
         Actor02500_Fn01E60,
@@ -145,7 +145,7 @@ const GpEnemyTaskFuncTable3 Actor02500_D00004 = {
     },
 };
 
-void Actor02500_Fn00078(GpEnemy* ctx, Task* actor)
+static void Actor02500_Fn00078(GpEnemy* ctx, Task* actor)
 {
     Actor02500Work* work;
     TmdObject*      obj;
@@ -272,7 +272,7 @@ void Actor02500_Fn00078(GpEnemy* ctx, Task* actor)
 /// into it, then walks the three `field_1C4` records: kind 2 is a hit that
 /// costs the enemy HP and plays a sound, kinds 1 and 3 push it away from the
 /// obstacle, and the strongest push is applied to the coordinate at the end.
-void Actor02500_Fn00494(Task* actor)
+static void Actor02500_Fn00494(Task* actor)
 {
     u32                    lastId;
     Actor02500Work*        work;
@@ -455,7 +455,7 @@ void Actor02500_Fn00494(Task* actor)
     SCRATCH_POP_BYTES(0x30);
 }
 
-void Actor02500_Fn00B18(Task* actor)
+static void Actor02500_Fn00B18(Task* actor)
 {
     Actor02500Work* work;
     GpCoord*        coord;
@@ -538,7 +538,7 @@ void Actor02500_Fn00B18(Task* actor)
     SCRATCH_POP_BYTES(0x10);
 }
 
-void Actor02500_Fn00DD8(Task* actor)
+static void Actor02500_Fn00DD8(Task* actor)
 {
     Actor02500Work* work;
     GpCoord*        coord;
@@ -636,7 +636,7 @@ void Actor02500_Fn00DD8(Task* actor)
     SCRATCH_POP_BYTES(0x10);
 }
 
-void Actor02500_Fn01144(Task* actor)
+static void Actor02500_Fn01144(Task* actor)
 {
     Actor02500Work* work;
     GpCoord*        coord;
@@ -674,7 +674,7 @@ void Actor02500_Fn01144(Task* actor)
     }
 }
 
-void Actor02500_Fn012F0(Task* actor)
+static void Actor02500_Fn012F0(Task* actor)
 {
     TmdObject*            obj;
     Actor02500Work*       work;
@@ -785,7 +785,7 @@ void Actor02500_Fn012F0(Task* actor)
     SCRATCH_POP_BYTES(0x18);
 }
 
-void Actor02500_Fn016FC(Task* arg0)
+static void Actor02500_Fn016FC(Task* arg0)
 {
     Actor02500Work*   work;
     GpCoord*          coord;
@@ -854,7 +854,7 @@ done:
     SCRATCH_POP_BYTES(0x18);
 }
 
-void Actor02500_Fn0184C(Task* arg0)
+static void Actor02500_Fn0184C(Task* arg0)
 {
     GpAreaKey    key;
     u32          raw1, raw2, raw3;
@@ -940,7 +940,7 @@ void Actor02500_Fn0184C(Task* arg0)
     }
 }
 
-void Actor02500_Fn01AC8(GpEnemy* arg0, Task* arg1)
+static void Actor02500_Fn01AC8(GpEnemy* arg0, Task* arg1)
 {
     Actor02500Work* work;
     TmdObject*      obj;
@@ -1076,7 +1076,7 @@ void Actor02500_Fn01E04(Task* arg0)
     sp.funcs[arg0->state](((GpEnemy*)arg0->spawnArg2), arg0);
 }
 
-void Actor02500_Fn01E60(GpEnemy* arg0, Task* arg1)
+static void Actor02500_Fn01E60(GpEnemy* arg0, Task* arg1)
 {
     Actor02500Work* work;
     TmdObject*      temp_a1;
@@ -1139,7 +1139,7 @@ tail:
     Actor02500_Fn02430(arg1);
 }
 
-void Actor02500_Fn01F8C(Task* actor)
+static void Actor02500_Fn01F8C(Task* actor)
 {
     u8              flags;
     u8              remainingFlags;
@@ -1170,7 +1170,7 @@ void Actor02500_Fn01F8C(Task* actor)
 /// State handlers of the helper task `Actor02500_Fn02574` dispatches, indexed
 /// by `Task::state`: setup, per-frame tick and the countdown that
 /// destroys it.
-const GpEnemyTaskFuncTable3 Actor02500_D00050 = {
+static const GpEnemyTaskFuncTable3 Actor02500_D00050 = {
     {
         Actor02500_Fn025D0,
         Actor02500_Fn02750,
@@ -1178,7 +1178,7 @@ const GpEnemyTaskFuncTable3 Actor02500_D00050 = {
     },
 };
 
-void Actor02500_Fn02008(Task* arg0)
+static void Actor02500_Fn02008(Task* arg0)
 {
     switch (((Actor02500Work*)arg0->work)->field_322) {
         case 0:
@@ -1207,7 +1207,7 @@ void Actor02500_Fn02008(Task* arg0)
     }
 }
 
-void Actor02500_Fn020D0(Task* arg0)
+static void Actor02500_Fn020D0(Task* arg0)
 {
     Actor02500Work* work;
     s32             state;
@@ -1243,7 +1243,7 @@ void Actor02500_Fn020D0(Task* arg0)
     }
 }
 
-void Actor02500_Fn02178(Task* arg0)
+static void Actor02500_Fn02178(Task* arg0)
 {
     Actor02500Work* work;
     s32             state;
@@ -1270,7 +1270,7 @@ void Actor02500_Fn02178(Task* arg0)
     }
 }
 
-void Actor02500_Fn021F8(Task* arg0)
+static void Actor02500_Fn021F8(Task* arg0)
 {
     Actor02500Work* work;
     s32             state;
@@ -1297,7 +1297,7 @@ void Actor02500_Fn021F8(Task* arg0)
     }
 }
 
-void Actor02500_Fn02288(Task* arg0)
+static void Actor02500_Fn02288(Task* arg0)
 {
     Actor02500Work* work;
     GpCoord*        coord;
@@ -1312,7 +1312,7 @@ void Actor02500_Fn02288(Task* arg0)
     coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->field_326) >> 0xC;
 }
 
-void Actor02500_Fn02318(Task* arg0)
+static void Actor02500_Fn02318(Task* arg0)
 {
     Actor02500Work* work;
     s16             anim;
@@ -1341,7 +1341,7 @@ void Actor02500_Fn02318(Task* arg0)
     } while (j < 5);
 }
 
-void Actor02500_Fn023D8(Task* arg0)
+static void Actor02500_Fn023D8(Task* arg0)
 {
     VECTOR   vec;
     GpCoord* coord;
@@ -1353,7 +1353,7 @@ void Actor02500_Fn023D8(Task* arg0)
     Gp_UpdateActorColor(arg0->spawnArg2, &vec, 0, 0);
 }
 
-void Actor02500_Fn02430(Task* arg0)
+static void Actor02500_Fn02430(Task* arg0)
 {
     VECTOR3  vec;
     GpCoord* coord;
@@ -1365,7 +1365,7 @@ void Actor02500_Fn02430(Task* arg0)
     Gp_DrawEffGroundQuad(&vec, 0x200, 0x80);
 }
 
-void Actor02500_Fn02480(Task* arg0)
+static void Actor02500_Fn02480(Task* arg0)
 {
     GpCoord*           coord;
     ActorScaleScratch* head;
@@ -1403,7 +1403,7 @@ void Actor02500_Fn02574(Task* arg0)
     sp.funcs[arg0->state](((GpEnemy*)arg0->spawnArg2), arg0);
 }
 
-void Actor02500_Fn025D0(GpEnemy* ctx, Task* task)
+static void Actor02500_Fn025D0(GpEnemy* ctx, Task* task)
 {
     Actor02500EffWork* work;
     GpCoord*           coord;
@@ -1443,7 +1443,7 @@ void Actor02500_Fn025D0(GpEnemy* ctx, Task* task)
     task->state = 1;
 }
 
-void Actor02500_Fn02750(GpEnemy* ctx, Task* task)
+static void Actor02500_Fn02750(GpEnemy* ctx, Task* task)
 {
     s32                sound;
     GpCoord*           coord;
@@ -1480,7 +1480,7 @@ void Actor02500_Fn02750(GpEnemy* ctx, Task* task)
     }
 }
 
-void Actor02500_Fn02874(GpEnemy* ctx, Task* task)
+static void Actor02500_Fn02874(GpEnemy* ctx, Task* task)
 {
     Actor02500EffWork* work = (Actor02500EffWork*)((Actor02500Work*)task->work);
 

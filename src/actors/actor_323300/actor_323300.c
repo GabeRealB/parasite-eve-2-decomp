@@ -133,26 +133,26 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 
-void func_actor_323300_80161E78(Task* arg0);
-void func_actor_323300_80161FE8(Task* arg0);
-s32  func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3);
-void func_actor_323300_8016269C(Task* arg0);
-void func_actor_323300_801626D0(Task* arg0);
-void func_actor_323300_801626EC(Task* arg0);
-void func_actor_323300_801626F4(Task* arg0);
-void func_actor_323300_80162748(Task* arg0);
-void func_actor_323300_801627B4(Task* arg0);
-s32  func_actor_323300_801628B8(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3);
-s32  func_actor_323300_801629F0(Task* arg0, s32 arg1, GpXformArg* arg2, s32 arg3);
-void func_actor_323300_801634B0(Task* arg0);
-void func_actor_323300_80163510(Task* arg0);
-void func_actor_323300_8016359C(Task* arg0, s16 arg1);
-s32  func_actor_323300_8016369C(Task* arg0, s32 arg1, GpXformArg* arg2, s32 arg3);
-s32  func_actor_323300_80163718(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3);
+static void func_actor_323300_80161E78(Task* arg0);
+static void func_actor_323300_80161FE8(Task* arg0);
+s32         func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3);
+static void func_actor_323300_8016269C(Task* arg0);
+static void func_actor_323300_801626D0(Task* arg0);
+static void func_actor_323300_801626EC(Task* arg0);
+static void func_actor_323300_801626F4(Task* arg0);
+static void func_actor_323300_80162748(Task* arg0);
+static void func_actor_323300_801627B4(Task* arg0);
+s32         func_actor_323300_801628B8(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3);
+s32         func_actor_323300_801629F0(Task* arg0, s32 arg1, GpXformArg* arg2, s32 arg3);
+static void func_actor_323300_801634B0(Task* arg0);
+static void func_actor_323300_80163510(Task* arg0);
+static void func_actor_323300_8016359C(Task* arg0, s16 arg1);
+static s32  func_actor_323300_8016369C(Task* arg0, s32 arg1, GpXformArg* arg2, s32 arg3);
+static s32  func_actor_323300_80163718(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3);
 
 /// State table `func_actor_323300_80162630` copies onto the stack and indexes
 /// by `Task::state`: spawn, per-frame runner and exit of the 0x504 block.
-const TaskFuncTable3 D_actor_323300_80161E24 = { {
+static const TaskFuncTable3 D_actor_323300_80161E24 = { {
     func_actor_323300_80161E78,
     func_actor_323300_80161FE8,
     func_actor_323300_8016269C,
@@ -163,7 +163,7 @@ const TaskFuncTable3 D_actor_323300_80161E24 = { {
 /// binds the three message handlers and the animation presets the state
 /// functions drive. Bails out through `Gp_EnemyTaskExit` when the room flag
 /// 0x60 is already set (the actor already spawned) or the allocation fails.
-void func_actor_323300_80161E78(Task* arg0)
+static void func_actor_323300_80161E78(Task* arg0)
 {
     Actor323300Work* work;
     TmdObject*       extra;
@@ -209,7 +209,7 @@ void func_actor_323300_80161E78(Task* arg0)
 /// `TmdObject::flags` says the model is hidden, draws the ground shadow under
 /// coordinate 1, refreshes that coordinate's matrix and colour, and ticks the
 /// `field_502` countdown that frees the model's buffers when it reaches zero.
-void func_actor_323300_80161FE8(Task* arg0)
+static void func_actor_323300_80161FE8(Task* arg0)
 {
     TmdObject*       extra               = arg0->extra.tmd;
     Actor323300Work* work                = (Actor323300Work*)arg0->work;
@@ -431,13 +431,13 @@ void func_actor_323300_80162630(Task* task)
     }
 }
 
-void func_actor_323300_8016269C(Task* arg0)
+static void func_actor_323300_8016269C(Task* arg0)
 {
     Gp_UnlinkObj(&((Actor323300Work*)arg0->work)->obj);
     Gp_EnemyTaskExit(arg0);
 }
 
-void func_actor_323300_801626D0(Task* arg0)
+static void func_actor_323300_801626D0(Task* arg0)
 {
     TmdObject*       ext;
     Actor323300Work* work;
@@ -450,13 +450,13 @@ void func_actor_323300_801626D0(Task* arg0)
 
 /// Index 0 of the two-entry table `func_actor_323300_80161FE8` builds on its
 /// stack: the empty "hold" state.
-void func_actor_323300_801626EC(Task* arg0)
+static void func_actor_323300_801626EC(Task* arg0)
 {
 }
 
 /// Index 1 of that table: re-dispatches on `walk.motionStep` through a second
 /// two-entry table, the preset start and the turn-to-face step.
-void func_actor_323300_801626F4(Task* arg0)
+static void func_actor_323300_801626F4(Task* arg0)
 {
     Actor323300Work* work                = (Actor323300Work*)arg0->work;
     void             (*states[2])(Task*) = {
@@ -467,7 +467,7 @@ void func_actor_323300_801626F4(Task* arg0)
     states[(s16)work->walk.motionStep](arg0);
 }
 
-void func_actor_323300_80162748(Task* arg0)
+static void func_actor_323300_80162748(Task* arg0)
 {
     Actor323300Work* work;
     s32              i;
@@ -492,7 +492,7 @@ void func_actor_323300_80162748(Task* arg0)
 /// gap steps `vec.vy` toward the target by 0x40 instead. Either way the root
 /// coordinate is rebuilt as the identity matrix rotated by `vec`, with `flg`
 /// cleared so the next `Gp_UpdateCoord` recomputes it.
-void func_actor_323300_801627B4(Task* arg0)
+static void func_actor_323300_801627B4(Task* arg0)
 {
     Actor323300Work* work;
     OverlayMat*      words;
@@ -599,7 +599,7 @@ s32 func_actor_323300_801629F0(Task* task, s32 msgId, GpXformArg* args, s32 arg3
 /// `arg1->field_14`, `arg2` being the 0..0x1000 ramp: the vertex pass runs
 /// through `gteMIMefunc` against `arg1->field_0`, the normal pass only while
 /// `arg1->field_4` is set.
-void func_actor_323300_80162A6C(Task* arg0, GpMimeSrc* arg1, s32 arg2)
+static void func_actor_323300_80162A6C(Task* arg0, GpMimeSrc* arg1, s32 arg2)
 {
     s32        i;
     s32        count;
@@ -667,7 +667,7 @@ void func_actor_323300_80162A6C(Task* arg0, GpMimeSrc* arg1, s32 arg2)
     }
 }
 
-void func_actor_323300_80162BE4(Task* arg0)
+static void func_actor_323300_80162BE4(Task* arg0)
 {
     Actor323300MtxWork* work;
     TmdObject*          extra;
@@ -759,7 +759,7 @@ void func_actor_323300_80162BE4(Task* arg0)
 /// the same ramp. Part 6's shading is rebound to the third copy's translation
 /// before the countdown drops, so the whole ramp runs out exactly when it
 /// reaches zero.
-void func_actor_323300_80162DF0(Task* arg0)
+static void func_actor_323300_80162DF0(Task* arg0)
 {
     Actor323300MtxWork* work;
     TmdObject*          extra;
@@ -833,7 +833,7 @@ void func_actor_323300_80162DF0(Task* arg0)
 /// rotation in a matrix carved off the scratchpad head, applies both turns,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.
-void func_actor_323300_80163188(GpCoord* coord, s16 angle)
+static void func_actor_323300_80163188(GpCoord* coord, s16 angle)
 {
     MATRIX*  rotation;
     GpCoord* out;
@@ -850,7 +850,7 @@ void func_actor_323300_80163188(GpCoord* coord, s16 angle)
     SCRATCH_POP(MATRIX);
 }
 
-void func_actor_323300_801634B0(Task* arg0)
+static void func_actor_323300_801634B0(Task* arg0)
 {
     GpCoord* base;
     GpCoord* node;
@@ -873,7 +873,7 @@ void func_actor_323300_801634B0(Task* arg0)
 /// `TmdObject::lightMtx` / `field_20`, then re-derives model part 1's world
 /// matrix -- clearing its dirty flag, rebuilding it from its parent and
 /// rebinding the actor's shading to the part's translation.
-void func_actor_323300_80163510(Task* arg0)
+static void func_actor_323300_80163510(Task* arg0)
 {
     Actor323300MtxWork* work;
     OverlayMat*         light;
@@ -914,7 +914,7 @@ void func_actor_323300_80163510(Task* arg0)
 /// `Gp_UpdateCoord` re-derives them. The lower clamp tests `arg1` rather than
 /// the clamped copy; that is the same test, because the upper clamp has already
 /// pinned the copy to 0x400 whenever the angle was out of range upwards.
-void func_actor_323300_8016359C(Task* arg0, s16 arg1)
+static void func_actor_323300_8016359C(Task* arg0, s16 arg1)
 {
     s16 var;
 
@@ -939,7 +939,7 @@ void func_actor_323300_8016359C(Task* arg0, s16 arg1)
 /// `func_actor_323300_801629F0`: copies `args`' translation into the root
 /// part's local matrix and its Euler angles into the coordinate's `rot` slot,
 /// rebuilds the rotation from them and clears `flg`.
-s32 func_actor_323300_8016369C(Task* task, s32 msgId, GpXformArg* args, s32 arg3)
+static s32 func_actor_323300_8016369C(Task* task, s32 msgId, GpXformArg* args, s32 arg3)
 {
     GpCoord* coord;
 
@@ -965,7 +965,7 @@ s32 func_actor_323300_8016369C(Task* task, s32 msgId, GpXformArg* args, s32 arg3
 /// `func_800B4114` when the preset asks for it and the block has been started
 /// before, through `Gp_AnimResetSlot` otherwise -- ticks them once and latches
 /// `field_43C` so the next preset takes the first branch.
-s32 func_actor_323300_80163718(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
+static s32 func_actor_323300_80163718(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
 {
     Actor323300MtxWork* work;
     TmdObject*          ext;
@@ -998,7 +998,7 @@ s32 func_actor_323300_80163718(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
     return 0;
 }
 
-const TaskFuncTable3 D_actor_323300_80161E6C = { {
+static const TaskFuncTable3 D_actor_323300_80161E6C = { {
     func_actor_323300_80162BE4,
     func_actor_323300_80162DF0,
     func_actor_323300_801634B0,

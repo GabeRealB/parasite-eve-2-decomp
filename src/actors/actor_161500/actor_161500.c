@@ -49,15 +49,15 @@ extern s32 D_actor_161500_80137AB8;
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_161500_8013252C(Task* task);
-void func_actor_161500_8013273C(GpEnemy* enemy, Task* task);
-void func_actor_161500_8013284C(Task* task);
-void func_actor_161500_80132874(Task* task);
-void func_actor_161500_80132900(Task* task);
-void func_actor_161500_8013294C(Task* task);
-void func_actor_161500_801329C4(Task* task);
+static void func_actor_161500_8013252C(Task* task);
+static void func_actor_161500_8013273C(GpEnemy* enemy, Task* task);
+static void func_actor_161500_8013284C(Task* task);
+static void func_actor_161500_80132874(Task* task);
+static void func_actor_161500_80132900(Task* task);
+static void func_actor_161500_8013294C(Task* task);
+static void func_actor_161500_801329C4(Task* task);
 
-void func_actor_161500_80131E38(void)
+static void func_actor_161500_80131E38(void)
 {
     if ((GameFlag_GetNibble(0x116) != 1) && (GameFlag_GetNibble(0x116) != 2) && (GameFlag_GetNibble(0x113) == 4)) {
         GameFlag_SetNibble(0x113, 5);
@@ -107,7 +107,7 @@ void func_actor_161500_80131F50(s32 arg0)
     Gp_ResetCap();
 }
 
-void func_actor_161500_80131FBC(void)
+static void func_actor_161500_80131FBC(void)
 {
     s32 temp_s0;
     s32 temp_v0;
@@ -120,7 +120,7 @@ void func_actor_161500_80131FBC(void)
     }
 }
 
-void func_actor_161500_80132038(void)
+static void func_actor_161500_80132038(void)
 {
     s32 temp_s0;
     s32 temp_v0;
@@ -148,7 +148,7 @@ void func_actor_161500_801320F0(s32 arg0)
     Gp_RunCapCmd(arg0, 0);
 }
 
-void func_actor_161500_80132110(void)
+static void func_actor_161500_80132110(void)
 {
     if (GameFlag_GetNibble(0x105) == 0) {
         func_800E8614((s32)&D_actor_161500_801352A8, 0);
@@ -193,7 +193,7 @@ void func_actor_161500_80132294(u8 arg0)
     D_80115768 = arg0;
 }
 
-void func_actor_161500_801322A0(void)
+static void func_actor_161500_801322A0(void)
 {
     s32 temp_v0;
 
@@ -209,7 +209,7 @@ void func_actor_161500_801322A0(void)
     }
 }
 
-void func_actor_161500_8013230C(void)
+static void func_actor_161500_8013230C(void)
 {
     s32 temp_v0;
 
@@ -235,7 +235,7 @@ void func_actor_161500_8013230C(void)
 /// on clip 2, otherwise on clip 1. It then lights the model, sets up the
 /// animation context and the task's message table, and runs the step body
 /// once with the plain reseed queued.
-void func_actor_161500_80132394(GpEnemy* enemy, Task* task)
+static void func_actor_161500_80132394(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor161500Work* work;
@@ -287,7 +287,7 @@ void func_actor_161500_80132394(GpEnemy* enemy, Task* task)
 /// without `animArg`) and advance to 3; state 3 walks the root coordinate 30
 /// units per frame while the walk clip has `travel` left, and when it runs out
 /// queues a reseed into clip 1 with argument 0xA, then ticks the slots.
-void func_actor_161500_8013252C(Task* task)
+static void func_actor_161500_8013252C(Task* task)
 {
     Actor161500Work* work;
     s16              animId;
@@ -340,7 +340,7 @@ void func_actor_161500_801326E8(Task* task)
 /// ramped toward 0x1000 in 0x200 steps while `turnUp` is 1 and back down to
 /// 0 otherwise, so the actor turns its head to the player and away again
 /// smoothly instead of snapping.
-void func_actor_161500_8013273C(GpEnemy* enemy, Task* task)
+static void func_actor_161500_8013273C(GpEnemy* enemy, Task* task)
 {
     TmdObject*       obj;
     GpCoord*         coord;
@@ -373,7 +373,7 @@ void func_actor_161500_8013273C(GpEnemy* enemy, Task* task)
 
 /// The actor's `Task::exitCallback`: hands the task's `GpEnemy`, parked in
 /// `Task::spawnArg2`, back to `Gp_DestroyEnemy`.
-void func_actor_161500_8013284C(Task* task)
+static void func_actor_161500_8013284C(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
@@ -382,7 +382,7 @@ void func_actor_161500_8013284C(Task* task)
 /// is hidden (`TmdObject::flags` bit 0x80) or has no buffer yet. The world
 /// position is the translation of the root coordinate's `workm`, staged in a
 /// scratchpad VECTOR3 rather than on the stack.
-void func_actor_161500_80132874(Task* task)
+static void func_actor_161500_80132874(Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -401,7 +401,7 @@ void func_actor_161500_80132874(Task* task)
 }
 
 /// Ticks animation slots 1..0x13 of the actor's animation context.
-void func_actor_161500_80132900(Task* task)
+static void func_actor_161500_80132900(Task* task)
 {
     Actor161500Work* work;
     s32              i;
@@ -416,7 +416,7 @@ void func_actor_161500_80132900(Task* task)
 
 /// Reseeds animation slots 1..0x13 with `animId`, each at rate 1, and records
 /// that id as the one applied.
-void func_actor_161500_8013294C(Task* task)
+static void func_actor_161500_8013294C(Task* task)
 {
     Actor161500Work* work;
     s32              i;
@@ -433,7 +433,7 @@ void func_actor_161500_8013294C(Task* task)
 
 /// Reseeds animation slots 1..0x13 with `animId`, passing `animArg` through,
 /// and records that id as the one applied.
-void func_actor_161500_801329C4(Task* task)
+static void func_actor_161500_801329C4(Task* task)
 {
     Actor161500Work* work;
     s32              i;

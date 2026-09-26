@@ -110,35 +110,35 @@ extern SVECTOR Actor01500_D0A090;
 extern s16     Actor01500_D0A092;
 extern SVECTOR Actor01500_D0A098;
 
-void Actor01500_Fn00094(GpEnemy* arg0, Task* arg1);
-void Actor01500_Fn004EC(Task* actor);
-void Actor01500_Fn00AFC(Task* actor, s32 damage);
-void Actor01500_Fn00CA4(Task* actor);
-void Actor01500_Fn00FC4(Task* actor);
-void Actor01500_Fn011B0(Task* actor);
-void Actor01500_Fn015DC(Task* actor);
-void Actor01500_Fn01708(Task* actor);
-void Actor01500_Fn01838(Task* actor);
-void Actor01500_Fn01988(Task* actor);
-void Actor01500_Fn01AB0(Task* arg0);
-void Actor01500_Fn01DF0(GpEnemy* arg0, Task* arg1);
-void Actor01500_Fn020D8(Task* actor);
-void Actor01500_Fn02428(Task* task);
-void Actor01500_Fn02484(GpEnemy* enemy, Task* actor);
-void Actor01500_Fn025C8(Task* actor);
-void Actor01500_Fn026D8(Task* actor);
-void Actor01500_Fn027B0(Task* actor);
-void Actor01500_Fn0288C(Task* actor);
-void Actor01500_Fn028B0(Task* actor);
-void Actor01500_Fn02958(Task* actor);
-void Actor01500_Fn02A1C(Task* actor);
-void Actor01500_Fn02B14(Task* actor);
-void Actor01500_Fn02B70(Task* actor);
-void Actor01500_Fn02C34(Task* actor);
+static void Actor01500_Fn00094(GpEnemy* arg0, Task* arg1);
+static void Actor01500_Fn004EC(Task* actor);
+static void Actor01500_Fn00AFC(Task* actor, s32 damage);
+static void Actor01500_Fn00CA4(Task* actor);
+static void Actor01500_Fn00FC4(Task* actor);
+static void Actor01500_Fn011B0(Task* actor);
+static void Actor01500_Fn015DC(Task* actor);
+static void Actor01500_Fn01708(Task* actor);
+static void Actor01500_Fn01838(Task* actor);
+static void Actor01500_Fn01988(Task* actor);
+static void Actor01500_Fn01AB0(Task* arg0);
+static void Actor01500_Fn01DF0(GpEnemy* arg0, Task* arg1);
+static void Actor01500_Fn020D8(Task* actor);
+static void Actor01500_Fn02428(Task* task);
+static void Actor01500_Fn02484(GpEnemy* enemy, Task* actor);
+static void Actor01500_Fn025C8(Task* actor);
+static void Actor01500_Fn026D8(Task* actor);
+static void Actor01500_Fn027B0(Task* actor);
+static void Actor01500_Fn0288C(Task* actor);
+static void Actor01500_Fn028B0(Task* actor);
+static void Actor01500_Fn02958(Task* actor);
+static void Actor01500_Fn02A1C(Task* actor);
+static void Actor01500_Fn02B14(Task* actor);
+static void Actor01500_Fn02B70(Task* actor);
+static void Actor01500_Fn02C34(Task* actor);
 
 /// The actor's three task states - spawn, per-frame tick and teardown - run
 /// by `Actor01500_Fn02428`.
-const GpEnemyTaskFuncTable3 Actor01500_D00004 = {
+static const GpEnemyTaskFuncTable3 Actor01500_D00004 = {
     {
         Actor01500_Fn00094,
         Actor01500_Fn02484,
@@ -148,7 +148,7 @@ const GpEnemyTaskFuncTable3 Actor01500_D00004 = {
 
 /// Spawn handler: allocates the work area, binds the model and collision
 /// objects, and seeds the pose from the spawn variant in `GpAreaPlace.variant`.
-void Actor01500_Fn00094(GpEnemy* arg0, Task* arg1)
+static void Actor01500_Fn00094(GpEnemy* arg0, Task* arg1)
 {
     Actor101500Work* work;
     TmdObject*       obj;
@@ -278,7 +278,7 @@ void Actor01500_Fn00094(GpEnemy* arg0, Task* arg1)
 
 /// Per-frame contact pass: applies the collision step, reacts to the three
 /// contact records (damage from actors, push-out from walls) and clears them.
-void Actor01500_Fn004EC(Task* actor)
+static void Actor01500_Fn004EC(Task* actor)
 {
     Actor101500Work* work;
     ActorPushFrame*  frame;
@@ -449,7 +449,7 @@ void Actor01500_Fn004EC(Task* actor)
     SCRATCH_POP(ActorPushFrame);
 }
 
-void Actor01500_Fn00AFC(Task* actor, s32 damage)
+static void Actor01500_Fn00AFC(Task* actor, s32 damage)
 {
     GpEnemy*         enemy;
     Actor101500Work* work;
@@ -503,7 +503,7 @@ void Actor01500_Fn00AFC(Task* actor, s32 damage)
 /// to pose 3, or 4 when `field_36E` is set) or for a disturbance - a random
 /// timeout, a `Gp_StateF0.field_2` trigger or lost hit points - that sends it into
 /// pose 7/8 with a fresh `Actor01500_D09FC8` countdown.
-void Actor01500_Fn00CA4(Task* actor)
+static void Actor01500_Fn00CA4(Task* actor)
 {
     Actor101500Work* work;
     GpCoord*         coord;
@@ -592,7 +592,7 @@ void Actor01500_Fn00CA4(Task* actor)
 /// Once the pose has run 30 frames, re-aims `field_374` along the coordinate's
 /// facing and walks the actor 40 units back along it (state 1 also rises, faster
 /// early on); from frame 59 it queues pose 5 with two `Gp_LcgState` draws.
-void Actor01500_Fn00FC4(Task* actor)
+static void Actor01500_Fn00FC4(Task* actor)
 {
     Actor101500Work* work;
     GpCoord*         coord;
@@ -642,7 +642,7 @@ void Actor01500_Fn00FC4(Task* actor)
 /// random `Actor01500_D09FE8` distance; within 1000 units of the player it
 /// switches to pose 10 and rises until its collision object reports contact
 /// or it passes the height limit, then settles again.
-void Actor01500_Fn011B0(Task* actor)
+static void Actor01500_Fn011B0(Task* actor)
 {
     VECTOR3*         vec;
     Actor101500Work* work;
@@ -757,7 +757,7 @@ void Actor01500_Fn011B0(Task* actor)
 /// Faces the actor toward the player on the XZ plane and raises `field_378`
 /// once the player leaves the vertical band (500 above, 1800 below) or
 /// `field_362` counts past 1800 frames.
-void Actor01500_Fn015DC(Task* actor)
+static void Actor01500_Fn015DC(Task* actor)
 {
     Actor101500Work* work;
     GpCoord*         coord;
@@ -789,7 +789,7 @@ void Actor01500_Fn015DC(Task* actor)
 /// Leaves the idle poses once `field_356` frames have run: state 0 switches to
 /// pose 7 (8 when `field_36E` is set), state 1 to pose 5 with a random
 /// `field_362` delay, state 2 to pose 14.
-void Actor01500_Fn01708(Task* actor)
+static void Actor01500_Fn01708(Task* actor)
 {
     Actor101500Work* work = actor->work;
     s16              pose;
@@ -838,7 +838,7 @@ void Actor01500_Fn01708(Task* actor)
 
 /// Turns the actor toward `field_372` by at most `field_376` per call, taking
 /// the short way round the 0x1000 circle, then rebuilds its rotation matrix.
-void Actor01500_Fn01838(Task* arg0)
+static void Actor01500_Fn01838(Task* arg0)
 {
     Actor101500Work*  work;
     GpCoord*          coord;
@@ -907,7 +907,7 @@ done:
     SCRATCH_POP_BYTES(0x18);
 }
 
-void Actor01500_Fn01988(Task* arg0)
+static void Actor01500_Fn01988(Task* arg0)
 {
     Actor101500Work* work;
     GpCoord*         coord;
@@ -937,7 +937,7 @@ void Actor01500_Fn01988(Task* arg0)
     }
 }
 
-void Actor01500_Fn01AB0(Task* arg0)
+static void Actor01500_Fn01AB0(Task* arg0)
 {
     GpAreaKey    key;
     u8           areaByte0;
@@ -1057,7 +1057,7 @@ void Actor01500_Fn01AB0(Task* arg0)
 /// and spawns an effect at frame 15, 3 frees the model's buffers once
 /// `field_37E` passes 1 and 4 unlinks on its first frame; 1, 3 and 4 move to
 /// 2 once `field_362` runs out, and 2 destroys the enemy.
-void Actor01500_Fn01DF0(GpEnemy* arg0, Task* arg1)
+static void Actor01500_Fn01DF0(GpEnemy* arg0, Task* arg1)
 {
     VECTOR           pos;
     Actor101500Work* work;
@@ -1152,7 +1152,7 @@ update:
     Gp_UpdateActorColor(arg1->spawnArg2, &pos, 0, 0);
 }
 
-void Actor01500_Fn020D8(Task* arg0)
+static void Actor01500_Fn020D8(Task* arg0)
 {
     u8*              head;
     VECTOR3*         stk;
@@ -1240,7 +1240,7 @@ void Actor01500_Fn020D8(Task* arg0)
 
 /// Runs the task's current state handler from `Actor01500_D00004`, copying
 /// the table onto the stack before the call.
-void Actor01500_Fn02428(Task* task)
+static void Actor01500_Fn02428(Task* task)
 {
     GpEnemyTaskFuncTable3 sp;
 
@@ -1253,7 +1253,7 @@ void Actor01500_Fn02428(Task* task)
 /// hands off to the teardown state once `field_378` is raised in the
 /// states that allow it, runs the behaviour state, turns, moves, animates
 /// and voices the actor and rebuilds its root coordinate.
-void Actor01500_Fn02484(GpEnemy* arg0, Task* arg1)
+static void Actor01500_Fn02484(GpEnemy* arg0, Task* arg1)
 {
     GpCoord*         coord;
     TmdObject*       obj;
@@ -1317,7 +1317,7 @@ case1:
 
 /// Flag bits 0/1 of `field_4C` knock the actor into pose 13; bits 2/3 tick
 /// the damage-over-time effect and apply each hit.
-void Actor01500_Fn025C8(Task* actor)
+static void Actor01500_Fn025C8(Task* actor)
 {
     GpEnemy*         enemy;
     Actor101500Work* work;
@@ -1358,7 +1358,7 @@ void Actor01500_Fn025C8(Task* actor)
 }
 
 /// Runs the behaviour state `field_35A` selects. State 8 has no handler.
-void Actor01500_Fn026D8(Task* arg0)
+static void Actor01500_Fn026D8(Task* arg0)
 {
     switch (((Actor101500Work*)arg0->work)->field_35A) {
         case 0:
@@ -1394,7 +1394,7 @@ void Actor01500_Fn026D8(Task* arg0)
 /// Counts `field_362` up, raising the state-F0 flags at frame 60; from frame 90
 /// it switches to pose 7 (8 when `field_36E` is set) and reloads the counter
 /// with a random delay.
-void Actor01500_Fn027B0(Task* actor)
+static void Actor01500_Fn027B0(Task* actor)
 {
     Actor101500Work* work = actor->work;
     s16              pose;
@@ -1426,7 +1426,7 @@ void Actor01500_Fn027B0(Task* actor)
 /// Stagger state, entered from a hit reaction or at low hit points: a slow
 /// forward drift (`field_360`) with a climb of 0x80 a frame (`field_366`),
 /// the second collision object's centre moved to (0, -300, 0).
-void Actor01500_Fn0288C(Task* arg0)
+static void Actor01500_Fn0288C(Task* arg0)
 {
     Actor101500Work* work = arg0->work;
 
@@ -1439,7 +1439,7 @@ void Actor01500_Fn0288C(Task* arg0)
 /// Countdown pose. Requests pose 9 and clears the move state each frame; when
 /// `field_362` runs out it switches to pose 7 and reloads the countdown from a
 /// `Gp_LcgState` draw into `Actor01500_D09FC8`.
-void Actor01500_Fn028B0(Task* actor)
+static void Actor01500_Fn028B0(Task* actor)
 {
     Actor101500Work* work = actor->work;
     u32              rnd;
@@ -1470,7 +1470,7 @@ void Actor01500_Fn028B0(Task* actor)
 /// slots were last queued for, every slot is re-seeded from the per-state
 /// animation id table and the frame counter is cleared; while the two agree
 /// each slot is ticked and the frame counter accumulates the slot index.
-void Actor01500_Fn02958(Task* arg0)
+static void Actor01500_Fn02958(Task* arg0)
 {
     Actor101500Work* work;
     s32              i;
@@ -1498,7 +1498,7 @@ void Actor01500_Fn02958(Task* arg0)
 /// Voice tick: while `field_34C` holds a sound id, plays it every third
 /// animation frame, tagged with the placement number, and once `field_380`
 /// runs out switches to the 0x400F0003 cue.
-void Actor01500_Fn02A1C(Task* arg0)
+static void Actor01500_Fn02A1C(Task* arg0)
 {
     s16              timer;
     s32              soundId;
@@ -1529,7 +1529,7 @@ void Actor01500_Fn02A1C(Task* arg0)
 
 /// Hands `Gp_UpdateActorColor` the world position of the model's second
 /// coordinate, with no blend parameters.
-void Actor01500_Fn02B14(Task* arg0)
+static void Actor01500_Fn02B14(Task* arg0)
 {
     GpCoord* coord;
     VECTOR   vec;
@@ -1546,7 +1546,7 @@ void Actor01500_Fn02B14(Task* arg0)
 /// in state 5, otherwise from the hit point `func_800EA1A8` finds casting a
 /// ray down. The shade passed to `Gp_DrawEffGroundQuad` is `0x80` in state 5,
 /// otherwise `func_800EA318`'s reading of the ray's drop.
-void Actor01500_Fn02B70(Task* arg0)
+static void Actor01500_Fn02B70(Task* arg0)
 {
     Actor101500Work* work;
     GpCoord*         coord;
@@ -1579,7 +1579,7 @@ void Actor01500_Fn02B70(Task* arg0)
 /// scale is applied through an identity rotation carved off the scratchpad,
 /// `ScaleMatrix` and `MulMatrix`, and `flg` is cleared so the coordinate's work
 /// matrix is rebuilt.
-void Actor01500_Fn02C34(Task* arg0)
+static void Actor01500_Fn02C34(Task* arg0)
 {
     GpCoord*           coord;
     ActorScaleScratch* head;

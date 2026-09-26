@@ -314,15 +314,15 @@ extern TmdSource D_actor_401000_8014599C;
 extern TmdSource D_actor_401000_80146190;
 
 /// Handlers defined after the state table and the init that name them.
-void func_actor_401000_8013DA78(Task* task);
-void func_actor_401000_8013DB10(Task* arg0);
-void func_actor_401000_8013DB6C(Task* arg0);
-void func_actor_401000_8013DC14(Task* arg0);
-void func_actor_401000_8013DCC0(Task* arg0);
-void func_actor_401000_8013DD6C(Task* arg0);
-void func_actor_401000_8013DE24(Task* arg0);
-void func_actor_401000_8013DEC8(Task* arg0);
-void func_actor_401000_8013DF6C(Task* arg0);
+static void func_actor_401000_8013DA78(Task* task);
+static void func_actor_401000_8013DB10(Task* arg0);
+static void func_actor_401000_8013DB6C(Task* arg0);
+static void func_actor_401000_8013DC14(Task* arg0);
+static void func_actor_401000_8013DCC0(Task* arg0);
+static void func_actor_401000_8013DD6C(Task* arg0);
+static void func_actor_401000_8013DE24(Task* arg0);
+static void func_actor_401000_8013DEC8(Task* arg0);
+static void func_actor_401000_8013DF6C(Task* arg0);
 
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
@@ -339,7 +339,7 @@ extern s8 D_actor_401000_8015465C;
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it. The actor turns two joints of its chain with it, by
 /// two thirds and one half of the same clamped angle.
-void func_actor_401000_801320E0(GpCoord* coord, s16 yaw)
+static void func_actor_401000_801320E0(GpCoord* coord, s16 yaw)
 {
     MATRIX*  rotation;
     GpCoord* out;
@@ -360,7 +360,7 @@ void func_actor_401000_801320E0(GpCoord* coord, s16 yaw)
 /// delta in `D_actor_401000_80155010`. A nonzero fractional part rounds both
 /// the coordinate and the kept step one unit away from zero. Returns 1 when the
 /// X or Z delta is nonzero.
-s32 func_actor_401000_801323EC(GpCoord* coord, GpRec18* recs, s16 count)
+static s32 func_actor_401000_801323EC(GpCoord* coord, GpRec18* recs, s16 count)
 {
     void**            scratch;
     u8*               head;
@@ -414,7 +414,7 @@ s32 func_actor_401000_801323EC(GpCoord* coord, GpRec18* recs, s16 count)
 /// one outside it, or the answer is 1 at once. Otherwise the root is moved
 /// `step` along its facing and the result is whether the player's root is at
 /// least `range` + 0x96 away from that point.
-s32 func_actor_401000_80132590(GpCoord* coord, s16 range, s16 step)
+static s32 func_actor_401000_80132590(GpCoord* coord, s16 range, s16 step)
 {
     SVECTOR  v;
     SVECTOR  d;
@@ -470,7 +470,7 @@ s32 func_actor_401000_80132590(GpCoord* coord, s16 range, s16 step)
 
 /// Rotates the player's and this actor's root positions, each raised by 1000,
 /// into world space and returns `func_800E0308` on the pair.
-s32 func_actor_401000_80132824(Task* arg0)
+static s32 func_actor_401000_80132824(Task* arg0)
 {
     Task*              player;
     u8*                head;
@@ -518,7 +518,7 @@ s32 func_actor_401000_80132824(Task* arg0)
 /// pose and the blend pose and write their mix, weighted by `field_8AC`, into
 /// the model; slots 11-18 just advance the body clip. The body slots run three
 /// sixteenths slower than `field_8A2`, the blend slots at `field_8AA`.
-void func_actor_401000_80132A84(Task* arg0)
+static void func_actor_401000_80132A84(Task* arg0)
 {
     GpAnimPose       pose;
     GpAnimPose       blendPose;
@@ -547,7 +547,7 @@ void func_actor_401000_80132A84(Task* arg0)
 /// Returns the sound event the current clip (`field_89E`) has reached at its
 /// frame (`field_5A`), once per frame: the frame is latched in `field_8B4`, and
 /// a frame already latched, or one that carries no event, returns 0.
-s32 func_actor_401000_80132BB0(Actor401000Work* work)
+static s32 func_actor_401000_80132BB0(Actor401000Work* work)
 {
     s32 id;
     s32 prev;
@@ -707,7 +707,7 @@ s32 func_actor_401000_80132BB0(Actor401000Work* work)
 /// chain by two thirds and one half of it, clamped to 0x400 either way. Last,
 /// the sound event the animation has reached is queued at the model's pan and
 /// depth.
-void func_actor_401000_80132EF0(Task* arg0)
+static void func_actor_401000_80132EF0(Task* arg0)
 {
     Actor401000Work* seekWork;
     Actor401000Work* resetWork;
@@ -911,7 +911,7 @@ static __inline__ void Actor401000_InitPose(GpCoord* coord, Actor401000Work* wor
 /// three `GpObj` nodes, then picks the opening clip from the low bits of
 /// `GpEnemy::placeKey` and the `field_C10` parameter run from the spawn flags.
 /// The tail rebuilds the root coordinate through `Actor401000_InitPose`.
-void func_actor_401000_80133274(GpEnemy* enemy, Task* actor)
+static void func_actor_401000_80133274(GpEnemy* enemy, Task* actor)
 {
     SVECTOR          dir;
     VECTOR           pos;
@@ -1103,7 +1103,7 @@ void func_actor_401000_80133274(GpEnemy* enemy, Task* actor)
 /// part the vector's `pad` names. The 8-byte scratch the offset is built in is
 /// carved off and given back around the call. Same body as
 /// `Actor00100_Fn03340`, which keeps its record inline and scales by 0x100.
-void func_actor_401000_80133940(Task* arg0, s16 arg1, s32 arg2)
+static void func_actor_401000_80133940(Task* arg0, s16 arg1, s32 arg2)
 {
     SVECTOR*         sc;
     s32              mag;
@@ -1167,7 +1167,7 @@ void func_actor_401000_80133940(Task* arg0, s16 arg1, s32 arg2)
     SCRATCH_POP_BYTES(8);
 }
 
-void func_actor_401000_80133D50(Task* arg0)
+static void func_actor_401000_80133D50(Task* arg0)
 {
     PlayerStatus*    config = &Player_Status;
     Actor401000Work* work;
@@ -1529,7 +1529,7 @@ void func_actor_401000_80133D50(Task* arg0)
 /// halves `field_8A2` down to the +-0x10 turntable step and retires the actor
 /// once the enemy is spent. Same body as `func_actor_401300_80135DDC`, which
 /// drops the frame-count loop's `flags_68` guard and its own 0x36 test.
-void func_actor_401000_80134DB4(Task* arg0)
+static void func_actor_401000_80134DB4(Task* arg0)
 {
     Actor401000Work* work;
     GpEnemy*         enemy;
@@ -1587,7 +1587,7 @@ void func_actor_401000_80134DB4(Task* arg0)
 /// then rebuild the root coordinate scaled by 0x1194. Same body as
 /// `func_actor_401300_80136238`, minus that one's `field_8B6` state pair and
 /// its message-id gate, which the 401000 sibling keeps in `field_C10`.
-void func_actor_401000_80134F98(Task* arg0)
+static void func_actor_401000_80134F98(Task* arg0)
 {
     Actor401000Work*   work;
     ActorChaseScratch* aim;
@@ -1633,7 +1633,7 @@ void func_actor_401000_80134F98(Task* arg0)
     SCRATCH_POP(ActorChaseScratch);
 }
 
-void func_actor_401000_801352DC(GpAreaKey* session, GpCoord* coord)
+static void func_actor_401000_801352DC(GpAreaKey* session, GpCoord* coord)
 {
     ActorHeightClamp* row;
     s32               offset;
@@ -1688,7 +1688,7 @@ static __inline__ s32 Actor401000_HasHeightClamp(GpAreaKey* session)
 /// two (or letting the add re-read `s->step.vy`) swaps `$s0`/`$s1`: the block
 /// pointer against the `step` local. The temporary keeps one reference to the
 /// block pointer out of the RTL, which is what tips that fight the other way.
-s32 func_actor_401000_80135374(GpCoord* coord, GpRec18* rec, s16 arg2, s16 arg3)
+static s32 func_actor_401000_80135374(GpCoord* coord, GpRec18* rec, s16 arg2, s16 arg3)
 {
     ActorStepDelta* head;
     ActorStepDelta* s;
@@ -1764,7 +1764,7 @@ s32 func_actor_401000_80135374(GpCoord* coord, GpRec18* rec, s16 arg2, s16 arg3)
     return s->moved;
 }
 
-s32 func_actor_401000_80135704(Task* arg0, GpRec18* recs, s16 count)
+static s32 func_actor_401000_80135704(Task* arg0, GpRec18* recs, s16 count)
 {
     ActorPushScratch* head;
     ActorPushScratch* s;
@@ -1814,7 +1814,7 @@ s32 func_actor_401000_80135704(Task* arg0, GpRec18* recs, s16 count)
     return s->hit;
 }
 
-void func_actor_401000_80135AA4(Task* arg0)
+static void func_actor_401000_80135AA4(Task* arg0)
 {
     ActorChaseScratch* head;
     ActorChaseScratch* chase;
@@ -1958,7 +1958,7 @@ void func_actor_401000_80135AA4(Task* arg0)
 /// -1 -> 0 as `field_8A2` passes 0x18 and 0x12, and the 0 arm runs the
 /// five-frame exit window that re-aims once more and picks state 0xB when the
 /// actor faces away from the player, else state 0x1A.
-void func_actor_401000_801365C8(Task* arg0)
+static void func_actor_401000_801365C8(Task* arg0)
 {
     ActorChaseScratch* chase;
     ActorChaseScratch* head;
@@ -2093,7 +2093,7 @@ void func_actor_401000_801365C8(Task* arg0)
 /// met the actor re-arms (`field_0` 8 or 0xB) off `field_C24`, the obstacle
 /// range and the `field_C1B` cooldown, and the arm is then slid forward along
 /// its obstacle table. `field_C1B` counts down once per entry.
-void func_actor_401000_80136E20(Task* arg0)
+static void func_actor_401000_80136E20(Task* arg0)
 {
     Actor401000Work*   work;
     ActorChaseScratch* aim;
@@ -2185,7 +2185,7 @@ void func_actor_401000_80136E20(Task* arg0)
 /// scales it onto the scratch vector; the actor is then slid along its obstacle
 /// table, halving that draw while it overlaps. Counts the entry in `field_6`
 /// and keys state 7 once 0x1E of them have run.
-void func_actor_401000_801374D4(Task* arg0)
+static void func_actor_401000_801374D4(Task* arg0)
 {
     Actor401000Work*   work;
     ActorChaseScratch* aim;
@@ -2284,7 +2284,7 @@ void func_actor_401000_801374D4(Task* arg0)
     SCRATCH_POP(ActorChaseScratch);
 }
 
-void func_actor_401000_801378DC(Task* arg0)
+static void func_actor_401000_801378DC(Task* arg0)
 {
     SVECTOR          delta;
     Actor401000Work* work;
@@ -2381,7 +2381,7 @@ void func_actor_401000_801378DC(Task* arg0)
     }
 }
 
-void func_actor_401000_801380B8(Task* arg0)
+static void func_actor_401000_801380B8(Task* arg0)
 {
     SVECTOR          dir;
     Actor401000Work* work;
@@ -2441,7 +2441,7 @@ void func_actor_401000_801380B8(Task* arg0)
     }
 }
 
-void func_actor_401000_801383F0(Task* arg0)
+static void func_actor_401000_801383F0(Task* arg0)
 {
     Actor401000Work* work;
     GpAnimArg*       msg;
@@ -2478,7 +2478,7 @@ void func_actor_401000_801383F0(Task* arg0)
     Gp_UpdateCoord(&arg0->extra.tmd->coords[2]);
 }
 
-void func_actor_401000_801385B0(Task* arg0)
+static void func_actor_401000_801385B0(Task* arg0)
 {
     Actor401000Work* work;
     GpEnemy*         enemy;
@@ -2542,7 +2542,7 @@ void func_actor_401000_801385B0(Task* arg0)
 /// forward step while the 0x12C probe is still in range. The tail keys the
 /// actor's next state (`field_0`) off `GpEnemy.hp` / `.reactionFlags` whenever
 /// the work block's pending-request bit is up.
-void func_actor_401000_801388F4(Task* arg0)
+static void func_actor_401000_801388F4(Task* arg0)
 {
     Actor401000Work* work;
     GpEnemy*         enemy;
@@ -2600,7 +2600,7 @@ void func_actor_401000_801388F4(Task* arg0)
 /// obstacle helper once per record table. The tail keys the actor's next state
 /// (`field_0`) off `GpEnemy.hp` / `.reactionFlags` whenever the work block's
 /// pending-request bit is up.
-void func_actor_401000_80138BB4(Task* arg0)
+static void func_actor_401000_80138BB4(Task* arg0)
 {
     Actor401000Work* work;
     GpEnemy*         enemy;
@@ -2648,7 +2648,7 @@ void func_actor_401000_80138BB4(Task* arg0)
 /// `coord.m` with `flg` cleared so the local matrix is recomputed.
 /// Same body as `Actor01900_Fn06904`, minus that one's 0x13 release argument
 /// and with `field_A10.flags |= 0x4000` in place of its `&= 0xBFFF`.
-void func_actor_401000_80138D08(Task* arg0)
+static void func_actor_401000_80138D08(Task* arg0)
 {
     Actor401000Work*      work;
     GpEnemy*              enemy;
@@ -2746,7 +2746,7 @@ void func_actor_401000_80138D08(Task* arg0)
 /// Same body as `func_actor_401300_80139520`, with the pose matrix in place of
 /// that one's `field_C48` / `field_C68` pair and a `field_C16` radius in place
 /// of its literal 3000.
-void func_actor_401000_80138F50(Task* arg0)
+static void func_actor_401000_80138F50(Task* arg0)
 {
     Actor401000Work* work;
     GpEnemy*         enemy;
@@ -2807,7 +2807,7 @@ void func_actor_401000_80138F50(Task* arg0)
     }
 }
 
-void func_actor_401000_8013922C(Task* arg0)
+static void func_actor_401000_8013922C(Task* arg0)
 {
     Actor401000Work* work;
     GpEnemy*         enemy;
@@ -2876,7 +2876,7 @@ void func_actor_401000_8013922C(Task* arg0)
 /// inside 0x80.
 /// The tail drops the actor to state 6 on the `Player_Status` range checks and
 /// the `Gp_StateF0` bits, and the live-actor arm restarts the 0x1AE clip.
-void func_actor_401000_801394EC(Task* arg0)
+static void func_actor_401000_801394EC(Task* arg0)
 {
     Actor401000Work*  work;
     ActorTurnScratch* turn;
@@ -2979,7 +2979,7 @@ void func_actor_401000_801394EC(Task* arg0)
 /// `field_C04`, and that same countdown then runs down by 0xA a frame. The
 /// tail drops the actor to state 9 on the `flags_68` bit or once the
 /// countdown is spent.
-void func_actor_401000_80139D10(Task* arg0)
+static void func_actor_401000_80139D10(Task* arg0)
 {
     Actor401000Work*  work;
     GpEnemy*          enemy;
@@ -3040,7 +3040,7 @@ void func_actor_401000_80139D10(Task* arg0)
 /// 0x16/2 -> 0x16/0x11 spawn pair keys the follow-up; the spawn arm writes
 /// `field_8D0.field_1C` first and leaves `field_6` alone, and the exit turn
 /// reads the sign of `field_8AE` with the `0x4B0` arm first.
-void func_actor_401000_8013A0C8(Task* arg0)
+static void func_actor_401000_8013A0C8(Task* arg0)
 {
     Actor401000Work*   work;
     ActorChaseScratch* aim;
@@ -3113,7 +3113,7 @@ void func_actor_401000_8013A0C8(Task* arg0)
 /// slot is 0x13 instead of 9 and `field_8D0.field_1C` is written before the
 /// other state words; and the spawn arm clears the `field_6` latch on its way
 /// out instead of arming state F0.
-void func_actor_401000_8013A5F0(Task* arg0)
+static void func_actor_401000_8013A5F0(Task* arg0)
 {
     Actor401000Work*   work;
     ActorChaseScratch* aim;
@@ -3170,7 +3170,7 @@ void func_actor_401000_8013A5F0(Task* arg0)
 /// spawn arm arming the 0x13 clip, `field_8D0.field_1C` written before the other
 /// state words, and `field_A10.flags |= 0x4000` in place of the sibling's
 /// `&= 0xBFFF`.
-void func_actor_401000_8013A930(Task* arg0)
+static void func_actor_401000_8013A930(Task* arg0)
 {
     Actor401000Work*   work;
     ActorChaseScratch* aim;
@@ -3274,7 +3274,7 @@ void func_actor_401000_8013A930(Task* arg0)
 /// node offsets (`+1`, `+9`, `+12`, `+1`, `+3` off the root coordinate) and the
 /// same 0x64/0/0 spawn vector, but it reads the offset from the work block
 /// rather than a stack `SVECTOR` and has no `field_D20` guard on the tail.
-void func_actor_401000_8013B1E4(Task* arg0)
+static void func_actor_401000_8013B1E4(Task* arg0)
 {
     Actor401000Work* work;
     GpEnemy*         enemy;
@@ -3334,7 +3334,7 @@ void func_actor_401000_8013B1E4(Task* arg0)
 /// off `field_6 - 0x19`, and from 0x1A on rebuilds the root coordinate through
 /// `ratan2` at scale `0x1194 - (field_6 - 0x14) * 0xB`. Both arms end in
 /// `func_actor_401000_80132EF0` and `actorResetYaw` on nodes 2..10.
-void func_actor_401000_8013B61C(Task* arg0)
+static void func_actor_401000_8013B61C(Task* arg0)
 {
     Actor401000Work*      work;
     GpEnemy*              enemy;
@@ -3478,7 +3478,7 @@ void func_actor_401000_8013B61C(Task* arg0)
 /// and flips it every 0xF1 frames. The tail takes one forward step off the
 /// 0x12C probe, or re-arms the clip on the `flags_68` bit. `field_C1B` counts
 /// down once per entry.
-void func_actor_401000_8013C46C(Task* arg0)
+static void func_actor_401000_8013C46C(Task* arg0)
 {
     Actor401000Work*   work;
     TmdObject*         obj;
@@ -3604,7 +3604,7 @@ void func_actor_401000_8013C46C(Task* arg0)
 /// node pair off clip 0xB / slot 2 and tests the request bit `0x100` rather
 /// than bit 0. Same tail: `GpEnemy.hp` / `.reactionFlags` pick the next
 /// `field_0` whenever the request bit is up.
-void func_actor_401000_8013CD9C(Task* arg0)
+static void func_actor_401000_8013CD9C(Task* arg0)
 {
     Actor401000Work* work;
     GpEnemy*         enemy;
@@ -3649,7 +3649,7 @@ void func_actor_401000_8013CD9C(Task* arg0)
 /// node pair off clip 0x19 / slot 2 and tests the request bit `0x100` rather
 /// than bit 0. Same tail: `GpEnemy.hp` / `.reactionFlags` pick the next
 /// `field_0` whenever the request bit is up.
-void func_actor_401000_8013CEF0(Task* arg0)
+static void func_actor_401000_8013CEF0(Task* arg0)
 {
     Actor401000Work* work;
     GpEnemy*         enemy;
@@ -3738,7 +3738,7 @@ static const Actor401000StateTable D_actor_401000_80131FF4 = { {
 /// 0xB/0xD transition), dispatches through the table, re-flags `field_8D0`,
 /// then appends the view-space position to the `field_C2C` ring and publishes
 /// it as the enemy's `field_1C` while the `field_89E` clip is 0x14/0x15.
-void func_actor_401000_8013D044(GpEnemy* enemy, Task* actor)
+static void func_actor_401000_8013D044(GpEnemy* enemy, Task* actor)
 {
     VECTOR                pos;
     Actor401000StateTable states;
@@ -4048,7 +4048,7 @@ s32 func_actor_401000_8013D958(Task* arg0, s32 arg1, u16* arg2)
 
 /// `Task::exitCallback` teardown: kills the two helper tasks, unlinks the three
 /// display nodes and drops the enemy's `recs`, then destroys the enemy.
-void func_actor_401000_8013DA78(Task* task)
+static void func_actor_401000_8013DA78(Task* task)
 {
     Actor401000Work* work;
     GpEnemy*         enemy;
@@ -4070,7 +4070,7 @@ void func_actor_401000_8013DA78(Task* task)
     Gp_DestroyEnemy(enemy, task);
 }
 
-void func_actor_401000_8013DB10(Task* arg0)
+static void func_actor_401000_8013DB10(Task* arg0)
 {
     TmdObject*       obj;
     Actor401000Work* work;
@@ -4085,7 +4085,7 @@ void func_actor_401000_8013DB10(Task* arg0)
     }
 }
 
-void func_actor_401000_8013DB6C(Task* arg0)
+static void func_actor_401000_8013DB6C(Task* arg0)
 {
     TmdObject*       obj;
     Actor401000Work* work;
@@ -4109,7 +4109,7 @@ void func_actor_401000_8013DB6C(Task* arg0)
     }
 }
 
-void func_actor_401000_8013DC14(Task* arg0)
+static void func_actor_401000_8013DC14(Task* arg0)
 {
     TmdObject*       obj;
     Actor401000Work* work;
@@ -4133,7 +4133,7 @@ void func_actor_401000_8013DC14(Task* arg0)
     }
 }
 
-void func_actor_401000_8013DCC0(Task* arg0)
+static void func_actor_401000_8013DCC0(Task* arg0)
 {
     TmdObject*       obj;
     Actor401000Work* work;
@@ -4157,7 +4157,7 @@ void func_actor_401000_8013DCC0(Task* arg0)
     }
 }
 
-void func_actor_401000_8013DD6C(Task* arg0)
+static void func_actor_401000_8013DD6C(Task* arg0)
 {
     TmdObject*       obj;
     Actor401000Work* work;
@@ -4182,7 +4182,7 @@ void func_actor_401000_8013DD6C(Task* arg0)
     }
 }
 
-void func_actor_401000_8013DE24(Task* arg0)
+static void func_actor_401000_8013DE24(Task* arg0)
 {
     Actor401000Work* work;
     GpEnemy*         enemy;
@@ -4207,7 +4207,7 @@ void func_actor_401000_8013DE24(Task* arg0)
     }
 }
 
-void func_actor_401000_8013DEC8(Task* arg0)
+static void func_actor_401000_8013DEC8(Task* arg0)
 {
     Actor401000Work* work;
     GpEnemy*         enemy;
@@ -4236,7 +4236,7 @@ void func_actor_401000_8013DEC8(Task* arg0)
 /// a 0-15 draw from `Gp_LcgState`. When it runs out, clips 0xB/0x17 move the
 /// actor to state 0xF and clips 0xC/0x18/0x19 to state 0x10; a spent enemy HP
 /// moves it to state 0x15 whatever else happened.
-void func_actor_401000_8013DF6C(Task* arg0)
+static void func_actor_401000_8013DF6C(Task* arg0)
 {
     Actor401000Work* work;
     GpEnemy*         enemy;

@@ -114,27 +114,27 @@ void func_80180414(s32 arg0);
 /// animation id, which the definition's `u16` prototype would re-extend.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_135400_80131EB4(Task* task);
-void func_actor_135400_80132064(Task* arg0);
-void func_actor_135400_801322A8(Task* task);
-void func_actor_135400_80132450(Task* task);
-void func_actor_135400_801324CC(Task* task);
-void func_actor_135400_8013252C(Task* task);
-void func_actor_135400_80132614(Task* arg0);
-void func_actor_135400_80132634(Task* task);
-s32  func_actor_135400_80132650(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
-s32  func_actor_135400_8013276C(Task* task, s32 anim, GpXformArg* args, s32 arg3);
-s32  func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3);
-void func_actor_135400_80132B60(Task* arg0);
-void func_actor_135400_80132C90(Task* arg0);
-void func_actor_135400_80132CB0(Task* task);
-s32  func_actor_135400_80132D24(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
-s32  func_actor_135400_80132EBC(Task* task, s32 anim, s32 arg2, s32 arg3);
+static void func_actor_135400_80131EB4(Task* task);
+static void func_actor_135400_80132064(Task* arg0);
+static void func_actor_135400_801322A8(Task* task);
+static void func_actor_135400_80132450(Task* task);
+static void func_actor_135400_801324CC(Task* task);
+static void func_actor_135400_8013252C(Task* task);
+static void func_actor_135400_80132614(Task* arg0);
+static void func_actor_135400_80132634(Task* task);
+s32         func_actor_135400_80132650(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
+s32         func_actor_135400_8013276C(Task* task, s32 anim, GpXformArg* args, s32 arg3);
+s32         func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3);
+static void func_actor_135400_80132B60(Task* arg0);
+static void func_actor_135400_80132C90(Task* arg0);
+static void func_actor_135400_80132CB0(Task* task);
+s32         func_actor_135400_80132D24(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
+s32         func_actor_135400_80132EBC(Task* task, s32 anim, s32 arg2, s32 arg3);
 
 /// State table of the first part task: state 0 reparents it
 /// (`func_actor_135400_80132450`), state 1 does nothing and state 2 kills it.
 /// Dispatched by `func_actor_135400_801323F8`.
-const TaskFuncTable3 D_actor_135400_80131E24 = { {
+static const TaskFuncTable3 D_actor_135400_80131E24 = { {
     func_actor_135400_80132450,
     func_actor_135400_801324CC,
     taskKill,
@@ -144,7 +144,7 @@ const TaskFuncTable3 D_actor_135400_80131E24 = { {
 /// (`func_actor_135400_8013252C`), state 1 runs its placement phases
 /// (`func_actor_135400_80131EB4`) and state 2 kills it. Dispatched by
 /// `func_actor_135400_801324D4`.
-const TaskFuncTable3 D_actor_135400_80131E30 = { {
+static const TaskFuncTable3 D_actor_135400_80131E30 = { {
     func_actor_135400_8013252C,
     func_actor_135400_80131EB4,
     taskKill,
@@ -152,7 +152,7 @@ const TaskFuncTable3 D_actor_135400_80131E30 = { {
 
 /// State table of the main task: spawn, per-frame tick and exit callback.
 /// Dispatched by `func_actor_135400_801325A8`.
-const TaskFuncTable3 D_actor_135400_80131E3C = { {
+static const TaskFuncTable3 D_actor_135400_80131E3C = { {
     func_actor_135400_80132064,
     func_actor_135400_801322A8,
     func_actor_135400_80132614,
@@ -160,7 +160,7 @@ const TaskFuncTable3 D_actor_135400_80131E3C = { {
 
 /// The two spawn placements `func_actor_135400_80132064` copies as a whole:
 /// the flag-clear branch's first, the other second.
-const Actor135400Places D_actor_135400_80131E48 = {
+static const Actor135400Places D_actor_135400_80131E48 = {
     { { 5700, -150, 5900, 0 }, { 1024, 0, -1024, 0 } },
     { { 4700, 0, 5000, 0 }, { 0, -1024, 0, 0 } },
 };
@@ -174,7 +174,7 @@ const Actor135400Places D_actor_135400_80131E48 = {
 /// reaches it while the session's `eventState` is clear -- which resets the
 /// coordinate to a `-0x38E` yaw (`func_8004BFF8`, `RotMatrixY`) at the fixed
 /// world position (0x12FE, -0x1B3, 0x157C) and drops the phase back to 0.
-void func_actor_135400_80131EB4(Task* task)
+static void func_actor_135400_80131EB4(Task* task)
 {
     OverlayMat  rot;
     OverlayMat* src;
@@ -228,7 +228,7 @@ void func_actor_135400_80131EB4(Task* task)
 /// site into it, so the address lives across the first call and costs a
 /// callee-saved register. The touch makes the second call materialise it afresh
 /// -- the ROM's two `addiu $a0,$sp,0x68`.
-void func_actor_135400_80132064(Task* arg0)
+static void func_actor_135400_80132064(Task* arg0)
 {
     Actor135400MainWork* work;
     Actor135400Places    places;
@@ -305,7 +305,7 @@ void func_actor_135400_80132064(Task* arg0)
 /// part's translation, recomputes that part's world matrix, re-ranks it
 /// through `func_800D7A9C`, ramps the head-tracking rate `headRate` and finally
 /// turns the head toward the slot-3 skeleton with `func_800B0928`.
-void func_actor_135400_801322A8(Task* task)
+static void func_actor_135400_801322A8(Task* task)
 {
     Actor135400MainWork* work;
     TmdObject*           ext;
@@ -357,7 +357,7 @@ void func_actor_135400_801323F8(Task* task)
 /// part's root coordinate under the parent's coordinate that `spawnArg1`
 /// indexes, shares the parent model's light and colour matrices and reparents
 /// the task onto the parent before advancing the state.
-void func_actor_135400_80132450(Task* task)
+static void func_actor_135400_80132450(Task* task)
 {
     Task*      parent;
     s32        part;
@@ -381,7 +381,7 @@ void func_actor_135400_80132450(Task* task)
 }
 
 /// State 1 of the first part task: nothing to do while it rides its parent.
-void func_actor_135400_801324CC(Task* task)
+static void func_actor_135400_801324CC(Task* task)
 {
 }
 
@@ -399,7 +399,7 @@ void func_actor_135400_801324D4(Task* task)
 /// part's root coordinate under the parent's coordinate that `spawnArg1`
 /// indexes, shares the parent model's light and colour matrices and reparents
 /// the task onto the parent before advancing the state.
-void func_actor_135400_8013252C(Task* task)
+static void func_actor_135400_8013252C(Task* task)
 {
     Task*      parent;
     s32        part;
@@ -436,7 +436,7 @@ void func_actor_135400_801325A8(Task* task)
 }
 
 /// The main task's exit callback, also its state 2: runs the enemy teardown.
-void func_actor_135400_80132614(Task* arg0)
+static void func_actor_135400_80132614(Task* arg0)
 {
     Gp_EnemyTaskExit(arg0);
 }
@@ -444,7 +444,7 @@ void func_actor_135400_80132614(Task* arg0)
 /// Points the main task's model at the work block's own light and colour
 /// matrices, so it draws with the actor's lighting rather than the defaults.
 /// The spawn handler runs it once the two part tasks are started.
-void func_actor_135400_80132634(Task* task)
+static void func_actor_135400_80132634(Task* task)
 {
     TmdObject*           ext;
     Actor135400MainWork* work;
@@ -607,7 +607,7 @@ s32 func_actor_135400_801328DC(Task* task, s32 msgId, GpCmdArg* msg, s32 arg3)
 /// steps the 0x7D3 animation on the `D_actor_135400_8013F8C4` frame counts, and
 /// finally runs `field_494` down -- at zero the model's aux buffers are freed
 /// and the countdown carries on to -1, so that free happens once.
-void func_actor_135400_801329B0(Task* task)
+static void func_actor_135400_801329B0(Task* task)
 {
     Actor135400Work* work;
     TmdObject*       ext;
@@ -649,7 +649,7 @@ void func_actor_135400_801329B0(Task* task)
 
 /// State table of the second task: spawn, per-frame tick and exit callback.
 /// Dispatched by `func_actor_135400_80132AF4`.
-const TaskFuncTable3 D_actor_135400_80131E94 = { {
+static const TaskFuncTable3 D_actor_135400_80131E94 = { {
     func_actor_135400_80132B60,
     func_actor_135400_801329B0,
     func_actor_135400_80132C90,
@@ -670,14 +670,14 @@ void func_actor_135400_80132AF4(Task* task)
 
 /// The animation arguments `func_actor_135400_80132B60` copies into
 /// `Actor135400Work::params` when the second task is created.
-const GpAnimArg D_actor_135400_80131EA0 = { 0, 2, 1, 10, 0 };
+static const GpAnimArg D_actor_135400_80131EA0 = { 0, 2, 1, 10, 0 };
 
 /// Spawn state of the second task: exits at once when game flag 0x6C is set or
 /// the 0x498-byte work block cannot be allocated. Otherwise it seeds the
 /// block's latches, stores the `D_actor_135400_80131EA0` defaults, starts
 /// animation 1, shows the model through the 0x7D5 handler, loads its flat
 /// lights, and installs the message table and exit callback.
-void func_actor_135400_80132B60(Task* arg0)
+static void func_actor_135400_80132B60(Task* arg0)
 {
     Actor135400Work* work;
     GpAnimArg        params;
@@ -704,14 +704,14 @@ void func_actor_135400_80132B60(Task* arg0)
 }
 
 /// The second task's exit callback, also its state 2: runs the enemy teardown.
-void func_actor_135400_80132C90(Task* arg0)
+static void func_actor_135400_80132C90(Task* arg0)
 {
     Gp_EnemyTaskExit(arg0);
 }
 
 /// Points the second task's model at the work block's light and colour
 /// matrices and fills them from the three `D_actor_135400_8013F904` lights.
-void func_actor_135400_80132CB0(Task* task)
+static void func_actor_135400_80132CB0(Task* task)
 {
     Actor135400Work* work = (Actor135400Work*)task->work;
     TmdObject*       obj  = task->extra.tmd;

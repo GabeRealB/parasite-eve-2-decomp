@@ -202,7 +202,7 @@ extern TaskDesc D_actor_341900_80164190;
 /// is skipped for the eight-slot actor). If every one of them then has
 /// `field_10` bit 0x100 set, passes them the `D_actor_341900_801639D0` id and
 /// returns 1; otherwise returns 0. The gotos reproduce retail's block layout.
-s32 func_actor_341900_80161E58(Task* arg0, u16 arg1)
+static s32 func_actor_341900_80161E58(Task* arg0, u16 arg1)
 {
     Actor341900AnimWork* work;
     Actor341900AnimWork* ctx;
@@ -324,7 +324,7 @@ void func_actor_341900_80162200(Task* arg0)
 /// the model, applies the area's tpage/clut, sets up the part's animation
 /// slots (eight for the body, four for each of the two children, which also
 /// register themselves with the spawner) and reparents the spawner to it.
-void func_actor_341900_80162330(Task* arg0)
+static void func_actor_341900_80162330(Task* arg0)
 {
     TmdObject*           extra;
     Actor341900AnimWork* work;
@@ -478,7 +478,7 @@ void func_actor_341900_80162708(Task* arg0)
 /// task after pinging it with message 0x3ED, then clears the request. States 1
 /// and 5 install an animation set (message 0x3E8) around a placement (0x3E9),
 /// 2 sends 0x3F2, 3 and 4 send 0x3F4 and 6 is a bare placement.
-void func_actor_341900_801628B8(Task* arg0)
+static void func_actor_341900_801628B8(Task* arg0)
 {
     Actor341900Work* work;
     Actor341900Work* w;
@@ -561,7 +561,7 @@ void func_actor_341900_801628B8(Task* arg0)
 /// 0x10, state 2 spawns four effects on its third coordinate after 0x3C ticks.
 /// State 3 places both effect children and sends `field_4` 0x7D5; state 4
 /// places them and moves them apart along z every tick.
-void func_actor_341900_80162AD4(Task* arg0)
+static void func_actor_341900_80162AD4(Task* arg0)
 {
     Actor341900Work* work;
     GpAnimArg        msg;

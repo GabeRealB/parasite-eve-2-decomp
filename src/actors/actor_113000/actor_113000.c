@@ -64,13 +64,13 @@ extern u8 D_actor_113000_8013ABC0[];
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_113000_80131F90(Task* task);
-void func_actor_113000_80132070(Task* task);
-void func_actor_113000_801321A8(Task* task);
+static void func_actor_113000_80131F90(Task* task);
+static void func_actor_113000_80132070(Task* task);
+static void func_actor_113000_801321A8(Task* task);
 
 /// The actor's three task states, which `func_actor_113000_80131F38` runs by
 /// `Task::state`: spawn, per-frame tick and exit.
-const TaskFuncTable3 D_actor_113000_80131E24 = { {
+static const TaskFuncTable3 D_actor_113000_80131E24 = { {
     func_actor_113000_80131F90,
     func_actor_113000_80132070,
     Gp_EnemyTaskExit,
@@ -82,7 +82,7 @@ const TaskFuncTable3 D_actor_113000_80131E24 = { {
 /// reloading the countdown from `field_4C0` and advancing `field_4C4` for
 /// steps 1 and 2, or clearing it for step 3, which ends the sequence until
 /// mode 3 of the message-0x7E0 handler restarts it. Step 0 does nothing.
-void func_actor_113000_80131E30(Task* arg0)
+static void func_actor_113000_80131E30(Task* arg0)
 {
     Actor113000Work* work;
     RECT             rect;
@@ -135,7 +135,7 @@ void func_actor_113000_80131F38(Task* task)
 /// Spawn handler: allocates the work block, seeds its head, mirrors the
 /// deferred-kill bit into the model, draws the ground shadow under the model's
 /// second part, then hands the model's matrices to the light/color rebuilder.
-void func_actor_113000_80131F90(Task* task)
+static void func_actor_113000_80131F90(Task* task)
 {
     Actor113000Work* work;
     TmdObject*       extra;
@@ -171,7 +171,7 @@ void func_actor_113000_80131F90(Task* task)
 /// under model part 1 while the model is not deferred, rebuilds that part's
 /// world matrix while the session's 0x4D is set, runs the texture-upload
 /// state, and counts the buffer free at `field_4C8` down to zero.
-void func_actor_113000_80132070(Task* task)
+static void func_actor_113000_80132070(Task* task)
 {
     Actor113000Work* work;
     TmdObject*       extra;
@@ -209,7 +209,7 @@ void func_actor_113000_80132070(Task* task)
 /// Republishes the work block's light/color matrices onto the TMD object and
 /// rebuilds model part 1's world matrix from it, then hands that part's
 /// translation to the ground-shadow helper.
-void func_actor_113000_801321A8(Task* task)
+static void func_actor_113000_801321A8(Task* task)
 {
     Actor113000Work* work;
     GpCoord*         coords;

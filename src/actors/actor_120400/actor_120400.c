@@ -53,23 +53,23 @@ extern GpMsgEntry D_actor_120400_8013E76C[];
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_120400_80131E5C(Task* arg0);
-void func_actor_120400_80132050(Task* arg0);
-void func_actor_120400_80132254(Task* arg0);
-void func_actor_120400_801325A4(Task* task);
-void func_actor_120400_801326B0(Task* task);
-void func_actor_120400_801327B4(Task* task);
-void func_actor_120400_801327D4(Task* task);
-void func_actor_120400_801327F0(Task* arg0);
-void func_actor_120400_801327F8(Task* task);
-void func_actor_120400_80132860(Task* task);
-void func_actor_120400_80132920(Task* task);
-void func_actor_120400_801329A0(Task* arg0);
-s32  func_actor_120400_80132AA0(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
+static void func_actor_120400_80131E5C(Task* arg0);
+static void func_actor_120400_80132050(Task* arg0);
+static void func_actor_120400_80132254(Task* arg0);
+static void func_actor_120400_801325A4(Task* task);
+static void func_actor_120400_801326B0(Task* task);
+static void func_actor_120400_801327B4(Task* task);
+static void func_actor_120400_801327D4(Task* task);
+static void func_actor_120400_801327F0(Task* arg0);
+static void func_actor_120400_801327F8(Task* task);
+static void func_actor_120400_80132860(Task* task);
+static void func_actor_120400_80132920(Task* task);
+static void func_actor_120400_801329A0(Task* arg0);
+s32         func_actor_120400_80132AA0(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
 
 /// Spawn, tick and teardown handlers of the two child tasks, dispatched by
 /// `func_actor_120400_8013254C`.
-const TaskFuncTable3 D_actor_120400_80131E24 = { {
+static const TaskFuncTable3 D_actor_120400_80131E24 = { {
     func_actor_120400_801325A4,
     func_actor_120400_801326B0,
     taskKill,
@@ -77,7 +77,7 @@ const TaskFuncTable3 D_actor_120400_80131E24 = { {
 
 /// Spawn, tick and teardown handlers of the parent task, dispatched by
 /// `func_actor_120400_80132748`.
-const TaskFuncTable3 D_actor_120400_80131E30 = { {
+static const TaskFuncTable3 D_actor_120400_80131E30 = { {
     func_actor_120400_80131E5C,
     func_actor_120400_80132050,
     func_actor_120400_801327B4,
@@ -86,7 +86,7 @@ const TaskFuncTable3 D_actor_120400_80131E30 = { {
 /// Steps of the parent's walk sequence, indexed by
 /// `ActorWalkState::motionStep`: turn to face `target`, start walking
 /// forward, walk until arrival, then turn to the placement yaw.
-const TaskFuncTable4 D_actor_120400_80131E3C = { {
+static const TaskFuncTable4 D_actor_120400_80131E3C = { {
     func_actor_120400_80132860,
     func_actor_120400_80132920,
     func_actor_120400_80132254,
@@ -95,7 +95,7 @@ const TaskFuncTable4 D_actor_120400_80131E3C = { {
 
 /// The constant local-space offset the walk rotates into its velocity:
 /// straight ahead along the root part's own +Z.
-const VECTOR D_actor_120400_80131E4C = { 0, 0, 0x200000, 0 };
+static const VECTOR D_actor_120400_80131E4C = { 0, 0, 0x200000, 0 };
 
 /// The parent's spawn handler. Allocates the 0x504 `Actor120400MainWork` block, seeds it, and spawns the
 /// two children `D_actor_120400_8013E748` holds -- table entries 1 and 2. Each
@@ -107,7 +107,7 @@ const VECTOR D_actor_120400_80131E4C = { 0, 0, 0x200000, 0 };
 /// pointing the parent's model at its light/colour matrices
 /// (`func_actor_120400_801327D4`), pointing `msgTable` at the message table and
 /// installing `func_actor_120400_801327B4` as its exit callback.
-void func_actor_120400_80131E5C(Task* arg0)
+static void func_actor_120400_80131E5C(Task* arg0)
 {
     Actor120400MainWork* work;
     GpAreaKey            key;
@@ -198,7 +198,7 @@ void func_actor_120400_80131E5C(Task* arg0)
 /// updated and re-ranked through `func_800D7A9C`. The body ends decrementing
 /// the `freeCountdown` teardown timer, freeing the model's buffers on the frame it
 /// reaches zero.
-void func_actor_120400_80132050(Task* arg0)
+static void func_actor_120400_80132050(Task* arg0)
 {
     TmdObject*           ext      = arg0->extra.tmd;
     Actor120400MainWork* work     = (Actor120400MainWork*)arg0->work;
@@ -247,7 +247,7 @@ void func_actor_120400_80132050(Task* arg0)
 /// as the new `limit`; once it no longer does, the target has been reached or
 /// passed, so the step plays the preset carrying the `model.nextAnimId` byte through
 /// the 0x7D3 handler, stops the velocity `step` and advances `walk.motionStep`.
-void func_actor_120400_80132254(Task* arg0)
+static void func_actor_120400_80132254(Task* arg0)
 {
     Actor120400MainWork* work;
     GpCoord*             coord;
@@ -370,7 +370,7 @@ void func_actor_120400_8013254C(Task* task)
 /// root coordinate hangs off the parent's coordinate `spawnArg1`, it shares
 /// the parent's light and colour matrices, and the task is reparented under
 /// the parent before the state advances.
-void func_actor_120400_801325A4(Task* task)
+static void func_actor_120400_801325A4(Task* task)
 {
     Task*      parent;
     TmdObject* obj;
@@ -406,7 +406,7 @@ void func_actor_120400_801325A4(Task* task)
 /// Per-frame tick of a child task: copies the parent model's hidden bit (0x80)
 /// and bit 0x4 onto the child's own model. While the parent's bit 0x4 is
 /// clear the child's display buffers are (re)allocated as well.
-void func_actor_120400_801326B0(Task* task)
+static void func_actor_120400_801326B0(Task* task)
 {
     TmdObject* parentObject;
     TmdObject* object;
@@ -442,14 +442,14 @@ void func_actor_120400_80132748(Task* task)
 
 /// Exit callback of the parent task, installed by its spawn handler: runs the
 /// common enemy teardown.
-void func_actor_120400_801327B4(Task* task)
+static void func_actor_120400_801327B4(Task* task)
 {
     Gp_EnemyTaskExit(task);
 }
 
 /// Points the parent's model at the light and colour matrices held in its own
 /// work block.
-void func_actor_120400_801327D4(Task* task)
+static void func_actor_120400_801327D4(Task* task)
 {
     TmdObject*           ext;
     Actor120400MainWork* work;
@@ -461,13 +461,13 @@ void func_actor_120400_801327D4(Task* task)
 }
 
 /// Motion handler 0 of the parent, idle: does nothing.
-void func_actor_120400_801327F0(Task* arg0)
+static void func_actor_120400_801327F0(Task* arg0)
 {
 }
 
 /// Motion handler 1 of the parent, the walk sequence: copies the step table
 /// onto the stack and runs the entry `walk.motionStep` selects.
-void func_actor_120400_801327F8(Task* task)
+static void func_actor_120400_801327F8(Task* task)
 {
     Actor120400MainWork* work;
     TaskFuncTable4       fns;
@@ -480,7 +480,7 @@ void func_actor_120400_801327F8(Task* task)
 /// Walk step 0: turns the root part to face `target`, taking the yaw of the
 /// normalised offset from the part's own translation with `ratan2` and
 /// rebuilding the local matrix from that yaw alone, then advances the step.
-void func_actor_120400_80132860(Task* task)
+static void func_actor_120400_80132860(Task* task)
 {
     Actor120400MainWork* work;
     GpCoord*             coord;
@@ -511,7 +511,7 @@ void func_actor_120400_80132860(Task* task)
 /// Walk step 1: rotates the constant forward offset `D_actor_120400_80131E4C`
 /// through the root part's matrix into `step`, opens the arrival threshold to
 /// 0x7FFF, which disables it, and advances the step.
-void func_actor_120400_80132920(Task* task)
+static void func_actor_120400_80132920(Task* task)
 {
     Actor120400MainWork* work;
     GpCoord*             coord;
@@ -535,7 +535,7 @@ void func_actor_120400_80132920(Task* task)
 /// preset carrying the `model.nextAnimId` byte through the 0x7D3 handler and clears
 /// `walk.motion` / `walk.motionStep`, which returns the parent to idle. Either way the
 /// root coordinate is rebuilt as the identity matrix rotated by `vec`.
-void func_actor_120400_801329A0(Task* arg0)
+static void func_actor_120400_801329A0(Task* arg0)
 {
     Actor120400MainWork* work;
     GpMtxWords*          words;

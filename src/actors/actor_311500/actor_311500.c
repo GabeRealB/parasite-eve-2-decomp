@@ -83,7 +83,7 @@ extern s32 D_actor_311500_80169324;
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
 /// 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1` is 1.
-s32 func_actor_311500_80161E38(GpCoord* coord, GpRec18* recs, s16 count)
+static s32 func_actor_311500_80161E38(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -142,7 +142,7 @@ s32 func_actor_311500_80161E38(GpCoord* coord, GpRec18* recs, s16 count)
 /// `*pos` accumulates the total nudge. Returns whether any record was of kind
 /// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1`
 /// is 1.
-s32 func_actor_311500_80162180(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 func_actor_311500_80162180(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -256,7 +256,7 @@ s32 func_actor_311500_80162180(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.
-void func_actor_311500_801626CC(GpCoord* coord, s16 yaw)
+static void func_actor_311500_801626CC(GpCoord* coord, s16 yaw)
 {
     MATRIX*  rotation;
     GpCoord* out;
@@ -272,7 +272,7 @@ void func_actor_311500_801626CC(GpCoord* coord, s16 yaw)
     SCRATCH_POP(MATRIX);
 }
 
-void func_actor_311500_801629D8(Task* arg0)
+static void func_actor_311500_801629D8(Task* arg0)
 {
     Actor311500Work* work;
     Actor311500Work* work2;
@@ -344,7 +344,7 @@ void func_actor_311500_801629D8(Task* arg0)
     Gp_SetTmdBytes(tmd, (s8)place->tpage, (s8)place->clut);
 }
 
-void func_actor_311500_80162C34(Task* arg0, TmdObject* arg1)
+static void func_actor_311500_80162C34(Task* arg0, TmdObject* arg1)
 {
     Actor311500Work* work;
     Actor311500Work* anim;
@@ -413,7 +413,7 @@ void func_actor_311500_80162C34(Task* arg0, TmdObject* arg1)
     }
 }
 
-s16 func_actor_311500_80162DDC(Task* arg0)
+static s16 func_actor_311500_80162DDC(Task* arg0)
 {
     Actor311500Work* work = arg0->work;
     GpEnemy*         enemy;
@@ -457,7 +457,7 @@ done:
 }
 
 /* clang-format off */
-s32 func_actor_311500_80162F28(Task* arg0)
+static s32 func_actor_311500_80162F28(Task* arg0)
 {
   Actor311500Work *work;
   Actor311500Work *anim;
@@ -525,7 +525,7 @@ s32 func_actor_311500_80162F28(Task* arg0)
 }
 /* clang-format on */
 
-s32 func_actor_311500_801630A4(Task* arg0)
+static s32 func_actor_311500_801630A4(Task* arg0)
 {
     Actor311500Work* work;
     GpEnemy*         enemy;

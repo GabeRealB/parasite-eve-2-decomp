@@ -164,33 +164,33 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-void Actor04600_Fn005B0(Task* arg0);
-void Actor04600_Fn007B0(Task* arg0);
-void Actor04600_Fn00EC8(Task* arg0, s32 arg1);
-void Actor04600_Fn00FD8(Task* arg0);
-void Actor04600_Fn01110(GpEnemy* enemy, Task* task);
-void Actor04600_Fn01604(Task* arg0, u8 arg1);
-void Actor04600_Fn017CC(GpEnemy* arg0, Task* arg1);
-void Actor04600_Fn01AFC(GpEnemy* arg0, Task* arg1);
-void Actor04600_Fn01E0C(Task* arg0);
-void Actor04600_Fn02500(GpEnemy* arg0, Task* arg1);
-void Actor04600_Fn02618(Task* arg0);
-void Actor04600_Fn0272C(Task* task);
-void Actor04600_Fn027BC(Task* arg0);
-void Actor04600_Fn02870(GpEnemy* arg0, Task* task);
-void Actor04600_Fn028E0(Task* task);
-void Actor04600_Fn0294C(Task* arg0, GpCoord* arg1);
-void Actor04600_Fn02B14(Task* arg0);
-void Actor04600_Fn02C08(Task* task);
-void Actor04600_Fn02CD4(Task* task);
-void Actor04600_Fn03BDC(GpEnemy* arg0, Task* arg1);
-void Actor04600_Fn03CEC(Task* arg0);
-void Actor04600_Fn03D54(Task* task);
-void Actor04600_Fn03E10(Task* arg0);
-void Actor04600_Fn03EC0(GpEnemy* arg0, Task* task);
-void Actor04600_Fn03F30(Task* task);
-void Actor04600_Fn0400C(Task* arg0);
-void Actor04600_Fn04100(Task* task);
+static void Actor04600_Fn005B0(Task* arg0);
+static void Actor04600_Fn007B0(Task* arg0);
+static void Actor04600_Fn00EC8(Task* arg0, s32 arg1);
+static void Actor04600_Fn00FD8(Task* arg0);
+static void Actor04600_Fn01110(GpEnemy* enemy, Task* task);
+static void Actor04600_Fn01604(Task* arg0, u8 arg1);
+static void Actor04600_Fn017CC(GpEnemy* arg0, Task* arg1);
+static void Actor04600_Fn01AFC(GpEnemy* arg0, Task* arg1);
+static void Actor04600_Fn01E0C(Task* arg0);
+static void Actor04600_Fn02500(GpEnemy* arg0, Task* arg1);
+static void Actor04600_Fn02618(Task* arg0);
+static void Actor04600_Fn0272C(Task* task);
+static void Actor04600_Fn027BC(Task* arg0);
+static void Actor04600_Fn02870(GpEnemy* arg0, Task* task);
+static void Actor04600_Fn028E0(Task* task);
+static void Actor04600_Fn0294C(Task* arg0, GpCoord* arg1);
+static void Actor04600_Fn02B14(Task* arg0);
+static void Actor04600_Fn02C08(Task* task);
+static void Actor04600_Fn02CD4(Task* task);
+static void Actor04600_Fn03BDC(GpEnemy* arg0, Task* arg1);
+static void Actor04600_Fn03CEC(Task* arg0);
+static void Actor04600_Fn03D54(Task* task);
+static void Actor04600_Fn03E10(Task* arg0);
+static void Actor04600_Fn03EC0(GpEnemy* arg0, Task* task);
+static void Actor04600_Fn03F30(Task* task);
+static void Actor04600_Fn0400C(Task* arg0);
+static void Actor04600_Fn04100(Task* task);
 
 /// Rebinds the first enemy's animation id to its two helper slots unless
 /// `field_2D2` suppresses it: a changed id is remembered, its frame count
@@ -225,7 +225,7 @@ static __inline__ void Actor04600_TickAnim(Task* task)
 /// halves are kept in `field_2DC`/`field_2D6`; a low half of 1 matching the
 /// task's `spawnType` steps the model's texture page and CLUT row and
 /// re-streams it twice.
-void Actor04600_Fn00048(GpEnemy* arg0, Task* arg1)
+static void Actor04600_Fn00048(GpEnemy* arg0, Task* arg1)
 {
     Actor104600Work* work;
     TmdObject*       obj;
@@ -343,14 +343,14 @@ void Actor04600_Fn00048(GpEnemy* arg0, Task* arg1)
 
 /// Task states of the first enemy as `Actor04600_Fn024A4` dispatches them:
 /// spawn, per-frame update and death.
-const GpEnemyTaskFuncTable3 Actor04600_D00004 = {
+static const GpEnemyTaskFuncTable3 Actor04600_D00004 = {
     { Actor04600_Fn00048, Actor04600_Fn02500, Actor04600_Fn01110 },
 };
 
 /// Task states of the dropping first enemy as `Actor04600_Fn02C6C` dispatches
 /// them: the same update and death after a spawn that parks the enemy hidden,
 /// and a fourth state for its drop into place.
-const GpEnemyTaskFuncTable4 Actor04600_D00010 = {
+static const GpEnemyTaskFuncTable4 Actor04600_D00010 = {
     { Actor04600_Fn017CC, Actor04600_Fn02500, Actor04600_Fn01110, Actor04600_Fn01AFC },
 };
 
@@ -364,7 +364,7 @@ const GpEnemyTaskFuncTable4 Actor04600_D00010 = {
 /// on the third, arms the death - a five-frame countdown, the death phase
 /// reset and task state 2, with the enemy's HP cleared. Both collapse states
 /// end by suppressing the rebind.
-void Actor04600_Fn003D4(Task* arg0)
+static void Actor04600_Fn003D4(Task* arg0)
 {
     Actor104600Work* work;
     GpEnemy*         enemy;
@@ -431,7 +431,7 @@ void Actor04600_Fn003D4(Task* arg0)
 /// the sound set), the step length follows the frame count - 0x14 in the first
 /// window, -0x14 in the second - the count wraps at 0x63, and the root takes one
 /// step. Eight bytes of the scratch stack are held across the whole arm.
-void Actor04600_Fn005B0(Task* arg0)
+static void Actor04600_Fn005B0(Task* arg0)
 {
     Actor104600Work* work;
     GpCoord*         coord;
@@ -491,7 +491,7 @@ void Actor04600_Fn005B0(Task* arg0)
 /// and grows the scale factor by 0xC8 a frame; on the fifth frame the enemy is
 /// killed through `Actor04600_Fn01604`, with a five-frame countdown, the death
 /// phase reset, the task put into the stage's state and the HP cleared.
-void Actor04600_Fn007B0(Task* arg0)
+static void Actor04600_Fn007B0(Task* arg0)
 {
     Actor104600Work* work;
     GpEnemy*         enemy;
@@ -554,7 +554,7 @@ void Actor04600_Fn007B0(Task* arg0)
 /// out of the wall along the contact normal while the enemy walks. The table
 /// is released, and a flagged hit on the third body's record clears that
 /// body's 0x8000 bit.
-void Actor04600_Fn00978(Task* arg0)
+static void Actor04600_Fn00978(Task* arg0)
 {
     s32                damageState;
     TmdObject*         object;
@@ -741,7 +741,7 @@ contact_loop:
 /// `Actor04600_Fn01604` and put into its death state with a five-frame
 /// countdown. A live one plays the hurt sound from the set `field_2D6` picks,
 /// re-arms `field_2CC`, and while animation 1 plays latches `field_2D8`.
-void Actor04600_Fn00EC8(Task* arg0, s32 arg1)
+static void Actor04600_Fn00EC8(Task* arg0, s32 arg1)
 {
     Actor104600Work* work;
     GpEnemy*         enemy;
@@ -782,7 +782,7 @@ void Actor04600_Fn00EC8(Task* arg0, s32 arg1)
 /// and otherwise steps 0x20 the short way round the 0x1000 circle. The root's
 /// rotation is then rebuilt from that heading alone, in 0x18 bytes of the
 /// scratch stack.
-void Actor04600_Fn00FD8(Task* arg0)
+static void Actor04600_Fn00FD8(Task* arg0)
 {
     Actor104600Work*  work;
     GpCoord*          coord;
@@ -841,7 +841,7 @@ void Actor04600_Fn00FD8(Task* arg0)
 /// destroys the enemy once that count is spent. Outside reaction states 5 and 6
 /// the first two phases also tick the animation, scale and recompute the
 /// second part and re-colour the enemy.
-void Actor04600_Fn01110(GpEnemy* enemy, Task* task)
+static void Actor04600_Fn01110(GpEnemy* enemy, Task* task)
 {
     TmdObject*       model;
     Actor104600Work* work;
@@ -937,7 +937,7 @@ void Actor04600_Fn01110(GpEnemy* enemy, Task* task)
 /// death script, and asks for a final effect through `field_2DA`; the other
 /// plays a second sound and moves the reaction state to 6. `field_2D6` picks
 /// the sound set either way.
-void Actor04600_Fn01604(Task* arg0, u8 arg1)
+static void Actor04600_Fn01604(Task* arg0, u8 arg1)
 {
     Actor104600Work* work;
     GpEnemy*         enemy;
@@ -984,7 +984,7 @@ void Actor04600_Fn01604(Task* arg0, u8 arg1)
 /// body's 0x8000 bit and the second's 0xC200 bits clear, parks
 /// `Actor04600_D05868` as the task's message table and moves the task to state
 /// 3, the drop.
-void Actor04600_Fn017CC(GpEnemy* arg0, Task* arg1)
+static void Actor04600_Fn017CC(GpEnemy* arg0, Task* arg1)
 {
     Actor104600Work* work;
     GpCoord*         coord;
@@ -1101,7 +1101,7 @@ void Actor04600_Fn017CC(GpEnemy* arg0, Task* arg1)
 /// the root at 0 and moves the enemy to the live stage with animation 2 and
 /// task state 1; until then the fall speed grows by 10 a frame, or by 20 once
 /// the drop has hit something.
-void Actor04600_Fn01AFC(GpEnemy* arg0, Task* arg1)
+static void Actor04600_Fn01AFC(GpEnemy* arg0, Task* arg1)
 {
     Actor104600Work* work;
     GpCoord*         coord;
@@ -1158,7 +1158,7 @@ void Actor04600_Fn01AFC(GpEnemy* arg0, Task* arg1)
 /// Y, latches `field_2E0`, sets the fall speed to -0x64 and takes a quarter off
 /// the step length. Response 2 puts the root back where the last step started.
 /// The table is released either way.
-void Actor04600_Fn01E0C(Task* arg0)
+static void Actor04600_Fn01E0C(Task* arg0)
 {
     ActorDeltaFrame48* scratch;
     Actor104600Work*   work;
@@ -1332,7 +1332,7 @@ void Actor04600_Fn024A4(Task* arg0)
 /// part, clears the display flags of the first two parts and recomputes the
 /// second one's world matrix; the tail colours the enemy from that part and
 /// draws its ground shadow.
-void Actor04600_Fn02500(GpEnemy* arg0, Task* arg1)
+static void Actor04600_Fn02500(GpEnemy* arg0, Task* arg1)
 {
     s32 state;
     s32 one;
@@ -1382,7 +1382,7 @@ case1:
 /// with the step and the rebind stopped; bits 0xC tick the flag-4 helper,
 /// feed the damage it reports to `Actor04600_Fn00EC8` and are cleared once it
 /// expires.
-void Actor04600_Fn02618(Task* arg0)
+static void Actor04600_Fn02618(Task* arg0)
 {
     Actor104600Work* work;
     GpEnemy*         enemy;
@@ -1426,7 +1426,7 @@ void Actor04600_Fn02618(Task* arg0)
 /// Steps the first enemy's root one frame along its own facing: saves the
 /// current translation in `field_274`, advances X and Z along the rotation's Z
 /// column scaled by the step length `field_2BE`, and Y by a fixed 0x80.
-void Actor04600_Fn0272C(Task* task)
+static void Actor04600_Fn0272C(Task* task)
 {
     GpCoord*         coord;
     Actor104600Work* work;
@@ -1445,7 +1445,7 @@ void Actor04600_Fn0272C(Task* task)
 /// unless `field_2D2` suppresses the rebind. A changed id is remembered in
 /// `field_2BA`, the frame count `field_2BC` restarts and both slots switch to
 /// it; otherwise the count ticks and the slots advance by one frame.
-void Actor04600_Fn027BC(Task* arg0)
+static void Actor04600_Fn027BC(Task* arg0)
 {
     Actor104600Work* work;
     s32              i;
@@ -1473,7 +1473,7 @@ void Actor04600_Fn027BC(Task* arg0)
 
 /// Colours the first enemy from the world position of its model's second
 /// coordinate, staged in a `VECTOR` taken off the scratch stack.
-void Actor04600_Fn02870(GpEnemy* arg0, Task* task)
+static void Actor04600_Fn02870(GpEnemy* arg0, Task* task)
 {
     GpCoord* coord;
     void**   scratch;
@@ -1494,7 +1494,7 @@ void Actor04600_Fn02870(GpEnemy* arg0, Task* task)
 
 /// Draws the first enemy's ground shadow under the model root, at the world
 /// translation of the root part staged in a `VECTOR3` on the scratch stack.
-void Actor04600_Fn028E0(Task* task)
+static void Actor04600_Fn028E0(Task* task)
 {
     GpCoord* coord;
     VECTOR3* vec;
@@ -1512,7 +1512,7 @@ void Actor04600_Fn028E0(Task* task)
 /// `field_2AC`, clamped first to 0x1000..0x13E8: each of the matrix's three
 /// columns is copied into an `SVECTOR` on the scratch stack, multiplied by the
 /// factor on the GTE and written back.
-void Actor04600_Fn0294C(Task* arg0, GpCoord* arg1)
+static void Actor04600_Fn0294C(Task* arg0, GpCoord* arg1)
 {
     ActorScratchStack* scratch;
     SVECTOR*           vec;
@@ -1561,7 +1561,7 @@ void Actor04600_Fn0294C(Task* arg0, GpCoord* arg1)
 /// while it stays above 0x200. The scale matrix and its `VECTOR` live in 0x30
 /// bytes of the scratch stack; the node's `flg` is cleared so the next
 /// `Gp_UpdateCoord` recomputes it.
-void Actor04600_Fn02B14(Task* arg0)
+static void Actor04600_Fn02B14(Task* arg0)
 {
     GpCoord*           coord;
     ActorScaleScratch* head;
@@ -1594,7 +1594,7 @@ void Actor04600_Fn02B14(Task* arg0)
 /// Exit callback of the first enemy: detaches the enemy's contact records,
 /// unlinks its node and the work's four bodies, then runs the common enemy
 /// task exit.
-void Actor04600_Fn02C08(Task* task)
+static void Actor04600_Fn02C08(Task* task)
 {
     Actor104600Work* work;
     GpEnemy*         enemy;
@@ -1625,7 +1625,7 @@ void Actor04600_Fn02C6C(Task* arg0)
 /// Steps the dropping first enemy's root one frame: saves the current
 /// translation in `field_274`, advances X and Z along the rotation's Z column
 /// scaled by the step length `field_2BE`, and Y by the fall speed `field_2DE`.
-void Actor04600_Fn02CD4(Task* task)
+static void Actor04600_Fn02CD4(Task* task)
 {
     GpCoord*         coord;
     Actor104600Work* work;
@@ -1649,7 +1649,7 @@ void Actor04600_Fn02CD4(Task* task)
 /// matching the task's `spawnType` steps the model's texture page and CLUT
 /// row and re-streams it twice. `Actor04600_Fn04100` becomes the exit
 /// callback.
-void Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1)
+static void Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1)
 {
     Actor104600Enemy2Work* work;
     TmdObject*             obj;
@@ -1765,7 +1765,7 @@ void Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1)
 /// new 0x64..0xA3 frame wait once it has bottomed out; under animation 2 the
 /// second sound repeats every 0x28 frames. `field_2AC` picks between two sets
 /// of sound ids.
-void Actor04600_Fn030A8(Task* arg0)
+static void Actor04600_Fn030A8(Task* arg0)
 {
     Actor104600Enemy2Work* work;
     GpCoord*               obj;
@@ -1870,7 +1870,7 @@ void Actor04600_Fn030A8(Task* arg0)
 /// whose distance-scaled damage is nonzero plays the hit sound and sparks and
 /// puts the task into its death state after 5 frames; a zero-damage kind-2 hit
 /// applies the id's side effect instead.
-void Actor04600_Fn0346C(Task* arg0)
+static void Actor04600_Fn0346C(Task* arg0)
 {
     Actor104600Enemy2Work* work;
     ActorDeltaFrame38*     sc;
@@ -1989,7 +1989,7 @@ void Actor04600_Fn0346C(Task* arg0)
 /// countdown running out releases state 0xF0, sets `field_288` and unlinks the
 /// enemy's node and its three bodies, and the two animation slots are rebound
 /// or advanced.
-void Actor04600_Fn03958(GpEnemy* arg0, Task* arg1)
+static void Actor04600_Fn03958(GpEnemy* arg0, Task* arg1)
 {
     Actor104600Enemy2Work* work;
     TmdObject*             obj;
@@ -2053,7 +2053,7 @@ void Actor04600_Fn03958(GpEnemy* arg0, Task* arg1)
 
 /// Task states of the second enemy as `Actor04600_Fn03B80` dispatches them:
 /// spawn, per-frame update and the dying tick.
-const GpEnemyTaskFuncTable3 Actor04600_D0003C = {
+static const GpEnemyTaskFuncTable3 Actor04600_D0003C = {
     { Actor04600_Fn02D68, Actor04600_Fn03BDC, Actor04600_Fn03958 },
 };
 
@@ -2075,7 +2075,7 @@ void Actor04600_Fn03B80(Task* arg0)
 /// by 0x80, runs the reaction dispatch, the light blend, the flag reactions,
 /// the hit handler and the animation, clears the first two parts' flags and
 /// recomputes the second one's matrix; the tail colours the enemy.
-void Actor04600_Fn03BDC(GpEnemy* arg0, Task* arg1)
+static void Actor04600_Fn03BDC(GpEnemy* arg0, Task* arg1)
 {
     s32 state;
     s32 one;
@@ -2122,7 +2122,7 @@ case1:
 /// dropped on its own, bit 0x2 puts the work into reaction state 3 with its
 /// frame count cleared, and bits 0xC are dropped last, after re-reading the
 /// byte.
-void Actor04600_Fn03CEC(Task* arg0)
+static void Actor04600_Fn03CEC(Task* arg0)
 {
     GpEnemy*               enemy;
     Actor104600Enemy2Work* work;
@@ -2152,7 +2152,7 @@ void Actor04600_Fn03CEC(Task* arg0)
 /// and turns the light blend down, resets the remembered animation id to 1 and
 /// the counters every fourth frame, and returns to state 0 once
 /// `Gp_TickObjFlag2` reports the reaction over.
-void Actor04600_Fn03D54(Task* task)
+static void Actor04600_Fn03D54(Task* task)
 {
     Actor104600Enemy2Work* work;
 
@@ -2183,7 +2183,7 @@ void Actor04600_Fn03D54(Task* task)
 /// `field_28C`. When it differs from the remembered `field_28E` it is
 /// remembered, the frame count restarts and both slots switch to it with a
 /// blend of 8; otherwise the count ticks and both slots advance.
-void Actor04600_Fn03E10(Task* arg0)
+static void Actor04600_Fn03E10(Task* arg0)
 {
     Actor104600Enemy2Work* work;
     s32                    i;
@@ -2209,7 +2209,7 @@ void Actor04600_Fn03E10(Task* arg0)
 
 /// Colours the second enemy from the world position of its model's second
 /// coordinate, staged in a `VECTOR` taken off the scratch stack.
-void Actor04600_Fn03EC0(GpEnemy* arg0, Task* task)
+static void Actor04600_Fn03EC0(GpEnemy* arg0, Task* task)
 {
     GpCoord* coord;
     void**   scratch;
@@ -2233,7 +2233,7 @@ void Actor04600_Fn03EC0(GpEnemy* arg0, Task* task)
 /// blend saturates at 0x12, where the enemy's node flag and the model's 0x80
 /// bit are set. Falling, leaving 0x12 clears the node flag and returns to light
 /// mode 0, and the blend bottoms out at 0 with the model bits cleared.
-void Actor04600_Fn03F30(Task* task)
+static void Actor04600_Fn03F30(Task* task)
 {
     Actor104600Enemy2Work* work;
     GpEnemy*               enemy;
@@ -2277,7 +2277,7 @@ void Actor04600_Fn03F30(Task* task)
 /// while above 0x200. The scaling matrix and its vector are staged in 0x30
 /// bytes of the scratch stack; the node's `flg` is cleared so the next
 /// `Gp_UpdateCoord` recomputes it.
-void Actor04600_Fn0400C(Task* arg0)
+static void Actor04600_Fn0400C(Task* arg0)
 {
     GpCoord*               coord;
     ActorScaleScratch*     head;
@@ -2310,7 +2310,7 @@ void Actor04600_Fn0400C(Task* arg0)
 /// Exit callback of the second enemy: detaches the enemy's contact records,
 /// unlinks its node and the work's three bodies, then runs the common enemy
 /// task exit.
-void Actor04600_Fn04100(Task* task)
+static void Actor04600_Fn04100(Task* task)
 {
     Actor104600Enemy2Work* work;
     GpEnemy*               enemy;

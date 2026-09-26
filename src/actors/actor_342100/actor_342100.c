@@ -405,7 +405,7 @@ void func_actor_342100_80162748(Task* arg0)
 /// insn between the first branch and the jump it dangles over, so neither
 /// branch is inverted. Both are needed for the target's shape; see
 /// DECOMPILATION_LEARNINGS.md, "Several identical `return <const>;` blocks".
-s32 func_actor_342100_801629B8(Task* arg0)
+static s32 func_actor_342100_801629B8(Task* arg0)
 {
     Actor342100Work* work;
     Actor342100Work* w;
@@ -649,7 +649,7 @@ void func_actor_342100_80162DDC(Task* arg0)
 /// 0xFA4 that starts the encounter, then starts spawn entry 2 with the task
 /// itself and steps to state 1. State 1 ticks the child and reports 1 to keep
 /// the task alive until `gGameSession->eventState` is set.
-s32 func_actor_342100_80162F54(Task* arg0)
+static s32 func_actor_342100_80162F54(Task* arg0)
 {
     Actor342100Work* work = (Actor342100Work*)arg0->work;
     Actor342100Work* msgWork;

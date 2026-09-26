@@ -45,11 +45,11 @@ extern Task* D_actor_420700_8013EFE8;
 /// `func_actor_420700_801327EC`.
 extern Task* D_actor_420700_8013EFEC;
 
-void func_actor_420700_8013239C(Task* task);
-void func_actor_420700_80132478(Task* task);
-void func_actor_420700_801324EC(void);
-void func_actor_420700_80132538(void);
-void func_actor_420700_801325C8(void);
+static void func_actor_420700_8013239C(Task* task);
+static void func_actor_420700_80132478(Task* task);
+static void func_actor_420700_801324EC(void);
+static void func_actor_420700_80132538(void);
+static void func_actor_420700_801325C8(void);
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
@@ -65,7 +65,7 @@ extern s32      D_actor_420700_8013EFF4;
 /// work block, spawn the two model tasks, texture the first from the placement
 /// the actor was spawned from, then seed the model's matrices and animation
 /// context before running the first step body.
-void func_actor_420700_80131E24(GpEnemy* enemy, Task* task)
+static void func_actor_420700_80131E24(GpEnemy* enemy, Task* task)
 {
     VECTOR       vec;
     GpAreaKey    key;
@@ -149,7 +149,7 @@ void func_actor_420700_80131E24(GpEnemy* enemy, Task* task)
 /// is running. In that mode the animation slots after the first are held
 /// (rate 0) once the ramp is off zero; otherwise they run at one frame per
 /// tick.
-void func_actor_420700_80132064(GpEnemy* enemy, Task* task)
+static void func_actor_420700_80132064(GpEnemy* enemy, Task* task)
 {
     VECTOR     pos;
     GpCoord    target[2];
@@ -242,7 +242,7 @@ void func_actor_420700_80132340(Task* task)
 
 /// Exit callback of the actor's task: kills the frame-4 model task and
 /// destroys the enemy.
-void func_actor_420700_8013239C(Task* arg0)
+static void func_actor_420700_8013239C(Task* arg0)
 {
     taskKill(D_actor_420700_8013EFE8);
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
@@ -281,7 +281,7 @@ void func_actor_420700_801323D8(Task* task)
 /// running state. Steps 1 and 2 each return through their own copy of the
 /// advance; the two are identical, so jump.c cross-jumps them and only the
 /// second survives.
-void func_actor_420700_80132478(Task* task)
+static void func_actor_420700_80132478(Task* task)
 {
     if (D_actor_420700_8013EFE0->st.state == 1) {
         func_actor_420700_801325C8();
@@ -299,7 +299,7 @@ void func_actor_420700_80132478(Task* task)
 }
 
 /// Advances animation slots 1..0x13 of the work block by one tick.
-void func_actor_420700_801324EC(void)
+static void func_actor_420700_801324EC(void)
 {
     s32 i;
 
@@ -312,7 +312,7 @@ void func_actor_420700_801324EC(void)
 
 /// Sets the rate of animation slots 1..0x13 to 1 and resets each of them to
 /// the current animation id, then records that id as the one now playing.
-void func_actor_420700_80132538(void)
+static void func_actor_420700_80132538(void)
 {
     s32 i;
 
@@ -327,7 +327,7 @@ void func_actor_420700_80132538(void)
 
 /// Reseeds animation slots 1..0x13 from the current animation id and records
 /// that id as the one now playing.
-void func_actor_420700_801325C8(void)
+static void func_actor_420700_801325C8(void)
 {
     s32 i;
 

@@ -57,11 +57,11 @@ extern Actor05300Clip D_actor_105400_8013CE90[];
 extern s16            D_actor_105400_80133A18[];
 extern s16            D_actor_105400_80133A2C[];
 
-void func_actor_105400_80133530(Task* arg0);
-void func_actor_105400_801335B8(Task* arg0);
-void func_actor_105400_80133610(Task* arg0);
-void func_actor_105400_801336D4(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3);
-void func_actor_105400_80133838(GpEnemy* arg0, Task* arg1);
+static void func_actor_105400_80133530(Task* arg0);
+static void func_actor_105400_801335B8(Task* arg0);
+static void func_actor_105400_80133610(Task* arg0);
+static void func_actor_105400_801336D4(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3);
+static void func_actor_105400_80133838(GpEnemy* arg0, Task* arg1);
 
 /// Hit handler of the main body, the first step of the tick. After the
 /// cooldown `field_332` has run out, each of the two contact records the
@@ -73,7 +73,7 @@ void func_actor_105400_80133838(GpEnemy* arg0, Task* arg1);
 /// with pose 3. An attack id differing from the previous record's spawns its
 /// hit effect; every record restarts the cooldown from the id's parameter 2
 /// and plays the hit sound.
-void func_actor_105400_80131E3C(Task* arg0)
+static void func_actor_105400_80131E3C(Task* arg0)
 {
     Actor05300Scratch* scr;
     Actor05300Work*    work;
@@ -172,7 +172,7 @@ end:
 /// `field_2FC`, 0x1000 when no row was read, and while the session's
 /// `viewReady` is 1 the per-view row of `D_actor_105400_8013CE64` is enqueued
 /// with the work block's sound id.
-void func_actor_105400_8013222C(Task* arg0)
+static void func_actor_105400_8013222C(Task* arg0)
 {
     Actor05300Work* work;
     GpCoord*        coord;
@@ -240,7 +240,7 @@ void func_actor_105400_8013222C(Task* arg0)
 /// of `D_actor_105400_80133A2C` (message bit 2 clears the hold value 2). The
 /// pose and colour are ticked every frame, and the enemy is destroyed once the
 /// sequence has ended and the release has run.
-void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
+static void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
 {
     SVECTOR         ofs;
     VECTOR          pos;
@@ -458,7 +458,7 @@ void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
 /// the two per-enemy death flags. A failed allocation tears the enemy down
 /// instead and leaves the task on this handler; otherwise the task moves to the
 /// tick handler (`state` 1).
-void func_actor_105400_80132BAC(GpEnemy* arg0, Task* arg1)
+static void func_actor_105400_80132BAC(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*      obj;
     Actor05300Work* work;
@@ -529,7 +529,7 @@ void func_actor_105400_80132BAC(GpEnemy* arg0, Task* arg1)
 /// block's `field_336` and plays the death effects and sound; a surviving one
 /// spawns its hit effect at most every ten frames, restarts the cooldown from
 /// the attack id's parameter 2 and plays the hit sound.
-void func_actor_105400_80132DAC(GpEnemy* arg0, Task* arg1)
+static void func_actor_105400_80132DAC(GpEnemy* arg0, Task* arg1)
 {
     VECTOR*         vec;
     Actor05300Part* part;
@@ -620,7 +620,7 @@ void func_actor_105400_80132DAC(GpEnemy* arg0, Task* arg1)
 ///
 /// A failed allocation tears the enemy down instead and leaves the task on this
 /// handler.
-void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
+static void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*      obj;
     TmdObject*      model;
@@ -726,7 +726,7 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
 /// setting the node's flags to 8: the hit handler, the idle schedule, the pose
 /// tick, the model's coordinate refresh, the colour update and the
 /// regeneration step.
-void func_actor_105400_80133468(GpEnemy* arg0, Task* arg1)
+static void func_actor_105400_80133468(GpEnemy* arg0, Task* arg1)
 {
     GpCoord*   temp_s1;
     TmdObject* temp_a1;
@@ -777,7 +777,7 @@ default_body:
 /// and the enemy's hit points are below the ceiling `field_33C`, one point
 /// comes back every five frames (`field_33E` counts them down), reported
 /// through the lock-on node as a damage of -1.
-void func_actor_105400_80133530(Task* arg0)
+static void func_actor_105400_80133530(Task* arg0)
 {
     Actor05300Work* work;
     GpEnemy*        enemy;
@@ -798,7 +798,7 @@ void func_actor_105400_80133530(Task* arg0)
 
 /// Hands the model's world position (its coordinate's `workm` translation) to
 /// `Gp_UpdateActorColor` for the enemy, with no blend parameters.
-void func_actor_105400_801335B8(Task* arg0)
+static void func_actor_105400_801335B8(Task* arg0)
 {
     GpCoord* coord;
     VECTOR   vec;
@@ -815,7 +815,7 @@ void func_actor_105400_801335B8(Task* arg0)
 /// with it and its entry of `D_actor_105400_80133A18`, and the frame count
 /// `field_324` restarts; otherwise every slot is ticked and the count advances
 /// by one.
-void func_actor_105400_80133610(Task* arg0)
+static void func_actor_105400_80133610(Task* arg0)
 {
     Actor05300Work* work;
     s32             i;
@@ -852,7 +852,7 @@ void func_actor_105400_80133610(Task* arg0)
 /// is copied into `$s0` by `reload_cse_regs`. Folding the two into one
 /// variable allocates `blk`'s register for the store as well and loses the
 /// copy, the delay-slot fill and the frame layout.
-void func_actor_105400_801336D4(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
+static void func_actor_105400_801336D4(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
 {
     ActorScaleScratch* head;
     ActorScaleScratch* blk;
@@ -889,7 +889,7 @@ void func_actor_105400_801336D4(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
 
 /// State handlers of the part task, indexed by `Task::state`: spawn, per-frame
 /// hit reaction and teardown.
-const GpEnemyTaskFuncTable3 D_actor_105400_80131E24 = {
+static const GpEnemyTaskFuncTable3 D_actor_105400_80131E24 = {
     {
         func_actor_105400_80132BAC,
         func_actor_105400_80132DAC,
@@ -914,7 +914,7 @@ void func_actor_105400_801337DC(Task* arg0)
 /// did for this sub-state (chosen by `field_46`): the same room call with 0
 /// instead of 1, and game flag 0x147 or 0x148 set to 1 where the spawn set it
 /// to 0. The enemy is destroyed once the counter `field_42` reaches 0x3D.
-void func_actor_105400_80133838(GpEnemy* arg0, Task* arg1)
+static void func_actor_105400_80133838(GpEnemy* arg0, Task* arg1)
 {
     Actor05300Part* part;
     Actor05300Work* parentWork;
@@ -978,7 +978,7 @@ s16 Actor05400_Fn01B70(Task* arg0)
 
 /// State handlers of the main task, indexed by `Task::state`: spawn, per-frame
 /// tick and death.
-const GpEnemyTaskFuncTable3 D_actor_105400_80131E30 = {
+static const GpEnemyTaskFuncTable3 D_actor_105400_80131E30 = {
     {
         func_actor_105400_8013310C,
         func_actor_105400_80133468,

@@ -20,8 +20,6 @@ extern Actor00100AnimCommand Actor00100_D1B9D0;
 extern GpAnimBlk*            Gp_PlayerAnimBlkTbl[];
 extern u16                   Gp_WeaponIdBase[];
 extern Actor00100AnimWord    Actor00100_D1B9BC, Actor00100_D1B9C0;
-void                         Actor00100_Fn01900(Task*, s16, s16, s16, s16, u8);
-void                         Actor00100_Fn0375C(Task*);
 
 static __inline__ s16 Actor00100_InRegion(Task* actor)
 {

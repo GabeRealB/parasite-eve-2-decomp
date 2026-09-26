@@ -69,15 +69,15 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
 void func_8017FCF4(GpCoord* coord, SVECTOR* vec);
 
-void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1);
-void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1);
-void func_actor_341700_8016D2E8(GpEnemy* arg0, Task* arg1);
+static void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1);
+static void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1);
+static void func_actor_341700_8016D2E8(GpEnemy* arg0, Task* arg1);
 
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.
-void func_actor_341700_8016AC64(GpCoord* coord, s16 yaw)
+static void func_actor_341700_8016AC64(GpCoord* coord, s16 yaw)
 {
     MATRIX*  rotation;
     GpCoord* out;
@@ -98,7 +98,7 @@ void func_actor_341700_8016AC64(GpCoord* coord, s16 yaw)
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
 /// 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1` is 1.
-s32 func_actor_341700_8016AF70(GpCoord* coord, GpRec18* recs, s16 count)
+static s32 func_actor_341700_8016AF70(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -157,7 +157,7 @@ s32 func_actor_341700_8016AF70(GpCoord* coord, GpRec18* recs, s16 count)
 /// `*pos` accumulates the total nudge. Returns whether any record was of kind
 /// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1`
 /// is 1.
-s32 func_actor_341700_8016B2B8(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 func_actor_341700_8016B2B8(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -272,7 +272,7 @@ s32 func_actor_341700_8016B2B8(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR
 /// `D_actor_341700_80176360`. Returns 1 when the X or Z step is nonzero; a
 /// step with a fractional part moves the coordinate and the kept step one
 /// unit further from zero.
-s32 func_actor_341700_8016B804(GpCoord* coord, GpRec18* movement, s16 arg2)
+static s32 func_actor_341700_8016B804(GpCoord* coord, GpRec18* movement, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -326,7 +326,7 @@ s32 func_actor_341700_8016B804(GpCoord* coord, GpRec18* movement, s16 arg2)
 /// frame's position, relative to the point one unit in front of it. Returns
 /// whether any push was applied; returns 0 at once when
 /// `gGameSession->viewReady` is 1.
-s32 func_actor_341700_8016B9A8(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_actor_341700_8016B9A8(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;
@@ -470,7 +470,7 @@ s32 func_actor_341700_8016B9A8(GpCoord* coord, GpRec18* recs, s16 count, s16 pus
     return hit;
 }
 
-void func_actor_341700_8016C0F4(GpEnemy* arg0, Task* arg1)
+static void func_actor_341700_8016C0F4(GpEnemy* arg0, Task* arg1)
 {
     SVECTOR             vec;
     Actor341700SubWork* work = (Actor341700SubWork*)arg1->work;
@@ -668,7 +668,7 @@ void func_actor_341700_8016C0F4(GpEnemy* arg0, Task* arg1)
 
 /// Three state handlers, indexed by `Actor341700SubWork::field_0`; copied onto
 /// the stack before dispatch.
-const GpEnemyTaskFuncTable3 D_actor_341700_80162058 = { {
+static const GpEnemyTaskFuncTable3 D_actor_341700_80162058 = { {
     func_actor_341700_8016D2B8,
     func_actor_341700_8016D2E8,
     func_actor_341700_8016C0F4,
@@ -683,7 +683,7 @@ const GpEnemyTaskFuncTable3 D_actor_341700_80162058 = { {
 /// so the case list keeps three nodes and GCC's tree tests `case 1` at the
 /// root; dropping the case makes `case 2` the root and the emitted branches
 /// come out with the wrong polarity and a stray low-bound test.
-void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1)
+static void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1)
 {
     VECTOR                block;
     Actor341700SubWork*   work = (Actor341700SubWork*)arg1->work;
@@ -720,7 +720,7 @@ void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1)
 /// Task-state handlers of the `func_actor_341700_8016D130` task: set-up, the
 /// per-frame callback, teardown. `func_actor_341700_8016D32C` dispatches them
 /// on `Task::state`.
-const GpEnemyTaskFuncTable3 D_actor_341700_80162064 = { {
+static const GpEnemyTaskFuncTable3 D_actor_341700_80162064 = { {
     func_actor_341700_8016D130,
     func_actor_341700_8016CC9C,
     Gp_DestroyEnemy,
@@ -804,7 +804,7 @@ s32 func_actor_341700_8016CF48(Task* task, s32 arg1, GpXformArg* placement)
 /// Rebuilds `coord`'s Y rotation from its current yaw (`ratan2` of
 /// `-m[2][0], m[2][2]`), uniformly scaled by `scale`, through a 0x34-byte
 /// block borrowed from the scratchpad. Marks the coordinate dirty.
-void func_actor_341700_8016D018(GpCoord* coord, s16 scale)
+static void func_actor_341700_8016D018(GpCoord* coord, s16 scale)
 {
     void**                scratch;
     ActorScaleRotScratch* head;
@@ -839,7 +839,7 @@ void func_actor_341700_8016D018(GpCoord* coord, s16 scale)
     coord->coord.m[2][2] = m22;
 }
 
-void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1)
+static void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1)
 {
     Actor341700SubWork* work;
     TaskIdMap*          idMap;
@@ -885,7 +885,7 @@ void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1)
     arg1->state  += 1;
 }
 
-void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1)
+static void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1)
 {
     TmdObject* model;
 
@@ -896,7 +896,7 @@ void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1)
     }
 }
 
-void func_actor_341700_8016D2E8(GpEnemy* arg0, Task* arg1)
+static void func_actor_341700_8016D2E8(GpEnemy* arg0, Task* arg1)
 {
     TmdObject* model;
 
@@ -911,7 +911,7 @@ void func_actor_341700_8016D2E8(GpEnemy* arg0, Task* arg1)
 /// Runs the controlled enemy's current state handler from
 /// `D_actor_341700_80162064` - spawn/setup, per-frame tick or teardown -
 /// copying the table onto the stack before the call.
-void func_actor_341700_8016D32C(Task* task)
+static void func_actor_341700_8016D32C(Task* task)
 {
     GpEnemyTaskFuncTable3 sp;
 

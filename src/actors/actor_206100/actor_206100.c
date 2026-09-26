@@ -470,7 +470,7 @@ extern TaskDesc D_actor_206100_80158AF0;
 /// allocation (see `DECOMPILATION_LEARNINGS.md`, "A repeated global load ...").
 /// The two `task->extra` walks after `Gp_LinkNode` are separate reloads in the
 /// original, which is why `tmd` is not reused for `field_8[4]`.
-void func_actor_206100_8014AF74(Task* task);
+static void func_actor_206100_8014AF74(Task* task);
 
 /// Builds the enemy's two collision objects.  Each is bound to a part
 /// coordinate of the actor's `TmdObject` -- `obj_364` to `field_8[1]` with
@@ -479,13 +479,13 @@ void func_actor_206100_8014AF74(Task* task);
 /// which is why there is a single `Gp_InitRec18Table` for the pair.  Each
 /// block ends by clearing `flags` bit 0x8000 after its `Gp_LinkObj`, the same
 /// tail shape `func_actor_403100_80132320` has (`|= 0x8000` there).
-void func_actor_206100_8014F18C(Task* task);
+static void func_actor_206100_8014F18C(Task* task);
 
 /// Builds the child beam's collision state: links its `GpObj` and initializes
 /// the coordinate the beam is drawn at. `task` is the child spawned by
 /// `func_actor_206100_8014C458`, so its `Task::work` is the
 /// `Actor206100ChildWork` above.
-void func_actor_206100_8014EEC0(Task* task);
+static void func_actor_206100_8014EEC0(Task* task);
 
 /// Spawns the beam's impact effect burst at `coord`. `arg1` is
 /// `Actor206100ChildWork::field_60` (the `GpU16Pair` index): `(arg1 >> 1) % 6`
@@ -494,7 +494,7 @@ void func_actor_206100_8014EEC0(Task* task);
 /// - 0 a lone spark, 1 the spark plus those two extras, 2 a four-shot ring -
 /// and `arg3` is the biased `field_64` scale word, whose low 12 bits are the
 /// effect parameter and bits 12..15 a variant index.
-void func_actor_206100_8014A70C(GpCoord* coord, u16 arg1, u16 arg2, u32 arg3);
+static void func_actor_206100_8014A70C(GpCoord* coord, u16 arg1, u16 arg2, u32 arg3);
 
 /// Steps the actor's model coordinate `arg1` along the heading `arg2`, in the
 /// XZ plane, and marks it dirty.
@@ -511,7 +511,7 @@ void func_actor_206100_8014A70C(GpCoord* coord, u16 arg1, u16 arg2, u32 arg3);
 /// Every call site in this overlay takes `arg2` from the actor's heading and
 /// `arg1` from a step distance, either a constant (`0x30`, `0x40`) or an
 /// `s16` the caller narrows itself.
-void func_actor_206100_8014EA8C(Task* task, s16 arg1, s16 arg2);
+static void func_actor_206100_8014EA8C(Task* task, s16 arg1, s16 arg2);
 
 /// State-1 body: ticks the actor's per-state frame counter and, once it
 /// reaches 0x22, walks the actor out of the scene -- parks its model coordinate
@@ -527,7 +527,7 @@ void func_actor_206100_8014EA8C(Task* task, s16 arg1, s16 arg2);
 /// `Mc_SaveData.at4.loc.view` store, so the store is scheduled ahead of it - the same
 /// `MEM_IN_STRUCT_P` mechanism `dryfield_water_tank_4.c` and
 /// `DECOMPILATION_LEARNINGS.md`, "Scalar memory references", describe.
-void func_actor_206100_8014CD08(Task* task);
+static void func_actor_206100_8014CD08(Task* task);
 
 /// State handler 4 of `D_actor_206100_80149E94`, and the one that hands the
 /// actor to `func_actor_206100_8014CD08` above.  It clears the fixed-address
@@ -543,12 +543,12 @@ void func_actor_206100_8014CD08(Task* task);
 /// That last block reads `task->work` again instead of reusing the `work`
 /// pointer, the same fresh load `set_state` makes, so the two stores stay a
 /// block-local quantity.
-void func_actor_206100_8014CE60(Task* task);
+static void func_actor_206100_8014CE60(Task* task);
 
 /// Sub-state 0 of `func_actor_206100_8014CFF4`'s table: clears the per-state
 /// frame counter and the actor's animation request, then advances the
 /// sub-state.
-void func_actor_206100_8014F6F8(Task* task);
+static void func_actor_206100_8014F6F8(Task* task);
 
 /// Sub-state 1 of `func_actor_206100_8014CFF4`'s table: ticks `field_51E`,
 /// arms `field_52E` with 0x18 on the first frame, eases `field_35C` toward
@@ -556,7 +556,7 @@ void func_actor_206100_8014F6F8(Task* task);
 /// (type 6, panned) and 0x77, sets `field_555` on the six cue frames of the
 /// counter, and folds the heading to the actor's target --
 /// `VectorNormalSS` then `ratan2` -- into `field_43E` in steps of 0xC.
-void func_actor_206100_8014D14C(Task* task);
+static void func_actor_206100_8014D14C(Task* task);
 
 /// Sub-state 1 of `D_actor_206100_8014D6F4`'s table
 /// (`D_actor_206100_80149EB4`, whose first entry `func_actor_206100_8014F7B4`
@@ -568,7 +568,7 @@ void func_actor_206100_8014D14C(Task* task);
 /// `(state >> 16) & 3 == 0` hands state 2 (the teleport
 /// `func_actor_206100_8014CB68`) to the actor at sub-state 0, and every other
 /// draw restarts the counter and advances the sub-state.
-void func_actor_206100_8014D8E8(Task* task);
+static void func_actor_206100_8014D8E8(Task* task);
 
 /// Sub-state 1 of the state-2 dispatcher `func_actor_206100_8014DA28`'s
 /// two-entry local table, which picks it with `funcs[(s16)field_520]` and is
@@ -593,24 +593,24 @@ void func_actor_206100_8014D8E8(Task* task);
 ///
 /// The state change reads `task->work` again rather than reusing `work`, the
 /// same fresh load `set_state` makes.
-void func_actor_206100_8014DD3C(Task* task);
+static void func_actor_206100_8014DD3C(Task* task);
 
 /// Teardown state of the beam child, run until its countdown kills it.
-void func_actor_206100_8014EFC8(Task* task);
+static void func_actor_206100_8014EFC8(Task* task);
 
 /// Transforms `pos` from `coord`'s space up the parent chain into the view
 /// coordinate's space.  Returns 1 with `pos` rewritten once the walk reaches
 /// `gGfxViewCoord`, or 0 with `pos` untouched if the chain ends first.
-s32 func_actor_206100_8014F030(GpCoord* coord, SVECTOR* pos);
+static s32 func_actor_206100_8014F030(GpCoord* coord, SVECTOR* pos);
 
 /// Last of the actor's five top-level states (`D_actor_206100_80149E5C`):
 /// hands the task's `GpEnemy`, parked in `Task::spawnArg2`, back to
 /// `Gp_DestroyEnemy`.
-void func_actor_206100_8014F490(Task* task);
+static void func_actor_206100_8014F490(Task* task);
 
 /// Copies the 3x3 rotation of `src` into `dst`, leaving `dst`'s translation
 /// alone.
-void func_actor_206100_8014F4B8(MATRIX* src, MATRIX* dst);
+static void func_actor_206100_8014F4B8(MATRIX* src, MATRIX* dst);
 
 extern s32 D_80115738;
 
@@ -620,32 +620,32 @@ extern u16 D_80181A48;
 
 extern s16 D_actor_206100_80158CD0;
 
-void func_actor_206100_8014B0AC(Task* task, u8 arg1);
-void func_actor_206100_8014E0C0(Task* task);
-void func_actor_206100_8014EB60(Task* task);
-void func_actor_206100_8014EC54(Task* task);
-void func_actor_206100_8014DEAC(Task* task);
-void func_actor_206100_8014FAE4(Task* task);
-void func_8004BFF8(s16 angle, MATRIX* matrix);
+static void func_actor_206100_8014B0AC(Task* task, u8 arg1);
+static void func_actor_206100_8014E0C0(Task* task);
+static void func_actor_206100_8014EB60(Task* task);
+static void func_actor_206100_8014EC54(Task* task);
+static void func_actor_206100_8014DEAC(Task* task);
+static void func_actor_206100_8014FAE4(Task* task);
+void        func_8004BFF8(s16 angle, MATRIX* matrix);
 
-GpEnemy* func_actor_206100_8014EE2C(s32 arg0);
+static GpEnemy* func_actor_206100_8014EE2C(s32 arg0);
 
-void func_actor_206100_8014D574(Task* task);
-void func_actor_206100_8014EB48(Task* task, s16 arg1);
-void func_actor_206100_8014ED3C(Task* task, s16 arg1);
-void func_actor_206100_8014F284(Task* task);
-void func_actor_206100_8014F2F0(Task* task);
-s16  func_actor_206100_8014F3C8(Task* task, s16 arg1);
-void func_actor_206100_8014F738(Task* task);
-void func_actor_206100_8014F770(Task* task);
-void func_actor_206100_8014F7B4(Task* task);
-void func_actor_206100_8014F878(Task* task);
-void func_actor_206100_8014E964(Task* task);
-void func_actor_206100_8014FBE4(Task* task);
-void func_actor_206100_8014FCD4(Task* task);
-void func_actor_206100_8014FDE8(Task* task);
-void func_actor_206100_8014AB3C(GpCoord* coord, u16 arg1, u16 arg2, s32 arg3);
-void func_actor_206100_8014E228(Task* task);
+static void func_actor_206100_8014D574(Task* task);
+static void func_actor_206100_8014EB48(Task* task, s16 arg1);
+static void func_actor_206100_8014ED3C(Task* task, s16 arg1);
+static void func_actor_206100_8014F284(Task* task);
+static void func_actor_206100_8014F2F0(Task* task);
+static s16  func_actor_206100_8014F3C8(Task* task, s16 arg1);
+static void func_actor_206100_8014F738(Task* task);
+static void func_actor_206100_8014F770(Task* task);
+static void func_actor_206100_8014F7B4(Task* task);
+static void func_actor_206100_8014F878(Task* task);
+static void func_actor_206100_8014E964(Task* task);
+static void func_actor_206100_8014FBE4(Task* task);
+static void func_actor_206100_8014FCD4(Task* task);
+static void func_actor_206100_8014FDE8(Task* task);
+static void func_actor_206100_8014AB3C(GpCoord* coord, u16 arg1, u16 arg2, s32 arg3);
+static void func_actor_206100_8014E228(Task* task);
 
 /// Distortion amplitude of the screen wave: `frame * scale / span` of the
 /// running spawn argument, recomputed every frame.
@@ -663,18 +663,18 @@ extern OverlayWaveRec6 D_actor_206100_80158BFC[30];
 /// Task table `func_actor_206100_8014FDE8` spawns the shockwave from.
 extern TaskDesc D_801818BC;
 
-void func_actor_206100_8014DEAC(Task* task);
-void func_actor_206100_8014F284(Task* task);
-void func_actor_206100_8014F2F0(Task* task);
-s16  func_actor_206100_8014F3C8(Task* task, s16 arg1);
-void func_actor_206100_8014F8BC(Task* task);
-void func_actor_206100_8014F970(Task* task);
-void func_actor_206100_8014F9C4(Task* task);
-void func_actor_206100_8014FA08(Task* task);
+static void func_actor_206100_8014DEAC(Task* task);
+static void func_actor_206100_8014F284(Task* task);
+static void func_actor_206100_8014F2F0(Task* task);
+static s16  func_actor_206100_8014F3C8(Task* task, s16 arg1);
+static void func_actor_206100_8014F8BC(Task* task);
+static void func_actor_206100_8014F970(Task* task);
+static void func_actor_206100_8014F9C4(Task* task);
+static void func_actor_206100_8014FA08(Task* task);
 
-void func_actor_206100_8014B8B4(Task* task);
+static void func_actor_206100_8014B8B4(Task* task);
 
-const TaskFuncTable3 D_actor_206100_80149E24 = {
+static const TaskFuncTable3 D_actor_206100_80149E24 = {
     {
         func_actor_206100_8014EEC0,
         func_actor_206100_8014B8B4,
@@ -834,7 +834,7 @@ void func_actor_206100_80149ED0(Task* task)
     addPrim(&gGpuCurrentOt[0], stp);
 }
 
-void func_actor_206100_8014A70C(GpCoord* coord, u16 arg1, u16 arg2, u32 arg3)
+static void func_actor_206100_8014A70C(GpCoord* coord, u16 arg1, u16 arg2, u32 arg3)
 {
     SVECTOR vec;
     s32     i;
@@ -913,7 +913,7 @@ void func_actor_206100_8014A70C(GpCoord* coord, u16 arg1, u16 arg2, u32 arg3)
 /// along row 0x38 of tpage 0x2A, `arg2` sizes the quad and `arg3` spins it: the
 /// corners sit `arg2 * 0x27 / otz` from the projected centre along `arg3` and
 /// `arg3 + 0x400`, so the spark shrinks with depth.
-void func_actor_206100_8014AB3C(GpCoord* arg0, u16 arg1, u16 arg2, s32 arg3)
+static void func_actor_206100_8014AB3C(GpCoord* arg0, u16 arg1, u16 arg2, s32 arg3)
 {
     void**             scratch;
     u8*                head;
@@ -971,7 +971,7 @@ void func_actor_206100_8014AB3C(GpCoord* arg0, u16 arg1, u16 arg2, s32 arg3)
     SCRATCH_POP_BYTES_AT(scratch, sizeof(GpEffFlareScratch));
 }
 
-void func_actor_206100_8014AF74(Task* task)
+static void func_actor_206100_8014AF74(Task* task)
 {
     Actor206100Work* work;
     TmdObject*       tmd;
@@ -1031,7 +1031,7 @@ void func_actor_206100_8014AF74(Task* task)
 /// join after them: written once after the `if`, the else arm's tail becomes
 /// instruction-for-instruction the case-2 tail and the jump optimiser merges
 /// the two, costing the case-2 copy of the last fifty instructions.
-void func_actor_206100_8014B0AC(Task* task, u8 arg1)
+static void func_actor_206100_8014B0AC(Task* task, u8 arg1)
 {
     VECTOR           scale;
     OverlayMat       rot;
@@ -1240,7 +1240,7 @@ void func_actor_206100_8014B0AC(Task* task, u8 arg1)
 /// every later branch target.  And the player delta `d0` is normalised and fed
 /// to `ratan2` even when slot 1 was the closer one, so `field_51C` follows the
 /// player's bearing rather than the target's.
-void func_actor_206100_8014B698(Task* task)
+static void func_actor_206100_8014B698(Task* task)
 {
     Actor206100Work* work;
     GpCoord*         coord;
@@ -1301,7 +1301,7 @@ void func_actor_206100_8014B698(Task* task)
 /// the effect kind to 2 - once `killCountdown` reaches 0x5B or the flag is up.
 /// `field_64` is the scale the setup hands to `func_actor_206100_8014A70C`
 /// biased by 0x10002000; it ramps 0x100 a frame to 0x600 and then holds.
-void func_actor_206100_8014B8B4(Task* task)
+static void func_actor_206100_8014B8B4(Task* task)
 {
     Actor206100ChildWork* child;
     GpCoord*              coord;
@@ -1388,7 +1388,7 @@ void func_actor_206100_8014B8B4(Task* task)
 /// its knock-back and asks for the light one -- and every frame ends by
 /// releasing the record table and counting the cooldown down, or clamping it to
 /// 0 so it never goes negative.
-void func_actor_206100_8014BAA8(Task* task)
+static void func_actor_206100_8014BAA8(Task* task)
 {
     Actor206100Work* work;
     GpEnemy*         enemy;
@@ -1600,7 +1600,7 @@ static __inline__ GpCoord* Actor206100_LocalizeRotation(GpCoord* arg0, MATRIX* a
 /// rotation up to the view coordinate, turns it, expresses the result back in
 /// the parent's frame and writes the 3x3 into the joint.  The working matrix
 /// is one `MATRIX` taken off the scratchpad head for the duration.
-void func_actor_206100_8014BEC4(GpCoord* coord, s16 yaw)
+static void func_actor_206100_8014BEC4(GpCoord* coord, s16 yaw)
 {
     MATRIX*  rotation;
     GpCoord* out;
@@ -1638,7 +1638,7 @@ void func_actor_206100_8014BEC4(GpCoord* coord, s16 yaw)
 /// and sub-state indices cleared -- the two index pairs written through the two
 /// fresh `Task::work` loads, the block-local store shape `func_actor_206100_8014CE60`
 /// uses.
-void func_actor_206100_8014C274(Task* task)
+static void func_actor_206100_8014C274(Task* task)
 {
     Actor206100Work* work;
     Actor206100Work* req;
@@ -1716,16 +1716,16 @@ void func_actor_206100_8014C274(Task* task)
     tail->field_520  = 0;
     tail->field_522  = 0;
 }
-void func_actor_206100_8014DA28(Task* task);
-void func_actor_206100_8014C458(Task* task);
-void func_actor_206100_8014E7D4(Task* task);
+static void func_actor_206100_8014DA28(Task* task);
+static void func_actor_206100_8014C458(Task* task);
+static void func_actor_206100_8014E7D4(Task* task);
 
 /// The actor's five top-level states, dispatched on `Task::state` by its task
 /// callback `func_actor_206100_8014F428`: `func_actor_206100_8014C274` (which
 /// builds the work block), `func_actor_206100_8014DA28`,
 /// `func_actor_206100_8014C458`, `func_actor_206100_8014E7D4` and the exit
 /// `func_actor_206100_8014F490`.
-const TaskFuncTable5 D_actor_206100_80149E5C = {
+static const TaskFuncTable5 D_actor_206100_80149E5C = {
     {
         func_actor_206100_8014C274,
         func_actor_206100_8014DA28,
@@ -1735,17 +1735,17 @@ const TaskFuncTable5 D_actor_206100_80149E5C = {
     },
 };
 
-void func_actor_206100_8014F524(Task* task);
-void func_actor_206100_8014CFF4(Task* task);
-void func_actor_206100_8014D380(Task* task);
-void func_actor_206100_8014D6F4(Task* task);
-void func_actor_206100_8014F59C(void);
-void func_actor_206100_8014F5A4(void);
-void func_actor_206100_8014F5AC(void);
-void func_actor_206100_8014F5B4(Task* task);
-void func_actor_206100_8014F608(Task* task);
+static void func_actor_206100_8014F524(Task* task);
+static void func_actor_206100_8014CFF4(Task* task);
+static void func_actor_206100_8014D380(Task* task);
+static void func_actor_206100_8014D6F4(Task* task);
+static void func_actor_206100_8014F59C(void);
+static void func_actor_206100_8014F5A4(void);
+static void func_actor_206100_8014F5AC(void);
+static void func_actor_206100_8014F5B4(Task* task);
+static void func_actor_206100_8014F608(Task* task);
 
-const TaskFuncTable9 D_actor_206100_80149E70 = {
+static const TaskFuncTable9 D_actor_206100_80149E70 = {
     {
         func_actor_206100_8014F524,
         func_actor_206100_8014CFF4,
@@ -1798,7 +1798,7 @@ static __inline__ TmdObject* Actor206100_ModelCopy(TmdObject* input)
 
 /// Updates the active enemy, emits its beam, and gates lock-on by its height
 /// after transforming the selected model part through the parent chain.
-void func_actor_206100_8014C458(Task* task)
+static void func_actor_206100_8014C458(Task* task)
 {
     Actor206100Work*       work   = (Actor206100Work*)task->work;
     TmdObject*             obj    = Actor206100_ModelCopy(*(TmdObject* volatile*)&task->extra.tmd);
@@ -2019,7 +2019,7 @@ void func_actor_206100_8014C458(Task* task)
 /// it short is what puts the constant in `$v1` and the `%hi` in `$t0`; with
 /// `blend` written last the two swap and the tail no longer schedules the same
 /// way.
-void func_actor_206100_8014CB68(Task* task)
+static void func_actor_206100_8014CB68(Task* task)
 {
     Actor206100Work* work;
     Actor206100Work* work2;
@@ -2071,7 +2071,7 @@ void func_actor_206100_8014CB68(Task* task)
         work->field_4F8               = Task_SpawnFromTable(&D_actor_206100_80158AF0, 0, 0, (s32)&D_actor_206100_80158CCC);
     }
 }
-void func_actor_206100_8014CD08(Task* task)
+static void func_actor_206100_8014CD08(Task* task)
 {
     Actor206100Work* work;
     Actor206100Work* work2;
@@ -2129,7 +2129,7 @@ void func_actor_206100_8014CD08(Task* task)
 /// The frame-0x46 block reads `task->work` again rather than reusing `work`,
 /// the fresh load that keeps the pair of stores a block-local quantity -- the
 /// same reload `set_state` below makes.
-void func_actor_206100_8014CE60(Task* task)
+static void func_actor_206100_8014CE60(Task* task)
 {
     Actor206100Work* work;
     Actor206100Work* next;
@@ -2242,7 +2242,7 @@ static __inline__ s16 take_request(Task* task)
 /// none, runs the current sub-state handler.  The request is handled through
 /// the inlined `take_request`, so a request that moved the actor to another
 /// state skips this frame's handler entirely.
-void func_actor_206100_8014CFF4(Task* task)
+static void func_actor_206100_8014CFF4(Task* task)
 {
     Actor206100Work* sub                 = (Actor206100Work*)task->work;
     void             (*states[2])(Task*) = {
@@ -2284,7 +2284,7 @@ void func_actor_206100_8014CFF4(Task* task)
 ///   tail, which is the register only the tail's load crosses calls for.
 /// - the state change goes through the inlined `set_state`, the same reloading
 ///   helper `func_actor_206100_8014D8E8` calls.
-void func_actor_206100_8014D14C(Task* task)
+static void func_actor_206100_8014D14C(Task* task)
 {
     Actor206100Work* sub = (Actor206100Work*)task->work;
     Actor206100Work* work;
@@ -2347,12 +2347,12 @@ void func_actor_206100_8014D14C(Task* task)
     }
     func_actor_206100_8014ED3C(task, 0x10);
 }
-void func_actor_206100_8014F65C(Task* task);
-void func_actor_206100_8014F69C(Task* task);
+static void func_actor_206100_8014F65C(Task* task);
+static void func_actor_206100_8014F69C(Task* task);
 
 /// The five sub-state handlers `func_actor_206100_8014F524` picks between: it
 /// copies the table onto its stack and calls `funcs[(s16)field_522]`.
-const TaskFuncTable5 D_actor_206100_80149E94 = {
+static const TaskFuncTable5 D_actor_206100_80149E94 = {
     {
         func_actor_206100_8014F65C,
         func_actor_206100_8014F69C,
@@ -2367,7 +2367,7 @@ const TaskFuncTable5 D_actor_206100_80149E94 = {
 /// copies it whole, which is why the copy is a three-word block move out of
 /// `.rodata`.  `func_actor_206100_8014D6F4` has the same body over the sibling
 /// table `D_actor_206100_80149EB4`.
-const TaskFuncTable3 D_actor_206100_80149EA8 = {
+static const TaskFuncTable3 D_actor_206100_80149EA8 = {
     {
         func_actor_206100_8014F738,
         func_actor_206100_8014D574,
@@ -2380,7 +2380,7 @@ const TaskFuncTable3 D_actor_206100_80149EA8 = {
 /// dispatches between, the first `func_actor_206100_8014F7B4` and the third
 /// `func_actor_206100_8014F878` bracketing the ring of debris
 /// `func_actor_206100_8014D8E8` throws.
-const TaskFuncTable3 D_actor_206100_80149EB4 = {
+static const TaskFuncTable3 D_actor_206100_80149EB4 = {
     {
         func_actor_206100_8014F7B4,
         func_actor_206100_8014D8E8,
@@ -2393,7 +2393,7 @@ const TaskFuncTable3 D_actor_206100_80149EB4 = {
 /// the four handlers `func_actor_206100_8014E7D4` dispatches between.  The cast
 /// is the second argument its call passes, which the four one-argument handlers
 /// ignore -- see `Actor206100StateTable4`.
-const Actor206100StateTable4 D_actor_206100_80149EC0 = {
+static const Actor206100StateTable4 D_actor_206100_80149EC0 = {
     {
         (Actor206100StateFunc)func_actor_206100_8014FBE4,
         (Actor206100StateFunc)func_actor_206100_8014FCD4,
@@ -2432,7 +2432,7 @@ const Actor206100StateTable4 D_actor_206100_80149EC0 = {
 /// It ends by handing the actor to `func_actor_206100_8014ED3C` with step 0x14,
 /// the walk that retires the actor back to `field_434` / `field_438` once it has
 /// travelled far enough.
-void func_actor_206100_8014D380(Task* task)
+static void func_actor_206100_8014D380(Task* task)
 {
     Actor206100Work* sub    = (Actor206100Work*)task->work;
     TaskFuncTable3   states = D_actor_206100_80149EA8;
@@ -2465,7 +2465,7 @@ void func_actor_206100_8014D380(Task* task)
         func_actor_206100_8014ED3C(task, 0x14);
     }
 }
-void func_actor_206100_8014D574(Task* task)
+static void func_actor_206100_8014D574(Task* task)
 {
     Actor206100Work* work;
     GpCoord*         coord;
@@ -2512,7 +2512,7 @@ void func_actor_206100_8014D574(Task* task)
 /// in the other.  See `func_actor_206100_8014D380` for what the steering fold
 /// does and for why the `yaw` load sits after the `jal` and the deadband is a
 /// variable.
-void func_actor_206100_8014D6F4(Task* task)
+static void func_actor_206100_8014D6F4(Task* task)
 {
     Actor206100Work* sub    = (Actor206100Work*)task->work;
     TaskFuncTable3   states = D_actor_206100_80149EB4;
@@ -2565,7 +2565,7 @@ void func_actor_206100_8014D6F4(Task* task)
 /// `set_state`, which reloads `task->work` instead of reusing `work`: that
 /// fresh load is what keeps the pointer a block-local quantity, exactly as in
 /// `take_request`.
-void func_actor_206100_8014D8E8(Task* task)
+static void func_actor_206100_8014D8E8(Task* task)
 {
     Actor206100Work* work;
     GpCoord*         coord;
@@ -2634,7 +2634,7 @@ void func_actor_206100_8014D8E8(Task* task)
 /// comes out frame-relative.  `scale` is declared between the two matrices
 /// because the frame slots are handed out in declaration order -- matrix /
 /// scale / scaling is what puts them at 0x18, 0x38 and 0x48.
-void func_actor_206100_8014DA28(Task* task)
+static void func_actor_206100_8014DA28(Task* task)
 {
     Actor206100Work* work               = (Actor206100Work*)task->work;
     TmdObject*       obj                = task->extra.tmd;
@@ -2745,7 +2745,7 @@ void func_actor_206100_8014DA28(Task* task)
 /// used by both is a single pseudo whose live range spans both loops, so
 /// local-alloc has to home it in a callee-saved register for the whole
 /// function, where the target's second loop counts in `$a0`.
-void func_actor_206100_8014DD3C(Task* task)
+static void func_actor_206100_8014DD3C(Task* task)
 {
     Actor206100Work* work;
     Actor206100Work* next;
@@ -2818,7 +2818,7 @@ void func_actor_206100_8014DD3C(Task* task)
 /// and it also puts the base in the `addu`'s first operand.  See
 /// `DECOMPILATION_LEARNINGS.md`, "Array index vs intermediate pointer for
 /// `addu` operand order".
-void func_actor_206100_8014DEAC(Task* task)
+static void func_actor_206100_8014DEAC(Task* task)
 {
     Actor206100Work*    sub = (Actor206100Work*)task->work;
     Actor206100Work*    work;
@@ -2894,7 +2894,7 @@ void func_actor_206100_8014DEAC(Task* task)
 /// the shift) while the addend's high bits are dead, the sum going straight back
 /// through `sh` into the same halfword.  The ramp in case 2, whose operands do
 /// need full width, is where the `(u16)` casts are load-bearing.
-void func_actor_206100_8014E0C0(Task* task)
+static void func_actor_206100_8014E0C0(Task* task)
 {
     Actor206100Work* work;
     s32              sound;
@@ -2930,7 +2930,7 @@ void func_actor_206100_8014E0C0(Task* task)
             break;
     }
 }
-void func_actor_206100_8014E228(Task* task)
+static void func_actor_206100_8014E228(Task* task)
 {
     SVECTOR          ang;
     SVECTOR*         aim;
@@ -3101,7 +3101,7 @@ void func_actor_206100_8014E228(Task* task)
 /// `func_actor_206100_8014F524` builds, which is what the prologue's four-word
 /// block move out of `.rodata` is.  The tail is `Actor206100_UpdateColor`; see
 /// there for why it stays inline.
-void func_actor_206100_8014E7D4(Task* task)
+static void func_actor_206100_8014E7D4(Task* task)
 {
     Actor206100Work*       work;
     TmdObject*             obj;
@@ -3144,7 +3144,7 @@ void func_actor_206100_8014E7D4(Task* task)
 /// materialises `i` shares a block with the case-3 increment, post-reload CSE
 /// folds that increment's `+ 1` into `+ $s0`, and the phase is written with
 /// `addu`.  Here the branch targets the initialiser instead.
-void func_actor_206100_8014E964(Task* task)
+static void func_actor_206100_8014E964(Task* task)
 {
     Actor206100Work* work;
     Actor206100Work* next;
@@ -3181,14 +3181,14 @@ void func_actor_206100_8014E964(Task* task)
         work->field_520 = work->field_520 + 1;
     }
 }
-void func_actor_206100_8014EA8C(Task* task, s16 arg1, s16 arg2)
+static void func_actor_206100_8014EA8C(Task* task, s16 arg1, s16 arg2)
 {
     task->extra.tmd->coords->coord.t[0] += ((rsin(arg2) << 4) * arg1) >> 16;
     task->extra.tmd->coords->coord.t[2] += ((rcos(arg2) << 4) * arg1) >> 16;
     task->extra.tmd->coords->flg         = 0;
 }
 
-void func_actor_206100_8014EB48(Task* task, s16 arg1)
+static void func_actor_206100_8014EB48(Task* task, s16 arg1)
 {
     Actor206100Work* work = (Actor206100Work*)task->work;
 
@@ -3197,7 +3197,7 @@ void func_actor_206100_8014EB48(Task* task, s16 arg1)
     work->field_544 = arg1;
 }
 
-void func_actor_206100_8014EB60(Task* task)
+static void func_actor_206100_8014EB60(Task* task)
 {
     Actor206100Work* work;
     GpCoord*         coords;
@@ -3231,7 +3231,7 @@ void func_actor_206100_8014EB60(Task* task)
     dest->m[2][2] = matrix.mat.m[2][2];
 }
 
-void func_actor_206100_8014EC54(Task* task)
+static void func_actor_206100_8014EC54(Task* task)
 {
     Actor206100Work* work = (Actor206100Work*)task->work;
     s16              value;
@@ -3261,7 +3261,7 @@ void func_actor_206100_8014EC54(Task* task)
             break;
     }
 }
-void func_actor_206100_8014ED3C(Task* task, s16 arg1)
+static void func_actor_206100_8014ED3C(Task* task, s16 arg1)
 {
     Actor206100Work*        work;
     GpCoord*                coord;
@@ -3287,7 +3287,7 @@ void func_actor_206100_8014ED3C(Task* task, s16 arg1)
 
 extern TaskDesc D_80147E48;
 
-GpEnemy* func_actor_206100_8014EE2C(s32 arg0)
+static GpEnemy* func_actor_206100_8014EE2C(s32 arg0)
 {
     GpEnemy*   enemy;
     TmdObject* obj;
@@ -3306,7 +3306,7 @@ GpEnemy* func_actor_206100_8014EE2C(s32 arg0)
     return NULL;
 }
 
-void func_actor_206100_8014EEC0(Task* task)
+static void func_actor_206100_8014EEC0(Task* task)
 {
     Actor206100ChildWork* child;
     GpRec18*              rec;
@@ -3339,7 +3339,7 @@ void func_actor_206100_8014EEC0(Task* task)
 /// Teardown state of the beam child: each frame it clears the root
 /// coordinate's `flg` and counts `killCountdown` up, and on the twelfth frame
 /// unlinks the beam's collision object and kills the task.
-void func_actor_206100_8014EFC8(Task* task)
+static void func_actor_206100_8014EFC8(Task* task)
 {
     Actor206100ChildWork* child;
     TmdObject*            tmd;
@@ -3356,7 +3356,7 @@ void func_actor_206100_8014EFC8(Task* task)
     }
 }
 
-s32 func_actor_206100_8014F030(GpCoord* coord, SVECTOR* pos)
+static s32 func_actor_206100_8014F030(GpCoord* coord, SVECTOR* pos)
 {
     SVECTOR  local;
     VECTOR   result;
@@ -3400,7 +3400,7 @@ void func_actor_206100_8014F134(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_actor_206100_8014F18C(Task* task)
+static void func_actor_206100_8014F18C(Task* task)
 {
     Actor206100Work* work;
 
@@ -3430,7 +3430,7 @@ void func_actor_206100_8014F18C(Task* task)
     work->obj_414.flags &= 0x7FFF;
 }
 
-void func_actor_206100_8014F284(Task* task)
+static void func_actor_206100_8014F284(Task* task)
 {
     Actor206100Work* work;
     s32              i;
@@ -3457,7 +3457,7 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// clip either way, which is what lets the next frame tell the two cases apart.
 /// The call sits *inside* the loop and takes a fresh `work` in `$a0` each
 /// iteration, the same shape `func_actor_405800_80138294` has.
-void func_actor_206100_8014F2F0(Task* arg0)
+static void func_actor_206100_8014F2F0(Task* arg0)
 {
     Actor206100Work* work;
     s32              i;
@@ -3481,7 +3481,7 @@ void func_actor_206100_8014F2F0(Task* arg0)
     }
     work->field_50E = work->field_510;
 }
-s16 func_actor_206100_8014F3C8(Task* arg0, s16 arg1)
+static s16 func_actor_206100_8014F3C8(Task* arg0, s16 arg1)
 {
     Actor206100Work* work = (Actor206100Work*)arg0->work;
 
@@ -3501,12 +3501,12 @@ void func_actor_206100_8014F428(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_actor_206100_8014F490(Task* task)
+static void func_actor_206100_8014F490(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
 
-void func_actor_206100_8014F4B8(MATRIX* src, MATRIX* dst)
+static void func_actor_206100_8014F4B8(MATRIX* src, MATRIX* dst)
 {
     dst->m[0][0] = src->m[0][0];
     dst->m[0][1] = src->m[0][1];
@@ -3521,7 +3521,7 @@ void func_actor_206100_8014F4B8(MATRIX* src, MATRIX* dst)
 
 /// Runs the actor's sub-state handler for the current `field_522`, after
 /// marking the enemy's list node so the exit path tears the actor down.
-void func_actor_206100_8014F524(Task* task)
+static void func_actor_206100_8014F524(Task* task)
 {
     Actor206100Work* work;
     GpEnemy*         enemy;
@@ -3534,19 +3534,19 @@ void func_actor_206100_8014F524(Task* task)
     sp.funcs[(s16)work->field_522](task);
 }
 
-void func_actor_206100_8014F59C(void)
+static void func_actor_206100_8014F59C(void)
 {
 }
 
-void func_actor_206100_8014F5A4(void)
+static void func_actor_206100_8014F5A4(void)
 {
 }
 
-void func_actor_206100_8014F5AC(void)
+static void func_actor_206100_8014F5AC(void)
 {
 }
 
-void func_actor_206100_8014F5B4(Task* task)
+static void func_actor_206100_8014F5B4(Task* task)
 {
     Actor206100Work* work                = (Actor206100Work*)task->work;
     void             (*states[2])(Task*) = {
@@ -3557,7 +3557,7 @@ void func_actor_206100_8014F5B4(Task* task)
     states[(s16)work->field_522](task);
 }
 
-void func_actor_206100_8014F608(Task* task)
+static void func_actor_206100_8014F608(Task* task)
 {
     Actor206100Work* work                = (Actor206100Work*)task->work;
     void             (*states[2])(Task*) = {
@@ -3568,7 +3568,7 @@ void func_actor_206100_8014F608(Task* task)
     states[(s16)work->field_522](task);
 }
 
-void func_actor_206100_8014F65C(Task* task)
+static void func_actor_206100_8014F65C(Task* task)
 {
     Actor206100Work* work = (Actor206100Work*)task->work;
 
@@ -3578,7 +3578,7 @@ void func_actor_206100_8014F65C(Task* task)
     work->field_522 = work->field_522 + 1;
 }
 
-void func_actor_206100_8014F69C(Task* task)
+static void func_actor_206100_8014F69C(Task* task)
 {
     u16              timer;
     Actor206100Work* work = (Actor206100Work*)task->work;
@@ -3592,7 +3592,7 @@ void func_actor_206100_8014F69C(Task* task)
     }
 }
 
-void func_actor_206100_8014F6F8(Task* task)
+static void func_actor_206100_8014F6F8(Task* task)
 {
     Actor206100Work* work;
     Actor206100Work* anim;
@@ -3607,7 +3607,7 @@ void func_actor_206100_8014F6F8(Task* task)
     work->field_522 = work->field_522 + 1;
 }
 
-void func_actor_206100_8014F738(Task* task)
+static void func_actor_206100_8014F738(Task* task)
 {
     Actor206100Work* work = (Actor206100Work*)task->work;
 
@@ -3619,7 +3619,7 @@ void func_actor_206100_8014F738(Task* task)
     work->field_522 = work->field_522 + 1;
 }
 
-void func_actor_206100_8014F770(Task* task)
+static void func_actor_206100_8014F770(Task* task)
 {
     u16              timer;
     Actor206100Work* work;
@@ -3635,7 +3635,7 @@ void func_actor_206100_8014F770(Task* task)
     }
 }
 
-void func_actor_206100_8014F7B4(Task* task)
+static void func_actor_206100_8014F7B4(Task* task)
 {
     Actor206100Work* work;
     Actor206100Work* next;
@@ -3657,7 +3657,7 @@ void func_actor_206100_8014F7B4(Task* task)
     work->field_522 = work->field_522 + 1;
 }
 
-void func_actor_206100_8014F878(Task* task)
+static void func_actor_206100_8014F878(Task* task)
 {
     u16              timer;
     Actor206100Work* work;
@@ -3673,7 +3673,7 @@ void func_actor_206100_8014F878(Task* task)
     }
 }
 
-void func_actor_206100_8014F8BC(Task* task)
+static void func_actor_206100_8014F8BC(Task* task)
 {
     Actor206100Work* work;
     s32              soundId;
@@ -3691,7 +3691,7 @@ void func_actor_206100_8014F8BC(Task* task)
     work->field_522 = work->field_522 + 1;
 }
 
-void func_actor_206100_8014F970(Task* task)
+static void func_actor_206100_8014F970(Task* task)
 {
     Actor206100Work* work;
     s32              cond;
@@ -3709,7 +3709,7 @@ void func_actor_206100_8014F970(Task* task)
     }
 }
 
-void func_actor_206100_8014F9C4(Task* task)
+static void func_actor_206100_8014F9C4(Task* task)
 {
     Actor206100Work* work = (Actor206100Work*)task->work;
 
@@ -3722,7 +3722,7 @@ void func_actor_206100_8014F9C4(Task* task)
     work->field_522 = work->field_522 + 1;
 }
 
-void func_actor_206100_8014FA08(Task* task)
+static void func_actor_206100_8014FA08(Task* task)
 {
     u16              timer;
     Actor206100Work* work;
@@ -3766,7 +3766,7 @@ void func_actor_206100_8014FA08(Task* task)
 /// transposes the `spawnArg2` and `task->extra` loads; see
 /// `DECOMPILATION_LEARNINGS.md`, "A dereference-store's address load is ranked
 /// with its store, so give the pointer its own local".
-void func_actor_206100_8014FAE4(Task* task)
+static void func_actor_206100_8014FAE4(Task* task)
 {
     GpCoord*         coord;
     Actor206100Work* work;
@@ -3797,7 +3797,7 @@ void func_actor_206100_8014FAE4(Task* task)
     last->field_522 = 0;
 }
 
-void func_actor_206100_8014FBE4(Task* task)
+static void func_actor_206100_8014FBE4(Task* task)
 {
     Actor206100Work* work;
     GpEnemy*         enemy;
@@ -3841,7 +3841,7 @@ void func_actor_206100_8014FBE4(Task* task)
 /// and threads the branch past it.  See `DECOMPILATION_LEARNINGS.md`, "A
 /// constant store in a delay slot decides whether post-reload CSE folds it into
 /// a later increment".
-void func_actor_206100_8014FCD4(Task* task)
+static void func_actor_206100_8014FCD4(Task* task)
 {
     Actor206100Work* work;
     Actor206100Work* next;
@@ -3887,7 +3887,7 @@ void func_actor_206100_8014FCD4(Task* task)
 /// loads to be scheduled first, which is the target's order; see
 /// `DECOMPILATION_LEARNINGS.md`, "A dereference-store's address load is ranked
 /// with its store".
-void func_actor_206100_8014FDE8(Task* task)
+static void func_actor_206100_8014FDE8(Task* task)
 {
     Actor206100Work* work;
     Actor206100Work* next;

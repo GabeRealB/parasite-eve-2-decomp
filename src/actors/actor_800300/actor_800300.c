@@ -48,21 +48,21 @@ void Gp_PlayerMode2State1(Task* arg0);
 void Gp_PlayerMode2State2(Task* arg0);
 void Gp_PlayerMode2State6(Task* arg0);
 
-void func_actor_800300_801623F8(Task* arg0);
-void func_actor_800300_801625A8(Task* task);
-void func_actor_800300_80162658(Task* arg0);
-void func_actor_800300_801628D0(Task* arg0);
-void func_actor_800300_80162A98(Task* arg0);
-void func_actor_800300_80162C2C(Task* arg0);
-void func_actor_800300_80162C98(Task* arg0);
-void func_actor_800300_80162D74(Task* arg0);
-void func_actor_800300_80162EEC(Task* arg0);
-void func_actor_800300_80162F24(Task* arg0);
-void func_actor_800300_80162F98(Task* arg0);
-void func_actor_800300_80163048(Task* arg0);
-void func_actor_800300_80163074(Task* arg0);
+static void func_actor_800300_801623F8(Task* arg0);
+static void func_actor_800300_801625A8(Task* task);
+static void func_actor_800300_80162658(Task* arg0);
+static void func_actor_800300_801628D0(Task* arg0);
+static void func_actor_800300_80162A98(Task* arg0);
+static void func_actor_800300_80162C2C(Task* arg0);
+static void func_actor_800300_80162C98(Task* arg0);
+static void func_actor_800300_80162D74(Task* arg0);
+static void func_actor_800300_80162EEC(Task* arg0);
+static void func_actor_800300_80162F24(Task* arg0);
+static void func_actor_800300_80162F98(Task* arg0);
+static void func_actor_800300_80163048(Task* arg0);
+static void func_actor_800300_80163074(Task* arg0);
 
-void func_actor_800300_80161E80(Task* arg0)
+static void func_actor_800300_80161E80(Task* arg0)
 {
     GameActor*  actor;
     TmdObject*  extra;
@@ -141,7 +141,7 @@ void func_actor_800300_80161E80(Task* arg0)
     d4->repeatCount = fcc;
 }
 
-void func_actor_800300_80162064(Task* arg0)
+static void func_actor_800300_80162064(Task* arg0)
 {
     void**                 scratch;
     u8*                    head;
@@ -232,7 +232,7 @@ void func_actor_800300_80162064(Task* arg0)
     SCRATCH_POP_BYTES(0x18);
 }
 
-void func_actor_800300_801623F8(Task* arg0)
+static void func_actor_800300_801623F8(Task* arg0)
 {
     void**      scratch;
     u8*         head;
@@ -294,7 +294,7 @@ void func_actor_800300_801623F8(Task* arg0)
     SCRATCH_POP_BYTES(8);
 }
 
-void func_actor_800300_8016259C(Task* arg0)
+static void func_actor_800300_8016259C(Task* arg0)
 {
     arg0->state = 3;
 }
@@ -303,7 +303,7 @@ void func_actor_800300_8016259C(Task* arg0)
 /// the last entry of its state table: clears the second `Gp_ActorSlots` slot,
 /// unlinks the two collision objects the set-up state linked, and kills the
 /// task.
-void func_actor_800300_801625A8(Task* task)
+static void func_actor_800300_801625A8(Task* task)
 {
     GameActor* actor;
 
@@ -317,7 +317,7 @@ void func_actor_800300_801625A8(Task* task)
 /// State handlers of the actor's main task, indexed by its state: set-up, the
 /// per-frame update, a step that only advances to the last state, and the
 /// teardown.
-const TaskFuncTable4 D_actor_800300_80161E24 = { {
+static const TaskFuncTable4 D_actor_800300_80161E24 = { {
     (TaskFunc)func_actor_800300_80161E80,
     (TaskFunc)func_actor_800300_80162064,
     func_actor_800300_8016259C,
@@ -327,7 +327,7 @@ const TaskFuncTable4 D_actor_800300_80161E24 = { {
 /// Per-frame entry point of the actor's main task: runs the handler its state
 /// selects. The table is a local, so it is copied from `.rodata` onto the
 /// stack on every call.
-void func_actor_800300_801625F4(Task* task)
+static void func_actor_800300_801625F4(Task* task)
 {
     TaskFuncTable4 states;
 
@@ -336,14 +336,14 @@ void func_actor_800300_801625F4(Task* task)
 }
 
 /// Handlers `func_actor_800300_80162C2C` runs, indexed by `field_954`.
-const TaskFuncTable3 D_actor_800300_80161E34 = { {
+static const TaskFuncTable3 D_actor_800300_80161E34 = { {
     func_actor_800300_80162658,
     func_actor_800300_80162F24,
     func_actor_800300_80162F98,
 } };
 
 /// Behaviours `func_actor_800300_80162658` runs, indexed by `field_956`.
-const TaskFuncTable9 D_actor_800300_80161E40 = { {
+static const TaskFuncTable9 D_actor_800300_80161E40 = { {
     func_actor_800300_80162C98,
     func_actor_800300_801628D0,
     func_actor_800300_80162A98,
@@ -355,7 +355,7 @@ const TaskFuncTable9 D_actor_800300_80161E40 = { {
     func_actor_800300_80162C98,
 } };
 
-void func_actor_800300_80162658(Task* arg0)
+static void func_actor_800300_80162658(Task* arg0)
 {
     TaskFuncTable9 sp;
     GameActor*     actor;
@@ -426,7 +426,7 @@ void func_actor_800300_80162658(Task* arg0)
     }
 }
 
-void func_actor_800300_801628D0(Task* arg0)
+static void func_actor_800300_801628D0(Task* arg0)
 {
     GameActor* actor;
     GpCoord*   coord;
@@ -502,7 +502,7 @@ void func_actor_800300_801628D0(Task* arg0)
     func_80105ED4(arg0);
 }
 
-void func_actor_800300_80162A98(Task* arg0)
+static void func_actor_800300_80162A98(Task* arg0)
 {
     u8*         head;
     VECTOR3*    vec;
@@ -561,7 +561,7 @@ void func_actor_800300_80162A98(Task* arg0)
     SCRATCH_POP_BYTES(0x10);
 }
 
-void func_actor_800300_80162C2C(Task* arg0)
+static void func_actor_800300_80162C2C(Task* arg0)
 {
     GameActor*     actor;
     TaskFuncTable3 sp;
@@ -574,7 +574,7 @@ void func_actor_800300_80162C2C(Task* arg0)
     actor->field_986 = 0;
 }
 
-void func_actor_800300_80162C98(Task* arg0)
+static void func_actor_800300_80162C98(Task* arg0)
 {
     GameActor* actor;
     GpCoord*   coord;
@@ -602,7 +602,7 @@ void func_actor_800300_80162C98(Task* arg0)
     func_80105ED4(arg0);
 }
 
-void func_actor_800300_80162D74(Task* arg0)
+static void func_actor_800300_80162D74(Task* arg0)
 {
     GameActor*  actor;
     GpCoord*    coord;
@@ -651,14 +651,14 @@ void func_actor_800300_80162D74(Task* arg0)
     SCRATCH_POP_BYTES(0x10);
 }
 
-void func_actor_800300_80162EEC(Task* arg0)
+static void func_actor_800300_80162EEC(Task* arg0)
 {
     if (((GameActor*)arg0->work)->field_95E == 1) {
         Gp_ResetActorMove(arg0, 0);
     }
 }
 
-void func_actor_800300_80162F24(Task* arg0)
+static void func_actor_800300_80162F24(Task* arg0)
 {
     GameActor* actor;
     GpCoord*   coord;
@@ -681,7 +681,7 @@ void func_actor_800300_80162F24(Task* arg0)
 
 /// Handlers `func_actor_800300_80162F98` runs, indexed by `field_956`: the
 /// gameplay module's own mode-2 player states.
-const TaskFuncTable7 D_actor_800300_80161E64 = { {
+static const TaskFuncTable7 D_actor_800300_80161E64 = { {
     Gp_PlayerMode2State0,
     Gp_PlayerMode2State1,
     Gp_PlayerMode2State2,
@@ -691,7 +691,7 @@ const TaskFuncTable7 D_actor_800300_80161E64 = { {
     Gp_PlayerMode2State6,
 } };
 
-void func_actor_800300_80162F98(Task* arg0)
+static void func_actor_800300_80162F98(Task* arg0)
 {
     GameActor*     actor;
     TaskFuncTable7 sp;
@@ -708,7 +708,7 @@ void func_actor_800300_80162F98(Task* arg0)
 /// Switches the actor's update into its approach behaviour (entry 1 of the
 /// behaviour table), restarting the behaviour's step and counters and setting
 /// the approach timer to 60 frames.
-void func_actor_800300_80163048(Task* arg0)
+static void func_actor_800300_80163048(Task* arg0)
 {
     GameActor* actor;
 
@@ -724,7 +724,7 @@ void func_actor_800300_80163048(Task* arg0)
 
 /// Switches the actor's update into its turn-to-face behaviour (entry 2 of
 /// the behaviour table), restarting the behaviour's step and counters.
-void func_actor_800300_80163074(Task* arg0)
+static void func_actor_800300_80163074(Task* arg0)
 {
     GameActor* actor;
 

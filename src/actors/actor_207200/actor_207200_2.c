@@ -124,32 +124,32 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1);
-void func_actor_207200_8014C870(Task* arg0, s32 arg1);
-s32  func_actor_207200_8014CE20(GpCoord* arg0, u32* arg1);
-void func_actor_207200_8014CA84(GpEnemy* arg0, Task* arg1);
-void func_actor_207200_8014D2DC(GpEnemy* arg0, Task* arg1);
-void func_actor_207200_8014CFEC(Task* arg0);
-void func_actor_207200_8014D128(Task* arg0);
-void func_actor_207200_8014D41C(Task* arg0);
-void func_actor_207200_8014D49C(Task* arg0);
-void func_actor_207200_8014D5C4(Task* arg0);
-void func_actor_207200_8014D65C(Task* arg0);
-void func_actor_207200_8014D70C(GpEnemy* arg0, Task* task);
-void func_actor_207200_8014D77C(Task* task);
-void func_actor_207200_8014D7E8(Task* arg0);
-void func_actor_207200_8014D8DC(Task* arg0);
-void func_actor_207200_8014D97C(Task* arg0, GpCoord* arg1);
-void func_actor_207200_8014DAF8(Task* dst, Task* src);
-void func_actor_207200_8014DB4C(Task* arg0);
+static void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1);
+static void func_actor_207200_8014C870(Task* arg0, s32 arg1);
+static s32  func_actor_207200_8014CE20(GpCoord* arg0, u32* arg1);
+static void func_actor_207200_8014CA84(GpEnemy* arg0, Task* arg1);
+static void func_actor_207200_8014D2DC(GpEnemy* arg0, Task* arg1);
+static void func_actor_207200_8014CFEC(Task* arg0);
+static void func_actor_207200_8014D128(Task* arg0);
+static void func_actor_207200_8014D41C(Task* arg0);
+static void func_actor_207200_8014D49C(Task* arg0);
+static void func_actor_207200_8014D5C4(Task* arg0);
+static void func_actor_207200_8014D65C(Task* arg0);
+static void func_actor_207200_8014D70C(GpEnemy* arg0, Task* task);
+static void func_actor_207200_8014D77C(Task* task);
+static void func_actor_207200_8014D7E8(Task* arg0);
+static void func_actor_207200_8014D8DC(Task* arg0);
+static void func_actor_207200_8014D97C(Task* arg0, GpCoord* arg1);
+static void func_actor_207200_8014DAF8(Task* dst, Task* src);
+static void func_actor_207200_8014DB4C(Task* arg0);
 
 /// The large enemy's state handlers - spawn, live tick and teardown tick -
 /// which `func_actor_207200_8014D280` dispatches through by task state.
-const GpEnemyTaskFuncTable3 D_actor_207200_80149E30 = {
+static const GpEnemyTaskFuncTable3 D_actor_207200_80149E30 = {
     { func_actor_207200_8014B278, func_actor_207200_8014D2DC, func_actor_207200_8014CA84 }
 };
 
-void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
+static void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
 {
     Actor207200SpawnWork* work;
     TmdObject*            obj;
@@ -279,7 +279,7 @@ void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
 /// `Gp_ArmStateF0(1)`. Then runs the idle cycle in `field_48C`: state 1 waits
 /// 0x5B frames and rolls a 30% chance of moving to 9, which plays the
 /// room-tagged sound on frame 5 and returns to 1 after 0x2D frames.
-void func_actor_207200_8014B628(Task* arg0)
+static void func_actor_207200_8014B628(Task* arg0)
 {
     Actor207200Work* work;
     GpCoord*         obj;
@@ -345,7 +345,7 @@ void func_actor_207200_8014B628(Task* arg0)
 /// 30..50 and re-check the angle every 60 frames; stages 4-6 play the
 /// room-tagged sounds and toggle the display flags of two render nodes, stage 4
 /// rolling a 40% chance of stage 6 before returning to stage 1.
-void func_actor_207200_8014B87C(Task* arg0)
+static void func_actor_207200_8014B87C(Task* arg0)
 {
     Actor207200Work* work;
     GpCoord*         coord;
@@ -550,7 +550,7 @@ void func_actor_207200_8014B87C(Task* arg0)
 /// each 0x20000 record of the second table applies damage too, and some ids
 /// end the tick through `func_actor_207200_8014D128` / `8014CFEC`. The tables
 /// and, when `field_49A` is set, the two part records are cleared last.
-void func_actor_207200_8014BEF4(Task* arg0)
+static void func_actor_207200_8014BEF4(Task* arg0)
 {
     Actor207200Work*       work;
     Actor207200DmgScratch* sc;
@@ -764,7 +764,7 @@ void func_actor_207200_8014BEF4(Task* arg0)
 /// Ticks the shatter timers the enemy runs while it dies. Every time a timer
 /// runs out the work is armed with a fresh sound effect - one per stage of the
 /// death animation - and the frame it is handed plays.
-void func_actor_207200_8014C870(Task* arg0, s32 arg1)
+static void func_actor_207200_8014C870(Task* arg0, s32 arg1)
 {
     Actor207200Work* work;
     GpEnemy*         ctx;
@@ -864,7 +864,7 @@ static __inline__ void Actor207200_UpdateColor(GpEnemy* enemy, Task* actor)
 /// at once for any other animation or once `field_4A8` is set); 2 counts 60
 /// frames, spawning an effect on frame 15; 3 destroys the enemy. Every stage
 /// but the last then ticks the animation, the attach coordinates and the colour.
-void func_actor_207200_8014CA84(GpEnemy* arg0, Task* arg1)
+static void func_actor_207200_8014CA84(GpEnemy* arg0, Task* arg1)
 {
     Actor207200Work* work;
     TmdObject*       obj;
@@ -947,7 +947,7 @@ void func_actor_207200_8014CA84(GpEnemy* arg0, Task* arg1)
 /// its bearing in `arg0`'s own frame, folded into -0x800..0x800, and stores
 /// in `*arg1` the planar x/z distance between the two coordinates' local
 /// translations. The work is staged in a block of the scratch stack.
-s32 func_actor_207200_8014CE20(GpCoord* arg0, u32* arg1)
+static s32 func_actor_207200_8014CE20(GpCoord* arg0, u32* arg1)
 {
     GpCoord*             other;
     ActorBearingScratch* blk;
@@ -966,7 +966,7 @@ s32 func_actor_207200_8014CE20(GpCoord* arg0, u32* arg1)
 /// Spawns the pair of effects that carry this actor's death animation, hands
 /// the spawned task `D_actor_207200_801517F8` as its setup argument, arms the
 /// two timers on the work area and unlinks its third display object.
-void func_actor_207200_8014CFEC(Task* arg0)
+static void func_actor_207200_8014CFEC(Task* arg0)
 {
     GpEffArg*         effArg;
     struct GpEffWork* effect;
@@ -996,7 +996,7 @@ void func_actor_207200_8014CFEC(Task* arg0)
     arg0->killCountdown = 0x14;
 }
 
-void func_actor_207200_8014D128(Task* arg0)
+static void func_actor_207200_8014D128(Task* arg0)
 {
     GpEffWork* effect;
     s32        r;
@@ -1047,7 +1047,7 @@ void func_actor_207200_8014D280(Task* arg0)
 /// clears the display flags of the first two parts and recomputes the second
 /// part's world matrix; the tail then colours the actor from that part and
 /// draws its ground shadow.
-void func_actor_207200_8014D2DC(GpEnemy* arg0, Task* arg1)
+static void func_actor_207200_8014D2DC(GpEnemy* arg0, Task* arg1)
 {
     s32 state;
     s32 one;
@@ -1099,7 +1099,7 @@ case1:
 /// then re-arms the six helper slots - back to state 3 with slot id 1 at weight
 /// 9 and every frame counter reset - and clears itself; bits 0xC (the "flag 4"
 /// request) are cleared last. Nothing happens while the whole byte is zero.
-void func_actor_207200_8014D41C(Task* arg0)
+static void func_actor_207200_8014D41C(Task* arg0)
 {
     GpEnemy*         obj;
     Actor207200Work* work;
@@ -1137,7 +1137,7 @@ void func_actor_207200_8014D41C(Task* arg0)
 /// spawn argument is done; state 4 waits out `work->field_490` frames and then
 /// either returns to state 1 when the actor is idle (`work->field_4A6 != 0`)
 /// or clears both state words and marks `work->field_4A2`.
-void func_actor_207200_8014D49C(Task* arg0)
+static void func_actor_207200_8014D49C(Task* arg0)
 {
     Actor207200Work* work;
     s16              countdown;
@@ -1186,7 +1186,7 @@ void func_actor_207200_8014D49C(Task* arg0)
 /// work area, and the part is then displaced along its own forward axis - the
 /// third basis column of its local matrix, scaled by `work->field_492` - and
 /// lifted by 0x80.
-void func_actor_207200_8014D5C4(Task* arg0)
+static void func_actor_207200_8014D5C4(Task* arg0)
 {
     Actor207200Work* work;
     GpCoord*         coord;
@@ -1207,7 +1207,7 @@ void func_actor_207200_8014D5C4(Task* arg0)
 /// changed since the last frame the remembered id follows it, the frame counter
 /// restarts and every slot is pointed at the new id at weight 8; otherwise the
 /// counter ticks and the slots are simply advanced by one.
-void func_actor_207200_8014D65C(Task* arg0)
+static void func_actor_207200_8014D65C(Task* arg0)
 {
     Actor207200Work* work;
     s32              i;
@@ -1235,7 +1235,7 @@ void func_actor_207200_8014D65C(Task* arg0)
 /// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's
 /// world position and hands it to `Gp_UpdateActorColor` with no blend
 /// parameters. `arg0` is the colour target, passed straight through.
-void func_actor_207200_8014D70C(GpEnemy* arg0, Task* task)
+static void func_actor_207200_8014D70C(GpEnemy* arg0, Task* task)
 {
     GpCoord* coord;
     void**   scratch;
@@ -1256,7 +1256,7 @@ void func_actor_207200_8014D70C(GpEnemy* arg0, Task* task)
 
 /// Draws the enemy's ground quad under its model root, at the translation of
 /// the root part's `workm`, staged in a `VECTOR3` on the scratch stack.
-void func_actor_207200_8014D77C(Task* task)
+static void func_actor_207200_8014D77C(Task* task)
 {
     GpCoord* coord;
     VECTOR3* vec;
@@ -1276,7 +1276,7 @@ void func_actor_207200_8014D77C(Task* task)
 /// bytes that hold the scaling matrix and its `VECTOR` are borrowed from the
 /// scratchpad and released again; the node's `flg` is cleared so the next
 /// `Gp_UpdateCoord` recomputes it.
-void func_actor_207200_8014D7E8(Task* arg0)
+static void func_actor_207200_8014D7E8(Task* arg0)
 {
     GpCoord*           coord;
     ActorScaleScratch* head;
@@ -1310,7 +1310,7 @@ void func_actor_207200_8014D7E8(Task* arg0)
 /// lock-on node. Once `field_4A6` is set it is always the second part;
 /// before that it is the fourth part while the model in pointer slot 3 lies
 /// within a quarter turn of the root's heading, and the second otherwise.
-void func_actor_207200_8014D8DC(Task* arg0)
+static void func_actor_207200_8014D8DC(Task* arg0)
 {
     Actor207200Work* work;
     GpEnemy*         ctx;
@@ -1340,7 +1340,7 @@ void func_actor_207200_8014D8DC(Task* arg0)
 /// While `work->field_4A6` is set, runs each column of the node's rotation
 /// matrix through GTE `gpf 12` with a zero interpolation factor, zeroing the
 /// 3x3 part, and clears `flg` so the node is recomputed.
-void func_actor_207200_8014D97C(Task* arg0, GpCoord* arg1)
+static void func_actor_207200_8014D97C(Task* arg0, GpCoord* arg1)
 {
     SVECTOR vec;
     MATRIX* m;
@@ -1376,7 +1376,7 @@ void func_actor_207200_8014D97C(Task* arg0, GpCoord* arg1)
 /// `dst` has a stream buffer, processes it twice so both halves pick the new
 /// pair up. The enemy calls it with a freshly spawned effect as `dst` and
 /// itself as `src`.
-void func_actor_207200_8014DAF8(Task* dst, Task* src)
+static void func_actor_207200_8014DAF8(Task* dst, Task* src)
 {
     TmdObject* to;
     TmdObject* from;
@@ -1391,7 +1391,7 @@ void func_actor_207200_8014DAF8(Task* dst, Task* src)
     }
 }
 
-void func_actor_207200_8014DB4C(Task* arg0)
+static void func_actor_207200_8014DB4C(Task* arg0)
 {
     GpEnemy*         ctx;
     Actor207200Work* work;

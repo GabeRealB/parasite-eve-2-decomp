@@ -219,32 +219,32 @@ extern GpPairSrcE       Actor00700_D07588;
 extern struct GpU16Pair Actor00700_D07584;
 extern u32              Actor00700_D075B4;
 
-void Actor00700_Fn00060(GpEnemy* ctx, Task* actor);
-void Actor00700_Fn01434(GpEnemy* arg0, Task* arg1);
-void Actor00700_Fn0188C(GpEnemy* arg0, Task* arg1);
-void Actor00700_Fn01988(Task* arg0, TmdObject* arg1, s32 arg2);
-void Actor00700_Fn01AB8(Task* arg0);
-void Actor00700_Fn01B50(Task* arg0);
-void Actor00700_Fn01C10(Task* arg0);
-void Actor00700_Fn01CF0(Task* arg0);
-void Actor00700_Fn01D80(Task* arg0);
-void Actor00700_Fn01E44(Task* arg0);
-void Actor00700_Fn01E9C(Task* arg0);
-void Actor00700_Fn01EEC(Task* arg0);
-void Actor00700_Fn01FE0(GpEnemy* ctx, Task* actor);
-void Actor00700_Fn02290(GpEnemy* arg0, Task* arg1);
-void Actor00700_Fn02414(Task* arg0);
-void Actor00700_Fn0268C(Task* arg0);
-void Actor00700_Fn02820(Task* arg0);
-void Actor00700_Fn02A28(Task* arg0);
-void Actor00700_Fn02D28(GpEnemy* arg0, Task* arg1);
-void Actor00700_Fn0305C(Task* arg0);
-void Actor00700_Fn03518(Task* arg0);
-void Actor00700_Fn03570(Task* arg0);
+static void Actor00700_Fn00060(GpEnemy* ctx, Task* actor);
+static void Actor00700_Fn01434(GpEnemy* arg0, Task* arg1);
+static void Actor00700_Fn0188C(GpEnemy* arg0, Task* arg1);
+static void Actor00700_Fn01988(Task* arg0, TmdObject* arg1, s32 arg2);
+static void Actor00700_Fn01AB8(Task* arg0);
+static void Actor00700_Fn01B50(Task* arg0);
+static void Actor00700_Fn01C10(Task* arg0);
+static void Actor00700_Fn01CF0(Task* arg0);
+static void Actor00700_Fn01D80(Task* arg0);
+static void Actor00700_Fn01E44(Task* arg0);
+static void Actor00700_Fn01E9C(Task* arg0);
+static void Actor00700_Fn01EEC(Task* arg0);
+static void Actor00700_Fn01FE0(GpEnemy* ctx, Task* actor);
+static void Actor00700_Fn02290(GpEnemy* arg0, Task* arg1);
+static void Actor00700_Fn02414(Task* arg0);
+static void Actor00700_Fn0268C(Task* arg0);
+static void Actor00700_Fn02820(Task* arg0);
+static void Actor00700_Fn02A28(Task* arg0);
+static void Actor00700_Fn02D28(GpEnemy* arg0, Task* arg1);
+static void Actor00700_Fn0305C(Task* arg0);
+static void Actor00700_Fn03518(Task* arg0);
+static void Actor00700_Fn03570(Task* arg0);
 
 /// The state handlers `Actor00700_Fn01830` dispatches on `Task::state`:
 /// set-up, per-frame update, and the one entered once the health runs out.
-const GpEnemyTaskFuncTable3 Actor00700_D00004 = {
+static const GpEnemyTaskFuncTable3 Actor00700_D00004 = {
     { Actor00700_Fn00060, Actor00700_Fn0188C, Actor00700_Fn01434 },
 };
 
@@ -253,7 +253,7 @@ const GpEnemyTaskFuncTable3 Actor00700_D00004 = {
 /// nodes and their tables. `&obj->coords[4]` -- the model's fifth
 /// coordinate -- is what both the context and the second node hang off.
 /// A failed allocation tears the enemy down and leaves the task here.
-void Actor00700_Fn00060(GpEnemy* ctx, Task* actor)
+static void Actor00700_Fn00060(GpEnemy* ctx, Task* actor)
 {
     Actor00700InitWork* work;
     TmdObject*          obj;
@@ -340,7 +340,7 @@ void Actor00700_Fn00060(GpEnemy* ctx, Task* actor)
     actor->state     = 1;
 }
 
-void Actor00700_Fn00334(Task* actor)
+static void Actor00700_Fn00334(Task* actor)
 {
     Actor00700Work*     work;
     ActorWallPushFrame* frame;
@@ -513,7 +513,7 @@ void Actor00700_Fn00334(Task* actor)
     SCRATCH_POP(ActorWallPushFrame);
 }
 
-void Actor00700_Fn008B4(Task* arg0)
+static void Actor00700_Fn008B4(Task* arg0)
 {
     Actor00700Work* work;
     TmdObject*      obj;
@@ -638,7 +638,7 @@ post:
     Actor00700_Fn01B50(arg0);
 }
 
-void Actor00700_Fn00BC0(Task* arg0)
+static void Actor00700_Fn00BC0(Task* arg0)
 {
     VECTOR*         vec;
     Actor00700Work* work;
@@ -763,7 +763,7 @@ pop:
     SCRATCH_POP_BYTES(0x10);
 }
 
-void Actor00700_Fn00F20(Task* arg0)
+static void Actor00700_Fn00F20(Task* arg0)
 {
     VECTOR          vec;
     Actor00700Work* work;
@@ -849,7 +849,7 @@ case2:
 pop:;
 }
 
-void Actor00700_Fn01148(Task* arg0)
+static void Actor00700_Fn01148(Task* arg0)
 {
     GpEnemy*        ctx;
     Actor00700Work* work;
@@ -910,7 +910,7 @@ void Actor00700_Fn01148(Task* arg0)
     }
 }
 
-void Actor00700_Fn012E4(Task* arg0)
+static void Actor00700_Fn012E4(Task* arg0)
 {
     Actor00700Work*   work;
     GpCoord*          coord;
@@ -979,7 +979,7 @@ done:
     SCRATCH_POP_BYTES(0x18);
 }
 
-void Actor00700_Fn01434(GpEnemy* arg0, Task* arg1)
+static void Actor00700_Fn01434(GpEnemy* arg0, Task* arg1)
 {
     Actor00700Work* work;
     TmdObject*      obj;
@@ -1118,7 +1118,7 @@ destroy:
     return;
 }
 
-void Actor00700_Fn01830(Task* arg0)
+static void Actor00700_Fn01830(Task* arg0)
 {
     GpEnemyTaskFuncTable3 sp;
 
@@ -1126,7 +1126,7 @@ void Actor00700_Fn01830(Task* arg0)
     sp.funcs[arg0->state](((GpEnemy*)arg0->spawnArg2), arg0);
 }
 
-void Actor00700_Fn0188C(GpEnemy* arg0, Task* arg1)
+static void Actor00700_Fn0188C(GpEnemy* arg0, Task* arg1)
 {
     GpCoord*        coord;
     TmdObject*      obj;
@@ -1181,7 +1181,7 @@ case1:
     Actor00700_Fn01E9C(arg1);
 }
 
-void Actor00700_Fn01988(Task* arg0, TmdObject* arg1, s32 arg2)
+static void Actor00700_Fn01988(Task* arg0, TmdObject* arg1, s32 arg2)
 {
     GpEnemy*        ctx;
     Actor00700Work* work;
@@ -1223,7 +1223,7 @@ void Actor00700_Fn01988(Task* arg0, TmdObject* arg1, s32 arg2)
     }
 }
 
-void Actor00700_Fn01AB8(Task* arg0)
+static void Actor00700_Fn01AB8(Task* arg0)
 {
     switch (((Actor00700Work*)arg0->work)->field_37A) {
         case 0:
@@ -1246,7 +1246,7 @@ void Actor00700_Fn01AB8(Task* arg0)
     }
 }
 
-void Actor00700_Fn01B50(Task* arg0)
+static void Actor00700_Fn01B50(Task* arg0)
 {
     Actor00700Work* work;
     GpCoord*        coord;
@@ -1269,7 +1269,7 @@ void Actor00700_Fn01B50(Task* arg0)
     }
 }
 
-void Actor00700_Fn01C10(Task* arg0)
+static void Actor00700_Fn01C10(Task* arg0)
 {
     Actor00700Work* work;
     TmdObject*      obj;
@@ -1313,7 +1313,7 @@ case1:
 /// Records the model's current root position in the work block, then displaces
 /// the root coordinate by the work's step along the rotation's third column
 /// (X and Z only) and by 0x80 on Y.
-void Actor00700_Fn01CF0(Task* arg0)
+static void Actor00700_Fn01CF0(Task* arg0)
 {
     Actor00700Work* work;
     GpCoord*        coord;
@@ -1328,7 +1328,7 @@ void Actor00700_Fn01CF0(Task* arg0)
     coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->field_384) >> 0xC;
 }
 
-void Actor00700_Fn01D80(Task* arg0)
+static void Actor00700_Fn01D80(Task* arg0)
 {
     Actor00700Work* work2;
     s32             i;
@@ -1354,7 +1354,7 @@ void Actor00700_Fn01D80(Task* arg0)
     }
 }
 
-void Actor00700_Fn01E44(Task* arg0)
+static void Actor00700_Fn01E44(Task* arg0)
 {
     GpCoord* coord;
     VECTOR   vec;
@@ -1366,7 +1366,7 @@ void Actor00700_Fn01E44(Task* arg0)
     Gp_UpdateActorColor(arg0->spawnArg2, &vec, 0, 0);
 }
 
-void Actor00700_Fn01E9C(Task* arg0)
+static void Actor00700_Fn01E9C(Task* arg0)
 {
     GpCoord* coord;
     VECTOR3  vec;
@@ -1378,7 +1378,7 @@ void Actor00700_Fn01E9C(Task* arg0)
     Gp_DrawEffGroundQuad(&vec, 0x1C0, 0x80);
 }
 
-void Actor00700_Fn01EEC(Task* arg0)
+static void Actor00700_Fn01EEC(Task* arg0)
 {
     GpCoord*           coord;
     ActorScaleScratch* head;
@@ -1411,11 +1411,11 @@ void Actor00700_Fn01EEC(Task* arg0)
 /// The state handlers `Actor00700_Fn034BC` dispatches on `Task::state`,
 /// for the second body this package carries: set-up, per-frame update, and the
 /// one a resolved hit switches it to.
-const GpEnemyTaskFuncTable3 Actor00700_D00054 = {
+static const GpEnemyTaskFuncTable3 Actor00700_D00054 = {
     { Actor00700_Fn01FE0, Actor00700_Fn02290, Actor00700_Fn02D28 },
 };
 
-void Actor00700_Fn01FE0(GpEnemy* ctx, Task* actor)
+static void Actor00700_Fn01FE0(GpEnemy* ctx, Task* actor)
 {
     GpCoord*             coord;
     TmdObject*           obj;
@@ -1504,7 +1504,7 @@ void Actor00700_Fn01FE0(GpEnemy* ctx, Task* actor)
     actor->state    = 1;
 }
 
-void Actor00700_Fn02290(GpEnemy* arg0, Task* arg1)
+static void Actor00700_Fn02290(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*      obj;
     Actor00700Work* work;
@@ -1566,7 +1566,7 @@ default_body:
     }
 }
 
-void Actor00700_Fn02414(Task* arg0)
+static void Actor00700_Fn02414(Task* arg0)
 {
     Actor00700Work* work;
     GpCoord*        coord;
@@ -1637,7 +1637,7 @@ void Actor00700_Fn02414(Task* arg0)
     SCRATCH_POP_BYTES(0x10);
 }
 
-void Actor00700_Fn0268C(Task* arg0)
+static void Actor00700_Fn0268C(Task* arg0)
 {
     Actor00700Work* work;
     GpCoord*        coord;
@@ -1684,7 +1684,7 @@ void Actor00700_Fn0268C(Task* arg0)
     SCRATCH_POP_BYTES(8);
 }
 
-void Actor00700_Fn02820(Task* arg0)
+static void Actor00700_Fn02820(Task* arg0)
 {
     Actor00700Work*   work;
     GpCoord*          coord;
@@ -1756,7 +1756,7 @@ void Actor00700_Fn02820(Task* arg0)
     SCRATCH_POP_BYTES(0x18);
 }
 
-void Actor00700_Fn02A28(Task* arg0)
+static void Actor00700_Fn02A28(Task* arg0)
 {
     Actor00700Work* work;
     GpCoord*        coord;
@@ -1840,7 +1840,7 @@ void Actor00700_Fn02A28(Task* arg0)
     }
 }
 
-void Actor00700_Fn02D28(GpEnemy* arg0, Task* arg1)
+static void Actor00700_Fn02D28(GpEnemy* arg0, Task* arg1)
 {
     Actor00700Work* work;
     GpCoord*        coord;
@@ -1925,7 +1925,7 @@ void Actor00700_Fn02D28(GpEnemy* arg0, Task* arg1)
     }
 }
 
-void Actor00700_Fn0305C(Task* arg0)
+static void Actor00700_Fn0305C(Task* arg0)
 {
     ActorQuadScratch* sc;
     Actor00700Work*   work;
@@ -2012,7 +2012,7 @@ void Actor00700_Fn0305C(Task* arg0)
     SCRATCH_POP_BYTES(0x28);
 }
 
-void Actor00700_Fn034BC(Task* arg0)
+static void Actor00700_Fn034BC(Task* arg0)
 {
     GpEnemyTaskFuncTable3 sp;
 
@@ -2020,7 +2020,7 @@ void Actor00700_Fn034BC(Task* arg0)
     sp.funcs[arg0->state](((GpEnemy*)arg0->spawnArg2), arg0);
 }
 
-void Actor00700_Fn03518(Task* arg0)
+static void Actor00700_Fn03518(Task* arg0)
 {
     GpCoord* coord;
     VECTOR   vec;
@@ -2032,7 +2032,7 @@ void Actor00700_Fn03518(Task* arg0)
     Gp_UpdateActorColor(arg0->spawnArg2, &vec, 0, 0);
 }
 
-void Actor00700_Fn03570(Task* arg0)
+static void Actor00700_Fn03570(Task* arg0)
 {
     GpCoord*           coord;
     ActorScaleScratch* head;

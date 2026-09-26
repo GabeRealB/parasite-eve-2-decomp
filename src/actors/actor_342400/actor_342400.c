@@ -26,28 +26,28 @@ extern s16                  D_actor_342400_8016C054[][4]; // spawn variant per p
 extern TaskDesc             D_actor_342400_80173A54;
 extern u16                  D_actor_342400_80173AAC;      // spawn counter, `<< 12` into `GpEnemy::placeKey`
 
-s16  func_actor_342400_801624A4(void);
-s16  func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2);
-void func_actor_342400_801628F0(Task* arg0);
-void func_actor_342400_8016299C(Task* arg0);
-void func_actor_342400_80162A34(Task* arg0);
-void func_actor_342400_80162AB0(Task* arg0);
-void func_actor_342400_80162B60(Task* arg0);
-void func_actor_342400_80162C10(Task* arg0);
-void func_actor_342400_80162CA8(Task* arg0);
-void func_actor_342400_80162CBC(Task* arg0);
-void func_actor_342400_80162DA0(Task* arg0);
-void func_actor_342400_80162E6C(Task* arg0);
-void func_actor_342400_80162F08(Task* arg0);
-void func_actor_342400_80162F1C(Task* arg0);
-void func_actor_342400_80162FFC(Task* arg0);
-void func_actor_342400_80163010(Task* arg0);
-void func_actor_342400_801630A4(Task* arg0);
-void func_actor_342400_80163178(Task* arg0);
-void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2);
-void func_actor_342400_801632D4(Task* arg0);
+static s16  func_actor_342400_801624A4(void);
+static s16  func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2);
+static void func_actor_342400_801628F0(Task* arg0);
+static void func_actor_342400_8016299C(Task* arg0);
+static void func_actor_342400_80162A34(Task* arg0);
+static void func_actor_342400_80162AB0(Task* arg0);
+static void func_actor_342400_80162B60(Task* arg0);
+static void func_actor_342400_80162C10(Task* arg0);
+static void func_actor_342400_80162CA8(Task* arg0);
+static void func_actor_342400_80162CBC(Task* arg0);
+static void func_actor_342400_80162DA0(Task* arg0);
+static void func_actor_342400_80162E6C(Task* arg0);
+static void func_actor_342400_80162F08(Task* arg0);
+static void func_actor_342400_80162F1C(Task* arg0);
+static void func_actor_342400_80162FFC(Task* arg0);
+static void func_actor_342400_80163010(Task* arg0);
+static void func_actor_342400_801630A4(Task* arg0);
+static void func_actor_342400_80163178(Task* arg0);
+static void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2);
+static void func_actor_342400_801632D4(Task* arg0);
 
-void func_actor_342400_80162084(Task* arg0)
+static void func_actor_342400_80162084(Task* arg0)
 {
     OverlayEncounterPairWork* work;
     GpEnemy*                  enemy;
@@ -90,7 +90,7 @@ void func_actor_342400_80162084(Task* arg0)
     arg0->state++;
 }
 
-void func_actor_342400_801621D8(Task* arg0)
+static void func_actor_342400_801621D8(Task* arg0)
 {
     OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
     GpEnemy*                  enemy;
@@ -132,7 +132,7 @@ void func_actor_342400_801621D8(Task* arg0)
     }
 }
 
-void func_actor_342400_80162324(Task* arg0)
+static void func_actor_342400_80162324(Task* arg0)
 {
     OverlayEncounterCtrlWork* work = (OverlayEncounterCtrlWork*)arg0->work;
     s16                       count;
@@ -168,7 +168,7 @@ void func_actor_342400_80162324(Task* arg0)
     }
 }
 
-s16 func_actor_342400_801624A4(void)
+static s16 func_actor_342400_801624A4(void)
 {
     GpCoord* coord = (*Gp_ActorSlots)->extra.tmd->coords;
     s16      x     = coord->coord.t[0];
@@ -208,7 +208,7 @@ void func_actor_342400_801626AC(Task* arg0, s32 arg1, GpCmdArg* arg2)
     }
 }
 
-s16 func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2)
+static s16 func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2)
 {
     if (arg0 == 0 || arg0 > 0x10) {
         return 0;
@@ -227,7 +227,7 @@ s16 func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2)
 
 /// The controller task's four state handlers, dispatched by
 /// `func_actor_342400_80162748` on `Task::state`.
-const TaskFuncTable4 D_actor_342400_80161E24 = { {
+static const TaskFuncTable4 D_actor_342400_80161E24 = { {
     func_actor_342400_801628F0,
     func_actor_342400_8016299C,
     func_actor_342400_80162A34,
@@ -246,7 +246,7 @@ void func_actor_342400_80162748(Task* arg0)
 
 /// The first spawner task's four state handlers, dispatched by
 /// `func_actor_342400_801627C0`.
-const TaskFuncTable4 D_actor_342400_80161E34 = { {
+static const TaskFuncTable4 D_actor_342400_80161E34 = { {
     func_actor_342400_80162B60,
     func_actor_342400_80162C10,
     func_actor_342400_80162CA8,
@@ -264,7 +264,7 @@ void func_actor_342400_801627C0(Task* arg0)
 
 /// The second spawner task's four state handlers, dispatched by
 /// `func_actor_342400_80162824`.
-const TaskFuncTable4 D_actor_342400_80161E44 = { {
+static const TaskFuncTable4 D_actor_342400_80161E44 = { {
     func_actor_342400_80162DA0,
     func_actor_342400_80162E6C,
     func_actor_342400_80162F08,
@@ -282,7 +282,7 @@ void func_actor_342400_80162824(Task* arg0)
 
 /// The five state handlers `func_actor_342400_80162888` dispatches through by
 /// `Task::state`.
-const TaskFuncTable5 D_actor_342400_80161E54 = { {
+static const TaskFuncTable5 D_actor_342400_80161E54 = { {
     func_actor_342400_80162084,
     func_actor_342400_80162FFC,
     func_actor_342400_80163010,
@@ -298,7 +298,7 @@ void func_actor_342400_80162888(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void func_actor_342400_801628F0(Task* arg0)
+static void func_actor_342400_801628F0(Task* arg0)
 {
     OverlayEncounterCtrlWork* work;
     s32                       i;
@@ -317,7 +317,7 @@ void func_actor_342400_801628F0(Task* arg0)
     arg0->state++;
 }
 
-void func_actor_342400_8016299C(Task* arg0)
+static void func_actor_342400_8016299C(Task* arg0)
 {
     s32                       i;
     OverlayEncounterCtrlWork* work = (OverlayEncounterCtrlWork*)arg0->work;
@@ -331,7 +331,7 @@ void func_actor_342400_8016299C(Task* arg0)
     arg0->state++;
 }
 
-void func_actor_342400_80162A34(Task* arg0)
+static void func_actor_342400_80162A34(Task* arg0)
 {
     OverlayEncounterCtrlWork* work = (OverlayEncounterCtrlWork*)arg0->work;
 
@@ -343,7 +343,7 @@ void func_actor_342400_80162A34(Task* arg0)
     }
 }
 
-void func_actor_342400_80162AB0(Task* arg0)
+static void func_actor_342400_80162AB0(Task* arg0)
 {
     OverlayEncounterCtrlWork* work = (OverlayEncounterCtrlWork*)arg0->work;
     s16                       count;
@@ -365,7 +365,7 @@ void func_actor_342400_80162AB0(Task* arg0)
     }
 }
 
-void func_actor_342400_80162B60(Task* arg0)
+static void func_actor_342400_80162B60(Task* arg0)
 {
     OverlayEncounterSingleWork* work;
     GpEnemy*                    enemy;
@@ -386,7 +386,7 @@ void func_actor_342400_80162B60(Task* arg0)
     taskKill(arg0);
 }
 
-void func_actor_342400_80162C10(Task* arg0)
+static void func_actor_342400_80162C10(Task* arg0)
 {
     OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
     GpEnemy*                    enemy;
@@ -409,12 +409,12 @@ void func_actor_342400_80162C10(Task* arg0)
     }
 }
 
-void func_actor_342400_80162CA8(Task* arg0)
+static void func_actor_342400_80162CA8(Task* arg0)
 {
     arg0->state = arg0->state + 1;
 }
 
-void func_actor_342400_80162CBC(Task* arg0)
+static void func_actor_342400_80162CBC(Task* arg0)
 {
     OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
     GpEnemy*                    enemy;
@@ -440,7 +440,7 @@ void func_actor_342400_80162CBC(Task* arg0)
     }
 }
 
-void func_actor_342400_80162DA0(Task* arg0)
+static void func_actor_342400_80162DA0(Task* arg0)
 {
     OverlayEncounterSingleWork* work;
     GpEnemy*                    enemy;
@@ -465,7 +465,7 @@ void func_actor_342400_80162DA0(Task* arg0)
     taskKill(arg0);
 }
 
-void func_actor_342400_80162E6C(Task* arg0)
+static void func_actor_342400_80162E6C(Task* arg0)
 {
     OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
     GpEnemy*                    enemy;
@@ -488,12 +488,12 @@ void func_actor_342400_80162E6C(Task* arg0)
     }
 }
 
-void func_actor_342400_80162F08(Task* arg0)
+static void func_actor_342400_80162F08(Task* arg0)
 {
     arg0->state = arg0->state + 1;
 }
 
-void func_actor_342400_80162F1C(Task* arg0)
+static void func_actor_342400_80162F1C(Task* arg0)
 {
     OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
     GpEnemy*                    enemy;
@@ -519,12 +519,12 @@ void func_actor_342400_80162F1C(Task* arg0)
     }
 }
 
-void func_actor_342400_80162FFC(Task* arg0)
+static void func_actor_342400_80162FFC(Task* arg0)
 {
     arg0->state = arg0->state + 1;
 }
 
-void func_actor_342400_80163010(Task* arg0)
+static void func_actor_342400_80163010(Task* arg0)
 {
     OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
     GpEnemy*                  enemy;
@@ -548,7 +548,7 @@ void func_actor_342400_80163010(Task* arg0)
     arg0->state++;
 }
 
-void func_actor_342400_801630A4(Task* arg0)
+static void func_actor_342400_801630A4(Task* arg0)
 {
     OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
     GpEnemy*                  enemy;
@@ -576,7 +576,7 @@ void func_actor_342400_801630A4(Task* arg0)
     arg0->state++;
 }
 
-void func_actor_342400_80163178(Task* arg0)
+static void func_actor_342400_80163178(Task* arg0)
 {
     OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
 
@@ -589,7 +589,7 @@ void func_actor_342400_80163178(Task* arg0)
 
 extern s8 D_80187329;
 
-void func_actor_342400_801631DC(s16 arg0)
+static void func_actor_342400_801631DC(s16 arg0)
 {
     if (arg0 == 0) {
         D_80187329 = 2;
@@ -598,7 +598,7 @@ void func_actor_342400_801631DC(s16 arg0)
     D_80187329 = 0x11;
 }
 
-void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2)
+static void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2)
 {
     switch (arg1) {
         case 0:
@@ -613,7 +613,7 @@ void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2)
     }
 }
 
-void func_actor_342400_801632D4(Task* arg0)
+static void func_actor_342400_801632D4(Task* arg0)
 {
     OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
 

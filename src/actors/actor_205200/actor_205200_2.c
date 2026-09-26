@@ -64,21 +64,21 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_8017EBA4(Task* arg0);
 void func_80181930(Task* arg0);
 
-void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task);
-void func_actor_205200_8014BD4C(Task* arg0);
-void func_actor_205200_8014BF28(Task* arg0);
-void func_actor_205200_8014C0C0(Task* arg0);
-void func_actor_205200_8014C59C(GpEnemy* arg0, Task* arg1);
-void func_actor_205200_8014C67C(Task* arg0);
-void func_actor_205200_8014C748(Task* arg0);
-void func_actor_205200_8014C7CC(Task* arg0);
-void func_actor_205200_8014C87C(Task* arg0);
-void func_actor_205200_8014C8D4(Task* arg0);
-void func_actor_205200_8014C924(GpEnemy* arg0, Task* arg1);
+static void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task);
+static void func_actor_205200_8014BD4C(Task* arg0);
+static void func_actor_205200_8014BF28(Task* arg0);
+static void func_actor_205200_8014C0C0(Task* arg0);
+static void func_actor_205200_8014C59C(GpEnemy* arg0, Task* arg1);
+static void func_actor_205200_8014C67C(Task* arg0);
+static void func_actor_205200_8014C748(Task* arg0);
+static void func_actor_205200_8014C7CC(Task* arg0);
+static void func_actor_205200_8014C87C(Task* arg0);
+static void func_actor_205200_8014C8D4(Task* arg0);
+static void func_actor_205200_8014C924(GpEnemy* arg0, Task* arg1);
 
 /// The actor's own state handlers - spawn, per-frame tick and teardown - that
 /// `func_actor_205200_8014C540` dispatches through by state.
-const GpEnemyTaskFuncTable3 D_actor_205200_80149E30 = {
+static const GpEnemyTaskFuncTable3 D_actor_205200_80149E30 = {
     func_actor_205200_8014BAE8,
     func_actor_205200_8014C59C,
     func_actor_205200_8014C924,
@@ -87,7 +87,7 @@ const GpEnemyTaskFuncTable3 D_actor_205200_80149E30 = {
 /// Spawn handler: allocates the work block, binds the model's matrices to it,
 /// starts animation slots 1..18 and links the two render objects, whose
 /// second one takes its offset and range from the spawn place's `field_2`.
-void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
+static void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
 {
     TmdObject*       tmd;
     GpCoord*         coords;
@@ -153,7 +153,7 @@ void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
     task->state            = 1;
 }
 
-void func_actor_205200_8014BD4C(Task* arg0)
+static void func_actor_205200_8014BD4C(Task* arg0)
 {
     Actor205200Work* work;
     s32              i;
@@ -214,7 +214,7 @@ end:
 /// 15-46 frames a 1-in-8 draw switches to state 4 with animation 5. State 2
 /// waits out the animation, raising bit 2 of `Gp_StateF0.field_1D` on frame 60,
 /// and state 4 returns to 3 while the `field_590` cooldown is still running.
-void func_actor_205200_8014BF28(Task* arg0)
+static void func_actor_205200_8014BF28(Task* arg0)
 {
     Actor205200Work* work;
     s16              next;
@@ -275,7 +275,7 @@ void func_actor_205200_8014BF28(Task* arg0)
 /// animation to finish and clears `field_588`. The duplicated calls in the
 /// `field_596` arms are what the target's shared tails need: jump2's
 /// cross-jumping merges them, where a variable or ternary is hoisted instead.
-void func_actor_205200_8014C0C0(Task* arg0)
+static void func_actor_205200_8014C0C0(Task* arg0)
 {
     Actor205200Work*    work;
     GpCoord*            coord;
@@ -380,7 +380,7 @@ void func_actor_205200_8014C0C0(Task* arg0)
 /// Update of the actor's own task: runs the handler of
 /// `D_actor_205200_80149E30` that `Task::state` selects, through a stack copy
 /// of the table.
-void func_actor_205200_8014C540(Task* arg0)
+static void func_actor_205200_8014C540(Task* arg0)
 {
     GpEnemyTaskFuncTable3 sp;
 
@@ -388,7 +388,7 @@ void func_actor_205200_8014C540(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-void func_actor_205200_8014C59C(GpEnemy* arg0, Task* arg1)
+static void func_actor_205200_8014C59C(GpEnemy* arg0, Task* arg1)
 {
     GpCoord*         coord;
     TmdObject*       obj;
@@ -445,7 +445,7 @@ case1:
 /// sub-state at 0x584 then picks the idle or the charge handler, the halfword at
 /// 0x596 which of the two shared ticks follows, and the flag at 0x588 keeps the
 /// attack body running until that body clears it itself.
-void func_actor_205200_8014C67C(Task* arg0)
+static void func_actor_205200_8014C67C(Task* arg0)
 {
     Actor205200Work* work;
 
@@ -477,7 +477,7 @@ void func_actor_205200_8014C67C(Task* arg0)
 /// switches the animation to id 3 and raises bit 3 of `Gp_StateF0.field_1D`;
 /// once the frame counter reaches 35 it plays id 1, parks the charge sub-state
 /// at 3, drops back to the idle handler and loads 600 into `field_590`.
-void func_actor_205200_8014C748(Task* arg0)
+static void func_actor_205200_8014C748(Task* arg0)
 {
     Actor205200Work* work;
     s16              state;
@@ -505,7 +505,7 @@ void func_actor_205200_8014C748(Task* arg0)
 /// changed since the last tick the remembered id follows it, the frame counter
 /// at 0x582 restarts and every slot 1..18 is pointed at the new id at weight 8;
 /// otherwise the counter ticks and the slots are simply advanced.
-void func_actor_205200_8014C7CC(Task* arg0)
+static void func_actor_205200_8014C7CC(Task* arg0)
 {
     Actor205200Work* work;
     s32              i;
@@ -532,7 +532,7 @@ void func_actor_205200_8014C7CC(Task* arg0)
 /// Feeds the actor's world position - the translation of its attach
 /// coordinate - to `Gp_UpdateActorColor` for its enemy record, with no blend
 /// parameters.
-void func_actor_205200_8014C87C(Task* arg0)
+static void func_actor_205200_8014C87C(Task* arg0)
 {
     GpCoord* coord;
     VECTOR   vec;
@@ -546,7 +546,7 @@ void func_actor_205200_8014C87C(Task* arg0)
 
 /// Draws the ground quad under the actor at its attach coordinate's world
 /// position.
-void func_actor_205200_8014C8D4(Task* arg0)
+static void func_actor_205200_8014C8D4(Task* arg0)
 {
     GpCoord* coord;
     VECTOR3  vec;
@@ -560,7 +560,7 @@ void func_actor_205200_8014C8D4(Task* arg0)
 
 /// Teardown state: unlinks the enemy's lock-on node and the work's two
 /// collision objects, then destroys the enemy.
-void func_actor_205200_8014C924(GpEnemy* arg0, Task* arg1)
+static void func_actor_205200_8014C924(GpEnemy* arg0, Task* arg1)
 {
     Actor205200Work* work;
 

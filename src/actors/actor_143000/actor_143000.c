@@ -81,19 +81,19 @@ extern s32             D_actor_143000_80135C04;
 extern u8              D_actor_143000_80135C0C;
 extern char            D_actor_143000_80135C20[];
 
-void func_actor_143000_801323E0(s32 x, s32 y, s32 variant);
-void func_actor_143000_80132A04(Task* arg0);
-void func_actor_143000_80133664(Task* task);
-void func_actor_143000_80133698(Task* task);
-void func_actor_143000_801336E8(Task* arg0);
-void func_actor_143000_80133800(Task* arg0);
-void func_actor_143000_801338C8(Task* arg0);
-void func_actor_143000_801338E0(Task* arg0);
-void func_actor_143000_801339CC(Task* arg0);
-void func_actor_143000_80133AC0(Task* arg0);
-s32  func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y);
-void func_actor_143000_80133C2C(void);
-void func_actor_143000_80133C90(Task* task);
+static void func_actor_143000_801323E0(s32 x, s32 y, s32 variant);
+static void func_actor_143000_80132A04(Task* arg0);
+static void func_actor_143000_80133664(Task* task);
+static void func_actor_143000_80133698(Task* task);
+static void func_actor_143000_801336E8(Task* arg0);
+static void func_actor_143000_80133800(Task* arg0);
+static void func_actor_143000_801338C8(Task* arg0);
+static void func_actor_143000_801338E0(Task* arg0);
+static void func_actor_143000_801339CC(Task* arg0);
+static void func_actor_143000_80133AC0(Task* arg0);
+static s32  func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y);
+static void func_actor_143000_80133C2C(void);
+static void func_actor_143000_80133C90(Task* task);
 
 /// Per-frame cursor driver of the action prompt, run as state 1 of the prompt
 /// task that `func_actor_143000_80133578` dispatches.
@@ -113,7 +113,7 @@ void func_actor_143000_80133C90(Task* task);
 /// `step` carries the analog delta first and the d-pad heading afterwards, and
 /// `idx` indexes the button slots in `u16` units so that `i` survives as the
 /// loop counter.
-void func_actor_143000_80131F80(Task* task)
+static void func_actor_143000_80131F80(Task* task)
 {
     RoomActionPrompt* prompt;
     PadState*         pad;
@@ -251,7 +251,7 @@ void func_actor_143000_80131F80(Task* task)
 /// (`x`, `y`) into the head of the current OT. `variant` is the prompt's
 /// `mode`: 0 draws nothing, 2 (a hotspot under the cursor) uses palette
 /// 0x3C87 and anything else 0x3C88.
-void func_actor_143000_801323E0(s32 x, s32 y, s32 variant)
+static void func_actor_143000_801323E0(s32 x, s32 y, s32 variant)
 {
     POLY_FT4* prim;
     s16       px;
@@ -291,7 +291,7 @@ void func_actor_143000_801323E0(s32 x, s32 y, s32 variant)
     addPrim(gGpuCurrentOt, prim);
 }
 
-void func_actor_143000_801324C8(Task* arg0)
+static void func_actor_143000_801324C8(Task* arg0)
 {
     Actor143000Work* work;
     Actor143000Rect* p;
@@ -331,7 +331,7 @@ void func_actor_143000_801324C8(Task* arg0)
     Gp_MsgPlayer3F3(0);
 }
 
-void func_actor_143000_801325F0(Task* arg0)
+static void func_actor_143000_801325F0(Task* arg0)
 {
     Actor143000Work*  work;
     u8                u;
@@ -445,7 +445,7 @@ const char D_actor_143000_80131E74[] = "0123456789-# ";
 
 /// State table of the actor's callback, `func_actor_143000_801335C8`, which
 /// copies it onto its stack and indexes it with `Task::state`.
-const TaskFuncTable11 D_actor_143000_80131E84 = { {
+static const TaskFuncTable11 D_actor_143000_80131E84 = { {
     func_actor_143000_801324C8,
     func_actor_143000_80133664,
     func_actor_143000_801325F0,
@@ -461,10 +461,10 @@ const TaskFuncTable11 D_actor_143000_80131E84 = { {
 
 /// The codes `func_actor_143000_80132A04` accepts; the second only while
 /// `Mc_SaveData.demoScene` is non-zero.
-const char D_actor_143000_80131EB0[] = "A3EILM2S2Y";
-const char D_actor_143000_80131EBC[] = "YSD";
+static const char D_actor_143000_80131EB0[] = "A3EILM2S2Y";
+static const char D_actor_143000_80131EBC[] = "YSD";
 
-void func_actor_143000_80132A04(Task* arg0)
+static void func_actor_143000_80132A04(Task* arg0)
 {
     s32              var_s2;
     Actor143000Work* temp_s0;
@@ -569,7 +569,7 @@ void func_actor_143000_80132A04(Task* arg0)
     arg0->killCountdown = (s16)((u16)arg0->killCountdown + 1);
 }
 
-void func_actor_143000_80132D10(Task* arg0)
+static void func_actor_143000_80132D10(Task* arg0)
 {
     Actor143000Work* work;
     POLY_FT4*        prim;
@@ -696,7 +696,7 @@ void func_actor_143000_80132D10(Task* arg0)
 /// Outlines the hotspot rect `rect` in (`r`, `g`, `b`) with four flat
 /// `LINE_F2` edges linked into `gGpuCurrentOt[1]`. Only reached while
 /// `Mc_SaveData.demoScene` or `Mc_SaveData.demoScene` is 9, to show the hotspot rects.
-void func_actor_143000_80133334(Actor143000Rect* rect, u8 r, u8 g, u8 b)
+static void func_actor_143000_80133334(Actor143000Rect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 
@@ -776,7 +776,7 @@ void func_actor_143000_801335C8(Task* arg0)
 /// State 1 of the actor's callback: arms the first action-prompt slot with
 /// target id 0x80, marks it highlighted (`mode` 1), clears its screen position
 /// and steps the task on to state 2.
-void func_actor_143000_80133664(Task* task)
+static void func_actor_143000_80133664(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
 
@@ -791,7 +791,7 @@ void func_actor_143000_80133664(Task* task)
 /// the prompt's highlight and target, re-spawns the prompt at its current
 /// screen position with the picked hotspot's `promptKind`, and moves the task
 /// to state 4.
-void func_actor_143000_80133698(Task* task)
+static void func_actor_143000_80133698(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     Actor143000Work*  work   = (Actor143000Work*)task->work;
@@ -802,7 +802,7 @@ void func_actor_143000_80133698(Task* task)
     task->state = 4;
 }
 
-void func_actor_143000_801336E8(Task* arg0)
+static void func_actor_143000_801336E8(Task* arg0)
 {
     Actor143000Work*  work   = arg0->work;
     RoomActionPrompt* prompt = &D_80114D28;
@@ -850,7 +850,7 @@ void func_actor_143000_801336E8(Task* arg0)
     }
 }
 
-void func_actor_143000_80133800(Task* arg0)
+static void func_actor_143000_80133800(Task* arg0)
 {
     Actor143000Work* work = (Actor143000Work*)arg0->work;
 
@@ -870,13 +870,13 @@ void func_actor_143000_80133800(Task* arg0)
     Task_RequestKill(arg0, work->field_C);
 }
 
-void func_actor_143000_801338C8(Task* arg0)
+static void func_actor_143000_801338C8(Task* arg0)
 {
     ((Actor143000Work*)arg0->work)->field_4 = 0;
     arg0->state                             = 2;
 }
 
-void func_actor_143000_801338E0(Task* arg0)
+static void func_actor_143000_801338E0(Task* arg0)
 {
     Actor143000Work* work = arg0->work;
     s32              col  = (work->field_8 + 0x80) / 16;
@@ -904,7 +904,7 @@ void func_actor_143000_801338E0(Task* arg0)
     arg0->state = 2;
 }
 
-void func_actor_143000_801339CC(Task* arg0)
+static void func_actor_143000_801339CC(Task* arg0)
 {
     Actor143000Work* work = arg0->work;
     u32              count;
@@ -925,7 +925,7 @@ void func_actor_143000_801339CC(Task* arg0)
     }
 }
 
-void func_actor_143000_80133AC0(Task* arg0)
+static void func_actor_143000_80133AC0(Task* arg0)
 {
     u16 count = (u16)arg0->killCountdown - 1;
 
@@ -935,7 +935,7 @@ void func_actor_143000_80133AC0(Task* arg0)
     }
 }
 
-s32 func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y)
+static s32 func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y)
 {
     s32 result = 0;
 
@@ -961,7 +961,7 @@ s32 func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y)
     return result;
 }
 
-void func_actor_143000_80133C2C(void)
+static void func_actor_143000_80133C2C(void)
 {
     Actor143000Rect* p = D_actor_143000_80134580;
 
@@ -978,7 +978,7 @@ void func_actor_143000_80133C2C(void)
 /// buttons' held-frame counters, parks the target id (the cursor speed) at
 /// 0x100 and `field_E` (the double-press window) at 0xF, marks the slot
 /// highlighted -- and steps the task on one state.
-void func_actor_143000_80133C90(Task* task)
+static void func_actor_143000_80133C90(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     s32               i;

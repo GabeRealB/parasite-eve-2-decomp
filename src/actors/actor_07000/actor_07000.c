@@ -306,35 +306,35 @@ extern TaskDesc Actor07000_D0D7D0;
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-void Actor07000_Fn000EC(GpEnemy* arg0, Task* arg1);
-void Actor07000_Fn00478(Task* arg0);
-void Actor07000_Fn00654(Task* arg0);
-void Actor07000_Fn00854(Task* arg0);
-void Actor07000_Fn00A1C(Task* arg0);
-void Actor07000_Fn00F6C(Task* arg0, s32 arg1);
-void Actor07000_Fn0107C(Task* arg0);
-void Actor07000_Fn011B4(GpEnemy* enemy, Task* task);
-void Actor07000_Fn016A8(Task* arg0, u8 arg1);
-void Actor07000_Fn01870(GpEnemy* arg0, Task* arg1);
-void Actor07000_Fn01BA0(GpEnemy* arg0, Task* arg1);
-void Actor07000_Fn01EB0(Task* arg0);
-void Actor07000_Fn025A4(GpEnemy* arg0, Task* arg1);
-void Actor07000_Fn026BC(Task* arg0);
-void Actor07000_Fn027D0(Task* task);
-void Actor07000_Fn02860(Task* arg0);
-void Actor07000_Fn02914(GpEnemy* arg0, Task* task);
-void Actor07000_Fn02984(Task* task);
-void Actor07000_Fn029F0(Task* arg0, GpCoord* arg1);
-void Actor07000_Fn02BB8(Task* arg0);
-void Actor07000_Fn02CAC(Task* task);
-void Actor07000_Fn02D78(Task* task);
-void Actor07000_Fn02E0C(GpEnemy* arg0, Task* arg1);
-void Actor07000_Fn03164(GpEnemy* arg0, Task* arg1);
-void Actor07000_Fn03460(Task* arg0, TmdObject* arg1, s32 arg2);
-void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2);
-void Actor07000_Fn03E08(Task* arg0);
-void Actor07000_Fn04274(Task* arg0, s32 arg1);
-void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1);
+static void Actor07000_Fn000EC(GpEnemy* arg0, Task* arg1);
+static void Actor07000_Fn00478(Task* arg0);
+static void Actor07000_Fn00654(Task* arg0);
+static void Actor07000_Fn00854(Task* arg0);
+static void Actor07000_Fn00A1C(Task* arg0);
+static void Actor07000_Fn00F6C(Task* arg0, s32 arg1);
+static void Actor07000_Fn0107C(Task* arg0);
+static void Actor07000_Fn011B4(GpEnemy* enemy, Task* task);
+static void Actor07000_Fn016A8(Task* arg0, u8 arg1);
+static void Actor07000_Fn01870(GpEnemy* arg0, Task* arg1);
+static void Actor07000_Fn01BA0(GpEnemy* arg0, Task* arg1);
+static void Actor07000_Fn01EB0(Task* arg0);
+static void Actor07000_Fn025A4(GpEnemy* arg0, Task* arg1);
+static void Actor07000_Fn026BC(Task* arg0);
+static void Actor07000_Fn027D0(Task* task);
+static void Actor07000_Fn02860(Task* arg0);
+static void Actor07000_Fn02914(GpEnemy* arg0, Task* task);
+static void Actor07000_Fn02984(Task* task);
+static void Actor07000_Fn029F0(Task* arg0, GpCoord* arg1);
+static void Actor07000_Fn02BB8(Task* arg0);
+static void Actor07000_Fn02CAC(Task* task);
+static void Actor07000_Fn02D78(Task* task);
+static void Actor07000_Fn02E0C(GpEnemy* arg0, Task* arg1);
+static void Actor07000_Fn03164(GpEnemy* arg0, Task* arg1);
+static void Actor07000_Fn03460(Task* arg0, TmdObject* arg1, s32 arg2);
+static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2);
+static void Actor07000_Fn03E08(Task* arg0);
+static void Actor07000_Fn04274(Task* arg0, s32 arg1);
+static void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1);
 /// Picks the reaction branch the specimen takes on this hit and stores it in
 /// `field_382`, then hands back the collision record the caller armed. A
 /// countdown of 0xBB8 or more, or a record with no slot matching the 0x10000
@@ -343,27 +343,27 @@ void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1);
 /// 2500 units or further. Closer than that, a second draw is taken: it lands on
 /// 1 when that draw folds to 11 or more, and the branch stays 2 when it does
 /// not. Either way `field_374`/`field_372` are reset, and the record is released.
-void Actor07000_Fn046B8(Task* arg0, s32 arg1);
-s32  Actor07000_Fn047F4(GpCoord* arg0, u32* arg1);
-void Actor07000_Fn049C0(Task* arg0);
-void Actor07000_Fn04B18(Task* arg0);
-void Actor07000_Fn04E60(Task* arg0);
-void Actor07000_Fn05068(GpEnemy* arg0, Task* arg1);
-void Actor07000_Fn05400(GpEnemy* arg0, Task* arg1);
-void Actor07000_Fn0595C(Task* arg0);
-void Actor07000_Fn05ED4(Task* arg0);
-void Actor07000_Fn05F84(Task* task);
-void Actor07000_Fn05FF8(Task* arg0);
-void Actor07000_Fn06088(Task* arg0);
-void Actor07000_Fn060FC(Task* arg0);
-void Actor07000_Fn062A8(Task* arg0);
-void Actor07000_Fn06390(Task* arg0);
-void Actor07000_Fn0662C(Task* arg0);
-void Actor07000_Fn066FC(Task* dst, Task* src);
-void Actor07000_Fn06750(Task* task);
-void Actor07000_Fn06820(Task* arg0);
-void Actor07000_Fn068B4(Task* arg0);
-void Actor07000_Fn068F0(Task* arg0);
+static void Actor07000_Fn046B8(Task* arg0, s32 arg1);
+static s32  Actor07000_Fn047F4(GpCoord* arg0, u32* arg1);
+static void Actor07000_Fn049C0(Task* arg0);
+static void Actor07000_Fn04B18(Task* arg0);
+static void Actor07000_Fn04E60(Task* arg0);
+static void Actor07000_Fn05068(GpEnemy* arg0, Task* arg1);
+static void Actor07000_Fn05400(GpEnemy* arg0, Task* arg1);
+static void Actor07000_Fn0595C(Task* arg0);
+static void Actor07000_Fn05ED4(Task* arg0);
+static void Actor07000_Fn05F84(Task* task);
+static void Actor07000_Fn05FF8(Task* arg0);
+static void Actor07000_Fn06088(Task* arg0);
+static void Actor07000_Fn060FC(Task* arg0);
+static void Actor07000_Fn062A8(Task* arg0);
+static void Actor07000_Fn06390(Task* arg0);
+static void Actor07000_Fn0662C(Task* arg0);
+static void Actor07000_Fn066FC(Task* dst, Task* src);
+static void Actor07000_Fn06750(Task* task);
+static void Actor07000_Fn06820(Task* arg0);
+static void Actor07000_Fn068B4(Task* arg0);
+static void Actor07000_Fn068F0(Task* arg0);
 
 /// Spawn handler of the specimen, the `GpEnemyTaskFunc` the task dispatch runs
 /// first: it allocates the `Actor107000SpawnWork` block, wires the enemy's four
@@ -373,7 +373,7 @@ void Actor07000_Fn068F0(Task* arg0);
 /// the same halfword plus the low one seed `field_2DC`/`field_2D6`. Variant 1
 /// with a matching `spawnType` is the one that carries a streamed model: its
 /// texture page and CLUT row are stepped before the model is re-streamed twice.
-void Actor07000_Fn000EC(GpEnemy* arg0, Task* arg1)
+static void Actor07000_Fn000EC(GpEnemy* arg0, Task* arg1)
 {
     Actor107000SpawnWork* work;
     TmdObject*            obj;
@@ -492,14 +492,14 @@ void Actor07000_Fn000EC(GpEnemy* arg0, Task* arg1)
 
 /// Task states of the caged specimen as `Actor07000_Fn02548` dispatches
 /// them: spawn, per-frame update and teardown.
-const GpEnemyTaskFuncTable3 Actor07000_D00004 = {
+static const GpEnemyTaskFuncTable3 Actor07000_D00004 = {
     { Actor07000_Fn000EC, Actor07000_Fn025A4, Actor07000_Fn011B4 },
 };
 
 /// Task states of the caged specimen as `Actor07000_Fn02D10` dispatches them:
 /// the same update and teardown after a spawn that parks the specimen hidden,
 /// and a fourth state for its drop into place.
-const GpEnemyTaskFuncTable4 Actor07000_D00010 = {
+static const GpEnemyTaskFuncTable4 Actor07000_D00010 = {
     { Actor07000_Fn01870, Actor07000_Fn025A4, Actor07000_Fn011B4, Actor07000_Fn01BA0 },
 };
 
@@ -520,7 +520,7 @@ const GpEnemyTaskFuncTable4 Actor07000_D00010 = {
 /// task moved to state 2 - with the spawn arg's `field_40` cleared alongside.
 /// Both arms end by re-suppressing the rebind, and the join the compiler builds
 /// from their two assignments is what the original binary shows.
-void Actor07000_Fn00478(Task* arg0)
+static void Actor07000_Fn00478(Task* arg0)
 {
     Actor107000Work* work;
     GpEnemy*         enemy;
@@ -594,7 +594,7 @@ void Actor07000_Fn00478(Task* arg0)
 /// wraps at 0x63, and the root part takes one step through
 /// `Actor07000_Fn027D0`. Eight bytes of the scratch stack are held across the
 /// whole arm.
-void Actor07000_Fn00654(Task* arg0)
+static void Actor07000_Fn00654(Task* arg0)
 {
     Actor107000Work* work;
     GpCoord*         coord;
@@ -667,7 +667,7 @@ void Actor07000_Fn00654(Task* arg0)
 /// with a zero argument, the kill countdown is armed to 5, the reaction flag
 /// `field_2B4` is cleared, the task state latches the stage it just ran, and the
 /// enemy's `field_40` HP is zeroed.
-void Actor07000_Fn00854(Task* arg0)
+static void Actor07000_Fn00854(Task* arg0)
 {
     Actor107000Work* work;
     GpEnemy*         enemy;
@@ -719,7 +719,7 @@ void Actor07000_Fn00854(Task* arg0)
     }
 }
 
-void Actor07000_Fn00A1C(Task* arg0)
+static void Actor07000_Fn00A1C(Task* arg0)
 {
     s32                damageState;
     TmdObject*         object;
@@ -915,7 +915,7 @@ contact_loop:
 ///
 /// `field_2CC` is then re-armed and, for the id the animation is playing
 /// (`field_2B8 == 1`), latched into `field_2D8`.
-void Actor07000_Fn00F6C(Task* arg0, s32 arg1)
+static void Actor07000_Fn00F6C(Task* arg0, s32 arg1)
 {
     Actor107000Work* work;
     GpEnemy*         enemy;
@@ -957,7 +957,7 @@ void Actor07000_Fn00F6C(Task* arg0, s32 arg1)
 /// 0x20 the short way round the 0x1000 circle. The coordinate's rotation is
 /// then rebuilt from that heading alone, in 0x18 bytes taken off the scratch
 /// stack.
-void Actor07000_Fn0107C(Task* arg0)
+static void Actor07000_Fn0107C(Task* arg0)
 {
     Actor107000Work*  work;
     GpCoord*          coord;
@@ -1017,7 +1017,7 @@ void Actor07000_Fn0107C(Task* arg0)
 /// once the same count is spent. Outside the two collapse arms of `field_2B2`
 /// the first two phases also tick the animation, scale the model's second
 /// part, recompute it and re-colour the actor.
-void Actor07000_Fn011B4(GpEnemy* enemy, Task* task)
+static void Actor07000_Fn011B4(GpEnemy* enemy, Task* task)
 {
     TmdObject*       model;
     Actor107000Work* work;
@@ -1107,7 +1107,7 @@ void Actor07000_Fn011B4(GpEnemy* enemy, Task* task)
     }
 }
 
-void Actor07000_Fn016A8(Task* arg0, u8 arg1)
+static void Actor07000_Fn016A8(Task* arg0, u8 arg1)
 {
     Actor107000Work* work;
     GpEnemy*         enemy;
@@ -1162,7 +1162,7 @@ void Actor07000_Fn016A8(Task* arg0, u8 arg1)
 ///
 /// The animation context is then seeded from `func_800B3F84` over the three
 /// slots, slots 1 and 2 are reset, and the task moves to handler 3.
-void Actor07000_Fn01870(GpEnemy* arg0, Task* arg1)
+static void Actor07000_Fn01870(GpEnemy* arg0, Task* arg1)
 {
     Actor107000SpawnWork* work;
     GpCoord*              coord;
@@ -1273,14 +1273,14 @@ void Actor07000_Fn01870(GpEnemy* arg0, Task* arg1)
 
 /// Task states of the specimen's second form as `Actor07000_Fn05E6C`
 /// dispatches them: spawn, per-frame update, death and destruction.
-const GpEnemyTaskFuncTable4 Actor07000_D0003C = {
+static const GpEnemyTaskFuncTable4 Actor07000_D0003C = {
     { Actor07000_Fn02E0C, Actor07000_Fn03164, Actor07000_Fn04468, Gp_DestroyEnemy },
 };
 
 /// Task states of the specimen's second form as `Actor07000_Fn067B4`
 /// dispatches them: the same update, death and destruction after a spawn that
 /// parks the model hidden, and a fifth state for its drop into place.
-const GpEnemyTaskFuncTable5 Actor07000_D0004C = {
+static const GpEnemyTaskFuncTable5 Actor07000_D0004C = {
     { Actor07000_Fn05068, Actor07000_Fn03164, Actor07000_Fn04468, Gp_DestroyEnemy, Actor07000_Fn05400 },
 };
 
@@ -1295,7 +1295,7 @@ const GpEnemyTaskFuncTable5 Actor07000_D0004C = {
 /// the specimen moves to the live stage with animation 2 and task state 1;
 /// until then the fall speed grows by 10 a frame, or 20 once the collision
 /// response has latched `field_2E0`.
-void Actor07000_Fn01BA0(GpEnemy* arg0, Task* arg1)
+static void Actor07000_Fn01BA0(GpEnemy* arg0, Task* arg1)
 {
     Actor107000Work* work;
     GpCoord*         coord;
@@ -1353,7 +1353,7 @@ void Actor07000_Fn01BA0(GpEnemy* arg0, Task* arg1)
 /// quarter off the step length `field_2BE`. Response 2 puts the root back at
 /// the translation `Actor07000_Fn02D78` saved. The table is released either
 /// way.
-void Actor07000_Fn01EB0(Task* arg0)
+static void Actor07000_Fn01EB0(Task* arg0)
 {
     ActorDeltaFrame48* scratch;
     Actor107000Work*   work;
@@ -1517,7 +1517,7 @@ void Actor07000_Fn02548(Task* task)
 /// actor's four handlers, clears the display flags of the model's first two
 /// coordinate parts and recomputes the second one's world matrix; the tail then
 /// colours the actor from that second part and draws its ground shadow.
-void Actor07000_Fn025A4(GpEnemy* arg0, Task* arg1)
+static void Actor07000_Fn025A4(GpEnemy* arg0, Task* arg1)
 {
     s32 state;
     s32 one;
@@ -1567,7 +1567,7 @@ case1:
 /// animation rebind; and bits 0x4/0x8 tick the generic flag-4 helper, folding
 /// the damage it reports into `Actor07000_Fn00F6C` and clearing the
 /// bits once they expire.
-void Actor07000_Fn026BC(Task* arg0)
+static void Actor07000_Fn026BC(Task* arg0)
 {
     Actor107000Work* work;
     GpEnemy*         enemy;
@@ -1612,7 +1612,7 @@ void Actor07000_Fn026BC(Task* arg0)
 /// current translation in `field_274` as the previous position, then advances
 /// X and Z along the rotation's Z column scaled by the step length
 /// `field_2BE`, and Y by a fixed 0x80.
-void Actor07000_Fn027D0(Task* task)
+static void Actor07000_Fn027D0(Task* task)
 {
     GpCoord*         coord;
     Actor107000Work* work;
@@ -1632,7 +1632,7 @@ void Actor07000_Fn027D0(Task* task)
 /// last frame `field_2BA` follows it, the frame count `field_2BC` restarts and
 /// both slots are pointed at the new id; otherwise the count ticks and the
 /// slots advance by one frame.
-void Actor07000_Fn02860(Task* arg0)
+static void Actor07000_Fn02860(Task* arg0)
 {
     Actor107000Work* work;
     s32              i;
@@ -1661,7 +1661,7 @@ void Actor07000_Fn02860(Task* arg0)
 /// Colours the caged specimen from the world position of the model's second
 /// coordinate, staged in a `VECTOR` taken off the scratch stack; `arg0` is the
 /// colour target.
-void Actor07000_Fn02914(GpEnemy* arg0, Task* task)
+static void Actor07000_Fn02914(GpEnemy* arg0, Task* task)
 {
     GpCoord* coord;
     void**   scratch;
@@ -1683,7 +1683,7 @@ void Actor07000_Fn02914(GpEnemy* arg0, Task* task)
 /// Draws the specimen's ground shadow under the model root, at the world
 /// translation of the root part, staged in a `VECTOR3` taken off the scratch
 /// stack.
-void Actor07000_Fn02984(Task* task)
+static void Actor07000_Fn02984(Task* task)
 {
     GpCoord* coord;
     VECTOR3* vec;
@@ -1701,7 +1701,7 @@ void Actor07000_Fn02984(Task* task)
 /// `field_2AC`, clamped first to 0x1000..0x13E8: each of the matrix's three
 /// columns is copied into an `SVECTOR` on the scratch stack, multiplied by the
 /// factor on the GTE and written back.
-void Actor07000_Fn029F0(Task* arg0, GpCoord* arg1)
+static void Actor07000_Fn029F0(Task* arg0, GpCoord* arg1)
 {
     ActorScratchStack* scratch;
     SVECTOR*           vec;
@@ -1750,7 +1750,7 @@ void Actor07000_Fn029F0(Task* arg0, GpCoord* arg1)
 /// while it stays above 0x200. The scale matrix and its `VECTOR` live in 0x30
 /// bytes of the scratch stack; the node's `flg` is cleared so the next
 /// `Gp_UpdateCoord` recomputes it.
-void Actor07000_Fn02BB8(Task* arg0)
+static void Actor07000_Fn02BB8(Task* arg0)
 {
     GpCoord*           coord;
     ActorScaleScratch* head;
@@ -1783,7 +1783,7 @@ void Actor07000_Fn02BB8(Task* arg0)
 /// Exit callback of the caged specimen: takes the enemy's node and the four
 /// render nodes of the work block off their lists and runs the common enemy
 /// task exit.
-void Actor07000_Fn02CAC(Task* task)
+static void Actor07000_Fn02CAC(Task* task)
 {
     Actor107000SpawnWork* work;
     GpEnemy*              enemy;
@@ -1811,7 +1811,7 @@ void Actor07000_Fn02D10(Task* arg0)
 /// Steps the dropping specimen's root part one frame: saves the current
 /// translation in `field_274`, advances X and Z along the rotation's Z column
 /// scaled by the step length `field_2BE`, and Y by the fall speed `field_2DE`.
-void Actor07000_Fn02D78(Task* task)
+static void Actor07000_Fn02D78(Task* task)
 {
     GpCoord*         coord;
     Actor107000Work* work;
@@ -1833,7 +1833,7 @@ void Actor07000_Fn02D78(Task* task)
 /// helper animation slots, draws the two `Gp_LcgState` timers `field_390`/
 /// `field_392`, installs `Actor07000_Fn06750` as the exit callback and moves
 /// the task on to its per-frame state.
-void Actor07000_Fn02E0C(GpEnemy* arg0, Task* arg1)
+static void Actor07000_Fn02E0C(GpEnemy* arg0, Task* arg1)
 {
     Actor107000Spawn2Work* work;
     GpRec18*               table;
@@ -1945,7 +1945,7 @@ void Actor07000_Fn02E0C(GpEnemy* arg0, Task* arg1)
 /// 0x60080 effect every 0x10 frames. The tail then twists the model's second
 /// coordinate part, runs the five per-frame helpers, and clears the display
 /// flags of the model's first two parts before recomputing the second.
-void Actor07000_Fn03164(GpEnemy* arg0, Task* arg1)
+static void Actor07000_Fn03164(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*       obj;
     Actor107000Work* work;
@@ -2049,7 +2049,7 @@ case1:
     Actor07000_Fn05F84(arg1);
 }
 
-void Actor07000_Fn03460(Task* arg0, TmdObject* arg1, s32 arg2)
+static void Actor07000_Fn03460(Task* arg0, TmdObject* arg1, s32 arg2)
 {
     Actor107000Spawn2Work* work;
     GpCoord*               coord;
@@ -2130,7 +2130,7 @@ void Actor07000_Fn03460(Task* arg0, TmdObject* arg1, s32 arg2)
     Gp_ClearRec18Occupied(work->field_214);
 }
 
-void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
+static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
 {
     u32                    distance;
     Actor107000Spawn2Work* work;
@@ -2289,7 +2289,7 @@ void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
     }
 }
 
-void Actor07000_Fn03E08(Task* arg0)
+static void Actor07000_Fn03E08(Task* arg0)
 {
     s32                    movement;
     s32                    dx;
@@ -2428,7 +2428,7 @@ void Actor07000_Fn03E08(Task* arg0)
 /// with no branch selected re-measures the coordinate with
 /// `Actor07000_Fn047F4` and picks branch 2 once the target is 2500
 /// units away, branch 1 otherwise.
-void Actor07000_Fn04274(Task* arg0, s32 arg1)
+static void Actor07000_Fn04274(Task* arg0, s32 arg1)
 {
     u32              sp10;
     Actor107000Work* work;
@@ -2487,7 +2487,7 @@ void Actor07000_Fn04274(Task* arg0, s32 arg1)
 
 /// Task states of a specimen projectile as `Actor07000_Fn06338` dispatches
 /// them: launch, flight and the countdown after impact.
-const TaskFuncTable3 Actor07000_D000E0 = {
+static const TaskFuncTable3 Actor07000_D000E0 = {
     { Actor07000_Fn04B18, Actor07000_Fn04E60, Actor07000_Fn068B4 },
 };
 
@@ -2503,7 +2503,7 @@ const TaskFuncTable3 Actor07000_D000E0 = {
 /// hides the model, re-parents its second coordinate onto the root and moves
 /// the task to state 3. The six helper animation slots are then rebound or
 /// ticked with the lighting mode set to 1.
-void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1)
+static void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1)
 {
     ActorShared80136288Work* work;
     ActorShared80136288Work* work2;
@@ -2603,7 +2603,7 @@ case1:
 /// the far side of it. The two barriers are load-bearing, not decoration —
 /// dropping either one re-schedules the `branch` write to before the chain and
 /// the whole block's allocation follows it.
-void Actor07000_Fn046B8(Task* arg0, s32 arg1)
+static void Actor07000_Fn046B8(Task* arg0, s32 arg1)
 {
     u32              sp10;
     Actor107000Work* work;
@@ -2652,7 +2652,7 @@ void Actor07000_Fn046B8(Task* arg0, s32 arg1)
 /// its bearing in `arg0`'s own frame, folded into -0x800..0x800, and stores
 /// in `*arg1` the planar x/z distance between the two coordinates' local
 /// translations. The work is staged in a block of the scratch stack.
-s32 Actor07000_Fn047F4(GpCoord* arg0, u32* arg1)
+static s32 Actor07000_Fn047F4(GpCoord* arg0, u32* arg1)
 {
     GpCoord*             other;
     ActorBearingScratch* blk;
@@ -2674,7 +2674,7 @@ s32 Actor07000_Fn047F4(GpCoord* arg0, u32* arg1)
 /// and variants 0 and 1 share part 1. The spawned effect is re-coloured from the
 /// specimen's own palette before the tick ends by arming effect 0x60030 on parts
 /// 1 and 4.
-void Actor07000_Fn049C0(Task* arg0)
+static void Actor07000_Fn049C0(Task* arg0)
 {
     GpEffWork* effect;
     s32        r;
@@ -2718,7 +2718,7 @@ void Actor07000_Fn049C0(Task* arg0)
 /// linked with a capsule collision record keyed by `Actor07000_D08078`. The
 /// task takes `Actor07000_Fn068F0` as its exit callback, cues the launch sound
 /// and runs its first frame through `Actor07000_Fn04E60`.
-void Actor07000_Fn04B18(Task* arg0)
+static void Actor07000_Fn04B18(Task* arg0)
 {
     ActorsShared80136938Work* work;
     GpCoord*                  coord;
@@ -2802,7 +2802,7 @@ void Actor07000_Fn04B18(Task* arg0)
 /// store m2c reads as one variable is `jump.c` cross-jumping the two arms, and
 /// a named temp puts the value's live range in front of the comparison that
 /// picks it, where it can no longer share `$v0` with the `slti` result.
-void Actor07000_Fn04E60(Task* arg0)
+static void Actor07000_Fn04E60(Task* arg0)
 {
     ActorsShared80136c80Work* work;
     TmdObject*                part;
@@ -2898,7 +2898,7 @@ default_body:
 /// a high halfword of 1 kills the specimen instead. The tail draws two numbers
 /// off `Gp_LcgState` for `field_390`/`field_392`, the spawn countdown and the
 /// running total the spawn cue fires on at 5.
-void Actor07000_Fn05068(GpEnemy* arg0, Task* arg1)
+static void Actor07000_Fn05068(GpEnemy* arg0, Task* arg1)
 {
     Actor107000Spawn2Work* work;
     TmdObject*             obj;
@@ -3090,7 +3090,7 @@ static __inline__ void rotate_parts(Task* arg0)
 /// twist is armed at 0x400, the root is pinned at 0 and the task moves to
 /// state 1; until then the fall speed grows by 10 a frame, or 20 once the
 /// collision response has latched `field_39A`.
-void Actor07000_Fn05400(GpEnemy* arg0, Task* arg1)
+static void Actor07000_Fn05400(GpEnemy* arg0, Task* arg1)
 {
     Actor107000Spawn2Work* work;
     GpCoord*               coord;
@@ -3147,7 +3147,7 @@ void Actor07000_Fn05400(GpEnemy* arg0, Task* arg1)
 /// -0x50 and takes a quarter off the step length `field_378`. Response 2 puts
 /// the root back at the translation saved in `field_33C`. Both collision
 /// tables are released either way.
-void Actor07000_Fn0595C(Task* arg0)
+static void Actor07000_Fn0595C(Task* arg0)
 {
     ActorDeltaFrame38*        scratch;
     ActorsShared8013777cWork* work;
@@ -3302,7 +3302,7 @@ void Actor07000_Fn05E6C(Task* arg0)
 /// the frame count `field_374` restarts and every slot is pointed at the new
 /// id with a blend of 8; otherwise the count ticks and the slots advance by
 /// one frame.
-void Actor07000_Fn05ED4(Task* arg0)
+static void Actor07000_Fn05ED4(Task* arg0)
 {
     ActorsShared80137cf4Work* work;
     s32                       i;
@@ -3329,7 +3329,7 @@ void Actor07000_Fn05ED4(Task* arg0)
 /// Colours the specimen's second form from the world position of the model's
 /// second coordinate, staged in a `VECTOR` taken off the scratch stack; the
 /// colour target is the task's enemy.
-void Actor07000_Fn05F84(Task* task)
+static void Actor07000_Fn05F84(Task* task)
 {
     GpCoord* coord;
     void**   scratch;
@@ -3354,7 +3354,7 @@ void Actor07000_Fn05F84(Task* task)
 /// part, with an identity rotation, marks both dirty and resets the scale
 /// `SVECTOR` beside it to one. `field_36E` is cleared, and unless the reaction
 /// sub-state `field_36A` is 5 the 0x600A5 effect is spawned on the root.
-void Actor07000_Fn05FF8(Task* arg0)
+static void Actor07000_Fn05FF8(Task* arg0)
 {
     GpCoord*                 parts;
     GpCoord*                 coord;
@@ -3386,7 +3386,7 @@ void Actor07000_Fn05FF8(Task* arg0)
 /// Flattens the coordinate `Actor07000_Fn05FF8` spliced in: the Y scale
 /// `field_34E` loses 2 and the matrix's second column is scaled by it, then
 /// the coordinate is marked dirty.
-void Actor07000_Fn06088(Task* arg0)
+static void Actor07000_Fn06088(Task* arg0)
 {
     u16                      scale;
     GpCoord*                 coord;
@@ -3406,7 +3406,7 @@ void Actor07000_Fn06088(Task* arg0)
 /// while it is non-zero: the matrix's first column is scaled by
 /// `0x1000 + field_384`, the other two by a quarter of that delta, each column
 /// through an `SVECTOR` on the GTE, and the coordinate is marked dirty.
-void Actor07000_Fn060FC(Task* arg0)
+static void Actor07000_Fn060FC(Task* arg0)
 {
     SVECTOR                   vec;
     MATRIX*                   m;
@@ -3442,7 +3442,7 @@ void Actor07000_Fn060FC(Task* arg0)
     }
 }
 
-void Actor07000_Fn062A8(Task* arg0)
+static void Actor07000_Fn062A8(Task* arg0)
 {
     SVECTOR  offset;
     u32      dist;
@@ -3480,7 +3480,7 @@ void Actor07000_Fn06338(Task* task)
 /// of coordinates 3 and 5 on the GTE. The twist's X angle then decays by 0x20
 /// a frame; once it would drop to 0x20 or below it is cleared together with
 /// `field_38C`.
-void Actor07000_Fn06390(Task* arg0)
+static void Actor07000_Fn06390(Task* arg0)
 {
     Actor107000Spawn2Work* work;
     GpCoord*               coord;
@@ -3530,7 +3530,7 @@ void Actor07000_Fn06390(Task* arg0)
 /// Per-frame reaction handler: folds the generic hit flags into the enemy's
 /// flag byte, applies a pending hit, and drops the work to its death pose when
 /// the hit lands.
-void Actor07000_Fn0662C(Task* arg0)
+static void Actor07000_Fn0662C(Task* arg0)
 {
     Actor107000Work* work;
     GpEnemy*         enemy;
@@ -3565,7 +3565,7 @@ void Actor07000_Fn0662C(Task* arg0)
 
 /// Gives `dst`'s model the texture page and CLUT of `src`'s, re-streaming it
 /// twice when it has a buffer.
-void Actor07000_Fn066FC(Task* dst, Task* src)
+static void Actor07000_Fn066FC(Task* dst, Task* src)
 {
     TmdObject* to;
     TmdObject* from;
@@ -3583,7 +3583,7 @@ void Actor07000_Fn066FC(Task* dst, Task* src)
 /// Exit callback of the specimen's second form: flags the enemy's node, takes
 /// it and the three render nodes back off their lists and runs the common
 /// enemy task exit.
-void Actor07000_Fn06750(Task* task)
+static void Actor07000_Fn06750(Task* task)
 {
     ActorShared80138570Work* work;
     GpEnemy*                 enemy;
@@ -3614,7 +3614,7 @@ void Actor07000_Fn067B4(Task* task)
 /// Steps the second form's root one frame: saves the current translation in
 /// `field_33C`, advances X and Z along the rotation's Z column scaled by the
 /// step length `field_378`, and Y by the fall speed `field_398`.
-void Actor07000_Fn06820(Task* arg0)
+static void Actor07000_Fn06820(Task* arg0)
 {
     GpCoord*                 coord;
     ActorShared80138640Work* work;
@@ -3633,7 +3633,7 @@ void Actor07000_Fn06820(Task* arg0)
 
 /// Counts the task's kill countdown down and runs its exit callback once it
 /// runs out.
-void Actor07000_Fn068B4(Task* arg0)
+static void Actor07000_Fn068B4(Task* arg0)
 {
     u16 temp_v0;
 
@@ -3646,7 +3646,7 @@ void Actor07000_Fn068B4(Task* arg0)
 
 /// Exit callback of the contact effect: takes its render node back off the
 /// object list and kills the task.
-void Actor07000_Fn068F0(Task* arg0)
+static void Actor07000_Fn068F0(Task* arg0)
 {
     Gp_UnlinkObj(&((ActorShared801511c8Work*)arg0->work)->obj);
     taskKill(arg0);

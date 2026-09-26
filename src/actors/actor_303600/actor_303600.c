@@ -106,10 +106,10 @@ extern u8 D_actor_303600_80162DD8[];
 /// live `gDisplayState.pendingMode` both mean a cutscene is already up, and `gDisplayState.roomVariant` is the
 /// latch state 2 below sets alongside `Mc_SaveData`.
 
-void func_actor_303600_80162850(Task* task);
-void func_actor_303600_80162950(Task* task);
-void func_actor_303600_80162A04(Task* task);
-void func_actor_303600_80162A0C(Task* task);
+static void func_actor_303600_80162850(Task* task);
+static void func_actor_303600_80162950(Task* task);
+static void func_actor_303600_80162A04(Task* task);
+static void func_actor_303600_80162A0C(Task* task);
 
 /// Entry 3 of `D_actor_303600_80162E98`, spawned by the teardown and by
 /// command 8: every frame it covers the screen with an opaque black tile,
@@ -145,7 +145,7 @@ void func_actor_303600_80161E60(Task* task)
 /// `field_C`; 4 then kills the fade in `D_actor_303600_8016E4C4` and spawns
 /// `D_actor_303600_80162E98` entry 1. 6 and 7 spawn entry 2, and 8 kills the fade
 /// and spawns entries 3 and 1. The command is cleared on the way out.
-void func_actor_303600_80161F40(Task* arg0)
+static void func_actor_303600_80161F40(Task* arg0)
 {
     Actor303600Work* work = (Actor303600Work*)arg0->work;
     Actor303600Work* w;
@@ -445,7 +445,7 @@ void func_actor_303600_80162698(void)
 /// failed allocation kills the task instead of leaving a half-built controller,
 /// and the last three statements install the 0x7DB handler table at
 /// `Task::msgTable`, the shared kill callback and the next state.
-void func_actor_303600_801626C0(Task* task)
+static void func_actor_303600_801626C0(Task* task)
 {
     Actor303600RigWork* work;
     GpCoord*            coord;
@@ -486,7 +486,7 @@ void func_actor_303600_801626C0(Task* task)
 /// `field_18`, fold that back into +/-4000, and publish its integer half as the
 /// model coordinate's Y.  The accel is read once for the sum and once for the
 /// limit test -- the second read is the branch's own copy of it in the target.
-void func_actor_303600_801627B8(Task* task)
+static void func_actor_303600_801627B8(Task* task)
 {
     Actor303600RigWork* work  = (Actor303600RigWork*)task->work;
     GpCoord*            coord = task->extra.tmd->coords;
@@ -517,7 +517,7 @@ void func_actor_303600_801627B8(Task* task)
 
 /// Exit callback the rig controller installs at `Task::exitCallback`, and the
 /// third entry of its state table: kills the task.
-void func_actor_303600_80162850(Task* task)
+static void func_actor_303600_80162850(Task* task)
 {
     taskKill(task);
 }
@@ -554,7 +554,7 @@ s32 func_actor_303600_80162870(Task* task, s32 msgId, GpCmdArg* msg)
 
 /// State table of the rig controller: spawn, per-frame motion and the kill
 /// callback. Dispatched by `func_actor_303600_80162A7C`.
-const TaskFuncTable3 D_actor_303600_80161E48 = { {
+static const TaskFuncTable3 D_actor_303600_80161E48 = { {
     func_actor_303600_801626C0,
     func_actor_303600_801627B8,
     func_actor_303600_80162850,
@@ -562,7 +562,7 @@ const TaskFuncTable3 D_actor_303600_80161E48 = { {
 
 /// State table of the rig's model tasks: spawn, an empty per-frame tick and
 /// `taskKill`. Dispatched by `func_actor_303600_801628E4`.
-const TaskFuncTable3 D_actor_303600_80161E54 = { {
+static const TaskFuncTable3 D_actor_303600_80161E54 = { {
     func_actor_303600_80162950,
     func_actor_303600_80162A04,
     taskKill,
@@ -583,7 +583,7 @@ void func_actor_303600_801628E4(Task* task)
 
 /// Builds the actor's light / colour matrix pair, hangs it off the task's
 /// `work` slot, and splices this task's model root under its spawn parent's.
-void func_actor_303600_80162950(Task* task)
+static void func_actor_303600_80162950(Task* task)
 {
     Task*                 parent      = task->spawnArg2;
     TmdObject*            obj         = task->extra.tmd;
@@ -607,13 +607,13 @@ void func_actor_303600_80162950(Task* task)
     task->state += 1;
 }
 
-void func_actor_303600_80162A04(Task* task)
+static void func_actor_303600_80162A04(Task* task)
 {
 }
 
 /// Points the task's model at the light / colour matrix pair in its own work
 /// block and loads the overlay's three flat lights into them.
-void func_actor_303600_80162A0C(Task* task)
+static void func_actor_303600_80162A0C(Task* task)
 {
     Actor303600LightMats* mats = (Actor303600LightMats*)task->work;
     TmdObject*            obj  = task->extra.tmd;

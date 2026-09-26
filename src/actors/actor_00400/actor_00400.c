@@ -215,140 +215,140 @@ typedef struct Actor100400AreaConfig {
 } Actor100400AreaConfig;
 STATIC_ASSERT_SIZEOF(Actor100400AreaConfig, 0x14);
 
-void       Actor00400_Fn005DC(GpCoord* arg0, u16 arg1, u16 arg2, s32 arg3);
-extern s32 D_80115738;
+static void Actor00400_Fn005DC(GpCoord* arg0, u16 arg1, u16 arg2, s32 arg3);
+extern s32  D_80115738;
 
 /* This overlay calls the gameplay helpers through its own (wider) prototypes:
    the extra trailing arguments are set up at every call site but ignored by
    the definitions in src/gameplay/3A34.c. */
 
-void Actor00400_Fn0875C(Task* arg0, Actor100400Entry8* arg1, s32 arg2, s32 arg3);
-void Actor00400_Fn088EC(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
-void Actor00400_Fn02648(Task* arg0, s32 arg1);
-void Actor00400_Fn0237C(Task* arg0);
-void Actor00400_Fn02FF8(Task* arg0);
-void Actor00400_Fn0A190(Task* arg0);
-void Actor00400_Fn0A28C(Task* arg0);
-void Actor00400_Fn089C8(Task* arg0);
-void Actor00400_Fn03920(Task* arg0);
-void Actor00400_Fn04580(Task* arg0);
-void Actor00400_Fn04B48(Task* arg0);
-void Actor00400_Fn04E18(Task* arg0);
-void Actor00400_Fn040DC(Task* arg0);
-void Actor00400_Fn06B7C(Task* arg0);
-void Actor00400_Fn070C0(Task* arg0);
-void Actor00400_Fn085B8(Task* arg0);
-void Actor00400_Fn08624(Task* arg0);
-s16  Actor00400_Fn086FC(Task* arg0, s16 arg1);
-void Actor00400_Fn08814(Task* arg0);
-s16  Actor00400_Fn08908(Task* arg0);
-void Actor00400_Fn0824C(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3);
-void Actor00400_Fn08464(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3);
-void Actor00400_Fn060CC(Task* arg0);
-void Actor00400_Fn09714(Task* arg0);
-void Actor00400_Fn097C8(Task* arg0);
-void Actor00400_Fn06EA4(Task* arg0);
-void Actor00400_Fn08ADC(Task* arg0);
-void Actor00400_Fn08A88(Task* arg0);
-void Actor00400_Fn08B40(Task* arg0);
-void Actor00400_Fn08B94(Task* arg0);
-void Actor00400_Fn06F64(Task* arg0);
-void Actor00400_Fn0A880(Task* arg0);
-void Actor00400_Fn04900(Task* arg0);
-void Actor00400_Fn0A940(Task* arg0);
-void Actor00400_Fn04A1C(Task* arg0);
-void Actor00400_Fn0A9F4(Task* arg0);
-void Actor00400_Fn0AA40(Task* arg0);
-void Actor00400_Fn0A3D4(Task* arg0);
-void Actor00400_Fn0A414(Task* arg0);
-void Actor00400_Fn098A8(Task* arg0);
-void Actor00400_Fn09924(Task* arg0);
-s16  Actor00400_Fn02154(Task* arg0);
-void Actor00400_Fn0A5B8(Task* arg0);
-void Actor00400_Fn019B4(Task* arg0);
-void Actor00400_Fn0814C(Task* arg0, s16 arg1, SVECTOR* arg2, s16 arg3);
-void Actor00400_Fn08A1C(MATRIX* src, MATRIX* dst);
-void Actor00400_Fn03570(GpCoord* arg0, s16 arg1);
-void func_8004BFF8(s32 angle, MATRIX* matrix);
+static void Actor00400_Fn0875C(Task* arg0, Actor100400Entry8* arg1, s32 arg2, s32 arg3);
+static void Actor00400_Fn088EC(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void Actor00400_Fn02648(Task* arg0, s32 arg1);
+static void Actor00400_Fn0237C(Task* arg0);
+static void Actor00400_Fn02FF8(Task* arg0);
+static void Actor00400_Fn0A190(Task* arg0);
+static void Actor00400_Fn0A28C(Task* arg0);
+static void Actor00400_Fn089C8(Task* arg0);
+static void Actor00400_Fn03920(Task* arg0);
+static void Actor00400_Fn04580(Task* arg0);
+static void Actor00400_Fn04B48(Task* arg0);
+static void Actor00400_Fn04E18(Task* arg0);
+static void Actor00400_Fn040DC(Task* arg0);
+static void Actor00400_Fn06B7C(Task* arg0);
+static void Actor00400_Fn070C0(Task* arg0);
+static void Actor00400_Fn085B8(Task* arg0);
+static void Actor00400_Fn08624(Task* arg0);
+static s16  Actor00400_Fn086FC(Task* arg0, s16 arg1);
+static void Actor00400_Fn08814(Task* arg0);
+static s16  Actor00400_Fn08908(Task* arg0);
+static void Actor00400_Fn0824C(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3);
+static void Actor00400_Fn08464(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3);
+static void Actor00400_Fn060CC(Task* arg0);
+static void Actor00400_Fn09714(Task* arg0);
+static void Actor00400_Fn097C8(Task* arg0);
+static void Actor00400_Fn06EA4(Task* arg0);
+static void Actor00400_Fn08ADC(Task* arg0);
+static void Actor00400_Fn08A88(Task* arg0);
+static void Actor00400_Fn08B40(Task* arg0);
+static void Actor00400_Fn08B94(Task* arg0);
+static void Actor00400_Fn06F64(Task* arg0);
+static void Actor00400_Fn0A880(Task* arg0);
+static void Actor00400_Fn04900(Task* arg0);
+static void Actor00400_Fn0A940(Task* arg0);
+static void Actor00400_Fn04A1C(Task* arg0);
+static void Actor00400_Fn0A9F4(Task* arg0);
+static void Actor00400_Fn0AA40(Task* arg0);
+static void Actor00400_Fn0A3D4(Task* arg0);
+static void Actor00400_Fn0A414(Task* arg0);
+static void Actor00400_Fn098A8(Task* arg0);
+static void Actor00400_Fn09924(Task* arg0);
+static s16  Actor00400_Fn02154(Task* arg0);
+static void Actor00400_Fn0A5B8(Task* arg0);
+static void Actor00400_Fn019B4(Task* arg0);
+static void Actor00400_Fn0814C(Task* arg0, s16 arg1, SVECTOR* arg2, s16 arg3);
+static void Actor00400_Fn08A1C(MATRIX* src, MATRIX* dst);
+static void Actor00400_Fn03570(GpCoord* arg0, s16 arg1);
+void        func_8004BFF8(s32 angle, MATRIX* matrix);
 /* Declared here with a signed id: see the note in gameplay/1BC.h. */
-void func_800B4114(Actor100400Work* anim, s32 slot, s32 active, s32 arg3, s32 arg4);
-s32  Actor00400_Fn02208(Task* arg0);
-void Actor00400_Fn0A680(Task* arg0);
-void Actor00400_Fn0A6B0(Task* arg0);
-void Actor00400_Fn0A704(Task* arg0);
-void Actor00400_Fn0A760(Task* arg0);
-void Actor00400_Fn0A7F0(Task* arg0);
-void Actor00400_Fn0A82C(Task* arg0);
-void Actor00400_Fn0A034(Task* arg0);
-s32  Actor00400_Fn0A08C(GpCoord* coord, SVECTOR* pos);
-void Actor00400_Fn0A510(Task* arg0);
-void Actor00400_Fn0A57C(Task* arg0);
-void Actor00400_Fn0762C(Task* arg0, s16 arg1, s16 arg2);
+void        func_800B4114(Actor100400Work* anim, s32 slot, s32 active, s32 arg3, s32 arg4);
+static s32  Actor00400_Fn02208(Task* arg0);
+static void Actor00400_Fn0A680(Task* arg0);
+static void Actor00400_Fn0A6B0(Task* arg0);
+static void Actor00400_Fn0A704(Task* arg0);
+static void Actor00400_Fn0A760(Task* arg0);
+static void Actor00400_Fn0A7F0(Task* arg0);
+static void Actor00400_Fn0A82C(Task* arg0);
+static void Actor00400_Fn0A034(Task* arg0);
+static s32  Actor00400_Fn0A08C(GpCoord* coord, SVECTOR* pos);
+static void Actor00400_Fn0A510(Task* arg0);
+static void Actor00400_Fn0A57C(Task* arg0);
+static void Actor00400_Fn0762C(Task* arg0, s16 arg1, s16 arg2);
 
 /* States the dispatch tables name before their definitions. */
-void Actor00400_Fn042C0(Task* arg0);
-void Actor00400_Fn04414(Task* arg0);
-void Actor00400_Fn04CF8(Task* arg0);
-void Actor00400_Fn05728(Task* arg0);
-void Actor00400_Fn07738(Task* arg0);
-void Actor00400_Fn077F4(Task* arg0);
-void Actor00400_Fn078C8(Task* arg0);
-void Actor00400_Fn0793C(Task* arg0);
-void Actor00400_Fn07998(Task* task);
-void Actor00400_Fn079A0(Task* task);
-void Actor00400_Fn079A8(Task* arg0);
-void Actor00400_Fn079FC(Task* arg0);
-void Actor00400_Fn07ABC(Task* arg0);
-void Actor00400_Fn07B10(Task* arg0);
-void Actor00400_Fn07B98(Task* arg0);
-void Actor00400_Fn07C04(Task* arg0);
-void Actor00400_Fn07CC4(Task* arg0);
-void Actor00400_Fn07DE0(Task* arg0);
-void Actor00400_Fn07E20(Task* arg0);
-void Actor00400_Fn07E74(Task* arg0);
-void Actor00400_Fn07EE8(Task* arg0);
-void Actor00400_Fn07F18(Task* arg0);
-void Actor00400_Fn07F44(Task* arg0);
-void Actor00400_Fn07F88(Task* arg0);
-void Actor00400_Fn07FEC(Task* arg0);
-void Actor00400_Fn08C54(Task* arg0);
-void Actor00400_Fn08D70(Task* arg0);
-void Actor00400_Fn08DFC(Task* arg0);
-void Actor00400_Fn08E50(Task* arg0);
-void Actor00400_Fn08FB0(Task* arg0);
-void Actor00400_Fn08FC8(Task* arg0);
-void Actor00400_Fn08FF4(Task* arg0);
-void Actor00400_Fn09038(Task* arg0);
-void Actor00400_Fn0909C(Task* arg0);
-void Actor00400_Fn090B4(Task* arg0);
-void Actor00400_Fn09124(Task* arg0);
-void Actor00400_Fn091F8(Task* arg0);
-void Actor00400_Fn09260(Task* arg0);
-void Actor00400_Fn092D4(Task* arg0);
-void Actor00400_Fn09348(Task* arg0);
-void Actor00400_Fn093BC(Task* task);
-void Actor00400_Fn093C4(Task* arg0);
-void Actor00400_Fn09418(Task* arg0);
-void Actor00400_Fn0946C(Task* arg0);
-void Actor00400_Fn094C0(Task* arg0);
-void Actor00400_Fn094DC(Task* arg0);
-void Actor00400_Fn095D8(Task* arg0);
-void Actor00400_Fn096C0(Task* arg0);
-void Actor00400_Fn09A1C(Task* arg0);
-void Actor00400_Fn09A48(Task* arg0);
-void Actor00400_Fn09A8C(Task* arg0);
-void Actor00400_Fn09AE0(Task* arg0);
-void Actor00400_Fn09B44(Task* arg0);
-void Actor00400_Fn09B74(Task* arg0);
-void Actor00400_Fn09BDC(Task* arg0);
-void Actor00400_Fn09C04(Task* arg0);
-void Actor00400_Fn09C84(Task* arg0);
-void Actor00400_Fn09CCC(Task* arg0);
-void Actor00400_Fn09D3C(Task* arg0);
-void Actor00400_Fn09D98(Task* arg0);
-void Actor00400_Fn09E70(Task* arg0);
-void Actor00400_Fn09F18(Task* arg0);
-void Actor00400_Fn09FDC(Task* arg0);
+static void Actor00400_Fn042C0(Task* arg0);
+static void Actor00400_Fn04414(Task* arg0);
+static void Actor00400_Fn04CF8(Task* arg0);
+static void Actor00400_Fn05728(Task* arg0);
+static void Actor00400_Fn07738(Task* arg0);
+static void Actor00400_Fn077F4(Task* arg0);
+static void Actor00400_Fn078C8(Task* arg0);
+static void Actor00400_Fn0793C(Task* arg0);
+static void Actor00400_Fn07998(Task* task);
+static void Actor00400_Fn079A0(Task* task);
+static void Actor00400_Fn079A8(Task* arg0);
+static void Actor00400_Fn079FC(Task* arg0);
+static void Actor00400_Fn07ABC(Task* arg0);
+static void Actor00400_Fn07B10(Task* arg0);
+static void Actor00400_Fn07B98(Task* arg0);
+static void Actor00400_Fn07C04(Task* arg0);
+static void Actor00400_Fn07CC4(Task* arg0);
+static void Actor00400_Fn07DE0(Task* arg0);
+static void Actor00400_Fn07E20(Task* arg0);
+static void Actor00400_Fn07E74(Task* arg0);
+static void Actor00400_Fn07EE8(Task* arg0);
+static void Actor00400_Fn07F18(Task* arg0);
+static void Actor00400_Fn07F44(Task* arg0);
+static void Actor00400_Fn07F88(Task* arg0);
+static void Actor00400_Fn07FEC(Task* arg0);
+static void Actor00400_Fn08C54(Task* arg0);
+static void Actor00400_Fn08D70(Task* arg0);
+static void Actor00400_Fn08DFC(Task* arg0);
+static void Actor00400_Fn08E50(Task* arg0);
+static void Actor00400_Fn08FB0(Task* arg0);
+static void Actor00400_Fn08FC8(Task* arg0);
+static void Actor00400_Fn08FF4(Task* arg0);
+static void Actor00400_Fn09038(Task* arg0);
+static void Actor00400_Fn0909C(Task* arg0);
+static void Actor00400_Fn090B4(Task* arg0);
+static void Actor00400_Fn09124(Task* arg0);
+static void Actor00400_Fn091F8(Task* arg0);
+static void Actor00400_Fn09260(Task* arg0);
+static void Actor00400_Fn092D4(Task* arg0);
+static void Actor00400_Fn09348(Task* arg0);
+static void Actor00400_Fn093BC(Task* task);
+static void Actor00400_Fn093C4(Task* arg0);
+static void Actor00400_Fn09418(Task* arg0);
+static void Actor00400_Fn0946C(Task* arg0);
+static void Actor00400_Fn094C0(Task* arg0);
+static void Actor00400_Fn094DC(Task* arg0);
+static void Actor00400_Fn095D8(Task* arg0);
+static void Actor00400_Fn096C0(Task* arg0);
+static void Actor00400_Fn09A1C(Task* arg0);
+static void Actor00400_Fn09A48(Task* arg0);
+static void Actor00400_Fn09A8C(Task* arg0);
+static void Actor00400_Fn09AE0(Task* arg0);
+static void Actor00400_Fn09B44(Task* arg0);
+static void Actor00400_Fn09B74(Task* arg0);
+static void Actor00400_Fn09BDC(Task* arg0);
+static void Actor00400_Fn09C04(Task* arg0);
+static void Actor00400_Fn09C84(Task* arg0);
+static void Actor00400_Fn09CCC(Task* arg0);
+static void Actor00400_Fn09D3C(Task* arg0);
+static void Actor00400_Fn09D98(Task* arg0);
+static void Actor00400_Fn09E70(Task* arg0);
+static void Actor00400_Fn09F18(Task* arg0);
+static void Actor00400_Fn09FDC(Task* arg0);
 
 extern GpPairSrcE Actor00400_D0FDC8;
 /// Pair table `Actor00400_Fn0A190` packs, at index 1, into the marker object's
@@ -457,7 +457,7 @@ static __inline__ GpCoord* Actor00400_LocalizeRotation(GpCoord* arg0, MATRIX* ar
 /// `kind` selects between a single spark (0), a spark plus an optional
 /// directional puff (1), and a four-shot burst (2). `phase` drives the
 /// sub-effect `Actor00400_Fn005DC` plays and gates the puff on its low bits.
-void Actor00400_Fn001AC(GpCoord* coord, u16 phase, u16 kind, u32 arg3)
+static void Actor00400_Fn001AC(GpCoord* coord, u16 phase, u16 kind, u32 arg3)
 {
     SVECTOR vec;
     s32     i;
@@ -538,7 +538,7 @@ void Actor00400_Fn001AC(GpCoord* coord, u16 phase, u16 kind, u32 arg3)
 /// `arg2` sizes the quad and `arg3` spins it: the corners sit `arg2 * 0x27 /
 /// otz` from the projected centre along `arg3` and `arg3 + 0x400`, so the
 /// spark shrinks with depth.
-void Actor00400_Fn005DC(GpCoord* arg0, u16 arg1, u16 arg2, s32 arg3)
+static void Actor00400_Fn005DC(GpCoord* arg0, u16 arg1, u16 arg2, s32 arg3)
 {
     void**             scratch;
     u8*                head;
@@ -596,7 +596,7 @@ void Actor00400_Fn005DC(GpCoord* arg0, u16 arg1, u16 arg2, s32 arg3)
     SCRATCH_POP_BYTES_AT(scratch, sizeof(GpEffFlareScratch));
 }
 
-void Actor00400_Fn00A14(Task* arg0)
+static void Actor00400_Fn00A14(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -619,7 +619,7 @@ void Actor00400_Fn00A14(Task* arg0)
     }
 }
 
-void Actor00400_Fn00B48(Task* arg0)
+static void Actor00400_Fn00B48(Task* arg0)
 {
     TmdObject*       ctx;
     Actor100400Work* work;
@@ -661,7 +661,7 @@ void Actor00400_Fn00B48(Task* arg0)
     work->field_556 = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
 }
 
-void Actor00400_Fn00C84(Task* arg0)
+static void Actor00400_Fn00C84(Task* arg0)
 {
     Task*             actor;
     Task*             player;
@@ -712,7 +712,7 @@ void Actor00400_Fn00C84(Task* arg0)
 /// `height`. The quad is `width` wide on each side of the segment and
 /// stretches half the segment's length past each end; it is tinted grey by
 /// `shade` and skipped when the projection clips it. Equal parts draw nothing.
-void Actor00400_Fn00E3C(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
+static void Actor00400_Fn00E3C(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
 {
     ActorBeamScratch* s;
     s16               angle;
@@ -790,7 +790,7 @@ void Actor00400_Fn00E3C(Task* actor, s16 firstJoint, s16 secondJoint, s16 width,
     }
 }
 
-void Actor00400_Fn012B0(Task* arg0, s16 arg1, s32 arg2)
+static void Actor00400_Fn012B0(Task* arg0, s16 arg1, s32 arg2)
 {
     s32 temp_s2;
 
@@ -819,7 +819,7 @@ void Actor00400_Fn012B0(Task* arg0, s16 arg1, s32 arg2)
    lands in `field_5E4` with its XZ distance in `field_640`. The chosen
    offset is then normalised and turned into a yaw relative to the actor's
    own heading (`field_556`) in `field_634`. */
-void Actor00400_Fn01454(Task* arg0)
+static void Actor00400_Fn01454(Task* arg0)
 {
     Actor100400Work* work;
     GpCoord*         coord;
@@ -888,7 +888,7 @@ void Actor00400_Fn01454(Task* arg0)
    decays, twice as fast. Each of the two coordinates then gets its pitch
    re-applied about X and a third of the yaw about Y, and the composed
    inverse of all three lands in `c4`. */
-void Actor00400_Fn016A4(Task* arg0, s32 arg1)
+static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
 {
     SVECTOR          euler;
     SVECTOR          rot1;
@@ -986,7 +986,7 @@ void Actor00400_Fn016A4(Task* arg0, s32 arg1)
 
 /* Links the actor's four collision objects and clears their record tables;
    `obj_42C` takes hit flag 0x4000 from `field_661`. */
-void Actor00400_Fn019B4(Task* arg0)
+static void Actor00400_Fn019B4(Task* arg0)
 {
     Actor100400Work* work = arg0->work;
 
@@ -1045,7 +1045,7 @@ void Actor00400_Fn019B4(Task* arg0)
 /* Damage / knock-back tick: walks the six contact records, applies the hit
    the first one carries, then folds the accumulated push-back into the work
    position and the actor's coordinate. */
-void Actor00400_Fn01B90(Task* arg0)
+static void Actor00400_Fn01B90(Task* arg0)
 {
     Actor100400Work* work;
     GpEnemy*         obj;
@@ -1225,7 +1225,7 @@ void Actor00400_Fn01B90(Task* arg0)
     }
 }
 
-s16 Actor00400_Fn02154(Task* arg0)
+static s16 Actor00400_Fn02154(Task* arg0)
 {
     Actor100400Work* work;
     s16              state;
@@ -1267,7 +1267,7 @@ fail:
     return 0;
 }
 
-s32 Actor00400_Fn02208(Task* arg0)
+static s32 Actor00400_Fn02208(Task* arg0)
 {
     Actor100400Work* work;
     GpCoord*         coord;
@@ -1296,7 +1296,7 @@ s32 Actor00400_Fn02208(Task* arg0)
 /* The random pick spawns in both arms rather than after the `if`: jump2
    cross-jumps the identical tails, which is what leaves the 0x20010 argument
    load ahead of the `D_800678F0` store in each arm. */
-void Actor00400_Fn0237C(Task* arg0)
+static void Actor00400_Fn0237C(Task* arg0)
 {
     GpEffWork* eff1;
     TmdObject* src1;
@@ -1399,7 +1399,7 @@ void Actor00400_Fn0237C(Task* arg0)
 /// purpose: with two assignments the pseudo has two deaths, so local-alloc
 /// skips it and never ties the `divmodsi4` result to its dividend. That is
 /// what leaves the quotient in the divisor's register (`mflo $v1`).
-void Actor00400_Fn02648(Task* arg0, s32 arg1)
+static void Actor00400_Fn02648(Task* arg0, s32 arg1)
 {
     VECTOR           scale;
     Actor100400Mat   rot;
@@ -1638,7 +1638,7 @@ void Actor00400_Fn02648(Task* arg0, s32 arg1)
 /// `fixed_scalar_and_varying_struct_p` would then let the `Gp_StateF0.field_4` load
 /// hoist above the store. See DECOMPILATION_LEARNINGS.md, "Struct-typing a
 /// body changes GCC 2.8.1's aliasing".
-void Actor00400_Fn02D48(Task* arg0)
+static void Actor00400_Fn02D48(Task* arg0)
 {
     Actor100400MarkerWork* work;
     s32                    hidden;
@@ -1716,7 +1716,7 @@ void Actor00400_Fn02D48(Task* arg0)
 /// Same nearest-waypoint search as `Actor00400_Fn031A4`, but the winner is
 /// stored into `field_56C` and then made current: the record `field_64A` used
 /// to point at is cleared to kind 0 and the new one is marked kind 1.
-void Actor00400_Fn02FF8(Task* arg0)
+static void Actor00400_Fn02FF8(Task* arg0)
 {
     Actor100400NearestScratch* scratch;
     Actor100400Work*           work;
@@ -1768,7 +1768,7 @@ done:
 /// Finds the nearest eligible waypoint record in `field_608` and returns its
 /// XZ in `arg1`. Records with `field_6 == 1` are only considered when they are
 /// the one `field_64A` points at, and the walk ends at the `-1` terminator.
-void Actor00400_Fn031A4(Task* arg0, SVECTOR* arg1)
+static void Actor00400_Fn031A4(Task* arg0, SVECTOR* arg1)
 {
     Actor100400NearestScratch* scratch;
     Actor100400Work*           work;
@@ -1812,7 +1812,7 @@ loop:
 
 /// Projects the four `corner` vertices through the view matrix and queues one
 /// semi-transparent textured quad shaded grey `shade` (half intensity on red).
-void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SVECTOR* corner3, u8 shade)
+static void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SVECTOR* corner3, u8 shade)
 {
     Actor100400TextQuadScratch* s;
     POLY_FT4*                   poly;
@@ -1846,7 +1846,7 @@ void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SV
 /// absolute rotation from its parent chain, turn it, then express the result
 /// back in the parent's frame and write the 3x3 into the joint. The working
 /// matrix is one 0x20-byte frame carved off the scratchpad head.
-void Actor00400_Fn03570(GpCoord* coord, s16 yaw)
+static void Actor00400_Fn03570(GpCoord* coord, s16 yaw)
 {
     MATRIX*  rotation;
     GpCoord* out;
@@ -1867,7 +1867,7 @@ void Actor00400_Fn03570(GpCoord* coord, s16 yaw)
    jump tables of the functions around it. */
 
 /// Kill-path states, indexed by `Task::state` in `Actor00400_Fn08004`.
-const TaskFuncTable3 Actor00400_D0002C = { {
+static const TaskFuncTable3 Actor00400_D0002C = { {
     Actor00400_Fn0A190,
     Actor00400_Fn02D48,
     Actor00400_Fn0A28C,
@@ -1876,7 +1876,7 @@ const TaskFuncTable3 Actor00400_D0002C = { {
 /// The eight states `Actor00400_Fn08948` dispatches on `field_30`. The zero
 /// word after it in the image is the alignment pad of
 /// `Actor00400_Fn03920`'s jump table, not a terminator.
-const TaskFuncTable8 Actor00400_D00038 = { {
+static const TaskFuncTable8 Actor00400_D00038 = { {
     Actor00400_Fn03920,
     Actor00400_Fn04580,
     Actor00400_Fn04B48,
@@ -1943,7 +1943,7 @@ static __inline__ void Actor00400_AttachHead(Task* arg0, GpEnemy* obj,
     work->field_661         = hide;
 }
 
-void Actor00400_Fn03920(Task* arg0)
+static void Actor00400_Fn03920(Task* arg0)
 {
     Actor100400Work*     work;
     Actor100400Work*     w;
@@ -2232,7 +2232,7 @@ static __inline__ void Actor00400_UpdateColor(Task* arg0, GpCoord* coord,
 }
 
 /// States `Actor00400_Fn040DC` dispatches on `Actor100400Work.field_638`.
-const TaskFuncTable11 Actor00400_D0007C = { {
+static const TaskFuncTable11 Actor00400_D0007C = { {
     Actor00400_Fn042C0,
     Actor00400_Fn04414,
     Actor00400_Fn07CC4,
@@ -2250,7 +2250,7 @@ const TaskFuncTable11 Actor00400_D0007C = { {
 /// `Actor00400_Fn04B48`: `Gp_StateF0.field_4` 2 only flags the model hidden, 0 runs
 /// this frame's state handler before falling through to the draw half, and 1
 /// is the draw half on its own.
-void Actor00400_Fn040DC(Task* arg0)
+static void Actor00400_Fn040DC(Task* arg0)
 {
     TaskFuncTable11  fns;
     Actor100400Work* work;
@@ -2289,7 +2289,7 @@ void Actor00400_Fn040DC(Task* arg0)
     }
 }
 
-void Actor00400_Fn042C0(Task* arg0)
+static void Actor00400_Fn042C0(Task* arg0)
 {
     Actor100400Work* work;
     GpEnemy*         obj;
@@ -2328,7 +2328,7 @@ void Actor00400_Fn042C0(Task* arg0)
     work->field_638++;
 }
 
-void Actor00400_Fn04414(Task* arg0)
+static void Actor00400_Fn04414(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* w;
@@ -2378,7 +2378,7 @@ void Actor00400_Fn04414(Task* arg0)
 }
 
 /// States `Actor00400_Fn04580` dispatches on `Actor100400Work.field_638`.
-const TaskFuncTable10 Actor00400_D000A8 = { {
+static const TaskFuncTable10 Actor00400_D000A8 = { {
     Actor00400_Fn090B4,
     Actor00400_Fn09124,
     Actor00400_Fn091F8,
@@ -2391,7 +2391,7 @@ const TaskFuncTable10 Actor00400_D000A8 = { {
     Actor00400_Fn0946C,
 } };
 
-void Actor00400_Fn04580(Task* arg0)
+static void Actor00400_Fn04580(Task* arg0)
 {
     Actor100400Work* work = arg0->work;
     GpEnemy*         obj  = arg0->spawnArg2;
@@ -2484,7 +2484,7 @@ void Actor00400_Fn04580(Task* arg0)
     }
 }
 
-void Actor00400_Fn04900(Task* arg0)
+static void Actor00400_Fn04900(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* work2;
@@ -2516,7 +2516,7 @@ void Actor00400_Fn04900(Task* arg0)
     }
 }
 
-void Actor00400_Fn04A1C(Task* arg0)
+static void Actor00400_Fn04A1C(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* work2;
@@ -2551,7 +2551,7 @@ void Actor00400_Fn04A1C(Task* arg0)
 }
 
 /// States `Actor00400_Fn04B48` dispatches on `Actor100400Work.field_638`.
-const TaskFuncTable10 Actor00400_D000D0 = { {
+static const TaskFuncTable10 Actor00400_D000D0 = { {
     Actor00400_Fn04CF8,
     Actor00400_Fn08C54,
     Actor00400_Fn08D70,
@@ -2567,7 +2567,7 @@ const TaskFuncTable10 Actor00400_D000D0 = { {
 /// Per-frame callback for the main actor task. `Gp_StateF0.field_4` gates the frame:
 /// 2 only flags the model hidden, 0 runs this frame's state handler before
 /// falling through to the draw half, and 1 is the draw half on its own.
-void Actor00400_Fn04B48(Task* arg0)
+static void Actor00400_Fn04B48(Task* arg0)
 {
     TaskFuncTable10  fns;
     Actor100400Work* work;
@@ -2600,7 +2600,7 @@ void Actor00400_Fn04B48(Task* arg0)
     }
 }
 
-void Actor00400_Fn04CF8(Task* arg0)
+static void Actor00400_Fn04CF8(Task* arg0)
 {
     Actor100400Work* work;
     GpEnemy*         obj;
@@ -2636,7 +2636,7 @@ void Actor00400_Fn04CF8(Task* arg0)
 }
 
 /// States `Actor00400_Fn04E18` dispatches on `Actor100400Work.field_638`.
-const TaskFuncTable15 Actor00400_D000F8 = { {
+static const TaskFuncTable15 Actor00400_D000F8 = { {
     Actor00400_Fn07738,
     Actor00400_Fn077F4,
     Actor00400_Fn05728,
@@ -2659,7 +2659,7 @@ const TaskFuncTable15 Actor00400_D000F8 = { {
 /// display object re-pointed at the part coordinate `field_664` selects; the
 /// tail hides the model again while the session sits in the two area-0xA/0xB
 /// rooms of area 0x21.
-void Actor00400_Fn04E18(Task* arg0)
+static void Actor00400_Fn04E18(Task* arg0)
 {
     Actor100400Work* work   = arg0->work;
     GpCoord*         coord0 = arg0->extra.tmd->coords;
@@ -2839,7 +2839,7 @@ static inline void Actor00400_SpawnRing(Task* arg0, Actor100400Work* work, GpCoo
     } while (i < 16);
 }
 
-void Actor00400_Fn05320(Task* arg0)
+static void Actor00400_Fn05320(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* w1;
@@ -2910,7 +2910,7 @@ void Actor00400_Fn05320(Task* arg0)
     }
 }
 
-void Actor00400_Fn05728(Task* arg0)
+static void Actor00400_Fn05728(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* work2;
@@ -2966,7 +2966,7 @@ void Actor00400_Fn05728(Task* arg0)
     }
 }
 
-void Actor00400_Fn058C4(Task* arg0)
+static void Actor00400_Fn058C4(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* work2;
@@ -3049,7 +3049,7 @@ void Actor00400_Fn058C4(Task* arg0)
     }
 }
 
-void Actor00400_Fn05D00(Task* arg0)
+static void Actor00400_Fn05D00(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* w;
@@ -3091,7 +3091,7 @@ void Actor00400_Fn05D00(Task* arg0)
     work->field_63A++;
 }
 
-void Actor00400_Fn05EA4(Task* arg0)
+static void Actor00400_Fn05EA4(Task* arg0)
 {
     Actor100400Work* work;
     GpCoord*         coord;
@@ -3132,7 +3132,7 @@ void Actor00400_Fn05EA4(Task* arg0)
     }
 }
 
-void Actor00400_Fn060CC(Task* arg0)
+static void Actor00400_Fn060CC(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* work2;
@@ -3164,7 +3164,7 @@ void Actor00400_Fn060CC(Task* arg0)
     }
 }
 
-void Actor00400_Fn061E8(Task* arg0)
+static void Actor00400_Fn061E8(Task* arg0)
 {
     Actor100400Work* work;
     GpCoord*         coord;
@@ -3202,7 +3202,7 @@ void Actor00400_Fn061E8(Task* arg0)
     work->field_63A++;
 }
 
-void Actor00400_Fn06380(Task* arg0)
+static void Actor00400_Fn06380(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* w;
@@ -3281,7 +3281,7 @@ static inline void Actor00400_SpawnMarker(Task* arg0)
     }
 }
 
-void Actor00400_Fn064B0(Task* arg0)
+static void Actor00400_Fn064B0(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* work2;
@@ -3313,7 +3313,7 @@ void Actor00400_Fn064B0(Task* arg0)
     }
 }
 
-void Actor00400_Fn06798(Task* arg0)
+static void Actor00400_Fn06798(Task* arg0)
 {
     Actor100400Work* work;
     GpCoord*         coord;
@@ -3368,7 +3368,7 @@ void Actor00400_Fn06798(Task* arg0)
     Gp_SetLightMode(arg0->spawnArg2, 2);
 }
 
-void Actor00400_Fn06A44(Task* arg0)
+static void Actor00400_Fn06A44(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* w;
@@ -3402,7 +3402,7 @@ void Actor00400_Fn06A44(Task* arg0)
 /// `Gp_StateF0.field_4` frame gate as `Actor00400_Fn04B48`: 2 only flags the model
 /// hidden, 0 runs this frame's state handler and rebuilds the root rotation
 /// before falling through to the draw half, and 1 is the draw half on its own.
-void Actor00400_Fn06B7C(Task* arg0)
+static void Actor00400_Fn06B7C(Task* arg0)
 {
     Actor100400Work* work             = arg0->work;
     GpEnemy*         obj              = arg0->spawnArg2;
@@ -3520,7 +3520,7 @@ other:
     return 1;
 }
 
-void Actor00400_Fn06EA4(Task* arg0)
+static void Actor00400_Fn06EA4(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* work2;
@@ -3544,7 +3544,7 @@ void Actor00400_Fn06EA4(Task* arg0)
     }
 }
 
-void Actor00400_Fn06F64(Task* arg0)
+static void Actor00400_Fn06F64(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* work2;
@@ -3577,14 +3577,14 @@ void Actor00400_Fn06F64(Task* arg0)
     }
 }
 
-void Actor00400_Fn0A468(Task* arg0);
-void Actor00400_Fn0A4BC(Task* arg0);
+static void Actor00400_Fn0A468(Task* arg0);
+static void Actor00400_Fn0A4BC(Task* arg0);
 
 /// Per-frame callback for the text actor's fourth task. Same frame gate as
 /// `Actor00400_Fn06B7C`, but the draw half only recolours the actor: case 0
 /// runs this frame's state handler, lerps the root coordinate's height a
 /// sixteenth of the way towards `field_63E` and falls through.
-void Actor00400_Fn070C0(Task* arg0)
+static void Actor00400_Fn070C0(Task* arg0)
 {
     Actor100400Work* work             = arg0->work;
     TmdObject*       ctx              = arg0->extra.tmd;
@@ -3672,7 +3672,7 @@ void Actor00400_Fn070C0(Task* arg0)
     }
 }
 
-void Actor00400_Fn07400(Task* arg0)
+static void Actor00400_Fn07400(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* work2;
@@ -3701,7 +3701,7 @@ void Actor00400_Fn07400(Task* arg0)
     }
 }
 
-void Actor00400_Fn07518(Task* arg0)
+static void Actor00400_Fn07518(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* work2;
@@ -3733,15 +3733,15 @@ void Actor00400_Fn07518(Task* arg0)
 /// the `<< 4` on the trig result and the `>> 16` after the multiply are one
 /// `>> 12` split in two. Clearing `flg` is what makes `GsGetLw` rebuild the
 /// matrix from `coord`.
-void Actor00400_Fn0762C(Task* arg0, s16 arg1, s16 arg2)
+static void Actor00400_Fn0762C(Task* arg0, s16 arg1, s16 arg2)
 {
     arg0->extra.tmd->coords->coord.t[0] += ((rsin(arg2) << 4) * arg1) >> 16;
     arg0->extra.tmd->coords->coord.t[2] += ((rcos(arg2) << 4) * arg1) >> 16;
     arg0->extra.tmd->coords->flg         = 0;
 }
 
-void Actor00400_Fn0A2F4(Task* arg0);
-void Actor00400_Fn0A364(Task* arg0);
+static void Actor00400_Fn0A2F4(Task* arg0);
+static void Actor00400_Fn0A364(Task* arg0);
 
 /// Two-state dispatcher over a handler table built on the stack.
 void Actor00400_Fn076E8(Task* task)
@@ -3756,7 +3756,7 @@ void Actor00400_Fn076E8(Task* task)
 
 /// Draws two LCG values into the work's `field_62E`/`field_630`, resets the
 /// state counters and copies the root coordinate's `t[1]` into `field_63E`.
-void Actor00400_Fn07738(Task* arg0)
+static void Actor00400_Fn07738(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* state;
@@ -3781,14 +3781,14 @@ void Actor00400_Fn07738(Task* arg0)
 }
 
 /// States `Actor00400_Fn077F4` dispatches on `Actor100400Work.field_63A`.
-const TaskFuncTable4 Actor00400_D00134 = { {
+static const TaskFuncTable4 Actor00400_D00134 = { {
     Actor00400_Fn094C0,
     Actor00400_Fn094DC,
     Actor00400_Fn05320,
     Actor00400_Fn095D8,
 } };
 
-void Actor00400_Fn077F4(Task* arg0)
+static void Actor00400_Fn077F4(Task* arg0)
 {
     Actor100400Work* work;
     TaskFuncTable4   fns;
@@ -3808,10 +3808,10 @@ void Actor00400_Fn077F4(Task* arg0)
     }
 }
 
-void Actor00400_Fn0962C(Task* arg0);
-void Actor00400_Fn058C4(Task* arg0);
+static void Actor00400_Fn0962C(Task* arg0);
+static void Actor00400_Fn058C4(Task* arg0);
 
-void Actor00400_Fn078C8(Task* arg0)
+static void Actor00400_Fn078C8(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
@@ -3825,13 +3825,13 @@ void Actor00400_Fn078C8(Task* arg0)
 }
 
 /// States `Actor00400_Fn0793C` and `Actor00400_Fn09C04` dispatch on `Actor100400Work.field_63A`.
-const TaskFuncTable3 Actor00400_D00144 = { {
+static const TaskFuncTable3 Actor00400_D00144 = { {
     Actor00400_Fn05D00,
     Actor00400_Fn096C0,
     Actor00400_Fn05EA4,
 } };
 
-void Actor00400_Fn0793C(Task* arg0)
+static void Actor00400_Fn0793C(Task* arg0)
 {
     Actor100400Work* work;
     TaskFuncTable3   fns;
@@ -3841,15 +3841,15 @@ void Actor00400_Fn0793C(Task* arg0)
     fns.funcs[(s16)work->field_63A](arg0);
 }
 
-void Actor00400_Fn07998(Task* task)
+static void Actor00400_Fn07998(Task* task)
 {
 }
 
-void Actor00400_Fn079A0(Task* task)
+static void Actor00400_Fn079A0(Task* task)
 {
 }
 
-void Actor00400_Fn079A8(Task* arg0)
+static void Actor00400_Fn079A8(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
@@ -3883,7 +3883,7 @@ static inline s32 Actor00400_TakeStateRequest(Task* arg0)
     return 0;
 }
 
-void Actor00400_Fn079FC(Task* arg0)
+static void Actor00400_Fn079FC(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
@@ -3898,7 +3898,7 @@ void Actor00400_Fn079FC(Task* arg0)
     }
 }
 
-void Actor00400_Fn07ABC(Task* arg0)
+static void Actor00400_Fn07ABC(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
@@ -3910,13 +3910,13 @@ void Actor00400_Fn07ABC(Task* arg0)
 }
 
 /// States `Actor00400_Fn07B10` dispatches on `Actor100400Work.field_63A`.
-const TaskFuncTable3 Actor00400_D00150 = { {
+static const TaskFuncTable3 Actor00400_D00150 = { {
     Actor00400_Fn09A1C,
     Actor00400_Fn06380,
     Actor00400_Fn064B0,
 } };
 
-void Actor00400_Fn07B10(Task* arg0)
+static void Actor00400_Fn07B10(Task* arg0)
 {
     Actor100400Work* work;
     TaskFuncTable3   fns;
@@ -3929,13 +3929,13 @@ void Actor00400_Fn07B10(Task* arg0)
 }
 
 /// States `Actor00400_Fn07B98` dispatches on `Actor100400Work.field_63A`.
-const TaskFuncTable3 Actor00400_D0015C = { {
+static const TaskFuncTable3 Actor00400_D0015C = { {
     Actor00400_Fn09A48,
     Actor00400_Fn09A8C,
     Actor00400_Fn06798,
 } };
 
-void Actor00400_Fn07B98(Task* arg0)
+static void Actor00400_Fn07B98(Task* arg0)
 {
     GpEnemy*         obj;
     Actor100400Work* work;
@@ -3950,14 +3950,14 @@ void Actor00400_Fn07B98(Task* arg0)
 }
 
 /// States `Actor00400_Fn07C04` dispatches on `Actor100400Work.field_63A`.
-const TaskFuncTable4 Actor00400_D00168 = { {
+static const TaskFuncTable4 Actor00400_D00168 = { {
     Actor00400_Fn09AE0,
     Actor00400_Fn09B44,
     Actor00400_Fn09B74,
     Actor00400_Fn09BDC,
 } };
 
-void Actor00400_Fn07C04(Task* arg0)
+static void Actor00400_Fn07C04(Task* arg0)
 {
     GpEnemy*         obj;
     Actor100400Work* work;
@@ -3978,7 +3978,7 @@ void Actor00400_Fn07C04(Task* arg0)
     }
 }
 
-void Actor00400_Fn07CC4(Task* arg0)
+static void Actor00400_Fn07CC4(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* w;
@@ -4012,7 +4012,7 @@ void Actor00400_Fn07CC4(Task* arg0)
     }
 }
 
-void Actor00400_Fn07DE0(Task* arg0)
+static void Actor00400_Fn07DE0(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -4022,7 +4022,7 @@ void Actor00400_Fn07DE0(Task* arg0)
     work->field_638 = (u16)work->field_638 + 1;
 }
 
-void Actor00400_Fn07E20(Task* arg0)
+static void Actor00400_Fn07E20(Task* arg0)
 {
     Actor100400Work* work;
     TmdObject*       ctx;
@@ -4036,7 +4036,7 @@ void Actor00400_Fn07E20(Task* arg0)
     }
 }
 
-void Actor00400_Fn07E74(Task* arg0)
+static void Actor00400_Fn07E74(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -4049,7 +4049,7 @@ void Actor00400_Fn07E74(Task* arg0)
     }
 }
 
-void Actor00400_Fn07EE8(Task* arg0)
+static void Actor00400_Fn07EE8(Task* arg0)
 {
     TmdObject*       ctx;
     Actor100400Work* work;
@@ -4062,7 +4062,7 @@ void Actor00400_Fn07EE8(Task* arg0)
     work->field_63A = 0;
 }
 
-void Actor00400_Fn07F18(Task* arg0)
+static void Actor00400_Fn07F18(Task* arg0)
 {
     TmdObject*       ctx;
     Actor100400Work* work;
@@ -4074,7 +4074,7 @@ void Actor00400_Fn07F18(Task* arg0)
     work->field_638++;
 }
 
-void Actor00400_Fn07F44(Task* arg0)
+static void Actor00400_Fn07F44(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -4084,7 +4084,7 @@ void Actor00400_Fn07F44(Task* arg0)
     }
 }
 
-void Actor00400_Fn07F88(Task* arg0)
+static void Actor00400_Fn07F88(Task* arg0)
 {
     TmdObject*       model;
     Actor100400Work* work;
@@ -4097,7 +4097,7 @@ void Actor00400_Fn07F88(Task* arg0)
     work->field_638 = (u16)work->field_638 + 1;
 }
 
-void Actor00400_Fn07FEC(Task* arg0)
+static void Actor00400_Fn07FEC(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -4116,7 +4116,7 @@ void Actor00400_Fn08004(Task* arg0)
 }
 
 /// States `Actor00400_Fn09C04` dispatches on `Actor100400Work.field_63A`.
-const TaskFuncTable7 Actor00400_D00178 = { {
+static const TaskFuncTable7 Actor00400_D00178 = { {
     Actor00400_Fn09CCC,
     Actor00400_Fn09D3C,
     Actor00400_Fn09D98,
@@ -4169,7 +4169,7 @@ void Actor00400_Fn0805C(Task* arg0, s32 arg1, GpCmdArg* arg2)
     }
 }
 
-void Actor00400_Fn0814C(Task* arg0, s16 arg1, SVECTOR* arg2, s16 arg3)
+static void Actor00400_Fn0814C(Task* arg0, s16 arg1, SVECTOR* arg2, s16 arg3)
 {
     MATRIX           m;
     VECTOR           d;
@@ -4189,7 +4189,7 @@ void Actor00400_Fn0814C(Task* arg0, s16 arg1, SVECTOR* arg2, s16 arg3)
     arg2->vz = 0;
 }
 
-void Actor00400_Fn0824C(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
+static void Actor00400_Fn0824C(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
 {
     MATRIX   a;
     MATRIX   b;
@@ -4254,7 +4254,7 @@ void Actor00400_Fn08354(Task* arg0, s32 arg1, s32 arg2)
     }
 }
 
-void Actor00400_Fn08464(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
+static void Actor00400_Fn08464(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
 {
     MATRIX   root;
     MATRIX   a;
@@ -4285,7 +4285,7 @@ void Actor00400_Fn08464(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
     Gp_UpdateCoord(coords);
 }
 
-void Actor00400_Fn085B8(Task* arg0)
+static void Actor00400_Fn085B8(Task* arg0)
 {
     Actor100400Work* work;
     s32              i;
@@ -4303,7 +4303,7 @@ void Actor00400_Fn085B8(Task* arg0)
 /// Like `Actor00400_Fn085B8`, but restarts every slot through `func_800B4114`
 /// with the pending blend value `field_63C`, which is consumed (cleared) only
 /// when the requested clip `field_628` differs from the current `field_626`.
-void Actor00400_Fn08624(Task* arg0)
+static void Actor00400_Fn08624(Task* arg0)
 {
     Actor100400Work* work;
     s32              i;
@@ -4330,7 +4330,7 @@ void Actor00400_Fn08624(Task* arg0)
 
 /// Scales `arg1` (a 12-bit angle) by the ratio `work->field_632`, returning 0
 /// while that field is unset.
-s16 Actor00400_Fn086FC(Task* arg0, s16 arg1)
+static s16 Actor00400_Fn086FC(Task* arg0, s16 arg1)
 {
     Actor100400Work* work;
 
@@ -4347,7 +4347,7 @@ s16 Actor00400_Fn086FC(Task* arg0, s16 arg1)
 /// collapses the arms into the entry block: `work` then lives over 32 insns,
 /// exactly tying its allocator priority with `range`'s, and the tie falls
 /// through to the declaration order - hence `range` is declared ahead of `work`.
-void Actor00400_Fn0875C(Task* arg0, Actor100400Entry8* arg1, s32 arg2, s32 arg3)
+static void Actor00400_Fn0875C(Task* arg0, Actor100400Entry8* arg1, s32 arg2, s32 arg3)
 {
     s32              range;
     Actor100400Work* work;
@@ -4378,7 +4378,7 @@ void Actor00400_Fn0875C(Task* arg0, Actor100400Entry8* arg1, s32 arg2, s32 arg3)
 /// resets `field_62A` when it is not), state 2 finishes the old clip and state
 /// 3 counts `field_62A` up a frame at a time. All three land in state 3 and
 /// then tick animation slots 1..14.
-void Actor00400_Fn08814(Task* arg0)
+static void Actor00400_Fn08814(Task* arg0)
 {
     Actor100400Work* work;
     s32              i;
@@ -4406,7 +4406,7 @@ void Actor00400_Fn08814(Task* arg0)
     } while (i < 0xF);
 }
 
-void Actor00400_Fn088EC(Task* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void Actor00400_Fn088EC(Task* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     Actor100400Work* work;
 
@@ -4418,7 +4418,7 @@ void Actor00400_Fn088EC(Task* arg0, s16 arg1, s16 arg2, s16 arg3)
 }
 
 /// Same body as src/lib/actors_shared_8016974c.c.
-s16 Actor00400_Fn08908(Task* arg0)
+static s16 Actor00400_Fn08908(Task* arg0)
 {
     Actor100400Work* work = arg0->work;
 
@@ -4436,7 +4436,7 @@ void Actor00400_Fn08948(Task* arg0)
     fns.funcs[arg0->state](arg0);
 }
 
-void Actor00400_Fn089C8(Task* arg0)
+static void Actor00400_Fn089C8(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
@@ -4449,7 +4449,7 @@ void Actor00400_Fn089C8(Task* arg0)
 
 /// Copies the 3x3 rotation of `src` into `dst`, leaving `dst`'s translation row
 /// alone. Same body as src/lib/actors_shared_80132c4c.c.
-void Actor00400_Fn08A1C(MATRIX* src, MATRIX* dst)
+static void Actor00400_Fn08A1C(MATRIX* src, MATRIX* dst)
 {
     dst->m[0][0] = src->m[0][0];
     dst->m[0][1] = src->m[0][1];
@@ -4462,7 +4462,7 @@ void Actor00400_Fn08A1C(MATRIX* src, MATRIX* dst)
     dst->m[2][2] = src->m[2][2];
 }
 
-void Actor00400_Fn08A88(Task* arg0)
+static void Actor00400_Fn08A88(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
@@ -4473,7 +4473,7 @@ void Actor00400_Fn08A88(Task* arg0)
     states[(s16)work->field_63A](arg0);
 }
 
-void Actor00400_Fn08ADC(Task* arg0)
+static void Actor00400_Fn08ADC(Task* arg0)
 {
     Actor100400Work* state;
     Actor100400Work* work;
@@ -4491,7 +4491,7 @@ void Actor00400_Fn08ADC(Task* arg0)
     work->field_63A++;
 }
 
-void Actor00400_Fn08B40(Task* arg0)
+static void Actor00400_Fn08B40(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
@@ -4502,7 +4502,7 @@ void Actor00400_Fn08B40(Task* arg0)
     states[(s16)work->field_63A](arg0);
 }
 
-void Actor00400_Fn08B94(Task* arg0)
+static void Actor00400_Fn08B94(Task* arg0)
 {
     s32              sound;
     s32              pan;
@@ -4521,7 +4521,7 @@ void Actor00400_Fn08B94(Task* arg0)
     work->field_63A++;
 }
 
-void Actor00400_Fn08C54(Task* arg0)
+static void Actor00400_Fn08C54(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* state;
@@ -4558,7 +4558,7 @@ void Actor00400_Fn08C54(Task* arg0)
     }
 }
 
-void Actor00400_Fn08D70(Task* arg0)
+static void Actor00400_Fn08D70(Task* arg0)
 {
     Actor100400Work* work;
     GpCoord*         coord;
@@ -4572,7 +4572,7 @@ void Actor00400_Fn08D70(Task* arg0)
     work->field_638 = work->field_638 + 1;
 }
 
-void Actor00400_Fn08DFC(Task* arg0)
+static void Actor00400_Fn08DFC(Task* arg0)
 {
     TmdObject*       ctx;
     Actor100400Work* work;
@@ -4586,7 +4586,7 @@ void Actor00400_Fn08DFC(Task* arg0)
     }
 }
 
-void Actor00400_Fn08E50(Task* arg0)
+static void Actor00400_Fn08E50(Task* arg0)
 {
     TmdObject*       ctx;
     Actor100400Work* work;
@@ -4624,7 +4624,7 @@ void Actor00400_Fn08E50(Task* arg0)
     }
 }
 
-void Actor00400_Fn08FB0(Task* arg0)
+static void Actor00400_Fn08FB0(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -4634,7 +4634,7 @@ void Actor00400_Fn08FB0(Task* arg0)
     work->field_63A = 0;
 }
 
-void Actor00400_Fn08FC8(Task* arg0)
+static void Actor00400_Fn08FC8(Task* arg0)
 {
     TmdObject*       ctx;
     Actor100400Work* work;
@@ -4646,7 +4646,7 @@ void Actor00400_Fn08FC8(Task* arg0)
     work->field_638++;
 }
 
-void Actor00400_Fn08FF4(Task* arg0)
+static void Actor00400_Fn08FF4(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -4656,7 +4656,7 @@ void Actor00400_Fn08FF4(Task* arg0)
     }
 }
 
-void Actor00400_Fn09038(Task* arg0)
+static void Actor00400_Fn09038(Task* arg0)
 {
     TmdObject*       model;
     Actor100400Work* work;
@@ -4669,7 +4669,7 @@ void Actor00400_Fn09038(Task* arg0)
     work->field_638 = (u16)work->field_638 + 1;
 }
 
-void Actor00400_Fn0909C(Task* arg0)
+static void Actor00400_Fn0909C(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -4679,7 +4679,7 @@ void Actor00400_Fn0909C(Task* arg0)
     work->field_63A = 0;
 }
 
-void Actor00400_Fn090B4(Task* arg0)
+static void Actor00400_Fn090B4(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* state;
@@ -4704,7 +4704,7 @@ void Actor00400_Fn090B4(Task* arg0)
 /// (0), so the copy is redundant there and cse drops it, which leaves `done`
 /// defined only here - and reorg then fills the branch's delay slot with a copy
 /// of that one move.
-void Actor00400_Fn09124(Task* arg0)
+static void Actor00400_Fn09124(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* state;
@@ -4741,7 +4741,7 @@ set:
     }
 }
 
-void Actor00400_Fn091F8(Task* arg0)
+static void Actor00400_Fn091F8(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[1])(Task*) = {
@@ -4753,7 +4753,7 @@ void Actor00400_Fn091F8(Task* arg0)
     }
 }
 
-void Actor00400_Fn09260(Task* arg0)
+static void Actor00400_Fn09260(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
@@ -4766,7 +4766,7 @@ void Actor00400_Fn09260(Task* arg0)
     }
 }
 
-void Actor00400_Fn092D4(Task* arg0)
+static void Actor00400_Fn092D4(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
@@ -4779,7 +4779,7 @@ void Actor00400_Fn092D4(Task* arg0)
     }
 }
 
-void Actor00400_Fn09348(Task* arg0)
+static void Actor00400_Fn09348(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
@@ -4792,11 +4792,11 @@ void Actor00400_Fn09348(Task* arg0)
     }
 }
 
-void Actor00400_Fn093BC(Task* task)
+static void Actor00400_Fn093BC(Task* task)
 {
 }
 
-void Actor00400_Fn093C4(Task* arg0)
+static void Actor00400_Fn093C4(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
@@ -4807,7 +4807,7 @@ void Actor00400_Fn093C4(Task* arg0)
     states[(s16)work->field_63A](arg0);
 }
 
-void Actor00400_Fn09418(Task* arg0)
+static void Actor00400_Fn09418(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
@@ -4818,7 +4818,7 @@ void Actor00400_Fn09418(Task* arg0)
     states[(s16)work->field_63A](arg0);
 }
 
-void Actor00400_Fn0946C(Task* arg0)
+static void Actor00400_Fn0946C(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
@@ -4829,7 +4829,7 @@ void Actor00400_Fn0946C(Task* arg0)
     states[(s16)work->field_63A](arg0);
 }
 
-void Actor00400_Fn094C0(Task* arg0)
+static void Actor00400_Fn094C0(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -4838,7 +4838,7 @@ void Actor00400_Fn094C0(Task* arg0)
     work->field_63A = work->field_63A + 1;
 }
 
-void Actor00400_Fn094DC(Task* arg0)
+static void Actor00400_Fn094DC(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* work2;
@@ -4868,7 +4868,7 @@ void Actor00400_Fn094DC(Task* arg0)
     }
 }
 
-void Actor00400_Fn095D8(Task* arg0)
+static void Actor00400_Fn095D8(Task* arg0)
 {
     s32              cond;
     Actor100400Work* work;
@@ -4887,7 +4887,7 @@ void Actor00400_Fn095D8(Task* arg0)
     }
 }
 
-void Actor00400_Fn0962C(Task* arg0)
+static void Actor00400_Fn0962C(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* state;
@@ -4909,7 +4909,7 @@ void Actor00400_Fn0962C(Task* arg0)
     work->field_63A    = work->field_63A + 1;
 }
 
-void Actor00400_Fn096C0(Task* arg0)
+static void Actor00400_Fn096C0(Task* arg0)
 {
     s32              cond;
     Actor100400Work* work;
@@ -4925,7 +4925,7 @@ void Actor00400_Fn096C0(Task* arg0)
     }
 }
 
-void Actor00400_Fn09714(Task* arg0)
+static void Actor00400_Fn09714(Task* arg0)
 {
     s32              sound;
     s32              pan;
@@ -4942,7 +4942,7 @@ void Actor00400_Fn09714(Task* arg0)
     work->field_63A++;
 }
 
-void Actor00400_Fn097C8(Task* arg0)
+static void Actor00400_Fn097C8(Task* arg0)
 {
     s32              cond;
     s32              pan;
@@ -4969,7 +4969,7 @@ void Actor00400_Fn097C8(Task* arg0)
     }
 }
 
-void Actor00400_Fn098A8(Task* arg0)
+static void Actor00400_Fn098A8(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -4986,7 +4986,7 @@ void Actor00400_Fn098A8(Task* arg0)
     work->field_63A = work->field_63A + 1;
 }
 
-void Actor00400_Fn09924(Task* arg0)
+static void Actor00400_Fn09924(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* state;
@@ -5026,7 +5026,7 @@ void Actor00400_Fn09924(Task* arg0)
     }
 }
 
-void Actor00400_Fn09A1C(Task* arg0)
+static void Actor00400_Fn09A1C(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -5037,7 +5037,7 @@ void Actor00400_Fn09A1C(Task* arg0)
     work->field_63A = work->field_63A + 1;
 }
 
-void Actor00400_Fn09A48(Task* arg0)
+static void Actor00400_Fn09A48(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* state;
@@ -5052,7 +5052,7 @@ void Actor00400_Fn09A48(Task* arg0)
     work->field_63A  = work->field_63A + 1;
 }
 
-void Actor00400_Fn09A8C(Task* arg0)
+static void Actor00400_Fn09A8C(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -5062,7 +5062,7 @@ void Actor00400_Fn09A8C(Task* arg0)
     }
 }
 
-void Actor00400_Fn09AE0(Task* arg0)
+static void Actor00400_Fn09AE0(Task* arg0)
 {
     Actor100400Work* work;
     GpCoord*         coord;
@@ -5085,7 +5085,7 @@ void Actor00400_Fn09AE0(Task* arg0)
     work->field_63A   = work->field_63A + 1;
 }
 
-void Actor00400_Fn09B44(Task* arg0)
+static void Actor00400_Fn09B44(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -5095,7 +5095,7 @@ void Actor00400_Fn09B44(Task* arg0)
     }
 }
 
-void Actor00400_Fn09B74(Task* arg0)
+static void Actor00400_Fn09B74(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -5107,7 +5107,7 @@ void Actor00400_Fn09B74(Task* arg0)
     work->field_63A++;
 }
 
-void Actor00400_Fn09BDC(Task* arg0)
+static void Actor00400_Fn09BDC(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -5118,7 +5118,7 @@ void Actor00400_Fn09BDC(Task* arg0)
     }
 }
 
-void Actor00400_Fn09C04(Task* arg0)
+static void Actor00400_Fn09C04(Task* arg0)
 {
     Actor100400Work* work;
     TaskFuncTable7   fns;
@@ -5128,7 +5128,7 @@ void Actor00400_Fn09C04(Task* arg0)
     fns.funcs[(s16)work->field_63A](arg0);
 }
 
-void Actor00400_Fn09C84(Task* arg0)
+static void Actor00400_Fn09C84(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[1])(Task*) = {
@@ -5138,7 +5138,7 @@ void Actor00400_Fn09C84(Task* arg0)
     states[(s16)work->field_63A](arg0);
 }
 
-void Actor00400_Fn09CCC(Task* arg0)
+static void Actor00400_Fn09CCC(Task* arg0)
 {
     Actor100400Work* work;
     GpCoord*         coord;
@@ -5162,7 +5162,7 @@ void Actor00400_Fn09CCC(Task* arg0)
     work->field_63A   = work->field_63A + 1;
 }
 
-void Actor00400_Fn09D3C(Task* arg0)
+static void Actor00400_Fn09D3C(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -5174,7 +5174,7 @@ void Actor00400_Fn09D3C(Task* arg0)
     }
 }
 
-void Actor00400_Fn09D98(Task* arg0)
+static void Actor00400_Fn09D98(Task* arg0)
 {
     u16              count;
     s32              sound;
@@ -5196,7 +5196,7 @@ void Actor00400_Fn09D98(Task* arg0)
     }
 }
 
-void Actor00400_Fn09E70(Task* arg0)
+static void Actor00400_Fn09E70(Task* arg0)
 {
     Actor100400Work* work;
     GpCoord*         coord;
@@ -5230,7 +5230,7 @@ void Actor00400_Fn09E70(Task* arg0)
     }
 }
 
-void Actor00400_Fn09F18(Task* arg0)
+static void Actor00400_Fn09F18(Task* arg0)
 {
     u16              count;
     s32              sound;
@@ -5250,7 +5250,7 @@ void Actor00400_Fn09F18(Task* arg0)
     }
 }
 
-void Actor00400_Fn09FDC(Task* arg0)
+static void Actor00400_Fn09FDC(Task* arg0)
 {
     GpEnemy*         obj;
     Actor100400Work* work;
@@ -5266,7 +5266,7 @@ void Actor00400_Fn09FDC(Task* arg0)
     }
 }
 
-void Actor00400_Fn0A034(Task* arg0)
+static void Actor00400_Fn0A034(Task* arg0)
 {
     GpEnemy*         obj;
     Actor100400Work* work;
@@ -5287,7 +5287,7 @@ void Actor00400_Fn0A034(Task* arg0)
 /// `gGfxViewCoord`; the result is written back to `pos` and 1 returned. A
 /// chain that ends before reaching the view returns 0 and leaves `pos` as it
 /// was.
-s32 Actor00400_Fn0A08C(GpCoord* coord, SVECTOR* pos)
+static s32 Actor00400_Fn0A08C(GpCoord* coord, SVECTOR* pos)
 {
     SVECTOR  local;
     VECTOR   result;
@@ -5344,7 +5344,7 @@ s32 Actor00400_Fn0A08C(GpCoord* coord, SVECTOR* pos)
 /// pointer `$s2` instead of the reverse. See DECOMPILATION_LEARNINGS.md,
 /// "A parameter competes in local-alloc on its raw span, not its doubled
 /// `REG_LIVE_LENGTH`".
-void Actor00400_Fn0A190(Task* task)
+static void Actor00400_Fn0A190(Task* task)
 {
     Actor100400MarkerWork* work;
     GpCoord*               coord;
@@ -5375,7 +5375,7 @@ void Actor00400_Fn0A190(Task* task)
 /// Last kill-path state of the marker task. Each frame it clears the marker
 /// coordinate's `flg` and counts `killCountdown` up; on the twelfth frame it
 /// unlinks the marker's display object and kills the task.
-void Actor00400_Fn0A28C(Task* task)
+static void Actor00400_Fn0A28C(Task* task)
 {
     Actor100400MarkerWork* work;
     TmdObject*             ctx;
@@ -5392,7 +5392,7 @@ void Actor00400_Fn0A28C(Task* task)
     }
 }
 
-void Actor00400_Fn0A2F4(Task* arg0)
+static void Actor00400_Fn0A2F4(Task* arg0)
 {
     Actor100400QuadWork* work;
     GpEnemy*             object;
@@ -5406,7 +5406,7 @@ void Actor00400_Fn0A2F4(Task* arg0)
     }
 }
 
-void Actor00400_Fn0A364(Task* arg0)
+static void Actor00400_Fn0A364(Task* arg0)
 {
     Actor100400QuadWork* work;
     u8                   intensity;
@@ -5421,7 +5421,7 @@ void Actor00400_Fn0A364(Task* arg0)
     }
 }
 
-void Actor00400_Fn0A3D4(Task* arg0)
+static void Actor00400_Fn0A3D4(Task* arg0)
 {
     Actor100400Work*   work;
     Actor100400Record* record;
@@ -5435,7 +5435,7 @@ void Actor00400_Fn0A3D4(Task* arg0)
     work->field_638 = (u16)work->field_638 + 1;
 }
 
-void Actor00400_Fn0A414(Task* arg0)
+static void Actor00400_Fn0A414(Task* arg0)
 {
     Actor100400Work* work;
     u16              frame;
@@ -5448,7 +5448,7 @@ void Actor00400_Fn0A414(Task* arg0)
     }
 }
 
-void Actor00400_Fn0A468(Task* arg0)
+static void Actor00400_Fn0A468(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
@@ -5459,7 +5459,7 @@ void Actor00400_Fn0A468(Task* arg0)
     states[(s16)work->field_63A](arg0);
 }
 
-void Actor00400_Fn0A4BC(Task* arg0)
+static void Actor00400_Fn0A4BC(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
@@ -5470,7 +5470,7 @@ void Actor00400_Fn0A4BC(Task* arg0)
     states[(s16)work->field_63A](arg0);
 }
 
-void Actor00400_Fn0A510(Task* arg0)
+static void Actor00400_Fn0A510(Task* arg0)
 {
     Actor100400Work* state;
     Actor100400Work* work;
@@ -5489,7 +5489,7 @@ void Actor00400_Fn0A510(Task* arg0)
     work->field_63A++;
 }
 
-void Actor00400_Fn0A57C(Task* arg0)
+static void Actor00400_Fn0A57C(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -5502,7 +5502,7 @@ void Actor00400_Fn0A57C(Task* arg0)
     work->field_63A++;
 }
 
-void Actor00400_Fn0A5B8(Task* arg0)
+static void Actor00400_Fn0A5B8(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* state;
@@ -5531,7 +5531,7 @@ void Actor00400_Fn0A5B8(Task* arg0)
     }
 }
 
-void Actor00400_Fn0A680(Task* arg0)
+static void Actor00400_Fn0A680(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -5543,7 +5543,7 @@ void Actor00400_Fn0A680(Task* arg0)
     work->field_63A++;
 }
 
-void Actor00400_Fn0A6B0(Task* arg0)
+static void Actor00400_Fn0A6B0(Task* arg0)
 {
     Actor100400Work* work;
     s32              cond;
@@ -5561,7 +5561,7 @@ void Actor00400_Fn0A6B0(Task* arg0)
     }
 }
 
-void Actor00400_Fn0A704(Task* arg0)
+static void Actor00400_Fn0A704(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -5575,7 +5575,7 @@ void Actor00400_Fn0A704(Task* arg0)
     work->field_63A++;
 }
 
-void Actor00400_Fn0A760(Task* arg0)
+static void Actor00400_Fn0A760(Task* arg0)
 {
     Actor100400Work* work;
     s32              cond;
@@ -5600,7 +5600,7 @@ void Actor00400_Fn0A760(Task* arg0)
     }
 }
 
-void Actor00400_Fn0A7F0(Task* arg0)
+static void Actor00400_Fn0A7F0(Task* arg0)
 {
     Actor100400Work* work;
 
@@ -5613,7 +5613,7 @@ void Actor00400_Fn0A7F0(Task* arg0)
     work->field_63A++;
 }
 
-void Actor00400_Fn0A82C(Task* arg0)
+static void Actor00400_Fn0A82C(Task* arg0)
 {
     Actor100400Work* work;
     s32              cond;
@@ -5631,7 +5631,7 @@ void Actor00400_Fn0A82C(Task* arg0)
     }
 }
 
-void Actor00400_Fn0A880(Task* arg0)
+static void Actor00400_Fn0A880(Task* arg0)
 {
     s32              sound;
     s32              pan;
@@ -5650,7 +5650,7 @@ void Actor00400_Fn0A880(Task* arg0)
     work->field_63A++;
 }
 
-void Actor00400_Fn0A940(Task* arg0)
+static void Actor00400_Fn0A940(Task* arg0)
 {
     s32              sound;
     s32              pan;
@@ -5667,7 +5667,7 @@ void Actor00400_Fn0A940(Task* arg0)
     work->field_63A++;
 }
 
-void Actor00400_Fn0A9F4(Task* arg0)
+static void Actor00400_Fn0A9F4(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* state;
@@ -5684,7 +5684,7 @@ void Actor00400_Fn0A9F4(Task* arg0)
     work->field_63A++;
 }
 
-void Actor00400_Fn0AA40(Task* arg0)
+static void Actor00400_Fn0AA40(Task* arg0)
 {
     Actor100400Work* work;
     Actor100400Work* state;

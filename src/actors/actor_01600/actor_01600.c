@@ -256,7 +256,7 @@ STATIC_ASSERT_SIZEOF(Actor01600YawScratch, 0x30);
 /// Index of the `Gp_ActorSlots` actor nearer to `arg0`, or 0 when slot 0 is
 /// empty (or slot 1 is at least as far). The distance is planar: the Y
 /// difference is computed into the scratch vector but never enters the sum.
-s32 Actor01600_Fn052C4(Task* arg0);
+static s32 Actor01600_Fn052C4(Task* arg0);
 
 extern Task*      Gp_ActorSlots[];
 extern GpDelayArg Actor01600_D12878;
@@ -272,16 +272,16 @@ extern TmdSource Actor01600_D09CFC;
 extern TmdSource Actor01600_D09EE0;
 extern SVECTOR   Actor01600_D12868;
 
-void Actor01600_Fn070AC(Task* arg0, Task* arg1);
+static void Actor01600_Fn070AC(Task* arg0, Task* arg1);
 
-void Actor01600_Fn01420(Task* arg0);
-void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1);
-void Actor01600_Fn066E8(Task* arg0);
+static void Actor01600_Fn01420(Task* arg0);
+static void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1);
+void        Actor01600_Fn066E8(Task* arg0);
 
-s32 Actor01600_Fn045A8(Task* arg0, s32* distance);
-s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle);
+static s32 Actor01600_Fn045A8(Task* arg0, s32* distance);
+static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle);
 
-u8 Actor01600_Fn04EB0(Task* arg0);
+static u8 Actor01600_Fn04EB0(Task* arg0);
 
 /// Scratchpad storage for the actor's ground-quad position and rotated offset.
 typedef struct Actor01600GroundScratch {
@@ -304,21 +304,21 @@ typedef struct Actor01600StepScratch {
 } Actor01600StepScratch;
 STATIC_ASSERT_SIZEOF(Actor01600StepScratch, 0x3C);
 
-void Actor01600_Fn03A60(Task* actor);
+static void Actor01600_Fn03A60(Task* actor);
 
 extern GpAnimArg Actor01600_D127D8;
 
-s32  Actor01600_Fn047A0(Task* actor);
-s32  Actor01600_Fn04974(Task* actor, s32 angle, s32 distance, s32 flags);
-void Actor01600_Fn06974(Task* actor, s32 distance);
-s32  Actor01600_Fn06C1C(Task* actor);
-s32  Actor01600_Fn06C94(Task* actor, s32 angle, s32 distance);
-s32  Actor01600_Fn06D74(Task* actor, s32 angle, s32 distance);
+static s32  Actor01600_Fn047A0(Task* actor);
+static s32  Actor01600_Fn04974(Task* actor, s32 angle, s32 distance, s32 flags);
+static void Actor01600_Fn06974(Task* actor, s32 distance);
+static s32  Actor01600_Fn06C1C(Task* actor);
+static s32  Actor01600_Fn06C94(Task* actor, s32 angle, s32 distance);
+static s32  Actor01600_Fn06D74(Task* actor, s32 angle, s32 distance);
 
 extern GpPairSrcE Actor01600_D09F0C;
 extern u8         Actor01600_D127EC[], Actor01600_D127A4[];
-void              Actor01600_Fn05400(Task* actor);
-void              Actor01600_Fn06EA4(Task* actor);
+static void       Actor01600_Fn05400(Task* actor);
+static void       Actor01600_Fn06EA4(Task* actor);
 
 void                    func_8004BFF8(s16 angle, MATRIX* matrix);
 extern struct GpU16Pair Actor01600_D09F04;
@@ -335,27 +335,27 @@ extern SVECTOR Actor01600_D09F3C[];
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-void Actor01600_Fn001F4(GpEnemy* ctx, Task* actor);
-void Actor01600_Fn00480(Task* arg0);
-void Actor01600_Fn00674(GpEnemy* arg0, Task* arg1);
-void Actor01600_Fn00A4C(Task* arg0);
-void Actor01600_Fn00BAC(Task* arg0);
-void Actor01600_Fn0131C(Task* arg0, s32 damage);
-void Actor01600_Fn017BC(Task* arg0);
-void Actor01600_Fn020F8(Task* arg0);
-void Actor01600_Fn03D48(Task* arg0);
-void Actor01600_Fn03EEC(Task* arg0);
-void Actor01600_Fn04AD8(Task* arg0);
-s32  Actor01600_Fn05558(Task* arg0);
-void Actor01600_Fn05F80(Task* arg0);
-void Actor01600_Fn0646C(Task* arg0);
-void Actor01600_Fn06744(Task* arg0);
-void Actor01600_Fn06810(GpEnemy* arg0, Task* arg1);
-void Actor01600_Fn06880(Task* arg0);
-void Actor01600_Fn06A84(Task* arg0);
-void Actor01600_Fn06F10(Task* arg0);
-u8   Actor01600_Fn06F78(Task* arg0);
-void Actor01600_Fn06FDC(Task* arg0, s32 arg1);
+static void Actor01600_Fn001F4(GpEnemy* ctx, Task* actor);
+static void Actor01600_Fn00480(Task* arg0);
+static void Actor01600_Fn00674(GpEnemy* arg0, Task* arg1);
+static void Actor01600_Fn00A4C(Task* arg0);
+static void Actor01600_Fn00BAC(Task* arg0);
+static void Actor01600_Fn0131C(Task* arg0, s32 damage);
+static void Actor01600_Fn017BC(Task* arg0);
+static void Actor01600_Fn020F8(Task* arg0);
+static void Actor01600_Fn03D48(Task* arg0);
+static void Actor01600_Fn03EEC(Task* arg0);
+static void Actor01600_Fn04AD8(Task* arg0);
+static s32  Actor01600_Fn05558(Task* arg0);
+static void Actor01600_Fn05F80(Task* arg0);
+static void Actor01600_Fn0646C(Task* arg0);
+static void Actor01600_Fn06744(Task* arg0);
+static void Actor01600_Fn06810(GpEnemy* arg0, Task* arg1);
+static void Actor01600_Fn06880(Task* arg0);
+static void Actor01600_Fn06A84(Task* arg0);
+static void Actor01600_Fn06F10(Task* arg0);
+static u8   Actor01600_Fn06F78(Task* arg0);
+static void Actor01600_Fn06FDC(Task* arg0, s32 arg1);
 
 /// Takes a 0x10-byte `VECTOR` from `G_SCRATCH_HEAD`, fills it with `attach`'s
 /// world position and hands it to `Gp_UpdateActorColor`. Inlined so the
@@ -378,11 +378,11 @@ static __inline__ void update_actor_color(GpEnemy* ctx, GpCoord* attach)
     SCRATCH_HEAD(u8) = (u8*)SCRATCH_HEAD(void) + 0x10;
 }
 
-const GpEnemyTaskFuncTable3 Actor01600_D00004 = {
+static const GpEnemyTaskFuncTable3 Actor01600_D00004 = {
     { Actor01600_Fn001F4, Actor01600_Fn00674, Actor01600_Fn04054 },
 };
 
-void Actor01600_Fn001F4(GpEnemy* ctx, Task* actor)
+static void Actor01600_Fn001F4(GpEnemy* ctx, Task* actor)
 {
     SVECTOR         sp18;
     GpCoord*        next_coord;
@@ -471,7 +471,7 @@ void Actor01600_Fn001F4(GpEnemy* ctx, Task* actor)
     actor->state        = (s32)(actor->state + 1);
 }
 
-void Actor01600_Fn00480(Task* actor)
+static void Actor01600_Fn00480(Task* actor)
 {
     Actor01600Work* work;
     GpRec18*        table1;
@@ -541,7 +541,7 @@ void Actor01600_Fn00480(Task* actor)
     work->field_3EA &= 0x7FFF;
 }
 
-void Actor01600_Fn00674(GpEnemy* arg0, Task* arg1)
+static void Actor01600_Fn00674(GpEnemy* arg0, Task* arg1)
 {
     Actor01600Work* work;
     GpCoord*        coord;
@@ -624,7 +624,7 @@ void Actor01600_Fn00674(GpEnemy* arg0, Task* arg1)
     }
 }
 
-void Actor01600_Fn00A4C(Task* arg0)
+static void Actor01600_Fn00A4C(Task* arg0)
 {
     GpEnemy*        ctx;
     Actor01600Work* work;
@@ -670,7 +670,7 @@ void Actor01600_Fn00A4C(Task* arg0)
     }
 }
 
-void Actor01600_Fn00BAC(Task* actor)
+static void Actor01600_Fn00BAC(Task* actor)
 {
     s32                   distance;
     Task**                slots;
@@ -901,7 +901,7 @@ release:
     return;
 }
 
-void Actor01600_Fn0131C(Task* arg0, s32 damage)
+static void Actor01600_Fn0131C(Task* arg0, s32 damage)
 {
     s32             id;
     s32             pan;
@@ -951,7 +951,7 @@ void Actor01600_Fn0131C(Task* arg0, s32 damage)
 /// growls (`0x4010_0006..8`) picked by a `Gp_LcgState` draw modulo 5 - two of
 /// the five outcomes stay quiet - panned and attenuated for the actor's
 /// coordinate, then rearm the counter at 0x14.
-void Actor01600_Fn01420(Task* arg0)
+static void Actor01600_Fn01420(Task* arg0)
 {
     Actor01600Work* work;
     GpCoord*        coord;
@@ -1063,7 +1063,7 @@ tail:
     work->field_542 = 0x14;
 }
 
-void Actor01600_Fn017BC(Task* actor)
+static void Actor01600_Fn017BC(Task* actor)
 {
     GpEnemy*        ctx;
     Actor01600Work* work;
@@ -1384,7 +1384,7 @@ void Actor01600_Fn017BC(Task* actor)
     SCRATCH_POP_BYTES(8);
 }
 
-void Actor01600_Fn020F8(Task* actor)
+static void Actor01600_Fn020F8(Task* actor)
 {
     PlayerStatus*   config = &Player_Status;
     s32             neg_velocity;
@@ -2161,7 +2161,7 @@ void Actor01600_Fn020F8(Task* actor)
     }
 }
 
-void Actor01600_Fn03A60(Task* arg0)
+static void Actor01600_Fn03A60(Task* arg0)
 {
     Task**                slot;
     Task**                slots;
@@ -2287,7 +2287,7 @@ void Actor01600_Fn03A60(Task* arg0)
     SCRATCH_POP(Actor01600RotScratch);
 }
 
-void Actor01600_Fn03D48(Task* arg0)
+static void Actor01600_Fn03D48(Task* arg0)
 {
     Actor01600Work* work;
     GpCoord*        coord;
@@ -2325,7 +2325,7 @@ void Actor01600_Fn03D48(Task* arg0)
     }
 }
 
-void Actor01600_Fn03EEC(Task* arg0)
+static void Actor01600_Fn03EEC(Task* arg0)
 {
     VECTOR3                  pos;
     Actor01600GroundScratch* head;
@@ -2379,7 +2379,7 @@ void Actor01600_Fn03EEC(Task* arg0)
     }
 }
 
-void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
+static void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
 {
     Actor01600Work* work;
     TmdObject*      obj;
@@ -2552,7 +2552,7 @@ void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
 /// the pointer the reference count that ranks it above `other` in the register
 /// allocator; the instruction it emits is the store the C expression would have
 /// emitted anyway.
-s32 Actor01600_Fn045A8(Task* arg0, s32* distance)
+static s32 Actor01600_Fn045A8(Task* arg0, s32* distance)
 {
     SVECTOR               local;
     Task**                slot;
@@ -2604,7 +2604,7 @@ s32 Actor01600_Fn045A8(Task* arg0, s32* distance)
     return angle;
 }
 
-s32 Actor01600_Fn047A0(Task* arg0)
+static s32 Actor01600_Fn047A0(Task* arg0)
 {
     SVECTOR3        delta;
     s32             distance;
@@ -2667,7 +2667,7 @@ s32 Actor01600_Fn047A0(Task* arg0)
     return 0;
 }
 
-s32 Actor01600_Fn04974(Task* actor, s32 angle, s32 distance, s32 flags)
+static s32 Actor01600_Fn04974(Task* actor, s32 angle, s32 distance, s32 flags)
 {
     Actor01600Work* work;
     GpCoord*        coord;
@@ -2728,7 +2728,7 @@ s32 Actor01600_Fn04974(Task* actor, s32 angle, s32 distance, s32 flags)
     return 0;
 }
 
-void Actor01600_Fn04AD8(Task* arg0)
+static void Actor01600_Fn04AD8(Task* arg0)
 {
     GpEnemy*        ctx;
     Actor01600Work* work;
@@ -2788,7 +2788,7 @@ void Actor01600_Fn04AD8(Task* arg0)
 /// returning 1 once the degree counter `field_4EE` passes a full turn - then
 /// turns (0, 0, `distance`) by the resulting yaw into `field_42C` / `field_430`
 /// and advances the swept-angle range `ranges[field_4E8]`.
-s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
+static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
 {
     Actor01600YawScratch* allocated;
     Actor01600YawScratch* scratch;
@@ -2883,7 +2883,7 @@ s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
     return var_s4;
 }
 
-u8 Actor01600_Fn04EB0(Task* arg0)
+static u8 Actor01600_Fn04EB0(Task* arg0)
 {
     SVECTOR         dir;
     s32             distance;
@@ -3030,7 +3030,7 @@ u8 Actor01600_Fn04EB0(Task* arg0)
     return 0;
 }
 
-s32 Actor01600_Fn052C4(Task* arg0)
+static s32 Actor01600_Fn052C4(Task* arg0)
 {
     GpCoordPos* coord;
     GpCoordPos* other;
@@ -3055,7 +3055,7 @@ s32 Actor01600_Fn052C4(Task* arg0)
     return 0;
 }
 
-void Actor01600_Fn05400(Task* arg0)
+static void Actor01600_Fn05400(Task* arg0)
 {
     TmdObject*      obj;
     TmdObject*      obj2;
@@ -3105,7 +3105,7 @@ void Actor01600_Fn05400(Task* arg0)
             return;
     }
 }
-s32 Actor01600_Fn05558(Task* arg0)
+static s32 Actor01600_Fn05558(Task* arg0)
 {
     SVECTOR         rot;
     GpEnemy*        ctx;
@@ -3424,7 +3424,7 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, GpCmdArg* arg2)
     return 0;
 }
 
-void Actor01600_Fn05F80(Task* arg0)
+static void Actor01600_Fn05F80(Task* arg0)
 {
     SVECTOR         rot;
     GpCoord*        coord;
@@ -3588,7 +3588,7 @@ void Actor01600_Fn05F80(Task* arg0)
     }
 }
 
-void Actor01600_Fn0646C(Task* arg0)
+static void Actor01600_Fn0646C(Task* arg0)
 {
     GpEffWork* effect;
     TmdObject* obj;
@@ -3663,7 +3663,7 @@ void Actor01600_Fn066E8(Task* arg0)
 /// its X/Z translation. Vertical follow-up only runs while `field_530` is
 /// clear: with `field_528` set the frame counter `field_51E` is added to
 /// `t[1]`, otherwise the coordinate is snapped down by 0x80.
-void Actor01600_Fn06744(Task* arg0)
+static void Actor01600_Fn06744(Task* arg0)
 {
     Actor01600Work* work;
     GpCoord*        coord;
@@ -3688,7 +3688,7 @@ void Actor01600_Fn06744(Task* arg0)
 /// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's
 /// world position and hands it to `Gp_UpdateActorColor` with no blend
 /// parameters.
-void Actor01600_Fn06810(GpEnemy* arg0, Task* arg1)
+static void Actor01600_Fn06810(GpEnemy* arg0, Task* arg1)
 {
     GpCoord* coord;
     void**   scratch;
@@ -3712,7 +3712,7 @@ void Actor01600_Fn06810(GpEnemy* arg0, Task* arg1)
 /// 0x30-byte scratch block and scaled per axis by 1.0 / the decaying
 /// `field_518` / 1.0, and the product replaces the coordinate's rotation.
 /// `flg` is cleared so its own work matrix is rebuilt from `coord` next frame.
-void Actor01600_Fn06880(Task* arg0)
+static void Actor01600_Fn06880(Task* arg0)
 {
     GpCoord*           coord;
     u8*                head;
@@ -3747,7 +3747,7 @@ void Actor01600_Fn06880(Task* arg0)
 /// into a yaw, `func_8004BFF8` builds the rotation for the yaw and
 /// `ApplyMatrixLV` rotates the step vector `(distance, 0, 0)` by it before the
 /// result is added to `coord.t`.
-void Actor01600_Fn06974(Task* actor, s32 distance)
+static void Actor01600_Fn06974(Task* actor, s32 distance)
 {
     OverlayMat*            mat;
     Actor01600StepScratch* work;
@@ -3779,7 +3779,7 @@ void Actor01600_Fn06974(Task* actor, s32 distance)
     SCRATCH_POP_AT(scratch, Actor01600StepScratch);
 }
 
-void Actor01600_Fn06A84(Task* arg0)
+static void Actor01600_Fn06A84(Task* arg0)
 {
     Actor01600Work* work;
     GpCoord*        coord;
@@ -3815,7 +3815,7 @@ void Actor01600_Fn06A84(Task* arg0)
     SCRATCH_POP_BYTES(0x20);
 }
 
-s32 Actor01600_Fn06C1C(Task* arg0)
+static s32 Actor01600_Fn06C1C(Task* arg0)
 {
     Actor01600Work* work;
 
@@ -3836,7 +3836,7 @@ s32 Actor01600_Fn06C1C(Task* arg0)
 
 /// Column 2 of the attachment matrix goes to `dir`; the trailing `SVECTOR`
 /// is never read but owns the second half of the stack local block.
-s32 Actor01600_Fn06C94(Task* arg0, s32 arg1, s32 unusedDistance)
+static s32 Actor01600_Fn06C94(Task* arg0, s32 arg1, s32 unusedDistance)
 {
     SVECTOR         dir;
     SVECTOR         unused;
@@ -3870,7 +3870,7 @@ s32 Actor01600_Fn06C94(Task* arg0, s32 arg1, s32 unusedDistance)
     return 1;
 }
 
-s32 Actor01600_Fn06D74(Task* arg0, s32 arg1, s32 arg2)
+static s32 Actor01600_Fn06D74(Task* arg0, s32 arg1, s32 arg2)
 {
     Actor01600Work* work;
     s32             scaledState;
@@ -3920,7 +3920,7 @@ s32 Actor01600_Fn06D74(Task* arg0, s32 arg1, s32 arg2)
 /// Tears the actor down: flags its context node dead (`field_4` = 1), clears
 /// `field_54`, unlinks the node from its list and releases the four display
 /// objects held in the work block, then hands the task to `Gp_EnemyTaskExit`.
-void Actor01600_Fn06EA4(Task* arg0)
+static void Actor01600_Fn06EA4(Task* arg0)
 {
     GpEnemy*        ctx;
     Actor01600Work* work;
@@ -3938,7 +3938,7 @@ void Actor01600_Fn06EA4(Task* arg0)
     Gp_EnemyTaskExit(arg0);
 }
 
-void Actor01600_Fn06F10(Task* arg0)
+static void Actor01600_Fn06F10(Task* arg0)
 {
     Actor01600Work* work;
 
@@ -3959,7 +3959,7 @@ void Actor01600_Fn06F10(Task* arg0)
 /// them has already been flagged `0x80` in its `field_2C` object. Returns 0xFF
 /// when the slot has no children at all, 1 on the first flagged sibling and 0
 /// when the whole ring is clean. The task argument is unused.
-u8 Actor01600_Fn06F78(Task* arg0)
+static u8 Actor01600_Fn06F78(Task* arg0)
 {
     Task* head;
     Task* iter;
@@ -3978,7 +3978,7 @@ u8 Actor01600_Fn06F78(Task* arg0)
     return 0;
 }
 
-void Actor01600_Fn06FDC(Task* arg0, s32 arg1)
+static void Actor01600_Fn06FDC(Task* arg0, s32 arg1)
 {
     Actor01600Work* work;
     GpEnemy*        ctx;
@@ -4010,7 +4010,7 @@ void Actor01600_Fn06FDC(Task* arg0, s32 arg1)
 /// twice so the new page/CLUT is baked into both of the object's primitive
 /// buffers. Objects without an aux buffer (`field_18` NULL) have nothing to
 /// rebuild and are left alone.
-void Actor01600_Fn070AC(Task* arg0, Task* arg1)
+static void Actor01600_Fn070AC(Task* arg0, Task* arg1)
 {
     TmdObject* src;
     TmdObject* dst;

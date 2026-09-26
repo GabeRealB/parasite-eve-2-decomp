@@ -106,20 +106,20 @@ extern TaskDesc D_actor_143900_80149664[];
 /// block's animation context with `func_800B3F84`.
 extern u8 D_actor_143900_80149688[];
 
-void func_actor_143900_80131FD4(Task* task);
-void func_actor_143900_80132380(GpEnemy* enemy, Task* task);
-void func_actor_143900_80132404(Task* task);
-void func_actor_143900_8013242C(Task* task);
-void func_actor_143900_801324C8(void);
-void func_actor_143900_80132514(void);
-void func_actor_143900_801325A4(void);
-void func_actor_143900_80132A9C(Task* task);
-void func_actor_143900_80132E48(GpEnemy* enemy, Task* task);
-void func_actor_143900_80132ECC(Task* task);
-void func_actor_143900_80132F14(Task* task);
-void func_actor_143900_80133068(void);
-void func_actor_143900_801330B4(void);
-void func_actor_143900_80133144(void);
+static void func_actor_143900_80131FD4(Task* task);
+static void func_actor_143900_80132380(GpEnemy* enemy, Task* task);
+static void func_actor_143900_80132404(Task* task);
+static void func_actor_143900_8013242C(Task* task);
+static void func_actor_143900_801324C8(void);
+static void func_actor_143900_80132514(void);
+static void func_actor_143900_801325A4(void);
+static void func_actor_143900_80132A9C(Task* task);
+static void func_actor_143900_80132E48(GpEnemy* enemy, Task* task);
+static void func_actor_143900_80132ECC(Task* task);
+static void func_actor_143900_80132F14(Task* task);
+static void func_actor_143900_80133068(void);
+static void func_actor_143900_801330B4(void);
+static void func_actor_143900_80133144(void);
 
 /// Arms `sceneEvent` and starts the room's spawn-table task, unless
 /// `demoScene` is 9, so this story trigger is skipped while the attract demo
@@ -143,7 +143,7 @@ void func_actor_143900_80131E24(void)
 /// Every access to the block after the allocation goes through the global
 /// rather than the `memCalloc` result, which is why the pointer is reloaded at
 /// each use instead of staying in a callee-saved register.
-void func_actor_143900_80131E70(GpEnemy* enemy, Task* task)
+static void func_actor_143900_80131E70(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor143900Work* work;
@@ -189,7 +189,7 @@ void func_actor_143900_80131E70(GpEnemy* enemy, Task* task)
 /// reseed and switch to mode 3; mode 3 walks the model while `st.travel`
 /// counts down (distance picked by `D_actor_143900_801496C0`), turns it while
 /// `turnFrames` counts down in animation 3, then ticks the animation.
-void func_actor_143900_80131FD4(Task* task)
+static void func_actor_143900_80131FD4(Task* task)
 {
     GpCoord*         coord = task->extra.tmd->coords;
     Actor143900Work* work  = (Actor143900Work*)task->work;
@@ -248,7 +248,7 @@ void func_actor_143900_80132324(Task* task)
 /// Second state of the first variant's task: refreshes the model root's world
 /// matrix, relights the model from a point 0x320 above its translation, then
 /// runs the per-frame update and draws the ground shadow.
-void func_actor_143900_80132380(GpEnemy* enemy, Task* task)
+static void func_actor_143900_80132380(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -267,7 +267,7 @@ void func_actor_143900_80132380(GpEnemy* enemy, Task* task)
 
 /// `Task::exitCallback` of the first variant: hands the task's `GpEnemy`
 /// (parked in `Task::spawnArg2`) back to `Gp_DestroyEnemy`.
-void func_actor_143900_80132404(Task* task)
+static void func_actor_143900_80132404(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
@@ -276,7 +276,7 @@ void func_actor_143900_80132404(Task* task)
 /// the model is hidden (`flags & 0x80`) or has no buffer yet. The root's world
 /// translation is staged in a scratchpad `VECTOR3`, and the quad's brightness
 /// follows the room's current ground shade.
-void func_actor_143900_8013242C(Task* task)
+static void func_actor_143900_8013242C(Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -295,7 +295,7 @@ void func_actor_143900_8013242C(Task* task)
 }
 
 /// Ticks animation slots 1..0x13 of the first variant's animation context.
-void func_actor_143900_801324C8(void)
+static void func_actor_143900_801324C8(void)
 {
     s32 i;
 
@@ -309,7 +309,7 @@ void func_actor_143900_801324C8(void)
 /// Marks animation slots 1..0x13 of the first variant's work block
 /// reset-pending and reseeds each of them from the current animation id, then
 /// records that id as the one now playing.
-void func_actor_143900_80132514(void)
+static void func_actor_143900_80132514(void)
 {
     s32 i;
 
@@ -325,7 +325,7 @@ void func_actor_143900_80132514(void)
 /// Reseeds animation slots 1..0x13 of the first variant's work block from the
 /// current animation id with the latched reset argument, and records that id as
 /// the one now playing.
-void func_actor_143900_801325A4(void)
+static void func_actor_143900_801325A4(void)
 {
     s32 i;
 
@@ -458,7 +458,7 @@ s32 func_actor_143900_8013279C(Task* task, s32 arg1, VECTOR* target, s32 mode)
 /// above its translation and binds the animation stream. It then starts the two
 /// helper tasks from the overlay's spawn table and runs the first update with
 /// the reset mode 2 / id 1 it seeds.
-void func_actor_143900_801328D4(GpEnemy* enemy, Task* task)
+static void func_actor_143900_801328D4(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor461800Work* work;
@@ -513,7 +513,7 @@ void func_actor_143900_801328D4(GpEnemy* enemy, Task* task)
 /// reseed and switch to mode 3; mode 3 walks the model while `st.travel`
 /// counts down (distance picked by `D_actor_143900_801496CC`), turns it while
 /// `turnFrames` counts down in animation 3, then ticks the animation.
-void func_actor_143900_80132A9C(Task* task)
+static void func_actor_143900_80132A9C(Task* task)
 {
     GpCoord*         coord = task->extra.tmd->coords;
     Actor461800Work* work  = (Actor461800Work*)task->work;
@@ -573,7 +573,7 @@ void func_actor_143900_80132DEC(Task* task)
 /// Second state of the second variant's task: refreshes the model root's world
 /// matrix, relights the model from a point 0x320 above its translation, then
 /// runs the per-frame update and draws the ground shadow.
-void func_actor_143900_80132E48(GpEnemy* enemy, Task* task)
+static void func_actor_143900_80132E48(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -593,7 +593,7 @@ void func_actor_143900_80132E48(GpEnemy* enemy, Task* task)
 /// `Task::exitCallback` of the second variant: hands the task's `GpEnemy`
 /// (parked in `Task::spawnArg2`) back to `Gp_DestroyEnemy`, then kills the two
 /// helper tasks the spawn routine started.
-void func_actor_143900_80132ECC(Task* task)
+static void func_actor_143900_80132ECC(Task* task)
 {
     Actor461800Work* work = (Actor461800Work*)task->work;
 
@@ -606,7 +606,7 @@ void func_actor_143900_80132ECC(Task* task)
 /// the model is hidden (`flags & 0x80`) or has no buffer yet. The root's world
 /// translation is staged in a scratchpad `VECTOR3`, and the quad's brightness
 /// follows the room's current ground shade.
-void func_actor_143900_80132F14(Task* task)
+static void func_actor_143900_80132F14(Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -654,7 +654,7 @@ void func_actor_143900_80132FB0(Task* task)
 }
 
 /// Ticks animation slots 1..0x13 of the second variant's animation context.
-void func_actor_143900_80133068(void)
+static void func_actor_143900_80133068(void)
 {
     s32 i;
 
@@ -668,7 +668,7 @@ void func_actor_143900_80133068(void)
 /// Marks animation slots 1..0x13 of the second variant's work block
 /// reset-pending and reseeds each of them from the current animation id, then
 /// records that id as the one now playing.
-void func_actor_143900_801330B4(void)
+static void func_actor_143900_801330B4(void)
 {
     s32 i;
 
@@ -684,7 +684,7 @@ void func_actor_143900_801330B4(void)
 /// Reseeds animation slots 1..0x13 of the second variant's work block from the
 /// current animation id with the latched reset argument, and records that id as
 /// the one now playing.
-void func_actor_143900_80133144(void)
+static void func_actor_143900_80133144(void)
 {
     s32 i;
 

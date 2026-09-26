@@ -68,12 +68,12 @@ extern s32 D_8011572C;
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
-s32  Actor02300_Fn0371C(SVECTOR* arg0, SVECTOR* arg1);
-void Actor02300_Fn00CD0(Task* arg0);
-void Actor02300_Fn03C04(GpEnemy* arg0, Task* task);
-void Actor02300_Fn03C50(GpEnemy* arg0, Task* task);
-void Actor02300_Fn03D44(GpEnemy* arg0, Task* task);
-void Actor02300_Fn03D88(GpEnemy* arg0, Task* arg1);
+static s32  Actor02300_Fn0371C(SVECTOR* arg0, SVECTOR* arg1);
+static void Actor02300_Fn00CD0(Task* arg0);
+static void Actor02300_Fn03C04(GpEnemy* arg0, Task* task);
+static void Actor02300_Fn03C50(GpEnemy* arg0, Task* task);
+static void Actor02300_Fn03D44(GpEnemy* arg0, Task* task);
+static void Actor02300_Fn03D88(GpEnemy* arg0, Task* arg1);
 
 /// Dust puff of the per-frame state: every third call spawns a spark effect at
 /// part 3 with a random upward offset, out of an 8-byte `G_SCRATCH_HEAD` block.
@@ -103,7 +103,7 @@ static __inline__ void Actor02300_SpawnDust(Task* actor)
 /// reaction animation picked into `field_6A6`), kind 3 a push-out whose
 /// deepest overlap is applied to the root after the loop. Finally raises
 /// `field_6B2` when the player's segment test against `field_4B4` fails.
-void Actor02300_Fn00084(Task* arg0)
+static void Actor02300_Fn00084(Task* arg0)
 {
     s32                    result;
     s32                    maxPush;
@@ -500,7 +500,7 @@ void Actor02300_Fn00AEC(Task* arg0)
 /// block: under 0x5DC one of `Gp_StateF0.field_2`'s bit groups raises `field_6B2`;
 /// past it the other two (the second only within 0xBB8) put the enemy into
 /// animation 4 and state 1.
-void Actor02300_Fn00CD0(Task* arg0)
+static void Actor02300_Fn00CD0(Task* arg0)
 {
     Actor105600Work* work;
     GpCoord*         self;
@@ -814,7 +814,7 @@ void Actor02300_Fn012E0(Task* arg0)
 /// the target directly (or, on animation 3, turns the other way by the step),
 /// past that it goes round the long way, snapping onto the target once the
 /// step would overshoot. The result rebuilds the root coordinate's matrix.
-void Actor02300_Fn0150C(Task* arg0)
+static void Actor02300_Fn0150C(Task* arg0)
 {
     Actor105600Work* work;
     GpCoord*         coord;
@@ -901,7 +901,7 @@ done:
 ///
 /// The scratch head is taken through `ActorScratchStack` rather than as
 /// `SCRATCH_HEAD`, which does not compile the same.
-void Actor02300_Fn01698(Task* arg0)
+static void Actor02300_Fn01698(Task* arg0)
 {
     Actor105600Work* work;
     GpCoord*         coord;
@@ -968,7 +968,7 @@ void Actor02300_Fn01698(Task* arg0)
 /// Animation sound cues. While the enemy has a voice row (`field_6D6`), reads the
 /// current record of animation slot 1 and plays the row's two cues on the
 /// falling edge of its 0x20 and 0x10 bits, remembering them in `field_6A0`.
-void Actor02300_Fn018A4(Task* arg0)
+static void Actor02300_Fn018A4(Task* arg0)
 {
     s32              snd;
     s32              pan;
@@ -1007,7 +1007,7 @@ void Actor02300_Fn018A4(Task* arg0)
 /// restored in that pose, and raises `Gp_StateF0.field_29`. State 1 spawns a spark
 /// every fourth frame. Either way the animation slots advance or are reseeded
 /// and the model is drawn with its ground shadow.
-void Actor02300_Fn01A20(GpEnemy* arg0, Task* arg1)
+static void Actor02300_Fn01A20(GpEnemy* arg0, Task* arg1)
 {
     Actor105600Work* work;
     Actor105600Work* animWork;
@@ -1439,7 +1439,7 @@ void Actor02300_Fn02518(Task* arg0)
 /// cue looked up per room in `Actor02300_D15C80`, and the coin-flip in
 /// `field_6C4` drawn from `Gp_LcgState` -- while 1 and 2 only prime the
 /// animation state and hand straight on to the next task state.
-void Actor02300_Fn028AC(GpEnemy* enemy, Task* actor)
+static void Actor02300_Fn028AC(GpEnemy* enemy, Task* actor)
 {
     Actor105600Work* work;
     TmdObject*       obj;
@@ -1614,7 +1614,7 @@ void Actor02300_Fn028AC(GpEnemy* enemy, Task* actor)
 /// slots, applies the hit tilt and the sound cues, and every third frame while
 /// `field_6C4` is 0 puffs dust at part 3. It then draws the model with its
 /// ground shadow.
-void Actor02300_Fn02EA0(GpEnemy* ctx, Task* actor)
+static void Actor02300_Fn02EA0(GpEnemy* ctx, Task* actor)
 {
     VECTOR3          pos;
     GpEnemy*         spawn;
@@ -1886,7 +1886,7 @@ void Actor02300_Fn0327C(Task* actor)
 /// block carved off `G_SCRATCH_HEAD`, and every face with bit 0x40 of
 /// `field_3A` set is tested until one reports a hit. Returns 1 on a hit and
 /// the last test's result otherwise.
-s32 Actor02300_Fn0371C(SVECTOR* arg0, SVECTOR* arg1)
+static s32 Actor02300_Fn0371C(SVECTOR* arg0, SVECTOR* arg1)
 {
     void**   scratch;
     u8*      head;
@@ -2110,7 +2110,7 @@ void Actor02300_Fn03BA0(void)
 /// State handlers of the child task hung off part 7 of the enemy's model -
 /// spawn/setup, per-frame tick and teardown - dispatched through by
 /// `Actor02300_Fn03BA8`.
-const GpEnemyTaskFuncTable3 Actor02300_D00060 = {
+static const GpEnemyTaskFuncTable3 Actor02300_D00060 = {
     Actor02300_Fn03C04,
     Actor02300_Fn03C50,
     Gp_DestroyEnemy,
@@ -2129,7 +2129,7 @@ void Actor02300_Fn03BA8(Task* arg0)
 /// model at the enemy's light and colour matrices and seeds the enemy's
 /// `field_6D8` countdown the child's tick drains, then advances to state 1.
 /// `arg0` is the spawn context every state handler takes and is unused here.
-void Actor02300_Fn03C04(GpEnemy* arg0, Task* task)
+static void Actor02300_Fn03C04(GpEnemy* arg0, Task* task)
 {
     Task*            parent;
     TmdObject*       obj;
@@ -2158,7 +2158,7 @@ void Actor02300_Fn03C04(GpEnemy* arg0, Task* task)
 /// `Gp_SpawnEff` effect at part 7 of the enemy's coordinate array and
 /// reparents the effect's task to this child. `arg0` is the spawn context
 /// every state handler takes and is unused here.
-void Actor02300_Fn03C50(GpEnemy* arg0, Task* task)
+static void Actor02300_Fn03C50(GpEnemy* arg0, Task* task)
 {
     GpEffWork*       effect;
     Task*            parent;
@@ -2184,7 +2184,7 @@ void Actor02300_Fn03C50(GpEnemy* arg0, Task* task)
 /// State handlers of the child task hung off part 11 of the enemy's model -
 /// spawn/setup, per-frame tick and teardown - dispatched through by
 /// `Actor02300_Fn03CE8`.
-const GpEnemyTaskFuncTable3 Actor02300_D0006C = {
+static const GpEnemyTaskFuncTable3 Actor02300_D0006C = {
     Actor02300_Fn03D44,
     Actor02300_Fn03D88,
     Gp_DestroyEnemy,
@@ -2202,7 +2202,7 @@ void Actor02300_Fn03CE8(Task* arg0)
 /// child's root coordinate to part 11 of the enemy's model, points the child's
 /// model at the enemy's light and colour matrices and advances to state 1.
 /// `arg0` is the spawn context every state handler takes and is unused here.
-void Actor02300_Fn03D44(GpEnemy* arg0, Task* task)
+static void Actor02300_Fn03D44(GpEnemy* arg0, Task* task)
 {
     Task*            parent;
     TmdObject*       obj;
@@ -2227,7 +2227,7 @@ void Actor02300_Fn03D44(GpEnemy* arg0, Task* task)
 /// The enemy's own state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by `Actor02300_Fn03EE8`. Each takes the task
 /// as the enemy view it is.
-const GpEnemyTaskFuncTable3 Actor02300_D00078 = {
+static const GpEnemyTaskFuncTable3 Actor02300_D00078 = {
     Actor02300_Fn028AC,
     Actor02300_Fn02EA0,
     Actor02300_Fn01A20,
@@ -2238,7 +2238,7 @@ const GpEnemyTaskFuncTable3 Actor02300_D00078 = {
 /// runs on the enemy's `field_6D2`: 0 marks its coordinate for recomputation, 1 spawns
 /// four effects on it, plays the cue and moves to 2, and 2 hands the task over
 /// to state 2.
-void Actor02300_Fn03D88(GpEnemy* arg0, Task* arg1)
+static void Actor02300_Fn03D88(GpEnemy* arg0, Task* arg1)
 {
     Task*            owner;
     TmdObject*       obj;

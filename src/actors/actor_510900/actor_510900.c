@@ -47,12 +47,12 @@ STATIC_ASSERT_SIZEOF(Actor510900SprClut, 4);
 
 void Gp_DrawEffSprite7C(GpCoord* arg0, s32 arg1, u32 arg2);
 
-void func_actor_510900_80134C90(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_actor_510900_80134C90(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 
 /// The twelve muzzle-flash CLUTs `func_actor_510900_80134C90` indexes by frame.
 extern Actor510900SprClut D_actor_510900_8013C48C[];
 
-void func_actor_510900_80131F24(Task* arg0)
+static void func_actor_510900_80131F24(Task* arg0)
 {
     GpEffWork*    mem;
     GpCoord*      coord;
@@ -346,7 +346,7 @@ void func_actor_510900_80131F24(Task* arg0)
     }
 }
 
-void func_actor_510900_80132D4C(Task* arg0)
+static void func_actor_510900_80132D4C(Task* arg0)
 {
     GpCoord          hit;
     GpEffWork*       mem;
@@ -469,7 +469,7 @@ void func_actor_510900_80132D4C(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_actor_510900_801332EC(Task* arg0)
+static void func_actor_510900_801332EC(Task* arg0)
 {
     GpEffWork*       mem;
     GpCoord*         coord;
@@ -576,7 +576,7 @@ void func_actor_510900_801332EC(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_actor_510900_8013371C(Task* arg0)
+static void func_actor_510900_8013371C(Task* arg0)
 {
     GpEffWork*       mem;
     GpCoord*         coord;
@@ -687,7 +687,7 @@ void func_actor_510900_8013371C(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_actor_510900_80133C84(Task* arg0)
+static void func_actor_510900_80133C84(Task* arg0)
 {
     GpEffWork*       mem;
     GpCoord*         coord;
@@ -791,7 +791,7 @@ void func_actor_510900_80133C84(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_actor_510900_801340E8(Task* arg0)
+static void func_actor_510900_801340E8(Task* arg0)
 {
     GpCoord64*    base;
     GpCoord*      cam;
@@ -844,7 +844,7 @@ void func_actor_510900_801340E8(Task* arg0)
 /// One frame of the trail effect: the coordinate drifts by a per-effect random
 /// step, and the segment between last frame's position and this one is drawn as
 /// a `LINE_F2` that fades out over `field_24 * 16` frames.
-void func_actor_510900_80134284(Task* arg0)
+static void func_actor_510900_80134284(Task* arg0)
 {
     Actor510900TrailScratch* block;
     GpEffWork*               eff;
@@ -938,7 +938,7 @@ void func_actor_510900_80134284(Task* arg0)
     }
 }
 
-void func_actor_510900_801346D4(Task* arg0)
+static void func_actor_510900_801346D4(Task* arg0)
 {
     GpEffWork* eff;
     GpCoord*   coord;
@@ -985,7 +985,7 @@ void func_actor_510900_801346D4(Task* arg0)
     }
 }
 
-void func_actor_510900_8013482C(Task* arg0)
+static void func_actor_510900_8013482C(Task* arg0)
 {
     GpEffWork* eff;
     GpEffWork* spawned;
@@ -1089,7 +1089,7 @@ void func_actor_510900_8013482C(Task* arg0)
 /// square rotated by `arg3` rather than an axis-aligned sprite. `otz` is
 /// biased by one before it is used as the divisor so a point on the near plane
 /// cannot divide by zero.
-void func_actor_510900_80134C90(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_actor_510900_80134C90(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;

@@ -21,16 +21,16 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
-extern const GpEnemyTaskFuncTable3 Actor02000_D00060;
-extern const GpEnemyTaskFuncTable3 Actor02000_D0006C;
+static const GpEnemyTaskFuncTable3 Actor02000_D00060;
+static const GpEnemyTaskFuncTable3 Actor02000_D0006C;
 
-s32 Actor02000_Fn0315C(SVECTOR* start, SVECTOR* end);
+static s32 Actor02000_Fn0315C(SVECTOR* start, SVECTOR* end);
 
 extern GpU16Pair Actor02000_D15CFC[];
 extern s32       Actor02000_D15E30;
 void             Actor02000_Fn02294(Task* actor);
 
-void Actor02000_Fn00CD0(Task* arg0);
+static void Actor02000_Fn00CD0(Task* arg0);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -46,7 +46,7 @@ extern s32 Actor02000_D15DEC[];
 /// reaction animation picked into `field_6A6`), kind 3 a push-out whose
 /// deepest overlap is applied to the root after the loop. Finally raises
 /// `field_6B2` when the player's segment test against `field_4B4` fails.
-void Actor02000_Fn00078(Task* arg0)
+static void Actor02000_Fn00078(Task* arg0)
 {
     s32                    result;
     s32                    maxPush;
@@ -439,7 +439,7 @@ void Actor02000_Fn00AEC(Task* arg0)
     SCRATCH_POP_BYTES(0x10);
 }
 
-void Actor02000_Fn00CD0(Task* arg0)
+static void Actor02000_Fn00CD0(Task* arg0)
 {
     Actor105600Work* work;
     GpCoord*         self;
@@ -730,7 +730,7 @@ void Actor02000_Fn012E0(Task* arg0)
     }
 }
 
-void Actor02000_Fn0150C(Task* arg0)
+static void Actor02000_Fn0150C(Task* arg0)
 {
     Actor105600Work* work;
     GpCoord*         coord;
@@ -812,7 +812,7 @@ done:
 
 /// The scratch head is taken through `ActorScratchStack` rather than as
 /// `SCRATCH_HEAD`, which does not compile the same.
-void Actor02000_Fn01698(Task* arg0)
+static void Actor02000_Fn01698(Task* arg0)
 {
     Actor105600Work* work;
     GpCoord*         coord;
@@ -876,7 +876,7 @@ void Actor02000_Fn01698(Task* arg0)
     SCRATCH_POP_BYTES(0x20);
 }
 
-void Actor02000_Fn018A4(Task* arg0)
+static void Actor02000_Fn018A4(Task* arg0)
 {
     s32              snd;
     s32              pan;
@@ -908,7 +908,7 @@ void Actor02000_Fn018A4(Task* arg0)
 /* Declared here with a signed id: see the note in gameplay/1BC.h. */
 void func_800B4114(GpAnimCtx*, s32, s32, s32, s32);
 
-void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
+static void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
 {
     VECTOR3          pos;
     SVECTOR*         scratch;
@@ -1249,7 +1249,7 @@ extern GpPairSrcE Actor02000_D15D10;
 /// full object set (list node, the four `Gp_LinkObj` nodes and their
 /// `GpRec18` tables, and the optional CD prefetch of `field_6D6`),
 /// while 1 and 2 only prime the animation state and hand the task to state 2.
-void Actor02000_Fn0251C(GpEnemy* ctx, Task* actor)
+static void Actor02000_Fn0251C(GpEnemy* ctx, Task* actor)
 {
     Actor105600Work* work;
     TmdObject*       obj;
@@ -1458,11 +1458,11 @@ case2:
     actor->state    = kind;
 }
 
-void            Actor02000_Fn00078(Task*);
-void            Actor02000_Fn01698(Task*);
+static void     Actor02000_Fn00078(Task*);
+static void     Actor02000_Fn01698(Task*);
 extern TaskFunc Actor02000_D16064[];
 
-void Actor02000_Fn02A34(GpEnemy* ctx, Task* actor)
+static void Actor02000_Fn02A34(GpEnemy* ctx, Task* actor)
 {
     VECTOR3          pos;
     GpEnemy*         spawn;
@@ -1701,7 +1701,7 @@ void Actor02000_Fn02D5C(Task* arg0)
     SCRATCH_POP_BYTES(0x10);
 }
 
-s32 Actor02000_Fn0315C(SVECTOR* arg0, SVECTOR* arg1)
+static s32 Actor02000_Fn0315C(SVECTOR* arg0, SVECTOR* arg1)
 {
     void**   scratch;
     u8*      head;
@@ -1935,7 +1935,7 @@ void Actor02000_Fn035E8(Task* arg0)
 /// model at the spawner's light and colour matrices and seeds the spawner's
 /// dwell counter, then advances the task to state 1. `arg0` is the enemy
 /// context every state handler takes and is unused here.
-void Actor02000_Fn03644(void* arg0, Task* task)
+static void Actor02000_Fn03644(void* arg0, Task* task)
 {
     Task*            parent;
     TmdObject*       obj;
@@ -1958,7 +1958,7 @@ void Actor02000_Fn03644(void* arg0, Task* task)
     work->field_6D8 = 0xA;
 }
 
-void Actor02000_Fn03690(void* arg0, Task* task)
+static void Actor02000_Fn03690(void* arg0, Task* task)
 {
     GpEffWork*       effect;
     Task*            parent;
@@ -1989,13 +1989,13 @@ void Actor02000_Fn03728(Task* arg0)
     sp.funcs[arg0->state](((GpEnemy*)arg0->spawnArg2), arg0);
 }
 
-const GpEnemyTaskFuncTable3 Actor02000_D00060 = { {
+static const GpEnemyTaskFuncTable3 Actor02000_D00060 = { {
     (GpEnemyTaskFunc)Actor02000_Fn03644,
     (GpEnemyTaskFunc)Actor02000_Fn03690,
     Gp_DestroyEnemy,
 } };
 
-const GpEnemyTaskFuncTable3 Actor02000_D0006C = { {
+static const GpEnemyTaskFuncTable3 Actor02000_D0006C = { {
     Actor02000_Fn0251C,
     Actor02000_Fn02A34,
     Actor02000_Fn01A20,

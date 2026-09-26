@@ -291,7 +291,7 @@ void func_actor_160900_80131EB0(Task* arg0)
 
 extern u8 D_actor_160900_8013F240[];
 
-s32 func_actor_160900_801326EC(Task* arg0)
+static s32 func_actor_160900_801326EC(Task* arg0)
 {
     Actor160900Work* work;
     ActorAnimStep*   table;
@@ -364,7 +364,7 @@ static inline void func_actor_160900_Reseed(Task* arg0, u16 anim)
     }
 }
 
-s32 func_actor_160900_80132844(Task* arg0)
+static s32 func_actor_160900_80132844(Task* arg0)
 {
     Actor160900Child3Work* work;
     ActorAnimStep*         table;
@@ -734,7 +734,7 @@ static inline void func_actor_160900_SetAnimZ(Task* task, u16 anim)
 
 /// Runs the one-shot request in `Actor160900Work::field_4C` (animation
 /// changes on the player task, a spawn, a flag) and clears it.
-void func_actor_160900_80133238(Task* arg0)
+static void func_actor_160900_80133238(Task* arg0)
 {
     Actor160900Work* work;
     GpAnimArg        msg;
@@ -824,7 +824,7 @@ void func_actor_160900_80133238(Task* arg0)
     work->field_4C = 0;
 }
 
-void func_actor_160900_8013358C(Task* arg0)
+static void func_actor_160900_8013358C(Task* arg0)
 {
     Actor160900Work*       work;
     Actor160900Child3Work* child;
@@ -874,7 +874,7 @@ void func_actor_160900_8013358C(Task* arg0)
 
 /// Spawn effect 0x601B4 at each point of a `pad == -1` terminated list, x
 /// jittered by up to +-700; runs one frame in eight.
-void func_actor_160900_80133758(SVECTOR* pts)
+static void func_actor_160900_80133758(SVECTOR* pts)
 {
     SVECTOR pos;
     s32     x;

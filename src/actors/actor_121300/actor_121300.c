@@ -376,7 +376,7 @@ void func_actor_121300_801326EC(Task* arg0)
 /// `field_4A0`, blending it in over ten frames.  A negative table entry leaves
 /// the slots alone and only the return value follows.  The gotos reproduce
 /// retail's block layout.
-s32 func_actor_121300_80132818(Task* arg0)
+static s32 func_actor_121300_80132818(Task* arg0)
 {
     Actor121300Work* work;
     Actor121300Work* ctx;
@@ -740,7 +740,7 @@ void func_actor_121300_8013322C(Task* arg0)
 /// entry, jittered along `vx` by up to +/-70 -- two LCG draws, the second only
 /// when the first one's bit 16 is set, which is also the sign of the step.
 /// The walk stops on the zeroed `SVECTOR` that ends both tables.
-void func_actor_121300_8013343C(Task* arg0, s16 arg1)
+static void func_actor_121300_8013343C(Task* arg0, s16 arg1)
 {
     SVECTOR  pos;
     SVECTOR* pts;
@@ -779,7 +779,7 @@ void func_actor_121300_8013343C(Task* arg0, s16 arg1)
 /// calls with `arg1` set, then on every fourth frame spawns effect 0x601B7 at
 /// the first `6 - field_4A8` entries of `D_actor_121300_8013CDC8`, jittered
 /// along `vx` by up to +/-70 as in `func_actor_121300_8013343C`.
-void func_actor_121300_80133580(Task* arg0, s16 arg1)
+static void func_actor_121300_80133580(Task* arg0, s16 arg1)
 {
     SVECTOR          pos;
     Actor121300Work* work;
@@ -818,7 +818,7 @@ void func_actor_121300_80133580(Task* arg0, s16 arg1)
 /// the view through `func_8017F340`, bumps the value `func_8017F334` passes on
 /// and spawns the `D_actor_121300_8013D390[3]` child seeded with the new
 /// waypoint index.
-void func_actor_121300_80133730(Task* arg0)
+static void func_actor_121300_80133730(Task* arg0)
 {
     Actor121300Work* work = (Actor121300Work*)arg0->work;
 
@@ -865,7 +865,7 @@ static inline void func_actor_121300_SetCC04(s32 v)
     D_actor_121300_8013CC04 = v;
 }
 
-void func_actor_121300_80133854(Task* arg0)
+static void func_actor_121300_80133854(Task* arg0)
 {
     Actor121300Work* work;
     CdCmdQueue*      queue;
@@ -989,7 +989,7 @@ void func_actor_121300_80133854(Task* arg0)
 /// through the pointer the setup above uses: the compiler cannot prove
 /// `Gp_AnimResetSlot` leaves the task alone, so it reloads, and the reload must
 /// stay a separate local for the reload to land in `$s0` as retail does.
-void func_actor_121300_80133BFC(Task* arg0)
+static void func_actor_121300_80133BFC(Task* arg0)
 {
     Actor121300Work* work;
     Actor121300Work* slotsWork;

@@ -180,33 +180,33 @@ typedef struct Actor548100TexRect {
 } Actor548100TexRect;
 STATIC_ASSERT_SIZEOF(Actor548100TexRect, 0x8);
 
-void func_actor_548100_80132338(s32 x, s32 y, s32 variant);
-void func_actor_548100_80132420(Task* task);
-void func_actor_548100_80132550(Task* task);
-void func_actor_548100_80132684(Task* task);
-void func_actor_548100_80132808(Task* arg0);
-void func_actor_548100_801330EC(void);
-void func_actor_548100_80134400(OverlayHotspot* unused);
-s32  func_actor_548100_801348A4(OverlayHotspot* table, s16 x, s16 y);
-s32  func_actor_548100_80134CB8(s32 nodeA, u8 nodeB);
-void func_actor_548100_80134D88(Task* task);
-void func_actor_548100_80134DBC(Task* task);
-void func_actor_548100_80134E0C(Task* arg0);
-void func_actor_548100_80134E94(Task* arg0);
-void func_actor_548100_80134F64(Task* arg0);
-void func_actor_548100_80134FEC(Task* arg0);
-void func_actor_548100_80135124(Task* arg0);
-void func_actor_548100_80135154(Task* task);
-void func_actor_548100_8013461C(Actor548100TexRect* rect);
-void func_actor_548100_80133BBC(s32 arg0);
-void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b);
-void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos);
-void func_actor_548100_80134960(s16 arg0, s8* arg1, s8* arg2, s8* arg3);
-void func_actor_548100_801349E0(s16 arg0, s8* arg1, s8* arg2, s8* arg3);
-void func_actor_548100_80134A60(s16 arg0, s8* arg1, s8* arg2, s8* arg3);
-void func_actor_548100_80134AE0(s32 id, u8 stop);
-void func_actor_548100_80134BA8(void);
-void func_actor_548100_80134BF0(void);
+static void func_actor_548100_80132338(s32 x, s32 y, s32 variant);
+static void func_actor_548100_80132420(Task* task);
+static void func_actor_548100_80132550(Task* task);
+static void func_actor_548100_80132684(Task* task);
+static void func_actor_548100_80132808(Task* arg0);
+static void func_actor_548100_801330EC(void);
+static void func_actor_548100_80134400(OverlayHotspot* unused);
+static s32  func_actor_548100_801348A4(OverlayHotspot* table, s16 x, s16 y);
+static s32  func_actor_548100_80134CB8(s32 nodeA, u8 nodeB);
+static void func_actor_548100_80134D88(Task* task);
+static void func_actor_548100_80134DBC(Task* task);
+static void func_actor_548100_80134E0C(Task* arg0);
+static void func_actor_548100_80134E94(Task* arg0);
+static void func_actor_548100_80134F64(Task* arg0);
+static void func_actor_548100_80134FEC(Task* arg0);
+static void func_actor_548100_80135124(Task* arg0);
+static void func_actor_548100_80135154(Task* task);
+static void func_actor_548100_8013461C(Actor548100TexRect* rect);
+static void func_actor_548100_80133BBC(s32 arg0);
+static void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b);
+static void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos);
+static void func_actor_548100_80134960(s16 arg0, s8* arg1, s8* arg2, s8* arg3);
+static void func_actor_548100_801349E0(s16 arg0, s8* arg1, s8* arg2, s8* arg3);
+static void func_actor_548100_80134A60(s16 arg0, s8* arg1, s8* arg2, s8* arg3);
+static void func_actor_548100_80134AE0(s32 id, u8 stop);
+static void func_actor_548100_80134BA8(void);
+static void func_actor_548100_80134BF0(void);
 
 extern TaskDesc           D_actor_548100_801351B4;
 extern GpMsgEntry         D_actor_548100_801351C0[];
@@ -255,7 +255,7 @@ extern s16                D_80114D08;
 /// `step` carries the analog delta first and the d-pad heading afterwards, and
 /// `idx` indexes the button slots in `u16` units so that `i` survives as the
 /// loop counter.
-void func_actor_548100_80131ED8(Task* task)
+static void func_actor_548100_80131ED8(Task* task)
 {
     RoomActionPrompt* prompt;
     PadState*         pad;
@@ -390,15 +390,15 @@ void func_actor_548100_80131ED8(Task* task)
 }
 
 /// Three prompt-mode labels nothing in the actor reads.
-const char D_actor_548100_80131E54[] = "Short";
-const char D_actor_548100_80131E5C[] = "Stop";
-const char D_actor_548100_80131E64[] = "Flow";
+static const char D_actor_548100_80131E54[] = "Short";
+static const char D_actor_548100_80131E5C[] = "Stop";
+static const char D_actor_548100_80131E64[] = "Flow";
 
 /// State table of the actor's `Task::callback`, `func_actor_548100_801347F8`,
 /// one handler per `Task::state`, which that body copies onto its stack before
 /// indexing. States 0 and 2 are the spawners, 1 and 3 arm and re-spawn the
 /// action prompt, 4 is the `step` switch and 9 the ramp driver.
-const TaskFuncTable11 D_actor_548100_80131E6C = { {
+static const TaskFuncTable11 D_actor_548100_80131E6C = { {
     func_actor_548100_80132420,
     func_actor_548100_80134D88,
     func_actor_548100_80132550,
@@ -416,7 +416,7 @@ const TaskFuncTable11 D_actor_548100_80131E6C = { {
 /// into the head of the current OT. `variant` selects the palette, 0x3C87 when
 /// it is 2 and 0x3C88 otherwise, and 0 draws nothing at all. Same body as the
 /// rooms' `Room_Draw36`.
-void func_actor_548100_80132338(s32 x, s32 y, s32 variant)
+static void func_actor_548100_80132338(s32 x, s32 y, s32 variant)
 {
     POLY_FT4* prim;
     s16       px;
@@ -458,7 +458,7 @@ void func_actor_548100_80132338(s32 x, s32 y, s32 variant)
 
 /// State 0 of the actor's callback: allocates the work block, spawns the
 /// action-prompt task and initializes the map UI.
-void func_actor_548100_80132420(Task* task)
+static void func_actor_548100_80132420(Task* task)
 {
     Actor548100Work* work;
     OverlayHotspot*  rec;
@@ -493,7 +493,7 @@ void func_actor_548100_80132420(Task* task)
     Gp_MsgPlayer3F3(0);
 }
 
-void func_actor_548100_80132550(Task* task)
+static void func_actor_548100_80132550(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     OverlayHotspot*   hs     = D_actor_548100_801357E8;
@@ -530,7 +530,7 @@ void func_actor_548100_80132550(Task* task)
     }
 }
 
-void func_actor_548100_80132684(Task* task)
+static void func_actor_548100_80132684(Task* task)
 {
     Actor548100Work* work = (Actor548100Work*)task->work;
     s32              kind;
@@ -601,7 +601,7 @@ void func_actor_548100_80132684(Task* task)
 /// Player pressed the action button on this actor's map marker with the marker
 /// route done: record the route leg the ramp runs along and hand the actor on to
 /// state 9.
-void func_actor_548100_80132808(Task* arg0)
+static void func_actor_548100_80132808(Task* arg0)
 {
     Actor548100Work* work = (Actor548100Work*)arg0->work;
     s32              distA;
@@ -649,7 +649,7 @@ void func_actor_548100_80132808(Task* arg0)
     }
 }
 
-void func_actor_548100_80132A14(Task* task)
+static void func_actor_548100_80132A14(Task* task)
 {
     Actor548100Work*    work;
     Actor548100TexRect* rect;
@@ -765,13 +765,13 @@ void func_actor_548100_80132A14(Task* task)
 
 /// Per-frame hook the actor's callback runs after the state handler; empty in
 /// this actor.
-void func_actor_548100_80132EA0(Task* task)
+static void func_actor_548100_80132EA0(Task* task)
 {
 }
 
 /// Outlines `rect` in (`r`, `g`, `b`) with four flat `LINE_F2` edges linked
 /// into `gGpuCurrentOt[1]`. Same body as the rooms' `Room_Draw26`.
-void func_actor_548100_80132EA8(RoomRect* rect, u8 r, u8 g, u8 b)
+static void func_actor_548100_80132EA8(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 
@@ -824,7 +824,7 @@ void func_actor_548100_80132EA8(RoomRect* rect, u8 r, u8 g, u8 b)
     addPrim(gGpuCurrentOt + 1, line);
 }
 
-void func_actor_548100_801330EC(void)
+static void func_actor_548100_801330EC(void)
 {
     s32 want;
     s32 have;
@@ -860,7 +860,7 @@ void func_actor_548100_801330EC(void)
 /// two pixels wide, framed on each side by `POLY_G4` edges fading from black
 /// into that colour. The quad lies along whichever axis the line spans further,
 /// with the nodes ordered so the lower coordinate comes first.
-void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
+static void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
 {
     POLY_F4* quad;
     POLY_G4* top;
@@ -1051,7 +1051,7 @@ void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
 /// States 4 and 5 (5 swaps the nodes) split the line at `field_C` along x, or
 /// along y when `flag_3` is set, clipping each half with a `DR_AREA` linked into
 /// `gGpuCurrentOt[0x3FC]` and drawing one half per colour.
-void func_actor_548100_80133684(Actor548100Edge* edge)
+static void func_actor_548100_80133684(Actor548100Edge* edge)
 {
     RECT     rect;
     DR_AREA* area;
@@ -1152,7 +1152,7 @@ void func_actor_548100_80133684(Actor548100Edge* edge)
 /// x 0x43..0x68, on row 1 (`arg0 == 1`) or row 2, framed by four `POLY_G4`
 /// edges fading from black into that colour, all linked into
 /// `gGpuCurrentOt[0x3FC]`.
-void func_actor_548100_80133BBC(s32 arg0)
+static void func_actor_548100_80133BBC(s32 arg0)
 {
     POLY_F4* quad;
     POLY_G4* top;
@@ -1324,7 +1324,7 @@ void func_actor_548100_80133BBC(s32 arg0)
 /// and a gradient border of four `POLY_G4` edges fading from black into
 /// that colour, linked into `gGpuCurrentOt[0x3FC]`. The flat quad itself is
 /// never linked.
-void func_actor_548100_80133F88(void)
+static void func_actor_548100_80133F88(void)
 {
     POLY_F4* quad;
     POLY_G4* top;
@@ -1460,7 +1460,7 @@ void func_actor_548100_80133F88(void)
     addPrim(&gGpuCurrentOt[0x3FC], bottom);
 }
 
-void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos)
+static void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos)
 {
     u8* route;
     u8* head;
@@ -1510,7 +1510,7 @@ void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos)
 /// coordinates in `field_4` / `field_6` and their span less 2 in `dist`.
 /// Finally reset each edge's `state` for the current stage, as
 /// `func_actor_548100_80134BF0` does.
-void func_actor_548100_80134400(OverlayHotspot* unused)
+static void func_actor_548100_80134400(OverlayHotspot* unused)
 {
     Actor548100Edge* edge;
     Actor548100Edge* cell;
@@ -1580,7 +1580,7 @@ void func_actor_548100_80134400(OverlayHotspot* unused)
 /// `x1`/`x3` are read before `v0`/`v1` -- that order is what puts the four
 /// loads in the register file the target uses, and reordering them changes
 /// the code without changing the meaning.
-void func_actor_548100_8013461C(Actor548100TexRect* rect)
+static void func_actor_548100_8013461C(Actor548100TexRect* rect)
 {
     POLY_FT4* prim;
     s32       u0;
@@ -1645,7 +1645,7 @@ s32 func_actor_548100_80134778(Task* arg0, s16 arg1, s32 arg2)
     return 0;
 }
 
-void func_actor_548100_801347F8(Task* arg0)
+static void func_actor_548100_801347F8(Task* arg0)
 {
     TaskFuncTable11 fns;
 
@@ -1658,7 +1658,7 @@ void func_actor_548100_801347F8(Task* arg0)
 
 /// Hit-tests (`x`, `y`) against `table`, raising `hit` on every containing entry
 /// and clearing it on the rest. Returns the `id` of the first entry hit, or 0.
-s32 func_actor_548100_801348A4(OverlayHotspot* table, s16 x, s16 y)
+static s32 func_actor_548100_801348A4(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 
@@ -1677,7 +1677,7 @@ s32 func_actor_548100_801348A4(OverlayHotspot* table, s16 x, s16 y)
     return hit;
 }
 
-void func_actor_548100_80134960(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
+static void func_actor_548100_80134960(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
 {
     s32 var_v0;
     s32 var_v0_2;
@@ -1700,7 +1700,7 @@ void func_actor_548100_80134960(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
     *arg3 = (s8)(var_v0_3 >> 5);
 }
 
-void func_actor_548100_801349E0(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
+static void func_actor_548100_801349E0(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
 {
     s32 var_v0;
     s32 var_v0_2;
@@ -1723,7 +1723,7 @@ void func_actor_548100_801349E0(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
     *arg3 = (s8)(var_v0_3 >> 5);
 }
 
-void func_actor_548100_80134A60(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
+static void func_actor_548100_80134A60(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
 {
     s32 var_v0;
     s32 var_v0_2;
@@ -1746,7 +1746,7 @@ void func_actor_548100_80134A60(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
     *arg3 = (s8)(var_v0_3 >> 5);
 }
 
-void func_actor_548100_80134AE0(s32 id, u8 stop)
+static void func_actor_548100_80134AE0(s32 id, u8 stop)
 {
     u8* route;
     u8* head;
@@ -1778,7 +1778,7 @@ void func_actor_548100_80134AE0(s32 id, u8 stop)
     }
 }
 
-void func_actor_548100_80134BA8(void)
+static void func_actor_548100_80134BA8(void)
 {
     Actor548100Edge* edge;
 
@@ -1787,7 +1787,7 @@ void func_actor_548100_80134BA8(void)
     }
 }
 
-void func_actor_548100_80134BF0(void)
+static void func_actor_548100_80134BF0(void)
 {
     Actor548100Edge* edge;
 
@@ -1810,7 +1810,7 @@ void func_actor_548100_80134BF0(void)
     }
 }
 
-s32 func_actor_548100_80134CB8(s32 nodeA, u8 nodeB)
+static s32 func_actor_548100_80134CB8(s32 nodeA, u8 nodeB)
 {
     u8* route;
     u8* head;
@@ -1842,7 +1842,7 @@ s32 func_actor_548100_80134CB8(s32 nodeA, u8 nodeB)
 /// State 1 of the actor's callback: arms the first action-prompt slot with
 /// target id 0x80, marks it highlighted (`mode` 1), clears its screen position
 /// and steps the task on to state 2.
-void func_actor_548100_80134D88(Task* task)
+static void func_actor_548100_80134D88(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
 
@@ -1857,7 +1857,7 @@ void func_actor_548100_80134D88(Task* task)
 /// the prompt's highlight and target, re-spawns the prompt at its current
 /// screen position with the picked hotspot's `promptKind`, and moves the task
 /// to the `step` switch in state 4.
-void func_actor_548100_80134DBC(Task* task)
+static void func_actor_548100_80134DBC(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     Actor548100Work*  work   = (Actor548100Work*)task->work;
@@ -1868,7 +1868,7 @@ void func_actor_548100_80134DBC(Task* task)
     task->state = 4;
 }
 
-void func_actor_548100_80134E0C(Task* arg0)
+static void func_actor_548100_80134E0C(Task* arg0)
 {
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
@@ -1883,7 +1883,7 @@ void func_actor_548100_80134E0C(Task* arg0)
     Task_RequestKill(arg0, 0);
 }
 
-void func_actor_548100_80134E94(Task* arg0)
+static void func_actor_548100_80134E94(Task* arg0)
 {
     Actor548100Work* work = (Actor548100Work*)arg0->work;
     s32              value;
@@ -1907,7 +1907,7 @@ void func_actor_548100_80134E94(Task* arg0)
     arg0->state        = 2;
 }
 
-void func_actor_548100_80134F64(Task* arg0)
+static void func_actor_548100_80134F64(Task* arg0)
 {
     Actor548100Work* work = (Actor548100Work*)arg0->work;
 
@@ -1922,7 +1922,7 @@ void func_actor_548100_80134F64(Task* arg0)
     }
 }
 
-void func_actor_548100_80134FEC(Task* arg0)
+static void func_actor_548100_80134FEC(Task* arg0)
 {
     Actor548100Work* work = (Actor548100Work*)arg0->work;
 
@@ -1948,7 +1948,7 @@ void func_actor_548100_80134FEC(Task* arg0)
     work->field_E = work->field_C * work->field_A / work->field_8;
 }
 
-void func_actor_548100_80135124(Task* arg0)
+static void func_actor_548100_80135124(Task* arg0)
 {
     if (Gp_CapBusy() == 0) {
         arg0->state = 2;
@@ -1960,7 +1960,7 @@ void func_actor_548100_80135124(Task* arg0)
 /// buttons' held-frame counters, parks the target id (the cursor speed) at
 /// 0x100 and `field_E` (the double-press window) at 0xF, marks the slot
 /// highlighted -- and steps the task on one state.
-void func_actor_548100_80135154(Task* task)
+static void func_actor_548100_80135154(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     s32               i;

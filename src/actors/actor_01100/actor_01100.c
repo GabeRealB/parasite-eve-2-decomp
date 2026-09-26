@@ -92,42 +92,42 @@ extern Actor104900EffSlot D_80067330;
     gte_stsv(sv);                     \
     gte_WriteMatrixColumn(sv, m, col)
 
-void Actor01100_Fn0097C(GpEnemy* enemy, Task* task);
-void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work);
-s32  Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn035E4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn03740(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn0389C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn039D0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn041BC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn05678(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn05CFC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn05E68(Task* task);
-void Actor01100_Fn06198(Task* task);
-void Actor01100_Fn0638C(Task* task);
-void Actor01100_Fn0668C(Task* task);
-void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1);
-s32  Actor01100_Fn06954(GpCoord* arg0, s32 arg1);
-s32  Actor01100_Fn06AC8(GpCoord* arg0);
-void Actor01100_Fn06E4C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn06F38(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn07014(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn070DC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn07148(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn072B8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
-void Actor01100_Fn0736C(Task* task);
-void Actor01100_Fn073A8(Task* task);
-void Actor01100_Fn073DC(Task* task);
+static void Actor01100_Fn0097C(GpEnemy* enemy, Task* task);
+static void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work);
+static s32  Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn035E4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn03740(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn0389C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn039D0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn041BC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn05678(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn05CFC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn05E68(Task* task);
+static void Actor01100_Fn06198(Task* task);
+static void Actor01100_Fn0638C(Task* task);
+static void Actor01100_Fn0668C(Task* task);
+static void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1);
+static s32  Actor01100_Fn06954(GpCoord* arg0, s32 arg1);
+static s32  Actor01100_Fn06AC8(GpCoord* arg0);
+static void Actor01100_Fn06E4C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn06F38(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn07014(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn070DC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn07148(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn072B8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn0736C(Task* task);
+static void Actor01100_Fn073A8(Task* task);
+static void Actor01100_Fn073DC(Task* task);
 
 /// The enemy task's three states - set-up, the per-frame dispatcher and
 /// teardown - which `Actor01100_Fn06554` runs by `Task::state`.
-const Actor101100StateFuncTable3 Actor01100_D00004 = { {
+static const Actor101100StateFuncTable3 Actor01100_D00004 = { {
     (Actor101100StateFunc)Actor01100_Fn0097C,
     (Actor101100StateFunc)Actor01100_Fn00CF0,
     (Actor101100StateFunc)Actor01100_Fn02960,
@@ -135,7 +135,7 @@ const Actor101100StateFuncTable3 Actor01100_D00004 = { {
 
 /// Scale copied onto the stack and passed to `Actor01100_Fn067C0` when the
 /// placement `entryId` is 0x31: 0x1400 on each axis.
-const ActorsShared801385e0Scale Actor01100_D00010 = { 0x1400, 0x1400, 0x1400, 0 };
+static const ActorsShared801385e0Scale Actor01100_D00010 = { 0x1400, 0x1400, 0x1400, 0 };
 
 /// Walks the first `count` records of `recs`, up to an empty key, and for
 /// every kind 0x10000 or 0x30000 record computes the XZ push-out of the
@@ -143,7 +143,7 @@ const ActorsShared801385e0Scale Actor01100_D00010 = { 0x1400, 0x1400, 0x1400, 0 
 /// scratch block, and its length is scaled down to 0x100 when longer. Returns
 /// whether any record of those kinds was met. Does nothing, returning 0, while
 /// `Mc_SaveData.field_5C1` or the session's `viewReady` is 1.
-s32 Actor01100_Fn000E8(GpCoord* coord, GpRec18* recs, s16 count)
+static s32 Actor01100_Fn000E8(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -201,7 +201,7 @@ s32 Actor01100_Fn000E8(GpCoord* coord, GpRec18* recs, s16 count)
 /// coordinate 10 units along it in the XZ plane. `pos` receives the total
 /// displacement. Returns whether a kind 0x10000 record was among them. Does
 /// nothing, returning 0, while the session's `viewReady` or `Mc_SaveData.field_5C1` is 1.
-s32 Actor01100_Fn00430(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 Actor01100_Fn00430(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -332,7 +332,7 @@ static __inline__ void _actor01100SetSlotRates(ActorsShared80138efcWork* work, u
 /// part 1. Spawn state 1/2 then writes 0x7F into slots 1..20 of each
 /// context. Placement `entryId` 0x31 selects the second param table and
 /// scales the identity matrix by 0x1400.
-void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
+static void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
 {
     ActorsShared80138efcWork* work;
     TmdObject*                extra;
@@ -459,7 +459,7 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
 /// takes `Actor01100_Fn0668C` as its
 /// exit callback, the model's hidden bit is lifted, `msgTable` is pointed at
 /// this overlay's message table and the state advances.
-void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work)
+static void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work)
 {
     GpObj* obj;
     s32    reach;
@@ -624,7 +624,7 @@ static __inline__ void _actor01100ClearObjPair(ActorsShared80138efcWork* work)
 /// points (playing the death cue and releasing the placement at zero), and
 /// stages the reaction's state. Every frame it then pushes the model out of
 /// the first contact table and clears all four. Returns 1 when damage landed.
-s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     s32         damaged;
     s32         fromBehind;
@@ -1011,7 +1011,7 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wor
 /// Each arm declares its own player and actor locals: the two arms must reach
 /// the compiler as distinct quantities, since one of them is live across the
 /// flag byte's address and cannot share the call's result register.
-void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     GpLinkNode* lockNode;
     s32         flag;
@@ -1089,7 +1089,7 @@ void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// parts 6 and 10. 0xB9A/0xB98 scale the child then the parent by the
 /// reciprocal; 0xB96/0xB94 scale the parent in place (column 0 at 1+delta,
 /// columns 1-2 at 1+delta/4).
-void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     GpCoord* part;
     GpCoord* node;
@@ -1192,7 +1192,7 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
 /// Per-frame state handlers `Actor01100_Fn02960` copies to its stack and
 /// indexes by `ActorsShared80138efcWork::state`.
-const ActorsShared80138efcStateTable Actor01100_D00064 = { {
+static const ActorsShared80138efcStateTable Actor01100_D00064 = { {
     Actor01100_Fn06E4C,
     Actor01100_Fn035E4,
     Actor01100_Fn03740,
@@ -1232,7 +1232,7 @@ const ActorsShared80138efcStateTable Actor01100_D00064 = { {
 /// the actor colour from the root position, draws the floor quad unless bit
 /// 1 of the model's flags is set, and exits the task once `field_BA6`
 /// reaches 0x10.
-void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     ActorsShared80138efcStateTable table;
     GpCoord*                       part;
@@ -1512,7 +1512,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// 0x37 does the same mask unconditionally. The frame block's scratch byte at
 /// 0x64 takes 0xC either way, and the trigger at 0xBA9 ends the sub-state by
 /// clearing `state` and the latch.
-void Actor01100_Fn035E4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn035E4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     GpObj* obj;
     s32    i;
@@ -1569,7 +1569,7 @@ void Actor01100_Fn035E4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// mask unconditionally. The frame block's scratch byte at 0x64 takes 8 either
 /// way, and the trigger at 0xBA9 ends the sub-state by clearing `state` and
 /// the latch.
-void Actor01100_Fn03740(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn03740(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     GpObj* obj;
     s32    i;
@@ -1623,7 +1623,7 @@ void Actor01100_Fn03740(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// 0x46 by 0x10 towards that countdown, rebuilds the Y rotation over the pose
 /// and clears `flg`, and when the countdown reaches zero it drops the state at
 /// 0xBA7 and the latch, ending the spin about.
-void Actor01100_Fn0389C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn0389C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     GpCoord* pose;
     s32      idx;
@@ -1689,7 +1689,7 @@ static __inline__ s32 _actor01100BearingToPlayer(GpCoord* self)
     return angle;
 }
 
-void Actor01100_Fn039D0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn039D0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     s16 bearing;
     s32 angle;
@@ -1737,7 +1737,7 @@ static __inline__ s32 _actor01100DistSqToPlayer(GpCoord* self)
     return dist;
 }
 
-void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     GpCoord* self;
     s16      angle;
@@ -1844,7 +1844,7 @@ void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     }
 }
 
-void Actor01100_Fn041BC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn041BC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     GpCoord* yaw;
     s32      delta;
@@ -1906,7 +1906,7 @@ void Actor01100_Fn041BC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 }
 
 /// Scale `Actor01100_Fn05678` applies to the model's matrix: 0x10 on each axis.
-const VECTOR Actor01100_D000CC = { 0x10, 0x10, 0x10, 0 };
+static const VECTOR Actor01100_D000CC = { 0x10, 0x10, 0x10, 0 };
 
 /// First-frame distance handler: while the latch at 0xBA8 is still clear it
 /// sets motion 6, zeroes the countdown at 0xB8C and steps the latch. If actor
@@ -1932,7 +1932,7 @@ const VECTOR Actor01100_D000CC = { 0x10, 0x10, 0x10, 0 };
 /// its `addiu` free for sched2 to hoist. `vec` is assigned only inside the
 /// player-present arm so it is a local quantity and keeps `$a0` for
 /// `Gfx_ApplyMatrixNoSf`.
-void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     SVECTOR     local;
     SVECTOR*    vec;
@@ -2108,7 +2108,7 @@ void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// its `addiu` free for sched2 to hoist. `vec` is assigned only inside the
 /// player-present arm so it is a local quantity and keeps `$a0` for
 /// `Gfx_ApplyMatrixNoSf`.
-void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     SVECTOR     local;
     SVECTOR*    vec;
@@ -2273,7 +2273,7 @@ void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// `Actor01100_D155E0`. Placement `field_BBB` 0x31 is a pair of shots;
 /// otherwise one fan of three, each at ±0x12C on model part 4, with cue
 /// `0x400B000A`. A set `field_BA9` stages state 0xE.
-void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     GpCoord* part;
     Task*    spawned;
@@ -2418,7 +2418,7 @@ static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, SVECTOR* arg1, s32 s
 /// sign, flipped by a further one draw in eight, and only while the new
 /// distance is inside 0xA62B0F. Anything else stages 0xB inside 0x89543F and
 /// 0xF beyond it.
-void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     GpCoord*    actorCoords;
     GpCoord*    coords;
@@ -2569,7 +2569,7 @@ static __inline__ void _actor01100SpawnModelEff(Task* task, u8* model)
     }
 }
 
-void Actor01100_Fn05678(
+static void Actor01100_Fn05678(
     GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     TmdObject*    extra;
@@ -2693,7 +2693,7 @@ void Actor01100_Fn05678(
 /// `field_4C`, and stages the 0x14 motion through `field_BA6` when it is; once
 /// that count has run out it hands the frame to `Actor01100_Fn05678` on state
 /// 0x18 instead.
-void Actor01100_Fn05CFC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn05CFC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     u16 time;
 
@@ -2762,7 +2762,7 @@ void Actor01100_Fn05CFC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// The stack copy of the vector is what the first `lwc2` pair reads, and it is
 /// written with the sibling bodies' raw asm: `gte_ldv0` of a stack local leaves
 /// its `addiu` free for sched2 to hoist, which this body's schedule does not.
-void Actor01100_Fn05E68(Task* task)
+static void Actor01100_Fn05E68(Task* task)
 {
     ActorsShared80137fb8Work* work;
     GpActorD4Rec*             rec;
@@ -2841,7 +2841,7 @@ void Actor01100_Fn05E68(Task* task)
     Actor01100_Fn06198(task);
 }
 
-void Actor01100_Fn06198(Task* task)
+static void Actor01100_Fn06198(Task* task)
 {
     ActorsShared80137fb8Work* work;
     GpActorD4Rec*             d4;
@@ -2906,7 +2906,7 @@ void Actor01100_Fn06198(Task* task)
     }
 }
 
-void Actor01100_Fn0638C(Task* task)
+static void Actor01100_Fn0638C(Task* task)
 {
     GpEffWork*                effect;
     s32                       variant;
@@ -2988,7 +2988,7 @@ void Actor01100_Fn06554(Task* task)
 /// State handlers of the secondary task this entry spawns: set-up
 /// (`Actor01100_Fn05E68`), per-frame tick (`Actor01100_Fn06198`) and the
 /// countdown to exit (`Actor01100_Fn0736C`).
-const TaskFuncTable3 Actor01100_D000DC = { {
+static const TaskFuncTable3 Actor01100_D000DC = { {
     Actor01100_Fn05E68,
     Actor01100_Fn06198,
     Actor01100_Fn0736C,
@@ -3019,7 +3019,7 @@ void Actor01100_Fn0663C(Task* task)
 
 /// Exit callback: unlink the four display nodes, relink the second part coord
 /// under the model's root, then let gameplay tear the enemy down.
-void Actor01100_Fn0668C(Task* task)
+static void Actor01100_Fn0668C(Task* task)
 {
     ActorsShared80138efcWork* work;
     GpEnemy*                  enemy;
@@ -3087,7 +3087,7 @@ s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags)
     return 0;
 }
 
-void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
+static void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
 {
     void**   scratch;
     SVECTOR* head;
@@ -3136,7 +3136,7 @@ void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
 /// stores rather than after all three: consecutive stores carry an output
 /// dependency, so their program order survives both schedulers, and moving it
 /// later lets it take the call's delay slot instead of the third store.
-s32 Actor01100_Fn06954(GpCoord* arg0, s32 arg1)
+static s32 Actor01100_Fn06954(GpCoord* arg0, s32 arg1)
 {
     SVECTOR              local;
     Task*                actor;
@@ -3183,7 +3183,7 @@ s32 Actor01100_Fn06954(GpCoord* arg0, s32 arg1)
 /// Squared distance from `arg0` to the slot-3 (player) task's root part coord,
 /// or `0x7FFFFFFF` when that task is gone. The delta is staged in an `SVECTOR`
 /// carved off the scratchpad stack and squared with `Gfx_ApplyMatrixNoSf`.
-s32 Actor01100_Fn06AC8(GpCoord* arg0)
+static s32 Actor01100_Fn06AC8(GpCoord* arg0)
 {
     void**   scratch;
     u8*      head;
@@ -3219,7 +3219,7 @@ s32 Actor01100_Fn06AC8(GpCoord* arg0)
 ///
 /// Nothing in the entry calls it, so the argument types are the ones the body
 /// itself needs and no call site confirms them.
-void Actor01100_Fn06B6C(GpCoord* arg0, ActorsShared8013898cVec* arg1, s32 arg2)
+static void Actor01100_Fn06B6C(GpCoord* arg0, ActorsShared8013898cVec* arg1, s32 arg2)
 {
     if (Mc_SaveData.field_5C1 == 0) {
         gte_ReadMatrixColumn(&arg0->coord, 2, &arg1->vec);
@@ -3245,7 +3245,7 @@ void Actor01100_Fn06B6C(GpCoord* arg0, ActorsShared8013898cVec* arg1, s32 arg2)
 /// 0xC000 pair is masked back out of both `GpObj` nodes in the motion block,
 /// and one LCG draw picks the next state: 4 for three draws in four, else 0.
 /// `field_BA8` is cleared either way, so the sub-state re-arms from the top.
-void Actor01100_Fn06C0C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn06C0C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     GpLinkNode* lockNode;
     s32         off;
@@ -3291,7 +3291,7 @@ void Actor01100_Fn06C0C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// Either way the link transform is re-armed exactly as `Actor01100_Fn06C0C`
 /// arms it - model part 3 through `TmdObject::coords[3]` as `coord`, the
 /// 0xC8-box local offset through `src` - and `Actor01100_Fn00F58` runs last.
-void Actor01100_Fn06D3C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn06D3C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     GpLinkNode* lockNode;
     s16         walk;
@@ -3334,7 +3334,7 @@ void Actor01100_Fn06D3C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     Actor01100_Fn00F58(enemy, task, work, arg);
 }
 
-void Actor01100_Fn06E4C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn06E4C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     s32 t;
     s32 t2;
@@ -3381,7 +3381,7 @@ void Actor01100_Fn06E4C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// scratch byte at 0x64 then takes 0xC while bit 0 of `gDisplayState.animFrame` is set and 8
 /// otherwise, and the trigger at 0xBA9 ends the sub-state by clearing both the
 /// state and the latch.
-void Actor01100_Fn06F38(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn06F38(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     if (work->field_BA8 == 0) {
         work->field_BA4 = 5;
@@ -3411,7 +3411,7 @@ void Actor01100_Fn06F38(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// either keeps the state on the 0x17 motion once `field_B92` has run out and
 /// the enemy is not carrying flag 0x2 in `field_4C`, or hands the frame to
 /// `Actor01100_Fn05678` on the 0x18 motion.
-void Actor01100_Fn07014(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn07014(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     GpAnimSlot* motion = &work->slots[1];
 
@@ -3445,7 +3445,7 @@ void Actor01100_Fn07014(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
 /// Arms the motion pair for the current sub-state when `field_BA8` is still
 /// clear, and switches to state 0xF when `field_BA9` is set.
-void Actor01100_Fn070DC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn070DC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     if (work->field_BA8 == 0) {
         if (work->field_BAE == 0) {
@@ -3481,7 +3481,7 @@ void Actor01100_Fn070DC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// `field_4C`, and stages the 0x14 motion through `field_BA6` when it is; once
 /// that count has run out it hands the frame to `Actor01100_Fn05678` on the
 /// 0x18 motion instead.
-void Actor01100_Fn07148(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn07148(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     u16 time;
 
@@ -3538,7 +3538,7 @@ void Actor01100_Fn07148(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// shared local: a local's first definition would land before the branch on
 /// 0xBAE, and jump.c's arm collapse hoists one arm's constant in front of that
 /// branch, which then keeps the flag and the value in separate registers.
-void Actor01100_Fn072B8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn072B8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     u16 count;
 
@@ -3576,7 +3576,7 @@ void Actor01100_Fn072B8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
 /// Teardown state: counts `killCountdown` down and calls the task's exit
 /// callback once it reaches zero.
-void Actor01100_Fn0736C(Task* arg0)
+static void Actor01100_Fn0736C(Task* arg0)
 {
     u16 temp_v0;
 
@@ -3589,7 +3589,7 @@ void Actor01100_Fn0736C(Task* arg0)
 
 /// Exit callback of the secondary tasks: takes the work block's display node
 /// back off the object list and kills the task.
-void Actor01100_Fn073A8(Task* arg0)
+static void Actor01100_Fn073A8(Task* arg0)
 {
     Gp_UnlinkObj(&((ActorsShared80137fb8Work*)arg0->work)->obj);
     taskKill(arg0);
@@ -3603,7 +3603,7 @@ void Actor01100_Fn073A8(Task* arg0)
 /// -- masked to the 0x10000 slot -- or the countdown reaching 0x14 clears the
 /// two 0xC000 bits the spawn state set in the object's flags. The countdown
 /// then ticks down and the task calls its exit callback once it reaches zero.
-void Actor01100_Fn073DC(Task* task)
+static void Actor01100_Fn073DC(Task* task)
 {
     ActorsShared80137fb8Work* work;
     GpCoord*                  coord;

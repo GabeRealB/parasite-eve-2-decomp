@@ -113,7 +113,7 @@ typedef struct Actor403600ProjectileScratch {
 } Actor403600ProjectileScratch;
 STATIC_ASSERT_SIZEOF(Actor403600ProjectileScratch, 0x54);
 
-extern const SVECTOR D_actor_403600_80131E24;
+static const SVECTOR D_actor_403600_80131E24;
 extern GpU16Pair     D_actor_403600_801420F0;
 extern s32           D_actor_403600_80142120[];
 
@@ -123,12 +123,12 @@ extern TaskDesc      D_actor_403600_801421A0;
 extern s32           D_actor_403600_80160698;
 extern s32           D_actor_403600_8016069C;
 extern s32           D_actor_403600_801606A0;
-extern const SVECTOR D_actor_403600_80131E2C;
-extern const CVECTOR D_actor_403600_80131E34;
+static const SVECTOR D_actor_403600_80131E2C;
+static const CVECTOR D_actor_403600_80131E34;
 
-void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1);
-void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2, Actor403600FxWork* arg3);
-void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2);
+static void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1);
+static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2, Actor403600FxWork* arg3);
+void        func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2);
 
 /// Links, at ordering-table depth `otz`, the primitives that copy the frame
 /// drawn so far into the 320x240 VRAM rectangle at (0x1C0, 0x100). Linked at
@@ -270,7 +270,7 @@ void func_actor_403600_801320F8(s32 otz)
     SCRATCH_POP_BYTES(0x14);
 }
 
-void func_actor_403600_801327A0(Actor403600GridQuad* arg0)
+static void func_actor_403600_801327A0(Actor403600GridQuad* arg0)
 {
     s32 temp_a0;
     s32 temp_a1;
@@ -318,7 +318,7 @@ void func_actor_403600_801327A0(Actor403600GridQuad* arg0)
 /* The quad arrives as an integer because the same variable then holds the
  * vertex's screen x: sharing it is what gives x the argument register. The
  * third argument's value is never read; the vertex pointer replaces it. */
-void func_actor_403600_8013289C(s32 arg0, s32 arg1, Actor403600GridVertex* arg2, s32 arg3)
+static void func_actor_403600_8013289C(s32 arg0, s32 arg1, Actor403600GridVertex* arg2, s32 arg3)
 {
     s16 temp_t3;
     s16 temp_t5;
@@ -403,7 +403,7 @@ void func_actor_403600_8013289C(s32 arg0, s32 arg1, Actor403600GridVertex* arg2,
     arg2->u   = (s8)(arg0 - temp_v0_2);
 }
 
-void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2, Actor403600FxWork* arg3)
+static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2, Actor403600FxWork* arg3)
 {
     s32                       fade;
     s32                       x;
@@ -742,7 +742,7 @@ void func_actor_403600_80134288(Task* arg0)
         func_actor_403600_80132A18(arg0, work, fx, fx);
     }
 }
-const SVECTOR D_actor_403600_80131E24 = { -100, 700, -280, 0 };
+static const SVECTOR D_actor_403600_80131E24 = { -100, 700, -280, 0 };
 
 /// Links primitive `p` at the head of ordering-table entry `ot`, as `addPrim`
 /// does, but by masking the two tag words directly instead of through its
@@ -1239,7 +1239,7 @@ block_22:
     SCRATCH_POP(Actor403600ProjectileScratch);
 }
 
-void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1)
+static void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1)
 {
     s32                       radii[16];
     s32                       heights[16];
@@ -1483,7 +1483,7 @@ void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1)
     SCRATCH_POP_BYTES(0x78);
 }
 
-const SVECTOR D_actor_403600_80131E2C = { 0, 0x578, 0, 0 };
+static const SVECTOR D_actor_403600_80131E2C = { 0, 0x578, 0, 0 };
 
 /// Advances the trail by one step: moves the head back one slot in the two
 /// 0x20-entry rings, clears it, ramps the strength up while `field_8E` is set
@@ -1658,7 +1658,7 @@ void func_actor_403600_80135C28(Task* arg0)
     }
 }
 
-u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     CVECTOR       col;
     s16           upper_y;
@@ -1744,7 +1744,7 @@ u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT3*     poly;
     s32*          opz;
@@ -1854,7 +1854,7 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     CVECTOR       col;
     s16           upper_y;
@@ -1965,7 +1965,7 @@ u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT4*     poly;
     s32*          opz;
@@ -2099,7 +2099,7 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     CVECTOR       col;
     s16           upper_y;
@@ -2187,7 +2187,7 @@ u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     CVECTOR       col;
     s16           upper_y;
@@ -2275,7 +2275,7 @@ u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     CVECTOR       col;
     s16           upper_y;
@@ -2400,7 +2400,7 @@ typedef struct {
     MATRIX  local;    // Model-to-reference transform
 } _Actor403600TriScratch;
 
-u32* func_actor_403600_801379B4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+static u32* func_actor_403600_801379B4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
     CVECTOR                 color;
     u8*                     head;
@@ -2488,7 +2488,7 @@ typedef struct {
     MATRIX  local;    // Model-to-reference transform
 } _Actor403600QuadScratch;
 
-u32* func_actor_403600_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+static u32* func_actor_403600_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
     CVECTOR                  color;
     u8*                      head;
@@ -2580,7 +2580,7 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream
     return tmdDrawStreamGt4(ws, flags, stream);
 }
 
-u32* func_actor_403600_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+static u32* func_actor_403600_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
     CVECTOR                 color;
     u8*                     head;
@@ -2648,4 +2648,4 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream
     return tmdXformStreamVerts(ws, flags, stream);
 }
 
-const CVECTOR D_actor_403600_80131E34 = { 0x80, 0x80, 0x80, 0 };
+static const CVECTOR D_actor_403600_80131E34 = { 0x80, 0x80, 0x80, 0 };

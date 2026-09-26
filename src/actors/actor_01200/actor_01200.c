@@ -98,16 +98,16 @@ extern u8         Actor01200_D07058[];
 /// Integer part of the last movement step `Actor01200_Fn0067C` applied.
 extern SVECTOR Actor01200_D07084;
 
-void Actor01200_Fn03D58(GpEnemy* arg0, Task* arg1);
-void Actor01200_Fn03DC0(GpEnemy* arg0, Task* arg1);
-void Actor01200_Fn03E78(GpEnemy* arg0, Task* arg1);
-void Actor01200_Fn03F30(GpEnemy* arg0, Task* arg1);
+static void Actor01200_Fn03D58(GpEnemy* arg0, Task* arg1);
+static void Actor01200_Fn03DC0(GpEnemy* arg0, Task* arg1);
+static void Actor01200_Fn03E78(GpEnemy* arg0, Task* arg1);
+static void Actor01200_Fn03F30(GpEnemy* arg0, Task* arg1);
 
 /// Pushes `coord` away from the obstacles in `recs`. Records of kind 0x10000
 /// (which also raises the returned `blocked` flag) or 0x30000 each give a
 /// bearing, at most eight; bearings more than 0x400 apart cancel each other.
 /// Each survivor becomes a 10-unit step added to `push` and to the translation.
-s16 Actor01200_Fn00130(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* push)
+static s16 Actor01200_Fn00130(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* push)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -222,7 +222,7 @@ s16 Actor01200_Fn00130(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* push)
 /// `Actor01200_D07084`. When a component's fractional half is nonzero the
 /// coordinate and the latched step move one unit further from zero. Returns
 /// nonzero when the X or Z push is nonzero.
-s32 Actor01200_Fn0067C(GpCoord* coord, GpRec18* movement, s16 count)
+static s32 Actor01200_Fn0067C(GpCoord* coord, GpRec18* movement, s16 count)
 {
     void**            scratch;
     u8*               head;
@@ -303,7 +303,7 @@ static __inline__ void Actor01200_TickSlots(Task* arg0)
 /// counters `field_17A` / `field_17C`; while running (3) it advances the
 /// slots, counts frames in `field_17A` and, while bit 1 of `field_58` is set,
 /// in `field_17C` as well.
-void Actor01200_Fn00820(Task* arg0)
+static void Actor01200_Fn00820(Task* arg0)
 {
     Actor01200Work* work;
 
@@ -332,7 +332,7 @@ void Actor01200_Fn00820(Task* arg0)
 /// that animation's two trigger values, latching the value in `field_3D4` so
 /// it reports once; for animation 4 it returns 0x400C0005 while bit 0 of
 /// `field_58` is set. Returns 0 otherwise.
-s32 Actor01200_Fn00990(Actor01200Work* arg0)
+static s32 Actor01200_Fn00990(Actor01200Work* arg0)
 {
     u16 id;
     s32 v;
@@ -376,7 +376,7 @@ s32 Actor01200_Fn00990(Actor01200Work* arg0)
     return 0;
 }
 
-void Actor01200_Fn00A6C(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn00A6C(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*      obj;
     GpCoord*        coord;
@@ -533,7 +533,7 @@ void Actor01200_Fn00A6C(GpEnemy* arg0, Task* arg1)
     arg1->state++;
 }
 
-void Actor01200_Fn01040(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn01040(GpEnemy* arg0, Task* arg1)
 {
     Actor01200Work* work;
     GpCoord*        coord;
@@ -574,7 +574,7 @@ void Actor01200_Fn01040(GpEnemy* arg0, Task* arg1)
     }
 }
 
-void Actor01200_Fn01234(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn01234(GpEnemy* arg0, Task* arg1)
 {
     Actor01200Work*   work;
     GpCoord*          coord;
@@ -674,7 +674,7 @@ static __inline__ void Actor01200_FaceScale(GpCoord* coord, s16 s)
     SCRATCH_POP(ActorScaleRotScratch);
 }
 
-void Actor01200_Fn017DC(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn017DC(GpEnemy* arg0, Task* arg1)
 {
     SVECTOR         ofs;
     VECTOR          scale;
@@ -805,7 +805,7 @@ void Actor01200_Fn017DC(GpEnemy* arg0, Task* arg1)
     }
 }
 
-void Actor01200_Fn01FDC(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn01FDC(GpEnemy* arg0, Task* arg1)
 {
     SVECTOR         ofs;
     VECTOR          scale;
@@ -929,7 +929,7 @@ void Actor01200_Fn01FDC(GpEnemy* arg0, Task* arg1)
 /// angle `arg1` falls in (front, back, right or left), each with the model
 /// coordinate it is relative to, keeps it in `work->effOfs` and spawns hit id
 /// `arg2`'s effect there.
-void Actor01200_Fn026A0(Task* arg0, s16 arg1, u32 arg2)
+static void Actor01200_Fn026A0(Task* arg0, s16 arg1, u32 arg2)
 {
     SVECTOR*        sc;
     Actor01200Work* work;
@@ -1004,7 +1004,7 @@ void Actor01200_Fn026A0(Task* arg0, s16 arg1, u32 arg2)
 /// Hit check: finds the first type-2 record among the five at `rec250`, and
 /// on a hit applies its damage, turns the model toward it and, once the hit
 /// points run out, moves to substate 6.
-void Actor01200_Fn02918(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn02918(GpEnemy* arg0, Task* arg1)
 {
     ActorHitTakenScratch* sc;
     Actor01200Work*       work;
@@ -1072,7 +1072,7 @@ found:
 /// one, step 5 units, and swap points within 400 units or after 0x60 blocked
 /// frames; state 6 when `Actor01200_Fn00130` reports 1, state 4 when the
 /// player is within 2000 units and inside a quarter turn or 1000 units.
-void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
 {
     Actor01200Work*   work;
     ActorTurnScratch* head;
@@ -1156,7 +1156,7 @@ void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
 /// Walk back toward the spawn point: turn at most 0x10 toward it, step 8 units,
 /// and hand over to state 7 once within 0x50 or after 0xDD frames (state 6 when
 /// `Actor01200_Fn00130` reports 1).
-void Actor01200_Fn03294(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn03294(GpEnemy* arg0, Task* arg1)
 {
     Actor01200Work*   work;
     GpCoord*          coord;
@@ -1213,7 +1213,7 @@ void Actor01200_Fn03294(GpEnemy* arg0, Task* arg1)
     SCRATCH_POP(ActorTurnScratch);
 }
 
-const Actor01200StateTable Actor01200_D000E4 = {
+static const Actor01200StateTable Actor01200_D000E4 = {
     {
         Actor01200_Fn03D58,
         Actor01200_Fn03DC0,
@@ -1230,7 +1230,7 @@ const Actor01200StateTable Actor01200_D000E4 = {
 
 /// Per-frame tick: refreshes the coordinate and color, handles the render
 /// mode in `Gp_StateF0.field_4`, dispatches the substate handler and plays its sound.
-void Actor01200_Fn036B0(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn036B0(GpEnemy* arg0, Task* arg1)
 {
     VECTOR               pos;
     Actor01200StateTable table;
@@ -1301,7 +1301,7 @@ void Actor01200_Fn036B0(GpEnemy* arg0, Task* arg1)
 }
 
 /// The actor's three task states: spawn, per-frame tick and teardown.
-const GpEnemyTaskFuncTable3 Actor01200_D0010C = {
+static const GpEnemyTaskFuncTable3 Actor01200_D0010C = {
     {
         Actor01200_Fn00A6C,
         Actor01200_Fn036B0,
@@ -1396,7 +1396,7 @@ s32 Actor01200_Fn03B70(Task* task, s32 arg1, GpXformArg* placement)
 /// Rebuilds `coord`'s rotation as its current yaw alone, uniformly scaled by
 /// `scale`, working in a block borrowed from the scratch stack, and marks the
 /// coordinate dirty.
-void Actor01200_Fn03C40(GpCoord* coord, s16 scale)
+static void Actor01200_Fn03C40(GpCoord* coord, s16 scale)
 {
     void**                scratch;
     ActorScaleRotScratch* head;
@@ -1435,7 +1435,7 @@ void Actor01200_Fn03C40(GpCoord* coord, s16 scale)
 /// hides the model, and turns off the collision bodies the other states
 /// enable - the pair pass of `obj2C8`, `obj300` and `obj338`, and the grid
 /// pass of `obj230`. Nothing happens afterwards.
-void Actor01200_Fn03D58(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn03D58(GpEnemy* arg0, Task* arg1)
 {
     Actor01200Work* work;
     TmdObject*      obj;
@@ -1456,7 +1456,7 @@ void Actor01200_Fn03D58(GpEnemy* arg0, Task* arg1)
 /// `field_174` to 4, and set or clear the high bits of the four sub-object
 /// flags; afterwards run `Actor01200_Fn00820` and move to state 2 once bit 0
 /// of `field_58` is set.
-void Actor01200_Fn03DC0(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn03DC0(GpEnemy* arg0, Task* arg1)
 {
     Actor01200Work* work;
     TmdObject*      obj;
@@ -1486,7 +1486,7 @@ void Actor01200_Fn03DC0(GpEnemy* arg0, Task* arg1)
 /// `field_174` to 6, and set or clear the high bits of the four sub-object
 /// flags; afterwards run `Actor01200_Fn00820` and move to state 7 once bit 0
 /// of `field_58` is set.
-void Actor01200_Fn03E78(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn03E78(GpEnemy* arg0, Task* arg1)
 {
     Actor01200Work* work;
     TmdObject*      obj;
@@ -1515,7 +1515,7 @@ void Actor01200_Fn03E78(GpEnemy* arg0, Task* arg1)
 /// On entry (`field_4` set) clear the actor and model flags, set `field_174`
 /// to 2, and set or clear the high bits of the four sub-object flags; then run
 /// `Actor01200_Fn00820` and clear the model's coordinate flag every frame.
-void Actor01200_Fn03F30(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn03F30(GpEnemy* arg0, Task* arg1)
 {
     Actor01200Work* work;
     TmdObject*      obj;

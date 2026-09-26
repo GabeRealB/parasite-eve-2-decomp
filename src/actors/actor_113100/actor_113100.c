@@ -91,27 +91,27 @@ void func_8004BFF8(s16 angle, MATRIX* matrix);
 /// `func_actor_113100_80132F40`.
 void func_80183BAC(s32 arg0);
 
-void func_actor_113100_80131E58(Task* task);
-void func_actor_113100_80132104(Task* task);
-void func_actor_113100_801324DC(Task* task);
-void func_actor_113100_8013264C(Task* task);
-s32  func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3);
-void func_actor_113100_80132B30(Task* task);
-void func_actor_113100_80132BDC(Task* task);
-void func_actor_113100_80132CF4(Task* task);
-void func_actor_113100_80132E00(Task* task);
-void func_actor_113100_80132EF0(Task* task);
-void func_actor_113100_80132F24(Task* task);
-void func_actor_113100_80132F40(Task* task);
-void func_actor_113100_80132FB4(Task* task);
-void func_actor_113100_8013301C(Task* task);
-void func_actor_113100_801330E8(Task* task);
-s32  func_actor_113100_801331E8(Task* task, s32 msgId, GpAnimArg* preset, s32 arg3);
+static void func_actor_113100_80131E58(Task* task);
+static void func_actor_113100_80132104(Task* task);
+static void func_actor_113100_801324DC(Task* task);
+static void func_actor_113100_8013264C(Task* task);
+s32         func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3);
+static void func_actor_113100_80132B30(Task* task);
+static void func_actor_113100_80132BDC(Task* task);
+static void func_actor_113100_80132CF4(Task* task);
+static void func_actor_113100_80132E00(Task* task);
+static void func_actor_113100_80132EF0(Task* task);
+static void func_actor_113100_80132F24(Task* task);
+static void func_actor_113100_80132F40(Task* task);
+static void func_actor_113100_80132FB4(Task* task);
+static void func_actor_113100_8013301C(Task* task);
+static void func_actor_113100_801330E8(Task* task);
+s32         func_actor_113100_801331E8(Task* task, s32 msgId, GpAnimArg* preset, s32 arg3);
 
 /// States of a child task posed on one of the parent's parts: attach to the
 /// parent, rebuild its display matrix every frame, then `taskKill`. Dispatched
 /// by `func_actor_113100_80132AD8`.
-const TaskFuncTable3 D_actor_113100_80131E24 = { {
+static const TaskFuncTable3 D_actor_113100_80131E24 = { {
     func_actor_113100_80132B30,
     func_actor_113100_80132BDC,
     taskKill,
@@ -120,7 +120,7 @@ const TaskFuncTable3 D_actor_113100_80131E24 = { {
 /// States of the child task that follows the parent's model flags: attach to
 /// the parent's part, mirror its flags every frame, then `taskKill`.
 /// Dispatched by `func_actor_113100_80132C9C`.
-const TaskFuncTable3 D_actor_113100_80131E30 = { {
+static const TaskFuncTable3 D_actor_113100_80131E30 = { {
     func_actor_113100_80132CF4,
     func_actor_113100_80132E00,
     taskKill,
@@ -128,7 +128,7 @@ const TaskFuncTable3 D_actor_113100_80131E30 = { {
 
 /// The actor's own three states - setup, per-frame tick and exit -
 /// dispatched by `func_actor_113100_80132E98`.
-const TaskFuncTable3 D_actor_113100_80131E3C = { {
+static const TaskFuncTable3 D_actor_113100_80131E3C = { {
     func_actor_113100_80131E58,
     func_actor_113100_80132104,
     func_actor_113100_80132EF0,
@@ -136,7 +136,7 @@ const TaskFuncTable3 D_actor_113100_80131E3C = { {
 
 /// The four main-body handlers, dispatched by `func_actor_113100_80132FB4`
 /// through `Actor113100Work::walk.motionStep`.
-const TaskFuncTable4 D_actor_113100_80131E48 = { {
+static const TaskFuncTable4 D_actor_113100_80131E48 = { {
     func_actor_113100_8013301C,
     func_actor_113100_801324DC,
     func_actor_113100_8013264C,
@@ -153,7 +153,7 @@ const TaskFuncTable4 D_actor_113100_80131E48 = { {
 /// node is linked and its flags raised to 0x8000 with `field_1C` set to 0x100,
 /// and `field_8` is attached to model part 1. Finally it publishes the message
 /// table, installs the exit callback and steps to the next state.
-void func_actor_113100_80131E58(Task* task)
+static void func_actor_113100_80131E58(Task* task)
 {
     Actor113100Work* work;
     Task*            child2;
@@ -264,7 +264,7 @@ void func_actor_113100_80131E58(Task* task)
 /// the occupancy table, ramps `field_538` toward 0 or 0x1000 according to
 /// `field_53C`, and turns the head toward slot 3. `viewReady` rebuilds part 1's
 /// lighting, and `field_53D` counts the buffer free down to zero.
-void func_actor_113100_80132104(Task* task)
+static void func_actor_113100_80132104(Task* task)
 {
     TmdObject*       extra    = task->extra.tmd;
     Actor113100Work* work     = (Actor113100Work*)task->work;
@@ -369,7 +369,7 @@ void func_actor_113100_80132104(Task* task)
 /// `$v0` instead. `words` and `turnWords` are likewise two pointers rather
 /// than one: a single `words` would make the turn arm and the normal arm share
 /// a pseudo, which lengthens its life across the branch and adds a copy.
-void func_actor_113100_801324DC(Task* task)
+static void func_actor_113100_801324DC(Task* task)
 {
     Actor113100Work* work;
     GpCoord*         coord;
@@ -438,7 +438,7 @@ void func_actor_113100_801324DC(Task* task)
 /// `walk.step` vector, bumping `walk.motionStep` on to the next handler. Below the
 /// thresholds it latches the magnitudes back into `walk.limit`, so the pair
 /// tracks the last distance that was too small.
-void func_actor_113100_8013264C(Task* task)
+static void func_actor_113100_8013264C(Task* task)
 {
     Actor113100Work* work;
     GpCoord*         coord;
@@ -632,7 +632,7 @@ void func_actor_113100_80132AD8(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_actor_113100_80132B30(Task* task)
+static void func_actor_113100_80132B30(Task* task)
 {
     TmdObject* model;
     Task*      parent;
@@ -667,7 +667,7 @@ void func_actor_113100_80132B30(Task* task)
 /// `workm` is transposed into the actor coordinate, the stage view is multiplied
 /// in, and the part's X euler angle is applied, after which the coordinate's
 /// update flag is cleared so the GTE sees the new matrix.
-void func_actor_113100_80132BDC(Task* task)
+static void func_actor_113100_80132BDC(Task* task)
 {
     MATRIX   sp10;
     SVECTOR  sp30;
@@ -704,7 +704,7 @@ void func_actor_113100_80132C9C(Task* task)
 /// the model at order-table offset -2, hangs the child's root coordinate off the
 /// parent's part `spawnArg1`, shares the parent's light and colour matrices,
 /// reparents the task under the parent and steps to the next state.
-void func_actor_113100_80132CF4(Task* task)
+static void func_actor_113100_80132CF4(Task* task)
 {
     Task*      parent;
     TmdObject* obj;
@@ -742,7 +742,7 @@ void func_actor_113100_80132CF4(Task* task)
 /// 0x80 and 0x4 onto the child's own model. Bit 0x80 is the deferred-kill flag
 /// that hides the model; when the parent's bit 0x4 is clear the child's is
 /// cleared too and `Tmd_AllocBuffers` is called on the child's model.
-void func_actor_113100_80132E00(Task* task)
+static void func_actor_113100_80132E00(Task* task)
 {
     TmdObject* parentObject;
     TmdObject* object;
@@ -773,7 +773,7 @@ void func_actor_113100_80132E98(Task* task)
 
 /// The task's exit callback: it unlinks the work block's display node and
 /// destroys the task.
-void func_actor_113100_80132EF0(Task* arg0)
+static void func_actor_113100_80132EF0(Task* arg0)
 {
     Gp_UnlinkObj(&((Actor113100Work*)arg0->work)->obj);
     Gp_EnemyTaskExit(arg0);
@@ -781,7 +781,7 @@ void func_actor_113100_80132EF0(Task* arg0)
 
 /// Points the model's light and colour matrices at the work block's own
 /// `light` / `color` pair; the setup handler calls it once.
-void func_actor_113100_80132F24(Task* task)
+static void func_actor_113100_80132F24(Task* task)
 {
     TmdObject*       ext;
     Actor113100Work* work;
@@ -792,7 +792,7 @@ void func_actor_113100_80132F24(Task* task)
     ext->colorMtx = &work->model.color;
 }
 
-void func_actor_113100_80132F40(Task* arg0)
+static void func_actor_113100_80132F40(Task* arg0)
 {
     Actor113100Work* work;
     s32              flag;
@@ -808,7 +808,7 @@ void func_actor_113100_80132F40(Task* arg0)
 
 /// Dispatches the actor's four main-body handlers by the animation slot index
 /// `walk.motionStep` counts up in `func_actor_113100_8013301C`.
-void func_actor_113100_80132FB4(Task* arg0)
+static void func_actor_113100_80132FB4(Task* arg0)
 {
     Actor113100Work* work;
     TaskFuncTable4   sp;
@@ -827,7 +827,7 @@ void func_actor_113100_80132FB4(Task* arg0)
 /// `preset` is declared before `delta` / `dir` on purpose -- the stack slots
 /// land at 0x10, 0x28 and 0x38 only in that order (GCC assigns the frame in
 /// declaration order, and the 16-byte `VECTOR` is 8-byte aligned).
-void func_actor_113100_8013301C(Task* arg0)
+static void func_actor_113100_8013301C(Task* arg0)
 {
     Actor113100Work* work;
     GpCoord*         coord;
@@ -853,7 +853,7 @@ void func_actor_113100_8013301C(Task* arg0)
     work->walk.motionStep++;
 }
 
-void func_actor_113100_801330E8(Task* arg0)
+static void func_actor_113100_801330E8(Task* arg0)
 {
     Actor113100Work* work;
     GpMtxWords*      words;

@@ -111,34 +111,34 @@ extern TaskDesc   D_actor_521100_8015F6E4[];
 extern u8         D_actor_521100_8015F6FC[];
 extern u8         D_actor_521100_8015F73C[];
 
-void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2);
-void func_actor_521100_80132958(Task* arg0);
-s32  func_actor_521100_80132C70(Task* arg0);
-void func_actor_521100_80132DE8(Task* arg0);
-void func_actor_521100_80133104(Task* arg0);
-void func_actor_521100_8013334C(Task* arg0);
-void func_actor_521100_801335B4(Task* arg0);
-void func_actor_521100_801339B0(Task* arg0);
-void func_actor_521100_80134658(Task* arg0);
-void func_actor_521100_80134774(Task* arg0);
-void func_actor_521100_80134C38(Task* arg0);
-void func_actor_521100_80134D88(Task* arg0);
-void func_actor_521100_80134EDC(Task* arg0);
-void func_actor_521100_80135024(Task* arg0);
-void func_actor_521100_80135230(Task* arg0);
-void func_actor_521100_801353CC(GpEnemy* arg0, Task* arg1);
-void func_actor_521100_80135414(GpEnemy* arg0, Task* arg1);
-void func_actor_521100_80135478(GpEnemy* arg0, Task* arg1);
-void func_actor_521100_801355C8(Task* arg0);
-void func_actor_521100_80135680(Task* arg0);
-void func_actor_521100_8013570C(Task* arg0);
-void func_actor_521100_801357F0(Task* arg0);
-void func_actor_521100_801358D4(Task* arg0);
-void func_actor_521100_80135964(Task* arg0);
-void func_actor_521100_80135A34(Task* arg0);
-void func_actor_521100_80135A90(Task* arg0);
-void func_actor_521100_80135B40(GpEnemy* enemy, Task* task);
-void func_actor_521100_80135B80(GpEnemy* arg0, Task* task);
+static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2);
+static void func_actor_521100_80132958(Task* arg0);
+static s32  func_actor_521100_80132C70(Task* arg0);
+static void func_actor_521100_80132DE8(Task* arg0);
+static void func_actor_521100_80133104(Task* arg0);
+static void func_actor_521100_8013334C(Task* arg0);
+static void func_actor_521100_801335B4(Task* arg0);
+static void func_actor_521100_801339B0(Task* arg0);
+static void func_actor_521100_80134658(Task* arg0);
+static void func_actor_521100_80134774(Task* arg0);
+static void func_actor_521100_80134C38(Task* arg0);
+static void func_actor_521100_80134D88(Task* arg0);
+static void func_actor_521100_80134EDC(Task* arg0);
+static void func_actor_521100_80135024(Task* arg0);
+static void func_actor_521100_80135230(Task* arg0);
+static void func_actor_521100_801353CC(GpEnemy* arg0, Task* arg1);
+static void func_actor_521100_80135414(GpEnemy* arg0, Task* arg1);
+static void func_actor_521100_80135478(GpEnemy* arg0, Task* arg1);
+static void func_actor_521100_801355C8(Task* arg0);
+static void func_actor_521100_80135680(Task* arg0);
+static void func_actor_521100_8013570C(Task* arg0);
+static void func_actor_521100_801357F0(Task* arg0);
+static void func_actor_521100_801358D4(Task* arg0);
+static void func_actor_521100_80135964(Task* arg0);
+static void func_actor_521100_80135A34(Task* arg0);
+static void func_actor_521100_80135A90(Task* arg0);
+static void func_actor_521100_80135B40(GpEnemy* enemy, Task* task);
+static void func_actor_521100_80135B80(GpEnemy* arg0, Task* task);
 
 /// Declared locally with a signed `arg2`, as `include/gameplay/1BC.h` explains:
 /// the definition takes `u16` so that its own body matches, but this caller
@@ -156,7 +156,7 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// Every body's coordinate is assigned first in its block: the model pointer is
 /// reloaded from the task each time, and that load has to precede the stores
 /// into the work block, which it cannot be scheduled across.
-void func_actor_521100_80131E8C(GpEnemy* enemy, Task* task)
+static void func_actor_521100_80131E8C(GpEnemy* enemy, Task* task)
 {
     GpAreaKey        key;
     TmdObject*       obj;
@@ -320,7 +320,7 @@ static __inline__ s32 Actor521100_GetHitType(s32 key)
     return D_actor_521100_8015F684[key & 0x3F];
 }
 
-void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
+static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
 {
     ActorDeltaFrame48* scratch;
     Actor521100Work*   work;
@@ -522,7 +522,7 @@ void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x48);
 }
 
-void func_actor_521100_80132958(Task* arg0)
+static void func_actor_521100_80132958(Task* arg0)
 {
     Actor521100Work* work;
     GpCoord*         coord;
@@ -636,7 +636,7 @@ void func_actor_521100_80132958(Task* arg0)
 /// the body rearms the motion state (2 into `field_69E`, 0xA frames of blend
 /// into `field_686`, the 0xA/0xFF/0x80 pad lerp) and returns 1; the 0x3F8
 /// query buffer is the 0x18 bytes pushed on the scratch-pad stack.
-s32 func_actor_521100_80132C70(Task* arg0)
+static s32 func_actor_521100_80132C70(Task* arg0)
 {
     Actor521100Work* work;
     Task*            player;
@@ -677,7 +677,7 @@ s32 func_actor_521100_80132C70(Task* arg0)
     SCRATCH_POP_BYTES(0x18);
     return ret;
 }
-void func_actor_521100_80132DE8(Task* arg0)
+static void func_actor_521100_80132DE8(Task* arg0)
 {
     Actor521100Work*        work;
     GpCoord*                coord;
@@ -784,7 +784,7 @@ void func_actor_521100_80132DE8(Task* arg0)
 
 /// The scratch head is taken through `ActorScratchStack` rather than as
 /// `SCRATCH_HEAD`, which does not compile the same.
-void func_actor_521100_80133104(Task* arg0)
+static void func_actor_521100_80133104(Task* arg0)
 {
     GpCoord*         coord;
     SVECTOR*         vec;
@@ -893,7 +893,7 @@ void func_actor_521100_80133104(Task* arg0)
 /// effect id out of `D_actor_521100_8015F5F4` (the top four bits of an LCG
 /// draw) into `field_68E`, and the state latch `field_69E`, its phase
 /// `field_6A0` and the armed flag all cleared.
-void func_actor_521100_8013334C(Task* arg0)
+static void func_actor_521100_8013334C(Task* arg0)
 {
     Actor521100Work* work;
     GpCoord*         coord;
@@ -992,7 +992,7 @@ void func_actor_521100_8013334C(Task* arg0)
 /// picks the finish off `coord->coord.t[0]`: under -0xFA0 the actor stays
 /// burning (phase 2 of the latch, or 1 in the session's mode 2), otherwise it
 /// resets to idle with the clip-1 draw.
-void func_actor_521100_801335B4(Task* arg0)
+static void func_actor_521100_801335B4(Task* arg0)
 {
     Actor521100Work* work;
     GpCoord*         coord;
@@ -1097,7 +1097,7 @@ void func_actor_521100_801335B4(Task* arg0)
     SCRATCH_POP_BYTES(0x18);
 }
 
-void func_actor_521100_801339B0(Task* arg0)
+static void func_actor_521100_801339B0(Task* arg0)
 {
     Actor521100Work*        work;
     GpCoord*                coord;
@@ -1404,7 +1404,7 @@ void func_actor_521100_801339B0(Task* arg0)
 /// at sub-state `field_6BC`. Phase 2 latches clip 1 for the blend and picks this
 /// frame's effect out of `D_actor_521100_8015F634`, the same 4-bit draw
 /// `func_actor_521100_8013570C` makes.
-void func_actor_521100_80134658(Task* arg0)
+static void func_actor_521100_80134658(Task* arg0)
 {
     Actor521100Work* work;
     u16*             tbl;
@@ -1473,7 +1473,7 @@ void func_actor_521100_80134658(Task* arg0)
 /// `do { ... } while (0)` around phase 1's `ratan2` is what keeps `head` ahead
 /// of that copy in the register allocator's order - see
 /// `DECOMPILATION_LEARNINGS.md`, "loop_depth as an allocation weight".
-void func_actor_521100_80134774(Task* arg0)
+static void func_actor_521100_80134774(Task* arg0)
 {
     Actor521100Work*  work;
     GpCoord*          coord;
@@ -1598,7 +1598,7 @@ void func_actor_521100_80134774(Task* arg0)
 /// the far half. `field_696` is read back as a signed half, the form the
 /// sibling overlays' work blocks declare their yaw in; this body is the same
 /// one `Actor02500_Fn016FC` and `func_actor_300700_80164794` carry.
-void func_actor_521100_80134C38(Task* arg0)
+static void func_actor_521100_80134C38(Task* arg0)
 {
     Actor521100Work*  work;
     GpCoord*          coord;
@@ -1676,7 +1676,7 @@ done:
 /// 12+ placed in bits 8-11 with the overlay's 0x401C tag, 1 for the 0x20 foot
 /// and 2 for the 0x10 one, and the record's two bits are latched for the next
 /// frame at the end.
-void func_actor_521100_80134D88(Task* arg0)
+static void func_actor_521100_80134D88(Task* arg0)
 {
     s32              snd;
     s32              pan;
@@ -1714,7 +1714,7 @@ void func_actor_521100_80134D88(Task* arg0)
 /// is what puts the `coord += 0x140` in the clamp's branch delay slot. The
 /// `+ 0x600` likewise needs the temporary, or it is sunk into the subtrahend as
 /// `- 0x600` on the player coordinate.
-void func_actor_521100_80134EDC(Task* arg0)
+static void func_actor_521100_80134EDC(Task* arg0)
 {
     ActorAimScratch* scratch;
     GpCoord*         coord;
@@ -1764,7 +1764,7 @@ void func_actor_521100_80134EDC(Task* arg0)
 /// as `SCRATCH_HEAD`, which does not compile the same.
 ///
 /// Same body as `Actor02000_Fn01698` and `func_actor_510900_80138D38`.
-void func_actor_521100_80135024(Task* arg0)
+static void func_actor_521100_80135024(Task* arg0)
 {
     Actor521100Work* work;
     GpCoord*         coord;
@@ -1836,7 +1836,7 @@ void func_actor_521100_80135024(Task* arg0)
 /// `D_actor_521100_8015F8BC` by the top three bits of an LCG draw. `field_690`
 /// is the sequence's own clock, walking the state 1 -> 2 at 0xF0 frames, 2 -> 3
 /// at 0x14A and 3 -> 0 at 0x1A4, where the tick stops.
-void func_actor_521100_80135230(Task* arg0)
+static void func_actor_521100_80135230(Task* arg0)
 {
     Actor521100Work* work;
     u16              timer;
@@ -1872,7 +1872,7 @@ void func_actor_521100_80135230(Task* arg0)
 /// State handlers of the actor's second part, which `func_actor_521100_80135AE4`
 /// dispatches through: the setup `func_actor_521100_80135B40`, the per-frame
 /// tick `func_actor_521100_80135B80` and `Gp_DestroyEnemy`.
-const GpEnemyTaskFuncTable3 D_actor_521100_80131E40 = { {
+static const GpEnemyTaskFuncTable3 D_actor_521100_80131E40 = { {
     func_actor_521100_80135B40,
     func_actor_521100_80135B80,
     Gp_DestroyEnemy,
@@ -1892,7 +1892,7 @@ void func_actor_521100_80135378(Task* task)
     fns[task->state](task->spawnArg2, task);
 }
 
-void func_actor_521100_801353CC(GpEnemy* arg0, Task* arg1)
+static void func_actor_521100_801353CC(GpEnemy* arg0, Task* arg1)
 {
     Actor521100Work* work;
 
@@ -1906,7 +1906,7 @@ void func_actor_521100_801353CC(GpEnemy* arg0, Task* arg1)
     func_actor_521100_80135478(arg0, arg1);
 }
 
-void func_actor_521100_80135414(GpEnemy* arg0, Task* arg1)
+static void func_actor_521100_80135414(GpEnemy* arg0, Task* arg1)
 {
     Actor521100Work* temp_s0;
 
@@ -1920,7 +1920,7 @@ void func_actor_521100_80135414(GpEnemy* arg0, Task* arg1)
     }
 }
 
-void func_actor_521100_80135478(GpEnemy* arg0, Task* arg1)
+static void func_actor_521100_80135478(GpEnemy* arg0, Task* arg1)
 {
     GpCoord*         temp_s2;
     TmdObject*       temp_a1;
@@ -1981,7 +1981,7 @@ case1:
     func_actor_521100_80135A90(arg1);
 }
 
-void func_actor_521100_801355C8(Task* arg0)
+static void func_actor_521100_801355C8(Task* arg0)
 {
     s16 temp_v1;
 
@@ -2014,7 +2014,7 @@ void func_actor_521100_801355C8(Task* arg0)
 
 /// Steps the actor into state 1 once its facing has come within 45 degrees of
 /// the angle at `field_696`, then stops it: both speeds are zeroed.
-void func_actor_521100_80135680(Task* arg0)
+static void func_actor_521100_80135680(Task* arg0)
 {
     Actor521100Work* work;
     s16              delta;
@@ -2050,7 +2050,7 @@ void func_actor_521100_80135680(Task* arg0)
 /// then either drops the actor to the idle state or, when `field_6BA` asks for
 /// it, on to state 6 at sub-state `field_6BC`. Either way it latches clip 1 for
 /// the blend and picks this frame's effect out of `D_actor_521100_8015F634`.
-void func_actor_521100_8013570C(Task* arg0)
+static void func_actor_521100_8013570C(Task* arg0)
 {
     Actor521100Work* work;
     u16*             tbl;
@@ -2091,7 +2091,7 @@ void func_actor_521100_8013570C(Task* arg0)
 /// idle state or, when `field_6BA` asks for it, on to state 6 at sub-state
 /// `field_6BC`. Either way it latches clip 1 for the blend and picks this
 /// frame's effect out of `D_actor_521100_8015F5F4`.
-void func_actor_521100_801357F0(Task* arg0)
+static void func_actor_521100_801357F0(Task* arg0)
 {
     Actor521100Work* work;
     u16*             tbl;
@@ -2129,7 +2129,7 @@ void func_actor_521100_801357F0(Task* arg0)
 /// walks the coordinate forward: 0x80 up, and along its own facing axis
 /// (`m[0][2]` / `m[2][2]`) scaled by the work block's speed in 12-bit fixed
 /// point.
-void func_actor_521100_801358D4(Task* arg0)
+static void func_actor_521100_801358D4(Task* arg0)
 {
     GpCoord*         coord;
     Actor521100Work* work;
@@ -2150,7 +2150,7 @@ void func_actor_521100_801358D4(Task* arg0)
 /// the blend runs the nineteen slots through `func_800B4114` with the length
 /// `D_actor_521100_8015F894` gives the incoming clip, and the tick counts the
 /// agreeing frames in `field_68A`.
-void func_actor_521100_80135964(Task* arg0)
+static void func_actor_521100_80135964(Task* arg0)
 {
     Actor521100Work* work;
     s32              i;
@@ -2181,7 +2181,7 @@ void func_actor_521100_80135964(Task* arg0)
 
 /// Colours the actor from the world position of its second model coordinate,
 /// handing it to `Gp_UpdateActorColor` with no blend parameters.
-void func_actor_521100_80135A34(Task* arg0)
+static void func_actor_521100_80135A34(Task* arg0)
 {
     GpCoord* coord;
     VECTOR   vec;
@@ -2195,7 +2195,7 @@ void func_actor_521100_80135A34(Task* arg0)
 
 /// Draws the actor's ground shadow: a quad at the second model coordinate's
 /// x/z and the first's y, so it lies on the ground under the actor.
-void func_actor_521100_80135A90(Task* arg0)
+static void func_actor_521100_80135A90(Task* arg0)
 {
     GpCoord* coord;
     GpCoord* sub;
@@ -2223,7 +2223,7 @@ void func_actor_521100_80135AE4(Task* task)
 /// Setup state of the actor's second part: hangs its model coordinate under
 /// the parent model's ninth coordinate, draws it under the parent work block's
 /// light and colour matrices, shows it and moves the task on to its tick.
-void func_actor_521100_80135B40(GpEnemy* enemy, Task* task)
+static void func_actor_521100_80135B40(GpEnemy* enemy, Task* task)
 {
     Task*            parent;
     TmdObject*       obj;
@@ -2244,7 +2244,7 @@ void func_actor_521100_80135B40(GpEnemy* enemy, Task* task)
     task->state   = 1;
 }
 
-void func_actor_521100_80135B80(GpEnemy* arg0, Task* task)
+static void func_actor_521100_80135B80(GpEnemy* arg0, Task* task)
 {
     TmdObject*       obj;
     Actor521100Work* work;

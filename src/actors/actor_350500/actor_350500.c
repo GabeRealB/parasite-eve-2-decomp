@@ -32,20 +32,20 @@ extern void* D_actor_350500_80168EA0[];
 /// `func_actor_350500_801623CC`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_350500_80168EB0[];
 
-void func_actor_350500_80161E50(Task* arg0);
-void func_actor_350500_80162038(Task* arg0);
-void func_actor_350500_801623CC(Task* arg0);
-void func_actor_350500_8016245C(Task* arg0);
-void func_actor_350500_8016247C(Task* arg0);
-void func_actor_350500_80162498(Task* arg0);
-void func_actor_350500_801624A0(Task* arg0);
-void func_actor_350500_80162508(Task* task);
-void func_actor_350500_801625E4(Task* arg0);
-void func_actor_350500_8016272C(Task* arg0);
-s32  func_actor_350500_80162828(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
+static void func_actor_350500_80161E50(Task* arg0);
+static void func_actor_350500_80162038(Task* arg0);
+static void func_actor_350500_801623CC(Task* arg0);
+static void func_actor_350500_8016245C(Task* arg0);
+static void func_actor_350500_8016247C(Task* arg0);
+static void func_actor_350500_80162498(Task* arg0);
+static void func_actor_350500_801624A0(Task* arg0);
+static void func_actor_350500_80162508(Task* task);
+static void func_actor_350500_801625E4(Task* arg0);
+static void func_actor_350500_8016272C(Task* arg0);
+s32         func_actor_350500_80162828(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
 
 /// Spawn, tick and exit handlers, dispatched by `func_actor_350500_80162360`.
-const TaskFuncTable3 D_actor_350500_80161E24 = { {
+static const TaskFuncTable3 D_actor_350500_80161E24 = { {
     func_actor_350500_801623CC,
     func_actor_350500_80161E50,
     func_actor_350500_8016245C,
@@ -54,7 +54,7 @@ const TaskFuncTable3 D_actor_350500_80161E24 = { {
 /// The walk steps, indexed by `Actor350500Work::walk.motionStep`: turn to face
 /// `target`, start moving, approach until arrival, then turn to the placement
 /// yaw.
-const TaskFuncTable4 D_actor_350500_80161E30 = { {
+static const TaskFuncTable4 D_actor_350500_80161E30 = { {
     func_actor_350500_80162508,
     func_actor_350500_801625E4,
     func_actor_350500_80162038,
@@ -63,7 +63,7 @@ const TaskFuncTable4 D_actor_350500_80161E30 = { {
 
 /// Local-space offset the start-moving step rotates: straight ahead along
 /// the part's own +Z.
-const VECTOR D_actor_350500_80161E40 = { 0, 0, 0x200000, 0 };
+static const VECTOR D_actor_350500_80161E40 = { 0, 0, 0x200000, 0 };
 
 /// Per-frame tick: runs the idle or the walk handler `walk.motion` selects,
 /// then integrates the world-space `step` into the 16.16 accumulators at
@@ -74,7 +74,7 @@ const VECTOR D_actor_350500_80161E40 = { 0, 0, 0x200000, 0 };
 /// rebuilds its coordinate. The `freeCountdown` countdown then runs while it is
 /// non-negative, freeing the model buffers on the frame it reaches zero; the
 /// init's -1 disables it.
-void func_actor_350500_80161E50(Task* arg0)
+static void func_actor_350500_80161E50(Task* arg0)
 {
     TmdObject*       ext      = arg0->extra.tmd;
     Actor350500Work* work     = (Actor350500Work*)arg0->work;
@@ -120,7 +120,7 @@ void func_actor_350500_80161E50(Task* arg0)
 /// coordinate to `target` stop shrinking below `limit`, plays the `model.nextAnimId`
 /// animation, clears `step` and advances `walk.motionStep`; otherwise records the
 /// distances as the new `limit`.
-void func_actor_350500_80162038(Task* arg0)
+static void func_actor_350500_80162038(Task* arg0)
 {
     Actor350500Work* work;
     GpCoord*         coord;
@@ -246,7 +246,7 @@ void func_actor_350500_80162360(Task* task)
 /// light and colour matrices onto the display object, then installs the
 /// message table and the exit handler. An allocation failure ends the
 /// task instead of leaving a half-built actor behind.
-void func_actor_350500_801623CC(Task* arg0)
+static void func_actor_350500_801623CC(Task* arg0)
 {
     Actor350500Work* work;
 
@@ -272,14 +272,14 @@ void func_actor_350500_801623CC(Task* arg0)
 }
 
 /// Exit callback `func_actor_350500_801623CC` installs; tears the task down.
-void func_actor_350500_8016245C(Task* arg0)
+static void func_actor_350500_8016245C(Task* arg0)
 {
     Gp_EnemyTaskExit(arg0);
 }
 
 /// Republishes the work block's two matrices onto `TmdObject::lightMtx` /
 /// `colorMtx`, so the actor draws with its own lighting.
-void func_actor_350500_8016247C(Task* arg0)
+static void func_actor_350500_8016247C(Task* arg0)
 {
     TmdObject*       ext;
     Actor350500Work* work;
@@ -291,13 +291,13 @@ void func_actor_350500_8016247C(Task* arg0)
 }
 
 /// Idle tick handler, selected while `walk.motion` is clear.
-void func_actor_350500_80162498(Task* arg0)
+static void func_actor_350500_80162498(Task* arg0)
 {
 }
 
 /// Walk tick handler: runs the step of `D_actor_350500_80161E30` that
 /// `walk.motionStep` selects.
-void func_actor_350500_801624A0(Task* arg0)
+static void func_actor_350500_801624A0(Task* arg0)
 {
     TaskFuncTable4   sp;
     Actor350500Work* work;
@@ -313,7 +313,7 @@ void func_actor_350500_801624A0(Task* arg0)
 /// the local matrix from that yaw alone. Clearing `flg` makes the coordinate
 /// tree recompute the world matrix, and bumping `walk.motionStep` moves on to the
 /// next step.
-void func_actor_350500_80162508(Task* task)
+static void func_actor_350500_80162508(Task* task)
 {
     Actor350500Work* work;
     GpCoord*         coord;
@@ -348,7 +348,7 @@ void func_actor_350500_80162508(Task* task)
 /// length, a slower backward walk, while `field_4C4` is clear -- through the
 /// root part's matrix into `work->step`, opens the per-axis stop threshold to
 /// 0x7FFF, which disables it for the approach test, and advances `walk.motionStep`.
-void func_actor_350500_801625E4(Task* arg0)
+static void func_actor_350500_801625E4(Task* arg0)
 {
     Actor350500Work* work;
     GpCoord*         coord;
@@ -376,7 +376,7 @@ void func_actor_350500_801625E4(Task* arg0)
 /// plays anim 1 and clears `walk.motion` and `walk.motionStep`, which returns the
 /// tick to idle. Either way the root coordinate is rebuilt as the identity
 /// rotated by `vec` and its `flg` cleared.
-void func_actor_350500_8016272C(Task* arg0)
+static void func_actor_350500_8016272C(Task* arg0)
 {
     Actor350500Work* work;
     GpMtxWords*      words;

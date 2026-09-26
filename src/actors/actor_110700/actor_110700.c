@@ -27,8 +27,8 @@ extern GpMsgEntry D_actor_110700_8013BFA0[];
 /// Animation source `func_800B3F84` seeds the work block's slots from.
 extern u8 D_actor_110700_8013BFC0[];
 
-void func_actor_110700_80131E78(GpEnemy* enemy, Task* task);
-void func_actor_110700_80131F44(GpEnemy* enemy, Task* task);
+static void func_actor_110700_80131E78(GpEnemy* enemy, Task* task);
+static void func_actor_110700_80131F44(GpEnemy* enemy, Task* task);
 
 /// The actor's task entry. Runs the handler for the task's current state,
 /// passing the `GpEnemy` the task was spawned with: state 0 sets the actor up,
@@ -48,7 +48,7 @@ void func_actor_110700_80131E24(Task* task)
 /// and colour matrices, shows it, seeds the animation slots, installs the
 /// message table and moves to state 1. If the allocation fails the enemy is
 /// destroyed instead.
-void func_actor_110700_80131E78(GpEnemy* enemy, Task* task)
+static void func_actor_110700_80131E78(GpEnemy* enemy, Task* task)
 {
     GpCoord*         coord;
     TmdObject*       obj;
@@ -75,7 +75,7 @@ void func_actor_110700_80131E78(GpEnemy* enemy, Task* task)
 /// State 1, run every frame: ticks animation slots 1..0x12 once an animation
 /// has been started, then pushes the world translation of the model's second
 /// coordinate on the scratch stack and hands it to `Gp_UpdateActorColor`.
-void func_actor_110700_80131F44(GpEnemy* enemy, Task* task)
+static void func_actor_110700_80131F44(GpEnemy* enemy, Task* task)
 {
     Actor110700Work* work;
     GpCoord*         coord;

@@ -34,8 +34,8 @@ STATIC_ASSERT_SIZEOF(Actor503500ColorMtx, 0x48);
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_503500_80132430`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_503500_80146888[];
-void              func_actor_503500_801324C4(Task* task);
-void              func_actor_503500_801324EC(Task* arg0);
+static void       func_actor_503500_801324C4(Task* task);
+static void       func_actor_503500_801324EC(Task* arg0);
 /// Script pair handed to `Gp_SpawnScript18` on every odd pulse frame.
 extern u8 D_actor_503500_801468A8[];
 extern u8 D_actor_503500_801468B0[];
@@ -44,7 +44,7 @@ extern u8 D_actor_503500_801468B0[];
 extern DVECTOR_XZ D_actor_503500_80147D90[];
 extern DVECTOR_XZ D_actor_503500_80148330[];
 
-void func_actor_503500_8013223C(Task* arg0)
+static void func_actor_503500_8013223C(Task* arg0)
 {
     TmdObject*           ext;
     Actor503500ColorMtx* work;
@@ -111,7 +111,7 @@ void func_actor_503500_8013223C(Task* arg0)
     }
 }
 
-void func_actor_503500_80132430(Task* arg0)
+static void func_actor_503500_80132430(Task* arg0)
 {
     TmdObject*           ext;
     Actor503500ColorMtx* work;
@@ -135,12 +135,12 @@ void func_actor_503500_80132430(Task* arg0)
 /// `Task::exitCallback` of the actor's main task, and the third entry of its
 /// state table: hands the `GpEnemy` the spawn left in `Task::spawnArg2` back to
 /// `Gp_DestroyEnemy`.
-void func_actor_503500_801324C4(Task* task)
+static void func_actor_503500_801324C4(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
 
-void func_actor_503500_801324EC(Task* arg0)
+static void func_actor_503500_801324EC(Task* arg0)
 {
     TmdObject*           ext;
     Actor503500ColorMtx* work;
@@ -235,7 +235,7 @@ s32 func_actor_503500_80132664(Task* task, s32 arg1, GpCmdArg* msg)
 }
 
 /// `Task::state` handlers `func_actor_503500_8013270C` dispatches through.
-const TaskFuncTable3 D_actor_503500_80131E24 = {
+static const TaskFuncTable3 D_actor_503500_80131E24 = {
     {
         func_actor_503500_80132430,
         func_actor_503500_8013223C,
@@ -243,7 +243,7 @@ const TaskFuncTable3 D_actor_503500_80131E24 = {
     },
 };
 
-void func_actor_503500_8013270C(Task* task)
+static void func_actor_503500_8013270C(Task* task)
 {
     TaskFuncTable3 sp;
 

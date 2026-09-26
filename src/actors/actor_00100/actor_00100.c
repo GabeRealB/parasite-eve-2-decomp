@@ -29,7 +29,7 @@
 /// part index the spawned effect anchors to.
 extern SVECTOR Actor00100_D1B9F4[12];
 
-void Actor00100_Fn03340(Task*, s16, s32);
+static void Actor00100_Fn03340(Task*, s16, s32);
 
 typedef struct Actor00100DamageWork {
     s16 field_0;
@@ -88,6 +88,10 @@ typedef struct Actor00100DamageScratch {
     s16 field_2E;
 } Actor00100DamageScratch;
 
+static void Actor00100_Fn02788(Task* arg0);
+static void Actor00100_Fn0B3B4(Task* task);
+static void Actor00100_Fn0B658(Task* arg0);
+
 static __inline__ s32 Actor00100_FindDamageHit(GpRec18* records, SVECTOR* pos)
 {
     s16 i;
@@ -145,13 +149,13 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 extern s8 Actor00100_D1B6D0;
 
-extern const GpEnemyTaskFuncTable4 Actor00100_D001A0;
+static const GpEnemyTaskFuncTable4 Actor00100_D001A0;
 
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.
-void Actor00100_Fn001FC(GpCoord* coord, s16 yaw)
+static void Actor00100_Fn001FC(GpCoord* coord, s16 yaw)
 {
     MATRIX*  rotation;
     GpCoord* out;
@@ -174,7 +178,7 @@ void Actor00100_Fn001FC(GpCoord* coord, s16 yaw)
 /// against it, added to both `pos` and the coordinate's translation. Returns
 /// whether a kind 0x10000 record was among them. Does nothing, and returns 0,
 /// while the session's `viewReady` or `Mc_SaveData.field_5C1` is 1.
-s32 Actor00100_Fn00508(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 Actor00100_Fn00508(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -289,7 +293,7 @@ s32 Actor00100_Fn00508(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 /// `Actor00100_D1BA90`. Returns the "moved" flag: set when the X or Z delta is
 /// nonzero, and also when its fractional half is, in which case the coordinate
 /// and the latched step are nudged one unit further away from zero.
-s32 Actor00100_Fn00A54(GpCoord* coord, GpRec18* movement, s16 arg2)
+static s32 Actor00100_Fn00A54(GpCoord* coord, GpRec18* movement, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -339,7 +343,7 @@ s32 Actor00100_Fn00A54(GpCoord* coord, GpRec18* movement, s16 arg2)
 
 /// Rotates the slot-3 player's and this actor's raised root positions into
 /// world space and returns `func_800E0308` on the pair.
-s32 Actor00100_Fn00BF8(Task* arg0)
+static s32 Actor00100_Fn00BF8(Task* arg0)
 {
     Task*              player;
     u8*                head;
@@ -384,7 +388,7 @@ s32 Actor00100_Fn00BF8(Task* arg0)
 }
 
 /// The four poses `Actor00100_Fn00E58` picks between for message 0x104.
-const Actor00100PoseTable Actor00100_D00004 = { {
+static const Actor00100PoseTable Actor00100_D00004 = { {
     { 0x08C7, 0, 0xE3BD, 0 },
     { 0x04DF, 0, 0xE679, 0x0100 },
     { 0x4A38, 0, 0x10CC, 0xFCE0 },
@@ -550,7 +554,7 @@ s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, GpCmdArg* arg2)
 /// steps `coord` along each survivor. Same walk as `Actor00100_Fn00508`, but
 /// `blocked` is raised only for a kind 0x10000 record whose `key` bit 0x80
 /// is clear. The scratch is carved before the early-out, so that path leaks it.
-s32 Actor00100_Fn01388(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 Actor00100_Fn01388(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                       head;
     Actor00100AvoidScratch16* s;
@@ -667,7 +671,7 @@ s32 Actor00100_Fn01388(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 /// Draw the beam between parts `firstJoint` and `secondJoint` of the actor's
 /// model: project both ends into view space, widen them into a `width`-half
 /// quad, and emit it as a `POLY_FT4` tinted `shade` at height `height`.
-void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
+static void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
 {
     ActorBeamScratch* s;
     s16               angle;
@@ -745,7 +749,7 @@ void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16 width,
     }
 }
 
-void Actor00100_Fn01D74(Task* arg0)
+static void Actor00100_Fn01D74(Task* arg0)
 {
     GpAnimPose pose;
     GpAnimPose otherPose;
@@ -805,7 +809,7 @@ void Actor00100_Fn01D74(Task* arg0)
     } while (next < 0x12);
 }
 
-s32 Actor00100_Fn01EEC(Task* arg0, Actor00100Work* arg1)
+static s32 Actor00100_Fn01EEC(Task* arg0, Actor00100Work* arg1)
 {
     Actor00100Work* work;
     u32             prev;
@@ -1106,7 +1110,7 @@ s32 Actor00100_Fn01EEC(Task* arg0, Actor00100Work* arg1)
     return 0;
 }
 
-void Actor00100_Fn02788(Task* arg0)
+static void Actor00100_Fn02788(Task* arg0)
 {
     s32             index;
     u32             table;
@@ -1300,7 +1304,7 @@ void Actor00100_Fn02788(Task* arg0)
 /// animation contexts and the four collision objects onto the model, latches
 /// the spawn position and the one a fixed step ahead of it, then picks the
 /// start state and pose row out of the two nibbles of `spawnArg1`.
-void Actor00100_Fn02C54(GpEnemy* arg0, Task* arg1)
+static void Actor00100_Fn02C54(GpEnemy* arg0, Task* arg1)
 {
     SVECTOR         vec;
     VECTOR          color;
@@ -1534,7 +1538,7 @@ poseEnd:
 /// Picks one of twelve hit positions out of `Actor00100_D1B9F4` by damage
 /// magnitude `arg1`, then spawns effect `Gp_GetIdParam1(arg2)` on the model
 /// part that entry names.
-void Actor00100_Fn03340(Task* arg0, s16 arg1, s32 arg2)
+static void Actor00100_Fn03340(Task* arg0, s16 arg1, s32 arg2)
 {
     SVECTOR*              sc;
     s32                   mag;
@@ -1598,7 +1602,7 @@ void Actor00100_Fn03340(Task* arg0, s16 arg1, s32 arg2)
     SCRATCH_POP_BYTES(8);
 }
 
-void Actor00100_Fn0375C(Task* arg0)
+static void Actor00100_Fn0375C(Task* arg0)
 {
     PlayerStatus*            config = &Player_Status;
     GpEnemy*                 ctx;
@@ -1859,7 +1863,7 @@ void Actor00100_Fn0375C(Task* arg0)
     }
 }
 
-void Actor00100_Fn04270(Task* arg0)
+static void Actor00100_Fn04270(Task* arg0)
 {
     Actor00100Work* work;
     TmdObject*      obj;
@@ -1927,7 +1931,7 @@ void Actor00100_Fn04270(Task* arg0)
     }
 }
 
-void Actor00100_Fn04864(Task* arg0)
+static void Actor00100_Fn04864(Task* arg0)
 {
     Actor00100Work*     work;
     GpEnemy*            ctx;
@@ -2038,7 +2042,7 @@ void Actor00100_Fn04864(Task* arg0)
     SCRATCH_POP(ActorTurnScratch);
 }
 
-void Actor00100_Fn0503C(Task* arg0)
+static void Actor00100_Fn0503C(Task* arg0)
 {
     PlayerStatus* config = &Player_Status;
     SVECTOR       initialDelta;
@@ -2468,7 +2472,7 @@ void Actor00100_Fn0503C(Task* arg0)
     SCRATCH_POP_BYTES_AT(scratchHead, 0x18);
 }
 
-void Actor00100_Fn061FC(Task* arg0)
+static void Actor00100_Fn061FC(Task* arg0)
 {
     s32             radius;
     SVECTOR         delta;
@@ -2500,7 +2504,7 @@ void Actor00100_Fn061FC(Task* arg0)
     }
 }
 
-void Actor00100_Fn06398(Task* arg0)
+static void Actor00100_Fn06398(Task* arg0)
 {
     GpEnemy*        ctx;
     Actor00100Work* work;
@@ -2576,7 +2580,7 @@ void Actor00100_Fn06398(Task* arg0)
     SCRATCH_HEAD(SVECTOR) += 2;
 }
 
-void Actor00100_Fn06654(Task* arg0)
+static void Actor00100_Fn06654(Task* arg0)
 {
     Actor00100Work* work;
     GpEnemy*        ctx;
@@ -2659,7 +2663,7 @@ void Actor00100_Fn06654(Task* arg0)
     SCRATCH_HEAD(SVECTOR) += 2;
 }
 
-void Actor00100_Fn06C10(Task* arg0)
+static void Actor00100_Fn06C10(Task* arg0)
 {
     Actor00100Work* work;
     TmdObject*      obj;
@@ -2713,7 +2717,7 @@ void Actor00100_Fn06C10(Task* arg0)
     arg0->extra.tmd->coords->flg = 0;
 }
 
-void Actor00100_Fn070DC(Task* arg0)
+static void Actor00100_Fn070DC(Task* arg0)
 {
     Actor00100Work*         work;
     GpCoord*                coord;
@@ -2838,7 +2842,7 @@ void Actor00100_Fn070DC(Task* arg0)
     SCRATCH_POP(Actor00100AngleScratch);
 }
 
-void Actor00100_Fn0747C(Task* arg0)
+static void Actor00100_Fn0747C(Task* arg0)
 {
     SVECTOR         delta;
     Actor00100Work* work;
@@ -2871,7 +2875,7 @@ void Actor00100_Fn0747C(Task* arg0)
     arg0->extra.tmd->coords->flg = 0;
 }
 
-void Actor00100_Fn07650(Task* arg0)
+static void Actor00100_Fn07650(Task* arg0)
 {
     GpEnemy*        ctx;
     Actor00100Work* work;
@@ -2922,7 +2926,7 @@ void Actor00100_Fn07650(Task* arg0)
     }
 }
 
-void Actor00100_Fn0782C(Task* arg0)
+static void Actor00100_Fn0782C(Task* arg0)
 {
     s32               radius = 0x5DC;
     GpEnemy*          ctx;
@@ -3233,7 +3237,7 @@ void Actor00100_Fn0782C(Task* arg0)
     SCRATCH_POP(ActorMoveScratch);
 }
 
-void Actor00100_Fn08588(Task* arg0)
+static void Actor00100_Fn08588(Task* arg0)
 {
     TmdObject*            obj;
     GpEnemy*              ctx;
@@ -3335,7 +3339,7 @@ void Actor00100_Fn08588(Task* arg0)
     SCRATCH_POP(ActorTurnStepScratch);
 }
 
-void Actor00100_Fn08A14(Task* arg0)
+static void Actor00100_Fn08A14(Task* arg0)
 {
     TmdObject*            obj;
     GpEnemy*              ctx;
@@ -3434,7 +3438,7 @@ void Actor00100_Fn08A14(Task* arg0)
     SCRATCH_POP(ActorTurnStepScratch);
 }
 
-void Actor00100_Fn08E7C(Task* arg0)
+static void Actor00100_Fn08E7C(Task* arg0)
 {
     Actor00100Work*           work;
     GpCoord*                  coord;
@@ -3569,7 +3573,7 @@ void Actor00100_Fn08E7C(Task* arg0)
     SCRATCH_POP(Actor00100ProjectScratch);
 }
 
-void Actor00100_Fn09310(Task* arg0)
+static void Actor00100_Fn09310(Task* arg0)
 {
     SVECTOR         vector;
     GpEffWork*      effect;
@@ -3687,7 +3691,7 @@ void Actor00100_Fn09310(Task* arg0)
     }
 }
 
-void Actor00100_Fn09724(Task* arg0)
+static void Actor00100_Fn09724(Task* arg0)
 {
     GpEnemy*        ctx;
     Actor00100Work* work;
@@ -3751,7 +3755,7 @@ void Actor00100_Fn09724(Task* arg0)
     arg0->extra.tmd->coords->flg = 0;
 }
 
-void Actor00100_Fn09CCC(Task* arg0)
+static void Actor00100_Fn09CCC(Task* arg0)
 {
     GpEnemy*        ctx;
     Actor00100Work* work;
@@ -3847,20 +3851,20 @@ void Actor00100_Fn09CCC(Task* arg0)
     SCRATCH_POP_BYTES(0x14);
 }
 
-void Actor00100_Fn0B4D8(Task* arg0);
-void Actor00100_Fn0B52C(Task* arg0);
-void Actor00100_Fn0B730(Task* arg0);
-void Actor00100_Fn0B7DC(Task* arg0);
-void Actor00100_Fn0B8D8(Task* arg0);
-void Actor00100_Fn0B98C(Task* arg0);
-void Actor00100_Fn0BA70(Task* arg0);
-void Actor00100_Fn0BB2C(Task* arg0);
-void Actor00100_Fn0BC14(Task* task);
-void Actor00100_Fn0BCBC(GpEnemy* enemy, Task* task);
+static void Actor00100_Fn0B4D8(Task* arg0);
+static void Actor00100_Fn0B52C(Task* arg0);
+static void Actor00100_Fn0B730(Task* arg0);
+static void Actor00100_Fn0B7DC(Task* arg0);
+static void Actor00100_Fn0B8D8(Task* arg0);
+static void Actor00100_Fn0B98C(Task* arg0);
+static void Actor00100_Fn0BA70(Task* arg0);
+static void Actor00100_Fn0BB2C(Task* arg0);
+static void Actor00100_Fn0BC14(Task* task);
+static void Actor00100_Fn0BCBC(GpEnemy* enemy, Task* task);
 
 /// Per-state handlers the per-frame update calls, indexed by the work block's
 /// `field_0`, called unconditionally; a null entry is a state with no handler.
-const Actor00100StateTable Actor00100_D000F0 = { {
+static const Actor00100StateTable Actor00100_D000F0 = { {
     Actor00100_Fn0B4D8,
     Actor00100_Fn08E7C,
     Actor00100_Fn0BC14,
@@ -3902,7 +3906,7 @@ const Actor00100StateTable Actor00100_D000F0 = { {
     Actor00100_Fn0782C,
 } };
 
-void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
+static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
 {
     PlayerStatus*        config;
     s32                  excludedState;
@@ -4199,7 +4203,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
 
 /// The task's handlers, indexed by `Task::state`: set-up, the per-frame state
 /// dispatch, a wait for the pending release before advancing, and teardown.
-const GpEnemyTaskFuncTable4 Actor00100_D001A0 = { {
+static const GpEnemyTaskFuncTable4 Actor00100_D001A0 = { {
     Actor00100_Fn02C54,
     Actor00100_Fn0A288,
     Actor00100_Fn0BCBC,
@@ -4210,7 +4214,7 @@ void Actor00100_Fn0B134(void)
 {
 }
 
-s16 Actor00100_Fn0B13C(Task* arg0)
+static s16 Actor00100_Fn0B13C(Task* arg0)
 {
     Actor00100RecordWork* work  = (Actor00100RecordWork*)arg0->work;
     s16                   found = 0;
@@ -4307,12 +4311,12 @@ s32 Actor00100_Fn0B2B4(Task* task, s32 arg1, GpXformArg* placement)
     return 1;
 }
 
-void Actor00100_Fn0B3B4(Task* task)
+static void Actor00100_Fn0B3B4(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
 
-void Actor00100_Fn0B3DC(Task* arg0, s16 arg1, s16 arg2)
+static void Actor00100_Fn0B3DC(Task* arg0, s16 arg1, s16 arg2)
 {
     Actor00100Work* work = arg0->work;
     s32             spawn;
@@ -4354,7 +4358,7 @@ void Actor00100_Fn0B3DC(Task* arg0, s16 arg1, s16 arg2)
     }
 }
 
-void Actor00100_Fn0B4D8(Task* arg0)
+static void Actor00100_Fn0B4D8(Task* arg0)
 {
     TmdObject*      obj;
     Actor00100Work* work;
@@ -4368,7 +4372,7 @@ void Actor00100_Fn0B4D8(Task* arg0)
     }
 }
 
-void Actor00100_Fn0B52C(Task* arg0)
+static void Actor00100_Fn0B52C(Task* arg0)
 {
     Actor00100Work* work;
     GpEnemy*        ctx;
@@ -4410,7 +4414,7 @@ void Actor00100_Fn0B52C(Task* arg0)
     }
 }
 
-void Actor00100_Fn0B658(Task* arg0)
+static void Actor00100_Fn0B658(Task* arg0)
 {
     TmdObject*      obj;
     Actor00100Work* work;
@@ -4438,7 +4442,7 @@ void Actor00100_Fn0B658(Task* arg0)
     }
 }
 
-void Actor00100_Fn0B730(Task* arg0)
+static void Actor00100_Fn0B730(Task* arg0)
 {
     Actor00100Work* work;
     TmdObject*      obj;
@@ -4463,7 +4467,7 @@ void Actor00100_Fn0B730(Task* arg0)
     }
 }
 
-void Actor00100_Fn0B7DC(Task* arg0)
+static void Actor00100_Fn0B7DC(Task* arg0)
 {
     GpEnemy*        ctx;
     Actor00100Work* work;
@@ -4502,7 +4506,7 @@ void Actor00100_Fn0B7DC(Task* arg0)
     }
 }
 
-void Actor00100_Fn0B8D8(Task* arg0)
+static void Actor00100_Fn0B8D8(Task* arg0)
 {
     Actor00100Work* work;
     u16             timer;
@@ -4526,7 +4530,7 @@ void Actor00100_Fn0B8D8(Task* arg0)
     }
 }
 
-void Actor00100_Fn0B98C(Task* arg0)
+static void Actor00100_Fn0B98C(Task* arg0)
 {
     GpEnemy*        ctx;
     Actor00100Work* work;
@@ -4564,7 +4568,7 @@ void Actor00100_Fn0B98C(Task* arg0)
     }
 }
 
-void Actor00100_Fn0BA70(Task* arg0)
+static void Actor00100_Fn0BA70(Task* arg0)
 {
     GpEnemy*        ctx;
     TmdObject*      obj;
@@ -4594,7 +4598,7 @@ void Actor00100_Fn0BA70(Task* arg0)
     }
 }
 
-void Actor00100_Fn0BB2C(Task* arg0)
+static void Actor00100_Fn0BB2C(Task* arg0)
 {
     GpEnemy*        ctx;
     Actor00100Work* work;
@@ -4632,11 +4636,11 @@ void Actor00100_Fn0BB2C(Task* arg0)
     }
 }
 
-void Actor00100_Fn0BC14(Task* task)
+static void Actor00100_Fn0BC14(Task* task)
 {
 }
 
-void Actor00100_Fn0BC1C(Task* arg0)
+static void Actor00100_Fn0BC1C(Task* arg0)
 {
     GpCoord*        coord;
     s32             y;
@@ -4662,7 +4666,7 @@ void Actor00100_Fn0BC1C(Task* arg0)
     }
 }
 
-void Actor00100_Fn0BCBC(GpEnemy* enemy, Task* task)
+static void Actor00100_Fn0BCBC(GpEnemy* enemy, Task* task)
 {
     Actor00100Work* work;
 

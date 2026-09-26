@@ -95,8 +95,6 @@ typedef struct Actor300700Work {
     /* 0x398 */ s16                       field_398;
 } Actor300700Work;
 
-void func_actor_300700_80164D3C(GpEnemy* arg0, Task* arg1);
-
 /// The second variant's state handlers: spawn, per-frame update and the
 /// handler for state 2.
 extern const GpEnemyTaskFuncTable3 D_actor_300700_80161E30;

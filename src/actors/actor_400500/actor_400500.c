@@ -188,10 +188,10 @@ extern ActorZone D_actor_400500_80153D6C[];
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 /// Still called by actor_206100, which includes this header; remove once that
 /// entry is demoted.
-void ActorsShared80132c4c(MATRIX* src, MATRIX* dst);
-void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, s32 shade);
-void func_actor_400500_80138088(Task* task);
-s32  func_actor_400500_8013B720(GpCoord* coord, MATRIX* matrix);
+void        ActorsShared80132c4c(MATRIX* src, MATRIX* dst);
+static void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, s32 shade);
+static void func_actor_400500_80138088(Task* task);
+static s32  func_actor_400500_8013B720(GpCoord* coord, MATRIX* matrix);
 
 /* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
  * source for the effect's own `TmdObject`.
@@ -221,129 +221,129 @@ extern u8         D_actor_400500_80153DD4[];
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_400500_80132438(Task* arg0);
-void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2);
-s32  func_actor_400500_80132D74(Task* arg0);
-void func_actor_400500_80132E94(Task* arg0);
-s32  func_actor_400500_80133160(Task* arg0);
-s32  func_actor_400500_80133358(Task* arg0);
-s32  func_actor_400500_80133460(Task* arg0);
-void func_actor_400500_801335E8(Task* arg0);
-void func_actor_400500_80133B14(Task* arg0);
-void func_actor_400500_8013403C(Task* arg0);
-void func_actor_400500_8013456C(Task* arg0);
-void func_actor_400500_80134D6C(s32 otz);
-void func_actor_400500_80135770(Task* arg0);
-void func_actor_400500_80135EBC(Task* arg0);
-void func_actor_400500_801361EC(Task* arg0);
-void func_actor_400500_8013662C(Task* arg0);
-void func_actor_400500_80136864(Task* arg0);
-void func_actor_400500_801369A4(Task* arg0);
-void func_actor_400500_80136B94(Task* arg0);
-void func_actor_400500_80136D00(Task* arg0);
-void func_actor_400500_80136EB8(Task* arg0);
-void func_actor_400500_80137034(Task* arg0);
-void func_actor_400500_801371A0(Task* arg0);
-void func_actor_400500_80137338(Task* arg0);
-void func_actor_400500_80137478(Task* arg0);
-void func_actor_400500_801385D0(Task* arg0);
-void func_actor_400500_801387E8(Task* arg0);
-void func_actor_400500_8013899C(Task* arg0);
-void func_actor_400500_80138B78(Task* arg0);
-void func_actor_400500_80138CE8(Task* arg0);
-void func_actor_400500_80138DC4(Task* arg0);
-void func_actor_400500_80138EA0(Task* arg0);
-void func_actor_400500_8013905C(Task* arg0);
-void func_actor_400500_801391B0(Task* arg0);
-void func_actor_400500_801392D8(Task* arg0);
-void func_actor_400500_80139448(Task* arg0);
-void func_actor_400500_801395D0(Task* arg0);
-void func_actor_400500_8013973C(Task* arg0);
-void func_actor_400500_80139AC4(Task* arg0);
-void func_actor_400500_80139C1C(Task* arg0);
-void func_actor_400500_80139D70(Task* arg0);
-void func_actor_400500_80139F6C(Task* arg0);
-void func_actor_400500_8013A0B8(Task* arg0);
-void func_actor_400500_8013A484(Task* arg0);
-void func_actor_400500_8013A5D8(Task* arg0);
-void func_actor_400500_8013A700(Task* arg0);
-void func_actor_400500_8013A8E4(Task* arg0);
-void func_actor_400500_8013AA98(Task* arg0);
-void func_actor_400500_8013ABE4(Task* arg0);
-void func_actor_400500_8013AD60(Task* arg0);
-void func_actor_400500_8013AF44(Task* arg0);
-void func_actor_400500_8013B228(Task* arg0);
-void func_actor_400500_8013B374(Task* arg0);
-void func_actor_400500_8013B4A4(Task* arg0);
-void func_actor_400500_8013B5E0(Task* arg0);
-s32  func_actor_400500_8013B920(GpCoord* coord, SVECTOR* pos);
-void func_actor_400500_8013BA24(Task* arg0);
-void func_actor_400500_8013BAA4(Task* arg0);
-void func_actor_400500_8013BB18(Task* arg0);
-void func_actor_400500_8013BBB0(Task* arg0);
-void func_actor_400500_8013BC9C(Task* arg0);
-void func_actor_400500_8013BCCC(Task* arg0);
-void func_actor_400500_8013BD64(Task* arg0);
-void func_actor_400500_8013BE50(Task* arg0);
-void func_actor_400500_8013BEC4(Task* arg0);
-void func_actor_400500_8013BFB0(Task* arg0);
-void func_actor_400500_8013C018(Task* arg0);
-void func_actor_400500_8013C108(Task* arg0);
-void func_actor_400500_8013C174(Task* arg0);
-void func_actor_400500_8013C218(Task* arg0);
-void func_actor_400500_8013C348(Task* arg0);
-void func_actor_400500_8013C3C4(Task* arg0);
-void func_actor_400500_8013C474(Task* arg0);
-void func_actor_400500_8013C508(Task* arg0);
-void func_actor_400500_8013C578(Task* arg0);
-void func_actor_400500_8013C61C(Task* arg0);
-void func_actor_400500_8013C750(Task* arg0);
-void func_actor_400500_8013C7A4(Task* arg0);
-void func_actor_400500_8013C818(Task* arg0);
-void func_actor_400500_8013C908(Task* arg0);
-void func_actor_400500_8013C9D4(Task* arg0);
-void func_actor_400500_8013CA38(Task* arg0);
-void func_actor_400500_8013CB0C(Task* arg0);
-void func_actor_400500_8013CBD8(Task* arg0);
-void func_actor_400500_8013CCDC(Task* arg0);
-void func_actor_400500_8013CDA8(Task* arg0);
-void func_actor_400500_8013CE9C(Task* arg0);
-void func_actor_400500_8013CF68(Task* arg0);
-void func_actor_400500_8013D078(Task* arg0);
-void func_actor_400500_8013D144(Task* arg0);
-void func_actor_400500_8013D210(Task* arg0);
-void func_actor_400500_8013D274(Task* arg0);
-void func_actor_400500_8013D2D8(Task* arg0);
-void func_actor_400500_8013D3B8(Task* arg0);
-void func_actor_400500_8013D420(Task* arg0);
-void func_actor_400500_8013D4F0(Task* arg0);
-void func_actor_400500_8013D59C(Task* arg0);
-void func_actor_400500_8013D630(Task* arg0);
-void func_actor_400500_8013D6A0(Task* arg0);
-void func_actor_400500_8013D744(Task* arg0);
-void func_actor_400500_8013D878(Task* arg0);
-void func_actor_400500_8013D8CC(Task* arg0);
-void func_actor_400500_8013D958(Task* arg0);
-void func_actor_400500_8013D9DC(Task* arg0);
-void func_actor_400500_8013D9F4(Task* arg0);
-void func_actor_400500_8013DA24(Task* arg0);
-void func_actor_400500_8013DA68(Task* arg0);
-void func_actor_400500_8013DACC(Task* arg0);
-void func_actor_400500_8013DB64(Task* arg0, s16 arg1);
-s32  func_actor_400500_8013DB78(Task* arg0);
-void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, Actor400500ViewPos* arg2);
-void func_actor_400500_8013DC4C(Task* arg0);
-void func_actor_400500_8013DCBC(Task* arg0, s16 arg1, s16 arg2);
-void func_actor_400500_8013DCD4(Task* arg0);
-s32  func_actor_400500_8013DD8C(Task* arg0, s16 arg1);
-s32  func_actor_400500_8013DDEC(Task* arg0);
-void func_actor_400500_8013DE2C(MATRIX* src, MATRIX* dst);
-void func_actor_400500_8013DEFC(Task* arg0);
-void func_actor_400500_8013DF50(Task* arg0);
-void func_actor_400500_8013DF74(Task* arg0);
-void func_actor_400500_8013DFE4(Task* arg0);
+static void func_actor_400500_80132438(Task* arg0);
+static void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2);
+static s32  func_actor_400500_80132D74(Task* arg0);
+static void func_actor_400500_80132E94(Task* arg0);
+static s32  func_actor_400500_80133160(Task* arg0);
+static s32  func_actor_400500_80133358(Task* arg0);
+static s32  func_actor_400500_80133460(Task* arg0);
+static void func_actor_400500_801335E8(Task* arg0);
+static void func_actor_400500_80133B14(Task* arg0);
+static void func_actor_400500_8013403C(Task* arg0);
+static void func_actor_400500_8013456C(Task* arg0);
+static void func_actor_400500_80134D6C(s32 otz);
+static void func_actor_400500_80135770(Task* arg0);
+static void func_actor_400500_80135EBC(Task* arg0);
+static void func_actor_400500_801361EC(Task* arg0);
+static void func_actor_400500_8013662C(Task* arg0);
+static void func_actor_400500_80136864(Task* arg0);
+static void func_actor_400500_801369A4(Task* arg0);
+static void func_actor_400500_80136B94(Task* arg0);
+static void func_actor_400500_80136D00(Task* arg0);
+static void func_actor_400500_80136EB8(Task* arg0);
+static void func_actor_400500_80137034(Task* arg0);
+static void func_actor_400500_801371A0(Task* arg0);
+static void func_actor_400500_80137338(Task* arg0);
+static void func_actor_400500_80137478(Task* arg0);
+static void func_actor_400500_801385D0(Task* arg0);
+static void func_actor_400500_801387E8(Task* arg0);
+static void func_actor_400500_8013899C(Task* arg0);
+static void func_actor_400500_80138B78(Task* arg0);
+static void func_actor_400500_80138CE8(Task* arg0);
+static void func_actor_400500_80138DC4(Task* arg0);
+static void func_actor_400500_80138EA0(Task* arg0);
+static void func_actor_400500_8013905C(Task* arg0);
+static void func_actor_400500_801391B0(Task* arg0);
+static void func_actor_400500_801392D8(Task* arg0);
+static void func_actor_400500_80139448(Task* arg0);
+static void func_actor_400500_801395D0(Task* arg0);
+static void func_actor_400500_8013973C(Task* arg0);
+static void func_actor_400500_80139AC4(Task* arg0);
+static void func_actor_400500_80139C1C(Task* arg0);
+static void func_actor_400500_80139D70(Task* arg0);
+static void func_actor_400500_80139F6C(Task* arg0);
+static void func_actor_400500_8013A0B8(Task* arg0);
+static void func_actor_400500_8013A484(Task* arg0);
+static void func_actor_400500_8013A5D8(Task* arg0);
+static void func_actor_400500_8013A700(Task* arg0);
+static void func_actor_400500_8013A8E4(Task* arg0);
+static void func_actor_400500_8013AA98(Task* arg0);
+static void func_actor_400500_8013ABE4(Task* arg0);
+static void func_actor_400500_8013AD60(Task* arg0);
+static void func_actor_400500_8013AF44(Task* arg0);
+static void func_actor_400500_8013B228(Task* arg0);
+static void func_actor_400500_8013B374(Task* arg0);
+static void func_actor_400500_8013B4A4(Task* arg0);
+static void func_actor_400500_8013B5E0(Task* arg0);
+static s32  func_actor_400500_8013B920(GpCoord* coord, SVECTOR* pos);
+static void func_actor_400500_8013BA24(Task* arg0);
+static void func_actor_400500_8013BAA4(Task* arg0);
+static void func_actor_400500_8013BB18(Task* arg0);
+static void func_actor_400500_8013BBB0(Task* arg0);
+static void func_actor_400500_8013BC9C(Task* arg0);
+static void func_actor_400500_8013BCCC(Task* arg0);
+static void func_actor_400500_8013BD64(Task* arg0);
+static void func_actor_400500_8013BE50(Task* arg0);
+static void func_actor_400500_8013BEC4(Task* arg0);
+static void func_actor_400500_8013BFB0(Task* arg0);
+static void func_actor_400500_8013C018(Task* arg0);
+static void func_actor_400500_8013C108(Task* arg0);
+static void func_actor_400500_8013C174(Task* arg0);
+static void func_actor_400500_8013C218(Task* arg0);
+static void func_actor_400500_8013C348(Task* arg0);
+static void func_actor_400500_8013C3C4(Task* arg0);
+static void func_actor_400500_8013C474(Task* arg0);
+static void func_actor_400500_8013C508(Task* arg0);
+static void func_actor_400500_8013C578(Task* arg0);
+static void func_actor_400500_8013C61C(Task* arg0);
+static void func_actor_400500_8013C750(Task* arg0);
+static void func_actor_400500_8013C7A4(Task* arg0);
+static void func_actor_400500_8013C818(Task* arg0);
+static void func_actor_400500_8013C908(Task* arg0);
+static void func_actor_400500_8013C9D4(Task* arg0);
+static void func_actor_400500_8013CA38(Task* arg0);
+static void func_actor_400500_8013CB0C(Task* arg0);
+static void func_actor_400500_8013CBD8(Task* arg0);
+static void func_actor_400500_8013CCDC(Task* arg0);
+static void func_actor_400500_8013CDA8(Task* arg0);
+static void func_actor_400500_8013CE9C(Task* arg0);
+static void func_actor_400500_8013CF68(Task* arg0);
+static void func_actor_400500_8013D078(Task* arg0);
+static void func_actor_400500_8013D144(Task* arg0);
+static void func_actor_400500_8013D210(Task* arg0);
+static void func_actor_400500_8013D274(Task* arg0);
+static void func_actor_400500_8013D2D8(Task* arg0);
+static void func_actor_400500_8013D3B8(Task* arg0);
+static void func_actor_400500_8013D420(Task* arg0);
+static void func_actor_400500_8013D4F0(Task* arg0);
+static void func_actor_400500_8013D59C(Task* arg0);
+static void func_actor_400500_8013D630(Task* arg0);
+static void func_actor_400500_8013D6A0(Task* arg0);
+static void func_actor_400500_8013D744(Task* arg0);
+static void func_actor_400500_8013D878(Task* arg0);
+static void func_actor_400500_8013D8CC(Task* arg0);
+static void func_actor_400500_8013D958(Task* arg0);
+static void func_actor_400500_8013D9DC(Task* arg0);
+static void func_actor_400500_8013D9F4(Task* arg0);
+static void func_actor_400500_8013DA24(Task* arg0);
+static void func_actor_400500_8013DA68(Task* arg0);
+static void func_actor_400500_8013DACC(Task* arg0);
+static void func_actor_400500_8013DB64(Task* arg0, s16 arg1);
+static s32  func_actor_400500_8013DB78(Task* arg0);
+static void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, Actor400500ViewPos* arg2);
+static void func_actor_400500_8013DC4C(Task* arg0);
+static void func_actor_400500_8013DCBC(Task* arg0, s16 arg1, s16 arg2);
+static void func_actor_400500_8013DCD4(Task* arg0);
+static s32  func_actor_400500_8013DD8C(Task* arg0, s16 arg1);
+static s32  func_actor_400500_8013DDEC(Task* arg0);
+static void func_actor_400500_8013DE2C(MATRIX* src, MATRIX* dst);
+static void func_actor_400500_8013DEFC(Task* arg0);
+static void func_actor_400500_8013DF50(Task* arg0);
+static void func_actor_400500_8013DF74(Task* arg0);
+static void func_actor_400500_8013DFE4(Task* arg0);
 
-void func_actor_400500_80132000(Task* arg0)
+static void func_actor_400500_80132000(Task* arg0)
 {
     Actor400500Work* work;
 
@@ -410,7 +410,7 @@ void func_actor_400500_80132000(Task* arg0)
     work->obj4.flags &= 0x7FFF;
 }
 
-void func_actor_400500_8013226C(Task* arg0)
+static void func_actor_400500_8013226C(Task* arg0)
 {
     Actor400500Work* work;
     OverlayMat       rot;
@@ -479,7 +479,7 @@ void func_actor_400500_8013226C(Task* arg0)
     func_actor_400500_8013DE2C(&src->mat, &coord->coord);
 }
 
-void func_actor_400500_80132438(Task* arg0)
+static void func_actor_400500_80132438(Task* arg0)
 {
     SVECTOR          dir;
     SVECTOR*         dirp;
@@ -549,7 +549,7 @@ void func_actor_400500_80132438(Task* arg0)
     }
 }
 
-void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, s32 shade)
+static void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, s32 shade)
 {
     MATRIX    firstMatrix;
     MATRIX    secondMatrix;
@@ -668,7 +668,7 @@ void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoint, s16
     }
 }
 
-void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2)
+static void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2)
 {
     s32 temp_s2;
 
@@ -688,7 +688,7 @@ void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2)
     func_actor_400500_80132628(arg0, 0x10, 0x11, 0x100, (s32)arg1, temp_s2);
 }
 
-void func_actor_400500_80132C54(Task* arg0)
+static void func_actor_400500_80132C54(Task* arg0)
 {
     Actor400500Work* work;
     OverlayMat       rot;
@@ -747,7 +747,7 @@ void func_actor_400500_80132C54(Task* arg0)
     func_actor_400500_8013DBCC(arg0, 0xB, &work->field_9A0);
 }
 
-s32 func_actor_400500_80132D74(Task* arg0)
+static s32 func_actor_400500_80132D74(Task* arg0)
 {
     Actor400500Work* work;
 
@@ -776,7 +776,7 @@ s32 func_actor_400500_80132D74(Task* arg0)
     return 0;
 }
 
-void func_actor_400500_80132E94(Task* arg0)
+static void func_actor_400500_80132E94(Task* arg0)
 {
     Actor400500Work* work;
     GpEnemy*         enemy;
@@ -862,7 +862,7 @@ void func_actor_400500_80132E94(Task* arg0)
     }
 }
 
-s32 func_actor_400500_80133160(Task* arg0)
+static s32 func_actor_400500_80133160(Task* arg0)
 {
     Actor400500Work* work;
     s32              soundId;
@@ -921,7 +921,7 @@ s32 func_actor_400500_80133160(Task* arg0)
     return 0;
 }
 
-s32 func_actor_400500_80133358(Task* arg0)
+static s32 func_actor_400500_80133358(Task* arg0)
 {
     Actor400500Work*    work;
     Actor400500Work*    work2;
@@ -978,7 +978,7 @@ s32 func_actor_400500_80133358(Task* arg0)
     return 0;
 }
 
-s32 func_actor_400500_80133460(Task* arg0)
+static s32 func_actor_400500_80133460(Task* arg0)
 {
     Actor400500Work*    work;
     Actor400500Work*    work2;
@@ -1051,7 +1051,7 @@ s32 func_actor_400500_80133460(Task* arg0)
     return 0;
 }
 
-void func_actor_400500_801335E8(Task* arg0)
+static void func_actor_400500_801335E8(Task* arg0)
 {
     MATRIX              local;
     MATRIX              local2;
@@ -1222,7 +1222,7 @@ void func_actor_400500_801335E8(Task* arg0)
     root->flg = 0;
 }
 
-void func_actor_400500_80133B14(Task* arg0)
+static void func_actor_400500_80133B14(Task* arg0)
 {
     MATRIX              local;
     MATRIX              local2;
@@ -1394,7 +1394,7 @@ void func_actor_400500_80133B14(Task* arg0)
     root->flg = 0;
 }
 
-void func_actor_400500_8013403C(Task* arg0)
+static void func_actor_400500_8013403C(Task* arg0)
 {
     MATRIX              local;
     MATRIX              local2;
@@ -1565,7 +1565,7 @@ void func_actor_400500_8013403C(Task* arg0)
     root->flg = 0;
 }
 
-void func_actor_400500_8013456C(Task* arg0)
+static void func_actor_400500_8013456C(Task* arg0)
 {
     Actor400500Work* work;
     GpEnemy*         enemy;
@@ -1688,7 +1688,7 @@ void func_actor_400500_8013456C(Task* arg0)
     work->field_A44 = 0;
 }
 
-void func_actor_400500_801348D8(Task* arg0, s32 arg1)
+static void func_actor_400500_801348D8(Task* arg0, s32 arg1)
 {
     SVECTOR          pos;
     GpCoord*         coords;
@@ -1780,7 +1780,7 @@ void func_actor_400500_801348D8(Task* arg0, s32 arg1)
     }
 }
 
-void func_actor_400500_80134B88(Task* arg0)
+static void func_actor_400500_80134B88(Task* arg0)
 {
     GpEffWork* eff;
     GpEffWork* eff2;
@@ -1842,7 +1842,7 @@ void func_actor_400500_80134B88(Task* arg0)
 /// one is active and nearer than `otz`, full screen otherwise. The 0x14-byte
 /// block holding the rectangle and offset is carved off the scratch head and
 /// released before returning.
-void func_actor_400500_80134D6C(s32 otz)
+static void func_actor_400500_80134D6C(s32 otz)
 {
     u8*                head;
     u8*                allocated;
@@ -1973,7 +1973,7 @@ void func_actor_400500_80134D6C(s32 otz)
     SCRATCH_POP_BYTES(0x14);
 }
 
-void func_actor_400500_80135414(Task* arg0)
+static void func_actor_400500_80135414(Task* arg0)
 {
     TmdObject*       extra;
     GpEnemy*         enemy;
@@ -2099,7 +2099,7 @@ void func_actor_400500_80135414(Task* arg0)
 /// set-up, the per-frame state machine run by `field_A06`, a second one run by
 /// `field_A06` from task state 2, and the teardown that kills the child tasks
 /// and destroys the enemy 0x12D frames later.
-const TaskFuncTable4 D_actor_400500_80131E4C = { {
+static const TaskFuncTable4 D_actor_400500_80131E4C = { {
     func_actor_400500_80135414,
     func_actor_400500_80135770,
     func_actor_400500_8013A700,
@@ -2164,7 +2164,7 @@ static __inline__ u8* push_proj(void)
     return head;
 }
 
-const Actor400500TaskFuncTable13 D_actor_400500_80131E5C = { {
+static const Actor400500TaskFuncTable13 D_actor_400500_80131E5C = { {
     func_actor_400500_80135EBC,
     func_actor_400500_8013BA24,
     func_actor_400500_801385D0,
@@ -2180,7 +2180,7 @@ const Actor400500TaskFuncTable13 D_actor_400500_80131E5C = { {
     func_actor_400500_8013A484,
 } };
 
-void func_actor_400500_80135770(Task* arg0)
+static void func_actor_400500_80135770(Task* arg0)
 {
     Actor400500Work*           work;
     GpEnemy*                   enemy;
@@ -2359,7 +2359,7 @@ void func_actor_400500_80135770(Task* arg0)
 
 /// Sub-state handlers `func_actor_400500_80135EBC` copies onto the stack and runs
 /// by `field_A08` every frame.
-const TaskFuncTable11 D_actor_400500_80131E90 = { {
+static const TaskFuncTable11 D_actor_400500_80131E90 = { {
     func_actor_400500_801361EC,
     func_actor_400500_8013662C,
     func_actor_400500_80136864,
@@ -2375,13 +2375,13 @@ const TaskFuncTable11 D_actor_400500_80131E90 = { {
 
 /// Handlers `func_actor_400500_80135EBC` also runs, by `field_A0A`, while the
 /// enemy is out of hit points.
-const TaskFuncTable3 D_actor_400500_80131EBC = { {
+static const TaskFuncTable3 D_actor_400500_80131EBC = { {
     func_actor_400500_8013BAA4,
     func_actor_400500_8013BB18,
     func_actor_400500_8013BBB0,
 } };
 
-void func_actor_400500_80135EBC(Task* arg0)
+static void func_actor_400500_80135EBC(Task* arg0)
 {
     Actor400500Work* work;
     GpEnemy*         enemy;
@@ -2466,7 +2466,7 @@ void func_actor_400500_80135EBC(Task* arg0)
     }
 }
 
-void func_actor_400500_801361EC(Task* arg0)
+static void func_actor_400500_801361EC(Task* arg0)
 {
     OverlayMat          rot;
     MATRIX              local;
@@ -2655,7 +2655,7 @@ void func_actor_400500_801361EC(Task* arg0)
     }
 }
 
-void func_actor_400500_8013662C(Task* arg0)
+static void func_actor_400500_8013662C(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -2744,7 +2744,7 @@ void func_actor_400500_8013662C(Task* arg0)
     }
 }
 
-void func_actor_400500_80136864(Task* arg0)
+static void func_actor_400500_80136864(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -2800,7 +2800,7 @@ void func_actor_400500_80136864(Task* arg0)
     }
 }
 
-void func_actor_400500_801369A4(Task* arg0)
+static void func_actor_400500_801369A4(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -2879,7 +2879,7 @@ void func_actor_400500_801369A4(Task* arg0)
     }
 }
 
-void func_actor_400500_80136B94(Task* arg0)
+static void func_actor_400500_80136B94(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -2940,7 +2940,7 @@ void func_actor_400500_80136B94(Task* arg0)
     }
 }
 
-void func_actor_400500_80136D00(Task* arg0)
+static void func_actor_400500_80136D00(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -3012,7 +3012,7 @@ void func_actor_400500_80136D00(Task* arg0)
     }
 }
 
-void func_actor_400500_80136EB8(Task* arg0)
+static void func_actor_400500_80136EB8(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -3071,7 +3071,7 @@ void func_actor_400500_80136EB8(Task* arg0)
     }
 }
 
-void func_actor_400500_80137034(Task* arg0)
+static void func_actor_400500_80137034(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -3132,7 +3132,7 @@ void func_actor_400500_80137034(Task* arg0)
     }
 }
 
-void func_actor_400500_801371A0(Task* arg0)
+static void func_actor_400500_801371A0(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -3196,7 +3196,7 @@ void func_actor_400500_801371A0(Task* arg0)
     }
 }
 
-void func_actor_400500_80137338(Task* arg0)
+static void func_actor_400500_80137338(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -3252,7 +3252,7 @@ void func_actor_400500_80137338(Task* arg0)
     }
 }
 
-void func_actor_400500_80137478(Task* arg0)
+static void func_actor_400500_80137478(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -3308,7 +3308,7 @@ void func_actor_400500_80137478(Task* arg0)
     }
 }
 
-void func_actor_400500_801375B8(Task* arg0)
+static void func_actor_400500_801375B8(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -3504,7 +3504,7 @@ static inline void _actor400500PlayAnim(Task* task, s32 id)
     work->field_9FA = 1;
 }
 
-void func_actor_400500_8013771C(Task* arg0)
+static void func_actor_400500_8013771C(Task* arg0)
 {
     SVECTOR             in;
     SVECTOR             out;
@@ -3604,7 +3604,7 @@ void func_actor_400500_8013771C(Task* arg0)
     }
 }
 
-void func_actor_400500_80138088(Task* arg0)
+static void func_actor_400500_80138088(Task* arg0)
 {
     Actor400500Work*    work;
     Actor400500Work*    work2;
@@ -3656,7 +3656,7 @@ void func_actor_400500_80138088(Task* arg0)
 }
 
 /// Sub-state handlers `func_actor_400500_8013BA24` copies onto the stack and runs by `field_A08`.
-const TaskFuncTable3 D_actor_400500_80131EE4 = { {
+static const TaskFuncTable3 D_actor_400500_80131EE4 = { {
     func_actor_400500_801375B8,
     func_actor_400500_8013771C,
     func_actor_400500_80138088,
@@ -3664,7 +3664,7 @@ const TaskFuncTable3 D_actor_400500_80131EE4 = { {
 
 /// Sub-state handlers `func_actor_400500_801385D0` copies onto the stack and runs
 /// by `field_A08` while the enemy is alive.
-const TaskFuncTable3 D_actor_400500_80131EF0 = { {
+static const TaskFuncTable3 D_actor_400500_80131EF0 = { {
     func_actor_400500_8013BE50,
     func_actor_400500_8013BEC4,
     func_actor_400500_801387E8,
@@ -3672,13 +3672,13 @@ const TaskFuncTable3 D_actor_400500_80131EF0 = { {
 
 /// Handlers `func_actor_400500_801385D0` runs by `field_A0A`, instead of the
 /// sub-state, once the enemy is out of hit points.
-const TaskFuncTable3 D_actor_400500_80131EFC = { {
+static const TaskFuncTable3 D_actor_400500_80131EFC = { {
     func_actor_400500_8013BC9C,
     func_actor_400500_8013BCCC,
     func_actor_400500_8013BD64,
 } };
 
-void func_actor_400500_801385D0(Task* arg0)
+static void func_actor_400500_801385D0(Task* arg0)
 {
     Actor400500Work* work;
     GpEnemy*         enemy;
@@ -3743,7 +3743,7 @@ void func_actor_400500_801385D0(Task* arg0)
     }
 }
 
-void func_actor_400500_801387E8(Task* arg0)
+static void func_actor_400500_801387E8(Task* arg0)
 {
     Actor400500Work*    work;
     Actor400500Work*    work2;
@@ -3796,7 +3796,7 @@ void func_actor_400500_801387E8(Task* arg0)
 }
 
 /// Sub-state handlers `func_actor_400500_8013899C` copies onto the stack and runs by `field_A08`.
-const TaskFuncTable5 D_actor_400500_80131F08 = { {
+static const TaskFuncTable5 D_actor_400500_80131F08 = { {
     func_actor_400500_8013BFB0,
     func_actor_400500_8013C018,
     func_actor_400500_80138B78,
@@ -3804,7 +3804,7 @@ const TaskFuncTable5 D_actor_400500_80131F08 = { {
     func_actor_400500_80138DC4,
 } };
 
-void func_actor_400500_8013899C(Task* arg0)
+static void func_actor_400500_8013899C(Task* arg0)
 {
     Actor400500Work* work;
     GpEnemy*         enemy;
@@ -3866,7 +3866,7 @@ void func_actor_400500_8013899C(Task* arg0)
     }
 }
 
-void func_actor_400500_80138B78(Task* arg0)
+static void func_actor_400500_80138B78(Task* arg0)
 {
     Actor400500Work*    work;
     Actor400500HitView* hit;
@@ -3906,7 +3906,7 @@ void func_actor_400500_80138B78(Task* arg0)
     }
 }
 
-void func_actor_400500_80138CE8(Task* arg0)
+static void func_actor_400500_80138CE8(Task* arg0)
 {
     Actor400500Work* work;
     OverlayMat       rot;
@@ -3935,7 +3935,7 @@ void func_actor_400500_80138CE8(Task* arg0)
     }
 }
 
-void func_actor_400500_80138DC4(Task* arg0)
+static void func_actor_400500_80138DC4(Task* arg0)
 {
     Actor400500HitView* hit;
     Actor400500Work*    work;
@@ -3974,14 +3974,14 @@ void func_actor_400500_80138DC4(Task* arg0)
 }
 
 /// Sub-state handlers `func_actor_400500_80138EA0` copies onto the stack and runs by `field_A08`.
-const TaskFuncTable4 D_actor_400500_80131F1C = { {
+static const TaskFuncTable4 D_actor_400500_80131F1C = { {
     func_actor_400500_8013C108,
     func_actor_400500_8013C174,
     func_actor_400500_8013C218,
     func_actor_400500_8013C348,
 } };
 
-void func_actor_400500_80138EA0(Task* arg0)
+static void func_actor_400500_80138EA0(Task* arg0)
 {
     Actor400500Work* work;
     GpEnemy*         enemy;
@@ -4032,7 +4032,7 @@ void func_actor_400500_80138EA0(Task* arg0)
 }
 
 /// Sub-state handlers `func_actor_400500_8013905C` copies onto the stack and runs by `field_A08`.
-const TaskFuncTable7 D_actor_400500_80131F2C = { {
+static const TaskFuncTable7 D_actor_400500_80131F2C = { {
     func_actor_400500_801391B0,
     func_actor_400500_8013C3C4,
     func_actor_400500_8013C474,
@@ -4042,7 +4042,7 @@ const TaskFuncTable7 D_actor_400500_80131F2C = { {
     func_actor_400500_8013C750,
 } };
 
-void func_actor_400500_8013905C(Task* arg0)
+static void func_actor_400500_8013905C(Task* arg0)
 {
     Actor400500Work* work;
     TaskFuncTable7   sp;
@@ -4076,7 +4076,7 @@ void func_actor_400500_8013905C(Task* arg0)
     } while (i < 0x12);
 }
 
-void func_actor_400500_801391B0(Task* arg0)
+static void func_actor_400500_801391B0(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -4121,7 +4121,7 @@ void func_actor_400500_801391B0(Task* arg0)
     }
 }
 
-void func_actor_400500_801392D8(Task* arg0)
+static void func_actor_400500_801392D8(Task* arg0)
 {
     Actor400500Work* work             = (Actor400500Work*)arg0->work;
     void             (*fns[2])(Task*) = { func_actor_400500_8013C7A4, func_actor_400500_80139448 };
@@ -4165,7 +4165,7 @@ void func_actor_400500_801392D8(Task* arg0)
     }
 }
 
-void func_actor_400500_80139448(Task* arg0)
+static void func_actor_400500_80139448(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -4214,13 +4214,13 @@ void func_actor_400500_80139448(Task* arg0)
 }
 
 /// Sub-state handlers `func_actor_400500_801395D0` copies onto the stack and runs by `field_A08`.
-const TaskFuncTable3 D_actor_400500_80131F48 = { {
+static const TaskFuncTable3 D_actor_400500_80131F48 = { {
     func_actor_400500_8013C818,
     func_actor_400500_8013973C,
     func_actor_400500_80139AC4,
 } };
 
-void func_actor_400500_801395D0(Task* arg0)
+static void func_actor_400500_801395D0(Task* arg0)
 {
     Actor400500Work* work;
     TaskFuncTable3   sp;
@@ -4262,7 +4262,7 @@ void func_actor_400500_801395D0(Task* arg0)
     work3->field_A49 = 0;
 }
 
-void func_actor_400500_8013973C(Task* arg0)
+static void func_actor_400500_8013973C(Task* arg0)
 {
     OverlayMat          rot;
     MATRIX              local0;
@@ -4400,7 +4400,7 @@ void func_actor_400500_8013973C(Task* arg0)
     }
 }
 
-void func_actor_400500_80139AC4(Task* arg0)
+static void func_actor_400500_80139AC4(Task* arg0)
 {
     Actor400500Work*    work;
     Actor400500Work*    work2;
@@ -4448,13 +4448,13 @@ void func_actor_400500_80139AC4(Task* arg0)
 }
 
 /// Sub-state handlers `func_actor_400500_80139C1C` copies onto the stack and runs by `field_A08`.
-const TaskFuncTable3 D_actor_400500_80131F54 = { {
+static const TaskFuncTable3 D_actor_400500_80131F54 = { {
     func_actor_400500_8013C908,
     func_actor_400500_80139D70,
     func_actor_400500_8013C9D4,
 } };
 
-void func_actor_400500_80139C1C(Task* arg0)
+static void func_actor_400500_80139C1C(Task* arg0)
 {
     Actor400500Work* work;
     TaskFuncTable3   sp;
@@ -4494,7 +4494,7 @@ void func_actor_400500_80139C1C(Task* arg0)
     work3->field_A49 = 0;
 }
 
-void func_actor_400500_80139D70(Task* arg0)
+static void func_actor_400500_80139D70(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -4557,7 +4557,7 @@ void func_actor_400500_80139D70(Task* arg0)
     }
 }
 
-void func_actor_400500_80139F6C(Task* arg0)
+static void func_actor_400500_80139F6C(Task* arg0)
 {
     Actor400500Work* work             = (Actor400500Work*)arg0->work;
     void             (*fns[2])(Task*) = { func_actor_400500_8013CA38, func_actor_400500_8013A0B8 };
@@ -4595,7 +4595,7 @@ void func_actor_400500_80139F6C(Task* arg0)
     work3->field_A49 = 0;
 }
 
-void func_actor_400500_8013A0B8(Task* arg0)
+static void func_actor_400500_8013A0B8(Task* arg0)
 {
     OverlayMat          rot;
     MATRIX              local2;
@@ -4744,7 +4744,7 @@ void func_actor_400500_8013A0B8(Task* arg0)
 }
 
 /// Sub-state handlers `func_actor_400500_8013A484` copies onto the stack and runs by `field_A08`.
-const TaskFuncTable7 D_actor_400500_80131F60 = { {
+static const TaskFuncTable7 D_actor_400500_80131F60 = { {
     func_actor_400500_8013A5D8,
     func_actor_400500_8013D4F0,
     func_actor_400500_8013D59C,
@@ -4754,7 +4754,7 @@ const TaskFuncTable7 D_actor_400500_80131F60 = { {
     func_actor_400500_8013D878,
 } };
 
-void func_actor_400500_8013A484(Task* arg0)
+static void func_actor_400500_8013A484(Task* arg0)
 {
     Actor400500Work* work;
     TaskFuncTable7   sp;
@@ -4788,7 +4788,7 @@ void func_actor_400500_8013A484(Task* arg0)
     } while (i < 0x12);
 }
 
-void func_actor_400500_8013A5D8(Task* arg0)
+static void func_actor_400500_8013A5D8(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -4835,7 +4835,7 @@ void func_actor_400500_8013A5D8(Task* arg0)
 
 /// State handlers `func_actor_400500_8013A700` copies onto the stack and runs
 /// by `field_A06`.
-const TaskFuncTable10 D_actor_400500_80131F7C = { {
+static const TaskFuncTable10 D_actor_400500_80131F7C = { {
     func_actor_400500_8013A8E4,
     func_actor_400500_8013AA98,
     func_actor_400500_8013D8CC,
@@ -4871,7 +4871,7 @@ static inline void _actor400500UpdateColor(Task* arg0, GpCoord* coord, TmdObject
     SCRATCH_POP_BYTES(0x10);
 }
 
-void func_actor_400500_8013A700(Task* arg0)
+static void func_actor_400500_8013A700(Task* arg0)
 {
     TmdObject*       extra;
     Actor400500Work* work;
@@ -4896,7 +4896,7 @@ void func_actor_400500_8013A700(Task* arg0)
     }
 }
 
-void func_actor_400500_8013A8E4(Task* arg0)
+static void func_actor_400500_8013A8E4(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -4951,7 +4951,7 @@ void func_actor_400500_8013A8E4(Task* arg0)
     work->field_A06 = work->field_A06 + 1;
 }
 
-void func_actor_400500_8013AA98(Task* arg0)
+static void func_actor_400500_8013AA98(Task* arg0)
 {
     Actor400500Work*    work;
     Actor400500Work*    work2;
@@ -4993,7 +4993,7 @@ void func_actor_400500_8013AA98(Task* arg0)
     }
 }
 
-void func_actor_400500_8013ABE4(Task* arg0)
+static void func_actor_400500_8013ABE4(Task* arg0)
 {
     Actor400500Work* work;
     TmdObject*       model;
@@ -5035,7 +5035,7 @@ void func_actor_400500_8013ABE4(Task* arg0)
 }
 
 /// Sub-state handlers `func_actor_400500_8013AD60` copies onto the stack and runs by `field_A08`.
-const TaskFuncTable11 D_actor_400500_80131FA4 = { {
+static const TaskFuncTable11 D_actor_400500_80131FA4 = { {
     func_actor_400500_8013AF44,
     func_actor_400500_8013B228,
     func_actor_400500_8013CB0C,
@@ -5049,7 +5049,7 @@ const TaskFuncTable11 D_actor_400500_80131FA4 = { {
     func_actor_400500_8013D144,
 } };
 
-void func_actor_400500_8013AD60(Task* arg0)
+static void func_actor_400500_8013AD60(Task* arg0)
 {
     Actor400500Work* work;
     TaskFuncTable11  sp;
@@ -5099,7 +5099,7 @@ void func_actor_400500_8013AD60(Task* arg0)
     }
 }
 
-void func_actor_400500_8013AF44(Task* arg0)
+static void func_actor_400500_8013AF44(Task* arg0)
 {
     MATRIX              local;
     Actor400500Work*    work;
@@ -5215,7 +5215,7 @@ void func_actor_400500_8013AF44(Task* arg0)
     }
 }
 
-void func_actor_400500_8013B228(Task* arg0)
+static void func_actor_400500_8013B228(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -5266,7 +5266,7 @@ void func_actor_400500_8013B228(Task* arg0)
     }
 }
 
-void func_actor_400500_8013B374(Task* arg0)
+static void func_actor_400500_8013B374(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -5309,7 +5309,7 @@ void func_actor_400500_8013B374(Task* arg0)
     }
 }
 
-void func_actor_400500_8013B4A4(Task* arg0)
+static void func_actor_400500_8013B4A4(Task* arg0)
 {
     Actor400500Work* work;
     GpEnemy*         enemy;
@@ -5383,7 +5383,7 @@ void func_actor_400500_8013B4A4(Task* arg0)
 }
 
 /// Sub-state handlers `func_actor_400500_8013B5E0` copies onto the stack and runs by `field_A08`.
-const TaskFuncTable5 D_actor_400500_80131FEC = { {
+static const TaskFuncTable5 D_actor_400500_80131FEC = { {
     func_actor_400500_8013D210,
     func_actor_400500_8013D274,
     func_actor_400500_8013D2D8,
@@ -5391,7 +5391,7 @@ const TaskFuncTable5 D_actor_400500_80131FEC = { {
     func_actor_400500_8013D420,
 } };
 
-void func_actor_400500_8013B5E0(Task* arg0)
+static void func_actor_400500_8013B5E0(Task* arg0)
 {
     Actor400500Work* work;
     TaskFuncTable5   sp;
@@ -5425,7 +5425,7 @@ void func_actor_400500_8013B5E0(Task* arg0)
     } while (i < 0x12);
 }
 
-s32 func_actor_400500_8013B720(GpCoord* arg0, MATRIX* arg1)
+static s32 func_actor_400500_8013B720(GpCoord* arg0, MATRIX* arg1)
 {
     MATRIX   matrix;
     MATRIX   parent;
@@ -5467,7 +5467,7 @@ s32 func_actor_400500_8013B720(GpCoord* arg0, MATRIX* arg1)
 /// each level's matrix. If the chain reaches the view coordinate the
 /// transformed point is written back to `pos` and 1 is returned; if it ends
 /// first, `pos` is left untouched and 0 is returned.
-s32 func_actor_400500_8013B920(GpCoord* coord, SVECTOR* pos)
+static s32 func_actor_400500_8013B920(GpCoord* coord, SVECTOR* pos)
 {
     SVECTOR  local;
     VECTOR   result;
@@ -5501,7 +5501,7 @@ s32 func_actor_400500_8013B920(GpCoord* coord, SVECTOR* pos)
     }
 }
 
-void func_actor_400500_8013BA24(Task* arg0)
+static void func_actor_400500_8013BA24(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -5517,7 +5517,7 @@ void func_actor_400500_8013BA24(Task* arg0)
     work2->field_A49 = 0;
 }
 
-void func_actor_400500_8013BAA4(Task* arg0)
+static void func_actor_400500_8013BAA4(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -5543,7 +5543,7 @@ void func_actor_400500_8013BAA4(Task* arg0)
     work->field_A42 = 0;
 }
 
-void func_actor_400500_8013BB18(Task* arg0)
+static void func_actor_400500_8013BB18(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -5574,7 +5574,7 @@ void func_actor_400500_8013BB18(Task* arg0)
     }
 }
 
-void func_actor_400500_8013BBB0(Task* arg0)
+static void func_actor_400500_8013BBB0(Task* arg0)
 {
     Actor400500Work*    work;
     Actor400500HitView* hit;
@@ -5600,7 +5600,7 @@ void func_actor_400500_8013BBB0(Task* arg0)
     }
 }
 
-void func_actor_400500_8013BC9C(Task* arg0)
+static void func_actor_400500_8013BC9C(Task* arg0)
 {
     Actor400500Work* work = (Actor400500Work*)arg0->work;
 
@@ -5612,7 +5612,7 @@ void func_actor_400500_8013BC9C(Task* arg0)
     work->field_A0A = work->field_A0A + 1;
 }
 
-void func_actor_400500_8013BCCC(Task* arg0)
+static void func_actor_400500_8013BCCC(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -5643,7 +5643,7 @@ void func_actor_400500_8013BCCC(Task* arg0)
     }
 }
 
-void func_actor_400500_8013BD64(Task* arg0)
+static void func_actor_400500_8013BD64(Task* arg0)
 {
     Actor400500Work*    work;
     Actor400500HitView* hit;
@@ -5669,7 +5669,7 @@ void func_actor_400500_8013BD64(Task* arg0)
     }
 }
 
-void func_actor_400500_8013BE50(Task* arg0)
+static void func_actor_400500_8013BE50(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -5694,7 +5694,7 @@ void func_actor_400500_8013BE50(Task* arg0)
     work->field_A08  = work->field_A08 + 1;
 }
 
-void func_actor_400500_8013BEC4(Task* arg0)
+static void func_actor_400500_8013BEC4(Task* arg0)
 {
     Actor400500Work* work;
     OverlayMat       rot;
@@ -5730,7 +5730,7 @@ void func_actor_400500_8013BEC4(Task* arg0)
     }
 }
 
-void func_actor_400500_8013BFB0(Task* arg0)
+static void func_actor_400500_8013BFB0(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -5752,7 +5752,7 @@ void func_actor_400500_8013BFB0(Task* arg0)
     work->field_A08  = work->field_A08 + 1;
 }
 
-void func_actor_400500_8013C018(Task* arg0)
+static void func_actor_400500_8013C018(Task* arg0)
 {
     Actor400500Work* work;
     OverlayMat       rot;
@@ -5788,7 +5788,7 @@ void func_actor_400500_8013C018(Task* arg0)
     }
 }
 
-void func_actor_400500_8013C108(Task* arg0)
+static void func_actor_400500_8013C108(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -5811,7 +5811,7 @@ void func_actor_400500_8013C108(Task* arg0)
     work->field_A08  = work->field_A08 + 1;
 }
 
-void func_actor_400500_8013C174(Task* arg0)
+static void func_actor_400500_8013C174(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -5843,7 +5843,7 @@ void func_actor_400500_8013C174(Task* arg0)
     }
 }
 
-void func_actor_400500_8013C218(Task* arg0)
+static void func_actor_400500_8013C218(Task* arg0)
 {
     Actor400500Work*    work;
     Actor400500HitView* hit;
@@ -5880,7 +5880,7 @@ void func_actor_400500_8013C218(Task* arg0)
     }
 }
 
-void func_actor_400500_8013C348(Task* arg0)
+static void func_actor_400500_8013C348(Task* arg0)
 {
     Actor400500HitView* hit;
     Actor400500Work*    work2;
@@ -5906,7 +5906,7 @@ void func_actor_400500_8013C348(Task* arg0)
     }
 }
 
-void func_actor_400500_8013C3C4(Task* arg0)
+static void func_actor_400500_8013C3C4(Task* arg0)
 {
     GpEnemy*            enemy;
     Actor400500Work*    work;
@@ -5943,7 +5943,7 @@ void func_actor_400500_8013C3C4(Task* arg0)
     }
 }
 
-void func_actor_400500_8013C474(Task* arg0)
+static void func_actor_400500_8013C474(Task* arg0)
 {
     GpEnemy*            enemy;
     Actor400500Work*    work;
@@ -5978,7 +5978,7 @@ void func_actor_400500_8013C474(Task* arg0)
     }
 }
 
-void func_actor_400500_8013C508(Task* arg0)
+static void func_actor_400500_8013C508(Task* arg0)
 {
     Actor400500HitView* hit;
     Actor400500Work*    work;
@@ -6002,7 +6002,7 @@ void func_actor_400500_8013C508(Task* arg0)
     }
 }
 
-void func_actor_400500_8013C578(Task* arg0)
+static void func_actor_400500_8013C578(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -6034,7 +6034,7 @@ void func_actor_400500_8013C578(Task* arg0)
     }
 }
 
-void func_actor_400500_8013C61C(Task* arg0)
+static void func_actor_400500_8013C61C(Task* arg0)
 {
     Actor400500Work*    work;
     Actor400500HitView* hit;
@@ -6072,7 +6072,7 @@ void func_actor_400500_8013C61C(Task* arg0)
     }
 }
 
-void func_actor_400500_8013C750(Task* arg0)
+static void func_actor_400500_8013C750(Task* arg0)
 {
     Actor400500HitView* work;
     Actor400500Work*    work2;
@@ -6091,7 +6091,7 @@ void func_actor_400500_8013C750(Task* arg0)
     }
 }
 
-void func_actor_400500_8013C7A4(Task* arg0)
+static void func_actor_400500_8013C7A4(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -6113,7 +6113,7 @@ void func_actor_400500_8013C7A4(Task* arg0)
     work->field_A08  = work->field_A08 + 1;
 }
 
-void func_actor_400500_8013C818(Task* arg0)
+static void func_actor_400500_8013C818(Task* arg0)
 {
     Actor400500Work*   work;
     Actor400500Work*   work2;
@@ -6140,7 +6140,7 @@ void func_actor_400500_8013C818(Task* arg0)
     work->field_954  = coord->z;
 }
 
-void func_actor_400500_8013C908(Task* arg0)
+static void func_actor_400500_8013C908(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -6163,7 +6163,7 @@ void func_actor_400500_8013C908(Task* arg0)
     work->field_A08  = work->field_A08 + 1;
 }
 
-void func_actor_400500_8013C9D4(Task* arg0)
+static void func_actor_400500_8013C9D4(Task* arg0)
 {
     Actor400500HitView* work;
     Actor400500Work*    work2;
@@ -6183,7 +6183,7 @@ void func_actor_400500_8013C9D4(Task* arg0)
     }
 }
 
-void func_actor_400500_8013CA38(Task* arg0)
+static void func_actor_400500_8013CA38(Task* arg0)
 {
     MATRIX              local;
     Actor400500Work*    work;
@@ -6218,7 +6218,7 @@ void func_actor_400500_8013CA38(Task* arg0)
     work->field_A08 = work->field_A08 + 1;
 }
 
-void func_actor_400500_8013CB0C(Task* arg0)
+static void func_actor_400500_8013CB0C(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -6249,7 +6249,7 @@ void func_actor_400500_8013CB0C(Task* arg0)
     }
 }
 
-void func_actor_400500_8013CBD8(Task* arg0)
+static void func_actor_400500_8013CBD8(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -6290,7 +6290,7 @@ void func_actor_400500_8013CBD8(Task* arg0)
     }
 }
 
-void func_actor_400500_8013CCDC(Task* arg0)
+static void func_actor_400500_8013CCDC(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -6321,7 +6321,7 @@ void func_actor_400500_8013CCDC(Task* arg0)
     }
 }
 
-void func_actor_400500_8013CDA8(Task* arg0)
+static void func_actor_400500_8013CDA8(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -6357,7 +6357,7 @@ void func_actor_400500_8013CDA8(Task* arg0)
     }
 }
 
-void func_actor_400500_8013CE9C(Task* arg0)
+static void func_actor_400500_8013CE9C(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -6388,7 +6388,7 @@ void func_actor_400500_8013CE9C(Task* arg0)
     }
 }
 
-void func_actor_400500_8013CF68(Task* arg0)
+static void func_actor_400500_8013CF68(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -6429,7 +6429,7 @@ void func_actor_400500_8013CF68(Task* arg0)
     }
 }
 
-void func_actor_400500_8013D078(Task* arg0)
+static void func_actor_400500_8013D078(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -6460,7 +6460,7 @@ void func_actor_400500_8013D078(Task* arg0)
     }
 }
 
-void func_actor_400500_8013D144(Task* arg0)
+static void func_actor_400500_8013D144(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -6491,7 +6491,7 @@ void func_actor_400500_8013D144(Task* arg0)
     }
 }
 
-void func_actor_400500_8013D210(Task* arg0)
+static void func_actor_400500_8013D210(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -6512,7 +6512,7 @@ void func_actor_400500_8013D210(Task* arg0)
     work->field_A08   = work->field_A08 + 1;
 }
 
-void func_actor_400500_8013D274(Task* arg0)
+static void func_actor_400500_8013D274(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -6532,7 +6532,7 @@ void func_actor_400500_8013D274(Task* arg0)
     }
 }
 
-void func_actor_400500_8013D2D8(Task* arg0)
+static void func_actor_400500_8013D2D8(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -6561,7 +6561,7 @@ void func_actor_400500_8013D2D8(Task* arg0)
     }
 }
 
-void func_actor_400500_8013D3B8(Task* arg0)
+static void func_actor_400500_8013D3B8(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -6581,7 +6581,7 @@ void func_actor_400500_8013D3B8(Task* arg0)
     }
 }
 
-void func_actor_400500_8013D420(Task* arg0)
+static void func_actor_400500_8013D420(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -6602,7 +6602,7 @@ void func_actor_400500_8013D420(Task* arg0)
     }
 }
 
-void func_actor_400500_8013D4F0(Task* arg0)
+static void func_actor_400500_8013D4F0(Task* arg0)
 {
     GpEnemy*         enemy;
     Actor400500Work* work;
@@ -6631,7 +6631,7 @@ void func_actor_400500_8013D4F0(Task* arg0)
     }
 }
 
-void func_actor_400500_8013D59C(Task* arg0)
+static void func_actor_400500_8013D59C(Task* arg0)
 {
     GpEnemy*            enemy;
     Actor400500Work*    work;
@@ -6666,7 +6666,7 @@ void func_actor_400500_8013D59C(Task* arg0)
     }
 }
 
-void func_actor_400500_8013D630(Task* arg0)
+static void func_actor_400500_8013D630(Task* arg0)
 {
     Actor400500HitView* hit;
     Actor400500Work*    work;
@@ -6690,7 +6690,7 @@ void func_actor_400500_8013D630(Task* arg0)
     }
 }
 
-void func_actor_400500_8013D6A0(Task* arg0)
+static void func_actor_400500_8013D6A0(Task* arg0)
 {
     Actor400500Work* work;
     Actor400500Work* work2;
@@ -6722,7 +6722,7 @@ void func_actor_400500_8013D6A0(Task* arg0)
     }
 }
 
-void func_actor_400500_8013D744(Task* arg0)
+static void func_actor_400500_8013D744(Task* arg0)
 {
     Actor400500Work*    work;
     Actor400500HitView* hit;
@@ -6760,7 +6760,7 @@ void func_actor_400500_8013D744(Task* arg0)
     }
 }
 
-void func_actor_400500_8013D878(Task* arg0)
+static void func_actor_400500_8013D878(Task* arg0)
 {
     Actor400500HitView* work;
     Actor400500Work*    work2;
@@ -6779,7 +6779,7 @@ void func_actor_400500_8013D878(Task* arg0)
     }
 }
 
-void func_actor_400500_8013D8CC(Task* arg0)
+static void func_actor_400500_8013D8CC(Task* arg0)
 {
     Actor400500Work* work;
     TmdObject*       model;
@@ -6795,7 +6795,7 @@ void func_actor_400500_8013D8CC(Task* arg0)
     work->field_A06 = work->field_A06 + 1;
 }
 
-void func_actor_400500_8013D958(Task* arg0)
+static void func_actor_400500_8013D958(Task* arg0)
 {
     Actor400500Work* work;
     TmdObject*       model;
@@ -6816,7 +6816,7 @@ void func_actor_400500_8013D958(Task* arg0)
     }
 }
 
-void func_actor_400500_8013D9DC(Task* arg0)
+static void func_actor_400500_8013D9DC(Task* arg0)
 {
     Actor400500Work* work = (Actor400500Work*)arg0->work;
 
@@ -6825,7 +6825,7 @@ void func_actor_400500_8013D9DC(Task* arg0)
     work->field_A08 = 0;
 }
 
-void func_actor_400500_8013D9F4(Task* arg0)
+static void func_actor_400500_8013D9F4(Task* arg0)
 {
     TmdObject*       model;
     Actor400500Work* work;
@@ -6838,7 +6838,7 @@ void func_actor_400500_8013D9F4(Task* arg0)
     work->field_A06 = work->field_A06 + 1;
 }
 
-void func_actor_400500_8013DA24(Task* arg0)
+static void func_actor_400500_8013DA24(Task* arg0)
 {
     Actor400500Work* work;
     u16              frame;
@@ -6851,7 +6851,7 @@ void func_actor_400500_8013DA24(Task* arg0)
     }
 }
 
-void func_actor_400500_8013DA68(Task* arg0)
+static void func_actor_400500_8013DA68(Task* arg0)
 {
     TmdObject*       model;
     Actor400500Work* work;
@@ -6864,7 +6864,7 @@ void func_actor_400500_8013DA68(Task* arg0)
     work->field_A06 = work->field_A06 + 1;
 }
 
-void func_actor_400500_8013DACC(Task* arg0)
+static void func_actor_400500_8013DACC(Task* arg0)
 {
     Actor400500Work* work = (Actor400500Work*)arg0->work;
 
@@ -6899,7 +6899,7 @@ void func_actor_400500_8013DAE4(Task* arg0, s32 arg1, u16* arg2)
     }
 }
 
-void func_actor_400500_8013DB64(Task* arg0, s16 arg1)
+static void func_actor_400500_8013DB64(Task* arg0, s16 arg1)
 {
     Actor400500Work* work = (Actor400500Work*)arg0->work;
 
@@ -6907,7 +6907,7 @@ void func_actor_400500_8013DB64(Task* arg0, s16 arg1)
     work->field_A08 = 0;
 }
 
-s32 func_actor_400500_8013DB78(Task* arg0)
+static s32 func_actor_400500_8013DB78(Task* arg0)
 {
     Actor400500Work* work = (Actor400500Work*)arg0->work;
 
@@ -6919,7 +6919,7 @@ s32 func_actor_400500_8013DB78(Task* arg0)
     return 0;
 }
 
-void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, Actor400500ViewPos* arg2)
+static void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, Actor400500ViewPos* arg2)
 {
     MATRIX   local;
     GpCoord* coord;
@@ -6932,7 +6932,7 @@ void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, Actor400500ViewPos* arg2)
     coord->flg = 0;
 }
 
-void func_actor_400500_8013DC4C(Task* arg0)
+static void func_actor_400500_8013DC4C(Task* arg0)
 {
     Actor400500Work* work;
     s32              i;
@@ -6947,7 +6947,7 @@ void func_actor_400500_8013DC4C(Task* arg0)
     work->field_9FC = work->field_9FE;
 }
 
-void func_actor_400500_8013DCBC(Task* arg0, s16 arg1, s16 arg2)
+static void func_actor_400500_8013DCBC(Task* arg0, s16 arg1, s16 arg2)
 {
     Actor400500Work* work = (Actor400500Work*)arg0->work;
 
@@ -6956,7 +6956,7 @@ void func_actor_400500_8013DCBC(Task* arg0, s16 arg1, s16 arg2)
     work->field_9FA = 2;
 }
 
-void func_actor_400500_8013DCD4(Task* arg0)
+static void func_actor_400500_8013DCD4(Task* arg0)
 {
     s32              same;
     Actor400500Work* work;
@@ -6983,7 +6983,7 @@ void func_actor_400500_8013DCD4(Task* arg0)
     work->field_9FC = work->field_9FE;
 }
 
-s32 func_actor_400500_8013DD8C(Task* arg0, s16 arg1)
+static s32 func_actor_400500_8013DD8C(Task* arg0, s16 arg1)
 {
     Actor400500Work* work;
     s16              scale;
@@ -6996,7 +6996,7 @@ s32 func_actor_400500_8013DD8C(Task* arg0, s16 arg1)
     return (((arg1 << 0x10) >> 8) / scale << 0xC) >> 0x10;
 }
 
-s32 func_actor_400500_8013DDEC(Task* arg0)
+static s32 func_actor_400500_8013DDEC(Task* arg0)
 {
     Actor400500HitView* work = (Actor400500HitView*)arg0->work;
 
@@ -7010,7 +7010,7 @@ s32 func_actor_400500_8013DDEC(Task* arg0)
 /// alone. The actor builds a part's rotation in a scratch matrix and pushes
 /// it into the part's `GpCoord::coord` with this, so the part keeps its
 /// position.
-void func_actor_400500_8013DE2C(MATRIX* src, MATRIX* dst)
+static void func_actor_400500_8013DE2C(MATRIX* src, MATRIX* dst)
 {
     dst->m[0][0] = src->m[0][0];
     dst->m[0][1] = src->m[0][1];
@@ -7035,7 +7035,7 @@ void func_actor_400500_8013DE98(Task* task)
     states.funcs[task->state](task);
 }
 
-void func_actor_400500_8013DEFC(Task* arg0)
+static void func_actor_400500_8013DEFC(Task* arg0)
 {
     Actor400500Work* work                = (Actor400500Work*)arg0->work;
     void             (*states[2])(Task*) = {
@@ -7046,7 +7046,7 @@ void func_actor_400500_8013DEFC(Task* arg0)
     states[(s16)work->field_A06](arg0);
 }
 
-void func_actor_400500_8013DF50(Task* arg0)
+static void func_actor_400500_8013DF50(Task* arg0)
 {
     Actor400500Work* work = (Actor400500Work*)arg0->work;
 
@@ -7062,7 +7062,7 @@ void func_actor_400500_8013DF6C(void)
 {
 }
 
-void func_actor_400500_8013DF74(Task* arg0)
+static void func_actor_400500_8013DF74(Task* arg0)
 {
     Actor400500Work* work;
     Task*            child;
@@ -7079,7 +7079,7 @@ void func_actor_400500_8013DF74(Task* arg0)
     work->field_A06 = work->field_A06 + 1;
 }
 
-void func_actor_400500_8013DFE4(Task* arg0)
+static void func_actor_400500_8013DFE4(Task* arg0)
 {
     Actor400500Work* work;
     u16              frame;
