@@ -3200,8 +3200,6 @@ static void func_acropolis_bridge_80184B94(OverlayWalker* work)
     u8*                  head;
     OverlayAvoidScratch* s;
     s16                  diff;
-    s16                  t;
-    s32                  mag;
 
     if (Mc_SaveData[0].field_5C1 == 1) {
         return;
@@ -3259,28 +3257,8 @@ static void func_acropolis_bridge_80184B94(OverlayWalker* work)
 
     for (s->i = 0; s->i < s->count; s->i++) {
         for (s->j = s->i + 1; s->j < s->count; s->j++) {
-            diff = (u16)s->angle[s->i] - (u16)s->angle[s->j];
-            t    = diff;
-            if (diff < 0) {
-            wrapUp:
-                if (t < -0x800) {
-                    t += 0x1000;
-                    goto wrapUp;
-                }
-            } else {
-            wrapDown:
-                if (t > 0x800) {
-                    t -= 0x1000;
-                    goto wrapDown;
-                }
-            }
-            mag     = t;
-            s->diff = mag;
-            SOFT_BARRIER();
-            if (mag < 0) {
-                mag = -mag;
-            }
-            if (mag >= 0x401) {
+            s->diff = overlayWrapAngle((u16)s->angle[s->i] - (u16)s->angle[s->j]);
+            if (abs(s->diff) > 0x400) {
                 s->ok[s->i] = 0;
                 s->ok[s->j] = 0;
             }
