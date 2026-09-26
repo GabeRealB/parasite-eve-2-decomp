@@ -822,13 +822,11 @@ static u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
         u8 data[2];
     } Bytes2;
 
-    u8*          dest;
-    register s32 place asm("a0");
-    s32          digit;
-    s32          temp;
-    s32          prod;
-    u8*          ret;
-    s32          cmp;
+    u8* dest;
+    s32 place;
+    s32 digit;
+    s32 temp;
+    s32 cmp;
 
     place = 0x10000000;
     if (arg1 < 0) {
@@ -849,13 +847,12 @@ static u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
     }
     if (place > 0) {
         do {
-            digit = arg1 / place;
-            *dest = digit;
-            SOFT_BARRIER();
-            temp    = digit & 0xFF;
-            prod    = temp * place;
+            digit   = arg1 / place;
+            *dest   = digit;
+            temp    = *dest & 0xFF;
+            digit   = temp * place;
             place >>= 4;
-            arg1   -= prod;
+            arg1   -= digit;
             if (temp >= 10U) {
                 *dest = temp + 0x37;
             } else {
@@ -865,8 +862,7 @@ static u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
         } while (place > 0);
     }
     *dest = 0;
-    ret   = arg0;
-    return ret;
+    return arg0;
 }
 
 static u8* Text_ItoaHex(u8* arg0, u32 arg1)
