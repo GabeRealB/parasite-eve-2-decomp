@@ -143502,3 +143502,19 @@ extra copies also add references to `coord`, which then outranked the local
 reused as both the "player is near" flag and the sound id; splitting that into
 `value` and `sound` restored the order. Reading `coord` before `work` at entry
 shortened the constant's range by one insn and was also needed.
+## A per-part translation copy is Psy-Q `setVector` on `&array[i]` (func_actor_323300_80162BE4, 2026-09-26)
+
+A loop saving each part's translation stores the first member off the array
+giv (`sw v1,0x540(a1)`) and the other two off a pointer computed in the body
+(`addiu a0,a1,0x540; sw 4(a0); sw 8(a0)`). Writing `work->partPos[part].vy` for
+all three folds every offset into the giv (`0x544(a0)`), and a `VECTOR* p`
+local turns `p` itself into the giv; the seed reproduced the mix by spelling
+`vx` as `[part]` and `vy`/`vz` as `(partPos + part)->`. Psy-Q's
+`setVector(&work->partPos[part], c->coord.t[0], c->coord.t[1], c->coord.t[2])`
+gives exactly that shape, with `c = &tmd->coords[part]` as the source.
+
+The same function's `SCHED_BARRIER` before `src->verts` was the shared-`from`
+case of "Two SVECTOR copy loops need two source locals". The trace shows the
+mechanism is sched1's launch boost: a pointer reused for both walks has
+`REG_N_SETS == 2`, so `birthing_insn_p` does not boost its load, and the
+single-set `dst`/`nrm`/count loads claim the slots before the branch instead.

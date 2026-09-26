@@ -671,14 +671,13 @@ static void func_actor_323300_80162BE4(Task* arg0)
 {
     Actor323300MtxWork* work;
     TmdObject*          extra;
-    TmdObject*          model;
     TmdSource*          src;
-    GpCoord*            coords;
-    SVECTOR*            dst;
-    SVECTOR*            from;
+    GpCoord*            coord;
     GpMimeSrc*          ctl;
+    SVECTOR*            dst;
     SVECTOR*            nrm;
-    long*               translation;
+    SVECTOR*            verts;
+    SVECTOR*            normals;
     s32                 i;
     s32                 part;
 
@@ -703,40 +702,31 @@ static void func_actor_323300_80162BE4(Task* arg0)
     tmdProcessStream(extra);
     func_actor_323300_80163718(arg0, 0x7D3, &D_actor_323300_80174A74, 0);
     func_actor_323300_8016369C(arg0, 0x7D3, &D_actor_323300_80174AB0, 0);
-    model = arg0->extra.tmd;
+
     ctl   = &D_801865D0;
+    src   = arg0->extra.tmd->source;
     dst   = ctl->field_8;
     nrm   = ctl->field_C;
-    SCHED_BARRIER();
-    src  = model->source;
-    from = (SVECTOR*)src->verts;
+    verts = src->verts;
     for (i = 0; i < ctl->field_10; i++) {
-        dst[i].vx = (u16)from[i].vx;
-        dst[i].vy = (u16)from[i].vy;
-        dst[i].vz = (u16)from[i].vz;
+        dst[i].vx = verts[i].vx;
+        dst[i].vy = verts[i].vy;
+        dst[i].vz = verts[i].vz;
     }
     if (ctl->field_4 != 0) {
-        from = (SVECTOR*)src->normals;
-        i    = 0;
-        if (ctl->field_12 > 0) {
-            dst = nrm;
-            do {
-                dst[i].vx = (u16)from[i].vx;
-                dst[i].vy = (u16)from[i].vy;
-                dst[i].vz = (u16)from[i].vz;
-                i++;
-            } while (i < ctl->field_12);
+        normals = src->normals;
+        for (i = 0; i < ctl->field_12; i++) {
+            nrm[i].vx = normals[i].vx;
+            nrm[i].vy = normals[i].vy;
+            nrm[i].vz = normals[i].vz;
         }
     }
+
     func_actor_323300_80163510(arg0);
     for (part = 1; part < 0x13; part++) {
-        coords                     = arg0->extra.tmd->coords;
-        translation                = coords[part].coord.t;
-        work->partPos[part].vx     = translation[0];
-        (work->partPos + part)->vy = coords[part].coord.t[1];
-        (work->partPos + part)->vz = coords[part].coord.t[2];
+        coord = &arg0->extra.tmd->coords[part];
+        setVector(&work->partPos[part], coord->coord.t[0], coord->coord.t[1], coord->coord.t[2]);
     }
-    DEF_REG(model);
     arg0->state += 1;
 }
 
