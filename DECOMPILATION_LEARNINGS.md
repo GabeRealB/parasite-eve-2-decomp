@@ -143007,3 +143007,23 @@ Splitting the pointer (`p = …field_4; p += arg0 >> 4;`) scheduled the shift
 after the load (94%), and folding the mask and shift into one `return`
 expression changed allocation (91%). The helper also restored the bank base's
 loop-hoisted copy (`move t1,a1`) that the `$t1` pin had imitated.
+## Only `sll 24` hoisted, `sra 12` left at each use: a `char` counter's key written where it is used (Gp_SpawnArea, 2026-09-26)
+
+A key `(n << 12) | (stage << 8) | area` built twice inside a nested loop, with
+`n` the outer loop's counter. The target puts `sll s0, n, 24` in the inner
+loop's preheader and recomputes `sra x, s0, 12` at each use. The seed held that
+split with a hand-hoisted `packed = n << 24` in the outer loop plus three
+`register asm` pins, which stop loop.c moving the `sra` (a hard-register set is
+never a movable).
+
+- The counter is an `s8`: `n << 12` expands to `sll 24; sra 24; sll 12`, and
+  combine later folds the last two into `sra 12` from the hoisted `sll 24`.
+- Each use has to keep loop.c from moving the `sra 24`, which it otherwise
+  force-moves after the `sll 24` (`cond forces`). At the search site, write the
+  key inside the search loop's compare: the innermost loop hoists the whole key
+  first, and when the enclosing loop considers those insns again they are
+  `halved since already moved`, so only the head `sll 24` clears the threshold.
+  At the store site, assign the key to a `u16` local: the narrowed
+  sign-extension sets a `(subreg:SI (reg:HI))`, which is not a movable.
+- The `u16` local, assigned before the field stores, is also what puts the two
+  key-part loads ahead of the first store to the struct.

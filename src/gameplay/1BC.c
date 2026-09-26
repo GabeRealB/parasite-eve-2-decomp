@@ -2546,8 +2546,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
     TmdObject*    extra;
     GpCoord*      coord;
     u16           id;
-    s32           packed;
-    s32           fp;
+    s8            placeNo;
     s32           i;
 
     recs = Gp_AreaTables[arg0->stage];
@@ -2561,8 +2560,8 @@ void Gp_SpawnArea(GpAreaKey* arg0)
         return;
     }
     func_800B5A48(arg0, obj);
-    place = (GpAreaPlace*)nested[arg0->place].field_0;
-    fp    = 0;
+    place   = (GpAreaPlace*)nested[arg0->place].field_0;
+    placeNo = 0;
     if (place == NULL) {
         return;
     }
@@ -2573,27 +2572,17 @@ void Gp_SpawnArea(GpAreaKey* arg0)
         entry = (GpAreaTmdRec*)nested[arg0->place].field_4;
         id    = entry->field_0;
         if (id != 0xFF) {
-            packed = fp << 24;
             do {
                 if (id == place->entryId) {
                     if (obj->field_1 & 2) {
-                        McPosRec*    rec;
-                        s32          found;
-                        s32          j;
-                        register s32 key asm("v1");
-                        s32          t;
-                        s32          lo;
+                        McPosRec* rec;
+                        s32       found;
+                        s32       j;
 
                         rec   = Mc_SaveData.enemyPoses;
                         found = 0;
-                        j     = found;
-                        key   = packed >> 12;
-                        t     = arg0->stage;
-                        lo    = arg0->area;
-                        key   = key | (t << 8);
-                        key   = key | lo;
-                        for (; j < 0x20; j++, rec++) {
-                            if (rec->placeKey == key) {
+                        for (j = 0; j < 0x20; j++, rec++) {
+                            if (rec->placeKey == ((placeNo << 12) | (arg0->stage << 8) | arg0->area)) {
                                 found = 1;
                                 break;
                             }
@@ -2605,20 +2594,13 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                     enemy = Gp_SpawnEnemyFromTable((TaskDesc*)entry->field_8, entry->field_5,
                                                    (place->variant << 16) | place->mode, NULL);
                     if (enemy != NULL) {
-                        register s32 f3 asm("v1");
-                        s32          f2;
-                        register s32 v asm("v0");
+                        u16 key;
 
-                        v               = 0x900;
-                        f3              = arg0->stage;
-                        f2              = arg0->area;
-                        enemy->workType = v;
-                        v               = packed >> 12;
+                        key             = (placeNo << 12) | (arg0->stage << 8) | arg0->area;
+                        enemy->workType = 0x900;
                         enemy->place    = place;
-                        v               = v | (f3 << 8);
+                        enemy->placeKey = key;
                         task            = enemy->task;
-                        f2              = f2 | v;
-                        enemy->placeKey = f2;
                         if (task->spawnType != 0) {
                             extra = task->extra.tmd;
                             coord = extra->coords;
@@ -2669,7 +2651,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                 id = entry->field_0;
             } while (id != 0xFF);
         }
-        fp++;
+        placeNo++;
         place++;
     } while (place->entryId != 0xFF);
 }
