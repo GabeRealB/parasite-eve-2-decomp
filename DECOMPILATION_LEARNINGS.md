@@ -141722,3 +141722,21 @@ head `$v1`, which is what three register pins had been forcing.
 range: try `SCRATCH_PUSH(T)` in place of `SCRATCH_HEAD(T) - 1` plus a separate
 `SCRATCH_HEAD(T) = block;` (and the reverse). Statement order will not do it -
 sched1 re-sorts the stores and all orders compile identically.
+
+## A pinned `blk = buf` copy stored to after a loop is an inline helper converting its `void*` parameter to a typed local (Mc_StateBackupBuffers, 2026-09-26)
+
+**Symptom.** The target reads the payload through `addiu a0,s2,4` but stores
+the checksum after the loop through `a3`, a copy of `s2` made in the loop
+guard's delay slot. Inlining a helper typed `(McChecksumBlock* block, s32 size)`
+maps `block` straight onto the caller's pseudo, so the stores go through `s2`,
+and the register pressure change also swaps two callee-saved values elsewhere.
+
+**Fix.** Take the buffer as `void* data` and convert it in the body:
+`block = data;`. CSE rewrites the pre-loop use back to `data`, but the loop's
+exit label ends its knowledge of the equivalence, so the post-loop stores keep
+`block` as its own pseudo. (A `u8*` parameter with a cast works identically.)
+
+In the same function a `j`/`dest` swap in a byte-copy loop, pinned with
+`register u32 j asm("v1")`, was the loop's form: `while (j < count) { j += 1;
+*dest++ = *src++; }` matches where `if (count != 0) do { ... } while (j < count)`
+with separate `+= 1` statements does not.

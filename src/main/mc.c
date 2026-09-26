@@ -336,157 +336,143 @@ void Mc_StateNameEntry(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
+/// Copy the first half of each of Mc_BufferSlots[1..8] over its second half.
+static inline void _mcCopyBufferHalves(void)
 {
-    Task*            task;
-    McWork*          work;
-    register s32     nine asm("s5");
-    s32              bufSize;
-    McChecksumBlock* bufPtr;
-    s32              doubled;
-    void*            mem;
-    s32              field24;
-    s32              f24;
-    s32              size;
-    s32              tmp;
-    s32              ret;
-    s32              one;
-    UiObject*        obj;
-    McPromptPair*    entry;
-    McPromptPair*    promptBase;
+    McBufferSlot* p;
+    McBufferSlot* base;
+    u8*           src;
+    u8*           dest;
+    u32           count;
+    u32           i;
+    u32           j;
+
+    i    = 1;
+    base = Mc_BufferSlots;
+    p    = base + 1;
+    do {
+        src   = (u8*)p->field_0;
+        count = p->field_4;
+        j     = 0;
+        dest  = src + count;
+        while (j < count) {
+            j      += 1;
+            *dest++ = *src++;
+        }
+        i += 1;
+        p += 1;
+    } while (i < 9U);
+}
+
+/// Inline form of Mc_WriteBlockChecksum: sum/complement of the payload past the header.
+static inline void _mcWriteBlockChecksum(void* data, s32 size)
+{
+    McChecksumBlock* block;
     s16              sum;
-    u8*              src;
-    u32              ji;
-    u32              cnt;
-    McChecksumBlock* blk;
-    s16              inv;
+    u8*              ptr;
+    u32              count;
+    u32              i;
 
-    work    = arg1;
-    task    = arg0;
-    field24 = work->field_24;
-    if (field24 == 0) {
-        u32                    i0;
-        register u32           j asm("v1");
-        McBufferSlot*          p;
-        register McBufferSlot* base asm("v0");
-        u32                    count;
-        u8*                    ptr;
-        u8*                    dest;
-
-        i0   = 1;
-        base = Mc_BufferSlots;
-        p    = base + 1;
+    block = data;
+    sum   = 0;
+    ptr   = block->field_4;
+    count = size - 4;
+    i     = 0;
+    if (count != 0) {
         do {
-            ptr   = (u8*)p->field_0;
-            count = p->field_4;
-            j     = 0;
-            dest  = ptr + count;
-            if (count != 0) {
-                do {
-                    j    += 1;
-                    *dest = *ptr;
-                    ptr  += 1;
-                    dest += 1;
-                } while (j < count);
-            }
-            i0 += 1;
-            p  += 1;
-        } while (i0 < 9U);
-        work->field_A18 = 0x33;
-        task->state     = 0x13;
-    } else if (work->field_28 & 1) {
-        nine = 9;
-        {
-            McBufferSlot* slots;
-            slots   = Mc_BufferSlots;
-            bufSize = slots[nine - field24].field_4;
-            bufPtr  = slots[nine - field24].field_0;
-        }
-        doubled        = bufSize * 2;
-        size           = doubled - 1;
-        size           = (u32)size >> 7;
-        size           = size + 1;
-        size           = size << 7;
-        work->field_20 = size;
-        mem            = memCalloc(size, 0);
-        if (mem != 0) {
-            work->field_18 = (s32)mem;
-            if (work->field_24 == nine) {
-                func_80030AB0(work);
-                memcpy(mem, bufPtr, doubled);
-            } else {
-                sum = 0;
-                src = bufPtr->field_4;
-                ji  = 0;
-                cnt = bufSize - 4;
-                blk = bufPtr;
-                if (cnt != 0) {
-                    do {
-                        ji  += 1;
-                        sum += (s8)*src;
-                        src += 1;
-                    } while (ji < cnt);
-                }
-                inv          = ~sum;
-                blk->field_0 = sum;
-                blk->field_2 = inv;
-                if (work->field_24 == 8) {
-                    McChecksumBlock* temp;
-                    McBufferSlot*    bp;
-                    McBufferSlot*    bbase;
-                    s16              next;
-                    s16              sum;
-                    u32              i;
-
-                    sum   = 0;
-                    i     = 1;
-                    bbase = Mc_BufferSlots;
-                    bp    = bbase + 1;
-                    do {
-                        temp = bp->field_0;
-                        bp  += 1;
-                        i   += 1;
-                        next = sum + *(u8*)temp;
-                        sum  = next;
-                    } while (i < 9U);
-                    Mc_SaveData.bufferChecksum    = next;
-                    Mc_SaveData.bufferChecksumInv = ~next;
-                }
-                memcpy(mem, bufPtr, bufSize);
-                memcpy((u8*)mem + bufSize, bufPtr, bufSize);
-            }
-            work->field_4 = 0;
-            task->state   = task->state + 1;
-            f24           = work->field_24;
-            goto update;
-        }
-        work->field_4 = work->field_4 + 1;
-    } else {
-        tmp = work->field_1C + Mc_BufferSlots[9 - field24].field_8;
-        SOFT_COMPILER_BARRIER();
-        f24            = work->field_24;
-        work->field_1C = tmp;
-    update: {
-        register s32 f28 asm("v1");
-        f28 = work->field_28;
-        f24 = f24 - 1;
-        f28 = (u32)f28 >> 1;
-        TOUCH_REG2(f24, f28);
-        work->field_24 = f24;
-        work->field_28 = f28;
+            i   += 1;
+            sum += (s8)*ptr;
+            ptr += 1;
+        } while (i < count);
     }
-    }
+    block->field_0 = sum;
+    block->field_2 = ~sum;
+}
 
-    work->field_8 = 4;
+/// Inline form of Mc_WriteFirstByteChecksum.
+static inline void _mcWriteFirstByteChecksum(void)
+{
+    McChecksumBlock* temp;
+    McBufferSlot*    p;
+    McBufferSlot*    base;
+    s16              next;
+    s16              sum;
+    u32              i;
+
+    sum  = 0;
+    i    = 1;
+    base = Mc_BufferSlots;
+    p    = base + 1;
+    do {
+        temp = p->field_0;
+        p   += 1;
+        i   += 1;
+        next = sum + *(u8*)temp;
+        sum  = next;
+    } while (i < 9U);
+    Mc_SaveData.bufferChecksum    = next;
+    Mc_SaveData.bufferChecksumInv = ~next;
+}
+
+/// Inline form of Mc_DrawPrompt.
+static inline void _mcDrawPrompt(Task* task, s32 mode)
+{
+    s32           ret;
+    UiObject*     obj;
+    McPromptPair* entry;
+
     obj           = task->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, Mc_StrMemoryCard);
-    one        = 1;
-    promptBase = Mc_PromptTable;
-    entry      = &promptBase[4];
-    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
-    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
+    entry = &Mc_PromptTable[mode];
+    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+}
+
+void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
+{
+    McChecksumBlock* buf;
+    s32              size;
+    void*            mem;
+
+    if (arg1->field_24 == 0) {
+        _mcCopyBufferHalves();
+        arg1->field_A18 = 0x33;
+        arg0->state     = 0x13;
+    } else if (arg1->field_28 & 1) {
+        size           = Mc_BufferSlots[9 - arg1->field_24].field_4;
+        buf            = Mc_BufferSlots[9 - arg1->field_24].field_0;
+        arg1->field_20 = (((u32)(size * 2 - 1) >> 7) + 1) << 7;
+        mem            = memCalloc(arg1->field_20, 0);
+        if (mem != 0) {
+            arg1->field_18 = (s32)mem;
+            if (arg1->field_24 == 9) {
+                func_80030AB0(arg1);
+                memcpy(mem, buf, size * 2);
+            } else {
+                _mcWriteBlockChecksum(buf, size);
+                if (arg1->field_24 == 8) {
+                    _mcWriteFirstByteChecksum();
+                }
+                memcpy(mem, buf, size);
+                memcpy((u8*)mem + size, buf, size);
+            }
+            arg1->field_4  = 0;
+            arg0->state    = arg0->state + 1;
+            arg1->field_24 = arg1->field_24 - 1;
+            arg1->field_28 = (u32)arg1->field_28 >> 1;
+        } else {
+            arg1->field_4 = arg1->field_4 + 1;
+        }
+    } else {
+        arg1->field_1C = arg1->field_1C + Mc_BufferSlots[9 - arg1->field_24].field_8;
+        arg1->field_24 = arg1->field_24 - 1;
+        arg1->field_28 = (u32)arg1->field_28 >> 1;
+    }
+
+    arg1->field_8 = 4;
+    _mcDrawPrompt(arg0, 4);
 }
 
 void Mc_StateFreeBuffer(Task* arg0, McWork* arg1)
