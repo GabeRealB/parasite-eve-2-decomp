@@ -15,6 +15,7 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/pairsrc.h"
 #include "main/gfx.h"
+#include "main/gfxgte.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -229,9 +230,7 @@ STATIC_ASSERT_SIZEOF(Actor01600RotScratch, 0x18);
 /// `delta` takes the world-space offset from the actor to the player, `dir` the
 /// same offset written as an `SVECTOR` and then replaced by that offset turned
 /// into the actor's own frame, and `mat` the transpose of the actor's rotation
-/// the turn multiplies by. Only `delta` is reached through the allocated
-/// pointer; the two above it are written at negative offsets from the scratchpad
-/// head, which is what keeps the head in a register of its own.
+/// the turn multiplies by.
 typedef struct Actor01600AimScratch {
     /* 0x00 */ byte    pad_0[0x20];
     /* 0x20 */ VECTOR  delta;
@@ -2539,67 +2538,35 @@ static void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
 /// Measures the player against the actor: returns the yaw the actor would have
 /// to turn through to face the player, wrapped into -0x800..0x800, and writes
 /// the horizontal distance to `distance`.
-///
-/// The scratch block is addressed two ways on purpose. `head` is the scratchpad
-/// top the allocation moved down from, and the direction vector and the
-/// transposed rotation are written at negative offsets from it, which is what
-/// keeps the head in a register of its own; only `delta`, at the foot of the
-/// block, goes through the allocated pointer. The first difference is computed
-/// into `dx` so that the scratchpad pointer is stored between it and its own
-/// store, as the two stores are emitted in that order.
-///
-/// The `sw` is written out because the second `scratch` operand is what gives
-/// the pointer the reference count that ranks it above `other` in the register
-/// allocator; the instruction it emits is the store the C expression would have
-/// emitted anyway.
 static s32 Actor01600_Fn045A8(Task* arg0, s32* distance)
 {
-    SVECTOR               local;
-    Task**                slot;
-    Task**                slots;
     GpCoord*              coord;
     GpCoord*              other;
-    s32                   angle;
-    s32                   dx;
-    s32                   x;
-    s32                   z;
-    Actor01600AimScratch* head;
-    Actor01600AimScratch* allocated;
+    Actor01600AimScratch* scratch;
     SVECTOR*              vec;
     MATRIX*               matrix;
-    Actor01600AimScratch* scratch;
+    s32                   angle;
 
-    slots              = Gp_ActorSlots;
-    slot               = &slots[Actor01600_Fn052C4(arg0) & 0xFF];
-    head               = SCRATCH_HEAD(Actor01600AimScratch);
-    coord              = arg0->extra.tmd->coords;
-    other              = (*slot)->extra.tmd->coords;
-    dx                 = (u16)other->workm.t[0] - (u16)coord->workm.t[0];
-    allocated          = (SCRATCH_HEAD(Actor01600AimScratch) = head - 1);
-    (head - 1)->dir.vx = (s16)dx;
-    vec                = &(head - 1)->dir;
-    vec->vy            = (s16)((u16)other->workm.t[1] - (u16)coord->workm.t[1]);
-    scratch            = allocated;
-    vec->vz            = (s16)((u16)other->workm.t[2] - (u16)coord->workm.t[2]);
-    matrix             = &(head - 1)->mat;
+    other   = Gp_ActorSlots[Actor01600_Fn052C4(arg0) & 0xFF]->extra.tmd->coords;
+    coord   = arg0->extra.tmd->coords;
+    scratch = SCRATCH_PUSH(Actor01600AimScratch);
+    vec     = &scratch->dir;
+    matrix  = &scratch->mat;
+    vec->vx = other->workm.t[0] - coord->workm.t[0];
+    vec->vy = other->workm.t[1] - coord->workm.t[1];
+    vec->vz = other->workm.t[2] - coord->workm.t[2];
     TransposeMatrix(&coord->workm, matrix);
-    local = *vec;
-    gte_SetRotMatrix(matrix);
-    __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-    gte_rtv0();
-    gte_stsv(vec);
-    angle = ratan2((head - 1)->dir.vx, vec->vz);
-    if (angle >= 0x801) {
+    gfxRotateSv(matrix, vec);
+    angle = ratan2(vec->vx, vec->vz);
+    if (angle > 0x800) {
         angle -= 0x1000;
     } else if (angle < -0x800) {
         angle += 0x1000;
     }
-    x = other->coord.t[0] - coord->coord.t[0];
-    __asm__("sw\t%1, %0" : "=m"(scratch->delta.vx) : "r"(x), "r"(scratch));
+    scratch->delta.vx = other->coord.t[0] - coord->coord.t[0];
     scratch->delta.vy = other->coord.t[1] - coord->coord.t[1];
-    z                 = other->coord.t[2] - coord->coord.t[2];
-    scratch->delta.vz = z;
-    *distance         = SquareRoot0((x * x) + (z * z));
+    scratch->delta.vz = other->coord.t[2] - coord->coord.t[2];
+    *distance         = SquareRoot0(scratch->delta.vx * scratch->delta.vx + scratch->delta.vz * scratch->delta.vz);
     SCRATCH_POP(Actor01600AimScratch);
     return angle;
 }
