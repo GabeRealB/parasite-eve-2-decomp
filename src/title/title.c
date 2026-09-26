@@ -473,32 +473,18 @@ void Title_BootTask(Task* arg0)
 
 void Title_EnqueueDemoScene(s32 arg0)
 {
-    s8              param2[4];
-    u8*             param1;
-    register void** scratch asm("s0");
-    register u8*    head asm("v1");
-    GameSession*    gs;
-    u8*             p2;
+    u8  param2[4];
+    u8* param1;
 
-    scratch = SCRATCH_HEAD_ADDR;
-    gs      = gGameSession;
-    arg0    = arg0 + 0xA;
-    p2      = (u8*)param2;
-
-    head                         = SCRATCH_HEAD_AT(scratch, u8);
-    param1                       = head - 8;
-    SCRATCH_HEAD_AT(scratch, u8) = param1;
-
-    gs->field_80 = 0;
-    param1[3]    = 0;
-    param1[2]    = 0x50;
-    head[-8]     = 0;
-
-    param2[0] = arg0;
-    param2[3] = 0;
-    param2[2] = 0;
-    param2[1] = 0;
-    CdCmd_Enqueue(0x21, param1, p2);
-
-    SCRATCH_POP_BYTES_AT(scratch, 8);
+    param1                 = SCRATCH_PUSH_BYTES(8);
+    gGameSession->field_80 = 0;
+    param1[3]              = 0;
+    param1[2]              = 0x50;
+    param1[0]              = 0;
+    param2[0]              = arg0 + 0xA;
+    param2[3]              = 0;
+    param2[2]              = 0;
+    param2[1]              = 0;
+    CdCmd_Enqueue(0x21, param1, param2);
+    SCRATCH_POP_BYTES(8);
 }
