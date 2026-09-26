@@ -141461,3 +141461,20 @@ The same function zeroes the `4 x 3` `Gp_DebugAttachLevels` block with a plain
 `for (i..4) for (j..3) levels[j + i * 3] = 0;`, matching without the pinned
 per-row copy the "A `4 x 3` clear loop" entry needed in its overlay; that
 entry's two traps are not universal.
+## A reload with no store in front of it: the evicting store was scheduled above the load
+
+A decision function reloaded `lw a0, 0x1C(a3)` (`task->work`) before every
+`work->state = N; work->step = 0;` tail except the first, although the target
+shows no store anywhere between the entry load and those tails - only the LCG
+update `sw Gp_LcgState`, which sits *above* the `lw` of `task->work`. The seed
+forced the reloads with `TOUCH_REG_MEM` per site.
+
+The source order was the other way round: `work = task->work;` first, then the
+LCG step. The global store evicts the varying-address `task->work` entry from
+CSE (the third arm of `invalidate_memory`, entry above), so each inlined
+`setState(task, N)` helper re-reads it; sched1 then hoists the fixed-address
+store above the in-struct load, since the two cannot alias. The one tail that
+does not reload is reached from the entry block, where the helper's re-read was
+merged into the tail that the other sites cross-jump to. So when a target
+reloads a pointer and the only store in sight is *above* the first load, try
+moving that store after the load in the source before reaching for a barrier.

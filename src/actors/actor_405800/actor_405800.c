@@ -2646,102 +2646,75 @@ s32 func_actor_405800_8013728C(Task* arg0)
     return dist;
 }
 
+/// `func_actor_405800_80139FB0`'s body, inlined: switch to behaviour `id`
+/// and restart its step counter.
+static __inline__ void _actor405800SetBehaviour(Task* task, s16 id)
+{
+    Actor405800Work* work = (Actor405800Work*)task->work;
+
+    work->field_846 = id;
+    work->field_848 = 0;
+}
+
 s32 func_actor_405800_801373E0(Task* arg0)
 {
     Actor405800Work* work;
-    Actor405800Work* work2;
-    Actor405800Work* work3;
-    Actor405800Work* work4;
-    Actor405800Work* work5;
-    Actor405800Work* work6;
-    Actor405800Work* work7;
-    Actor405800Work* work8;
     GpCoord*         coord;
     u32              rnd;
     u32              bits;
     s16              ang;
-    s32              ret;
 
-    rnd         = ((u32)Gp_LcgState * 5) + 0x71357911;
-    bits        = rnd >> 0x10;
-    Gp_LcgState = rnd;
     work        = (Actor405800Work*)arg0->work;
     coord       = arg0->extra.tmd->coords;
+    rnd         = Gp_LcgState * 5 + 0x71357911;
+    bits        = rnd >> 0x10;
+    Gp_LcgState = rnd;
     if (work->field_85C == 0) {
         if (work->field_890 == 0) {
             if ((bits & 0xF) == 0) {
                 if ((work->field_85E == 0) && (coord->coord.t[0] < 0x2710)) {
-                    work->field_846 = 0xC;
-                    work->field_848 = 0;
+                    _actor405800SetBehaviour(arg0, 0xC);
                     return 1;
                 }
                 return 0;
             }
-            if ((u32)((bits & 7) - 1) < 3U) {
-                if ((work->field_852 < 0x7D0) && ((u32)(work->field_856 - 0x200) >= 0xC01U) && ((u32)(work->field_854 - 0x601) < 0x3FFU)) {
-                    ret = 1;
-                    TOUCH_REG_MEM(ret);
-                    work2            = (Actor405800Work*)arg0->work;
-                    work2->field_846 = 8;
-                    work2->field_848 = 0;
-                    return ret;
+            if ((bits & 7) >= 1 && (bits & 7) <= 3) {
+                if ((work->field_852 < 0x7D0) && (work->field_856 < 0x200 || work->field_856 > 0xE00) && (work->field_854 > 0x600 && work->field_854 < 0xA00)) {
+                    _actor405800SetBehaviour(arg0, 8);
+                    return 1;
                 }
             } else if (work->field_852 < 0x640) {
                 ang = (s16)work->field_856;
                 if (ang < 0x400) {
-                    ret = 1;
-                    TOUCH_REG_MEM(ret);
-                    work3            = (Actor405800Work*)arg0->work;
-                    work3->field_846 = 6;
-                    work3->field_848 = 0;
-                    return ret;
+                    _actor405800SetBehaviour(arg0, 6);
+                    return 1;
                 }
                 if (ang >= 0xC01) {
-                    ret = 1;
-                    TOUCH_REG_MEM(ret);
-                    work4            = (Actor405800Work*)arg0->work;
-                    work4->field_846 = 7;
-                    work4->field_848 = 0;
-                    return ret;
+                    _actor405800SetBehaviour(arg0, 7);
+                    return 1;
                 }
             }
         } else if ((bits & 7) == 0) {
             if (work->field_85E == 0) {
-                ret = 1;
-                TOUCH_REG_MEM(ret);
-                work5            = (Actor405800Work*)arg0->work;
-                work5->field_846 = 0x10;
-                work5->field_848 = 0;
-                return ret;
+                _actor405800SetBehaviour(arg0, 0x10);
+                return 1;
             }
             return 0;
         } else if ((bits & 0xF) == 1) {
             if (work->field_85E == 0) {
-                ret = 1;
-                TOUCH_REG_MEM(ret);
-                work6            = (Actor405800Work*)arg0->work;
-                work6->field_846 = 0xD;
-                work6->field_848 = 0;
-                return ret;
+                _actor405800SetBehaviour(arg0, 0xD);
+                return 1;
             }
             return 0;
         } else if (work->field_852 < 0x640) {
             ang = (s16)work->field_856;
             if (ang >= 0xC01) {
-                ret = 1;
-                TOUCH_REG_MEM(ret);
-                work7            = (Actor405800Work*)arg0->work;
-                work7->field_846 = 6;
-                work7->field_848 = 0;
-                return ret;
+                _actor405800SetBehaviour(arg0, 6);
+                return 1;
             }
             if (ang < 0x400) {
-                ret = 1;
-                TOUCH_REG_MEM(ret);
-                work8            = (Actor405800Work*)arg0->work;
-                work8->field_846 = 7;
-                work8->field_848 = 0;
-                return ret;
+                _actor405800SetBehaviour(arg0, 7);
+                return 1;
             }
             return 0;
         } else {
