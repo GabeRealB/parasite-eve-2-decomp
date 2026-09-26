@@ -1724,7 +1724,6 @@ static void Actor05600_Fn03924(GpEnemy* ctx, Task* actor)
 {
     Actor105600Work* work;
     TmdObject*       obj;
-    TmdObject*       model;
     GpCoord*         coord;
     GpCoord*         parts;
     GpCoord*         partsA;
@@ -1732,20 +1731,11 @@ static void Actor05600_Fn03924(GpEnemy* ctx, Task* actor)
     GpCoord*         partsC;
     GpCoord*         partsD;
     GpCoord*         effParts;
-    GpAreaKey*       sessionKey;
-    GpAreaKey*       keyPtr;
-    u8               areaByte0;
-    GpAreaRec*       rec;
-    GpAreaPlace*     entry;
     GpEnemy*         eff;
     u16*             tbl;
     u8               param1[8];
     u8               param2[8];
-    GpAreaKey        key;
     s32              i;
-    s32              one;
-    s32              kind;
-    s32              idx;
     s32              param;
 
     obj   = actor->extra.tmd;
@@ -1769,187 +1759,144 @@ static void Actor05600_Fn03924(GpEnemy* ctx, Task* actor)
     for (i = 1; i < 0x13; i++) {
         Gp_AnimResetSlot(&work->rig.anim, i, 1);
     }
-    eff        = Gp_SpawnEnemyFromTable(Actor05600_D164A0, 1, 0, ctx);
-    sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
-    model      = eff->task->extra.tmd;
-    idx        = ctx->placeKey >> 12;
-    key.stage  = sessionKey->stage;
-    key.area   = sessionKey->area;
-    key.room   = sessionKey->room;
-    areaByte0  = sessionKey->view;
-    /* Both calls take `&key`. Left alone, GCC 2.8.1 CSEs that address into one
-       pseudo that is live across the first call, costing a callee-saved
-       register; the ROM rematerializes `addiu a0, sp, key` for each call. The
-       barrier keeps the address materialization next to the call and the
-       `+r` touch makes the second one a fresh computation. */
-    SOFT_BARRIER();
-    keyPtr = &key;
-    TOUCH_REG(keyPtr);
-    key.view = areaByte0;
-    Gp_SyncAreaKeyIndex(keyPtr);
-    rec = Gp_GetNestedAreaRec(&key);
-    /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
-       onto the table (`addu s0, s0, v0`). */
-    entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-    model->tpage = entry->tpage;
-    model->clut  = entry->clut;
-    if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
+    eff = Gp_SpawnEnemyFromTable(Actor05600_D164A0, 1, 0, ctx);
+    actorTintModel(eff->task->extra.tmd, ctx);
+
+    switch (ctx->spawnState) {
+        case 0:
+            ctx->field_4  = &coord->coord;
+            ctx->field_48 = 0;
+            Gp_LinkNode(&ctx->node);
+            parts           = actor->extra.tmd->coords;
+            ctx->bodyPos.vx = 0;
+            ctx->bodyPos.vy = 0;
+            ctx->bodyPos.vz = 0;
+            ctx->param      = Actor05600_D161D0;
+            ctx->recs       = work->field_4EC;
+            ctx->coord      = &parts[3];
+            ctx->hp         = Actor05600_D161D0->hpMax;
+            Gp_IncStateF0Ref(0);
+            work->field_6AC = ctx->place->mode & 1;
+            if (work->field_6AC == 0) {
+                work->field_694 = 1;
+                work->field_6A6 = 0;
+            } else {
+                work->field_694 = 2;
+                work->field_6A6 = 1;
+                param           = ctx->place->variant;
+                work->field_6DA = param * 1000;
+            }
+
+            tbl = Actor05600_D16478[gGameSession->at4.loc.stage];
+            if (tbl != NULL) {
+                work->field_6D6 = tbl[gGameSession->at4.loc.area];
+            }
+            if (work->field_6D6 != 0) {
+                param1[3] = 0;
+                param1[2] = 0xA;
+                param1[0] = work->field_6D6;
+                param2[0] = 0x38;
+                param2[3] = 0;
+                param2[2] = 0;
+                param2[1] = 0;
+                CdCmd_Enqueue(0x21, param1, param2);
+            }
+
+            work->field_49C.end0.vz    = 0x1F40;
+            work->field_49C.end0Radius = 0x3E8;
+            work->field_49C.end0.vx    = 0;
+            work->field_49C.end0.vy    = 0;
+            work->field_49C.end1.vx    = 0;
+            work->field_49C.end1.vy    = 0;
+            work->field_49C.end1.vz    = 0;
+            work->field_49C.end1Radius = 0x5DC;
+            work->field_49C.recs       = work->field_4B4;
+            partsA                     = actor->extra.tmd->coords;
+            work->field_47C.ctx.d4rec  = &work->field_49C;
+            work->field_47C.pos.vx     = 0;
+            work->field_47C.pos.vy     = 0;
+            work->field_47C.pos.vz     = 0;
+            work->field_47C.key        = 0;
+            work->field_47C.radius     = 0;
+            work->field_47C.flags      = 3;
+            work->field_47C.coord      = &partsA[4];
+            Gp_LinkObj(3, &work->field_47C);
+            Gp_InitRec18Table(work->field_4B4, 1, 0);
+            work->field_47C.flags |= 0xCC00;
+
+            partsB                   = actor->extra.tmd->coords;
+            work->field_4CC.ctx.recs = work->field_4EC;
+            work->field_4CC.pos.vx   = 0;
+            work->field_4CC.pos.vy   = 0;
+            work->field_4CC.pos.vz   = 0;
+            work->field_4CC.key      = 0x30038;
+            work->field_4CC.radius   = 0x190;
+            work->field_4CC.flags    = 1;
+            work->field_4CC.coord    = &partsB[3];
+            Gp_LinkObj(2, &work->field_4CC);
+            Gp_InitRec18Table(work->field_4EC, 5, 0);
+            work->field_4CC.flags |= 0x8000;
+
+            partsC                   = actor->extra.tmd->coords;
+            work->field_564.pos.vy   = -0x226;
+            work->field_564.ctx.recs = work->field_584;
+            work->field_564.pos.vx   = 0;
+            work->field_564.pos.vz   = 0;
+            work->field_564.key      = 0;
+            work->field_564.radius   = 0x226;
+            work->field_564.flags    = 1;
+            work->field_564.coord    = partsC;
+            Gp_LinkObj(2, &work->field_564);
+            Gp_InitRec18Table(work->field_584, 4, 0);
+            work->field_564.flags |= 0x4200;
+
+            effParts                 = eff->task->extra.tmd->coords;
+            work->field_5E4.ctx.recs = work->field_604;
+            work->field_5E4.pos.vx   = 0;
+            work->field_5E4.pos.vy   = 0x1F4;
+            work->field_5E4.pos.vz   = 0;
+            work->field_5E4.key      = 0;
+            work->field_5E4.radius   = 0x1F4;
+            work->field_5E4.flags    = 1;
+            work->field_5E4.coord    = effParts;
+            Gp_LinkObj(3, &work->field_5E4);
+            Gp_InitRec18Table(work->field_604, 1, 0);
+            work->field_5E4.flags &= 0x7FFF;
+
+            work->field_63C.end0.vx    = 0;
+            work->field_63C.end0.vy    = 0;
+            work->field_63C.end0.vz    = 0;
+            work->field_63C.end1.vx    = 0;
+            work->field_63C.end1.vy    = 0;
+            work->field_63C.end1.vz    = 0;
+            work->field_63C.end0Radius = 1;
+            work->field_63C.end1Radius = 1;
+            work->field_63C.recs       = work->field_654;
+            partsD                     = actor->extra.tmd->coords;
+            work->field_61C.ctx.d4rec  = &work->field_63C;
+            work->field_61C.pos.vx     = 0;
+            work->field_61C.pos.vy     = 0;
+            work->field_61C.pos.vz     = 0;
+            work->field_61C.key        = 0;
+            work->field_61C.radius     = 0;
+            work->field_61C.flags      = 3;
+            work->field_61C.coord      = partsD;
+            Gp_LinkObj(3, &work->field_61C);
+            Gp_InitRec18Table(work->field_654, 1, 0);
+            work->field_61C.flags = (work->field_61C.flags & 0x3FFF) | 0xC00;
+            actor->state          = 1;
+            break;
+        case 1:
+            work->field_694 = 0x19;
+            work->field_6A8 = 2;
+            actor->state    = 2;
+            break;
+        case 2:
+            work->field_694 = 0x1D;
+            work->field_6A8 = 2;
+            actor->state    = 2;
+            break;
     }
-
-    one  = 1;
-    kind = ctx->spawnState;
-    if (kind == one) {
-        goto case1;
-    }
-    if (kind >= 2) {
-        goto ge2;
-    }
-    if (kind == 0) {
-        goto case0;
-    }
-    return;
-ge2:
-    if (kind == 2) {
-        goto case2;
-    }
-    return;
-
-case0:
-    ctx->field_4  = &coord->coord;
-    ctx->field_48 = 0;
-    Gp_LinkNode(&ctx->node);
-    parts           = actor->extra.tmd->coords;
-    ctx->bodyPos.vx = 0;
-    ctx->bodyPos.vy = 0;
-    ctx->bodyPos.vz = 0;
-    ctx->param      = Actor05600_D161D0;
-    ctx->recs       = work->field_4EC;
-    ctx->coord      = &parts[3];
-    ctx->hp         = Actor05600_D161D0->hpMax;
-    ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    work->field_6AC = ctx->place->mode & 1;
-    if (work->field_6AC == 0) {
-        work->field_694 = one;
-        work->field_6A6 = 0;
-    } else {
-        work->field_694 = 2;
-        work->field_6A6 = one;
-        param           = ctx->place->variant;
-        work->field_6DA = param * 1000;
-    }
-
-    tbl = Actor05600_D16478[gGameSession->at4.loc.stage];
-    if (tbl != NULL) {
-        work->field_6D6 = tbl[gGameSession->at4.loc.area];
-    }
-    if (work->field_6D6 != 0) {
-        param1[3] = 0;
-        param1[2] = 0xA;
-        param1[0] = work->field_6D6;
-        param2[0] = 0x38;
-        param2[3] = 0;
-        param2[2] = 0;
-        param2[1] = 0;
-        CdCmd_Enqueue(0x21, param1, param2);
-    }
-
-    work->field_49C.end0.vz    = 0x1F40;
-    work->field_49C.end0Radius = 0x3E8;
-    work->field_49C.end0.vx    = 0;
-    work->field_49C.end0.vy    = 0;
-    work->field_49C.end1.vx    = 0;
-    work->field_49C.end1.vy    = 0;
-    work->field_49C.end1.vz    = 0;
-    work->field_49C.end1Radius = 0x5DC;
-    work->field_49C.recs       = work->field_4B4;
-    partsA                     = actor->extra.tmd->coords;
-    work->field_47C.ctx.d4rec  = &work->field_49C;
-    work->field_47C.pos.vx     = 0;
-    work->field_47C.pos.vy     = 0;
-    work->field_47C.pos.vz     = 0;
-    work->field_47C.key        = 0;
-    work->field_47C.radius     = 0;
-    work->field_47C.flags      = 3;
-    work->field_47C.coord      = &partsA[4];
-    Gp_LinkObj(3, &work->field_47C);
-    Gp_InitRec18Table(work->field_4B4, 1, 0);
-    work->field_47C.flags |= 0xCC00;
-
-    partsB                   = actor->extra.tmd->coords;
-    work->field_4CC.ctx.recs = work->field_4EC;
-    work->field_4CC.pos.vx   = 0;
-    work->field_4CC.pos.vy   = 0;
-    work->field_4CC.pos.vz   = 0;
-    work->field_4CC.key      = 0x30038;
-    work->field_4CC.radius   = 0x190;
-    work->field_4CC.flags    = 1;
-    work->field_4CC.coord    = &partsB[3];
-    Gp_LinkObj(2, &work->field_4CC);
-    Gp_InitRec18Table(work->field_4EC, 5, 0);
-    work->field_4CC.flags |= 0x8000;
-
-    partsC                   = actor->extra.tmd->coords;
-    work->field_564.pos.vy   = -0x226;
-    work->field_564.ctx.recs = work->field_584;
-    work->field_564.pos.vx   = 0;
-    work->field_564.pos.vz   = 0;
-    work->field_564.key      = 0;
-    work->field_564.radius   = 0x226;
-    work->field_564.flags    = 1;
-    work->field_564.coord    = partsC;
-    Gp_LinkObj(2, &work->field_564);
-    Gp_InitRec18Table(work->field_584, 4, 0);
-    work->field_564.flags |= 0x4200;
-
-    effParts                 = eff->task->extra.tmd->coords;
-    work->field_5E4.ctx.recs = work->field_604;
-    work->field_5E4.pos.vx   = 0;
-    work->field_5E4.pos.vy   = 0x1F4;
-    work->field_5E4.pos.vz   = 0;
-    work->field_5E4.key      = 0;
-    work->field_5E4.radius   = 0x1F4;
-    work->field_5E4.flags    = 1;
-    work->field_5E4.coord    = effParts;
-    Gp_LinkObj(3, &work->field_5E4);
-    Gp_InitRec18Table(work->field_604, 1, 0);
-    work->field_5E4.flags &= 0x7FFF;
-
-    work->field_63C.end0.vx    = 0;
-    work->field_63C.end0.vy    = 0;
-    work->field_63C.end0.vz    = 0;
-    work->field_63C.end1.vx    = 0;
-    work->field_63C.end1.vy    = 0;
-    work->field_63C.end1.vz    = 0;
-    work->field_63C.end0Radius = 1;
-    work->field_63C.end1Radius = 1;
-    work->field_63C.recs       = work->field_654;
-    partsD                     = actor->extra.tmd->coords;
-    work->field_61C.ctx.d4rec  = &work->field_63C;
-    work->field_61C.pos.vx     = 0;
-    work->field_61C.pos.vy     = 0;
-    work->field_61C.pos.vz     = 0;
-    work->field_61C.key        = 0;
-    work->field_61C.radius     = 0;
-    work->field_61C.flags      = 3;
-    work->field_61C.coord      = partsD;
-    Gp_LinkObj(3, &work->field_61C);
-    Gp_InitRec18Table(work->field_654, 1, 0);
-    work->field_61C.flags = (work->field_61C.flags & 0x3FFF) | 0xC00;
-    actor->state          = 1;
-    return;
-
-case1:
-    work->field_694 = 0x19;
-    work->field_6A8 = 2;
-    actor->state    = 2;
-    return;
-
-case2:
-    work->field_694 = 0x1D;
-    work->field_6A8 = kind;
-    actor->state    = kind;
 }
 
 /// Per-frame tick of the approach cycle: runs the collision and state handlers,
