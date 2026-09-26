@@ -3324,127 +3324,111 @@ void Gp_RunPairHandler(GpObj* node)
     }
 }
 
+/// The contact table of `obj`, found through the part of `obj` its kind
+/// (`flags` bits 0-2) says holds it, or NULL for a kind without one.
+static inline GpRec18* _gpObjRecs(GpObj* obj)
+{
+    GpRec18* recs = NULL;
+
+    switch (obj->flags & 7) {
+        case 0:
+            break;
+        case 1:
+            recs = obj->ctx.recs;
+            break;
+        case 2:
+            recs = obj->ctx.node->ctx.recs;
+            break;
+        case 3:
+            recs = obj->ctx.d4rec->recs;
+            break;
+        case 4:
+            recs = obj->ctx.dir->field_8;
+            break;
+    }
+    return recs;
+}
+
+/// Moves `rec` to the entry of its contact table that a new contact of `obj`
+/// goes in, and marks that entry in use together with `obj`'s `flags` bits
+/// 4-7. An object carrying 0x800 keeps a single contact, in the first entry:
+/// when that entry already holds a contact with another body, the entry naming
+/// `obj` in that body's table is cleared first. Any other object takes the
+/// first free entry. Returns from the caller when the table is full, or when
+/// the other body's entry cannot be found.
+#define GP_CLAIM_CONTACT_REC(rec, obj)                                                                  \
+    do {                                                                                                \
+        GpRec18* _other;                                                                                \
+        u16      _recFlags;                                                                             \
+                                                                                                        \
+        if ((obj)->flags & 0x800) {                                                                     \
+            _recFlags = (rec)->flags;                                                                   \
+            if (!(_recFlags & 1)) {                                                                     \
+                (rec)->flags = _recFlags | (((obj)->flags & 0xF0) + 1);                                 \
+            } else {                                                                                    \
+                if (((rec)->key & 0xFFFF0000) != 0x100000) {                                            \
+                    _other = _gpObjRecs(                                                                \
+                        (GpObj*)((((rec)->at10.node.high << 16) & 0xFFFF0000) | (rec)->at10.node.low)); \
+                    if (_other == NULL) {                                                               \
+                        return;                                                                         \
+                    }                                                                                   \
+                    for (;;) {                                                                          \
+                        if (_other->key == (obj)->key) {                                                \
+                            goto _found;                                                                \
+                        }                                                                               \
+                        if (_other->flags & 2) {                                                        \
+                            return;                                                                     \
+                        }                                                                               \
+                        _other++;                                                                       \
+                    }                                                                                   \
+                _found:                                                                                 \
+                    _other->key            = 0;                                                         \
+                    _other->depth          = 0;                                                         \
+                    _other->point.vx       = 0;                                                         \
+                    _other->point.vy       = 0;                                                         \
+                    _other->point.vz       = 0;                                                         \
+                    _other->at10.normal.vx = 0;                                                         \
+                    _other->at10.normal.vy = 0;                                                         \
+                    _other->at10.normal.vz = 0;                                                         \
+                    _other->flags         &= ~1;                                                        \
+                }                                                                                       \
+                (rec)->flags |= ((obj)->flags & 0xF0) + 1;                                              \
+            }                                                                                           \
+        } else {                                                                                        \
+            for (;;) {                                                                                  \
+                _recFlags = (rec)->flags;                                                               \
+                if (!(_recFlags & 1)) {                                                                 \
+                    goto _free;                                                                         \
+                }                                                                                       \
+                if (_recFlags & 2) {                                                                    \
+                    return;                                                                             \
+                }                                                                                       \
+                (rec)++;                                                                                \
+            }                                                                                           \
+        _free:                                                                                          \
+            (rec)->flags = _recFlags | (((obj)->flags & 0xF0) + 1);                                     \
+        }                                                                                               \
+    } while (0)
+
 void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2)
 {
-    s32               a3v;
-    GpRec18*          slot;
-    register GpRec18* otable asm("t0");
-    register GpRec18* otherSlot asm("v1");
-    unsigned int      recFlags;
-    u16               f0;
-    s32               key;
+    GpRec18* rec;
 
     if (arg1->key == 0) {
         return;
     }
 
-    a3v = 0;
-    switch (arg0->flags & 7) {
-        case 0:
-            break;
-        case 1:
-            a3v = (s32)arg0->ctx.recs;
-            break;
-        case 2:
-            a3v = (s32)arg0->ctx.node->ctx.recs;
-            break;
-        case 3:
-            a3v = (s32)arg0->ctx.d4rec->recs;
-            break;
-        empty_or: /* between case 3 and 4 so the empty-slot trampoline matches */
-        {
-            register s32 tmp asm("v0");
-            tmp         = a3v & 0xF0;
-            slot->flags = recFlags | (tmp + 1);
-            goto fill;
-        }
-        case 4:
-            a3v = (s32)arg0->ctx.dir->field_8;
-            break;
-    }
-    slot = (GpRec18*)a3v;
-    if (slot == NULL) {
+    rec = _gpObjRecs(arg0);
+    if (rec == NULL) {
         return;
     }
 
-    a3v = arg0->flags;
-    if (a3v & 0x800) {
-        recFlags = slot->flags;
-        if (recFlags & 1) {
-            {
-                register s32 cmp asm("v0");
-                cmp = 0x100000;
-                a3v = 0xFFFF0000;
-                if ((slot->key & a3v) != cmp) {
-                    a3v    = (((s32)slot->at10.node.high << 16) & a3v) | slot->at10.node.low;
-                    otable = NULL;
-                    switch (((GpObj*)a3v)->flags & 7) {
-                        case 0:
-                            break;
-                        case 1:
-                            otable = ((GpObj*)a3v)->ctx.recs;
-                            break;
-                        case 2:
-                            otable = ((GpObj*)a3v)->ctx.node->ctx.recs;
-                            break;
-                        case 3:
-                            otable = ((GpObj*)a3v)->ctx.d4rec->recs;
-                            break;
-                        case 4:
-                            otable = ((GpObj*)a3v)->ctx.dir->field_8;
-                            break;
-                    }
-                    otherSlot = otable;
-                    if (otherSlot == NULL) {
-                        return;
-                    }
-                    key = arg0->key;
-                loop:
-                    if (otherSlot->key != key) {
-                        if (otherSlot->flags & 2) {
-                            return;
-                        }
-                        otherSlot++;
-                        goto loop;
-                    }
-                    f0                        = otherSlot->flags;
-                    otherSlot->key            = 0;
-                    otherSlot->depth          = 0;
-                    otherSlot->point.vx       = 0;
-                    otherSlot->point.vy       = 0;
-                    otherSlot->point.vz       = 0;
-                    otherSlot->at10.normal.vx = 0;
-                    otherSlot->at10.normal.vy = 0;
-                    otherSlot->at10.normal.vz = 0;
-                    otherSlot->flags          = f0 & 0xFFFE;
-                }
-            }
-            recFlags    = slot->flags;
-            recFlags    = recFlags | ((arg0->flags & 0xF0) + 1);
-            slot->flags = recFlags;
-            goto fill;
-        } else {
-            goto empty_or;
-        }
-    } else {
-        while (1) {
-            recFlags = slot->flags;
-            if (!(recFlags & 1)) {
-                break;
-            }
-            if (recFlags & 2) {
-                return;
-            }
-            slot++;
-        }
-        slot->flags = recFlags | ((arg0->flags & 0xF0) + 1);
-    }
+    GP_CLAIM_CONTACT_REC(rec, arg0);
 
-fill:
-    slot->key                     = arg1->key;
-    slot->depth                   = (u16)arg2->rsum;
-    slot->point                   = arg2->src;
-    *(SVECTOR*)&slot->at10.normal = arg2->extra;
+    rec->key         = arg1->key;
+    rec->depth       = arg2->rsum;
+    rec->point       = arg2->src;
+    rec->at10.normal = arg2->extra;
 }
 
 s32 Gp_PairHandler1(GpObj* arg0, GpObj* arg1)

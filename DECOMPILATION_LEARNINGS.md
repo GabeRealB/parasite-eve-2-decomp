@@ -142316,3 +142316,19 @@ Two points were not obvious. The inner block that re-reads the range needs its
 in the inner block's register. And the distance to one end of the range reuses
 `span`, which is dead once `span >= 0x400` has been tested. When m2c's register
 merging blocks a fix, enumerate the role splits rather than pinning.
+## A `j tail` trampoline parked between an earlier switch's arms is loop.c's block move out of a `do { } while (0)` macro (func_800DBA20, 2026-09-26)
+
+Target: a two-insn block `j L; andi v0,a3,0xF0` sits between case 3 and case 4
+of the function's *first* switch, far from the `beqz` that reaches it. The seed
+reproduced it with a label inside the switch, a `goto` into it and four pins.
+It is `find_and_verify_loops` (see the block-move entry above): a block that
+directly follows a conditional jump and ends in a jump out of its loop is moved
+to the first BARRIER, searching backward from the jump's target, that sits at
+the target's loop level. So the block was inside a loop whose exit jumps to
+code outside any loop, and every barrier in between was inside a loop too -
+the whole `if (flags & 0x800) {...} else {...}` was a `do { } while (0)` macro,
+with the moved arm written *first* (`if (!(f & 1)) { short arm } else {...}`)
+so nothing but the conditional jump precedes it. The same loop notes weighted
+the arm's pseudos (`REG_N_REFS` by loop depth), which gave the target's
+allocation without the pins. The first switch had to stay an inline function
+outside the macro: with it inside a loop too, the barrier search skips it.
