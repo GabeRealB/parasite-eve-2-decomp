@@ -443,37 +443,22 @@ static void func_necrosis_80130288(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
-    void**           scratch;
-    u8*              head;
+    s32              u0;
     s32              u1;
     s32              ang2;
-    u16              vz;
 
-    scratch = SCRATCH_HEAD_ADDR;
-    head    = *(u8* volatile*)scratch;
-    {
-        register u16 vx asm("v0");
-        vx                                        = *(volatile u16*)&arg0->workm.t[0];
-        ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
-    }
-    {
-        register u8* tmp asm("v0");
-        tmp   = head - 0x1C;
-        block = (GpFxQuadScratch*)tmp;
-    }
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, GpFxQuadScratch) = block;
-    block->vec.vz                             = vz;
-
+    block         = SCRATCH_PUSH(GpFxQuadScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&block->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -487,28 +472,25 @@ static void func_necrosis_80130288(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         }
         setSemiTrans(prim, 1);
         setShadeTex(prim, 1);
-        {
-            s32 cell;
-            cell = (arg1 & 0xF) * 40;
-            u1   = cell + 0x27;
-            setUV4(prim, cell, 0x50, u1, 0x50, cell, 0x77, u1, 0x77);
-        }
+        u0 = (arg1 & 0xF) * 40;
+        u1 = u0 + 0x27;
+        setUV4(prim, u0, 0x50, u1, 0x50, u0, 0x77, u1, 0x77);
         block->dx = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
         block->dy = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
+        prim->x0  = block->sx + block->dx;
+        prim->x3  = block->sx - block->dx;
+        prim->y0  = block->sy - block->dy;
+        prim->y3  = block->sy + block->dy;
         ang2      = arg3 + 0x400;
         block->dx = (((arg2 * 39) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 39) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
+        prim->x1  = block->sx + block->dx;
+        prim->x2  = block->sx - block->dx;
+        prim->y1  = block->sy - block->dy;
+        prim->y2  = block->sy + block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_POP(GpFxQuadScratch);
 }
