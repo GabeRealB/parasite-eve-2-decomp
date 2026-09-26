@@ -141887,3 +141887,12 @@ narrowed to the `u8` field, where `0xA7` is a QImode `-89`.
 
 **Fix.** Pass the full expressions to `setUV4`:
 `setUV4(p, (n % 4) * 0x38, (n % 8) / 4 * 0x38 + 0x70, (n % 4) * 0x38 + 0x37, ...)`.
+
+The line-selecting twin `func_actor_215100_8014C17C` adds one wrinkle: its
+`-2` arm's copy of `addiu v0,t0,1; move t0,v0` survives and jumps to the shared
+`lhu` alone, with `addiu t2,t2,1` (`lineIndex++`) in the delay slot. Written
+`lineIndex++; code = arg0[++i];`, jump2 merges the whole advance (96.97%).
+The statement order `i++; lineIndex++; code = arg0[i];` puts the other
+increment between the advance and the load, so only the load is cross-jumped.
+A surviving tail duplicate that is only partly merged shows where an extra
+statement stood in the original arm.
