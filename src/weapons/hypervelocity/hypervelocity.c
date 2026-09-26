@@ -20,8 +20,6 @@
 #include "main/tmd.h"
 #include "weapons/hypervelocity.h"
 
-static void func_hypervelocity_8011F270(Task* arg0);
-
 /// Translation of the round's own coordinate frame inside its parent frame
 /// (the muzzle), `(0, 0x240, 0x80)`.
 static SVECTOR D_hypervelocity_8011FB74 = { 0, 0x240, 0x80, 0 };

@@ -15,7 +15,6 @@
 
 static const char D_800139A8[];
 
-static void Mc_DrawPrompt(Task* arg0, s32 arg1);
 static void Mc_KillIfCountdown(Task* arg0, McWork* arg1);
 static void Mc_ResetWork(Task* arg0, McWork* arg1);
 static void Mc_StateBackupBuffers(Task* arg0, McWork* arg1);
@@ -29,8 +28,6 @@ static void Mc_StateOpenRead(Task* arg0, McWork* arg1);
 static void Mc_StateOpenSelected(Task* arg0, McWork* arg1);
 static void Mc_StatePadFileName(Task* arg0, McWork* arg1);
 static s32  Mc_VerifySaveHdrChecksum(McSaveData* arg0);
-static void Mc_WriteBlockChecksum(McChecksumBlock* arg0, s32 arg1);
-static void Mc_WriteFirstByteChecksum(void);
 
 static const char Mc_StrMemoryCard[] = "Memory Card";
 

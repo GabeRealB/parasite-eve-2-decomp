@@ -15,8 +15,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-static void func_energyshot_8012EF34(Task* arg0);
-
 /// Per-level tuning for the energy shot: rows are PE levels 1-3.
 static EnergyShotScale D_energyshot_801300E4[] = {
     { 0x0008, 0x0090, 0x0005, 0x0400 },

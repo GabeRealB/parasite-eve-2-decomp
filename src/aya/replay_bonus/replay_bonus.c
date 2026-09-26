@@ -15,9 +15,6 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 #include "psyq/libpress.h"
-static const char   D_replay_bonus_801157A8[];
-static const char   D_replay_bonus_801157B0[];
-static const char   D_replay_bonus_801157C4[];
 static const char   D_replay_bonus_801157C8[];
 extern u8           D_replay_bonus_80119014[];
 extern u8           D_replay_bonus_8011906C[];

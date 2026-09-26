@@ -19,8 +19,6 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-static void func_lifedrain_8012EF48(Task* arg0);
-
 static void func_lifedrain_801301AC(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_lifedrain_801305C0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 

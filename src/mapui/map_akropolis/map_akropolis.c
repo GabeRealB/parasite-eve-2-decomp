@@ -21,8 +21,6 @@ extern TaskDesc   D_map_akropolis_8017AA00;
 extern UiObjectDesc D_8010EFA0;
 extern UiObjectDesc D_map_akropolis_8017A9E4;
 
-static s32 func_map_akropolis_8017A038(void);
-
 /// MDEC buffer layout hook for the Akropolis map, reached from
 /// `Mdec_SetupBuffers` (main) for the stream kinds this overlay plays. Every
 /// kind parks the two VLC buffers (`D_8006AC50`) and the two decode buffers

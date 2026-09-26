@@ -29,11 +29,8 @@ extern UiObjectDesc D_8010EFA0;
 
 void Gp_ClearPreviewItems(void);
 
-static void       Gp_CloseItemPane(UiObject* arg0, Task* arg1);
-static void       Gp_FadeTileTask(Task* arg0);
-static void       Gp_ItemMoveChild(UiObject* arg0, Task* arg1);
-static void       Gp_ItemPickupTilt(Task* arg0);
-static const char Gp_StrBullet[];
+static void Gp_CloseItemPane(UiObject* arg0, Task* arg1);
+static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1);
 
 /// Per-child item-move handler. Walked by `Gp_ItemMoveTask` over
 /// `obj->owner`'s children as `Gp_ItemMoveChild(child->spawnArg2, child)`.

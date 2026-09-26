@@ -17,10 +17,8 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-static Task* D_apobiosis_80130BA0;
-static void  func_apobiosis_8012EF4C(Task* arg0);
-static void  func_apobiosis_8012F808(u32 bright);
-static void  func_apobiosis_8012F9D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_apobiosis_8012F808(u32 bright);
+static void func_apobiosis_8012F9D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 /// Per-level tuning for the apobiosis pulse, one row per PE level 1-3,
 /// weakest first.
