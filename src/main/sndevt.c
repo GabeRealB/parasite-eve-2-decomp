@@ -902,104 +902,60 @@ static void Midi_KeyOffVoices(MidiSong* arg0)
 
 static void Midi_DriveTrack(MidiSong* arg0, MidiTrack* arg1)
 {
-    u8           sp10;
-    MidiTrack*   entry;
-    MidiHandler* table;
-    u32          temp;
-    s32          quot;
-    s32          ticks;
-    s32          rem_factor;
-    u8           status;
-    u32          hi;
-    s32          status_arg;
-    s32          delta;
-    MidiHandler  handler;
-    u8*          cursor;
+    u8  len;
+    u32 temp;
+    s32 ticks;
+    s32 quot;
+    u32 rem;
+    u8  status;
 
-    entry = arg1;
-    temp  = entry->field_38 + (arg0->field_4 + arg0->field_5) * arg0->field_34;
+    temp = arg1->field_38 + (arg0->field_4 + arg0->field_5) * arg0->field_34;
     if (gDisplayState.region == 1) {
         quot = temp / 6000U;
     } else {
         quot = temp / 3600U;
     }
     if (gDisplayState.region == 1) {
-        rem_factor = (temp / 6000U) * 0x177;
-        goto rem_join;
+        rem = temp % 6000U;
     } else {
-        goto rem_else;
+        rem = temp % 3600U;
     }
-
-early_exit:
-    entry->field_0  = 0;
-    entry->field_38 = 0;
-    arg0->field_0   = 4;
-    return;
-
-rem_else:
-    rem_factor = (temp / 3600U) * 0xE1;
-rem_join: {
-    register s32 scaled asm("v0");
-    register s32 rem asm("v1");
-    scaled          = rem_factor * 0x10;
-    rem             = temp - scaled;
+    arg1->field_38  = rem;
+    arg0->field_38 += quot;
     ticks           = quot;
-    entry->field_38 = rem;
-}
-    arg0->field_38 += ticks;
     if (arg0->field_1 == 0x4F) {
         arg0->field_C = 0xFFFF;
     }
-    if (ticks < entry->field_34) {
-        goto end;
-    }
-    table  = Midi_EventFns;
-    ticks -= entry->field_34;
-loop_outer:
-    entry->field_34 = 0;
-loop_inner:
-    status = *entry->field_2C;
-    hi     = status & 0xF0;
-    if (status & 0x80) {
-        entry->field_3 = 0;
-        if (hi != 0xF0) {
-            entry->field_2 = status & 0xF;
-        }
-        status_arg      = status & 0xFF;
-        handler         = *(MidiHandler*)(((hi >> 2) + (s32)table) - 0x20);
-        entry->field_2C = handler(status_arg, entry->field_2C, arg0, entry);
-    } else {
-        entry->field_2C =
-            (table[1])((entry->field_3 = 1, entry->field_2 | 0x90),
-                       entry->field_2C - 1, arg0, entry);
-    }
-    if (entry->field_5 != 0) {
-        goto end;
-    }
-    cursor = entry->field_2C;
-    if (cursor == NULL) {
-        goto early_exit;
-    }
-    entry->field_34  = Midi_ReadVlq(cursor, &sp10);
-    entry->field_2C += sp10;
-    delta            = entry->field_34;
-    if (delta == 0) {
-        goto loop_inner;
-    }
-    {
-        register s32 d asm("v1");
-        s32          less;
-        d      = delta;
-        less   = ticks < d;
-        ticks -= d;
-        if (less) {
-            ticks += d;
-        } else {
-            goto loop_outer;
-        }
+    while (ticks >= arg1->field_34) {
+        ticks         -= arg1->field_34;
+        arg1->field_34 = 0;
+        do {
+            status = *arg1->field_2C;
+            if (status & 0x80) {
+                arg1->field_3 = 0;
+                if ((status & 0xF0) != 0xF0) {
+                    arg1->field_2 = status & 0xF;
+                }
+                arg1->field_2C = Midi_EventFns[((status & 0xF0) >> 4) - 8](status, arg1->field_2C, arg0, arg1);
+            } else {
+                arg1->field_3  = 1;
+                arg1->field_2C = Midi_EventFns[1](arg1->field_2 | 0x90, arg1->field_2C - 1, arg0, arg1);
+            }
+            if (arg1->field_5 != 0) {
+                goto end;
+            }
+            if (arg1->field_2C == NULL) {
+                arg1->field_0  = 0;
+                arg1->field_38 = 0;
+                arg0->field_0  = 4;
+                return;
+            }
+            arg1->field_34  = Midi_ReadVlq(arg1->field_2C, &len);
+            arg1->field_2C += len;
+        } while (arg1->field_34 == 0);
     }
 end:
-    entry->field_34 -= ticks;
+    arg1->field_34 -= ticks;
 }
 
 static void Midi_UpdateVoiceVolumes(MidiSong* arg0)
