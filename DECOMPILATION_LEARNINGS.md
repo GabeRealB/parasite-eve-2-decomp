@@ -144398,3 +144398,24 @@ but it keeps `list` alive into the next block, costing a `move a1,v0`. Helpers
 extra `first`/`start` copies and statement orders did not change the count, and
 the permuter found nothing. When the swapped pair is a ring head against a
 hoisted address, count refs before trying scheduling changes.
+## An `s16` variable assigned in if/else arms hands its later uses to a block-local copy, which local-alloc colours first (Actor02100_Fn00048, 2026-09-27)
+
+**Symptom.** A factor set in both arms of an `if` (`scale = 0x19;` / `scale = 0;`)
+and then used by three multiplies after the join sat in `$a2` instead of
+`$v1`, and a key constant materialised after the join took the `$v1` the
+target gave the factor (97.7%, `regs=13`). The seed had pinned it with
+`__asm__("" : "=r"(key))` after a later call, which gives the constant a
+second death so `local_alloc` skips it and `global_alloc` ranks it below the
+factor.
+
+**Mechanism.** Declared `s32`, the factor is one pseudo spanning three blocks,
+so only `global_alloc` sees it, and it runs after `local_alloc` has already
+handed `$v1` to the block-local constant. Declared `s16`, the variable is an
+`HImode` pseudo that dies at the join in `(set (reg:SI n) (subreg:SI (reg/v:HI
+scale)))`; the multiplies read that block-local `SImode` copy, and
+`local_alloc` colours it next to the constant, so the factor gets `$v1` and the
+constant `$a2`.
+
+**Fix.** Declare the variable with the width its values need (`s16 scale;`). When
+a value that crosses a join loses a register to a constant computed after
+the join, try narrowing the variable before forcing the constant global.

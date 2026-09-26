@@ -233,9 +233,7 @@ static void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
     SVECTOR*                  rotation;
     Actor02100Fn00048Scratch* head;
     s16                       variant;
-    s32                       scaled;
-    s32                       key;
-    s32                       scale;
+    s16                       scale;
     TmdObject*                extra;
     GpCoord*                  coord;
     Actor02100Work*           work;
@@ -295,7 +293,7 @@ static void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
     work->field_100.coord      = coord;
     work->field_100.spawnArgLo = 0x200;
     work->field_100.spawnArgHi = 1;
-    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    Gp_IncStateF0Ref(0);
     scale = 0x19;
     if (work->field_176 == 0) {
         work->field_172 = 0;
@@ -303,27 +301,22 @@ static void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
     } else {
         work->field_172 = 1;
     }
-    scaled                  = (s32)((s16)coord->coord.m[0][0] * scale) >> 0xC;
-    work->field_118         = (s16)scaled;
-    scaled                  = (s32)(coord->coord.m[1][0] * scale) >> 0xC;
-    work->field_11A         = (s16)scaled;
-    scaled                  = (s32)(coord->coord.m[2][0] * scale) >> 0xC;
-    work->field_11C         = (s16)scaled;
+    work->field_118         = (coord->coord.m[0][0] * scale) >> 12;
+    work->field_11A         = (coord->coord.m[1][0] * scale) >> 12;
+    work->field_11C         = (coord->coord.m[2][0] * scale) >> 12;
+    work->field_138         = work->field_118;
+    work->field_13A         = work->field_11A;
+    work->field_13C         = work->field_11C;
     table                   = &work->field_60;
     work->field_40.coord    = coord;
     work->field_40.ctx.recs = table;
     work->field_40.pos.vx   = 0;
     work->field_40.pos.vy   = 0;
     work->field_40.pos.vz   = 0;
-    key                     = 0x30015;
-    work->field_40.key      = key;
-    work->field_138         = (u16)work->field_118;
+    work->field_40.key      = 0x30015;
     work->field_40.radius   = 0x190;
-    work->field_13A         = (u16)work->field_11A;
-    work->field_40.flags    = 1U;
-    work->field_13C         = work->field_11C;
+    work->field_40.flags    = 1;
     Gp_LinkObj(2, &work->field_40);
-    __asm__("" : "=r"(key), "+r"(table));
     Gp_InitRec18Table(table, 1, 0);
     contacts                 = &work->field_98;
     work->field_B0.vx        = 0;
