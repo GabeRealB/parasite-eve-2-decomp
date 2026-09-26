@@ -1815,35 +1815,10 @@ extern u16* Actor05700_D173B0[];
 /// Enemy parameter record the spawn hands to its `GpEnemy`.
 extern GpPairSrcE Actor05700_D17108[];
 
-/// Copies the spawner's area-place texture page and CLUT into a spawned
-/// enemy's model and re-streams the model when it already has a buffer.
+/// `actorTintModel` for a spawned enemy's model.
 static __inline__ void _actor05700TintSpawn(GpEnemy* spawned, GpEnemy* ctx)
 {
-    GpAreaKey    key;
-    GpAreaKey*   sessionKey;
-    u8           areaByte0;
-    GpAreaRec*   rec;
-    GpAreaPlace* entry;
-    TmdObject*   model;
-    s32          idx;
-
-    sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
-    idx        = ctx->placeKey >> 12;
-    model      = spawned->task->extra.tmd;
-    key.stage  = sessionKey->stage;
-    key.area   = sessionKey->area;
-    key.room   = sessionKey->room;
-    areaByte0  = gGameSession->at4.loc.view;
-    key.view   = areaByte0;
-    Gp_SyncAreaKeyIndex(&key);
-    rec          = Gp_GetNestedAreaRec(&key);
-    entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-    model->tpage = entry->tpage;
-    model->clut  = entry->clut;
-    if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
-    }
+    actorTintModel(spawned->task->extra.tmd, ctx);
 }
 
 /// Spawn state handler: allocates the 0x6E4-byte work block, starts its

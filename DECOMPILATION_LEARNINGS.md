@@ -108017,7 +108017,7 @@ registers depending on whether the four copies share a variable or are four
 expansions of a `static __inline__` helper. Written out four times with one
 `model` / `idx` / `raw` at function scope (m2c's shape, and the shape of the
 `func_actor_302600_80165A6C` twin, which has the body only once), the body
-scored 84.126%; moved into `Actor401000_TintEffect` and called four times
+scored 84.126%; moved into a helper (now the shared `actorTintEffect` itself) and called four times
 exactly as `actorTintEffect` is, it scored 100.000% on the first build.
 
 The mechanism is `global.c`'s allocno ordering. A variable assigned in four

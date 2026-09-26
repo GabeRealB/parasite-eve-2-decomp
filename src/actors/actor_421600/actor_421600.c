@@ -4900,43 +4900,6 @@ void func_actor_421600_8013BA70(Task* arg0)
     arg0->extra.tmd->coords->flg = 0;
 }
 
-/// Tint a freshly spawned effect model from the enemy's placement in the
-/// current area: fill the session's location key, let `Gp_SyncAreaKeyIndex`
-/// resolve its table index, copy that place's texture page and CLUT into the
-/// model, and re-stream the model when it already has a buffer.
-static __inline__ void _actor421600TintEffect(GpEffWork* eff, GpEnemy* enemy)
-{
-    GpAreaKey    key;
-    GpAreaKey*   sessionKey;
-    u8           areaByte0;
-    GpAreaRec*   rec;
-    GpAreaPlace* entry;
-    TmdObject*   model;
-    s32          idx;
-    u32          raw;
-
-    if (eff != NULL) {
-        sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
-        raw        = enemy->placeKey;
-        model      = eff->task->extra.tmd;
-        key.stage  = sessionKey->stage;
-        key.area   = sessionKey->area;
-        key.room   = sessionKey->room;
-        areaByte0  = gGameSession->at4.loc.view;
-        idx        = raw >> 12;
-        key.view   = areaByte0;
-        Gp_SyncAreaKeyIndex(&key);
-        rec          = Gp_GetNestedAreaRec(&key);
-        entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-        model->tpage = entry->tpage;
-        model->clut  = entry->clut;
-        if (model->buffer != NULL) {
-            tmdProcessStream(model);
-            tmdProcessStream(model);
-        }
-    }
-}
-
 /// Death tick: the live-actor edge arms the model (dirty 0x80, clip 0x19C, the
 /// 0xB6C node's 0x4000 flag down, the enemy's list node marked, the 0x83E /
 /// 0x840 / 0x844 triple and `field_6` cleared) and spawns the 0x60030 effect on
@@ -4977,21 +4940,21 @@ void func_actor_421600_8013C8E0(Task* arg0)
         vec.vz        = 0x64;
         vec.vy        = 0;
         vec.vx        = 0;
-        _actor421600TintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec), ctx);
+        actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec), ctx);
     }
     if ((s16)work->field_6 == 5) {
         D_80114B78[0] = &D_actor_421600_801443C8;
         vec.vy        = 0;
         vec.vx        = 0;
-        _actor421600TintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec), ctx);
+        actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec), ctx);
     }
     if ((s16)work->field_6 == 7) {
         D_80114B78[0] = &D_actor_421600_80145604;
-        _actor421600TintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), ctx);
+        actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), ctx);
     }
     if ((s16)work->field_6 == 8) {
         D_80114B78[0] = &D_actor_421600_80145124;
-        _actor421600TintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL), ctx);
+        actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL), ctx);
     }
     if ((s16)work->field_6 == 0xA) {
         work->field_0 = 0x16;
