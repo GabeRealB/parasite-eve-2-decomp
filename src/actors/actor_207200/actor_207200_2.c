@@ -818,22 +818,18 @@ static __inline__ void Actor207200_TickAnim(Task* arg0)
     s32              i;
 
     work = arg0->work;
-    i    = 1;
     if (work->field_48C != (s16)work->field_48E) {
         work->field_48E = work->field_48C;
         work->field_490 = 0;
-        do {
+        for (i = 1; i < 7; i++) {
             func_800B4114((GpAnimCtx*)work, i, work->field_48C, 0, 8);
-            i++;
-        } while (i < 7);
-        return;
+        }
+    } else {
+        work->field_490++;
+        for (i = 1; i < 7; i++) {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        }
     }
-    TOUCH_REG(i);
-    work->field_490 = (u16)(work->field_490 + i);
-    do {
-        Gp_AnimTickIndex((GpAnimCtx*)work, i);
-        i++;
-    } while (i < 7);
 }
 
 /// `func_actor_207200_8014D70C`'s body, inlined: push the model's second coordinate's
