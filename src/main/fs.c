@@ -24,6 +24,9 @@ static void Fs_ReadSector(s32 sector);
 static void Fs_SeekToPos(s32 sector);
 static void Fs_SeekToPosCb(u8 status, u8* result);
 
+/// Unreferenced.
+static s32 D_8005EBC0 = 0;
+
 static void Fs_ResetBootLoadState(void)
 {
     Fs_BootLoadPhase      = 0;

@@ -49,6 +49,9 @@ static void*   D_8006AC64;
 static u_long* D_8006AC68;
 u16            D_8006AC6C;
 
+u16 D_8005EAEC = 0;
+u16 D_8005EAEE = 0;
+
 static void Mdec_SetupBuffers(u8* arg0)
 {
     s32     temp_lo;

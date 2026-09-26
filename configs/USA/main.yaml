@@ -432,9 +432,9 @@ segments:
       - [0x4e404, o, libc2/ctype, .data]
       - [0x4e494, o, libc2/putchar, .data]
       - [0x4e4a4, o, libc2/puts, .data]
-      - [0x4e4b4, data, "4E4B4"] # game data (TODO: attribute)
+      - [0x4e4b4, .data, cdcmd]
       - [0x4e4dc, o, libpress/build, .data]
-      - [0x4f2ec, data, "4F2EC"] # tiny pad/data
+      - [0x4f2ec, .data, stream]
       - [0x4f2f0, o, libcd/c_004, .data]
       - [0x4f300, o, libcd/c_005, .data]
       - [0x4f310, o, libcd/c_007, .data]
@@ -442,7 +442,7 @@ segments:
       - [0x4f330, o, libcd/c_010, .data]
       - [0x4f340, o, libcd/c_011, .data] # debug_cause
       - [0x4f390, o, libpress/vlc_c, .data]
-      - [0x4f3c0, data, "4F3C0"] # tiny pad/data
+      - [0x4f3c0, .data, fs]
       - [0x4f3c4, o, libgpu/break, .data]
       - [0x4f3e4, o, libapi/counter, .data]
       - [0x4f404, o, libspu/spu, .data] # _spu_RXX, _spu_tsa, _spu_transMode, _spu_addrMode, _spu_mem_mode, _spu_mem_mode_plus, _spu_mem_mode_unit, _spu_mem_mode_unitM, _spu_inTransfer, _spu_transferCallback, _spu_IRQCallback

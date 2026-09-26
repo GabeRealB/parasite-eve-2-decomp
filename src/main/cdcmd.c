@@ -12,6 +12,19 @@ static s32   D_8006ABFC;
 static void* D_8006AC00;
 static u16   CdCmd_EntryIter;
 
+static s32* D_8005DCB4[] = {
+    NULL,
+    (s32*)0x8017A0F8,
+    (s32*)0x80179B4C,
+    NULL,
+    NULL,
+    (s32*)0x80179EC8,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+};
+
 void* CdCmd_SetupMdecBuffers(void)
 {
     CdCmdQueue* p;
