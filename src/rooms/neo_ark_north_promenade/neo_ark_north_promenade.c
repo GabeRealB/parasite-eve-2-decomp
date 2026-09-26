@@ -1042,81 +1042,50 @@ void func_neo_ark_north_promenade_80180078(GpCoord* arg0, s32 arg1, s32 arg2, u8
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
     s32                ang;
-    register void**    scratch asm("a1");
-    register s32       saved asm("t1");
-    register u8*       head asm("t0");
-    s32                sum;
-    s32                otz;
-    register s32       rOuter asm("v0");
-    s32                rInner;
-    u8*                color;
-    s32                t;
-    u16                vz;
-    u16                vx;
-    u32                maskLo;
-    u32                maskHi;
+    s32                next;
+    s32                outer;
 
-    saved   = arg1;
-    scratch = (void**)G_SCRATCH_HEAD;
-    color   = rgb;
-    head    = *scratch;
-    vx      = (u16)arg0->workm.t[0];
-    {
-        register u8* tmp asm("v0");
-        tmp   = head - 0x1C;
-        block = (RoomDraw02Scratch*)tmp;
-    }
-    block->vec.vx = vx;
-    block->vec.vy = (u16)arg0->workm.t[1];
-    vz            = (u16)arg0->workm.t[2];
-    *scratch      = block;
-    sum           = saved + arg2;
-    block->vec.vz = vz;
+    block         = SCRATCH_PUSH(RoomDraw02Scratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
+    outer         = arg1 + arg2;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((RoomDraw02Scratch*)(head - 0x1C))->vec);
+    gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((RoomDraw02Scratch*)(head - 0x1C))->sx);
-    gte_stflg(&((RoomDraw02Scratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        otz                                      = ((RoomDraw02Scratch*)(head - 0x1C))->otz + 1;
-        rOuter                                   = ((s16)saved * 64) / otz;
-        ((RoomDraw02Scratch*)(head - 0x1C))->otz = otz;
-        rInner                                   = (s16)sum * 64;
-        block->rOuter                            = rOuter;
-        rInner                                   = rInner / ((RoomDraw02Scratch*)(head - 0x1C))->otz;
-        ang                                      = 0;
-        block->rInner                            = rInner;
-
-        do {
+        block->otz++;
+        block->rOuter = ((s16)arg1 * 64) / block->otz;
+        block->rInner = ((s16)outer * 64) / block->otz;
+        for (ang = 0; ang < 0x1000; ang = next) {
             prim           = (POLY_G4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, color[0], color[1], color[2]);
-            setRGB3(prim, color[0], color[1], color[2]);
+            setRGB2(prim, rgb[0], rgb[1], rgb[2]);
+            setRGB3(prim, rgb[0], rgb[1], rgb[2]);
             prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
             prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            t        = ang + 0x100;
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
+            next     = ang + 0x100;
+            prim->x1 = block->sx + ((block->rOuter * rsin(next)) >> 12);
+            prim->y1 = block->sy + ((block->rOuter * rcos(next)) >> 12);
             prim->x2 = block->sx + ((block->rInner * rsin(ang)) >> 12);
             prim->y2 = block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x3 = block->sx + ((block->rInner * rsin(t)) >> 12);
-            prim->y3 = block->sy + ((block->rInner * rcos(t)) >> 12);
-            ang      = t;
-            maskLo   = 0xFFFFFF;
-            maskHi   = 0xFF000000;
+            prim->x3 = block->sx + ((block->rInner * rsin(next)) >> 12);
+            prim->y3 = block->sy + ((block->rInner * rcos(next)) >> 12);
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
+        }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_POP(RoomDraw02Scratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
