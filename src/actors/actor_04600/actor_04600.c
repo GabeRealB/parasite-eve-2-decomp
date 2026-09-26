@@ -556,15 +556,8 @@ static void Actor04600_Fn007B0(Task* arg0)
 /// body's 0x8000 bit.
 static void Actor04600_Fn00978(Task* arg0)
 {
-    s32                damageState;
-    TmdObject*         object;
     GpEnemy*           enemy;
     GpRec18*           effectRec;
-    VECTOR*            normal;
-    VECTOR*            delta;
-    s16                cooldown;
-    s32                stage;
-    s32                contactStage;
     s32                effect;
     s32                pushY;
     s32                movement;
@@ -572,165 +565,122 @@ static void Actor04600_Fn00978(Task* arg0)
     s32                dz;
     s32                wallDx;
     s32                wallDz;
-    s32                hitCooldown;
-    s32                boundedDepth;
+    s16                hitCooldown;
     s32                distance;
-    s32                z;
-    u32                id;
     u32                damage;
     Actor104600Work*   work;
     GpCoord*           coord;
-    void*              scratchHead;
     ActorContactFrame* scratch;
-    Actor104600Work*   contact;
+    s32                i;
 
-    work        = (Actor104600Work*)arg0->work;
-    scratchHead = (void*)SCRATCH_PUSH_BYTES(0x4C);
-    enemy       = arg0->spawnArg2;
-    object      = arg0->extra.tmd;
-    SOFT_TOUCH_REG_USE(object, scratchHead);
-    coord    = object->coords;
-    scratch  = scratchHead;
+    work     = (Actor104600Work*)arg0->work;
+    scratch  = (ActorContactFrame*)SCRATCH_PUSH_BYTES(0x4C);
+    coord    = arg0->extra.tmd->coords;
+    enemy    = arg0->spawnArg2;
     movement = func_800E0C10(work->rec154, &scratch->delta, 4, &scratch->result);
     switch (movement) {
         case 0:
             break;
         case 1:
-            coord->coord.t[0] = (s32)(coord->coord.t[0] + scratch->delta.vx.h.hi);
-            coord->coord.t[1] = (s32)(coord->coord.t[1] + scratch->delta.vy.h.hi);
-            z                 = coord->coord.t[2] + scratch->delta.vz.h.hi;
-            coord->coord.t[2] = z;
+            coord->coord.t[0] += scratch->delta.vx.h.hi;
+            coord->coord.t[1] += scratch->delta.vy.h.hi;
+            coord->coord.t[2] += scratch->delta.vz.h.hi;
             break;
         case 2:
-            coord->coord.t[0] = (s32)work->field_274.vx;
-            coord->coord.t[1] = (s32)work->field_274.vy;
-            z                 = work->field_274.vz;
-            coord->coord.t[2] = z;
+            coord->coord.t[0] = work->field_274.vx;
+            coord->coord.t[1] = work->field_274.vy;
+            coord->coord.t[2] = work->field_274.vz;
             break;
     }
     if (work->field_2CE != 0) {
-        cooldown        = (u16)work->field_2CE - 1;
-        work->field_2CE = cooldown;
-        if ((cooldown << 0x10) <= 0) {
+        work->field_2CE--;
+        if (work->field_2CE <= 0) {
             work->field_2CE = 0;
         }
     }
     dx                  = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     scratch->delta.vx.w = dx;
-    scratch->delta.vy.w = (s32)(Player_Status.coordMtx->t[1] - coord->coord.t[1]);
+    scratch->delta.vy.w = Player_Status.coordMtx->t[1] - coord->coord.t[1];
     dz                  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     scratch->delta.vz.w = dz;
     distance            = SquareRoot0((dx * dx) + (dz * dz));
-    if (distance < 0x320) {
-        stage = work->field_2C8;
-        delta = (VECTOR*)&scratch->delta;
-        if (stage == 1) {
-            work->field_2D2 = stage;
-            work->field_2C8 = 2;
-            goto delta_ready;
-        }
-    } else {
-    delta_ready:
-        delta = (VECTOR*)&scratch->delta;
+    if (distance < 0x320 && work->field_2C8 == 1) {
+        work->field_2D2 = 1;
+        work->field_2C8 = 2;
     }
-    damageState = 2;
-    /* The contact walk steps a work pointer one table record at a time and
-       reads the record through it, keeping the record's offset in the
-       displacement as the ROM does. */
-    contact = work;
-contact_loop:
-    do {
-        id = contact->rec154[0].key;
-        switch (id & 0xFFFF0000) {
+    for (i = 0; i < 4; i++) {
+        switch (work->rec154[i].key & 0xFFFF0000) {
             case 0x10000:
-                contactStage = work->field_2C8;
-                if (contactStage == 1) {
-                    work->field_2D2 = contactStage;
+                if (work->field_2C8 == 1) {
+                    work->field_2D2 = 1;
                     work->field_2C8 = 2;
                 }
                 break;
             case 0x20000:
                 if (work->field_2CE == 0) {
-                    damage = Gp_ComputeDamage(id, (u32)distance, 0, 0);
-                    if (Gp_RollEnemyChance(arg0->spawnArg2, contact->rec154[0].key, 0) != 0) {
-                        Actor04600_Fn01604(arg0, 1U);
+                    damage = Gp_ComputeDamage(work->rec154[i].key, distance, 0, 0);
+                    if (Gp_RollEnemyChance(arg0->spawnArg2, work->rec154[i].key, 0) != 0) {
+                        Actor04600_Fn01604(arg0, 1);
                         arg0->killCountdown = 5;
-                        arg0->state         = damageState;
+                        arg0->state         = 2;
                         work->field_2B4     = 0;
                         enemy->hp           = -1;
                     } else {
-                        func_800E2C78(enemy, (s32)contact->rec154[0].key, (s32)damage, 0);
-                        Actor04600_Fn00EC8(arg0, (s32)damage);
-                        effect = Gp_GetIdParam0((s32)contact->rec154[0].key) & 0xFFFF;
-                        if (effect == damageState)
-                            goto effect_flag2;
-                        if (effect < 3) {
-                            if (effect == 1)
-                                goto effect_react;
-                        } else {
-                            if (effect == 3)
-                                goto effect_flag4;
-                            if (effect == 9)
-                                goto effect_flag2;
+                        func_800E2C78(enemy, work->rec154[i].key, damage, 0);
+                        Actor04600_Fn00EC8(arg0, damage);
+                        effect = Gp_GetIdParam0(work->rec154[i].key) & 0xFFFF;
+                        switch (effect) {
+                            case 1:
+                                work->field_2D2 = 1;
+                                work->field_2C8 = 2;
+                                break;
+                            case 3:
+                                Gp_SetObjFlag4(enemy, work->rec154[i].key, 0);
+                                break;
+                            case 2:
+                            case 9:
+                                Gp_SetObjFlag2(enemy, work->rec154[i].key, 0);
+                                break;
                         }
-                        goto effect_done;
-                    effect_react:
-                        work->field_2D2 = effect;
-                        work->field_2C8 = damageState;
-                        goto effect_done;
-                    effect_flag4:
-                        Gp_SetObjFlag4(enemy, contact->rec154[0].key, 0);
-                        goto effect_done;
-                    effect_flag2:
-                        Gp_SetObjFlag2(enemy, contact->rec154[0].key, 0);
-                    effect_done:
                         if (enemy->hp > 0) {
-                            func_800FDB18(Gp_GetIdParam1((s32)contact->rec154[0].key) & 0xFFFF, arg0->extra.tmd->coords + 1, NULL, &work->field_284);
+                            func_800FDB18(Gp_GetIdParam1(work->rec154[i].key) & 0xFFFF, arg0->extra.tmd->coords + 1, NULL, &work->field_284);
                         }
-                        hitCooldown = Gp_GetIdParam2((s32)contact->rec154[0].key);
-                        if ((hitCooldown << 0x10) > 0) {
-                            work->field_2CE = (s16)hitCooldown;
+                        hitCooldown = Gp_GetIdParam2(work->rec154[i].key);
+                        if (hitCooldown > 0) {
+                            work->field_2CE = hitCooldown;
                         }
                     }
                 }
                 break;
             case 0x30000:
-                wallDx              = coord->workm.t[0] - contact->rec154[0].point.vx;
+                wallDx              = coord->workm.t[0] - work->rec154[i].point.vx;
                 scratch->delta.vy.w = 0;
                 scratch->delta.vx.w = wallDx;
-                wallDz              = coord->workm.t[2] - contact->rec154[0].point.vz;
+                wallDz              = coord->workm.t[2] - work->rec154[i].point.vz;
                 scratch->delta.vz.w = wallDz;
-                distance            = contact->rec154[0].depth - SquareRoot0((wallDx * wallDx) + (wallDz * wallDz));
-                boundedDepth        = distance;
-                if (distance <= 0) {
-                    boundedDepth = 0;
-                }
-                SOFT_TOUCH_REG_USE(boundedDepth, distance);
-                distance            = boundedDepth;
-                scratch->delta.vx.w = (s32)(coord->workm.t[0] - contact->rec154[0].point.vx);
-                normal              = &scratch->normal;
-                scratch->delta.vy.w = (s32)(coord->workm.t[1] - contact->rec154[0].point.vy);
-                scratch->delta.vz.w = (s32)(coord->workm.t[2] - contact->rec154[0].point.vz);
-                VectorNormal(delta, normal);
-                ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, normal, delta);
-                if ((u32)((u16)work->field_2B8 - 1) < 2U) {
-                    coord->coord.t[0] = (s32)(coord->coord.t[0] + ((s32)(distance * scratch->delta.vx.w) >> 0xC));
-                    pushY             = distance * scratch->delta.vy.w;
+                distance            = SquareRoot0((wallDx * wallDx) + (wallDz * wallDz));
+                distance            = work->rec154[i].depth - distance;
+                distance            = (distance <= 0) ? 0 : distance;
+                scratch->delta.vx.w = coord->workm.t[0] - work->rec154[i].point.vx;
+                scratch->delta.vy.w = coord->workm.t[1] - work->rec154[i].point.vy;
+                scratch->delta.vz.w = coord->workm.t[2] - work->rec154[i].point.vz;
+                VectorNormal((VECTOR*)&scratch->delta, &scratch->normal);
+                ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &scratch->normal, (VECTOR*)&scratch->delta);
+                if (work->field_2B8 == 1 || work->field_2B8 == 2) {
+                    coord->coord.t[0] += (distance * scratch->delta.vx.w) >> 12;
+                    pushY              = distance * scratch->delta.vy.w;
                     if (pushY < 0) {
-                        coord->coord.t[1] = (s32)(coord->coord.t[1] + (pushY >> 0xC));
+                        coord->coord.t[1] += pushY >> 12;
                     }
-                    coord->coord.t[2] = (s32)(coord->coord.t[2] + ((s32)(distance * scratch->delta.vz.w) >> 0xC));
+                    coord->coord.t[2] += (distance * scratch->delta.vz.w) >> 12;
                 }
                 break;
         }
-        contact = (Actor104600Work*)((u8*)contact + 0x18);
-        if ((s32)contact < (s32)((u8*)work + 0x60))
-            goto contact_loop;
-    } while (0);
+    }
     Gp_ClearRec18Occupied(work->rec154);
     effectRec = &work->rec1D4;
     if ((work->field_2C8 != 0) && (Gp_FindRec18(effectRec, 0) != 0)) {
-        work->obj1B4.flags = (u16)((u16)work->obj1B4.flags & 0x7FFF);
+        work->obj1B4.flags &= 0x7FFF;
         Gp_ClearRec18Occupied(effectRec);
     }
     SCRATCH_POP_BYTES(0x4C);

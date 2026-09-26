@@ -143412,3 +143412,30 @@ tick branch's `li s0,1` into the `beq` delay slot, and on the reseed side the
 leaving the load on the fall-through arm only. The same TOUCH_REG shape sits in
 several sibling actors (`actor_402200`, `actor_05500`, `actor_02600`,
 `actor_04600`).
+
+## A `SOFT_TOUCH_REG_USE(t, x)` after a clamp is `x = f(); x = k - x;` in two statements (Actor04600_Fn00978, 2026-09-26)
+
+Global alloc gave a clamped depth `s32 distance` the second callee-saved slot
+it lost to a pointer by a hair (`4*18/159` against `4*28/237`), and the seed
+bought the difference with `SOFT_TOUCH_REG_USE(boundedDepth, distance)`, one
+fake in-loop use (+2 weighted refs). The source spelled the value in two steps,
+like `actorCalcPush` in `include/actors/actor.h`:
+
+```c
+distance = SquareRoot0(dx * dx + dz * dz);
+distance = rec->depth - distance;
+distance = (distance <= 0) ? 0 : distance;
+```
+
+flow counts the extra set and use before combine folds the copy of `$v0` into
+the `subu`, so the object is identical while `REG_N_REFS` grows by 4 inside a
+loop. When a pin only adds refs to a variable, first look for a value built up
+in place over several statements.
+
+The same seed's `do { … p = (u8*)p + 0x18; if (p < (u8*)work + 0x60) goto top; }
+while (0)` walker was loop.c's own output for `for (i = 0; i < 4; i++)
+work->rec[i]…`. Strength reduction folds the field offset into the displacement,
+and biv elimination recomputes `work + 4*0x18` beside the compare, *inside* the
+loop. Written as the real loop, it also let loop.c hoist `&scratch->delta` while
+leaving `&scratch->normal` in the body, because the hoist threshold drops by 3
+for every invariant already moved.
