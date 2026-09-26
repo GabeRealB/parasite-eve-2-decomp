@@ -56,48 +56,27 @@ extern Task*        Gp_TmdStashTask;
 /// The entry points that refresh a coordinate record it before the ancestor
 /// chain is walked, and nothing ever reads it: what the recorded coordinate is
 /// kept for is not established.
-extern GpCoord*       _gGpCurCoord;
-extern CVECTOR        D_80114BA4;
-extern u16            D_80114BB0[];
-extern RECT           D_80114BD0;
-extern CVECTOR        D_80114BA8;
-extern u8             Gp_DebugAttachLevels[];
-extern TaskFuncTable6 Gp_PlayClockStates;
-/// "new_disp_2d ----> NULL\n" printed when the 2D display body a task spawns
-/// with cannot be allocated.
-extern const char gGpStrNewDisp2dNull[];
-/// Neutral grey (128,128,128) material colour.
-///
-/// The pre-transformed primitives that carry no colour of their own are shaded
-/// with it, and one whose object is dimmed by `lightLevel` decays toward it as
-/// the level falls, so it is both the flat material colour and the unlit end
-/// of the shading range.
-extern const CVECTOR gGpColorGrey;
-extern CVECTOR       Gp_ColorOrange;
-/// The base colour a lit primitive is computed from when the lighting alone
-/// should decide its colour: white, the identity of the GTE's colour multiply.
-///
-/// A `CVECTOR`, so the whole colour is loaded into the GTE at once. Colour
-/// computations start from a copy of it and overwrite the channels they derive.
-extern const CVECTOR gGpColorWhite;
-extern u8            Gp_StrColon[];      // ":"
-extern u8            Gp_StrApostrophe[]; // "'"
-extern char          Gp_StrItem[];       // "Item"
-extern u8            D_8009388C[];       // "R1"
-extern u8            D_80093890[];       // "R2"
-extern u8            D_80093894[];       // "%"
-extern u8            D_80093898[];       // "&"
-extern u8            D_800938AC[];       // "????"
-extern u8            Gp_StrHP[];         // "HP"
-extern s32           Pad_MaskConfirm;
-extern s32           Pad_MaskCancel;
-extern s16           D_80114C40;
-extern DR_STP        D_80114C50;
-extern s32           D_80115724;
+extern GpCoord* _gGpCurCoord;
+extern CVECTOR  D_80114BA4;
+extern u16      D_80114BB0[];
+extern RECT     D_80114BD0;
+extern CVECTOR  D_80114BA8;
+extern u8       Gp_DebugAttachLevels[];
+extern u8       D_8009388C[]; // "R1"
+extern u8       D_80093890[]; // "R2"
+extern u8       D_80093894[]; // "%"
+extern u8       D_80093898[]; // "&"
+extern u8       D_800938AC[]; // "????"
+extern s32      Pad_MaskConfirm;
+extern s32      Pad_MaskCancel;
+extern s16      D_80114C40;
+extern DR_STP   D_80114C50;
+extern s32      D_80115724;
 
 extern McItemRec* Gp_SelItemRec;
 
 void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 void func_80108874(void);
 void func_800A57B0(GpIdMapC* arg0);
 void Gp_UseItemTask(GpIdMapC* arg0);
