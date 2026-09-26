@@ -18,6 +18,7 @@
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern UiObject*    D_80067634;
@@ -1099,7 +1100,7 @@ static const TaskFuncTable3 D_dryfield_motel_lobby_8017D644 = {
 };
 
 /// The room task's update: copies the state table and runs the current state.
-static void func_dryfield_motel_lobby_8017F498(Task* task)
+void func_dryfield_motel_lobby_8017F498(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -186,4 +186,7 @@ void Gp_PublishItemObj(Task* arg0);
 
 void Gp_FadeTileTask(Task* arg0);
 
+/// Named as a task entry by the enemy descriptor tables in the map UI overlays.
+void Gp_ItemPickupTilt(Task* arg0);
+
 #endif // GAMEPLAY_4CC_H

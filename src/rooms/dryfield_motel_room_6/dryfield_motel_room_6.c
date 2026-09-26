@@ -2206,7 +2206,7 @@ static void func_dryfield_motel_room_6_80181B10(Task* task)
 
 /// Room entry task: runs the state handler `D_dryfield_motel_room_6_8017D6B4`
 /// names for `Task::state`, through a copy of the table taken onto the stack.
-static void func_dryfield_motel_room_6_80181B18(Task* task)
+void func_dryfield_motel_room_6_80181B18(Task* task)
 {
     TaskFuncTable3 sp;
 

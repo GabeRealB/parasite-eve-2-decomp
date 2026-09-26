@@ -8,6 +8,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern TaskDesc D_80141B6C[];
@@ -284,7 +285,7 @@ static void func_dryfield_garage_8017DC08(Task* task)
 
 /// The room task: runs the state the task is in from a stack copy of the
 /// room's three-state table.
-static void func_dryfield_garage_8017DC10(Task* task)
+void func_dryfield_garage_8017DC10(Task* task)
 {
     TaskFuncTable3 sp;
 

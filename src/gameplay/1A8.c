@@ -12,6 +12,7 @@
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "mapui/stage_tables.h"
 
 void func_800AD6BC(void);
 
@@ -46,7 +47,6 @@ extern u16 Gp_DirFadeLevel;
 extern u8  D_80114CF8;
 extern s16 D_80114D08;
 extern u16 D_8017A738[];
-extern u16 D_8017A824[];
 extern u16 D_8017A9A0[];
 extern u16 D_8017AA0C[];
 extern u16 D_8017AD88[];
@@ -103,7 +103,7 @@ s16 Gp_LookupStageFlag(s16 idx)
             if (idx >= 0x1D) {
                 break;
             }
-            return _gpStageFlagNibble(D_8017A824, idx);
+            return _gpStageFlagNibble(D_map_dryfield_8017A824, idx);
         case 3:
             if (idx >= 0x1E) {
                 break;

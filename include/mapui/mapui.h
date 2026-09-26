@@ -12,6 +12,10 @@
 #include "main/gfx.h"
 #include "main/task.h"
 
+/// The Dryfield map's part of main's MDEC buffer setup: `Mdec_SetupBuffers`
+/// calls this map-slot address (as `func_80179954`) for one of its layouts.
+void func_map_dryfield_80179954(u8* entry);
+
 /// Image slots of each map, indexed by `Gfx_ImageSlotTables`.
 extern GfxImageSlot D_map_akropolis_8017A048[];
 extern GfxImageSlot D_map_dryfield_80179A14[];

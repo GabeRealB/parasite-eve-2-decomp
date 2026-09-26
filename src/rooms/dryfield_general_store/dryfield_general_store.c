@@ -10,6 +10,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// The two caption flags the store's cutscene task raises: `Gp_StateF0.field_4` while
@@ -433,7 +434,7 @@ static void func_dryfield_general_store_8017DF4C(Task* task)
 
 /// The room task: runs the state `D_dryfield_general_store_8017D5F4` names for
 /// `task->state`, through a stack copy of the table.
-static void func_dryfield_general_store_8017DF5C(Task* task)
+void func_dryfield_general_store_8017DF5C(Task* task)
 {
     TaskFuncTable3 sp;
 

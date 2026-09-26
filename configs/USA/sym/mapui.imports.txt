@@ -31,13 +31,39 @@ CdCmd_Queue = 0x80068FA0; // absolute:True
 D_800820E4 = 0x800820E4; // absolute:True
 D_800820E6 = 0x800820E6; // absolute:True
 
-// --- from gameplay (4 symbols)
+// --- from gameplay (29 symbols)
 Gp_GetItemText = 0x800B8EB0; // absolute:True
 Gp_SetCollectedBit = 0x800BAE5C; // absolute:True
+Gp_ItemPickupTilt = 0x800BEBE4; // absolute:True
 Gp_SetPreviewItem = 0x800CDE80; // absolute:True
 Gp_ClearPreviewItems = 0x800CDEF4; // absolute:True
+D_80114588 = 0x80114588; // absolute:True
+D_801145F8 = 0x801145F8; // absolute:True
+D_80114628 = 0x80114628; // absolute:True
+D_80114658 = 0x80114658; // absolute:True
+D_80114678 = 0x80114678; // absolute:True
+D_80114698 = 0x80114698; // absolute:True
+D_801146A8 = 0x801146A8; // absolute:True
+D_801146D8 = 0x801146D8; // absolute:True
+D_801146F8 = 0x801146F8; // absolute:True
+D_80114718 = 0x80114718; // absolute:True
+D_80114748 = 0x80114748; // absolute:True
+D_80114768 = 0x80114768; // absolute:True
+D_80114798 = 0x80114798; // absolute:True
+D_80114808 = 0x80114808; // absolute:True
+D_80114828 = 0x80114828; // absolute:True
+D_80114848 = 0x80114848; // absolute:True
+D_80114888 = 0x80114888; // absolute:True
+D_801148A8 = 0x801148A8; // absolute:True
+D_801148D8 = 0x801148D8; // absolute:True
+D_80114918 = 0x80114918; // absolute:True
+D_80114938 = 0x80114938; // absolute:True
+D_80114968 = 0x80114968; // absolute:True
+D_80114998 = 0x80114998; // absolute:True
+D_801149B8 = 0x801149B8; // absolute:True
 
-// --- still unnamed in their own overlay (12)
+// --- still unnamed in their own overlay (13)
+D_800691CC = 0x800691CC; // absolute:True
 D_8006AC3C = 0x8006AC3C; // absolute:True
 D_8006AC40 = 0x8006AC40; // absolute:True
 D_8006AC44 = 0x8006AC44; // absolute:True

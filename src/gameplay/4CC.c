@@ -1138,7 +1138,7 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
 /// Tilts `field_8[2]` (a `GpCoord`) while playing a location-specific
 /// type-6 sound, then signals `extraState` (`GpCmdReply.done = 1`) when
 /// the motion returns to 0.
-static void Gp_ItemPickupTilt(Task* arg0)
+void Gp_ItemPickupTilt(Task* arg0)
 {
     GameSession* session;
     TmdObject*   extra;

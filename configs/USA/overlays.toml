@@ -583,11 +583,12 @@ objects = [
 ]
 
 [mapui.overlays.map_dryfield]
-label = "26 names"
+label = "the Dryfield stage's map and stage tables; code at 0x4 is one leaf function, which the span detector, keying on a stack prologue, does not see"
 id = 281
+text = ["0x4", "0xC4"]
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { unit = "map_dryfield/map_dryfield", text = "0x4", data = "0xC4", tail = true },
 ]
 
 [mapui.overlays.map_dryfield_full]

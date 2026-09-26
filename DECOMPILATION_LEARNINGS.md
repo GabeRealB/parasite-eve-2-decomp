@@ -59529,7 +59529,7 @@ Using the parameters directly removes the copies, the touches and the problem in
 one step:
 
 ```c
-void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
+void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
 ```
 
 GCC still spills `$a2`/`$a3` into `$s0`/`$s1` in the prologue, because both are
@@ -143833,3 +143833,12 @@ every copy of the repeated test. In the same function, `tmp = mask | 0x1000;
 mask = tmp; ... mask = tmp | 0x80` compiled the same as `mask |= 0x1000;
 ... mask |= 0x80`, so GCC already makes the second pseudo the target's copy
 suggests.
+## String literals in a pointer table's initializer are emitted last-first (nmc_names, 2026-09-26)
+
+`char* table[] = { "a", "b", ... };` puts its literals in `.rodata` in reverse:
+the last entry's string lands at the lowest address. A string pool that sits in
+table order is therefore a run of named arrays, `static char s0[] = "...";`
+defined in order before the table, each word-aligned like the original pool.
+In a union member of an initializer, GCC 2.8 accepts a designator
+(`{ .value = 20100 }`), which initialises a `TaskDesc`'s integer argument
+without casting it to the union's first, pointer, member.

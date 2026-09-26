@@ -20,6 +20,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// One rectangle of water surface drawn by `func_dryfield_water_hole_8017D898`,
@@ -193,7 +194,7 @@ static const TaskFuncTable3 D_dryfield_water_hole_8017D5C4 = {
 /// The room task: copies the three-state table
 /// `D_dryfield_water_hole_8017D5C4` onto the stack and runs the entry for the
 /// task's current state - the entry tick, the idle state, then `taskKill`.
-static void func_dryfield_water_hole_8017D840(Task* task)
+void func_dryfield_water_hole_8017D840(Task* task)
 {
     TaskFuncTable3 sp;
 

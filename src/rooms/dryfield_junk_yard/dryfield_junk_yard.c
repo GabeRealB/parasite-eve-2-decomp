@@ -11,6 +11,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// Block `func_dryfield_junk_yard_8017D658` carves off the scratch stack
@@ -66,7 +67,7 @@ static const char D_dryfield_junk_yard_8017D5D0[] = "DOG";
 /// Model task tick: reads the 2-bit game flag named by the spawn object's
 /// `field_8`, clears the model's flags and sets them to 0x84 when the flag
 /// reads 2 (otherwise zeroing `otOffset`), then runs the model's draw below.
-static void func_dryfield_junk_yard_8017D5F4(Task* task)
+void func_dryfield_junk_yard_8017D5F4(Task* task)
 {
     GpItemObj8* obj;
     TmdObject*  tmd;
@@ -301,7 +302,7 @@ static void func_dryfield_junk_yard_8017DC60(Task* task)
 
 /// The room task: copies its three-state table to the stack and runs the
 /// entry the task's state selects.
-static void func_dryfield_junk_yard_8017DCB4(Task* task)
+void func_dryfield_junk_yard_8017DCB4(Task* task)
 {
     TaskFuncTable3 sp;
 

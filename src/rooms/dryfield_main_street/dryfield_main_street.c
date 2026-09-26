@@ -508,7 +508,7 @@ static void func_dryfield_main_street_8017E158(Task* task)
 
 /// Runs the room entry task's current state from its three-entry table, which
 /// it copies onto the stack before the call.
-static void func_dryfield_main_street_8017E168(Task* task)
+void func_dryfield_main_street_8017E168(Task* task)
 {
     TaskFuncTable3 sp;
 

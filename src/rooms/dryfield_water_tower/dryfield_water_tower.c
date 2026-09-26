@@ -12,6 +12,7 @@
 #include "main/task.h"
 
 #include "rooms/dryfield_water_tower.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /* The room calls the dispatcher with only the task, leaving a1-a3 holding
@@ -341,7 +342,7 @@ static void func_dryfield_water_tower_8017DDD0(Task* task)
 
 /// Runs the room entry task's current state from its three-entry table, which
 /// it copies onto the stack before the call.
-static void func_dryfield_water_tower_8017DDD8(Task* task)
+void func_dryfield_water_tower_8017DDD8(Task* task)
 {
     TaskFuncTable3 sp;
 

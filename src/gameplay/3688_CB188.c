@@ -223,7 +223,7 @@ static void Gp_DrawMapMarks(Task* arg0);
 static s32  Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2);
 s32         func_800E3FCC(s32 arg0);
 static void func_800D15D0(Task* arg0);
-static void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp);
+static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp);
 static void Gp_EnqueueMapRoomCd(void);
 static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
 void        Gp_DrawReviveCmd(DialogPrompt* arg0, UiObject* arg1);
@@ -4467,7 +4467,11 @@ void Gp_MapScreenTask(Task* arg0)
     }
 }
 
-static void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
+/// Draws a map marker's model flat: each vertex is scaled through the GTE and
+/// its X and Z become the screen position. Only the quad (0x44) and
+/// triangle (4) packets of the stream are drawn, and their data words index
+/// the vertices by byte offset in the low halfword.
+static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
 {
     RECT                       tw;
     DR_MODE*                   dr;
@@ -4484,8 +4488,8 @@ static void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
     s32                        minY;
 
     otz                            = obj->drawOrder;
-    verts                          = mesh->verts;
-    cur                            = (u32*)mesh->prims;
+    verts                          = (u8*)mesh->verts;
+    cur                            = mesh->stream;
     tw.y                           = 0;
     tw.x                           = 0;
     scratch                        = (GpMapMarkScratch*)(SCRATCH_HEAD(u8) - sizeof(GpMapMarkScratch));

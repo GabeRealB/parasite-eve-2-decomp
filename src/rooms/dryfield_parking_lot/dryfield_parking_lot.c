@@ -9,6 +9,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// The `GpAreaApplyRec` list the 0x11 answer applies when the event fires.
@@ -277,7 +278,7 @@ static const TaskFuncTable3 D_dryfield_parking_lot_8017D5DC = {
 
 /// The room entry task: copies the three-state table to the stack and runs the
 /// entry the task's state selects.
-static void func_dryfield_parking_lot_8017DB54(Task* task)
+void func_dryfield_parking_lot_8017DB54(Task* task)
 {
     TaskFuncTable3 sp;
 

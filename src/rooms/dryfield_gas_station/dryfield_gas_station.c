@@ -1515,7 +1515,7 @@ static const TaskFuncTable3 D_dryfield_gas_station_8017D6A4 = {
 
 /// Dispatches the task through the room's three-state table, copied onto the
 /// stack first.
-static void func_dryfield_gas_station_8017FF8C(Task* task)
+void func_dryfield_gas_station_8017FF8C(Task* task)
 {
     TaskFuncTable3 sp;
 

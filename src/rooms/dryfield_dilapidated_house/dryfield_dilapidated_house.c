@@ -915,7 +915,7 @@ static void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
 /// The room task: runs its current state out of
 /// `D_dryfield_dilapidated_house_8017D5C4`, copied onto the stack - setup, the
 /// room gate, then `taskKill`.
-static void func_dryfield_dilapidated_house_8017EB60(Task* task)
+void func_dryfield_dilapidated_house_8017EB60(Task* task)
 {
     TaskFuncTable3 sp;
 

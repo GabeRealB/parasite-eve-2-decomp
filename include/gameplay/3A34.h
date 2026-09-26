@@ -28,6 +28,11 @@ STATIC_ASSERT_SIZEOF(GpTaskDesc, 0xC);
 /// Per-stage task descriptor tables searched by `func_800E31E8`.
 extern GpTaskDesc* D_8010FABC[];
 
+/// The setup argument of a `D_8010FABC` descriptor: the location whose entry
+/// starts the task, packed in decimal as `stage * 10000 + area * 100 + room`,
+/// with room 0 matching the whole area.
+#define GP_TASK_LOC_KEY(stage, area, room) ((stage) * 10000 + (area) * 100 + (room))
+
 /// One 4-byte entry of the tables that name a collision body: the two halves
 /// `Gp_PackPair` / `Gp_PackObjPair` pack into that body's `GpObj.key`, taking
 /// the low 12 bits of `field_0` and the low 4 bits of `field_2`. An actor's

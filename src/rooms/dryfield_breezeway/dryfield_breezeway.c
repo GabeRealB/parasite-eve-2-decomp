@@ -360,7 +360,7 @@ static const TaskFuncTable3 D_dryfield_breezeway_8017D5DC = {
 /// (`func_dryfield_breezeway_8017DE60`) and `taskKill`. The table is copied
 /// onto the stack first, so the call goes through a local copy rather than the
 /// rodata.
-static void func_dryfield_breezeway_8017DE68(Task* task)
+void func_dryfield_breezeway_8017DE68(Task* task)
 {
     TaskFuncTable3 sp;
 

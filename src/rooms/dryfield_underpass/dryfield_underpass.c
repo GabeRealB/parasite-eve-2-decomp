@@ -18,6 +18,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern TaskDesc   D_dryfield_underpass_8017E818[];
@@ -255,7 +256,7 @@ static const TaskFuncTable3 D_dryfield_underpass_8017D5C4 = {
 
 /// Room task: runs the state handler `D_dryfield_underpass_8017D5C4` names for
 /// `Task::state`, through a copy of the table taken onto the stack.
-static void func_dryfield_underpass_8017DAC8(Task* task)
+void func_dryfield_underpass_8017DAC8(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -287,4 +287,43 @@ extern TmdSource D_acropolis_cafeteria_8018625C;
 extern TmdSource D_acropolis_cafeteria_80186CAC;
 extern TmdSource D_acropolis_cafeteria_80187518;
 
+/// Task entries the Dryfield map UI overlay's stage tables name: each room's
+/// entry task, started for its location, and the enemy descriptors' tasks.
+void func_dryfield_gas_station_8017FF8C(Task* task);
+void func_dryfield_main_street_8017E168(Task* task);
+void func_dryfield_general_store_8017DF5C(Task* task);
+void func_dryfield_back_street_8017D918(Task* task);
+void func_dryfield_souvenir_shop_8017D65C(Task* task);
+void func_dryfield_warehouse_8017DA00(Task* task);
+void func_dryfield_dilapidated_house_8017EB60(Task* task);
+void func_dryfield_motel_room_1_8017D754(Task* task);
+void func_dryfield_motel_room_2_8017D65C(Task* task);
+void func_dryfield_motel_room_3_8017D65C(Task* task);
+void func_dryfield_motel_room_4_8017D65C(Task* task);
+void func_dryfield_parking_lot_8017DB54(Task* task);
+void func_dryfield_toilet_8017D9E4(Task* task);
+void func_dryfield_motel_lobby_8017F498(Task* task);
+void func_dryfield_saloon_g_r_8017DA18(Task* task);
+void func_dryfield_g_r_kitchen_8017D9A4(Task* task);
+void func_dryfield_water_tower_8017DDD8(Task* task);
+void func_dryfield_water_tank_8017DAF0(Task* task);
+void func_dryfield_breezeway_8017DE68(Task* task);
+void func_dryfield_factory_8017DF88(Task* task);
+void func_dryfield_garage_8017DC10(Task* task);
+void func_dryfield_driveway_8017DE14(Task* task);
+void func_dryfield_junk_yard_8017D5F4(Task* task);
+void func_dryfield_junk_yard_8017DCB4(Task* task);
+void func_dryfield_trailer_coach_80182950(Task* task);
+void func_dryfield_motel_room_5_8017D65C(Task* task);
+void func_dryfield_motel_balcony_8017DBD0(Task* task);
+void func_dryfield_motel_room_6_80181B18(Task* task);
+void func_dryfield_motel_loft_8017D65C(Task* task);
+void func_dryfield_water_hole_8017D840(Task* task);
+void func_dryfield_cellar_8017D784(Task* task);
+void func_dryfield_underpass_8017DAC8(Task* task);
+
+/// Models the Dryfield map UI overlay's enemy descriptors attach.
+extern TmdSource D_dryfield_junk_yard_8017ECE0;
+extern TmdSource D_dryfield_trailer_coach_80184554;
+
 #endif /* ROOMS_ROOM_H */

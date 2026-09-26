@@ -241,7 +241,7 @@ static void func_dryfield_saloon_g_r_8017DA10(Task* task)
 
 /// The room task: runs the state the task is in from a stack copy of the
 /// room's three-state table.
-static void func_dryfield_saloon_g_r_8017DA18(Task* task)
+void func_dryfield_saloon_g_r_8017DA18(Task* task)
 {
     TaskFuncTable3 sp;
 

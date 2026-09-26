@@ -84,7 +84,7 @@ static const TaskFuncTable3 D_dryfield_motel_room_1_8017D5C4 = {
 
 /// Room entry task: runs the state handler `D_dryfield_motel_room_1_8017D5C4`
 /// names for `Task::state`, through a copy of the table taken onto the stack.
-static void func_dryfield_motel_room_1_8017D754(Task* task)
+void func_dryfield_motel_room_1_8017D754(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -2905,7 +2905,7 @@ static void func_dryfield_trailer_coach_8018291C(Task* task)
 
 /// Runs the cutscene task's current state through a stack copy of its state
 /// table.
-static void func_dryfield_trailer_coach_80182950(Task* task)
+void func_dryfield_trailer_coach_80182950(Task* task)
 {
     TaskFuncTable3 sp;
 

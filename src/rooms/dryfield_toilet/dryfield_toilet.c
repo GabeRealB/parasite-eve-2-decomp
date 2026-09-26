@@ -8,6 +8,7 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// The pair of cutscene blocks `func_800E8634` hands to `Task_Spawn` (bank 9,
@@ -143,7 +144,7 @@ static void func_dryfield_toilet_8017D9D4(Task* task)
 
 /// The room task's update: runs the handler for its current state from a stack
 /// copy of the room's state table.
-static void func_dryfield_toilet_8017D9E4(Task* task)
+void func_dryfield_toilet_8017D9E4(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -273,7 +273,7 @@ static const TaskFuncTable3 D_dryfield_water_tank_8017D5C4 = {
 
 /// The room task: copies its three-state table onto the stack and runs the
 /// entry for the task's current state.
-static void func_dryfield_water_tank_8017DAF0(Task* task)
+void func_dryfield_water_tank_8017DAF0(Task* task)
 {
     TaskFuncTable3 sp;
 

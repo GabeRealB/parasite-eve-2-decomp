@@ -10,6 +10,7 @@
 #include "main/task.h"
 
 #include "rooms/dryfield_warehouse.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern GpMsgEntry D_dryfield_warehouse_8017F554[];
@@ -179,7 +180,7 @@ static const TaskFuncTable3 D_dryfield_warehouse_8017D5C4 = {
 
 /// Dispatches the room's main task through its three-state table, copied onto
 /// the stack first.
-static void func_dryfield_warehouse_8017DA00(Task* task)
+void func_dryfield_warehouse_8017DA00(Task* task)
 {
     TaskFuncTable3 sp;
 

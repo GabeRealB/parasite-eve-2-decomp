@@ -16,6 +16,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// The room's message table, installed on the room entry task.
@@ -121,7 +122,7 @@ static const TaskFuncTable3 D_dryfield_cellar_8017D5C4 = {
 
 /// Runs the room entry task's current state from its three-entry table, which
 /// it copies onto the stack before the call.
-static void func_dryfield_cellar_8017D784(Task* task)
+void func_dryfield_cellar_8017D784(Task* task)
 {
     TaskFuncTable3 sp;
 

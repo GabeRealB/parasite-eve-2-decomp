@@ -17,6 +17,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// The event message and request the gate latched for the event task, and the
@@ -222,7 +223,7 @@ static void func_dryfield_g_r_kitchen_8017D99C(Task* task)
 
 /// The room task: runs the state the task is in from a stack copy of the
 /// room's three-state table.
-static void func_dryfield_g_r_kitchen_8017D9A4(Task* task)
+void func_dryfield_g_r_kitchen_8017D9A4(Task* task)
 {
     TaskFuncTable3 sp;
 

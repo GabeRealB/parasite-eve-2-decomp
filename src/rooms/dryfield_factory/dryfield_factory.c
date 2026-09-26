@@ -18,6 +18,7 @@
 #include "main/tmd.h"
 #include "rooms/dryfield_factory.h"
 #include "rooms/dryfield_night_factory.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #include <psyq/inline_c.h>
@@ -412,7 +413,7 @@ static void func_dryfield_factory_8017DF80(Task* task)
 
 /// Runs the task's current state out of a three-entry table copied onto the
 /// stack.
-static void func_dryfield_factory_8017DF88(Task* task)
+void func_dryfield_factory_8017DF88(Task* task)
 {
     TaskFuncTable3 sp;
 

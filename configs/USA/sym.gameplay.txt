@@ -1270,6 +1270,32 @@ Gp_ActorSlots               = 0x80115760; // size:0x8
 // Gameplay naming pass 4 (inventory, obj lists, view-count)
 Gp_ViewCountTables          = 0x8010CB40;
 Gp_Bit2Banks                = 0x8010D230;
+// The per-room lists the Dryfield stage's GpBit2List table (map_dryfield)
+// points at.
+D_80114588                  = 0x80114588;
+D_801145F8                  = 0x801145F8;
+D_80114628                  = 0x80114628;
+D_80114658                  = 0x80114658;
+D_80114678                  = 0x80114678;
+D_80114698                  = 0x80114698;
+D_801146A8                  = 0x801146A8;
+D_801146D8                  = 0x801146D8;
+D_801146F8                  = 0x801146F8;
+D_80114718                  = 0x80114718;
+D_80114748                  = 0x80114748;
+D_80114768                  = 0x80114768;
+D_80114798                  = 0x80114798;
+D_80114808                  = 0x80114808;
+D_80114828                  = 0x80114828;
+D_80114848                  = 0x80114848;
+D_80114888                  = 0x80114888;
+D_801148A8                  = 0x801148A8;
+D_801148D8                  = 0x801148D8;
+D_80114918                  = 0x80114918;
+D_80114938                  = 0x80114938;
+D_80114968                  = 0x80114968;
+D_80114998                  = 0x80114998;
+D_801149B8                  = 0x801149B8;
 Gp_ObjLists                 = 0x8010FA8C;
 Gp_Obj4ALists               = 0x8010FAB0;
 Gp_Obj3ALists               = 0x8010FAB8;
