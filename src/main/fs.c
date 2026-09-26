@@ -1369,49 +1369,26 @@ u8 Fs_LoadImageChunk(FsImageChunk* arg0, u8 arg1)
 
 void Fs_CopyWorkEntries(FsWorkEntry* arg0)
 {
-    FsWorkEntry* base;
-    register s32 term asm("t1");
-    register u32 ace_hi asm("a3");
     FsWorkEntry* src;
-    FsWorkEntry* dst;
-    u32*         mid;
+    s32          i;
 
-    src  = arg0;
-    term = 0xFFFF;
-    /* Keep %hi(Fs_WorkEntries) in $a3 across the copy loop so later
-       field_0 loads can use lhu %lo(a3) (GCC will not CSE this itself). */
-    __asm__(
-        "lui %0, %%hi(Fs_WorkEntries)\n\t"
-        "addiu %1, %0, %%lo(Fs_WorkEntries)"
-        : "=&r"(ace_hi), "=r"(base));
-    dst = base;
-    mid = &arg0->field_4;
-
-loop:
-    dst->field_0 = src->field_0;
-    dst->field_2 = ((u16*)mid)[-1];
-    dst->field_4 = *mid;
-    if (dst->field_0 != term) {
-        mid += 2;
-        src += 1;
-        dst += 1;
-        goto loop;
+    src = arg0;
+    i   = 0;
+    while (1) {
+        Fs_WorkEntries[i].field_0 = src->field_0;
+        Fs_WorkEntries[i].field_2 = src->field_2;
+        Fs_WorkEntries[i].field_4 = src->field_4;
+        if (Fs_WorkEntries[i].field_0 == 0xFFFF) {
+            break;
+        }
+        src++;
+        i++;
     }
 
-    if ((base->field_2 >= 0x100U) || (Fs_ChunkMode == 2)) {
-        s32  t;
-        s32  c;
-        s16* px;
-        px = &Fs_ImageRect.x;
-        __asm__("lhu %0, %%lo(Fs_WorkEntries)(%1)" : "=r"(t) : "r"(ace_hi));
-        c   = D5B498_8006C233 * 64;
-        *px = t + c;
+    if ((Fs_WorkEntries[0].field_2 >= 0x100U) || (Fs_ChunkMode == 2)) {
+        Fs_ImageRect.x = Fs_WorkEntries[0].field_0 + D5B498_8006C233 * 64;
     } else {
-        register s32 t asm("v1");
-        s16*         px;
-        px = &Fs_ImageRect.x;
-        __asm__("lhu %0, %%lo(Fs_WorkEntries)(%1)" : "=r"(t) : "r"(ace_hi));
-        *px = t;
+        Fs_ImageRect.x = Fs_WorkEntries[0].field_0;
     }
 
     if (Fs_ChunkMode == 2) {
