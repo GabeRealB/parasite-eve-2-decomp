@@ -1800,43 +1800,39 @@ static __inline__ TmdObject* Actor206100_ModelCopy(TmdObject* input)
 /// after transforming the selected model part through the parent chain.
 void func_actor_206100_8014C458(Task* task)
 {
-    Actor206100Work*          work   = (Actor206100Work*)task->work;
-    TmdObject*                obj    = Actor206100_ModelCopy(*(TmdObject* volatile*)&task->extra.tmd);
-    GpEnemy*                  enemy  = (GpEnemy*)task->spawnArg2;
-    GpCoord*                  coord  = obj->coords;
-    TaskFuncTable9            states = D_actor_206100_80149E70;
-    Actor206100VecScratch     scratch;
-    VECTOR                    scale;
-    OverlayMat                scaling;
-    Actor206100Work*          next;
-    Actor206100Work*          dying;
-    Actor206100Work*          sub;
-    Actor206100Work*          pose;
-    register Actor206100Work* last asm("s0");
-    Actor206100Work*          anim;
-    MATRIX*                   dest;
-    GpCoord*                  scaled;
-    GpCoord*                  destcoord;
-    GpCoord*                  child;
-    GpCoord*                  walk;
-    GpCoord*                  root;
-    register GpEnemy*         end asm("t2");
-    Task*                     spawn;
-    Actor206100ChildWork*     beam;
-    Actor206100VecScratch*    mtx;
-    MATRIX*                   mtx2;
-    s32                       i;
-    s32                       sound;
-    s32                       pan;
-    s32                       flag;
-    s16                       state;
-    SVECTOR*                  launch;
-    register SVECTOR*         svp asm("t1");
-    SVECTOR*                  out;
-    VECTOR*                   vecp;
-    register GpCoord*         view asm("t7");
-    s32*                      flagp;
-    u32                       viewhi;
+    Actor206100Work*       work   = (Actor206100Work*)task->work;
+    TmdObject*             obj    = Actor206100_ModelCopy(*(TmdObject* volatile*)&task->extra.tmd);
+    GpEnemy*               enemy  = (GpEnemy*)task->spawnArg2;
+    GpCoord*               coord  = obj->coords;
+    TaskFuncTable9         states = D_actor_206100_80149E70;
+    Actor206100VecScratch  scratch;
+    VECTOR                 scale;
+    OverlayMat             scaling;
+    Actor206100Work*       next;
+    Actor206100Work*       dying;
+    Actor206100Work*       sub;
+    Actor206100Work*       pose;
+    Actor206100Work*       last;
+    Actor206100Work*       anim;
+    MATRIX*                dest;
+    GpCoord*               scaled;
+    GpCoord*               destcoord;
+    GpCoord*               child;
+    GpCoord*               walk;
+    GpCoord*               root;
+    GpEnemy*               end;
+    Task*                  spawn;
+    Actor206100ChildWork*  beam;
+    Actor206100VecScratch* mtx;
+    MATRIX*                mtx2;
+    s32                    i;
+    s32                    sound;
+    s32                    pan;
+    s32                    flag;
+    s16                    state;
+    SVECTOR*               launch;
+    SVECTOR*               svp;
+    SVECTOR*               out;
 
     switch (Gp_StateF0.field_4) {
         case 2:
@@ -1971,12 +1967,8 @@ void func_actor_206100_8014C458(Task* task)
             obj->flags &= 0xFF7F;
             break;
     }
-    svp = &scratch.gte.vec;
-    out = &scratch.gte.out;
-    __asm__("lui %0, %%hi(gGfxViewCoord); addiu %1, %0, %%lo(gGfxViewCoord)"
-            : "=&r"(viewhi), "=r"(view));
-    vecp               = &scratch.gte.m.mac;
-    flagp              = &flag;
+    svp                = &scratch.gte.vec;
+    out                = &scratch.gte.out;
     last               = (Actor206100Work*)task->work;
     walk               = &task->extra.tmd->coords[work->field_557];
     end                = (GpEnemy*)task->spawnArg2;
@@ -1986,24 +1978,26 @@ void func_actor_206100_8014C458(Task* task)
     scratch.gte.vec.vx = 0;
     scratch.gte.vec.vy = 0;
     scratch.gte.vec.vz = 0;
-loop:
-    if (walk->sub != NULL) {
-        if (walk != view) {
+    while (1) {
+        if (walk->sub == NULL)
+            break;
+        if (walk != &gGfxViewCoord) {
             gte_SetTransMatrix(&walk->coord);
             gte_SetRotMatrix(&walk->coord);
             gte_ldv0(svp);
             gte_rtv0tr();
-            gte_stlvnl(vecp);
-            gte_stflg(flagp);
-            scratch.gte.vec.vx = (u16)scratch.gte.m.mac.vx;
-            scratch.gte.vec.vy = (u16)scratch.gte.m.mac.vy;
-            scratch.gte.vec.vz = (u16)scratch.gte.m.mac.vz;
+            gte_stlvnl(&scratch.gte.m.mac);
+            gte_stflg(&flag);
+            scratch.gte.vec.vx = scratch.gte.m.mac.vx;
+            scratch.gte.vec.vy = scratch.gte.m.mac.vy;
+            scratch.gte.vec.vz = scratch.gte.m.mac.vz;
             walk               = walk->sub;
-            goto loop;
+            continue;
         }
         out->vx = scratch.gte.vec.vx;
         out->vy = scratch.gte.vec.vy;
         out->vz = scratch.gte.vec.vz;
+        break;
     }
     if ((s16)last->field_536 + 0x190 < scratch.gte.out.vy) {
         end->node.state.b.flags = 1;

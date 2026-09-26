@@ -141935,3 +141935,19 @@ older register), and it cannot keep `p` as canonical without giving it the
 `if` body too. So two `SOFT_TOUCH_REG*` lines still keep the copy opaque.
 Helpers, the compound push, a nested push and every ordering of
 `p`/`block`/`*scratch` fell short.
+## A prologue `lw v0,X; move sN,v0` with nothing between is not an inline-parameter copy (func_actor_206100_8014C458, 2026-09-26)
+
+The target loads `task->extra.tmd` into `$v0` and copies it into the
+callee-saved home of `obj` at once, before any store, call or label. Combine
+merges `(set P mem)` into `(set obj P)` whenever `P` dies there and
+`can_combine_p` finds no store (`mem_last_set`), call or volatile insn between
+them, so every natural spelling collapses to one `lw s6`: a plain initializer,
+a chained `obj = model = ...`, a `static inline` returning the field, and even
+wrapping the whole body in an inline that takes the model as its parameter
+(the parameter copy sits right next to the argument load). Only the volatile
+load plus an asm tie kept the two pseudos apart, so that pair is still in the
+tree. In the same function, the `gGfxViewCoord` walk that needed four pins and
+a hand-written `lui`/`addiu` was the `while (1) { if (!sub) break; ... continue; }`
+form actor_323400 uses, with the two stack-address locals assigned vector
+first: their order is what decides which one dbr steals into the switch's
+delay slots.
