@@ -2260,16 +2260,13 @@ void Gp_EffSprTaskA7(Task* arg0)
     GpCoord*           coord;
     GpCoord*           parent;
     MATRIX*            m;
-    u8*                head;
     GpEffFlareScratch* block;
-    GpEffFlareScratch* otzp;
     POLY_FT4*          prim;
     s16                flag;
     s32                rng;
     s32                one;
     s16                n;
     s16                step;
-    u16                vz;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -2303,26 +2300,22 @@ void Gp_EffSprTaskA7(Task* arg0)
         arg0->state++;
     }
     Gp_UpdateCoord(coord);
-    head                            = SCRATCH_HEAD(u8);
-    block                           = (GpEffFlareScratch*)(head - 0x1C);
-    block->vec.vx                   = (u16)coord->workm.t[0];
-    block->vec.vy                   = (u16)coord->workm.t[1];
-    vz                              = (u16)coord->workm.t[2];
-    otzp                            = block;
-    SCRATCH_HEAD(GpEffFlareScratch) = block;
-    block->vec.vz                   = vz;
+    block         = SCRATCH_PUSH(GpEffFlareScratch);
+    block->vec.vx = coord->workm.t[0];
+    block->vec.vy = coord->workm.t[1];
+    block->vec.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((GpEffFlareScratch*)(head - 0x1C))->vec);
+    gte_ldv0(&block->vec);
     gte_rtps();
     n = (((s32)arg0->spawnArg1 >> 12) & 3) + 1;
-    gte_stsxy(&((GpEffFlareScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpEffFlareScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&otzp->otz);
-        prim                                     = (POLY_FT4*)gGpuPrimCursor;
-        ((GpEffFlareScratch*)(head - 0x1C))->otz = ((GpEffFlareScratch*)(head - 0x1C))->otz + 1;
-        gGpuPrimCursor                           = prim + 1;
+        gte_stszotz(&block->otz);
+        prim = (POLY_FT4*)gGpuPrimCursor;
+        block->otz++;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
         setRGB0(prim, 0x60, 0x60, 0x60);
@@ -2337,23 +2330,23 @@ void Gp_EffSprTaskA7(Task* arg0)
         prim->v2    = 0x37;
         prim->u3    = ((mem->age / n) << 5) + 0x1F;
         prim->v3    = 0x37;
-        block->dx   = (((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(mem->scale)) >> 12;
-        block->dy   = (((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(mem->scale)) >> 12;
-        prim->x0    = block->sx + (u16)block->dx;
-        prim->x3    = block->sx - (u16)block->dx;
-        prim->y0    = block->sy - (u16)block->dy;
-        prim->y3    = block->sy + (u16)block->dy;
-        block->dx   = (((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(mem->scale + 0x400)) >> 12;
-        block->dy   = (((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(mem->scale + 0x400)) >> 12;
-        prim->x1    = block->sx + (u16)block->dx;
-        prim->x2    = block->sx - (u16)block->dx;
-        prim->y1    = block->sy - (u16)block->dy;
-        prim->y2    = block->sy + (u16)block->dy;
-        addPrim((u_long*)(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+        block->dx   = (((mem->angle * 31) / block->otz) * rsin(mem->scale)) >> 12;
+        block->dy   = (((mem->angle * 31) / block->otz) * rcos(mem->scale)) >> 12;
+        prim->x0    = block->sx + block->dx;
+        prim->x3    = block->sx - block->dx;
+        prim->y0    = block->sy - block->dy;
+        prim->y3    = block->sy + block->dy;
+        block->dx   = (((mem->angle * 31) / block->otz) * rsin(mem->scale + 0x400)) >> 12;
+        block->dy   = (((mem->angle * 31) / block->otz) * rcos(mem->scale + 0x400)) >> 12;
+        prim->x1    = block->sx + block->dx;
+        prim->x2    = block->sx - block->dx;
+        prim->y1    = block->sy - block->dy;
+        prim->y2    = block->sy + block->dy;
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_POP(GpEffFlareScratch);
     if (Gp_State1C->eventState != 0) {
         return;
     }
