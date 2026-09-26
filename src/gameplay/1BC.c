@@ -230,6 +230,7 @@ void Gp_StepCdAudioCmd(void)
     s32         seed;
     s16         ret;
     s32         save23;
+    s32         sector;
 
     p = &CdCmd_Queue;
     {
@@ -277,30 +278,16 @@ void Gp_StepCdAudioCmd(void)
             p->step = p->step + 1;
             break;
         case 3: {
-            register CdCmd190* info asm("a0");
-            s32                size;
-            register s32       temp asm("v0");
-            s32                extra;
-            s32                end;
+            CdCmd190* info;
 
             info         = p->field_190;
             p->field_242 = 1;
             if (info->field_3 != 0) {
-                size = info->field_1C;
-                info = (CdCmd190*)info->field_4;
-                temp = size - 1;
-                if (temp < 0) {
-                    extra = size + 0x7FE;
-                } else {
-                    extra = temp;
+                sector = info->field_4;
+                if ((info->field_1C - 1) / 0x800 != 0) {
+                    sector += 1 + (info->field_1C - 1) / 0x800;
                 }
-                extra = extra >> 11;
-                if (extra != 0) {
-                    info = (CdCmd190*)((s32)info + 1);
-                    info = (CdCmd190*)((s32)info + extra);
-                }
-                end = (s32)info;
-                Fs_ReadSectorEx(p->field_190->field_4, end, p->field_1A4, 0);
+                Fs_ReadSectorEx(p->field_190->field_4, sector, p->field_1A4, 0);
                 p->step = p->step + 1;
             } else {
                 p->step = 5;
@@ -330,7 +317,6 @@ void Gp_StepCdAudioCmd(void)
             break;
         case 5: {
             CdCmd190*     info;
-            s32           sector;
             s32           bits;
             u16           maskbits;
             GpSndMaskRec* entry;
