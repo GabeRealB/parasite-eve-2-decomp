@@ -3625,35 +3625,19 @@ static const s32 s_jtbl_pad = 0;
 
 void Gp_StepPlayerMove(Task* arg0)
 {
-    register GameActor*     actor asm("s3");
-    register GpCoord*       coord asm("s5");
-    register GpMoveScratch* s asm("s4");
-    TmdObject*              extra;
-    u16                     mode;
-    SVECTOR*                vec;
-    MATRIX*                 mat;
-    s16*                    tbl;
-    s32                     val;
-    s32                     dz;
-    register s32            lockz asm("a0");
-    s32                     angle;
-    s32                     flag;
-    s32                     t2;
+    GameActor*     actor;
+    GpCoord*       coord;
+    GpMoveScratch* s;
 
-    {
-        register u8* tmp asm("v0");
-
-        tmp              = SCRATCH_HEAD(u8);
-        tmp              = tmp - 0x40;
-        s                = (GpMoveScratch*)tmp;
-        SCRATCH_HEAD(u8) = tmp;
-    }
-
+    s     = SCRATCH_PUSH(GpMoveScratch);
     actor = arg0->work;
-    extra = arg0->extra.tmd;
-    mode  = actor->field_958;
-    coord = extra->coords;
-    switch (mode) {
+    coord = arg0->extra.tmd->coords;
+    switch ((u16)actor->field_958) {
+        case 0:
+            actor->field_0 = 0;
+            actor->field_4 = 0;
+            actor->field_8 = 0;
+            break;
         case 1:
         case 2:
         case 3:
@@ -3662,83 +3646,47 @@ void Gp_StepPlayerMove(Task* arg0)
         case 7:
             if (Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
                               actor->field_438 + 1) == NULL) {
-                case 0:
-                    actor->field_0 = 0;
-                    actor->field_4 = 0;
-                    actor->field_8 = 0;
-            } else {
-                SVECTOR* vec0;
-
-                s->scale = D_80112E10[(u16)actor->field_958];
-                vec0     = &s->vec;
-                Gfx_MatrixCol2(&coord->coord, vec0);
-                VectorNormalSS(vec0, vec0);
-                val            = s->vec.vx;
-                val           *= actor->field_973;
-                actor->field_0 = val / s->scale;
+                actor->field_0 = 0;
                 actor->field_4 = 0;
-                val            = s->vec.vz;
-                val           *= actor->field_973;
-                actor->field_8 = val / s->scale;
+                actor->field_8 = 0;
+            } else {
+                s->scale = D_80112E10[(u16)actor->field_958];
+                Gfx_MatrixCol2(&coord->coord, &s->vec);
+                VectorNormalSS(&s->vec, &s->vec);
+                actor->field_0 = s->vec.vx * actor->field_973 / s->scale;
+                actor->field_4 = 0;
+                actor->field_8 = s->vec.vz * actor->field_973 / s->scale;
             }
             break;
         case 4:
-            mat      = &coord->coord;
-            tbl      = D_80112E10;
-            vec      = &s->vec;
-            s->scale = tbl[(u16)actor->field_958];
-            Gfx_MatrixCol2(mat, vec);
-            VectorNormalSS(vec, vec);
-            val                = s->vec.vx;
-            val               *= actor->field_973;
-            actor->field_0     = val / s->scale;
+            s->scale = D_80112E10[(u16)actor->field_958];
+            Gfx_MatrixCol2(&coord->coord, &s->vec);
+            VectorNormalSS(&s->vec, &s->vec);
+            actor->field_0     = s->vec.vx * actor->field_973 / s->scale;
             actor->field_4     = 0;
-            val                = s->vec.vz;
-            val               *= actor->field_973;
-            actor->field_8     = val / s->scale;
+            actor->field_8     = s->vec.vz * actor->field_973 / s->scale;
             coord->coord.t[0] += actor->field_0;
             coord->coord.t[1] += actor->field_4;
             coord->coord.t[2] += actor->field_8;
             s->saved           = coord->coord;
-            s->scale           = tbl[(u16)actor->field_958];
+            s->scale           = D_80112E10[(u16)actor->field_958];
             Gp_GetLockPos(actor->field_90C, &s->lock);
-            val   = coord->coord.t[0];
-            lockz = s->lock.vz;
-            val  -= s->lock.vx;
-            if (val < 0) {
-                val = -val;
-            }
-            s->vec.vx = val;
-            dz        = coord->coord.t[2];
-            dz       -= lockz;
-            if (dz < 0) {
-                dz = -dz;
-            }
-            val      += dz;
-            s->vec.vx = val;
-            s->angle  = 0x640000;
-            angle     = 0x640000 / (s->vec.vx * 0x274);
-            flag      = 0;
-            TOUCH_REG_USE(flag, lockz);
-            angle    = (0x800 - angle) >> 1;
-            s->angle = angle;
-            Gfx_RotMatrixY(mat, angle, flag);
-            Gfx_MatrixCol2(mat, vec);
-            val            = s->vec.vx;
-            val           *= actor->field_975;
-            actor->field_0 = val / s->scale;
+            s->vec.vx  = abs(coord->coord.t[0] - s->lock.vx);
+            s->vec.vx += abs(coord->coord.t[2] - s->lock.vz);
+            s->angle   = 0x640000;
+            s->angle   = (0x800 - s->angle / (s->vec.vx * 0x274)) >> 1;
+            Gfx_RotMatrixY(&coord->coord, s->angle, 0);
+            Gfx_MatrixCol2(&coord->coord, &s->vec);
+            actor->field_0 = s->vec.vx * actor->field_975 / s->scale;
             actor->field_4 = 0;
-            val            = s->vec.vz;
-            val           *= actor->field_975;
-            actor->field_8 = val / s->scale;
+            actor->field_8 = s->vec.vz * actor->field_975 / s->scale;
             coord->coord   = s->saved;
             break;
     }
     coord->coord.t[0] += actor->field_0;
     coord->coord.t[1] += actor->field_4;
-    t2                 = coord->coord.t[2];
-    SCRATCH_POP_BYTES(0x40);
-    coord->coord.t[2] = t2 + actor->field_8;
+    coord->coord.t[2] += actor->field_8;
+    SCRATCH_POP(GpMoveScratch);
 }
 
 void Gp_TurnPlayer(Task* arg0)
