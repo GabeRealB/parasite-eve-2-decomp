@@ -304,4 +304,6 @@ extern u8         D_80060CCC[];
 extern u8*        D_800611B8[];
 extern u8*        D_80067418[];
 
+void func_80036A1C(void);
+
 #endif // MC_H

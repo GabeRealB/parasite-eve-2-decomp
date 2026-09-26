@@ -119,4 +119,6 @@ void Gp_ClearAreaFlag4(struct GpAreaKey* arg0);
 
 void Gp_SetCurAreaFlag4(void);
 
+void func_800AEE8C(Task* arg0);
+
 #endif // GAMEPLAY_1A8_H

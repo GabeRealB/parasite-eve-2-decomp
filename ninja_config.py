@@ -220,6 +220,30 @@ PERMUTER_DIR = Path("permuter")
 # C compiled from here, while their asm stays under the linking family.
 LIB_SRC_DIR = Path("src/lib")
 LIB_SPLAT_EXT = TOOLS_DIR / "splat_ext" / "libsrc.py"
+GEN_ASSET_INC = TOOLS_DIR / "gen_asset_inc.py"
+
+
+def asset_includes(version: str) -> list[tuple[Path, Path]]:
+    """(extracted file, generated initializer) for every catalogued embedded
+    asset marked `include`: an asset a unit defines in its own C data, whose
+    bytes come from the user's extraction rather than from git."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "asset_data", TOOLS_DIR / "peassets" / "asset_data.py"
+    )
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    out = []
+    for aid, rec in mod.EMBEDDED_ASSETS.items():
+        if rec.get("include"):
+            raw = ASSETS_DIR / version / "raw" / rec["type"] / f"{aid}{rec['ext']}"
+            out.append((raw, BUILD_DIR / "include" / "assets" / f"{aid}.inc"))
+    return out
+
+
+# Generated asset initializers; every C preprocessing step waits for them.
+ASSET_INC_OUTPUTS: list[str] = []
 # A unit one source builds once per package, each with that package's defines.
 VARIANT_SPLAT_EXT = TOOLS_DIR / "splat_ext" / "variantsrc.py"
 # splat subsegment types that compile a C source.
@@ -386,7 +410,7 @@ OBJDIFF_TARGET_ASM = OBJDIFF_DIR / "target_asm.py"
 POSTBUILD = f"{PYTHON} {TOOLS_DIR / 'postbuild.py'}"
 
 # Compilation flags (General)
-INCLUDE_FLAGS = f"-Iinclude -I {BUILD_DIR} -Iinclude/psyq -Iinclude/decomp"
+INCLUDE_FLAGS = f"-Iinclude -I {BUILD_DIR} -I {BUILD_DIR}/include -Iinclude/psyq -Iinclude/decomp"
 OPT_FLAGS = "-O2"
 ENDIAN = "-EL"
 DL_EXE_FLAGS = "-G0"
@@ -607,6 +631,7 @@ def ninja_setup_list_add_source(
             outputs=f"{target_path}.i",
             rule="cpp",
             inputs=source_path,
+            order_only=ASSET_INC_OUTPUTS,
             variables={
                 "VERSION": f"-DVER_{GAME_VERSIONS[game_version_idx].version_name}",
                 "SKIPASMFLAG": skip_asm,
@@ -1023,6 +1048,19 @@ def ninja_build(
         description="postbuild script $in",
         command=f"{POSTBUILD} $in",
     )
+    ninja_rules_file.rule(
+        "asset-inc",
+        description="asset-inc $out",
+        command=f"{PYTHON} {GEN_ASSET_INC} $in $out",
+    )
+    version = GAME_VERSIONS[game_version_idx].version_name
+    ASSET_INC_OUTPUTS.clear()
+    for raw, inc in asset_includes(version):
+        ninja_file.build(
+            outputs=str(inc), rule="asset-inc", inputs=str(raw), implicit=[str(GEN_ASSET_INC)]
+        )
+        ASSET_INC_OUTPUTS.append(str(inc))
+
     ninja_rules_file.rule(
         "objdiff-config",
         description="objdiff-config",

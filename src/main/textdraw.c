@@ -4,6 +4,15 @@
 #include "main/text.h"
 #include "main/title.h"
 #include "main/ui.h"
+#include "main/boot.h"
+#include "main/fs.h"
+#include "main/gameflow.h"
+#include "main/mc.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "gameplay/gameplay.h"
+#include "gameplay/1A8.h"
+#include "gameplay/D4.h"
 
 static const char D_800138BC[];
 static const char D_800138C8[];
@@ -12,6 +21,83 @@ static const char D_800138CC[];
 static void Text_DrawGlyphImmediate(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
 static void Text_DrawGlyphOt(TextDrawReq* arg0, FontGlyph* arg1);
 static void Text_DrawGlyphQueued(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
+static void Text_UiTaskCallback(Task* arg0);
+
+static void Text_BootTask(Task* arg0);
+
+static TaskDesc D_8005EDA0[] = {
+    { 0x0, 0xC0, textNoopCallback },
+    { 0x0, 0xC0, taskCountdownCallback },
+    { 0x0, 0xC0, Title_Dispatch },
+    { 0x0, 0xC0, GameFlow_StateByField34 },
+    { 0x0, 0xC0, GameFlow_DispatchTable5 },
+    { 0x0, 0xC0, Text_UiTaskCallback },
+    { 0x0, 0xC0, Title_ExitTask },
+    { 0x0, 0xC0, taskKill },
+    { 0x0, 0x0, NULL },
+    { 0x0, 0x18, GameFlow_DispatchTable },
+    { 0x0, 0x10, Mc_DispatchStateTable },
+    { 0x0, 0x10, Mc_DispatchStateTable26 },
+    { 0x0, 0xC0, func_80036A1C },
+    { 0x0, 0x10, Text_BootTask },
+    { 0x2, 0x2F, func_800A8654 },
+    { 0x0, 0x2F, Gp_ApplyViewTask },
+    { 0x0, 0x40, func_800AD50C },
+    { 0x0, 0x28, func_800AC0F0 },
+    { 0x0, 0x10, Mc_DispatchStateTable },
+    { 0x0, 0x10, Mc_DispatchStateTable26 },
+    { 0x0, 0x1F, func_800AEE8C },
+    { 0x0, 0xC0, taskKill },
+    { 0x0, 0x30, Gp_ViewGateTask },
+    { 0x0, 0x2F, Gp_AllocSprtListsTask },
+    { 0x0, 0xC0, Stage_TaskExit },
+    { 0x0, 0xC0, (TaskFunc)0x807011D8 },
+    { 0x0, 0xE0, Gp_DrawDisp2dOt },
+    { 0x0, 0xD0, func_800AD5B8 },
+    { 0x0, 0x2F, Gp_LoadStateTask },
+    { 0x0, 0x18, func_800A77B4 },
+    { 0x0, 0xF8, Gp_LoadWaitDispatch },
+    { 0x0, 0x10, Boot_LoadInitialFile },
+    { 0x0, 0x10, Boot_LoadTask },
+    { 0x0, 0x2F, Gp_FlashWhiteTask },
+    { 0x0, 0xF8, NULL },
+    { 0x0, 0xC0, (TaskFunc)0x80701400 },
+    { 0x0, 0x2F, NULL },
+    { 0x0, 0xF8, Gp_CommitSpawnLoc },
+    { 0x0, 0xF8, Gp_SetupSprtDisplay },
+};
+
+TaskDesc* gTaskDescBanks[15] = {
+    D_8005EDA0,
+    D_800670D0,
+    D_80067828,
+    D_80062780,
+    D_800676A8,
+    D_800626AC,
+    D_8010FC2C,
+    D_800678F4,
+    D_800626EC,
+    D_80067734,
+    (TaskDesc*)0x80114B34,
+    D_80067828,
+    D_80067828,
+    D_80067828,
+    D_80068B7C,
+};
+
+static u8 Font_Glyphs0[] = {
+#include "assets/font_glyphs0.inc"
+};
+static u8 Font_Glyphs1[] = {
+#include "assets/font_glyphs1.inc"
+};
+static u8 Font_Glyphs2[] = {
+#include "assets/font_glyphs2.inc"
+};
+
+static UiObjectDesc D_800608F4[] = {
+    { 2, 0xFF70, 0xFF98, 0x120, 0x90, 0x38, 0, 0, 0xC0, (s32)Ui_WaitCdThenOverlay, 0 },
+};
 
 void textNoopCallback(Task* task)
 {
@@ -996,7 +1082,7 @@ static void Text_DrawGlyphOt(TextDrawReq* arg0, FontGlyph* arg1)
     addPrim(gGpuCurrentOt + arg0->otIndex, p);
 }
 
-void Text_UiTaskCallback(Task* arg0)
+static void Text_UiTaskCallback(Task* arg0)
 {
     UiObject* obj;
     s16       temp;
@@ -1025,7 +1111,7 @@ void Text_UiTaskCallback(Task* arg0)
     }
 }
 
-void Text_BootTask(Task* arg0)
+static void Text_BootTask(Task* arg0)
 {
     Text_LoadClutImages();
     Display_SetMode(0x1010);

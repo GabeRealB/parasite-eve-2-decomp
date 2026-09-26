@@ -273,6 +273,14 @@ extern TaskDesc D_8006268C;
 /// fixed: callers store the model in its `arg` just before spawning effect
 /// 0x80005, which spawns its task from that entry.
 extern TaskDesc D_800626EC[6];
+extern TaskDesc D_80062780[];
+extern TaskDesc D_800626AC[];
+extern TaskDesc D_800670D0[];
+extern TaskDesc D_800676A8[];
+extern TaskDesc D_80067734[];
+extern TaskDesc D_80067828[];
+extern TaskDesc D_800678F4[];
+extern TaskDesc D_80068B7C[];
 extern TaskDesc D_8006269C;
 extern TaskDesc D_80062774;
 

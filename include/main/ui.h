@@ -203,7 +203,6 @@ extern UiList       D_8006125C;
 extern UiList       D_80061284;
 extern UiList       D_800612AC;
 extern UiList       D_80067654;
-extern UiObjectDesc D_800608F4[];
 extern UiObjectDesc D_800611C8[];
 extern UiObjectDesc D_80061200[];
 extern UiObjectDesc D_8006121C[];

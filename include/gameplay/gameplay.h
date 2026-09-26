@@ -453,4 +453,6 @@ void func_800A8654(Task* task);
 
 void Gp_DrawDisp2dOt(void);
 
+extern TaskDesc D_8010FC2C[];
+
 #endif // GAMEPLAY_GAMEPLAY_H

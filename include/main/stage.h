@@ -82,4 +82,6 @@ s32  Stage_RequestImageCapture(void);
 void Stage_RequestFromAreaTable(s32 arg0);
 void Stage_RequestMidiFromMap(s32 arg0);
 
+void Stage_TaskExit(Task* arg0);
+
 #endif // STAGE_H

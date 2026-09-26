@@ -95,7 +95,6 @@ STATIC_ASSERT_SIZEOF(TextStream, 0x20);
 s32  TextStream_Draw(TextStream* arg0, u8* arg1, s16* arg2, s32 arg3);
 void Text_MeasureAndCenter(TextDrawReq* arg0, u8* arg1);
 u8*  Text_SkipLines(u8* arg0, s32 arg1);
-void Text_BootTask(Task* arg0);
 s32  Text_DrawMultiLine(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
 s32  Text_MeasureWidth(u8* arg0);
 s32  Text_MeasureMultiLine(u8* arg0);
@@ -122,9 +121,6 @@ u8*  Text_FormatTime(u8* arg0, s32 arg1);
 
 // Glyph tables (selected by TextDrawReq.glyphTable); FontGlyph (0xC each).
 // 0: 0x8005EFB0, 224 glyphs. 1: 0x8005FA30, 224. 2: 0x800604B0, 91 (space..z).
-extern u8 Font_Glyphs0[];
-extern u8 Font_Glyphs1[];
-extern u8 Font_Glyphs2[];
 /// Fill palettes (64 entries) for Text_LoadClutImages → (256, 243).
 extern u_long D_80060910[];
 /// Outline palettes (48 entries) for Text_LoadClutImages → (0x3D0, 0x1FF).

@@ -104,3 +104,23 @@ D_801375F8 = 0x801375F8; // type:func absolute:True
 D_801379B4 = 0x801379B4; // type:func absolute:True
 D_80138004 = 0x80138004; // type:func absolute:True
 D_801386EC = 0x801386EC; // type:func absolute:True
+
+// Overlay task entry points and descriptor banks named by main's descriptor tables.
+func_800A8654 = 0x800A8654; // type:func absolute:True
+Gp_ApplyViewTask = 0x800A8C74; // type:func absolute:True
+func_800AD50C = 0x800AD50C; // type:func absolute:True
+func_800AC0F0 = 0x800AC0F0; // type:func absolute:True
+func_800AEE8C = 0x800AEE8C; // type:func absolute:True
+Gp_ViewGateTask = 0x800A8E8C; // type:func absolute:True
+Gp_AllocSprtListsTask = 0x800AD58C; // type:func absolute:True
+Gp_DrawDisp2dOt = 0x80099958; // type:func absolute:True
+func_800AD5B8 = 0x800AD5B8; // type:func absolute:True
+Gp_LoadStateTask = 0x800AC25C; // type:func absolute:True
+func_800A77B4 = 0x800A77B4; // type:func absolute:True
+Gp_LoadWaitDispatch = 0x800A97DC; // type:func absolute:True
+Gp_FlashWhiteTask = 0x800AC344; // type:func absolute:True
+Gp_CommitSpawnLoc = 0x800A9980; // type:func absolute:True
+Gp_SetupSprtDisplay = 0x800A99E0; // type:func absolute:True
+Title_Dispatch = 0x8009472C; // type:func absolute:True
+Title_ExitTask = 0x800947A8; // type:func absolute:True
+D_8010FC2C = 0x8010FC2C; // absolute:True
