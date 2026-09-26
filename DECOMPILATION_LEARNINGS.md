@@ -144467,3 +144467,14 @@ bottom-up and a load becomes ready only once its users are placed: the order
 of the independent loads after the push decided when `work`'s chain was
 placed, and loading `coord` before `ctx` reproduced the target exactly. Before
 fencing a push, permute the plain loads that follow it.
+
+## A function whose body repeats a `static __inline__` helper in its own file is that helper, called (Actor04600_Fn027BC, 2026-09-27)
+
+A two-slot animation rebind matched only with the loop counter hoisted by hand
+(`i = 1;` above the branch), reused for the frame-count increment
+(`field = (u16)(field + i)`) and a `TOUCH_REG(i)` holding it live. The same
+file already had an inline helper with that body, inlined at several call
+sites. Making the function one call to the helper matched at once: compiled
+out of line, the helper's `for (i = 1; ...)` loops produce the shared `1`
+register and the `addu` with it on their own. Before steering a function's
+body, grep its file for an inline helper that does the same thing.
