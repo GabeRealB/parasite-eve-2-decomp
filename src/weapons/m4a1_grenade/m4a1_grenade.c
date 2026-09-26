@@ -261,26 +261,18 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
     WeaponGrenadeWork*  work;
     GpCoord*            coord;
     McItemSlot*         slot;
-    GpRec18*            rec;
     GpRoomParamRec*     param;
-    u8*                 head;
     s32                 idx;
-    s32                 count;
     s32                 clip;
     s32                 step;
     s32                 sfxbase;
     s32                 sfxarg;
 
-    work  = (WeaponGrenadeWork*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    slot  = Gp_GetItemSlot(Player_Status.weapon + 0x7F);
-    head  = SCRATCH_HEAD(u8);
-    /* Pushed and then re-derived rather than stored from `blk`: the scratch
-       head has to stay live in its own register, because the `GpDeltaScratch`
-       handed to `func_800E0FEC` below is addressed off it and not off `blk`. */
-    SCRATCH_HEAD(u8) = head - sizeof(M4a1GrenadeScratch);
-    blk              = (M4a1GrenadeScratch*)(head - sizeof(M4a1GrenadeScratch));
-    coord->flg       = 0;
+    work       = (WeaponGrenadeWork*)arg0->work;
+    coord      = arg0->extra.tmd->coords;
+    slot       = Gp_GetItemSlot(Player_Status.weapon + 0x7F);
+    blk        = SCRATCH_PUSH(M4a1GrenadeScratch);
+    coord->flg = 0;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
     explode:
         blk->sfx = slot->attachId - 0x9F;
@@ -303,23 +295,12 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
         return;
     }
 
-    /* `rec` is picked after each count, not before: assigning it first would
-       make it cross the call and cost a call-saved register. */
-    count = Gp_CountRec18Hi(work->rec1, 0x100000);
-    rec   = work->rec1;
-    if (count == 0) {
+    if (Gp_CountRec18Hi(work->rec1, 0x100000) == 0) {
         goto try_rec0;
     }
-check:
-    /* `head - 0x14` is `&blk->delta`; spelling it off `head` is what keeps the
-       two scratch pointers apart, and the extra reference is what wins `head`
-       its call-saved register. */
-    SOFT_USE_REG(head);
-    func_800E0FEC(rec, (GpDeltaScratch*)(head - 0x14), 1, &idx);
+    func_800E0FEC(work->rec1, &blk->delta, 1, &idx);
     idx = func_800E1ACC((u8*)&idx);
-    /* `func_800E1ACC` writes through `&idx` as well as returning it, so the
-       index is re-read from the slot instead of kept in the return register. */
-    SOFT_COMPILER_BARRIER();
+check:
     param = Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1][idx];
     if (param->field_1 == 0) {
         if (param->field_2 != 0) {
@@ -333,9 +314,9 @@ check:
     }
     goto move;
 try_rec0:
-    count = Gp_CountRec18Hi(work->rec0, 0x100000);
-    rec   = work->rec0;
-    if (count != 0) {
+    if (Gp_CountRec18Hi(work->rec0, 0x100000) != 0) {
+        func_800E0FEC(work->rec0, &blk->delta, 1, &idx);
+        idx = func_800E1ACC((u8*)&idx);
         goto check;
     }
 move:
