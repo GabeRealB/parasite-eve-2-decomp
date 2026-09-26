@@ -142298,3 +142298,21 @@ matches as a switch whose cases each `return` an inline lookup of their own
 table. The extension each case keeps in `s0`, and the one case that re-extends
 with `sll 16; sra 15`, come from those per-case copies, which jump2 then
 cross-jumps into one tail.
+## A pair of loads kept in source order: give each its own set-once local instead of `volatile` (Actor01600_Fn04EB0, 2026-09-26)
+
+A loop head read `high` then `low` from one range and the target kept that
+order. The tree forced it with `*(volatile s32*)&...` on both loads, because
+`low` went into `mag`, a local m2c had reused for five register-sharing roles.
+`mag` has many sets, so its load gets no `birthing_insn_p` boost, while the
+single-set `high` does and sched1 emits it second.
+
+Declaring `s32 high = ...; s32 low = ...;` fresh in the loop body gives both
+loads the boost; the tie then falls back to source order. Splitting `low` out
+of `mag` shifted the global ranking, though, so the neighbouring roles had to be
+split the same way. A small script over the plausible role-to-variable
+assignments (about 55k compiles, 15 in parallel, ~30 minutes) found the match.
+Two points were not obvious. The inner block that re-reads the range needs its
+*own* block-scoped `high`/`low`: shared with the loop head, the pseudo is homed
+in the inner block's register. And the distance to one end of the range reuses
+`span`, which is dead once `span >= 0x400` has been tested. When m2c's register
+merging blocks a fix, enumerate the role splits rather than pinning.

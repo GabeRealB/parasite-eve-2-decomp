@@ -2902,41 +2902,35 @@ u8 Actor01600_Fn04EB0(Task* arg0)
     s32             other;
     s32             span;
     s32             midpoint;
-    s32             delta1;
     s32             best;
     s32             direction;
     s32             i;
     s32             count;
-    s32             savedAngle;
     s32             callAngle;
-    s32             high;
     s32             circle;
+    s32             turn;
 
     work  = arg0->work;
     flags = 0;
     switch (work->field_4EA) {
         case 0:
-            savedAngle = Actor01600_Fn045A8(arg0, &distance);
-            TOUCH_REG(savedAngle);
-            Actor01600_Fn04C64(arg0, distance, savedAngle);
-            work->field_4E0 = savedAngle;
+            callAngle = Actor01600_Fn045A8(arg0, &distance);
+            TOUCH_REG(callAngle);
+            Actor01600_Fn04C64(arg0, distance, callAngle);
+            work->field_4E0 = callAngle;
             work->field_4EA++;
             break;
         case 1:
-            callAngle       = Actor01600_Fn045A8(arg0, &distance);
-            work->field_4E0 = callAngle;
-            if (Actor01600_Fn04C64(arg0, distance, callAngle) & 0xFF) {
+            work->field_4E0 = Actor01600_Fn045A8(arg0, &distance);
+            if (Actor01600_Fn04C64(arg0, distance, work->field_4E0) & 0xFF) {
                 Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, &dir);
                 ratan2(dir.vx, dir.vz);
                 mag   = __builtin_abs(work->field_4E0);
                 other = 0x1000 - mag;
-                TOUCH_REG_USE(other, flags);
-                SOFT_TOUCH_REG(other);
-                SOFT_TOUCH_REG(other);
-                flags = 0;
-                if (other < mag)
+                if (other < mag) {
+                    flags = 0;
                     angle = other;
-                else {
+                } else {
                     flags = 0x80;
                     angle = mag;
                 }
@@ -2973,18 +2967,19 @@ u8 Actor01600_Fn04EB0(Task* arg0)
             mag             = work->field_4E8;
             work->field_4E0 = 0;
             if (mag == 1) {
-                mag   = work->ranges[0].high;
-                other = work->ranges[0].low;
-                span  = mag - other;
+                s32 high = work->ranges[0].high;
+                s32 low  = work->ranges[0].low;
+
+                span = high - low;
                 if (span >= 0x400) {
-                    delta1   = __builtin_abs(angle - mag);
-                    midpoint = __builtin_abs(angle - other);
-                    if (delta1 < midpoint)
-                        work->field_4E0 = mag;
+                    span     = __builtin_abs(angle - high);
+                    midpoint = __builtin_abs(angle - low);
+                    if (span < midpoint)
+                        work->field_4E0 = high;
                     else
-                        work->field_4E0 = other;
+                        work->field_4E0 = low;
                 } else
-                    work->field_4E0 = other + span / 2;
+                    work->field_4E0 = low + span / 2;
             } else {
                 best = 0xFFFF;
                 i    = 0;
@@ -2992,30 +2987,32 @@ u8 Actor01600_Fn04EB0(Task* arg0)
                     circle = 0x1000;
                     count  = mag;
                     do {
-                        high     = *(volatile s32*)&work->ranges[i].high;
-                        mag      = *(volatile s32*)&work->ranges[i].low;
-                        span     = high - mag;
-                        midpoint = mag + span / 2;
-                        if ((u32)(midpoint - 0x780) >= 0x101U) {
-                            mag       = __builtin_abs(angle - midpoint);
-                            other     = circle - mag;
+                        s32 high = work->ranges[i].high;
+                        s32 low  = work->ranges[i].low;
+
+                        span     = high - low;
+                        midpoint = low + span / 2;
+                        if (midpoint < 0x780 || midpoint > 0x880) {
+                            turn      = __builtin_abs(angle - midpoint);
+                            other     = circle - turn;
                             direction = 0;
-                            if (other < mag)
-                                mag = other;
+                            if (other < turn)
+                                turn = other;
                             else
                                 direction = 0x80;
-                            if (mag < best) {
+                            if (turn < best) {
                                 flags = direction;
-                                best  = mag;
+                                best  = turn;
                                 if (span >= 0x400) {
-                                    other    = work->ranges[i].high;
-                                    mag      = *(volatile s32*)&work->ranges[i].low;
-                                    delta1   = __builtin_abs(angle - other);
-                                    midpoint = __builtin_abs(angle - mag);
-                                    if (delta1 < midpoint)
-                                        midpoint = other;
+                                    s32 high = work->ranges[i].high;
+                                    s32 low  = work->ranges[i].low;
+
+                                    span     = __builtin_abs(angle - high);
+                                    midpoint = __builtin_abs(angle - low);
+                                    if (span < midpoint)
+                                        midpoint = high;
                                     else
-                                        midpoint = mag;
+                                        midpoint = low;
                                 }
                                 work->field_4E0 = midpoint;
                             }
