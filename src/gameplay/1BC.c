@@ -2240,36 +2240,30 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4)
 void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
                            s32 arg5)
 {
-    void**            scratch;
-    GpAnimPose*       head;
-    GpAnimSlot*       slot;
-    GpCoord*          dest;
-    register SVECTOR* st asm("a0");
-    SVECTOR*          trans;
-    SVECTOR*          rot;
-    s32               idx;
-    s32               off;
+    void**      scratch;
+    GpAnimPose* head;
+    GpAnimSlot* slot;
+    GpCoord*    dest;
+    SVECTOR*    trans;
+    SVECTOR*    rot;
+    s32         idx;
 
-    scratch                           = SCRATCH_HEAD_ADDR;
-    slot                              = &arg0->slots[arg1];
-    head                              = SCRATCH_HEAD_AT(scratch, GpAnimPose);
-    idx                               = slot->mtxIndex;
-    trans                             = &head[-1].trans;
-    SCRATCH_HEAD_AT(scratch, SVECTOR) = trans;
-    off                               = idx * 0x50;
-    USE_REG(off);
-    dest = &arg0->coords[idx];
+    scratch                        = SCRATCH_HEAD_ADDR;
+    slot                           = &arg0->slots[arg1];
+    head                           = SCRATCH_HEAD_AT(scratch, GpAnimPose);
+    idx                            = slot->mtxIndex;
+    SCRATCH_HEAD_AT(scratch, void) = head - 1;
+    dest                           = &arg0->coords[idx];
+    trans                          = &head[-1].trans;
     if (slot->poseKind == 1) {
-        st = trans;
         gte_lddp(arg4);
         gte_ldsv(&arg2->trans);
         gte_gpf12();
         gte_lddp(arg5);
         gte_ldsv(&arg3->trans);
         gte_gpl12();
-        gte_stsv(st);
+        gte_stsv(trans);
         dest->coord.t[0] = trans->vx;
-        COPY_REG(trans, trans);
         dest->coord.t[1] = trans->vy;
         dest->coord.t[2] = trans->vz;
     }

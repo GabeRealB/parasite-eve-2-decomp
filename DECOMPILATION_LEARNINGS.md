@@ -142938,3 +142938,21 @@ it into a logical shift. The seed held `sra` with `SOFT_TOUCH_REG(price)`.
   produce it. The `idx = item` copy for the else arm was an inline helper's
   parameter passed as an expression (`helper(prompt, obj, *p)`), and the
   `addu base,idx` operand order came from a `p = &list->itemIds[i]` local.
+
+### `bne …; move a0,t0` feeding only a GTE store in the taken block: take the pointer before the `if` (Gp_AnimWritePoseBlend, 2026-09-26)
+
+**Symptom.** A conditional block blends into a scratch vector with `gte_stsv`
+through `a0`, a copy of the carve register placed in the branch's delay slot,
+while the reads of the stored vector that follow go through the carve register
+itself (`t0`). The seed pinned the store pointer to `a0` and added `COPY_REG` and
+`USE_REG` to keep the two apart.
+
+**Cause.** Assigning the pointer inside the block makes it a copy of the carve
+in the same basic block, and `optimize_reg_copy_1` then re-points every later
+read of the carve at the copy, so the reads and the store share one register.
+The pass stops at a jump, so when the copy sits *before* the `if` the reads
+inside the block keep the carve, the copy serves the asm operand alone, and dbr
+moves it into the branch delay slot.
+
+**Fix.** `trans = &head[-1].trans;` just above `if (slot->poseKind == 1)`, no
+pins. This also settled a scheduling difference the seed held with `USE_REG`.
