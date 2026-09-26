@@ -142525,3 +142525,26 @@ The same body carried a register copy on the step (`move v0,v1` before its
 `rgb[i] >>= 1`. Both were only the plain statements `mem->angle += mem->step
 << 3;` and `rgb[0] >>= 1; rgb[1] >>= 1; rgb[2] >>= 1;`, the way the sibling pe
 overlays write them; check the siblings' spelling before steering.
+## The payload-checksum loop keeps its `ptr` pin: the pointer loses `$v1` to the count in every natural form (Mc_InitBufferSlots, 2026-09-26)
+
+**Symptom.** The Mc checksum body (`sum += (s8)*ptr` over `size - 4` bytes past a
+4-byte header) wants the walking pointer in `$v1`. Inlined into
+`Mc_InitBufferSlots` the count and the pointer swap `$a0`/`$v1`; standalone
+(`Mc_WriteBlockChecksum`) the pointer and the counter `i` swap.
+
+**Cause.** Inlined, `size -= 4` on the parameter gives the count 11 refs (the
+folded parameter copy still counts) and, being single-set, the `birthing_insn_p`
+bump puts it last before the guard branch, so its live range is the shortest:
+33000 against the pointer's 30000. A probe that kept the count at two sets
+(an empty asm between copy and subtract) gave exactly the retail allocation, and
+so did reusing the fill loop's pointer variable as the count. Nothing plausible
+does either. Statement order, loop forms (`do`/`while`/`for`, `*ptr++`,
+`++i <`), a `void*` or `u8*` parameter, `register`, pointer-returning fill
+helpers and a per-slot helper all leave the swap.
+
+**What does work.** `size -= 4` in place (the standalone does `addiu a1,a1,-4`,
+so this is the retail shape), not a `count = size - 4` local, which ties the
+count to `size`. It removes every other pin and the barrier, and leaves one
+`register u8* ptr asm("v1")` in the helper, the same pin the standalone carries.
+The `-1` fill value has to be a local: a constant is hoisted into the outer
+loop's preheader instead of the function entry.

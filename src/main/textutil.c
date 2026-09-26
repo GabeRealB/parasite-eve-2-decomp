@@ -403,66 +403,55 @@ void Mc_InitDualBankBuffers(void)
     (&Player_Status)[idx].weapon = two;
 }
 
+/// Store the checksum of a buffer's payload (everything after its 4-byte header)
+/// in the header: the signed byte sum and its complement.
+static inline void _mcWriteBlockChecksum(void* data, s32 size)
+{
+    McChecksumBlock* block;
+    s16              sum;
+    register u8*     ptr asm("v1");
+    u32              i;
+
+    block = data;
+    sum   = 0;
+    ptr   = block->field_4;
+    size -= 4;
+    i     = 0;
+    if (size != 0) {
+        do {
+            i   += 1;
+            sum += (s8)*ptr;
+            ptr += 1;
+        } while (i < size);
+    }
+    block->field_0 = sum;
+    block->field_2 = ~sum;
+}
+
 void Mc_InitBufferSlots(void)
 {
-    McBufferSlot*    base;
-    McBufferSlot*    slot;
-    McBufferSlot*    end;
-    McChecksumBlock* block;
-    register s32     size asm("a3");
-    u8*              fptr;
-    s16              sum;
-    register u32     fi asm("v1");
-    u32              i;
-    register u32     count asm("a0");
-    s32              fill;
-    volatile u8*     cptr;
-    s32              tmp;
-    s32              cond;
+    McBufferSlot* base;
+    McBufferSlot* slot;
+    u8*           ptr;
+    u32           size;
+    u32           i;
+    s32           fill;
 
     fill = -1;
     base = Mc_BufferSlots;
     slot = base + 1;
-    end  = base + 9;
     do {
         size = slot->field_4;
-        fptr = (u8*)slot->field_0;
-        cond = size;
-        fi   = 0;
-        if (cond != 0) {
-            do {
-                *fptr = 0;
-                fi   += 1;
-                fptr += 1;
-            } while (fi < (u32)size);
+        ptr  = (u8*)slot->field_0;
+        for (i = 0; i < size; i++) {
+            *ptr++ = 0;
         }
-        cond = size;
-        fi   = 0;
-        if (cond != 0) {
-            do {
-                *fptr = fill;
-                fi   += 1;
-                fptr += 1;
-            } while (fi < (u32)size);
+        for (i = 0; i < size; i++) {
+            *ptr++ = fill;
         }
-        sum   = 0;
-        block = slot->field_0;
-        SOFT_BARRIER();
-        i     = 0;
-        count = size - 4;
-        cptr  = block->field_4;
-        if (count != 0) {
-            do {
-                i    += 1;
-                tmp   = (s8)*cptr;
-                sum   = sum + tmp;
-                cptr += 1;
-            } while (i < count);
-        }
-        slot          += 1;
-        block->field_2 = ~sum;
-        block->field_0 = sum;
-    } while ((u32)slot < (u32)end);
+        _mcWriteBlockChecksum(slot->field_0, size);
+        slot++;
+    } while (slot < base + 9);
 
     gDisplayState.roomVariant = 1;
     Mc_InitDualBankBuffers();
