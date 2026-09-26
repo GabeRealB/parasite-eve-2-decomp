@@ -70,9 +70,10 @@ static void func_actor_300700_801648E4(GpEnemy* arg0, Task* arg1);
 
 static void func_actor_300700_80164D3C(GpEnemy* arg0, Task* arg1);
 
-/// The second variant's state handlers, in the same order, dispatched by
-/// `func_actor_300700_80164CE0`.
-const GpEnemyTaskFuncTable3 D_actor_300700_80161E30 = {
+/// The second variant's state handlers, in the same order as the first's:
+/// spawn, per-frame update and state 2. `func_actor_300700_80164CE0`
+/// dispatches them.
+static const GpEnemyTaskFuncTable3 D_actor_300700_80161E30 = {
     {
         func_actor_300700_80163510,
         func_actor_300700_80164D3C,

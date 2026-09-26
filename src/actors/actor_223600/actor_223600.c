@@ -559,7 +559,7 @@ static __inline__ void Actor223600_TickSlots(Task* task)
 /// Defined old-style, so later calls in this file are not checked against a
 /// prototype: the spawn handler passes the enemy's HP as a second argument the
 /// function never reads.
-void func_actor_223600_8014B2F4(task)
+static void func_actor_223600_8014B2F4(task)
     Task* task;
 {
     Actor223600Work* work;
