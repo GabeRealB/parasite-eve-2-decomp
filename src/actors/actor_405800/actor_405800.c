@@ -2090,13 +2090,11 @@ void func_actor_405800_80136388(Task* arg0)
     s32              tmp;
     s16              tick;
     s32              i;
-    s32              two;
 
     maxX            = 0;
     maxZ            = 0;
     stepX           = 0;
     stepZ           = 0;
-    two             = 2;
     blocked         = 0;
     coord           = arg0->extra.tmd->coords;
     work            = (Actor405800Work*)arg0->work;
@@ -2123,14 +2121,12 @@ void func_actor_405800_80136388(Task* arg0)
                 func_800FDB18(Gp_GetIdParam1(work->rec_4D4[i].key) & 0xFFFF,
                               &arg0->extra.tmd->coords[4], NULL, &work->eff_81C);
                 if (amount >= 0xB4) {
-                    work->field_85A = two;
+                    work->field_85A = 2;
                 } else if (amount >= 0x78) {
                     work->field_85A = 1;
                 } else {
                     work->field_85A = 0;
                 }
-                SOFT_USE_REG(two);
-                SOFT_USE_REG(two);
                 switch (Gp_GetIdParam0(work->rec_4D4[i].key) & 0xFFFF) {
                     case 0:
                         break;
@@ -2139,18 +2135,22 @@ void func_actor_405800_80136388(Task* arg0)
                         break;
                     case 2:
                         Gp_SetObjFlag2(enemy, work->rec_4D4[i].key, 0);
-                        work->field_898 = two;
+                        work->field_898 = 2;
                         break;
                     case 3:
                         Gp_SetObjFlag4(enemy, work->rec_4D4[i].key, 0);
                         break;
                     case 4:
-                    case 6:
                         work->field_85A = 4;
                         break;
                     case 5:
+                        work->field_85A = 2;
+                        break;
+                    case 6:
+                        work->field_85A = 4;
+                        break;
                     case 7:
-                        work->field_85A = two;
+                        work->field_85A = 2;
                         break;
                     case 8:
                     case 9:
@@ -2187,7 +2187,6 @@ void func_actor_405800_80136388(Task* arg0)
             }
             work->field_858 = 1;
             work->field_85A = 2;
-            SOFT_USE_REG(two);
         }
         if (Gp_ObjFlag4Expired(enemy) != 0) {
             enemy->reactionFlags &= 0xF3;
