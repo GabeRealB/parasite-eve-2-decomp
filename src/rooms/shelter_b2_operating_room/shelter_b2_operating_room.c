@@ -978,43 +978,25 @@ void func_shelter_b2_operating_room_8017F6FC(GpCoord* arg0, s32 arg1, s32 arg2, 
 /// `arg1 * 64 / (otz + 1)`.
 void func_shelter_b2_operating_room_8017FB20(GpCoord* arg0, s32 arg1, u8* rgb)
 {
-    void**         scratch;
-    u8*            head;
     GpRingScratch* block;
     POLY_G4*       prim;
     s32            ang;
-    register s32   ang2 asm("s1");
-    u16            vz;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    USE_REG(head);
-    {
-        register u16 vx asm("v0");
-        vx                                      = (u16)arg0->workm.t[0];
-        ((GpRingScratch*)(head - 0x18))->vec.vx = vx;
-    }
-    {
-        register u8* tmp asm("v0");
-        tmp   = head - 0x18;
-        block = (GpRingScratch*)tmp;
-    }
-    block->vec.vy = (u16)arg0->workm.t[1];
-    vz            = (u16)arg0->workm.t[2];
-    *scratch      = block;
-    block->vec.vz = vz;
+    block         = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+        gte_stszotz(&block->otz);
         block->otz++;
         block->step = ((s16)arg1 * 64) / block->otz;
-        ang         = 0;
-        do {
+        for (ang = 0; ang < 0x1000; ang += 0x200) {
             prim           = (POLY_G4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
@@ -1022,24 +1004,21 @@ void func_shelter_b2_operating_room_8017FB20(GpCoord* arg0, s32 arg1, u8* rgb)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, rgb[0], rgb[1], rgb[2]);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = (u16)block->sx + ((block->step * rsin(ang)) >> 12);
-            prim->y0 = (u16)block->sy + ((block->step * rcos(ang)) >> 12);
-            ang2     = ang + 0x100;
-            prim->x1 = (u16)block->sx + ((block->step * rsin(ang2)) >> 12);
-            prim->y1 = (u16)block->sy + ((block->step * rcos(ang2)) >> 12);
-            prim->x2 = (u16)block->sx;
-            prim->y2 = (u16)block->sy;
-            ang2     = ang + 0x200;
-            prim->x3 = (u16)block->sx + ((block->step * rsin(ang2)) >> 12);
-            prim->y3 = (u16)block->sy + ((block->step * rcos(ang2)) >> 12);
-            ang      = ang2;
+            prim->x0 = block->sx + ((block->step * rsin(ang)) >> 12);
+            prim->y0 = block->sy + ((block->step * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->step * rsin(ang + 0x100)) >> 12);
+            prim->y1 = block->sy + ((block->step * rcos(ang + 0x100)) >> 12);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->step * rsin(ang + 0x200)) >> 12);
+            prim->y3 = block->sy + ((block->step * rcos(ang + 0x200)) >> 12);
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
+        }
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Burst effect task. Every frame it draws a glowing disc and the glow of
