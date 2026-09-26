@@ -4770,60 +4770,49 @@ void func_actor_403600_801412D0(GpEnemy* arg0, Task* arg1)
     SCRATCH_POP_BYTES(0x10);
 }
 
+/// Turns coordinate 2 by the twist in `field_700`, then eases the twist back
+/// towards zero by 0x20 a frame.
 void func_actor_403600_80141338(Task* arg0)
 {
     Actor403600Work* work;
     GpCoord*         coord;
-    MATRIX*          block;
-    MATRIX*          head;
-    s16              value;
-    s16              decrement;
-    s16              increment;
-    register Task*   actor asm("v1");
-    register MATRIX* matrixArg asm("a1");
+    MATRIX*          matrix;
 
-    head                 = SCRATCH_HEAD(MATRIX);
-    block                = head - 1;
-    SCRATCH_HEAD(MATRIX) = block;
-    matrixArg            = block;
-    actor                = arg0;
-    SOFT_USE_REG2(block, block);
-    work  = actor->work;
-    coord = actor->extra.tmd->coords;
-    RotMatrix((SVECTOR*)&work->field_700, matrixArg);
+    SCRATCH_PUSH(MATRIX);
+    matrix = SCRATCH_HEAD(MATRIX);
+    work   = arg0->work;
+    coord  = arg0->extra.tmd->coords;
+    RotMatrix((SVECTOR*)&work->field_700, matrix);
 
     gte_SetRotMatrix(&coord[2].coord.m[0][0]);
-    gte_ldclmv(block);
+    gte_ldclmv(matrix);
     gte_rtir();
     gte_stclmv(&coord[2].coord.m[0][0]);
 
-    gte_ldclmv(&block->m[0][1]);
+    gte_ldclmv(&matrix->m[0][1]);
     gte_rtir();
     gte_stclmv(&coord[2].coord.m[0][1]);
 
-    gte_ldclmv(&block->m[0][2]);
+    gte_ldclmv(&matrix->m[0][2]);
     gte_rtir();
     gte_stclmv(&coord[2].coord.m[0][2]);
 
-    value = work->field_700;
-    if (value != 0) {
-        if (value >= 0x20) {
-            decrement       = (u16)work->field_700 - 0x20;
-            work->field_700 = decrement;
-            if ((decrement << 0x10) <= 0) {
+    if (work->field_700 != 0) {
+        if (work->field_700 >= 0x20) {
+            work->field_700 -= 0x20;
+            if (work->field_700 <= 0) {
                 work->field_700 = 0;
             }
         }
-        if (work->field_700 < 0x21) {
-            increment       = (u16)work->field_700 + 0x20;
-            work->field_700 = increment;
-            if ((increment << 0x10) >= 0) {
+        if (work->field_700 <= 0x20) {
+            work->field_700 += 0x20;
+            if (work->field_700 >= 0) {
                 work->field_700 = 0;
             }
         }
     }
 
-    SCRATCH_POP_BYTES(0x20);
+    SCRATCH_POP(MATRIX);
 }
 
 void func_actor_403600_801414FC(Task* arg0)
