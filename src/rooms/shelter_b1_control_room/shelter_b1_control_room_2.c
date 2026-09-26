@@ -324,12 +324,8 @@ static void func_shelter_b1_control_room_8017F39C(SVECTOR* arg0, s32 arg1, s32 a
 /// high nibble, with bit 3 following the animation frame.
 static void func_shelter_b1_control_room_8017FBE0(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    void**             scratch;
-    u8*                head;
-    register u8*       tmp asm("v0");
     RoomDraw13Scratch* block;
     POLY_G4*           prim;
-    DisplayState*      ds;
     s32                ang;
     s32                t;
     s32                t2;
@@ -341,26 +337,18 @@ static void func_shelter_b1_control_room_8017FBE0(SVECTOR* arg0, s32 arg1, s32 a
     u8                 g;
     u8                 b;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    tmp      = head - 0x10;
-    block    = (RoomDraw13Scratch*)tmp;
-    *scratch = tmp;
-
+    block = SCRATCH_PUSH(RoomDraw13Scratch);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
-    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        arg1 = ((s16)arg1 * 64) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
-        ang  = 0;
-        tmp  = (u8*)&gDisplayState;
-        SOFT_TOUCH_REG(tmp);
-        ds            = (DisplayState*)tmp;
-        blend         = ((u8)ds->animFrame & 1) * 8;
+        arg1          = ((s16)arg1 * 64) / block->otz;
+        ang           = 0;
+        blend         = ((u8)gDisplayState.animFrame & 1) * 8;
         packed        = arg2 << 16;
         tr            = (packed >> 20) & 0xF0;
         tg            = (packed >> 16) & 0xF0;
@@ -387,10 +375,10 @@ static void func_shelter_b1_control_room_8017FBE0(SVECTOR* arg0, s32 arg1, s32 a
             prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
             prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_POP(RoomDraw13Scratch);
 }
