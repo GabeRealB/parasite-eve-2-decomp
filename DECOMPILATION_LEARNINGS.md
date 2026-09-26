@@ -143062,3 +143062,17 @@ giv, and the hoisted computation becomes a copy of it. Writing every access as
 split), matched with no pins. A `cfg = &Player_Status` local set before the
 `while` is what put its `lui` ahead of the loop-entry test; referenced directly,
 loop.c hoisted it into the preheader after the test.
+## A switch on a field just stored as a constant is not folded when the store is an inlined helper's (Gp_ClearInventory, 2026-09-26)
+
+**Symptom.** The target stores `0` to a scan window's `table` byte and then
+immediately reloads it (`lbu v1,2(a3)`) and runs the full `switch` on it. Writing
+the three field stores in the caller lets CSE forward the constant, and the
+switch collapses to its default arm (-19 instructions). The seed held the
+runtime switch with a pin and a second pointer local to the same object.
+
+**Fix.** The stores were an existing setter (`Gp_SetPlayerScan`) inlined:
+its own `p = &Mc_SaveData` writes `0x5BE(p)`, while the caller reads through
+`scan = &Mc_SaveData.carriedItems`, i.e. `2(scan)`. CSE's memory table compares
+address RTL, so the two spellings are never equated and the load stays. When a
+constant store "should" fold but the target reloads, look for a sibling
+function that performs those stores and inline it.
