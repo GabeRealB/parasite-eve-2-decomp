@@ -144206,3 +144206,13 @@ jump2 cross-jump the first copy's stores into the second (95.9%). Making the
 helper return the handler result (`return 1` inside it) and calling it as
 `return helper(in, out);` changes the jumps' targets, so jump2 picks the
 partners the target shows and it matches with no barrier.
+### A pin on a copy of a parameter usually means the original used the parameter itself (func_acropolis_bridge_801827EC, 2026-09-26)
+
+`register GpCoord* coord asm("t7"); coord = arg0; SOFT_TOUCH_REG(coord);` held
+the incoming pointer in `$t7`, the last free register after the GTE macros'
+`$t4`-`$t6` clobbers. Unpinned, the local copy took `$t1` ahead of the block
+pointer and loop counters, rotating every register in the function (98.3%).
+Dropping the local and naming the parameter `coord` matched on its own, with
+the head/block locals still in place: the copy's extra references were what
+raised its allocation priority. Try that before any other lever when a pinned
+local is only ever assigned from an argument.

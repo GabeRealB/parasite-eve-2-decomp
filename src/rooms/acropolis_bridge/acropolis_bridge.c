@@ -109,7 +109,7 @@ static void func_acropolis_bridge_8017F544(Task* task);
 static void func_acropolis_bridge_8017F658(Task* task);
 static s32  func_acropolis_bridge_8017F6D4(OverlayHotspot* table, s16 x, s16 y);
 static void func_acropolis_bridge_8017F808(Task* task);
-static void func_acropolis_bridge_801827EC(GpCoord* arg0, s32 arg1, s16 arg2);
+static void func_acropolis_bridge_801827EC(GpCoord* coord, s32 arg1, s16 arg2);
 static void func_acropolis_bridge_80182F8C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_acropolis_bridge_801833A0(GpCoord* arg0, u16 arg1, s16 arg2);
 static void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2);
@@ -2394,45 +2394,31 @@ static void func_acropolis_bridge_80182694(Task* task)
 /// quad rather than drawing it. The `POLY_FT4` is the 0x38x0x38 cell at
 /// `(0, 0x38)` of tpage 0x2B, modulated by the grey `arg2` and drawn
 /// semi-transparent, and links into the OT at the projected depth.
-static void func_acropolis_bridge_801827EC(GpCoord* arg0, s32 arg1, s16 arg2)
+static void func_acropolis_bridge_801827EC(GpCoord* coord, s32 arg1, s16 arg2)
 {
-    register GpCoord*          coord asm("t7");
-    void**                     scratch;
-    u8*                        head;
     OverlayFlaggedQuadScratch* blk;
     POLY_FT4*                  prim;
-    GpQuadCorner*              tbl;
     SVECTOR*                   sv;
-    MATRIX*                    wm;
     s32                        i;
 
-    coord = arg0;
-    SOFT_TOUCH_REG(coord);
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = SCRATCH_HEAD_AT(scratch, u8) - sizeof(OverlayFlaggedQuadScratch);
-    *scratch = head;
-    blk      = (OverlayFlaggedQuadScratch*)head;
+    blk = SCRATCH_PUSH(OverlayFlaggedQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    i   = 0;
-    wm  = &coord->workm;
-    tbl = D_80111E38;
-    do {
-        blk->v[i].vx = tbl[i].x * arg1;
+    for (i = 0; i < 4; i++) {
+        blk->v[i].vx = D_80111E38[i].x * arg1;
         /* Spelled as an offset rather than `&blk->v[i]`, which is the same
            address: the member form lets CSE share one register with the GTE
            macros' `&blk->v[i]`, and the original keeps two. */
         sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(OverlayFlaggedQuadScratch, v));
         sv->vy = 0;
-        sv->vz = tbl[i].y * arg1;
-        gte_SetRotMatrix(wm);
+        sv->vz = D_80111E38[i].y * arg1;
+        gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->v[i]);
         gte_rtv0();
         gte_stsv(&blk->v[i]);
-        (u16) blk->v[i].vx = (u16)blk->v[i].vx + (u16)coord->workm.t[0];
-        (u16) sv->vy       = (u16)sv->vy + (u16)coord->workm.t[1];
-        i++;
-        (u16) sv->vz = (u16)sv->vz + (u16)coord->workm.t[2];
-    } while (i < 4);
+        blk->v[i].vx += coord->workm.t[0];
+        sv->vy       += coord->workm.t[1];
+        sv->vz       += coord->workm.t[2];
+    }
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);
