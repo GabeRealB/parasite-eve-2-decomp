@@ -136418,6 +136418,15 @@ constant also becomes the preceding branch's delay-slot instruction, restoring
 the target load-delay nop. Base_3 ports the loops to `for` and stays exact;
 unscoped integration verification passes. The original C idiom remains unknown.
 
+**Idiom found (2026-09-26, func_actor_136100_80133238).** A statement macro
+wrapping just the store in `do { … } while (0)` puts the once-loop's
+`NOTE_INSN_LOOP_END` where the barrier was, so the index and invariant
+initialisers depend on the store (priority 2, then LUID order) and every
+preheader in both functions matches with no barrier. Where the once-loop sits matters:
+wrapping the *slot loop* instead matches 80133238 but raises the loop depth
+of the hoisted `0xA`, whose weighted refs then outrank the outer `work` and
+swap `s2`/`s3` in 80132748.
+
 Compiler hash: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Controlled input hash: `fcabffc0146038bae3982e4b3582099f3255b90483b88b732f4fc29cbd7c33bc`.
 Matching input hash: `36328c12d489ce6a559888719b524547bd9c9d6b8f51a1c28ace2a75a95bfadc`.

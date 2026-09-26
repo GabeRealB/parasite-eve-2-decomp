@@ -411,16 +411,38 @@ static void func_actor_136100_801323F8(Task* arg0)
         }                                                               \
     }
 
+/// Record `id` as the work block's current animation (`field_4E0`).
+#define _actor136100SetAnimId(work, id) \
+    do {                                \
+        (work)->field_4E0 = (id);       \
+    } while (0)
+
+/// Record `anim` as the current animation and start it on rig slots 1..19.
 static inline void func_actor_136100_SetAnim(Task* task, s16 anim)
 {
     Actor136100Work* work = (Actor136100Work*)task->work;
     s32              i;
 
-    work->field_4E0 = anim;
-    SCHED_BARRIER();
+    _actor136100SetAnimId(work, anim);
     for (i = 1; (u16)i < 0x14U; i++) {
         func_800B4114(&work->rig.anim, i & 0xFFFF, anim, 0, 0xA);
     }
+}
+
+/// Re-arm animation slots 1..19 with slot count `count`
+/// (`func_actor_136100_801347B8`'s loop, reaching the work block through `task`).
+static inline void func_actor_136100_ResetSlots(Task* task, s32 count)
+{
+    Actor136100Work* work = (Actor136100Work*)task->work;
+    s32              i;
+
+    work->field_4E0 = count;
+    i               = 1;
+    do {
+        work->rig.slots[(u16)i].rate = 0x10;
+        Gp_AnimResetSlot(&work->rig.anim, (u16)i, count);
+        i++;
+    } while ((u16)i < 0x14U);
 }
 
 static void func_actor_136100_80132748(Task* arg0)
@@ -647,8 +669,6 @@ static void func_actor_136100_80132E78(Task* arg0)
 static void func_actor_136100_80133238(Task* arg0)
 {
     Actor136100Work* work;
-    Actor136100Work* animWork;
-    s32              i;
     GpCoord*         coords;
 
     work = (Actor136100Work*)arg0->work;
@@ -663,39 +683,16 @@ static void func_actor_136100_80133238(Task* arg0)
             Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_136100_8013F3DC, 0);
             break;
         case 3:
-            animWork            = (Actor136100Work*)arg0->work;
-            animWork->field_4E0 = 4;
-            SCHED_BARRIER();
-            i = 1;
-
-            do {
-                func_800B4114(&animWork->rig.anim, (u16)i, 4, 0, 0xA);
-                i++;
-            } while ((u16)i < 0x14U);
+            func_actor_136100_SetAnim(arg0, 4);
             break;
         case 4:
-            animWork            = (Actor136100Work*)arg0->work;
-            animWork->field_4E0 = 3;
-            i                   = 1;
-            do {
-                animWork->rig.slots[(u16)i].rate = 0x10;
-                Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 3);
-                i++;
-            } while ((u16)i < 0x14U);
+            func_actor_136100_ResetSlots(arg0, 3);
             Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_136100_8013F3AC, 0);
             break;
         case 5:
             switch ((u16)work->field_4CE) {
                 case 0:
-                    animWork            = (Actor136100Work*)arg0->work;
-                    animWork->field_4E0 = 6;
-                    SCHED_BARRIER();
-                    i = 1;
-
-                    do {
-                        func_800B4114(&animWork->rig.anim, (u16)i, 6, 0, 0xA);
-                        i++;
-                    } while ((u16)i < 0x14U);
+                    func_actor_136100_SetAnim(arg0, 6);
                     work->field_4D0 = 0;
                     work->field_4CE++;
                     return;
@@ -731,14 +728,7 @@ static void func_actor_136100_80133238(Task* arg0)
             Gfx_RotMatrixY(&coords[4].coord, work->field_4EA, 1);
             return;
         case 8:
-            animWork            = (Actor136100Work*)arg0->work;
-            animWork->field_4E0 = 3;
-            i                   = 1;
-            do {
-                animWork->rig.slots[(u16)i].rate = 0x10;
-                Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 3);
-                i++;
-            } while ((u16)i < 0x14U);
+            func_actor_136100_ResetSlots(arg0, 3);
             break;
     }
     work->field_4CC = 0;
@@ -1019,22 +1009,6 @@ static inline s16 func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* ev
         }
     }
     return 0;
-}
-
-/// Re-arm animation slots 1..19 with slot count `count`
-/// (`func_actor_136100_801347B8`'s loop, reaching the work block through `task`).
-static inline void func_actor_136100_ResetSlots(Task* task, s32 count)
-{
-    Actor136100Work* work = (Actor136100Work*)task->work;
-    s32              i;
-
-    work->field_4E0 = count;
-    i               = 1;
-    do {
-        work->rig.slots[(u16)i].rate = 0x10;
-        Gp_AnimResetSlot(&work->rig.anim, (u16)i, count);
-        i++;
-    } while ((u16)i < 0x14U);
 }
 
 /// Send the 0x3F4 animation record for `anim` to the `field_4C0` task, if any.
