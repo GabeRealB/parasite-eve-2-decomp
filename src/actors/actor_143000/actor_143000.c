@@ -466,13 +466,12 @@ static const char D_actor_143000_80131EBC[] = "YSD";
 
 static void func_actor_143000_80132A04(Task* arg0)
 {
-    s32              var_s2;
     Actor143000Work* temp_s0;
 
-    COMPILER_BARRIER();
     temp_s0 = arg0->work;
-    var_s2  = 0;
     if (arg0->killCountdown == 0) {
+        s32 var_s2 = 0;
+
         if ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EB0) == 0) || ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EBC) == 0) && (Mc_SaveData[0].demoScene != 0))) {
             var_s2 = 1;
         }

@@ -43166,17 +43166,28 @@ generate the same code and `&&` reads better. It only differs when the two
 operands are adjacent same-size fields of one object, which is exactly when the
 combine pass can widen the load.
 
-## `COMPILER_BARRIER()` at function start for `sw ra` before `sw s2`
+## `sw s2` before `sw ra`: the zeroed flag belongs inside the `if`
 
-A local that is zeroed then tested (`flag = 0; if (field == 0) { ... flag = 1; }`)
-puts `move s2, zero` in the `bnez` delay slot, which is correct, but also
-schedules that assignment into the prologue. GCC then emits `sw s2` immediately
-after `move s3, a0`, *before* `sw ra` (~99.9%, `regs` leftover only).
+A flag zeroed at the top of the function and set inside a later test
+(`flag = 0; if (field == 0) { ... flag = 1; }`) leaves `move s2, zero` at the
+head of the body, where sched2 lets the anti-dependence on it pull `sw s2`
+ahead of `sw ra` (~99.9%, `regs` leftover only). An empty `COMPILER_BARRIER()`
+as the first statement hides this, but the real shape is a flag scoped to the
+block that uses it:
 
-`COMPILER_BARRIER()` as the first statement freezes the prologue stores in the
-usual `s3` / `ra` / `s2` / `s1` / `s0` order. The zeroing still fills the
-branch delay. Same helper as the "empty memory clobber forces `sw ra` before
-the first delayed branch" entry; this is the s-reg save-order variant.
+```c
+if (task->killCountdown == 0) {
+    s32 found = 0;
+
+    if (strcmp(...) == 0 || ...) {
+        found = 1;
+    }
+    work->field_C = found;
+}
+```
+
+The saves keep the usual `s3` / `ra` / `s2` / `s1` / `s0` order, and delay-slot
+filling still hoists the zeroing into the `bnez` slot.
 `func_actor_143000_80132A04` is the example.
 
 ## A call argument chosen by an `if` must be a ternary, not a pre-set local
