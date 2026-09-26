@@ -928,17 +928,16 @@ static void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle
 
     if (work->nav->count < 2)
         return;
-    SOFT_COMPILER_BARRIER();
-    work->nav->nodes[0].x = (u16)work->coord->coord.t[0];
-    work->nav->nodes[0].y = (u16)work->coord->coord.t[1];
-    work->nav->nodes[0].z = (u16)work->coord->coord.t[2];
     head                  = SCRATCH_HEAD(u8);
     SCRATCH_HEAD(u8)      = head - 0x2C;
     blk                   = (Actor110600TsvScratch*)(head - 0x2C);
+    work->nav->nodes[0].x = (u16)work->coord->coord.t[0];
+    work->nav->nodes[0].y = (u16)work->coord->coord.t[1];
+    work->nav->nodes[0].z = (u16)work->coord->coord.t[2];
     work->nav->field_4[0] = 0;
     blk->m                = work->coord->coord;
     for (blk->i = 1; blk->i < work->nav->count; blk->i++) {
-        Gfx_RotMatrixY(&blk->m, (s16)angle, 0);
+        Gfx_RotMatrixY(&blk->m, angle, 0);
         Gfx_MatrixCol2(&blk->m, &blk->v);
         gte_lddp(scale);
         gte_ldsv(&blk->v);

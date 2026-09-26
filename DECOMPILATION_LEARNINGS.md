@@ -144551,3 +144551,14 @@ enough while it returns `s32`: the return pseudo coalesces with the flag and
 the copy vanishes (99.0%). Returning `s16` keeps the conversion's pseudo apart
 and restores the `move`. With a single `return ret;` any narrow type works; with
 early returns `u8` does not, so try `s16` first.
+## A barrier after an early-out that forces a pointer reload is a scratch push written before the stores (func_actor_110600_80133778, 2026-09-27)
+
+`if (work->nav->count < 2) return;` is followed by `work->nav->nodes[0].x = …`,
+and the target reloads `work->nav` although nothing sits between the test and
+the store; the scratch-frame push comes after the three node stores. Without
+the `SOFT_COMPILER_BARRIER()` cse reuses the test's load. The source pushes the
+frame first: the head store is a non-struct store, so cse's `invalidate_memory`
+drops `work->nav`, while sched1's `true_dependence` lets a fixed-address scalar
+store pass non-QI struct stores and sinks the push below them (see "The
+scratch-head store separates two reads for cse but not for the scheduler").
+A push the target shows after some stores may have been written before them.
