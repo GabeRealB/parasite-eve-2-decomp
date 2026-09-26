@@ -35,41 +35,41 @@ STATIC_ASSERT_SIZEOF(UiMiniObj, 0x24);
 /// handlers (e.g. GameFlow_WaitMenuDone waits until field_2E == -1 before cleaning up;
 /// dialog pickers set field_2E == 6 when a choice is confirmed).
 typedef struct _UiObject {
-    /* 0x00 */ s32   status;
-    /* 0x04 */ s32   field_4; // from UiObjectDesc::field_0
-    /* 0x08 */ s32   mode;    // 5=skip draw, 3=torn down
-    /* 0x0C */ u16   field_C; // layout (RECT-like)
-    /* 0x0E */ u16   field_E;
-    /* 0x10 */ u16   field_10;
-    /* 0x12 */ u16   field_12;
-    /* 0x14 */ s16   drawOrder;
-    /* 0x16 */ s16   timer;
-    /* 0x18 */ u16   field_18; // layout offset
-    /* 0x1A */ u16   field_1A; // layout offset
-    /* 0x1C */ s16   field_1C; // position (+2 for text draw)
-    /* 0x1E */ u16   field_1E; // x offset with baseX
-    /* 0x20 */ u16   baseX;
-    /* 0x22 */ u16   baseY;
-    /* 0x24 */ s32   callback;
-    /* 0x28 */ Task* owner;
-    /* 0x2C */ s16   field_2C; // teardown / choice
-    /* 0x2E */ s16   field_2E; // teardown / choice (-1 wait, 6 confirm)
+    /* 0x00 */ s32      status;
+    /* 0x04 */ s32      field_4; // from UiObjectDesc::field_0
+    /* 0x08 */ s32      mode;    // 5=skip draw, 3=torn down
+    /* 0x0C */ u16      field_C; // layout (RECT-like)
+    /* 0x0E */ u16      field_E;
+    /* 0x10 */ u16      field_10;
+    /* 0x12 */ u16      field_12;
+    /* 0x14 */ s16      drawOrder;
+    /* 0x16 */ s16      timer;
+    /* 0x18 */ u16      field_18; // layout offset
+    /* 0x1A */ u16      field_1A; // layout offset
+    /* 0x1C */ s16      field_1C; // position (+2 for text draw)
+    /* 0x1E */ u16      field_1E; // x offset with baseX
+    /* 0x20 */ u16      baseX;
+    /* 0x22 */ u16      baseY;
+    /* 0x24 */ TaskFunc callback;
+    /* 0x28 */ Task*    owner;
+    /* 0x2C */ s16      field_2C; // teardown / choice
+    /* 0x2E */ s16      field_2E; // teardown / choice (-1 wait, 6 confirm)
 } UiObject;
 STATIC_ASSERT_SIZEOF(UiObject, 0x30);
 
 /// Template/descriptor consumed by Ui_SpawnFromDesc to spawn a UiObject + Task.
 typedef struct _UiObjectDesc {
-    /* 0x00 */ s32 field_0; // → UiObject.field_4
-    /* 0x04 */ u16 field_4; // → layout
-    /* 0x06 */ u16 field_6;
-    /* 0x08 */ u16 field_8;
-    /* 0x0A */ u16 field_A;
-    /* 0x0C */ u16 field_C;
-    /* 0x0E */ u16 field_E;
-    /* 0x10 */ u16 field_10; // → TaskDesc seed
-    /* 0x12 */ u16 field_12; // → TaskDesc seed
-    /* 0x14 */ s32 field_14; // → UiObject callback-ish
-    /* 0x18 */ s32 field_18; // → TaskDesc seed
+    /* 0x00 */ s32      field_0; // → UiObject.field_4
+    /* 0x04 */ u16      field_4; // → layout
+    /* 0x06 */ u16      field_6;
+    /* 0x08 */ u16      field_8;
+    /* 0x0A */ u16      field_A;
+    /* 0x0C */ u16      field_C;
+    /* 0x0E */ u16      field_E;
+    /* 0x10 */ u16      field_10; // → TaskDesc seed
+    /* 0x12 */ u16      field_12; // → TaskDesc seed
+    /* 0x14 */ TaskFunc field_14; // → UiObject callback-ish
+    /* 0x18 */ s32      field_18; // → TaskDesc seed
 } UiObjectDesc;
 STATIC_ASSERT_SIZEOF(UiObjectDesc, 0x1C);
 

@@ -33,7 +33,7 @@ static UiList         D_80061284   = { D_80061280, 1, 1, 0, 0x0F };
 static UiListItemFunc D_800612A8[] = { McMenu_ConfirmYes };
 static UiList         D_800612AC   = { D_800612A8, 1, 1, 0, 0x0F };
 UiObjectDesc          D_800612D0[] = {
-    { 0, 0, 0, 0x4B, 0x20, 0x10, 0, 0, 0xC0, (s32)McMenu_InitByMode, 0 },
+    { 0, 0, 0, 0x4B, 0x20, 0x10, 0, 0, 0xC0, McMenu_InitByMode, 0 },
 };
 
 void func_80036A1C(void)

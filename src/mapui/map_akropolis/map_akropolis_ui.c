@@ -54,7 +54,7 @@ UiObjectDesc D_map_akropolis_8017A9E4 = {
     0,
     0,
     0xC0,
-    (s32)func_map_akropolis_80179D78,
+    func_map_akropolis_80179D78,
     0,
 };
 

@@ -97,7 +97,7 @@ static u8 Font_Glyphs2[] = {
 };
 
 static UiObjectDesc D_800608F4[] = {
-    { 2, 0xFF70, 0xFF98, 0x120, 0x90, 0x38, 0, 0, 0xC0, (s32)Ui_WaitCdThenOverlay, 0 },
+    { 2, 0xFF70, 0xFF98, 0x120, 0x90, 0x38, 0, 0, 0xC0, Ui_WaitCdThenOverlay, 0 },
 };
 
 void textNoopCallback(Task* task)

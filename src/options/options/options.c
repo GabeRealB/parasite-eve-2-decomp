@@ -105,7 +105,7 @@ static UiObjectDesc D_options_801D5EFC = {
     0x0000,
     0x0000,
     0x00C0,
-    (s32)func_options_801D4D0C,
+    func_options_801D4D0C,
     0,
 };
 

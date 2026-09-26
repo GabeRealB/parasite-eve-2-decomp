@@ -189,7 +189,7 @@ static s32 D_8006764C = 0xFFFFFF7E;
 
 static UiListItemFunc D_80067650[] = { Ui_DrawDialogLine };
 static UiList         D_80067654   = { D_80067650, 1, 1, 0, 0x0F };
-static UiObjectDesc   D_80067678   = { 2, 0xFFD0, 0xFFE0, 0x60, 0x40, 0x20, 0, 0, 0xC0, (s32)Ui_ListTaskCallback, 0 };
+static UiObjectDesc   D_80067678   = { 2, 0xFFD0, 0xFFE0, 0x60, 0x40, 0x20, 0, 0, 0xC0, Ui_ListTaskCallback, 0 };
 WipUiHolder*          Wip_UiHolder = NULL;
 
 static const UiPanelFuncTable6 Ui_ObjectStates = { {
@@ -1809,7 +1809,7 @@ UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0_, s32 arg1, s32 arg2, s32 arg3)
     s32            width;
     s32            field_8;
     s16            new_var;
-    s32            cb;
+    TaskFunc       cb;
     TextBlockDesc* arg0;
     s32            dummy;
 
