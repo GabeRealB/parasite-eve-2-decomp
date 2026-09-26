@@ -490,9 +490,9 @@ static void func_dryfield_night_motel_lobby_80180E98(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2          = Task_SpawnFromTable(D_dryfield_night_motel_lobby_80182814, 0, 1, 0);
-    task->work               = (TaskIdMap*)work;
-    Mc_SaveData.at4.loc.view = 6;
+    task->spawnArg2             = Task_SpawnFromTable(D_dryfield_night_motel_lobby_80182814, 0, 1, 0);
+    task->work                  = (TaskIdMap*)work;
+    Mc_SaveData[0].at4.loc.view = 6;
     /* The once-loop folds away, but `flow` counts its references at loop depth
        2: without it the state load is scheduled above the mode store. */
     do {
@@ -571,10 +571,10 @@ static void func_dryfield_night_motel_lobby_801810AC(Task* arg0)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState   = 0;
-    gGameSession->hideHud      = 0;
-    gGameSession->cutsceneHold = 0;
-    Mc_SaveData.at4.loc.view   = 4;
+    gGameSession->eventState    = 0;
+    gGameSession->hideHud       = 0;
+    gGameSession->cutsceneHold  = 0;
+    Mc_SaveData[0].at4.loc.view = 4;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     taskKill((Task*)arg0->spawnArg2);
     Task_RequestKill(arg0, 0);
@@ -611,10 +611,10 @@ static void func_dryfield_night_motel_lobby_8018122C(Task* arg0)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState   = 0;
-    gGameSession->hideHud      = 0;
-    gGameSession->cutsceneHold = 0;
-    Mc_SaveData.at4.loc.view   = 4;
+    gGameSession->eventState    = 0;
+    gGameSession->hideHud       = 0;
+    gGameSession->cutsceneHold  = 0;
+    Mc_SaveData[0].at4.loc.view = 4;
     Task_RequestKill(arg0, 0);
 }
 

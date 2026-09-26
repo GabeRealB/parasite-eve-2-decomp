@@ -43,7 +43,7 @@ struct Task;
 /// `stage` / `area` select `Gp_AreaTables`; `place` indexes the nested record
 /// (written from the area object's id). `view`, `room` and `warp` select the
 /// per-room view, the room within the area, and the per-area warp. The same
-/// key is `GameSession.at4.loc` and `Mc_SaveData.at4.loc`, and is passed into
+/// key is `GameSession.at4.loc` and `Mc_SaveData[0].at4.loc`, and is passed into
 /// area, view, room and warp lookups.
 typedef struct GpAreaKey {
     u8 view;  // 1-based view slot; innermost index of the per-room view table

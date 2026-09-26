@@ -98,7 +98,7 @@ static void func_actor_403200_80141018(Task* arg0);
 /// Player HP the per-frame tick reads before it latches the death cinematic.
 /// Equipped character, read as an in-struct byte so the weapon-anim load stays
 /// ordered against the message-argument store.
-/// Equipped weapon variant added to `Gp_WeaponIdBase[Mc_SaveData.characterId[0] - 1]`.
+/// Equipped weapon variant added to `Gp_WeaponIdBase[Mc_SaveData[0].characterId[0] - 1]`.
 extern GpAnimBlk* Gp_PlayerAnimBlkTbl[];
 extern u16        Gp_WeaponIdBase[];
 
@@ -1724,7 +1724,7 @@ static void func_actor_403200_80134D40(Task* arg0)
     work->field_7D8 = work->slots0[2].curRec & 0x3FF;
 
     model = arg0->extra.tmd->coords;
-    if (Mc_SaveData.field_5C1 != 1) {
+    if (Mc_SaveData[0].field_5C1 != 1) {
         Actor403200_StepForward(model);
     }
     arg0->extra.tmd->coords->flg = 0;
@@ -2184,7 +2184,7 @@ static void func_actor_403200_801364F4(GpEnemy* enemy, Task* task)
             return;
         }
         D_actor_403200_8015E710[2] =
-            ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])->sets[9];
+            ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->sets[9];
         work->anim.animBlock.ptr = D_actor_403200_8015E710;
         work->anim.field_4       = 2;
         work->anim.field_8       = armed;
@@ -6664,7 +6664,7 @@ after_mode:
         scratch->view = D_actor_403200_8015E6E8[work->field_F06](arg1, work->field_F08);
         if (((Gp_GetViewIndex() & 0xFF) != scratch->view) &&
             (arg1->spawnArg1 >> 16) == 0) {
-            Mc_SaveData.at4.loc.view = scratch->view;
+            Mc_SaveData[0].at4.loc.view = scratch->view;
         }
     }
 
@@ -6694,7 +6694,7 @@ after_mode:
                         work->anim.animBlock.ptr = D_actor_403200_8015E6AC;
                         D_actor_403200_8015E6AC[4] =
                             ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl
-                                 [Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])
+                                 [Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])
                                 ->sets[7];
                         work->anim.field_4 = 4;
                         work->anim.field_8 = 1;

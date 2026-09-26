@@ -305,9 +305,9 @@ static void Gp_CommitSaveLoc(void)
         fade = *(u8*)&Gp_DirFadeLevel;
         Fade_DrawOverlay(fade, fade, fade, 2);
     }
-    Mc_SaveData.at4.loc.area = Gp_WarpLoc.field_0;
-    Mc_SaveData.at4.loc.warp = Gp_WarpLoc.field_2;
-    Mc_SaveData.at4.loc.room = Gp_WarpLoc.field_3;
+    Mc_SaveData[0].at4.loc.area = Gp_WarpLoc.field_0;
+    Mc_SaveData[0].at4.loc.warp = Gp_WarpLoc.field_2;
+    Mc_SaveData[0].at4.loc.room = Gp_WarpLoc.field_3;
     Task_Spawn(0, 0x11, 0, 0);
     D_80114CF8   = 0;
     Gp_DirNibble = 0;

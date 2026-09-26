@@ -102,9 +102,9 @@ void* CdCmd_SetupMdecBuffers(void)
     } else if (Stream_FindSlot(&gGameSession->at4.loc.view, 0, 0) < 0) {
         return NULL;
     } else {
-        sizeRow = D_8005DCB4[Mc_SaveData.at4.loc.stage];
+        sizeRow = D_8005DCB4[Mc_SaveData[0].at4.loc.stage];
         if (sizeRow != NULL) {
-            size = sizeRow[Mc_SaveData.at4.loc.area];
+            size = sizeRow[Mc_SaveData[0].at4.loc.area];
             if (size != 0) {
                 D_8006AC00 = Mem_Malloc(size, 1);
             }
@@ -698,7 +698,7 @@ static void CdCmd_ProcessPhase1(void)
             if ((u16)p->field_20E != 0) {
                 switch (p->field_1fc) {
                     case 0:
-                        if (Mc_SaveData.demoScene != 0) {
+                        if (Mc_SaveData[0].demoScene != 0) {
                             SndEvt_EnqueueType6(0, 0, 0);
                         }
                         CdAudio_Begin();

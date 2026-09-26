@@ -233,7 +233,7 @@ void Gp_ItemMoveTask(Task* arg0)
                 src            = scans[item & 0xFF];
                 Gp_MoveItemKey = item;
             } else {
-                src = &Mc_SaveData.carriedItems;
+                src = &Mc_SaveData[0].carriedItems;
             }
             (&Gp_MoveScanSrc)[i] = *src;
             i++;
@@ -348,7 +348,7 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
                 if (Gp_ItemDescs[item2].field_3 & 1) {
                     flag = flags == 1;
                 }
-                if ((Gp_MoveItemKey == 0x703) && (item2 == 0x81) && (Mc_SaveData.at4.loc.stage == selected)) {
+                if ((Gp_MoveItemKey == 0x703) && (item2 == 0x81) && (Mc_SaveData[0].at4.loc.stage == selected)) {
                     flag = 1;
                 }
                 if (flag) {
@@ -565,7 +565,7 @@ void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1)
             if (Gp_ItemDescs[item].field_3 & 1) {
                 restricted = flags == 1;
             }
-            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData.at4.loc.stage == selected)) {
+            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData[0].at4.loc.stage == selected)) {
                 restricted = 1;
             }
             if (restricted != 0) {
@@ -636,7 +636,7 @@ void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1)
             if (Gp_ItemDescs[item].field_3 & 1) {
                 flag = flags == 1;
             }
-            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData.at4.loc.stage == selected)) {
+            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData[0].at4.loc.stage == selected)) {
                 flag = 1;
             }
             if (flag) {
@@ -1067,7 +1067,7 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
                     break;
                 case 2:
                     SndEvt_EnqueueType6(4, 0, 0);
-                    scan = &Mc_SaveData.carriedItems;
+                    scan = &Mc_SaveData[0].carriedItems;
                     rec  = Gp_GetItemTable(scan);
                     i    = 0;
                     rec  = &rec[scan->firstRow];
@@ -1099,7 +1099,7 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
             if (arg0->field_10 == 2) {
-                scan = &Mc_SaveData.carriedItems;
+                scan = &Mc_SaveData[0].carriedItems;
                 rec  = Gp_GetItemTable(scan);
                 i    = 0;
                 rec  = &rec[scan->firstRow];
@@ -1363,7 +1363,7 @@ static s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1)
     if (Gp_ItemDescs[arg0].field_3 & 1) {
         ret = arg1 == 1;
     }
-    if ((Gp_MoveItemKey == 0x703) && (arg0 == 0x81) && (Mc_SaveData.at4.loc.stage == 1)) {
+    if ((Gp_MoveItemKey == 0x703) && (arg0 == 0x81) && (Mc_SaveData[0].at4.loc.stage == 1)) {
         ret = 1;
     }
     return ret;

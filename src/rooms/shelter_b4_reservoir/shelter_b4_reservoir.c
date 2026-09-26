@@ -334,7 +334,7 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
             Gp_StateF0.field_4 = 0;
             if (Gp_GetCapEventKey() == 0xC) {
                 taskKill(task);
-                Mc_SaveData.at4.loc.view = 5;
+                Mc_SaveData[0].at4.loc.view = 5;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
                 Gp_MsgAllyWeapon(1);
@@ -350,7 +350,7 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
             break;
         case 4:
             if (gGameSession->eventState == 0) {
-                Mc_SaveData.at4.loc.room    = 2;
+                Mc_SaveData[0].at4.loc.room = 2;
                 gGameSession->at4.loc.room  = 2;
                 gGameSession->roomObjsDirty = 1;
                 GameFlag_SetNibble(0xB7, 1);
@@ -413,10 +413,10 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
             }
             break;
         case 5:
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = D_shelter_b4_reservoir_80187508.field_2;
-            Mc_SaveData.at4.loc.warp  = D_shelter_b4_reservoir_80187508.field_4;
-            Mc_SaveData.at4.loc.room  = D_shelter_b4_reservoir_80187508.field_1;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = D_shelter_b4_reservoir_80187508.field_2;
+            Mc_SaveData[0].at4.loc.warp = D_shelter_b4_reservoir_80187508.field_4;
+            Mc_SaveData[0].at4.loc.room = D_shelter_b4_reservoir_80187508.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -458,8 +458,8 @@ s32 func_shelter_b4_reservoir_8017E354(s32 arg0, s32 arg1, s32 arg2)
         Gp_MsgAlly3F3(0);
         Gp_MsgPlayerWeapon(0);
         Gp_MsgAllyWeapon(0);
-        Mc_SaveData.at4.loc.view = 6;
-        Gp_StateF0.field_4       = 2;
+        Mc_SaveData[0].at4.loc.view = 6;
+        Gp_StateF0.field_4          = 2;
         Task_SpawnFromTable(&D_shelter_b4_reservoir_801848EC, 0, 0, 0);
     }
     return 0;
@@ -531,7 +531,7 @@ void func_shelter_b4_reservoir_8017E558(Task* arg0)
         coord->flg         = 0;
         coord->coord.t[1] += 4;
     }
-    if (Mc_SaveData.at4.loc.view != 8) {
+    if (Mc_SaveData[0].at4.loc.view != 8) {
         obj->flags = 0x84;
     } else {
         obj->flags    = 0;
@@ -643,7 +643,7 @@ static void func_shelter_b4_reservoir_8017E8EC(Task* task)
 {
     RoomWaterSurface* p = D_shelter_b4_reservoir_80184F90;
 
-    if (Mc_SaveData.companionType == 0) {
+    if (Mc_SaveData[0].companionType == 0) {
         D_shelter_b4_reservoir_80187630 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
     } else {
         D_shelter_b4_reservoir_80187630 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
@@ -975,11 +975,11 @@ void func_shelter_b4_reservoir_8017FADC(Task* task)
 }
 
 /// First state of the water task: clears the session counter the current
-/// display mode selects (`field_80` when `Mc_SaveData.companionType` is zero, `field_7E`
+/// display mode selects (`field_80` when `Mc_SaveData[0].companionType` is zero, `field_7E`
 /// otherwise) and moves on to the per-frame state.
 static void func_shelter_b4_reservoir_8017FB44(Task* arg0)
 {
-    if (Mc_SaveData.companionType == 0) {
+    if (Mc_SaveData[0].companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;

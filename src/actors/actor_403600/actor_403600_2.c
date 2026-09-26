@@ -3608,9 +3608,9 @@ static void func_actor_403600_8013F0C0(Task* arg0)
             if (((s16)temp_s3->field_760 >= 0xC) || (gGameSession->viewReady != 0)) {
                 temp_s3->field_760 = 0;
                 if (func_actor_403600_8013E7D4((s32)arg0, 3) == 0) {
-                    Mc_SaveData.at4.loc.view = 7;
+                    Mc_SaveData[0].at4.loc.view = 7;
                 } else {
-                    Mc_SaveData.at4.loc.view = 3;
+                    Mc_SaveData[0].at4.loc.view = 3;
                 }
                 D_actor_403600_80160568.field_4 = 2;
                 Gp_StateC08.field_6            |= 1;

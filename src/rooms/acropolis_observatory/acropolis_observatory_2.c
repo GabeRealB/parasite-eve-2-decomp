@@ -70,7 +70,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
             ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
             ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             weaponId                              = Player_Status.weapon;
-            rec.animBlock.index                   = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.animBlock.index                   = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.field_4                           = 1;
             rec.field_8                           = 0;
             rec.field_C                           = 0;
@@ -126,8 +126,8 @@ void func_acropolis_observatory_8017D9A8(Task* task)
         case 3:
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
                 Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
-                Mc_SaveData.at4.loc.view = Gp_FindViewIndex(2);
-                task->state              = task->state + 1;
+                Mc_SaveData[0].at4.loc.view = Gp_FindViewIndex(2);
+                task->state                 = task->state + 1;
             }
             break;
 
@@ -180,7 +180,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
             ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
             ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             weaponId                              = Player_Status.weapon;
-            rec.animBlock.index                   = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.animBlock.index                   = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.field_4                           = 1;
             rec.field_8                           = 0;
             rec.field_C                           = 0;
@@ -236,8 +236,8 @@ void func_acropolis_observatory_8017DD3C(Task* task)
         case 3:
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
                 Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
-                Mc_SaveData.at4.loc.view = Gp_FindViewIndex(4);
-                task->state              = task->state + 1;
+                Mc_SaveData[0].at4.loc.view = Gp_FindViewIndex(4);
+                task->state                 = task->state + 1;
             }
             break;
 

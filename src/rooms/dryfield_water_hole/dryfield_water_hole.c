@@ -225,7 +225,7 @@ static void func_dryfield_water_hole_8017D898(Task* task)
     s32                        wave;
 
     e = D_dryfield_water_hole_8017FC98;
-    if (Mc_SaveData.companionType == 0) {
+    if (Mc_SaveData[0].companionType == 0) {
         D_dryfield_water_hole_801828CC = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
     } else {
         D_dryfield_water_hole_801828CC = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
@@ -351,10 +351,10 @@ void func_dryfield_water_hole_8017DFA0(Task* task)
 }
 
 /// The water task's first state: clears the session halfword `field_80`, or
-/// `field_7E` while `Mc_SaveData.companionType` is set, then advances to the drawing state.
+/// `field_7E` while `Mc_SaveData[0].companionType` is set, then advances to the drawing state.
 static void func_dryfield_water_hole_8017E000(Task* arg0)
 {
-    if (Mc_SaveData.companionType == 0) {
+    if (Mc_SaveData[0].companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;

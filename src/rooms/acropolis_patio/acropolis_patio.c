@@ -87,7 +87,7 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
     arg0->msgTable = &D_acropolis_patio_8018028C;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0) < 2) {
-        if (Mc_SaveData.at4.loc.room == 1) {
+        if (Mc_SaveData[0].at4.loc.room == 1) {
             Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D4, (s32)&D_acropolis_patio_80180428, 0);
             Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7DB, (s32)&D_acropolis_patio_8018044C, 0);
             Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D5, 1, 0);
@@ -221,10 +221,10 @@ void func_acropolis_patio_8017DA5C(Task* task)
                 return;
             }
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData.at4.loc.area  = 4;
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.warp  = D_acropolis_patio_80187064;
-            Mc_SaveData.at4.loc.room  = D_acropolis_patio_80187065;
+            Mc_SaveData[0].at4.loc.area = 4;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.warp = D_acropolis_patio_80187064;
+            Mc_SaveData[0].at4.loc.room = D_acropolis_patio_80187065;
             Task_Spawn(0, 0x11, 0, 0);
         kill:
             taskKill(task);
@@ -239,8 +239,8 @@ void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2)
     if ((arg2->field_2 == 0) && (GameFlag_GetNibble(0x21) < 2)) {
         GameFlag_SetNibble(0x21, 3);
         func_800E8634((s32)&D_acropolis_patio_80180484, 0, (s32)&D_acropolis_patio_801806AC);
-        Mc_SaveData.sceneEvent  = 3;
-        gGameSession->flowFlags = 0xC1;
+        Mc_SaveData[0].sceneEvent = 3;
+        gGameSession->flowFlags   = 0xC1;
     }
     if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x21) == 3) &&
         (Gp_DispatchMsg((Task*)Gp_LookupSlot4(1), 0x7D6, 0, 0) == 0)) {
@@ -350,8 +350,8 @@ void func_acropolis_patio_8017DF38(s32 arg0)
 
 void func_acropolis_patio_8017DF48(void)
 {
-    gGameSession->at4.loc.room = Mc_SaveData.at4.loc.room = 2;
-    gGameSession->roomObjsDirty                           = 1;
+    gGameSession->at4.loc.room = Mc_SaveData[0].at4.loc.room = 2;
+    gGameSession->roomObjsDirty                              = 1;
 }
 void func_acropolis_patio_8017DF70(u8 arg0)
 {

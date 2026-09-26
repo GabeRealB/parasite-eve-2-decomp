@@ -143,7 +143,7 @@ static s32 Actor04000_Fn0024C(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR*
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].field_5C1 == 1) {
         return 0;
     }
 
@@ -2488,7 +2488,7 @@ void Actor04000_Fn06F54(Task* arg0)
         }
         arg0->state++;
     }
-    if (Mc_SaveData.at4.loc.view == 5) {
+    if (Mc_SaveData[0].at4.loc.view == 5) {
         for (i = 0; i < 6; i++) {
             if (Actor04000_D0C718[i] != NULL) {
                 Gp_ArmStateF0(1);

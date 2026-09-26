@@ -132,7 +132,7 @@ static void func_actor_210600_80149E30(GpCoord* coord, s16 yaw)
 /// coordinate's world position from it; the last such push is kept in the
 /// scratch block, and its length is scaled down to 0x100 when longer. Returns
 /// whether any record of those kinds was met. Does nothing, returning 0, while
-/// `Mc_SaveData.field_5C1` or the session's `viewReady` is 1.
+/// `Mc_SaveData[0].field_5C1` or the session's `viewReady` is 1.
 static s32 func_actor_210600_8014A13C(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
@@ -140,7 +140,7 @@ static s32 func_actor_210600_8014A13C(GpCoord* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                      = 0;
@@ -190,7 +190,7 @@ static s32 func_actor_210600_8014A13C(GpCoord* coord, GpRec18* recs, s16 count)
 /// apart cancel each other; each bearing left steps `coord` 10 units away from
 /// it, the total XZ step accumulating in `pos`. Returns whether a kind 0x10000
 /// record was among them; returns 0 at once while the session's `viewReady`
-/// or `Mc_SaveData.field_5C1` is 1.
+/// or `Mc_SaveData[0].field_5C1` is 1.
 static s32 func_actor_210600_8014A484(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
@@ -199,7 +199,7 @@ static s32 func_actor_210600_8014A484(GpCoord* coord, GpRec18* recs, s16 count, 
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].field_5C1 == 1) {
         return 0;
     }
 
@@ -788,7 +788,7 @@ static s32 func_actor_210600_8014BDA4(GpCoord* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                      = 0;
@@ -841,7 +841,7 @@ static s32 func_actor_210600_8014C0EC(GpCoord* coord, GpRec18* recs, s16 count, 
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].field_5C1 == 1) {
         return 0;
     }
 

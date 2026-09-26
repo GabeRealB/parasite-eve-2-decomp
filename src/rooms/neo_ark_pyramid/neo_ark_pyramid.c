@@ -76,10 +76,10 @@ void func_neo_ark_pyramid_8017D600(Task* task)
 
     switch (task->state) {
         case 0:
-            Mc_SaveData.at4.loc.view = 8;
-            gGameSession->hideHud    = 1;
-            gGameSession->eventState = 1;
-            Gp_StateF0.field_4       = 2;
+            Mc_SaveData[0].at4.loc.view = 8;
+            gGameSession->hideHud       = 1;
+            gGameSession->eventState    = 1;
+            Gp_StateF0.field_4          = 2;
             task->state++;
             break;
         case 1:
@@ -126,10 +126,10 @@ void func_neo_ark_pyramid_8017D600(Task* task)
             }
             break;
         case 10:
-            Mc_SaveData.at4.loc.view = 3;
-            gGameSession->hideHud    = 0;
-            gGameSession->eventState = 0;
-            Gp_StateF0.field_4       = 0;
+            Mc_SaveData[0].at4.loc.view = 3;
+            gGameSession->hideHud       = 0;
+            gGameSession->eventState    = 0;
+            Gp_StateF0.field_4          = 0;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             taskKill(task);

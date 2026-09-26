@@ -786,7 +786,7 @@ static void func_actor_110600_80132FE0(OverlayWalker* work)
     s16                  t;
     s32                  mag;
 
-    if (Mc_SaveData.field_5C1 == 1) {
+    if (Mc_SaveData[0].field_5C1 == 1) {
         return;
     }
 
@@ -901,7 +901,7 @@ static void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos)
     s16                       diff, t;
     s32                       angle;
 
-    if (Mc_SaveData.unknown_5C0 == 1)
+    if (Mc_SaveData[0].unknown_5C0 == 1)
         return;
     head             = SCRATCH_HEAD(u8);
     SCRATCH_HEAD(u8) = head - 0x1C;
@@ -1002,7 +1002,7 @@ static void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle
 /// scalar at `field_5E` then ramps towards `field_5C` by `field_60` a frame;
 /// while it is non-zero it scales (`GPF`) the normalised facing column of the
 /// model matrix into the per-frame world step, which is added to the
-/// coordinate's translation and kept in `moveStep`. `Mc_SaveData.field_5C1` (a global
+/// coordinate's translation and kept in `moveStep`. `Mc_SaveData[0].field_5C1` (a global
 /// freeze flag) zeroes the step instead. Written as an inline so the two
 /// scratch-head accesses inside one frame stay absolute; see
 /// `func_acropolis_bridge_8018532C` in `acropolis_bridge_12.c`, the same body.
@@ -1075,7 +1075,7 @@ static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
     coord = walker->coord;
     speed = walker->field_5E;
     step  = &walker->moveStep;
-    if (Mc_SaveData.field_5C1 == 1) {
+    if (Mc_SaveData[0].field_5C1 == 1) {
         step->vz            = 0;
         step->vy            = 0;
         walker->moveStep.vx = 0;
@@ -1765,7 +1765,7 @@ static void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
     }
     work->walker.field_6C          = 0;
     work->walker.field_6D          = 1;
-    work->walker.field_6E          = (u8)Mc_SaveData.characterId;
+    work->walker.field_6E          = (u8)Mc_SaveData[0].characterId;
     work->walker.nav               = &work->walker.navData;
     work->walker.route             = &work->walker.routeData;
     work->walker.navData.count     = 2;
@@ -1774,7 +1774,7 @@ static void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
     work->walker.navData.nodes     = work->field_BBC;
     work->walker.navData.field_4   = work->field_BCC;
     work->walker.routeData.nodes   = work->field_BD0;
-    work->walker.field_6E          = (u8)Mc_SaveData.characterId;
+    work->walker.field_6E          = (u8)Mc_SaveData[0].characterId;
     switch (task->spawnArg1 & 0xF0) {
         case 0:
             work->field_896    = 20;

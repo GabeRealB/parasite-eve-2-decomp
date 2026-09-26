@@ -78,7 +78,7 @@ static void func_grenade_pistol_8011D1D4(Task* arg0)
             Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 3);
             break;
         case 3:
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData.characterId][1], 0, 0) == 0) {
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0) {
                 func_80106550(arg0);
             }
             break;
@@ -269,7 +269,7 @@ check:
         arg0->state = 3;
         goto move;
     }
-    if (idx == 1 && Mc_SaveData.at4.loc.area == 0x14 && (u32)(Mc_SaveData.at4.loc.stage - 2) < 2U) {
+    if (idx == 1 && Mc_SaveData[0].at4.loc.area == 0x14 && (u32)(Mc_SaveData[0].at4.loc.stage - 2) < 2U) {
         goto explode;
     }
     goto move;

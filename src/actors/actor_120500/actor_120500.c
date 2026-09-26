@@ -249,7 +249,7 @@ static void func_actor_120500_80132028(Task* arg0)
             break;
         case 6:
             base = Player_Status.weapon;
-            if (Mc_SaveData.characterId == 1) {
+            if (Mc_SaveData[0].characterId == 1) {
                 anim = base + 1;
             } else {
                 anim = base + 0x22;
@@ -357,7 +357,7 @@ void func_actor_120500_8013241C(Task* arg0)
             if (Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == 0) {
                 func_actor_120500_801322A0(arg0);
                 anim = Player_Status.weapon;
-                if (Mc_SaveData.characterId == 1) {
+                if (Mc_SaveData[0].characterId == 1) {
                     anim = anim + 1;
                 } else {
                     anim = anim + 0x22;

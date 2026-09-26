@@ -82,10 +82,10 @@ void func_dryfield_night_underpass_8017D5D0(Task* task)
                             }
                         }
                     }
-                    session                  = gGameSession;
-                    room                     = dst.field_3;
-                    session->at4.loc.room    = room;
-                    Mc_SaveData.at4.loc.room = room;
+                    session                     = gGameSession;
+                    room                        = dst.field_3;
+                    session->at4.loc.room       = room;
+                    Mc_SaveData[0].at4.loc.room = room;
                 }
             }
             task->state = task->state + 1;

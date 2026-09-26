@@ -65,10 +65,10 @@ void func_shelter_b2_pod_access_tunnel_8017D62C(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = D_shelter_b2_pod_access_tunnel_80185700.msgId;
-            Mc_SaveData.at4.loc.warp  = D_shelter_b2_pod_access_tunnel_80185700.field_2;
-            Mc_SaveData.at4.loc.room  = (u8)D_shelter_b2_pod_access_tunnel_80185700.field_3;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = D_shelter_b2_pod_access_tunnel_80185700.msgId;
+            Mc_SaveData[0].at4.loc.warp = D_shelter_b2_pod_access_tunnel_80185700.field_2;
+            Mc_SaveData[0].at4.loc.room = (u8)D_shelter_b2_pod_access_tunnel_80185700.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -169,10 +169,10 @@ void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
             return;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData.at4.loc.area  = 0x11;
-            Mc_SaveData.at4.loc.warp  = 3;
-            Mc_SaveData.at4.loc.room  = 1;
-            gDisplayState.roomVariant = 1;
+            Mc_SaveData[0].at4.loc.area = 0x11;
+            Mc_SaveData[0].at4.loc.warp = 3;
+            Mc_SaveData[0].at4.loc.room = 1;
+            gDisplayState.roomVariant   = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

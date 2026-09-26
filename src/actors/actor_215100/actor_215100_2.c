@@ -258,15 +258,15 @@ void func_actor_215100_8014A5C0(Task* arg0)
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                Player_Status.field_26 = 3;
-                Mc_SaveData.sceneEvent = 1;
+                Player_Status.field_26    = 3;
+                Mc_SaveData[0].sceneEvent = 1;
                 Gp_ClearInventory();
                 gGameSession->hideHud = 1;
                 SndEvt_EnqueueType6(0x51140005, 0, 0);
-                gDisplayState.roomVariant = 1;
-                Mc_SaveData.at4.loc.area  = D_actor_215100_8015E678.field_0;
-                Mc_SaveData.at4.loc.warp  = D_actor_215100_8015E678.field_2;
-                Mc_SaveData.at4.loc.room  = D_actor_215100_8015E678.field_3;
+                gDisplayState.roomVariant   = 1;
+                Mc_SaveData[0].at4.loc.area = D_actor_215100_8015E678.field_0;
+                Mc_SaveData[0].at4.loc.warp = D_actor_215100_8015E678.field_2;
+                Mc_SaveData[0].at4.loc.room = D_actor_215100_8015E678.field_3;
                 Task_Spawn(0, 0x11, 0, 0);
                 taskKill(arg0);
             }
@@ -300,7 +300,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
             break;
         case 1:
             Gp_MsgPlayerWeapon(0);
-            Mc_SaveData.at4.loc.view = 8;
+            Mc_SaveData[0].at4.loc.view = 8;
             func_801811C0(0);
             arg0->state++;
             break;
@@ -324,7 +324,7 @@ static void func_actor_215100_8014A908(void)
 {
     D_actor_215100_8014D038 = 0;
     if (D_actor_215100_8015E670 < 3) {
-        Mc_SaveData.at4.loc.view = 8;
+        Mc_SaveData[0].at4.loc.view = 8;
         func_801811C0(0);
     } else {
         func_80180390(1);

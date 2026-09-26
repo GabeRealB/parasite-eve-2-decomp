@@ -269,11 +269,11 @@ void func_dryfield_night_water_hole_8017D7E8(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.stage = D_dryfield_night_water_hole_80183630.stage;
-            Mc_SaveData.at4.loc.area  = D_dryfield_night_water_hole_80183630.area;
-            Mc_SaveData.at4.loc.warp  = D_dryfield_night_water_hole_80183630.warp;
-            Mc_SaveData.at4.loc.room  = D_dryfield_night_water_hole_80183630.room;
+            gDisplayState.roomVariant    = 1;
+            Mc_SaveData[0].at4.loc.stage = D_dryfield_night_water_hole_80183630.stage;
+            Mc_SaveData[0].at4.loc.area  = D_dryfield_night_water_hole_80183630.area;
+            Mc_SaveData[0].at4.loc.warp  = D_dryfield_night_water_hole_80183630.warp;
+            Mc_SaveData[0].at4.loc.room  = D_dryfield_night_water_hole_80183630.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -513,7 +513,7 @@ static void func_dryfield_night_water_hole_8017DF28(Task* task)
     s32          wave;
 
     e = D_dryfield_night_water_hole_80180970;
-    if (Mc_SaveData.companionType == 0) {
+    if (Mc_SaveData[0].companionType == 0) {
         D_dryfield_night_water_hole_80183628 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
     } else {
         D_dryfield_night_water_hole_80183628 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
@@ -639,10 +639,10 @@ void func_dryfield_night_water_hole_8017E630(Task* task)
 }
 
 /// The water task's first state: clears the session halfword `field_80`, or
-/// `field_7E` while `Mc_SaveData.companionType` is set, then advances to the drawing state.
+/// `field_7E` while `Mc_SaveData[0].companionType` is set, then advances to the drawing state.
 static void func_dryfield_night_water_hole_8017E690(Task* arg0)
 {
-    if (Mc_SaveData.companionType == 0) {
+    if (Mc_SaveData[0].companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;

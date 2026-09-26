@@ -224,11 +224,11 @@ void func_shelter_1f_parking_garage_8017D7E8(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.stage = D_shelter_1f_parking_garage_80181988.stage;
-            Mc_SaveData.at4.loc.area  = D_shelter_1f_parking_garage_80181988.area;
-            Mc_SaveData.at4.loc.warp  = D_shelter_1f_parking_garage_80181988.warp;
-            Mc_SaveData.at4.loc.room  = D_shelter_1f_parking_garage_80181988.room;
+            gDisplayState.roomVariant    = 1;
+            Mc_SaveData[0].at4.loc.stage = D_shelter_1f_parking_garage_80181988.stage;
+            Mc_SaveData[0].at4.loc.area  = D_shelter_1f_parking_garage_80181988.area;
+            Mc_SaveData[0].at4.loc.warp  = D_shelter_1f_parking_garage_80181988.warp;
+            Mc_SaveData[0].at4.loc.room  = D_shelter_1f_parking_garage_80181988.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -279,10 +279,10 @@ void func_shelter_1f_parking_garage_8017D958(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = D_shelter_1f_parking_garage_8018197C.msgId;
-            Mc_SaveData.at4.loc.warp  = D_shelter_1f_parking_garage_8018197C.field_2;
-            Mc_SaveData.at4.loc.room  = D_shelter_1f_parking_garage_8018197C.field_3;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = D_shelter_1f_parking_garage_8018197C.msgId;
+            Mc_SaveData[0].at4.loc.warp = D_shelter_1f_parking_garage_8018197C.field_2;
+            Mc_SaveData[0].at4.loc.room = D_shelter_1f_parking_garage_8018197C.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

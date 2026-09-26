@@ -477,7 +477,7 @@ static void func_actor_421600_80132004(GpCoord* coord, s16 yaw)
 /// 0x400 to another cancel each other, and each remaining one moves the
 /// coordinate 10 units along it in the XZ plane. `pos` receives the total
 /// displacement. Returns whether a kind-0x10000 record was among them. Does
-/// nothing, returning 0, while `gGameSession->viewReady` or `Mc_SaveData.field_5C1` is 1.
+/// nothing, returning 0, while `gGameSession->viewReady` or `Mc_SaveData[0].field_5C1` is 1.
 static s32 func_actor_421600_80132310(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
@@ -486,7 +486,7 @@ static s32 func_actor_421600_80132310(GpCoord* coord, GpRec18* recs, s16 count, 
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].field_5C1 == 1) {
         return 0;
     }
 
@@ -977,7 +977,7 @@ static s32 func_actor_421600_801335BC(GpCoord* coord, GpRec18* recs, s16 count, 
     s16                      t;
     s32                      mag;
 
-    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
 
@@ -2162,7 +2162,7 @@ static void func_actor_421600_801354D8(Task* arg0)
                 SndEvt_EnqueueType6(hitSound, hitPan,
                                     (s8)gpGetObjDepth(arg0->extra.tmd->coords));
             }
-            debugMode = Mc_SaveData.field_5C1;
+            debugMode = Mc_SaveData[0].field_5C1;
             if (debugMode == 1) {
                 enemy->hp       = 0x64;
                 work->field_838 = 9;
@@ -5345,7 +5345,7 @@ static void                        func_actor_421600_8013D658(GpEnemy* enemy, Ta
                 if (command == &D_actor_421600_801510A4) {
                     if ((config->hp > 0) && ((u8)work->field_E90.bytes[3] >= 0x17U)) {
                         message           = &work->field_E7C;
-                        command->field_10 = (s32)(Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])->field_1C;
+                        command->field_10 = (s32)(Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->field_1C;
                         work->field_E80   = 4;
                         work->field_E84   = 1;
                         work->field_E88   = 3;
@@ -5354,7 +5354,7 @@ static void                        func_actor_421600_8013D658(GpEnemy* enemy, Ta
                     }
                 } else if ((config->hp > 0) && ((u8)work->field_E90.bytes[3] >= 0x22U)) {
                     message                       = &work->field_E7C;
-                    D_actor_421600_801510A0.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])->field_1C;
+                    D_actor_421600_801510A0.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->field_1C;
 
                     work->field_E80 = 4;
                     work->field_E84 = 1;
@@ -5402,9 +5402,9 @@ static void                        func_actor_421600_8013D658(GpEnemy* enemy, Ta
                         work->field_E80 = 5;
                         nextCommand     = (Actor421600AnimCommand*)work->field_E7C;
                         if (nextCommand == &D_actor_421600_801510A4) {
-                            nextCommand->field_14 = (s32)(Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])->field_24;
+                            nextCommand->field_14 = (s32)(Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->field_24;
                         } else {
-                            Actor421600FallbackEnd.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])->field_24;
+                            Actor421600FallbackEnd.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->field_24;
                         }
                         nextMessage = &work->field_E7C;
                         Gp_DispatchMsg(player, 0x3FF, nextMessage, 0);

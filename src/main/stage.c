@@ -302,7 +302,7 @@ static void Display_TransitionTask(Task* arg0)
                     Gpu_ClearOTag(0);
                     Gpu_ClearOTag(1);
                     Mem_InitAux();
-                    Mc_SaveData.at4.loc.view = gGameSession->at4.loc.view;
+                    Mc_SaveData[0].at4.loc.view = gGameSession->at4.loc.view;
                     Pad_SetCooldown(0);
                     Gp_SpawnCurView(2);
                     gGameSession->viewReady = 0;

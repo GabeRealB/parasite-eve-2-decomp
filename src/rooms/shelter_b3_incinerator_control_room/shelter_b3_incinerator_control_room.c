@@ -150,7 +150,7 @@ void func_shelter_b3_incinerator_control_room_8017D6CC(DialogPrompt* arg0, UiObj
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b3_incinerator_control_room_8018151C);
-            Text_FormatTime(p, Mc_SaveData.playTime);
+            Text_FormatTime(p, Mc_SaveData[0].playTime);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -167,7 +167,7 @@ void func_shelter_b3_incinerator_control_room_8017D6CC(DialogPrompt* arg0, UiObj
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b3_incinerator_control_room_8018154C);
-            Text_ItoaUnsigned(p, Mc_SaveData.saveCount);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].saveCount);
             Text_Strcat(p, D_shelter_b3_incinerator_control_room_8018156C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -185,7 +185,7 @@ void func_shelter_b3_incinerator_control_room_8017D6CC(DialogPrompt* arg0, UiObj
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b3_incinerator_control_room_80181524);
-            Text_ItoaUnsigned(p, Mc_SaveData.field_6CC);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].field_6CC);
             Text_Strcat(p, D_shelter_b3_incinerator_control_room_8018156C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -203,7 +203,7 @@ void func_shelter_b3_incinerator_control_room_8017D6CC(DialogPrompt* arg0, UiObj
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b3_incinerator_control_room_80181528);
-            Text_ItoaUnsigned(p, Mc_SaveData.field_6CE);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].field_6CE);
             Text_Strcat(p, D_shelter_b3_incinerator_control_room_8018156C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -226,10 +226,10 @@ void func_shelter_b3_incinerator_control_room_8017D6CC(DialogPrompt* arg0, UiObj
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b3_incinerator_control_room_80181530);
-            if (Mc_SaveData.field_6CC == 0) {
+            if (Mc_SaveData[0].field_6CC == 0) {
                 pct = 0;
             } else {
-                pct = (Mc_SaveData.field_6CC * 10000) / (Mc_SaveData.field_6CC + Mc_SaveData.field_6CE);
+                pct = (Mc_SaveData[0].field_6CC * 10000) / (Mc_SaveData[0].field_6CC + Mc_SaveData[0].field_6CE);
             }
             if (pct < 100) {
                 func_8002F44C(p, pct, 3);
@@ -267,7 +267,7 @@ void func_shelter_b3_incinerator_control_room_8017D6CC(DialogPrompt* arg0, UiObj
             s32         i;
             u8*         q;
 
-            total          = Mc_SaveData.field_6CC;
+            total          = Mc_SaveData[0].field_6CC;
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
@@ -324,7 +324,7 @@ void func_shelter_b3_incinerator_control_room_8017D6CC(DialogPrompt* arg0, UiObj
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b3_incinerator_control_room_80181554);
-            Text_ItoaUnsigned(p, Mc_SaveData.clearCount);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].clearCount);
             Text_Strcat(p, D_shelter_b3_incinerator_control_room_8018156C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -342,7 +342,7 @@ void func_shelter_b3_incinerator_control_room_8017D6CC(DialogPrompt* arg0, UiObj
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b3_incinerator_control_room_8018155C);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData.field_92C), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].field_92C), arg0->field_1C, 3, 2);
             break;
         }
         case 8: {
@@ -358,7 +358,7 @@ void func_shelter_b3_incinerator_control_room_8017D6CC(DialogPrompt* arg0, UiObj
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b3_incinerator_control_room_80181564);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData.field_930), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].field_930), arg0->field_1C, 3, 2);
             break;
         }
     }
@@ -505,7 +505,7 @@ void func_shelter_b3_incinerator_control_room_8017DE98(DialogPrompt* arg0, UiObj
 }
 
 /// Builds the "Play Data" item-usage panel's three parallel arrays from the
-/// save's per-item use counters (`Mc_SaveData.weaponUseCounts`, ids 0x80-0x9F).
+/// save's per-item use counters (`Mc_SaveData[0].weaponUseCounts`, ids 0x80-0x9F).
 ///
 /// Every id whose name is non-empty (a leading 0 or 0xA marks an unused row)
 /// and whose counter is non-zero is marked seen and appended to `itemIds`,
@@ -540,19 +540,19 @@ static void func_shelter_b3_incinerator_control_room_8017E294(UiList* list, UiOb
     for (i = 0; i < 0x20; i++) {
         id = i + 0x80;
         c  = *Gp_GetItemText(id, 0, 1);
-        if ((c != 0) && (c != 0xA) && (Mc_SaveData.weaponUseCounts[i] > 0)) {
+        if ((c != 0) && (c != 0xA) && (Mc_SaveData[0].weaponUseCounts[i] > 0)) {
             Gp_SetItemSeenBit(id, 1);
             *p++ = id;
             count++;
-            total += Mc_SaveData.weaponUseCounts[i];
+            total += Mc_SaveData[0].weaponUseCounts[i];
         }
     }
 
     if (count >= 2) {
         for (i = 1; i < count; i++) {
-            uses = Mc_SaveData.weaponUseCounts[work->itemIds[i] - 0x80];
+            uses = Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80];
             for (j = 0; j < i; j++) {
-                if (Mc_SaveData.weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
+                if (Mc_SaveData[0].weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
                     tmp = work->itemIds[i];
                     for (k = i - 1; k >= j; k--) {
                         work->itemIds[k + 1] = work->itemIds[k];
@@ -566,7 +566,7 @@ static void func_shelter_b3_incinerator_control_room_8017E294(UiList* list, UiOb
 
     if (count > 0) {
         scale = 0x4E20;
-        top   = Mc_SaveData.weaponUseCounts[work->itemIds[0] - 0x80];
+        top   = Mc_SaveData[0].weaponUseCounts[work->itemIds[0] - 0x80];
         shift = 0xC;
         while (top > 0x1869F) {
             top   >>= 1;
@@ -576,9 +576,9 @@ static void func_shelter_b3_incinerator_control_room_8017E294(UiList* list, UiOb
         }
         for (i = 0; i < count; i++) {
             work->percents[i] =
-                (u32)((Mc_SaveData.weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
+                (u32)((Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
             work->barWidths[i] =
-                (Mc_SaveData.weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
+                (Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
         }
     }
 
@@ -592,10 +592,10 @@ static void func_shelter_b3_incinerator_control_room_8017E294(UiList* list, UiOb
 /// per-slot use counters.
 ///
 /// Each of the twelve Parasite Energy slots owns three consecutive ids starting
-/// at 0xF, one per level, so slot `i` at level `Mc_SaveData.attachLevels[i]`
+/// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].attachLevels[i]`
 /// prints as `i * 3 + 0xF + level - 1` (a slot the player has never levelled
 /// keeps the base id). Every slot with a non-zero counter in
-/// `Mc_SaveData.attachUseCounts` - which really runs twelve entries wide, past the
+/// `Mc_SaveData[0].attachUseCounts` - which really runs twelve entries wide, past the
 /// seven the struct names - is appended and its counter summed. The ids are
 /// then insertion-sorted by use count, most-used first, and each row gets
 /// `percents`, its share of all recorded uses in hundredths of a percent, and
@@ -633,15 +633,15 @@ static void func_shelter_b3_incinerator_control_room_8017E590(UiList* list, UiOb
     magic = 0x55555556;
 
     for (; i < 12; i++) {
-        if (Mc_SaveData.attachUseCounts[i] > 0) {
+        if (Mc_SaveData[0].attachUseCounts[i] > 0) {
             id = i * 3 + 0xF;
             *p = id;
-            if (Mc_SaveData.attachLevels[i] != 0) {
-                *p = id + (Mc_SaveData.attachLevels[i] - 1u);
+            if (Mc_SaveData[0].attachLevels[i] != 0) {
+                *p = id + (Mc_SaveData[0].attachLevels[i] - 1u);
             }
             p++;
             count++;
-            total += Mc_SaveData.attachUseCounts[i];
+            total += Mc_SaveData[0].attachUseCounts[i];
         }
     }
     SOFT_USE_REG(magic);
@@ -649,10 +649,10 @@ static void func_shelter_b3_incinerator_control_room_8017E590(UiList* list, UiOb
     if (count >= 2) {
         for (i = 1; i < count; i++) {
             slot = (work->peIds[i] - 0xF) / 3;
-            uses = Mc_SaveData.attachUseCounts[slot];
+            uses = Mc_SaveData[0].attachUseCounts[slot];
             for (j = 0; j < i; j++) {
                 slot = (work->peIds[j] - 0xF) / 3;
-                if (Mc_SaveData.attachUseCounts[slot] < uses) {
+                if (Mc_SaveData[0].attachUseCounts[slot] < uses) {
                     tmp = work->peIds[i];
                     for (k = i - 1; k >= j; k--) {
                         work->peIds[k + 1] = work->peIds[k];
@@ -667,7 +667,7 @@ static void func_shelter_b3_incinerator_control_room_8017E590(UiList* list, UiOb
     if (count > 0) {
         scale = 0x4E20;
         slot  = (work->peIds[0] - 0xF) / 3;
-        top   = Mc_SaveData.attachUseCounts[slot];
+        top   = Mc_SaveData[0].attachUseCounts[slot];
         shift = 0xC;
         while (top > 0x1869F) {
             top   >>= 1;
@@ -677,9 +677,9 @@ static void func_shelter_b3_incinerator_control_room_8017E590(UiList* list, UiOb
         }
         for (i = 0; i < count; i++) {
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->percents[i]  = (u32)((Mc_SaveData.attachUseCounts[slot] * scale) / total + 1) >> 1;
+            work->percents[i]  = (u32)((Mc_SaveData[0].attachUseCounts[slot] * scale) / total + 1) >> 1;
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->barWidths[i] = (Mc_SaveData.attachUseCounts[slot] << shift) / top;
+            work->barWidths[i] = (Mc_SaveData[0].attachUseCounts[slot] << shift) / top;
         }
     }
 
@@ -769,10 +769,10 @@ static void func_shelter_b3_incinerator_control_room_8017EA64(Task* task)
 
     obj           = task->spawnArg2;
     obj->field_2E = 0;
-    ready         = Mc_SaveData.demoScene == 1;
+    ready         = Mc_SaveData[0].demoScene == 1;
     list          = &D_shelter_b3_incinerator_control_room_801817F0;
     one           = 1;
-    if (Mc_SaveData.clearCount > 0) {
+    if (Mc_SaveData[0].clearCount > 0) {
         ready = one;
     }
     if (ready == 0) {
@@ -1119,7 +1119,7 @@ void func_shelter_b3_incinerator_control_room_8017F488(Task* task)
         case 0:
             D_shelter_b3_incinerator_control_room_80182A54 = NULL;
             Gp_MsgPlayerWeapon(0);
-            save = &Mc_SaveData;
+            save = &Mc_SaveData[0];
             if (save->companionType == 1) {
                 Gp_MsgAllyWeapon(0);
             }
@@ -1215,7 +1215,7 @@ void func_shelter_b3_incinerator_control_room_8017F488(Task* task)
             if (GameFlag_GetNibble(0) == 2) {
                 GameFlag_SetNibble(0, 3);
                 GameFlag_SetNibble(0xE, 4);
-                if ((GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
+                if ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
                     Gp_ApplyAreaRecs(D_80188888);
                     func_800E3FAC(0xA2, 5);
                 }
@@ -1247,7 +1247,7 @@ void func_shelter_b3_incinerator_control_room_8017F488(Task* task)
         case 11:
             Gp_MsgPlayer3F3(1);
             Gp_MsgAlly3F3(1);
-            Mc_SaveData.at4.loc.view = (u8)D_80115694;
+            Mc_SaveData[0].at4.loc.view = (u8)D_80115694;
             task->state++;
             break;
         case 12:
@@ -1257,7 +1257,7 @@ void func_shelter_b3_incinerator_control_room_8017F488(Task* task)
         case 14:
             SndEvt_EnqueueType6(script->field_8, 0, 0);
             Gp_MsgPlayerWeapon(1);
-            if (Mc_SaveData.companionType == 1) {
+            if (Mc_SaveData[0].companionType == 1) {
                 Gp_MsgAllyWeapon(1);
             }
             gGameSession->hideHud    = 0;
@@ -1360,7 +1360,7 @@ s32 func_shelter_b3_incinerator_control_room_8017FB20(s32 arg0, s32 arg1, s32 ar
 {
     if (arg2 == 1) {
         if (GameFlag_GetNibble(0x138) != 0) {
-            Mc_SaveData.at4.loc.warp                                = arg2;
+            Mc_SaveData[0].at4.loc.warp                             = arg2;
             D_shelter_b3_incinerator_control_room_80182A58.field_0  = 8;
             D_shelter_b3_incinerator_control_room_80182A58.field_1  = arg2;
             D_shelter_b3_incinerator_control_room_80182A58.field_3  = arg2;

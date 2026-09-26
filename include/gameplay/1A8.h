@@ -49,7 +49,7 @@ extern GpViewCountTbl* Gp_ViewCountTables[];
 /// (halfword `field_0`/`field_1` from `Gp_DirAlt`, `field_2` from
 /// `Gp_DirAltNibble & 0xF`, `field_3`/`field_4` = 1, `field_5` = 0), posts slot-7
 /// msg `0x13EE`, then copies `field_0` / `field_2` / `field_3` into
-/// `Mc_SaveData.at4.loc.area` / `field_8` / `field_5` before `Task_Spawn(0, 0x11,
+/// `Mc_SaveData[0].at4.loc.area` / `field_8` / `field_5` before `Task_Spawn(0, 0x11,
 /// ...)`. `Gp_CommitWarp` fills the same payload from `Gp_DirByte` /
 /// `Gp_DirNibble & 0xF` and `GpWarpRec.field_36`. `Gp_CommitSaveLoc` does the
 /// same copy + spawn.

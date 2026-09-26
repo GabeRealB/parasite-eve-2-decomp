@@ -119,13 +119,13 @@ void func_actor_535700_80131EF0(s32 frames)
 
 void func_actor_535700_80131F2C(void)
 {
-    if (Mc_SaveData.demoScene != 9) {
-        Mc_SaveData.at4.loc.area  = 0x1D;
-        Mc_SaveData.at4.loc.warp  = 5;
-        Mc_SaveData.at4.loc.room  = 2;
-        gDisplayState.roomVariant = 1;
+    if (Mc_SaveData[0].demoScene != 9) {
+        Mc_SaveData[0].at4.loc.area = 0x1D;
+        Mc_SaveData[0].at4.loc.warp = 5;
+        Mc_SaveData[0].at4.loc.room = 2;
+        gDisplayState.roomVariant   = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Mc_SaveData.sceneEvent = 6;
+        Mc_SaveData[0].sceneEvent = 6;
         Gp_RestoreStreamRng();
     }
 }

@@ -145,7 +145,7 @@ typedef struct AcsSpriteLevels {
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
 /// `gDisplayState.pendingMode` and `Gp_StateC08.field_A` gate the cutscene task's setup (the latter is
-/// the cutscene/among-us mode flag) and `Mc_SaveData.characterId` picks which of the two
+/// the cutscene/among-us mode flag) and `Mc_SaveData[0].characterId` picks which of the two
 /// weapon-id bases that record uses. `gDisplayState.roomVariant` is set to 1 alongside the
 /// save writes when the task hands off to task 0x11, the same way the fountain
 /// and helicopter-pad rooms set it.
@@ -227,7 +227,7 @@ static void func_acropolis_sanctuary_8017D5E0(Task* task)
         GameFlag_SetNibble(2, 2);
         func_800E8634((s32)&D_acropolis_sanctuary_80180B0C, 0, (s32)&D_acropolis_sanctuary_80181664);
         Gp_ApplyAreaRecs(D_acropolis_sanctuary_80186418);
-        Mc_SaveData.sceneEvent = 6;
+        Mc_SaveData[0].sceneEvent = 6;
         GameFlag_SetNibble(1, 5);
         GameFlag_SetNibble(0x25, 1);
         func_800E3FAC(0xA2, 6);
@@ -408,7 +408,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 }
                 slot     = (AcsCutsceneWork*)arg0->work;
                 weaponId = Player_Status.weapon;
-                idx      = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                idx      = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
 
                 weapon.rec.animBlock.index = idx;
                 weapon.rec.field_4         = 1;
@@ -425,11 +425,11 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
         case 1:
             if (gGameSession->eventState == 0) {
                 SndEvt_EnqueueType7(0x80000000, 0);
-                Mc_SaveData.at4.loc.area  = 0xD;
-                Mc_SaveData.at4.loc.stage = 1;
-                Mc_SaveData.at4.loc.warp  = 2;
-                Mc_SaveData.at4.loc.room  = 1;
-                gDisplayState.roomVariant = 1;
+                Mc_SaveData[0].at4.loc.area  = 0xD;
+                Mc_SaveData[0].at4.loc.stage = 1;
+                Mc_SaveData[0].at4.loc.warp  = 2;
+                Mc_SaveData[0].at4.loc.room  = 1;
+                gDisplayState.roomVariant    = 1;
                 Task_Spawn(0, 0x11, 0, 0);
                 taskKill(arg0);
                 break;
@@ -459,8 +459,8 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                         rec.place.rot.vy  = 0;
                         rec.place.rot.vz  = 0;
                         Gp_DispatchMsg(cutscene->target, 0x3E9, (s32)msg, 0);
-                        Mc_SaveData.at4.loc.view = 0xE;
-                        cutscene->step           = cutscene->step + 1;
+                        Mc_SaveData[0].at4.loc.view = 0xE;
+                        cutscene->step              = cutscene->step + 1;
                     }
                     break;
             }

@@ -255,7 +255,7 @@ static void Title_MenuTask(Task* task)
 
 /// Restore demo card / save banks from D_8005C374 (or 0x80600100 when
 /// gDisplayState.demoScene == 0x10).
-/// Preserves Mc_SaveData.vibration / field_23 across the bulk copy.
+/// Preserves Mc_SaveData[0].vibration / field_23 across the bulk copy.
 void Title_RestoreDemoCard(void)
 {
     u8* src;
@@ -267,14 +267,14 @@ void Title_RestoreDemoCard(void)
 
     src         = (u8*)D_8005C374;
     bank        = 0;
-    saveField23 = Mc_SaveData.demoScene;
-    saveField21 = Mc_SaveData.vibration;
+    saveField23 = Mc_SaveData[0].demoScene;
+    saveField21 = Mc_SaveData[0].vibration;
     if (gDisplayState.demoScene == 0x10) {
         src = (u8*)0x80600100;
     }
-    printf(Title_DemoCardRestoreMsg, Mc_SaveData.at4.loc.stage, Mc_SaveData.at4.loc.area);
+    printf(Title_DemoCardRestoreMsg, Mc_SaveData[0].at4.loc.stage, Mc_SaveData[0].at4.loc.area);
 
-    memcpy(&Mc_SaveData, src, sizeof(McSaveData));
+    memcpy(&Mc_SaveData[0], src, sizeof(McSaveData));
     src += sizeof(McSaveData);
 
     /* The save's player block is the first half of `Player_Status`, banked at
@@ -303,12 +303,12 @@ void Title_RestoreDemoCard(void)
 
     memcpy(&D_80073980[bank * 0x100], src, 0x100);
 
-    Mc_SaveData.demoScene = saveField23;
-    Mc_SaveData.vibration = saveField21;
-    if (Fs_StageCdfIsAvailable(Mc_SaveData.at4.loc.stage) != 1) {
+    Mc_SaveData[0].demoScene = saveField23;
+    Mc_SaveData[0].vibration = saveField21;
+    if (Fs_StageCdfIsAvailable(Mc_SaveData[0].at4.loc.stage) != 1) {
         gDisplayState.gameMode = 1;
     }
-    printf(Title_DemoCardRestoreMsg, Mc_SaveData.at4.loc.stage, Mc_SaveData.at4.loc.area);
+    printf(Title_DemoCardRestoreMsg, Mc_SaveData[0].at4.loc.stage, Mc_SaveData[0].at4.loc.area);
 }
 
 static void Title_FlagAdvanceTask(Task* arg0)

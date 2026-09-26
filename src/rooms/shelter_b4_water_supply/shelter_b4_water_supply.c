@@ -170,11 +170,11 @@ void func_shelter_b4_water_supply_8017D650(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.stage = D_shelter_b4_water_supply_80184E44.stage;
-            Mc_SaveData.at4.loc.area  = D_shelter_b4_water_supply_80184E44.area;
-            Mc_SaveData.at4.loc.warp  = D_shelter_b4_water_supply_80184E44.warp;
-            Mc_SaveData.at4.loc.room  = D_shelter_b4_water_supply_80184E44.room;
+            gDisplayState.roomVariant    = 1;
+            Mc_SaveData[0].at4.loc.stage = D_shelter_b4_water_supply_80184E44.stage;
+            Mc_SaveData[0].at4.loc.area  = D_shelter_b4_water_supply_80184E44.area;
+            Mc_SaveData[0].at4.loc.warp  = D_shelter_b4_water_supply_80184E44.warp;
+            Mc_SaveData[0].at4.loc.room  = D_shelter_b4_water_supply_80184E44.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -237,10 +237,10 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
             }
             break;
         case 5:
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = D_shelter_b4_water_supply_80184E3C.field_2;
-            Mc_SaveData.at4.loc.warp  = D_shelter_b4_water_supply_80184E3C.field_4;
-            Mc_SaveData.at4.loc.room  = D_shelter_b4_water_supply_80184E3C.field_1;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = D_shelter_b4_water_supply_80184E3C.field_2;
+            Mc_SaveData[0].at4.loc.warp = D_shelter_b4_water_supply_80184E3C.field_4;
+            Mc_SaveData[0].at4.loc.room = D_shelter_b4_water_supply_80184E3C.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -702,10 +702,10 @@ void func_shelter_b4_water_supply_8017ED28(Task* task)
 }
 
 /// The water task's opening state: clears the session's `field_80` or
-/// `field_7E`, chosen by `Mc_SaveData.companionType`, and advances the task to its next state.
+/// `field_7E`, chosen by `Mc_SaveData[0].companionType`, and advances the task to its next state.
 static void func_shelter_b4_water_supply_8017ED90(Task* arg0)
 {
-    if (Mc_SaveData.companionType == 0) {
+    if (Mc_SaveData[0].companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
@@ -715,11 +715,11 @@ static void func_shelter_b4_water_supply_8017ED90(Task* arg0)
 
 /// The water task's drawing state: points the primitive cursor
 /// `D_shelter_b4_water_supply_80184E50` at the current buffer's 0xC000-byte
-/// slice of one of two primitive areas, chosen by `Mc_SaveData.companionType`, then draws both
+/// slice of one of two primitive areas, chosen by `Mc_SaveData[0].companionType`, then draws both
 /// lists of water surfaces.
 static void func_shelter_b4_water_supply_8017EDD0(Task* task)
 {
-    if (Mc_SaveData.companionType == 0) {
+    if (Mc_SaveData[0].companionType == 0) {
         D_shelter_b4_water_supply_80184E50 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
     } else {
         D_shelter_b4_water_supply_80184E50 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;

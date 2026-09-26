@@ -239,7 +239,7 @@ extern void Stage_RequestMidiFromMap(s32 arg0);
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
-/// `Mc_SaveData.characterId` picks which of the two weapon-id bases that record uses.
+/// `Mc_SaveData[0].characterId` picks which of the two weapon-id bases that record uses.
 
 /// Script block the plaza hands to slot 3 as msg 0x3F4 entry 0xB; it lives in
 /// the main executable, not in this overlay.
@@ -1121,7 +1121,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             if (q->field_1EA >= 0x60) {
                 rec                            = &buf.weapon.rec;
                 weaponId                       = Player_Status.weapon;
-                id                             = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                id                             = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 buf.weapon.rec.animBlock.index = id;
                 rec->field_4                   = 1;
                 buf.weapon.rec.field_8         = 0;
@@ -1454,7 +1454,7 @@ void func_acropolis_plaza_8017F48C(Task* task)
     switch (state) {
         case 0:
             weaponId            = Player_Status.weapon;
-            id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animBlock.index = id;
             rec.field_4         = 1;
             rec.field_8         = 0;
@@ -1504,7 +1504,7 @@ void func_acropolis_plaza_8017F620(Task* task)
     switch (task->state) {
         case 0:
             weaponId            = Player_Status.weapon;
-            id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animBlock.index = id;
             rec.field_4         = 1;
             rec.field_8         = 0;
@@ -1848,11 +1848,11 @@ void func_acropolis_plaza_80180054(Task* task)
             task->state = task->state + 1;
             return;
         case 5:
-            Mc_SaveData.at4.loc.stage = 1;
-            Mc_SaveData.at4.loc.warp  = 1;
-            Mc_SaveData.at4.loc.area  = 0x11;
-            Mc_SaveData.at4.loc.room  = 1;
-            gDisplayState.roomVariant = 1;
+            Mc_SaveData[0].at4.loc.stage = 1;
+            Mc_SaveData[0].at4.loc.warp  = 1;
+            Mc_SaveData[0].at4.loc.area  = 0x11;
+            Mc_SaveData[0].at4.loc.room  = 1;
+            gDisplayState.roomVariant    = 1;
             Gp_EnqueueHeldWeaponCd();
             SndEvt_EnqueueType7(0x80000000, 0);
             Task_Spawn(0, 0x11, 0, 0);

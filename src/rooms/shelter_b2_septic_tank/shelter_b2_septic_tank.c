@@ -149,10 +149,10 @@ void func_shelter_b2_septic_tank_8017D614(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = D_shelter_b2_septic_tank_8018703C.msgId;
-            Mc_SaveData.at4.loc.warp  = D_shelter_b2_septic_tank_8018703C.field_2;
-            Mc_SaveData.at4.loc.room  = D_shelter_b2_septic_tank_8018703C.field_3;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = D_shelter_b2_septic_tank_8018703C.msgId;
+            Mc_SaveData[0].at4.loc.warp = D_shelter_b2_septic_tank_8018703C.field_2;
+            Mc_SaveData[0].at4.loc.room = D_shelter_b2_septic_tank_8018703C.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -514,11 +514,11 @@ void func_shelter_b2_septic_tank_8017EA50(Task* task)
     gGameSession->waterY = D_shelter_b2_septic_tank_801832BC;
 }
 
-/// Clears the session's `field_80` or `field_7E`, chosen by `Mc_SaveData.companionType`, and
+/// Clears the session's `field_80` or `field_7E`, chosen by `Mc_SaveData[0].companionType`, and
 /// advances the task to its next state.
 static void func_shelter_b2_septic_tank_8017EAB8(Task* arg0)
 {
-    if (Mc_SaveData.companionType == 0) {
+    if (Mc_SaveData[0].companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
@@ -528,11 +528,11 @@ static void func_shelter_b2_septic_tank_8017EAB8(Task* arg0)
 
 /// The water task's drawing state: points the primitive cursor
 /// `D_shelter_b2_septic_tank_80187054` at the current buffer's 0xC000-byte
-/// slice of one of two primitive areas, chosen by `Mc_SaveData.companionType`, then draws both
+/// slice of one of two primitive areas, chosen by `Mc_SaveData[0].companionType`, then draws both
 /// lists of water surfaces.
 static void func_shelter_b2_septic_tank_8017EAF8(Task* task)
 {
-    if (Mc_SaveData.companionType == 0) {
+    if (Mc_SaveData[0].companionType == 0) {
         D_shelter_b2_septic_tank_80187054 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
     } else {
         D_shelter_b2_septic_tank_80187054 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;

@@ -76,7 +76,7 @@ extern GpItemDesc Gp_ItemDescs[];
 extern GpItemDesc Gp_ItemDescsHi[];
 /// Packed item/location halfword. High byte selects a UI path in
 /// `Gp_SpawnPickupUiTask` (0/1, 8, or default); low byte is written to
-/// `Mc_SaveData.savePoint` on the case-8 path. Copied into `Gp_MoveItemKey`
+/// `Mc_SaveData[0].savePoint` on the case-8 path. Copied into `Gp_MoveItemKey`
 /// by `Gp_ItemMoveTask`.
 extern u16 Gp_PubItemLoc;
 /// Extra halfword copied from `GpBit2Rec.field_6` by `Gp_LookupBit2Item`
@@ -125,7 +125,7 @@ extern char   Gp_StrSetAmmoHelp[];
 extern char   Gp_StrAmmoLocked[];
 extern char   Gp_StrMaxCapacity[];
 /// Task callback for the item-move UI. `spawnArg2` is the `UiObject`.
-/// First run copies `Gp_ScanPtrs[Gp_PubItemLoc]` / `Mc_SaveData.carriedItems`
+/// First run copies `Gp_ScanPtrs[Gp_PubItemLoc]` / `Mc_SaveData[0].carriedItems`
 /// into `Gp_MoveScanSrc` / `Gp_MoveScanDst`, spawns the `D_8010D6F4` pair
 /// (plus `[9]` when `spawnArg1 == 1`), then walks children through
 /// `Gp_ItemMoveChild`. Always writes `field_2C = 0x34`.
@@ -168,7 +168,7 @@ void func_800BDF6C(Task* task);
 /// List-item callback for All / Select / Discard / End. Draws
 /// `Gp_ItemPromptTexts[field_8]`. Confirm: All → `field_2E = 0x26`, Select → 6,
 /// Discard strips 0x80–0x9F attachments missing from
-/// `Mc_SaveData.carriedItems` and sets `field_2E = 0x27`. Cancel once sets
+/// `Mc_SaveData[0].carriedItems` and sets `field_2E = 0x27`. Cancel once sets
 /// `field_10 = 2` / `field_22 = 0x21`; a second cancel does the discard
 /// strip.
 void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1);

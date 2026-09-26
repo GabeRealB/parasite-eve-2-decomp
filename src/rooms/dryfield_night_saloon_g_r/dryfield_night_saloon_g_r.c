@@ -46,7 +46,7 @@ extern u8           D_dryfield_night_saloon_g_r_80188FB4;
 /// Descriptor of the event task `func_dryfield_night_saloon_g_r_8017DA04`.
 extern TaskDesc D_dryfield_night_saloon_g_r_8017F90C;
 
-/// Saved `Mc_SaveData.at4.loc.view` (area id), restored when the cutscene ends.
+/// Saved `Mc_SaveData[0].at4.loc.view` (area id), restored when the cutscene ends.
 extern u8 D_dryfield_night_saloon_g_r_80188FA4;
 
 extern GpMsgEntry D_dryfield_night_saloon_g_r_8017F918[];
@@ -211,10 +211,10 @@ void func_dryfield_night_saloon_g_r_8017DA04(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = D_dryfield_night_saloon_g_r_80188FAC.msgId;
-            Mc_SaveData.at4.loc.warp  = D_dryfield_night_saloon_g_r_80188FAC.field_2;
-            Mc_SaveData.at4.loc.room  = (u8)D_dryfield_night_saloon_g_r_80188FAC.field_3;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = D_dryfield_night_saloon_g_r_80188FAC.msgId;
+            Mc_SaveData[0].at4.loc.warp = D_dryfield_night_saloon_g_r_80188FAC.field_2;
+            Mc_SaveData[0].at4.loc.room = (u8)D_dryfield_night_saloon_g_r_80188FAC.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -228,7 +228,7 @@ void func_dryfield_night_saloon_g_r_8017DA04(Task* task)
 static const TaskFuncTable3 D_dryfield_night_saloon_g_r_8017D5DC = {
     { func_dryfield_night_saloon_g_r_8017DF90, func_dryfield_night_saloon_g_r_8017E040, taskKill },
 };
-/// Room cutscene task: case 0 saves the area id, forces `Mc_SaveData.at4.loc.view`
+/// Room cutscene task: case 0 saves the area id, forces `Mc_SaveData[0].at4.loc.view`
 /// to 0xC, raises the script halt flags and starts cap command 0x13; the
 /// following states wait for the cap to go idle, then start the jukebox task,
 /// and case 4 restores the area id and kills the task.
@@ -242,7 +242,7 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
             gGameSession->eventState             = 1;
             gGameSession->hideHud                = 1;
             Gp_StateF0.field_4                   = 2;
-            save                                 = &Mc_SaveData;
+            save                                 = &Mc_SaveData[0];
             temp                                 = save->at4.loc.view;
             save->at4.loc.view                   = 0xC;
             D_dryfield_night_saloon_g_r_80188FA4 = temp;
@@ -264,11 +264,11 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
             task->state = task->state + 1;
             return;
         case 4:
-            gGameSession->eventState = 0;
-            gGameSession->hideHud    = 0;
-            D_80114D08               = 0xA;
-            Gp_StateF0.field_4       = 0;
-            Mc_SaveData.at4.loc.view = D_dryfield_night_saloon_g_r_80188FA4;
+            gGameSession->eventState    = 0;
+            gGameSession->hideHud       = 0;
+            D_80114D08                  = 0xA;
+            Gp_StateF0.field_4          = 0;
+            Mc_SaveData[0].at4.loc.view = D_dryfield_night_saloon_g_r_80188FA4;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             break;
@@ -466,11 +466,11 @@ static void func_dryfield_night_saloon_g_r_8017E050(Task* task)
 }
 
 /// Cutscene script callback: stores `arg0` as the session's room and in the
-/// main-executable byte `Mc_SaveData.at4.loc.room`.
+/// main-executable byte `Mc_SaveData[0].at4.loc.room`.
 void func_dryfield_night_saloon_g_r_8017E0A8(u8 arg0)
 {
-    Mc_SaveData.at4.loc.room   = arg0;
-    gGameSession->at4.loc.room = arg0;
+    Mc_SaveData[0].at4.loc.room = arg0;
+    gGameSession->at4.loc.room  = arg0;
 }
 
 /// Row callback of the jukebox list: draws the row's track name, and on
@@ -489,8 +489,8 @@ void func_dryfield_night_saloon_g_r_8017E0C0(DialogPrompt* prompt, UiObject* obj
     menu = D_dryfield_night_saloon_g_r_8017D870;
 
     list = 4;
-    if (Mc_SaveData.clearCount != 0) {
-        list = Mc_SaveData.gameMode;
+    if (Mc_SaveData[0].clearCount != 0) {
+        list = Mc_SaveData[0].gameMode;
     }
     if (Gp_IsDebugAttachRoom() == 0) {
         list += 5;

@@ -822,11 +822,11 @@ void func_mist_r18_8017EA98(Task* task)
 void func_mist_r18_8017EB48(void)
 {
     Gp_InitStarterInv();
-    Mc_SaveData.at4.loc.stage = 1;
-    Mc_SaveData.at4.loc.area  = 0x13;
-    Mc_SaveData.at4.loc.warp  = 3;
-    Mc_SaveData.at4.loc.room  = 3;
-    gDisplayState.roomVariant = 1;
+    Mc_SaveData[0].at4.loc.stage = 1;
+    Mc_SaveData[0].at4.loc.area  = 0x13;
+    Mc_SaveData[0].at4.loc.warp  = 3;
+    Mc_SaveData[0].at4.loc.room  = 3;
+    gDisplayState.roomVariant    = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
 }

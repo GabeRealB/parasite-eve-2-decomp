@@ -949,7 +949,7 @@ s32 func_neo_ark_submarine_tunnel_8017F064(s32 arg0, s32 arg1, RoomEventMsg* arg
         func_800E3FAC(0xA2, 0x35);
         GameFlag_SetNibble(0xFF, 2);
         GameFlag_SetNibble(0x11F, 1);
-        Mc_SaveData.sceneEvent = 0x1A;
+        Mc_SaveData[0].sceneEvent = 0x1A;
         func_800E8634((s32)&D_80135220, 0, (s32)&D_80135FD0);
     }
     if ((arg2->field_2 == 2) && (GameFlag_GetNibble(0xBC) == 0)) {

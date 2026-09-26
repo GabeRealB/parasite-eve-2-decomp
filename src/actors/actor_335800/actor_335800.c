@@ -269,8 +269,8 @@ void func_actor_335800_801620C0(void)
 
 void func_actor_335800_801620F0(u8 arg0)
 {
-    gGameSession->at4.loc.room = Mc_SaveData.at4.loc.room = arg0;
-    gGameSession->roomObjsDirty                           = 1;
+    gGameSession->at4.loc.room = Mc_SaveData[0].at4.loc.room = arg0;
+    gGameSession->roomObjsDirty                              = 1;
 }
 
 void func_actor_335800_80162114(void)
@@ -339,7 +339,7 @@ void func_actor_335800_8016224C(void)
         if (coord->coord.t[2] >= 0xC53) {
             areaId = 5;
         }
-        Mc_SaveData.at4.loc.view    = areaId;
+        Mc_SaveData[0].at4.loc.view = areaId;
         gGameSession->at4.loc.view  = areaId;
         gGameSession->viewDirty     = 1;
         gGameSession->roomObjsDirty = 1;
@@ -400,7 +400,7 @@ void func_actor_335800_80162408(void)
 
 void func_actor_335800_80162428(s8 arg0)
 {
-    Mc_SaveData.sceneEvent = arg0;
+    Mc_SaveData[0].sceneEvent = arg0;
 }
 
 void func_actor_335800_80162434(s32 arg0)

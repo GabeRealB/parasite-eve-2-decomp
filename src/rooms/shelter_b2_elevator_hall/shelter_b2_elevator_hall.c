@@ -148,10 +148,10 @@ void func_shelter_b2_elevator_hall_8017D774(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = D_shelter_b2_elevator_hall_80184D7C.msgId;
-            Mc_SaveData.at4.loc.warp  = D_shelter_b2_elevator_hall_80184D7C.field_2;
-            Mc_SaveData.at4.loc.room  = (u8)D_shelter_b2_elevator_hall_80184D7C.field_3;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = D_shelter_b2_elevator_hall_80184D7C.msgId;
+            Mc_SaveData[0].at4.loc.warp = D_shelter_b2_elevator_hall_80184D7C.field_2;
+            Mc_SaveData[0].at4.loc.room = (u8)D_shelter_b2_elevator_hall_80184D7C.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -184,16 +184,16 @@ void func_shelter_b2_elevator_hall_8017D8E4(Task* task)
             Gp_StateF0.field_4 = 1;
             switch (Gp_GetCapEventKey()) {
                 case 0xB:
-                    Mc_SaveData.at4.loc.area = 9;
-                    Mc_SaveData.at4.loc.warp = 3;
+                    Mc_SaveData[0].at4.loc.area = 9;
+                    Mc_SaveData[0].at4.loc.warp = 3;
                     break;
                 case 0xC:
-                    Mc_SaveData.at4.loc.area = 0x1B;
-                    Mc_SaveData.at4.loc.warp = 2;
+                    Mc_SaveData[0].at4.loc.area = 0x1B;
+                    Mc_SaveData[0].at4.loc.warp = 2;
                     break;
                 case 0xD:
-                    Mc_SaveData.at4.loc.area = 0x2A;
-                    Mc_SaveData.at4.loc.warp = 3;
+                    Mc_SaveData[0].at4.loc.area = 0x2A;
+                    Mc_SaveData[0].at4.loc.warp = 3;
                     break;
                 default:
                     Gp_MsgPlayerWeapon(1);
@@ -213,13 +213,13 @@ void func_shelter_b2_elevator_hall_8017D8E4(Task* task)
             SndEvt_EnqueueType7(0x80000000, 0);
             msg.field_3 = 1;
             msg.field_5 = 0;
-            msg.msgId   = Mc_SaveData.at4.loc.area;
-            msg.field_2 = Mc_SaveData.at4.loc.warp;
+            msg.msgId   = Mc_SaveData[0].at4.loc.area;
+            msg.field_2 = Mc_SaveData[0].at4.loc.warp;
             msg2        = msg;
             func_80179A04(&msg, &msg2);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.warp  = msg2.field_2;
-            Mc_SaveData.at4.loc.room  = msg2.field_3;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.warp = msg2.field_2;
+            Mc_SaveData[0].at4.loc.room = msg2.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

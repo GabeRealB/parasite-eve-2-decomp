@@ -167,12 +167,12 @@ static void func_shelter_b1_armory_80180784(Task* task);
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40
 /// or any other value) and the high halfword one of the group's four;
-/// `Mc_SaveData.gameMode` 2 and above has groups of its own. A high halfword
+/// `Mc_SaveData[0].gameMode` 2 and above has groups of its own. A high halfword
 /// above 3 falls through the 0x30-0x33 groups in turn and on into 0x20's;
 /// every other miss returns `D_shelter_b1_armory_80182378`.
 static u16* func_shelter_b1_armory_8017D768(s32 mode)
 {
-    if (Mc_SaveData.gameMode < 2) {
+    if (Mc_SaveData[0].gameMode < 2) {
         switch ((u16)mode) {
             case 0x30:
                 switch ((u32)mode >> 16) {
@@ -391,9 +391,9 @@ void func_shelter_b1_armory_8017DDD8(DialogPrompt* prompt, UiObject* obj)
     shop    = (RoomShopList*)obj->owner->work;
     blocked = 0;
     itemId  = shop->items[prompt->field_8];
-    /* &Mc_SaveData.carriedItems hoisted into a saved register here, as the original does,
+    /* &Mc_SaveData[0].carriedItems hoisted into a saved register here, as the original does,
        instead of being rematerialised at the Gp_SumScanQty call. */
-    scan = &Mc_SaveData.carriedItems;
+    scan = &Mc_SaveData[0].carriedItems;
     if (prompt->field_C == 1) {
         D_shelter_b1_armory_80182290 = itemId;
     }
@@ -533,8 +533,8 @@ static void func_shelter_b1_armory_8017E264(RoomShopList* shop, UiObject* obj, s
 /// 0, which items of each unlocked price row are added: mode 0 ids 0x80-0x9F
 /// and 9, 0xA, 0xC, 0x42-0x46; mode 1 ids 0xA0-0xBF; mode 2 ids 0x60-0x7F and
 /// 0xD; mode 3 ids 1-0x5F other than those. Mode 3 also adds, for each of the
-/// twelve two-bit levels in `Mc_SaveData.shopStock`, the id of that level
-/// (the first slot needs level 2). With `Mc_SaveData.demoScene` 1 every row
+/// twelve two-bit levels in `Mc_SaveData[0].shopStock`, the id of that level
+/// (the first slot needs level 2). With `Mc_SaveData[0].demoScene` 1 every row
 /// and level is unlocked first.
 static void func_shelter_b1_armory_8017E3B0(RoomShopList* shop, UiObject* obj)
 {
@@ -564,15 +564,15 @@ static void func_shelter_b1_armory_8017E3B0(RoomShopList* shop, UiObject* obj)
         ids++;
     }
 
-    if (Mc_SaveData.demoScene == 1) {
-        Mc_SaveData.shopTiers = 0x1FFF;
-        Mc_SaveData.shopStock = -1;
+    if (Mc_SaveData[0].demoScene == 1) {
+        Mc_SaveData[0].shopTiers = 0x1FFF;
+        Mc_SaveData[0].shopStock = -1;
     }
 
-    if (Mc_SaveData.gameMode == 0) {
-        if (Mc_SaveData.shopTiers != 0) {
+    if (Mc_SaveData[0].gameMode == 0) {
+        if (Mc_SaveData[0].shopTiers != 0) {
             for (tier = 0; tier < 13; tier++) {
-                unlocked = Mc_SaveData.shopTiers & (1 << tier);
+                unlocked = Mc_SaveData[0].shopTiers & (1 << tier);
                 if (unlocked != 0) {
                     for (j = 0; j < 3; j++) {
                         item = D_shelter_b1_armory_801821F4[tier].items[j];
@@ -610,7 +610,7 @@ static void func_shelter_b1_armory_8017E3B0(RoomShopList* shop, UiObject* obj)
 
         if ((mode >> 16) == 3) {
             for (slot = 0; slot < 0xC; slot++) {
-                level = (Mc_SaveData.shopStock >> (slot * 2)) & 3;
+                level = (Mc_SaveData[0].shopStock >> (slot * 2)) & 3;
                 if (slot == 0 ? level >= 2 : level > 0) {
                     /* The assignment keeps `+ 0xE` on the level instead of
                        letting GCC reassociate it onto the row base. */
@@ -907,7 +907,7 @@ void func_shelter_b1_armory_8017ED94(Task* task)
     func_8002E53C(&req1, (char*)D_shelter_b1_armory_8017D6E4);
 
     p        = total;
-    scan     = &Mc_SaveData.carriedItems;
+    scan     = &Mc_SaveData[0].carriedItems;
     count    = Gp_CountScanItems(scan);
     capacity = scan->rowCount;
     Text_ItoaUnsigned((u8*)p, count);
@@ -949,7 +949,7 @@ void func_shelter_b1_armory_8017EF78(DialogPrompt* prompt, UiObject* obj)
     if (mode == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         cfg   = &Player_Status;
         price = Gp_ItemDescs[itemId].price;
-        scan  = &Mc_SaveData.carriedItems;
+        scan  = &Mc_SaveData[0].carriedItems;
         SndEvt_EnqueueType6(0x16, 0, 0);
         if (cfg->bp >= price) {
             if (Gp_CanAddItem(scan, itemId) == 0) {
@@ -1157,9 +1157,9 @@ void func_shelter_b1_armory_8017F5D4(Task* task)
         count = 0;
         guard = 0;
         if ((u32)(item - 0xA0) < 0x20U) {
-            count = Gp_ScanStackQty(&Mc_SaveData.carriedItems, item);
+            count = Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, item);
         } else {
-            scan = &Mc_SaveData.carriedItems;
+            scan = &Mc_SaveData[0].carriedItems;
             rec  = Gp_GetItemTable(scan) + scan->firstRow;
             n    = scan->rowCount;
             SOFT_USE_REG2(guard, guard);
@@ -1219,7 +1219,7 @@ void func_shelter_b1_armory_8017F7A8(Task* task)
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
         if (D_8010E138[itemId].perBuy != 0) {
-            held    = Gp_ScanStackQty(&Mc_SaveData.carriedItems, itemId);
+            held    = Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, itemId);
             maxHeld = D_8010E138[itemId].maxHeld;
             maxQty  = maxHeld - held;
             if (maxQty <= 0) {
@@ -1230,7 +1230,7 @@ void func_shelter_b1_armory_8017F7A8(Task* task)
             }
         }
     } else {
-        maxQty = Mc_SaveData.carriedItems.rowCount - Gp_CountScanItems(&Mc_SaveData.carriedItems);
+        maxQty = Mc_SaveData[0].carriedItems.rowCount - Gp_CountScanItems(&Mc_SaveData[0].carriedItems);
     }
 
     afford = Player_Status.bp / price;
@@ -1281,7 +1281,7 @@ void func_shelter_b1_armory_8017F7A8(Task* task)
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             Player_Status.bp -= price * task->extraState;
             for (i = 0; i < task->extraState; i++) {
-                Gp_GiveItem(&Mc_SaveData.carriedItems, itemId, -1);
+                Gp_GiveItem(&Mc_SaveData[0].carriedItems, itemId, -1);
             }
             SndEvt_EnqueueType6(0x16, 0, 0);
             parentObj->field_2E = 6;
@@ -1491,10 +1491,10 @@ void func_shelter_b1_armory_801800A4(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = D_shelter_b1_armory_80185584.msgId;
-            Mc_SaveData.at4.loc.warp  = D_shelter_b1_armory_80185584.field_2;
-            Mc_SaveData.at4.loc.room  = (u8)D_shelter_b1_armory_80185584.field_3;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = D_shelter_b1_armory_80185584.msgId;
+            Mc_SaveData[0].at4.loc.warp = D_shelter_b1_armory_80185584.field_2;
+            Mc_SaveData[0].at4.loc.room = (u8)D_shelter_b1_armory_80185584.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -1558,7 +1558,7 @@ void func_shelter_b1_armory_8018034C(Task* task)
         case 0:
             gGameSession->eventState     = 1;
             gGameSession->hideHud        = 1;
-            save                         = &Mc_SaveData;
+            save                         = &Mc_SaveData[0];
             view                         = save->at4.loc.view;
             save->at4.loc.view           = 0xD;
             D_shelter_b1_armory_8018557C = view;
@@ -1578,7 +1578,7 @@ void func_shelter_b1_armory_8018034C(Task* task)
             gGameSession->hideHud    = 0;
             Gp_MsgPlayer3F3(1);
             Gp_MsgPlayerWeapon(1);
-            Mc_SaveData.at4.loc.view = D_shelter_b1_armory_8018557C;
+            Mc_SaveData[0].at4.loc.view = D_shelter_b1_armory_8018557C;
         advance:
             task->state = task->state + 1;
             break;

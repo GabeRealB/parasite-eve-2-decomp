@@ -310,10 +310,10 @@ extern GpDirPair D_801149FC[];
 
 /// 8-byte record in `D_80114198` / `D_801141F0` / `D_80114248`. Indexed by
 /// `GameFlag_GetNibble(0x4B / 0x4C / 0x4D)`. `field_0` is a per-room byte
-/// list, 1-based by `Mc_SaveData.at4.loc.area`; `field_4` is the stage id
-/// (`Mc_SaveData.at4.loc.stage`). `Gp_ApplyNpcRoomSnd` tests the room byte (second
+/// list, 1-based by `Mc_SaveData[0].at4.loc.area`; `field_4` is the stage id
+/// (`Mc_SaveData[0].at4.loc.stage`). `Gp_ApplyNpcRoomSnd` tests the room byte (second
 /// table with `& 0xF`) to choose the `Snd_SetModeFlag` argument.
-/// `Gp_PickCompanion` uses the same tables to pick `Mc_SaveData.companionType`.
+/// `Gp_PickCompanion` uses the same tables to pick `Mc_SaveData[0].companionType`.
 typedef struct _GpNpcRoomRec {
     /* 0x0 */ u8*  field_0;
     /* 0x4 */ u8   field_4;
@@ -329,7 +329,7 @@ extern GpNpcRoomRec D_80114248[];
 /// `field_0` indexes `Gp_AreaTables` (same role as `GpAreaKey.stage`);
 /// `field_1` indexes that table (same role as `GpAreaKey.area`);
 /// `field_2` is the id written by `Gp_SetAreaObjId`. High nibble of `field_3`
-/// is a `Mc_SaveData.gameMode` filter (0 = always, 0x10 if 0 or 2, 0x20 if
+/// is a `Mc_SaveData[0].gameMode` filter (0 = always, 0x10 if 0 or 2, 0x20 if
 /// 1 or 3); low nibble nonzero sets `GpAreaObj.field_1` bit 2, else clears.
 typedef struct _GpAreaApplyRec {
     /* 0x0 */ u8 field_0;

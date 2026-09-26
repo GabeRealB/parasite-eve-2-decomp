@@ -1094,7 +1094,7 @@ static void func_hypervelocity_8011F724(Task* arg0)
             }
             /* fallthrough */
         case 3:
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData.characterId][1], 0, 0) == 0) {
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0) {
                 func_80106550(arg0);
             }
             break;

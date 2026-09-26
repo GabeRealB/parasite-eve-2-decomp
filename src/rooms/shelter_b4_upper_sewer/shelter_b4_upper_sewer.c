@@ -140,7 +140,7 @@ void func_shelter_b4_upper_sewer_8017D660(Task* task)
         case 3:
             if (Gp_GetCapEventKey() == 0xC) {
                 taskKill(task);
-                Mc_SaveData.at4.loc.view = D_shelter_b4_upper_sewer_80188D2C;
+                Mc_SaveData[0].at4.loc.view = D_shelter_b4_upper_sewer_80188D2C;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
                 Gp_MsgAllyWeapon(1);
@@ -209,10 +209,10 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
             }
             break;
         case 5:
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = D_shelter_b4_upper_sewer_80188D24.field_2;
-            Mc_SaveData.at4.loc.warp  = D_shelter_b4_upper_sewer_80188D24.field_4;
-            Mc_SaveData.at4.loc.room  = D_shelter_b4_upper_sewer_80188D24.field_1;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = D_shelter_b4_upper_sewer_80188D24.field_2;
+            Mc_SaveData[0].at4.loc.warp = D_shelter_b4_upper_sewer_80188D24.field_4;
+            Mc_SaveData[0].at4.loc.room = D_shelter_b4_upper_sewer_80188D24.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -260,8 +260,8 @@ s32 func_shelter_b4_upper_sewer_8017DAB0(Task* task, s32 msgId, s32 arg2)
             Gp_MsgPlayerWeapon(0);
             Gp_MsgAllyWeapon(0);
             Gp_StateF0.field_4                = 2;
-            temp_a1                           = Mc_SaveData.at4.loc.view;
-            Mc_SaveData.at4.loc.view          = 0xD;
+            temp_a1                           = Mc_SaveData[0].at4.loc.view;
+            Mc_SaveData[0].at4.loc.view       = 0xD;
             D_shelter_b4_upper_sewer_80188D2C = temp_a1;
             Task_SpawnFromTable(&D_shelter_b4_upper_sewer_80186300, 0, 0, 0);
         } else {
@@ -287,7 +287,7 @@ s32 func_shelter_b4_upper_sewer_8017DB58(s32 arg0, s32 arg1, s32 arg2)
 
 void func_shelter_b4_upper_sewer_8017DB94(void)
 {
-    Mc_SaveData.at4.loc.view = D_shelter_b4_upper_sewer_80188D2C;
+    Mc_SaveData[0].at4.loc.view = D_shelter_b4_upper_sewer_80188D2C;
 }
 
 static void func_shelter_b4_upper_sewer_8017DBA8(Task* task)
@@ -325,7 +325,7 @@ static void func_shelter_b4_upper_sewer_8017DC88(Task* task)
     u8  c;
     s32 h;
 
-    if (Mc_SaveData.companionType == 0) {
+    if (Mc_SaveData[0].companionType == 0) {
         D_shelter_b4_upper_sewer_80188D30 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
     } else {
         D_shelter_b4_upper_sewer_80188D30 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
@@ -478,7 +478,7 @@ void func_shelter_b4_upper_sewer_8017E4F4(Task* task)
 
 static void func_shelter_b4_upper_sewer_8017E55C(Task* arg0)
 {
-    if (Mc_SaveData.companionType == 0) {
+    if (Mc_SaveData[0].companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;

@@ -159,7 +159,7 @@ static s32 func_actor_136100_80131EC4(Task* arg0)
 
     msgWork             = (Actor136100Work*)arg0->work;
     weaponId            = Player_Status.weapon;
-    id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = id;
     msgWork->field_4DE  = idx;
     rec.field_4         = idx;
@@ -319,22 +319,22 @@ void func_actor_136100_80132284(Task* arg0)
 /// A macro rather than an inline: the record must be one frame slot shared by
 /// every expansion, while the work pointer and the id stay per-expansion
 /// pseudos -- shared, they globalise into one register across the switch.
-#define func_actor_136100_SendWeaponRec(task, anim, a, b)                                      \
-    {                                                                                          \
-        Actor136100Work* msgWork;                                                              \
-        s32              weaponId;                                                             \
-        s32              id;                                                                   \
-                                                                                               \
-        msgWork             = (Actor136100Work*)(task)->work;                                  \
-        weaponId            = Player_Status.weapon;                                            \
-        id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
-        rec.animBlock.index = id;                                                              \
-        msgWork->field_4DE  = anim;                                                            \
-        rec.field_4         = anim;                                                            \
-        rec.field_8         = a;                                                               \
-        rec.field_C         = b;                                                               \
-        rec.field_10        = 0;                                                               \
-        Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32) & rec, 0);                             \
+#define func_actor_136100_SendWeaponRec(task, anim, a, b)                                         \
+    {                                                                                             \
+        Actor136100Work* msgWork;                                                                 \
+        s32              weaponId;                                                                \
+        s32              id;                                                                      \
+                                                                                                  \
+        msgWork             = (Actor136100Work*)(task)->work;                                     \
+        weaponId            = Player_Status.weapon;                                               \
+        id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
+        rec.animBlock.index = id;                                                                 \
+        msgWork->field_4DE  = anim;                                                               \
+        rec.field_4         = anim;                                                               \
+        rec.field_8         = a;                                                                  \
+        rec.field_C         = b;                                                                  \
+        rec.field_10        = 0;                                                                  \
+        Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32) & rec, 0);                                \
     }
 
 /// Step the cutscene actor's `field_4C4` request.  Request 1 runs a three-step
@@ -823,7 +823,7 @@ void func_actor_136100_80133690(void)
 
     msgWork             = (Actor136100Work*)task->work;
     weaponId            = Player_Status.weapon;
-    id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = id;
     msgWork->field_4DE  = 1;
     rec.field_4         = 1;
@@ -877,7 +877,7 @@ void func_actor_136100_8013379C(s32 arg0)
 
     msgWork             = (Actor136100Work*)task->work;
     weaponId            = Player_Status.weapon;
-    id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = id;
     msgWork->field_4DE  = 1;
     rec.field_4         = 1;
@@ -1285,7 +1285,7 @@ void func_actor_136100_8013467C(void)
     s32       id;
 
     weaponId            = Player_Status.weapon;
-    id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = id;
     rec.field_4         = 1;
     rec.field_8         = 0;
@@ -1412,7 +1412,7 @@ void func_actor_136100_801349B4(s32 arg0)
     if (arg0 == 0) {
         GameFlag_SetNibble(0x4B, 6);
     } else {
-        Mc_SaveData.sceneEvent = 8;
+        Mc_SaveData[0].sceneEvent = 8;
         GameFlag_SetNibble(0x4B, 0);
     }
 }

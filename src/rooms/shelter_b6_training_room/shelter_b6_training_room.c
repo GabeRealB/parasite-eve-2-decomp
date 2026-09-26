@@ -219,9 +219,9 @@ void func_shelter_b6_training_room_8017DAF8(s32 arg0)
 /// Sets the saved location to area 0x16, warp 1, room 1 and spawns task 0x11.
 void func_shelter_b6_training_room_8017DB28(void)
 {
-    Mc_SaveData.at4.loc.area = 0x16;
-    Mc_SaveData.at4.loc.warp = 1;
-    Mc_SaveData.at4.loc.room = 1;
+    Mc_SaveData[0].at4.loc.area = 0x16;
+    Mc_SaveData[0].at4.loc.warp = 1;
+    Mc_SaveData[0].at4.loc.room = 1;
     Task_Spawn(0, 0x11, 0, 0);
 }
 

@@ -105,7 +105,7 @@ void GameFlow_StateByField34(Task* arg0)
         gDisplayState.demoScene = 0;
         Pad_SetCooldown(0);
         if (arg0->spawnArg1 == 0) {
-            saved = Mc_SaveData.vibration;
+            saved = Mc_SaveData[0].vibration;
             MEM_CLEAR(gGameSession, sizeof(GameSession));
             gDisplayState.at100.flags.pendingPlayerPos = 0;
             gDisplayState.gameRunning                  = 1;
@@ -114,7 +114,7 @@ void GameFlow_StateByField34(Task* arg0)
             Wip_SysFlags.field_4                       = 1;
             Mc_InitBufferSlots();
             do {
-                Mc_SaveData.vibration = saved;
+                Mc_SaveData[0].vibration = saved;
             } while (0);
             arg0->state = arg0->state + 1;
         } else {
@@ -182,7 +182,7 @@ static void Game_ResetSessionAndBuffers(Task* arg0)
     CdCmdQueue* p;
 
     p     = &CdCmd_Queue;
-    saved = Mc_SaveData.vibration;
+    saved = Mc_SaveData[0].vibration;
     MEM_CLEAR(gGameSession, sizeof(GameSession));
     gDisplayState.at100.flags.pendingPlayerPos = 0;
     gDisplayState.gameRunning                  = 1;
@@ -191,7 +191,7 @@ static void Game_ResetSessionAndBuffers(Task* arg0)
     Wip_SysFlags.field_4                       = 1;
     Mc_InitBufferSlots();
     do {
-        Mc_SaveData.vibration = saved;
+        Mc_SaveData[0].vibration = saved;
     } while (0);
     arg0->state = arg0->state + 1;
 }
@@ -220,7 +220,7 @@ static void GameFlow_WaitMenuDone(Task* arg0)
         Ui_TeardownTree(obj, obj->owner);
         gDisplayState.gameMode = 0;
         gGameSession->uiOpen   = 0;
-        if (Mc_SaveData.soundMode == 1) {
+        if (Mc_SaveData[0].soundMode == 1) {
             CdVol_SetMixMode(0);
         } else {
             CdVol_SetMixMode(1);
@@ -267,7 +267,7 @@ void GameFlow_DispatchTable5(Task* arg0)
 
 static void GameFlow_CopySaveIds(Task* arg0)
 {
-    gGameSession->at4.raw = Mc_SaveData.at4.raw;
+    gGameSession->at4.raw = Mc_SaveData[0].at4.raw;
     D_8007A394            = 0;
     arg0->state           = arg0->state + 1;
 }
@@ -380,7 +380,7 @@ static void Pad_TickEventBanks(PadState* arg0)
         p0  += 4;
     } while (i < 8);
 
-    if (Mc_SaveData.vibration == 0) {
+    if (Mc_SaveData[0].vibration == 0) {
         pad->field_5A = temp[0];
         pad->field_5B = temp[1];
     } else {

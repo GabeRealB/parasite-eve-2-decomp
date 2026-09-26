@@ -142,7 +142,7 @@ static const ActorsShared801385e0Scale Actor01100_D00010 = { 0x1400, 0x1400, 0x1
 /// coordinate's world position from it; the last such push is kept in the
 /// scratch block, and its length is scaled down to 0x100 when longer. Returns
 /// whether any record of those kinds was met. Does nothing, returning 0, while
-/// `Mc_SaveData.field_5C1` or the session's `viewReady` is 1.
+/// `Mc_SaveData[0].field_5C1` or the session's `viewReady` is 1.
 static s32 Actor01100_Fn000E8(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
@@ -150,7 +150,7 @@ static s32 Actor01100_Fn000E8(GpCoord* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                      = 0;
@@ -200,7 +200,7 @@ static s32 Actor01100_Fn000E8(GpCoord* coord, GpRec18* recs, s16 count)
 /// 0x400 to another cancel each other, and each remaining one moves the
 /// coordinate 10 units along it in the XZ plane. `pos` receives the total
 /// displacement. Returns whether a kind 0x10000 record was among them. Does
-/// nothing, returning 0, while the session's `viewReady` or `Mc_SaveData.field_5C1` is 1.
+/// nothing, returning 0, while the session's `viewReady` or `Mc_SaveData[0].field_5C1` is 1.
 static s32 Actor01100_Fn00430(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
@@ -209,7 +209,7 @@ static s32 Actor01100_Fn00430(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR*
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].field_5C1 == 1) {
         return 0;
     }
 
@@ -358,7 +358,7 @@ static void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
         return;
     }
 
-    map = GP_LOC_WORD(Mc_SaveData.at4.loc);
+    map = GP_LOC_WORD(Mc_SaveData[0].at4.loc);
     SOFT_BARRIER();
     param1[2] = 0xA;
     param2[0] = 0xB;
@@ -563,13 +563,13 @@ static __inline__ s32 _actor01100FindClass2Contact(SVECTOR* out, GpRec18* contac
 /// `func_800E0C10`, stepping each nonzero fractional X/Z delta one unit away
 /// from zero, and raises the height by 0x80 for the caller to restore.
 /// Returns nonzero when the push moved the model on X or Z; always 0 while
-/// `Mc_SaveData.field_5C1` is 1.
+/// `Mc_SaveData[0].field_5C1` is 1.
 static __inline__ s32 _actor01100PushOut(GpCoord* coord, GpRec18* contacts)
 {
     OverlayDeltaFlag* head;
     OverlayDeltaFlag* blk;
 
-    if (Mc_SaveData.field_5C1 == 1) {
+    if (Mc_SaveData[0].field_5C1 == 1) {
         return 0;
     }
     head = SCRATCH_HEAD(OverlayDeltaFlag);
@@ -834,7 +834,7 @@ static s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWo
             work->field_B92 = hp;
             enemy->hp       = hp;
             if (work->field_B92 <= 0) {
-                if ((GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 24, 0, 0)) {
+                if ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 24, 0, 0)) {
                     work->field_BC8 = 0;
                 } else {
                     Gp_ReleaseStateF0Add(task, (s8)work->field_BBB);
@@ -2341,7 +2341,7 @@ static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, SVECTOR* arg1, s32 s
 /// not finished, then `Actor01100_Fn039D0` supplies the yaw at 0xB90. While
 /// the frame sits in [1, 0x2E) the model's `field_46` turns toward that yaw by
 /// at most 0x10 and the Y rotation is rebuilt. The same window steps
-/// `((frame - 13) * 900) / 33` and, while `Mc_SaveData.field_5C1` is clear, adds the
+/// `((frame - 13) * 900) / 33` and, while `Mc_SaveData[0].field_5C1` is clear, adds the
 /// scaled facing column's X/Z onto the translation through the frame block's
 /// vector at 0x10. Frame 1 cues `0x400B0002` and frame 0x2E cues `0x400B0001`.
 ///
@@ -2424,7 +2424,7 @@ static void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcW
         frame     = work->field_BAD;
         scale     = ((frame - 13) * 900) / 33 - ((frame - 14) * 900) / 33;
         coords    = task->extra.tmd->coords;
-        if (Mc_SaveData.field_5C1 == 0) {
+        if (Mc_SaveData[0].field_5C1 == 0) {
             Actor104900_MatrixCol2(&coords->coord, &arg->vec, scale);
             coords->coord.t[0] += arg->vec.vx;
             coords->coord.t[2] += arg->vec.vz;
@@ -2515,7 +2515,7 @@ static void Actor01100_Fn05678(
     GpObj*        obj;
 
     extra = task->extra.tmd;
-    if (((GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
+    if (((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
         actor  = gameGetPtrSlot(3)->work;
         status = &Player_Status;
         if ((actor->field_954 != 2) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0) && (status->hp > 0)) {
@@ -2580,7 +2580,7 @@ static void Actor01100_Fn05678(
     } else {
         time            = work->field_B8C - 1;
         work->field_B8C = time;
-        if ((time == 0) && ((GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(5, 24, 0, 0))) {
+        if ((time == 0) && ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(5, 24, 0, 0))) {
             work->field_BA6 = 0x10;
         }
     }
@@ -2788,7 +2788,7 @@ static void Actor01100_Fn06198(Task* task)
     s16                       countdown;
 
     work = (ActorsShared80137fb8Work*)task->work;
-    map  = GP_LOC_WORD(Mc_SaveData.at4.loc);
+    map  = GP_LOC_WORD(Mc_SaveData[0].at4.loc);
     mask = 0xFFFF0000;
     SOFT_TOUCH_REG(mask);
     map       &= mask;
@@ -2853,7 +2853,7 @@ static void Actor01100_Fn0638C(Task* task)
     GpMtxWords*               rotation;
 
     coord   = task->extra.tmd->coords;
-    area    = GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA;
+    area    = GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA;
     variant = area == 0x03200000;
     work    = memCalloc(sizeof(ActorsShared80137fb8Work), 0);
     if (work == NULL) {
@@ -3153,7 +3153,7 @@ static s32 Actor01100_Fn06AC8(GpCoord* arg0)
 /// itself needs and no call site confirms them.
 static void Actor01100_Fn06B6C(GpCoord* arg0, ActorsShared8013898cVec* arg1, s32 arg2)
 {
-    if (Mc_SaveData.field_5C1 == 0) {
+    if (Mc_SaveData[0].field_5C1 == 0) {
         gte_ReadMatrixColumn(&arg0->coord, 2, &arg1->vec);
         gte_lddp(arg2);
         gte_ldsv(&arg1->vec);

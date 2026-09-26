@@ -133,7 +133,7 @@ void func_dryfield_motel_lobby_8017D650(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_dryfield_motel_lobby_8017F518);
-            Text_FormatTime(p, Mc_SaveData.playTime);
+            Text_FormatTime(p, Mc_SaveData[0].playTime);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -150,7 +150,7 @@ void func_dryfield_motel_lobby_8017D650(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_dryfield_motel_lobby_8017F548);
-            Text_ItoaUnsigned(p, Mc_SaveData.saveCount);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].saveCount);
             Text_Strcat(p, D_dryfield_motel_lobby_8017F568);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -168,7 +168,7 @@ void func_dryfield_motel_lobby_8017D650(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_dryfield_motel_lobby_8017F520);
-            Text_ItoaUnsigned(p, Mc_SaveData.field_6CC);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].field_6CC);
             Text_Strcat(p, D_dryfield_motel_lobby_8017F568);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -186,7 +186,7 @@ void func_dryfield_motel_lobby_8017D650(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_dryfield_motel_lobby_8017F524);
-            Text_ItoaUnsigned(p, Mc_SaveData.field_6CE);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].field_6CE);
             Text_Strcat(p, D_dryfield_motel_lobby_8017F568);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -209,10 +209,10 @@ void func_dryfield_motel_lobby_8017D650(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_dryfield_motel_lobby_8017F52C);
-            if (Mc_SaveData.field_6CC == 0) {
+            if (Mc_SaveData[0].field_6CC == 0) {
                 pct = 0;
             } else {
-                pct = (Mc_SaveData.field_6CC * 10000) / (Mc_SaveData.field_6CC + Mc_SaveData.field_6CE);
+                pct = (Mc_SaveData[0].field_6CC * 10000) / (Mc_SaveData[0].field_6CC + Mc_SaveData[0].field_6CE);
             }
             if (pct < 100) {
                 func_8002F44C(p, pct, 3);
@@ -250,7 +250,7 @@ void func_dryfield_motel_lobby_8017D650(DialogPrompt* arg0, UiObject* arg1)
             s32         i;
             u8*         q;
 
-            total          = Mc_SaveData.field_6CC;
+            total          = Mc_SaveData[0].field_6CC;
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
@@ -307,7 +307,7 @@ void func_dryfield_motel_lobby_8017D650(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_dryfield_motel_lobby_8017F550);
-            Text_ItoaUnsigned(p, Mc_SaveData.clearCount);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].clearCount);
             Text_Strcat(p, D_dryfield_motel_lobby_8017F568);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -325,7 +325,7 @@ void func_dryfield_motel_lobby_8017D650(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_dryfield_motel_lobby_8017F558);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData.field_92C), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].field_92C), arg0->field_1C, 3, 2);
             break;
         }
         case 8: {
@@ -341,7 +341,7 @@ void func_dryfield_motel_lobby_8017D650(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_dryfield_motel_lobby_8017F560);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData.field_930), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].field_930), arg0->field_1C, 3, 2);
             break;
         }
     }
@@ -487,7 +487,7 @@ void func_dryfield_motel_lobby_8017DE1C(DialogPrompt* arg0, UiObject* arg1)
 }
 
 /// Fills the weapon-usage panel's rows from the save's per-weapon use counters
-/// (`Mc_SaveData.weaponUseCounts`, item ids 0x80-0x9F).
+/// (`Mc_SaveData[0].weaponUseCounts`, item ids 0x80-0x9F).
 ///
 /// Every id with a non-empty name (a leading 0 or 0xA marks an unused row) and
 /// a non-zero counter is marked seen and appended to `itemIds`, and the
@@ -522,19 +522,19 @@ static void func_dryfield_motel_lobby_8017E218(UiList* list, UiObject* obj)
     for (i = 0; i < 0x20; i++) {
         id = i + 0x80;
         c  = *Gp_GetItemText(id, 0, 1);
-        if ((c != 0) && (c != 0xA) && (Mc_SaveData.weaponUseCounts[i] > 0)) {
+        if ((c != 0) && (c != 0xA) && (Mc_SaveData[0].weaponUseCounts[i] > 0)) {
             Gp_SetItemSeenBit(id, 1);
             *p++ = id;
             count++;
-            total += Mc_SaveData.weaponUseCounts[i];
+            total += Mc_SaveData[0].weaponUseCounts[i];
         }
     }
 
     if (count >= 2) {
         for (i = 1; i < count; i++) {
-            uses = Mc_SaveData.weaponUseCounts[work->itemIds[i] - 0x80];
+            uses = Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80];
             for (j = 0; j < i; j++) {
-                if (Mc_SaveData.weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
+                if (Mc_SaveData[0].weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
                     tmp = work->itemIds[i];
                     for (k = i - 1; k >= j; k--) {
                         work->itemIds[k + 1] = work->itemIds[k];
@@ -548,7 +548,7 @@ static void func_dryfield_motel_lobby_8017E218(UiList* list, UiObject* obj)
 
     if (count > 0) {
         scale = 0x4E20;
-        top   = Mc_SaveData.weaponUseCounts[work->itemIds[0] - 0x80];
+        top   = Mc_SaveData[0].weaponUseCounts[work->itemIds[0] - 0x80];
         shift = 0xC;
         while (top > 0x1869F) {
             top   >>= 1;
@@ -558,9 +558,9 @@ static void func_dryfield_motel_lobby_8017E218(UiList* list, UiObject* obj)
         }
         for (i = 0; i < count; i++) {
             work->percents[i] =
-                (u32)((Mc_SaveData.weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
+                (u32)((Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
             work->barWidths[i] =
-                (Mc_SaveData.weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
+                (Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
         }
     }
 
@@ -570,10 +570,10 @@ static void func_dryfield_motel_lobby_8017E218(UiList* list, UiObject* obj)
 }
 
 /// Fills the PE-usage panel's rows the same way from the save's per-slot
-/// Parasite Energy use counters (`Mc_SaveData.attachUseCounts`, twelve slots).
+/// Parasite Energy use counters (`Mc_SaveData[0].attachUseCounts`, twelve slots).
 ///
 /// Slot `i` owns three consecutive ids from `i * 3 + 0xF`, one per level, and
-/// is listed under the id of its current level in `Mc_SaveData.attachLevels`
+/// is listed under the id of its current level in `Mc_SaveData[0].attachLevels`
 /// (the base id while that level is 0). The sort, percentages and bar widths
 /// follow the weapon panel, with each row's slot recovered from its id.
 static void func_dryfield_motel_lobby_8017E514(UiList* list, UiObject* obj)
@@ -607,15 +607,15 @@ static void func_dryfield_motel_lobby_8017E514(UiList* list, UiObject* obj)
     magic = 0x55555556;
 
     for (; i < 12; i++) {
-        if (Mc_SaveData.attachUseCounts[i] > 0) {
+        if (Mc_SaveData[0].attachUseCounts[i] > 0) {
             id = i * 3 + 0xF;
             *p = id;
-            if (Mc_SaveData.attachLevels[i] != 0) {
-                *p = id + (Mc_SaveData.attachLevels[i] - 1u);
+            if (Mc_SaveData[0].attachLevels[i] != 0) {
+                *p = id + (Mc_SaveData[0].attachLevels[i] - 1u);
             }
             p++;
             count++;
-            total += Mc_SaveData.attachUseCounts[i];
+            total += Mc_SaveData[0].attachUseCounts[i];
         }
     }
     SOFT_USE_REG(magic);
@@ -623,10 +623,10 @@ static void func_dryfield_motel_lobby_8017E514(UiList* list, UiObject* obj)
     if (count >= 2) {
         for (i = 1; i < count; i++) {
             slot = (work->peIds[i] - 0xF) / 3;
-            uses = Mc_SaveData.attachUseCounts[slot];
+            uses = Mc_SaveData[0].attachUseCounts[slot];
             for (j = 0; j < i; j++) {
                 slot = (work->peIds[j] - 0xF) / 3;
-                if (Mc_SaveData.attachUseCounts[slot] < uses) {
+                if (Mc_SaveData[0].attachUseCounts[slot] < uses) {
                     tmp = work->peIds[i];
                     for (k = i - 1; k >= j; k--) {
                         work->peIds[k + 1] = work->peIds[k];
@@ -641,7 +641,7 @@ static void func_dryfield_motel_lobby_8017E514(UiList* list, UiObject* obj)
     if (count > 0) {
         scale = 0x4E20;
         slot  = (work->peIds[0] - 0xF) / 3;
-        top   = Mc_SaveData.attachUseCounts[slot];
+        top   = Mc_SaveData[0].attachUseCounts[slot];
         shift = 0xC;
         while (top > 0x1869F) {
             top   >>= 1;
@@ -651,9 +651,9 @@ static void func_dryfield_motel_lobby_8017E514(UiList* list, UiObject* obj)
         }
         for (i = 0; i < count; i++) {
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->percents[i]  = (u32)((Mc_SaveData.attachUseCounts[slot] * scale) / total + 1) >> 1;
+            work->percents[i]  = (u32)((Mc_SaveData[0].attachUseCounts[slot] * scale) / total + 1) >> 1;
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->barWidths[i] = (Mc_SaveData.attachUseCounts[slot] << shift) / top;
+            work->barWidths[i] = (Mc_SaveData[0].attachUseCounts[slot] << shift) / top;
         }
     }
 
@@ -739,10 +739,10 @@ static void func_dryfield_motel_lobby_8017E9E8(Task* task)
 
     obj           = task->spawnArg2;
     obj->field_2E = 0;
-    ready         = Mc_SaveData.demoScene == 1;
+    ready         = Mc_SaveData[0].demoScene == 1;
     list          = &D_dryfield_motel_lobby_8017F7EC;
     one           = 1;
-    if (Mc_SaveData.clearCount > 0) {
+    if (Mc_SaveData[0].clearCount > 0) {
         ready = one;
     }
     if (ready == 0) {

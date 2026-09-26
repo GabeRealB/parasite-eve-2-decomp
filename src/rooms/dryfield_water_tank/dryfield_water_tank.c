@@ -121,7 +121,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
                 break;
             }
             gGameSession->eventState       = 1;
-            D_dryfield_water_tank_80188D48 = Mc_SaveData.at4.loc.view;
+            D_dryfield_water_tank_80188D48 = Mc_SaveData[0].at4.loc.view;
             Gp_MsgPlayer3F3(0);
             Gp_MsgPlayerWeapon(0);
             Gp_StartCapSlot(0xE, 0, 0);
@@ -141,10 +141,10 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
                 Task_SpawnFromTable(&D_dryfield_water_tank_8017FF88, 0, 0, 0);
                 func_dryfield_water_tank_8017DB48();
             } else {
-                gGameSession->eventState = 0;
-                gGameSession->hideHud    = 0;
-                Gp_StateF0.field_4       = 0;
-                Mc_SaveData.at4.loc.view = (u8)D_dryfield_water_tank_80188D48;
+                gGameSession->eventState    = 0;
+                gGameSession->hideHud       = 0;
+                Gp_StateF0.field_4          = 0;
+                Mc_SaveData[0].at4.loc.view = (u8)D_dryfield_water_tank_80188D48;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
             }
@@ -466,8 +466,8 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             Gp_DispatchMsg(work->child, 0x7DB, (s32)&msg, 0);
             break;
         case 2:
-            Mc_SaveData.at4.loc.view = Gp_FindViewIndex(3);
-            gGameSession->viewDirty  = 1;
+            Mc_SaveData[0].at4.loc.view = Gp_FindViewIndex(3);
+            gGameSession->viewDirty     = 1;
             /* Through a pointer rather than as `work->owner`: a member load is
              * struct memory, which lets the store to the view index sink into
              * the call's delay slot; the two request tails then no longer
@@ -558,8 +558,8 @@ void func_dryfield_water_tank_8017E1B4(void)
     DwtScriptWork* work;
     Task**         owner;
 
-    work                     = (DwtScriptWork*)D_dryfield_water_tank_80188D4C->work;
-    Mc_SaveData.at4.loc.view = Gp_FindViewIndex(3);
+    work                        = (DwtScriptWork*)D_dryfield_water_tank_80188D4C->work;
+    Mc_SaveData[0].at4.loc.view = Gp_FindViewIndex(3);
     /* Through a pointer rather than as `work->owner`: a member load is struct
      * memory, which lets the store to the view index sink into the call's
      * delay slot, and the original keeps it ahead of the load. */

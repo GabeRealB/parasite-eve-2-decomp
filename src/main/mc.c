@@ -41,18 +41,15 @@ static void Mc_StateSaveSlotUi(DialogPrompt* arg0, UiObject* arg1);
 
 /// Work area of the memory-card dialogs, passed to every state handler.
 static McWork D_80071730;
-McSaveData    Mc_SaveData;
-/// Second bank of the save's buffer slot: `Mc_BufferSlots[1]` reaches it as the
-/// 0x944 bytes after `Mc_SaveData`, so the original object held both banks.
-/// Split in two here because a separate 0x944-byte object would be aligned to 8.
-static u8 D_80072AAC[4];
-static u8 D_80072AB0[0x940];
-u8        D_800733F0[2][0x6C];
-u8        D_800734C8[2][0xB0];
-u8        D_80073628[2][0x24];
-u8        D_80073670[2][0xE4];
-u8        D_80073838[2][0xA4];
-u8        D_80073980[0x200];
+/// The save data, twice: the buffer slot fills, copies and compares both
+/// banks as one run from the first.
+McSaveData Mc_SaveData[2];
+u8         D_800733F0[2][0x6C];
+u8         D_800734C8[2][0xB0];
+u8         D_80073628[2][0x24];
+u8         D_80073670[2][0xE4];
+u8         D_80073838[2][0xA4];
+u8         D_80073980[0x200];
 /// Unreferenced.
 static u8    D_80073B80[8];
 PlayerStatus Player_Status;
@@ -232,7 +229,7 @@ static u8 Mc_DefaultChecksumSrc[] = {
 
 McBufferSlot Mc_BufferSlots[9] = {
     { (McChecksumBlock*)Mc_DefaultChecksumSrc, 0x100, 4 },
-    { (McChecksumBlock*)&Mc_SaveData, 0x944, 0x26 },
+    { (McChecksumBlock*)&Mc_SaveData[0], 0x944, 0x26 },
     { (McChecksumBlock*)&Player_Status, 0x40, 1 },
     { (McChecksumBlock*)D_800733F0, 0x6C, 2 },
     { (McChecksumBlock*)D_800734C8, 0xB0, 3 },
@@ -316,7 +313,7 @@ static void Mc_InitDualBankBuffers(void)
         Mem_Set(c + 1, 0xFF, 0x24);
         Mem_Set(d + 1, 0xFF, 0xE4);
         Mem_Set(e + 1, 0xFF, 0xA4);
-        p = &Mc_SaveData;
+        p = &Mc_SaveData[0];
     } while (0);
 
     one              = 1;
@@ -386,12 +383,12 @@ void Mc_InitBufferSlots(void)
     gDisplayState.roomVariant = 1;
     Mc_InitDualBankBuffers();
 
-    Mc_SaveData.vibration    = 0;
-    Mc_SaveData.buttonLayout = 0;
-    Mc_SaveData.musicVolume  = 0;
-    Mc_SaveData.cursorMode   = 0;
-    Mc_SaveData.soundMode    = 0;
-    Mc_SaveData.moveMode     = 0;
+    Mc_SaveData[0].vibration    = 0;
+    Mc_SaveData[0].buttonLayout = 0;
+    Mc_SaveData[0].musicVolume  = 0;
+    Mc_SaveData[0].cursorMode   = 0;
+    Mc_SaveData[0].soundMode    = 0;
+    Mc_SaveData[0].moveMode     = 0;
     CdVol_SetMixMode(1);
     Snd_ApplyVolumeTable(0);
 }
@@ -635,22 +632,22 @@ static inline void Mc_UpdateTitleHeaderChecksum(void)
     s32 i;
     s16 tmp;
 
-    sum                        = 0;
-    ptr                        = (u8*)&Mc_SaveData;
-    ptr                       += 4;
-    limit                      = 0x38;
-    i                          = 0;
-    Mc_SaveData.hdrChecksum    = 0;
-    Mc_SaveData.hdrChecksumInv = 0xFFFF;
+    sum                           = 0;
+    ptr                           = (u8*)&Mc_SaveData[0];
+    ptr                          += 4;
+    limit                         = 0x38;
+    i                             = 0;
+    Mc_SaveData[0].hdrChecksum    = 0;
+    Mc_SaveData[0].hdrChecksumInv = 0xFFFF;
     do {
         i   += 1;
         tmp  = (s8)*ptr;
         sum  = sum + tmp;
         ptr += 1;
     } while (i < limit);
-    Mc_SaveData.hdrChecksum    = sum;
-    Mc_SaveData.hdrChecksumInv = 0xFFFF - (u32)sum;
-    Mc_VerifySaveHdrChecksum(&Mc_SaveData);
+    Mc_SaveData[0].hdrChecksum    = sum;
+    Mc_SaveData[0].hdrChecksumInv = 0xFFFF - (u32)sum;
+    Mc_VerifySaveHdrChecksum(&Mc_SaveData[0]);
 }
 
 static inline u8* Mc_CopyTitleBytes(u8* src, u8* dst)
@@ -673,7 +670,7 @@ static inline void Mc_UpdateTitleDataChecksum(void)
     sum          = 0;
     count        = 0x200;
     src          = Mc_DefaultChecksumSrc;
-    dst          = (McChecksumBlock*)&Mc_SaveData.dataChecksum;
+    dst          = (McChecksumBlock*)&Mc_SaveData[0].dataChecksum;
     i            = 0;
     dst->field_0 = sum;
     dst->field_2 = 0xFFFF - (u32)sum;
@@ -701,7 +698,7 @@ static void func_80030AB0(McWork* work)
     if (work->field_288 > 0) {
         for (i = 0; i < work->field_288; i++) {
             slot = (McSaveData*)((s32)work + 0x294 + i * 0x80);
-            if ((s8)slot->savePoint == (s8)Mc_SaveData.savePoint) {
+            if ((s8)slot->savePoint == (s8)Mc_SaveData[0].savePoint) {
                 if (slot->saveNumber >= number) {
                     number = slot->saveNumber + 1;
                 }
@@ -712,7 +709,7 @@ static void func_80030AB0(McWork* work)
                 available = 1;
                 for (i = 0; i < work->field_288; i++) {
                     slot = (McSaveData*)((s32)work + 0x294 + i * 0x80);
-                    if ((s8)slot->savePoint == (s8)Mc_SaveData.savePoint && slot->saveNumber == candidate) {
+                    if ((s8)slot->savePoint == (s8)Mc_SaveData[0].savePoint && slot->saveNumber == candidate) {
                         available = 0;
                         break;
                     }
@@ -724,26 +721,26 @@ static void func_80030AB0(McWork* work)
             }
         }
     }
-    Mc_SaveData.saveNumber      = number;
+    Mc_SaveData[0].saveNumber   = number;
     title                       = Mc_EncodeTitleLiteral("PE2 ", title);
-    title                       = Mc_EncodeTitleText((s8*)Text_FormatTime(buffer, Mc_SaveData.playTime), title);
+    title                       = Mc_EncodeTitleText((s8*)Text_FormatTime(buffer, Mc_SaveData[0].playTime), title);
     title                       = Mc_EncodeTitleLiteral(" ", title);
     Mc_DefaultChecksumSrc[0x43] = 0;
     Mc_DefaultChecksumSrc[0x42] = 0;
-    title                       = (u16*)Mc_CopyTitleBytes(D_800675F0[(s8)Mc_SaveData.savePoint], (u8*)title);
+    title                       = (u16*)Mc_CopyTitleBytes(D_800675F0[(s8)Mc_SaveData[0].savePoint], (u8*)title);
     title                       = Mc_EncodeTitleLiteral("(", title);
-    title                       = Mc_EncodeTitleText((s8*)Text_ItoaSigned(buffer, Mc_SaveData.saveNumber), title);
+    title                       = Mc_EncodeTitleText((s8*)Text_ItoaSigned(buffer, Mc_SaveData[0].saveNumber), title);
     title                       = Mc_EncodeTitleLiteral((s8*)D_800139A8, title);
     *title                      = 0;
-    if (Mc_SaveData.saveCount == 0xFF) {
-        Mc_SaveData.saveCount = 0;
-    } else if (Mc_SaveData.saveCount < 99) {
-        Mc_SaveData.saveCount++;
+    if (Mc_SaveData[0].saveCount == 0xFF) {
+        Mc_SaveData[0].saveCount = 0;
+    } else if (Mc_SaveData[0].saveCount < 99) {
+        Mc_SaveData[0].saveCount++;
     }
     Mc_UpdateTitleHeaderChecksum();
     Mc_UpdateTitleDataChecksum();
-    Mc_SaveData.bufferChecksum    = 0;
-    Mc_SaveData.bufferChecksumInv = 0xFFFF;
+    Mc_SaveData[0].bufferChecksum    = 0;
+    Mc_SaveData[0].bufferChecksumInv = 0xFFFF;
 }
 
 static const char D_800139A8[] = ")";
@@ -1435,8 +1432,8 @@ static inline void _mcWriteFirstByteChecksum(void)
         next = sum + *(u8*)temp;
         sum  = next;
     } while (i < 9U);
-    Mc_SaveData.bufferChecksum    = next;
-    Mc_SaveData.bufferChecksumInv = ~next;
+    Mc_SaveData[0].bufferChecksum    = next;
+    Mc_SaveData[0].bufferChecksumInv = ~next;
 }
 
 static void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
@@ -1848,7 +1845,7 @@ static inline s32 _mcVerifyFirstByteChecksum(void)
         p   += 1;
         i   += 1;
     } while (i < 9);
-    return ((u16)Mc_SaveData.bufferChecksum ^ (sum & 0xFFFF)) == 0;
+    return ((u16)Mc_SaveData[0].bufferChecksum ^ (sum & 0xFFFF)) == 0;
 }
 
 static void Mc_StateVerifyFinish(Task* arg0, McWork* arg1)
@@ -2294,22 +2291,22 @@ static void Mc_WriteSaveHdrChecksum(void)
     s32 i;
     s16 tmp;
 
-    sum                        = 0;
-    ptr                        = (u8*)&Mc_SaveData;
-    ptr                       += 4;
-    limit                      = 0x38;
-    i                          = 0;
-    Mc_SaveData.hdrChecksum    = 0;
-    Mc_SaveData.hdrChecksumInv = 0xFFFF;
+    sum                           = 0;
+    ptr                           = (u8*)&Mc_SaveData[0];
+    ptr                          += 4;
+    limit                         = 0x38;
+    i                             = 0;
+    Mc_SaveData[0].hdrChecksum    = 0;
+    Mc_SaveData[0].hdrChecksumInv = 0xFFFF;
     do {
         i   += 1;
         tmp  = (s8)*ptr;
         sum  = sum + tmp;
         ptr += 1;
     } while (i < limit);
-    Mc_SaveData.hdrChecksum    = sum;
-    Mc_SaveData.hdrChecksumInv = ~sum;
-    Mc_VerifySaveHdrChecksum(&Mc_SaveData);
+    Mc_SaveData[0].hdrChecksum    = sum;
+    Mc_SaveData[0].hdrChecksumInv = ~sum;
+    Mc_VerifySaveHdrChecksum(&Mc_SaveData[0]);
 }
 
 static s32 Mc_VerifySaveHdrChecksum(McSaveData* arg0)
@@ -2344,7 +2341,7 @@ void Mc_ResetSaveFlags(void)
 {
     McSaveData* p;
 
-    p               = &Mc_SaveData;
+    p               = &Mc_SaveData[0];
     p->vibration    = 0;
     p->buttonLayout = 0;
     p->musicVolume  = 0;
@@ -2566,7 +2563,7 @@ static void Mc_WriteDataChecksum(s32 arg0, McWork* arg1)
     count = 0x200;
     if (arg0 == 0) {
         src = Mc_DefaultChecksumSrc;
-        dst = (s16*)&Mc_SaveData.dataChecksum;
+        dst = (s16*)&Mc_SaveData[0].dataChecksum;
     } else {
         src = (u8*)arg1->field_18;
         dst = (s16*)&arg1->field_A1C;

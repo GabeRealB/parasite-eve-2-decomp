@@ -148,7 +148,7 @@ static s32   func_shelter_b3_garbage_incinerator_8017F318(Task* arg0);
 extern Task* D_shelter_b3_garbage_incinerator_8018FC3C;
 
 /// Main-executable global with no module header yet: the base animation-set
-/// id, whose alternate range `Mc_SaveData.characterId` selects when it is 1.
+/// id, whose alternate range `Mc_SaveData[0].characterId` selects when it is 1.
 
 /// Caption schedule scanned by `func_shelter_b3_garbage_incinerator_8017FA58`.
 extern OverlayCapWindow D_shelter_b3_garbage_incinerator_801871A8[];
@@ -191,7 +191,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
                 if (Player_Status.weapon == 0x17) {
                     p = msg;
                     w = Player_Status.weapon;
-                    if (Mc_SaveData.characterId == 1) {
+                    if (Mc_SaveData[0].characterId == 1) {
                         v = w + 1;
                     } else {
                         v = w + 0x22;
@@ -205,7 +205,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
                 } else {
                     p = msg;
                     w = Player_Status.weapon;
-                    if (Mc_SaveData.characterId == 1) {
+                    if (Mc_SaveData[0].characterId == 1) {
                         v = w + 1;
                     } else {
                         v = w + 0x22;
@@ -385,14 +385,14 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                 SndEvt_EnqueueType6(0x54280003, 0, 0);
                 if (gGameSession->at4.loc.room < 4) {
                     gGameSession->at4.loc.room   = 2;
-                    Mc_SaveData.at4.loc.room     = 2;
+                    Mc_SaveData[0].at4.loc.room  = 2;
                     gGameSession->eventRoomIndex = 1;
                     gGameSession->roomObjsDirty  = 1;
                     gGameSession->eventRoomIndex = gGameSession->at4.loc.room - 1;
                     gGameSession->field_133      = 0;
                 } else {
                     gGameSession->at4.loc.room   = 5;
-                    Mc_SaveData.at4.loc.room     = 5;
+                    Mc_SaveData[0].at4.loc.room  = 5;
                     gGameSession->eventRoomIndex = 4;
                     gGameSession->roomObjsDirty  = 1;
                     gGameSession->eventRoomIndex = gGameSession->at4.loc.room - 1;
@@ -427,12 +427,12 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             if (((_DescentWork*)task->work)->view != gGameSession->at4.loc.view) {
                 if (gGameSession->at4.loc.room < 4) {
                     gGameSession->at4.loc.room   = 3;
-                    Mc_SaveData.at4.loc.room     = 3;
+                    Mc_SaveData[0].at4.loc.room  = 3;
                     gGameSession->eventRoomIndex = 2;
                     gGameSession->roomObjsDirty  = 1;
                 } else {
                     gGameSession->at4.loc.room   = 6;
-                    Mc_SaveData.at4.loc.room     = 6;
+                    Mc_SaveData[0].at4.loc.room  = 6;
                     gGameSession->eventRoomIndex = 5;
                     gGameSession->roomObjsDirty  = 1;
                 }
@@ -796,7 +796,7 @@ void func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0)
 /// message 0x3ED to it returns nonzero, and 1 otherwise: with no `field_2C`,
 /// with `field_38` below 0x2F, or with a negative table entry nothing is sent;
 /// else the entry plus 0x2F is recorded in `field_38` and sent with message
-/// 0x3E8. The set's block is `Player_Status.weapon + 1` when `Mc_SaveData.characterId` is 1 and
+/// 0x3E8. The set's block is `Player_Status.weapon + 1` when `Mc_SaveData[0].characterId` is 1 and
 /// `Player_Status.weapon + 0x22` otherwise.
 static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
 {
@@ -824,7 +824,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
     anim                = (u16)D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] + 0x2F;
     msgWork             = (GarbageIncineratorWork*)arg0->work;
     weaponId            = Player_Status.weapon;
-    setId               = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    setId               = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = setId;
     msgWork->field_38   = anim;
     msg.field_4         = anim;
@@ -990,7 +990,7 @@ void func_shelter_b3_garbage_incinerator_8017F8A4(Task* arg0, s32 arg1, s32 arg2
 
 /// Select animation set `arg0 + 0x2F`, record it in the work block, and send
 /// it to `field_2C` with message 0x3E8. The set's block is `Player_Status.weapon + 1`
-/// when `Mc_SaveData.characterId` is 1 and `Player_Status.weapon + 0x22` otherwise.
+/// when `Mc_SaveData[0].characterId` is 1 and `Player_Status.weapon + 0x22` otherwise.
 void func_shelter_b3_garbage_incinerator_8017F8AC(s32 arg0)
 {
     GarbageIncineratorWork* work;
@@ -1002,7 +1002,7 @@ void func_shelter_b3_garbage_incinerator_8017F8AC(s32 arg0)
     work                = D_shelter_b3_garbage_incinerator_8018FC3C->work;
     anim                = arg0 + 0x2F;
     weaponId            = Player_Status.weapon;
-    setId               = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    setId               = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = setId;
     work->field_38      = anim;
     msg.field_4         = anim;

@@ -97,10 +97,10 @@ void func_shelter_1f_bulwark_8017D61C(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = D_shelter_1f_bulwark_80180EC4.field_0;
-            Mc_SaveData.at4.loc.warp  = D_shelter_1f_bulwark_80180EC4.field_2;
-            Mc_SaveData.at4.loc.room  = D_shelter_1f_bulwark_80180EC4.field_3;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = D_shelter_1f_bulwark_80180EC4.field_0;
+            Mc_SaveData[0].at4.loc.warp = D_shelter_1f_bulwark_80180EC4.field_2;
+            Mc_SaveData[0].at4.loc.room = D_shelter_1f_bulwark_80180EC4.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -338,12 +338,12 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
             arg0->state = arg0->state + 1;
             break;
         case 3:
-            Mc_SaveData.at4.loc.stage = 5;
-            Mc_SaveData.at4.loc.area  = 0x1A;
-            Mc_SaveData.at4.loc.warp  = 1;
-            Mc_SaveData.at4.loc.room  = 1;
-            gDisplayState.roomVariant = 1;
-            Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 0);
+            Mc_SaveData[0].at4.loc.stage = 5;
+            Mc_SaveData[0].at4.loc.area  = 0x1A;
+            Mc_SaveData[0].at4.loc.warp  = 1;
+            Mc_SaveData[0].at4.loc.room  = 1;
+            gDisplayState.roomVariant    = 1;
+            Fs_BeginBootLoad(&Mc_SaveData[0].at4.loc.view, 0);
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;

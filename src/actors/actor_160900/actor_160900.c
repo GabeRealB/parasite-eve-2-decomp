@@ -777,7 +777,7 @@ static void func_actor_160900_80133238(Task* arg0)
         case 3:
             if ((u16)work->field_4E == 0) {
                 x = Player_Status.weapon;
-                if (Mc_SaveData.characterId == 1) {
+                if (Mc_SaveData[0].characterId == 1) {
                     v = x + 1;
                 } else {
                     v = x + 0x22;
@@ -1248,7 +1248,7 @@ void func_actor_160900_8013418C(Task* arg0)
             break;
         case 2:
             if (gGameSession->eventState == 0) {
-                Mc_SaveData.sceneEvent = 0x1E;
+                Mc_SaveData[0].sceneEvent = 0x1E;
                 Task_RequestKill(arg0, 0);
             }
             break;

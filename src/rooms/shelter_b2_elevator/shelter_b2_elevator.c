@@ -39,7 +39,7 @@ static void func_shelter_b2_elevator_8017DB08(Task* task);
 
 /// The room entry task's first state: installs the room's message table, takes
 /// pointer slot 7 and spawns the two elevator cars. Unless the byte
-/// `Mc_SaveData.demoScene` is 9, it then either runs the first-visit sequence, setting
+/// `Mc_SaveData[0].demoScene` is 9, it then either runs the first-visit sequence, setting
 /// event nibble 0xCF, or on a later visit hides the HUD, spawns the exit task
 /// and runs CAP command 3.
 static void func_shelter_b2_elevator_8017D5E8(Task* task)
@@ -48,7 +48,7 @@ static void func_shelter_b2_elevator_8017D5E8(Task* task)
     Game_SetPtrSlot(task, 7);
     D_shelter_b2_elevator_8017EA00[0] = Task_SpawnFromTable(D_shelter_b2_elevator_8017DF70, 0, 0, -1);
     D_shelter_b2_elevator_8017EA00[1] = Task_SpawnFromTable(D_shelter_b2_elevator_8017DF70, 1, 0, 1);
-    if (Mc_SaveData.demoScene != 9) {
+    if (Mc_SaveData[0].demoScene != 9) {
         if (GameFlag_GetNibble(0xCF) == 0) {
             GameFlag_SetNibble(0xCF, 1);
             func_800E8634((s32)&D_801378D0, 0, (s32)&D_801380F8);
@@ -149,16 +149,16 @@ void func_shelter_b2_elevator_8017D888(Task* task)
         case 2:
             switch (Gp_GetCapEventKey()) {
                 case 0xB:
-                    Mc_SaveData.at4.loc.area = 9;
-                    Mc_SaveData.at4.loc.warp = 3;
+                    Mc_SaveData[0].at4.loc.area = 9;
+                    Mc_SaveData[0].at4.loc.warp = 3;
                     break;
                 case 0xC:
-                    Mc_SaveData.at4.loc.area = 0x1B;
-                    Mc_SaveData.at4.loc.warp = 2;
+                    Mc_SaveData[0].at4.loc.area = 0x1B;
+                    Mc_SaveData[0].at4.loc.warp = 2;
                     break;
                 case 0xD:
-                    Mc_SaveData.at4.loc.area = 0x2A;
-                    Mc_SaveData.at4.loc.warp = 3;
+                    Mc_SaveData[0].at4.loc.area = 0x2A;
+                    Mc_SaveData[0].at4.loc.warp = 3;
                     break;
             }
             task->state++;
@@ -169,14 +169,14 @@ void func_shelter_b2_elevator_8017D888(Task* task)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             msg.field_5 = 0;
-            msg.msgId   = Mc_SaveData.at4.loc.area;
-            msg.field_2 = Mc_SaveData.at4.loc.warp;
-            msg.field_3 = Mc_SaveData.at4.loc.room;
+            msg.msgId   = Mc_SaveData[0].at4.loc.area;
+            msg.field_2 = Mc_SaveData[0].at4.loc.warp;
+            msg.field_3 = Mc_SaveData[0].at4.loc.room;
             msg2        = msg;
             func_80179A04(&msg, &msg2);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.warp  = msg2.field_2;
-            Mc_SaveData.at4.loc.room  = msg2.field_3;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.warp = msg2.field_2;
+            Mc_SaveData[0].at4.loc.room = msg2.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

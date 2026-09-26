@@ -177,9 +177,9 @@ static void func_acropolis_east_elevator_hall_8017D7A4(Task* task)
     width  = 0x1C0;
     work   = task->work;
     extra  = task->extra.tmd;
-    stage  = Mc_SaveData.at4.loc.stage;
-    area   = Mc_SaveData.at4.loc.area;
-    view   = Mc_SaveData.at4.loc.view;
+    stage  = Mc_SaveData[0].at4.loc.stage;
+    area   = Mc_SaveData[0].at4.loc.area;
+    view   = Mc_SaveData[0].at4.loc.view;
     status = &Player_Status;
     if (stage == 5) {
         width = 0x140;
@@ -581,7 +581,7 @@ static void func_acropolis_east_elevator_hall_8017D7A4(Task* task)
             if (halfWidth >= 0x60) {
                 halfWidth = 0x5F;
             }
-            if ((GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_AREA_VIEW) == GP_LOC_KEY(0, 2, 0, 5)) {
+            if ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_AREA_VIEW) == GP_LOC_KEY(0, 2, 0, 5)) {
                 if (task->spawnArg1 == 0) {
                     halfWidth = 0x5F;
                 } else {

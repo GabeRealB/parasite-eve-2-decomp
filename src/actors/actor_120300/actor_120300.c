@@ -338,20 +338,20 @@ static inline void _actor120300SetAnim(Task* task, u16 anim)
 }
 
 /// Sends `target` message 0x3E8 for the player's equipped weapon: the block
-/// index is `Player_Status.weapon` plus 1 when `Mc_SaveData.characterId` is 1,
+/// index is `Player_Status.weapon` plus 1 when `Mc_SaveData[0].characterId` is 1,
 /// plus 0x22 otherwise, and `blend`/`frames` go to `field_8`/`field_C`.
-#define _ACTOR120300_SEND_WEAPON(target, blend, frames)                                           \
-    {                                                                                             \
-        GpAnimArg _msg;                                                                           \
-        s32       _weaponId;                                                                      \
-                                                                                                  \
-        _weaponId            = Player_Status.weapon;                                              \
-        _msg.animBlock.index = (Mc_SaveData.characterId == 1) ? _weaponId + 1 : _weaponId + 0x22; \
-        _msg.field_4         = 1;                                                                 \
-        _msg.field_8         = (blend);                                                           \
-        _msg.field_C         = (frames);                                                          \
-        _msg.field_10        = 0;                                                                 \
-        Gp_DispatchMsg((target), 0x3E8, (s32) & _msg, 0);                                         \
+#define _ACTOR120300_SEND_WEAPON(target, blend, frames)                                              \
+    {                                                                                                \
+        GpAnimArg _msg;                                                                              \
+        s32       _weaponId;                                                                         \
+                                                                                                     \
+        _weaponId            = Player_Status.weapon;                                                 \
+        _msg.animBlock.index = (Mc_SaveData[0].characterId == 1) ? _weaponId + 1 : _weaponId + 0x22; \
+        _msg.field_4         = 1;                                                                    \
+        _msg.field_8         = (blend);                                                              \
+        _msg.field_C         = (frames);                                                             \
+        _msg.field_10        = 0;                                                                    \
+        Gp_DispatchMsg((target), 0x3E8, (s32) & _msg, 0);                                            \
     }
 
 /// Request handler for the code latched in `field_4C0`. While the session
@@ -702,7 +702,7 @@ void func_actor_120300_80133330(s32 arg0)
     Gp_DispatchMsg(work->field_4BC, 0x7D4, (s32)&D_actor_120300_80140B5C, 0);
     if (arg0 == 0) {
         weaponId            = Player_Status.weapon;
-        id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+        id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
         rec.animBlock.index = id;
         rec.field_4         = 1;
         rec.field_8         = 0;
@@ -880,7 +880,7 @@ void func_actor_120300_801337C4(Task* arg0)
                     arg0->state = 4;
                 } else {
                     weaponId = Player_Status.weapon;
-                    if (Mc_SaveData.characterId == 1) {
+                    if (Mc_SaveData[0].characterId == 1) {
                         weaponId = weaponId + 1;
                     } else {
                         weaponId = weaponId + 0x22;
@@ -895,8 +895,8 @@ void func_actor_120300_801337C4(Task* arg0)
                     GameFlag_SetNibble(0x2D, 1);
                     func_800E3FAC(0xA2, 0xB);
                     func_800E8634((s32)&D_actor_120300_80140B94, 0, (s32)&D_actor_120300_80141524);
-                    Mc_SaveData.sceneEvent = 2;
-                    arg0->state           += 1;
+                    Mc_SaveData[0].sceneEvent = 2;
+                    arg0->state              += 1;
                 }
                 Mem_CopyUnaligned(&D_actor_120300_801409A8, &D_8017DD6C, 0x18);
                 Mem_CopyUnaligned(&D_actor_120300_80140A20, &D_8017E1F4, 0x24);

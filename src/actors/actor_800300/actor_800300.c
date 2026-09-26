@@ -101,7 +101,7 @@ static void func_actor_800300_80161E80(Task* arg0)
     obj->ctx.dir    = (GpObjDirRec*)actor->field_88;
     obj->coord      = coord;
     actor->field_90 = (s32)recs;
-    save            = &Mc_SaveData;
+    save            = &Mc_SaveData[0];
     obj->pos.vx     = 0;
     obj->pos.vy     = -0x12C;
     obj->pos.vz     = 0;
@@ -421,7 +421,7 @@ static void func_actor_800300_80162658(Task* arg0)
     Gp_AnimTickChildSlots(arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
-    if (Mc_SaveData.companionHp <= 0) {
+    if (Mc_SaveData[0].companionHp <= 0) {
         Gp_StopPlayerAnim(arg0, 0);
     }
 }
@@ -700,7 +700,7 @@ static void func_actor_800300_80162F98(Task* arg0)
     actor = arg0->work;
     sp.funcs[(u16)actor->field_956](arg0);
     Gp_TurnPlayer(arg0);
-    if (Mc_SaveData.companionHp <= 0) {
+    if (Mc_SaveData[0].companionHp <= 0) {
         Gp_StopPlayerAnim(arg0, 0);
     }
 }

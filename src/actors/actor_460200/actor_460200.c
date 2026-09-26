@@ -277,7 +277,7 @@ void func_actor_460200_80132124(void)
 
 void func_actor_460200_80132204(s8 arg0)
 {
-    Mc_SaveData.sceneEvent = arg0;
+    Mc_SaveData[0].sceneEvent = arg0;
 }
 
 static void func_actor_460200_80132210(void)

@@ -77,12 +77,12 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             if (Task_PollKill(work->child, &poll) == 0) {
                 break;
             }
-            gGameSession->unknown_138 = 1;
-            Mc_SaveData.at4.loc.stage = 4;
-            Mc_SaveData.at4.loc.area  = 0x11;
-            Mc_SaveData.at4.loc.warp  = 2;
-            Mc_SaveData.at4.loc.room  = 1;
-            gDisplayState.roomVariant = 1;
+            gGameSession->unknown_138    = 1;
+            Mc_SaveData[0].at4.loc.stage = 4;
+            Mc_SaveData[0].at4.loc.area  = 0x11;
+            Mc_SaveData[0].at4.loc.warp  = 2;
+            Mc_SaveData[0].at4.loc.room  = 1;
+            gDisplayState.roomVariant    = 1;
             Task_Spawn(0, 0x11, 0, 0);
         case 2:
         next:

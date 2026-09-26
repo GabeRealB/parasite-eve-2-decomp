@@ -145,10 +145,10 @@ void func_dryfield_water_tower_8017D7D8(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = D_dryfield_water_tower_80187694.msgId;
-            Mc_SaveData.at4.loc.warp  = D_dryfield_water_tower_80187694.field_2;
-            Mc_SaveData.at4.loc.room  = (u8)D_dryfield_water_tower_80187694.field_3;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = D_dryfield_water_tower_80187694.msgId;
+            Mc_SaveData[0].at4.loc.warp = D_dryfield_water_tower_80187694.field_2;
+            Mc_SaveData[0].at4.loc.room = (u8)D_dryfield_water_tower_80187694.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -177,7 +177,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
                 Gp_MsgPlayerWeapon(0);
                 Gp_RunCapCmd(7, 0);
                 gGameSession->eventState        = 1;
-                D_dryfield_water_tower_8018768C = Mc_SaveData.at4.loc.view;
+                D_dryfield_water_tower_8018768C = Mc_SaveData[0].at4.loc.view;
                 arg0->state                     = arg0->state + 1;
                 return;
             }
@@ -198,10 +198,10 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
                 Gp_DispatchMsg(D_dryfield_water_tower_801876A0, 0x13EC, 0, 0);
                 SndEvt_EnqueueType6(0x52140009, 0, 0);
             } else {
-                gGameSession->eventState = 0;
-                gGameSession->hideHud    = 0;
-                Gp_StateF0.field_4       = 0;
-                Mc_SaveData.at4.loc.view = D_dryfield_water_tower_8018768C;
+                gGameSession->eventState    = 0;
+                gGameSession->hideHud       = 0;
+                Gp_StateF0.field_4          = 0;
+                Mc_SaveData[0].at4.loc.view = D_dryfield_water_tower_8018768C;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
             }

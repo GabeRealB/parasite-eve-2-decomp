@@ -390,7 +390,7 @@ static void func_actor_311900_801625F0(GpEnemy* enemy, Task* task)
 /// `arg0->coord`'s rotation with `Gfx_MatrixCol2`, normalizes it with
 /// `VectorNormalSS`, scales it by the step on the GTE, adds it to
 /// `arg0->coord.t` and clears `arg0->flg`. Returns the step, or 0 having
-/// touched nothing while the game is paused (`Mc_SaveData.field_5C1 == 1`) or when the
+/// touched nothing while the game is paused (`Mc_SaveData[0].field_5C1 == 1`) or when the
 /// step is zero. `arg0` is the per-part `GpCoord` the caller takes from
 /// `TmdObject::coords`.
 ///
@@ -404,7 +404,7 @@ static s32 func_actor_311900_80162658(GpCoord* arg0, s16 arg1)
     SVECTOR* vec;
     SVECTOR* gte;
 
-    if (Mc_SaveData.field_5C1 == 1) {
+    if (Mc_SaveData[0].field_5C1 == 1) {
         return 0;
     }
     head                  = SCRATCH_HEAD(SVECTOR);

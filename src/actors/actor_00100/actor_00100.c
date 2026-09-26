@@ -177,7 +177,7 @@ static void Actor00100_Fn001FC(GpCoord* coord, s16 yaw)
 /// apart cancel each other. Each remaining bearing becomes a short step
 /// against it, added to both `pos` and the coordinate's translation. Returns
 /// whether a kind 0x10000 record was among them. Does nothing, and returns 0,
-/// while the session's `viewReady` or `Mc_SaveData.field_5C1` is 1.
+/// while the session's `viewReady` or `Mc_SaveData[0].field_5C1` is 1.
 static s32 Actor00100_Fn00508(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
@@ -186,7 +186,7 @@ static s32 Actor00100_Fn00508(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR*
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].field_5C1 == 1) {
         return 0;
     }
 
@@ -566,7 +566,7 @@ static s32 Actor00100_Fn01388(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR*
     SCRATCH_HEAD(u8) = head - sizeof(Actor00100AvoidScratch16);
     s                = (Actor00100AvoidScratch16*)SCRATCH_HEAD(u8);
 
-    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
 
@@ -4096,7 +4096,7 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                 if (command == &Actor00100_D1B9D0) {
                     if ((config->hp > 0) && ((s16)work->field_C28 >= 0x17)) {
                         message           = &work->field_BF8;
-                        command->field_10 = (s32)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon]->field_1C;
+                        command->field_10 = (s32)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]->field_1C;
                         work->field_BFC   = 4;
                         work->field_C00   = 1;
                         work->field_C04   = 3;
@@ -4105,7 +4105,7 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                     }
                 } else if ((config->hp > 0) && ((s16)work->field_C28 >= 0x22)) {
                     message                 = &work->field_BF8;
-                    Actor00100_D1B9BC.value = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon]->field_1C;
+                    Actor00100_D1B9BC.value = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]->field_1C;
                     work->field_BFC         = 4;
                     work->field_C00         = 1;
                     work->field_C04         = 3;
@@ -4151,9 +4151,9 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                         work->field_BFC = 5;
                         command2        = work->field_BF8;
                         if (command2 == &Actor00100_D1B9D0) {
-                            command2->field_14 = (s32)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon]->field_24;
+                            command2->field_14 = (s32)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]->field_24;
                         } else {
-                            Actor00100_D1B9C0.value = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon]->field_24;
+                            Actor00100_D1B9C0.value = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]->field_24;
                         }
                         nextMessage = &work->field_BF8;
                         Gp_DispatchMsg(player, 0x3FF, (s32)nextMessage, 0);

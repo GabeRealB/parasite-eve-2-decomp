@@ -51,9 +51,9 @@ STATIC_ASSERT_SIZEOF(AobFlareScratch, 0x18);
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
-/// `Mc_SaveData.characterId` picks which of the two weapon-id bases that record uses, and
+/// `Mc_SaveData[0].characterId` picks which of the two weapon-id bases that record uses, and
 /// `gDisplayState.pendingMode` / `Gp_StateC08.field_A` gate the scene's setup (the latter is the
-/// cutscene/among-us mode flag). `Mc_SaveData.at4.loc.room` is the field-actor mode byte the
+/// cutscene/among-us mode flag). `Mc_SaveData[0].at4.loc.room` is the field-actor mode byte the
 /// scene switches to 1 when it hands control back.
 
 /// Payloads the observatory scene task sends: `..._8017FE60` is the record
@@ -136,14 +136,14 @@ void func_acropolis_observatory_8017E19C(Task* task)
             break;
         case 5:
             weaponId            = Player_Status.weapon;
-            id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animBlock.index = id;
             rec.field_4         = 1;
             rec.field_8         = 0;
             rec.field_C         = 0;
             rec.field_10        = 0;
             Gp_DispatchMsg(work->target, 0x3E8, (s32)&rec, 0);
-            Mc_SaveData.at4.loc.room    = 1;
+            Mc_SaveData[0].at4.loc.room = 1;
             gGameSession->at4.loc.room  = 1;
             gGameSession->roomObjsDirty = 1;
             gGameSession->viewDirty     = 1;

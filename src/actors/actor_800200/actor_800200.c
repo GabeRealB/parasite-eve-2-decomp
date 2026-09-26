@@ -141,7 +141,7 @@ static void func_actor_800200_80162088(Task* arg0)
     obj->ctx.dir    = (GpObjDirRec*)actor->field_88;
     obj->coord      = coord;
     actor->field_90 = (s32)recs;
-    save            = &Mc_SaveData;
+    save            = &Mc_SaveData[0];
     obj->pos.vx     = 0;
     obj->pos.vy     = -0xFA;
     obj->pos.vz     = 0;

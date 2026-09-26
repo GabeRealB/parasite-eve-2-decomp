@@ -827,13 +827,13 @@ static void func_neo_ark_altar_8017EF00(Task* arg0)
     s16* viewDirty;
 
     /* Through a pointer rather than as a member: a member store is struct
-       memory, which the scheduler lets the store to `Mc_SaveData.at4.loc.room` pass, and the
+       memory, which the scheduler lets the store to `Mc_SaveData[0].at4.loc.room` pass, and the
        original keeps the two in source order. */
-    viewDirty                  = &gGameSession->viewDirty;
-    *viewDirty                 = 1;
-    Mc_SaveData.at4.loc.room   = 2;
-    gGameSession->at4.loc.room = 2;
-    arg0->state                = (s32)(arg0->state + 1);
+    viewDirty                   = &gGameSession->viewDirty;
+    *viewDirty                  = 1;
+    Mc_SaveData[0].at4.loc.room = 2;
+    gGameSession->at4.loc.room  = 2;
+    arg0->state                 = (s32)(arg0->state + 1);
 }
 
 static void func_neo_ark_altar_8017EF34(Task* arg0)

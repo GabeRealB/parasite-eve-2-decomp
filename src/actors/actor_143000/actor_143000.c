@@ -303,13 +303,13 @@ static void func_actor_143000_801324C8(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->spawnArg2          = Task_SpawnFromTable(&D_actor_143000_80134558, 0, 1, 0);
-    arg0->work               = (TaskIdMap*)work;
-    temp_a0                  = Mc_SaveData.at4.loc.view;
-    Mc_SaveData.at4.loc.view = 0xB;
-    D_actor_143000_80135C0C  = temp_a0;
-    arg0->state             += 1;
-    work->field_4            = 0;
+    arg0->spawnArg2             = Task_SpawnFromTable(&D_actor_143000_80134558, 0, 1, 0);
+    arg0->work                  = (TaskIdMap*)work;
+    temp_a0                     = Mc_SaveData[0].at4.loc.view;
+    Mc_SaveData[0].at4.loc.view = 0xB;
+    D_actor_143000_80135C0C     = temp_a0;
+    arg0->state                += 1;
+    work->field_4               = 0;
     Display_AcquireRef();
     if (p->field_8 != -1) {
         do {
@@ -360,7 +360,7 @@ static void func_actor_143000_801325F0(Task* arg0)
         return;
     }
     prompt->targetId = 0x80;
-    if (Mc_SaveData.demoScene == 9) {
+    if (Mc_SaveData[0].demoScene == 9) {
         func_actor_143000_80133C2C();
     }
     work->field_2 = 0;
@@ -460,7 +460,7 @@ static const TaskFuncTable11 D_actor_143000_80131E84 = { {
 } };
 
 /// The codes `func_actor_143000_80132A04` accepts; the second only while
-/// `Mc_SaveData.demoScene` is non-zero.
+/// `Mc_SaveData[0].demoScene` is non-zero.
 static const char D_actor_143000_80131EB0[] = "A3EILM2S2Y";
 static const char D_actor_143000_80131EBC[] = "YSD";
 
@@ -473,7 +473,7 @@ static void func_actor_143000_80132A04(Task* arg0)
     temp_s0 = arg0->work;
     var_s2  = 0;
     if (arg0->killCountdown == 0) {
-        if ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EB0) == 0) || ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EBC) == 0) && (Mc_SaveData.demoScene != 0))) {
+        if ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EB0) == 0) || ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EBC) == 0) && (Mc_SaveData[0].demoScene != 0))) {
             var_s2 = 1;
         }
         temp_s0->field_C = var_s2;
@@ -695,7 +695,7 @@ static void func_actor_143000_80132D10(Task* arg0)
 
 /// Outlines the hotspot rect `rect` in (`r`, `g`, `b`) with four flat
 /// `LINE_F2` edges linked into `gGpuCurrentOt[1]`. Only reached while
-/// `Mc_SaveData.demoScene` or `Mc_SaveData.demoScene` is 9, to show the hotspot rects.
+/// `Mc_SaveData[0].demoScene` or `Mc_SaveData[0].demoScene` is 9, to show the hotspot rects.
 static void func_actor_143000_80133334(Actor143000Rect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
@@ -857,11 +857,11 @@ static void func_actor_143000_80133800(Task* arg0)
     Display_ReleaseRef();
     gGameSession->cutsceneHold = 0;
     if (work->field_C == 0) {
-        D_80114D08               = 0xA;
-        gGameSession->eventState = 0;
-        gGameSession->hideHud    = 0;
-        Gp_StateF0.field_4       = 0;
-        Mc_SaveData.at4.loc.view = D_actor_143000_80135C0C;
+        D_80114D08                  = 0xA;
+        gGameSession->eventState    = 0;
+        gGameSession->hideHud       = 0;
+        Gp_StateF0.field_4          = 0;
+        Mc_SaveData[0].at4.loc.view = D_actor_143000_80135C0C;
         Gp_MsgPlayer3F3(1);
     } else {
         Task_SpawnFromTable(&D_actor_143000_801350B0, 1, 0, (s32)&D_actor_143000_80135C08);
@@ -942,7 +942,7 @@ static s32 func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y)
     if (p->field_8 != -1) {
         do {
             if (x >= p->x && x < p->x + p->w && y >= p->y && y < p->y + p->h) {
-                if (Mc_SaveData.demoScene == 9) {
+                if (Mc_SaveData[0].demoScene == 9) {
                     func_actor_143000_80133334(p, 0, 0, 0);
                 }
                 p->field_B = 1;
@@ -950,7 +950,7 @@ static s32 func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y)
                     result = p->field_8;
                 }
             } else {
-                if (Mc_SaveData.demoScene == 9) {
+                if (Mc_SaveData[0].demoScene == 9) {
                     func_actor_143000_80133334(p, 0xFF, 0, 0);
                 }
                 p->field_B = 0;

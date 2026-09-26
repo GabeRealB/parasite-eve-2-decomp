@@ -164,10 +164,10 @@ void func_mine_mesa_8017D670(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = D_mine_mesa_80189B40.field_0;
-            Mc_SaveData.at4.loc.warp  = D_mine_mesa_80189B40.field_2;
-            Mc_SaveData.at4.loc.room  = D_mine_mesa_80189B40.field_3;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = D_mine_mesa_80189B40.field_0;
+            Mc_SaveData[0].at4.loc.warp = D_mine_mesa_80189B40.field_2;
+            Mc_SaveData[0].at4.loc.room = D_mine_mesa_80189B40.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -311,7 +311,7 @@ static void func_mine_mesa_8017DC80(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0x90) == 0) {
         if (gameGetPtrSlot(0xA) != NULL) {
-            Mc_SaveData.companionHp = 5;
+            Mc_SaveData[0].companionHp = 5;
             Task_SpawnFromTable(&D_mine_mesa_80181990, 0, 0, 0);
         }
         GameFlag_SetNibble(0x1BD, 0);
@@ -819,7 +819,7 @@ void func_mine_mesa_8017EA24(void)
 {
     if (GameFlag_GetNibble(0x4C) != 0) {
         GameFlag_SetNibble(0x4C, 0);
-        Mc_SaveData.companionType = 0;
+        Mc_SaveData[0].companionType = 0;
         Task_CallExit(gameGetPtrSlot(0xA));
         Game_SetPtrSlot(NULL, 0xA);
     }
@@ -1733,7 +1733,7 @@ static void func_mine_mesa_80181358(Task* arg0)
         place      = (GpAreaPlace*)Gp_GetNestedAreaRec(&key)->field_0;
         tmd->tpage = place->tpage;
         tmd->clut  = place->clut;
-        if (Mc_SaveData.demoScene == 10) {
+        if (Mc_SaveData[0].demoScene == 10) {
             printf("tpage=%x, clut=%x, eno=%x\n", (s8)place->tpage, (s8)place->clut, 0);
         }
         if (tmd->buffer != NULL) {
@@ -1750,10 +1750,10 @@ static void func_mine_mesa_80181358(Task* arg0)
         return;
     }
 end:
-    Mc_SaveData.companionType = 0;
-    arg0->spawnArg2           = &result;
-    result.param              = NULL;
-    Gp_StateF0.field_6        = 1;
+    Mc_SaveData[0].companionType = 0;
+    arg0->spawnArg2              = &result;
+    result.param                 = NULL;
+    Gp_StateF0.field_6           = 1;
     Gp_ReleaseStateF0(arg0, 0);
     gStageSceneMusicEntry = 1;
     arg0->state++;

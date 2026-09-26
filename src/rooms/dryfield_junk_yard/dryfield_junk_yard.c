@@ -283,10 +283,10 @@ s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, GpMsg13EF* msg)
 }
 
 /// Room script callback, named by two of the room's script records (command
-/// 0xD, argument 5): stores its argument into `Mc_SaveData.sceneEvent`.
+/// 0xD, argument 5): stores its argument into `Mc_SaveData[0].sceneEvent`.
 void func_dryfield_junk_yard_8017DC54(s8 arg0)
 {
-    Mc_SaveData.sceneEvent = arg0;
+    Mc_SaveData[0].sceneEvent = arg0;
 }
 
 /// State 1 of the room task: once `gDisplayState.field_112` is non-zero and a slot-0xA

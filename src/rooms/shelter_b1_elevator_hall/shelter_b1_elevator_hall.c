@@ -44,16 +44,16 @@ void func_shelter_b1_elevator_hall_8017D620(Task* task)
             Gp_StateF0.field_4 = 1;
             switch (Gp_GetCapEventKey()) {
                 case 0xB:
-                    Mc_SaveData.at4.loc.area = 9;
-                    Mc_SaveData.at4.loc.warp = 3;
+                    Mc_SaveData[0].at4.loc.area = 9;
+                    Mc_SaveData[0].at4.loc.warp = 3;
                     break;
                 case 0xC:
-                    Mc_SaveData.at4.loc.area = 0x1B;
-                    Mc_SaveData.at4.loc.warp = 2;
+                    Mc_SaveData[0].at4.loc.area = 0x1B;
+                    Mc_SaveData[0].at4.loc.warp = 2;
                     break;
                 case 0xD:
-                    Mc_SaveData.at4.loc.area = 0x2A;
-                    Mc_SaveData.at4.loc.warp = 3;
+                    Mc_SaveData[0].at4.loc.area = 0x2A;
+                    Mc_SaveData[0].at4.loc.warp = 3;
                     break;
                 default:
                     Gp_MsgPlayerWeapon(1);
@@ -73,13 +73,13 @@ void func_shelter_b1_elevator_hall_8017D620(Task* task)
             SndEvt_EnqueueType7(0x80000000, 0);
             msg.field_3 = 1;
             msg.field_5 = 0;
-            msg.msgId   = Mc_SaveData.at4.loc.area;
-            msg.field_2 = Mc_SaveData.at4.loc.warp;
+            msg.msgId   = Mc_SaveData[0].at4.loc.area;
+            msg.field_2 = Mc_SaveData[0].at4.loc.warp;
             msg2        = msg;
             func_80179A04((GpSaveLoc*)&msg, (GpSaveLoc*)&msg2);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.warp  = msg2.field_2;
-            Mc_SaveData.at4.loc.room  = msg2.field_3;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.warp = msg2.field_2;
+            Mc_SaveData[0].at4.loc.room = msg2.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -183,10 +183,10 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
             break;
         case 6:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = (u8)D_shelter_b1_elevator_hall_801849F8.field_2;
-            Mc_SaveData.at4.loc.warp  = (u8)D_shelter_b1_elevator_hall_801849F8.field_4;
-            Mc_SaveData.at4.loc.room  = (u8)D_shelter_b1_elevator_hall_801849F8.field_1;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = (u8)D_shelter_b1_elevator_hall_801849F8.field_2;
+            Mc_SaveData[0].at4.loc.warp = (u8)D_shelter_b1_elevator_hall_801849F8.field_4;
+            Mc_SaveData[0].at4.loc.room = (u8)D_shelter_b1_elevator_hall_801849F8.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;

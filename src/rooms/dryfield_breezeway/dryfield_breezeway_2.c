@@ -201,7 +201,7 @@ extern u8 D_dryfield_breezeway_80183164[];
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
-/// `Mc_SaveData.characterId` picks which of the two weapon-id bases that record uses.
+/// `Mc_SaveData[0].characterId` picks which of the two weapon-id bases that record uses.
 /// `gDisplayState.pendingMode` gates the "everything is dead" message and `Gp_StateC08.field_A` the
 /// cutscene/among-us mode flag: the second arming state machine below waits for
 /// both to be clear.
@@ -288,12 +288,12 @@ static void func_dryfield_breezeway_8017DEC0(Task* arg0)
             Gp_DispatchMsg(work->field_4, 0x7D4, (s32)&D_dryfield_breezeway_80181E28, 0);
             Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_dryfield_breezeway_80181E40[0], 0);
             Gp_DispatchMsg(work->field_0, 0x3EE, (s32)&D_dryfield_breezeway_80181E40[1], 0);
-            Mc_SaveData.at4.loc.view = Gp_FindViewIndex(4);
+            Mc_SaveData[0].at4.loc.view = Gp_FindViewIndex(4);
             break;
         case 2:
             rec                     = &buf.rec;
             id                      = Player_Status.weapon;
-            buf.rec.animBlock.index = (Mc_SaveData.characterId == 1) ? id + 1 : id + 0x22;
+            buf.rec.animBlock.index = (Mc_SaveData[0].characterId == 1) ? id + 1 : id + 0x22;
             rec->field_4            = 9;
             rec->field_8            = 1;
             rec->field_C            = 0xA;
@@ -383,7 +383,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
                 work->field_8                 = (void*)Gp_FindWorkById(id)->field_0;
             }
             id                  = Player_Status.weapon;
-            buf.animBlock.index = (Mc_SaveData.characterId == 1) ? id + 1 : id + 0x22;
+            buf.animBlock.index = (Mc_SaveData[0].characterId == 1) ? id + 1 : id + 0x22;
             buf.field_4         = 1;
             buf.field_8         = 1;
             buf.field_C         = 0xA;
@@ -436,7 +436,7 @@ void func_dryfield_breezeway_8017E390(void)
     s32       id;
 
     id                      = Player_Status.weapon;
-    buf.rec.animBlock.index = (Mc_SaveData.characterId == 1) ? id + 1 : id + 0x22;
+    buf.rec.animBlock.index = (Mc_SaveData[0].characterId == 1) ? id + 1 : id + 0x22;
     buf.rec.field_4         = 9;
     buf.rec.field_8         = 0;
     buf.rec.field_C         = 0;
@@ -457,7 +457,7 @@ void func_dryfield_breezeway_8017E390(void)
 /// (`D_dryfield_breezeway_80182DCC`, the one 0x13F1 record) goes to
 /// `Task::msgTable` -- which is what routes the key-item query into this room
 /// at all -- and the room's own event task is spawned from
-/// `D_dryfield_breezeway_80182DC0` into `Task::spawnArg2`. `Mc_SaveData.at4.loc.view` is
+/// `D_dryfield_breezeway_80182DC0` into `Task::spawnArg2`. `Mc_SaveData[0].at4.loc.view` is
 /// stamped with 6, the area-record index the view gate reads back.
 ///
 /// The event object then draws with the room's lighting rather than the shared
@@ -473,7 +473,7 @@ void func_dryfield_breezeway_8017E390(void)
 /// behind is load-bearing twice: its loop depth doubles those stores' ref
 /// weights, which is what lifts the 6 above the state reload in `local-alloc`'s
 /// quantity order, and it stops that reload being hoisted above the
-/// `Mc_SaveData.at4.loc.view` store once it holds `$v0`. Three plain statements instead of
+/// `Mc_SaveData[0].at4.loc.view` store once it holds `$v0`. Three plain statements instead of
 /// the wrapper score 98.5%; wrapping a fourth statement reweights it too and
 /// does not match.
 ///
@@ -499,9 +499,9 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
 
     arg0->spawnArg2 = Task_SpawnFromTable(&D_dryfield_breezeway_80182DC0, 0, 1, 0);
     do {
-        arg0->msgTable           = D_dryfield_breezeway_80182DCC;
-        arg0->work               = (TaskIdMap*)work;
-        Mc_SaveData.at4.loc.view = 6;
+        arg0->msgTable              = D_dryfield_breezeway_80182DCC;
+        arg0->work                  = (TaskIdMap*)work;
+        Mc_SaveData[0].at4.loc.view = 6;
     } while (0);
     arg0->state   += 1;
     work->field_40 = 0;
@@ -1423,7 +1423,7 @@ static void func_dryfield_breezeway_8017FE08(Task* task)
 /// Exit state of the room's key-item event task, undoing its set-up
 /// (`func_dryfield_breezeway_8017E464`): sends the two player messages with 1,
 /// releases the display reference, clears the session's event, HUD and
-/// cutscene holds, puts `Mc_SaveData.at4.loc.view` back from 6 to 4, kills the prompt task
+/// cutscene holds, puts `Mc_SaveData[0].at4.loc.view` back from 6 to 4, kills the prompt task
 /// the set-up spawned (`Task::spawnArg2`) and asks for its own removal.
 static void func_dryfield_breezeway_8017FE90(Task* arg0)
 {
@@ -1431,10 +1431,10 @@ static void func_dryfield_breezeway_8017FE90(Task* arg0)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState   = 0;
-    gGameSession->hideHud      = 0;
-    gGameSession->cutsceneHold = 0;
-    Mc_SaveData.at4.loc.view   = 4;
+    gGameSession->eventState    = 0;
+    gGameSession->hideHud       = 0;
+    gGameSession->cutsceneHold  = 0;
+    Mc_SaveData[0].at4.loc.view = 4;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     taskKill((Task*)arg0->spawnArg2);
     Task_RequestKill(arg0, 0);

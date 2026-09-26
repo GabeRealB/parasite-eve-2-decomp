@@ -136,10 +136,10 @@ void func_dryfield_night_motel_balcony_8017D7F8(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = D_dryfield_night_motel_balcony_8018F2D4.msgId;
-            Mc_SaveData.at4.loc.warp  = D_dryfield_night_motel_balcony_8018F2D4.field_2;
-            Mc_SaveData.at4.loc.room  = (u8)D_dryfield_night_motel_balcony_8018F2D4.field_3;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = D_dryfield_night_motel_balcony_8018F2D4.msgId;
+            Mc_SaveData[0].at4.loc.warp = D_dryfield_night_motel_balcony_8018F2D4.field_2;
+            Mc_SaveData[0].at4.loc.room = (u8)D_dryfield_night_motel_balcony_8018F2D4.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -150,7 +150,7 @@ void func_dryfield_night_motel_balcony_8017D7F8(Task* task)
 /// from game flags for messages 0x1C, 0xF and 0x1F, then routes messages 0x1C,
 /// 0x1F and 0x1E through the event gate with each one's request; when the
 /// gate fires, it updates the collected and seen item bits (and, for 0x1E, a
-/// flag nibble and `Mc_SaveData.sceneEvent`). Any other message answers 1; a gate result
+/// flag nibble and `Mc_SaveData[0].sceneEvent`). Any other message answers 1; a gate result
 /// of 0 is reported as 2.
 s32 func_dryfield_night_motel_balcony_8017D968(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
 {
@@ -205,7 +205,7 @@ s32 func_dryfield_night_motel_balcony_8017D968(Task* task, s32 msgId, RoomEventM
         ret         = func_dryfield_night_motel_balcony_8017D694(&req, out);
         if (D_dryfield_night_motel_balcony_8018F2DC != 0) {
             GameFlag_SetNibble(0x30, 1);
-            Mc_SaveData.sceneEvent = 3;
+            Mc_SaveData[0].sceneEvent = 3;
             func_800E3FAC(0xA2, 0xC);
         }
     } else {

@@ -163,9 +163,9 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 2:
             blackout                   = 1;
-            gGameSession->at4.loc.room = Mc_SaveData.at4.loc.room = 2;
-            gGameSession->roomObjsDirty                           = 1;
-            task->state                                          += 1;
+            gGameSession->at4.loc.room = Mc_SaveData[0].at4.loc.room = 2;
+            gGameSession->roomObjsDirty                              = 1;
+            task->state                                             += 1;
             break;
         case 3:
             blackout = 1;
@@ -196,9 +196,9 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
         case 7:
             blackout = 1;
             if (CdCmd_IsIdle()) {
-                Gp_SetAreaObjId(&Mc_SaveData.at4.loc, 2, 1);
-                Gp_SyncAreaKeyIndex(&Mc_SaveData.at4.loc);
-                Gp_SpawnArea(&Mc_SaveData.at4.loc);
+                Gp_SetAreaObjId(&Mc_SaveData[0].at4.loc, 2, 1);
+                Gp_SyncAreaKeyIndex(&Mc_SaveData[0].at4.loc);
+                Gp_SpawnArea(&Mc_SaveData[0].at4.loc);
                 D_801156A4  &= ~0x40;
                 task->state += 1;
             }
@@ -332,16 +332,16 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             GameFlag_SetNibble(0x155, 4);
             GameFlag_SetNibble(0xE, 1);
             Gp_ApplyAreaRecs(D_acropolis_cafeteria_8018C9D4);
-            Mc_SaveData.sceneEvent = 4;
+            Mc_SaveData[0].sceneEvent = 4;
             func_800E3FAC(0xA2, 4);
             func_800ABFF8();
             func_800AC000();
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData.at4.loc.stage = 1;
-            Mc_SaveData.at4.loc.area  = 3;
-            Mc_SaveData.at4.loc.warp  = 3;
-            Mc_SaveData.at4.loc.room  = 3;
-            gDisplayState.roomVariant = 1;
+            Mc_SaveData[0].at4.loc.stage = 1;
+            Mc_SaveData[0].at4.loc.area  = 3;
+            Mc_SaveData[0].at4.loc.warp  = 3;
+            Mc_SaveData[0].at4.loc.room  = 3;
+            gDisplayState.roomVariant    = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

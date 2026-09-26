@@ -143,7 +143,7 @@ static void func_neo_ark_power_plant_2_8017D758(Task* task)
             if (GameFlag_GetNibble(0xF3) != 0) {
                 Gp_ApplyAreaRecs(D_neo_ark_power_plant_2_80182F94);
             }
-            Mc_SaveData.sceneEvent = 0x17;
+            Mc_SaveData[0].sceneEvent = 0x17;
             func_800E3FAC(0xA2, 0x2E);
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 7);

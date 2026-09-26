@@ -49,13 +49,13 @@ s32 func_shelter_r49_8017D640(void)
 }
 
 /// The room task's setup state: installs the room's message table, stores the
-/// task in pointer slot 7 and, unless `Mc_SaveData.demoScene` is 9, calls
+/// task in pointer slot 7 and, unless `Mc_SaveData[0].demoScene` is 9, calls
 /// `func_800E8634`.
 static void func_shelter_r49_8017D648(Task* arg0)
 {
     arg0->msgTable = D_shelter_r49_8017D9D8;
     Game_SetPtrSlot(arg0, 7);
-    if (Mc_SaveData.demoScene != 9) {
+    if (Mc_SaveData[0].demoScene != 9) {
         func_800E8634((s32)&D_80133560, 0, (s32)&D_80133860);
     }
     arg0->state = (s32)(arg0->state + 1);

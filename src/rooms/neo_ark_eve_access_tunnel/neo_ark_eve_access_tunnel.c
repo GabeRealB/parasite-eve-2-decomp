@@ -46,7 +46,7 @@ extern s16 D_80114D08;
 
 /// Staging save location the room commits when the tunnel's save is taken:
 /// `field_2` / `field_4` / `field_1` hold what `func_neo_ark_eve_access_tunnel_8017DB18`
-/// later copies into `Mc_SaveData.at4.loc.area` / `warp` / `room`.
+/// later copies into `Mc_SaveData[0].at4.loc.area` / `warp` / `room`.
 extern GpSaveLoc D_neo_ark_eve_access_tunnel_801807A0;
 
 /// The room's message table, installed in `Task::msgTable` by the room task's
@@ -201,11 +201,11 @@ void func_neo_ark_eve_access_tunnel_8017D810(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.stage = D_neo_ark_eve_access_tunnel_801807A8.stage;
-            Mc_SaveData.at4.loc.area  = D_neo_ark_eve_access_tunnel_801807A8.area;
-            Mc_SaveData.at4.loc.warp  = D_neo_ark_eve_access_tunnel_801807A8.warp;
-            Mc_SaveData.at4.loc.room  = D_neo_ark_eve_access_tunnel_801807A8.room;
+            gDisplayState.roomVariant    = 1;
+            Mc_SaveData[0].at4.loc.stage = D_neo_ark_eve_access_tunnel_801807A8.stage;
+            Mc_SaveData[0].at4.loc.area  = D_neo_ark_eve_access_tunnel_801807A8.area;
+            Mc_SaveData[0].at4.loc.warp  = D_neo_ark_eve_access_tunnel_801807A8.warp;
+            Mc_SaveData[0].at4.loc.room  = D_neo_ark_eve_access_tunnel_801807A8.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -321,10 +321,10 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             task->state++;
             return;
         case 4:
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = D_neo_ark_eve_access_tunnel_801807A0.field_2;
-            Mc_SaveData.at4.loc.warp  = D_neo_ark_eve_access_tunnel_801807A0.field_4;
-            Mc_SaveData.at4.loc.room  = D_neo_ark_eve_access_tunnel_801807A0.field_1;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = D_neo_ark_eve_access_tunnel_801807A0.field_2;
+            Mc_SaveData[0].at4.loc.warp = D_neo_ark_eve_access_tunnel_801807A0.field_4;
+            Mc_SaveData[0].at4.loc.room = D_neo_ark_eve_access_tunnel_801807A0.field_1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -359,7 +359,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, GpSaveLoc* sr
                     break;
                 default:
                     if (src->field_5 == 0) {
-                        Mc_SaveData.sceneEvent                       = 0x18;
+                        Mc_SaveData[0].sceneEvent                    = 0x18;
                         D_neo_ark_eve_access_tunnel_801807A0.field_2 = dst->field_0;
                         D_neo_ark_eve_access_tunnel_801807A0.field_4 = dst->field_2;
                         D_neo_ark_eve_access_tunnel_801807A0.field_1 = dst->field_3;

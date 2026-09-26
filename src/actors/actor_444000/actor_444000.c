@@ -44,7 +44,7 @@ typedef struct Actor444000EventWork {
     /* 0x00 */ byte  pad_0[0x20];
     /* 0x20 */ Task* field_20; // gameGetPtrSlot(3) task, the Gp_DispatchMsg target
     /* 0x24 */ Task* field_24; // subordinate task, killed and cleared by func_actor_444000_80132694
-                               /// Area-record id published to `Mc_SaveData.at4.loc.view` on every enter/re-enter. The
+                               /// Area-record id published to `Mc_SaveData[0].at4.loc.view` on every enter/re-enter. The
                                /// spawn state writes it as a halfword, clearing the byte at 0x29 with it,
                                /// while every reader takes the low byte, so both views are named.
     /* 0x28 */ union {
@@ -144,7 +144,7 @@ extern Task* D_actor_444000_80161878;
 extern GpAreaApplyRec D_8018FB6C[];
 
 /// Main-executable globals with no module header yet: `gDisplayState.pendingMode` gates the
-/// event on the "everything is dead" state, and `Mc_SaveData.sceneEvent` is the ending
+/// event on the "everything is dead" state, and `Mc_SaveData[0].sceneEvent` is the ending
 /// selector the death sequence latches.
 
 /// Gameplay-resident globals the state-3 hand-off touches: `D_80187150` is the
@@ -329,7 +329,7 @@ static void func_actor_444000_80132054(Task* task)
         case 1:
             /* Install the weapon-specific player animation on the slot-3 task. */
             anim = Player_Status.weapon;
-            if (Mc_SaveData.characterId == 1) {
+            if (Mc_SaveData[0].characterId == 1) {
                 anim += 1;
             } else {
                 anim += 0x22;
@@ -385,30 +385,30 @@ void func_actor_444000_801321FC(s32 arg0)
     work = (Actor444000EventWork*)D_actor_444000_80161860->work;
     switch (arg0) {
         case 0:
-            gGameSession->viewDirty  = 1;
-            Mc_SaveData.at4.loc.view = work->field_28.b;
+            gGameSession->viewDirty     = 1;
+            Mc_SaveData[0].at4.loc.view = work->field_28.b;
             break;
         case 1:
         case 2:
             switch (gGameSession->field_132) {
                 case 0:
-                    gGameSession->at4.loc.room = 4;
-                    Mc_SaveData.at4.loc.room   = 4;
+                    gGameSession->at4.loc.room  = 4;
+                    Mc_SaveData[0].at4.loc.room = 4;
                     break;
                 case 1:
-                    gGameSession->at4.loc.room = 5;
-                    Mc_SaveData.at4.loc.room   = 5;
+                    gGameSession->at4.loc.room  = 5;
+                    Mc_SaveData[0].at4.loc.room = 5;
                     break;
                 case 2:
                 case 3:
-                    gGameSession->at4.loc.room = 6;
-                    Mc_SaveData.at4.loc.room   = 6;
+                    gGameSession->at4.loc.room  = 6;
+                    Mc_SaveData[0].at4.loc.room = 6;
                     break;
             }
             gGameSession->eventRoomIndex = gGameSession->at4.loc.room - 1;
             gGameSession->field_133      = 1;
             gGameSession->roomObjsDirty  = 1;
-            Mc_SaveData.at4.loc.view     = work->field_28.b;
+            Mc_SaveData[0].at4.loc.view  = work->field_28.b;
             Gp_ApplyAreaRecs(D_8018FB6C);
             if (arg0 == 1) {
                 work->field_24 = Task_Spawn(1, 0x2D, 0x10, 0);
@@ -483,14 +483,14 @@ void func_actor_444000_80132358(Task* task)
                 Gp_MsgPlayerWeapon(0);
                 other = (Actor444000EventWork*)D_actor_444000_80161860->work;
                 if (other->field_30 == 0) {
-                    Gp_StateF0.field_6       = 0;
-                    Gp_StateF0.field_1       = 0xF;
-                    Gp_StateF0.field_0       = 0;
-                    Gp_StateF0.field_2       = 0;
-                    Gp_StateF0.field_3       = 0;
-                    gGameSession->flowFlags |= 0x80;
-                    Mc_SaveData.sceneEvent   = 0xD;
-                    other->field_30          = state;
+                    Gp_StateF0.field_6        = 0;
+                    Gp_StateF0.field_1        = 0xF;
+                    Gp_StateF0.field_0        = 0;
+                    Gp_StateF0.field_2        = 0;
+                    Gp_StateF0.field_3        = 0;
+                    gGameSession->flowFlags  |= 0x80;
+                    Mc_SaveData[0].sceneEvent = 0xD;
+                    other->field_30           = state;
                 }
                 task->killCountdown = 0;
                 task->state        += 1;
@@ -578,14 +578,14 @@ void func_actor_444000_80132778(void)
     Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
 
     if (work->field_30 == 0) {
-        Gp_StateF0.field_6       = 0;
-        Gp_StateF0.field_1       = 0xF;
-        Gp_StateF0.field_0       = 0;
-        Gp_StateF0.field_2       = 0;
-        Gp_StateF0.field_3       = 0;
-        gGameSession->flowFlags |= 0x80;
-        Mc_SaveData.sceneEvent   = 0xD;
-        work->field_30           = 1;
+        Gp_StateF0.field_6        = 0;
+        Gp_StateF0.field_1        = 0xF;
+        Gp_StateF0.field_0        = 0;
+        Gp_StateF0.field_2        = 0;
+        Gp_StateF0.field_3        = 0;
+        gGameSession->flowFlags  |= 0x80;
+        Mc_SaveData[0].sceneEvent = 0xD;
+        work->field_30            = 1;
     }
 }
 
@@ -1444,7 +1444,7 @@ static void func_actor_444000_8013482C(Task* task)
 
     switch (work->field_F08) {
         case 0: {
-            s32      paused = Mc_SaveData.field_5C1;
+            s32      paused = Mc_SaveData[0].field_5C1;
             GpCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
@@ -1461,7 +1461,7 @@ static void func_actor_444000_8013482C(Task* task)
         case 1:
             coord = task->extra.tmd->coords;
             if (coord->coord.t[0] < 0x2134) {
-                if (Mc_SaveData.field_5C1 != 1) {
+                if (Mc_SaveData[0].field_5C1 != 1) {
                     Actor444000_StepForward(coord);
                 }
             } else {
@@ -1503,7 +1503,7 @@ static void func_actor_444000_8013482C(Task* task)
             break;
 
         case 2: {
-            s32      paused = Mc_SaveData.field_5C1;
+            s32      paused = Mc_SaveData[0].field_5C1;
             GpCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
@@ -1518,7 +1518,7 @@ static void func_actor_444000_8013482C(Task* task)
             break;
 
         case 3: {
-            s32      paused = Mc_SaveData.field_5C1;
+            s32      paused = Mc_SaveData[0].field_5C1;
             GpCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
@@ -1533,7 +1533,7 @@ static void func_actor_444000_8013482C(Task* task)
             break;
 
         case 4: {
-            s32      paused = Mc_SaveData.field_5C1;
+            s32      paused = Mc_SaveData[0].field_5C1;
             GpCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
@@ -1548,7 +1548,7 @@ static void func_actor_444000_8013482C(Task* task)
             break;
 
         case 5: {
-            s32      paused = Mc_SaveData.field_5C1;
+            s32      paused = Mc_SaveData[0].field_5C1;
             GpCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
@@ -2585,7 +2585,7 @@ static void func_actor_444000_801389EC(GpEnemy* enemy, Task* task)
             return;
         }
         D_actor_444000_80161694[2] =
-            ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])->sets[9];
+            ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->sets[9];
         work->anim.animBlock.ptr = D_actor_444000_80161694;
         work->anim.field_4       = 2;
         work->anim.field_8       = armed;
@@ -5137,7 +5137,7 @@ static void func_actor_444000_8013E058(Task* task)
         sc->push.vx = sc->dir.vx;
         sc->push.vy = 0;
         sc->push.vz = sc->dir.vz;
-        if (Mc_SaveData.demoScene != 2 && Mc_SaveData.demoScene != 0xA && actor->field_954 != 2) {
+        if (Mc_SaveData[0].demoScene != 2 && Mc_SaveData[0].demoScene != 0xA && actor->field_954 != 2) {
             func_80105B74(&sc->push);
         }
     }
@@ -5695,7 +5695,7 @@ scanned:
                     if (work->field_ECA != 1 && (s16)work->field_7CA >= 0x17) {
                         work->anim.animBlock.ptr   = D_actor_444000_80161670;
                         D_actor_444000_80161670[4] = ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl
-                                                          [Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])
+                                                          [Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])
                                                          ->sets[7];
                         work->anim.field_4 = 4;
                         work->anim.field_8 = 1;

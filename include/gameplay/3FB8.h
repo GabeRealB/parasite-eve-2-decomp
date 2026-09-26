@@ -495,7 +495,7 @@ typedef struct _GpPickScratch {
 STATIC_ASSERT_SIZEOF(GpPickScratch, 0x68);
 
 /// 8-byte rotation row (`SVECTOR` layout). `D_801131B4` is indexed by
-/// `Gp_AimPitchRec` arg1 (`D_80167218[Mc_SaveData.companionVariant]`) and by
+/// `Gp_AimPitchRec` arg1 (`D_80167218[Mc_SaveData[0].companionVariant]`) and by
 /// `Player_Status.weapon` in `Gp_AimYawToLock`.
 typedef struct _GpAimRot {
     /* 0x0 */ s16 vx;
@@ -604,7 +604,7 @@ extern u8 D_80112DFC[];
 /// Pad-event templates for `func_801041FC` (`D_80112E28[arg1 & 0xFFFF]`).
 extern GpPadEvt D_80112E28[];
 
-/// 2-wide rows indexed by `Mc_SaveData.characterId`. `Gp_PlayerMode2StateB` passes
+/// 2-wide rows indexed by `Mc_SaveData[0].characterId`. `Gp_PlayerMode2StateB` passes
 /// `D_80112E04[field_22][1]` to `func_80105894`.
 extern u8 D_80112E04[][2];
 
@@ -617,7 +617,7 @@ extern s16 D_80112E10[];
 extern u16 D_80112E20[];
 
 /// 2-wide rows of `GpCoord` indices. `func_8010403C` indexes
-/// `D_80112E2C[Mc_SaveData.characterId - 1][arg0]`.
+/// `D_80112E2C[Mc_SaveData[0].characterId - 1][arg0]`.
 extern u8 D_80112E2C[][2];
 
 /// u16 turn-rate rows indexed by `Player_Status.weapon`. `Gp_AimYawToLock`
@@ -658,22 +658,22 @@ extern u16 D_80112F94;
 /// 16 bits of `vx`/`vy`/`vz` seed the shape's `end1`.
 extern VECTOR D_80112FA4[];
 
-/// Overlay-imported s16 table indexed by `Mc_SaveData.companionVariant` and passed
+/// Overlay-imported s16 table indexed by `Mc_SaveData[0].companionVariant` and passed
 /// to `func_80106350` (`func_8010C46C` / `func_8010C4F0` / `func_8010C75C`).
 extern s16 D_80167218[];
 
-/// Overlay-imported s16 table indexed by `Mc_SaveData.companionVariant` and passed
+/// Overlay-imported s16 table indexed by `Mc_SaveData[0].companionVariant` and passed
 /// as the third argument of `Gp_AttachActorObj` (`Gp_SetupAllyWeapon`).
 extern s16 D_80167224[];
 
-/// Overlay-imported u8 table indexed by `Mc_SaveData.companionVariant` and stored
+/// Overlay-imported u8 table indexed by `Mc_SaveData[0].companionVariant` and stored
 /// at `GpActorD4.actionCount` (`Gp_SetupAllyWeapon`).
 extern u8 D_80167230[];
 
 /// 8-byte `GpAimRot` rows copied onto `GpPitchScratch.rot`.
 extern GpAimRot D_801131B4[];
 
-/// u8 table indexed by `Mc_SaveData.companionVariant`. Non-zero selects
+/// u8 table indexed by `Mc_SaveData[0].companionVariant`. Non-zero selects
 /// `Gp_AimPitchToLock`; zero uses `D_80167218` with `Gp_AimPitchRec`.
 extern u8 D_80113388[];
 
@@ -710,7 +710,7 @@ s32  Gp_SetupAllyWeapon(void);
 void func_80106350(Task* arg0, s32 arg1, s32 arg2);
 void func_801088D4(Task* arg0, s32 arg1, s32 arg2);
 /// Overlay import. `func_801088D4` calls it with `gameGetPtrSlot(0xA)` when
-/// `Mc_SaveData.companionType == 1`.
+/// `Mc_SaveData[0].companionType == 1`.
 void  func_80166E94(void* arg0, s32 arg1);
 void  Gp_TriggerPeState(s32 arg0, s32 arg1);
 s32   func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2);

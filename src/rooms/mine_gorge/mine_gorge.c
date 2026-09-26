@@ -55,7 +55,7 @@ s32 func_mine_gorge_8017D5F8(s32 arg0, s32 arg1, s32 arg2)
             if (found != 0) {
                 GameFlag_SetNibble(0xA4, 1);
                 Task_SpawnOnDefaultList(D_mine_gorge_8017E2B0, 0, 0, 0);
-                gGameSession->at4.loc.room = (Mc_SaveData.at4.loc.room = 2);
+                gGameSession->at4.loc.room = (Mc_SaveData[0].at4.loc.room = 2);
                 gGameSession->hideHud      = (gGameSession->roomObjsDirty = 1);
                 gGameSession->eventState   = 1;
                 return 1;

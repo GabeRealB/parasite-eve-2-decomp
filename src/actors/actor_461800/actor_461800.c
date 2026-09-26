@@ -225,10 +225,10 @@ void func_actor_461800_8013223C(s32 arg0)
 /// been seen. With neither seen the session bails out (`field_128` / `field_12E`
 /// are the stage-load sentinels); otherwise the save header is primed and the
 /// boot loader started, with the stream RNG restored behind it. Skipped whole
-/// when `Mc_SaveData.demoScene` (the current screen id) is 9.
+/// when `Mc_SaveData[0].demoScene` (the current screen id) is 9.
 void func_actor_461800_8013229C(void)
 {
-    if (Mc_SaveData.demoScene != 9) {
+    if (Mc_SaveData[0].demoScene != 9) {
         if (GameFlag_GetNibble(0xEA) == 2) {
             Gp_SetCollectedBit(0x130);
         }
@@ -240,13 +240,13 @@ void func_actor_461800_8013229C(void)
             gGameSession->field_12E   = 0xF;
             return;
         }
-        Mc_SaveData.at4.loc.stage = 4;
-        Mc_SaveData.at4.loc.area  = 0x24;
-        Mc_SaveData.at4.loc.warp  = 1;
-        Mc_SaveData.at4.loc.room  = 1;
-        gDisplayState.roomVariant = 1;
+        Mc_SaveData[0].at4.loc.stage = 4;
+        Mc_SaveData[0].at4.loc.area  = 0x24;
+        Mc_SaveData[0].at4.loc.warp  = 1;
+        Mc_SaveData[0].at4.loc.room  = 1;
+        gDisplayState.roomVariant    = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 0);
+        Fs_BeginBootLoad(&Mc_SaveData[0].at4.loc.view, 0);
         Gp_RestoreStreamRng();
     }
 }

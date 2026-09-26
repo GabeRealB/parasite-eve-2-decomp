@@ -76,14 +76,14 @@ void func_shelter_r36_8017D5E8(Task* task)
 /// event data.
 void func_shelter_r36_8017D738(void)
 {
-    if (Mc_SaveData.demoScene != 9) {
-        Mc_SaveData.at4.loc.stage = 4;
-        Mc_SaveData.at4.loc.area  = 0x24;
-        Mc_SaveData.at4.loc.warp  = 2;
-        Mc_SaveData.at4.loc.room  = 1;
-        gDisplayState.roomVariant = 1;
+    if (Mc_SaveData[0].demoScene != 9) {
+        Mc_SaveData[0].at4.loc.stage = 4;
+        Mc_SaveData[0].at4.loc.area  = 0x24;
+        Mc_SaveData[0].at4.loc.warp  = 2;
+        Mc_SaveData[0].at4.loc.room  = 1;
+        gDisplayState.roomVariant    = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 1);
+        Fs_BeginBootLoad(&Mc_SaveData[0].at4.loc.view, 1);
     }
 }
 

@@ -157,7 +157,7 @@ static void func_mine_cavern_80180D70(GpCoord* arg0, s16 arg1, u8* arg2);
 
 void func_mine_cavern_8017E330(void)
 {
-    Mc_SaveData.at4.loc.room    = 2;
+    Mc_SaveData[0].at4.loc.room = 2;
     gGameSession->at4.loc.room  = 2;
     gGameSession->roomObjsDirty = 1;
 }
@@ -1881,7 +1881,7 @@ void func_mine_cavern_80182DC8(Task* arg0)
     TaskFuncTable3 sp;
 
     sp = D_mine_cavern_8017D65C;
-    if (Mc_SaveData.demoScene != 3) {
+    if (Mc_SaveData[0].demoScene != 3) {
         sp.funcs[arg0->state](arg0);
     }
 }

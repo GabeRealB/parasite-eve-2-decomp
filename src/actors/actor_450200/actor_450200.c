@@ -372,6 +372,6 @@ void func_actor_450200_80132880(s32 arg0)
 
 void func_actor_450200_801328A0(u8 arg0)
 {
-    gGameSession->at4.loc.room = arg0;
-    Mc_SaveData.at4.loc.room   = arg0;
+    gGameSession->at4.loc.room  = arg0;
+    Mc_SaveData[0].at4.loc.room = arg0;
 }

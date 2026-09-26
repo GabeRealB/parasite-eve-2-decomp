@@ -166,10 +166,10 @@ void func_dryfield_factory_8017D85C(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = D_dryfield_factory_8018A3B4.msgId;
-            Mc_SaveData.at4.loc.warp  = D_dryfield_factory_8018A3B4.field_2;
-            Mc_SaveData.at4.loc.room  = (u8)D_dryfield_factory_8018A3B4.field_3;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = D_dryfield_factory_8018A3B4.msgId;
+            Mc_SaveData[0].at4.loc.warp = D_dryfield_factory_8018A3B4.field_2;
+            Mc_SaveData[0].at4.loc.room = (u8)D_dryfield_factory_8018A3B4.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -1225,7 +1225,7 @@ void func_dryfield_factory_8017FDDC(Task* task)
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             goto advance;
         case 5:
-            Mc_SaveData.at4.loc.room    = 2;
+            Mc_SaveData[0].at4.loc.room = 2;
             gGameSession->at4.loc.room  = 2;
             gGameSession->roomObjsDirty = 1;
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);

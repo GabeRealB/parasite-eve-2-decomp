@@ -134,7 +134,7 @@ static void func_actor_123200_80131E50(GpCoord* coord, s16 yaw)
 /// coordinate's world position from it; the last such push is kept in the
 /// scratch block, and its length is scaled down to 0x100 when longer. Returns
 /// whether any record of those kinds was met. Does nothing, returning 0, while
-/// `Mc_SaveData.field_5C1` or the session's `viewReady` is 1.
+/// `Mc_SaveData[0].field_5C1` or the session's `viewReady` is 1.
 static s32 func_actor_123200_8013215C(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
@@ -142,7 +142,7 @@ static s32 func_actor_123200_8013215C(GpCoord* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                      = 0;
@@ -190,7 +190,7 @@ static s32 func_actor_123200_8013215C(GpCoord* coord, GpRec18* recs, s16 count)
 /// the first `count` of `recs`, drops both bearings of every pair more than 0x400 apart, and
 /// for each bearing left steps `coord` 10 units away from it, accumulating the
 /// total XZ step in `pos`. Returns whether any kind 0x10000 record was met;
-/// returns 0 at once when the session's `viewReady` or `Mc_SaveData.field_5C1` is 1.
+/// returns 0 at once when the session's `viewReady` or `Mc_SaveData[0].field_5C1` is 1.
 static s32 func_actor_123200_801324A4(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
@@ -199,7 +199,7 @@ static s32 func_actor_123200_801324A4(GpCoord* coord, GpRec18* recs, s16 count, 
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].field_5C1 == 1) {
         return 0;
     }
 
@@ -716,7 +716,7 @@ static void func_actor_123200_80133820(GpEnemy* enemy, Task* task)
     work->field_6++;
     SCRATCH_PUSH_BYTES(0xC);
     coord = task->extra.tmd->coords;
-    if (Mc_SaveData.field_5C1 != 1) {
+    if (Mc_SaveData[0].field_5C1 != 1) {
         Actor123200_StepForward(coord);
     }
     func_actor_123200_801332E0(task);
@@ -732,7 +732,7 @@ static __inline__ void Actor123200_MoveForward(GpCoord* coord)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (Mc_SaveData.field_5C1 != 1) {
+    if (Mc_SaveData[0].field_5C1 != 1) {
         head                  = SCRATCH_HEAD(SVECTOR);
         vec                   = head - 1;
         SCRATCH_HEAD(SVECTOR) = vec;

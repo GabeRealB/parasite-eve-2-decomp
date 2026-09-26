@@ -524,7 +524,7 @@ static void func_actor_206100_8014EA8C(Task* task, s16 arg1, s16 arg2);
 /// The second argument of `Gp_SetLightMode` is read through a cast rather than
 /// as `task->spawnArg2` directly: the cast makes the load a *scalar* `MEM`,
 /// which is what keeps its dependence on the fixed-address
-/// `Mc_SaveData.at4.loc.view` store, so the store is scheduled ahead of it - the same
+/// `Mc_SaveData[0].at4.loc.view` store, so the store is scheduled ahead of it - the same
 /// `MEM_IN_STRUCT_P` mechanism `dryfield_water_tank_4.c` and
 /// `DECOMPILATION_LEARNINGS.md`, "Scalar memory references", describe.
 static void func_actor_206100_8014CD08(Task* task);
@@ -2057,8 +2057,8 @@ static void func_actor_206100_8014CB68(Task* task)
         work->field_43C               = 0;
         work->field_43E               = 0xA00;
         work->field_440               = 0;
-        work->field_553               = Mc_SaveData.at4.loc.view;
-        Mc_SaveData.at4.loc.view      = 7;
+        work->field_553               = Mc_SaveData[0].at4.loc.view;
+        Mc_SaveData[0].at4.loc.view   = 7;
         work->field_51E               = 0;
         work->field_54D               = 0;
         work->field_522               = work->field_522 + 1;
@@ -2087,13 +2087,13 @@ static void func_actor_206100_8014CD08(Task* task)
         SndEvt_EnqueueType6(0x551E0004, 0, 0);
     }
     if ((s16)work->field_51E == 0x22) {
-        coord->coord.t[0]        = 0;
-        coord->coord.t[2]        = 0;
-        work->field_526          = 0x1388;
-        work->field_51E          = 0U;
-        coord->coord.t[1]        = 0x1B58;
-        work->field_43E          = 0;
-        Mc_SaveData.at4.loc.view = 6;
+        coord->coord.t[0]           = 0;
+        coord->coord.t[2]           = 0;
+        work->field_526             = 0x1388;
+        work->field_51E             = 0U;
+        coord->coord.t[1]           = 0x1B58;
+        work->field_43E             = 0;
+        Mc_SaveData[0].at4.loc.view = 6;
         Gp_SetLightMode(task->spawnArg2, 0);
         Gp_MsgPlayer3F3(0);
         msg.pos.vx = 0x690;
@@ -2171,12 +2171,12 @@ static void func_actor_206100_8014CE60(Task* task)
     if ((s16)work->field_51E == 0x46) {
         Gp_MsgPlayerWeapon(1);
         Gp_MsgPlayer3F3(1);
-        Mc_SaveData.at4.loc.view = 2;
-        coord->coord.t[0]        = 0;
-        coord->coord.t[2]        = 0;
-        next                     = (Actor206100Work*)task->work;
-        next->field_520          = 1;
-        next->field_522          = 0;
+        Mc_SaveData[0].at4.loc.view = 2;
+        coord->coord.t[0]           = 0;
+        coord->coord.t[2]           = 0;
+        next                        = (Actor206100Work*)task->work;
+        next->field_520             = 1;
+        next->field_522             = 0;
     }
 }
 /// Clears `field_522` and hands `field_520` the new state, reloading the work

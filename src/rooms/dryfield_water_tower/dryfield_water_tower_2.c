@@ -171,7 +171,7 @@ extern Task* D_dryfield_water_tower_801876A4;
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on and
-/// `Mc_SaveData.characterId` picks which of the two weapon-id bases that record uses; the
+/// `Mc_SaveData[0].characterId` picks which of the two weapon-id bases that record uses; the
 /// alternate block is indexed by `Player_Status.weapon` plus 1 against the base block's
 /// plus 0x22.
 
@@ -875,7 +875,7 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
 /// also raises bit 0x40 of the room's 4A object, as `func_acropolis_fountain_8017DA1C`
 /// does for the fountain's. Commands 4 and 2 share their tail: 4 sends 0x3E9
 /// (with `80181AD0`) only when `field_66` is 2, then both stash
-/// `field_68` in `Mc_SaveData.at4.loc.view` and raise the session's `viewDirty`, the pair
+/// `field_68` in `Mc_SaveData[0].at4.loc.view` and raise the session's `viewDirty`, the pair
 /// `func_dryfield_water_tower_8017D948` undoes.
 ///
 /// The last three commands start a script-18 pair each -- the cutscene
@@ -907,8 +907,8 @@ static void func_dryfield_water_tower_8017E93C(Task* arg0)
             Gp_DispatchMsg(state->field_40, 0x3F3, 1, 0);
 
         case 2:
-            Mc_SaveData.at4.loc.view = state->field_68;
-            gGameSession->viewDirty  = 1;
+            Mc_SaveData[0].at4.loc.view = state->field_68;
+            gGameSession->viewDirty     = 1;
             break;
 
         case 3: {
@@ -1034,11 +1034,11 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 Gp_DispatchMsg(state->field_44, 0x7D4, (s32)&D_dryfield_water_tower_80181A58, 0);
                 Gp_DispatchMsg(state->field_40, 0x3F3, 1, 0);
                 Gp_DispatchMsg(state->field_40, 0x3F1, 0, 0);
-                Mc_SaveData.at4.loc.view = Gp_FindViewIndex(7);
-                session                  = gGameSession;
-                session->viewDirty       = 1;
-                session->hideHud         = 0;
-                session->eventState      = 0;
+                Mc_SaveData[0].at4.loc.view = Gp_FindViewIndex(7);
+                session                     = gGameSession;
+                session->viewDirty          = 1;
+                session->hideHud            = 0;
+                session->eventState         = 0;
                 SndEvt_EnqueueType6(0x52140006, 0, 0x20);
                 SndEvt_EnqueueType6(0x5214000C, 0, 0);
                 state->field_58 = 2;
@@ -1346,7 +1346,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
 ///
 /// Republishes the player's weapon to slot 3 (msg 0x3E8) the way
 /// `func_actor_136100_8013467C` does -- `Player_Status.weapon` picked through
-/// `Mc_SaveData.characterId` is the record's `field_0` -- but fills the two halfword slots
+/// `Mc_SaveData[0].characterId` is the record's `field_0` -- but fills the two halfword slots
 /// from that script argument: `field_8` is its "non-zero" flag and `field_C`
 /// the halfword itself.
 void func_dryfield_water_tower_8017F700(s32 arg0)
@@ -1357,7 +1357,7 @@ void func_dryfield_water_tower_8017F700(s32 arg0)
     s32       value;
 
     weaponId            = Player_Status.weapon;
-    id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     value               = arg0 & 0xFFFF;
     rec.animBlock.index = id;
     rec.field_4         = 1;
@@ -1452,7 +1452,7 @@ void func_dryfield_water_tower_8017F8E8(s16 arg0)
 ///
 /// It plays event 0x5214000C unless the latch `DryfieldWaterTowerState::field_78`
 /// says the view has already been announced, records the view in the saved
-/// location byte `Mc_SaveData.at4.loc.view`, sends its 0x7D4 placement
+/// location byte `Mc_SaveData[0].at4.loc.view`, sends its 0x7D4 placement
 /// `80181A58` to the prop task at `field_44` and restarts that task on state 1,
 /// then stops the pad scripts and queues event 0x52140006. The latch is what
 /// separates it from that sibling: this one is the re-entry the 0x5214000C
@@ -1465,8 +1465,8 @@ void func_dryfield_water_tower_8017F908(void)
     if (state->field_78 == 0) {
         SndEvt_EnqueueType6(0x5214000C, 0, 0);
     }
-    Mc_SaveData.at4.loc.view = Gp_FindViewIndex(7);
-    gGameSession->viewDirty  = 1;
+    Mc_SaveData[0].at4.loc.view = Gp_FindViewIndex(7);
+    gGameSession->viewDirty     = 1;
     Gp_DispatchMsg(state->field_44, 0x7D4, (s32)&D_dryfield_water_tower_80181A58, 0);
     state->field_44->state = 1;
     Gp_HaltPadScripts();
@@ -1490,8 +1490,8 @@ void func_dryfield_water_tower_8017F9AC(void)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
-    Mc_SaveData.at4.loc.view = state->field_68;
-    gGameSession->viewDirty  = 1;
+    Mc_SaveData[0].at4.loc.view = state->field_68;
+    gGameSession->viewDirty     = 1;
     Gp_DispatchMsg(state->field_44, 0x7D4, (s32)&D_dryfield_water_tower_80181A40, 0);
     state->field_44->state = 1;
     Gp_HaltPadScripts();
@@ -1510,7 +1510,7 @@ void func_dryfield_water_tower_8017FA5C(void)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
-    Mc_SaveData.at4.loc.view = Gp_FindViewIndex(9);
+    Mc_SaveData[0].at4.loc.view = Gp_FindViewIndex(9);
     Gp_DispatchMsg(state->field_48, 0x7D4, (s32)&D_dryfield_water_tower_80181AA0, 0);
     state->field_48->state = 1;
     Gp_DispatchMsg(state->field_40, 0x3E9, (s32)&D_dryfield_water_tower_80181AD0, 0);
@@ -1641,7 +1641,7 @@ void func_dryfield_water_tower_8017FD64(Task* task)
                 return;
             }
             weaponId            = Player_Status.weapon;
-            anim                = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.animBlock.index = anim;
             msg.field_4         = 1;
             msg.field_8         = 1;
@@ -1816,8 +1816,8 @@ void func_dryfield_water_tower_80180220(void)
     Gp_DispatchMsg(work->field_4, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[1], 0);
     Gp_DispatchMsg(work->field_0, 0x3F3, 1, 0);
     Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_dryfield_water_tower_801823A8, 0);
-    Mc_SaveData.at4.loc.view = Gp_FindViewIndex(4);
-    gGameSession->viewDirty  = 1;
+    Mc_SaveData[0].at4.loc.view = Gp_FindViewIndex(4);
+    gGameSession->viewDirty     = 1;
     CdCmd_CancelReplaceAndActivate();
     Gp_RestoreStreamRng();
 }

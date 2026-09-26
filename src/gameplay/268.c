@@ -190,7 +190,7 @@ void Gp_RecalcMaxMp(void)
 
     cfg    = &Player_Status;
     acc    = 0;
-    levels = (s8*)Mc_SaveData.attachLevels;
+    levels = (s8*)Mc_SaveData[0].attachLevels;
     i      = acc;
     table  = Gp_IdParamHi;
     base   = acc;
@@ -217,7 +217,7 @@ void Gp_RecalcMaxMp(void)
         acc += Gp_ModStatAttrs[cfg->armor - 1].field_6;
     }
     rows       = Gp_StatRows;
-    save       = &Mc_SaveData;
+    save       = &Mc_SaveData[0];
     acc       += rows[save->gameMode].field_4;
     acc       += save->mpBonus;
     cfg->mpMax = acc;
@@ -261,7 +261,7 @@ void Gp_EquipMod(s32 arg0)
 
                     p        = &Player_Status;
                     table    = Gp_StatRows;
-                    save     = &Mc_SaveData;
+                    save     = &Mc_SaveData[0];
                     val      = table[save->gameMode].base.half;
                     p->hpMax = val;
                     val     += save->hpBonus;
@@ -309,7 +309,7 @@ void Gp_EquipMod(s32 arg0)
                     word = arg0 / 32;
                     bit  = 1 << (arg0 % 32);
                     if ((u32)arg0 < 0x180U) {
-                        p                      = &Mc_SaveData;
+                        p                      = &Mc_SaveData[0];
                         p->itemSeenBits[word] |= bit;
                     }
                 }
@@ -321,7 +321,7 @@ void Gp_EquipMod(s32 arg0)
         u16         val;
 
         table      = Gp_StatRows;
-        save       = &Mc_SaveData;
+        save       = &Mc_SaveData[0];
         val        = table[save->gameMode].base.half;
         cfg->hpMax = val;
         val       += save->hpBonus;
@@ -365,8 +365,8 @@ void Gp_InitStarterInv(void)
     s32           flag105;
     s32           flag107;
 
-    scan                    = &Mc_SaveData.carriedItems;
-    save                    = &Mc_SaveData;
+    scan                    = &Mc_SaveData[0].carriedItems;
+    save                    = &Mc_SaveData[0];
     save->itemLevelBonus[5] = 0;
     save->itemLevelBonus[0] = 0;
     cfg                     = &Player_Status;
@@ -378,7 +378,7 @@ void Gp_InitStarterInv(void)
             tmp = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData.itemRows;
+            tmp = Mc_SaveData[0].itemRows;
             break;
     }
     rec  = &tmp[scan->firstRow];
@@ -407,7 +407,7 @@ void Gp_InitStarterInv(void)
     scans = Gp_ScanPtrs;
     Gp_ClearScanItems(scans[1]);
     Gp_ClearScanItems(scans[2]);
-    slots = Mc_SaveData.weaponItems;
+    slots = Mc_SaveData[0].weaponItems;
     for (j = 0; j < 0x20; j++) {
         slots->ammoId    = 0;
         slots->ammoQty   = 0;
@@ -482,13 +482,13 @@ void func_800B8014(void)
     s32           row;
     s32           col;
 
-    for (j = 0, rec = Mc_SaveData.itemRows; j < 0x100; j++) {
+    for (j = 0, rec = Mc_SaveData[0].itemRows; j < 0x100; j++) {
         rec->itemId = 0;
         rec->qty    = 0;
         rec++;
     }
     for (i = 0x5F; i >= 0; i--) {
-        Mc_SaveData.itemSeenBits[i] = 0;
+        Mc_SaveData[0].itemSeenBits[i] = 0;
     }
 
     i = 0;
@@ -512,7 +512,7 @@ void func_800B8014(void)
         i++;
     } while (i < 0x180);
     Gp_ClearCollectedBits();
-    slots = Mc_SaveData.weaponItems;
+    slots = Mc_SaveData[0].weaponItems;
     for (j = 0; j < 0x20; j++) {
         slots->ammoId    = 0;
         slots->ammoQty   = 0;
@@ -526,15 +526,15 @@ void func_800B8014(void)
         slots++;
     }
     Gp_ApplyItemMap();
-    Mc_SaveData.carriedItems.firstRow = 0;
-    Mc_SaveData.carriedItems.rowCount = 0x14;
-    Mc_SaveData.carriedItems.table    = 0;
+    Mc_SaveData[0].carriedItems.firstRow = 0;
+    Mc_SaveData[0].carriedItems.rowCount = 0x14;
+    Mc_SaveData[0].carriedItems.table    = 0;
     for (row = 0; row < 4; row++) {
         for (col = 0; col < 3; col++) {
-            Mc_SaveData.attachLevels[col + row * 3] = 0;
+            Mc_SaveData[0].attachLevels[col + row * 3] = 0;
         }
     }
-    save = &Mc_SaveData;
+    save = &Mc_SaveData[0];
     SOFT_TOUCH_REG(save);
     scan                  = &save->carriedItems;
     save->attachLevels[0] = 1;
@@ -575,12 +575,12 @@ void func_800B8014(void)
     Gp_GiveItem(scan, 0xAC, 0x14);
     Gp_GiveItem(scan, 0xA9, 8);
     Gp_SetCollectedBit(0x106);
-    header = (s32*)&Mc_SaveData.at4.loc.view;
+    header = (s32*)&Mc_SaveData[0].at4.loc.view;
     word   = *header;
     word  &= 0xFFFF0000;
     if (word == 0x01140000) {
         Gp_ResetInventory();
-        Gp_GiveItem(&Mc_SaveData.carriedItems, 0x81, 1);
+        Gp_GiveItem(&Mc_SaveData[0].carriedItems, 0x81, 1);
         Gp_EquipHeld(0x81);
     }
 }
@@ -603,7 +603,7 @@ void Gp_MoveItemSlot(McItemScan* arg0, s32 arg1, s32 arg2)
             tmp = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData.itemRows;
+            tmp = Mc_SaveData[0].itemRows;
             break;
     }
     table = tmp;
@@ -702,7 +702,7 @@ void Gp_SortItems(McItemScan* arg0, s32 arg1)
                     tmp = Gp_ItemTable1;
                     break;
                 default:
-                    tmp = Mc_SaveData.itemRows;
+                    tmp = Mc_SaveData[0].itemRows;
                     break;
             }
             table = tmp;
@@ -737,7 +737,7 @@ void Gp_SortItems(McItemScan* arg0, s32 arg1)
             minKey = key;
 
             if (arg0->table != 1) {
-                tmp = Mc_SaveData.itemRows;
+                tmp = Mc_SaveData[0].itemRows;
                 if (arg0->table == 2) {
                     tmp = Gp_ItemTable2;
                 }
@@ -828,7 +828,7 @@ static s32 Gp_CanAddItemQty(McItemScan* arg0, s32 arg1, s32 arg2)
             tmp = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData.itemRows;
+            tmp = Mc_SaveData[0].itemRows;
             break;
     }
     table    = tmp;
@@ -865,7 +865,7 @@ static s32 Gp_CanAddItemQty(McItemScan* arg0, s32 arg1, s32 arg2)
                 table2 = Gp_ItemTable1;
                 break;
             default:
-                table2 = Mc_SaveData.itemRows;
+                table2 = Mc_SaveData[0].itemRows;
                 break;
         }
         if (arg2 < 0) {
@@ -932,7 +932,7 @@ s32 Gp_CanAddItem(McItemScan* arg0, s32 arg1)
             tmp = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData.itemRows;
+            tmp = Mc_SaveData[0].itemRows;
             break;
     }
     table    = tmp;
@@ -969,7 +969,7 @@ s32 Gp_CanAddItem(McItemScan* arg0, s32 arg1)
                 table2 = Gp_ItemTable1;
                 break;
             default:
-                table2 = Mc_SaveData.itemRows;
+                table2 = Mc_SaveData[0].itemRows;
                 break;
         }
         i      = 0;
@@ -1018,7 +1018,7 @@ static inline McItemRec* _gpScanTable(McItemScan* scan)
             table = Gp_ItemTable1;
             break;
         default:
-            table = Mc_SaveData.itemRows;
+            table = Mc_SaveData[0].itemRows;
             break;
     }
     return table;
@@ -1180,7 +1180,7 @@ char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2)
             if ((u32)arg0 >= 0x180) {
                 arg2 = 1;
             } else {
-                val  = Mc_SaveData.itemSeenBits[arg2] & bit;
+                val  = Mc_SaveData[0].itemSeenBits[arg2] & bit;
                 arg2 = val != 0;
             }
         }
@@ -1284,7 +1284,7 @@ void Gp_RefreshItemRow(McItemRec* arg0)
     }
 
     found = 0;
-    slot  = &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[item];
+    slot  = &((McItemSlot*)((s32)Mc_SaveData[0].weaponItems - 0x400))[item];
     for (i = found, p = Gp_ItemMaps; i < 8; i++, p++) {
         if (item == p->field_1) {
             found = 1;
@@ -1307,7 +1307,7 @@ void Gp_RefreshItemRow(McItemRec* arg0)
 
 void func_800B92CC(void)
 {
-    switch (GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) {
+    switch (GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) {
         case GP_LOC_KEY(1, 1, 0, 0):
             func_80180804();
             break;
@@ -1433,7 +1433,7 @@ static inline s32 _gpGetModLevel(s32 item)
     if ((u32)idx < 0x20) {
         p    = &Gp_ItemAttrs[item];
         ret  = p->field_5;
-        ret += Mc_SaveData.itemLevelBonus[idx];
+        ret += Mc_SaveData[0].itemLevelBonus[idx];
         if (ret >= 0xB) {
             ret = 0xA;
         }
@@ -1468,7 +1468,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     if (arg1->state == 0) {
         arg1->status = 0xFF;
         if (_gpGetModLevel(item) < 0xA) {
-            Mc_SaveData.itemLevelBonus[item - 0x60]++;
+            Mc_SaveData[0].itemLevelBonus[item - 0x60]++;
         } else {
             arg1->status = 0x1A;
         }
@@ -1481,7 +1481,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
             Ui_UpdateLayoutSize((UiPanel*)arg0, width + 5, Ui_Scale15(2) + 1);
             ((UiPanel*)arg0)->field_C.x = (-((UiPanel*)arg0)->field_C.w) >> 1;
             ((UiPanel*)arg0)->field_C.y = ((-((UiPanel*)arg0)->field_C.h) >> 1) - 0x14;
-            func_800B996C_RemoveItem(&Mc_SaveData.carriedItems, Gp_SelItemRec, 1);
+            func_800B996C_RemoveItem(&Mc_SaveData[0].carriedItems, Gp_SelItemRec, 1);
             arg1->killCountdown = 0xBC;
             arg1->state++;
         }
@@ -1524,7 +1524,7 @@ void Gp_UiBoostMp(UiObject* arg0, Task* arg1)
     if (arg1->state == 0) {
         cfg                 = &Player_Status;
         Gp_HpMpWork.field_0 = cfg->hp;
-        save                = &Mc_SaveData;
+        save                = &Mc_SaveData[0];
         Gp_HpMpWork.field_4 = cfg->mp;
         if (save->mpBonus < 0xFA) {
             save->mpBonus = save->mpBonus + 1;
@@ -1552,7 +1552,7 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
         cfg                 = &Player_Status;
         hp                  = cfg->hp;
         Gp_HpMpWork.field_0 = hp;
-        save                = &Mc_SaveData;
+        save                = &Mc_SaveData[0];
         Gp_HpMpWork.field_4 = cfg->mp;
         if (save->hpBonus < 0xFA) {
             save->hpBonus = save->hpBonus + 5;
@@ -1589,7 +1589,7 @@ static __inline__ s32 Gp_HasStockedItemInline(s32 arg0)
     s32         ret;
     s32         count;
 
-    scan = &Mc_SaveData.carriedItems;
+    scan = &Mc_SaveData[0].carriedItems;
     ret  = 0;
     switch (scan->table) {
         case 2:
@@ -1599,7 +1599,7 @@ static __inline__ s32 Gp_HasStockedItemInline(s32 arg0)
             table = Gp_ItemTable1;
             break;
         default:
-            table = Mc_SaveData.itemRows;
+            table = Mc_SaveData[0].itemRows;
             break;
     }
     i      = 0;
@@ -1722,7 +1722,7 @@ s32 func_800B9D80(s32 arg0)
                 s32         i;
                 s32         count;
 
-                scan = &Mc_SaveData.carriedItems;
+                scan = &Mc_SaveData[0].carriedItems;
                 ret  = 0x36;
                 switch (scan->table) {
                     case 2:
@@ -1732,7 +1732,7 @@ s32 func_800B9D80(s32 arg0)
                         table = Gp_ItemTable1;
                         break;
                     default:
-                        table = Mc_SaveData.itemRows;
+                        table = Mc_SaveData[0].itemRows;
                         break;
                 }
                 i      = 0;
@@ -1758,7 +1758,7 @@ s32 func_800B9D80(s32 arg0)
                 s32         i;
                 s32         count;
 
-                scan = &Mc_SaveData.carriedItems;
+                scan = &Mc_SaveData[0].carriedItems;
                 ret  = 0x39;
                 switch (scan->table) {
                     case 2:
@@ -1768,7 +1768,7 @@ s32 func_800B9D80(s32 arg0)
                         table = Gp_ItemTable1;
                         break;
                     default:
-                        table = Mc_SaveData.itemRows;
+                        table = Mc_SaveData[0].itemRows;
                         break;
                 }
                 i      = 0;
@@ -1794,7 +1794,7 @@ s32 func_800B9D80(s32 arg0)
                 s32         i;
                 s32         count;
 
-                scan = &Mc_SaveData.carriedItems;
+                scan = &Mc_SaveData[0].carriedItems;
                 ret  = 0x38;
                 switch (scan->table) {
                     case 2:
@@ -1804,7 +1804,7 @@ s32 func_800B9D80(s32 arg0)
                         table = Gp_ItemTable1;
                         break;
                     default:
-                        table = Mc_SaveData.itemRows;
+                        table = Mc_SaveData[0].itemRows;
                         break;
                 }
                 i      = 0;
@@ -1830,7 +1830,7 @@ s32 func_800B9D80(s32 arg0)
                 s32         i;
                 s32         count;
 
-                scan = &Mc_SaveData.carriedItems;
+                scan = &Mc_SaveData[0].carriedItems;
                 ret  = 0x37;
                 switch (scan->table) {
                     case 2:
@@ -1840,7 +1840,7 @@ s32 func_800B9D80(s32 arg0)
                         table = Gp_ItemTable1;
                         break;
                     default:
-                        table = Mc_SaveData.itemRows;
+                        table = Mc_SaveData[0].itemRows;
                         break;
                 }
                 i      = 0;
@@ -1881,7 +1881,7 @@ static inline void _gpClearEquipSlot(s32 item)
     }
 
     found = 0;
-    slot  = &Mc_SaveData.weaponItems[item - 0x80];
+    slot  = &Mc_SaveData[0].weaponItems[item - 0x80];
     for (i = 0; i < 8; i++) {
         if (item == Gp_ItemMaps[i].field_1) {
             found = 1;
@@ -1917,7 +1917,7 @@ static inline void _gpClearScanItems(McItemScan* scan)
             table = Gp_ItemTable1;
             break;
         default:
-            table = Mc_SaveData.itemRows;
+            table = Mc_SaveData[0].itemRows;
             break;
     }
     for (i = 0, row = scan->firstRow; i < scan->rowCount; i++, row++) {
@@ -1940,8 +1940,8 @@ void Gp_ResetInventory(void)
     }
 
     _gpClearScanItems(&Gp_DefaultScan);
-    Mc_SaveData.carriedItems = Gp_DefaultScan;
-    Gp_AddItem(&Mc_SaveData.carriedItems, 0x6C, 1);
+    Mc_SaveData[0].carriedItems = Gp_DefaultScan;
+    Gp_AddItem(&Mc_SaveData[0].carriedItems, 0x6C, 1);
     Gp_EquipMod(0x6C);
 
     Player_Status.hp = Player_Status.hpMax;
@@ -1970,7 +1970,7 @@ static inline void _gpRecalcMaxHp(void)
 
     cfg        = &Player_Status;
     table      = Gp_StatRows;
-    save       = &Mc_SaveData;
+    save       = &Mc_SaveData[0];
     val        = table[save->gameMode].base.half;
     cfg->hpMax = val;
     val       += save->hpBonus;
@@ -1993,7 +1993,7 @@ static inline void _gpSetPlayerScan(s32 count)
 {
     McSaveData* p;
 
-    p                        = &Mc_SaveData;
+    p                        = &Mc_SaveData[0];
     p->carriedItems.firstRow = 0;
     p->carriedItems.rowCount = count;
     p->carriedItems.table    = 0;
@@ -2014,7 +2014,7 @@ void Gp_ClearInventory(void)
 
     _gpClearScanItems(&Gp_DefaultScan);
     _gpSetPlayerScan(0x14);
-    scan = &Mc_SaveData.carriedItems;
+    scan = &Mc_SaveData[0].carriedItems;
 
     rec = &_gpScanTable(scan)[scan->firstRow];
     for (i = 0; i < scan->rowCount; i++, rec++) {
@@ -2053,7 +2053,7 @@ static void Gp_InitModeEquip(void)
     cfg = &Player_Status;
     acc = 0;
     if (cfg->weapon == 0) {
-        scan = &Mc_SaveData.carriedItems;
+        scan = &Mc_SaveData[0].carriedItems;
         item = 0x81;
         switch (scan->table) {
             case 2:
@@ -2063,7 +2063,7 @@ static void Gp_InitModeEquip(void)
                 tmp = Gp_ItemTable1;
                 break;
             default:
-                tmp = Mc_SaveData.itemRows;
+                tmp = Mc_SaveData[0].itemRows;
                 break;
         }
         table = tmp;
@@ -2087,10 +2087,10 @@ static void Gp_InitModeEquip(void)
         }
     }
     if (cfg->weapon == 2) {
-        slots    = (McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400);
+        slots    = (McItemSlot*)((s32)Mc_SaveData[0].weaponItems - 0x400);
         slotItem = slots[0x81].ammoId;
         if ((slotItem == 0) || (slotItem == 0xA0)) {
-            Gp_EquipRelatedItem(&Mc_SaveData.carriedItems, 0x81, 0xA0, -1);
+            Gp_EquipRelatedItem(&Mc_SaveData[0].carriedItems, 0x81, 0xA0, -1);
         }
     }
 }
@@ -2151,7 +2151,7 @@ void Gp_SetCurBit2Flag(s32 arg0, u8 arg1)
     USE_REG(shift);
     temp  = 3;
     mask  = temp << shift;
-    temp  = Mc_SaveData.at4.loc.stage;
+    temp  = Mc_SaveData[0].at4.loc.stage;
     p     = Gp_Bit2Banks[temp].field_4;
     p    += arg0 >> 4;
     nmask = ~mask;
@@ -2177,7 +2177,7 @@ void Gp_ClearScanItems(McItemScan* arg0)
             tmp = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData.itemRows;
+            tmp = Mc_SaveData[0].itemRows;
             break;
     }
     table = tmp;
@@ -2248,7 +2248,7 @@ static void Gp_ClearCollectedBits(void)
     s32  i;
     s32* p;
 
-    p = Mc_SaveData.collectedBits;
+    p = Mc_SaveData[0].collectedBits;
     for (i = 3; i >= 0; i--) {
         *p++ = 0;
     }
@@ -2259,13 +2259,13 @@ void Gp_SetCollectedBit(s32 arg0)
     s32* p;
     s32  bit;
 
-    p    = Mc_SaveData.collectedBits;
+    p    = Mc_SaveData[0].collectedBits;
     bit  = arg0 & 0x7F;
     p   += bit / 32;
     bit %= 32;
     *p  |= 1 << bit;
     if ((arg0 & 0x7F) == 0x19) {
-        Gp_PlayTimeMark = Mc_SaveData.playTime;
+        Gp_PlayTimeMark = Mc_SaveData[0].playTime;
     }
 }
 
@@ -2273,7 +2273,7 @@ void Gp_ClearCollectedBit(s32 arg0)
 {
     s32* p;
 
-    p     = Mc_SaveData.collectedBits;
+    p     = Mc_SaveData[0].collectedBits;
     arg0 &= 0x7F;
     p    += arg0 / 32;
     arg0 %= 32;
@@ -2289,7 +2289,7 @@ s32 Gp_CountCollectedBits(void)
     s32  word;
     s32  one;
 
-    p     = Mc_SaveData.collectedBits;
+    p     = Mc_SaveData[0].collectedBits;
     count = 0;
     one   = 1;
     for (i = 3; i >= 0; i--) {
@@ -2326,7 +2326,7 @@ s32 Gp_CountScanItems(McItemScan* arg0)
             tmp = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData.itemRows;
+            tmp = Mc_SaveData[0].itemRows;
             break;
     }
     table = tmp;
@@ -2351,7 +2351,7 @@ s32 Gp_CountScanItems(McItemScan* arg0)
 
 McItemSlot* Gp_GetItemSlot(s32 arg0)
 {
-    return &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg0];
+    return &((McItemSlot*)((s32)Mc_SaveData[0].weaponItems - 0x400))[arg0];
 }
 
 s32 Gp_CountEquippedRelated(McItemScan* arg0, s32 arg1)
@@ -2375,7 +2375,7 @@ s32 Gp_CountEquippedRelated(McItemScan* arg0, s32 arg1)
         start = arg0->firstRow;
         end   = start + arg0->rowCount;
         if (start < end) {
-            slots = (McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400);
+            slots = (McItemSlot*)((s32)Mc_SaveData[0].weaponItems - 0x400);
             limit = end;
             off   = start << 2;
             rec   = (McItemRec*)(off + (s32)table);
@@ -2411,7 +2411,7 @@ void Gp_ClearEquipSlot(s32 arg0)
     }
 
     found = 0;
-    slot  = &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg0];
+    slot  = &((McItemSlot*)((s32)Mc_SaveData[0].weaponItems - 0x400))[arg0];
     for (i = found, p = Gp_ItemMaps; i < 8; i++, p++) {
         if (arg0 == p->field_1) {
             found = 1;
@@ -2444,7 +2444,7 @@ void Gp_ClearEquipSlotSel(s32 arg0, s32 arg1)
     }
 
     found = 0;
-    slot  = &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg0];
+    slot  = &((McItemSlot*)((s32)Mc_SaveData[0].weaponItems - 0x400))[arg0];
     for (i = found, p = Gp_ItemMaps; i < 8; i++, p++) {
         if (arg0 == p->field_1) {
             found = 1;
@@ -2523,12 +2523,12 @@ s32 Gp_FillRelated(s32 arg0, s32 arg1)
     McItemSlot* alt;
     s32         ret;
 
-    slot = &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg0];
+    slot = &((McItemSlot*)((s32)Mc_SaveData[0].weaponItems - 0x400))[arg0];
     alt  = slot;
     if (arg1 != 0) {
-        ret = Gp_EquipRelatedItem(&Mc_SaveData.carriedItems, arg0, slot->attachId, -1);
+        ret = Gp_EquipRelatedItem(&Mc_SaveData[0].carriedItems, arg0, slot->attachId, -1);
     } else {
-        ret = Gp_EquipRelatedItem(&Mc_SaveData.carriedItems, arg0, alt->ammoId, -1);
+        ret = Gp_EquipRelatedItem(&Mc_SaveData[0].carriedItems, arg0, alt->ammoId, -1);
     }
     return ret;
 }
@@ -2539,12 +2539,12 @@ s32 Gp_UnequipRelated(s32 arg0, s32 arg1)
     McItemSlot* alt;
     s32         ret;
 
-    slot = &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg0];
+    slot = &((McItemSlot*)((s32)Mc_SaveData[0].weaponItems - 0x400))[arg0];
     alt  = slot;
     if (arg1 == 0) {
-        ret = Gp_EquipRelatedItem(&Mc_SaveData.carriedItems, arg0, slot->ammoId, 0);
+        ret = Gp_EquipRelatedItem(&Mc_SaveData[0].carriedItems, arg0, slot->ammoId, 0);
     } else {
-        ret = Gp_EquipRelatedItem(&Mc_SaveData.carriedItems, arg0, alt->attachId, 0);
+        ret = Gp_EquipRelatedItem(&Mc_SaveData[0].carriedItems, arg0, alt->attachId, 0);
     }
     return ret == 0;
 }
@@ -2568,7 +2568,7 @@ s32 Gp_HasCollectedBit(s32 arg0)
     s32* p;
     s32  val;
 
-    p     = Mc_SaveData.collectedBits;
+    p     = Mc_SaveData[0].collectedBits;
     arg0 &= 0x7F;
     p    += arg0 / 32;
     arg0 %= 32;
@@ -2584,7 +2584,7 @@ McItemRec* Gp_GetItemTable(McItemScan* arg0)
         case 1:
             return Gp_ItemTable1;
         default:
-            return Mc_SaveData.itemRows;
+            return Mc_SaveData[0].itemRows;
     }
 }
 
@@ -2602,7 +2602,7 @@ s32 Gp_ScanIndexOf(McItemScan* arg0, McItemRec* arg1)
             table = Gp_ItemTable1;
             break;
         default:
-            table = Mc_SaveData.itemRows;
+            table = Mc_SaveData[0].itemRows;
             break;
     }
 
@@ -2630,7 +2630,7 @@ McItemRec* Gp_GetScanSlot(McItemScan* arg0, s32 arg1, s32 arg2)
             table = Gp_ItemTable1;
             break;
         default:
-            table = Mc_SaveData.itemRows;
+            table = Mc_SaveData[0].itemRows;
             break;
     }
     return &table[arg0->firstRow + arg1];
@@ -2649,7 +2649,7 @@ static s32 Gp_GetScanItemId(McItemScan* arg0, s32 arg1)
             table = Gp_ItemTable1;
             break;
         default:
-            table = Mc_SaveData.itemRows;
+            table = Mc_SaveData[0].itemRows;
             break;
     }
     rec = &table[arg0->firstRow + arg1];
@@ -2670,7 +2670,7 @@ s32 Gp_NthCollectedId(s32 arg0, s32 arg1)
     if (*p != 0xFFFF) {
         do {
             item  = *p;
-            bits  = Mc_SaveData.collectedBits;
+            bits  = Mc_SaveData[0].collectedBits;
             one   = 1;
             bit   = item & 0x7F;
             bits += bit / 32;
@@ -2715,7 +2715,7 @@ s32 Gp_SumScanQty(McItemScan* arg0, s32 arg1)
             tmp = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData.itemRows;
+            tmp = Mc_SaveData[0].itemRows;
             break;
     }
     table = tmp;
@@ -2754,11 +2754,11 @@ void Gp_SetItemSeenBit(s32 arg0, s32 arg1)
         return;
     }
     if (arg1 == 0) {
-        p                      = &Mc_SaveData;
+        p                      = &Mc_SaveData[0];
         p->itemSeenBits[word] &= ~bit;
         return;
     }
-    p                      = &Mc_SaveData;
+    p                      = &Mc_SaveData[0];
     p->itemSeenBits[word] |= bit;
 }
 
@@ -2840,7 +2840,7 @@ void Gp_SavePlayerPos(void)
         p->yaw = angle + 0x1000;
     }
     cfg             = &Player_Status;
-    save            = &Mc_SaveData;
+    save            = &Mc_SaveData[0];
     save->playerExp = cfg->exp;
     save->playerBp  = cfg->bp;
 }
@@ -2966,7 +2966,7 @@ s32 Gp_NextMappedSlot(s32 arg0)
     s32         i;
     GpItemMap*  p;
 
-    scan = &Mc_SaveData.carriedItems;
+    scan = &Mc_SaveData[0].carriedItems;
     if ((u32)arg0 >= 8) {
         return -1;
     }
@@ -2992,7 +2992,7 @@ s32 Gp_HasMappedItem(void)
     GpItemMap*  p;
 
     found = 0;
-    scan  = &Mc_SaveData.carriedItems;
+    scan  = &Mc_SaveData[0].carriedItems;
     for (i = 0, p = Gp_ItemMaps; i < 8; i++) {
         if (Gp_SumScanQty(scan, p->field_1)) {
             found = 1;
@@ -3008,7 +3008,7 @@ static void Gp_ResetAuxSlots(void)
     McItemSlot* p;
     s32         i;
 
-    p = Mc_SaveData.weaponItems;
+    p = Mc_SaveData[0].weaponItems;
     for (i = 0; i < 0x20; i++) {
         p->ammoId    = 0;
         p->ammoQty   = 0;
@@ -3037,7 +3037,7 @@ static void Gp_SetPlayerScan(s32 arg0)
 {
     McSaveData* p;
 
-    p                        = &Mc_SaveData;
+    p                        = &Mc_SaveData[0];
     p->carriedItems.firstRow = 0;
     p->carriedItems.rowCount = arg0;
     p->carriedItems.table    = 0;
@@ -3054,7 +3054,7 @@ void Gp_SyncHeldRelated(void)
     if (p->weapon == 0) {
         p->weaponSlotItem = 0;
     } else {
-        slots = (McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400);
+        slots = (McItemSlot*)((s32)Mc_SaveData[0].weaponItems - 0x400);
         idx   = p->weapon + 0x7F;
         item  = slots[idx].ammoId;
         if (item == 0) {
@@ -3074,7 +3074,7 @@ static void Gp_InitItemSeenBits(void)
     s32         i;
     s32         count;
 
-    p = &Mc_SaveData;
+    p = &Mc_SaveData[0];
     for (i = 0x5F; i >= 0; i--) {
         p->itemSeenBits[i] = 0;
     }
@@ -3113,7 +3113,7 @@ s32 Gp_HasItemSeenBit(s32 arg0)
     if ((u32)arg0 >= 0x180) {
         return 1;
     }
-    p   = &Mc_SaveData;
+    p   = &Mc_SaveData[0];
     val = p->itemSeenBits[word] & bit;
     return val != 0;
 }
@@ -3127,7 +3127,7 @@ void Gp_RecalcMaxHp(void)
 
     cfg        = &Player_Status;
     table      = Gp_StatRows;
-    save       = &Mc_SaveData;
+    save       = &Mc_SaveData[0];
     val        = table[save->gameMode].base.half;
     cfg->hpMax = val;
     val       += save->hpBonus;
@@ -3192,7 +3192,7 @@ s32 Gp_ItemSortKey(s32 arg0)
 
 void Gp_MarkPlayTime(void)
 {
-    Gp_PlayTimeMark = Mc_SaveData.playTime;
+    Gp_PlayTimeMark = Mc_SaveData[0].playTime;
 }
 
 static s16 Gp_PlayTimeDelta(void)
@@ -3200,7 +3200,7 @@ static s16 Gp_PlayTimeDelta(void)
     u16* p;
 
     p = &Gp_PlayTimeMark;
-    return Mc_SaveData.playTime - *p;
+    return Mc_SaveData[0].playTime - *p;
 }
 
 s32 Gp_AgeFlag119(void)
@@ -3211,7 +3211,7 @@ s32 Gp_AgeFlag119(void)
     ret = 0;
     if (Gp_HasCollectedBit(0x119) != 0) {
         p = &Gp_PlayTimeMark;
-        if ((s16)(Mc_SaveData.playTime - *p) >= 2) {
+        if ((s16)(Mc_SaveData[0].playTime - *p) >= 2) {
             Gp_ClearCollectedBit(0x119);
             Gp_SetCollectedBit(0x11A);
             ret = 1;
@@ -3226,7 +3226,7 @@ void Gp_AgeFlag119Void(void)
 
     if (Gp_HasCollectedBit(0x119) != 0) {
         p = &Gp_PlayTimeMark;
-        if ((s16)(Mc_SaveData.playTime - *p) >= 2) {
+        if ((s16)(Mc_SaveData[0].playTime - *p) >= 2) {
             Gp_ClearCollectedBit(0x119);
             Gp_SetCollectedBit(0x11A);
         }
@@ -3260,7 +3260,7 @@ s32 Gp_HasStockedItem(s32 arg0)
     s32         ret;
     s32         count;
 
-    scan = &Mc_SaveData.carriedItems;
+    scan = &Mc_SaveData[0].carriedItems;
     ret  = 0;
     switch (scan->table) {
         case 2:
@@ -3270,7 +3270,7 @@ s32 Gp_HasStockedItem(s32 arg0)
             table = Gp_ItemTable1;
             break;
         default:
-            table = Mc_SaveData.itemRows;
+            table = Mc_SaveData[0].itemRows;
             break;
     }
     i      = 0;
@@ -3292,7 +3292,7 @@ void Gp_ResetScanDefault(void)
 {
     McSaveData* p;
 
-    p               = &Mc_SaveData;
+    p               = &Mc_SaveData[0];
     p->carriedItems = Gp_DefaultScan;
 }
 

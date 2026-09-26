@@ -17,7 +17,7 @@
 /// its own address wherever the value is wanted once rather than as one of a
 /// run of accesses to the config block.
 
-/// `Mc_SaveData.characterId`, the 1-based difficulty/mode row of `D_80112E04`.
+/// `Mc_SaveData[0].characterId`, the 1-based difficulty/mode row of `D_80112E04`.
 
 /// Per-frame firing state machine for the gunblade. State 0 arms the shot and
 /// raises the weapon (clip 6 instead of 1 when it was already up), state 1
@@ -189,7 +189,7 @@ static void func_gunblade_8011E040(Task* arg0)
             /* fallthrough */
         case 7:
             actor->field_12A &= 0x3FFF;
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData.characterId][1], 0, 0) == 0) {
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0) {
                 func_80106550(arg0);
             }
             break;

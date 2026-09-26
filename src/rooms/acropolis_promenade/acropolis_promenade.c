@@ -100,8 +100,8 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
             Task_SpawnFromTable(D_acropolis_promenade_80181148, 2, 0, 0);
         }
     }
-    if (Mc_SaveData.sceneEvent == 6) {
-        Mc_SaveData.sceneEvent = 5;
+    if (Mc_SaveData[0].sceneEvent == 6) {
+        Mc_SaveData[0].sceneEvent = 5;
     }
     temp = gGameSession->at4.loc.place;
     if (temp == 1) {
@@ -130,7 +130,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
 /// not yet at 4; the first pass at 4 advances it to 5 instead of refusing.
 /// Message 0xC, while nibble 2 is still 0, refuses with code 3, latches the
 /// answered record into `D_acropolis_promenade_801862D0` for the room's own
-/// script to pick up, and arms `Mc_SaveData.sceneEvent` with 4. Message 0xE spawns the
+/// script to pick up, and arms `Mc_SaveData[0].sceneEvent` with 4. Message 0xE spawns the
 /// capsule sequence the first time (nibble 2 still 0) and afterwards reports
 /// through `field_3` whether nibble 2 has reached 3.
 ///
@@ -155,7 +155,7 @@ s32 func_acropolis_promenade_8017D70C(s32 arg0, s32 arg1, RoomEventMsg* in, Room
         if (in->field_5 == 0) {
             out->field_2                   = 3;
             D_acropolis_promenade_801862D0 = *out;
-            Mc_SaveData.sceneEvent         = 4;
+            Mc_SaveData[0].sceneEvent      = 4;
         }
         return 1;
     }
@@ -339,7 +339,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
             ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             weaponId                              = Player_Status.weapon;
-            rec.animBlock.index                   = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.animBlock.index                   = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.field_4                           = 1;
             rec.field_8                           = 0;
             rec.field_C                           = 0;
@@ -396,7 +396,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
                 Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
                 Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
-                Mc_SaveData.at4.loc.view = 2;
+                Mc_SaveData[0].at4.loc.view = 2;
                 func_800E9BDC(2, 0x9FF);
                 Gp_StateF0.field_4            = 0;
                 gGameSession->padScriptFlags &= 0x7F;

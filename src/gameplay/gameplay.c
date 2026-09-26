@@ -3569,8 +3569,8 @@ static void Gp_InitPlayClock(Task* task)
     Gp_ResetHudFx(&rec->extra);
     GameMain_SetFrameTiming(1);
     task->work   = (TaskIdMap*)rec;
-    rec->field_0 = Mc_SaveData.playTime / 60;
-    rec->field_4 = Mc_SaveData.playTime % 60;
+    rec->field_0 = Mc_SaveData[0].playTime / 60;
+    rec->field_4 = Mc_SaveData[0].playTime % 60;
     ds           = &gDisplayState;
     rec->field_8 = ds->gameTick;
     func_800B25B0();
@@ -3619,7 +3619,7 @@ static void Gp_TickPlayClock(Task* task)
     if (D_8005ED68 >= 0xE10) {
         McSaveData* p;
         D_8005ED68 -= 0xE10;
-        p           = &Mc_SaveData;
+        p           = &Mc_SaveData[0];
         if (p->playTime <= 0xEA5E) {
             p->playTime++;
             rec->field_4++;
@@ -3634,7 +3634,7 @@ static void Gp_TickPlayClock(Task* task)
         }
     }
 
-    save = &Mc_SaveData;
+    save = &Mc_SaveData[0];
     one  = 1;
     if (save->demoScene == one) {
         req.x          = -0x96;
@@ -3690,7 +3690,7 @@ static void Gp_TickPlayClock(Task* task)
 
     block_companion: {
         McSaveData* p;
-        p = &Mc_SaveData;
+        p = &Mc_SaveData[0];
         if (p->companionHp <= 0) {
             if (gGameSession->eventState != 0) {
                 p->companionHp = 1;

@@ -2537,7 +2537,7 @@ static void func_actor_403000_80137084(Task* arg0)
         scratch->angle = mag = angle;
         work->field_AD8      = mag;
         coord                = arg0->extra.tmd->coords;
-        if (Mc_SaveData.field_5C1 != 1) {
+        if (Mc_SaveData[0].field_5C1 != 1) {
             dir = Actor403000_PushVec();
             Gfx_MatrixCol2(&coord->coord, dir);
             VectorNormalSS(dir, dir);
@@ -2793,7 +2793,7 @@ static void func_actor_403000_801377C8(Task* arg0)
     }
     if (work->field_AC6 == 2) {
         coord = arg0->extra.tmd->coords;
-        if (Mc_SaveData.field_5C1 != 1) {
+        if (Mc_SaveData[0].field_5C1 != 1) {
             dirA = Actor403000_PushVec();
             Gfx_MatrixCol2(&coord->coord, dirA);
             VectorNormalSS(dirA, dirA);
@@ -2808,7 +2808,7 @@ static void func_actor_403000_801377C8(Task* arg0)
     if (work->field_AC6 == 0xB && (s16)work->field_6 < 0xE) {
         coord2 = arg0->extra.tmd->coords;
         step   = work->field_F86;
-        if (Mc_SaveData.field_5C1 != 1) {
+        if (Mc_SaveData[0].field_5C1 != 1) {
             dirB = Actor403000_PushVec();
             v    = dirB;
             if (step != 0) {
@@ -2978,7 +2978,7 @@ static void func_actor_403000_801386E8(Task* arg0)
     if (work->field_6 >= 5 && work->field_6 < 25) {
         coord = arg0->extra.tmd->coords;
         step  = work->field_F84;
-        if (Mc_SaveData.field_5C1 != 1) {
+        if (Mc_SaveData[0].field_5C1 != 1) {
             dir = Actor403000_PushVec();
             if (step != 0) {
                 Gfx_MatrixCol2(&coord->coord, dir);
@@ -3173,7 +3173,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
     }
     if ((s16)work->field_6 < 10) {
         coord = arg0->extra.tmd->coords;
-        if (Mc_SaveData.field_5C1 != 1) {
+        if (Mc_SaveData[0].field_5C1 != 1) {
             dir = Actor403000_PushVec();
             Gfx_MatrixCol2(&coord->coord, dir);
             VectorNormalSS(dir, dir);
@@ -4491,7 +4491,7 @@ static void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
     }
     if (work->field_FC0 == 1) {
         work->field_FCC++;
-        if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon]) {
+        if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]) {
             switch (work->field_F94) {
                 case 1:
                     if (work->field_FCC == 42) {
@@ -4543,7 +4543,7 @@ static void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
         }
         if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
             work->field_FCC = 0;
-            if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon]) {
+            if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]) {
                 switch (work->field_F94) {
                     case 1:
                         work->field_F94 = 2;
@@ -4569,7 +4569,7 @@ static void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
                     case 2:
                     case 4:
                     case 6:
-                        work->field_F90 = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon];
+                        work->field_F90 = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon];
                         work->field_F94 = 7;
                         work->field_F9C = 0x10;
                         work->field_F98 = 0;

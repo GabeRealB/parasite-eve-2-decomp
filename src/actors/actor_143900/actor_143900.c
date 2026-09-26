@@ -126,8 +126,8 @@ static void func_actor_143900_80133144(void);
 /// plays.
 void func_actor_143900_80131E24(void)
 {
-    if (Mc_SaveData.demoScene != 9) {
-        Mc_SaveData.sceneEvent = 0x14;
+    if (Mc_SaveData[0].demoScene != 9) {
+        Mc_SaveData[0].sceneEvent = 0x14;
         Task_SpawnFromTable(&D_8017DA00, 0, 0, 0);
     }
 }

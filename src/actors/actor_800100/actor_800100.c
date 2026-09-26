@@ -763,7 +763,7 @@ static void func_actor_800100_80163214(Task* arg0)
     obj->ctx.dir    = (GpObjDirRec*)actor->field_88;
     obj->coord      = coord;
     actor->field_90 = (s32)recs;
-    save            = &Mc_SaveData;
+    save            = &Mc_SaveData[0];
     obj->pos.vy     = -0x12C;
     obj->pos.vx     = 0;
     obj->pos.vz     = 0;
@@ -1213,14 +1213,14 @@ static void func_actor_800100_80163F04(Task* arg0)
         if ((u16)actor->field_96C != 0) {
             func_8010B9A4(arg0);
             pan = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(((Mc_SaveData.companionVariant - 1) << 16) + 0x4065000A, pan, (s8)gpGetObjDepth(coord));
+            SndEvt_EnqueueType6(((Mc_SaveData[0].companionVariant - 1) << 16) + 0x4065000A, pan, (s8)gpGetObjDepth(coord));
         }
     }
     Gp_TickActorAnimState(arg0);
     Gp_AnimTickChildSlots(arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
-    if (Mc_SaveData.companionHp <= 0) {
+    if (Mc_SaveData[0].companionHp <= 0) {
         Gp_StopPlayerAnim(arg0, 0);
     }
 }
@@ -1511,8 +1511,8 @@ static void func_actor_800100_80164710(Task* arg0)
                     *(GpLinkNode**)&actor->field_90C = NULL;
                     actor->field_97E                 = 1;
                     actor->field_12A                &= 0x3FFF;
-                    if ((u8)Mc_SaveData.companionVariant == 4) {
-                        func_80106350(arg0, D_actor_800100_80167218[Mc_SaveData.companionVariant], 0);
+                    if ((u8)Mc_SaveData[0].companionVariant == 4) {
+                        func_80106350(arg0, D_actor_800100_80167218[Mc_SaveData[0].companionVariant], 0);
                     }
                     actor3            = arg0->work;
                     actor3->field_954 = 0;
@@ -1760,7 +1760,7 @@ static void func_actor_800100_80164E60(Task* arg0)
     d4    = actor->field_910;
     rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
     coord = actor->field_91C->extra.tmd->coords;
-    sel   = D_actor_800100_80167218[Mc_SaveData.companionVariant];
+    sel   = D_actor_800100_80167218[Mc_SaveData[0].companionVariant];
 
     switch (sel) {
         case 3:
@@ -1799,7 +1799,7 @@ static void func_actor_800100_80164E60(Task* arg0)
             break;
     }
 
-    d4->actionCount = D_actor_800100_80167230[Mc_SaveData.companionVariant];
+    d4->actionCount = D_actor_800100_80167230[Mc_SaveData[0].companionVariant];
     if (rec != NULL && func_80105894(arg0, 1, 0, 0) == 0) {
         target            = arg0->work;
         target->field_954 = 0;
@@ -2219,7 +2219,7 @@ static void func_actor_800100_80165930(Task* arg0)
     actor = arg0->work;
     sp.funcs[(u16)actor->field_956](arg0);
     Gp_TurnPlayer(arg0);
-    if (Mc_SaveData.companionHp <= 0) {
+    if (Mc_SaveData[0].companionHp <= 0) {
         func_8010BFCC(arg0);
         Gp_StopPlayerAnim(arg0, 0);
     }
@@ -2390,7 +2390,7 @@ static void func_actor_800100_80165DE8(Task* arg0)
             Gp_PlayObjSfx(coord, 0x40660001, 1);
             if (coord != NULL) {
                 actor->field_940 = 0x28;
-                Gp_SpawnEff(0x6006C, coord, D_actor_800100_80167218[Mc_SaveData.companionVariant] | 0x10000, NULL);
+                Gp_SpawnEff(0x6006C, coord, D_actor_800100_80167218[Mc_SaveData[0].companionVariant] | 0x10000, NULL);
                 func_80104490(arg0, 1, 2, 0x110C0A);
                 return;
             }
@@ -2405,7 +2405,7 @@ static void func_actor_800100_80165DE8(Task* arg0)
     }
 }
 
-/// Handlers `func_actor_800100_80166EE8` runs, indexed by `Mc_SaveData.companionVariant`.
+/// Handlers `func_actor_800100_80166EE8` runs, indexed by `Mc_SaveData[0].companionVariant`.
 static const TaskFuncTable5 D_actor_800100_80161EC8 = { {
     func_actor_800100_80165C38,
     func_actor_800100_80165C38,
@@ -2459,7 +2459,7 @@ static void func_actor_800100_80165F50(Task* arg0)
                 d4->actionCount  -= 1;
                 actor->field_12A |= 0xC000;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x40670001, 1);
-                Gp_SpawnEff(0x6002B, coord, D_actor_800100_80167218[Mc_SaveData.companionVariant] | 0x10000, NULL);
+                Gp_SpawnEff(0x6002B, coord, D_actor_800100_80167218[Mc_SaveData[0].companionVariant] | 0x10000, NULL);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 2);
             }
             break;
@@ -2557,7 +2557,7 @@ static void func_actor_800100_80166190(Task* arg0)
                         actor->field_93E = 0;
                     }
                     Gp_PlayObjSfx(coord, 0x40680001, 1);
-                    Gp_SpawnEff(0x6006B, coord, D_actor_800100_80167218[Mc_SaveData.companionVariant] | 0x10000, NULL);
+                    Gp_SpawnEff(0x6006B, coord, D_actor_800100_80167218[Mc_SaveData[0].companionVariant] | 0x10000, NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
                     break;
                 } else {
@@ -2888,7 +2888,7 @@ static void func_actor_800100_80166E14(Task* arg0)
     actor->field_95E = 0;
     actor->field_90C = NULL;
     actor->field_97E = 1;
-    func_80106350(arg0, D_actor_800100_80167218[Mc_SaveData.companionVariant], 0);
+    func_80106350(arg0, D_actor_800100_80167218[Mc_SaveData[0].companionVariant], 0);
     Gp_AnimPlayChildSlotsEx(arg0, 8, 1, 6);
 }
 
@@ -2913,7 +2913,7 @@ static void func_actor_800100_80166EE8(Task* arg0)
     TaskFuncTable5 sp;
 
     sp = D_actor_800100_80161EC8;
-    sp.funcs[Mc_SaveData.companionVariant](arg0);
+    sp.funcs[Mc_SaveData[0].companionVariant](arg0);
 }
 
 static void func_actor_800100_80166F50(Task* arg0)

@@ -208,9 +208,9 @@ static void func_acropolis_west_elevator_hall_8017D7B0(Task* task)
     width  = 0x1C0;
     work   = task->work;
     extra  = task->extra.tmd;
-    stage  = Mc_SaveData.at4.loc.stage;
-    area   = Mc_SaveData.at4.loc.area;
-    view   = Mc_SaveData.at4.loc.view;
+    stage  = Mc_SaveData[0].at4.loc.stage;
+    area   = Mc_SaveData[0].at4.loc.area;
+    view   = Mc_SaveData[0].at4.loc.view;
     status = &Player_Status;
     if (stage == 5) {
         width = 0x140;
@@ -612,7 +612,7 @@ static void func_acropolis_west_elevator_hall_8017D7B0(Task* task)
             if (halfWidth >= 0x60) {
                 halfWidth = 0x5F;
             }
-            if ((GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_AREA_VIEW) == GP_LOC_KEY(0, 2, 0, 5)) {
+            if ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_AREA_VIEW) == GP_LOC_KEY(0, 2, 0, 5)) {
                 if (task->spawnArg1 == 0) {
                     halfWidth = 0x5F;
                 } else {
@@ -838,8 +838,8 @@ s32 func_acropolis_west_elevator_hall_8017F4C0(Task* task, s32 msgId, GpSaveLoc*
     *dst = *src;
     if (*(u16*)src == 1 && GameFlag_GetNibble(0x21) == 0 && src->field_5 == 0) {
         GameFlag_SetNibble(0x21, 1);
-        Mc_SaveData.sceneEvent = 1;
-        dst->field_2           = 7;
+        Mc_SaveData[0].sceneEvent = 1;
+        dst->field_2              = 7;
     }
     return 1;
 }

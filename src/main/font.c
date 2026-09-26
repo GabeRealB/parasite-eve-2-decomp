@@ -90,7 +90,7 @@ static void Task_AllocIdMap(Task* arg0)
             gStageRoomSong = 0;
         }
         temp_a0        = gGameSession->at4.loc.stage;
-        ret            = TaskIdMap_RemapIndex(temp_a0, Mc_SaveData.sceneEvent, D_8006276C[temp_a0 - 1]);
+        ret            = TaskIdMap_RemapIndex(temp_a0, Mc_SaveData[0].sceneEvent, D_8006276C[temp_a0 - 1]);
         field34        = arg0->spawnArg1;
         gStageMusicRow = ret;
         D_8007A398     = 0;

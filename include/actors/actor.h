@@ -2339,7 +2339,7 @@ static __inline__ void actorMoveForward(GpCoord* coord, s16 amount)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (Mc_SaveData.field_5C1 != 1) {
+    if (Mc_SaveData[0].field_5C1 != 1) {
         head                  = SCRATCH_HEAD(SVECTOR);
         vec                   = head - 1;
         SCRATCH_HEAD(SVECTOR) = vec;
@@ -2365,7 +2365,7 @@ static __inline__ void actorMoveForwardNonzero(GpCoord* coord, s16 amount)
     SVECTOR* vec;
     SVECTOR* gteVec;
 
-    if (Mc_SaveData.field_5C1 != 1) {
+    if (Mc_SaveData[0].field_5C1 != 1) {
         head                  = SCRATCH_HEAD(SVECTOR);
         vec                   = head - 1;
         SCRATCH_HEAD(SVECTOR) = vec;
@@ -2395,7 +2395,7 @@ static __inline__ void actorMoveModelForward(Task* task, s16 amount)
     SVECTOR* vec;
 
     coord = task->extra.tmd->coords;
-    if (Mc_SaveData.field_5C1 != 1) {
+    if (Mc_SaveData[0].field_5C1 != 1) {
         head                  = SCRATCH_HEAD(SVECTOR);
         vec                   = head - 1;
         SCRATCH_HEAD(SVECTOR) = vec;
@@ -2491,7 +2491,7 @@ static __inline__ void actorStepForward(GpCoord* coord, s16 amount)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (Mc_SaveData.field_5C1 != 1) {
+    if (Mc_SaveData[0].field_5C1 != 1) {
         head                  = SCRATCH_HEAD(SVECTOR);
         vec                   = head - 1;
         SCRATCH_HEAD(SVECTOR) = vec;

@@ -1095,7 +1095,7 @@ static inline void Actor560800_PlaySe(s16 arg4)
     s32 val;
 
     val    = Player_Status.weapon;
-    msg[0] = (Mc_SaveData.characterId == 1) ? val + 1 : val + 0x22;
+    msg[0] = (Mc_SaveData[0].characterId == 1) ? val + 1 : val + 0x22;
     msg[1] = arg4;
     msg[2] = 0;
     msg[3] = 0;
@@ -1109,7 +1109,7 @@ static inline void Actor560800_PlaySeB(s32 arg4)
     s32 val;
 
     val    = Player_Status.weapon;
-    msg[0] = (Mc_SaveData.characterId == 1) ? val + 1 : val + 0x22;
+    msg[0] = (Mc_SaveData[0].characterId == 1) ? val + 1 : val + 0x22;
     msg[1] = arg4;
     msg[2] = 1;
     msg[3] = 0xA;
@@ -1856,7 +1856,7 @@ void func_actor_560800_80135D54(Task* arg0)
                 Gp_LcgState = D_actor_560800_801757A8;
                 Gp_PulseState1C();
                 val    = Player_Status.weapon;
-                msg[0] = (Mc_SaveData.characterId == 1) ? val + 1 : val + 0x22;
+                msg[0] = (Mc_SaveData[0].characterId == 1) ? val + 1 : val + 0x22;
                 msg[1] = 1;
                 msg[2] = 0;
                 msg[3] = 0;

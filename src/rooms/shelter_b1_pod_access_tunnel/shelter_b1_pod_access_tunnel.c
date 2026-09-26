@@ -124,10 +124,10 @@ void func_shelter_b1_pod_access_tunnel_8017D61C(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = D_shelter_b1_pod_access_tunnel_80184D04.msgId;
-            Mc_SaveData.at4.loc.warp  = D_shelter_b1_pod_access_tunnel_80184D04.field_2;
-            Mc_SaveData.at4.loc.room  = D_shelter_b1_pod_access_tunnel_80184D04.field_3;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = D_shelter_b1_pod_access_tunnel_80184D04.msgId;
+            Mc_SaveData[0].at4.loc.warp = D_shelter_b1_pod_access_tunnel_80184D04.field_2;
+            Mc_SaveData[0].at4.loc.room = D_shelter_b1_pod_access_tunnel_80184D04.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -249,12 +249,12 @@ void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
             return;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData.at4.loc.area = 0x23;
-            Mc_SaveData.at4.loc.warp = 3;
-            Mc_SaveData.at4.loc.room = 1;
-            room                     = GameFlag_GetNibble(0x118);
+            Mc_SaveData[0].at4.loc.area = 0x23;
+            Mc_SaveData[0].at4.loc.warp = 3;
+            Mc_SaveData[0].at4.loc.room = 1;
+            room                        = GameFlag_GetNibble(0x118);
             if (room == 2) {
-                Mc_SaveData.at4.loc.room = room;
+                Mc_SaveData[0].at4.loc.room = room;
             }
             gDisplayState.roomVariant = 1;
             Task_Spawn(0, 0x11, 0, 0);
@@ -296,11 +296,11 @@ void func_shelter_b1_pod_access_tunnel_8017DC18(Task* task)
         case 4:
             GameFlag_SetNibble(0xB4, 1);
             GameFlag_SetNibble(0x1C1, 0);
-            Mc_SaveData.sceneEvent    = 0x1C;
-            Mc_SaveData.at4.loc.area  = 0x17;
-            Mc_SaveData.at4.loc.warp  = 1;
-            Mc_SaveData.at4.loc.room  = 1;
-            gDisplayState.roomVariant = 1;
+            Mc_SaveData[0].sceneEvent   = 0x1C;
+            Mc_SaveData[0].at4.loc.area = 0x17;
+            Mc_SaveData[0].at4.loc.warp = 1;
+            Mc_SaveData[0].at4.loc.room = 1;
+            gDisplayState.roomVariant   = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -374,7 +374,7 @@ static void func_shelter_b1_pod_access_tunnel_8017DEE8(Task* task)
 /// Two-state task: state 0, unless blocked by `Gp_StateC08.field_A` or `gDisplayState.pendingMode`,
 /// sends the slot-3 task a `GpAnimArg` built from `Player_Status.weapon` (msg 0x3E8) and runs
 /// `D_shelter_b1_pod_access_tunnel_80181120` through `func_800E8614`; state 1
-/// sets `Mc_SaveData.sceneEvent` to 0x1D and kills this task once the session is idle.
+/// sets `Mc_SaveData[0].sceneEvent` to 0x1D and kills this task once the session is idle.
 void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
 {
     GpAnimArg rec;
@@ -387,7 +387,7 @@ void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
         case 0:
             if (Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == 0) {
                 weaponId            = Player_Status.weapon;
-                id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 rec.animBlock.index = id;
                 rec.field_4         = 1;
                 rec.field_8         = 0;
@@ -400,7 +400,7 @@ void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
             break;
         case 1:
             if (gGameSession->eventState == 0) {
-                Mc_SaveData.sceneEvent = 0x1D;
+                Mc_SaveData[0].sceneEvent = 0x1D;
                 Task_RequestKill(task, 0);
             }
             break;

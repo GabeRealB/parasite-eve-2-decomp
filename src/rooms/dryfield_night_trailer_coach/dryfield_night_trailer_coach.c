@@ -114,12 +114,12 @@ extern u16 D_dryfield_night_trailer_coach_80184578[];
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40
 /// or any other value) and the high halfword one of the group's four;
-/// `Mc_SaveData.gameMode` 2 and above has groups of its own. A high halfword
+/// `Mc_SaveData[0].gameMode` 2 and above has groups of its own. A high halfword
 /// above 3 falls through the 0x30-0x33 groups in turn and on into 0x20's;
 /// every other miss returns `D_dryfield_night_trailer_coach_80184578`.
 static u16* func_dryfield_night_trailer_coach_8017D81C(s32 mode)
 {
-    if (Mc_SaveData.gameMode < 2) {
+    if (Mc_SaveData[0].gameMode < 2) {
         switch ((u16)mode) {
             case 0x30:
                 switch ((u32)mode >> 16) {
@@ -350,9 +350,9 @@ void func_dryfield_night_trailer_coach_8017DE8C(DialogPrompt* prompt, UiObject* 
     shop    = (RoomShopList*)obj->owner->work;
     blocked = 0;
     itemId  = shop->items[prompt->field_8];
-    /* &Mc_SaveData.carriedItems hoisted into a saved register here, as the original does,
+    /* &Mc_SaveData[0].carriedItems hoisted into a saved register here, as the original does,
        instead of being rematerialised at the Gp_SumScanQty call. */
-    scan = &Mc_SaveData.carriedItems;
+    scan = &Mc_SaveData[0].carriedItems;
     if (prompt->field_C == 1) {
         D_dryfield_night_trailer_coach_80184490 = itemId;
     }
@@ -494,8 +494,8 @@ extern RoomShopTier D_dryfield_night_trailer_coach_801843F4[13];
 /// 0, which items of each unlocked price row are added: mode 0 ids 0x80-0x9F
 /// and 9, 0xA, 0xC, 0x42-0x46; mode 1 ids 0xA0-0xBF; mode 2 ids 0x60-0x7F and
 /// 0xD; mode 3 ids 1-0x5F other than those. Mode 3 also adds, for each of the
-/// twelve two-bit levels in `Mc_SaveData.shopStock`, the id of that level
-/// (the first slot needs level 2). With `Mc_SaveData.demoScene` 1 every row
+/// twelve two-bit levels in `Mc_SaveData[0].shopStock`, the id of that level
+/// (the first slot needs level 2). With `Mc_SaveData[0].demoScene` 1 every row
 /// and level is unlocked first.
 static void func_dryfield_night_trailer_coach_8017E464(RoomShopList* shop, UiObject* obj)
 {
@@ -525,15 +525,15 @@ static void func_dryfield_night_trailer_coach_8017E464(RoomShopList* shop, UiObj
         ids++;
     }
 
-    if (Mc_SaveData.demoScene == 1) {
-        Mc_SaveData.shopTiers = 0x1FFF;
-        Mc_SaveData.shopStock = -1;
+    if (Mc_SaveData[0].demoScene == 1) {
+        Mc_SaveData[0].shopTiers = 0x1FFF;
+        Mc_SaveData[0].shopStock = -1;
     }
 
-    if (Mc_SaveData.gameMode == 0) {
-        if (Mc_SaveData.shopTiers != 0) {
+    if (Mc_SaveData[0].gameMode == 0) {
+        if (Mc_SaveData[0].shopTiers != 0) {
             for (tier = 0; tier < 13; tier++) {
-                unlocked = Mc_SaveData.shopTiers & (1 << tier);
+                unlocked = Mc_SaveData[0].shopTiers & (1 << tier);
                 if (unlocked != 0) {
                     for (j = 0; j < 3; j++) {
                         item = D_dryfield_night_trailer_coach_801843F4[tier].items[j];
@@ -571,7 +571,7 @@ static void func_dryfield_night_trailer_coach_8017E464(RoomShopList* shop, UiObj
 
         if ((mode >> 16) == 3) {
             for (slot = 0; slot < 0xC; slot++) {
-                level = (Mc_SaveData.shopStock >> (slot * 2)) & 3;
+                level = (Mc_SaveData[0].shopStock >> (slot * 2)) & 3;
                 if (slot == 0 ? level >= 2 : level > 0) {
                     /* The assignment keeps `+ 0xE` on the level instead of
                        letting GCC reassociate it onto the row base. */
@@ -901,7 +901,7 @@ void func_dryfield_night_trailer_coach_8017EE48(Task* task)
     func_8002E53C(&req1, (char*)D_dryfield_night_trailer_coach_8017D6E4);
 
     p        = total;
-    scan     = &Mc_SaveData.carriedItems;
+    scan     = &Mc_SaveData[0].carriedItems;
     count    = Gp_CountScanItems(scan);
     capacity = scan->rowCount;
     Text_ItoaUnsigned((u8*)p, count);
@@ -943,7 +943,7 @@ void func_dryfield_night_trailer_coach_8017F02C(DialogPrompt* prompt, UiObject* 
     if (mode == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         cfg   = &Player_Status;
         price = Gp_ItemDescs[itemId].price;
-        scan  = &Mc_SaveData.carriedItems;
+        scan  = &Mc_SaveData[0].carriedItems;
         SndEvt_EnqueueType6(0x16, 0, 0);
         if (cfg->bp >= price) {
             if (Gp_CanAddItem(scan, itemId) == 0) {
@@ -1151,9 +1151,9 @@ void func_dryfield_night_trailer_coach_8017F688(Task* task)
         count = 0;
         guard = 0;
         if ((u32)(item - 0xA0) < 0x20U) {
-            count = Gp_ScanStackQty(&Mc_SaveData.carriedItems, item);
+            count = Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, item);
         } else {
-            scan = &Mc_SaveData.carriedItems;
+            scan = &Mc_SaveData[0].carriedItems;
             rec  = Gp_GetItemTable(scan) + scan->firstRow;
             n    = scan->rowCount;
             SOFT_USE_REG2(guard, guard);
@@ -1213,7 +1213,7 @@ void func_dryfield_night_trailer_coach_8017F85C(Task* task)
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
         if (D_8010E138[itemId].perBuy != 0) {
-            held    = Gp_ScanStackQty(&Mc_SaveData.carriedItems, itemId);
+            held    = Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, itemId);
             maxHeld = D_8010E138[itemId].maxHeld;
             maxQty  = maxHeld - held;
             if (maxQty <= 0) {
@@ -1224,7 +1224,7 @@ void func_dryfield_night_trailer_coach_8017F85C(Task* task)
             }
         }
     } else {
-        maxQty = Mc_SaveData.carriedItems.rowCount - Gp_CountScanItems(&Mc_SaveData.carriedItems);
+        maxQty = Mc_SaveData[0].carriedItems.rowCount - Gp_CountScanItems(&Mc_SaveData[0].carriedItems);
     }
 
     afford = Player_Status.bp / price;
@@ -1275,7 +1275,7 @@ void func_dryfield_night_trailer_coach_8017F85C(Task* task)
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             Player_Status.bp -= price * task->extraState;
             for (i = 0; i < task->extraState; i++) {
-                Gp_GiveItem(&Mc_SaveData.carriedItems, itemId, -1);
+                Gp_GiveItem(&Mc_SaveData[0].carriedItems, itemId, -1);
             }
             SndEvt_EnqueueType6(0x16, 0, 0);
             parentObj->field_2E = 6;
@@ -1452,7 +1452,7 @@ void func_dryfield_night_trailer_coach_8017FFF4(DialogPrompt* arg0, UiObject* ar
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_dryfield_night_trailer_coach_80184CEC);
-            Text_FormatTime(p, Mc_SaveData.playTime);
+            Text_FormatTime(p, Mc_SaveData[0].playTime);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -1469,7 +1469,7 @@ void func_dryfield_night_trailer_coach_8017FFF4(DialogPrompt* arg0, UiObject* ar
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_dryfield_night_trailer_coach_80184D1C);
-            Text_ItoaUnsigned(p, Mc_SaveData.saveCount);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].saveCount);
             Text_Strcat(p, D_dryfield_night_trailer_coach_80184D3C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -1487,7 +1487,7 @@ void func_dryfield_night_trailer_coach_8017FFF4(DialogPrompt* arg0, UiObject* ar
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_dryfield_night_trailer_coach_80184CF4);
-            Text_ItoaUnsigned(p, Mc_SaveData.field_6CC);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].field_6CC);
             Text_Strcat(p, D_dryfield_night_trailer_coach_80184D3C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -1505,7 +1505,7 @@ void func_dryfield_night_trailer_coach_8017FFF4(DialogPrompt* arg0, UiObject* ar
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_dryfield_night_trailer_coach_80184CF8);
-            Text_ItoaUnsigned(p, Mc_SaveData.field_6CE);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].field_6CE);
             Text_Strcat(p, D_dryfield_night_trailer_coach_80184D3C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -1528,10 +1528,10 @@ void func_dryfield_night_trailer_coach_8017FFF4(DialogPrompt* arg0, UiObject* ar
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_dryfield_night_trailer_coach_80184D00);
-            if (Mc_SaveData.field_6CC == 0) {
+            if (Mc_SaveData[0].field_6CC == 0) {
                 pct = 0;
             } else {
-                pct = (Mc_SaveData.field_6CC * 10000) / (Mc_SaveData.field_6CC + Mc_SaveData.field_6CE);
+                pct = (Mc_SaveData[0].field_6CC * 10000) / (Mc_SaveData[0].field_6CC + Mc_SaveData[0].field_6CE);
             }
             if (pct < 100) {
                 func_8002F44C(p, pct, 3);
@@ -1569,7 +1569,7 @@ void func_dryfield_night_trailer_coach_8017FFF4(DialogPrompt* arg0, UiObject* ar
             s32         i;
             u8*         q;
 
-            total          = Mc_SaveData.field_6CC;
+            total          = Mc_SaveData[0].field_6CC;
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
@@ -1626,7 +1626,7 @@ void func_dryfield_night_trailer_coach_8017FFF4(DialogPrompt* arg0, UiObject* ar
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_dryfield_night_trailer_coach_80184D24);
-            Text_ItoaUnsigned(p, Mc_SaveData.clearCount);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].clearCount);
             Text_Strcat(p, D_dryfield_night_trailer_coach_80184D3C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -1644,7 +1644,7 @@ void func_dryfield_night_trailer_coach_8017FFF4(DialogPrompt* arg0, UiObject* ar
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_dryfield_night_trailer_coach_80184D2C);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData.field_92C), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].field_92C), arg0->field_1C, 3, 2);
             break;
         }
         case 8: {
@@ -1660,7 +1660,7 @@ void func_dryfield_night_trailer_coach_8017FFF4(DialogPrompt* arg0, UiObject* ar
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_dryfield_night_trailer_coach_80184D34);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData.field_930), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].field_930), arg0->field_1C, 3, 2);
             break;
         }
     }
@@ -1821,7 +1821,7 @@ extern UiList       D_dryfield_night_trailer_coach_80184FC0;
 extern UiObjectDesc D_dryfield_night_trailer_coach_80184F5C;
 
 /// Builds the item-usage panel's three parallel arrays from the save's
-/// per-item use counters (`Mc_SaveData.weaponUseCounts`, ids 0x80-0x9F).
+/// per-item use counters (`Mc_SaveData[0].weaponUseCounts`, ids 0x80-0x9F).
 ///
 /// Every id whose name is non-empty (a leading 0 or 0xA marks an unused row)
 /// and whose counter is non-zero is marked seen and appended to `itemIds`,
@@ -1856,19 +1856,19 @@ static void func_dryfield_night_trailer_coach_80180BBC(UiList* list, UiObject* o
     for (i = 0; i < 0x20; i++) {
         id = i + 0x80;
         c  = *Gp_GetItemText(id, 0, 1);
-        if ((c != 0) && (c != 0xA) && (Mc_SaveData.weaponUseCounts[i] > 0)) {
+        if ((c != 0) && (c != 0xA) && (Mc_SaveData[0].weaponUseCounts[i] > 0)) {
             Gp_SetItemSeenBit(id, 1);
             *p++ = id;
             count++;
-            total += Mc_SaveData.weaponUseCounts[i];
+            total += Mc_SaveData[0].weaponUseCounts[i];
         }
     }
 
     if (count >= 2) {
         for (i = 1; i < count; i++) {
-            uses = Mc_SaveData.weaponUseCounts[work->itemIds[i] - 0x80];
+            uses = Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80];
             for (j = 0; j < i; j++) {
-                if (Mc_SaveData.weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
+                if (Mc_SaveData[0].weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
                     tmp = work->itemIds[i];
                     for (k = i - 1; k >= j; k--) {
                         work->itemIds[k + 1] = work->itemIds[k];
@@ -1882,7 +1882,7 @@ static void func_dryfield_night_trailer_coach_80180BBC(UiList* list, UiObject* o
 
     if (count > 0) {
         scale = 0x4E20;
-        top   = Mc_SaveData.weaponUseCounts[work->itemIds[0] - 0x80];
+        top   = Mc_SaveData[0].weaponUseCounts[work->itemIds[0] - 0x80];
         shift = 0xC;
         while (top > 0x1869F) {
             top   >>= 1;
@@ -1892,9 +1892,9 @@ static void func_dryfield_night_trailer_coach_80180BBC(UiList* list, UiObject* o
         }
         for (i = 0; i < count; i++) {
             work->percents[i] =
-                (u32)((Mc_SaveData.weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
+                (u32)((Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
             work->barWidths[i] =
-                (Mc_SaveData.weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
+                (Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
         }
     }
 
@@ -1908,10 +1908,10 @@ static void func_dryfield_night_trailer_coach_80180BBC(UiList* list, UiObject* o
 /// item-usage one.
 ///
 /// Each of the twelve Parasite Energy slots owns three consecutive ids starting
-/// at 0xF, one per level, so slot `i` at level `Mc_SaveData.attachLevels[i]`
+/// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].attachLevels[i]`
 /// prints as `i * 3 + 0xF + level - 1` (a slot the player has never levelled
 /// keeps the base id). Every slot with a non-zero counter in
-/// `Mc_SaveData.attachUseCounts` - which really runs twelve entries wide, past the
+/// `Mc_SaveData[0].attachUseCounts` - which really runs twelve entries wide, past the
 /// seven the struct names - is appended and its counter summed. The ids are
 /// then insertion-sorted by use count, most-used first, and each row gets
 /// `percents`, its share of all recorded uses in hundredths of a percent, and
@@ -1949,15 +1949,15 @@ static void func_dryfield_night_trailer_coach_80180EB8(UiList* list, UiObject* o
     magic = 0x55555556;
 
     for (; i < 12; i++) {
-        if (Mc_SaveData.attachUseCounts[i] > 0) {
+        if (Mc_SaveData[0].attachUseCounts[i] > 0) {
             id = i * 3 + 0xF;
             *p = id;
-            if (Mc_SaveData.attachLevels[i] != 0) {
-                *p = id + (Mc_SaveData.attachLevels[i] - 1u);
+            if (Mc_SaveData[0].attachLevels[i] != 0) {
+                *p = id + (Mc_SaveData[0].attachLevels[i] - 1u);
             }
             p++;
             count++;
-            total += Mc_SaveData.attachUseCounts[i];
+            total += Mc_SaveData[0].attachUseCounts[i];
         }
     }
     SOFT_USE_REG(magic);
@@ -1965,10 +1965,10 @@ static void func_dryfield_night_trailer_coach_80180EB8(UiList* list, UiObject* o
     if (count >= 2) {
         for (i = 1; i < count; i++) {
             slot = (work->peIds[i] - 0xF) / 3;
-            uses = Mc_SaveData.attachUseCounts[slot];
+            uses = Mc_SaveData[0].attachUseCounts[slot];
             for (j = 0; j < i; j++) {
                 slot = (work->peIds[j] - 0xF) / 3;
-                if (Mc_SaveData.attachUseCounts[slot] < uses) {
+                if (Mc_SaveData[0].attachUseCounts[slot] < uses) {
                     tmp = work->peIds[i];
                     for (k = i - 1; k >= j; k--) {
                         work->peIds[k + 1] = work->peIds[k];
@@ -1983,7 +1983,7 @@ static void func_dryfield_night_trailer_coach_80180EB8(UiList* list, UiObject* o
     if (count > 0) {
         scale = 0x4E20;
         slot  = (work->peIds[0] - 0xF) / 3;
-        top   = Mc_SaveData.attachUseCounts[slot];
+        top   = Mc_SaveData[0].attachUseCounts[slot];
         shift = 0xC;
         while (top > 0x1869F) {
             top   >>= 1;
@@ -1993,9 +1993,9 @@ static void func_dryfield_night_trailer_coach_80180EB8(UiList* list, UiObject* o
         }
         for (i = 0; i < count; i++) {
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->percents[i]  = (u32)((Mc_SaveData.attachUseCounts[slot] * scale) / total + 1) >> 1;
+            work->percents[i]  = (u32)((Mc_SaveData[0].attachUseCounts[slot] * scale) / total + 1) >> 1;
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->barWidths[i] = (Mc_SaveData.attachUseCounts[slot] << shift) / top;
+            work->barWidths[i] = (Mc_SaveData[0].attachUseCounts[slot] << shift) / top;
         }
     }
 
@@ -2073,10 +2073,10 @@ static void func_dryfield_night_trailer_coach_8018138C(Task* task)
 
     obj           = task->spawnArg2;
     obj->field_2E = 0;
-    ready         = Mc_SaveData.demoScene == 1;
+    ready         = Mc_SaveData[0].demoScene == 1;
     list          = &D_dryfield_night_trailer_coach_80184FC0;
     one           = 1;
-    if (Mc_SaveData.clearCount > 0) {
+    if (Mc_SaveData[0].clearCount > 0) {
         ready = one;
     }
     if (ready == 0) {
@@ -2428,12 +2428,12 @@ void func_dryfield_night_trailer_coach_80181DB0(Task* task)
         case 0:
             D_dryfield_night_trailer_coach_8018C218 = NULL;
             Gp_MsgPlayerWeapon(0);
-            if (Mc_SaveData.companionType == 1) {
+            if (Mc_SaveData[0].companionType == 1) {
                 Gp_MsgAllyWeapon(0);
             }
             if (rec->field_0 > 0) {
-                D_80115694               = Mc_SaveData.at4.loc.view;
-                Mc_SaveData.at4.loc.view = rec->field_0;
+                D_80115694                  = Mc_SaveData[0].at4.loc.view;
+                Mc_SaveData[0].at4.loc.view = rec->field_0;
             } else {
                 D_80115694 = -rec->field_0;
             }
@@ -2515,7 +2515,7 @@ void func_dryfield_night_trailer_coach_80181DB0(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
+                    if ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(&D_dryfield_night_trailer_coach_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -2545,7 +2545,7 @@ void func_dryfield_night_trailer_coach_80181DB0(Task* task)
         case 11:
             Gp_MsgPlayer3F3(1);
             Gp_MsgAlly3F3(1);
-            Mc_SaveData.at4.loc.view = D_80115694;
+            Mc_SaveData[0].at4.loc.view = D_80115694;
             task->state++;
             break;
         case 12:
@@ -2555,7 +2555,7 @@ void func_dryfield_night_trailer_coach_80181DB0(Task* task)
         case 14:
             SndEvt_EnqueueType6(rec->field_8, 0, 0);
             Gp_MsgPlayerWeapon(1);
-            if (Mc_SaveData.companionType == 1) {
+            if (Mc_SaveData[0].companionType == 1) {
                 Gp_MsgAllyWeapon(1);
             }
             gGameSession->hideHud    = 0;
@@ -2643,10 +2643,10 @@ static void func_dryfield_night_trailer_coach_8018231C(Task* task)
         Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3E9, (s32)&D_dryfield_night_trailer_coach_801879B8, 0);
         Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3E8, (s32)&D_dryfield_night_trailer_coach_80187CEC, 0);
     }
-    if (Mc_SaveData.at4.loc.warp == 2) {
+    if (Mc_SaveData[0].at4.loc.warp == 2) {
         func_800E8634((s32)&D_dryfield_night_trailer_coach_80187D00, 0, (s32)&D_dryfield_night_trailer_coach_80187F58);
     }
-    if (Mc_SaveData.at4.loc.warp == 3) {
+    if (Mc_SaveData[0].at4.loc.warp == 3) {
         func_800E8634((s32)&D_dryfield_night_trailer_coach_80189080, 0, (s32)&D_dryfield_night_trailer_coach_801892C0);
         Gp_SetCurBit2Flag(0x22, 1);
     }
@@ -2703,7 +2703,7 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
                     func_800E8634((s32)&D_dryfield_night_trailer_coach_801889A8, 1,
                                   (s32)&D_dryfield_night_trailer_coach_80188F00);
                     func_800E3FAC(0xA2, 0x13);
-                    Mc_SaveData.sceneEvent = 2;
+                    Mc_SaveData[0].sceneEvent = 2;
                 } else {
                     cap = (s32)&D_dryfield_night_trailer_coach_80188858;
                 a1_1:
@@ -2779,7 +2779,7 @@ extern RoomCutsceneRec D_dryfield_night_trailer_coach_8018C21C;
 s32 func_dryfield_night_trailer_coach_801826EC(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 0xE) {
-        Mc_SaveData.at4.loc.warp                        = 1;
+        Mc_SaveData[0].at4.loc.warp                     = 1;
         D_dryfield_night_trailer_coach_8018C21C.field_0 = 8;
         D_dryfield_night_trailer_coach_8018C21C.field_1 = 1;
         if (GameFlag_GetNibble(0x7A) < 4) {
@@ -2832,7 +2832,7 @@ static void func_dryfield_night_trailer_coach_80182898(Task* task)
 {
     char pad[0x10];
 
-    if (Mc_SaveData.at4.loc.view == 5) {
+    if (Mc_SaveData[0].at4.loc.view == 5) {
         gDisplayState.otDepthShift = 0;
     } else {
         gDisplayState.otDepthShift = 3;

@@ -80,8 +80,8 @@ static void func_mine_tunnel_entrance_8017D644(Task* arg0)
 /// State 1 of the room task: moves the saved scene event from 9 on to 10.
 static void func_mine_tunnel_entrance_8017D690(Task* task)
 {
-    if (Mc_SaveData.sceneEvent == 9) {
-        Mc_SaveData.sceneEvent = 0xA;
+    if (Mc_SaveData[0].sceneEvent == 9) {
+        Mc_SaveData[0].sceneEvent = 0xA;
     }
 }
 

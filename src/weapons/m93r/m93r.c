@@ -122,7 +122,7 @@ static void func_m93r_8011D1C4(Task* arg0)
             if ((actor->field_962 & actor->field_96A) != 0) {
                 lockedOut = actor->field_979 == 0;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData.characterId][1], 0, 0) == 0 || lockedOut) {
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0 || lockedOut) {
                 if (lockedOut) {
                     actor->field_940 = 0xA;
                 } else {

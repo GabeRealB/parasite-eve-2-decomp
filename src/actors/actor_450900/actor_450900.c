@@ -80,11 +80,11 @@ void func_actor_450900_80131E38(Task* task)
             if (Gp_StateF0.field_4 != 0) {
                 break;
             }
-            if (Mc_SaveData.demoScene != 0xB) {
+            if (Mc_SaveData[0].demoScene != 0xB) {
                 D_8017A99C = D_8017A99C + 1;
             }
             t = D_8017A99C - 0x30C;
-            if (D_actor_450900_80135E74 == 0 && Mc_SaveData.companionHp > 0 && t >= 0) {
+            if (D_actor_450900_80135E74 == 0 && Mc_SaveData[0].companionHp > 0 && t >= 0) {
                 D_actor_450900_80135E70 = state;
                 if (t % 210 == 0) {
                     coord = (gameGetPtrSlot(0xA))->extra.tmd->coords;
@@ -232,11 +232,11 @@ void func_actor_450900_8013235C(Task* task)
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 8);
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData.at4.loc.area  = 0xF;
-            Mc_SaveData.at4.loc.warp  = 3;
-            Mc_SaveData.companionType = 0;
-            Mc_SaveData.at4.loc.room  = 1;
-            gDisplayState.roomVariant = 1;
+            Mc_SaveData[0].at4.loc.area  = 0xF;
+            Mc_SaveData[0].at4.loc.warp  = 3;
+            Mc_SaveData[0].companionType = 0;
+            Mc_SaveData[0].at4.loc.room  = 1;
+            gDisplayState.roomVariant    = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Gp_RestoreStreamRng();
             taskKill(task);

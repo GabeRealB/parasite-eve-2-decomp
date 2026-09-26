@@ -14,7 +14,7 @@
 
 /// The two caption flags the store's cutscene task raises: `Gp_StateF0.field_4` while
 /// the script owns the screen and `D_80115690` when CAP command 0xF showed the
-/// letterbox. `Mc_SaveData.at4.loc.view` is the area-record id the same task publishes, and
+/// letterbox. `Mc_SaveData[0].at4.loc.view` is the area-record id the same task publishes, and
 /// `gDisplayState.roomVariant` the "chapter advanced" halfword it sets on the way out.
 extern u8 D_80115690;
 extern u8 D_80115598;
@@ -30,9 +30,9 @@ extern TaskDesc D_dryfield_general_store_8017E158;
 
 extern TaskDesc D_dryfield_general_store_8017E164;
 
-/// The stage byte `Mc_SaveData.at4.loc.view` held when the cutscene began, saved by
+/// The stage byte `Mc_SaveData[0].at4.loc.view` held when the cutscene began, saved by
 /// `func_dryfield_general_store_8017DAC0`'s first state and restored into
-/// `Mc_SaveData.at4.loc.view` when the cutscene is cut short.
+/// `Mc_SaveData[0].at4.loc.view` when the cutscene is cut short.
 extern u8 D_dryfield_general_store_801856F8;
 
 /// The two script arguments, latched from the message that armed the cutscene
@@ -153,10 +153,10 @@ void func_dryfield_general_store_8017D764(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant = 1;
-            Mc_SaveData.at4.loc.area  = D_dryfield_general_store_80185700.msgId;
-            Mc_SaveData.at4.loc.warp  = D_dryfield_general_store_80185700.field_2;
-            Mc_SaveData.at4.loc.room  = (u8)D_dryfield_general_store_80185700.field_3;
+            gDisplayState.roomVariant   = 1;
+            Mc_SaveData[0].at4.loc.area = D_dryfield_general_store_80185700.msgId;
+            Mc_SaveData[0].at4.loc.warp = D_dryfield_general_store_80185700.field_2;
+            Mc_SaveData[0].at4.loc.room = (u8)D_dryfield_general_store_80185700.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -255,7 +255,7 @@ s32 func_dryfield_general_store_8017D8D4(s32 arg0, s32 arg1, RoomEventMsg* in, R
 /// helper task 0x31, which it spawns with a zeroed `GpFadeWork` record whose
 /// `field_2` selects variant 8; any other key cuts the cutscene short instead -
 /// captions off, stage sound 0x5203000E, the latched stage byte back into
-/// `Mc_SaveData.at4.loc.view` and the player's weapon messages re-enabled.
+/// `Mc_SaveData[0].at4.loc.view` and the player's weapon messages re-enabled.
 ///
 /// State 5 is the commit: it queues sound event 0x80000000, points the save's
 /// location at area 0x26 with the two latched script arguments as its warp
@@ -269,8 +269,8 @@ void func_dryfield_general_store_8017DAC0(Task* arg0)
         case 0:
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
-            D_dryfield_general_store_801856F8 = Mc_SaveData.at4.loc.view;
-            Mc_SaveData.at4.loc.view          = 0x10;
+            D_dryfield_general_store_801856F8 = Mc_SaveData[0].at4.loc.view;
+            Mc_SaveData[0].at4.loc.view       = 0x10;
             arg0->state                      += 1;
             return;
         case 1:
@@ -295,16 +295,16 @@ void func_dryfield_general_store_8017DAC0(Task* arg0)
             }
             Gp_StateF0.field_4 = 0;
             Gp_EnqueueStageSnd6(0x5203000E, 0, 0);
-            Mc_SaveData.at4.loc.view = D_dryfield_general_store_801856F8;
+            Mc_SaveData[0].at4.loc.view = D_dryfield_general_store_801856F8;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData.at4.loc.area  = 0x26;
-            Mc_SaveData.at4.loc.warp  = D_dryfield_general_store_80185709;
-            Mc_SaveData.at4.loc.room  = D_dryfield_general_store_8018570A;
-            gDisplayState.roomVariant = 1;
+            Mc_SaveData[0].at4.loc.area = 0x26;
+            Mc_SaveData[0].at4.loc.warp = D_dryfield_general_store_80185709;
+            Mc_SaveData[0].at4.loc.room = D_dryfield_general_store_8018570A;
+            gDisplayState.roomVariant   = 1;
             Task_Spawn(0, 0x11, 0, 0);
             break;
         default:

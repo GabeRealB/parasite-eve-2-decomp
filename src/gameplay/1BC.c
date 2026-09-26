@@ -378,7 +378,7 @@ void Gp_StepCdAudioCmd(void)
             if (cmd != 0x81) {
                 break;
             }
-            save23       = Mc_SaveData.demoScene;
+            save23       = Mc_SaveData[0].demoScene;
             p->field_20E = one;
             if (save23 != 0) {
                 SndEvt_EnqueueType6(0, 0, 0);
@@ -403,7 +403,7 @@ void Gp_StepCdAudioCmd(void)
             if (CdAudio_Phase.field_1 != 4) {
                 break;
             }
-            if (Mc_SaveData.demoScene != 0) {
+            if (Mc_SaveData[0].demoScene != 0) {
                 SndEvt_EnqueueType6(0, 0, 0);
             }
             Mem_Set(&p->field_40, 0, 0x10);
@@ -1529,7 +1529,7 @@ void Gp_FadeWorkTask(Task* t)
 
 void func_800B25B0(void)
 {
-    switch (GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) {
+    switch (GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) {
         case GP_LOC_KEY(5, 27, 0, 0):
             Task_SpawnFromTable(D_80181F18, 0, 0, 0);
             break;
@@ -2017,7 +2017,7 @@ void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
     u8          op;
     s32         setIdx;
 
-    if (Mc_SaveData.demoScene == 1) {
+    if (Mc_SaveData[0].demoScene == 1) {
         u8  idx;
         s32 off;
 
@@ -2471,8 +2471,8 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
     u16        id;
     s32        i;
 
-    rec   = Mc_SaveData.enemyPoses;
-    loc   = (GpAreaKey*)&Mc_SaveData.at4.loc.view;
+    rec   = Mc_SaveData[0].enemyPoses;
+    loc   = (GpAreaKey*)&Mc_SaveData[0].at4.loc.view;
     extra = arg0->task->extra.tmd;
     coord = extra->coords;
     if (arg0->spawnState == 0) {
@@ -2490,7 +2490,7 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
         register SVECTOR* tmp asm("v0");
 
         scratch                           = SCRATCH_HEAD_ADDR;
-        rec                               = Mc_SaveData.enemyPoses;
+        rec                               = Mc_SaveData[0].enemyPoses;
         tmp                               = SCRATCH_HEAD_AT(scratch, SVECTOR);
         i                                 = 0;
         tmp                               = tmp - 1;
@@ -2506,7 +2506,7 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
         u32          hi;
         register u32 key asm("v1");
 
-        rec  = Mc_SaveData.enemyPoses;
+        rec  = Mc_SaveData[0].enemyPoses;
         i    = 0;
         hi   = loc->stage;
         key  = loc->area;
@@ -2581,7 +2581,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                         s32       found;
                         s32       j;
 
-                        rec   = Mc_SaveData.enemyPoses;
+                        rec   = Mc_SaveData[0].enemyPoses;
                         found = 0;
                         for (j = 0; j < 0x20; j++, rec++) {
                             if (rec->placeKey == ((placeNo << 12) | (arg0->stage << 8) | arg0->area)) {
@@ -2623,7 +2623,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                             } else {
                                 McPosRec* rec;
 
-                                rec = Mc_SaveData.enemyPoses;
+                                rec = Mc_SaveData[0].enemyPoses;
                                 i   = 0;
                                 do {
                                     if (rec->placeKey == enemy->placeKey) {
@@ -2770,7 +2770,7 @@ static void func_800B51F4(Task* task)
     if (task->spawnArg1 == 0x10) {
         count = 2;
     }
-    if (Mc_SaveData.demoScene == 1) {
+    if (Mc_SaveData[0].demoScene == 1) {
         return;
     }
 
@@ -2894,7 +2894,7 @@ void Gp_ApplyAreaTmdFlags(void)
         do {
             work = iter->spawnArg2;
             if (iter->spawnType == 1) {
-                key   = (GpAreaKey*)&Mc_SaveData.at4.loc.view;
+                key   = (GpAreaKey*)&Mc_SaveData[0].at4.loc.view;
                 idx   = key->stage;
                 extra = iter->extra.tmd;
                 rec   = Gp_AreaTables[idx];
@@ -2988,7 +2988,7 @@ static void Gp_SetCurAreaFlag2(s32 arg0)
     GpAreaObj* obj;
     GpAreaKey* key;
 
-    key = (GpAreaKey*)&Mc_SaveData.at4.loc.view;
+    key = (GpAreaKey*)&Mc_SaveData[0].at4.loc.view;
     rec = Gp_AreaTables[key->stage];
     if (rec != NULL) {
         obj = rec[key->area].field_4;
@@ -3048,7 +3048,7 @@ static void func_800B5A48(GpAreaKey* arg0, GpAreaObj* arg1)
     if (arg1->field_1 & 1) {
         arg1->field_1 &= 0xFC;
         i              = 0x1F;
-        recs           = Mc_SaveData.enemyPoses;
+        recs           = Mc_SaveData[0].enemyPoses;
         do {
             if ((recs[i].placeKey & 0xFFF) == ((arg0->stage << 8) | arg0->area)) {
                 if (i != 0x1F) {
@@ -3383,7 +3383,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(GpBit2Off2, 0x10);
 
 /// Looks up `arg0` as `GpBit2Rec.field_0` in
-/// `Gp_Bit2Banks[Mc_SaveData.at4.loc.stage]`. On a hit, publishes the record's
+/// `Gp_Bit2Banks[Mc_SaveData[0].at4.loc.stage]`. On a hit, publishes the record's
 /// item id / extra / stack count into `Gp_PubItemId` / `Gp_PubItemLoc` /
 /// `D_80114DDE` / `Gp_PubItemQty` and returns 1.
 static s32 Gp_LookupBit2Item(s32 arg0)
@@ -3399,7 +3399,7 @@ static s32 Gp_LookupBit2Item(s32 arg0)
     s32         term;
     s32         found;
 
-    idx   = Mc_SaveData.at4.loc.stage;
+    idx   = Mc_SaveData[0].at4.loc.stage;
     lists = Gp_Bit2Banks[idx].field_0;
     found = 0;
     if (lists != NULL) {
@@ -3510,7 +3510,7 @@ void func_800B65B0(Task* task)
                 }
                 gDisplayState.gameMode = 0xFF;
                 cfg                    = &Player_Status;
-                save                   = &Mc_SaveData;
+                save                   = &Mc_SaveData[0];
                 save->playerExp        = cfg->exp;
                 save->playerBp         = cfg->bp;
                 save->savePoint        = Gp_PubItemLoc;
@@ -3548,7 +3548,7 @@ void func_800B65B0(Task* task)
                             shift   = (id & 0xF) * 2;
                             mask    = 3 << shift;
                             if (((*current & mask) >> shift) != 3) {
-                                flags  = Gp_Bit2Banks[Mc_SaveData.at4.loc.stage].field_4 + (id >> 4);
+                                flags  = Gp_Bit2Banks[Mc_SaveData[0].at4.loc.stage].field_4 + (id >> 4);
                                 *flags = (*flags & ~mask) | (2 << shift);
                             }
                             work->field_3 = 1;
@@ -3639,7 +3639,7 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpEnemyPlace* place)
     }
 }
 
-/// Walks `Gp_Bit2Banks[Mc_SaveData.at4.loc.area / stage]` for a `GpEnemyPlace`
+/// Walks `Gp_Bit2Banks[Mc_SaveData[0].at4.loc.area / stage]` for a `GpEnemyPlace`
 /// whose `field_0` equals `arg0`. If the packed 2-bit flag at
 /// `Gp_Bit2Banks[gGameSession->at4.loc.stage].field_4` is non-zero, spawns that
 /// placement via `Gp_SpawnEnemyFromTable` (same coord/yaw writeback as `Gp_SpawnPlaces`).
@@ -3650,7 +3650,7 @@ static void Gp_SpawnPlaceById(u16 arg0)
     GpEnemyPlace* place;
     u16           id;
 
-    sess  = &Mc_SaveData.at4.loc;
+    sess  = &Mc_SaveData[0].at4.loc;
     lists = Gp_Bit2Banks[sess->stage].field_0;
     if (lists == NULL) {
         return;
@@ -3752,7 +3752,7 @@ static inline s32 _gpRelatedQty(s32 item, s32 bank)
 /// per-weapon equipment table.
 static inline McItemSlot* _gpItemSlot(s32 item)
 {
-    return &Mc_SaveData.weaponItems[item - 0x80];
+    return &Mc_SaveData[0].weaponItems[item - 0x80];
 }
 
 void Gp_ApplyItemMap(void)
@@ -3788,7 +3788,7 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
     s32         off4;
 
     off8    = arg0 << 3;
-    slots   = (McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400);
+    slots   = (McItemSlot*)((s32)Mc_SaveData[0].weaponItems - 0x400);
     slot    = (McItemSlot*)(off8 + (s32)slots);
     off4    = arg0 << 2;
     counts  = (s32*)((s32)slots + 0x4C0);
@@ -3798,9 +3798,9 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
         if (slot->ammoId != 0) {
             count = slot->ammoQty;
             if (count != 0) {
-                if (Mc_SaveData.cheatMode == 0) {
+                if (Mc_SaveData[0].cheatMode == 0) {
                     slot->ammoQty = count - 1;
-                    Gp_ConsumeScanQty(&Mc_SaveData.carriedItems, slot->ammoId, 1);
+                    Gp_ConsumeScanQty(&Mc_SaveData[0].carriedItems, slot->ammoId, 1);
                     count = *counter;
                     if (count <= 0xF423E) {
                         *counter = count + 1;
@@ -3816,7 +3816,7 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
             if (count != 0xFF) {
                 count = slot->attachQty;
                 if (count != 0) {
-                    save = &Mc_SaveData;
+                    save = &Mc_SaveData[0];
                     if (save->cheatMode == 0) {
                         slot->attachQty = count - 1;
                         Gp_ConsumeScanQty(&save->carriedItems, slot->attachId, 1);
@@ -3870,7 +3870,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     s32         have;
     s32         i;
 
-    scan  = &Mc_SaveData.carriedItems;
+    scan  = &Mc_SaveData[0].carriedItems;
     table = Gp_GetItemTable(scan);
     if ((u32)(arg1 - 0x80) >= 0x20) {
         return -1;
@@ -3900,7 +3900,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         arg3 = maxQty;
     }
     index = scan->firstRow;
-    slot  = &Mc_SaveData.weaponItems[arg1 - 0x80];
+    slot  = &Mc_SaveData[0].weaponItems[arg1 - 0x80];
     have  = (s16)Gp_FindScanQty(table, scan, &index, arg2);
     have -= Gp_CountEquippedRelated(scan, arg2);
     if (arg0 == 0) {
@@ -3977,7 +3977,7 @@ s32 Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
         arg3 = maxQty;
     }
     index = arg0->firstRow;
-    slot  = &Mc_SaveData.weaponItems[arg1 - 0x80];
+    slot  = &Mc_SaveData[0].weaponItems[arg1 - 0x80];
     have  = (s16)Gp_FindScanQty(table, arg0, &index, arg2);
     have -= Gp_CountEquippedRelated(arg0, arg2);
     if (slot->ammoId == arg2) {

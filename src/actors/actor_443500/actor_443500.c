@@ -189,7 +189,7 @@ void func_actor_443500_80132048(void)
 
 void func_actor_443500_8013206C(s8 arg0)
 {
-    Mc_SaveData.sceneEvent = arg0;
+    Mc_SaveData[0].sceneEvent = arg0;
 }
 
 /// Spawn handler: allocates the work block, seeds its head from the parent

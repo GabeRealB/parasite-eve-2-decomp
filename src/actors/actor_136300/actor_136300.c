@@ -254,12 +254,12 @@ void func_actor_136300_8013267C(Task* arg0)
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 0xF);
             GameFlag_SetNibble(0x4C, 4);
-            Mc_SaveData.sceneEvent    = 9;
-            Mc_SaveData.at4.loc.stage = 4;
-            Mc_SaveData.at4.loc.area  = 1;
-            Mc_SaveData.at4.loc.warp  = 1;
-            Mc_SaveData.at4.loc.room  = 1;
-            Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 0);
+            Mc_SaveData[0].sceneEvent    = 9;
+            Mc_SaveData[0].at4.loc.stage = 4;
+            Mc_SaveData[0].at4.loc.area  = 1;
+            Mc_SaveData[0].at4.loc.warp  = 1;
+            Mc_SaveData[0].at4.loc.room  = 1;
+            Fs_BeginBootLoad(&Mc_SaveData[0].at4.loc.view, 0);
             Gp_ClearCollectedBit(0x116);
             gDisplayState.roomVariant = 1;
             Task_Spawn(0, 0x11, 0, 0);
@@ -292,7 +292,7 @@ void func_actor_136300_80132854(Task* arg0)
 
 void func_actor_136300_801328D4(s8 arg0)
 {
-    Mc_SaveData.sceneEvent = arg0;
+    Mc_SaveData[0].sceneEvent = arg0;
 }
 
 void func_actor_136300_801328E0(s32 arg0)

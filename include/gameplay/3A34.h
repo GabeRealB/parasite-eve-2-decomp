@@ -230,7 +230,7 @@ STATIC_ASSERT_SIZEOF(GpSVec3x3, 0x12);
 /// walks the same list and, on a pending `field_4B`, copies `field_46` /
 /// `field_48` / `field_49` to its out-params and sets `Gp_PendingObj4CFlag`. The
 /// same node type is the `Gp_Obj4CList` list walked by `Gp_CommitObj4CSave`: a
-/// pending `field_4B` copies `field_49` into `Mc_SaveData.at4.loc.view` when
+/// pending `field_4B` copies `field_49` into `Mc_SaveData[0].at4.loc.view` when
 /// `field_48` matches `gGameSession->at4.loc.view`.
 /// `func_800DF6AC` tests an object against the quad at `field_14`, using
 /// `field_C` as its local origin, `field_34` as its normal, and `field_44`
@@ -331,8 +331,8 @@ typedef struct _GpGridParams {
 STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 
 /// Global at `Gp_StateF0`. `Gp_InitStateF0` zeros the object, then writes
-/// `field_2B` from `Mc_SaveData.gameMode` (as `u8`), or 4 when that byte is
-/// 0 and `Mc_SaveData.clearCount != 0`. `Gp_IsDebugAttachRoom() == 1` forces
+/// `field_2B` from `Mc_SaveData[0].gameMode` (as `u8`), or 4 when that byte is
+/// 0 and `Mc_SaveData[0].clearCount != 0`. `Gp_IsDebugAttachRoom() == 1` forces
 /// `field_2B = 0` instead. `field_0` is a state byte (1 if first set by
 /// `Gp_ArmStateF0`; 2 when the last `field_6` ref is released). `field_1`
 /// is an alternate-active flag (`Gp_IsStateF0Active` / `func_800A7CB0` /
@@ -898,11 +898,11 @@ extern struct GpLinkNode* D_80115260;
 extern s32 D_80115264;
 
 /// Per-stage `GpGiveRec` lists selected by `Gp_GrantLocationItems` when
-/// `Mc_SaveData.gameMode` is 0 or 2. Indexed by `GameSession.at4.loc.stage`.
+/// `Mc_SaveData[0].gameMode` is 0 or 2. Indexed by `GameSession.at4.loc.stage`.
 extern GpGiveRec* D_8010F9F4[];
 
 /// Per-stage `GpGiveRec` lists selected by `Gp_GrantLocationItems` when
-/// `Mc_SaveData.gameMode` is not 0 or 2. Indexed by `GameSession.at4.loc.stage`.
+/// `Mc_SaveData[0].gameMode` is not 0 or 2. Indexed by `GameSession.at4.loc.stage`.
 extern GpGiveRec* D_8010FA0C[];
 
 /// Face edge endpoint pairs walked by the grid collision helpers
@@ -1152,7 +1152,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3);
 /// Packed-id damage scale. `arg0` must have high bits `0x40000`; low 12 bits
 /// are the power and bits 12-15 are written to `*arg2` when it is non-NULL.
 /// `arg3 == 0` uses `Player_Status.hp` and `GpDmgRow.field_A`;
-/// otherwise `Mc_SaveData.companionHp` and `GpDmgRow.field_0`.
+/// otherwise `Mc_SaveData[0].companionHp` and `GpDmgRow.field_0`.
 s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
 /// Rolls a status/effect chance for `arg0` against the player. Returns 0 for
 /// ids with bit 0x8000 set, when no slot 3 is active, or when

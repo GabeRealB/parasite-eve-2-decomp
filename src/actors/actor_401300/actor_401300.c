@@ -470,7 +470,7 @@ static s32 func_actor_401300_80132910(Task* arg0, GpRec18* recs, s16 count)
     ActorPushScratch* s;
     ActorPushScratch* blk;
 
-    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     arg0->extra.tmd->coords[1].flg = 0;
@@ -560,7 +560,7 @@ static s32 func_actor_401300_80132C78(GpCoord* coord, GpRec18* rec, s16 arg2, s1
     s16             vy;
     SVECTOR*        step;
 
-    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     head                         = SCRATCH_HEAD(ActorStepDelta);
@@ -2165,7 +2165,7 @@ static __inline__ void Actor401300_MoveBy(GpCoord* coord, s16 amount)
     SVECTOR* vec;
     SVECTOR* v;
 
-    if (Mc_SaveData.field_5C1 != 1) {
+    if (Mc_SaveData[0].field_5C1 != 1) {
         head                  = SCRATCH_HEAD(SVECTOR);
         vec                   = head - 1;
         SCRATCH_HEAD(SVECTOR) = vec;
@@ -3846,7 +3846,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
     aim               = (ActorChaseScratch*)(SCRATCH_HEAD_AT(scratch, SVECTOR) = (SVECTOR*)(head - 1));
     aim->delta.vy     = config->coordMtx->t[1] - root->coord.t[1];
     aim->delta.vz     = config->coordMtx->t[2] - root->coord.t[2];
-    save              = &Mc_SaveData;
+    save              = &Mc_SaveData[0];
     func_actor_401300_80133A3C(arg0);
     switch (work->field_8A2) {
         case 0x1B:
@@ -4004,7 +4004,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
 }
 
 /// `actorMoveForwardNonzero` testing the same flag byte through a
-/// `McSaveData*` (`Mc_SaveData.field_5C1` is `Mc_SaveData.unknown_5C0[1]`).
+/// `McSaveData*` (`Mc_SaveData[0].field_5C1` is `Mc_SaveData[0].unknown_5C0[1]`).
 static __inline__ void Actor401300_MoveForwardNonzeroSave(McSaveData* save, GpCoord* coord, s16 amount)
 {
     SVECTOR* head;
@@ -4055,7 +4055,7 @@ static void func_actor_401300_8013E930(Task* arg0)
     task   = gameGetPtrSlot(3);
     player = (GameActor*)task->work;
     config = &Player_Status;
-    save   = &Mc_SaveData;
+    save   = &Mc_SaveData[0];
     enemy  = arg0->spawnArg2;
 
     if (work->field_4 != 0) {

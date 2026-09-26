@@ -370,7 +370,7 @@ static s32 func_actor_401800_801323D4(GpCoord* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                      = 0;
@@ -427,7 +427,7 @@ static s32 func_actor_401800_8013271C(GpCoord* coord, GpRec18* recs, s16 count, 
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].field_5C1 == 1) {
         return 0;
     }
 
@@ -1846,7 +1846,7 @@ static s32 func_actor_401800_8013629C(Task* arg0, GpRec18* recs, s16 count)
     ActorPushScratch* s;
     ActorPushScratch* blk;
 
-    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     arg0->extra.tmd->coords[1].flg = 0;
@@ -2434,7 +2434,7 @@ loop:
 
 static __inline__ void Actor401800_SetGrabAnim(void)
 {
-    if (Mc_SaveData.characterId == 1) {
+    if (Mc_SaveData[0].characterId == 1) {
         D_actor_401800_80155A0C.animBlock.ptr = D_actor_401800_801559F8;
     } else {
         D_actor_401800_80155A0C.animBlock.ptr = D_actor_401800_801559F0;

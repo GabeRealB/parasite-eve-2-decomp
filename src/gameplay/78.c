@@ -159,7 +159,7 @@ void Gp_AreaEnterTask(Task* arg0)
                         goto skip_count;
                     }
                 }
-                save = &Mc_SaveData;
+                save = &Mc_SaveData[0];
                 if (save->field_6CC < 0x270FU) {
                     save->field_6CC++;
                 }
@@ -273,7 +273,7 @@ static u16 Gp_GetAttachParam(s32 arg0)
             cond = p->field_26 == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData.attachLevels;
+            table = Mc_SaveData[0].attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
@@ -325,7 +325,7 @@ static void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
             cond = p->field_26 == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData.attachLevels;
+            table = Mc_SaveData[0].attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
@@ -484,7 +484,7 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     }
     y = 0x64 - height;
     y = y - gDisplayState.vramYOffset;
-    if (Mc_SaveData.buttonLayout != 2) {
+    if (Mc_SaveData[0].buttonLayout != 2) {
         if (item != 0x96) {
             DRAW_PROMPT_LABEL(req, 4, y, 0x606060, D_8009388C);
         } else {
@@ -506,7 +506,7 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     if (slot->attachId != 0xFF) {
         flag = 0;
         y   += 0xA;
-        if (Mc_SaveData.buttonLayout != 2) {
+        if (Mc_SaveData[0].buttonLayout != 2) {
             DRAW_PROMPT_LABEL(req2, 4, y, 0x606060, D_80093890);
         } else {
             DRAW_PROMPT_LABEL(req2, 6, y, 0x506030, D_80093898);
@@ -551,7 +551,7 @@ static __inline__ s32 getAttachLevel(s32 idx)
             cond = p->field_26 == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData.attachLevels;
+            table = Mc_SaveData[0].attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
@@ -600,7 +600,7 @@ static s32 Gp_CheckAttachThreshold(s32 arg0)
             result = 1;
         }
     } else if (arg0 < 0xC) {
-        if ((cfg->peStateFlags & 0x10) || (!(cfg->peStateFlags & 0x80) && cfg->mp < _gpAttachParam(arg0, n, 2) && Mc_SaveData.cheatMode == 0) || (arg0 == 6 && Gp_StateC08.field_16 != 0 && Gp_StateC08.field_17 != 0) || (arg0 == 7 && cfg->hpMax == cfg->hp && Mc_SaveData.cheatMode == 0) || (arg0 == 0xB && D_80115724 >= 3) || ((cfg->peStateFlags & 0x80) && (arg0 >= 6 || _gpAttachParam(arg0, n, 2) * 2 >= cfg->hp))) {
+        if ((cfg->peStateFlags & 0x10) || (!(cfg->peStateFlags & 0x80) && cfg->mp < _gpAttachParam(arg0, n, 2) && Mc_SaveData[0].cheatMode == 0) || (arg0 == 6 && Gp_StateC08.field_16 != 0 && Gp_StateC08.field_17 != 0) || (arg0 == 7 && cfg->hpMax == cfg->hp && Mc_SaveData[0].cheatMode == 0) || (arg0 == 0xB && D_80115724 >= 3) || ((cfg->peStateFlags & 0x80) && (arg0 >= 6 || _gpAttachParam(arg0, n, 2) * 2 >= cfg->hp))) {
             result = 1;
         }
     }
@@ -644,7 +644,7 @@ static void Gp_SetAttachState(s32 arg0)
             cond = cfg->field_26 == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData.attachLevels;
+            table = Mc_SaveData[0].attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
@@ -692,7 +692,7 @@ static __inline__ s32 stepAttachWheelSaved(s32 arg0, s32 arg1, McSaveData* save)
         cond = p->field_26 == 4;
     }
     if (cond == 0) {
-        table = Mc_SaveData.attachLevels;
+        table = Mc_SaveData[0].attachLevels;
     } else {
         table = Gp_DebugAttachLevels;
     }
@@ -734,12 +734,12 @@ static __inline__ s32 stepAttachWheel(s32 arg0, s32 arg1)
         cond = p->field_26 == 4;
     }
     if (cond == 0) {
-        table = Mc_SaveData.attachLevels;
+        table = Mc_SaveData[0].attachLevels;
     } else {
         table = Gp_DebugAttachLevels;
     }
     if (arg1 != 0) {
-        save = &Mc_SaveData;
+        save = &Mc_SaveData[0];
         do {
             if (arg1 > 0) {
                 do {
@@ -780,7 +780,7 @@ static __inline__ s32 getAttachWheelLevel(s32 idx)
             cond = p->field_26 == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData.attachLevels;
+            table = Mc_SaveData[0].attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
@@ -846,7 +846,7 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
         cond = cfg->field_26 == 4;
     }
     if (cond == 0) {
-        table = Mc_SaveData.attachLevels;
+        table = Mc_SaveData[0].attachLevels;
     } else {
         table = Gp_DebugAttachLevels;
     }
@@ -938,7 +938,7 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
         if (count > 0) {
             i      = 0;
             points = s.u.pts;
-            save   = &Mc_SaveData;
+            save   = &Mc_SaveData[0];
             do {
                 best  = 0;
                 flags = 0;
@@ -1089,7 +1089,7 @@ static __inline__ u8* getAttachLevels(void)
         cond = p->field_26 == 4;
     }
     if (cond == 0) {
-        return Mc_SaveData.attachLevels;
+        return Mc_SaveData[0].attachLevels;
     }
     return Gp_DebugAttachLevels;
 }
@@ -1313,8 +1313,8 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
                     Gp_SetItemSeenBit(Gp_SelItemRec->itemId, 1);
                     Gp_RemoveItem(NULL, Gp_SelItemRec, 0);
                 }
-                if (Mc_SaveData.attachUseCounts[Gp_StateC08.field_5] < 0x270F) {
-                    Mc_SaveData.attachUseCounts[Gp_StateC08.field_5]++;
+                if (Mc_SaveData[0].attachUseCounts[Gp_StateC08.field_5] < 0x270F) {
+                    Mc_SaveData[0].attachUseCounts[Gp_StateC08.field_5]++;
                 }
                 Gp_StateC08.field_8 = 0;
             } else {
@@ -1471,7 +1471,7 @@ void Gp_HudTask(GpIdMapC* arg0)
 
     slot = gameGetPtrSlot(1);
     if (slot != NULL) {
-        if (slot->spawnArg1 != Mc_SaveData.at4.loc.view) {
+        if (slot->spawnArg1 != Mc_SaveData[0].at4.loc.view) {
             bad = 1;
         }
     }
@@ -2678,8 +2678,8 @@ static void func_800A57B0(GpIdMapC* arg0)
     }
 
     if (Gp_ActorSlots[1] != NULL) {
-        if (Mc_SaveData.companionType != 2) {
-            Gp_DrawHudNumbers(0x2D, -0x64, Mc_SaveData.companionHp, Mc_SaveData.companionHpMax, 0);
+        if (Mc_SaveData[0].companionType != 2) {
+            Gp_DrawHudNumbers(0x2D, -0x64, Mc_SaveData[0].companionHp, Mc_SaveData[0].companionHpMax, 0);
         }
     }
 }
@@ -3192,7 +3192,7 @@ void Gp_StartAreaBgm(s16* arg0)
         if (cfg->hp <= 0) {
             SndEvt_EnqueueType6((next->deathVariant << 16) | 0x70000001, 0, 0);
         } else {
-            type = Mc_SaveData.companionType;
+            type = Mc_SaveData[0].companionType;
             if (type == 1) {
                 SndEvt_EnqueueType6(((next->deathVariant + 0x31) << 16) | 0x70000001, 0, 0);
             } else if (type == three) {
@@ -3216,7 +3216,7 @@ u8* Gp_GetAttachLevels(void)
         cond = p->field_26 == 4;
     }
     if (cond == 0) {
-        return Mc_SaveData.attachLevels;
+        return Mc_SaveData[0].attachLevels;
     }
     return Gp_DebugAttachLevels;
 }
@@ -3459,7 +3459,7 @@ static s32 Gp_GetAttachLevel(s32 arg0)
             cond = p->field_26 == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData.attachLevels;
+            table = Mc_SaveData[0].attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
@@ -3490,12 +3490,12 @@ static s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
         cond = p->field_26 == 4;
     }
     if (cond == 0) {
-        table = Mc_SaveData.attachLevels;
+        table = Mc_SaveData[0].attachLevels;
     } else {
         table = Gp_DebugAttachLevels;
     }
     if (arg1 != 0) {
-        save = &Mc_SaveData;
+        save = &Mc_SaveData[0];
         do {
             if (arg1 > 0) {
                 do {
@@ -4061,7 +4061,7 @@ void Gp_ViewGateTask(Task* task)
     if (task->state == 0) {
         task->state = 3;
     }
-    save = &Mc_SaveData;
+    save = &Mc_SaveData[0];
     if (task->spawnArg1 != save->at4.loc.view) {
         gGameSession->viewDirty = 1;
     }

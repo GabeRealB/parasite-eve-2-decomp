@@ -140,7 +140,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
     if (st->wait != 0) {
         st->wait--;
-        if (Mc_SaveData.demoScene == 9) {
+        if (Mc_SaveData[0].demoScene == 9) {
             req.x          = -0x8C;
             req.y          = 0x50;
             req.otIndex    = 4;
@@ -154,7 +154,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
     }
 
     if (D_801156A4 & 0x40) {
-        if (Mc_SaveData.demoScene == 9) {
+        if (Mc_SaveData[0].demoScene == 9) {
             req.x          = -0x8C;
             req.y          = 0x50;
             req.otIndex    = 4;
@@ -215,7 +215,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 /* fallthrough */
 
             case 3:
-                Mc_SaveData.at4.loc.view = (u8)st->pc->arg0;
+                Mc_SaveData[0].at4.loc.view = (u8)st->pc->arg0;
                 break;
 
             case 4:
@@ -271,7 +271,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 11:
-                Mc_SaveData.at4.loc.view = D_801156F8;
+                Mc_SaveData[0].at4.loc.view = D_801156F8;
                 break;
 
             case 12:
@@ -323,12 +323,12 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 if (D_801156C9 != 0) {
                     break;
                 }
-                pair                   = (GpSndParam*)&D_8007A39C;
-                Mc_SaveData.sceneEvent = (u8)st->pc->arg0;
-                D_801156C9             = 1;
-                pair->field_0          = (u16)st->pc->arg1;
-                gStageMusicLoadState   = 0;
-                pair->field_2          = (u16)st->pc->arg2;
+                pair                      = (GpSndParam*)&D_8007A39C;
+                Mc_SaveData[0].sceneEvent = (u8)st->pc->arg0;
+                D_801156C9                = 1;
+                pair->field_0             = (u16)st->pc->arg1;
+                gStageMusicLoadState      = 0;
+                pair->field_2             = (u16)st->pc->arg2;
                 Task_SpawnFromTable(&D_80062774, 0, 0, 0);
                 break;
 
@@ -537,7 +537,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 49:
-                D_801156F8 = Mc_SaveData.at4.loc.view;
+                D_801156F8 = Mc_SaveData[0].at4.loc.view;
                 break;
         }
         D_801156CB = 1;
@@ -624,7 +624,7 @@ void func_800E8634(s32 arg0, s32 arg1, s32 arg2)
     D_801156F0               = 5;
     D_801156CD               = 0;
     D_801156CE               = 0;
-    D_801156F8               = Mc_SaveData.at4.loc.view;
+    D_801156F8               = Mc_SaveData[0].at4.loc.view;
     D_801156EC               = Player_Status.weapon;
     SndEvt_EnqueueType7(0xFF0D, 1);
     Task_Spawn(9, 7, arg1, arg0);
@@ -1154,8 +1154,8 @@ void Gp_UpdatePadInput(void)
             mask = tmp;
             if (actor->field_954 != 0 || actor->field_956 < 2) {
                 if (pad->field_56 < -0xE80) {
-                    if (Mc_SaveData.moveMode == 0) {
-                        if (Mc_SaveData.buttonLayout == 1) {
+                    if (Mc_SaveData[0].moveMode == 0) {
+                        if (Mc_SaveData[0].buttonLayout == 1) {
                             // barrier: without it GCC cross-jumps this arm into
                             // the identical `field_25 == 1` arm below
                             SCHED_BARRIER();
@@ -1164,14 +1164,14 @@ void Gp_UpdatePadInput(void)
                             mask = tmp | 0x20;
                         }
                     } else {
-                        if (Mc_SaveData.buttonLayout == 1) {
+                        if (Mc_SaveData[0].buttonLayout == 1) {
                             mask = tmp & 0xFF7F;
                         } else {
                             mask = tmp & 0xFFDF;
                         }
                     }
-                } else if (Mc_SaveData.moveMode == 1) {
-                    if (Mc_SaveData.buttonLayout == 1) {
+                } else if (Mc_SaveData[0].moveMode == 1) {
+                    if (Mc_SaveData[0].buttonLayout == 1) {
                         mask = tmp | 0x80;
                     } else {
                         mask = tmp | 0x20;
@@ -1220,7 +1220,7 @@ static u16 Gp_RemapButtons(GameActor* actor, u16 mask)
     s32 i;
 
     result = 0;
-    switch (Mc_SaveData.buttonLayout) {
+    switch (Mc_SaveData[0].buttonLayout) {
         case 0:
             for (i = 0; i < 0x10; i++) {
                 if ((mask >> i) & 1) {

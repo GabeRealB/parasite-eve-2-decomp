@@ -70,7 +70,7 @@ typedef struct _McWork {
 
 /// One row of an item table: the item it holds, the attachment slot that item
 /// occupies and its stack count. The tables a `McItemScan` chooses between
-/// (`Mc_SaveData.itemRows`, `Gp_ItemTable1`, `Gp_ItemTable2`) are arrays of
+/// (`Mc_SaveData[0].itemRows`, `Gp_ItemTable1`, `Gp_ItemTable2`) are arrays of
 /// these rows. A non-zero `attachSlot` marks the row as in use: 1..n is the
 /// slot the item occupies in the equipped weapon's or armour's attachment list,
 /// and -1 marks the row whose item is the equipped armour itself.
@@ -96,20 +96,20 @@ STATIC_ASSERT_SIZEOF(McItemSlot, 0x8);
 /// Window on the rows of an item table an inventory operation works on: which
 /// table, the first row and how many rows. The tables it selects between hold
 /// `McItemRec` rows, and each place the game stores items keeps its own window.
-/// `Mc_SaveData.carriedItems` holds the window on the items the player carries, so
+/// `Mc_SaveData[0].carriedItems` holds the window on the items the player carries, so
 /// the menus act on that window instead of on a whole table; a scan can also be
 /// built locally to search a wider run of rows.
 typedef struct {
     u8 firstRow; // First row of the window
     u8 rowCount; // Number of rows the window covers
-    u8 table;    // Table the window lies in (0 `Mc_SaveData.itemRows`, 1 `Gp_ItemTable1`, 2 `Gp_ItemTable2`)
+    u8 table;    // Table the window lies in (0 `Mc_SaveData[0].itemRows`, 1 `Gp_ItemTable1`, 2 `Gp_ItemTable2`)
     u8 field_3;  // Nothing reads or writes it; role unproven
 } McItemScan;
 STATIC_ASSERT_SIZEOF(McItemScan, 0x4);
 
 /// One saved pose of a placed enemy: the position and rotation it had when it
 /// was taken out of the world, and the state it is to be resumed in.
-/// `Mc_SaveData.enemyPoses` holds a fixed run of these, filed by
+/// `Mc_SaveData[0].enemyPoses` holds a fixed run of these, filed by
 /// `Gp_SaveEnemyPose` and read back by `Gp_SpawnArea`, so an area the player
 /// returns to puts the enemy back where they left it - and an enemy the table
 /// holds no record for is not put back at all.
@@ -258,7 +258,7 @@ void Mc_InitBufferSlots(void);
 
 extern McBufferSlot Mc_BufferSlots[9];
 #ifndef MC_C
-extern McSaveData Mc_SaveData;
+extern McSaveData Mc_SaveData[2];
 #endif
 /// "Memory Card" string passed to Ui_DrawTitle by Mc_DrawPrompt.
 /// "*" wildcard passed to MemCardGetDirentry by Mc_StateScanDirFlags.

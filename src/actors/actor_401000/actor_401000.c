@@ -1661,7 +1661,7 @@ static s32 func_actor_401000_80135374(GpCoord* coord, GpRec18* rec, s16 arg2, s1
     s16             clamped;
     SVECTOR*        step;
 
-    if (Mc_SaveData.field_5C1 == 1) {
+    if (Mc_SaveData[0].field_5C1 == 1) {
         return 0;
     }
     head                         = SCRATCH_HEAD(ActorStepDelta);
@@ -1735,7 +1735,7 @@ static s32 func_actor_401000_80135704(Task* arg0, GpRec18* recs, s16 count)
     ActorPushScratch* s;
     ActorPushScratch* blk;
 
-    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     arg0->extra.tmd->coords[1].flg = 0;
@@ -2306,7 +2306,7 @@ static void func_actor_401000_801378DC(Task* arg0)
     if ((work->field_5A & 0x3FF) == 0x10 && player->field_954 != 2) {
         angle = actorMatrixPositionYaw(arg0, &delta, Player_Status.coordMtx);
         if (abs(angle) < 0x10 && !overlayOutOfRange(&delta, 0x44C)) {
-            if (Mc_SaveData.characterId == 1) {
+            if (Mc_SaveData[0].characterId == 1) {
                 D_actor_401000_80154F1C.animBlock.ptr = &D_actor_401000_80154F08;
             } else {
                 D_actor_401000_80154F1C.animBlock.ptr = &D_actor_401000_80154F00;

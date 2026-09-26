@@ -115,7 +115,7 @@ static s16 Actor01200_Fn00130(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR*
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].field_5C1 == 1) {
         return 0;
     }
 
