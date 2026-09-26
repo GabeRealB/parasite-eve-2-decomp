@@ -1329,50 +1329,40 @@ void Gp_ComposeParentWorld(GpCoord* arg0, MATRIX* arg1, SVECTOR* arg2)
     gte_stclmv(&arg1->m[0][2]);
 }
 
-void func_800B1EFC(Task* arg0)
+void func_800B1EFC(Task* t)
 {
-    TILE*        p;
-    DR_TPAGE*    dr;
-    s8           yoff;
-    Task*        t;
-    register s32 color asm("a2");
-    register s32 y asm("a0");
-    register s32 scaled asm("v0");
+    TILE*     p;
+    DR_TPAGE* dr;
+    u8        color;
 
-    t = arg0;
     if (t->spawnArg1 > 0) {
         if (t->killCountdown > 0) {
             t->killCountdown--;
-            scaled = (u8)t->killCountdown << 3;
-            color  = ~scaled;
+            color = ~(t->killCountdown << 3);
         } else {
             t->spawnArg1--;
             color = 0xFF;
         }
     } else {
         t->killCountdown++;
-        scaled = (u8)t->killCountdown << 3;
-        color  = ~scaled;
+        color = ~(t->killCountdown << 3);
         if (t->killCountdown >= 0x1F) {
             t->state++;
         }
     }
 
     p              = (TILE*)gGpuPrimCursor;
-    y              = -0x78;
     gGpuPrimCursor = p + 1;
     setlen(p, 3);
     setcode(p, 0x62);
-    p->x0          = -0xA0;
-    p->y0          = y;
-    yoff           = gDisplayState.vramYOffset;
-    p->b0          = color;
-    p->g0          = color;
-    p->r0          = color;
+    setXY0(p, -0xA0, -0x78);
+    p->y0 -= gDisplayState.vramYOffset;
+    p->b0  = color;
+    p->g0  = color;
+    p->r0  = color;
+    setWH(p, 0x140, 0xF0);
+
     dr             = (DR_TPAGE*)gGpuPrimCursor;
-    p->w           = 0x140;
-    p->h           = 0xF0;
-    p->y0          = y - yoff;
     gGpuPrimCursor = dr + 1;
     if (t->spawnArg2 == 0) {
         setlen(dr, 1);

@@ -142891,3 +142891,21 @@ source position and overlaps the live LCG load, which forces `a0`. Every
 statement order (630), every block-scope declaration order (168), and the
 helper shape plateau at one of the two halves - `a0` with the load two slots
 early, or the load in place in `v1`.
+## A constant held in one register for a store and a later `K - x` is a read-modify-write of the stored field (func_800B1EFC, 2026-09-26)
+
+**Symptom.** `li a0,-0x78; sh a0,0xa(p)` early, then later `subu a0,a0,v1;
+sh a0,0xa(p)` - the same register reused for the subtraction. Written as
+`y = -0x78; p->y0 = y; … p->y0 = y - yoff`, CSE propagates the constant and
+emits a second `li`, so the seed pinned `y` to `a0`.
+
+**Fix.** Set the field, then adjust it *immediately*:
+`setXY0(p, -0xA0, -0x78); p->y0 -= gDisplayState.vramYOffset;`. CSE still
+knows the field holds the stored register, so the `-=` reuses it with no
+reload; sched1 then spreads the load and the subtraction out to where the
+target has them. Put the `-=` after the other stores to `p` and CSE forgets
+the value and reloads with `lhu`.
+
+**Scratch gotcha.** The scratch scored `setRGB0(p, c, c, c)` (stores r, g, b)
+at 100.000% against a target storing b, g, r from the same register; the full
+build failed on those two bytes. Byte-compare the overlay against its package
+when the build fails on a function the scratch calls matched.
