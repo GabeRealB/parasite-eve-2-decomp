@@ -62,7 +62,7 @@ extern u16 D_acropolis_forked_road_801821E8[16];
 extern SVECTOR D_acropolis_forked_road_80182204[];
 extern SVECTOR D_acropolis_forked_road_8018220C;
 
-static void func_acropolis_forked_road_8017EC70(GpCoord* arg0, s32 arg1, s16 arg2);
+static void func_acropolis_forked_road_8017EC70(GpCoord* coord, s32 arg1, s16 arg2);
 static void func_acropolis_forked_road_8017F224(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 static void func_acropolis_forked_road_8017F650(GpCoord* arg0, s16 arg1, u8* rgb);
 static void func_acropolis_forked_road_8017FED4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
@@ -566,48 +566,30 @@ static void func_acropolis_forked_road_8017E81C(Task* task)
 /// `GsWSMATRIX` into a textured quad. A mote nearer than `otz` 0x11 is not
 /// drawn. `arg2` is the fade level: zero draws the texture unshaded, anything
 /// else modulates it to that grey and draws it semi-transparent.
-static void func_acropolis_forked_road_8017EC70(GpCoord* arg0, s32 arg1, s16 arg2)
+static void func_acropolis_forked_road_8017EC70(GpCoord* coord, s32 arg1, s16 arg2)
 {
-    register GpCoord* coord asm("t7");
-    register void**   scratch asm("a0");
-    u8*               head;
-    RoomQuadScratch*  blk;
-    POLY_FT4*         prim;
-    GpQuadCorner*     tbl;
-    SVECTOR*          sv;
-    MATRIX*           wm;
-    s32               i;
+    RoomQuadScratch* blk;
+    POLY_FT4*        prim;
+    SVECTOR*         sv;
+    s32              i;
 
-    coord   = arg0;
-    scratch = (void**)G_SCRATCH_HEAD;
-    i       = 0;
-    wm      = &coord->workm;
-    tbl     = D_80111E38;
-    head    = SCRATCH_HEAD_AT(scratch, u8) - sizeof(RoomQuadScratch);
-    /* `head` and `blk` have to stay separate registers: the ROM computes the
-       block address into a scratch register and copies it into the one the
-       rest of the function uses. */
-    SOFT_TOUCH_REG(head);
-    blk      = (RoomQuadScratch*)head;
-    *scratch = blk;
-    do {
-        blk->v[i].vx = tbl[i].x * arg1;
+    blk = SCRATCH_PUSH(RoomQuadScratch);
+    for (i = 0; i < 4; i++) {
+        blk->v[i].vx = D_80111E38[i].x * arg1;
         // Spelled as an offset rather than `&blk->v[i]` so it stays a separate
         // pointer from the one the GTE macros below take; writing both the same
         // way lets CSE fold them into one register and the loop stops matching.
         sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(RoomQuadScratch, v));
         sv->vy = 0;
-        sv->vz = tbl[i].y * arg1;
-        gte_SetRotMatrix(wm);
+        sv->vz = D_80111E38[i].y * arg1;
+        gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->v[i]);
         gte_rtv0();
         gte_stsv(&blk->v[i]);
-        (u16) blk->v[i].vx = (u16)blk->v[i].vx + (u16)coord->workm.t[0];
-        (u16) sv->vy       = (u16)sv->vy + (u16)coord->workm.t[1];
-        i++;
-        (u16) sv->vz = (u16)sv->vz + (u16)coord->workm.t[2];
-    } while (i < 4);
-
+        blk->v[i].vx += coord->workm.t[0];
+        sv->vy       += coord->workm.t[1];
+        sv->vz       += coord->workm.t[2];
+    }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);

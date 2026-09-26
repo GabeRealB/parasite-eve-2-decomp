@@ -143308,3 +143308,13 @@ then masked (`sb v0; andi v1,v0,0xFF`) is `*dest = q; digit = *dest;` with a
   it above the branch and lets the then arm overwrite it. Emitting the whole
   primitive (cursor bump, word store, `setlen`, `addPrim`) in each arm keeps the
   arms apart and cross-jumping merges the common tail.
+
+### `addiu v0,v0,-N; move t2,v0; sw t2,0(scratch)` is `blk = SCRATCH_PUSH(T)`, not a pinned head/block pair (func_acropolis_forked_road_8017EC70, 2026-09-26)
+
+A scratch-pad push whose new top is computed into one register, copied to
+another, and the copy both stored back and used as the block pointer, was held
+by `register ... asm()` pins on the coordinate and head pointer plus a
+`SOFT_TOUCH_REG` between the subtraction and the block assignment. It is the
+value of the compound assignment: `blk = SCRATCH_PUSH(RoomQuadScratch);`. The
+pins, the extra locals (`tbl`, `wm`, `head`) and the `(u16)` casts on the
+`+=` corner updates all went with it; `for` instead of `do/while` also matched.
