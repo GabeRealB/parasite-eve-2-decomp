@@ -143362,14 +143362,22 @@ belongs to a unit whose `.text` lies between the neighbouring placed objects,
 whatever unit reads it first. `local/data_owner.py IMAGE [--partition]` lists
 those candidates and splits a blob into consecutive per-unit runs.
 
-Within a unit, initialised data is emitted at its definition, so `.data` follows
-definition order. Uninitialised globals are different. cc1 emits `.comm` and
-`.lcomm` at the end of the file, in the order each identifier was *first
-declared*, and that includes `extern` declarations pulled in from headers.
-maspsx then turns them into plain `.bss` in that order and emits no alignment
-between them, so the objects have to tile exactly. A unit's bss order is set by
-its declarations: a private object declared in the prologue lands where the
-prologue puts it, and a public one lands where its header declaration puts it.
+Within a unit, initialised data is emitted at its definition, so `.data`
+follows definition order. Uninitialised globals are different. cc1 emits `.comm`
+and `.lcomm` at the end of the file, in the order each identifier was *first
+declared*, and that includes `extern` declarations pulled in from headers. A
+unit's bss order is set by its declarations: a private object declared in the
+prologue lands where the prologue puts it, and a public one lands where its
+header declaration puts it (a module header hides its data externs from the
+defining unit behind `#ifndef <MODULE>_C`).
+
+cc1 gives `.comm`/`.lcomm` a size and no alignment, so the layout is the
+assembler's. ASPSX aligned each entry by its size (2, 4, or 8 for 8 bytes and
+up) and gave `.bss` 8-byte alignment; the Psy-Q objects show both, and every
+object's `.bss` run in main starts on an 8. `tools/maspsx-bss-align.patch`
+reproduces that in maspsx and main's linker script aligns `.bss` input
+sections to 8, so a gap before a larger object, or at the start of a unit's
+run, needs no placeholder.
 
 GCC 2.8 keeps an unreferenced `static` variable, so an unreferenced word in a
 run can be a private placeholder. An explicit `= 0` keeps a global in `.data`.
