@@ -3593,7 +3593,7 @@ static void Gp_CollideObjGrid(GpObj* arg0)
     VECTOR3*          pos;
     GpGridFace*       face;
     GpRec18*          slot;
-    register s16*     cell asm("s7");
+    s16*              cell;
     s32               id;
     s32               i;
     s32               n;
@@ -3614,17 +3614,17 @@ static void Gp_CollideObjGrid(GpObj* arg0)
     if ((u16)block->grid.vx < Gp_GridParams->field_1C && (u16)block->grid.vz < Gp_GridParams->field_1E) {
         cell = Gp_GridParams->field_10[block->grid.vx * Gp_GridParams->field_1E + block->grid.vz];
         if (cell != NULL) {
-            for (;; cell++) {
+            for (;;) {
                 id = *cell;
                 if (id == -1) {
                     goto done;
                 }
                 face = &Gp_GridParams->field_C[id];
                 if (face->verts[0] == 0 && face->verts[1] == 0) {
+                    cell++;
                     continue;
                 }
 
-                COMPILER_BARRIER();
                 gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
                 gte_ldv0(&Gp_GridParams->field_8[face->verts[0]]);
                 gte_rtv0();
@@ -3647,7 +3647,7 @@ static void Gp_CollideObjGrid(GpObj* arg0)
                 if ((u16)arg0->radius >= ABS((s16)dist)) {
                     goto edges;
                 }
-                continue;
+                goto next_face;
 
             mark_outside:
                 outside = 1;
@@ -3661,7 +3661,7 @@ static void Gp_CollideObjGrid(GpObj* arg0)
                 slot->point.vy    = 0;
                 slot->point.vz    = 0;
                 slot->at10.normal = Gp_GridParams->field_4[face->field_8];
-                continue;
+                goto next_face;
 
             edges:
                 n = (face->verts[3] != 0xFFFF) ? 4 : 3;
@@ -3702,6 +3702,7 @@ static void Gp_CollideObjGrid(GpObj* arg0)
                 }
             edges_done:
                 if (outside) {
+                    cell++;
                     continue;
                 }
 
@@ -3716,6 +3717,9 @@ static void Gp_CollideObjGrid(GpObj* arg0)
                     }
                     slot++;
                 }
+
+            next_face:
+                cell++;
             }
         }
     }
