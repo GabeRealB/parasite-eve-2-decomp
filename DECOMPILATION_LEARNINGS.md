@@ -141261,3 +141261,19 @@ load. The final code carries no trace of the test.
 **Fix.** Give arm 1 its own store (`spawn; obj->status = 0;`) and write arm 2
 as an if/else whose arms make the same call, followed by the store. Sibling
 functions with a real version of that conditional are the clue.
+
+### A late head store of the *copy* register is still `SCRATCH_PUSH` when nothing orders the store (func_800DDC2C, 2026-09-26)
+
+**Symptom.** `lw s0,0(a2)`, `addiu v0,s0,-0x50`, `move s1,v0`, then the block's
+field writes through `s1`, and `sw s1,0(a2)` only just before the next call.
+The seed pinned the carve to `$v0` and the scratch address to `$a2`. The plain
+`head = SCRATCH_HEAD(u8); block = head - 0x50; ...; SCRATCH_HEAD = block;`
+folds the carve into `addiu s1,s0,-0x50`.
+
+**Fix.** `block = SCRATCH_PUSH(GpEdgeScratch);` at the top, with no explicit
+store later. The push's reload is the copy, as in the scratch-push entries
+above, and sched1 then sinks the head store past the in-struct field writes
+by itself, because the scalar store to the fixed head address cannot alias
+them. So a late store holding the copy's register does not by itself rule out
+the compound push: try it before an input-only `asm`. `mat = &block->mat`
+reproduced the separate `head - 0x20` register as well.

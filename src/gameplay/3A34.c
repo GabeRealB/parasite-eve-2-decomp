@@ -4423,75 +4423,32 @@ void func_800DD940(GpObj* arg0)
 
 void func_800DDC2C(GpObj* arg0)
 {
-    register GpObj* obj asm("a0");
-    SVECTOR*        dir;
-    register void** scratch asm("a2");
-    u8*             head;
-    GpEdgeScratch*  block;
-    GpCoord*        coord;
-    s32             prod;
-    s32             x;
+    s32            i;
+    GpEdgeScratch* block;
+    SVECTOR*       dir;
+    MATRIX*        mat;
 
-    obj     = arg0;
-    dir     = &obj->ctx.dir->dir;
-    prod    = dir->vx * (u16)obj->radius;
-    scratch = SCRATCH_HEAD_ADDR;
-    head    = SCRATCH_HEAD_AT(scratch, u8);
-    {
-        register s32 tmp asm("v0");
-
-        tmp              = (s32)head - 0x50;
-        x                = (u16)obj->pos.vx;
-        block            = (GpEdgeScratch*)tmp;
-        block->src[0].vy = 0;
-        x               += prod >> 12;
-        block->src[0].vx = x;
+    dir              = &arg0->ctx.dir->dir;
+    block            = SCRATCH_PUSH(GpEdgeScratch);
+    mat              = &block->mat;
+    block->src[0].vx = (u16)arg0->pos.vx + ((dir->vx * (u16)arg0->radius) >> 12);
+    block->src[0].vy = 0;
+    block->src[0].vz = (u16)arg0->pos.vz + ((dir->vz * (u16)arg0->radius) >> 12);
+    block->src[1].vx = (u16)arg0->pos.vx + (-(dir->vx * (u16)arg0->radius) >> 12);
+    block->src[1].vy = 0;
+    block->src[1].vz = (u16)arg0->pos.vz + (-(dir->vz * (u16)arg0->radius) >> 12);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &arg0->coord->workm, mat);
+    gte_SetRotMatrix(mat);
+    for (i = 0; i < 2; i++) {
+        gte_ldv0(&block->src[i]);
+        gte_rtv0();
+        gte_stlvnl(&block->pos[i]);
+        block->pos[i].vx = block->pos[i].vx + block->mat.t[0] + Gp_GridParams->field_14;
+        block->pos[i].vy = 0;
+        block->pos[i].vz = block->pos[i].vz + block->mat.t[2] + Gp_GridParams->field_18;
     }
-    block->src[0].vz                        = (u16)obj->pos.vz + ((dir->vz * (u16)obj->radius) >> 12);
-    prod                                    = dir->vx * (u16)obj->radius;
-    x                                       = (u16)obj->pos.vx;
-    block->src[1].vy                        = 0;
-    x                                      += (-prod) >> 12;
-    block->src[1].vx                        = x;
-    head                                   -= 0x20;
-    block->src[1].vz                        = (u16)obj->pos.vz + ((-(dir->vz * (u16)obj->radius)) >> 12);
-    coord                                   = obj->coord;
-    SCRATCH_HEAD_AT(scratch, GpEdgeScratch) = block;
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, (MATRIX*)head);
-    gte_SetRotMatrix((MATRIX*)head);
-    {
-        register VECTOR* out asm("a2");
-        s32              off;
-        register s32     i asm("t0");
-        s32              val;
-        s32              t;
-        GpGridParams*    p;
-        register s32     y asm("a0");
-
-        i = 0;
-        __asm__("" : : "m"(Gp_GridParams), "r"(i) : "v0", "v1", "a0", "a1", "a2", "a3");
-        out = block->pos;
-        off = 0x20;
-        do {
-            gte_ldv0((SVECTOR*)((u8*)block + off));
-            gte_rtv0();
-            gte_stlvnl(out);
-            off += 8;
-            i++;
-            val = out->vx;
-            TOUCH_REG(val);
-            p       = Gp_GridParams;
-            t       = block->mat.t[0];
-            y       = p->field_14;
-            out->vy = 0;
-            out->vx = val + t + y;
-            y       = p->field_18;
-            out->vz = out->vz + block->mat.t[2] + y;
-            out++;
-        } while (i < 2);
-        func_800DE2C0(block->pos, 0);
-    }
-    SCRATCH_POP_BYTES(0x50);
+    func_800DE2C0(block->pos, 0);
+    SCRATCH_POP(GpEdgeScratch);
 }
 
 void func_800DDDF8(GpObj* node)
