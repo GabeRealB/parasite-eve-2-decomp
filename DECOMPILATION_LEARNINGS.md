@@ -143439,3 +143439,16 @@ and biv elimination recomputes `work + 4*0x18` beside the compare, *inside* the
 loop. Written as the real loop, it also let loop.c hoist `&scratch->delta` while
 leaving `&scratch->normal` in the body, because the hoist threshold drops by 3
 for every invariant already moved.
+
+## `SCHED_BARRIER`s around a branch-selector local are per-arm field stores (Actor07000_Fn046B8, 2026-09-26)
+
+An if-chain choosing a value written once at the join (`s16 branch; … branch = 2;
+if (!hit) branch = 1; work->field = branch;`) needed two `SCHED_BARRIER`s: jump
+turns the last arm into set-then-override, and sched1 drops the constant set
+`branch = 2` into the `multu`/`mfhi` stall of the `% 100` above it. The pseudo
+then lives across that chain, conflicts with `$v0`, and moves to `$a1`. Storing
+`work->field = 3 / 2 / 1` in each arm lets GCC build the same shared-store join
+itself, with the constant set after the compare. The second LCG step was also
+`Gp_LcgState = Gp_LcgState * 5 + …` read back through the global, not a second
+local copy: CSE reuses the first draw's register either way, but a named copy
+takes `$a1` from it.
