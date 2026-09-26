@@ -3648,6 +3648,56 @@ static __inline__ void bridge_set_obj_pos(GpObj* obj, SVECTOR3* pos)
     obj->pos.vz = pos->vz;
 }
 
+/// Rebuilds the walker's scale matrix: resets it to identity and, unless
+/// `scale` is 0 or unity, scales it by `scale` on all three axes. The `VECTOR`
+/// handed to `ScaleMatrix` is taken from the scratch stack and left there for
+/// `_acropolisBridgeLightModel` to reuse and release.
+static __inline__ void _acropolisBridgeInitWalkerScale(OverlayWalker* walker)
+{
+    VECTOR* head;
+    VECTOR* scale;
+    s32     amount;
+
+    head                     = SCRATCH_HEAD(VECTOR);
+    amount                   = walker->scale;
+    walker->scaleMtx.m[2][1] = 0;
+    walker->scaleMtx.m[2][0] = 0;
+    walker->scaleMtx.m[1][2] = 0;
+    walker->scaleMtx.m[1][0] = 0;
+    walker->scaleMtx.m[0][2] = 0;
+    walker->scaleMtx.m[0][1] = 0;
+    walker->scaleMtx.m[2][2] = 0x1000;
+    walker->scaleMtx.m[1][1] = 0x1000;
+    walker->scaleMtx.m[0][0] = 0x1000;
+    walker->scaleMtx.t[2]    = 0;
+    walker->scaleMtx.t[1]    = 0;
+    walker->scaleMtx.t[0]    = 0;
+    scale                    = head - 1;
+    SCRATCH_HEAD(VECTOR)     = scale;
+    if (amount != 0 && amount != 0x1000) {
+        scale->vz = amount;
+        scale->vy = amount;
+        scale->vx = amount;
+        ScaleMatrix(&walker->scaleMtx, scale);
+    }
+}
+
+/// Recomputes `coord`'s world matrix and hands the model's root translation to
+/// `func_800D7A9C`, staged in the scratch `VECTOR` on top of the stack, which
+/// it then releases.
+static __inline__ void _acropolisBridgeLightModel(Task* task, GpCoord* coord)
+{
+    VECTOR* vec;
+
+    vec = SCRATCH_HEAD(VECTOR);
+    Gp_UpdateCoord(coord);
+    vec->vx = task->extra.tmd->coords->workm.t[0];
+    vec->vy = task->extra.tmd->coords->workm.t[1];
+    vec->vz = task->extra.tmd->coords->workm.t[2];
+    func_800D7A9C(task->extra.tmd, vec, 0, 3);
+    SCRATCH_POP(VECTOR);
+}
+
 /// One-time setup for the bridge enemy: allocates the 0x294-byte work block,
 /// points the model's light and colour matrices at it, hangs the enemy off the
 /// room's stat block, starts the animation context on three slots, and links
@@ -3667,17 +3717,10 @@ static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     TmdObject*                obj2;
     GpCoord*                  coord;
     GpCoord*                  coord2;
-    GpCoord*                  coord3;
     AcropolisBridgeEnemyWork* work;
     OverlayWalker*            walker;
     GpObj*                    link;
     GpObj*                    link2;
-    register u8*              head;
-    register u8*              head2;
-    register u8*              head3;
-    VECTOR*                   scale;
-    VECTOR*                   vec;
-    s32                       amount;
     s32                       variant;
     s32                       step;
     u16                       hp;
@@ -3776,45 +3819,12 @@ static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     work->walker.field_6C         = 1;
     work->walker.field_6E         = Mc_SaveData.characterId;
 
-    __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
-    head                     = *(u8**)(head + 0x3FC);
-    amount                   = walker->scale;
-    walker->scaleMtx.m[2][1] = 0;
-    walker->scaleMtx.m[2][0] = 0;
-    walker->scaleMtx.m[1][2] = 0;
-    walker->scaleMtx.m[1][0] = 0;
-    walker->scaleMtx.m[0][2] = 0;
-    walker->scaleMtx.m[0][1] = 0;
-    walker->scaleMtx.m[2][2] = 0x1000;
-    walker->scaleMtx.m[1][1] = 0x1000;
-    walker->scaleMtx.m[0][0] = 0x1000;
-    walker->scaleMtx.t[2]    = 0;
-    walker->scaleMtx.t[1]    = 0;
-    walker->scaleMtx.t[0]    = 0;
-    scale                    = (VECTOR*)(head - 0x10);
-    SCRATCH_HEAD(VECTOR)     = scale;
-    if (amount != 0 && amount != 0x1000) {
-        scale->vz                    = amount;
-        scale->vy                    = amount;
-        ((VECTOR*)(head - 0x10))->vx = amount;
-        ScaleMatrix(&work->walker.scaleMtx, scale);
-    }
+    _acropolisBridgeInitWalkerScale(walker);
     task->extra.tmd->coords->flg = 0;
-    coord3                       = task->extra.tmd->coords;
-    __asm__("lui %0, 0x1F80" : "=r"(head2) : "r"(coord3));
-    head2 = *(u8**)(head2 + 0x3FC);
-    vec   = (VECTOR*)head2;
-    Gp_UpdateCoord(coord3);
-    vec->vx = task->extra.tmd->coords->workm.t[0];
-    vec->vy = task->extra.tmd->coords->workm.t[1];
-    vec->vz = task->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(task->extra.tmd, vec, 0, 3);
-    __asm__ volatile("lui %0, 0x1F80" : "=r"(head3));
-    head3            = *(u8**)(head3 + 0x3FC);
-    SCRATCH_HEAD(u8) = head3 + 0x10;
-    axisY            = 1;
+    _acropolisBridgeLightModel(task, task->extra.tmd->coords);
+    axisY = 1;
     if (Gp_StateF0.field_6 < 3) {
-        ((void (*)(s32))Gp_IncStateF0Ref)(0);
+        Gp_IncStateF0Ref(0);
     }
     if (gGameSession->at4.loc.room == 2) {
         variant = enemy->placeKey >> 12;
