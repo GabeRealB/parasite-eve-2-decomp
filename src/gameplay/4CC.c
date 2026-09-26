@@ -770,7 +770,6 @@ void func_800BDF6C(Task* task)
     UiObject*         obj;
     s16               panelY;
     s16               coord;
-    s32               equippedFloor;
     s32               srcLimit;
     s32               remaining;
     s32               dstLimit;
@@ -791,7 +790,6 @@ void func_800BDF6C(Task* task)
     s32               qty;
     s32               totalQty;
     s32               equipped;
-    s32               destAfterMove;
     s32               srcAfterMove;
     s32               destAfterClamp;
     s32               sourceToMove;
@@ -804,7 +802,6 @@ void func_800BDF6C(Task* task)
     s16               result;
     PadState*         pad;
     McItemScan*       sourceScan;
-    McItemScan*       initScan;
     McItemScan*       dstScan;
     GpAmmoSplitState* state;
 
@@ -818,17 +815,14 @@ void func_800BDF6C(Task* task)
             obj->field_2E = 9;
             return;
         }
-        initScan   = &Gp_MoveScanSrc;
-        task->work = (TaskIdMap*)state;
-        srcTotal   = Gp_ScanStackQty(initScan, task->spawnArg1);
-        TOUCH_REG(initScan);
-        initScan       += 1;
+        task->work      = (TaskIdMap*)state;
+        srcTotal        = Gp_ScanStackQty(&Gp_MoveScanSrc, task->spawnArg1);
         state->srcQty   = srcTotal;
         state->srcOrig  = srcTotal;
-        dstTotal        = Gp_ScanStackQty(initScan, task->spawnArg1);
+        dstTotal        = Gp_ScanStackQty(&Gp_MoveScanSrc + 1, task->spawnArg1);
         state->dstQty   = dstTotal;
         state->dstOrig  = dstTotal;
-        state->equipped = Gp_CountEquippedRelated(initScan, task->spawnArg1);
+        state->equipped = Gp_CountEquippedRelated(&Gp_MoveScanSrc + 1, task->spawnArg1);
         Ui_SetHolderParam((s32)Gp_StrSetAmmoHelp, 0, 0);
         state->limit = Gp_StackLimits[task->spawnArg1 - 0xA0].field_2;
         task->state  = task->state + 1;
@@ -858,15 +852,11 @@ void func_800BDF6C(Task* task)
                     if ((u8)pad->autoRepeat >= 0x14U) {
                         stepToSource = repeatStep;
                     }
-                    state->srcQty = state->srcQty + stepToSource;
-                    equippedFloor = state->equipped;
-                    destAfterMove = state->dstQty - stepToSource;
-                    state->dstQty = destAfterMove;
-                    if (destAfterMove < equippedFloor) {
-                        s32 adjustment = destAfterMove - equippedFloor;
-                        SOFT_TOUCH_REG(adjustment);
-                        state->dstQty  = equippedFloor;
-                        state->srcQty += adjustment;
+                    state->srcQty += stepToSource;
+                    state->dstQty -= stepToSource;
+                    if (state->dstQty < state->equipped) {
+                        state->srcQty += state->dstQty - state->equipped;
+                        state->dstQty  = state->equipped;
                     }
                     srcAfterMove = state->srcQty;
                     srcLimit     = state->limit;
@@ -907,34 +897,21 @@ void func_800BDF6C(Task* task)
         }
         if (Pad_CheckButtons(0, 0, 0xA000) == 0) {
             if (Pad_CheckButtons(0, 1, 0x1005) != 0) {
-                {
-                    s32 destination;
+                if (state->dstQty > state->equipped) {
                     s32 total;
-                    s32 equippedQty;
-                    s32 limit;
 
-                    destination = state->dstQty;
-                    SCHED_BARRIER();
-                    equippedQty = state->equipped;
-                    if (equippedQty < destination) {
-                        limit = state->limit;
-                        total = state->srcQty + destination;
-                        total = total - equippedQty;
-                        if (total < limit) {
-                            state->dstQty = equippedQty;
-                            state->srcQty = total;
-                        } else {
-                            s32 excess;
-
-                            state->srcQty = limit;
-                            excess        = total - state->limit;
-                            equippedQty   = equippedQty + excess;
-                            state->dstQty = equippedQty;
-                            task->status  = 2;
-                        }
-                    } else if (equippedQty > 0) {
-                        task->status = 1U;
+                    total  = state->srcQty + state->dstQty;
+                    total -= state->equipped;
+                    if (total < state->limit) {
+                        state->dstQty = state->equipped;
+                        state->srcQty = total;
+                    } else {
+                        state->srcQty = state->limit;
+                        state->dstQty = state->equipped + (total - state->limit);
+                        task->status  = 2;
                     }
+                } else if (state->equipped > 0) {
+                    task->status = 1;
                 }
             } else if (Pad_CheckButtons(0, 1, 0x400A) != 0) {
                 sourceToMove = state->srcQty;
