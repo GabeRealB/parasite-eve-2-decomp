@@ -78,10 +78,8 @@ segments:
       - [0x78, .rodata, gameplay] # jtbl from Gp_ApplyAttachStats, then the prompt labels, Gp_LoadWaitFns and Gp_ConfigCdTable
       - [0xD4, .rodata, D4] # jtbl from Gp_EnqueueWeaponCd, then the session, load, room-object and direction tables
       - [0x1A8, .rodata, 1A8] # jtbl from Gp_LookupStageFlag
-      - [0x1BC, .rodata, 1BC] # jtbls from func_800AF590 and Gp_StepCdAudioCmd
-      - [0x1F8, rodata, rodata_1BC_2] # Gp_StrNewEnemyNull string + Gp_EnemyWaitFuncs tables
-      - [0x268, .rodata, 268] # jtbl from func_800B7420
-      - [0x4C4, rodata, rodata_268]
+      - [0x1BC, .rodata, 1BC] # jtbls from func_800AF590 and Gp_StepCdAudioCmd, then its strings and state tables
+      - [0x268, .rodata, 268] # jtbl from func_800B7420, then Gp_StrNotice2
       - [0x4CC, .rodata, 4CC] # jtbls: Gp_ItemMoveChild + strings/tables + Gp_CloseItemPane
       - [0x668, rodata, rodata_4CC_2]
       - [0x3688, .rodata, 3688] # jtbl from Gp_MenuRootTask, then the menu labels

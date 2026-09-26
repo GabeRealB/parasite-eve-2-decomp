@@ -96,7 +96,7 @@ typedef struct {
 } GpEnemyTaskFuncTable5;
 
 /// Three-entry dispatcher table: `Gp_EnemyWaitStart`, `Gp_EnemyWaitTick`, `Gp_DestroyEnemy`.
-extern GpEnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
+extern const GpEnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
 
 void func_800B25B0(void);
 

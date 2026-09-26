@@ -37,40 +37,40 @@ void Gp_BindSlot4(Task* task);
 void func_800B6398(void);
 void func_8017FBD8(void);
 
-extern char           D_80093A44[];
-extern TaskFuncTable3 Gp_StageLoadStates;
-extern VECTOR         D_80093A28;
-extern TaskFuncTable3 D_80093A38;
-extern TaskFuncTable3 D_80093A5C;
-extern TaskDesc       D_80115D9C[];
-extern UiObjectDesc   D_8010D348;
-extern UiObjectDesc   D_8010D6D8;
-extern UiObjectDesc   D_8010F010;
-extern TaskDesc       D_80119218[];
-extern TaskDesc       D_8011922C[];
-extern TaskDesc       D_801637C8[];
-extern TaskDesc       D_8017D9E8[];
-extern TaskDesc       D_80180DBC[];
-extern TaskDesc       D_801810E4[];
-extern TaskDesc       D_80181398[];
-extern TaskDesc       D_80181638[];
-extern TaskDesc       D_8018186C[];
-extern TaskDesc       D_80181B30[];
-extern TaskDesc       D_80181B88[];
-extern TaskDesc       D_80181F18[];
-extern TaskDesc       D_80182D0C[];
-extern TaskDesc       D_80182E74[];
-extern TaskDesc       D_80182FAC[];
-extern TaskDesc       D_8018384C[];
-extern s32            Gp_Slot4MsgTable[];
-extern char           Gp_StrNewEnemyNull[];
-extern u8             D_800626E8;
-extern u8*            D_80114D10;
-extern u16            D_80114D14[2];
-extern s16            D_80114D18;
-extern s16            D_80114D1A;
-extern s16            D_80114D1C;
-extern s32            D_80114D20;
+extern const char           D_80093A44[];
+extern const TaskFuncTable3 Gp_StageLoadStates;
+extern const VECTOR         D_80093A28;
+extern const TaskFuncTable3 D_80093A38;
+extern const TaskFuncTable3 D_80093A5C;
+extern TaskDesc             D_80115D9C[];
+extern UiObjectDesc         D_8010D348;
+extern UiObjectDesc         D_8010D6D8;
+extern UiObjectDesc         D_8010F010;
+extern TaskDesc             D_80119218[];
+extern TaskDesc             D_8011922C[];
+extern TaskDesc             D_801637C8[];
+extern TaskDesc             D_8017D9E8[];
+extern TaskDesc             D_80180DBC[];
+extern TaskDesc             D_801810E4[];
+extern TaskDesc             D_80181398[];
+extern TaskDesc             D_80181638[];
+extern TaskDesc             D_8018186C[];
+extern TaskDesc             D_80181B30[];
+extern TaskDesc             D_80181B88[];
+extern TaskDesc             D_80181F18[];
+extern TaskDesc             D_80182D0C[];
+extern TaskDesc             D_80182E74[];
+extern TaskDesc             D_80182FAC[];
+extern TaskDesc             D_8018384C[];
+extern s32                  Gp_Slot4MsgTable[];
+extern const char           Gp_StrNewEnemyNull[];
+extern u8                   D_800626E8;
+extern u8*                  D_80114D10;
+extern u16                  D_80114D14[2];
+extern s16                  D_80114D18;
+extern s16                  D_80114D1A;
+extern s16                  D_80114D1C;
+extern s32                  D_80114D20;
 
 s32 func_800AF590(void)
 {
@@ -4104,3 +4104,36 @@ s32 Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
     return arg3;
 }
+
+/// Printed when an enemy's work block cannot be allocated.
+const char Gp_StrNewEnemyNull[] = "new_enemy ---> NULL\n";
+
+const GpEnemyTaskFuncTable3 Gp_EnemyWaitFuncs = { {
+    Gp_EnemyWaitStart,
+    Gp_EnemyWaitTick,
+    Gp_DestroyEnemy,
+} };
+
+const TaskFuncTable3 Gp_StageLoadStates = { {
+    Gp_StartStageLoad,
+    Gp_FinishStageLoad,
+    Gp_StageLoadState2,
+} };
+
+const VECTOR D_80093A28 = { 0, -100, 0, 0 };
+
+const TaskFuncTable3 D_80093A38 = { {
+    func_800B28E0,
+    func_800B1EFC,
+    Task_CallExit,
+} };
+
+/// "ERROR: ex_pdriver_2\n". The three bytes after the terminator are not zero:
+/// the original toolchain left them in the alignment gap.
+const char D_80093A44[24] = "ERROR: ex_pdriver_2\n\0\xB7\xB0\x34";
+
+const TaskFuncTable3 D_80093A5C = { {
+    func_800B6094,
+    func_800B51F4,
+    Task_CallExit,
+} };

@@ -20,7 +20,7 @@ extern u16          Gp_PlayTimeMark;
 extern McItemRec*   Gp_SelItemRec;
 extern UiObjectDesc Gp_BoostPanelDesc;
 extern u8           Gp_DebugAttachLevels[];
-extern char         Gp_StrNotice2[];
+extern const char   Gp_StrNotice2[];
 extern u8           Gp_StrMore[];
 extern u8           Gp_StrAttachAvail[];
 extern u8           D_8010D318[];
@@ -3581,3 +3581,7 @@ s32 Gp_CanMoveItems(void)
     }
     return ret;
 }
+
+/// "Notice". The byte after the terminator is not zero: the original toolchain
+/// left it in the alignment gap.
+const char Gp_StrNotice2[8] = "Notice\0F";
