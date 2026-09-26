@@ -1946,157 +1946,77 @@ void Gp_ResetInventory(void)
     Gp_StateC08.field_B = 0;
 }
 
+/// Recomputes `Player_Status.hpMax` from the game mode's base, the save's HP
+/// bonus and the equipped armour, clamping current HP to it.
+static inline void _gpRecalcMaxHp(void)
+{
+    PlayerStatus* cfg;
+    McSaveData*   save;
+    GpStatRow*    table;
+    u16           val;
+
+    cfg        = &Player_Status;
+    table      = Gp_StatRows;
+    save       = &Mc_SaveData;
+    val        = table[save->gameMode].base.half;
+    cfg->hpMax = val;
+    val       += save->hpBonus;
+    cfg->hpMax = val;
+    if (cfg->armor != 0) {
+        val       += Gp_ModStatAttrs[cfg->armor - 1].field_4;
+        cfg->hpMax = val;
+    }
+    if (cfg->hpMax >= 0xFB) {
+        cfg->hpMax = 0xFA;
+    }
+    if (cfg->hp > cfg->hpMax) {
+        cfg->hp = cfg->hpMax;
+    }
+}
+
+/// Points the carried-items window at the first `count` rows of the save's
+/// own item table, as `Gp_SetPlayerScan` does.
+static inline void _gpSetPlayerScan(s32 count)
+{
+    McSaveData* p;
+
+    p                        = &Mc_SaveData;
+    p->carriedItems.firstRow = 0;
+    p->carriedItems.rowCount = count;
+    p->carriedItems.table    = 0;
+}
+
 void Gp_ClearInventory(void)
 {
-    PlayerStatus*       cfg;
-    s32                 item;
-    McItemSlot*         slot;
-    s32                 found;
-    s32                 i;
-    GpItemMap*          p;
-    McItemScan*         scan;
-    McItemRec*          tmp;
-    register McItemRec* table asm("v1");
-    s32                 count;
-    s32                 start;
-    s32                 off;
-    McSaveData*         save;
-    PlayerStatus*       pcfg;
-    u16                 hp;
-    u16                 mp;
-    GpStateC08*         state;
-    s32                 val;
-    McItemScan*         dest;
-    McItemRec*          rec;
-    s32                 j;
-    GpStatRow*          rows;
-    GpItemAttr*         attrs;
-    McSaveData*         save2;
-    u8                  id;
-    PlayerStatus*       hpCfg;
-    u16                 hpVal;
-    s32                 idx;
-    s32                 n;
+    PlayerStatus* status;
+    McItemScan*   scan;
+    McItemRec*    rec;
+    s32           i;
 
-    cfg = &Player_Status;
-    USE_REG(cfg);
-    val = cfg->weapon;
-    if (val != 0) {
-        item = val + 0x7F;
-        if ((u32)(val - 1) < 0x20U) {
-            found = 0;
-            slot  = &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[item];
-            for (i = found, p = Gp_ItemMaps; i < 8; i++, p++) {
-                if (item == p->field_1) {
-                    found = 1;
-                    break;
-                }
-            }
-            if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
-                slot->ammoId  = 0;
-                slot->ammoQty = 0;
-            }
-            if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
-                if (slot->attachId != 0xFF) {
-                    slot->attachId = 0;
-                }
-                slot->attachQty = 0;
-            }
+    status = &Player_Status;
+    if (status->weapon != 0) {
+        _gpClearEquipSlot(status->weapon + 0x7F);
+        status->weapon = 0;
+    }
+
+    _gpClearScanItems(&Gp_DefaultScan);
+    _gpSetPlayerScan(0x14);
+    scan = &Mc_SaveData.carriedItems;
+
+    rec = &_gpScanTable(scan)[scan->firstRow];
+    for (i = 0; i < scan->rowCount; i++, rec++) {
+        if (rec->attachSlot == -1 && (u32)(rec->itemId - 0x60) < 0x20) {
+            status->armor = rec->itemId - 0x5F;
+            _gpRecalcMaxHp();
+            Gp_RecalcMaxMp();
+            break;
         }
-        cfg->weapon = 0;
     }
 
-    scan = &Gp_DefaultScan;
-    switch (scan->table) {
-        case 2:
-            tmp = Gp_ItemTable2;
-            break;
-        case 1:
-            tmp = Gp_ItemTable1;
-            break;
-        default:
-            tmp = Mc_SaveData.itemRows;
-            break;
-    }
-    table = tmp;
-    i     = 0;
-    count = scan->rowCount;
-    start = scan->firstRow;
-    if (count != 0) {
-        off   = start << 2;
-        table = (McItemRec*)(off + (s32)table);
-        do {
-            i++;
-            table->itemId     = 0;
-            table->attachSlot = 0;
-            table->qty        = 0;
-            table++;
-        } while (i < scan->rowCount);
-    }
-
-    save                        = &Mc_SaveData;
-    n                           = 0x14;
-    dest                        = &save->carriedItems;
-    save->carriedItems.firstRow = 0;
-    save->carriedItems.rowCount = n;
-    save->carriedItems.table    = 0;
-    switch (dest->table) {
-        case 2:
-            rec = Gp_ItemTable2;
-            break;
-        case 1:
-            rec = Gp_ItemTable1;
-            break;
-        default:
-            rec = save->itemRows;
-            break;
-    }
-    j   = 0;
-    rec = (McItemRec*)((s32)rec + (dest->firstRow << 2));
-    if (dest->rowCount != 0) {
-        rows  = Gp_StatRows;
-        save2 = &Mc_SaveData;
-        attrs = Gp_ModStatAttrs;
-        do {
-            if (rec->attachSlot == -1) {
-                id = rec->itemId;
-                if ((u32)(id - 0x60) < 0x20U) {
-                    SCHED_BARRIER();
-                    cfg->armor   = id - 0x5F;
-                    hpCfg        = &Player_Status;
-                    hpVal        = rows[save2->gameMode].base.half;
-                    hpCfg->hpMax = hpVal;
-                    hpVal       += save2->hpBonus;
-                    hpCfg->hpMax = hpVal;
-                    if (hpCfg->armor != 0) {
-                        idx          = hpCfg->armor;
-                        idx          = idx - 1;
-                        hpVal       += attrs[idx].field_4;
-                        hpCfg->hpMax = hpVal;
-                    }
-                    if (hpCfg->hpMax >= 0xFB) {
-                        hpCfg->hpMax = 0xFA;
-                    }
-                    if (hpCfg->hp > hpCfg->hpMax) {
-                        hpCfg->hp = hpCfg->hpMax;
-                    }
-                    Gp_RecalcMaxMp();
-                    break;
-                }
-            }
-            j++;
-            rec++;
-        } while (j < dest->rowCount);
-    }
-
-    state          = &Gp_StateC08;
-    pcfg           = &Player_Status;
-    hp             = pcfg->hpMax;
-    mp             = pcfg->mpMax;
-    state->field_B = 0;
-    state->field_5 = 0;
-    pcfg->hp       = hp;
-    pcfg->mp       = mp;
+    Gp_StateC08.field_B = 0;
+    Gp_StateC08.field_5 = 0;
+    Player_Status.hp    = Player_Status.hpMax;
+    Player_Status.mp    = Player_Status.mpMax;
     Gp_ApplyItemMap();
 }
 
