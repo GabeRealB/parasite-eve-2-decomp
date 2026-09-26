@@ -4773,44 +4773,22 @@ do_restore:
 
 s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
 {
-    u8*               tmp;
-    u8*               head;
     GpFaceHitScratch* block;
-    s32               scratch_dot;
-    s32               dir_dot;
-    s32               t;
-    s32               p0;
-    s32               p1;
-    s32               p2;
-    s32               va_dot;
-    s32               hit_dot;
-    s32               prod;
-    s32               hit_z;
-    void**            sp;
-    s32               i;
-    s32               nx;
-    s32               ny;
-    s32               nz;
-    VECTOR*           out;
-    s32               off;
-    GpU16Pair*        pair;
-    GpU16Pair*        base;
     VECTOR*           va;
     VECTOR*           vb;
-    s32               idx0;
-    s32               idx1;
+    s32               dirDot;
+    s32               t;
+    s32               hitDot;
+    s32               i;
+    s16               planeDot;
+    s16               edgeDot;
 
-    head  = SCRATCH_HEAD(u8);
-    tmp   = head - 0x80;
-    block = (GpFaceHitScratch*)tmp;
-    SOFT_TOUCH_REG_USE(block, tmp);
-
-    SCRATCH_HEAD(u8) = tmp;
+    block = SCRATCH_PUSH(GpFaceHitScratch);
 
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&arg0->origin);
     gte_rtv0();
-    gte_stlvnl((VECTOR*)(head - 0x40));
+    gte_stlvnl(&block->origin);
     block->origin.vx += gGfxViewCoord.workm.t[0];
     block->origin.vy += gGfxViewCoord.workm.t[1];
     block->origin.vz += gGfxViewCoord.workm.t[2];
@@ -4818,81 +4796,56 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&arg0->verts[0]);
     gte_rtv0();
-    gte_stlvnl(block);
-    ((VECTOR*)(head - 0x80))->vx += block->origin.vx;
-    block->verts[0].vy           += block->origin.vy;
-    block->verts[0].vz           += block->origin.vz;
+    gte_stlvnl(&block->verts[0]);
+    block->verts[0].vx += block->origin.vx;
+    block->verts[0].vy += block->origin.vy;
+    block->verts[0].vz += block->origin.vz;
 
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&arg0->normal);
     gte_rtv0();
-    gte_stlvnl((VECTOR*)(head - 0x30));
+    gte_stlvnl(&block->normal);
 
-    nx          = block->normal.vx;
-    ny          = block->normal.vy;
-    nz          = block->normal.vz;
-    scratch_dot = (nx * ((VECTOR*)(head - 0x80))->vx + ny * block->verts[0].vy + nz * block->verts[0].vz) >> 12;
-    dir_dot     = (nx * arg3->vx + ny * arg3->vy + nz * arg3->vz) >> 12;
-
-    if (dir_dot == 0) {
-        goto fail_early;
+    planeDot = (block->normal.vx * block->verts[0].vx + block->normal.vy * block->verts[0].vy +
+                block->normal.vz * block->verts[0].vz) >>
+               12;
+    dirDot = (block->normal.vx * arg3->vx + block->normal.vy * arg3->vy + block->normal.vz * arg3->vz) >> 12;
+    if (dirDot == 0) {
+        SCRATCH_POP(GpFaceHitScratch);
+        return 0;
     }
-    p0 = nx * arg1->vx;
-    p1 = ny * arg1->vy;
-    p2 = nz * arg1->vz;
-    t  = ((p0 + p1 + p2) >> 12) - (s16)scratch_dot;
-    t  = -(t << 12) / dir_dot;
+    t = ((block->normal.vx * arg1->vx + block->normal.vy * arg1->vy + block->normal.vz * arg1->vz) >> 12) - planeDot;
+    t = -(t << 12) / dirDot;
     if (t == 0) {
-    fail_early:
-        SCRATCH_POP_BYTES(0x80);
+        SCRATCH_POP(GpFaceHitScratch);
         return 0;
     }
 
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-
-    i   = 1;
-    out = (VECTOR*)(head - 0x70);
-    off = 0x18;
-    do {
-        gte_ldv0((SVECTOR*)((u8*)arg0 + off));
+    for (i = 1; i < 4; i++) {
+        gte_ldv0(&arg0->verts[i]);
         gte_rtv0();
-        gte_stlvnl(out);
-        out->vx += block->origin.vx;
-        TOUCH_REG(out);
-        off     += 8;
-        out->vy += block->origin.vy;
-        i++;
-        out->vz += block->origin.vz;
-        out++;
-    } while (i < 4);
+        gte_stlvnl(&block->verts[i]);
+        block->verts[i].vx += block->origin.vx;
+        block->verts[i].vy += block->origin.vy;
+        block->verts[i].vz += block->origin.vz;
+    }
 
     block->origin.vx = arg1->vx + ((arg3->vx * t) >> 12);
     block->origin.vy = arg1->vy + ((arg3->vy * t) >> 12);
-    hit_z = block->origin.vz = arg1->vz + ((arg3->vz * t) >> 12);
+    block->origin.vz = arg1->vz + ((arg3->vz * t) >> 12);
 
-    if ((block->origin.vx - arg1->vx) * (block->origin.vx - arg2->vx) + (block->origin.vy - arg1->vy) * (block->origin.vy - arg2->vy) + (hit_z - arg1->vz) * (hit_z - arg2->vz) < 0) {
-        goto do_poly;
+    if ((block->origin.vx - arg1->vx) * (block->origin.vx - arg2->vx) +
+            (block->origin.vy - arg1->vy) * (block->origin.vy - arg2->vy) +
+            (block->origin.vz - arg1->vz) * (block->origin.vz - arg2->vz) >=
+        0) {
+        SCRATCH_POP(GpFaceHitScratch);
+        return 0;
     }
-    sp = (void**)0x1F800000;
-    sp = (void**)((s32)sp | 0x3FC);
-    SCRATCH_POP_BYTES_AT(sp, 0x80);
-    return 0;
-fail_poly:
-    sp = SCRATCH_HEAD_ADDR;
-    SCRATCH_POP_BYTES_AT(sp, 0x80);
-    return 0;
 
-do_poly:
-
-    i    = 1;
-    base = (GpU16Pair*)Gp_FaceEdgePairs;
-    pair = base + 1;
-    do {
-        TOUCH_REG(block);
-        idx0           = pair->field_0;
-        idx1           = pair->field_2;
-        va             = &block->verts[idx0];
-        vb             = &block->verts[idx1];
+    for (i = 1; i < 5; i++) {
+        va             = &block->verts[(u16)Gp_FaceEdgePairs[i].field_0];
+        vb             = &block->verts[(u16)Gp_FaceEdgePairs[i].field_2];
         block->edge.vx = va->vx - vb->vx;
         block->edge.vy = va->vy - vb->vy;
         block->edge.vz = va->vz - vb->vz;
@@ -4900,18 +4853,16 @@ do_poly:
         gte_ldopv2(&block->edge);
         gte_op12();
         gte_stlvnl(&block->cross);
-        va_dot  = block->cross.vx * va->vx + block->cross.vy * va->vy + block->cross.vz * va->vz;
-        hit_dot = block->cross.vx * block->origin.vx + block->cross.vy * block->origin.vy + block->cross.vz * block->origin.vz;
-        prod    = (hit_dot >> 12) - ((va_dot << 4) >> 16);
-        i++;
-        if (prod > 0) {
-            goto fail_poly;
+        edgeDot = (block->cross.vx * va->vx + block->cross.vy * va->vy + block->cross.vz * va->vz) >> 12;
+        hitDot  = (block->cross.vx * block->origin.vx + block->cross.vy * block->origin.vy +
+                  block->cross.vz * block->origin.vz) >>
+                 12;
+        if (hitDot - edgeDot > 0) {
+            SCRATCH_POP(GpFaceHitScratch);
+            return 0;
         }
-        pair++;
-    } while (i < 5);
-    sp = SCRATCH_HEAD_ADDR;
-    SCRATCH_POP_BYTES_AT(sp, 0x80);
-    tmp = 0;
+    }
+    SCRATCH_POP(GpFaceHitScratch);
     return 1;
 }
 
