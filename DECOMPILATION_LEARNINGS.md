@@ -142812,6 +142812,22 @@ arg0;` declared after the counters) is that insn; before the counters it does
 nothing. Declaration order and init order alone (all 120 permutations) and
 moving the return's operands do not move it.
 
+### A cursor advance written once per arm raises the counter's refs; the merged tail looks the same (func_actor_215100_8014C360, 2026-09-26)
+
+**Symptom.** The caption line-height walk (`s16` height, index and loop flag,
+per the entry above) matched except that the index and the `cont` flag swapped
+`$a2`/`$a3`. `cont` is set in two arms and tested (7 refs), the index is set
+and read once in the loop (5 refs), so `global.c` ranks the flag first however
+the declarations are ordered.
+
+**Fix.** Give the glyph arm and the "other control code" arm their own
+`code = arg0[++i];` (`else if (code >= 0) { ...; code = arg0[++i]; } else {
+code = arg0[++i]; }`). The index's loop-weighted refs rise to 9 and it outranks
+the flag; the two advances still come out as one tail, because `dbr` was
+already duplicating the `addiu` into the delay slot. A `continue`-per-case body
+matches equally. An m2c `goto` into a shared `next = i + 1` plus `TOUCH_REG` was
+the hack standing for this.
+
 ### A pointer stored just before a call cannot share that call's constant argument register without a pin (func_actor_403600_80134288, 2026-09-26)
 
 **Symptom.** The target keeps a freshly allocated pointer in `$a3` from
