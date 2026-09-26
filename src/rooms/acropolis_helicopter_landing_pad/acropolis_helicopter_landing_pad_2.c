@@ -23,6 +23,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/unknown_syms.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/acropolis_helicopter_landing_pad.h"
 
@@ -600,7 +601,7 @@ static void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task)
 /// The room's script task: runs the state handler
 /// `D_acropolis_helicopter_landing_pad_8017D5E4` names for `Task::state`,
 /// through a copy of the table taken onto the stack.
-static void func_acropolis_helicopter_landing_pad_8017EB00(Task* task)
+void func_acropolis_helicopter_landing_pad_8017EB00(Task* task)
 {
     TaskFuncTable3 sp;
 

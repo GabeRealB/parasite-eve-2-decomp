@@ -10,6 +10,7 @@
 #include "main/session.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// The room's message table, installed on its entry task.
@@ -164,7 +165,7 @@ static void func_acropolis_forked_road_8017D970(Task* task)
 /// Runs the room task's current state out of its three-entry handler table:
 /// the setup state, the per-frame warp check, then `taskKill`. The table is
 /// copied onto the stack before the call.
-static void func_acropolis_forked_road_8017D9CC(Task* task)
+void func_acropolis_forked_road_8017D9CC(Task* task)
 {
     TaskFuncTable3 sp;
 

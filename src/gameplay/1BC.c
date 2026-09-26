@@ -3572,7 +3572,7 @@ static inline s32 _gpGetCurBit2Flag(s32 arg0)
 
 /// Finds the record in the 0xFFFF-terminated `desc` table whose id is
 /// `place->field_2` and spawns that enemy at `place`.
-static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpEnemyPlace* place)
+static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
 {
     GpEnemy*   enemy;
     Task*      task;
@@ -3608,23 +3608,23 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpEnemyPlace* place)
     }
 }
 
-/// Walks `Gp_Bit2Banks[Mc_SaveData[0].at4.loc.area / stage]` for a `GpEnemyPlace`
+/// Walks `Gp_Bit2Banks[Mc_SaveData[0].at4.loc.area / stage]` for a `GpBit2Rec`
 /// whose `field_0` equals `arg0`. If the packed 2-bit flag at
 /// `Gp_Bit2Banks[gGameSession->at4.loc.stage].field_4` is non-zero, spawns that
 /// placement via `Gp_SpawnEnemyFromTable` (same coord/yaw writeback as `Gp_SpawnPlaces`).
 static void Gp_SpawnPlaceById(u16 arg0)
 {
-    GpAreaKey*    sess;
-    GpBit2List*   lists;
-    GpEnemyPlace* place;
-    u16           id;
+    GpAreaKey*  sess;
+    GpBit2List* lists;
+    GpBit2Rec*  place;
+    u16         id;
 
     sess  = &Mc_SaveData[0].at4.loc;
     lists = Gp_Bit2Banks[sess->stage].field_0;
     if (lists == NULL) {
         return;
     }
-    place = (GpEnemyPlace*)lists[sess->area].field_0;
+    place = lists[sess->area].field_0;
     if (place == NULL) {
         return;
     }
@@ -3643,21 +3643,21 @@ static void Gp_SpawnPlaceById(u16 arg0)
 
 void Gp_SpawnPlaces(GpAreaKey* arg0)
 {
-    GpBit2List*   lists;
-    GpEnemyPlace* place;
-    GpEnemyDesc*  desc;
-    GpEnemy*      enemy;
-    Task*         task;
-    TmdObject*    extra;
-    GpCoord*      coord;
-    u16           term;
-    u16           id;
+    GpBit2List*  lists;
+    GpBit2Rec*   place;
+    GpEnemyDesc* desc;
+    GpEnemy*     enemy;
+    Task*        task;
+    TmdObject*   extra;
+    GpCoord*     coord;
+    u16          term;
+    u16          id;
 
     lists = Gp_Bit2Banks[arg0->stage].field_0;
     if (lists == NULL) {
         return;
     }
-    place = (GpEnemyPlace*)lists[arg0->area].field_0;
+    place = lists[arg0->area].field_0;
     if (place == NULL) {
         return;
     }

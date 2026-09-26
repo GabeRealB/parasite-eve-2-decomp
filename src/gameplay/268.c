@@ -2706,7 +2706,7 @@ void Gp_SavePlayerPos(void)
     save->playerBp  = cfg->bp;
 }
 
-static GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpEnemyPlace* arg1)
+static GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpBit2Rec* arg1)
 {
     GpEnemy*   enemy;
     Task*      task;

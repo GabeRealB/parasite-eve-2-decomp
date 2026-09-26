@@ -10,6 +10,26 @@
 
 #include "main/tmd.h"
 
+// mappic_s1_00
+extern TmdSource D_mappic_s1_00_8012EFD8;
+extern TmdSource D_mappic_s1_00_8012F128;
+extern TmdSource D_mappic_s1_00_8012F224;
+extern TmdSource D_mappic_s1_00_8012F2D0;
+extern TmdSource D_mappic_s1_00_8012F360;
+extern TmdSource D_mappic_s1_00_8012F3F0;
+extern TmdSource D_mappic_s1_00_8012F4F4;
+extern TmdSource D_mappic_s1_00_8012F5D4;
+extern TmdSource D_mappic_s1_00_8012F684;
+extern TmdSource D_mappic_s1_00_8012F76C;
+extern TmdSource D_mappic_s1_00_8012F7FC;
+extern TmdSource D_mappic_s1_00_8012F88C;
+extern TmdSource D_mappic_s1_00_8012F91C;
+extern TmdSource D_mappic_s1_00_8012F9AC;
+extern TmdSource D_mappic_s1_00_8012FAFC;
+
+// mappic_s1_02
+extern TmdSource D_mappic_s1_02_8012EFA0;
+
 // mappic_s2_00
 extern TmdSource D_mappic_s2_00_8012EFA0;
 extern TmdSource D_mappic_s2_00_8012F0B8;

@@ -2741,7 +2741,7 @@ extern s8  D_mist_parking_8018DA28[];
 
 /// Runs the handler for the task's state from a stack copy of
 /// `D_mist_parking_8017D7DC`.
-static void func_mist_parking_80182898(Task* task)
+void func_mist_parking_80182898(Task* task)
 {
     TaskFuncTable3 sp;
 

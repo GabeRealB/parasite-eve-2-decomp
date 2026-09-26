@@ -7,6 +7,7 @@
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_mist_r21_8017D770[];
@@ -77,7 +78,7 @@ static const char D_mist_r21_8017D5D0[] = "target set\n";
 
 /// The room task's callback: runs the state `Task::state` selects from a
 /// stack copy of `D_mist_r21_8017D5C4`.
-static void func_mist_r21_8017D708(Task* task)
+void func_mist_r21_8017D708(Task* task)
 {
     TaskFuncTable3 sp;
 

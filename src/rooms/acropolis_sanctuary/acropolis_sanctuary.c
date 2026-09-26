@@ -22,6 +22,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
 
@@ -359,7 +360,7 @@ static void func_acropolis_sanctuary_8017D930(Task* arg0)
 
 /// Runs the room task's current state through a stack copy of the room's
 /// three-entry state table: set-up, the per-frame entry fixup and `taskKill`.
-static void func_acropolis_sanctuary_8017D9E8(Task* task)
+void func_acropolis_sanctuary_8017D9E8(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -1246,7 +1247,7 @@ static s32 func_acropolis_sanctuary_8017FB18(GpCoord* coord, GpRec18* recs, s16 
 /// (`field_C` bit 0x80) while the camera sits on view 0xB or 0xD, or once the
 /// item's 2-bit pickup flag has reached 2; otherwise shows it again with the
 /// default flags.
-static void func_acropolis_sanctuary_80180264(Task* task)
+void func_acropolis_sanctuary_80180264(Task* task)
 {
     GpItemObj8* obj = task->spawnArg2;
     TmdObject*  tmd = task->extra.tmd;

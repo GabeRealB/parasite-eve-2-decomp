@@ -24,6 +24,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/acropolis_cafeteria.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern void Stage_RequestFromAreaTable(s32 arg0);
@@ -474,7 +475,7 @@ static void func_acropolis_cafeteria_8017E348(Task* task)
 
 /// Runs the task's current state through a stack copy of the room's
 /// three-entry state table.
-static void func_acropolis_cafeteria_8017E424(Task* task)
+void func_acropolis_cafeteria_8017E424(Task* task)
 {
     TaskFuncTable3 sp;
 

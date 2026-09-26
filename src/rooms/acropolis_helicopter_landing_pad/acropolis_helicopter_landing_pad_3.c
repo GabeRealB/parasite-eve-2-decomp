@@ -27,6 +27,7 @@
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/rooms_shared_8017d830.h"
 #include "rooms/acropolis_helicopter_landing_pad.h"
 
@@ -1193,7 +1194,7 @@ static s32 func_acropolis_helicopter_landing_pad_80181B64(GpCoord* coord, GpRec1
 /// Task step of an item-pickup model: hides the mesh with flag 4 when the
 /// item's 2-bit flag reads 2, otherwise resets its flags and draw offset and
 /// allocates its TMD buffers. The view index is fetched and ignored.
-static void func_acropolis_helicopter_landing_pad_801822B0(Task* task)
+void func_acropolis_helicopter_landing_pad_801822B0(Task* task)
 {
     GpItemObj8* obj;
     TmdObject*  tmd;

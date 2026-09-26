@@ -581,10 +581,7 @@ id = 280
 text = ["0x38", "0x6F8"]
 objects = [
   { kind = "packageId" },
-  { unit = "map_akropolis/map_akropolis", rodata = "0x4", text = "0x38" },
-  { kind = "data", at = "0x6F8" },
-  { unit = "map_akropolis/map_akropolis_ui", data = "0x1058" },
-  { kind = "data", at = "0x10BC" },
+  { unit = "map_akropolis/map_akropolis", rodata = "0x4", text = "0x38", data = "0x6F8", tail = true },
 ]
 
 [mapui.overlays.map_dryfield]

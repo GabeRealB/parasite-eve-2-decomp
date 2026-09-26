@@ -367,7 +367,7 @@ static void func_acropolis_patio_8017DF7C(Task* task)
     char pad[0x10];
 }
 
-static void func_acropolis_patio_8017DF8C(Task* task)
+void func_acropolis_patio_8017DF8C(Task* task)
 {
     TaskFuncTable3 sp;
 

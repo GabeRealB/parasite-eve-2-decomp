@@ -31,6 +31,7 @@
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
 
@@ -376,7 +377,7 @@ static const TaskFuncTable7 D_acropolis_security_room_8017D5EC = { {
 
 /// Runs the room's message task's current state through a stack copy of its
 /// three-entry state table.
-static void func_acropolis_security_room_8017D984(Task* task)
+void func_acropolis_security_room_8017D984(Task* task)
 {
     TaskFuncTable3 sp;
 

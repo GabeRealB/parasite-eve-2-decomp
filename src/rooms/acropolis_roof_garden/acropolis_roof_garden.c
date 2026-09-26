@@ -24,6 +24,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
 
@@ -284,7 +285,7 @@ static void func_acropolis_roof_garden_8017DBEC(Task* task)
 
 /// Runs the task's current state through a stack copy of the room's
 /// three-entry state table.
-static void func_acropolis_roof_garden_8017DC74(Task* task)
+void func_acropolis_roof_garden_8017DC74(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -958,7 +959,7 @@ static s32 func_acropolis_roof_garden_8017FA14(GpCoord* coord, GpRec18* recs, s1
 /// through 7, and stays hidden once the item's 2-bit flag reads 2 (already
 /// taken). The three hidden cases are written as separate tests so the two view
 /// comparisons are not folded into one unsigned range check.
-static void func_acropolis_roof_garden_80180160(Task* task)
+void func_acropolis_roof_garden_80180160(Task* task)
 {
     GpItemObj8* obj;
     TmdObject*  tmd;

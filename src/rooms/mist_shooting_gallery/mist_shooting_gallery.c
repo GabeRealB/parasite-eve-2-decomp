@@ -29,6 +29,7 @@
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8018055c.h"
 
@@ -1342,7 +1343,7 @@ const char D_mist_shooting_gallery_8017DAC8[] = "1. Tower Rendezvous";
 /// `D_mist_shooting_gallery_8017D860` onto the stack and runs the entry for the
 /// task's current state - the entry tick `func_mist_shooting_gallery_8017FC2C`,
 /// the perGpGridParamsframe state `func_mist_shooting_gallery_8017FD40`, then `taskKill`.
-static void func_mist_shooting_gallery_8018018C(Task* task)
+void func_mist_shooting_gallery_8018018C(Task* task)
 {
     TaskFuncTable3 sp;
 

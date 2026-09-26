@@ -1558,7 +1558,7 @@ static void func_acropolis_fire_escape_8017FECC(Task* task)
 
 /// Runs the room's message task: copies the state table onto the stack and
 /// calls the entry for the task's current state.
-static void func_acropolis_fire_escape_8017FF24(Task* task)
+void func_acropolis_fire_escape_8017FF24(Task* task)
 {
     TaskFuncTable3 sp;
 

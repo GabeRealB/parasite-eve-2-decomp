@@ -1417,7 +1417,7 @@ static s32 func_acropolis_cafeteria_80182078(GpCoord* coord, GpRec18* recs, s16 
     return hit;
 }
 
-static void func_acropolis_cafeteria_801827C4(Task* task)
+void func_acropolis_cafeteria_801827C4(Task* task)
 {
     GpItemObj8* obj;
     TmdObject*  tmd;
@@ -1443,7 +1443,7 @@ static void func_acropolis_cafeteria_801827C4(Task* task)
             break;
     }
 }
-static void func_acropolis_cafeteria_8018286C(Task* task)
+void func_acropolis_cafeteria_8018286C(Task* task)
 {
     GpItemObj8* obj;
     TmdObject*  tmd;

@@ -38,17 +38,26 @@ typedef struct _GpItemQty {
 } GpItemQty;
 STATIC_ASSERT_SIZEOF(GpItemQty, 0x4);
 
-/// 16-byte record walked by `Gp_ApplyBit2List` / `Gp_ApplyBit2Bank` /
-/// `Gp_LookupBit2Item`. field_0 is a packed item id (0xFFFF terminator);
-/// field_2 is the item id published to `Gp_PubItemLoc` by `Gp_LookupBit2Item`;
-/// field_6 is the extra halfword published to `D_80114DDE` (and the low
-/// 2 bits written into the dest 2-bit bank by `Gp_ApplyBit2List`).
+/// 16-byte record of a room's `GpBit2List.field_0` list, ended by a `field_0`
+/// of 0xFFFF. The same list serves two readers. The 2-bit bank code
+/// (`Gp_ApplyBit2List` / `Gp_ApplyBit2Bank` / `Gp_LookupBit2Item`) keys on
+/// `field_0`, publishes `field_2` as the item id to `Gp_PubItemLoc` and `field_6`
+/// to `D_80114DDE`, and writes the low 2 bits of `field_6` into the bank. The
+/// placement spawn (`Gp_SpawnAtPlace` / `Gp_SpawnPlaces` /
+/// `Gp_SpawnPlaceById`) packs `field_0` and `field_4` into `GpEnemy.placeKey` as
+/// `field_0 | (field_4 << 8)`, spawns the room's `GpEnemyDesc` whose id is
+/// `field_2` and copies `field_2` to `GpEnemy.workType`; `field_8` / `field_A` / `field_C` are the world X/Y/Z
+/// (`GpCoord.coord.t`) and `field_E` the yaw stored at coord +0x46 and passed to
+/// `Gfx_RotMatrixY` when non-zero.
 typedef struct _GpBit2Rec {
-    /* 0x00 */ u16  field_0;
-    /* 0x02 */ u16  field_2;
-    /* 0x04 */ byte pad_4[2];
-    /* 0x06 */ u16  field_6;
-    /* 0x08 */ byte pad_8[8];
+    /* 0x00 */ u16 field_0;
+    /* 0x02 */ u16 field_2;
+    /* 0x04 */ u16 field_4;
+    /* 0x06 */ u16 field_6;
+    /* 0x08 */ s16 field_8;
+    /* 0x0A */ s16 field_A;
+    /* 0x0C */ s16 field_C;
+    /* 0x0E */ u16 field_E;
 } GpBit2Rec;
 STATIC_ASSERT_SIZEOF(GpBit2Rec, 0x10);
 
@@ -66,8 +75,8 @@ STATIC_ASSERT_SIZEOF(GpEnemyDesc, 0x10);
 /// `Gp_LookupBit2Item`. field_0 is a `GpBit2Rec` list (NULL skips;
 /// `(GpBit2Rec*)-1` ends in `Gp_ApplyBit2List` / `Gp_ApplyBit2Bank`;
 /// `(GpBit2Rec*)0x7FFFFFFF` ends in `Gp_LookupBit2Item`).
-/// `Gp_SpawnPlaces` / `Gp_SpawnPlaceById` also read field_0 as a `GpEnemyPlace`
-/// list and field_4 as a 0xFFFF-terminated `GpEnemyDesc` table.
+/// `Gp_SpawnPlaces` / `Gp_SpawnPlaceById` read field_4 as the room's
+/// 0xFFFF-terminated `GpEnemyDesc` table.
 /// `Gp_Bit2Banks[i].field_0` points at a table of these.
 typedef struct _GpBit2List {
     /* 0x00 */ GpBit2Rec*   field_0;
@@ -85,23 +94,6 @@ typedef struct _GpBit2Bank {
     /* 0x04 */ u32*        field_4;
 } GpBit2Bank;
 STATIC_ASSERT_SIZEOF(GpBit2Bank, 0x8);
-
-/// Placement record for `Gp_SpawnAtPlace` / `Gp_SpawnPlaces` / `Gp_SpawnPlaceById`. `field_0` / `field_4` pack into
-/// `GpEnemy.placeKey` as `field_0 | (field_4 << 8)`; `field_2` is copied to
-/// `GpEnemy.workType`. `field_8` / `field_A` / `field_C` are world X/Y/Z
-/// (`GpCoord.coord.t`); `field_E` is the yaw stored at coord +0x46
-/// and passed to `Gfx_RotMatrixY` when non-zero.
-typedef struct _GpEnemyPlace {
-    /* 0x0 */ u16  field_0;
-    /* 0x2 */ u16  field_2;
-    /* 0x4 */ u16  field_4;
-    /* 0x6 */ byte pad_6[2];
-    /* 0x8 */ s16  field_8;
-    /* 0xA */ s16  field_A;
-    /* 0xC */ s16  field_C;
-    /* 0xE */ u16  field_E;
-} GpEnemyPlace;
-STATIC_ASSERT_SIZEOF(GpEnemyPlace, 0x10);
 
 /// 8-byte item attribute row. `Gp_ItemAttrs` is indexed by raw item id
 /// (`Gp_GetModLevel`); ids 0x60–0x7F land in the `Gp_ModStatAttrs` slice.

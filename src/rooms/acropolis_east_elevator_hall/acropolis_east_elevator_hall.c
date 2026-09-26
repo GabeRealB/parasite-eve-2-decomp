@@ -807,7 +807,7 @@ static void func_acropolis_east_elevator_hall_8017F4E8(Task* task)
 
 /// Runs the room task's current state through a stack copy of the room's
 /// three-entry state table.
-static void func_acropolis_east_elevator_hall_8017F55C(Task* task)
+void func_acropolis_east_elevator_hall_8017F55C(Task* task)
 {
     TaskFuncTable3 sp;
 

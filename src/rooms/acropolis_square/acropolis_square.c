@@ -2406,7 +2406,7 @@ static void func_acropolis_square_801822A4(Task* task)
 
 /// Room entry task: runs the state handler `D_acropolis_square_8017D6B4`
 /// names for `Task::state`, through a copy of the table taken onto the stack.
-static void func_acropolis_square_80182308(Task* task)
+void func_acropolis_square_80182308(Task* task)
 {
     TaskFuncTable3 sp;
 

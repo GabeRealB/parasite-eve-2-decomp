@@ -347,4 +347,204 @@ extern GpViewRec       D_dryfield_underpass_8017F4A8[];
 extern GpSprtRec       D_dryfield_underpass_80180250[];
 extern GpRoomParamRec* D_dryfield_underpass_80181164[];
 
+// acropolis_square
+extern GpRoomObjRec    D_acropolis_square_80183B9C[];
+extern u8*             D_acropolis_square_80183BAC[];
+extern GpViewCountRec  D_acropolis_square_80183BB0[];
+extern GpRoomCoordRec  D_acropolis_square_80183BB4[];
+extern GpWarpRec       D_acropolis_square_80183BBC[];
+extern GpSprtRec       D_acropolis_square_8018857C[];
+extern GpViewRec       D_acropolis_square_80188630[];
+extern GpRoomParamRec* D_acropolis_square_80188868[];
+
+// acropolis_east_elevator_hall
+extern GpRoomObjRec    D_acropolis_east_elevator_hall_80186320[];
+extern u8*             D_acropolis_east_elevator_hall_80186330[];
+extern GpViewCountRec  D_acropolis_east_elevator_hall_80186334[];
+extern GpRoomCoordRec  D_acropolis_east_elevator_hall_80186338[];
+extern GpWarpRec       D_acropolis_east_elevator_hall_80186340[];
+extern GpSprtRec       D_acropolis_east_elevator_hall_80187870[];
+extern GpViewRec       D_acropolis_east_elevator_hall_80187A5C[];
+extern GpRoomParamRec* D_acropolis_east_elevator_hall_80187B74[];
+
+// acropolis_patio
+extern GpRoomObjRec    D_acropolis_patio_80182E68[];
+extern u8*             D_acropolis_patio_80182EC0[];
+extern GpViewCountRec  D_acropolis_patio_80182ECC[];
+extern GpRoomCoordRec  D_acropolis_patio_80182ED4[];
+extern GpWarpRec       D_acropolis_patio_80182EEC[];
+extern GpSprtRec       D_acropolis_patio_80186360[];
+extern GpViewRec       D_acropolis_patio_80186D5C[];
+extern GpRoomParamRec* D_acropolis_patio_8018703C[];
+
+// acropolis_cafeteria
+extern GpRoomObjRec    D_acropolis_cafeteria_8018753C[];
+extern u8*             D_acropolis_cafeteria_801875AC[];
+extern GpViewCountRec  D_acropolis_cafeteria_801875BC[];
+extern GpRoomCoordRec  D_acropolis_cafeteria_801875C4[];
+extern GpWarpRec       D_acropolis_cafeteria_801875E4[];
+extern GpSprtRec       D_acropolis_cafeteria_8018C48C[];
+extern GpViewRec       D_acropolis_cafeteria_8018C5AC[];
+extern GpRoomParamRec* D_acropolis_cafeteria_8018CA2C[];
+
+// acropolis_plaza
+extern GpRoomObjRec    D_acropolis_plaza_801988B8[];
+extern u8*             D_acropolis_plaza_801988C8[];
+extern GpViewCountRec  D_acropolis_plaza_801988CC[];
+extern GpRoomCoordRec  D_acropolis_plaza_801988D0[];
+extern GpViewRec       D_acropolis_plaza_801988D8[];
+extern GpSprtRec       D_acropolis_plaza_80198A08[];
+extern GpWarpRec       D_acropolis_plaza_80198A68[];
+extern GpRoomParamRec* D_acropolis_plaza_80199F28[];
+
+// acropolis_security_room
+extern GpRoomObjRec    D_acropolis_security_room_801839D0[];
+extern u8*             D_acropolis_security_room_801839E0[];
+extern GpViewCountRec  D_acropolis_security_room_801839E4[];
+extern GpRoomCoordRec  D_acropolis_security_room_801839E8[];
+extern GpWarpRec       D_acropolis_security_room_801839F0[];
+extern GpSprtRec       D_acropolis_security_room_80184C50[];
+extern GpViewRec       D_acropolis_security_room_80184D10[];
+extern GpRoomParamRec* D_acropolis_security_room_80184FA0[];
+
+// acropolis_hallway
+extern GpRoomObjRec    D_acropolis_hallway_8017E258[];
+extern u8*             D_acropolis_hallway_8017E268[];
+extern GpViewCountRec  D_acropolis_hallway_8017E26C[];
+extern GpRoomCoordRec  D_acropolis_hallway_8017E270[];
+extern GpWarpRec       D_acropolis_hallway_8017E278[];
+extern GpSprtRec       D_acropolis_hallway_8017EC2C[];
+extern GpViewRec       D_acropolis_hallway_8017EC68[];
+extern GpRoomParamRec* D_acropolis_hallway_8017ED40[];
+
+// acropolis_fountain
+extern GpRoomObjRec    D_acropolis_fountain_8017E814[];
+extern u8*             D_acropolis_fountain_8017E84C[];
+extern GpViewCountRec  D_acropolis_fountain_8017E854[];
+extern GpRoomCoordRec  D_acropolis_fountain_8017E858[];
+extern GpWarpRec       D_acropolis_fountain_8017E868[];
+extern GpSprtRec       D_acropolis_fountain_8018375C[];
+extern GpViewRec       D_acropolis_fountain_80183864[];
+extern GpRoomParamRec* D_acropolis_fountain_80183B90[];
+
+// acropolis_forked_road
+extern GpRoomObjRec    D_acropolis_forked_road_80182214[];
+extern u8*             D_acropolis_forked_road_8018225C[];
+extern GpViewCountRec  D_acropolis_forked_road_80182268[];
+extern GpRoomCoordRec  D_acropolis_forked_road_80182270[];
+extern GpWarpRec       D_acropolis_forked_road_80182288[];
+extern GpSprtRec       D_acropolis_forked_road_801844E0[];
+extern GpViewRec       D_acropolis_forked_road_80184E88[];
+extern GpRoomParamRec* D_acropolis_forked_road_801850A4[];
+
+// acropolis_observatory
+extern GpRoomObjRec    D_acropolis_observatory_8017FEC8[];
+extern u8*             D_acropolis_observatory_8017FEF0[];
+extern GpViewCountRec  D_acropolis_observatory_8017FEF8[];
+extern GpRoomCoordRec  D_acropolis_observatory_8017FEFC[];
+extern GpWarpRec       D_acropolis_observatory_8017FF0C[];
+extern GpSprtRec       D_acropolis_observatory_80183300[];
+extern GpViewRec       D_acropolis_observatory_80183360[];
+extern GpRoomParamRec* D_acropolis_observatory_801834DC[];
+
+// acropolis_promenade
+extern GpRoomObjRec    D_acropolis_promenade_80181B90[];
+extern u8*             D_acropolis_promenade_80181BC0[];
+extern GpViewCountRec  D_acropolis_promenade_80181BC8[];
+extern GpRoomCoordRec  D_acropolis_promenade_80181BCC[];
+extern GpWarpRec       D_acropolis_promenade_80181BDC[];
+extern GpSprtRec       D_acropolis_promenade_80185FB4[];
+extern GpViewRec       D_acropolis_promenade_80186050[];
+extern GpRoomParamRec* D_acropolis_promenade_801862B0[];
+
+// acropolis_sanctuary
+extern GpRoomObjRec    D_acropolis_sanctuary_801827EC[];
+extern u8*             D_acropolis_sanctuary_801827FC[];
+extern GpViewCountRec  D_acropolis_sanctuary_80182800[];
+extern GpRoomCoordRec  D_acropolis_sanctuary_80182804[];
+extern GpWarpRec       D_acropolis_sanctuary_8018280C[];
+extern GpSprtRec       D_acropolis_sanctuary_801860C8[];
+extern GpViewRec       D_acropolis_sanctuary_80186188[];
+extern GpRoomParamRec* D_acropolis_sanctuary_801863F8[];
+
+// acropolis_roof_garden
+extern GpRoomObjRec    D_acropolis_roof_garden_80184C8C[];
+extern u8*             D_acropolis_roof_garden_80184C9C[];
+extern GpViewCountRec  D_acropolis_roof_garden_80184CA0[];
+extern GpRoomCoordRec  D_acropolis_roof_garden_80184CA4[];
+extern GpWarpRec       D_acropolis_roof_garden_80184CAC[];
+extern GpSprtRec       D_acropolis_roof_garden_80186648[];
+extern GpViewRec       D_acropolis_roof_garden_80186BF4[];
+extern GpRoomParamRec* D_acropolis_roof_garden_80186DB0[];
+
+// acropolis_bridge
+extern GpRoomObjRec    D_acropolis_bridge_80189A54[];
+extern u8*             D_acropolis_bridge_80189A80[];
+extern GpViewCountRec  D_acropolis_bridge_80189A88[];
+extern GpRoomCoordRec  D_acropolis_bridge_80189A8C[];
+extern GpWarpRec       D_acropolis_bridge_80189AB4[];
+extern GpSprtRec       D_acropolis_bridge_8018FFA4[];
+extern GpViewRec       D_acropolis_bridge_80190A24[];
+extern GpRoomParamRec* D_acropolis_bridge_80190C34[];
+
+// acropolis_fire_escape
+extern GpRoomObjRec    D_acropolis_fire_escape_80181DAC[];
+extern u8*             D_acropolis_fire_escape_80181DBC[];
+extern GpViewCountRec  D_acropolis_fire_escape_80181DC0[];
+extern GpRoomCoordRec  D_acropolis_fire_escape_80181DC4[];
+extern GpWarpRec       D_acropolis_fire_escape_80181DCC[];
+extern GpSprtRec       D_acropolis_fire_escape_80182E18[];
+extern GpViewRec       D_acropolis_fire_escape_80182E90[];
+extern GpRoomParamRec* D_acropolis_fire_escape_80183020[];
+
+// acropolis_helicopter_landing_pad
+extern GpRoomObjRec    D_acropolis_helicopter_landing_pad_80184F10[];
+extern u8*             D_acropolis_helicopter_landing_pad_80184F3C[];
+extern GpViewCountRec  D_acropolis_helicopter_landing_pad_80184F40[];
+extern GpRoomCoordRec  D_acropolis_helicopter_landing_pad_80184F44[];
+extern GpWarpRec       D_acropolis_helicopter_landing_pad_80184F4C[];
+extern GpSprtRec       D_acropolis_helicopter_landing_pad_80187824[];
+extern GpViewRec       D_acropolis_helicopter_landing_pad_80187968[];
+extern GpRoomParamRec* D_acropolis_helicopter_landing_pad_80187DC8[];
+
+// acropolis_west_elevator_hall
+extern GpRoomObjRec    D_acropolis_west_elevator_hall_80185024[];
+extern u8*             D_acropolis_west_elevator_hall_80185034[];
+extern GpViewCountRec  D_acropolis_west_elevator_hall_80185038[];
+extern GpRoomCoordRec  D_acropolis_west_elevator_hall_8018503C[];
+extern GpWarpRec       D_acropolis_west_elevator_hall_80185044[];
+extern GpSprtRec       D_acropolis_west_elevator_hall_80186408[];
+extern GpViewRec       D_acropolis_west_elevator_hall_801869FC[];
+extern GpRoomParamRec* D_acropolis_west_elevator_hall_80186AC4[];
+
+// mist_r18
+extern GpRoomObjRec    D_mist_r18_8018660C[];
+extern u8*             D_mist_r18_8018661C[];
+extern GpViewCountRec  D_mist_r18_80186620[];
+extern GpRoomCoordRec  D_mist_r18_80186624[];
+extern GpWarpRec       D_mist_r18_8018662C[];
+extern GpViewRec       D_mist_r18_8018671C[];
+extern GpSprtRec       D_mist_r18_80186B60[];
+extern GpRoomParamRec* D_mist_r18_80186E70[];
+
+// mist_parking
+extern GpRoomObjRec    D_mist_parking_8019155C[];
+extern u8*             D_mist_parking_801915B0[];
+extern GpViewCountRec  D_mist_parking_801915C0[];
+extern GpRoomCoordRec  D_mist_parking_801915C8[];
+extern GpWarpRec       D_mist_parking_801915E8[];
+extern GpViewRec       D_mist_parking_80192228[];
+extern GpSprtRec       D_mist_parking_8019399C[];
+extern GpRoomParamRec* D_mist_parking_801952F0[];
+
+// mist_shooting_gallery
+extern GpRoomObjRec    D_mist_shooting_gallery_801853A8[];
+extern u8*             D_mist_shooting_gallery_801853B8[];
+extern GpViewCountRec  D_mist_shooting_gallery_801853BC[];
+extern GpRoomCoordRec  D_mist_shooting_gallery_801853C0[];
+extern GpWarpRec       D_mist_shooting_gallery_801853C8[];
+extern GpViewRec       D_mist_shooting_gallery_8018998C[];
+extern GpSprtRec       D_mist_shooting_gallery_8018BD10[];
+extern GpRoomParamRec* D_mist_shooting_gallery_8018E09C[];
+
 #endif /* ROOMS_STAGE_TABLES_H */

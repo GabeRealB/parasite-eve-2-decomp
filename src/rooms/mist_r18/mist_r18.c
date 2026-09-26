@@ -17,6 +17,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// Sprite description the overlay's two primitive emitters read from.
@@ -893,7 +894,7 @@ static void func_mist_r18_8017ECF4(Task* arg0)
 /// selects from `D_mist_r18_8017D5D0` (set-up, the cutscene step
 /// `func_mist_r18_8017D960`, then `taskKill`), copied onto the stack each
 /// frame.
-static void func_mist_r18_8017ED64(Task* task)
+void func_mist_r18_8017ED64(Task* task)
 {
     TaskFuncTable3 sp;
 

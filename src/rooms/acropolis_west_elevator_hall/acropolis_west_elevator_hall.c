@@ -863,7 +863,7 @@ static void func_acropolis_west_elevator_hall_8017F568(Task* arg0)
 /// Per-frame entry of the room task: runs the state its `state` field selects
 /// from `D_acropolis_west_elevator_hall_8017D5D4` (set-up, the cutscene
 /// hand-off, then kill).
-static void func_acropolis_west_elevator_hall_8017F5F4(Task* task)
+void func_acropolis_west_elevator_hall_8017F5F4(Task* task)
 {
     TaskFuncTable3 sp;
 

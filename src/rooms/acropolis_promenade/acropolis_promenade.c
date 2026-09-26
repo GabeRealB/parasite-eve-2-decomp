@@ -250,7 +250,7 @@ static void func_acropolis_promenade_8017D9E0(Task* arg0)
 /// Runs the room task's current state (`func_acropolis_promenade_8017D9E0`,
 /// `func_acropolis_promenade_8017D5E4`, then `taskKill`) through a copy of its
 /// handler table on the stack.
-static void func_acropolis_promenade_8017DA4C(Task* task)
+void func_acropolis_promenade_8017DA4C(Task* task)
 {
     TaskFuncTable3 sp;
 

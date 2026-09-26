@@ -326,4 +326,45 @@ void func_dryfield_underpass_8017DAC8(Task* task);
 extern TmdSource D_dryfield_junk_yard_8017ECE0;
 extern TmdSource D_dryfield_trailer_coach_80184554;
 
+/// Task entries the Akropolis map UI overlay's stage tables name: each room's
+/// entry task, started for its location, and the enemy descriptors' tasks.
+void func_acropolis_square_80182308(Task* task);
+void func_acropolis_east_elevator_hall_8017F55C(Task* task);
+void func_acropolis_patio_8017DF8C(Task* task);
+void func_acropolis_cafeteria_8017E424(Task* task);
+void func_acropolis_cafeteria_801827C4(Task* task);
+void func_acropolis_cafeteria_8018286C(Task* task);
+void func_acropolis_security_room_8017D984(Task* task);
+void func_acropolis_hallway_8017D7D0(Task* task);
+void func_acropolis_hallway_8017E120(Task* task);
+void func_acropolis_fountain_8017D9C4(Task* task);
+void func_acropolis_forked_road_8017D9CC(Task* task);
+void func_acropolis_observatory_8017D950(Task* task);
+void func_acropolis_promenade_8017DA4C(Task* task);
+void func_acropolis_sanctuary_8017D9E8(Task* task);
+void func_acropolis_sanctuary_80180264(Task* task);
+void func_acropolis_roof_garden_8017DC74(Task* task);
+void func_acropolis_roof_garden_80180160(Task* task);
+void func_acropolis_bridge_8017DA0C(Task* task);
+void func_acropolis_fire_escape_8017FF24(Task* task);
+void func_acropolis_helicopter_landing_pad_8017D964(Task* task);
+void func_acropolis_helicopter_landing_pad_8017EB00(Task* task);
+void func_acropolis_helicopter_landing_pad_801822B0(Task* task);
+void func_acropolis_west_elevator_hall_8017F5F4(Task* task);
+void func_mist_r18_8017ED64(Task* task);
+void func_mist_parking_80182898(Task* task);
+void func_mist_shooting_gallery_8018018C(Task* task);
+void func_mist_r21_8017D708(Task* task);
+
+/// Models the Akropolis map UI overlay's enemy descriptors attach.
+extern TmdSource D_acropolis_cafeteria_8018D230;
+extern TmdSource D_acropolis_cafeteria_8018D57C;
+extern TmdSource D_acropolis_security_room_80185584;
+extern TmdSource D_acropolis_hallway_8017F85C;
+extern TmdSource D_acropolis_sanctuary_80186A08;
+extern TmdSource D_acropolis_sanctuary_80186C68;
+extern TmdSource D_acropolis_roof_garden_80186E70;
+extern TmdSource D_acropolis_helicopter_landing_pad_801836EC;
+extern TmdSource D_acropolis_helicopter_landing_pad_80187F50;
+
 #endif /* ROOMS_ROOM_H */

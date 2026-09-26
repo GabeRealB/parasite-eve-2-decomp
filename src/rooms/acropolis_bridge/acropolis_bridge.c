@@ -320,7 +320,7 @@ static void func_acropolis_bridge_8017D9FC(Task* task)
 
 /// Three-state dispatcher of the room's own task: setup, an empty idle state,
 /// then `taskKill`. The table is copied onto the stack before the call.
-static void func_acropolis_bridge_8017DA0C(Task* task)
+void func_acropolis_bridge_8017DA0C(Task* task)
 {
     TaskFuncTable3 sp;
 

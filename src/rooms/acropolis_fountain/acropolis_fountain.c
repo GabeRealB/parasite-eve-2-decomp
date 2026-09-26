@@ -14,6 +14,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/acropolis_fountain.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern GpMsgEntry D_acropolis_fountain_8017E764[];
@@ -154,7 +155,7 @@ static void func_acropolis_fountain_8017D9BC(Task* task)
 
 /// Runs the room task's current state through a stack copy of its three-entry
 /// state table.
-static void func_acropolis_fountain_8017D9C4(Task* task)
+void func_acropolis_fountain_8017D9C4(Task* task)
 {
     TaskFuncTable3 sp;
 
