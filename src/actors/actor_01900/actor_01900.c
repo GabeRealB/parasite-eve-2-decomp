@@ -158,7 +158,7 @@ extern char    Actor01900_D10B68;
 extern s16     Actor01900_D172FC;
 extern void*   D_80114B78[1];
 
-static s32  Actor01900_Fn00E00(GpCoord* coord, GpRec18* rec, s32 arg2);
+static s32  Actor01900_Fn00E00(GpCoord* coord, GpRec18* rec, s16 arg2);
 static void Actor01900_Fn02A50(Task* arg0);
 static void Actor01900_Fn02664(Task* arg0, s16 yaw, s32 id);
 static s32  Actor01900_Fn016F0(Task* arg0);
@@ -500,27 +500,20 @@ static s32 Actor01900_Fn008B4(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR*
     return s->blocked != 0;
 }
 
-static s32 Actor01900_Fn00E00(GpCoord* coord, GpRec18* rec, s32 arg2)
+static s32 Actor01900_Fn00E00(GpCoord* coord, GpRec18* rec, s16 arg2)
 {
-    void**            scratch;
-    u8*               head;
     OverlayDeltaFlag* s;
-    register void*    p asm("v1");
     s32               val;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    p                              = head - 0x14;
-    s                              = p;
-    SCRATCH_HEAD_AT(scratch, void) = p;
-    s->moved                       = 0;
-    if (func_800E0C10(rec, &s->delta, (s16)arg2, NULL) != 0) {
-        coord->coord.t[0]   += ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
-        coord->coord.t[2]   += s->delta.vz.h.hi;
-        Actor01900_D1730C.vx = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+    s        = SCRATCH_PUSH(OverlayDeltaFlag);
+    s->moved = 0;
+    if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
+        coord->coord.t[0]   += s->delta.vx.w >> 16;
+        coord->coord.t[2]   += s->delta.vz.w >> 16;
+        Actor01900_D1730C.vx = s->delta.vx.w >> 16;
         Actor01900_D1730C.vy = s->delta.vy.w >> 16;
         Actor01900_D1730C.vz = s->delta.vz.w >> 16;
-        val                  = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w;
+        val                  = s->delta.vx.w;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;
@@ -544,7 +537,7 @@ static s32 Actor01900_Fn00E00(GpCoord* coord, GpRec18* rec, s32 arg2)
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_POP(OverlayDeltaFlag);
     return s->moved;
 }
 
