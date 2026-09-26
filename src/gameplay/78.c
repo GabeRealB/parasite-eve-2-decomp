@@ -118,31 +118,25 @@ static s32                   func_800A7E5C(s32 arg0);
 
 void Gp_AreaEnterTask(Task* arg0)
 {
-    u32             key;
-    GpEndWork*      work;
-    s32             i;
-    Task* volatile* p;
-    Task*           slot;
-    GameSession*    session;
-    GpSndParam*     pair;
-    McItemScan*     scan;
-    McSaveData*     save;
+    u32          key;
+    GpEndWork*   work;
+    s32          i;
+    Task*        slot;
+    GameSession* session;
+    GpSndParam*  pair;
+    McItemScan*  scan;
 
     if (arg0->state == 0) {
         work = arg0->spawnArg2;
         key  = GP_LOC_WORD(gGameSession->at4.loc);
         key &= GP_LOC_STAGE_AREA;
         Stage_InitPrimBufOnce();
-        i = 0;
-        p = Gp_ActorSlots;
-        do {
-            slot = *p;
+        for (i = 0; i < 2; i++) {
+            slot = Gp_ActorSlots[i];
             if (slot != NULL) {
                 ((GameActor*)slot->work)->field_90C = NULL;
             }
-            i++;
-            p++;
-        } while (i < 2);
+        }
         SndEvt_EnqueueType8(0xD);
         Gp_EnqueueSndCd((Gp_GetAttachLevel(7) + 0x15) & 0xFF);
         if (key == GP_LOC_KEY(1, 20, 0, 0)) {
@@ -154,16 +148,12 @@ void Gp_AreaEnterTask(Task* arg0)
                 work->field_0 = 0;
                 Gp_SetAreaFlag2(1, (GpAreaKey*)&gGameSession->at4.loc);
                 gGameSession->field_126 = 1;
-                if (key == GP_LOC_KEY(5, 11, 0, 0) || key == GP_LOC_KEY(5, 29, 0, 0)) {
-                    if (gGameSession->at4.loc.place - 1 < 3U) {
-                        goto skip_count;
+                if (!((key == GP_LOC_KEY(5, 11, 0, 0) || key == GP_LOC_KEY(5, 29, 0, 0)) &&
+                      gGameSession->at4.loc.place - 1 < 3U)) {
+                    if (Mc_SaveData[0].field_6CC < 0x270FU) {
+                        Mc_SaveData[0].field_6CC++;
                     }
                 }
-                save = &Mc_SaveData[0];
-                if (save->field_6CC < 0x270FU) {
-                    save->field_6CC++;
-                }
-            skip_count:
                 scan = &D_8010CA2C;
                 Gp_ClearScanItems(scan);
                 arg0->status = Gp_GrantLocationItems(scan);
@@ -174,14 +164,9 @@ void Gp_AreaEnterTask(Task* arg0)
                     }
                 }
             } else {
-                s32         hi;
-                McSaveData* save2;
-
-                asm("lui %0, %%hi(Mc_SaveData)" : "=r"(hi));
-                asm("addiu %0, %1, %%lo(Mc_SaveData)" : "=r"(save2) : "r"(hi));
                 arg0->status = 0;
-                if (save2->field_6CE < 0x270FU) {
-                    save2->field_6CE++;
+                if (Mc_SaveData[0].field_6CE < 0x270FU) {
+                    Mc_SaveData[0].field_6CE++;
                 }
             }
         }
