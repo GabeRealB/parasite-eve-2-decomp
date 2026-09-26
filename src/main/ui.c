@@ -1447,54 +1447,21 @@ void Ui_DrawHBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
 void Ui_DrawVBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     POLY_FT4* p;
-    s16       temp;
-    s32       y;
+    s32       x;
 
     if (arg1 < arg2) {
-        s32          xoff;
-        register s32 left asm("v1");
-        s32          base;
-
-        xoff  = arg3;
         p     = (POLY_FT4*)gGpuPrimCursor;
-        base  = arg0->field_20 + xoff;
-        left  = base - 3;
-        temp  = base + 5;
-        p->x2 = left;
-        p->x0 = left;
-        p->x3 = temp;
-        p->x1 = temp;
-        {
-            u16          f22;
-            register s32 next asm("v1");
-            register s32 ur asm("v1");
-            register s32 ul asm("a2");
-
-            f22            = arg0->field_22;
-            next           = (s32)(p + 1);
-            gGpuPrimCursor = (u8*)next;
-            ur             = 0x77;
-            ul             = 0x70;
-            temp           = f22 + arg1;
-            p->y1          = temp;
-            p->y0          = temp;
-            y              = arg0->field_22;
-            p->v0          = 0x50;
-            p->v1          = 0x50;
-            p->v2          = 0x57;
-            p->v3          = 0x57;
-            p->tpage       = 0x1E;
-            p->clut        = 0x3C03;
-            setlen(p, 9);
-            p->u1 = ur;
-            p->u3 = ur;
-            p->u0 = ul;
-            p->u2 = ul;
-            setcode(p, 0x2D);
-        }
-        y     = y + arg2;
-        p->y3 = y;
-        p->y2 = y;
+        x     = arg0->field_20 + arg3;
+        p->x0 = p->x2 = x - 3;
+        p->x1 = p->x3  = x + 5;
+        gGpuPrimCursor = (u8*)(p + 1);
+        p->y0 = p->y1 = arg0->field_22 + arg1;
+        p->y2 = p->y3 = arg0->field_22 + arg2;
+        setUV4(p, 0x70, 0x50, 0x77, 0x50, 0x70, 0x57, 0x77, 0x57);
+        p->tpage = 0x1E;
+        p->clut  = 0x3C03;
+        setPolyFT4(p);
+        setShadeTex(p, 1);
         addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 2, p);
     }
 }

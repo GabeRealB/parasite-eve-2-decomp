@@ -142494,3 +142494,21 @@ allocation, with no local at all.
 imitated a local set to `-2` at the top of the function and first used after
 many blocks: reload rematerialises its `REG_EQUIV` constant at the use instead
 of folding `-2 << 2`. Write `order = -2;` with the other initialisations.
+
+## Register-held `u` constants in a prim build mean `setUV4`, not separate stores
+
+A `POLY_FT4` whose two `u` constants sit in `$v1`/`$a2` (one `li` hoisted to the
+top of the block, the `u` stores trailing after `setlen`) while every other
+constant goes through `$v0` right before its store was held with register pins
+on `ur`/`ul` locals. No order of plain `p->u0 = p->u2 = 0x70;` statements
+reproduces it: each constant's pseudo is born next to its stores and dies at
+once, so local-alloc hands all of them `$v0`.
+
+`setUV4(p, 0x70, 0x50, 0x77, 0x50, 0x70, 0x57, 0x77, 0x57)` does. Its
+`u0, v0, u1, v1, …` interleaving nests the short `v` ranges inside the `u`
+ranges, so the `u` pseudos are allocated after the `$v0` users and get other
+registers, and sched2 is then free to hoist their `li`s and sink their stores.
+`setPolyFT4(p); setShadeTex(p, 1);` compiles to the single `sb 0x2D` the pins
+had spelled as `setcode(p, 0x2D)`. When a sibling in the same file builds its
+prims with these macros, write the new one the same way before reaching for
+anything else (`Ui_DrawVBar`).
