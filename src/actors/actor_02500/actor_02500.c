@@ -274,160 +274,100 @@ void Actor02500_Fn00078(GpEnemy* ctx, Task* actor)
 /// obstacle, and the strongest push is applied to the coordinate at the end.
 void Actor02500_Fn00494(Task* actor)
 {
-    s32                     one;
-    Task**                  slots;
-    u32                     lastId;
-    VECTOR*                 normal;
-    GpEnemy*                ctx;
-    GpRec18*                rec2C4;
-    Actor02500Work*         work;
-    Actor02500Work*         walk;
-    GpCoord*                coord;
-    Actor02500MoveScratch*  scratchEnd;
-    Actor02500MoveScratch*  frame;
-    VECTOR*                 frameNormal;
-    Actor02500MoveScratch*  frameAlias;
-    Actor02500MoveScratch*  frameBase;
-    Actor02500MoveScratch** scratchSp;
-    s16                     hitCooldown;
-    s16                     hp;
-    s32                     cooldown;
-    s32                     kind;
-    s32                     moveResult;
-    s32                     dx;
-    s32                     dy;
-    s32                     dz;
-    s32                     ax;
-    s32                     ay;
-    s32                     az;
-    s32                     param0;
-    s32                     push;
-    s32                     bestPush;
-    s32                     damage;
-    s32                     soundId;
-    s32                     pushClamped;
-    s32                     pan;
-    s32                     panOther;
-    s32                     panHit;
-    u32                     recId;
-    u32                     id;
-    u32                     recKind;
-    u32                     paramKind;
-    GpCoord*                targetCoord;
+    u32                    lastId;
+    Actor02500Work*        work;
+    GpEnemy*               ctx;
+    GpCoord*               coord;
+    GpCoord*               target;
+    Actor02500MoveScratch* head;
+    Actor02500MoveScratch* frame;
+    VECTOR*                normal;
+    s32                    i;
+    s32                    push;
+    s32                    bestPush;
+    s32                    damage;
+    s32                    param0;
+    s32                    cooldown;
+    s32                    soundId;
 
-    bestPush   = 0;
-    lastId     = 0;
-    work       = actor->work;
-    scratchSp  = (Actor02500MoveScratch**)SCRATCH_HEAD_ADDR;
-    scratchEnd = SCRATCH_HEAD_AT(scratchSp, Actor02500MoveScratch);
-    SOFT_TOUCH_REG2_USE(scratchEnd, scratchSp, work->field_22C);
-    SOFT_TOUCH_REG(scratchSp);
-    frameBase  = scratchEnd - 1;
-    frameAlias = frameBase;
-    SOFT_TOUCH_REG2(frameAlias, scratchSp);
-    frame = frameAlias;
-    ctx   = actor->spawnArg2;
-    coord = actor->extra.tmd->coords;
-    SOFT_TOUCH_REG2_USE(frame, scratchSp, coord);
-    SCRATCH_HEAD_AT(scratchSp, Actor02500MoveScratch) = frame;
-    work->field_340                                   = 0;
-    moveResult                                        = func_800E0C10(work->field_22C, &frame->delta, 5, 0);
-    one                                               = 1;
-    if (moveResult == one) {
-        goto move_delta;
+    bestPush = 0;
+    lastId   = 0;
+    work     = actor->work;
+    head     = SCRATCH_HEAD(Actor02500MoveScratch);
+    frame = SCRATCH_HEAD(Actor02500MoveScratch) = head - 1;
+    coord                                       = actor->extra.tmd->coords;
+    ctx                                         = actor->spawnArg2;
+    work->field_340                             = 0;
+    switch (func_800E0C10(work->field_22C, &frame->delta, 5, NULL)) {
+        case 0:
+            break;
+        case 1:
+            coord->coord.t[0] += head[-1].delta.vx.h.hi;
+            coord->coord.t[1] += frame->delta.vy.h.hi;
+            coord->coord.t[2] += frame->delta.vz.h.hi;
+            if (head[-1].delta.vx.w != 0 || frame->delta.vz.w != 0) {
+                work->field_340 = 1;
+            }
+            break;
+        case 2:
+            coord->coord.t[0] = work->field_304;
+            coord->coord.t[1] = work->field_308;
+            coord->coord.t[2] = work->field_30C;
+            if (head[-1].delta.vx.w != 0 || frame->delta.vz.w != 0) {
+                work->field_340 = 1;
+            }
+            break;
     }
-    if (moveResult < 2) {
-        goto move_done;
-    }
-    if (moveResult == 2) {
-        goto move_absolute;
-    }
-    goto move_done;
-move_delta:
-    coord->coord.t[0] += scratchEnd[-1].delta.vx.h.hi;
-    coord->coord.t[1] += frame->delta.vy.h.hi;
-    coord->coord.t[2] += frame->delta.vz.h.hi;
-    goto move_tail;
-move_absolute:
-    coord->coord.t[0] = work->field_304;
-    coord->coord.t[1] = work->field_308;
-    coord->coord.t[2] = work->field_30C;
-move_tail:
-    if (scratchEnd[-1].delta.vx.w != 0 || frame->delta.vz.w != 0) {
-        work->field_340 = one;
-    }
-move_done:
     Gp_ClearRec18Occupied(work->field_22C);
     if (work->field_334 != 0) {
-        hitCooldown     = (u16)work->field_334 - 1;
-        work->field_334 = hitCooldown;
-        if (hitCooldown <= 0) {
+        work->field_334--;
+        if (work->field_334 <= 0) {
             work->field_334 = 0;
         }
     }
-    frameNormal = &frame->normal;
-    normal      = frameNormal;
-    /* The contact walk steps a work pointer one table record at a time and
-       reads the record through it, keeping the record's offset in the
-       displacement as the ROM does. */
-    walk = work;
-    do {
-        SOFT_TOUCH_REG2(walk, frame);
-        recId   = walk->field_1C4[0].key;
-        recKind = recId >> 0x10;
-        switch (recKind) {
-            default:
-                break;
+    normal = &frame->normal;
+    for (i = 0; i < 3; i++) {
+        switch ((u32)work->field_1C4[i].key >> 16) {
             case 2:
                 if (work->field_334 == 0) {
-                    slots = Gp_ActorSlots;
-                    SOFT_TOUCH_REG_USE(slots, recId);
-                    targetCoord       = slots[(recId >> 7) & 1]->extra.tmd->coords;
-                    ax                = targetCoord->coord.t[0] - coord->coord.t[0];
-                    frame->delta.vx.w = ax;
-                    ay                = targetCoord->coord.t[1] - coord->coord.t[1];
-                    frame->delta.vy.w = ay;
-                    az                = targetCoord->coord.t[2] - coord->coord.t[2];
-                    frame->delta.vz.w = az;
-                    damage            = Gp_ComputeDamage(walk->field_1C4[0].key,
-                                                         SquareRoot0((frame->delta.vx.w * frame->delta.vx.w) + (frame->delta.vy.w * frame->delta.vy.w) +
-                                                                     (frame->delta.vz.w * frame->delta.vz.w)),
+                    target            = Gp_ActorSlots[((u32)work->field_1C4[i].key >> 7) & 1]->extra.tmd->coords;
+                    frame->delta.vx.w = target->coord.t[0] - coord->coord.t[0];
+                    frame->delta.vy.w = target->coord.t[1] - coord->coord.t[1];
+                    frame->delta.vz.w = target->coord.t[2] - coord->coord.t[2];
+                    damage            = Gp_ComputeDamage(work->field_1C4[i].key,
+                                                         SquareRoot0(frame->delta.vx.w * frame->delta.vx.w + frame->delta.vy.w * frame->delta.vy.w +
+                                                                     frame->delta.vz.w * frame->delta.vz.w),
                                                          0, 0);
-                    param0            = Gp_GetIdParam0(walk->field_1C4[0].key);
-                    kind              = param0 & 0xFFFF;
-                    if (kind == 5) {
+                    param0            = Gp_GetIdParam0(work->field_1C4[i].key);
+                    if ((param0 & 0xFFFF) == 5) {
                         damage *= 2;
                         Gp_SpawnEff(0x6009C, coord, 2, NULL);
                     }
-                    if (Gp_RollEnemyChance(ctx, walk->field_1C4[0].key, 0) != 0) {
+                    if (Gp_RollEnemyChance(ctx, work->field_1C4[i].key, 0) != 0) {
                         damage *= 4;
-                        if (kind != 5) {
+                        if ((param0 & 0xFFFF) != 5) {
                             Gp_SpawnEff(0x6009C, coord, 0, NULL);
                         }
                     }
-                    func_800E2C78(ctx, walk->field_1C4[0].key, damage, 0);
+                    func_800E2C78(ctx, work->field_1C4[i].key, damage, 0);
                     func_800DA6E8(&ctx->node, damage, 0);
-                    hp      = (u16)ctx->hp - damage;
-                    ctx->hp = hp;
-                    if ((hp << 0x10) <= 0) {
+                    ctx->hp -= damage;
+                    if (ctx->hp <= 0) {
                         work->field_322     = 6;
                         work->field_324     = 0;
                         work->obj2A4.flags &= 0x7FFF;
-                        soundId             = (((u16)((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x4019000A;
-                        pan                 = (s8)Gp_GetObjPan(coord);
-                        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(coord));
+                        soundId             = ((((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x4019000A;
+                        SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                     } else {
                         if (work->field_342 == 0) {
                             work->field_322 = 2;
                             work->field_324 = 0;
                         }
                         work->field_342 = 0;
-                        soundId         = (((u16)((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x40190009;
-                        panOther        = (s8)Gp_GetObjPan(coord);
-                        SndEvt_EnqueueType6(soundId, panOther, (s8)gpGetObjDepth(coord));
+                        soundId         = ((((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x40190009;
+                        SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                     }
-                    paramKind = param0 & 0xFFFF;
-                    switch (paramKind) {
+                    switch (param0 & 0xFFFF) {
                         case 0:
                         case 3:
                         case 5:
@@ -442,7 +382,7 @@ move_done:
                             work->obj2A4.flags &= 0x7FFF;
                             break;
                         case 2:
-                            Gp_SetObjFlag2(ctx, walk->field_1C4[0].key, 0);
+                            Gp_SetObjFlag2(ctx, work->field_1C4[i].key, 0);
                             work->obj2A4.flags &= 0x7FFF;
                             break;
                         case 4:
@@ -452,57 +392,60 @@ move_done:
                             }
                             break;
                     }
-                    id = walk->field_1C4[0].key;
-                    if (lastId != id) {
-                        lastId = id;
-                        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, 0, &work->field_2DC);
+                    if (lastId != work->field_1C4[i].key) {
+                        lastId = work->field_1C4[i].key;
+                        func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, coord, 0, &work->field_2DC);
                     }
-                    cooldown = Gp_GetIdParam2(walk->field_1C4[0].key);
+                    cooldown = Gp_GetIdParam2(work->field_1C4[i].key);
                     if (cooldown > 0) {
                         work->field_334 = cooldown;
                     }
                 }
-            case 0:
-            rec_done:
                 break;
+            case 0:
+                break;
+            /* Kinds 1 and 3 push the enemy back out of the obstacle the same way. */
             case 1:
-            case 3:
-                dx                = coord->workm.t[0] - walk->field_1C4[0].point.vx;
-                frame->delta.vx.w = dx;
-                dy                = coord->workm.t[1] - walk->field_1C4[0].point.vy;
-                frame->delta.vy.w = dy;
-                dz                = coord->workm.t[2] - walk->field_1C4[0].point.vz;
-                frame->delta.vz.w = dz;
-                push              = walk->field_1C4[0].depth -
-                       SquareRoot0((frame->delta.vx.w * frame->delta.vx.w) + (frame->delta.vy.w * frame->delta.vy.w) +
-                                   (frame->delta.vz.w * frame->delta.vz.w));
-                pushClamped = push;
-                if (push <= 0) {
-                    pushClamped = 0;
-                }
-                push = pushClamped;
+                frame->delta.vx.w = coord->workm.t[0] - work->field_1C4[i].point.vx;
+                frame->delta.vy.w = coord->workm.t[1] - work->field_1C4[i].point.vy;
+                frame->delta.vz.w = coord->workm.t[2] - work->field_1C4[i].point.vz;
+                push              = work->field_1C4[i].depth -
+                       SquareRoot0(frame->delta.vx.w * frame->delta.vx.w + frame->delta.vy.w * frame->delta.vy.w +
+                                   frame->delta.vz.w * frame->delta.vz.w);
+                push = (push <= 0) ? 0 : push;
                 if (bestPush < push) {
                     bestPush = push;
-                    VectorNormal((VECTOR*)frame, normal);
+                    VectorNormal((VECTOR*)&frame->delta, normal);
                     ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, normal, &frame->dir);
                 }
-                goto rec_done;
+                break;
+            case 3:
+                frame->delta.vx.w = coord->workm.t[0] - work->field_1C4[i].point.vx;
+                frame->delta.vy.w = coord->workm.t[1] - work->field_1C4[i].point.vy;
+                frame->delta.vz.w = coord->workm.t[2] - work->field_1C4[i].point.vz;
+                push              = work->field_1C4[i].depth -
+                       SquareRoot0(frame->delta.vx.w * frame->delta.vx.w + frame->delta.vy.w * frame->delta.vy.w +
+                                   frame->delta.vz.w * frame->delta.vz.w);
+                push = (push <= 0) ? 0 : push;
+                if (bestPush < push) {
+                    bestPush = push;
+                    VectorNormal((VECTOR*)&frame->delta, normal);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, normal, &frame->dir);
+                }
+                break;
         }
-        walk = (Actor02500Work*)((GpRec18*)walk + 1);
-    } while ((s32)walk < (s32)((GpRec18*)work + 3));
+    }
     if (bestPush > 0) {
         coord->coord.t[0] += (bestPush * frame->dir.vx) >> 0xC;
         coord->coord.t[2] += (bestPush * frame->dir.vz) >> 0xC;
     }
     Gp_ClearRec18Occupied(work->field_1C4);
-    rec2C4 = work->field_2C4;
-    if (Gp_FindRec18(rec2C4, 0) != 0) {
+    if (Gp_FindRec18(work->field_2C4, 0) != 0) {
         work->obj2A4.flags &= 0x7FFF;
-        soundId             = (((u16)((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x40190006;
-        panHit              = (s8)Gp_GetObjPan(coord);
-        SndEvt_EnqueueType6(soundId, panHit, (s8)gpGetObjDepth(coord));
+        soundId             = ((((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x40190006;
+        SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
     }
-    Gp_ClearRec18Occupied(rec2C4);
+    Gp_ClearRec18Occupied(work->field_2C4);
     if (Gp_CountRec18Hi(work->field_18C, 0x10000) != 0 && work->field_322 == 0) {
         work->field_322 = 1;
         work->field_324 = 0;
