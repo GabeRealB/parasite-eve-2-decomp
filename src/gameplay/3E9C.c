@@ -3136,10 +3136,6 @@ void Gp_EffAttachTask37(Task* arg0)
     s16        flag;
     s16        trans;
     s32        temp;
-    u16        tx;
-    u16        ty;
-    u16        tz;
-    s32        dz;
 
     extra  = arg0->extra.tmd;
     mem    = arg0->spawnArg2;
@@ -3189,7 +3185,7 @@ void Gp_EffAttachTask37(Task* arg0)
             rot = &mem->pos;
             Gfx_RotMatrixXYZ(mtx, rot, 0);
             MatrixNormal(mtx, mtx);
-            gte_lddp(*(u16*)&mem->scale);
+            gte_lddp(mem->scale);
             gte_ldsv(&mem->move);
             gte_gpf12();
             gte_stsv(&delta);
@@ -3201,45 +3197,23 @@ void Gp_EffAttachTask37(Task* arg0)
             gte_ldv0(&delta);
             gte_rtv0();
             gte_stsv(&dir);
-            tx           = (u16)coord->workm.t[0];
-            pos.vx       = tx;
-            ty           = (u16)coord->workm.t[1];
-            pos.vy       = ty;
-            tz           = (u16)coord->workm.t[2];
-            (u16) dir.vx = (u16)dir.vx + tx;
-            (u16) dir.vy = (u16)dir.vy + ty;
-            pos.vz       = tz;
-            (u16) dir.vz = (u16)dir.vz + tz;
+            pos.vx  = coord->workm.t[0];
+            pos.vy  = coord->workm.t[1];
+            pos.vz  = coord->workm.t[2];
+            dir.vx += pos.vx;
+            dir.vy += pos.vy;
+            dir.vz += pos.vz;
             if (func_800DE7CC(&dir, &pos, &dir, &pos) == state) {
-                SVECTOR*          vel;
-                register SVECTOR* r0 asm("a0");
-                vel = &mem->move;
-                r0  = vel;
-                USE_REG(r0);
                 coord->coord.t[0] -= delta.vx;
                 coord->coord.t[1] -= delta.vy;
                 coord->coord.t[2] -= delta.vz;
-                {
-                    u16          t10;
-                    u16          t11;
-                    register s32 t12 asm("a1");
-                    s32          sum;
-                    t10 = *(volatile u16*)&pos.vx;
-                    t11 = *(volatile u16*)&mem->move;
-                    t12 = *(volatile u16*)&mem->move.vy;
-                    sum = ((s32)(t10 << 16) >> 17) + ((s32)(t11 << 16) >> 17);
-                    USE_REG(t12);
-                    mem->move.vx = sum;
-                    t12        <<= 16;
-                    t12        >>= 17;
-                    mem->move.vy = (u16)pos.vy + t12;
-                }
-                dz           = (s32)((u16)mem->move.vz << 16) >> 17;
-                mem->move.vz = ((s32)((u16)pos.vz << 16) >> 17) + dz;
-                VectorNormalSS(vel, vel);
-                mem->scale = (s32)((u16)mem->scale << 16) >> 17;
+                mem->move.vx       = (pos.vx >> 1) + (mem->move.vx >> 1);
+                mem->move.vy       = pos.vy + (mem->move.vy >> 1);
+                mem->move.vz       = (pos.vz >> 1) + (mem->move.vz >> 1);
+                VectorNormalSS(&mem->move, &mem->move);
+                mem->scale >>= 1;
                 gte_lddp(mem->scale);
-                gte_ldsv(vel);
+                gte_ldsv(&mem->move);
                 gte_gpf12();
                 gte_stsv(&delta);
                 coord->coord.t[0] += delta.vx;
