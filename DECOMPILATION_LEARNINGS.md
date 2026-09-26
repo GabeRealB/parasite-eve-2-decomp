@@ -141599,3 +141599,19 @@ return angle;`. The helper's `angle` is then the pseudo both arms set, and
 the return copies it into `yaw` at the join. The helper's return type must
 also be the caller's width (`s32`); an `s16` return adds a `sll`/`sra` at the
 join that the target does not have.
+
+## Constant compares pinned to `$v0` inside a code-stream walk: each arm advanced the cursor itself
+
+`func_actor_215100_8014C06C` (the caption line-width walk, twin of gameplay's
+`Gp_CapCenterX`) reloads `li $v0,-2` / `li $v0,-3` in every iteration. The
+seed kept them there with `register ... asm("v0")` pins. Written as a plain `while` with one shared
+`code = arg0[++i];` after the `if` chain, the loop has 54 RTL insns and
+`move_movables` hoists both constants into `$t3/$t4` (84.7%). The original
+put the advance in *every* arm (`-2`, `-3`, `0x8400`, glyph, other). loop.c
+counts all five copies and marks the constants `not desirable`, and jump2 then
+cross-jumps four of them back into one block. The glyph arm's copy survives
+because its `lbu` of the width is scheduled into it. That gave 100% with no pins. It also needed
+`s16 code` (no casts), and `lineW += table[code & 0x3FF].w - 1` rather than a
+`&table[...]` pointer local, which swapped the `addu` operands. If the target
+shows one surviving duplicate of a loop tail next to constants that stay
+unhoisted, write the tail into each arm.
