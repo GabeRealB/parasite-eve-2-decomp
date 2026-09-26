@@ -1816,54 +1816,31 @@ void Gp_SetSprtShadeBits(s32 arg0)
     }
 }
 
-typedef struct {
-    s16  w;
-    s16  h;
-    s16  x0;
-    s16  y0;
-    u16  otz;
-    u8   u0;
-    u8   v0;
-    u8   r0;
-    u8   g0;
-    u8   b0;
-    u8   flags;
-    byte pad[4];
-} GpSprtElemFromW;
-STATIC_ASSERT_SIZEOF(GpSprtElemFromW, 0x14);
-
 void Gp_AllocSprtLists(void)
 {
-    GpAreaKey*    sess;
-    s32           view;
-    u32           count;
-    register s32  i asm("s3");
-    GpSprtTbl*    tbl;
-    GpSprtRec*    recs;
-    GpSprtCmd*    rec;
-    GpSprtElem*   elems;
-    GpSprtElem*   elem;
-    s32           bufIdx;
-    GpTpageSprt*  buf[2];
-    GpTpageSprt** pbuf;
-    GpTpageSprt** p;
-    GpTpageSprt** cursor;
-    GpTpageSprt*  dest;
-    SPRT*         sprt;
-    u32           tpage;
+    GpAreaKey*   sess;
+    u8           view;
+    u32          count;
+    s32          i;
+    GpSprtRec*   recs;
+    GpSprtCmd*   rec;
+    GpSprtElem*  elems;
+    GpSprtElem*  elem;
+    s32          bufIdx;
+    GpTpageSprt* buf[2];
+    GpTpageSprt* dest;
+    SPRT*        sprt;
+    u32          tpage;
 
     sess  = &gGameSession->at4.loc;
     count = 0;
     view  = Gp_GetViewIndex();
-    tbl   = Gp_SprtTables[sess->stage - 1];
-    recs  = tbl->field_0[sess->area - 1];
-    rec   = recs[(u8)view - 1].field_4;
-    elems = recs[(u8)view - 1].field_0;
-    if (rec->field_0 != 0xFFFF) {
-        do {
-            count += rec->field_2;
-            rec++;
-        } while (rec->field_0 != 0xFFFF);
+    recs  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    rec   = recs[view - 1].field_4;
+    elems = recs[view - 1].field_0;
+    while (rec->field_0 != 0xFFFF) {
+        count += rec->field_2;
+        rec++;
     }
     count *= 0x38;
     if (count == 0) {
@@ -1879,50 +1856,31 @@ void Gp_AllocSprtLists(void)
     Gp_SprtLists[1] = (GpSprtPrim*)count;
     buf[0]          = (GpTpageSprt*)Gp_SprtLists[0];
     buf[1]          = (GpTpageSprt*)count;
-    rec             = recs[(u8)view - 1].field_4;
-    if (rec->field_0 != 0xFFFF) {
-        pbuf = buf;
-        do {
-            if (rec->field_5 == 0) {
-                bufIdx = 0;
-                p      = pbuf;
-                do {
-                    i    = 0;
-                    elem = elems + rec->field_0;
-                    if (rec->field_2 != 0) {
-                        register GpSprtElemFromW* mid asm("s1");
-
-                        cursor = p;
-                        TOUCH_REG(cursor);
-                        mid = (GpSprtElemFromW*)&elem->w;
-                        do {
-                            dest                     = *cursor;
-                            sprt                     = &dest->sprt;
-                            PRIM_COLOR_WORD(sprt, 0) = PRIM_RGBC(0, 0x80, 0, 0);
-                            setlen(&dest->tpage, 1);
-                            tpage = elem->tpage;
-                            setlen(&dest->sprt, 4);
-                            setcode(&dest->sprt, 0x65);
-                            dest->tpage.code[0] = 0xE1000000 | (tpage & 0x9FF);
-                            MargePrim(dest, sprt);
-                            sprt->code           |= mid->flags;
-                            *(u16*)&sprt->u0      = *(u16*)&mid->u0;
-                            sprt->clut            = ((u16*)&mid->w)[-1];
-                            PRIM_XY_WORD(sprt, 0) = PRIM_XY_WORD(mid, 0);
-                            TOUCH_REG(i);
-                            i++;
-                            *(u32*)&sprt->w = *(u32*)&mid->w;
-                            elem++;
-                            (*cursor)++;
-                            mid++;
-                        } while (i < rec->field_2);
-                    }
-                    bufIdx++;
-                    p++;
-                } while (bufIdx < 2);
+    for (rec = recs[view - 1].field_4; rec->field_0 != 0xFFFF; rec++) {
+        if (rec->field_5 != 0) {
+            continue;
+        }
+        for (bufIdx = 0; bufIdx < 2; bufIdx++) {
+            elem = elems + rec->field_0;
+            for (i = 0; i < rec->field_2; i++) {
+                dest                     = buf[bufIdx];
+                sprt                     = &dest->sprt;
+                PRIM_COLOR_WORD(sprt, 0) = PRIM_RGBC(0, 0x80, 0, 0);
+                setlen(&dest->tpage, 1);
+                tpage = elem->tpage;
+                setlen(&dest->sprt, 4);
+                setcode(&dest->sprt, 0x65);
+                dest->tpage.code[0] = 0xE1000000 | (tpage & 0x9FF);
+                MargePrim(dest, sprt);
+                sprt->code           |= elem->flags;
+                *(u16*)&sprt->u0      = *(u16*)&elem->u0;
+                sprt->clut            = elem->clut;
+                PRIM_XY_WORD(sprt, 0) = PRIM_XY_WORD(elem, 0);
+                *(u32*)&sprt->w       = *(u32*)&elem->w;
+                elem++;
+                buf[bufIdx]++;
             }
-            rec++;
-        } while (rec->field_0 != 0xFFFF);
+        }
     }
 }
 
