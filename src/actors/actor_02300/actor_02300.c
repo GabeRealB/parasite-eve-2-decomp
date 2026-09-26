@@ -1070,23 +1070,19 @@ static void Actor02300_Fn01A20(GpEnemy* arg0, Task* arg1)
             break;
     }
     animWork = arg1->work;
-    i        = 1;
     if (animWork->field_694 != animWork->field_696) {
         animWork->field_696 = (s16)(u16)animWork->field_694;
         animWork->field_698 = 0U;
         duration            = Actor02300_D03F44[animWork->field_694];
-        do {
-            func_800B4114(&animWork->rig.anim, i, animWork->field_694, 0, (s32)duration);
-            i += 1;
-        } while (i < 0x13);
+        for (i = 1; i < 0x13; i++) {
+            func_800B4114(&animWork->rig.anim, i, animWork->field_694, 0, duration);
+        }
         coord->flg = 0;
     } else {
-        TOUCH_REG(i);
-        animWork->field_698 = (u16)(animWork->field_698 + i);
-        do {
+        animWork->field_698++;
+        for (i = 1; i < 0x13; i++) {
             Gp_AnimTickIndex(&animWork->rig.anim, i);
-            i += 1;
-        } while (i < 0x13);
+        }
         coord->flg = 0;
     }
     arg1->extra.tmd->coords[3].flg = 0;
