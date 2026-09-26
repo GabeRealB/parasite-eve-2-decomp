@@ -1728,40 +1728,31 @@ static void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* ar
 
 static void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2)
 {
-    register void**           scratch asm("v1");
-    register GpAnimScratch80* tmp asm("v0");
-    s32                       blend;
-    GpPackedSvec*             p;
-    GpPackedSvec*             dest;
-    GpAnimScratch80*          s;
-    s32                       inv;
+    GpAnimScratch80* s;
+    GpPackedSvec*    p;
+    GpPackedSvec*    dest;
+    s32              blend;
 
     if (arg2->timeSpan != 0) {
-        scratch                                   = SCRATCH_HEAD_ADDR;
-        tmp                                       = SCRATCH_HEAD_AT(scratch, GpAnimScratch80);
-        tmp                                      -= 1;
-        SCRATCH_HEAD_AT(scratch, GpAnimScratch80) = tmp;
+        s = SCRATCH_PUSH(GpAnimScratch80);
         if (arg0->field_0 != arg0->field_4) {
-            s        = tmp;
-            blend    = arg2->timeLeft << 12;
-            s->blend = blend;
-            blend    = blend / (s32)arg2->timeSpan;
-            inv      = 0x1000 - blend;
-            s->blend = blend;
+            blend       = arg2->timeLeft << 12;
+            s->blend    = blend;
+            blend       = blend / arg2->timeSpan;
+            s->blend    = blend;
+            s->invBlend = 0x1000 - blend;
         } else {
-            s        = tmp;
-            inv      = 0x1000;
-            s->blend = 0;
+            s->blend    = 0;
+            s->invBlend = 0x1000;
         }
-        s->invBlend = inv;
-        p           = arg0->field_0;
-        s->vec0.vx  = p->rx << 3;
-        s->vec0.vy  = p->ry << 3;
-        s->vec0.vz  = p->rz << 3;
-        p           = arg0->field_4;
-        s->vec1.vx  = p->rx << 3;
-        s->vec1.vy  = p->ry << 3;
-        s->vec1.vz  = p->rz << 3;
+        p          = arg0->field_0;
+        s->vec0.vx = p->rx << 3;
+        s->vec0.vy = p->ry << 3;
+        s->vec0.vz = p->rz << 3;
+        p          = arg0->field_4;
+        s->vec1.vx = p->rx << 3;
+        s->vec1.vy = p->ry << 3;
+        s->vec1.vz = p->rz << 3;
         Gp_BlendAnimRot(arg0, arg1, arg2, s);
         dest = arg0->field_8;
         if (dest != NULL) {
@@ -1769,7 +1760,7 @@ static void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* 
             dest->ry = s->vec1.vy >> 3;
             dest->rz = s->vec1.vz >> 3;
         }
-        SCRATCH_POP_BYTES(0x80);
+        SCRATCH_POP(GpAnimScratch80);
     }
 }
 
