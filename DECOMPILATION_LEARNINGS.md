@@ -144505,3 +144505,17 @@ if (rot != 0) {
 
 The `sll 16; sra 16` on the call argument is the tell that the stepped value
 was an `s16` local in the first place.
+## One object body under two case labels can be two source bodies, and allocation counts both (Actor03800_Fn00A98, 2026-09-27)
+
+A contact walk dispatched `case 1` and `case 3` to one physical-contact body, so
+`case 1: case 3:` looked like the source. It was not: a hoisted `&frame->normal`
+lost `$fp` to the loop's hoisted constant 1 (5 refs against 9). Writing the body
+out under each label, as sibling actors do, doubles every in-loop mention before
+allocation, and jump2's cross-jumping folds the copies back into one after reload,
+so the object is unchanged while the ranking moves. The last tie (push against
+`normal`, 1052 against 1062) was a file-local macro: wrapping only the
+keep-the-deepest update (`if (best < depth) { best = depth; VectorNormal …; }`)
+in `do { } while (0)` lifts its references to loop depth 3. Wrapping the whole
+body over-weighted the record pointer instead. When a pin only reorders
+callee-saved registers inside a loop, try duplicating a shared case body before
+anything else.
