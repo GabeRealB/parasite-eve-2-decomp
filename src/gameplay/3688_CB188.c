@@ -104,8 +104,6 @@ extern char           Gp_StrAreaEffect[];
 extern char           Gp_StrCastCost[];
 extern const char     D_8009720C[]; // "EXP"
 extern const char     D_80097220[]; // "MP"
-extern const char     Gp_StrCost[];
-extern const char     Gp_StrBonus[];
 extern char           Gp_StrAtpLoss[];
 extern u8*            Gp_NoticeTexts[];
 extern u8*            Gp_PromptTexts;
@@ -192,21 +190,6 @@ extern const char     Gp_StrSelectAmmo[];
 extern const char     Gp_StrSelectArmor[];
 extern const char     Gp_StrReload[];
 extern const char     Gp_StrAttach[];
-extern const char     Gp_StrStatus[];
-extern const char     Gp_StrInvoke[];
-extern const char     Gp_StrPeList[];
-extern const u8       D_800971A4;
-extern const char     Gp_StrTotal2[];
-extern const char     Gp_StrMessage[];
-extern const char     Gp_StrWarning[];
-extern const char     Gp_StrHelp[];
-extern const char     Gp_StrUse2[];
-extern const char     Gp_StrKeyItem2[];
-extern const char     Gp_StrMap[];
-extern const char     Gp_StrAttention2[];
-extern const char     Gp_StrNotice3[];
-extern const char     Gp_StrNextLevel[];
-extern const char     Gp_StrSpecs2[];
 extern UiObject*      D_80067634;
 extern void           (*D_8010D3A0[])(UiObject*, Task*);
 
@@ -285,6 +268,26 @@ s32        Gp_KillPlayerEffs(void);
 s32        Gp_SpawnWeaponEff(void);
 void       func_8010870C(void* arg0, s32 arg1);
 void       Gp_PlayerWeaponId(s32* arg0);
+
+extern const char Gp_StrStatus[];
+extern const char Gp_StrInvoke[];
+extern const char Gp_StrPeList[];
+extern const u8   D_800971A4;
+extern const char Gp_StrTotal2[];
+extern const char Gp_StrMessage[];
+extern const char Gp_StrWarning[];
+extern const char Gp_StrHelp[];
+extern const char Gp_StrUse2[];
+extern const char Gp_StrKeyItem2[];
+extern const char Gp_StrMap[];
+extern const char Gp_StrAttention2[];
+extern const char Gp_StrNotice3[];
+extern const char Gp_StrNextLevel[];
+extern const char D_8009720C[];
+extern const char Gp_StrCost[];
+extern const char Gp_StrBonus[];
+extern const char D_80097220[];
+extern const char Gp_StrSpecs2[];
 
 void Gp_ItemCmdMenuTask(Task* arg0)
 {
@@ -5172,3 +5175,45 @@ void func_800D5A48(Task* arg0)
     }
     func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags);
 }
+
+const char             Gp_StrStatus[]  = "Status";
+const GpUseCreateTable D_80097184      = { {
+    { 0x8F, 0x00 },
+    { 0x93, 0x0A },
+    { 0x94, 0x0A },
+    { 0x98, 0x42 },
+    { 0x9A, 0x45 },
+    { 0x99, 0x46 },
+    { 0x9B, 0x43 },
+    { 0x9C, 0x44 },
+} };
+const char             Gp_StrInvoke[]  = "Invoke";
+const char             Gp_StrPeList[]  = "PE LIST";
+const u8               D_800971A4      = 0;
+const char             Gp_StrTotal2[]  = "TOTAL";
+const char             Gp_StrMessage[] = "Message";
+const char             Gp_StrWarning[] = "Warning";
+
+const TaskFuncTable4 Gp_MapTaskStates = { {
+    Gp_MapPanelInit,
+    Gp_MapFirstDrawTask,
+    Gp_MapTaskState2,
+    Gp_MapDrawTask,
+} };
+
+/// "Help". The three bytes after the terminator are not zero: the original
+/// toolchain left them in the alignment gap.
+const char Gp_StrHelp[8]      = "Help\0a~\xC6";
+const char Gp_StrUse2[]       = "Use";
+const char Gp_StrKeyItem2[]   = "Key Item";
+const char Gp_StrMap[]        = "Map";
+const char Gp_StrAttention2[] = "Attention";
+const char Gp_StrNotice3[]    = "Notice";
+const char Gp_StrNextLevel[]  = "Next Level";
+const char D_8009720C[]       = "EXP";
+const char Gp_StrCost[]       = "COST";
+const char Gp_StrBonus[]      = "BONUS";
+const char D_80097220[]       = "MP";
+/// "Specifications". The byte after the terminator is not zero: the original
+/// toolchain left it in the alignment gap.
+const char Gp_StrSpecs2[16] = "Specifications\0\"";
