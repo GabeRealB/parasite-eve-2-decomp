@@ -4297,34 +4297,22 @@ static void Gp_AimPitchDirect(Task* arg0)
 
 static void func_801030CC(Task* arg0)
 {
-    u8*                  head;
-    s32                  temp;
-    RECT*                rect;
-    GameActor*           actor;
-    register GpImgRec*** table asm("a0");
-    GpImgRec*            img;
-    register s32         idx asm("v0");
+    RECT*      rect;
+    GameActor* actor;
+    GpImgRec*  img;
 
-    head               = SCRATCH_HEAD(u8);
-    actor              = arg0->work;
-    temp               = (s32)(head - 8);
-    SCRATCH_HEAD(void) = (void*)temp;
-    rect               = (RECT*)temp;
+    actor = arg0->work;
+    rect  = SCRATCH_PUSH(RECT);
 
     if ((s8)actor->field_987 != 0) {
         actor->field_988--;
         if ((s8)actor->field_988 <= 0) {
-            table = D_80112E74;
-            idx   = (s8)actor->field_987;
-            temp  = Player_Status.field_26;
-            idx   = idx * 4 - 5;
-            idx   = idx + temp;
-            img   = table[idx][(s8)actor->field_989];
+            img = D_80112E74[(s8)actor->field_987 * 4 + (Player_Status.field_26 - 5)][(s8)actor->field_989];
             if (img != NULL) {
-                ((RECT*)head)[-1].x = 0;
-                rect->y             = 0x4E;
-                rect->w             = 0x19;
-                rect->h             = 0x10;
+                rect->x = 0;
+                rect->y = 0x4E;
+                rect->w = 0x19;
+                rect->h = 0x10;
                 Gp_LoadActorImage(arg0, img, rect);
                 actor->field_988 = 4;
                 actor->field_989++;
@@ -4337,12 +4325,7 @@ static void func_801030CC(Task* arg0)
     if ((s8)actor->field_98A != 0) {
         actor->field_98B--;
         if ((s8)actor->field_98B <= 0) {
-            table = D_80112EB4;
-            idx   = (s8)actor->field_98A;
-            temp  = Player_Status.field_26;
-            idx   = idx * 4 - 5;
-            idx   = idx + temp;
-            img   = table[idx][(s8)actor->field_98C];
+            img = D_80112EB4[(s8)actor->field_98A * 4 + (Player_Status.field_26 - 5)][(s8)actor->field_98C];
             if (img != NULL) {
                 rect->x = 0xC;
                 rect->y = 0x68;
@@ -4357,7 +4340,7 @@ static void func_801030CC(Task* arg0)
         }
     }
 
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_POP(RECT);
 }
 
 inline static Task* spawn_tmd_attach(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
