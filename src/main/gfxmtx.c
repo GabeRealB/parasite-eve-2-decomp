@@ -267,28 +267,14 @@ void Gfx_MatrixToEuler(MATRIX* arg0, SVECTOR* arg1)
     block->cos_val = rcos(arg1->vx);
 
     block->mat.m[0][0] = ONE;
-    {
-        register u16     cos_u asm("v0");
-        u16              sin_u;
-        register s16     neg_s asm("v0");
-        u16              cos2;
-        volatile MATRIX* vmat;
-
-        cos_u         = block->cos_val;
-        sin_u         = block->sin_val;
-        vmat          = &block->mat;
-        vmat->m[0][1] = 0;
-        vmat->m[0][2] = 0;
-        vmat->m[1][0] = 0;
-        vmat->m[2][0] = 0;
-        vmat->m[1][1] = cos_u;
-        neg_s         = sin_u;
-        TOUCH_REG_USE(neg_s, sin_u);
-        vmat->m[1][2] = sin_u;
-        cos2          = block->cos_val;
-        vmat->m[2][1] = -neg_s;
-        vmat->m[2][2] = cos2;
-    }
+    block->mat.m[0][1] = 0;
+    block->mat.m[0][2] = 0;
+    block->mat.m[1][0] = 0;
+    block->mat.m[1][1] = block->cos_val;
+    block->mat.m[1][2] = block->sin_val;
+    block->mat.m[2][0] = 0;
+    block->mat.m[2][1] = -block->sin_val;
+    block->mat.m[2][2] = block->cos_val;
 
     gte_MulMatrix0(&block->mat, arg0, &block->mat);
 
