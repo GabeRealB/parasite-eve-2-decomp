@@ -142992,3 +142992,18 @@ last source store of a shared value is scheduled last among its peers, so the
 ROM's `g0, b0, r0` order needs those three written in that order - `setRGB0`,
 which writes `r0` first, leaves a two-line difference that the scratch score
 reports as 100%.
+
+## An inlined packed-flag read: `p = &base[i].bits[id >> 4]` in one expression, not `p = …bits; p += id >> 4` (Gp_SpawnPlaceById, 2026-09-26)
+
+**Symptom.** A loop body inlines a 2-bit flag read that another file keeps as
+a function. The target loads the bits pointer into `$v0` and computes
+`id >> 4` in the load's delay slot; the seed held that with the pointer pinned
+to `$v0` and the bank base pinned to `$t1`.
+
+**Fix.** A `static inline` helper whose pointer is one address expression,
+`p = &Gp_Bit2Banks[stage].field_4[arg0 >> 4];`, followed by
+`word = *p; word &= 3 << shift; word >>= shift;` as separate statements.
+Splitting the pointer (`p = …field_4; p += arg0 >> 4;`) scheduled the shift
+after the load (94%), and folding the mask and shift into one `return`
+expression changed allocation (91%). The helper also restored the bank base's
+loop-hoisted copy (`move t1,a1`) that the `$t1` pin had imitated.

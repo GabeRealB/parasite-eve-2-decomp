@@ -3598,94 +3598,86 @@ void func_800B65B0(Task* task)
     }
 }
 
+/// The 2-bit state of entry `arg0` in the current stage's `Gp_Bit2Banks` flags.
+static inline s32 _gpGetCurBit2Flag(s32 arg0)
+{
+    u32* p;
+    u32  word;
+    s32  shift;
+
+    p      = &Gp_Bit2Banks[gGameSession->at4.loc.stage].field_4[arg0 >> 4];
+    shift  = (arg0 & 0xF) * 2;
+    word   = *p;
+    word  &= 3 << shift;
+    word >>= shift;
+    return word;
+}
+
+/// Finds the record in the 0xFFFF-terminated `desc` table whose id is
+/// `place->field_2` and spawns that enemy at `place`.
+static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpEnemyPlace* place)
+{
+    GpEnemy*   enemy;
+    Task*      task;
+    TmdObject* extra;
+    GpCoord*   coord;
+    u16        id;
+
+    id = desc->field_0;
+    while (id != 0xFFFF) {
+        if (id == place->field_2) {
+            enemy = Gp_SpawnEnemyFromTable(&desc->field_4, 0, desc->field_0, NULL);
+            if (enemy != NULL) {
+                task = enemy->task;
+                if (task->spawnType != 0) {
+                    extra               = task->extra.tmd;
+                    coord               = extra->coords;
+                    enemy->placeKey     = place->field_0 | (place->field_4 << 8);
+                    enemy->workType     = place->field_2;
+                    coord->coord.t[0]   = place->field_8;
+                    coord->coord.t[1]   = place->field_A;
+                    coord->coord.t[2]   = place->field_C;
+                    coord->param.rot.vy = place->field_E;
+                    if (coord->param.rot.vy != 0) {
+                        Gfx_RotMatrixY(&coord->coord, (s16)place->field_E, 1);
+                    }
+                    coord->flg = 0;
+                }
+            }
+            return;
+        }
+        desc++;
+        id = desc->field_0;
+    }
+}
+
 void Gp_SpawnPlaceById(u16 arg0)
 {
-    GpAreaKey*           sess;
-    GpBit2Bank*          tmp;
-    register GpBit2Bank* banks asm("t1");
-    GpBit2List*          lists;
-    GpEnemyPlace*        place;
-    GpEnemyDesc*         desc;
-    GpEnemy*             enemy;
-    Task*                task;
-    TmdObject*           extra;
-    GpCoord*             coord;
-    u16                  term;
-    s32                  id;
-    u16                  recId;
-    u8                   idx8;
+    GpAreaKey*    sess;
+    GpBit2List*   lists;
+    GpEnemyPlace* place;
+    u16           id;
 
-    sess  = (GpAreaKey*)&Mc_SaveData.at4.loc.view;
-    tmp   = Gp_Bit2Banks;
-    idx8  = sess->stage;
-    lists = tmp[idx8].field_0;
+    sess  = &Mc_SaveData.at4.loc;
+    lists = Gp_Bit2Banks[sess->stage].field_0;
     if (lists == NULL) {
         return;
     }
     place = (GpEnemyPlace*)lists[sess->area].field_0;
-    TOUCH_REG(banks);
     if (place == NULL) {
         return;
     }
-    term = 0xFFFF;
-    id   = place->field_0;
-    if (id == term) {
-        return;
-    }
-    banks = tmp;
-    do {
-        if ((u16)id == (u16)arg0) {
-            s32           temp;
-            register u32* flags asm("v0");
-            s32           idx;
-            s32           shift;
-            u32           word;
-
-            temp   = (u16)id;
-            flags  = banks[gGameSession->at4.loc.stage].field_4;
-            idx    = temp >> 4;
-            flags += idx;
-            shift  = (temp & 0xF) * 2;
-            word   = *flags;
-            word  &= 3 << shift;
-            word >>= shift;
-            if (word == 0) {
-                return;
-            }
-            desc  = lists[sess->area].field_4;
-            recId = desc->field_0;
-            if (recId != term) {
-                do {
-                    if (recId == place->field_2) {
-                        enemy = Gp_SpawnEnemyFromTable(&desc->field_4, 0, desc->field_0, NULL);
-                        if (enemy != NULL) {
-                            task = enemy->task;
-                            if (task->spawnType != 0) {
-                                extra               = task->extra.tmd;
-                                coord               = extra->coords;
-                                enemy->placeKey     = place->field_0 | (place->field_4 << 8);
-                                enemy->workType     = place->field_2;
-                                coord->coord.t[0]   = place->field_8;
-                                coord->coord.t[1]   = place->field_A;
-                                coord->coord.t[2]   = place->field_C;
-                                coord->param.rot.vy = place->field_E;
-                                if (coord->param.rot.vy != 0) {
-                                    Gfx_RotMatrixY(&coord->coord, (s16)place->field_E, 1);
-                                }
-                                coord->flg = 0;
-                            }
-                        }
-                        return;
-                    }
-                    desc++;
-                    recId = desc->field_0;
-                } while (recId != term);
+    id = place->field_0;
+    while (id != 0xFFFF) {
+        if (id == arg0) {
+            if (_gpGetCurBit2Flag(id) != 0) {
+                _gpSpawnPlace(lists[sess->area].field_4, place);
             }
             return;
         }
         place++;
         id = place->field_0;
-    } while (id != term);
+    }
 }
 
 void Gp_SpawnPlaces(GpAreaKey* arg0)
