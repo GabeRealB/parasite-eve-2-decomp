@@ -67,40 +67,23 @@ void Gp_DrawEffSprite81(Task* arg0)
 
 void Gp_DrawEffSprite46(GpCoord* arg0, s32 arg1, s16 arg2, u16 arg3)
 {
-    GpCoord*          coord;
-    register void**   scratch asm("a0");
-    GpQuadScratch*    block;
-    register SVECTOR* v asm("t0");
-    register s32      i asm("t3");
-    GpQuadCorner*     tbl;
-    register u8*      head asm("v0");
-    MATRIX*           wm;
-    POLY_FT4*         prim;
+    GpQuadScratch* block;
+    s32            i;
+    POLY_FT4*      prim;
 
-    coord                                   = arg0;
-    scratch                                 = SCRATCH_HEAD_ADDR;
-    i                                       = 0;
-    wm                                      = &coord->workm;
-    tbl                                     = D_80111E38;
-    head                                    = SCRATCH_HEAD_AT(scratch, u8) - 0x38;
-    block                                   = (GpQuadScratch*)head;
-    v                                       = block->vec;
-    SCRATCH_HEAD_AT(scratch, GpQuadScratch) = block;
-    do {
-        v->vx = tbl->x * arg1;
-        v->vy = 0;
-        v->vz = tbl->y * arg1;
-        gte_SetRotMatrix(wm);
-        gte_ldv0(v);
+    block = SCRATCH_PUSH(GpQuadScratch);
+    for (i = 0; i < 4; i++) {
+        block->vec[i].vx = D_80111E38[i].x * arg1;
+        block->vec[i].vy = 0;
+        block->vec[i].vz = D_80111E38[i].y * arg1;
+        gte_SetRotMatrix(&arg0->workm);
+        gte_ldv0(&block->vec[i]);
         gte_rtv0();
-        gte_stsv(v);
-        (u16) v->vx = (u16)v->vx + (u16)coord->workm.t[0];
-        tbl++;
-        (u16) v->vy = (u16)v->vy + (u16)coord->workm.t[1];
-        i++;
-        (u16) v->vz = (u16)v->vz + (u16)coord->workm.t[2];
-        v++;
-    } while (i < 4);
+        gte_stsv(&block->vec[i]);
+        block->vec[i].vx += arg0->workm.t[0];
+        block->vec[i].vy += arg0->workm.t[1];
+        block->vec[i].vz += arg0->workm.t[2];
+    }
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -142,7 +125,7 @@ void Gp_DrawEffSprite46(GpCoord* arg0, s32 arg1, s16 arg2, u16 arg3)
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_POP(GpQuadScratch);
 }
 
 void Gp_EffSprTask81(Task* arg0)
