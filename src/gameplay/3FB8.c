@@ -6671,23 +6671,62 @@ static void Gp_PlayerNormalState5(Task* arg0)
     Gp_UpdateLockTarget(arg0);
 }
 
+/// Switches the player to `Gp_TickPlayerMode2` state 2 and starts the entry
+/// animation `field_973` selects: a `fade` of 0 resets the child slots to it,
+/// anything else is passed to `Gp_AnimPlayChildSlotsEx`.
+static inline void _gpEnterPlayerMode2(Task* task, s32 fade)
+{
+    GameActor* inner;
+    s32        mode;
+    s32        temp;
+
+    inner            = task->work;
+    inner->field_954 = 0;
+    inner->field_956 = 2;
+    inner->field_958 = 0;
+    if (inner->field_973 != 0) {
+        temp = 1;
+    } else {
+        temp = 3;
+    }
+    inner->field_95A = temp;
+    inner->field_95C = 0;
+    inner->field_95E = 0;
+    if (Player_Status.peStateFlags & 1) {
+        Gp_DetachLinkNode(task);
+        inner->field_97E = 1;
+    } else {
+        inner->field_97E = 2;
+    }
+    temp = inner->field_973;
+    if (temp == 0) {
+        if (inner->field_975 != 0) {
+            mode = 0xD;
+        } else {
+            mode = 9;
+        }
+    } else if (temp == 1) {
+        mode             = 0xC;
+        inner->field_958 = 3;
+        inner->field_97E = temp;
+    } else {
+        inner->field_958 = 2;
+        mode             = 0xD;
+    }
+    if (fade == 0) {
+        Gp_AnimResetChildSlots(task, mode);
+    } else {
+        Gp_AnimPlayChildSlotsEx(task, mode, 0, fade);
+    }
+}
+
 static void Gp_PlayerNormalState6(Task* arg0)
 {
-    Task*        work;
-    s32          fade;
-    register s32 a3 asm("a3");
-    s32          next;
-    s32          kind;
-    GameActor*   actor;
-    GameActor*   inner;
-    s32          mode;
-    s32          temp;
-    s32          flag;
-    s32          snd;
-    s32          val;
+    GameActor* actor;
+    s32        mode;
+    s32        snd;
 
-    work             = arg0;
-    actor            = work->work;
+    actor            = arg0->work;
     actor->field_973 = 0;
     if (Gp_StateC08.field_3 == 2) {
         actor->field_95E = 5;
@@ -6697,104 +6736,57 @@ static void Gp_PlayerNormalState6(Task* arg0)
             actor->field_95C     = 9;
             actor->field_95E    += 1;
             Gp_StateC08.field_6 |= 4;
-            mode                 = 0x1A;
-            if (actor->field_93C != 0) {
+            if (actor->field_93C == 0) {
+                mode = 0x1A;
+            } else if (actor->field_93C == 1) {
+                mode = 0x1D;
+            } else {
                 mode = 0x2A;
-                if (actor->field_93C == 1) {
-                    mode = 0x1D;
-                }
             }
-            Gp_AnimPlayChildSlotsEx(work, mode, 0, 6);
-            goto do_db500_2;
-        case 2:
-            next             = actor->field_95E;
-            kind             = actor->field_93C;
-            actor->field_95C = 0;
-            actor->field_95E = next + 1;
-            COMPILER_BARRIER();
-            mode = 0x1B;
-            if (kind != 0) {
-                mode = 0x2B;
-                if (kind == 1) {
-                    mode = 0x1E;
-                }
-            }
-            Gp_AnimResetChildSlots(work, mode);
-        case 3:
-            if (Gp_StateC08.field_2 != 0) {
-                goto do_db500_2;
-            }
-            actor->field_95C  = 9;
-            actor->field_95E += 1;
-            snd               = 4;
-            if ((u32)(Gp_StateC08.field_0 - 0x12C) >= 0x12DU) {
-                snd = 3;
-            }
-            Gp_SetStateF0Bit(snd);
-            mode = 0x1C;
-            if (actor->field_93C != 0) {
-                mode = 0x2C;
-                if (actor->field_93C == 1) {
-                    mode = 0x1F;
-                }
-            }
-            Gp_AnimResetChildSlots(work, mode);
+            Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 6);
+            Gp_SetStateF0Bit(2);
             break;
+        case 2:
+            actor->field_95C  = 0;
+            actor->field_95E += 1;
+            if (actor->field_93C == 0) {
+                mode = 0x1B;
+            } else if (actor->field_93C == 1) {
+                mode = 0x1E;
+            } else {
+                mode = 0x2B;
+            }
+            Gp_AnimResetChildSlots(arg0, mode);
+        case 3:
+            if (Gp_StateC08.field_2 == 0) {
+                actor->field_95C  = 9;
+                actor->field_95E += 1;
+                snd               = 4;
+                if (Gp_StateC08.field_0 < 300 || Gp_StateC08.field_0 > 600) {
+                    snd = 3;
+                }
+                Gp_SetStateF0Bit(snd);
+                if (actor->field_93C == 0) {
+                    mode = 0x1C;
+                } else if (actor->field_93C == 1) {
+                    mode = 0x1F;
+                } else {
+                    mode = 0x2C;
+                }
+                Gp_AnimResetChildSlots(arg0, mode);
+                break;
+            }
         case 1:
-        do_db500_2:
             Gp_SetStateF0Bit(2);
             break;
         case 4:
             break;
         case 5:
-            flag = 1;
             if (actor->field_960 == 0) {
-                func_801066DC(work, 0);
+                func_801066DC(arg0, 0);
                 break;
             }
-            a3 = 8;
-            if (actor->field_960 == flag) {
-                a3 = 6;
-            }
-            temp             = 3;
-            inner            = work->work;
-            val              = 2;
-            fade             = a3;
-            inner->field_954 = 0;
-            inner->field_956 = val;
-            inner->field_958 = 0;
-            if (inner->field_973 != 0) {
-                temp = 1;
-            }
-            inner->field_95A = temp;
-            inner->field_95C = 0;
-            inner->field_95E = 0;
-            if (Player_Status.peStateFlags & 1) {
-                Gp_DetachLinkNode(work);
-                inner->field_97E = flag;
-            } else {
-                inner->field_97E = val;
-            }
-            temp = inner->field_973;
-            if (temp == 0) {
-                if (inner->field_975 != 0) {
-                    mode = 0xD;
-                } else {
-                    mode = 9;
-                }
-            } else if (temp == 1) {
-                mode             = 0xC;
-                inner->field_958 = 3;
-                inner->field_97E = temp;
-            } else {
-                inner->field_958 = 2;
-                mode             = 0xD;
-            }
-            if (fade == 0) {
-                Gp_AnimResetChildSlots(work, mode);
-            } else {
-                Gp_AnimPlayChildSlotsEx(work, mode, 0, fade);
-            }
+            _gpEnterPlayerMode2(arg0, actor->field_960 == 1 ? 6 : 8);
             break;
     }
 }
