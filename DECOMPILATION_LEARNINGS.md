@@ -144598,3 +144598,15 @@ drops `work->nav`, while sched1's `true_dependence` lets a fixed-address scalar
 store pass non-QI struct stores and sinks the push below them (see "The
 scratch-head store separates two reads for cse but not for the scheduler").
 A push the target shows after some stores may have been written before them.
+
+## A `USE_REG(x)` that only adds a ref is a derived value the original computed from `x` (func_actor_141000_801323F0, 2026-09-27)
+
+Two screen points are split into `x0`/`y0`/`x1`/`y1` locals and `ratan2(dx, dy)`.
+Without `USE_REG(x0)` between two loops, `x0` loses its callee-saved register to
+two `&vec` address pseudos by a few priority points, while `y0`, used in exactly
+the same places, must stay below them. The asymmetry is the clue: the original
+read `x0` where it did not read `y0`. `dx = x1 - x0` with `s16` x-locals, after
+their loads, gives `x0` (and `x1`) the extra ref, and cse still emits `lh` from
+memory for the subtraction beside the `lhu` into the local; `dy` stays a
+difference of the fields, computed before `y0 = …`, so `y0` remains a copy of
+its load. Computing `dy` from the locals too adds the ref to `y0` and breaks it.

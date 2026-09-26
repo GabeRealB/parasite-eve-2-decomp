@@ -316,9 +316,9 @@ static void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* 
     GpMtxWords*     words;
     s32             i;
     u16             f;
-    u16             x0;
+    s16             x0;
     s32             y0;
-    u16             x1;
+    s16             x1;
     s32             y1;
     s32             dx;
     s32             dy;
@@ -365,9 +365,9 @@ static void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* 
     gte_stflg(arg3);
     gte_stszotz(&proj[1].z);
     dy                           = proj[0].sxy.vy - proj[1].sxy.vy;
-    dx                           = proj[1].sxy.vx - proj[0].sxy.vx;
-    x1                           = proj[1].sxy.vx;
     x0                           = proj[0].sxy.vx;
+    x1                           = proj[1].sxy.vx;
+    dx                           = x1 - x0;
     y0                           = proj[0].sxy.vy;
     y1                           = proj[1].sxy.vy;
     i                            = ratan2(dx, dy);
@@ -389,7 +389,6 @@ static void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* 
         arg1[i].field_0 = b.vx + x0;
         arg1[i].field_2 = b.vy + y0;
     }
-    USE_REG(x0);
     for (i = 0; i < 6; i++) {
         a.vx = D_actor_141000_801348A8[i].vx * scale / proj[1].z;
         a.vy = D_actor_141000_801348A8[i].vy * scale / proj[1].z;
