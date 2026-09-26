@@ -141132,3 +141132,19 @@ lower pseudo number, and a declared variable precedes the temporaries created
 at its uses. `abs` is written at both uses rather than stored in a local: a
 shared `adiff` would outrank everything again. An inline helper or a block
 with its own locals gives each copy separate pseudos and cannot reproduce it.
+
+### An index shift before `bnez` plus a `0x200(table+idx*4)` load: each arm indexes its own sub-slice symbol (Gp_EquipRelatedBank, 2026-09-26)
+
+**Symptom.** `bnez bank; sll v0,id,2` then per-arm `lui v1/addiu v1` of two tables, one
+`addu row,v0,v1` at the join, and later `lbu 0x200(v1 + (id-0x80)*4)`. The seed pinned
+the shift to `$v0` before an `if` choosing a table pointer, and hand-built the `+0x200`.
+
+**Cause.** The original wrote each arm in full against the *slice* symbol that starts
+0x80 entries into the table: `row = &Gp_RelatedQty0[id - 0x80]; max = _gpRelatedQty(id, 0);`
+(and the `1` arm likewise). `sym[id - k]` folds to `(sym - k*4) + id*4`, so each arm
+loads `sym - 0x200` into one register and the helper's `sym[idx]` becomes `0x200` off it.
+jump2 cross-jumps the two identical helper tails into one, and reorg puts the `sll` that
+both arms start with into the branch's delay slot. Selecting a table pointer first and
+indexing it afterwards cannot reproduce this: local-alloc always gives the arm's `%hi`
+temp `$v0`, so the shift loses `$v0`. Only the relocation spelling differs
+(`%lo(Gp_RelatedQty0-0x200)` vs `%lo(Gp_QtyById0)`), and the linked bytes are the same.

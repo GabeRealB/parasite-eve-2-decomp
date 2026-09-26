@@ -4031,129 +4031,6 @@ done:
     return slot->attachQty;
 }
 
-s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
-{
-    s32         index;
-    s32         index2;
-    McItemRec*  table;
-    McItemScan* scan;
-    McItemSlot* slot;
-    s32         found;
-    s32         have;
-    s32         shifted;
-
-    scan  = &Mc_SaveData.carriedItems;
-    table = Gp_GetItemTable(scan);
-    if ((u32)(arg1 - 0x80) < 0x20U) {
-        found = 0;
-        if (arg1 >= 0xA0) {
-            index   = scan->firstRow;
-            shifted = Gp_FindScanQty(table, scan, &index, arg1);
-            shifted = shifted << 16;
-        } else {
-            s32                 i;
-            register s32        count asm("v0");
-            register s32        end asm("a0");
-            register s32        off asm("v0");
-            s32                 limit;
-            register McItemRec* rec asm("a0");
-
-            i     = scan->firstRow;
-            count = scan->rowCount;
-            end   = i + count;
-            if (i < end) {
-                off   = i << 2;
-                limit = end;
-                rec   = (McItemRec*)(off + (s32)table);
-                for (; i < limit; i++, rec++) {
-                    if (rec->itemId == arg1) {
-                        found = 1;
-                        break;
-                    }
-                }
-            }
-            shifted = found;
-            TOUCH_REG(shifted);
-            shifted = shifted << 16;
-        }
-        if (shifted > 0) {
-            register s32 off asm("v0");
-            GpItemQty*   qtyTable;
-            s32          maxQty;
-            register s32 clamped asm("a0");
-            s32          i;
-            register s32 idx asm("a0");
-            GpItemQty*   row;
-
-            off = arg1 << 2;
-            if (arg0 == 0) {
-                qtyTable = Gp_QtyById0;
-            } else {
-                qtyTable = Gp_QtyById1;
-            }
-            row = (GpItemQty*)(off + (s32)qtyTable);
-            TOUCH_REG(row);
-            idx    = arg1 - 0x80;
-            maxQty = 0;
-            if ((u32)idx < 0x20U) {
-                off    = idx << 2;
-                maxQty = *(u8*)((s32)qtyTable + off + 0x200);
-            }
-            clamped = maxQty;
-            i       = 0;
-            for (; i < 3; i++) {
-                if (((u8*)((s32)row + i))[1] == arg2) {
-                    break;
-                }
-            }
-            if (i != 3) {
-                if (arg3 < 0) {
-                    arg3 = clamped;
-                }
-                if (clamped < arg3) {
-                    arg3 = clamped;
-                }
-                index2 = scan->firstRow;
-                slot   = &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg1];
-                have   = (s16)Gp_FindScanQty(table, scan, &index2, arg2);
-                have  -= Gp_CountEquippedRelated(scan, arg2);
-                if (arg0 == 0) {
-                    if (slot->ammoId == arg2) {
-                        have += slot->ammoQty;
-                    }
-                } else if (slot->attachId == arg2) {
-                    have += slot->attachQty;
-                }
-                if (have > 0) {
-                    goto success;
-                }
-            } else {
-                return -1;
-            }
-        } else {
-            return -1;
-        }
-    }
-    return -1;
-success:
-    if (arg3 != 0) {
-        if (have < arg3) {
-            arg3 = have;
-        }
-        if (arg0 == 0) {
-            slot->ammoId  = arg2;
-            slot->ammoQty = arg3;
-        } else if (slot->attachId != 0xFF) {
-            slot->attachId  = arg2;
-            slot->attachQty = arg3;
-        } else {
-            arg3 = -1;
-        }
-        return arg3;
-    }
-    return 0;
-}
-
 /// How much of `item` the rows `scan` selects hold: the stack count for
 /// stackable ids (0xA0 and up), otherwise 1 if any row carries it and 0 if not.
 static inline s16 _gpScanHeldQty(McItemRec* table, McItemScan* scan, s32 item)
@@ -4192,6 +4069,78 @@ static inline s32 _gpRelatedQty(s32 item, s32 bank)
         }
     }
     return ret;
+}
+
+s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    s32         index;
+    McItemRec*  table;
+    McItemScan* scan;
+    McItemSlot* slot;
+    GpItemQty*  row;
+    s32         maxQty;
+    s32         have;
+    s32         i;
+
+    scan  = &Mc_SaveData.carriedItems;
+    table = Gp_GetItemTable(scan);
+    if ((u32)(arg1 - 0x80) >= 0x20) {
+        return -1;
+    }
+    if (_gpScanHeldQty(table, scan, arg1) <= 0) {
+        return -1;
+    }
+    if (arg0 == 0) {
+        row    = &Gp_RelatedQty0[arg1 - 0x80];
+        maxQty = _gpRelatedQty(arg1, 0);
+    } else {
+        row    = &Gp_RelatedQty1[arg1 - 0x80];
+        maxQty = _gpRelatedQty(arg1, 1);
+    }
+    for (i = 0; i < 3; i++) {
+        if (row->related[i] == arg2) {
+            break;
+        }
+    }
+    if (i == 3) {
+        return -1;
+    }
+    if (arg3 < 0) {
+        arg3 = maxQty;
+    }
+    if (maxQty < arg3) {
+        arg3 = maxQty;
+    }
+    index = scan->firstRow;
+    slot  = &Mc_SaveData.weaponItems[arg1 - 0x80];
+    have  = (s16)Gp_FindScanQty(table, scan, &index, arg2);
+    have -= Gp_CountEquippedRelated(scan, arg2);
+    if (arg0 == 0) {
+        if (slot->ammoId == arg2) {
+            have += slot->ammoQty;
+        }
+    } else if (slot->attachId == arg2) {
+        have += slot->attachQty;
+    }
+    if (have <= 0) {
+        return -1;
+    }
+    if (arg3 != 0) {
+        if (have < arg3) {
+            arg3 = have;
+        }
+        if (arg0 == 0) {
+            slot->ammoId  = arg2;
+            slot->ammoQty = arg3;
+        } else if (slot->attachId != 0xFF) {
+            slot->attachId  = arg2;
+            slot->attachQty = arg3;
+        } else {
+            arg3 = -1;
+        }
+        return arg3;
+    }
+    return 0;
 }
 
 s32 Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
