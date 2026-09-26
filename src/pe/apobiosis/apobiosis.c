@@ -414,7 +414,6 @@ static void func_apobiosis_8012FE10(Task* arg0)
 /// frames.
 static void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**           scratch;
     u8*              head;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -422,24 +421,13 @@ static void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     s32              u0;
     s32              u1;
     s32              ang2;
-    u16              vz;
 
-    scratch = SCRATCH_HEAD_ADDR;
-    head    = *(u8* volatile*)scratch;
-    {
-        register u16 vx asm("v0");
-        vx                                        = *(volatile u16*)&arg0->workm.t[0];
-        ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
-    }
-    {
-        register u8* tmp asm("v0");
-        tmp   = head - 0x1C;
-        block = (GpFxQuadScratch*)tmp;
-    }
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, GpFxQuadScratch) = block;
-    block->vec.vz                             = vz;
+    head                                      = SCRATCH_HEAD(u8);
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
+    SCRATCH_HEAD(void)                        = head - 0x1C;
+    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
+    block->vec.vy                             = arg0->workm.t[1];
+    block->vec.vz                             = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
