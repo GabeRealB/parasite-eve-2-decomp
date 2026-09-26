@@ -6,13 +6,20 @@
 #include "main/text.h"
 #include "main/ui.h"
 
-void Ui_DispatchObjectState(Task* arg0);
-void Ui_InsetRect2(void* arg0, RECT* arg1, RECT* arg2);
-void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
-void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
-void Ui_AnimCloseStep(UiPanel* arg0, void* arg1);
+static void Ui_DispatchObjectState(Task* arg0);
+static void Ui_InsetRect2(void* arg0, RECT* arg1, RECT* arg2);
+static void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
+static void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
+static void Ui_AnimCloseStep(UiPanel* arg0, void* arg1);
 
-const UiPanelFuncTable6 Ui_ObjectStates = { {
+static void Ui_AnimOpenStep(UiPanel* arg0, void* arg1);
+static void Ui_ClipAndCallback(UiPanel* arg0, void* arg1);
+static void Ui_DrawAndCallback(UiPanel* arg0, void* arg1);
+static void Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2, s32 arg3);
+static void Ui_LayoutDrawAndCallback(UiPanel* arg0, void* arg1);
+static void Ui_TickAnimCounter(UiPanel* arg0, void* arg1);
+
+static const UiPanelFuncTable6 Ui_ObjectStates = { {
     Ui_AnimOpenStep,
     Ui_DrawAndCallback,
     Ui_LayoutDrawAndCallback,
@@ -32,7 +39,7 @@ static inline s32 _uiGrey(s32 level)
     return (level << 16) | (level << 8) | level;
 }
 
-void Ui_DrawWindowBorder(RECT* arg0, s32 arg1, s32 arg2)
+static void Ui_DrawWindowBorder(RECT* arg0, s32 arg1, s32 arg2)
 {
     RECT      sp10;
     POLY_GT4* p;
@@ -158,7 +165,7 @@ void Ui_DrawWindowBorder(RECT* arg0, s32 arg1, s32 arg2)
     addPrim(gGpuCurrentOt + arg2, dr);
 }
 
-void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
+static void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
 {
     SPRT*     spr;
     POLY_FT4* p;
@@ -335,7 +342,7 @@ void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
     }
 }
 
-void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
+static void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
 {
     RECT              sp10;
     RECT              sp18;
@@ -405,7 +412,7 @@ void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
     }
 }
 
-void Ui_SetupClip(UiPanel* arg0)
+static void Ui_SetupClip(UiPanel* arg0)
 {
     RECT     sp10;
     RECT     sp18;
@@ -449,7 +456,7 @@ void Ui_SetupClip(UiPanel* arg0)
     addPrim(gGpuCurrentOt + (s16)arg0->field_14, p);
 }
 
-void Ui_ScaleRect(UiPanel* arg0, RECT* arg1, s32 arg2, s32 arg3)
+static void Ui_ScaleRect(UiPanel* arg0, RECT* arg1, s32 arg2, s32 arg3)
 {
     s16 temp;
 
@@ -474,7 +481,7 @@ void Ui_ScaleRect(UiPanel* arg0, RECT* arg1, s32 arg2, s32 arg3)
     }
 }
 
-void Ui_LayoutAndClip(UiPanel* arg0)
+static void Ui_LayoutAndClip(UiPanel* arg0)
 {
     RECT sp10;
     RECT sp18;
@@ -538,7 +545,7 @@ after_fill: {
 }
 }
 
-void Ui_LayoutAndDraw(UiPanel* arg0)
+static void Ui_LayoutAndDraw(UiPanel* arg0)
 {
     RECT sp10;
     RECT sp18;
@@ -602,7 +609,7 @@ after_fill: {
 }
 }
 
-void Ui_LayoutAndDrawAlt(UiPanel* arg0)
+static void Ui_LayoutAndDrawAlt(UiPanel* arg0)
 {
     RECT sp10;
     RECT sp18;
@@ -666,7 +673,7 @@ after_fill: {
 }
 }
 
-void Ui_SetListClip(UiList* arg0, UiPanel* arg1, s32 arg2)
+static void Ui_SetListClip(UiList* arg0, UiPanel* arg1, s32 arg2)
 {
     RECT     sp10;
     DR_AREA* p;
@@ -702,7 +709,7 @@ void Ui_SetListClip(UiList* arg0, UiPanel* arg1, s32 arg2)
     }
 }
 
-void Ui_DrawCursor(UiPanel* arg0, s32 arg1, s32 arg2)
+static void Ui_DrawCursor(UiPanel* arg0, s32 arg1, s32 arg2)
 {
     SPRT_8*   p;
     DR_TPAGE* dr;
@@ -739,7 +746,7 @@ void Ui_DrawCursor(UiPanel* arg0, s32 arg1, s32 arg2)
     }
 }
 
-void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
+static void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
 {
     POLY_G3*         p;
     s16              x;
@@ -1061,7 +1068,7 @@ typedef struct {
     /* 0x22 */ u16 field_22;
 } UiPanelSignedLayout;
 
-void Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2, s32 arg3)
+static void Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2, s32 arg3)
 {
     TILE*                p;
     s32                  y;
@@ -1128,7 +1135,7 @@ static inline void _uiListMoveCursor(UiPanelRender* panel, s32 x, s32 y)
     Ui_DrawCursor((UiPanel*)panel, targetX - panel->field_20, targetY - panel->field_22);
 }
 
-void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
+static void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
 {
     s32 step;
     s32 playSound;
@@ -1476,7 +1483,7 @@ void Ui_DrawVBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
 }
 
-void Ui_DrawTextUnderline(UiPanel* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4)
+static void Ui_DrawTextUnderline(UiPanel* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4)
 {
     TextDrawReq       sp10;
     POLY_F4*          p;
@@ -2045,7 +2052,7 @@ void Ui_UpdateListNoAnim(void* arg0, void* arg1)
     func_80046EEC(arg0, arg1, 0);
 }
 
-void Ui_ComputeVisibleRowsEx(UiList* arg0, UiPanel* arg1, s32 arg2)
+static void Ui_ComputeVisibleRowsEx(UiList* arg0, UiPanel* arg1, s32 arg2)
 {
     RECT sp;
     s16  temp_v0;
@@ -2172,7 +2179,7 @@ void Ui_DrawTitle(UiPanel* arg0, char* arg1)
     arg0->field_14 = (u16)(arg0->field_14 + 1);
 }
 
-void Ui_DrawTextAtLayout(UiPanel* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
+static void Ui_DrawTextAtLayout(UiPanel* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
 {
     TextDrawReq sp;
     s32         temp;
@@ -2279,7 +2286,7 @@ void Ui_LayoutWithMode1(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 
     func_80046B34(arg0, arg1, arg2, arg3, arg4, arg5, 1);
 }
 
-void Ui_InsetRect2(void* arg0, RECT* arg1, RECT* arg2)
+static void Ui_InsetRect2(void* arg0, RECT* arg1, RECT* arg2)
 {
     arg2->x = arg1->x + 2;
     arg2->y = arg1->y + 2;
@@ -2314,7 +2321,7 @@ void Ui_InsetLayout(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
     }
 }
 
-void Ui_ComputeAnimRect(UiPanel* arg0, RECT* arg1)
+static void Ui_ComputeAnimRect(UiPanel* arg0, RECT* arg1)
 {
     s32 var_a2;
 
@@ -2343,7 +2350,7 @@ void Ui_ComputeAnimRect(UiPanel* arg0, RECT* arg1)
     arg1->h = arg0->field_C.h;
 }
 
-void Ui_AnimOpenStep(UiPanel* arg0, void* arg1)
+static void Ui_AnimOpenStep(UiPanel* arg0, void* arg1)
 {
     if (arg0->field_16 == 0) {
         arg0->field_16 = 9;
@@ -2358,7 +2365,7 @@ void Ui_AnimOpenStep(UiPanel* arg0, void* arg1)
     }
 }
 
-void Ui_DrawAndCallback(UiPanel* arg0, void* arg1)
+static void Ui_DrawAndCallback(UiPanel* arg0, void* arg1)
 {
     s32 temp_s2;
 
@@ -2378,13 +2385,13 @@ void Ui_DrawAndCallback(UiPanel* arg0, void* arg1)
     }
 }
 
-void Ui_LayoutDrawAndCallback(UiPanel* arg0, void* arg1)
+static void Ui_LayoutDrawAndCallback(UiPanel* arg0, void* arg1)
 {
     Ui_LayoutAndDraw(arg0);
     arg0->field_24(arg1);
 }
 
-void Ui_TickAnimCounter(UiPanel* arg0, void* arg1)
+static void Ui_TickAnimCounter(UiPanel* arg0, void* arg1)
 {
     if (arg0->field_16 >= 0) {
         arg0->field_16 += gDisplayState.frameTicks;
@@ -2399,7 +2406,7 @@ void Ui_TickAnimCounter(UiPanel* arg0, void* arg1)
     arg0->field_24(arg1);
 }
 
-void Ui_AnimCloseStep(UiPanel* arg0, void* arg1)
+static void Ui_AnimCloseStep(UiPanel* arg0, void* arg1)
 {
     s32 temp_s1;
 
@@ -2421,7 +2428,7 @@ void Ui_AnimCloseStep(UiPanel* arg0, void* arg1)
     }
 }
 
-void Ui_ClipAndCallback(UiPanel* arg0, void* arg1)
+static void Ui_ClipAndCallback(UiPanel* arg0, void* arg1)
 {
     s16 temp_a0;
     s16 temp_v0;
@@ -2449,7 +2456,7 @@ void Ui_ClipAndCallback(UiPanel* arg0, void* arg1)
     }
 }
 
-void Ui_DispatchObjectState(Task* arg0)
+static void Ui_DispatchObjectState(Task* arg0)
 {
     UiPanelFuncTable6 sp;
     UiPanel*          temp;

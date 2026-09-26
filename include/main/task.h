@@ -267,10 +267,6 @@ extern TaskNode gTaskDefaultList;
 /// main list, and the display frame walks it.
 extern TaskNode gTaskDisplayList;
 
-extern const TaskFuncTable6 Display_TaskStates;
-extern const TaskFuncTable3 Tmd_TaskStates;
-extern const TaskFuncTable4 Stage_TaskStates;
-
 extern TaskDesc D_8006268C;
 
 /// Six task descriptors. Entry 5 is a model descriptor whose model is not

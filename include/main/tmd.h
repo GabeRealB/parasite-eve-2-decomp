@@ -208,7 +208,6 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags);
 /// has.
 void tmdProcessStream(TmdObject* obj);
 
-void Tmd_SetupDraw(TmdObject* obj);
 void Tmd_AllocMissingBuffers(void);
 s32  Tmd_AllocBuffers(TmdObject* obj);
 void Tmd_FreeBuffers(TmdObject* obj);
@@ -225,14 +224,8 @@ void Tmd_DrawActiveNodes(TmdObject* node);
 // the task to the next, so the list is only ever worked from a task that owns
 // the pass.
 void Tmd_DispatchTask(struct Task* task);
-/// Marks every attached model as no longer drawn.
-void Tmd_FlagAllNodes(struct Task* task);
-/// Releases the buffer of every attached model.
-void Tmd_FreeNodeBuffers(struct Task* task);
 /// Gives a buffer back to every attached model that has none, then kills the task.
 void Tmd_AllocNodeBuffers(struct Task* task);
-/// Total bytes the attached models hold in their buffers.
-s32 Tmd_SumBufferBytes(void);
 
 // Early-image handlers (src/main/hasm/): the draw pass's handlers for the record
 // opcodes they cover. Tmd_InitSourceStream resolves each record's opcode to its

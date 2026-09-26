@@ -176,7 +176,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(UiPanelRender, 0x24);
 
 extern s32 D_80067640;
-void       func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2);
 
 /// WIP: Task::spawnArg1 context for D_8006121C select-menu (McMenu_SelectListAlt).
 /// Only field_290 is used so far (seeds UiList cursor).
@@ -210,7 +209,6 @@ extern UiObjectDesc D_80061200[];
 extern UiObjectDesc D_8006121C[];
 extern UiObjectDesc D_800612D0[];
 extern UiObjectDesc D_80067678;
-extern const char   D_80013B64[]; // "Select"
 
 /// Object used by 34E98.c handlers (e.g. Ui_AnimOpenStep / Ui_ObjectStates table).
 /// field_4 low nibble selects layout padding (Ui_InsetLayout); high nibble of the
@@ -244,8 +242,6 @@ typedef void (*UiPanelFunc)(UiPanel* arg0, void* arg1);
 typedef struct {
     UiPanelFunc funcs[6];
 } UiPanelFuncTable6;
-
-extern const UiPanelFuncTable6 Ui_ObjectStates;
 
 /// Dialog / prompt descriptor used by 21FDC.c handlers (e.g. McMenu_ConfirmDialogAlt,
 /// McMenu_ConfirmDialog, McMenu_ConfirmWithRender). field_8 is a signed menu/option index passed
@@ -320,40 +316,24 @@ void      Ui_SetHolderParam(s32 arg0, s32 arg1, s32 arg2);
 void      Ui_SetHolderParamAlt(s32 arg0, s32 arg1, s32 arg2);
 void      Ui_ClampAnimOrClose(UiPanel* arg0, s32 arg1, s32 arg2);
 void      Ui_StartCloseAnim(UiPanel* arg0, void* arg1);
-void      Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2);
 void      Ui_LayoutListPanel(UiList* arg0, UiPanel* arg1);
 void      Ui_InitList(UiList* arg0, UiMiniObj* arg1);
 void      Ui_ComputeVisibleRows(UiList* arg0, s32 arg1);
 void      Ui_UpdateListNoAnim(void* arg0, void* arg1);
-void      Ui_ComputeVisibleRowsEx(UiList* arg0, UiPanel* arg1, s32 arg2);
 void      Ui_SmoothCursor(UiMiniObj* arg0, s32 arg1, s32 arg2);
 s32       Ui_GetCursorFixed(void);
 s32       Ui_LookupTable(void* arg0, s32 arg1);
 s32       Ui_Scale15(s32 arg0);
 void      Ui_DrawHBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 void      Ui_DrawVBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
-void      Ui_DrawTextUnderline(UiPanel* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4);
 void      Ui_DrawTextInRect(RECT* arg0, s32 arg1, s32 arg2, char* arg3);
 void      Ui_DrawTitle(UiPanel* arg0, char* arg1);
-void      Ui_DrawTextAtLayout(UiPanel* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
 void      Ui_SetListScrollFlag(UiList* arg0, s32 arg1);
 void      Ui_AllocTile(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
 void      Ui_InsertDrawTPage(s32 arg0, s32 arg1);
-void      Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2, s32 arg3);
 void      func_80046B34(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
 void      Ui_LayoutWithMode0(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
 void      Ui_LayoutWithMode1(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
-void      Ui_SetupClip(UiPanel* arg0);
-void      Ui_ScaleRect(UiPanel* arg0, RECT* arg1, s32 arg2, s32 arg3);
-void      Ui_LayoutAndClip(UiPanel* arg0);
-void      Ui_LayoutAndDraw(UiPanel* arg0);
-void      Ui_LayoutAndDrawAlt(UiPanel* arg0);
-void      Ui_ComputeAnimRect(UiPanel* arg0, RECT* arg1);
-void      Ui_AnimOpenStep(UiPanel* arg0, void* arg1);
-void      Ui_DrawAndCallback(UiPanel* arg0, void* arg1);
-void      Ui_LayoutDrawAndCallback(UiPanel* arg0, void* arg1);
-void      Ui_TickAnimCounter(UiPanel* arg0, void* arg1);
-void      Ui_ClipAndCallback(UiPanel* arg0, void* arg1);
 void      Ui_WaitCdThenOverlay(Task* arg0);
 
 // Functions defined in this module but not previously declared anywhere.
@@ -362,7 +342,5 @@ void      Ui_WaitCdThenOverlay(Task* arg0);
 // largest cause of unusable seeds in the bulk m2c pass.
 
 void Ui_DrawFlatCaret(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void Ui_DrawCursor(UiPanel* arg0, s32 arg1, s32 arg2);
-void Ui_SetListClip(UiList* arg0, UiPanel* arg1, s32 arg2);
 
 #endif // UI_H

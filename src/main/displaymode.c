@@ -4,7 +4,7 @@
 #include "main/gfx.h"
 #include "main/mc.h"
 
-const u16 Display_WidthTable[] = {
+static const u16 Display_WidthTable[] = {
     0x100,
     0x140,
     0x180,
@@ -13,7 +13,7 @@ const u16 Display_WidthTable[] = {
     0,
 };
 
-const u16 Display_HeightTable[] = {
+static const u16 Display_HeightTable[] = {
     0xF0,
     0x1E0,
 };
@@ -134,7 +134,7 @@ void Display_SetAutoClear(s32 arg0, s32 arg1, s32 arg2)
     gDisplayState.drawEnv[0].b0   = arg2;
 }
 
-void Display_SetModeDefault(void)
+static void Display_SetModeDefault(void)
 {
     Display_SetMode(0x1010);
 }

@@ -105,9 +105,6 @@ STATIC_ASSERT_SIZEOF(GpuOtBuf, 0x14);
 /// environments and its flags are recorded.
 extern DisplayState gDisplayState;
 
-extern const u16 Display_WidthTable[];
-extern const u16 Display_HeightTable[];
-
 extern u_long   Gpu_OtTags[2 * GPU_OT_ENTRIES];
 extern GpuOtBuf Gpu_OtBuffers[2];
 extern GsOT     Gpu_OrderingTables[2];
@@ -163,11 +160,8 @@ void  Display_SetAutoClear(s32 arg0, s32 arg1, s32 arg2);
 void  Display_ClampField126(s8 arg0);
 void  Gpu_InitOtSmall(void);
 void  Gpu_InitOt(void);
-Task* Display_SpawnFromMode(void);
 Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 Task* Display_SpawnWithOt(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
-void  Display_FlipOtAndDispatch(s32 arg0);
-void  Display_InvertFramebufferGray(void);
 void  Display_SetDrawMode(s32 arg0);
 s32   Display_InitModeObj(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  Gpu_ResetGraphAndOt(void);
@@ -184,8 +178,6 @@ void Display_LoadImageStrips(s32 arg0);
 void Display_ResetHeapWrapper(void);
 void Display_AcquireRef(void);
 void Display_ReleaseRef(void);
-void Display_TransitionTask(Task* task);
-void Display_TaskLoadStep(Task* task);
 
 /// Makes buffer `buf`'s ordering table the current one: clears it, terminates
 /// it, and leaves the current-table pointer past the entries reserved at its

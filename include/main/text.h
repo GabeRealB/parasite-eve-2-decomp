@@ -93,27 +93,17 @@ STATIC_ASSERT_SIZEOF(TextStream, 0x20);
 
 // --- APIs (from unknown_syms) ---
 s32  TextStream_Draw(TextStream* arg0, u8* arg1, s16* arg2, s32 arg3);
-s32  Text_MeasureGlyphWidth(TextDrawReq* arg0, u8* arg1, u8* arg2);
-void Text_DrawGlyphDualSprtA(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
-void Text_DrawGlyphDualSprt(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
-void Text_DrawGlyphDualSprtTpage(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
 void Text_MeasureAndCenter(TextDrawReq* arg0, u8* arg1);
 u8*  Text_SkipLines(u8* arg0, s32 arg1);
-void Text_DrawGlyphImmediate(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
-void Text_DrawGlyphQueued(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
-void Text_DrawGlyphOt(TextDrawReq* arg0, FontGlyph* arg1);
 void Text_BootTask(Task* arg0);
-s32  Text_ParseLine(u8** arg0, u8* arg1);
 s32  Text_DrawMultiLine(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
 s32  Text_MeasureWidth(u8* arg0);
 s32  Text_MeasureMultiLine(u8* arg0);
 s32  Text_DrawPrompt(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
-s32  Text_DrawMultiLineScroll(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6, s32 arg7, s32 arg8);
 /// EXE palettes over the title font clut dests. D_80060910 (64) → (256, 243);
 /// D_800609B0 (48) → (0x3D0, 0x1FF) = clut 0x7FFD/E/F. TIM pe2clut_0 row 0 is
 /// empty; UI text uses 0x7FFD (indices 0–10 skip). Called from Title_InitTask.
 void Text_LoadClutImages(void);
-void Prim_DrawLoadingSprt(void);
 /// Task callback that does nothing.
 ///
 /// A task pointed at it stays in its list and is still ticked, but performs no

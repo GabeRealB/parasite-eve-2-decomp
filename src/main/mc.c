@@ -13,11 +13,29 @@
 #include "psyq/libmcrd.h"
 #include "psyq/strings.h"
 
-extern const char D_800139A8[];
+static const char D_800139A8[];
 
-const char Mc_StrMemoryCard[] = "Memory Card";
+static void Mc_DrawPrompt(Task* arg0, s32 arg1);
+static void Mc_KillIfCountdown(Task* arg0, McWork* arg1);
+static void Mc_ResetWork(Task* arg0, McWork* arg1);
+static void Mc_StateBackupBuffers(Task* arg0, McWork* arg1);
+static void Mc_StateCompareBuffers(Task* arg0, McWork* arg1);
+static void Mc_StateCreateFile(Task* arg0, McWork* arg1);
+static void Mc_StateFormat(Task* arg0, McWork* arg1);
+static void Mc_StateFreeBuffer(Task* arg0, McWork* arg1);
+static void Mc_StateNameEntry(Task* arg0, McWork* arg1);
+static void Mc_StateOpenNext(Task* arg0, McWork* arg1);
+static void Mc_StateOpenRead(Task* arg0, McWork* arg1);
+static void Mc_StateOpenSelected(Task* arg0, McWork* arg1);
+static void Mc_StatePadFileName(Task* arg0, McWork* arg1);
+static s32  Mc_VerifySaveHdrChecksum(McSaveData* arg0);
+static void Mc_WriteBlockChecksum(McChecksumBlock* arg0, s32 arg1);
+static void Mc_WriteFirstByteChecksum(void);
 
-s32 Mc_PromptDialog(Task* arg0, s32 arg1, s32 arg2)
+static const char Mc_StrMemoryCard[] = "Memory Card";
+
+/// Prompt + optional choice dialog (Mc_PromptTable[mode]).
+static s32 Mc_PromptDialog(Task* arg0, s32 arg1, s32 arg2)
 {
     s32           ret;
     s32           one;
@@ -56,7 +74,7 @@ s32 Mc_PromptDialog(Task* arg0, s32 arg1, s32 arg2)
     return obj->field_2C;
 }
 
-s32 Mc_PromptDialogChoice(Task* arg0, s32 arg1, s32 arg2)
+static s32 Mc_PromptDialogChoice(Task* arg0, s32 arg1, s32 arg2)
 {
     s32           ret;
     s32           one;
@@ -95,7 +113,7 @@ s32 Mc_PromptDialogChoice(Task* arg0, s32 arg1, s32 arg2)
     return obj->field_2C;
 }
 
-s32 Mc_PromptDialogSpawn(Task* arg0, s32 arg1, s32 arg2)
+static s32 Mc_PromptDialogSpawn(Task* arg0, s32 arg1, s32 arg2)
 {
     s32           ret;
     s32           one;
@@ -134,7 +152,7 @@ s32 Mc_PromptDialogSpawn(Task* arg0, s32 arg1, s32 arg2)
     return obj->field_2C;
 }
 
-s32 Mc_PromptDialogFile(Task* arg0, s32 arg1, s32 arg2)
+static s32 Mc_PromptDialogFile(Task* arg0, s32 arg1, s32 arg2)
 {
     s32           ret;
     s32           one;
@@ -306,7 +324,7 @@ static inline void Mc_UpdateTitleDataChecksum(void)
     dst->field_2 = 0xFFFF - (u32)sum;
 }
 
-void func_80030AB0(McWork* work)
+static void func_80030AB0(McWork* work)
 {
     u8          buffer[0x20];
     u16*        title;
@@ -366,40 +384,40 @@ void func_80030AB0(McWork* work)
     Mc_SaveData.bufferChecksumInv = 0xFFFF;
 }
 
-const char D_800139A8[] = ")";
+static const char D_800139A8[] = ")";
 
-void Mc_StateScanDirFlags(Task* arg0, McWork* arg1);
-void Mc_StateListDirectory(Task* arg0, McWork* arg1);
-void Mc_StateFileSelect(Task* arg0, McWork* arg1);
+static void Mc_StateScanDirFlags(Task* arg0, McWork* arg1);
+static void Mc_StateListDirectory(Task* arg0, McWork* arg1);
+static void Mc_StateFileSelect(Task* arg0, McWork* arg1);
 
-void Mc_WriteSlotChecksumsEx(Task* arg0, McWork* arg1);
-void Mc_StateAcceptMode1(Task* arg0, McWork* arg1);
-void Mc_StateSyncAdvance(Task* arg0, McWork* arg1);
-void Mc_StateDrawPromptAdvance(Task* arg0, McWork* arg1);
-void Mc_StatePromptChoiceB(Task* arg0, McWork* arg1);
-void Mc_StateDrawPrompt4(Task* arg0, McWork* arg1);
-void Mc_StateEnterDialog4(Task* arg0, McWork* arg1);
-void Mc_StateWriteFile(Task* arg0, McWork* arg1);
-void Mc_StatePromptChoiceGeneric(Task* arg0, McWork* arg1);
-void Mc_StateWriteData(Task* arg0, McWork* arg1);
-void Mc_StateClosePrompt(Task* arg0, McWork* arg1);
-void Mc_StateSyncPromptFile3(Task* arg0, McWork* arg1);
-void Mc_StatePromptChoice9(Task* arg0, McWork* arg1);
-void Mc_StateColdBoot(Task* arg0, McWork* arg1);
-void Mc_StateEnterPrompt0(Task* arg0, McWork* arg1);
-void Mc_StateSyncPrompt13(Task* arg0, McWork* arg1);
-void Mc_StatePromptCountdown(Task* arg0, McWork* arg1);
-void Mc_StateDrawPromptTo1F(Task* arg0, McWork* arg1);
-void Mc_StateCountdownPrompt4(Task* arg0, McWork* arg1);
-void Mc_StateDrawPrompt1Advance(Task* arg0, McWork* arg1);
-void Mc_StateReadHeader(Task* arg0, McWork* arg1);
-void Mc_StateUiCountdown2(Task* arg0, McWork* arg1);
-void Mc_StateUiCountdownF(Task* arg0, McWork* arg1);
-void Mc_StateUiCountdownE(Task* arg0, McWork* arg1);
-void Mc_StateEnterPromptE(Task* arg0, McWork* arg1);
-void Mc_StateEnterPromptD(Task* arg0, McWork* arg1);
+static void Mc_WriteSlotChecksumsEx(Task* arg0, McWork* arg1);
+static void Mc_StateAcceptMode1(Task* arg0, McWork* arg1);
+static void Mc_StateSyncAdvance(Task* arg0, McWork* arg1);
+static void Mc_StateDrawPromptAdvance(Task* arg0, McWork* arg1);
+static void Mc_StatePromptChoiceB(Task* arg0, McWork* arg1);
+static void Mc_StateDrawPrompt4(Task* arg0, McWork* arg1);
+static void Mc_StateEnterDialog4(Task* arg0, McWork* arg1);
+static void Mc_StateWriteFile(Task* arg0, McWork* arg1);
+static void Mc_StatePromptChoiceGeneric(Task* arg0, McWork* arg1);
+static void Mc_StateWriteData(Task* arg0, McWork* arg1);
+static void Mc_StateClosePrompt(Task* arg0, McWork* arg1);
+static void Mc_StateSyncPromptFile3(Task* arg0, McWork* arg1);
+static void Mc_StatePromptChoice9(Task* arg0, McWork* arg1);
+static void Mc_StateColdBoot(Task* arg0, McWork* arg1);
+static void Mc_StateEnterPrompt0(Task* arg0, McWork* arg1);
+static void Mc_StateSyncPrompt13(Task* arg0, McWork* arg1);
+static void Mc_StatePromptCountdown(Task* arg0, McWork* arg1);
+static void Mc_StateDrawPromptTo1F(Task* arg0, McWork* arg1);
+static void Mc_StateCountdownPrompt4(Task* arg0, McWork* arg1);
+static void Mc_StateDrawPrompt1Advance(Task* arg0, McWork* arg1);
+static void Mc_StateReadHeader(Task* arg0, McWork* arg1);
+static void Mc_StateUiCountdown2(Task* arg0, McWork* arg1);
+static void Mc_StateUiCountdownF(Task* arg0, McWork* arg1);
+static void Mc_StateUiCountdownE(Task* arg0, McWork* arg1);
+static void Mc_StateEnterPromptE(Task* arg0, McWork* arg1);
+static void Mc_StateEnterPromptD(Task* arg0, McWork* arg1);
 
-const McStateFuncTable44 Mc_PromptStates = { {
+static const McStateFuncTable44 Mc_PromptStates = { {
     Mc_ResetWork,
     Mc_WriteSlotChecksumsEx,
     Mc_StateAcceptMode1,
@@ -446,7 +464,7 @@ const McStateFuncTable44 Mc_PromptStates = { {
     Mc_StateEnterPromptD,
 } };
 
-void Mc_StateScanDirFlags(Task* arg0, McWork* arg1)
+static void Mc_StateScanDirFlags(Task* arg0, McWork* arg1)
 {
     s32       ret;
     UiObject* obj;
@@ -494,7 +512,7 @@ void Mc_StateScanDirFlags(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, Mc_PromptTable[idx].field_4, ret, 1, 0);
 }
 
-void Mc_StateListDirectory(Task* arg0, McWork* arg1)
+static void Mc_StateListDirectory(Task* arg0, McWork* arg1)
 {
     s32           ret;
     s32           one;
@@ -577,7 +595,7 @@ void Mc_StateListDirectory(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 }
 
-void Mc_StateFileSelect(Task* arg0, McWork* arg1)
+static void Mc_StateFileSelect(Task* arg0, McWork* arg1)
 {
     UiObject*     saved;
     UiObject*     obj;
@@ -736,7 +754,7 @@ void Mc_StateFileSelect(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StateCompareBuffers(Task* arg0, McWork* arg1)
+static void Mc_StateCompareBuffers(Task* arg0, McWork* arg1)
 {
     s32           ret;
     u32           status;
@@ -834,7 +852,7 @@ void Mc_StateCompareBuffers(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 }
 
-void Mc_StateOpenRead(Task* arg0, McWork* arg1)
+static void Mc_StateOpenRead(Task* arg0, McWork* arg1)
 {
     s32           ret;
     u32           status;
@@ -884,7 +902,7 @@ void Mc_StateOpenRead(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateCreateFile(Task* arg0, McWork* arg1)
+static void Mc_StateCreateFile(Task* arg0, McWork* arg1)
 {
     s32           ret;
     u32           status;
@@ -931,7 +949,7 @@ void Mc_StateCreateFile(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StatePadFileName(Task* arg0, McWork* arg1)
+static void Mc_StatePadFileName(Task* arg0, McWork* arg1)
 {
     s32           ret;
     u32           status;
@@ -987,7 +1005,7 @@ void Mc_StatePadFileName(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateNameEntry(Task* arg0, McWork* arg1)
+static void Mc_StateNameEntry(Task* arg0, McWork* arg1)
 {
     register Task*     task asm("s3");
     McWork*            work;
@@ -1156,7 +1174,7 @@ static inline void _mcDrawPrompt(Task* task, s32 mode)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
+static void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
 {
     McChecksumBlock* buf;
     s32              size;
@@ -1201,7 +1219,7 @@ void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
     _mcDrawPrompt(arg0, 4);
 }
 
-void Mc_StateFreeBuffer(Task* arg0, McWork* arg1)
+static void Mc_StateFreeBuffer(Task* arg0, McWork* arg1)
 {
     s32           ret;
     u32           status;
@@ -1264,7 +1282,7 @@ void Mc_StateFreeBuffer(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateFormat(Task* arg0, McWork* arg1)
+static void Mc_StateFormat(Task* arg0, McWork* arg1)
 {
     s32           ret;
     s32           status;
@@ -1320,7 +1338,7 @@ static inline void _mcCloseChild(Task* task, s32 status)
     }
 }
 
-void Mc_StateSyncFileSelect(Task* task, McWork* work)
+static void Mc_StateSyncFileSelect(Task* task, McWork* work)
 {
     UiObject* obj;
     s32       syncResult;
@@ -1371,7 +1389,8 @@ void Mc_StateSyncFileSelect(Task* task, McWork* work)
     }
 }
 
-const McStateFuncTable26 Mc_FileSelectStates = { {
+/// Jump table of 26 McStateFunc handlers used by Mc_DispatchStateTable26.
+static const McStateFuncTable26 Mc_FileSelectStates = { {
     (McStateFunc)0x80035A94,
     (McStateFunc)0x80035AD4,
     (McStateFunc)0x80035AF0,
@@ -1400,7 +1419,7 @@ const McStateFuncTable26 Mc_FileSelectStates = { {
     (McStateFunc)0x800368DC,
 } };
 
-void Mc_StateBlankFileName(Task* arg0, McWork* arg1)
+static void Mc_StateBlankFileName(Task* arg0, McWork* arg1)
 {
     s32           ret;
     u32           status;
@@ -1457,7 +1476,7 @@ void Mc_StateBlankFileName(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateSyncOpen(Task* arg0, McWork* arg1)
+static void Mc_StateSyncOpen(Task* arg0, McWork* arg1)
 {
     register Task*   a0 asm("s5");
     register McWork* a1 asm("s3");
@@ -1527,7 +1546,7 @@ void Mc_StateSyncOpen(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StateVerifyFinish(Task* arg0, McWork* arg1)
+static void Mc_StateVerifyFinish(Task* arg0, McWork* arg1)
 {
     McChecksumBlock*       temp;
     McBufferSlot*          p;
@@ -1638,7 +1657,7 @@ void Mc_StateVerifyFinish(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 }
 
-void Mc_StateFinishWrite(Task* arg0, McWork* arg1)
+static void Mc_StateFinishWrite(Task* arg0, McWork* arg1)
 {
     s32           ret;
     u32           status;
@@ -1985,7 +2004,7 @@ void func_800330D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     }
 }
 
-u16* Mc_EncodeAsciiGlyphs(s8* arg0, u16* arg1)
+static u16* Mc_EncodeAsciiGlyphs(s8* arg0, u16* arg1)
 {
     u16* lower;
     u16* upper;
@@ -2026,7 +2045,7 @@ u16* Mc_EncodeAsciiGlyphs(s8* arg0, u16* arg1)
     return arg1;
 }
 
-void Mc_InitFileName(void)
+static void Mc_InitFileName(void)
 {
     u8* ptr1;
     u8* ptr0;
@@ -2050,7 +2069,7 @@ void Mc_InitFileName(void)
     *ptr1 = 0;
 }
 
-void Mc_CopyFileName(s32 arg0)
+static void Mc_CopyFileName(s32 arg0)
 {
     u8* src;
     u8* dst;
@@ -2069,7 +2088,7 @@ void Mc_CopyFileName(s32 arg0)
     }
 }
 
-void Mc_WriteSaveHdrChecksum(void)
+static void Mc_WriteSaveHdrChecksum(void)
 {
     s16 sum;
     u8* ptr;
@@ -2095,7 +2114,7 @@ void Mc_WriteSaveHdrChecksum(void)
     Mc_VerifySaveHdrChecksum(&Mc_SaveData);
 }
 
-s32 Mc_VerifySaveHdrChecksum(McSaveData* arg0)
+static s32 Mc_VerifySaveHdrChecksum(McSaveData* arg0)
 {
     register s16 sum asm("v1");
     volatile u8* ptr;
@@ -2119,7 +2138,7 @@ s32 Mc_VerifySaveHdrChecksum(McSaveData* arg0)
     return ((u16)arg0->hdrChecksum ^ (sum & 0xFFFF)) == 0;
 }
 
-void Mc_WriteBlockChecksum(McChecksumBlock* arg0, s32 arg1)
+static void Mc_WriteBlockChecksum(McChecksumBlock* arg0, s32 arg1)
 {
     s16          sum;
     register u8* ptr asm("v1");
@@ -2156,7 +2175,7 @@ void Mc_ResetSaveFlags(void)
     Snd_ApplyVolumeTable(0);
 }
 
-void Mc_ClearWorkBuffers(void)
+static void Mc_ClearWorkBuffers(void)
 {
     u8(*a)[0x6C];
     u8(*b)[0xB0];
@@ -2189,7 +2208,7 @@ void Mc_InitLib(void)
     Mc_InitBufferSlots();
 }
 
-s32 Mc_VerifyBlockChecksum(McChecksumBlock* arg0, s32 arg1)
+static s32 Mc_VerifyBlockChecksum(McChecksumBlock* arg0, s32 arg1)
 {
     s16          sum;
     register u8* ptr asm("a2");
@@ -2210,11 +2229,11 @@ s32 Mc_VerifyBlockChecksum(McChecksumBlock* arg0, s32 arg1)
     return ((u16)arg0->field_0 ^ (sum & 0xFFFF)) == 0;
 }
 
-void func_80033C38(void)
+static void func_80033C38(void)
 {
 }
 
-s32 Mc_CompareBufferHalves(void)
+static s32 Mc_CompareBufferHalves(void)
 {
     McBufferSlot* base;
     u8*           src;
@@ -2250,7 +2269,7 @@ s32 Mc_CompareBufferHalves(void)
     return flags | 0x103;
 }
 
-void Mc_WriteSlotChecksums(void)
+static void Mc_WriteSlotChecksums(void)
 {
     McChecksumBlock* temp;
     McBufferSlot*    p;
@@ -2287,7 +2306,7 @@ void Mc_WriteSlotChecksums(void)
     } while (i < 9U);
 }
 
-void Mc_WriteFirstByteChecksum(void)
+static void Mc_WriteFirstByteChecksum(void)
 {
     McChecksumBlock* temp;
     McBufferSlot*    p;
@@ -2311,7 +2330,7 @@ void Mc_WriteFirstByteChecksum(void)
     Mc_SaveData.bufferChecksumInv = ~next;
 }
 
-s32 Mc_VerifyFirstByteChecksum(void)
+static s32 Mc_VerifyFirstByteChecksum(void)
 {
     s32           sum;
     u32           i;
@@ -2330,7 +2349,7 @@ s32 Mc_VerifyFirstByteChecksum(void)
     return ((u16)Mc_SaveData.bufferChecksum ^ (sum & 0xFFFF)) == 0;
 }
 
-s32 Mc_VerifySlotChecksums(void)
+static s32 Mc_VerifySlotChecksums(void)
 {
     McChecksumBlock* temp;
     McBufferSlot*    p;
@@ -2369,7 +2388,7 @@ s32 Mc_VerifySlotChecksums(void)
     return flag;
 }
 
-void Mc_DuplicateBuffers(void)
+static void Mc_DuplicateBuffers(void)
 {
     u32           i;
     u32           j;
@@ -2398,7 +2417,7 @@ void Mc_DuplicateBuffers(void)
     } while (i < 9);
 }
 
-void Mc_DrawPrompt(Task* arg0, s32 arg1)
+static void Mc_DrawPrompt(Task* arg0, s32 arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -2415,7 +2434,7 @@ void Mc_DrawPrompt(Task* arg0, s32 arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_HideChildUi(Task* arg0)
+static void Mc_HideChildUi(Task* arg0)
 {
     Task*     child;
     UiObject* obj;
@@ -2431,7 +2450,7 @@ void Mc_HideChildUi(Task* arg0)
     }
 }
 
-void Mc_WriteDataChecksum(s32 arg0, McWork* arg1)
+static void Mc_WriteDataChecksum(s32 arg0, McWork* arg1)
 {
     s16          sum;
     s32          count;
@@ -2463,7 +2482,7 @@ void Mc_WriteDataChecksum(s32 arg0, McWork* arg1)
     dst[1] = ~sum;
 }
 
-s32 Mc_CompareSaveChecksum(McSaveData* arg0, McWork* arg1)
+static s32 Mc_CompareSaveChecksum(McSaveData* arg0, McWork* arg1)
 {
     if (arg0->cheatMode != 0) {
         return 0;
@@ -2474,7 +2493,7 @@ s32 Mc_CompareSaveChecksum(McSaveData* arg0, McWork* arg1)
     return arg0->dataChecksum == arg1->field_A1C;
 }
 
-void Mc_ResetWork(Task* arg0, McWork* arg1)
+static void Mc_ResetWork(Task* arg0, McWork* arg1)
 {
     arg1->field_0   = 0x10;
     arg1->field_4   = 0;
@@ -2485,7 +2504,7 @@ void Mc_ResetWork(Task* arg0, McWork* arg1)
     arg0->state++;
 }
 
-void Mc_WriteSlotChecksumsEx(Task* arg0, McWork* arg1)
+static void Mc_WriteSlotChecksumsEx(Task* arg0, McWork* arg1)
 {
     McChecksumBlock* temp;
     McBufferSlot*    p;
@@ -2534,7 +2553,7 @@ void Mc_WriteSlotChecksumsEx(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StateAcceptMode1(Task* arg0, McWork* arg1)
+static void Mc_StateAcceptMode1(Task* arg0, McWork* arg1)
 {
     s32           ret;
     s32           idx;
@@ -2567,7 +2586,7 @@ void Mc_StateAcceptMode1(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StateSyncAdvance(Task* arg0, McWork* arg1)
+static void Mc_StateSyncAdvance(Task* arg0, McWork* arg1)
 {
     s32           ret;
     s32           idx;
@@ -2598,7 +2617,7 @@ void Mc_StateSyncAdvance(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StateDrawPromptAdvance(Task* arg0, McWork* arg1)
+static void Mc_StateDrawPromptAdvance(Task* arg0, McWork* arg1)
 {
     s32           ret;
     s32           idx;
@@ -2619,7 +2638,7 @@ void Mc_StateDrawPromptAdvance(Task* arg0, McWork* arg1)
     arg0->state = arg0->state + 1;
 }
 
-void Mc_StatePromptChoiceB(Task* arg0, McWork* arg1)
+static void Mc_StatePromptChoiceB(Task* arg0, McWork* arg1)
 {
     s32       ret;
     s32       syncResult;
@@ -2665,7 +2684,7 @@ void Mc_StatePromptChoiceB(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StateDrawPrompt4(Task* arg0, McWork* arg1)
+static void Mc_StateDrawPrompt4(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -2685,7 +2704,7 @@ void Mc_StateDrawPrompt4(Task* arg0, McWork* arg1)
     arg0->state = arg0->state + 1;
 }
 
-void Mc_StateEnterDialog4(Task* arg0, McWork* arg1)
+static void Mc_StateEnterDialog4(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -2705,7 +2724,7 @@ void Mc_StateEnterDialog4(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateWriteFile(Task* arg0, McWork* arg1)
+static void Mc_StateWriteFile(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -2731,7 +2750,7 @@ void Mc_StateWriteFile(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StatePromptChoiceGeneric(Task* arg0, McWork* arg1)
+static void Mc_StatePromptChoiceGeneric(Task* arg0, McWork* arg1)
 {
     s32 ret;
 
@@ -2756,7 +2775,7 @@ void Mc_StatePromptChoiceGeneric(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StateWriteData(Task* arg0, McWork* arg1)
+static void Mc_StateWriteData(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -2781,7 +2800,7 @@ void Mc_StateWriteData(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateClosePrompt(Task* arg0, McWork* arg1)
+static void Mc_StateClosePrompt(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -2810,14 +2829,14 @@ void Mc_StateClosePrompt(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_KillIfCountdown(Task* arg0, McWork* arg1)
+static void Mc_KillIfCountdown(Task* arg0, McWork* arg1)
 {
     if (arg0->killCountdown != 0) {
         taskKill(arg0);
     }
 }
 
-void Mc_StateSyncPromptFile3(Task* arg0, McWork* arg1)
+static void Mc_StateSyncPromptFile3(Task* arg0, McWork* arg1)
 {
     s32       syncResult;
     Task*     child;
@@ -2852,7 +2871,7 @@ void Mc_StateSyncPromptFile3(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StatePromptChoice9(Task* arg0, McWork* arg1)
+static void Mc_StatePromptChoice9(Task* arg0, McWork* arg1)
 {
     s32       ret;
     s32       syncResult;
@@ -2893,7 +2912,7 @@ void Mc_StatePromptChoice9(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StateColdBoot(Task* arg0, McWork* arg1)
+static void Mc_StateColdBoot(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -2913,7 +2932,7 @@ void Mc_StateColdBoot(Task* arg0, McWork* arg1)
     arg0->state   = arg0->state + 1;
 }
 
-void Mc_StateSyncPrompt13(Task* arg0, McWork* arg1)
+static void Mc_StateSyncPrompt13(Task* arg0, McWork* arg1)
 {
     s32       syncResult;
     s32       rslt;
@@ -2950,7 +2969,7 @@ void Mc_StateSyncPrompt13(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StateEnterPrompt0(Task* arg0, McWork* arg1)
+static void Mc_StateEnterPrompt0(Task* arg0, McWork* arg1)
 {
     u8* ptr1;
     u8* ptr0;
@@ -2979,7 +2998,7 @@ void Mc_StateEnterPrompt0(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StatePromptCountdown(Task* arg0, McWork* arg1)
+static void Mc_StatePromptCountdown(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -3003,7 +3022,7 @@ void Mc_StatePromptCountdown(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StateDrawPromptTo1F(Task* arg0, McWork* arg1)
+static void Mc_StateDrawPromptTo1F(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -3023,7 +3042,7 @@ void Mc_StateDrawPromptTo1F(Task* arg0, McWork* arg1)
     arg0->state = 0x1F;
 }
 
-void Mc_StateCountdownPrompt4(Task* arg0, McWork* arg1)
+static void Mc_StateCountdownPrompt4(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -3045,7 +3064,7 @@ void Mc_StateCountdownPrompt4(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StateDrawPrompt1Advance(Task* arg0, McWork* arg1)
+static void Mc_StateDrawPrompt1Advance(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -3065,7 +3084,7 @@ void Mc_StateDrawPrompt1Advance(Task* arg0, McWork* arg1)
     arg0->state = arg0->state + 1;
 }
 
-void Mc_StateOpenSelected(Task* arg0, McWork* arg1)
+static void Mc_StateOpenSelected(Task* arg0, McWork* arg1)
 {
     McWork*        a1;
     register Task* a0 asm("s2");
@@ -3100,7 +3119,7 @@ void Mc_StateOpenSelected(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateReadHeader(Task* arg0, McWork* arg1)
+static void Mc_StateReadHeader(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -3125,7 +3144,7 @@ void Mc_StateReadHeader(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateOpenNext(Task* arg0, McWork* arg1)
+static void Mc_StateOpenNext(Task* arg0, McWork* arg1)
 {
     McWork*       a1;
     Task*         a0;
@@ -3161,7 +3180,7 @@ void Mc_StateOpenNext(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateUiCountdown2(Task* arg0, McWork* arg1)
+static void Mc_StateUiCountdown2(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -3184,7 +3203,7 @@ void Mc_StateUiCountdown2(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateUiCountdownE(Task* arg0, McWork* arg1)
+static void Mc_StateUiCountdownE(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -3207,7 +3226,7 @@ void Mc_StateUiCountdownE(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateUiCountdownF(Task* arg0, McWork* arg1)
+static void Mc_StateUiCountdownF(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -3229,7 +3248,7 @@ void Mc_StateUiCountdownF(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateEnterPromptE(Task* arg0, McWork* arg1)
+static void Mc_StateEnterPromptE(Task* arg0, McWork* arg1)
 {
     arg1->field_8 = 0xE;
     arg1->field_4 = 0;
@@ -3238,7 +3257,7 @@ void Mc_StateEnterPromptE(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StateEnterPromptD(Task* arg0, McWork* arg1)
+static void Mc_StateEnterPromptD(Task* arg0, McWork* arg1)
 {
     arg1->field_8 = 0xD;
     arg1->field_4 = 0;
@@ -3271,7 +3290,7 @@ void Mc_DispatchStateTable(Task* arg0)
     D_80073C08 = rand();
 }
 
-void Mc_StateInitWorkDefaults(Task* arg0, McWork* arg1)
+static void Mc_StateInitWorkDefaults(Task* arg0, McWork* arg1)
 {
     arg1->field_0                              = 0x10;
     arg1->field_8                              = 0x8;
@@ -3283,14 +3302,14 @@ void Mc_StateInitWorkDefaults(Task* arg0, McWork* arg1)
     arg0->state                               += 1;
 }
 
-void Mc_StateSetOpenDefaults(Task* arg0, McWork* arg1)
+static void Mc_StateSetOpenDefaults(Task* arg0, McWork* arg1)
 {
     arg1->field_24 = 9;
     arg1->field_28 = -1;
     arg0->state    = 7;
 }
 
-void Mc_StateCountdownPrompt(Task* arg0, McWork* arg1)
+static void Mc_StateCountdownPrompt(Task* arg0, McWork* arg1)
 {
     s32           status;
     s32           ret;
@@ -3328,7 +3347,7 @@ void Mc_StateCountdownPrompt(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StateCloseReturn(Task* arg0, McWork* arg1)
+static void Mc_StateCloseReturn(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -3352,7 +3371,7 @@ void Mc_StateCloseReturn(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StatePromptTimeout(Task* arg0, McWork* arg1)
+static void Mc_StatePromptTimeout(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -3376,14 +3395,14 @@ void Mc_StatePromptTimeout(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_KillIfCountdownAlt(Task* arg0)
+static void Mc_KillIfCountdownAlt(Task* arg0)
 {
     if (arg0->killCountdown != 0) {
         taskKill(arg0);
     }
 }
 
-void Mc_StateEnterPromptF(Task* arg0, McWork* arg1)
+static void Mc_StateEnterPromptF(Task* arg0, McWork* arg1)
 {
     u8* ptr1;
     u8* ptr0;
@@ -3412,7 +3431,7 @@ void Mc_StateEnterPromptF(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StateAccept(Task* arg0, McWork* arg1)
+static void Mc_StateAccept(Task* arg0, McWork* arg1)
 {
     McWork*            a1;
     register Task*     a0 asm("s0");
@@ -3442,7 +3461,7 @@ void Mc_StateAccept(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateSyncPrompt3(Task* arg0, McWork* arg1)
+static void Mc_StateSyncPrompt3(Task* arg0, McWork* arg1)
 {
     s32       syncResult;
     Task*     child;
@@ -3477,7 +3496,7 @@ void Mc_StateSyncPrompt3(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StateSyncPromptA(Task* arg0, McWork* arg1)
+static void Mc_StateSyncPromptA(Task* arg0, McWork* arg1)
 {
     s32       syncResult;
     s32       rslt;
@@ -3514,7 +3533,7 @@ void Mc_StateSyncPromptA(Task* arg0, McWork* arg1)
     }
 }
 
-void Mc_StateDrawCurrentPrompt(Task* arg0, McWork* arg1)
+static void Mc_StateDrawCurrentPrompt(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -3535,7 +3554,7 @@ void Mc_StateDrawCurrentPrompt(Task* arg0, McWork* arg1)
     arg0->state = arg0->state + 1;
 }
 
-void Mc_StateReadData(Task* arg0, McWork* arg1)
+static void Mc_StateReadData(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -3560,7 +3579,7 @@ void Mc_StateReadData(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateDrawPrompt1(Task* arg0, McWork* arg1)
+static void Mc_StateDrawPrompt1(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -3580,7 +3599,7 @@ void Mc_StateDrawPrompt1(Task* arg0, McWork* arg1)
     arg0->state = arg0->state + 1;
 }
 
-void Mc_StateGetDirentry(Task* arg0, McWork* arg1)
+static void Mc_StateGetDirentry(Task* arg0, McWork* arg1)
 {
     s32           ret;
     s32           idx;
@@ -3614,7 +3633,7 @@ void Mc_StateGetDirentry(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateOpenDirEntry(Task* arg0, McWork* arg1)
+static void Mc_StateOpenDirEntry(Task* arg0, McWork* arg1)
 {
     McWork*        a1;
     register Task* a0 asm("s2");
@@ -3649,7 +3668,7 @@ void Mc_StateOpenDirEntry(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateReadSlot(Task* arg0, McWork* arg1)
+static void Mc_StateReadSlot(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -3674,7 +3693,7 @@ void Mc_StateReadSlot(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateWalkDirectory(Task* arg0, McWork* arg1)
+static void Mc_StateWalkDirectory(Task* arg0, McWork* arg1)
 {
     McWork*       a1;
     Task*         a0;
@@ -3710,7 +3729,7 @@ void Mc_StateWalkDirectory(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void Mc_StateEnterPrompt17(Task* arg0, McWork* arg1)
+static void Mc_StateEnterPrompt17(Task* arg0, McWork* arg1)
 {
     u8* ptr1;
     u8* ptr0;

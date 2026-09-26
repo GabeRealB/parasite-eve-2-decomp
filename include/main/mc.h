@@ -244,50 +244,15 @@ STATIC_ASSERT_SIZEOF(McStateFuncTable26, 0x68);
 
 /// Render the selected memory-card slot and its saved statistics.
 void func_800330D8(struct _UiObject* obj, s32 work, s32 slot, s32 x, s32 y);
-void Mc_StateCompareBuffers(Task* task, McWork* work);
-void Mc_StateOpenRead(Task* task, McWork* work);
-void Mc_StateCreateFile(Task* task, McWork* work);
-void Mc_StatePadFileName(Task* task, McWork* work);
-void Mc_StateNameEntry(Task* task, McWork* work);
-void Mc_StateBackupBuffers(Task* task, McWork* work);
-void Mc_StateFreeBuffer(Task* task, McWork* work);
-void Mc_StateFormat(Task* task, McWork* work);
-void Mc_StateSyncFileSelect(Task* task, McWork* work);
-void Mc_StateBlankFileName(Task* task, McWork* work);
-void Mc_StateSyncOpen(Task* task, McWork* work);
-void Mc_StateVerifyFinish(Task* task, McWork* work);
-void Mc_StateFinishWrite(Task* task, McWork* work);
-void Mc_KillIfCountdown(Task* task, McWork* work);
 void Mc_DispatchStateTable(Task* task);
-u16* Mc_EncodeAsciiGlyphs(s8* src, u16* dst);
-void Mc_InitFileName(void);
-void Mc_CopyFileName(s32 direction);
-void Mc_WriteSaveHdrChecksum(void);
-s32  Mc_VerifySaveHdrChecksum(McSaveData* save);
-void Mc_WriteBlockChecksum(McChecksumBlock* block, s32 size);
 void Mc_ResetSaveFlags(void);
-void Mc_ClearWorkBuffers(void);
 void Mc_InitLib(void);
-s32  Mc_VerifyBlockChecksum(McChecksumBlock* block, s32 size);
-void Mc_DrawPrompt(Task* task, s32 mode);
-void Mc_HideChildUi(Task* task);
-void Mc_WriteDataChecksum(s32 mode, McWork* work);
-s32  Mc_CompareSaveChecksum(McSaveData* save, McWork* work);
-void Mc_ResetWork(Task* task, McWork* work);
-void Mc_StateOpenSelected(Task* task, McWork* work);
-void Mc_StateOpenNext(Task* task, McWork* work);
-void Mc_StateCloseReturn(Task* task, McWork* work);
 void Mc_DispatchStateTable26(Task* task);
 
 /// Init Mc_BufferSlots[1..8] dual-bank buffers and related save state.
 void Mc_InitBufferSlots(void);
 /// Build a memcard save filename into `buf` (product code + mode char + random).
 void Mc_BuildFileName(u8* buf, s32 modeCharIdx);
-/// Prompt + optional choice dialog (Mc_PromptTable[mode]).
-s32 Mc_PromptDialog(Task* task, s32 mode, s32 arg2);
-s32 Mc_PromptDialogChoice(Task* task, s32 mode, s32 arg2);
-s32 Mc_PromptDialogSpawn(Task* task, s32 mode, s32 arg2);
-s32 Mc_PromptDialogFile(Task* task, s32 mode, s32 arg2);
 
 // =============================================================================
 // Globals
@@ -306,8 +271,6 @@ extern McSaveData   Mc_SaveData;
 /// "*" wildcard passed to MemCardGetDirentry by Mc_StateScanDirFlags.
 /// Jump table of 44 McStateFunc handlers used by Mc_DispatchStateTable.
 
-/// Jump table of 26 McStateFunc handlers used by Mc_DispatchStateTable26.
-extern McStateFuncTable26 Mc_FileSelectStates;
 /// Global McWork instance used by the memcard state dispatcher.
 extern McWork D_80071730;
 /// Memcard product-code prefix (12 bytes, e.g. "BASLUS-01042").

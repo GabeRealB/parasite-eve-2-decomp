@@ -5,9 +5,13 @@
 #include "main/title.h"
 #include "main/ui.h"
 
-extern const char D_800138BC[];
-extern const char D_800138C8[];
-extern const char D_800138CC[];
+static const char D_800138BC[];
+static const char D_800138C8[];
+static const char D_800138CC[];
+
+static void Text_DrawGlyphImmediate(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
+static void Text_DrawGlyphOt(TextDrawReq* arg0, FontGlyph* arg1);
+static void Text_DrawGlyphQueued(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
 
 void textNoopCallback(Task* task)
 {
@@ -28,7 +32,7 @@ void textNoopCallback(Task* task)
         }                                               \
     } while (0)
 
-s32 Text_MeasureGlyphWidth(TextDrawReq* req, u8* str, u8* table)
+static s32 Text_MeasureGlyphWidth(TextDrawReq* req, u8* str, u8* table)
 {
     s32        width;
     FontGlyph* glyph;
@@ -86,7 +90,7 @@ s32 Text_MeasureGlyphWidth(TextDrawReq* req, u8* str, u8* table)
     return width - (s8)glyph->field_6;
 }
 
-void Text_DrawGlyphDualSprtA(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
+static void Text_DrawGlyphDualSprtA(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
 {
     SPRT* p;
     SPRT* p2;
@@ -117,7 +121,7 @@ void Text_DrawGlyphDualSprtA(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     addPrim(gGpuCurrentOt + arg0->otIndex, p);
 }
 
-void Text_DrawGlyphDualSprt(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
+static void Text_DrawGlyphDualSprt(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
 {
     SPRT* p;
     SPRT* p2;
@@ -148,7 +152,7 @@ void Text_DrawGlyphDualSprt(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     addPrim(gGpuCurrentOt + arg0->otIndex, p);
 }
 
-void Text_DrawGlyphDualSprtTpage(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
+static void Text_DrawGlyphDualSprtTpage(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
 {
     SPRT*     p;
     SPRT*     p2;
@@ -746,7 +750,7 @@ u8* Text_ItoaUnsigned(u8* arg0, u32 arg1)
     return ret;
 }
 
-u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
+static u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
 {
     typedef struct {
         u8 data[2];
@@ -799,7 +803,7 @@ u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
     return ret;
 }
 
-u8* Text_ItoaHex(u8* arg0, u32 arg1)
+static u8* Text_ItoaHex(u8* arg0, u32 arg1)
 {
     typedef struct {
         u8 data[2];
@@ -947,7 +951,7 @@ u8* Text_Strcat(u8* dest, u8* src)
     return dest;
 }
 
-void Text_DrawGlyphImmediate(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
+static void Text_DrawGlyphImmediate(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
 {
     SPRT* p;
     s32   temp;
@@ -967,7 +971,7 @@ void Text_DrawGlyphImmediate(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     DrawPrim(p);
 }
 
-void Text_DrawGlyphQueued(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
+static void Text_DrawGlyphQueued(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
 {
     SPRT* p;
     s32   temp;
@@ -988,7 +992,7 @@ void Text_DrawGlyphQueued(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     addPrim(gGpuCurrentOt + arg0->otIndex, p);
 }
 
-void Text_DrawGlyphOt(TextDrawReq* arg0, FontGlyph* arg1)
+static void Text_DrawGlyphOt(TextDrawReq* arg0, FontGlyph* arg1)
 {
     SPRT* p;
     s32   temp;
@@ -1047,6 +1051,6 @@ void Text_BootTask(Task* arg0)
 }
 
 /// Overflow and zero texts of the number formatters.
-const char D_800138BC[] = "99999999";
-const char D_800138C8[] = "0";
-const char D_800138CC[] = "999999999";
+static const char D_800138BC[] = "99999999";
+static const char D_800138C8[] = "0";
+static const char D_800138CC[] = "999999999";

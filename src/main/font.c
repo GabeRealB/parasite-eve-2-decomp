@@ -6,19 +6,21 @@
 #include "main/gameflag.h"
 #include "main/text.h"
 
-void Task_AllocIdMap(Task* arg0);
-void Stage_LoadOrCountdownTask(Task* arg0);
-void Stage_ApplyTableEntryWhenIdle(Task* arg0);
-void Stage_KillWhenIdle(Task* arg0);
+static void Task_AllocIdMap(Task* arg0);
+static void Stage_LoadOrCountdownTask(Task* arg0);
+static void Stage_ApplyTableEntryWhenIdle(Task* arg0);
+static void Stage_KillWhenIdle(Task* arg0);
 
-const TaskFuncTable4 Stage_TaskStates = { {
+static void Prim_DrawTile(PrimDrawParams* arg0);
+
+static const TaskFuncTable4 Stage_TaskStates = { {
     Task_AllocIdMap,
     Stage_LoadOrCountdownTask,
     Stage_ApplyTableEntryWhenIdle,
     Stage_KillWhenIdle,
 } };
 
-void Task_AllocIdMap(Task* arg0)
+static void Task_AllocIdMap(Task* arg0)
 {
     u8         temp_s4;
     u8         temp_s1;
@@ -91,7 +93,7 @@ block_20:
     taskKill(arg0);
 }
 
-void Stage_LoadOrCountdownTask(Task* arg0)
+static void Stage_LoadOrCountdownTask(Task* arg0)
 {
     u8                   param1[8];
     u8                   param2[8];
@@ -137,7 +139,7 @@ void Stage_LoadOrCountdownTask(Task* arg0)
     }
 }
 
-void Stage_ApplyTableEntryWhenIdle(Task* arg0)
+static void Stage_ApplyTableEntryWhenIdle(Task* arg0)
 {
     TaskIdMap*  temp;
     TaskIdPair* entry;
@@ -206,7 +208,7 @@ void Stage_RequestMidiFromMap(s32 arg0)
     }
 }
 
-void Stage_DispatchTaskTable(Task* arg0)
+static void Stage_DispatchTaskTable(Task* arg0)
 {
     TaskFuncTable4 sp;
 
@@ -214,7 +216,7 @@ void Stage_DispatchTaskTable(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void Stage_KillWhenIdle(Task* arg0)
+static void Stage_KillWhenIdle(Task* arg0)
 {
     if (CdCmd_IsIdle() != 0) {
         gStageMusicLoadState = 0xFF;
@@ -247,8 +249,8 @@ void Stage_RequestSpecialFlag(s32 arg0)
     }
 }
 
-void Prim_DrawSprt(PrimDrawParams* arg0, u32 arg1, s32 arg2);
-void Prim_DrawTPage(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+static void Prim_DrawSprt(PrimDrawParams* arg0, u32 arg1, s32 arg2);
+static void Prim_DrawTPage(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 
 s32 TextStream_Draw(TextStream* arg0, u8* arg1, s16* arg2, s32 arg3)
 {
@@ -351,7 +353,7 @@ s32 TextStream_Draw(TextStream* arg0, u8* arg1, s16* arg2, s32 arg3)
     return ret;
 }
 
-void Prim_DrawSprt(PrimDrawParams* arg0, u32 arg1, s32 arg2)
+static void Prim_DrawSprt(PrimDrawParams* arg0, u32 arg1, s32 arg2)
 {
     SPRT* p;
     u8    v;
@@ -380,7 +382,7 @@ void Prim_DrawSprt(PrimDrawParams* arg0, u32 arg1, s32 arg2)
     AddPrim(gGpuCurrentOt + 4, p);
 }
 
-void Prim_DrawTPage(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+static void Prim_DrawTPage(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     DR_TPAGE* p;
 
@@ -390,7 +392,7 @@ void Prim_DrawTPage(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     AddPrim(gGpuCurrentOt + arg3, p);
 }
 
-s32 Prim_DrawFadeTile(RECT* arg0, u8* arg1, s16* arg2)
+static s32 Prim_DrawFadeTile(RECT* arg0, u8* arg1, s16* arg2)
 {
     PrimDrawParams sp;
     register s32   ret asm("s0");
@@ -418,7 +420,7 @@ s32 Prim_DrawFadeTile(RECT* arg0, u8* arg1, s16* arg2)
     return ret;
 }
 
-void Prim_DrawTile(PrimDrawParams* arg0)
+static void Prim_DrawTile(PrimDrawParams* arg0)
 {
     TILE* p;
 

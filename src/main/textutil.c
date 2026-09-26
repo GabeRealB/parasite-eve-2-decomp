@@ -10,7 +10,7 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 
-s32 Text_ParseLine(u8** arg0, u8* arg1)
+static s32 Text_ParseLine(u8** arg0, u8* arg1)
 {
     s32 ret;
     u8* src;
@@ -232,13 +232,13 @@ s32 Text_DrawPrompt(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 
     return sp10.x - (s16)arg0->baseX;
 }
 
-void Text_DrawPromptCompat(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, void* arg6)
+static void Text_DrawPromptCompat(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, void* arg6)
 {
     Text_DrawPrompt(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
 }
 
-s32 Text_DrawMultiLineScroll(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6,
-                             s32 arg7, s32 arg8)
+static s32 Text_DrawMultiLineScroll(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6,
+                                    s32 arg7, s32 arg8)
 {
     u8                 sp10[0x40];
     TextDrawReq        sp50[2];
@@ -352,7 +352,7 @@ void Mc_BuildFileName(u8* arg0, s32 arg1)
     arg0[1] = 0;
 }
 
-void Mc_InitDualBankBuffers(void)
+static void Mc_InitDualBankBuffers(void)
 {
     u8(*a)[0x6C];
     u8(*b)[0xB0];

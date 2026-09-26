@@ -66,18 +66,11 @@ extern u8 gStageCurrentSong;
 
 // --- APIs ---
 void Stage_InitOtAndSpawn(void);
-void Stage_WaitCdActivate(Task* task);
-void Stage_WaitCdAndSpawn(Task* task);
-void Stage_WaitCdEntry(Task* task);
-void Stage_FinishCdFollowUp(Task* task);
 s32  Stage_SetEndingFlag(void);
 void Stage_ReleasePrimBuf(void);
 /// Overlay callers pass 1; the argument is unused.
 void Stage_RequestSpecialFlag(s32 arg0);
 s32  Stage_BeginTransition(s32 arg0, s32 arg1);
-/// Transition kinds 3 and 7: same field_1c 0x40000000 handshake as
-/// Stage_BeginTransition, with StageCtx::field_11 fixed to 3 and 7.
-s32  Stage_BeginTransitionKind3(void);
 s32  Stage_BeginTransitionKind7(s32 arg0);
 s32  Stage_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void Stage_SetFadeMax(u8 arg0);

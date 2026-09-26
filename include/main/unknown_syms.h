@@ -36,7 +36,6 @@ extern void func_80179954(void* arg0);
 extern void func_80179988(void* arg0);
 extern void func_801799BC(void* arg0);
 extern s32  func_80179BE4(u16 arg0, u8 arg1, LinInterp* arg2);
-extern void func_80030AB0(McWork* work);
 extern s16  Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3);
 extern void Gp_StepCdAudioCmd(void);
 extern void Gp_ApplySndBankMasks(u16 arg0);

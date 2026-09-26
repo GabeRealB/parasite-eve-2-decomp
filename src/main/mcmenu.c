@@ -7,24 +7,24 @@
 #include "main/text.h"
 #include "main/ui.h"
 
-const char D_80013B64[] = "Select";
-const char D_80013B6C[] = "TIME";
-const char D_80013B74[] = "CLEAR";
-const char D_80013B7C[] = "Nightmare";
-const char D_80013B88[] = "Scavenger";
-const char D_80013B94[] = "Bounty";
-const char D_80013B9C[] = "Replay";
-const char D_80013BA4[] = " (";
-const char D_80013BA8[] = "EXP";
-const char D_80013BAC[] = "---";
-const char D_80013BB0[] = "BP";
+static const char D_80013B64[] = "Select";
+const char        D_80013B6C[] = "TIME";
+const char        D_80013B74[] = "CLEAR";
+const char        D_80013B7C[] = "Nightmare";
+const char        D_80013B88[] = "Scavenger";
+const char        D_80013B94[] = "Bounty";
+const char        D_80013B9C[] = "Replay";
+const char        D_80013BA4[] = " (";
+const char        D_80013BA8[] = "EXP";
+const char        D_80013BAC[] = "---";
+const char        D_80013BB0[] = "BP";
 
 void func_80036A1C(void)
 {
     char pad[0x10];
 }
 
-void McMenu_UpdateListCursor(void* arg0, UiMiniObj* arg1)
+static void McMenu_UpdateListCursor(void* arg0, UiMiniObj* arg1)
 {
     Ui_UpdateListNoAnim(arg0, arg1);
     if (arg1->field_0 == 1) {

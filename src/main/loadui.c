@@ -8,7 +8,9 @@
 #include "main/wipsys.h"
 #include "psyq/libetc.h"
 
-extern const GBytes4 D_80013F18;
+static const GBytes4 D_80013F18;
+
+static void Prim_DrawLoadingSprt(void);
 
 void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
 {
@@ -170,7 +172,7 @@ s32 func_80042500(void)
     return 0;
 }
 
-void Prim_DrawLoadingSprt(void)
+static void Prim_DrawLoadingSprt(void)
 {
     SPRT*     p;
     DR_TPAGE* dr;
@@ -253,4 +255,4 @@ void Snd_ApplyVolumeTable(s32 arg0)
 }
 
 /// Music volume for each of the four volume settings, loudest first.
-const GBytes4 D_80013F18 = { { 100, 64, 32, 0 } };
+static const GBytes4 D_80013F18 = { { 100, 64, 32, 0 } };

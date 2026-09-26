@@ -11,7 +11,16 @@
 
 #include "psyq/libpress.h"
 
-const TaskFuncTable6 Display_TaskStates = { {
+static void Display_FlipOtAndDispatch(s32 arg0);
+static void Display_InvertFramebufferGray(void);
+static void Display_TaskLoadStep(Task* arg0);
+static void Display_TransitionTask(Task* arg0);
+static void Stage_FinishCdFollowUp(Task* arg0);
+static void Stage_WaitCdActivate(Task* arg0);
+static void Stage_WaitCdAndSpawn(Task* arg0);
+static void Stage_WaitCdEntry(Task* arg0);
+
+static const TaskFuncTable6 Display_TaskStates = { {
     Stage_WaitCdActivate,
     Stage_WaitCdAndSpawn,
     Display_TransitionTask,
@@ -20,7 +29,7 @@ const TaskFuncTable6 Display_TaskStates = { {
     Stage_FinishCdFollowUp,
 } };
 
-void Display_StepFadeOverlay(void)
+static void Display_StepFadeOverlay(void)
 {
     StageCtx* p;
     s32       temp;
@@ -99,7 +108,7 @@ void Display_StepFadeOverlay(void)
     }
 }
 
-s32 Display_TransitionLoad(Task* arg0)
+static s32 Display_TransitionLoad(Task* arg0)
 {
     RECT rect;
     s32  temp_v1;
@@ -163,7 +172,7 @@ end:
     return 1;
 }
 
-Task* Display_SpawnFromMode(void)
+static Task* Display_SpawnFromMode(void)
 {
     Task*      ret;
     u32        mode;
@@ -239,9 +248,7 @@ block_end:
     return ret;
 }
 
-void Display_TaskLoadStep(Task* arg0);
-
-void Display_TransitionTask(Task* arg0)
+static void Display_TransitionTask(Task* arg0)
 {
     u32          flags;
     s32          state;
@@ -351,7 +358,7 @@ void Display_TransitionTask(Task* arg0)
     }
 }
 
-void Display_FlipOtAndDispatch(s32 arg0)
+static void Display_FlipOtAndDispatch(s32 arg0)
 {
     DisplayState* temp;
     u_long*       saved;
@@ -384,7 +391,7 @@ void Display_FlipOtAndDispatch(s32 arg0)
     gGpuCurrentOt = saved;
 }
 
-void Display_InvertFramebufferGray(void)
+static void Display_InvertFramebufferGray(void)
 {
     s32          i;
     u32          maskR;
@@ -617,7 +624,9 @@ void Display_SetDrawMode(s32 arg0)
     }
 }
 
-s32 Stage_BeginTransitionKind3(void)
+/// Transition kinds 3 and 7: same field_1c 0x40000000 handshake as
+/// Stage_BeginTransition, with StageCtx::field_11 fixed to 3 and 7.
+static s32 Stage_BeginTransitionKind3(void)
 {
     StageCtx* temp;
     u32       flags;
@@ -666,7 +675,7 @@ u8 Stage_GetModeByte12(void)
     return Stage_Ctx->field_12;
 }
 
-void Stage_SetModeAndFlip(u8 arg0)
+static void Stage_SetModeAndFlip(u8 arg0)
 {
     StageCtx* temp;
 
@@ -683,7 +692,7 @@ void Stage_ResetFade(void)
     Stage_Ctx->field_1a = 0xFF;
 }
 
-void Stage_WaitCdActivate(Task* arg0)
+static void Stage_WaitCdActivate(Task* arg0)
 {
     Pad_SetCooldown(0);
     if (CdCmd_ActivatePhase2() != 0) {
@@ -695,7 +704,7 @@ void Stage_WaitCdActivate(Task* arg0)
     }
 }
 
-void Stage_WaitCdAndSpawn(Task* arg0)
+static void Stage_WaitCdAndSpawn(Task* arg0)
 {
     Pad_SetCooldown(0);
     if (func_8001D82C() != 0) {
@@ -705,7 +714,7 @@ void Stage_WaitCdAndSpawn(Task* arg0)
     }
 }
 
-void Display_TaskLoadStep(Task* arg0)
+static void Display_TaskLoadStep(Task* arg0)
 {
     u32 temp_v1;
 
@@ -728,14 +737,14 @@ void Display_TaskLoadStep(Task* arg0)
     Stage_WaitCdEntry(arg0);
 }
 
-void Stage_WaitCdEntry(Task* arg0)
+static void Stage_WaitCdEntry(Task* arg0)
 {
     if (func_8001D82C() != 0) {
         arg0->state += 1;
     }
 }
 
-void Stage_FinishCdFollowUp(Task* arg0)
+static void Stage_FinishCdFollowUp(Task* arg0)
 {
     if (CdCmd_EnqueueFollowUp() != 0) {
         gDisplayState.displayOwner            = 0;
@@ -845,7 +854,7 @@ success:
     D_8007A360   = Mdec_DecodeBase + offset;
 }
 
-void Mdec_StripCallback(void);
+static void Mdec_StripCallback(void);
 
 static __inline__ void mdecFinishDecode(void)
 {
@@ -861,7 +870,8 @@ static __inline__ void mdecFinishDecode(void)
     q->field_246 = 0;
 }
 
-void Mdec_ProcessDecode(void)
+/// field_202 state machine: start DCT, apply work-lists / image chunks, complete.
+static void Mdec_ProcessDecode(void)
 {
     CdCmdQueue* p;
     u16         i;
@@ -955,7 +965,7 @@ void Mdec_ProcessDecode(void)
     }
 }
 
-void Mdec_DecodeToVram(void)
+static void Mdec_DecodeToVram(void)
 {
     RECT          rect;
     s32           i;
@@ -1059,7 +1069,7 @@ void CdCmd_RequestVlcRebuild(void)
     CdCmd_Queue.field_234 = 1;
 }
 
-void Mdec_StripCallback(void)
+static void Mdec_StripCallback(void)
 {
     s32         temp;
     CdCmdQueue* p;

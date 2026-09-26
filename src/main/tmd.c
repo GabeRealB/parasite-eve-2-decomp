@@ -42,13 +42,16 @@ u32* D_801379B4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
-const TaskFuncTable3 Tmd_TaskStates = { {
+static void Tmd_FlagAllNodes(Task* task);
+static void Tmd_FreeNodeBuffers(Task* task);
+
+static const TaskFuncTable3 Tmd_TaskStates = { {
     Tmd_FlagAllNodes,
     Tmd_FreeNodeBuffers,
     taskKill,
 } };
 
-void Tmd_InitSourceStream(TmdSource* src)
+static void Tmd_InitSourceStream(TmdSource* src)
 {
     u32*                   stream;
     u32                    id;
@@ -512,7 +515,7 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
     return obj;
 }
 
-void Tmd_SetupDraw(TmdObject* obj)
+static void Tmd_SetupDraw(TmdObject* obj)
 {
     u8                   buf[0x1000];
     TmdScratchDrawBlock* tmp;
@@ -607,7 +610,8 @@ s32 Tmd_AllocBuffers(TmdObject* obj)
     return result;
 }
 
-s32 Tmd_SumBufferBytes(void)
+/// Total bytes the attached models hold in their buffers.
+static s32 Tmd_SumBufferBytes(void)
 {
     TmdObject* node;
     s32        result;
@@ -623,7 +627,7 @@ s32 Tmd_SumBufferBytes(void)
     return result;
 }
 
-void Tmd_RewriteOpcodes(TmdSource* src)
+static void Tmd_RewriteOpcodes(TmdSource* src)
 {
     u32* stream;
     u32  id;
@@ -680,7 +684,8 @@ void Tmd_RewriteOpcodes(TmdSource* src)
     }
 }
 
-void Tmd_FlagAllNodes(Task* task)
+/// Marks every attached model as no longer drawn.
+static void Tmd_FlagAllNodes(Task* task)
 {
     TmdObject* node;
 
@@ -692,7 +697,8 @@ void Tmd_FlagAllNodes(Task* task)
     task->state++;
 }
 
-void Tmd_FreeNodeBuffers(Task* task)
+/// Releases the buffer of every attached model.
+static void Tmd_FreeNodeBuffers(Task* task)
 {
     TmdObject* node;
 
