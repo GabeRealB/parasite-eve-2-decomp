@@ -500,23 +500,21 @@ segments:
       # splat 0.50 needs explicit vram + bss_size on noload splits (vram is
       # not inferred from the fake rom cursor once the EXE image ends).
       - { start: 0x59780, type: bss, name: main, vram: 0x80068F80, bss_size: 0x27C } # GAuxHeap..CdCmd_Queue
-      - [0x599fc, pad]
       - [0x59a00, o, libcd/bios, .bss] # StMode
-      - [0x59a34, pad]
       - [0x59a38, o, libcd/cdrom, .bss]
         # StRingAddr, StRingSize, StRingBase, StRgb24, StEmu_Addr, StEmu_Idx, StRingIdx1, StRingIdx2, StRingIdx3, StSTART_FLAG, StStartFrame, StEndFrame, StFinalSector, Stframe_no, Stsector_offset, StCdIntrFlag, StCHANNEL, CChannel
         # The symbols are defined in the wrong order in the object file and were manually reordered.
       - [0x59a80, o, libgpu/sys, .bss] # _que
       - [0x5b3d0, o, libc2/putchar, .bss]
       - [0x5b3f0, o, libds/dscb, .bss] # GlobalCallback
-      - { start: 0x5b3fc, type: .bss, name: cdcmd, vram: 0x8006ABFC }
+      - { start: 0x5b400, type: .bss, name: cdcmd, vram: 0x8006AC00 }
       - { start: 0x5b408, type: .bss, name: stream, vram: 0x8006AC08, bss_size: 0x68 }
       - [0x5b470, o, libcd/c_004, .bss]
       - [0x5b480, o, libcd/c_005, .bss] # StFunc1, StFunc2
       - [0x5b488, o, libcd/c_011, .bss]
       - { start: 0x5b498, type: bss, name: fs, vram: 0x8006AC98, bss_size: 0x3F68 } # Fs_* tables / sector buf
       - [0x5f400, o, libspu/spu, .bss] # _spu_RQ
-      - { start: 0x5f414, type: bss, name: "5F414", vram: 0x8006EC14, bss_size: 0x2504 } # OT / GPU buffers
+      - { start: 0x5f418, type: bss, name: "5F418", vram: 0x8006EC18, bss_size: 0x2500 } # OT / GPU buffers
       - [0x61918, o, libgs/gs_123, .bss] # GsIDMATRIX, GsWSMATRIX, GsWSMATRIX_ORG, GsIDMATRIX2
       - [0x61998, pad]
       - [0x619a8, o, libgte/patchgte, .bss]

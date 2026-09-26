@@ -8,8 +8,6 @@
 
 #include "psyq/libpress.h"
 
-/// Unreferenced.
-static s32   D_8006ABFC;
 static void* D_8006AC00;
 static u16   CdCmd_EntryIter;
 

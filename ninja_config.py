@@ -368,9 +368,32 @@ def _ensure_maspsx_li_d_patch() -> None:
     print(f"Applied {patch.name} to tools/maspsx")
 
 
+def _ensure_maspsx_bss_align_patch() -> None:
+    """Align .bss entries by size, and .bss itself to 8, as ASPSX does.
+
+    cc1 hands the assembler `.comm`/`.lcomm` with a size and no alignment, so
+    the layout is the assembler's. The Psy-Q objects show what ASPSX did: every
+    object's .bss is 8-aligned, and inside one a word after a halfword starts on
+    the next 4 (`Stsector_offset`, then `StRgb24`, in libcd's cdrom.o). Upstream
+    maspsx applies the size rule to .sbss only.
+    """
+    import subprocess
+
+    sub = TOOLS_DIR / "maspsx"
+    patch = (TOOLS_DIR / "maspsx-bss-align.patch").resolve()
+    marker = sub / "maspsx" / "__init__.py"
+    if not patch.is_file() or not marker.is_file():
+        return
+    if "ASPSX aligns every .sbss and .bss entry" in marker.read_text():
+        return
+    subprocess.run(["git", "-C", str(sub), "apply", str(patch)], check=True)
+    print(f"Applied {patch.name} to tools/maspsx")
+
+
 _ensure_maspsx_patch()
 _ensure_maspsx_label_patch()
 _ensure_maspsx_li_d_patch()
+_ensure_maspsx_bss_align_patch()
 match PLATFORM:
     case Platform.Windows:
         BINUTILS_DIR = OS_DIR / "binutils"
@@ -746,6 +769,22 @@ def fix_gameplay_linker_rodata_order() -> None:
             text = text.replace(wrong, right, 1)
     if text != original:
         dest.write_text(text, encoding="utf-8")
+
+
+def align_main_bss() -> None:
+    """Start every object's .bss in main on an 8-byte boundary.
+
+    ASPSX gives .bss 8-byte alignment, and the Psy-Q libraries' .bss runs in
+    main all start on one; splat's SUBALIGN(4) would override that and pack
+    each run against the last.
+    """
+    dest = Path("linkers/USA/main.ld")
+    if not dest.is_file():
+        return
+    text = dest.read_text(encoding="utf-8")
+    wrong = ".main_bss (NOLOAD) : SUBALIGN(4)"
+    if wrong in text:
+        dest.write_text(text.replace(wrong, ".main_bss (NOLOAD) : SUBALIGN(8)", 1), encoding="utf-8")
 
 
 def fix_title_linker_rodata_order() -> None:
@@ -1471,7 +1510,9 @@ def split_one(job: tuple) -> YamlInfo:
         sys.stderr.write(log_path.read_text(encoding="utf-8", errors="replace")[-4000:])
         raise
 
-    if yaml == "title.yaml":
+    if yaml == "main.yaml":
+        align_main_bss()
+    elif yaml == "title.yaml":
         fix_title_linker_rodata_order()
         append_overlay_absolute_imports("title")
     elif yaml == "gameplay.yaml":

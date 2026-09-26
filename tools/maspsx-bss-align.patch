@@ -1,0 +1,25 @@
+--- a/maspsx/__init__.py
++++ b/maspsx/__init__.py
+@@ -576,6 +576,10 @@
+             for i, (symbol, size) in enumerate(entries.items()):
+                 if i == 0:
+                     res.append(f".section .{section}")
++                    if section == "bss":
++                        # ASPSX gives .bss 8-byte alignment (every Psy-Q object's
++                        # .bss is 2**3), so each object's run starts on an 8.
++                        res.append("\t.align 3")
+ 
+                 if self.use_comm_section and (
+                     symbol in self.comm_symbols or self.use_comm_for_lcomm
+@@ -584,7 +588,10 @@
+                     res.append(f"\t.comm {symbol},{size}")
+                     continue
+ 
+-                if section == "sbss":
++                # ASPSX aligns every .sbss and .bss entry by its size: in the
++                # Psy-Q objects a word that follows a halfword starts on the
++                # next 4, and one of 8 bytes or more on the next 8.
++                if section in ("sbss", "bss"):
+                     if size >= 8:
+                         res.append("\t.align 3")
+                     elif size >= 4:
