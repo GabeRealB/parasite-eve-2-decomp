@@ -143988,3 +143988,16 @@ turns into a comparison tree: folding all of 1-4 with `default` leaves four
 and loses the jump table. At 8 refs (`3*8/162`) the two priorities tie
 exactly and the older pseudo still wins, so compute the ratio, do not guess.
 The two register pins the body held stood for exactly this.
+## A shared tail after an `if`/`else` whose values need pins can be two arms cross-jumped (GameFlag_SetNibble, 2026-09-26)
+
+The target computes a pointer, a masked byte and a nibble in each arm, then
+`or; sb` once after the join. Writing it that way - function-scope `ptr`, `val`
+and `nibble` set in both arms and combined after the `if` - makes each of them
+one pseudo live across blocks, so global-alloc places them: the nibble inherits
+`$a1` from the dying argument through `expand_preferences`, and the ior's
+block-local result takes `$v0` and pushes the pointer to `$v1`. The seed fixed
+both with `$v1`/`$a0` pins. The original had the whole read-modify-write in
+each arm with a block-scoped `u8* ptr`: every value is then block-local,
+local-alloc ties each result to its dying operand and hands the nibble the
+first free register (`$a0`), both arms come out with identical registers, and
+jump2 merges their `or; sb` tails into what looks like a join block.

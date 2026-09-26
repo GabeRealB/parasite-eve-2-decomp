@@ -30,22 +30,18 @@ TaskDesc D_80067734[] = {
 
 void GameFlag_SetNibble(s32 arg0, s32 arg1)
 {
-    s32          idx;
-    u8*          ptr;
-    register s32 val asm("v1");
-    register s32 nibble asm("a0");
+    s32 idx;
 
     idx = arg0 / 2;
     if (arg0 & 1) {
-        ptr    = &D_80073980[idx];
-        nibble = arg1 & 0xF;
-        val    = ptr[4] & 0xF0;
+        u8* ptr = &D_80073980[idx];
+
+        ptr[4] = (ptr[4] & 0xF0) | (arg1 & 0xF);
     } else {
-        ptr    = &D_80073980[idx];
-        nibble = arg1 << 4;
-        val    = ptr[4] & 0xF;
+        u8* ptr = &D_80073980[idx];
+
+        ptr[4] = (ptr[4] & 0xF) | (arg1 << 4);
     }
-    ptr[4] = val | nibble;
 }
 
 s32 GameFlag_GetNibble(s32 arg0)
