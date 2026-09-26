@@ -56022,11 +56022,41 @@ lw    a0,0x10(sp)
 sll   v0,a0,0x2
 ```
 
-Nothing between the two invalidates memory, so no rewriting of the C reproduces
-it; a `SOFT_COMPILER_BARRIER()` after the assignment is what drops the
-equivalence and gives the reload (98.5% → 99.6%). Instruction *counts* match
-either way, so this shows up as a `regs` penalty with `insert`/`delete` near
-zero, not as a missing instruction.
+Instruction *counts* match either way, so this shows up as a `regs` penalty
+with `insert`/`delete` near zero, not as a missing instruction.
+
+Nothing between the two invalidates memory, so the reload is a sign of a *label*
+between them: CSE works per extended basic block and does not carry the store's
+equivalence across a join. Look for the call reached from two paths. In
+`func_kyle_800102_80167DE0` (and its grenade copies) the calls run on either of
+two records, and the original wrote them once per path, joined *after* the
+assignment:
+
+```c
+    if (Gp_CountRec18Hi(work->rec1, 0x100000) == 0) {
+        goto try_rec0;
+    }
+    func_800E0FEC(work->rec1, &blk->delta, 1, &idx);
+    idx = func_800E1ACC((u8*)&idx);
+check:
+    param = Gp_RoomParamTables[...][...][idx];   /* reload: `check` is a join */
+    ...
+    goto move;
+try_rec0:
+    if (Gp_CountRec18Hi(work->rec0, 0x100000) != 0) {
+        func_800E0FEC(work->rec0, &blk->delta, 1, &idx);
+        idx = func_800E1ACC((u8*)&idx);
+        goto check;
+    }
+```
+
+Cross-jumping then merges the two call sequences, leaving only the differing
+`a0` in each path's branch delay slot, so the output shows a single copy with a
+label *before* the calls - which is what misleads a decompiler into writing one
+copy behind `check:` and a `SOFT_COMPILER_BARRIER()` to fake the reload. The
+same rewrite removed a `SOFT_USE_REG2(head, head)` that had been keeping the
+scratch head alive; with the join in the right place, `&blk->delta` allocates
+the same.
 
 ## `SOFT_USE_REG2(x, x)` is how you add one reference without a second statement
 
@@ -56052,6 +56082,12 @@ it forces scores worse (99.79% against 100%). Introducing an explicit
 `rec0 = work->rec0;` local, or moving that assignment earlier to lengthen its
 range, changes neither number: `cse` re-derives the same pseudo with the same
 refs and the same length either way, so the ranking is unchanged.
+
+That worked example turned out to be a symptom of the wrong control flow, not a
+real reference-count problem: written with the calls duplicated per path (see
+"A store into an address-taken local is forwarded; the target's reload is a
+signal"), the same body allocates correctly with no `head` local and no asm.
+Before adding a reference, check that the surrounding structure is right.
 
 ## A 0/1 flag that is `sb`-stored but also multiplied is `s32`, not `s8`
 

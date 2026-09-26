@@ -130,22 +130,17 @@ static void func_kyle_800102_80167DE0(Task* arg0)
     WeaponGrenadeScratch* blk;
     WeaponGrenadeWork*    work;
     GpCoord*              coord;
-    GpRec18*              rec;
     GpRoomParamRec*       param;
-    u8*                   head;
     s32                   idx;
-    s32                   count;
     s32                   clip;
     s32                   step;
     s32                   sfxarg;
     s32                   sfxbase;
 
-    work             = (WeaponGrenadeWork*)arg0->work;
-    coord            = arg0->extra.tmd->coords;
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - sizeof(WeaponGrenadeScratch);
-    blk              = (WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch));
-    coord->flg       = 0;
+    work       = (WeaponGrenadeWork*)arg0->work;
+    coord      = arg0->extra.tmd->coords;
+    blk        = SCRATCH_PUSH(WeaponGrenadeScratch);
+    coord->flg = 0;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
     explode:
         blk->field_30 = arg0->spawnArg1 & 0xFF00;
@@ -170,16 +165,12 @@ static void func_kyle_800102_80167DE0(Task* arg0)
         return;
     }
 
-    count = Gp_CountRec18Hi(work->rec1, 0x100000);
-    rec   = work->rec1;
-    if (count == 0) {
+    if (Gp_CountRec18Hi(work->rec1, 0x100000) == 0) {
         goto try_rec0;
     }
-check:
-    SOFT_USE_REG2(head, head);
-    func_800E0FEC(rec, (GpDeltaScratch*)(head - 0x18), 1, &idx);
+    func_800E0FEC(work->rec1, &blk->delta, 1, &idx);
     idx = func_800E1ACC((u8*)&idx);
-    SOFT_COMPILER_BARRIER();
+check:
     param = Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1][idx];
     if (param->field_1 == 0) {
         if (param->field_2 != 0) {
@@ -193,9 +184,9 @@ check:
     }
     goto move;
 try_rec0:
-    count = Gp_CountRec18Hi(work->rec0, 0x100000);
-    rec   = work->rec0;
-    if (count != 0) {
+    if (Gp_CountRec18Hi(work->rec0, 0x100000) != 0) {
+        func_800E0FEC(work->rec0, &blk->delta, 1, &idx);
+        idx = func_800E1ACC((u8*)&idx);
         goto check;
     }
 move:
