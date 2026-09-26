@@ -6039,8 +6039,6 @@ end:
 void Gp_UpdateAttachCombo(s32 arg0)
 {
     PlayerStatus* cfg;
-    GpStateC08*   c08;
-    s32           val;
 
     if (arg0 == 0) {
         D_80114F28 = 1;
@@ -6048,150 +6046,99 @@ void Gp_UpdateAttachCombo(s32 arg0)
     }
 
     cfg = &Player_Status;
-    TOUCH_REG(arg0);
-    val = Gp_StateC08.field_0;
-    c08 = &Gp_StateC08;
+    switch (Gp_StateC08.field_0) {
+        case 411:
+        case 412:
+        case 413: {
+            GpItemRec8* rec;
+            s32         lvl;
+            s32         count;
+            s32         time;
 
-    if (val < 0x144) {
-        if (val < 0x141) {
-            if (val < 0x13A) {
-                if (val < 0x137) {
-                    return;
-                }
-                goto case_311;
+            lvl                  = Gp_StateC08.field_0 % 10;
+            rec                  = &D_80113E10[lvl];
+            count                = Gp_StateC08.field_C & 0xF;
+            time                 = rec->field_6;
+            Gp_StateC08.field_C  = count;
+            Gp_StateC08.field_10 = time;
+            if (Gp_StateC08.field_C < 2) {
+                Gp_StateC08.field_C++;
             }
-            return;
+            Gp_StateC08.field_C |= lvl << 4;
+            break;
         }
-        goto case_321;
-    }
-    if (val < 0x19B) {
-        return;
-    }
-    if (val < 0x19E) {
-        goto case_411;
-    }
-    if (val < 0x1A8) {
-        if (val < 0x1A5) {
-            return;
+        case 421:
+        case 422:
+        case 423: {
+            GpItemRec8* rec;
+            s32         lvl;
+            s32         count;
+            s32         time;
+
+            lvl                  = Gp_StateC08.field_0 % 10;
+            rec                  = &D_80113E28[lvl];
+            count                = Gp_StateC08.field_D & 0xF;
+            time                 = rec->field_6;
+            Gp_StateC08.field_D  = count;
+            Gp_StateC08.field_12 = time;
+            if (Gp_StateC08.field_D < 2) {
+                Gp_StateC08.field_D++;
+            }
+            Gp_StateC08.field_D |= lvl << 4;
+            break;
         }
-        goto case_421;
-    }
-    return;
+        case 311:
+        case 312:
+        case 313: {
+            GpItemRec8* rec;
+            s32         lvl;
+            s32         count;
+            s32         time;
 
-case_411: {
-    GpItemRec8* rec;
-    s32         lo;
-    s32         tmp;
-
-    val                 = (u16)(val % 10U);
-    rec                 = &D_80113E10[val];
-    lo                  = (u8)c08->field_C & 0xF;
-    tmp                 = rec->field_6;
-    *(u8*)&c08->field_C = lo;
-    c08->field_10       = tmp;
-    if (lo < 2) {
-        *(u8*)&c08->field_C = lo + 1;
-    }
-    *(u8*)&c08->field_C = (u8)c08->field_C | (val << 4);
-    return;
-}
-
-case_421: {
-    GpItemRec8*  rec;
-    s32          lo;
-    register s32 temp asm("a0");
-    s32          tmp;
-    register s32 packed asm("v1");
-
-    c08           = &Gp_StateC08;
-    temp          = Gp_StateC08.field_0;
-    temp          = (u16)(temp % 10U);
-    rec           = &D_80113E28[temp];
-    lo            = c08->field_D & 0xF;
-    tmp           = rec->field_6;
-    c08->field_D  = lo;
-    c08->field_12 = tmp;
-    if (lo < 2) {
-        c08->field_D = lo + 1;
-    }
-    c08->field_D = c08->field_D | (packed = temp << 4);
-    return;
-}
-
-case_311: {
-    GpItemRec8*  rec;
-    GpStateC08*  p;
-    register s32 temp asm("a0");
-    register s32 lo asm("v0");
-    s32          tmp;
-
-    p = &Gp_StateC08;
-    asm volatile("" : "+r"(p) : : "v0");
-    temp = Gp_StateC08.field_0;
-    temp = (u16)(temp % 10U);
-    rec  = &D_80113DC8[temp];
-    TOUCH_REG2(rec, temp);
-    lo          = p->field_F & 0xF;
-    tmp         = rec->field_6;
-    p->field_F  = lo;
-    p->field_14 = tmp;
-    if (lo == 0) {
-        p->field_F = lo + 1;
-    }
-    p->field_F |= temp << 4;
-    Gp_TriggerPeState(1, 0xFF);
-    return;
-}
-
-case_321: {
-    s32          idx;
-    s32          min;
-    s32          max;
-    s32          result;
-    s32          flag;
-    s32          t;
-    s32          r;
-    register s32 hi_part asm("a0");
-    GpStateF0*   state;
-    GpRec16*     recs;
-
-    recs = Gp_IdParamHi;
-    idx  = (u16)(val % 3U) + 0x16;
-    max  = recs[idx].field[5];
-    min  = recs[idx].field[4];
-    if (min < max) {
-        state = &Gp_StateF0;
-        if ((Gp_StateF0.field_0 == 1 && state->field_6 != 0) || state->field_1 != 0) {
-            flag = 1;
-        } else {
-            flag = 0;
+            lvl                  = Gp_StateC08.field_0 % 10;
+            rec                  = &D_80113DC8[lvl];
+            count                = Gp_StateC08.field_F & 0xF;
+            time                 = rec->field_6;
+            Gp_StateC08.field_F  = count;
+            Gp_StateC08.field_14 = time;
+            if (Gp_StateC08.field_F == 0) {
+                Gp_StateC08.field_F++;
+            }
+            Gp_StateC08.field_F |= lvl << 4;
+            Gp_TriggerPeState(1, 0xFF);
+            break;
         }
-        if (flag != 0) {
-            goto do_random;
+        case 321:
+        case 322:
+        case 323: {
+            GpRec16* params;
+            s32      row;
+            s32      min;
+            s32      max;
+            s32      heal;
+
+            /* The parameter rows attach 7 uses at levels 1 to 3. */
+            params = Gp_IdParamHi;
+            row    = 7 * 3 + 1 + Gp_StateC08.field_0 % 3;
+            max    = params[row].field[5];
+            min    = params[row].field[4];
+            if (min >= max || !isStateF0Active_()) {
+                heal = min;
+            } else {
+                /* A random blend between the row's two amounts. */
+                heal = (rand() & 0xFF) + 1;
+                heal = (max * heal + min * (0x100 - heal)) >> 8;
+                if (heal <= 0) {
+                    heal = 1;
+                }
+            }
+            cfg->hp += heal;
+            if (cfg->hpMax < cfg->hp) {
+                cfg->hp = cfg->hpMax;
+            }
+            break;
         }
     }
-    result = min;
-    goto add_hp;
-do_random:
-    t       = rand() & 0xFF;
-    r       = t + 1;
-    hi_part = max * r;
-    r       = min * (0x100 - r);
-    {
-        register s32 sum asm("v0");
-        sum = hi_part + r;
-        r   = sum >> 8;
-    }
-    if (r <= 0) {
-        r = 1;
-    }
-    result = r;
-add_hp:
-    cfg->hp += result;
-    if (cfg->hpMax < cfg->hp) {
-        cfg->hp = cfg->hpMax;
-    }
-}
 }
 
 void func_800A4904(s32 arg0)

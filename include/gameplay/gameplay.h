@@ -185,7 +185,7 @@ typedef struct _GpStateC08 {
     /* 0x0A */ s8   field_A;
     /* 0x0B */ s8   field_B;
     /* 0x0C */ s8   field_C;
-    /* 0x0D */ u8   field_D;
+    /* 0x0D */ s8   field_D;
     /* 0x0E */ s8   field_E;
     /* 0x0F */ u8   field_F;
     /* 0x10 */ s16  field_10;

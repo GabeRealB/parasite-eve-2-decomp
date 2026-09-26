@@ -141204,3 +141204,22 @@ why the load goes through the register. The third copy is probably the loop's
 the global directly (`T[slot]`, `T[i] = ...`) and call it with the variable. A
 macro or an `s32` parameter with `(u8)` casts keeps the indexed load
 (`sll`/`addu`), and a `p++` walk loses the preheader copy.
+
+### A switch value kept out of `$a0` by another case's early local pseudo (Gp_UpdateAttachCombo, 2026-09-26)
+
+**Symptom.** A `switch` on a loaded `u16` sits in `$a1` with its base pointer in
+`$a2`, although `$a0` is free across the compare tree. The seed held `arg0` live
+with `TOUCH_REG` and pinned `$a0`/`$v0` locals inside the cases.
+
+**Cause.** Global allocation runs after local-alloc, so a single-block pseudo
+that local-alloc put in `$a0` is a hard-register conflict for every global pseudo
+live beside it. In the target, one case loads its table base (`lui/addiu a0`)
+*before* the `% 3` of the switch value, while the value is still live: the
+case wrote `params = Gp_IdParamHi;` as its first statement, then indexed
+`params[row]`. Written as `Gp_IdParamHi[row]`, the base is formed after the
+value dies and the value takes `$a0`. Two companions from the same function:
+case bodies that each declare their own `count`/`time` locals (a block per
+case) get the separate per-case registers the target shows, where
+function-scope locals became one global pseudo; and `u16_field % 10` needs no
+`(u16)` cast to keep its `andi 0xffff` - the front end shortens the modulo to
+`unsigned short` and widens the result back.

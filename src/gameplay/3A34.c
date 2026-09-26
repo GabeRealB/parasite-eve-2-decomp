@@ -6456,7 +6456,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
         dmg = tmp * mult >> 16;
 
         if (flag != 0) {
-            extra = (s8)Gp_StateC08.field_D;
+            extra = Gp_StateC08.field_D;
             if (extra != 0) {
                 dmg = dmg * D_80113D0C[(extra / 16 - 1) * 2 + (s8)(extra % 16)][0] / 100;
             }
@@ -6616,7 +6616,7 @@ s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
         chance <<= 1;
     }
 
-    extra = (s8)Gp_StateC08.field_D;
+    extra = Gp_StateC08.field_D;
     if (extra != 0) {
         chance = chance * D_80113D0C[(extra / 16 - 1) * 2 + (s8)(extra % 16)][1] / 100;
     }
