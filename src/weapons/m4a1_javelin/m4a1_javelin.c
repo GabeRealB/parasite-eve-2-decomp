@@ -20,6 +20,10 @@
 #include "main/wipsys.h"
 #include "weapons/m4a1_javelin.h"
 
+static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color);
+static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color);
+static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness);
+
 /// Fixed local offset the guide beam's coordinate hangs at.
 SVECTOR D_m4a1_javelin_8011FA90 = { 0, 0x200, 0x20, 0 };
 
@@ -57,7 +61,7 @@ u16 D_m4a1_javelin_8011FAAC[4] = { 0x12, 0x124, 0x248, 0x36C };
 ///   `func_m4a1_javelin_8011E4A8` as long as the probe keeps hitting. The beam
 ///   fades one `D_m4a1_javelin_8011FAAC` colour step every 0x20 of `age`
 ///   and releases the work block when the last step runs out.
-void func_m4a1_javelin_8011D1E4(Task* task)
+static void func_m4a1_javelin_8011D1E4(Task* task)
 {
     GpEffWork*    work;
     GpCoord*      coord;
@@ -271,7 +275,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
 /// taken again, otherwise the cached `D_m4a1_javelin_8012EB60` is reused. The
 /// first fan caps the far end, the second (bit 0 of `flags`) caps the near end
 /// and the third sweeps at double rate to skin the beam between the two.
-void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
+static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
 {
     u8*                      head;
     OverlayPointPairScratch* sc;
@@ -426,7 +430,7 @@ void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
 /// 8-unit dither of `gDisplayState.animFrame` and halved. Each fan is four
 /// quarter-turn wedges of radius `0x4000 / otz`, so the reticle keeps a
 /// constant on-screen size as the target moves away.
-void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
+static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
 {
     u8*                      head;
     OverlayPointPairScratch* sc;
@@ -564,7 +568,12 @@ done:
 /* `otz0` is taken before the branch on purpose: the address is the same one
    already held for `sc`, so CSE turns it into the copy the ROM keeps, which a
    `&sc->otz0` inside the `if` would fold away. */
-void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
+/// Links one Gouraud `LINE_G2` between the world-space points `p0` and `p1`
+/// into `gGpuCurrentOt`, dropped entirely if either endpoint fails its `RTPS`
+/// `FLAG` check. Only the first vertex is lit: `brightness` goes into blue,
+/// half of it into green and a quarter into red, so the tracer fades from a
+/// blue-white head to black.
+static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
 {
     u8*                     head;
     M4a1JavelinLineScratch* sc;
@@ -614,7 +623,7 @@ void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
 /// animation column of the flare texture, `arg2` is the half-extent in world
 /// units and `arg3` the spin angle: the corners sit at `arg3` and
 /// `arg3 + 0x400`, a quarter turn apart, so the quad stays square as it spins.
-void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -670,7 +679,7 @@ void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg2, s16 
     SCRATCH_POP_BYTES(sizeof(GpFxQuadScratch));
 }
 
-void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0)
+static void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0)
 {
     if (arg0 == NULL) {
         D_m4a1_javelin_8012EB70 = 0;
@@ -682,7 +691,7 @@ void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0)
     D_m4a1_javelin_8012EB68.vz = arg0->vz;
 }
 
-void func_m4a1_javelin_8011F4E8(Task* arg0)
+static void func_m4a1_javelin_8011F4E8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -732,7 +741,7 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
 /// `extern u8` at 0x80073BAA is what keeps GCC from hoisting the `lbu` above
 /// the `actor->` stores: a scalar global and a struct field do not alias, so
 /// the scheduler is free to move the load, and the block comes out reordered.
-void func_m4a1_javelin_8011F5D4(Task* arg0)
+static void func_m4a1_javelin_8011F5D4(Task* arg0)
 {
     GameActor* actor;
     GpCoord*   coord;

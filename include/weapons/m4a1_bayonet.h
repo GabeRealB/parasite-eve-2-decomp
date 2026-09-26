@@ -39,12 +39,4 @@ typedef struct _M4a1BayonetBeamScratch {
 } M4a1BayonetBeamScratch;
 STATIC_ASSERT_SIZEOF(M4a1BayonetBeamScratch, 0x2C);
 
-/// Draws the blade trail as seven Gouraud quads, one per trail slot, walking
-/// backwards from `slot`. Each quad spans the tip and hilt coordinates of two
-/// adjacent slots and fades out along the ribbon: the leading edge is scaled
-/// by `0x40 - 9 * i` and the trailing edge by nine less. `flags` is the trail
-/// colour, three 2-bit channels at bits 8, 4 and 0 that each multiply that
-/// fade.
-void func_m4a1_bayonet_8011D69C(s16 slot, s16 flags);
-
 #endif

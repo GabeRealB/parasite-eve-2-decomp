@@ -11,6 +11,8 @@
 #include "main/tmd.h"
 #include "weapons/gunblade.h"
 
+static void func_gunblade_8011D70C(s16 slot, s16 flags);
+
 /// Muzzle vector for the gunblade's blade sweep.
 SVECTOR D_gunblade_8011E704[1] = { { 0, 0x0060, 0x0080, 0 } };
 
@@ -18,9 +20,9 @@ SVECTOR D_gunblade_8011E704[1] = { { 0, 0x0060, 0x0080, 0 } };
 /// the original: one path reaches it as `D_gunblade_8011E704[1]`, which compiles to the
 /// array's address plus 8, and another names it directly, which compiles
 /// to its own address - so it has to be a separate object, not element 1.
-SVECTOR D_gunblade_8011E70C = { 0, 0x0060, 0x0380, 0 };
+static SVECTOR D_gunblade_8011E70C = { 0, 0x0060, 0x0380, 0 };
 
-void func_gunblade_8011D1E4(Task* task)
+static void func_gunblade_8011D1E4(Task* task)
 {
     GpCoord    local;
     GpCoord*   coord;
@@ -123,7 +125,13 @@ void func_gunblade_8011D1E4(Task* task)
     }
 }
 
-void func_gunblade_8011D70C(s16 slot, s16 flags)
+/// Draws the beam as seven Gouraud quads, one per trail slot, walking backwards
+/// from `slot`. Each quad spans the near and far trail coordinates of two
+/// adjacent slots and fades out along the trail: the leading edge is scaled by
+/// `0x40 - 9 * i` and the trailing edge by nine less. `flags` is the beam
+/// colour, three 2-bit channels at bits 8, 4 and 0 that each multiply that
+/// fade.
+static void func_gunblade_8011D70C(s16 slot, s16 flags)
 {
     GunbladeBeamScratch* blk;
     GpCoord*             a;
@@ -199,7 +207,7 @@ void func_gunblade_8011D70C(s16 slot, s16 flags)
 /// block once it falls under 0x20. The three grades differ only in which RGB
 /// channel gets the full brightness, so the tails are identical and the
 /// compiler cross-jumps them.
-void func_gunblade_8011DAA4(Task* task)
+static void func_gunblade_8011DAA4(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;

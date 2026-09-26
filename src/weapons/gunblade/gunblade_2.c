@@ -41,7 +41,7 @@
 /// The tail is common to every state: it reads the blade's forward column out
 /// of the muzzle matrix and, only while `shake` is set, adds a 1/136th of it to
 /// the muzzle coordinate.
-void func_gunblade_8011E040(Task* arg0)
+static void func_gunblade_8011E040(Task* arg0)
 {
     GameActor*       actor;
     GpCoord*         coord;

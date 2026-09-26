@@ -19,6 +19,4 @@ extern SVECTOR D_grenade_pistol_8012B420[2];
 /// Per-ammo launch speed, same index.
 extern u8 D_grenade_pistol_8012B438[4];
 
-void func_grenade_pistol_8011D6FC(Task* arg0);
-
 #endif

@@ -20,7 +20,7 @@
 #error "WEAPON_ID is a per-package build parameter"
 #endif
 
-void func_m4a1_8011D1C4(Task* arg0)
+static void func_m4a1_8011D1C4(Task* arg0)
 {
     GameActor* actor;
     GpCoord*   coord;

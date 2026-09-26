@@ -17,7 +17,7 @@
 /// player is holding, and its `attachId` is the attachment id the sound bank is
 /// keyed on. A main-executable global with no module header yet.
 
-void func_m4a1_grenade_8011DE24(Task* task);
+static void func_m4a1_grenade_8011DE24(Task* task);
 
 /// Per-frame firing state machine for the M4A1 grenade launcher. State 0 arms
 /// the shot and raises the weapon (clip 8 instead of 1 when it was already up),
@@ -30,7 +30,7 @@ void func_m4a1_grenade_8011DE24(Task* task);
 /// walks the animation, emitting `0x201B0008 + field_93E` on every record whose
 /// `flags` has both 0x10 and 0x20, and hands back to `func_80106550` when the
 /// clip is done or the recoil timer has run out.
-void func_m4a1_grenade_8011D1EC(Task* arg0)
+static void func_m4a1_grenade_8011D1EC(Task* arg0)
 {
     GameActor*  actor;
     GpCoord*    coord;
@@ -162,7 +162,7 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
 /// Spawn state: allocates the grenade's work block, places the projectile a
 /// little above and in front of the muzzle coordinate, parents it to world,
 /// and links its two collision nodes.
-void func_m4a1_grenade_8011D654(Task* arg0)
+static void func_m4a1_grenade_8011D654(Task* arg0)
 {
     u8*                head;
     SVECTOR*           blk;
@@ -255,7 +255,7 @@ void func_m4a1_grenade_8011D654(Task* arg0)
 /// A record with `field_1` set is a doorway, which only detonates the grenade
 /// in the one scripted case (room 0x14, floors 2 and 3); one with `field_1`
 /// clear detonates on `field_2` and otherwise hands the task to state 3.
-void func_m4a1_grenade_8011D994(Task* arg0)
+static void func_m4a1_grenade_8011D994(Task* arg0)
 {
     M4a1GrenadeScratch* blk;
     WeaponGrenadeWork*  work;
@@ -366,7 +366,7 @@ move:
 
 /// Flight state: steps the `field_88` flight timer down and moves the task to
 /// state 3 once it runs out. Grenade Pistol and MM1 carry identical copies.
-void func_m4a1_grenade_8011DDF8(Task* task)
+static void func_m4a1_grenade_8011DDF8(Task* task)
 {
     WeaponGrenadeWork* work  = task->work;
     s32                timer = work->field_88.w - 1;
@@ -379,7 +379,7 @@ void func_m4a1_grenade_8011DDF8(Task* task)
 
 /// Exit callback: unlinks both collision nodes the spawn state linked and kills
 /// the task. Grenade Pistol and MM1 carry identical copies.
-void func_m4a1_grenade_8011DE24(Task* task)
+static void func_m4a1_grenade_8011DE24(Task* task)
 {
     WeaponGrenadeWork* work = task->work;
 
@@ -390,7 +390,7 @@ void func_m4a1_grenade_8011DE24(Task* task)
 
 /// Per-frame entry point: runs the weapon task's current state. The table is a
 /// local, so GCC copies it from `.rodata` onto the stack every frame.
-void func_m4a1_grenade_8011DE68(Task* arg0)
+static void func_m4a1_grenade_8011DE68(Task* arg0)
 {
     M4a1GrenadeStateFn states[4] = {
         func_m4a1_grenade_8011D654,

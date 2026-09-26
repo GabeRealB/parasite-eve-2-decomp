@@ -17,6 +17,8 @@
 #include "weapons/m4a1_hammer.h"
 #include "main/tmd.h"
 
+static void func_m4a1_hammer_8011E29C(GpCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
+
 /// Fixed offset from the parent coordinate that the hammer effect starts at.
 SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
 
@@ -39,7 +41,7 @@ SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
 ///   and draws it, then widens the light to `0x400` / `0x4000`; five charge
 ///   frames drop back to phase 1. Phase 3 tears the flare down. A room fade
 ///   winds `age` back down and redraws instead of advancing.
-void func_m4a1_hammer_8011D1E0(Task* task)
+static void func_m4a1_hammer_8011D1E0(Task* task)
 {
     GpEffWork*    work;
     GpCoord*      coord;
@@ -250,7 +252,7 @@ void func_m4a1_hammer_8011D904(s32* arg0, u16 arg1, u16 arg2, s16 arg3)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_m4a1_hammer_8011DD08(Task* arg0)
+static void func_m4a1_hammer_8011DD08(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -355,7 +357,15 @@ void func_m4a1_hammer_8011DE60(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_m4a1_hammer_8011E29C(GpCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3)
+/// Handwritten GTE routine. Draws one semi-transparent `POLY_FT4` stretched
+/// between `coord`'s world position and `arg1`, the offset endpoint the hammer
+/// effect keeps in its data. Both points are projected with their own `RTPS`
+/// and the quad is given a half-width of `arg3 * 23 / otz`, rotated onto the
+/// strip's own screen-space angle so it stays perpendicular to it. `arg2`
+/// selects the strip out of the texture page: bit 0 picks the left or right
+/// half and bit 1 the upper or lower row. Nothing is drawn if either endpoint
+/// projects off-screen.
+static void func_m4a1_hammer_8011E29C(GpCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3)
 {
     u8*                     head;
     M4a1HammerTrailScratch* block;

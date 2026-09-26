@@ -24,7 +24,7 @@
 /// the actor's own contact point on the 0xE variant. Case 5 runs out the
 /// `field_979` grace, re-fires while the trigger is held and otherwise hands
 /// back to `func_80106550`.
-void func_as12_8011D1DC(Task* arg0)
+static void func_as12_8011D1DC(Task* arg0)
 {
     GameActor* actor;
     GpCoord*   coord;

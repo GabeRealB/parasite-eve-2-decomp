@@ -22,8 +22,8 @@
 #include "weapons/weapons_shared_8011d468.h"
 #include "weapons/weapons_shared_8011d864.h"
 
-void func_p229_8011D464(GpCoord* arg0, s16 arg1, s16 arg2);
-void func_p229_8011D860(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_p229_8011D464(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_p229_8011D860(GpCoord* arg0, s16 arg1, s16 arg2);
 
 /// Muzzle offset of the P229, in the firing hand's coordinate frame.
 SVECTOR D_p229_8011E0F0 = { 0, 0x140, 0x20, 0 };
@@ -37,7 +37,7 @@ SVECTOR D_p229_8011E0F0 = { 0, 0x140, 0x20, 0 };
 /// brightness and the four flash quads, decays the light's range by 0x190 and
 /// releases the pool block after seven frames. Nothing runs at all once
 /// `Gp_State1C` is fading out (`field_4 >= 2`).
-void func_p229_8011D1DC(Task* task)
+static void func_p229_8011D1DC(Task* task)
 {
     GpEffWork*    work;
     GpCoord*      coord;
@@ -128,7 +128,7 @@ void func_p229_8011D1DC(Task* task)
    loads and stores keep spelling the block out from `head` rather than reusing
    the `blk` register the way CSE off `blk` would. */
 
-void func_p229_8011D464(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_p229_8011D464(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*                   head;
     OverlaySpriteScratch* blk;
@@ -186,7 +186,7 @@ void func_p229_8011D464(GpCoord* arg0, s16 arg1, s16 arg2)
 /// 0x200 towards the camera, all in the muzzle coordinate's frame. `arg2` is
 /// the flash brightness; only the corner along `arg1` is lit, with half of
 /// `arg2` in red and green and all of it in blue.
-void func_p229_8011D860(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_p229_8011D860(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*                head;
     WeaponQuadScratch* blk;
@@ -295,7 +295,7 @@ void func_p229_8011D860(GpCoord* arg0, s16 arg1, s16 arg2)
 /// under the weapon task. States 3/4 pick the lock-on target once (only while
 /// still in state 3) and state 5 counts `field_979` down, dropping back out of
 /// the firing pose once the aim check fails or the trigger has been released.
-void func_p229_8011DDA0(Task* arg0)
+static void func_p229_8011DDA0(Task* arg0)
 {
     GameActor*    actor;
     GpCoord*      coord;

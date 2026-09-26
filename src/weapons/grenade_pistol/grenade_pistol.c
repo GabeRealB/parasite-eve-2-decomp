@@ -23,7 +23,7 @@
 #include "weapons/m4a1_grenade.h"
 #include "weapons/weapon.h"
 
-void func_grenade_pistol_8011DB8C(Task* task);
+static void func_grenade_pistol_8011DB8C(Task* task);
 
 /// Which weapon this build is: 0 for the Grenade Pistol, 1 for the MM1. The two
 /// packages are this source built once each, and each declares its variant in
@@ -35,7 +35,7 @@ void func_grenade_pistol_8011DB8C(Task* task);
 /// The weapon's index. It also keys the firing sound and the shot effect.
 #define GRENADE_WEAPON (0xB + GRENADE_VARIANT)
 
-void func_grenade_pistol_8011D1D4(Task* arg0)
+static void func_grenade_pistol_8011D1D4(Task* arg0)
 {
     GameActor* actor;
     s32        anim;
@@ -89,7 +89,7 @@ void func_grenade_pistol_8011D1D4(Task* arg0)
 /// places the projectile at the per-ammo muzzle offset from `D_grenade_pistol_8012B420`, parents it
 /// to the world coordinate, sets its launch speed from `D_grenade_pistol_8012B438` and links its two
 /// collision nodes. The Grenade Pistol and MM1 share it by being one source.
-void func_grenade_pistol_8011D3A0(Task* arg0)
+static void func_grenade_pistol_8011D3A0(Task* arg0)
 {
     u8*                head;
     SVECTOR*           blk;
@@ -193,7 +193,7 @@ void func_grenade_pistol_8011D3A0(Task* arg0)
 /// attachment id driving the explosion effect, the byte above it seeds the
 /// sound bank, and bit 0x100000 marks the shot that plays the fixed
 /// `0x40660002` clip instead.
-void func_grenade_pistol_8011D6FC(Task* arg0)
+static void func_grenade_pistol_8011D6FC(Task* arg0)
 {
     WeaponGrenadeScratch* blk;
     WeaponGrenadeWork*    work;
@@ -307,7 +307,7 @@ move:
 
 /// Flight state: steps the `field_88` flight timer down and moves the task to
 /// state 3 once it runs out. The M4A1 Grenade carries an identical copy.
-void func_grenade_pistol_8011DB60(Task* task)
+static void func_grenade_pistol_8011DB60(Task* task)
 {
     WeaponGrenadeWork* work  = task->work;
     s32                timer = work->field_88.w - 1;
@@ -320,7 +320,7 @@ void func_grenade_pistol_8011DB60(Task* task)
 
 /// Exit callback: unlinks both collision nodes the spawn state linked and kills
 /// the task.
-void func_grenade_pistol_8011DB8C(Task* task)
+static void func_grenade_pistol_8011DB8C(Task* task)
 {
     WeaponGrenadeWork* work = task->work;
 
@@ -329,14 +329,14 @@ void func_grenade_pistol_8011DB8C(Task* task)
     taskKill(task);
 }
 
-const TaskFuncTable4 D_grenade_pistol_8011D1C4 = { {
+static const TaskFuncTable4 D_grenade_pistol_8011D1C4 = { {
     func_grenade_pistol_8011D3A0,
     func_grenade_pistol_8011D6FC,
     func_grenade_pistol_8011DB60,
     func_grenade_pistol_8011DB8C,
 } };
 
-void func_grenade_pistol_8011DBD0(Task* arg0)
+static void func_grenade_pistol_8011DBD0(Task* arg0)
 {
     TaskFuncTable4 sp;
 

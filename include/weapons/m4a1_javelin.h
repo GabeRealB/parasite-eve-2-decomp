@@ -51,12 +51,4 @@ extern s16     D_m4a1_javelin_8012EB66;
 extern SVECTOR D_m4a1_javelin_8012EB68;
 extern s32     D_m4a1_javelin_8012EB70;
 
-/// Links one Gouraud `LINE_G2` between the world-space points `p0` and `p1`
-/// into `gGpuCurrentOt`, dropped entirely if either endpoint fails its `RTPS`
-/// `FLAG` check. Only the first vertex is lit: `brightness` goes into blue,
-/// half of it into green and a quarter into red, so the tracer fades from a
-/// blue-white head to black.
-void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness);
-void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0);
-
 #endif

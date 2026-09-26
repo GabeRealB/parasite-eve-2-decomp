@@ -12,7 +12,7 @@
 #include "main/session.h"
 #include "main/tmd.h"
 
-void func_m950_8011D1DC(Task* arg0)
+static void func_m950_8011D1DC(Task* arg0)
 {
     GameActor* actor;
     GpCoord*   coord;

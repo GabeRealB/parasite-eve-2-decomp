@@ -23,7 +23,7 @@
 /// again once the burst runs dry. Case 3 runs out the grace counter and hands
 /// back to `func_80106550`, parking `field_940` at 10 when the player is still
 /// holding the fire button after the grace expired and at 0 otherwise.
-void func_m93r_8011D1C4(Task* arg0)
+static void func_m93r_8011D1C4(Task* arg0)
 {
     GameActor* actor;
     GpCoord*   coord;

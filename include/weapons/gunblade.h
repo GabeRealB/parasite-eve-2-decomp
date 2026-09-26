@@ -49,7 +49,6 @@ STATIC_ASSERT_SIZEOF(GunbladeBeamScratch, 0x2C);
 /// spellings are needed to match, and one object cannot carry two C names, so
 /// the pair stays in the split data.
 extern SVECTOR D_gunblade_8011E704[1];
-extern SVECTOR D_gunblade_8011E70C;
 
 /// The eight-segment beam trails, one array per end of the blade. Every entry
 /// is parented to `gGfxViewCoord`.
@@ -61,14 +60,6 @@ extern GpCoord D_gunblade_8012E4D4[8];
 /// pointer is cleared again when the `Gp_State1C` block is released.
 extern Task*      D_gunblade_8012E244;
 extern GpEffWork* D_gunblade_8012E248;
-
-/// Draws the beam as seven Gouraud quads, one per trail slot, walking backwards
-/// from `slot`. Each quad spans the near and far trail coordinates of two
-/// adjacent slots and fades out along the trail: the leading edge is scaled by
-/// `0x40 - 9 * i` and the trailing edge by nine less. `flags` is the beam
-/// colour, three 2-bit channels at bits 8, 4 and 0 that each multiply that
-/// fade.
-void func_gunblade_8011D70C(s16 slot, s16 flags);
 
 void func_gunblade_8011E008(s32 arg0);
 

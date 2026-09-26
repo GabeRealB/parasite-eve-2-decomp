@@ -16,6 +16,8 @@
 #include "main/gfx.h"
 #include "weapons/m4a1_bayonet.h"
 
+static void func_m4a1_bayonet_8011D69C(s16 slot, s16 flags);
+
 /// Muzzle vector for the bayonet's thrust.
 SVECTOR D_m4a1_bayonet_8011DEC8[1] = { { 0, 0x0300, 0x0040, 0 } };
 
@@ -34,7 +36,7 @@ SVECTOR D_m4a1_bayonet_8011DED0 = { 0, 0x0180, 0x0040, 0 };
 /// `age & 7`, re-runs the whole ring so the older slots follow their
 /// parents, and hands the ribbon to `func_m4a1_bayonet_8011D69C`. The task
 /// lives 13 frames.
-void func_m4a1_bayonet_8011D1E4(Task* task)
+static void func_m4a1_bayonet_8011D1E4(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -135,7 +137,13 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
     }
 }
 
-void func_m4a1_bayonet_8011D69C(s16 slot, s16 flags)
+/// Draws the blade trail as seven Gouraud quads, one per trail slot, walking
+/// backwards from `slot`. Each quad spans the tip and hilt coordinates of two
+/// adjacent slots and fades out along the ribbon: the leading edge is scaled
+/// by `0x40 - 9 * i` and the trailing edge by nine less. `flags` is the trail
+/// colour, three 2-bit channels at bits 8, 4 and 0 that each multiply that
+/// fade.
+static void func_m4a1_bayonet_8011D69C(s16 slot, s16 flags)
 {
     M4a1BayonetBeamScratch* blk;
     GpCoord*                a;

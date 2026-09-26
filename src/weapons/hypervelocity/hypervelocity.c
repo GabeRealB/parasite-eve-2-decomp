@@ -20,16 +20,18 @@
 #include "main/tmd.h"
 #include "weapons/hypervelocity.h"
 
+static void func_hypervelocity_8011F270(Task* arg0);
+
 /// Translation of the round's own coordinate frame inside its parent frame
 /// (the muzzle), `(0, 0x240, 0x80)`.
 SVECTOR D_hypervelocity_8011FB74 = { 0, 0x240, 0x80, 0 };
 
-void func_hypervelocity_8011F11C(Task* task);
-void func_hypervelocity_8011F6A0(Task* task);
+static void func_hypervelocity_8011F11C(Task* task);
+static void func_hypervelocity_8011F6A0(Task* task);
 
-void func_hypervelocity_8011DF34(GpCoord* coord, s16 age, s16 spin, s32 side);
-void func_hypervelocity_8011E494(GpCoord* coord, s16 age, s16 spin, s16 ang);
-void func_hypervelocity_8011E8A0(GpCoord* ground, s32 spin);
+static void func_hypervelocity_8011DF34(GpCoord* coord, s16 age, s16 spin, s32 side);
+static void func_hypervelocity_8011E494(GpCoord* coord, s16 age, s16 spin, s16 ang);
+static void func_hypervelocity_8011E8A0(GpCoord* ground, s32 spin);
 
 /// Per-frame task for the muzzle flare the hypervelocity round leaves behind.
 /// `Task::spawnArg2` is the `Gp_State1C` work block holding the flare's drift
@@ -59,7 +61,7 @@ void func_hypervelocity_8011E8A0(GpCoord* ground, s32 spin);
 /// - State 4 fades the ring out 0x20 a frame while spawning smoke off a random
 ///   one of the player's two hand coordinates, and returns to state 1 once the
 ///   flare is 0x6F frames old or the charge goes negative.
-void func_hypervelocity_8011D1E8(Task* task)
+static void func_hypervelocity_8011D1E8(Task* task)
 {
     u8            rgb[3];
     GpCoord*      coord;
@@ -238,7 +240,7 @@ void func_hypervelocity_8011D1E8(Task* task)
 ///   living past frame 0x15 releases the pool block.
 /// - State 2 shrinks the ring by 0x40 a frame, spawning one more spark burst
 ///   per frame until the ring falls under 0x80.
-void func_hypervelocity_8011D830(Task* task)
+static void func_hypervelocity_8011D830(Task* task)
 {
     GpCoord       ground;
     SVECTOR       after;
@@ -422,7 +424,7 @@ void func_hypervelocity_8011D830(Task* task)
 /// `D_hypervelocity_8012EF0C[i]` plus `age`, and is linked into the OT bucket
 /// its own projected depth names. Segments the GTE flags as behind the eye are
 /// dropped.
-void func_hypervelocity_8011DF34(GpCoord* coord, s16 age, s16 spin, s32 side)
+static void func_hypervelocity_8011DF34(GpCoord* coord, s16 age, s16 spin, s32 side)
 {
     HyperTrailScratch* sc;
     POLY_FT4*          prim;
@@ -521,7 +523,7 @@ void func_hypervelocity_8011DF34(GpCoord* coord, s16 age, s16 spin, s32 side)
 /// constant screen size) and `ang` is the roll: the corner pairs sit at `ang`
 /// and `ang + 0x400`, a quarter turn apart, so the quad stays square as it
 /// spins.
-void func_hypervelocity_8011E494(GpCoord* coord, s16 age, s16 spin, s16 ang)
+static void func_hypervelocity_8011E494(GpCoord* coord, s16 age, s16 spin, s16 ang)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -593,7 +595,7 @@ void func_hypervelocity_8011E494(GpCoord* coord, s16 age, s16 spin, s16 ang)
 /// byte straight from the expression lets GCC fold the store's truncation back
 /// into the `gDisplayState.animFrame` load and the `+ 0xC0` / `+ 0xDF`, which the
 /// ROM does not do.
-void func_hypervelocity_8011E8A0(GpCoord* ground, s32 spin)
+static void func_hypervelocity_8011E8A0(GpCoord* ground, s32 spin)
 {
     register u8*          head asm("v1");
     OverlayGroundScratch* sc;
@@ -684,7 +686,7 @@ void func_hypervelocity_8011E8A0(GpCoord* ground, s32 spin)
 /// trail uses, picked by the stored jitter `D_hypervelocity_8012EF0C[i]` plus
 /// `age`, tinted by `rgb` and linked into the OT bucket its own projected
 /// depth names. Walls the GTE flags as behind the eye are dropped.
-void func_hypervelocity_8011EC1C(GpCoord* coord, s16 age, s32 radius, u8* rgb)
+static void func_hypervelocity_8011EC1C(GpCoord* coord, s16 age, s32 radius, u8* rgb)
 {
     HyperConeScratch* sc;
     POLY_FT4*         prim;
@@ -782,7 +784,7 @@ void func_hypervelocity_8011EC1C(GpCoord* coord, s16 age, s32 radius, u8* rgb)
 /// Exit callback: unlinks the collision node leading `Task::work`, if one was
 /// linked, and releases the `Gp_State1C` block in `Task::spawnArg2`. M4A1 Pyke
 /// carries an identical copy.
-void func_hypervelocity_8011F11C(Task* task)
+static void func_hypervelocity_8011F11C(Task* task)
 {
     GpObj* obj = task->work;
     void*  mem = task->spawnArg2;
@@ -793,7 +795,7 @@ void func_hypervelocity_8011F11C(Task* task)
     Gp_ReleaseState1CMem(mem, task);
 }
 
-void func_hypervelocity_8011F168(Task* arg0)
+static void func_hypervelocity_8011F168(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -831,7 +833,7 @@ void func_hypervelocity_8011F168(Task* arg0)
     }
 }
 
-void func_hypervelocity_8011F270(Task* arg0)
+static void func_hypervelocity_8011F270(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -869,7 +871,7 @@ void func_hypervelocity_8011F270(Task* arg0)
     }
 }
 
-void func_hypervelocity_8011F374(Task* arg0)
+static void func_hypervelocity_8011F374(Task* arg0)
 {
     Task*       parent;
     TmdObject*  extra;
@@ -937,7 +939,7 @@ void func_hypervelocity_8011F374(Task* arg0)
     SCRATCH_POP_BYTES(0x10);
 }
 
-void func_hypervelocity_8011F570(Task* arg0)
+static void func_hypervelocity_8011F570(Task* arg0)
 {
     Task*      child;
     TmdObject* childExtra;
@@ -974,20 +976,20 @@ void func_hypervelocity_8011F570(Task* arg0)
     }
 }
 
-void func_hypervelocity_8011F694(Task* arg0)
+static void func_hypervelocity_8011F694(Task* arg0)
 {
     arg0->state = 3;
 }
 
 /// Exit callback: kills the task.
-void func_hypervelocity_8011F6A0(Task* task)
+static void func_hypervelocity_8011F6A0(Task* task)
 {
     taskKill(task);
 }
 
 /// Per-frame entry point: runs the weapon task's current state. The table is a
 /// local, so GCC copies it from `.rodata` onto the stack every frame.
-void func_hypervelocity_8011F6C0(Task* arg0)
+static void func_hypervelocity_8011F6C0(Task* arg0)
 {
     TaskFunc states[4] = {
         func_hypervelocity_8011F570,
@@ -1010,7 +1012,7 @@ void func_hypervelocity_8011F6C0(Task* arg0)
 /// 18 ticks the third column of the weapon coordinate is scaled by the
 /// remaining ticks over 378 (or 244 on the first tick) and subtracted from the
 /// coordinate's translation, kicking the gun back along its own barrel.
-void func_hypervelocity_8011F724(Task* arg0)
+static void func_hypervelocity_8011F724(Task* arg0)
 {
     u8*          head;
     HyperRecoil* rec;

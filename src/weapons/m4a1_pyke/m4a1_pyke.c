@@ -24,7 +24,7 @@
 /// (the muzzle), `(0, 0x200, 0x40)`.
 SVECTOR D_m4a1_pyke_8011E90C = { 0, 0x200, 0x40, 0 };
 
-void func_m4a1_pyke_8011E4AC(Task* task);
+static void func_m4a1_pyke_8011E4AC(Task* task);
 
 /// Per-frame beam task for the M4A1 Pyke. Nothing runs while the player model
 /// is hidden (`field_C & 0x80`) or the room is fading out
@@ -42,7 +42,7 @@ void func_m4a1_pyke_8011E4AC(Task* task);
 ///
 /// While `Gp_State1C->eventState` is non-zero the two drawing sub-states wind
 /// `age` back down instead of advancing.
-void func_m4a1_pyke_8011D1F8(Task* task)
+static void func_m4a1_pyke_8011D1F8(Task* task)
 {
     GpEffWork*    work;
     GpCoord*      coord;
@@ -241,7 +241,7 @@ void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
 ///   switches to state 2 with a fresh ricochet velocity.
 /// - State 2 coasts on that velocity with a fast-widening flare until the dart
 ///   is 0x15 frames old.
-void func_m4a1_pyke_8011D7D4(Task* task)
+static void func_m4a1_pyke_8011D7D4(Task* task)
 {
     GpCoord       ground;
     SVECTOR       after;
@@ -520,7 +520,7 @@ void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
 /// Exit callback: unlinks the collision node leading `Task::work`, if one was
 /// linked, and releases the `Gp_State1C` block in `Task::spawnArg2`.
 /// Hypervelocity carries an identical copy.
-void func_m4a1_pyke_8011E4AC(Task* task)
+static void func_m4a1_pyke_8011E4AC(Task* task)
 {
     GpObj* obj = task->work;
     void*  mem = task->spawnArg2;
@@ -545,7 +545,7 @@ void func_m4a1_pyke_8011E4AC(Task* task)
 /// else ends the burst, parks the beam task at sub-state 3 or 4 and plays the
 /// `0x201C0005` tail. State 6 counts `field_979` down and drops out of the
 /// firing pose once the aim check fails or the trigger has been released.
-void func_m4a1_pyke_8011E4F8(Task* arg0)
+static void func_m4a1_pyke_8011E4F8(Task* arg0)
 {
     GameActor* actor;
     GpCoord*   coord;

@@ -18,6 +18,8 @@
 #include "main/tmd.h"
 #include "weapons/tonfa_baton.h"
 
+static void func_tonfa_baton_8011D6B0(s16 slot, s16 flags);
+
 /// Near vector for the baton's swing arc.
 SVECTOR D_tonfa_baton_8011E0F0[1] = { { 0, 0x0080, 0, 0 } };
 
@@ -25,11 +27,11 @@ SVECTOR D_tonfa_baton_8011E0F0[1] = { { 0, 0x0080, 0, 0 } };
 /// the original: one path reaches it as `D_tonfa_baton_8011E0F0[1]`, which compiles to the
 /// array's address plus 8, and another names it directly, which compiles
 /// to its own address - so it has to be a separate object, not element 1.
-SVECTOR D_tonfa_baton_8011E0F8 = { 0, -0x0200, 0, 0 };
+static SVECTOR D_tonfa_baton_8011E0F8 = { 0, -0x0200, 0, 0 };
 
-void func_tonfa_baton_8011DB78(Task* task);
+static void func_tonfa_baton_8011DB78(Task* task);
 
-void func_tonfa_baton_8011D1EC(Task* task)
+static void func_tonfa_baton_8011D1EC(Task* task)
 {
     GpCoord    local;
     GpCoord*   coord;
@@ -121,7 +123,13 @@ void func_tonfa_baton_8011D1EC(Task* task)
     }
 }
 
-void func_tonfa_baton_8011D6B0(s16 slot, s16 flags)
+/// Draws the trail as seven Gouraud quads, one per trail slot, walking
+/// backwards from `slot`. Each quad spans the near and far trail coordinates
+/// of two adjacent slots and fades out along the trail: the leading edge is
+/// scaled by `0x40 - 9 * i` and the trailing edge by nine less. `flags` is the
+/// trail colour, three 2-bit channels at bits 8, 4 and 0 that each multiply
+/// that fade.
+static void func_tonfa_baton_8011D6B0(s16 slot, s16 flags)
 {
     TonfaBeamScratch* blk;
     GpCoord*          a;
@@ -187,7 +195,7 @@ void func_tonfa_baton_8011D6B0(s16 slot, s16 flags)
     SCRATCH_POP_BYTES(sizeof(TonfaBeamScratch));
 }
 
-void func_tonfa_baton_8011DA48(Task* arg0)
+static void func_tonfa_baton_8011DA48(Task* arg0)
 {
     TmdObject* extra;
     s32*       ptr;
@@ -200,7 +208,7 @@ void func_tonfa_baton_8011DA48(Task* arg0)
     extra->flags       = 0;
 }
 
-void func_tonfa_baton_8011DA74(Task* arg0)
+static void func_tonfa_baton_8011DA74(Task* arg0)
 {
     TmdObject* extra;
     GpCoord*   coord;
@@ -237,20 +245,20 @@ void func_tonfa_baton_8011DA74(Task* arg0)
     Gfx_RotMatrixZ(&coord->coord, coord->param.rot.vz, 1);
 }
 
-void func_tonfa_baton_8011DB6C(Task* arg0)
+static void func_tonfa_baton_8011DB6C(Task* arg0)
 {
     arg0->state = 3;
 }
 
 /// Exit callback: kills the task.
-void func_tonfa_baton_8011DB78(Task* task)
+static void func_tonfa_baton_8011DB78(Task* task)
 {
     taskKill(task);
 }
 
 /// Per-frame entry point: runs the weapon task's current state. The table is a
 /// local, so GCC copies it from `.rodata` onto the stack every frame.
-void func_tonfa_baton_8011DB98(Task* arg0)
+static void func_tonfa_baton_8011DB98(Task* arg0)
 {
     TaskFunc states[4] = {
         func_tonfa_baton_8011DA48,
@@ -275,7 +283,7 @@ void func_tonfa_baton_8011DB98(Task* arg0)
 /// three ticks in and parks in case 4, whose 9 ticks clear the hit flag again.
 /// Cases 1/2 and 4 also play the connect sound once per swing when
 /// `Gp_CountRec18Hi` reports a hit.
-void func_tonfa_baton_8011DBFC(Task* arg0)
+static void func_tonfa_baton_8011DBFC(Task* arg0)
 {
     GameActor*  actor;
     GpCoord*    coord;

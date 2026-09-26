@@ -29,7 +29,7 @@
 /// releasing the hammer task at 0. State 6 counts `field_979` down and drops
 /// out of the firing pose once the aim check fails or the trigger has been
 /// released.
-void func_m4a1_hammer_8011E710(Task* arg0)
+static void func_m4a1_hammer_8011E710(Task* arg0)
 {
     GameActor*    actor;
     GpCoord*      coord;

@@ -23,8 +23,8 @@
 #include "weapons/weapons_shared_8011d468.h"
 #include "weapons/weapons_shared_8011d864.h"
 
-void func_mp5a5_8011D468(GpCoord* arg0, s16 arg1, s16 arg2);
-void func_mp5a5_8011D864(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_mp5a5_8011D468(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_mp5a5_8011D864(GpCoord* arg0, s16 arg1, s16 arg2);
 
 /// The weapon's index: 0x1E for the MP5A5, 0x1F and 0x20 for its two upgrades.
 /// The three packages are this source built once each, and each declares its
@@ -45,7 +45,7 @@ SVECTOR D_mp5a5_8011E128 = { 0, 0x240, 0x40, 0 };
 /// brightness and the four flash quads, decays the light's range by 0x190 and
 /// releases the pool block after seven frames. Nothing runs at all once
 /// `Gp_State1C` is fading out (`field_4 >= 2`).
-void func_mp5a5_8011D1E0(Task* task)
+static void func_mp5a5_8011D1E0(Task* task)
 {
     GpEffWork*    work;
     GpCoord*      coord;
@@ -136,7 +136,7 @@ void func_mp5a5_8011D1E0(Task* task)
    loads and stores keep spelling the block out from `head` rather than reusing
    the `blk` register the way CSE off `blk` would. */
 
-void func_mp5a5_8011D468(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_mp5a5_8011D468(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*                   head;
     OverlaySpriteScratch* blk;
@@ -194,7 +194,7 @@ void func_mp5a5_8011D468(GpCoord* arg0, s16 arg1, s16 arg2)
 /// 0x200 towards the camera, all in the muzzle coordinate's frame. `arg2` is
 /// the flash brightness; only the corner along `arg1` is lit, with half of
 /// `arg2` in red and green and all of it in blue.
-void func_mp5a5_8011D864(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_mp5a5_8011D864(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*                head;
     WeaponQuadScratch* blk;
@@ -303,7 +303,7 @@ void func_mp5a5_8011D864(GpCoord* arg0, s16 arg1, s16 arg2)
 /// effect under the weapon task. States 4/5 pick the lock-on target once (only
 /// while still below 6) and state 6 loops back to `fire` while the trigger is
 /// held, the ammo check passes and the burst timer has run out.
-void func_mp5a5_8011DDA4(Task* arg0)
+static void func_mp5a5_8011DDA4(Task* arg0)
 {
     GameActor*    actor;
     GpCoord*      coord;

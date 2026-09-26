@@ -27,7 +27,7 @@
 /// any occupied `field_32C` slot plays `0x201A0005`. State 7 counts `field_979`
 /// down and drops out of the firing pose once the aim check fails or the
 /// trigger has been released.
-void func_m4a1_bayonet_8011DA34(Task* arg0)
+static void func_m4a1_bayonet_8011DA34(Task* arg0)
 {
     GameActor*    actor;
     GpCoord*      coord;

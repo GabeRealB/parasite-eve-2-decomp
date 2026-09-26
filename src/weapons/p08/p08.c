@@ -25,7 +25,7 @@
 #error "WEAPON_ID, P08_FLASH_EFFECT, P08_FLASH_WEAPON and P08_FIELD_940 are per-package build parameters"
 #endif
 
-void func_p08_8011D1D8(Task* arg0)
+static void func_p08_8011D1D8(Task* arg0)
 {
     GameActor* actor;
     GpCoord*   coord;

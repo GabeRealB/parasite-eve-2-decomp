@@ -13,7 +13,7 @@
 #include "main/tmd.h"
 #include "weapons/m249.h"
 
-void func_m249_8011D1DC(Task* arg0)
+static void func_m249_8011D1DC(Task* arg0)
 {
     GameActor*   actor;
     GpCoord*     coord;

@@ -33,7 +33,6 @@ STATIC_ASSERT_SIZEOF(TonfaSwing, 0x18);
 /// own. Both spellings are needed to match, and one object cannot carry two C
 /// names, so the pair stays in the split data.
 extern SVECTOR D_tonfa_baton_8011E0F0[1];
-extern SVECTOR D_tonfa_baton_8011E0F8;
 
 /// The eight-segment swing trails, one array per end of the baton. Every entry
 /// is parented to `gGfxViewCoord`.
@@ -56,13 +55,5 @@ typedef struct _TonfaBeamScratch {
     /* 0x28 */ s32     unused;
 } TonfaBeamScratch;
 STATIC_ASSERT_SIZEOF(TonfaBeamScratch, 0x2C);
-
-/// Draws the trail as seven Gouraud quads, one per trail slot, walking
-/// backwards from `slot`. Each quad spans the near and far trail coordinates
-/// of two adjacent slots and fades out along the trail: the leading edge is
-/// scaled by `0x40 - 9 * i` and the trailing edge by nine less. `flags` is the
-/// trail colour, three 2-bit channels at bits 8, 4 and 0 that each multiply
-/// that fade.
-void func_tonfa_baton_8011D6B0(s16 slot, s16 flags);
 
 #endif

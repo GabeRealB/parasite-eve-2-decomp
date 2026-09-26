@@ -54,14 +54,4 @@ typedef struct _M4a1HammerTrailScratch {
 } M4a1HammerTrailScratch;
 STATIC_ASSERT_SIZEOF(M4a1HammerTrailScratch, 0x20);
 
-/// Handwritten GTE routine. Draws one semi-transparent `POLY_FT4` stretched
-/// between `coord`'s world position and `arg1`, the offset endpoint the hammer
-/// effect keeps in its data. Both points are projected with their own `RTPS`
-/// and the quad is given a half-width of `arg3 * 23 / otz`, rotated onto the
-/// strip's own screen-space angle so it stays perpendicular to it. `arg2`
-/// selects the strip out of the texture page: bit 0 picks the left or right
-/// half and bit 1 the upper or lower row. Nothing is drawn if either endpoint
-/// projects off-screen.
-void func_m4a1_hammer_8011E29C(GpCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
-
 #endif

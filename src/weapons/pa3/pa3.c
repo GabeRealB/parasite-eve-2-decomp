@@ -35,7 +35,7 @@
 /// the actor's own contact point on the 0xE variant. Case 4 runs out the
 /// `field_934` delay before playing the pump-action sound, and case 5 runs out
 /// the `field_979` grace and otherwise hands back to `func_80106550`.
-void func_pa3_8011D1DC(Task* arg0)
+static void func_pa3_8011D1DC(Task* arg0)
 {
     GameActor* actor;
     GpCoord*   coord;
