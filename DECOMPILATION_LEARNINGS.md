@@ -143484,5 +143484,5 @@ copies away after reload, so the output is unchanged, but before allocation
 they lengthen the parameter's range enough to drop it below the constant. The
 extra copies also add references to `coord`, which then outranked the local
 reused as both the "player is near" flag and the sound id; splitting that into
-`value` and `sound` restored the order. Reading the entry block before `coord`
-before `work` shortened the constant's range by one insn and was also needed.
+`value` and `sound` restored the order. Reading `coord` before `work` at entry
+shortened the constant's range by one insn and was also needed.
