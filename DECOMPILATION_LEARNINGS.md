@@ -144001,3 +144001,15 @@ each arm with a block-scoped `u8* ptr`: every value is then block-local,
 local-alloc ties each result to its dying operand and hands the nibble the
 first free register (`$a0`), both arms come out with identical registers, and
 jump2 merges their `or; sb` tails into what looks like a join block.
+
+## A 2-byte gap before a halfword-only array is the compiler's word alignment, not a pad object (map_akropolis, 2026-09-26)
+
+GCC's MIPS `DATA_ALIGNMENT` raises every static array, struct and union to at
+least word alignment, whatever its element type needs. So an array of 6-byte
+`{u8, u8, u16, u16}` records ending on a halfword boundary is followed by two
+zero bytes when the next object is another array, even one whose own elements
+only need 2-byte alignment. Declare the two tables back to back; the gap needs
+no placeholder. A 4-byte zero run before an already word-aligned object is not
+explained this way and stays a question: the map overlays have two (a `u8`
+flag table and the word after a task table), declared here as a longer array
+and as an unreferenced static respectively.
