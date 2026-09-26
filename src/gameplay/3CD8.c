@@ -1652,54 +1652,26 @@ static s16 Gp_CapTextTopY(u16* arg0)
 
 static s32 func_800E6BB8(u16* arg0)
 {
-    s32                 height;
-    s32                 i;
-    s32                 cont;
-    u16                 code;
-    s32                 shifted;
-    volatile GlyphUvwh* glyph;
-    GlyphUvwh*          table;
-    s32                 next;
-    s32                 htmp;
-    s32                 v0tmp;
+    s16 height = 0;
+    s16 i      = 0;
+    s16 cont   = 1;
+    s16 code   = arg0[0];
 
-    height  = 0;
-    i       = height;
-    cont    = 1;
-    code    = arg0[0];
-    table   = Gp_CapGlyphs;
-    shifted = code << 16;
-    for (;;) {
-        shifted = shifted >> 16;
-        if (shifted == -2) {
+    do {
+        if (code == -2) {
             cont = 0;
-        } else if (shifted == -1) {
+        } else if (code == -1) {
             cont   = 0;
             height = 0xD;
-        } else {
-            if (shifted >= 0) {
-                glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table);
-                if (height < glyph->h + 2) {
-                    htmp   = glyph->h;
-                    height = htmp + 2;
-                    goto do_inc;
-                }
-                next = i + 1;
-            } else {
-            do_inc:
-                next = i + 1;
+        } else if (code >= 0) {
+            if (height < Gp_CapGlyphs[code & 0x3FF].h + 2) {
+                height = Gp_CapGlyphs[code & 0x3FF].h + 2;
             }
-            i = next;
-            TOUCH_REG(next);
-            code = arg0[(s16)next];
+            code = arg0[++i];
+        } else {
+            code = arg0[++i];
         }
-        v0tmp = cont;
-        TOUCH_REG(v0tmp);
-        if (v0tmp == 0) {
-            break;
-        }
-        shifted = code << 16;
-    }
+    } while (cont);
     if (height == 0) {
         height = 2;
     }
