@@ -144528,3 +144528,15 @@ in `do { } while (0)` lifts its references to loop depth 3. Wrapping the whole
 body over-weighted the record pointer instead. When a pin only reorders
 callee-saved registers inside a loop, try duplicating a shared case body before
 anything else.
+
+## `TOUCH_REG(i); x += i;` in a pose tick is an early-returning helper that sets `i = 1` on the tick path (func_actor_105400_8013246C, 2026-09-27)
+
+The actor pose tick (re-queue slots 1..N when the requested pose changed, else
+advance a frame count and tick every slot) adds the loop counter to the count
+with `addu v0,v0,s0` although `s0` is 1. Written as `i = 1; if (changed) { …
+for (; i < N; i++) … } else { x += i; do … while }`, cse follows the branch into
+the else arm with `i == 1` known and folds the add to `addiu`, which is what the
+`TOUCH_REG(i)` hid. The form sibling actors match with is a helper whose changed
+arm ends in `return`, and whose tick path sets `i = 1` itself before `x += i`;
+inlined with `static inline`, it matches in the caller too. The same pinned shape
+recurs in several actors' pose ticks.

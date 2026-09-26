@@ -227,6 +227,34 @@ static void func_actor_105400_8013222C(Task* arg0)
     }
 }
 
+/// Pose tick, the body of `func_actor_105400_80133610` expanded in place:
+/// re-queues slots 1-9 when the requested pose `field_320` differs from the
+/// latched one `field_322`, otherwise ticks every slot and advances the frame
+/// count `field_324` by one.
+static inline void _actor105400PoseTick(Task* arg0)
+{
+    Actor05300Work* work;
+    s32             i;
+    s32             value;
+
+    work = arg0->work;
+    if ((s16)work->field_320 != work->field_322) {
+        work->field_322 = work->field_320;
+        work->field_324 = 0;
+        value           = D_actor_105400_80133A18[(s16)work->field_320];
+        for (i = 1; i < 10; i++) {
+            func_800B4114(work, i, (s16)work->field_320, 0, value);
+        }
+        return;
+    }
+    i                = 1;
+    work->field_324 += i;
+    do {
+        Gp_AnimTickIndex(&work->anim, i);
+        i++;
+    } while (i < 10);
+}
+
 /// Death handler of the main task (its state 2). Death state `field_32E` 3 is
 /// the wait the hit handler enters when the enemy dies: effects are spawned
 /// every fourth frame until message bit 1 moves it to 0. State 0 drops the
@@ -246,7 +274,6 @@ static void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
     VECTOR          pos;
     TmdObject*      obj;
     Actor05300Work* work;
-    Actor05300Work* anim;
     GpCoord*        coord;
     GpCoord*        tmp;
     Actor05300Clip* clip;
@@ -257,8 +284,6 @@ static void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
     s32             z;
     s32             x2;
     s32             z2;
-    s32             i;
-    s32             value;
 
     obj   = arg1->extra.tmd;
     work  = arg1->work;
@@ -425,23 +450,7 @@ static void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
         work->field_330 = 1;
         Gp_ClearAreaFlag4((GpAreaKey*)&gGameSession->at4);
     }
-    anim = arg1->work;
-    i    = 1;
-    if ((s16)anim->field_320 != anim->field_322) {
-        anim->field_322 = anim->field_320;
-        anim->field_324 = 0;
-        value           = D_actor_105400_80133A18[(s16)anim->field_320];
-        for (; i < 10; i++) {
-            func_800B4114(anim, i, (s16)anim->field_320, 0, value);
-        }
-    } else {
-        TOUCH_REG(i);
-        anim->field_324 += i;
-        do {
-            Gp_AnimTickIndex(&anim->anim, i);
-            i++;
-        } while (i < 10);
-    }
+    _actor105400PoseTick(arg1);
     tmp    = arg1->extra.tmd->coords;
     pos.vx = tmp->workm.t[0];
     pos.vy = tmp->workm.t[1];
