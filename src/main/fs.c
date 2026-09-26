@@ -1308,27 +1308,22 @@ restart:
 u8 Fs_LoadImageChunk(FsImageChunk* arg0, u8 arg1)
 {
     u_long*       ot;
-    register s32  retry asm("s1");
-    s32           none;
-    u8            yAdj;
+    s32           retry;
+    s8            yAdj;
     FsImageChunk* img;
-    RECT*         rect;
-    u_long*       z;
     u32           inRange;
 
     if (ResetRCnt(RCntCNT2) == 0) {
         return 0xFF;
     }
 
-    none  = -1;
-    retry = arg1;
     do {
         ot = BreakDraw();
-        if ((s32)ot != none) {
+        if (ot != (u_long*)-1) {
             break;
         }
         if (GetRCnt(RCntCNT2) >= 0x6E40) {
-            if (retry == 0) {
+            if (arg1 == 0) {
                 Fs_ContinueDrawing((u_long*)-1);
                 return 0x7F;
             }
@@ -1347,16 +1342,15 @@ u8 Fs_LoadImageChunk(FsImageChunk* arg0, u8 arg1)
     }
 
     if (Fs_ChunkMode == 2) {
-        Fs_ImageRect.y = (s8)yAdj + (img->y + 1);
+        Fs_ImageRect.y = yAdj + (img->y + 1);
     } else {
-        Fs_ImageRect.y = img->y + (s8)yAdj;
+        Fs_ImageRect.y = img->y + yAdj;
     }
 
     Fs_ChunkReadPtr  = (u8*)(arg0 + 1);
-    rect             = &Fs_ImageRect;
-    rect->w          = img->w;
+    Fs_ImageRect.w   = img->w;
     Fs_ChunkWritePtr = (u8*)D5B498_8006D870;
-    rect->h          = img->h;
+    Fs_ImageRect.h   = img->h;
     Fs_DecompressImage();
 
     if (D5B498_8006D748 == 0xFFFF) {
@@ -1364,23 +1358,21 @@ u8 Fs_LoadImageChunk(FsImageChunk* arg0, u8 arg1)
         return 0x7F;
     }
 
-    LoadImage2(rect, D5B498_8006D870);
+    LoadImage2(&Fs_ImageRect, D5B498_8006D870);
 
     retry = arg1;
-    z     = NULL;
     do {
-    } while (IsIdleGPU(-1) != 0);
-
-    if (GetRCnt(RCntCNT2) >= 0x6E40) {
-        if (retry == 0) {
-            ContinueDraw(z, ot);
-            return 0x7F;
+        while (IsIdleGPU(-1) != 0) {
         }
-        // Force a0 re-materialization of `ot` on the retry path so the
-        // delay slot of `bnez s1` can hold `move a0, zero` for ContinueDraw
-        // while the taken path restores a0 before Fs_ContinueDrawing.
-        CLOBBER_REG($4);
-    }
+        if (GetRCnt(RCntCNT2) < 0x6E40) {
+            break;
+        }
+        if (retry != 0) {
+            break;
+        }
+        ContinueDraw(NULL, ot);
+        return 0x7F;
+    } while (0);
 
     D_8006C4C8[D5B498_8006ADF4] = (u8)Fs_ImageRect.h;
     Fs_ContinueDrawing(ot);
