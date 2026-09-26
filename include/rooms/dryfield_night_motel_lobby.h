@@ -68,4 +68,6 @@ void func_dryfield_night_motel_lobby_801811E0(Task* task);
 void func_dryfield_night_motel_lobby_80181218(Task* task);
 void func_dryfield_night_motel_lobby_8018122C(Task* task);
 
+void func_dryfield_night_motel_lobby_8017FE90(Task* task);
+
 #endif // ROOMS_DRYFIELD_NIGHT_MOTEL_LOBBY_H

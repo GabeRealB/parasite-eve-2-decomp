@@ -1560,25 +1560,3 @@ void func_dryfield_night_motel_lobby_80180064(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 }
-
-/// The eleven states of the room's examine task, run by
-/// `func_dryfield_night_motel_lobby_80180D58`.
-const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0 = {
-    {
-        func_dryfield_night_motel_lobby_80180E98,
-        func_dryfield_night_motel_lobby_80180FA4,
-        func_dryfield_night_motel_lobby_8017FE90,
-        func_dryfield_night_motel_lobby_80180FD8,
-        func_dryfield_night_motel_lobby_8018103C,
-        func_dryfield_night_motel_lobby_801810AC,
-        func_dryfield_night_motel_lobby_80181138,
-        func_dryfield_night_motel_lobby_8018119C,
-        func_dryfield_night_motel_lobby_801811E0,
-        func_dryfield_night_motel_lobby_80181218,
-        func_dryfield_night_motel_lobby_8018122C,
-    },
-};
-
-/// Zero word that closes this object's `.rodata` and puts the next object's
-/// first jump table at 0x8017D6E0; nothing reads it.
-const u32 D_dryfield_night_motel_lobby_8017D6DC = 0;

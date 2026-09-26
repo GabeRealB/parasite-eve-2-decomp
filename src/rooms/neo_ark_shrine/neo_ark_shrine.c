@@ -296,39 +296,6 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
     }
 }
 
-const TaskFuncTable16 D_neo_ark_shrine_8017D5D0 = {
-    {
-        func_neo_ark_shrine_8017ECC4,
-        func_neo_ark_shrine_8017EDAC,
-        func_neo_ark_shrine_8017D9A0,
-        func_neo_ark_shrine_8017EDE0,
-        func_neo_ark_shrine_8017EE44,
-        func_neo_ark_shrine_8017EED4,
-        func_neo_ark_shrine_8017DB10,
-        func_neo_ark_shrine_8017EF68,
-        func_neo_ark_shrine_8017EFE4,
-        func_neo_ark_shrine_8017F094,
-        func_neo_ark_shrine_8017F0F0,
-        func_neo_ark_shrine_8017F178,
-        func_neo_ark_shrine_8017F21C,
-        func_neo_ark_shrine_8017F274,
-        func_neo_ark_shrine_8017F320,
-        func_neo_ark_shrine_8017F398,
-    },
-};
-
-const TaskFuncTable4 D_neo_ark_shrine_8017D610 = {
-    { func_neo_ark_shrine_8017F4C8, func_neo_ark_shrine_8017F578, func_neo_ark_shrine_8017F640, taskKill },
-};
-
-const TaskFuncTable3 D_neo_ark_shrine_8017D620 = {
-    { func_neo_ark_shrine_8017F688, func_neo_ark_shrine_8017F738, taskKill },
-};
-
-/// Alignment pad closing this unit's `.rodata`: the next object starts with a
-/// jump table, which the original build aligned to 8. Nothing reads it.
-const u32 D_neo_ark_shrine_8017D62C = 0;
-
 /// Outlines `rect` on screen in (`r`, `g`, `b`) with four unconnected flat
 /// `LINE_F2`s -- top, right, bottom and left edge of the rectangle spanning
 /// (`x`, `y`) to (`x + w`, `y + h`) -- each linked into `gGpuCurrentOt[1]`.

@@ -89,4 +89,7 @@ void func_neo_ark_shrine_8017F640(Task* task);
 void func_neo_ark_shrine_8017F688(Task* task);
 void func_neo_ark_shrine_8017F738(Task* task);
 
+void func_neo_ark_shrine_8017D9A0(Task* task);
+void func_neo_ark_shrine_8017DB10(Task* arg0);
+
 #endif // ROOMS_NEO_ARK_SHRINE_H

@@ -2643,25 +2643,6 @@ const TaskFuncTable3 D_mist_parking_8017D7DC = {
     },
 };
 
-/// State handlers of the same shape for a task that attaches a model to a
-/// parent's part and then idles; nothing in the room reads this table.
-const TaskFuncTable3 D_mist_parking_8017D7E8 = {
-    {
-        func_mist_parking_8018307C,
-        func_mist_parking_801830F8,
-        taskKill,
-    },
-};
-
-/// State handlers of the text-block task `func_mist_parking_801832AC` runs.
-const TaskFuncTable3 D_mist_parking_8017D7F4 = {
-    {
-        func_mist_parking_80183304,
-        func_mist_parking_801833F8,
-        func_mist_parking_80183434,
-    },
-};
-
 /// Plays the sound event in `spawnArg2` on its first frame and again at frame
 /// 0x50, then asks for the task's own kill at frame 0x78.
 void func_mist_parking_80182628(Task* task)

@@ -933,7 +933,7 @@ text = ["0x338", "0x8A98"]
 objects = [
   { kind = "packageId" },
   { unit = "mist_parking/mist_parking", rodata = "0x4", text = "0x338" },
-  { unit = "mist_parking/mist_parking_2", rodata = "0x240", text = "0x5484" },
+  { unit = "mist_parking/mist_parking_2", rodata = "0x228", text = "0x5484" },
   { unit = "mist_parking/mist_parking_3", rodata = "0x284", text = "0x6074" },
   { unit = "mist_parking/mist_parking_4", rodata = "0x2A8", text = "0x65EC" },
   { unit = "mist_parking/mist_parking_5", rodata = "0x2EC", text = "0x7168" },
@@ -1425,7 +1425,7 @@ id = 353
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_motel_lobby/dryfield_night_motel_lobby", rodata = "0x4", text = "0x188" },
-  { unit = "dryfield_night_motel_lobby/dryfield_night_motel_lobby_2", rodata = "0x120", text = "0x2CE8" },
+  { unit = "dryfield_night_motel_lobby/dryfield_night_motel_lobby_2", rodata = "0xF0", text = "0x2CE8" },
   { kind = "data", at = "0x4EC8" },
 ]
 
@@ -2259,7 +2259,7 @@ text = ["0xE4", "0x4874"]
 objects = [
   { kind = "packageId" },
   { unit = "neo_ark_shrine/neo_ark_shrine", rodata = "0x4", text = "0xE4" },
-  { unit = "neo_ark_shrine/neo_ark_shrine_2", rodata = "0x70", text = "0xF68" },
+  { unit = "neo_ark_shrine/neo_ark_shrine_2", rodata = "0x10", text = "0xF68" },
   { kind = "data", at = "0x4874" },
 ]
 

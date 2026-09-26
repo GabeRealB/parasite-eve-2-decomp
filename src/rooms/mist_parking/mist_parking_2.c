@@ -36,6 +36,24 @@ typedef struct {
 
 extern MistParkingScanState D_mist_parking_80195328;
 
+/// State handlers of the same shape for a task that attaches a model to a
+/// parent's part and then idles; nothing in the room reads this table.
+const TaskFuncTable3 D_mist_parking_8017D7E8 = {
+    {
+        func_mist_parking_8018307C,
+        func_mist_parking_801830F8,
+        taskKill,
+    },
+};
+/// State handlers of the text-block task `func_mist_parking_801832AC` runs.
+const TaskFuncTable3 D_mist_parking_8017D7F4 = {
+    {
+        func_mist_parking_80183304,
+        func_mist_parking_801833F8,
+        func_mist_parking_80183434,
+    },
+};
+
 void func_mist_parking_80182A44(Task* task)
 {
     s32                   i;

@@ -49,6 +49,24 @@ void func_dryfield_night_motel_lobby_80181404(SVECTOR* arg0, s32 arg1, s32 arg2)
 void func_dryfield_night_motel_lobby_80181878(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_dryfield_night_motel_lobby_80182200(SVECTOR* arg0, s32 arg1, s32 arg2);
 
+/// The eleven states of the room's examine task, run by
+/// `func_dryfield_night_motel_lobby_80180D58`.
+const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0 = {
+    {
+        func_dryfield_night_motel_lobby_80180E98,
+        func_dryfield_night_motel_lobby_80180FA4,
+        func_dryfield_night_motel_lobby_8017FE90,
+        func_dryfield_night_motel_lobby_80180FD8,
+        func_dryfield_night_motel_lobby_8018103C,
+        func_dryfield_night_motel_lobby_801810AC,
+        func_dryfield_night_motel_lobby_80181138,
+        func_dryfield_night_motel_lobby_8018119C,
+        func_dryfield_night_motel_lobby_801811E0,
+        func_dryfield_night_motel_lobby_80181218,
+        func_dryfield_night_motel_lobby_8018122C,
+    },
+};
+
 void func_dryfield_night_motel_lobby_801802A8(Task* task)
 {
     DnmlExamineWork* work = (DnmlExamineWork*)task->work;
