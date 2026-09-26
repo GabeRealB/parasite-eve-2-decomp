@@ -8174,14 +8174,3 @@ const GpHudStatusBits D_8009389C   = { { 0x1, 0x2, 0x4, 0x10, 0x20, 0x40, 0x80 }
 /// "????". The three bytes after the terminator are not zero: the original
 /// toolchain left them in the alignment gap, so the array is sized to hold them.
 const char D_800938AC[8] = "????\0&!K";
-
-const TaskFuncTable6 Gp_LoadWaitFns = { {
-    Gp_ViewBeginLoad,
-    Gp_EnqueueViewCd,
-    Gp_ViewLoadImage,
-    Gp_LoadWaitCdBusy,
-    Gp_LoadWaitIdle,
-    Gp_LoadWaitDone,
-} };
-
-const GpTbl5 Gp_ConfigCdTable = { { 4, 3, 2, 5, 6 } };

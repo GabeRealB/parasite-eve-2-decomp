@@ -56,6 +56,17 @@ extern u16                  Gp_DirFadeLevel;
 extern u8                   D_80114CF8;
 extern s16                  D_80114D08;
 
+const TaskFuncTable6 Gp_LoadWaitFns = { {
+    Gp_ViewBeginLoad,
+    Gp_EnqueueViewCd,
+    Gp_ViewLoadImage,
+    Gp_LoadWaitCdBusy,
+    Gp_LoadWaitIdle,
+    Gp_LoadWaitDone,
+} };
+
+const GpTbl5 Gp_ConfigCdTable = { { 4, 3, 2, 5, 6 } };
+
 void Gp_EnqueueWeaponCd(void)
 {
     u8  param1[8];
@@ -2855,37 +2866,4 @@ const TaskFuncTable3 Gp_RoomObjStates = { {
     Gp_LinkRoomObjectsSpawn,
     Gp_RoomObjState1,
     taskKill,
-} };
-
-const TaskFuncTable3 Gp_DirTaskStates = { {
-    Gp_InitDirState,
-    (TaskFunc)Gp_DirTaskState1,
-    taskKill,
-} };
-
-const GpDirActionTable Gp_DirActionFns = { {
-    Gp_DirAction0,
-    Gp_DirAction1,
-    Gp_PostDirIfCapIdle,
-    Gp_RunDirAction,
-    Gp_ClearDirCursor,
-    Gp_PostMsg13EF,
-    Gp_SpawnEvt1IfCapIdle,
-} };
-
-const GpVoidFuncTable6 Gp_WarpPhaseFns = { {
-    Gp_SetupDirWarp,
-    Gp_FadeDirWaitMsg,
-    Gp_FadeDirAdvance,
-    Gp_CommitWarp,
-    Gp_WarpPhase4,
-    Gp_CommitSaveLoc,
-} };
-
-const GpVoidFuncTable5 D_80093990 = { {
-    Gp_MsgPlayer3EE,
-    Gp_MsgPlayer3F0,
-    Gp_MsgPlayer3EF,
-    Gp_MsgPlayerDirFacing,
-    Gp_CommitDirWarp,
 } };

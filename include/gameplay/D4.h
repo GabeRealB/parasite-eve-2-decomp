@@ -349,6 +349,14 @@ void Gp_EnqueueViewCd(Task* task);
 void Gp_LoadWaitCdBusy(Task* task);
 void Gp_LoadWaitIdle(Task* task);
 void Gp_LoadWaitDone(Task* task);
+void Gp_PostDirIfCapIdle(void);
+void Gp_RunDirAction(void);
+void Gp_SetupDirWarp(void);
+void Gp_FadeDirWaitMsg(void);
+void Gp_CommitWarp(void);
+void Gp_WarpPhase4(void);
+void Gp_MsgPlayerDirFacing(void);
+void Gp_CommitDirWarp(void);
 void Gp_PumpTmdStream(Task* task);
 /// Walk the inner area rec's 0x10-byte CdCmd 0x21 list (`Gp_CdRecCur`),
 /// matching each id against the 0xC-byte list (`D_80114C68`). Returns 1

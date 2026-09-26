@@ -75,10 +75,9 @@ segments:
       # does not treat these as dotted siblings.
       - [0x0, .rodata, packageid] # the package id
       - [0x4, .rodata, header] # strings, colours and Gp_PlayClockStates
-      - [0x78, .rodata, gameplay] # jtbl from Gp_ApplyAttachStats, then the prompt labels, Gp_LoadWaitFns and Gp_ConfigCdTable
-      - [0xD4, .rodata, D4] # jtbl from Gp_EnqueueWeaponCd, then the session, load, room-object and direction tables
-      - [0x1A4, pad] # zero gap nothing refers to: likely the end of the D4 unit's rodata
-      - [0x1A8, .rodata, 1A8] # jtbl from Gp_LookupStageFlag
+      - [0x78, .rodata, gameplay] # jtbl from Gp_ApplyAttachStats, then the prompt labels
+      - [0xB4, .rodata, D4] # Gp_LoadWaitFns and Gp_ConfigCdTable, the jtbl from Gp_EnqueueWeaponCd, then the session, load and room-object tables
+      - [0x150, .rodata, 1A8] # the direction tables, then the jtbl from Gp_LookupStageFlag
       - [0x1BC, .rodata, 1BC] # jtbls from func_800AF590 and Gp_StepCdAudioCmd, then its strings and state tables
       - [0x268, .rodata, 268] # jtbl from func_800B7420, then Gp_StrNotice2
       - [0x4CC, .rodata, 4CC] # jtbls: Gp_ItemMoveChild + strings/tables + Gp_CloseItemPane

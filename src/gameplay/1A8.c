@@ -15,32 +15,62 @@
 
 void func_800AD6BC(void);
 
-extern const TaskFuncTable3   Gp_DirTaskStates;
-extern const GpVoidFuncTable6 Gp_WarpPhaseFns;
-extern const GpVoidFuncTable5 D_80093990;
-extern u16                    D_80114CD0;
-extern u16                    Gp_DirFlags;
-extern u16                    D_80114CD4;
-extern u16                    Gp_DirPhase;
-extern u8                     Gp_DirByte;
-extern u8                     Gp_DirNibble;
-extern u8                     Gp_DirAlt;
-extern u8                     Gp_DirAltNibble;
-extern u8                     D_80114CDC;
-extern u8                     D_80114CDD;
-extern u8                     D_80114CDE;
-extern s16                    D_80114CE0;
-extern u16                    Gp_DirFadeLevel;
-extern u8                     D_80114CF8;
-extern s16                    D_80114D08;
-extern u16                    D_8017A738[];
-extern u16                    D_8017A824[];
-extern u16                    D_8017A9A0[];
-extern u16                    D_8017AA0C[];
-extern u16                    D_8017AD88[];
+extern u16 D_80114CD0;
+extern u16 Gp_DirFlags;
+extern u16 D_80114CD4;
+extern u16 Gp_DirPhase;
+extern u8  Gp_DirByte;
+extern u8  Gp_DirNibble;
+extern u8  Gp_DirAlt;
+extern u8  Gp_DirAltNibble;
+extern u8  D_80114CDC;
+extern u8  D_80114CDD;
+extern u8  D_80114CDE;
+extern s16 D_80114CE0;
+extern u16 Gp_DirFadeLevel;
+extern u8  D_80114CF8;
+extern s16 D_80114D08;
+extern u16 D_8017A738[];
+extern u16 D_8017A824[];
+extern u16 D_8017A9A0[];
+extern u16 D_8017AA0C[];
+extern u16 D_8017AD88[];
 
 /// The flag entry `table[idx]`: its low 11 bits select a flag nibble, and its
 /// bit 0x800 is added onto that nibble's value.
+const TaskFuncTable3 Gp_DirTaskStates = { {
+    Gp_InitDirState,
+    (TaskFunc)Gp_DirTaskState1,
+    taskKill,
+} };
+
+const GpDirActionTable Gp_DirActionFns = { {
+    Gp_DirAction0,
+    Gp_DirAction1,
+    Gp_PostDirIfCapIdle,
+    Gp_RunDirAction,
+    Gp_ClearDirCursor,
+    Gp_PostMsg13EF,
+    Gp_SpawnEvt1IfCapIdle,
+} };
+
+const GpVoidFuncTable6 Gp_WarpPhaseFns = { {
+    Gp_SetupDirWarp,
+    Gp_FadeDirWaitMsg,
+    Gp_FadeDirAdvance,
+    Gp_CommitWarp,
+    Gp_WarpPhase4,
+    Gp_CommitSaveLoc,
+} };
+
+const GpVoidFuncTable5 D_80093990 = { {
+    Gp_MsgPlayer3EE,
+    Gp_MsgPlayer3F0,
+    Gp_MsgPlayer3EF,
+    Gp_MsgPlayerDirFacing,
+    Gp_CommitDirWarp,
+} };
+
 static inline s16 _gpStageFlagNibble(u16* table, s16 idx)
 {
     return GameFlag_GetNibble(table[idx] & 0x7FF) + (table[idx] & 0x800);
