@@ -124197,6 +124197,16 @@ Scratch input `base_16.c` SHA256
 `464d7aac04826ba6a7fd3a999031236738a99ee9212e79a6e5ae55292de37f10`. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
+**Superseded (2026-09-26): the wrapper was a hack, and so were the pins.** The
+two spawn blocks are one `static inline` helper (area-key copy, place lookup,
+tpage/clut, double stream), called twice. With the helper, the only remaining
+difference was this same `work`/`model` swap (model 6 refs over 26 insns, pri
+just under `work`'s). Reading `model = spawned->extra.tmd` *after* the
+`sessionKey` and `placeKey` loads, instead of first, shortens its live range
+enough to cross `work`, and the function matches with no wrapper,
+`SOFT_BARRIER` or `TOUCH_REG(keyp)`. Try a live-length change by moving the
+defining load among its neighbours before adding a reference.
+
 ## `build-and-verify.sh` clang-formats every overlay header, so a hand-edit there comes back reshaped after the build (2026-09-17)
 
 **Symptom.** A doc comment added to `include/actors/actor_450800.h` between two

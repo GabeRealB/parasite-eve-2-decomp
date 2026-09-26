@@ -214,45 +214,48 @@ void func_actor_450800_80132108(void)
     Gp_SpawnEff(0x6003B, NULL, 0x200, &pos);
 }
 
+/// Gives a freshly spawned helper model the texture page and palette of the
+/// actor's placement in the current area, then streams it twice.
+static inline void _actor450800TintModel(Task* spawned, Task* actor)
+{
+    GpAreaKey    key;
+    GpAreaKey*   sessionKey;
+    GpAreaPlace* entry;
+    TmdObject*   model;
+    u32          idx;
+
+    sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+    idx        = ((GpEnemy*)actor->spawnArg2)->placeKey >> 12;
+    model      = spawned->extra.tmd;
+    key.stage  = sessionKey->stage;
+    key.area   = sessionKey->area;
+    key.room   = sessionKey->room;
+    key.view   = gGameSession->at4.loc.view;
+    Gp_SyncAreaKeyIndex(&key);
+    entry        = (GpAreaPlace*)((idx << 4) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+    model->tpage = entry->tpage;
+    model->clut  = entry->clut;
+    if (model->buffer != NULL) {
+        tmdProcessStream(model);
+        tmdProcessStream(model);
+    }
+}
+
 /// Spawn handler of the actor's own task, state 0 of the `fns` table
 /// `func_actor_450800_80132790` dispatches through. Builds the actor's
 /// `Actor450800Work` block, hangs its leading matrices off the model's
 /// `lightMtx` / `colorMtx`, and starts the animation.
 ///
 /// The three helper tasks come out of `D_actor_450800_8014AC88`: 1 and 2 are
-/// the actor's own model parts, and each is placed by the area key its
-/// `Task::spawnArg2` carries. Task 4 is spawned but not placed.
-///
-/// The `do { } while (0)` around the second `tmdProcessStream` is
-/// load-bearing: the loop body is a statement of its own, so the model pointer
-/// gains a reference that the bare second call does not. That reference is
-/// what lifts the pointer's global-alloc priority (refs 7, not 6) past
-/// `work`'s, so it takes `$s1` and pushes `work` into `$s2`, which is the
-/// ROM's split. See DECOMPILATION_LEARNINGS.md, "A `do { } while (0)` around
-/// one of two identical calls adds its `REF` back".
-void func_actor_450800_80132160(GpEnemy* enemyArg, Task* task)
+/// the actor's own model parts, textured from the placement the actor's
+/// `Task::spawnArg2` enemy selects. Task 4 is spawned but not textured.
+void func_actor_450800_80132160(GpEnemy* enemy, Task* task)
 {
-    GpEnemy* enemy = enemyArg;
-
     VECTOR           vec;
-    GpAreaKey        key;
-    GpAreaKey*       keyp;
     GpCoord*         coord;
     TmdObject*       obj;
     Actor450800Work* work;
-    u8               areaByte0;
-    u8               areaByte1;
-    u32              raw1;
-    u32              raw2;
-    u32              index1;
-    u32              index2;
     Task*            spawned;
-    TmdObject*       model1;
-    GpAreaPlace*     entry1;
-    GpAreaKey*       sessionKey1;
-    TmdObject*       model2;
-    GpAreaPlace*     entry2;
-    GpAreaKey*       sessionKey2;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
@@ -287,58 +290,14 @@ void func_actor_450800_80132160(GpEnemy* enemyArg, Task* task)
     if (spawned != NULL) {
         work->field_4F0 = spawned;
         spawned->parent = task;
-        model1          = spawned->extra.tmd;
-        sessionKey1     = (GpAreaKey*)&gGameSession->at4.loc;
-        raw1            = ((GpEnemy*)task->spawnArg2)->placeKey;
-        key.stage       = sessionKey1->stage;
-        key.area        = sessionKey1->area;
-        areaByte1       = sessionKey1->room;
-        SOFT_BARRIER();
-        keyp = &key;
-        TOUCH_REG(keyp);
-        key.room  = areaByte1;
-        areaByte0 = gGameSession->at4.loc.view;
-        index1    = raw1 >> 12;
-        key.view  = areaByte0;
-        Gp_SyncAreaKeyIndex(keyp);
-        entry1        = (GpAreaPlace*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model1->tpage = entry1->tpage;
-        model1->clut  = entry1->clut;
-        if (model1->buffer != NULL) {
-            tmdProcessStream(model1);
-            do {
-                tmdProcessStream(model1);
-            } while (0);
-        }
+        _actor450800TintModel(spawned, task);
     }
 
     spawned = Task_SpawnFromTable(D_actor_450800_8014AC88, 2, 0xC, 0);
     if (spawned != NULL) {
         work->field_4F4 = spawned;
         spawned->parent = task;
-        model2          = spawned->extra.tmd;
-        sessionKey2     = (GpAreaKey*)&gGameSession->at4.loc;
-        raw2            = ((GpEnemy*)task->spawnArg2)->placeKey;
-        key.stage       = sessionKey2->stage;
-        key.area        = sessionKey2->area;
-        areaByte1       = sessionKey2->room;
-        SOFT_BARRIER();
-        keyp = &key;
-        TOUCH_REG(keyp);
-        key.room  = areaByte1;
-        areaByte0 = gGameSession->at4.loc.view;
-        index2    = raw2 >> 12;
-        key.view  = areaByte0;
-        Gp_SyncAreaKeyIndex(keyp);
-        entry2        = (GpAreaPlace*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model2->tpage = entry2->tpage;
-        model2->clut  = entry2->clut;
-        if (model2->buffer != NULL) {
-            tmdProcessStream(model2);
-            do {
-                tmdProcessStream(model2);
-            } while (0);
-        }
+        _actor450800TintModel(spawned, task);
     }
 
     spawned = Task_SpawnFromTable(D_actor_450800_8014AC88, 4, 8, 0);
