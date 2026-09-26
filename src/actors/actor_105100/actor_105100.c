@@ -299,14 +299,9 @@ static void func_actor_105100_80131EBC(GpCoord* coord, s16 size)
     s16            top;
     s16            bottom;
     s32            outerSize;
-    s32            shifted;
     u32            random;
     GpCoord64*     slot;
     GpPointLight*  light;
-    GpRingScratch* block;
-    void**         scratch;
-    GpRingScratch* alias;
-    u16            vy;
     GpRingScratch* sc;
 
     slot                        = &Gp_RoomCoords[2];
@@ -315,34 +310,28 @@ static void func_actor_105100_80131EBC(GpCoord* coord, s16 size)
     light->inner                = 0x300;
     light->outer                = 0x3000;
     random                      = (Gp_LcgState * 5) + 0x71357911;
+    Gp_LcgState                 = random;
     intensity                   = ((random >> 0x10) & 0x700) + 0x800;
     light->head.r               = intensity;
-    shifted                     = intensity << 0x10;
-    light->head.g               = (s16)(shifted >> 0x11);
-    light->head.b               = (s16)(shifted >> 0x12);
+    light->head.g               = intensity >> 1;
+    light->head.b               = intensity >> 2;
     light->head.u.at.local.t[0] = (s32)coord->coord.t[0];
     light->head.u.at.local.t[1] = (s32)coord->coord.t[1];
     light->head.u.at.local.t[2] = coord->coord.t[2];
     slot->data.coord.flg        = 0;
-    scratch                     = SCRATCH_HEAD_ADDR;
-    block                       = (GpRingScratch*)SCRATCH_HEAD_AT(scratch, void) - 1;
-    block->vec.vx               = (u16)coord->workm.t[0];
-    alias                       = block;
-    vy                          = (u16)coord->workm.t[1];
-    __asm__("move %0,%1" : "=r"(alias) : "r"(alias), "r"(vy), "r"(alias));
-    sc                             = alias;
-    sc->vec.vy                     = vy;
-    sc->vec.vz                     = (u16)coord->workm.t[2];
-    Gp_LcgState                    = random;
-    SCRATCH_HEAD_AT(scratch, void) = sc;
+    SCRATCH_PUSH(GpRingScratch);
+    sc         = SCRATCH_HEAD(GpRingScratch);
+    sc->vec.vx = coord->workm.t[0];
+    sc->vec.vy = coord->workm.t[1];
+    sc->vec.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&sc->vec);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
+    gte_stsxy(&sc->sx);
+    gte_stflg(&sc->flag);
     if (sc->flag >= 0) {
-        gte_stszotz(&block->otz);
+        gte_stszotz(&sc->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         sc->otz        = (s32)(sc->otz + 1);
         gGpuPrimCursor = prim + 1;
@@ -410,8 +399,7 @@ static void func_actor_105100_80131EBC(GpCoord* coord, s16 size)
             }
         }
     }
-    SCRATCH_HEAD(void) =
-        (u8*)SCRATCH_HEAD(void) + sizeof(GpRingScratch);
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a flat textured quad on the ground under the actor: the corners of
