@@ -143728,3 +143728,17 @@ its spill register, and post-reload CSE turns the load into the copy. sched1
 also moves the `block->in` stores ahead of the head store, because a constant
 scratch address does not alias the block, so push-first reproduces the
 target's store order too.
+## A scratch head store scheduled between the block's own stores is still `SCRATCH_PUSH` first (func_800D98C4, 2026-09-26)
+
+Target: `lw s4,head; addiu s0,s4,-0x1C; sw v0,-0x1C(s4); ... sw v0,4(s0); sw s0,head; sw v0,8(s0)`
+- the head store sits between the second and third field stores, so it had
+been written by hand at that position with `block = head - 0x1C` and a
+separate `dir = head - 0xC`. That spelling also lost the reloaded
+`move t0,v0; mtc2 t0,$8` of `gte_lddp(block->scale)`: reload found the stored
+value through the load's REG_EQUIV note and used `v0` directly. The typed idiom
+`SCRATCH_PUSH(T); block = SCRATCH_HEAD(T); ... SCRATCH_POP(T);` with
+`&block->dir` matched outright: sched1 moves the head store down among the
+field stores, and the `block` copy it leaves between the field store and the
+asm stops reload's equivalence search, as in `func_800D9794`. A head store in
+the middle of the block's initialisation is not evidence for hand-computed
+offsets.
