@@ -853,13 +853,10 @@ done:
     SCRATCH_POP_BYTES(8);
 }
 
-/// Applies the work block's decaying tilt (`field_688`) to the root
-/// coordinate: the tilt's rotation matrix is multiplied column by column into
-/// the fourth coordinate's matrix, then X and Y each step 0x20 toward zero,
-/// snapping once within 0x20. `field_6B4` is cleared when both have settled.
-///
-/// The scratch head is taken through `ActorScratchStack` rather than as
-/// `SCRATCH_HEAD`, which does not compile the same.
+/// Applies the work block's decaying tilt (`field_688`) to the fourth
+/// coordinate: its matrix is multiplied by the tilt's rotation matrix, then X
+/// and Y each step 0x20 toward zero, snapping once within 0x20. `field_6B4` is
+/// cleared when both have settled.
 static void Actor05600_Fn016C4(Task* arg0)
 {
     Actor105600Work* work;
@@ -873,23 +870,12 @@ static void Actor05600_Fn016C4(Task* arg0)
     s32              nextY;
     s32              active;
 
-    matrix                                     = (MATRIX*)((ActorScratchStack*)G_SCRATCH_HEAD)->head - 1;
-    ((ActorScratchStack*)G_SCRATCH_HEAD)->head = matrix;
-    active                                     = 0;
-    work                                       = (Actor105600Work*)arg0->work;
-    coord                                      = arg0->extra.tmd->coords;
+    matrix = SCRATCH_PUSH(MATRIX);
+    active = 0;
+    work   = arg0->work;
+    coord  = arg0->extra.tmd->coords;
     RotMatrix(&work->field_688, matrix);
-    USE_REG(matrix);
-    gte_SetRotMatrix(&coord[3].coord);
-    gte_ldclmv(matrix);
-    gte_rtir();
-    gte_stclmv(&coord[3].coord);
-    gte_ldclmv((char*)matrix + 2);
-    gte_rtir();
-    gte_stclmv((char*)&coord[3].coord + 2);
-    gte_ldclmv((char*)matrix + 4);
-    gte_rtir();
-    gte_stclmv((char*)&coord[3].coord + 4);
+    gte_MulMatrix0(&coord[3].coord, matrix, &coord[3].coord);
     angleX = work->field_688.vx;
     if (angleX != 0) {
         absX = __builtin_abs(angleX);
