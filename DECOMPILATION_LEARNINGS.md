@@ -143794,4 +143794,5 @@ whatever its `REG_N_SETS`, and keeps its path priority and LUID order - the same
 reason the in-place `arg2 &= 0xFFF` on the `u16` parameter stayed put. When a
 single-set `s32` result is sunk and the values fit, try the narrow type the
 operands already have before manufacturing a second set. `s16` did not work
-here, because the sign-extension adds an extra insn.
+here: the shift then sets a fresh `SImode` temporary before the narrowing copy,
+and that single-set temporary is birthing and sinks just the same.
