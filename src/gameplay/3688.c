@@ -3398,30 +3398,18 @@ typedef struct {
     u8 param2;
 } CdCmdEntryS;
 
-typedef struct {
-    s32        flags[4];
-    CdCmdEntry saved[3];
-    u8         param1[8];
-    u8         param2[8];
-} CdCmdSlotBlk;
-
 void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
 {
-    CdCmdSlotBlk blk;
+    s32          flags[3];
+    CdCmdEntry   saved[3];
     CdCmdQueue*  queue;
     CdCmdEntryS* entry;
+    s32          type;
     s32          index;
-    register s32 type asm("s3");
     s32          nibble;
     s32          hi;
     s32          lo;
-    s32          minusTwo;
-    s32          three;
-    s32*         p;
-    s32*         base;
-    s32          off;
-    CdCmdEntry*  cur;
-    register s32 idx asm("v0");
+    s32          i;
 
     queue = &CdCmd_Queue;
     if (arg0 == 0) {
@@ -3437,10 +3425,9 @@ void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
     }
 
     if (arg0 >= 0x500) {
-        type = 6;
-        goto set_index;
-    }
-    if (arg0 >= 0x300) {
+        type  = 6;
+        index = arg0;
+    } else if (arg0 >= 0x300) {
         type   = 7;
         nibble = arg0 & 3;
         hi     = (arg0 & 0x30) >> 4;
@@ -3449,93 +3436,53 @@ void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
             nibble = 1;
         }
         index = (hi * 3 + lo) * 3 + nibble;
-        goto after_index;
-    }
-    if ((u32)arg0 >= 0x180U) {
+    } else if ((u32)arg0 >= 0x180U) {
         return;
-    }
-    if ((u32)(arg0 - 1) < 0x5FU) {
-        type = 3;
-        goto set_index;
-    }
-    if ((u32)(arg0 - 0x60) < 0x20U) {
+    } else if ((u32)(arg0 - 1) < 0x5FU) {
+        type  = 3;
+        index = arg0;
+    } else if ((u32)(arg0 - 0x60) < 0x20U) {
         type  = 5;
         index = arg0 - 0x5F;
-        goto after_index;
-    }
-    if ((u32)(arg0 - 0x80) < 0x20U) {
+    } else if ((u32)(arg0 - 0x80) < 0x20U) {
         type  = 1;
         index = arg0 - 0x7F;
-        goto after_index;
-    }
-    if ((u32)(arg0 - 0xA0) < 0x20U) {
+    } else if ((u32)(arg0 - 0xA0) < 0x20U) {
         type  = 4;
         index = arg0 + 0x61;
-        goto after_index;
+    } else {
+        type  = 2;
+        index = arg0;
     }
-    type = 2;
-set_index:
-    index = arg0;
-after_index:
 
     if (arg1 & 0xFF) {
         D_80114D88 = 1;
     }
 
-    blk.flags[2] = -1;
-    blk.flags[1] = -1;
-    blk.flags[0] = -1;
+    flags[2] = -1;
+    flags[1] = -1;
+    flags[0] = -1;
     CdCmd_ResetEntryIter();
-    three    = 3;
-    minusTwo = -2;
 
-    while (1) {
-        entry = (CdCmdEntryS*)CdCmd_NextEntry();
-        if (entry == NULL) {
-            break;
-        }
-        if (entry->idB1 == three) {
-            if ((entry->idB2 == -8) && (entry->idB3 == -3)) {
-                blk.saved[0] = *(CdCmdEntry*)entry;
-                blk.flags[0] = 0;
-                continue;
-            }
-        }
-        if ((entry->idB1 == 0) && (entry->idB2 == 0) && (entry->idB3 == minusTwo)) {
-            blk.saved[1] = *(CdCmdEntry*)entry;
-            blk.flags[1] = 0;
-            continue;
-        }
-        if ((entry->idB1 == three) && (entry->idB2 == 0) && (entry->idB3 == minusTwo)) {
-            blk.saved[2] = *(CdCmdEntry*)entry;
-            blk.flags[2] = 0;
+    while ((entry = (CdCmdEntryS*)CdCmd_NextEntry()) != NULL) {
+        if (entry->idB1 == 3 && entry->idB2 == -8 && entry->idB3 == -3) {
+            saved[0] = *(CdCmdEntry*)entry;
+            flags[0] = 0;
+        } else if (entry->idB1 == 0 && entry->idB2 == 0 && entry->idB3 == -2) {
+            saved[1] = *(CdCmdEntry*)entry;
+            flags[1] = 0;
+        } else if (entry->idB1 == 3 && entry->idB2 == 0 && entry->idB3 == -2) {
+            saved[2] = *(CdCmdEntry*)entry;
+            flags[2] = 0;
         }
     }
-
-    idx                   = (arg1 & 0xFF) << 2;
-    p                     = blk.flags;
-    *(s32*)((s32)p + idx) = -1;
+    flags[arg1 & 0xFF] = -1;
     CdCmd_DropPending();
-    three = 0;
-    base  = p;
-    do {
-        if (*p != -1) {
-            off           = three * 8;
-            off           = off + (s32)base;
-            off           = off + 0x10;
-            cur           = (CdCmdEntry*)off;
-            blk.param1[3] = cur->param0;
-            blk.param1[2] = cur->param1;
-            blk.param1[0] = cur->param2;
-            blk.param2[0] = cur->idB0;
-            blk.param2[1] = cur->idB1;
-            blk.param2[2] = cur->idB2;
-            blk.param2[3] = cur->idB3;
-            CdCmd_Enqueue(cur->cmd, blk.param1, blk.param2);
+    for (i = 0; i < 3; i++) {
+        if (flags[i] != -1) {
+            cdCmdEnqueueEntry(&saved[i]);
         }
-        three++;
-        p++;
-    } while (three < 3);
+    }
 
     CdCmd_EnqueueLoadFile(type, index & 0xFF, arg1 & 0xFF);
 }

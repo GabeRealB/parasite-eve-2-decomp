@@ -396,6 +396,23 @@ void        CdCmd_StartOverlay(u16 arg0, u16 arg1, u16 arg2);
 void        CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2);
 void        CdCmd_StepVlcRebuild(void);
 
+/// Enqueues `entry`'s command again, rebuilding from its fields the two
+/// parameter blocks `CdCmd_Enqueue` unpacks into a slot.
+static inline s32 cdCmdEnqueueEntry(CdCmdEntry* entry)
+{
+    u8 paramA[8];
+    u8 paramB[8];
+
+    paramA[3] = entry->param0;
+    paramA[2] = entry->param1;
+    paramA[0] = entry->param2;
+    paramB[0] = entry->idB0;
+    paramB[1] = entry->idB1;
+    paramB[2] = entry->idB2;
+    paramB[3] = entry->idB3;
+    return CdCmd_Enqueue(entry->cmd, paramA, paramB);
+}
+
 // =============================================================================
 // Functions — filesystem / CD (src/main/fs.c)
 // =============================================================================

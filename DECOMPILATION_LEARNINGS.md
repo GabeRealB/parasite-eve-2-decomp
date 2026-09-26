@@ -143671,3 +143671,18 @@ Operand order then depends on the spelling. `arg4 += base` and
 `expand_binop` swaps a commutative add whose second operand is the target.
 Only a conversion between the add and the parameter, here the truncation to
 the 16-bit index, keeps `base` first (`addu a1,v0,s3`).
+
+## A local struct bundling unrelated arrays plus a hand-built `i*8 + base + 0x10` is an inlined helper taking the element (Gp_EnqueueItemPreviewCd, 2026-09-26)
+
+The seed packed a flag array, a saved-entry array and two parameter blocks
+into one local struct to fix their frame order, then built `&saved[i]` by hand
+in the second loop so loop.c would not strength-reduce it: the target keeps
+`sll v1,s1,3; addu v1,v1,s4; addiu v1,v1,0x10` with `s4` a pre-loop copy of
+the flag pointer. That shape is a `static inline` helper called with
+`&saved[i]` whose own locals are the two parameter blocks: its parameter copy
+is hoisted out of the loop (the `move s4,s0`), only `i*8` remains a giv and is
+"not worth while", and an inlined function's locals are laid out after the
+caller's, which is the order the struct forced. Separately, `goto` into one
+shared `index = arg0` gave that pseudo too few refs to beat its sibling for
+`$s2`; an `if`/`else if` chain repeating the assignment in each arm adds the
+refs, and jump2 cross-jumps the copies back into the single target block.
