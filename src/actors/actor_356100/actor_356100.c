@@ -694,11 +694,7 @@ static s32 func_actor_356100_801625A0(GpCoord* coord, GpRec18* recs, s16 count, 
             }
             mag     = t;
             s->diff = mag;
-            SOFT_BARRIER();
-            if (mag < 0) {
-                mag = -mag;
-            }
-            if (mag >= 0x401) {
+            if (ABS(mag) >= 0x401) {
                 s->ok[s->i] = 0;
                 s->ok[s->j] = 0;
             }
