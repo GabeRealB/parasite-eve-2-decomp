@@ -141474,7 +141474,9 @@ LCG step. The global store evicts the varying-address `task->work` entry from
 CSE (the third arm of `invalidate_memory`, entry above), so each inlined
 `setState(task, N)` helper re-reads it; sched1 then hoists the fixed-address
 store above the in-struct load, since the two cannot alias. The one tail that
-does not reload is reached from the entry block, where the helper's re-read was
-merged into the tail that the other sites cross-jump to. So when a target
+does not reload is fall-through from the entry block: once sched1 has put the
+store above the first load, `reload_cse_regs` (which resets only at labels)
+sees the register already holding `task->work` and deletes the re-read - the
+`.greg` dump still has it, `.jump2` does not. So when a target
 reloads a pointer and the only store in sight is *above* the first load, try
 moving that store after the load in the source before reaching for a barrier.
