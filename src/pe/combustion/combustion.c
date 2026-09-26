@@ -547,46 +547,25 @@ void func_combustion_80130184(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
     s32              ang;
-    u16              vz;
-    register void**  scratch asm("a1");
-    s16              saved;
-    register s32     hi asm("a1");
-    u8*              head;
 
-    saved = arg1;
-    /* `head` is a dummy output: it reserves its register from entry on, which
-       is what keeps it out of the argument registers. */
-    asm("lui %0, 0x1F80" : "=r"(hi), "=r"(head) : "r"(saved));
-    asm("ori %0, %1, 0x3FC" : "=r"(scratch) : "r"(hi));
-    head = *scratch;
-    {
-        register u16 vx asm("v0");
-        vx                                        = (u16)arg0->workm.t[0];
-        ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
-    }
-    {
-        register u8* tmp asm("v0");
-        tmp   = head - 0x1C;
-        block = (GpFxQuadScratch*)tmp;
-    }
-    block->vec.vy = (u16)arg0->workm.t[1];
-    vz            = (u16)arg0->workm.t[2];
-    *scratch      = block;
-    block->vec.vz = vz;
+    block         = SCRATCH_PUSH(GpFxQuadScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        block->otz     = block->otz + 1;
+        gte_stszotz(&block->otz);
+        block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
-        if (saved & 1) {
+        if (arg1 & 1) {
             setRGB0(prim, 0xC0, 0x70, 0x40);
             prim->tpage = 0x29;
             prim->clut  = 0x428B;
@@ -616,7 +595,7 @@ void func_combustion_80130184(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_POP(GpFxQuadScratch);
 }
 
 /// Links one frame of the large combustion flame at `arg0`'s world position,
