@@ -823,28 +823,24 @@ loop_streams:
 
 void Fs_InitStage0TablesCb(u8 status, u8* result)
 {
-    CdlLOC currLoc[3];
-    s32    currPos;
-    u32    headerOffset;
-    u32    streamIdx;
-
-    u32         fileId;
-    u32         fileCategory;
-    register u8 isValidCategory asm("t1") = false;
-
-    register u32 i asm("a0");
-    u32*         entry;
-    u8*          entryBytes;
-    u32          entryValue;
-
-    u8* streamCpyPos;
-
-    FsSector*    sectorBuffer;
-    u32*         words;
-    FsCdfStream* streamTable;
-    u32*         fileSect90;
-    u16*         fileSect5;
-    u16*         fileSect0;
+    CdlLOC          currLoc[3];
+    s32             currPos;
+    u32             headerOffset;
+    u32             streamIdx;
+    u32             fileId;
+    u32             fileCategory;
+    u8              isValidCategory;
+    u32             i;
+    u32*            entry;
+    u8*             entryBytes;
+    u8*             streamCpyPos;
+    FsCdfFileSmall* tbl;
+    FsSector*       sectorBuffer;
+    u32*            words;
+    FsCdfStream*    streamTable;
+    u32*            fileSect90;
+    u16*            fileSect5;
+    u16*            fileSect0;
 
     streamIdx = 0;
     if (status == CdlDiskError) {
@@ -883,12 +879,12 @@ sector_start:
         fileSect5    = Fs_FileOffsetsCat5;
         fileSect90   = Fs_FileOffsetsCat90;
 
-        if ((u16)headerOffset >= FS_SECTOR_WORD_SIZE)
+        if ((u16)headerOffset >= FS_SECTOR_WORD_SIZE) {
             return;
+        }
 
-        entry      = &sectorBuffer->words[(u16)headerOffset];
-        entryValue = *entry;
-        fileId     = entryValue;
+        entry  = &sectorBuffer->words[(u16)headerOffset];
+        fileId = *entry;
         if (fileId == FS_CDF_STAGE0_CANARY) {
             goto table_end;
         }
@@ -908,7 +904,6 @@ sector_start:
             streamTable[(u16)streamIdx++].offset += Fs_StageCdfSectors[0];
             headerOffset                         += sizeof(FsCdfStream) / sizeof(u32);
         } else {
-            fileId       = entryValue;
             fileCategory = fileId / 10000;
 
             isValidCategory = false;
@@ -918,54 +913,59 @@ sector_start:
                     while (true) {
                         fileSect0[(u16)i] = ((FsCdfFile*)&sectorBuffer->words[(u16)headerOffset])->offset;
                         i++;
-                        if ((u16)i >= 0x2D)
+                        if ((u16)i >= 0x2D) {
                             break;
+                        }
                         headerOffset += 2;
                     }
                     isValidCategory = true;
                     break;
 
                 case 1: {
-                    register FsCdfFileSmall* tbl asm("v0");
+                    u32 n;
+
                     isValidCategory = true;
                     tbl             = Fs_FileTableCat1;
-                    i               = Fs_FileTableCat1Len;
+                    n               = Fs_FileTableCat1Len;
                     Fs_FileTableCat1Len++;
-                    tbl[i].id     = fileId - 10000;
-                    tbl[i].offset = ((FsCdfFile*)entry)->offset;
+                    tbl[n].id     = fileId - 10000;
+                    tbl[n].offset = ((FsCdfFile*)entry)->offset;
                     break;
                 }
 
                 case 2: {
-                    register FsCdfFileSmall* tbl asm("v0");
+                    u32 n;
+
                     isValidCategory = true;
                     tbl             = Fs_FileTableCat2;
-                    i               = Fs_FileTableCat2Len;
+                    n               = Fs_FileTableCat2Len;
                     Fs_FileTableCat2Len++;
-                    tbl[i].id     = fileId - fileCategory * 10000;
-                    tbl[i].offset = ((FsCdfFile*)entry)->offset;
+                    tbl[n].id     = fileId - fileCategory * 10000;
+                    tbl[n].offset = ((FsCdfFile*)entry)->offset;
                     break;
                 }
 
                 case 3: {
-                    register FsCdfFileSmall* tbl asm("v0");
+                    u32 n;
+
                     isValidCategory = true;
                     tbl             = Fs_FileTableCat3;
-                    i               = Fs_FileTableCat3Len;
+                    n               = Fs_FileTableCat3Len;
                     Fs_FileTableCat3Len++;
-                    tbl[i].id     = fileId - 30000;
-                    tbl[i].offset = ((FsCdfFile*)entry)->offset;
+                    tbl[n].id     = fileId - 30000;
+                    tbl[n].offset = ((FsCdfFile*)entry)->offset;
                     break;
                 }
 
                 case 4: {
-                    register FsCdfFileSmall* tbl asm("v0");
+                    u32 n;
+
                     isValidCategory = true;
                     tbl             = Fs_FileTableCat4;
-                    i               = Fs_FileTableCat4Len;
+                    n               = Fs_FileTableCat4Len;
                     Fs_FileTableCat4Len++;
-                    tbl[i].id     = fileId - fileCategory * 10000;
-                    tbl[i].offset = ((FsCdfFile*)entry)->offset;
+                    tbl[n].id     = fileId - fileCategory * 10000;
+                    tbl[n].offset = ((FsCdfFile*)entry)->offset;
                     break;
                 }
 
@@ -980,22 +980,20 @@ sector_start:
                     break;
             }
 
-            {
-                register u32 flag asm("v0");
-                flag = isValidCategory;
-                if (!flag) {
-                    u32                 v;
-                    register FsCdfFile* tbl asm("v1");
-                    words = sectorBuffer->words;
-                    v     = words[(u16)headerOffset];
-                    if (v / 100000 != 0) {
-                        tbl = Fs_FileTable;
-                        i   = Fs_FileTableLen;
-                        Fs_FileTableLen++;
-                        tbl[i].id = v;
-                        tbl[i].offset =
-                            ((FsCdfFile*)&words[(u16)headerOffset])->offset;
-                    }
+            if (!isValidCategory) {
+                u32 id;
+
+                words = sectorBuffer->words;
+                id    = words[(u16)headerOffset];
+                if (id / 100000 != 0) {
+                    register FsCdfFile* fileTbl asm("v1");
+                    u32                 n;
+
+                    fileTbl = Fs_FileTable;
+                    n       = Fs_FileTableLen;
+                    Fs_FileTableLen++;
+                    fileTbl[n].id     = id;
+                    fileTbl[n].offset = ((FsCdfFile*)&words[(u16)headerOffset])->offset;
                 }
             }
 

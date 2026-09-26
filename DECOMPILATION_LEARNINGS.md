@@ -141367,3 +141367,27 @@ stripped, try an empty one at each statement boundary with a fast cc1-only
 diff before assuming reference weighting. If one position works, the original
 had some loop construct there. In this function no plausible macro was
 found, so the wrapper stayed.
+### Pinned table pointers in `switch` arms are one variable assigned in every arm; the arm's index is its own block local (Fs_InitStage0TablesCb, 2026-09-26)
+
+**Symptom.** Inside a loop, each `case` appends to a different global table:
+`lui v0,%hi(Table); lui a1,%hi(Count); lbu a0,%lo(Count)(a1); addiu v0,v0,%lo(Table)`.
+The table's `lui` comes before the count's, the table address is not hoisted
+out of the loop, and the seed pinned a block-local `tbl` to `$v0` and the index
+to `$a0`. Written as `Table[n]` directly, the count loads first. That is because
+`ARRAY_REF` expands the index before the base, and both `lui`s tie in sched1:
+latency 1 puts both in class 3, and the tie falls to RTL order. A block-local
+`tbl = Table;` per arm puts the table first, but loop.c hoists it, since it is a
+user variable set once and used in the same block.
+
+**Fix.** Declare one `T* tbl;` at function scope and assign it in every arm.
+With `n_times_set` above 1 it is not movable, so it stays in the arm, ahead of the
+count load. Give each arm its own `{ u32 n; n = Count; Count++; tbl[n]... }`.
+Reusing the function's loop counter for `n` keeps it live across blocks where
+local-alloc has already given `$a0` to arm temporaries, so it lands in `$a2`.
+
+**Not solved.** A lone arm with its own table type has nothing to share the
+variable with. Its one set is also the register's first mention, so
+`reg_in_basic_block_p` holds and the pointer is hoisted. The only spelling found
+without a pin was a dead `= NULL` initialiser at function scope. That moves
+`REGNO_FIRST_UID` earlier, so the set stops being movable, but nothing suggests
+the original wrote it.
