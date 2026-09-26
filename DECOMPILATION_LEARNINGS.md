@@ -143027,3 +143027,20 @@ never a movable).
   sign-extension sets a `(subreg:SI (reg:HI))`, which is not a movable.
 - The `u16` local, assigned before the field stores, is also what puts the two
   key-part loads ahead of the first store to the struct.
+### A `move aN,aM` pointer copy in a branch delay slot is an inlined getter's return value (Gp_ApplyItemMap, 2026-09-26)
+
+**Symptom.** A loop computes a slot pointer, then `bnez …; move a3,a0` copies
+it before an if/else; one arm stores through `a0` throughout, the other stores
+its last field through `a3`. The seed kept an `alt = slot` second local, a pin
+on the loaded value and `TOUCH_REG_USE` to hold a load ahead of an `addiu`.
+
+**Cause.** The pointer came from an inline getter (`&T[item - 0x80]`, the
+inline form of a real function). The inline's return value is its own pseudo,
+copied into the caller's local, and CSE does not rewrite every later use onto
+one register. The load order that `TOUCH_REG_USE` forced came for free once the
+`item -= 0x80` sat inside the existing inline bound-check helper, after the
+first field store.
+
+**Fix.** `slot = _getter(id);` before the `if`, and each arm calling the shared
+inline helper for the second field. A bare `&T[id - 0x80]` loses the copy, and
+the schedule of the `bnez` block changes with it.

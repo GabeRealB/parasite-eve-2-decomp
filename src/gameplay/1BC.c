@@ -3720,48 +3720,48 @@ void Gp_SpawnPlaces(GpAreaKey* arg0)
     } while (place->field_0 != term);
 }
 
+/// Inline form of `Gp_GetRelatedQty`: the most of a related item weapon
+/// `item` can hold, from bank `bank`'s table, or 0 for a non-weapon id.
+static inline s32 _gpRelatedQty(s32 item, s32 bank)
+{
+    s32 ret;
+
+    item -= 0x80;
+    ret   = 0;
+    if ((u32)item < 0x20) {
+        if (bank == 0) {
+            ret = Gp_RelatedQty0[item].field_0;
+        } else {
+            ret = Gp_RelatedQty1[item].field_0;
+        }
+    }
+    return ret;
+}
+
+/// Inline form of `Gp_GetItemSlot`: weapon `item`'s entry in the save's
+/// per-weapon equipment table.
+static inline McItemSlot* _gpItemSlot(s32 item)
+{
+    return &Mc_SaveData.weaponItems[item - 0x80];
+}
+
 void Gp_ApplyItemMap(void)
 {
-    s32          i;
-    McItemSlot*  slots;
-    GpItemQty*   qty0;
-    GpItemQty*   qty1;
-    GpItemMap*   map;
-    McItemSlot*  slot;
-    McItemSlot*  alt;
-    s32          id;
-    register s32 count asm("a1");
-    s32          mapped;
+    s32         i;
+    GpItemMap*  map;
+    McItemSlot* slot;
+    s32         id;
 
-    i     = 0;
-    slots = (McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400);
-    qty0  = Gp_RelatedQty0;
-    qty1  = Gp_RelatedQty1;
     for (i = 0; i < 8; i++) {
         map  = &Gp_ItemMaps[i];
         id   = map->field_1;
-        slot = (McItemSlot*)((id << 3) + (s32)slots);
-        alt  = slot;
+        slot = _gpItemSlot(id);
         if (map->field_0 == 0) {
-            mapped = map->field_2;
-            TOUCH_REG_USE(id, mapped);
-            id          -= 0x80;
-            slot->ammoId = mapped;
-            count        = 0;
-            if ((u32)id < 0x20) {
-                count = qty0[id].field_0;
-            }
-            slot->ammoQty = count;
+            slot->ammoId  = map->field_2;
+            slot->ammoQty = _gpRelatedQty(id, 0);
         } else {
-            mapped = map->field_2;
-            TOUCH_REG_USE(id, mapped);
-            id            -= 0x80;
-            slot->attachId = mapped;
-            count          = 0;
-            if ((u32)id < 0x20) {
-                count = qty1[id].field_0;
-            }
-            alt->attachQty = count;
+            slot->attachId  = map->field_2;
+            slot->attachQty = _gpRelatedQty(id, 1);
         }
     }
 }
@@ -3847,24 +3847,6 @@ static inline s16 _gpScanHeldQty(McItemRec* table, McItemScan* scan, s32 item)
         }
     }
     return found;
-}
-
-/// Inline form of `Gp_GetRelatedQty`: the most of a related item weapon
-/// `item` can hold, from bank `bank`'s table, or 0 for a non-weapon id.
-static inline s32 _gpRelatedQty(s32 item, s32 bank)
-{
-    s32 ret;
-
-    item -= 0x80;
-    ret   = 0;
-    if ((u32)item < 0x20) {
-        if (bank == 0) {
-            ret = Gp_RelatedQty0[item].field_0;
-        } else {
-            ret = Gp_RelatedQty1[item].field_0;
-        }
-    }
-    return ret;
 }
 
 s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
