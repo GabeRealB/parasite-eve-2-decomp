@@ -1,5 +1,7 @@
 #include "common.h"
 
+#define BOOT_C
+
 #include <psyq/libcd.h>
 #include <psyq/libetc.h>
 #include <psyq/libpress.h>
@@ -20,6 +22,17 @@
 // Build stamp (must stay in .rodata ahead of Boot_LoadInitialFile jtbl).
 /// Early-image build stamp string @ VA 0x80012750 ("2000/05/01 19:24 ver2.49").
 static const char Boot_BuildStamp[] = "2000/05/01 19:24 ver2.49";
+
+u8*        GAuxHeap;
+size_t     GAuxHeapSize;
+size_t     Gpu_PrimHeapBase;
+u8*        gMemActiveAuxHeap;
+size_t     Gpu_PrimHeapSize;
+size_t     GActiveAuxHeapSize;
+static int D_80068F98;
+CdCmdQueue CdCmd_Queue;
+u8*        D_800691F4;
+size_t     D_800691F8;
 
 FsImgBuffers* Fs_ImgBuffers = &D_801D7000;
 /// Unreferenced.

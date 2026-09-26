@@ -131,6 +131,7 @@ void Mem_CopyUnaligned(void* src, void* dest, u32 count);
 /// the images backing them are loaded.
 extern u8* gMemHeap;
 
+#ifndef BOOT_C
 /// Pointer to the auxiliary heap.
 extern u8* GAuxHeap;
 
@@ -151,8 +152,8 @@ extern u8* gMemActiveAuxHeap;
 /// Length in bytes of the heap pointed to by `gMemActiveAuxHeap`.
 extern size_t GActiveAuxHeapSize;
 
-extern int    D_80068F98;
 extern u8*    D_800691F4;
 extern size_t D_800691F8;
+#endif
 
 #endif // MEM_H

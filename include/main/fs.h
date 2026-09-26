@@ -473,7 +473,9 @@ s32  CdVol_StepDown(void);
 // Globals — CD command queue
 // =============================================================================
 
+#ifndef BOOT_C
 extern CdCmdQueue CdCmd_Queue;
+#endif
 
 // =============================================================================
 // Globals — FS runtime tables / CD state (bss unit `fs`)
