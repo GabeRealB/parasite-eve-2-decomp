@@ -1363,16 +1363,14 @@ u8* Midi_SetProgram(s32 arg0, u8* arg1, MidiOpcodeCtx* arg2)
 u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* arg2)
 {
     SpuVoiceRef   sp10;
-    register s32  channel asm("s4");
+    u8            channel;
     s32           i;
     s16           pitchBend;
     MidiNoteSlot* slot;
     SndNote*      note;
-    register s32  scale asm("a1");
-    s32           prod;
+    s32           scale;
     s16           pitch;
     SpuVoiceAttr* attr;
-    s32           key;
 
     channel                          = arg0 & 0xF;
     i                                = 0;
@@ -1384,19 +1382,18 @@ u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* arg2)
             Spu_GetVoiceRef(slot->field_0, &sp10);
             note = Snd_GetNote(arg2->field_40, slot->field_6, slot->field_7);
             if (pitchBend >= 0) {
-                scale = note->bendUp << 8;
+                scale   = note->bendUp;
+                scale <<= 8;
             } else {
-                scale = note->bendDown << 8;
+                scale   = note->bendDown;
+                scale <<= 8;
             }
-            prod  = scale * pitchBend;
-            key   = (s8) * (volatile u8*)&slot->field_2 & 0xFFFF;
-            pitch = prod / 8191;
-            USE_REG(prod);
+            scale        *= pitchBend;
+            pitch         = scale / 8191;
             slot->field_8 = pitch;
             attr          = sp10.field_4;
-            attr->pitch =
-                Spu_CalcVolume(key, pitch, note->rootKey, note->rootFine);
-            attr->mask |= SPU_VOICE_PITCH;
+            attr->pitch   = Spu_CalcVolume((u16)slot->field_2, pitch, note->rootKey, note->rootFine);
+            attr->mask   |= SPU_VOICE_PITCH;
         }
         i += 1;
     } while (i < 0x12);
