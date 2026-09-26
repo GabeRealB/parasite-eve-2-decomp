@@ -278,41 +278,24 @@ static void func_neo_ark_garden_8017EFB8(SVECTOR* arg0, s16 arg1, s32 arg2)
 static void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
 {
     MATRIX         m;
-    void**         scratch;
-    u8*            head;
     GpQuadScratch* block;
-    SVECTOR*       v;
     s32            i;
-    GpQuadCorner*  tbl;
-    MATRIX*        wm;
     POLY_FT4*      prim;
 
     Gfx_RotMatrixX(&m, gDisplayState.animFrame << 7, 1);
-    scratch = (void**)G_SCRATCH_HEAD;
-    i       = 0;
-    wm      = &m;
-    tbl     = D_80111E38;
-    head    = SCRATCH_HEAD_AT(scratch, u8) - sizeof(GpQuadScratch);
-    SOFT_TOUCH_REG(head);
-    block    = (GpQuadScratch*)head;
-    v        = block->vec;
-    *scratch = block;
-    do {
-        v->vx = 0;
-        v->vy = (s16)tbl->x * 250;
-        TOUCH_REG(v);
-        v->vz = (s16)tbl->y * 250;
-        gte_SetRotMatrix(wm);
-        gte_ldv0(v);
+    block = SCRATCH_PUSH(GpQuadScratch);
+    for (i = 0; i < 4; i++) {
+        block->vec[i].vx = 0;
+        block->vec[i].vy = (s16)D_80111E38[i].x * 250;
+        block->vec[i].vz = (s16)D_80111E38[i].y * 250;
+        gte_SetRotMatrix(&m);
+        gte_ldv0(&block->vec[i]);
         gte_rtv0();
-        gte_stsv(v);
-        (u16) v->vx = (u16)v->vx + (u16)arg0->vx;
-        tbl++;
-        (u16) v->vy = (u16)v->vy + (u16)arg0->vy;
-        i++;
-        (u16) v->vz = (u16)v->vz + (u16)arg0->vz;
-        v++;
-    } while (i < 4);
+        gte_stsv(&block->vec[i]);
+        block->vec[i].vx += arg0->vx;
+        block->vec[i].vy += arg0->vy;
+        block->vec[i].vz += arg0->vz;
+    }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -339,19 +322,19 @@ static void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
         prim->v2    = 0x3F;
         prim->u3    = 0x3F;
         prim->v3    = 0x3F;
-        prim->x0    = (u16)block->sxy0.vx;
-        prim->y0    = (u16)block->sxy0.vy;
-        prim->x1    = (u16)block->sxy1.vx;
-        prim->y1    = (u16)block->sxy1.vy;
-        prim->x2    = (u16)block->sxy2.vx;
-        prim->y2    = (u16)block->sxy2.vy;
-        prim->x3    = (u16)block->sxy3.vx;
-        prim->y3    = (u16)block->sxy3.vy;
+        prim->x0    = block->sxy0.vx;
+        prim->y0    = block->sxy0.vy;
+        prim->x1    = block->sxy1.vx;
+        prim->y1    = block->sxy1.vy;
+        prim->x2    = block->sxy2.vx;
+        prim->y2    = block->sxy2.vy;
+        prim->x3    = block->sxy3.vx;
+        prim->y3    = block->sxy3.vy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_POP(GpQuadScratch);
 }
 
 /// Glow effect task. It does nothing while the event state is 1 to 3 and
