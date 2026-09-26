@@ -1050,22 +1050,18 @@ death:
     Gp_ReleaseStateF0Add(arg1, 7);
     work->field_37C = 1;
     work2           = arg1->work;
-    i               = 1;
     if ((s16)work2->field_37E != work2->field_380) {
         work2->field_380 = work2->field_37E;
         work2->field_382 = 0;
         val              = Actor00700_D06E98[(s16)work2->field_37E];
-        do {
+        for (i = 1; i < 7; i++) {
             func_800B4114(work2, i, (s16)work2->field_37E, 0, val);
-            i++;
-        } while (i < 7);
+        }
     } else {
-        TOUCH_REG(i);
-        work2->field_382 += i;
-        do {
+        work2->field_382++;
+        for (i = 1; i < 7; i++) {
             Gp_AnimTickIndex(work2, i);
-            i++;
-        } while (i < 7);
+        }
     }
     c      = arg1->extra.tmd->coords;
     vec.vx = c->workm.t[0];
@@ -1090,22 +1086,18 @@ dying:
         work->field_37C = 2;
     }
     work2 = arg1->work;
-    i     = 1;
     if ((s16)work2->field_37E != work2->field_380) {
         work2->field_380 = work2->field_37E;
         work2->field_382 = 0;
         val              = Actor00700_D06E98[(s16)work2->field_37E];
-        do {
+        for (i = 1; i < 7; i++) {
             func_800B4114(work2, i, (s16)work2->field_37E, 0, val);
-            i++;
-        } while (i < 7);
+        }
     } else {
-        TOUCH_REG(i);
-        work2->field_382 += i;
-        do {
+        work2->field_382++;
+        for (i = 1; i < 7; i++) {
             Gp_AnimTickIndex(work2, i);
-            i++;
-        } while (i < 7);
+        }
     }
     c      = arg1->extra.tmd->coords;
     vec.vx = c->workm.t[0];
