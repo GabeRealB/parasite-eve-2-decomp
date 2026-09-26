@@ -17,7 +17,7 @@ typedef struct {
     CdStreamParams      stream; // setup handed to CdStream_Start
 } _CdAudioState;
 
-static volatile s32        D_80082750;
+static s32                 D_80082750;
 static u8                  D_80082754;
 static volatile CdAudioTbl CdAudio_Tbl;
 static volatile s32        D_80082770;
@@ -381,11 +381,6 @@ static s32 CdAudio_DriveSeek(void)
     volatile CdAudioCtl* stream;
     s32                  status;
     register s32         tmp asm("a0");
-    s32                  val;
-    register s32         ptr asm("v1");
-    u8                   idx;
-    volatile CdAudioLoc* audio;
-    volatile CdAudioTbl* cd;
 
     phase = CdAudio_Phase.field_3;
     hdr   = (SectorHdr*)D_80082750;
@@ -435,14 +430,8 @@ static s32 CdAudio_DriveSeek(void)
             }
             if (stream->field_0 < 0x259) {
                 if (D_80082770 != 0) {
-                    audio          = &_gCdAudioState.loc;
-                    idx            = hdr->field_3;
-                    val            = D_80068B18[idx];
-                    ptr            = D_80082750;
-                    audio->field_8 = val;
-                    cd             = &CdAudio_Tbl;
-                    idx            = hdr->field_2;
-                    cd->field_C    = (u16*)(ptr + (idx * 4));
+                    _gCdAudioState.loc.field_8 = D_80068B18[hdr->field_3];
+                    CdAudio_Tbl.field_C        = (u16*)(D_80082750 + hdr->field_2 * 4);
                     CdReadyCallback(NULL);
                     CdAudio_Phase.field_3 = 9;
                         /* fallthrough */
