@@ -91,8 +91,8 @@ STATIC_ASSERT_SIZEOF(GpHudHpScratch, 0x50);
 
 /// Coordinates of one icon in the attachment selection wheel.
 typedef struct {
-    /* 0x0 */ u16 x;
-    /* 0x2 */ u16 y;
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
 } GpWheelPt;
 STATIC_ASSERT_SIZEOF(GpWheelPt, 4);
 

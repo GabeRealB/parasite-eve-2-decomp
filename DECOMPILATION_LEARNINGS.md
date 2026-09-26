@@ -142472,3 +142472,25 @@ Writing each use through the helper matched; `(&D[i].obj)->f` does too but is a 
 **Arm tails.** `size = base + (age*K + 0x90)` in each arm lets `fold` pull `0x90` out
 next to `base`; a `growth` temp per arm keeps `addiu 0x90; addu size,base,growth`,
 and jump2 cross-jumps the identical tails into the join the target shows.
+
+## Three pins in one draw routine that were an inline parameter, an argument expression and an early constant (func_800A2104, 2026-09-26)
+
+**`addiu 4` before the base add, not `lhu 4(v0)`.** `Gp_IdParamHi[row].field[2]`
+folds the member into the load displacement; the hand-built
+`off = row * 16; TOUCH_REG(off); off += 4; off += base` was forcing
+`(row*16 + 4) + base`. That shape is `field[k]` with `k` an *inline helper
+parameter* - the sibling `Gp_GetAttachParam(k)` takes the field index as an
+argument. Written as a literal `field[(row)*8 + 2]` instead, combine turns the
+add into `ori` because the shifted index has no low bits set.
+
+**Two args swapped (`n` in `a1`, level in `a2`).** `n = field; ... helper(n)`
+maps the helper's parameter straight onto `n`, whose long live range loses the
+global-alloc priority race to the helper's short-lived level pseudo. Passing
+the field itself (`helper(Gp_StateC08.field_B, 2)`, and the same field in the
+item-id expression) gives the parameter its own pseudo and the ROM's
+allocation, with no local at all.
+
+**`li a0,-2; sll a0,a0,2` unfolded in the tail.** An empty `asm` on `order`
+imitated a local set to `-2` at the top of the function and first used after
+many blocks: reload rematerialises its `REG_EQUIV` constant at the use instead
+of folding `-2 << 2`. Write `order = -2;` with the other initialisations.

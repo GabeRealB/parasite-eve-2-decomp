@@ -4786,78 +4786,48 @@ static __inline__ s32 getAttachWheelLevel(s32 idx)
     return lvl;
 }
 
-static __inline__ u16 getAttachWheelParam(s32 n)
+/// Inline copy of `Gp_GetAttachParam` for an explicit slot: parameter `field`
+/// of the `Gp_IdParamHi` row for `slot` at its current level.
+static __inline__ u16 getAttachWheelParam(s32 slot, s32 field)
 {
-    GpRec16* recs;
-    s32      off;
-    s32      lvl;
+    s32 lvl;
 
-    lvl  = getAttachWheelLevel(n);
-    recs = Gp_IdParamHi;
-    off  = (n * 3 + lvl) * 16;
-    TOUCH_REG(off);
-    off += 4;
-    off += (s32)recs;
-    return *(u16*)off;
-}
-
-static __inline__ u16 getAttachWheelTextParam(s32 n)
-{
-    register GpRec16* recs asm("v0");
-    s32               off;
-    s32               lvl;
-
-    lvl  = getAttachWheelLevel(n);
-    recs = Gp_IdParamHi;
-    off  = (n * 3 + lvl) * 16;
-    off += 4;
-    off += (s32)recs;
-    return *(u16*)off;
+    lvl = getAttachWheelLevel(slot);
+    return Gp_IdParamHi[slot * 3 + lvl].field[field];
 }
 
 s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
 {
-    GpWheelScratch      s;
-    s32                 changed;
-    s32                 xOff;
-    s32                 yOff;
-    PlayerStatus*       cfg;
-    McSaveData*         save;
-    u8*                 table;
-    GpStateC08*         c08;
-    DR_TPAGE*           dr;
-    register GpWheelPt* pts asm("s4");
-    GpWheelPt*          walk;
-    GpWheelPt*          dest;
-    GpWheelPt*          scan;
-    GpWheelPt*          chosen;
-    GpWheelPt*          points;
-    s32                 j;
-    u8*                 buf;
-    s32                 cond;
-    s32                 count;
-    register s32        n asm("a1");
-    s32                 q;
-    s32                 item;
-    s32                 angle;
-    s32                 best;
-    s32                 flags;
-    s32                 px;
-    s32                 py;
-    s32                 slot;
-    s32                 color;
-    s32                 sent;
-    s32                 i;
-    s32                 idx;
-    s32                 param;
-    s32                 ret;
-    u16                 val;
-    u16                 ux;
-    u16                 uy;
-    u8                  tv;
-    s8                  t;
+    GpWheelScratch s;
+    s32            changed;
+    s32            order;
+    PlayerStatus*  cfg;
+    u8*            table;
+    s32            cond;
+    s32            count;
+    s32            xOff;
+    s32            yOff;
+    s32            item;
+    s32            param;
+    s32            ret;
+    s32            color;
+    GpWheelPt*     pts;
+    GpWheelPt*     dest;
+    GpWheelPt*     points;
+    GpWheelPt*     chosen;
+    McSaveData*    save;
+    s32            angle;
+    s32            best;
+    s32            flags;
+    s32            px;
+    s32            py;
+    s32            slot;
+    s32            i;
+    s32            j;
+    DR_TPAGE*      dr;
 
     changed              = 0;
+    order                = -2;
     gGameSession->uiOpen = 1;
     cfg                  = &Player_Status;
     count                = 0;
@@ -4871,52 +4841,39 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
     } else {
         table = Gp_DebugAttachLevels;
     }
-    {
-        s32 nslots = 0xB;
-        do {
-            if (*table != 0) {
-                count++;
-            }
-            nslots--;
-            table++;
-        } while (nslots >= 0);
+    for (j = 11; j >= 0; j--, table++) {
+        if (*table != 0) {
+            count++;
+        }
     }
 
-    t = arg0->field_15;
-    if (t > 0) {
-        arg0->field_15 = t - 1;
-    } else if (t < 0) {
-        arg0->field_15 = t + 1;
+    if (arg0->field_15 > 0) {
+        arg0->field_15--;
+    } else if (arg0->field_15 < 0) {
+        arg0->field_15++;
     }
 
     if (arg0->field_15 == 0) {
         if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
             if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
                 Gp_StateC08.field_B = stepAttachWheel(Gp_StateC08.field_B, 1);
-                tv                  = arg0->field_15;
                 changed             = 1;
-                arg0->field_15      = tv + 4;
+                arg0->field_15     += 4;
             } else if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
                 Gp_StateC08.field_B = stepAttachWheel(Gp_StateC08.field_B, -1);
-                tv                  = arg0->field_15;
                 changed             = 1;
-                arg0->field_15      = tv - 4;
+                arg0->field_15     -= 4;
             }
         }
     }
 
-    c08 = &Gp_StateC08;
-    if ((s8)c08->field_E == 0) {
+    if (Gp_StateC08.field_E == 0) {
         xOff           = arg1 + 2;
-        idx            = c08->field_B;
         yOff           = arg2 + 2;
-        val            = getAttachWheelParam(idx);
-        arg0->field_10 = val;
+        arg0->field_10 = getAttachWheelParam(Gp_StateC08.field_B, 2);
 
-        n     = (s8)(u8)Gp_StateC08.field_B;
-        q     = n / 3;
-        item  = ((s8)q << 4) + ((s8)(n - q * 3) << 2) + 0x300;
-        param = getAttachWheelTextParam(n);
+        item  = ((Gp_StateC08.field_B / 3) << 4) + ((Gp_StateC08.field_B % 3) << 2) + 0x300;
+        param = getAttachWheelParam(Gp_StateC08.field_B, 2);
         if (cfg->peStateFlags & 0x80) {
             param <<= 1;
         }
@@ -4937,8 +4894,7 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
         ret   = getAttachWheelLevel(Gp_StateC08.field_B);
         color = 0x606060;
         func_800C2538(&s.obj, -0xB, 0x28, ret, color);
-        buf = s.u.text.buf;
-        Text_DrawPrompt(&s.obj, 0x8E, 0x28, Text_ItoaSigned(buf, param), color, 3, 2);
+        Text_DrawPrompt(&s.obj, 0x8E, 0x28, Text_ItoaSigned(s.u.text.buf, param), color, 3, 2);
 
         s.rect.x = arg1;
         s.rect.y = arg2 + 0x17;
@@ -4946,88 +4902,67 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
         s.rect.h = 0x13;
         Ui_DrawTextInRect(&s.rect, -1, 0x40002, NULL);
 
-        i               = 0;
-        sent            = -0x7FFF;
-        pts             = (GpWheelPt*)buf;
-        walk            = pts;
-        buf             = (u8*)i;
+        /* Lay the equipped attachments out on a circle; unused slots are
+         * parked at the sentinel height so the selection below skips them. */
         s.obj.baseX     = 0x30;
         s.obj.baseY     = 0;
         s.obj.drawOrder = -3;
         s.obj.mode      = 0;
-        do {
-            SOFT_TOUCH_REG_USE(buf, pts);
+        pts             = s.u.pts;
+        for (i = 0; i < 12; i++) {
             if (i < count) {
-                angle = (((s32)buf + arg0->field_15) << 12) / (count * 4);
+                angle = ((i * 4 + arg0->field_15) << 12) / (count * 4);
                 if (count == 1) {
                     angle = 0;
                 }
-                val = rsin(angle);
-                /* `buf` doubles as the byte offset of point i. */
-                dest    = (GpWheelPt*)((u8*)pts + (s32)buf);
-                dest->x = val;
+                dest    = &pts[i];
+                dest->x = rsin(angle);
                 dest->y = rcos(angle);
             } else {
-                walk->x = sent;
-                walk->y = sent;
+                pts[i].x = -0x7FFF;
+                pts[i].y = -0x7FFF;
             }
-            walk++;
-            i++;
-            buf += 4;
-        } while (i < 12);
+        }
 
+        /* Each pass draws the remaining point with the greatest y, then
+         * retires it to the sentinel height so later passes skip it. */
         if (count > 0) {
             i      = 0;
             points = s.u.pts;
             save   = &Mc_SaveData;
             do {
                 best  = 0;
-                j     = best;
-                flags = best;
-                if (count > 0) {
-                    scan = points;
-                    do {
-                        /* Reached by byte offset: indexing `points` adds the index
-                         * first, and the target adds the base first. */
-                        {
-                            s32        offset    = best * 4;
-                            GpWheelPt* candidate = (GpWheelPt*)((u8*)points + offset);
-                            val                  = candidate->y;
-                        }
-                        if ((s16)val < (s16)scan->y) {
-                            best = j;
-                        }
-                        j++;
-                        scan++;
-                    } while (j < count);
+                flags = 0;
+                for (j = 0; j < count; j++) {
+                    GpWheelPt* top = &points[best];
+
+                    if (top->y < points[j].y) {
+                        best = j;
+                    }
                 }
                 chosen = &points[best];
-                ux     = (s16)chosen->x >> 7;
-                px     = (s16)ux;
-                uy     = (s16)chosen->y >> 10;
-                py     = (s16)uy;
+                px     = chosen->x >> 7;
+                py     = chosen->y >> 10;
                 if (count < 6) {
-                    px = (s16)ux >> 1;
-                    py = (s16)uy >> 1;
+                    px >>= 1;
+                    py >>= 1;
                 }
                 {
-                    s32 dx = px + 0x30;
-                    s32 dy;
-                    px = dx + xOff;
-                    dy = py + 0xF;
-                    py = dy + yOff;
+                    s32 cx = px + 0x30;
+                    s32 cy = py + 0xF;
+
+                    px = cx + xOff;
+                    py = cy + yOff;
                 }
-                *(s16*)&chosen->y = -0x7FFF;
+                chosen->y = -0x7FFF;
 
                 slot = stepAttachWheelSaved(Gp_StateC08.field_B, best, save);
 
                 if (Gp_CheckAttachThreshold(slot) != 0) {
                     flags = 4;
                 }
-                if (best == 0) {
-                    if (arg0->field_15 == 0) {
-                        flags |= 8;
-                    }
+                if (best == 0 && arg0->field_15 == 0) {
+                    flags |= 8;
                 }
                 Gp_DrawItemIcon(&s.obj, px, py, ((slot / 3) << 4) + ((slot % 3) << 2) + 0x301, flags);
                 i++;
@@ -5035,15 +4970,10 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
         }
     }
 
-    dr                                = gGpuPrimCursor;
-    gGpuPrimCursor                    = dr + 1;
-    ((volatile P_TAG*)dr)->len        = 1;
-    ((volatile DR_TPAGE*)dr)->code[0] = _get_mode(0, 1, 0x3E);
-    {
-        s32 order = -2;
-        __asm__("" : "+r"(order) : "m"(gGpuCurrentOt));
-        addPrim(gGpuCurrentOt + order, dr);
-    }
+    dr             = gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
+    setDrawTPage(dr, 0, 1, 0x3E);
+    addPrim(gGpuCurrentOt + order, dr);
     return changed;
 }
 
