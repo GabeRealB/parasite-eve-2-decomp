@@ -144099,3 +144099,17 @@ vol  = diff;               /* u8: what the stores write */
 diff -= (s8)p->field_13;   /* s16: in place, lbu + sll/sra for the byte */
 if (ABS(diff) > 0x20) {
 ```
+## A `x / 4` duplicated in two arms stops cross-jumping when cse rewrites the first copy's bias test to the dividend (SndVoice_DriveSlots, 2026-09-26)
+
+Two arms of `if (step > 0)` each end in `field = level / 4`, and the target
+has one shared `move v0,a0; bgez v0; addiu v0,v0,3; sra v0,v0,2` that both
+arms jump to. `expand_divmod` copies the dividend into a temp and tests the
+temp, but in the first arm cse rewrites the test to `level` itself: the class
+head is the member with the latest last use (`make_regs_eqv`), and `level` is
+still used in the second arm. The two copies then differ (`bgez a0` against
+`bgez v0`) and jump2 cannot merge them. Writing the bias step through one local
+shared by both arms - `t = level; if (t < 0) t += 3; field = t >> 2;` - gives
+the temp the later last use in both, and the copies come out identical. The
+seed had pinned that local to `$v0`; the pin was unnecessary once the rest of
+the function was plain. `level /= 4` and a shared `vol = level / 4` did not
+work.

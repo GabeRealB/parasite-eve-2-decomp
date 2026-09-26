@@ -732,250 +732,175 @@ static void SndVoice_StepMasterLevel(void)
 
 static s32 SndVoice_DriveSlots(void)
 {
-    SpuVoiceRef   sp18;
-    s16           sp20[2];
-    SpuVoiceAttr* voice;
+    SpuVoiceRef   ref;
+    s16           vol[2];
+    SpuVoiceAttr* attr;
     SndScript*    p;
     SndVoice*     node;
-    SndVoice*     head;
-    SndVoice*     walk;
+    SndVoice*     voice;
     s32           i;
-    s32           one;
-    s32           four;
-    register s32  offset asm("s5");
     s32           count;
-    s32           new_val;
-    register s32  temp asm("v0");
-    s32           status;
-    s32           tmp;
+    s32           level;
+    s32           temp;
     s8            step;
-    u16           right;
-    u32           mask;
+    s16           pan;
 
     if (D_8008274A != 0) {
         SndVoice_StepMasterLevel();
     }
 
-    i      = 0;
-    four   = 4;
-    one    = 1;
-    offset = i;
-    do {
-        /* The slot is reached through a byte offset that every branch advances
-         * on its own, which is the shape the original loop compiled to. */
-        p      = (SndScript*)((u8*)SndScript_Slots + offset);
-        status = p->field_16;
-        if (status == four) {
-            goto case_4;
-        }
-        if (status < 5) {
-            if (status == one) {
-                goto case_1;
-            }
-            if (status < 2) {
-                goto next;
-            }
-            if (status == 2) {
-                goto case_2;
-            }
-            offset += 0x60;
-            goto loop_inc;
-        }
-        if (status == 0x10) {
-            goto case_10;
-        }
-        if (status < 0x11) {
-            if (status == 8) {
-                goto case_8;
-            }
-            offset += 0x60;
-            goto loop_inc;
-        }
-        if (status == 0x20) {
-            goto case_20;
-        }
-        if (status == 0x80) {
-            goto case_80;
-        }
-        offset += 0x60;
-        goto loop_inc;
+    for (i = 0; i < 8; i++) {
+        p = &SndScript_Slots[i];
+        switch (p->field_16) {
+            case 0:
+                break;
 
-    case_1:
-        p->field_C          = 0;
-        p->field_D          = 0;
-        p->field_8          = 0;
-        p->field_4          = 0;
-        p->field_40         = NULL;
-        tmp                 = 2;
-        p->field_16         = tmp;
-        p->field_50.field_E = 0;
-        p->field_12         = 0;
-        p->field_15         = 0;
-        p->field_E          = 0;
-        goto case_2;
+            case 1:
+                p->field_C          = 0;
+                p->field_D          = 0;
+                p->field_8          = 0;
+                p->field_4          = 0;
+                p->field_40         = NULL;
+                p->field_16         = 2;
+                p->field_50.field_E = 0;
+                p->field_12         = 0;
+                p->field_15         = 0;
+                p->field_E          = 0;
+                goto run;
 
-    case_80:
-        if (p->field_50.field_0 == p->field_50.field_4) {
-            p->field_16 = four;
-            goto case_4;
-        }
-        LinInterp_Step(&p->field_50);
-        p->field_E = one;
-        /* fallthrough */
-    case_2:
-        p->field_4 = p->field_4 + 1;
-        do {
-        } while (SndScript_Exec(p) != 0);
-
-    process_voices:
-        head  = p->field_40;
-        count = 0;
-        if (head != NULL) {
-            node = head;
-            do {
-                SndVoice_Tick(node);
-                step   = p->field_12;
-                count += 1;
-                if (step != 0) {
-                    new_val = step + ((s8)p->field_10 * 4);
-                    if (step > 0) {
-                        if (((s8)p->field_11 * 4) < new_val) {
-                            p->field_10 = p->field_11;
-                            p->field_12 = 0;
-                        } else {
-                            temp = new_val;
-                            if (temp < 0) {
-                                temp += 3;
+            case 0x80:
+                if (p->field_50.field_0 == p->field_50.field_4) {
+                    p->field_16 = 4;
+                    goto stop;
+                }
+                LinInterp_Step(&p->field_50);
+                p->field_E = 1;
+                /* fallthrough */
+            case 2:
+            run:
+                p->field_4++;
+                while (SndScript_Exec(p) != 0) {
+                }
+            update:
+                count = 0;
+                if (p->field_40 != NULL) {
+                    node = p->field_40;
+                    do {
+                        SndVoice_Tick(node);
+                        step = p->field_12;
+                        count++;
+                        if (step != 0) {
+                            level = step + (s8)p->field_10 * 4;
+                            if (step > 0) {
+                                if ((s8)p->field_11 * 4 < level) {
+                                    p->field_10 = p->field_11;
+                                    p->field_12 = 0;
+                                } else {
+                                    /* level / 4, rounded toward zero */
+                                    temp = level;
+                                    if (temp < 0) {
+                                        temp += 3;
+                                    }
+                                    p->field_10 = temp >> 2;
+                                }
+                            } else if (level < (s8)p->field_11 * 4) {
+                                p->field_10 = p->field_11;
+                                p->field_12 = 0;
+                            } else {
+                                temp = level;
+                                if (temp < 0) {
+                                    temp += 3;
+                                }
+                                p->field_10 = temp >> 2;
                             }
-                            p->field_10 = temp >> 2;
+                            p->field_E = 1;
                         }
-                    } else if (new_val < ((s8)p->field_11 * 4)) {
-                        p->field_10 = p->field_11;
-                        p->field_12 = 0;
-                    } else {
-                        temp = new_val;
-                        if (temp < 0) {
-                            temp += 3;
+                        step = p->field_15;
+                        if (step != 0) {
+                            pan = (s8)p->field_13 + step;
+                            if (step > 0) {
+                                if ((s8)p->field_14 < pan) {
+                                    p->field_13 = p->field_14;
+                                    p->field_15 = 0;
+                                } else {
+                                    p->field_13 = pan;
+                                }
+                            } else if (pan < (s8)p->field_14) {
+                                p->field_13 = p->field_14;
+                                p->field_15 = 0;
+                            } else {
+                                p->field_13 = pan;
+                            }
+                            p->field_E = 1;
                         }
-                        p->field_10 = temp >> 2;
+                        if (p->field_E == 1) {
+                            Spu_GetVoiceRef(node->field_0, &ref);
+                            attr = ref.field_4;
+                            SndVoice_ScaleVolume(p->field_10, p->field_13, node, &p->field_50, vol);
+                            attr->volume.left   = vol[0];
+                            attr->volume.right  = vol[1];
+                            attr->volmode.left  = 0;
+                            attr->volmode.right = 0;
+                            attr->mask         |= 0xF;
+                        }
+                        node = node->field_3C;
+                    } while (node != NULL);
+                    p->field_E = 0;
+                }
+                if (count == 0 && p->field_D == 1) {
+                    goto release;
+                }
+                break;
+
+            case 8:
+                LinInterp_Step(&p->field_50);
+                p->field_E = 1;
+                goto update;
+
+            case 0x10:
+                p->field_E = 1;
+                LinInterp_Step(&p->field_50);
+                if (p->field_50.field_0 == p->field_50.field_4) {
+                    p->field_16 = 2;
+                    goto run;
+                }
+                goto update;
+
+            case 4:
+            stop:
+                p->field_D = 1;
+                if (SndScript_TickVoices(p) != 0) {
+                    p->field_16 = 0x20;
+                    break;
+                }
+                goto release;
+
+            case 0x20:
+                count = 0;
+                if (p->field_40 != NULL) {
+                    node = p->field_40;
+                    do {
+                        if (node->field_10 != 0) {
+                            count++;
+                            SndVoice_TickEnvelope(node);
+                        }
+                        node = node->field_3C;
+                    } while (node != NULL);
+                }
+                if (count == 0 && p->field_D == 1) {
+                release:
+                    p->field_D  = 0;
+                    p->field_0  = -1;
+                    p->field_16 = 0;
+                    for (voice = p->field_40; voice != NULL; voice = voice->field_3C) {
+                        voice->field_34 = 0;
                     }
-                    p->field_E = one;
+                    p->field_40         = NULL;
+                    p->field_50.field_E = 0;
                 }
-                step = p->field_15;
-                if (step != 0) {
-                    temp    = (s8)(*(volatile u8*)&p->field_13);
-                    temp    = temp + step;
-                    new_val = temp;
-                    if (step > 0) {
-                        temp <<= 16;
-                        temp >>= 16;
-                        if ((s8)p->field_14 < temp) {
-                            p->field_13 = (u8)p->field_14;
-                            p->field_15 = 0;
-                        } else {
-                            goto store13;
-                        }
-                    } else {
-                        temp <<= 16;
-                        temp >>= 16;
-                        if (temp < (s8)p->field_14) {
-                            p->field_13 = (u8)p->field_14;
-                            p->field_15 = 0;
-                        } else {
-                        store13:
-                            p->field_13 = new_val;
-                        }
-                    }
-                    p->field_E = one;
-                }
-                if (p->field_E == one) {
-                    Spu_GetVoiceRef(node->field_0, &sp18);
-                    voice = sp18.field_4;
-                    SndVoice_ScaleVolume((s8)p->field_10, (s8)p->field_13, node, &p->field_50, sp20);
-                    voice->volume.left   = sp20[0];
-                    right                = sp20[1];
-                    mask                 = voice->mask;
-                    voice->volmode.left  = 0;
-                    voice->volmode.right = 0;
-                    voice->mask          = mask | 0xF;
-                    voice->volume.right  = right;
-                }
-                node = node->field_3C;
-            } while (node != NULL);
-            p->field_E = 0;
+                break;
         }
-        if (count != 0) {
-            goto next;
-        }
-        if (p->field_D == one) {
-            goto cleanup;
-        }
-        offset += 0x60;
-        goto loop_inc;
-
-    case_8:
-        LinInterp_Step(&p->field_50);
-        p->field_E = one;
-        goto process_voices;
-
-    case_10:
-        p->field_E = one;
-        LinInterp_Step(&p->field_50);
-        if (p->field_50.field_0 != p->field_50.field_4) {
-            goto process_voices;
-        }
-        tmp         = 2;
-        p->field_16 = tmp;
-        goto case_2;
-
-    case_4:
-        p->field_D = one;
-        if (SndScript_TickVoices(p) != 0) {
-            p->field_16 = 0x20;
-            goto next;
-        }
-        goto cleanup;
-
-    case_20:
-        head  = p->field_40;
-        count = 0;
-        if (head != NULL) {
-            node = head;
-            do {
-                if (node->field_10 != 0) {
-                    count += 1;
-                    SndVoice_TickEnvelope(node);
-                }
-                node = node->field_3C;
-            } while (node != NULL);
-        }
-        if (count != 0) {
-            goto next;
-        }
-        if (p->field_D != one) {
-            goto next;
-        }
-
-    cleanup:
-        walk        = p->field_40;
-        p->field_D  = 0;
-        p->field_0  = -1;
-        p->field_16 = 0;
-        if (walk != NULL) {
-            do {
-                walk->field_34 = 0;
-                walk           = walk->field_3C;
-            } while (walk != NULL);
-        }
-        p->field_40         = NULL;
-        p->field_50.field_E = 0;
-
-    next:
-        offset += 0x60;
-
-    loop_inc:
-        i += 1;
-    } while (i < 8);
+    }
     return 0;
 }
 
