@@ -1441,8 +1441,6 @@ void Actor05500_Fn02C94(Task* actor)
     s32                     y;
     s32                     screen;
     s32                     screen1;
-    s32                     shade;
-    u8                      blue;
 
     s              = (Actor105500LineScratch*)(*(u8**)PSX_SCRATCH_ADDR(0x3FC) -= sizeof(Actor105500LineScratch));
     work           = actor->work;
@@ -1491,20 +1489,12 @@ void Actor05500_Fn02C94(Task* actor)
         if (--work->field_3BC <= 0) {
             work->field_3BC = 1;
         }
-        shade    = (work->field_3BC * 0x80) / 45;
-        line->r0 = shade;
-        TOUCH_REG(shade);
-        blue = shade;
-        TOUCH_REG_USE(blue, shade);
-        line->g0 = shade;
-        line->b0 = blue;
-        shade    = (work->field_3BC * 0xC0) / 45;
-        line->r1 = shade;
-        TOUCH_REG(shade);
-        blue = shade;
-        TOUCH_REG_USE(blue, shade);
-        line->g1 = shade;
-        line->b1 = blue;
+        line->r0 = (work->field_3BC * 0x80) / 45;
+        line->g0 = line->r0;
+        line->b0 = line->r0;
+        line->r1 = (work->field_3BC * 0xC0) / 45;
+        line->g1 = line->r1;
+        line->b1 = line->r1;
     }
     addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), line);
     page           = gGpuPrimCursor;

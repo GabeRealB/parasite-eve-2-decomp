@@ -142183,3 +142183,14 @@ once, finding the first case's copy.
 
 When a merged tail sits in the wrong copy, change how the other copies exit
 rather than adding a barrier.
+
+## A `move` before the last of three identical byte stores is a field read back, not a second local (Actor05500_Fn02C94, 2026-09-26)
+
+A grey level stored to `r`, `g` and `b` of a primitive: the target stores `r`
+and `g` from one register, copies it (`move v0,v1`), and stores `b` from the
+copy, which lets jump2 cross-jump the `b1` store with the constant arm. The tree
+faked the second register with a `blue` local and two `TOUCH_REG`s. Writing
+`line->r0 = x; line->g0 = line->r0; line->b0 = line->r0;` matches with no
+hacks: cse replaces the reads of `r0` with the stored QImode value, which is a
+pseudo of its own, so the copy comes back naturally. `b = g = r = x` and
+three stores of one variable both fold to a single register.
