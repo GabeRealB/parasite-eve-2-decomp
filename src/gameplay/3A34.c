@@ -1854,74 +1854,41 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
     }
 }
 
-void Gp_LightFalloff(GpPointLight* arg0)
+void Gp_LightFalloff(GpPointLight* light)
 {
-    register void**         scratch asm("a1");
-    u8*                     head;
-    register GpAttnScratch* tmp asm("v1");
-    GpAttnScratch*          block;
-    register s32            result asm("t0");
-    s32                     lum;
-    s32                     tooFar;
-    s32                     r;
-    s32                     g;
-    s32                     b;
-    s32                     dist;
-    s32                     inner;
-    s32                     vx;
-    u16                     scale;
-    u8*                     ptr;
+    GpAttnScratch* block;
+    s32            result;
+    GpLight*       base;
 
-    result                                  = 0;
-    scratch                                 = SCRATCH_HEAD_ADDR;
-    vx                                      = arg0->head.u.at.local.t[0];
-    head                                    = SCRATCH_HEAD_AT(scratch, u8);
-    vx                                    >>= 1;
-    tmp                                     = (GpAttnScratch*)(head - 0x20);
-    ((GpAttnScratch*)(head - 0x20))->vec.vx = vx;
-    block                                   = tmp;
-    block->vec.vy                           = arg0->head.u.at.local.t[1] >> 1;
-    block->vec.vz                           = arg0->head.u.at.local.t[2] >> 1;
-    block->distSq                           = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
-    block->outerSq                          = (arg0->outer * arg0->outer) >> 2;
-    tooFar                                  = (u32)block->outerSq < (u32)block->distSq;
-    SCRATCH_HEAD_AT(scratch, GpAttnScratch) = block;
-    block->scale                            = 0;
-    if (!tooFar) {
-        block->innerSq = (arg0->inner * arg0->inner) >> 2;
-        r              = arg0->head.r;
-        g              = arg0->head.g;
-        b              = arg0->head.b;
+    base           = &light->head;
+    result         = 0;
+    block          = SCRATCH_PUSH(GpAttnScratch);
+    block->vec.vx  = base->u.at.local.t[0] >> 1;
+    block->vec.vy  = base->u.at.local.t[1] >> 1;
+    block->vec.vz  = base->u.at.local.t[2] >> 1;
+    block->distSq  = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
+    block->outerSq = (light->outer * light->outer) >> 2;
+    block->scale   = 0;
+    if ((u32)block->outerSq >= (u32)block->distSq) {
+        block->innerSq = (light->inner * light->inner) >> 2;
+        result         = ((light->head.r * 8 + light->head.g * 6 + light->head.b * 2) >> 8) + 0xF00;
         block->scale   = 0x1000;
-        lum            = (r * 8 + g * 6 + b * 2) >> 8;
-        dist           = block->distSq;
-        inner          = block->innerSq;
-        result         = lum + 0xF00;
-        if ((u32)inner < (u32)dist) {
-            s32 temp;
-
-            temp = block->outerSq;
-            TOUCH_REG(temp);
-            lum = inner;
-            TOUCH_REG(lum);
-            block->outerSq = temp - inner;
-            block->distSq -= lum;
+        if ((u32)block->distSq > (u32)block->innerSq) {
+            block->outerSq -= block->innerSq;
+            block->distSq  -= block->innerSq;
             while ((u32)block->outerSq > 0xFFFF) {
                 block->outerSq = (u32)block->outerSq >> 4;
                 block->distSq  = (u32)block->distSq >> 4;
             }
             if (block->outerSq != 0) {
                 block->scale = ((u32)(block->outerSq - block->distSq) << 12) / (u32)block->outerSq;
-                lum          = block->scale * result;
-                result       = (u32)lum >> 12;
+                result       = (u32)(block->scale * result) >> 12;
             }
         }
     }
-    scale                      = block->scale;
-    ptr                        = SCRATCH_HEAD(u8);
-    arg0->head.u.at.world.t[0] = result;
-    arg0->head.u.at.scale      = scale;
-    SCRATCH_HEAD(u8)           = ptr + 0x20;
+    base->u.at.scale      = block->scale;
+    base->u.at.world.t[0] = result;
+    SCRATCH_POP(GpAttnScratch);
 }
 
 void Gp_SetLightMode(GpEnemy* arg0, s32 arg1)
