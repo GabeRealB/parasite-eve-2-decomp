@@ -549,7 +549,8 @@ segments:
       - { start: 0x6ab98, type: .bss, name: font, vram: 0x8007A398 }
       - { start: 0x6aba0, type: .bss, name: sndbank, vram: 0x8007A3A0 }
       - { start: 0x6eae0, type: .bss, name: spu, vram: 0x8007E2E0 }
-      - { start: 0x6f3e0, type: bss, name: "6F3E0", vram: 0x8007EBE0 } # remaining .bss
+      - { start: 0x6f3e0, type: .bss, name: sndevt, vram: 0x8007EBE0 }
+      - { start: 0x72938, type: bss, name: "72938", vram: 0x80082138 } # remaining .bss
   # The file's contents end where bss begins (0x80068F80); the bss subsegments'
   # start offsets above are placeholders past it. splat places the end of bss at
   # this offset plus the segment's bss_size, so marking the end any later counts

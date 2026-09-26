@@ -786,14 +786,17 @@ void         Spu_ResetCommonAttr(void);
 typedef u8* (*MidiHandler)(s32, u8*, MidiSong*, MidiTrack*);
 extern void (*SndEvt_Handlers[])(SndEvt*);
 
-extern MidiSong Midi_Song;
 #ifndef SNDBANK_C
 extern SndBank Snd_Banks[];
 #endif
-extern SndScript    SndScript_Slots[8];
+extern SndScript SndScript_Slots[8];
+#ifndef SNDEVT_C
 extern SndLoadState SndLoad_State;
-extern LinInterp    LinInterp_CdStream;
-extern volatile u8  D_80082120;
+#endif
+extern LinInterp LinInterp_CdStream;
+#ifndef SNDEVT_C
+extern volatile u8 D_80082120;
+#endif
 
 extern s8 D_800680AC[];
 

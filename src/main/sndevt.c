@@ -1,5 +1,7 @@
 #include "common.h"
 
+#define SNDEVT_C
+
 #include "main/unknown_syms.h"
 #include "main/cdaudio.h"
 #include "main/fs.h"
@@ -8,7 +10,20 @@
 ///
 /// Cleared only while a node is being linked into the list, so a processing
 /// pass cannot walk a half-linked list; a reset leaves the queue processable.
-extern s32 _gSndEvtProcessEnabled;
+static s32 _gSndEvtProcessEnabled;
+
+/// Oldest event still waiting to be processed, or `NULL` while the queue is
+/// empty.
+///
+/// Events are appended at the other end, so processing takes them in the order
+/// they were queued.
+static SndEvt* _gSndEvtHead;
+
+/// Last event in the pending queue, or `NULL` when the queue is empty.
+///
+/// Kept alongside the head so an append reaches the end without walking the
+/// list; a pass that consumes the last event clears it with the head.
+static SndEvt* _gSndEvtTail;
 
 /// The slots the deferred sound events live in: 0x40 of them, one per queued
 /// command.
@@ -16,20 +31,7 @@ extern s32 _gSndEvtProcessEnabled;
 /// `sndEvtAlloc` takes a free slot and `SndEvt_Free` marks it free again, so
 /// this array's length is how many events can be pending at once; an enqueue
 /// that finds no free slot reports the failure rather than allocating.
-extern SndEvt _gSndEvtPool[0x40];
-
-/// Oldest event still waiting to be processed, or `NULL` while the queue is
-/// empty.
-///
-/// Events are appended at the other end, so processing takes them in the order
-/// they were queued.
-extern SndEvt* _gSndEvtHead;
-
-/// Last event in the pending queue, or `NULL` when the queue is empty.
-///
-/// Kept alongside the head so an append reaches the end without walking the
-/// list; a pass that consumes the last event clears it with the head.
-extern SndEvt* _gSndEvtTail;
+static SndEvt _gSndEvtPool[0x40];
 
 static void  Midi_ClearVoiceEntry(MidiNoteSlot* slot);
 static void  Midi_DriveTrack(MidiSong* arg0, MidiTrack* arg1);
@@ -66,6 +68,28 @@ static void  SndEvt_HandlePanRamp(SndEvt* arg0);
 static void  SndEvt_HandleSetVolume(SndEvt* arg0);
 static void  SndEvt_HandleStartFadeOut(SndEvt* arg0);
 static void  SndEvt_HandleType7(SndEvt* arg0);
+
+static u8 D_8007F2F0;
+/// Unreferenced.
+static u8       D_8007F2F8[8];
+static MidiSong Midi_Song;
+static u8       D_8007F8E0[0x2800];
+s32             D_800820E0;
+s16             D_800820E4;
+s16             D_800820E6;
+static u8       D_800820E8;
+static s8       D_800820E9;
+SndLoadState    SndLoad_State;
+volatile u8     D_80082120;
+volatile u8     D_80082121;
+volatile u8     D_80082122;
+volatile s32    D_80082124;
+volatile s32    D_80082128;
+volatile u8     D_8008212C;
+volatile s32    D_80082130;
+volatile s8     D_80082134;
+volatile u8     D_80082135;
+volatile u8     D_80082136;
 
 void (*SndEvt_Handlers[])(SndEvt*) = {
     func_80050AAC,
