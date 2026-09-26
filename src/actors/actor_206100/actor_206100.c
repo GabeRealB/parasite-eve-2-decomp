@@ -1616,6 +1616,41 @@ static void func_actor_206100_8014BEC4(GpCoord* coord, s16 yaw)
     SCRATCH_POP(MATRIX);
 }
 
+/// Services the animation request in the work block and steps animation slots
+/// 1 through 0xE once.  `field_50C` holds the request kind: kind 1 zeroes the
+/// clip phase `field_512` when the clip playing (`field_50E`) is not the
+/// requested one (`field_510`), otherwise hands it to
+/// `func_actor_206100_8014F3C8`, and then calls `func_actor_206100_8014F2F0`;
+/// kind 2 calls `func_actor_206100_8014F284` and zeroes the phase.  Both leave
+/// kind 3, which advances the phase by one each call.
+static inline void _actor206100AnimUpdate(Task* task)
+{
+    Actor206100Work* work;
+    s16              kind;
+    s32              i;
+
+    work = (Actor206100Work*)task->work;
+    kind = work->field_50C;
+    if (kind == 1) {
+        if (work->field_50E != work->field_510) {
+            work->field_512 = 0;
+        } else {
+            work->field_512 = func_actor_206100_8014F3C8(task, work->field_512);
+        }
+        func_actor_206100_8014F2F0(task);
+        work->field_50C = 3;
+    } else if (kind == 2) {
+        func_actor_206100_8014F284(task);
+        work->field_50C = 3;
+        work->field_512 = 0;
+    } else if (kind == 3) {
+        work->field_512 = work->field_512 + 1;
+    }
+    for (i = 1; i < 0xF; i++) {
+        Gp_AnimTickIndex(&work->anim, i);
+    }
+}
+
 /// Spawn state of `D_actor_206100_80149E94`: builds the actor's work block --
 /// `memCalloc(0x558, 0)` parked straight in `Task::work`, the actor destroyed
 /// if that fails -- empties both companion slots of `D_actor_206100_80158CBC`
@@ -1623,14 +1658,8 @@ static void func_actor_206100_8014BEC4(GpCoord* coord, s16 yaw)
 /// induction variable of its own) and calls the setup `func_actor_206100_8014AF74`
 /// with the block in place.
 ///
-/// It then asks for the first clip: `field_50C` is written 2 -- the request kind
-/// the animation player picks up -- with `field_510` as the clip and `field_51A`
-/// the step scale, and the kind read back decides what to do with the clip phase
-/// `field_512`.  Kind 1 either zeroes it, when the clip now playing is not the
-/// requested one, or hands it to `func_actor_206100_8014F3C8` and re-requests
-/// kind 3; kind 2 goes through `func_actor_206100_8014F284` and zeroes it; kind
-/// 3 advances it by one.  Every path lands on slot 1 and steps animation slots
-/// 1 through 0xE once.
+/// It then requests the first clip -- kind 2 in `field_50C`, `field_510` as the
+/// clip and `field_51A` the step scale -- and services the request at once.
 ///
 /// The tail seeds the walk/HP scales (`field_508`, `field_50A`, `field_526` and
 /// `field_53E`), zeroes the root coordinate's translation, takes the state-0
@@ -1642,13 +1671,10 @@ static void func_actor_206100_8014C274(Task* task)
 {
     Actor206100Work* work;
     Actor206100Work* req;
-    Actor206100Work* anim;
     Actor206100Work* state;
     Actor206100Work* tail;
     GpEnemy*         enemy;
     GpCoord*         coord;
-    s16              kind;
-    s32              slot;
     s32              i;
 
     enemy      = task->spawnArg2;
@@ -1670,35 +1696,7 @@ static void func_actor_206100_8014C274(Task* task)
     req->field_51A = 0x10;
     req->field_510 = 3;
     req->field_50C = 2;
-    anim           = (Actor206100Work*)task->work;
-    kind           = anim->field_50C;
-    if (kind == 1) {
-        if (anim->field_50E != anim->field_510) {
-            anim->field_512 = 0;
-        } else {
-            anim->field_512 = func_actor_206100_8014F3C8(task, anim->field_512);
-        }
-        func_actor_206100_8014F2F0(task);
-        anim->field_50C = 3;
-        goto block_13;
-    }
-    if (kind == 2) {
-        func_actor_206100_8014F284(task);
-        anim->field_50C = 3;
-        anim->field_512 = 0;
-        goto block_13;
-    }
-    slot = 1;
-    if (kind == 3) {
-        TOUCH_REG(slot);
-        anim->field_512 = (s16)((u16)anim->field_512 + 1);
-    block_13:
-        slot = 1;
-    }
-    do {
-        Gp_AnimTickIndex((GpAnimCtx*)anim, slot);
-        slot = slot + 1;
-    } while (slot < 0xF);
+    _actor206100AnimUpdate(task);
     work->field_508   = 0x1000;
     work->field_50A   = 0x1000;
     work->field_53E   = 0x1EAA;
