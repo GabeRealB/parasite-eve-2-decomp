@@ -226,9 +226,6 @@ const GpEnemyTaskFuncTable3 Actor02100_D00004 = { {
     Actor02100_Fn035D4,
 } };
 
-/// A zero word after the table. Nothing refers to it.
-const s32 Actor02100_D00010 = 0;
-
 void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
 {
     GpRec18*                  table;

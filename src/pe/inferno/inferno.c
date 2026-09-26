@@ -177,9 +177,6 @@ void func_inferno_8012F3EC(s16 arg0)
     Gp_AddTpageShift((P_TAG*)p, 1, z);
 }
 
-/// Trailing zero word in this unit's rodata.
-const u32 D_inferno_8012EF68 = 0;
-
 /// Companion inferno-cast task: state 0 allocates a 12-byte `InfernoIdMap`
 /// of LCG jitter, scales `GpEffWork::pos` by 0x80 (`gte_gpf12`) and
 /// rotates it into `move`. States 1–6 fade `scale` while spinning
