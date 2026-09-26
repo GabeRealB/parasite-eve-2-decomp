@@ -1588,43 +1588,27 @@ void func_mine_mesa_8018057C(Task* task)
 /// rim.
 void func_mine_mesa_80180804(GpCoord* arg0, s16 arg1, u8* arg2)
 {
-    register RoomBillboardScratch* block asm("s3");
-    register POLY_G4*              prim asm("s2");
-    register s32                   ang asm("s4");
-    register void**                scratch asm("a1");
-    register u8*                   head asm("a2");
-    s32                            t;
-    s32                            t2;
-    s32                            u;
-    u16                            vz;
+    RoomBillboardScratch* block;
+    POLY_G4*              prim;
+    s32                   ang;
+    s32                   t;
+    s32                   t2;
+    s32                   u;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    {
-        register u16 vx asm("v0");
-        vx                                             = (u16)arg0->workm.t[0];
-        ((RoomBillboardScratch*)(head - 0x1C))->vec.vx = vx;
-    }
-    {
-        register u8* tmp asm("v0");
-        tmp   = head - 0x1C;
-        block = (RoomBillboardScratch*)tmp;
-    }
-    block->vec.vy = (u16)arg0->workm.t[1];
-    vz            = (u16)arg0->workm.t[2];
-    *scratch      = block;
-    block->vec.vz = vz;
+    block         = SCRATCH_PUSH(RoomBillboardScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((RoomBillboardScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((RoomBillboardScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomBillboardScratch*)(head - 0x1C))->otz);
-        USE_REG(head);
-        block->otz   += 1;
+        gte_stszotz(&block->otz);
+        block->otz++;
         block->rOuter = (arg1 * 64) / block->otz;
         block->rInner = (arg1 * 8) / block->otz;
 
@@ -1717,7 +1701,7 @@ void func_mine_mesa_80180804(GpCoord* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_POP(RoomBillboardScratch);
 }
 
 /// Rebuilds collision faces 3-6 of the room's grid as vertical walls, one per
