@@ -4606,6 +4606,26 @@ static inline void _gpSetPreviewItem(s32 item, u8 slot)
     }
 }
 
+/// `_gpSetPreviewItem` written as a walk of a pointer over `Gp_PreviewItems`
+/// rather than an indexed store.
+static inline void _gpSetPreviewItemWalk(s32 item, u8 slot)
+{
+    s32  i;
+    s32* p;
+
+    p = Gp_PreviewItems;
+    if (item != p[slot]) {
+        for (i = 0; i < 3; i++) {
+            if (i == slot) {
+                *p++ = item;
+            } else {
+                *p++ = -1;
+            }
+        }
+        Gp_EnqueueItemPreviewCd(item, slot);
+    }
+}
+
 void Gp_EquipSummaryTask(Task* arg0)
 {
     PlayerStatus* cfg;
@@ -4876,19 +4896,23 @@ void Gp_AmmoListTask(Task* arg0)
     }
 }
 
+/// Sets bit 0x100 in `flags`, which makes `func_800C7AE8` skip drawing the
+/// item preview, while the CD queue is still busy loading it.
+#define GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags) \
+    do {                                     \
+        if (CdCmd_IsIdle() == 0) {           \
+            (flags) |= 0x100;                \
+        }                                    \
+    } while (0)
+
 void Gp_SelectWeaponMenuTask(Task* arg0)
 {
-    UiList*            menu;
-    register UiObject* obj asm("s1");
-    register s32       val asm("s2");
-    PlayerStatus*      cfg;
-    s32                flags;
-    Task*              parent;
-    s32*               table;
-    s32                i;
-    s32                slot;
-    s32                minusOne;
-    s32*               p;
+    UiList*       menu;
+    UiObject*     obj;
+    s32           val;
+    PlayerStatus* cfg;
+    s32           flags;
+    Task*         parent;
 
     menu = &D_8010E9A4;
     obj  = arg0->spawnArg2;
@@ -4909,23 +4933,7 @@ void Gp_SelectWeaponMenuTask(Task* arg0)
             goto draw;
         }
         if (((obj->status >> 16) == 1) || (obj->status == 1)) {
-            table = Gp_PreviewItems;
-            if (val != table[2]) {
-                i = 0;
-                do {
-                    slot     = 2;
-                    minusOne = -1;
-                    p        = table;
-                } while (0);
-                for (; i < 3; i++, p++) {
-                    if (i == slot) {
-                        *p = val;
-                    } else {
-                        *p = minusOne;
-                    }
-                }
-                Gp_EnqueueItemPreviewCd(val, 2);
-            }
+            _gpSetPreviewItemWalk(val, 2);
         }
     } else {
         flags = 0x10;
@@ -4934,9 +4942,7 @@ void Gp_SelectWeaponMenuTask(Task* arg0)
             goto draw;
         }
     }
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-        flags |= 0x100;
-    }
+    GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags);
 draw:
     func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags);
     func_800C7DA8(obj, val, 1, 0);
