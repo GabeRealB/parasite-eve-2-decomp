@@ -91,8 +91,7 @@ segments:
       - [0x3CD8, .rodata, 3CD8_34D8] # jtbl from Gp_RunCapCmd
       - [0x3CF0, .rodata, 3CD8_375C] # jtbl from Gp_EvtCapWeaponTask
       - [0x3D14, .rodata, 3CD8] # cap/script strings + Gp_CapTaskStates / Gp_ScriptTaskStates
-      - [0x3D5C, pad] # zero gap nothing refers to: likely the end of the 3CD8 unit's rodata
-      - [0x3D60, .rodata, 3CD8_75C8] # jtbl from Gp_ScriptTaskState1, then the script state tables
+      - [0x3D38, .rodata, 3CD8_75C8] # Gp_ScriptTaskStates and the demo labels, the jtbl from Gp_ScriptTaskState1, then the script state tables
       - [0x3E60, .rodata, 3CD8_9BDC] # jtbl from func_800E9BDC
       - [0x3E78, .rodata, 3CD8_9CC8] # D_80097678, then the jtbl from Gp_InitState1C
       - [0x3E9C, .rodata, 3E9C] # jtbls: Gp_EffCtlTask2B + Gp_EffModelTask

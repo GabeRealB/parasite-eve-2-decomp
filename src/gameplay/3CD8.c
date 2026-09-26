@@ -46,15 +46,6 @@ const TaskFuncTable3 Gp_CapTaskStates = { {
     taskKill,
 } };
 
-const TaskFuncTable3 Gp_ScriptTaskStates = { {
-    Gp_ScriptInit,
-    Gp_ScriptTaskState1,
-    taskKill,
-} };
-
-const char Gp_StrDemoWait[]  = "Demo Wait";
-const char Gp_StrDemoPause[] = "Demo Pause";
-
 extern TaskDesc      Gp_EvtSpawnTable[];
 extern TaskDesc      D_8010FB4C[];
 extern GpAnimArg     Gp_WeaponMsgRec;

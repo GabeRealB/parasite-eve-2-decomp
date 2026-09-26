@@ -27,9 +27,6 @@
 
 extern u16                  D_8007A396;
 extern u16                  D_8007A39C;
-extern const char           Gp_StrDemoWait[];
-extern const char           Gp_StrDemoPause[];
-extern const TaskFuncTable3 Gp_ScriptTaskStates;
 extern const TaskFuncTable3 Gp_Script18States;
 extern const TaskFuncTable5 Gp_ScriptAStates;
 extern const TaskFuncTable5 Gp_ScriptBStates;
@@ -85,6 +82,18 @@ void Gp_StepScriptA(Task* task);
 void Gp_StepScriptB(Task* task);
 void Gp_SpawnPadHold(s16 arg0);
 void Gp_SpawnPadLerpScaled(s16 arg0, u8 arg1, u8 arg2, s16 arg3);
+
+void Gp_ScriptInit(Task* arg0);
+void Gp_ScriptTaskState1(Task* arg0);
+
+const TaskFuncTable3 Gp_ScriptTaskStates = { {
+    Gp_ScriptInit,
+    Gp_ScriptTaskState1,
+    taskKill,
+} };
+
+const char Gp_StrDemoWait[]  = "Demo Wait";
+const char Gp_StrDemoPause[] = "Demo Pause";
 
 void Gp_ScriptTaskState1(Task* arg0)
 {
