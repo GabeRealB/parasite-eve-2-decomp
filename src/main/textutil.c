@@ -97,7 +97,7 @@ static inline void _textDrawLine(UiObject* obj, s32 x, s32 y, u8* text, s32 arg4
         if (obj->mode != 5) {
             req.x          = obj->baseX + x;
             req.y          = (obj->baseY + y) - 3;
-            temp           = (s16)obj->drawOrder;
+            temp           = obj->drawOrder;
             req.field_8    = arg4;
             req.otIndex    = temp + 1;
             req.glyphTable = 4;
@@ -222,7 +222,7 @@ s32 Text_DrawPrompt(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 
     }
     sp10.x          = arg0->baseX + arg1;
     sp10.y          = (arg0->baseY + arg2) - 3;
-    temp            = (s16)arg0->drawOrder;
+    temp            = arg0->drawOrder;
     sp10.field_8    = arg4;
     sp10.glyphTable = 4;
     sp10.centerMode = arg6;
@@ -283,7 +283,7 @@ s32 Text_DrawMultiLineScroll(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 a
             if (obj->mode != 5) {
                 sp50[0].x          = obj->baseX + x;
                 sp50[0].y          = (obj->baseY + y) - 3;
-                temp               = (s16)obj->drawOrder;
+                temp               = obj->drawOrder;
                 sp50[0].field_8    = arg4;
                 sp50[0].otIndex    = temp + 1;
                 p->glyphTable      = 4;

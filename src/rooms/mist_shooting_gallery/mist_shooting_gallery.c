@@ -414,7 +414,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
 
             req1.x          = obj->baseX + xOff;
             req1.y          = obj->baseY + y;
-            req1.otIndex    = (s16)obj->drawOrder + 1;
+            req1.otIndex    = obj->drawOrder + 1;
             req1.field_8    = 0x606060;
             req1.glyphTable = 0;
             req1.centerMode = 0;
@@ -423,7 +423,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
 
             req2.x          = obj->baseX + 0x6E + xOff;
             req2.y          = obj->baseY + y;
-            req2.otIndex    = (s16)obj->drawOrder + 1;
+            req2.otIndex    = obj->drawOrder + 1;
             req2.field_8    = 0x606060;
             req2.glyphTable = 0;
             req2.centerMode = 2;
@@ -432,7 +432,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
 
             req3.x          = obj->baseX + 0x91 + xOff;
             req3.y          = obj->baseY + y;
-            req3.otIndex    = (s16)obj->drawOrder + 1;
+            req3.otIndex    = obj->drawOrder + 1;
             req3.field_8    = 0x606060;
             req3.glyphTable = 0;
             req3.centerMode = 2;
@@ -442,7 +442,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
 
             req4.x          = obj->baseX - 5 - xOff;
             req4.y          = obj->baseY + y;
-            req4.otIndex    = (s16)obj->drawOrder + 1;
+            req4.otIndex    = obj->drawOrder + 1;
             req4.field_8    = 0x606060;
             req4.glyphTable = 0;
             req4.centerMode = 2;
@@ -459,7 +459,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req1.x          = obj->baseX + 0x78 + xOff;
     bottom1         = obj->baseY - 6;
     req1.y          = obj->field_1A + bottom1;
-    req1.otIndex    = (s16)obj->drawOrder + 1;
+    req1.otIndex    = obj->drawOrder + 1;
     req1.field_8    = 0x606060;
     req1.glyphTable = 5;
     req1.centerMode = 2;
@@ -469,7 +469,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req2.x          = obj->baseX - 5 - xOff;
     bottom2         = obj->baseY - 4;
     req2.y          = obj->field_1A + bottom2;
-    req2.otIndex    = (s16)obj->drawOrder + 1;
+    req2.otIndex    = obj->drawOrder + 1;
     req2.field_8    = 0x606060;
     req2.glyphTable = 0;
     req2.centerMode = 2;
@@ -481,7 +481,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     y               = (s16)obj->field_18 + 6;
     req3.x          = obj->baseX + 0x1E + xOff;
     req3.y          = obj->baseY + y;
-    req3.otIndex    = (s16)obj->drawOrder + 1;
+    req3.otIndex    = obj->drawOrder + 1;
     req3.field_8    = 0x606060;
     req3.glyphTable = 5;
     req3.centerMode = 1;
@@ -490,7 +490,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
 
     req4.x          = obj->baseX + 0x73 + xOff;
     req4.y          = obj->baseY + y;
-    req4.otIndex    = (s16)obj->drawOrder + 1;
+    req4.otIndex    = obj->drawOrder + 1;
     req4.field_8    = 0x606060;
     req4.glyphTable = 5;
     req4.centerMode = 2;
@@ -499,7 +499,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
 
     req5.x          = obj->baseX + 0x96 + xOff;
     req5.y          = obj->baseY + y;
-    req5.otIndex    = (s16)obj->drawOrder + 1;
+    req5.otIndex    = obj->drawOrder + 1;
     req5.field_8    = 0x606060;
     req5.glyphTable = 5;
     req5.centerMode = 2;
@@ -508,7 +508,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
 
     req6.x          = obj->baseX - xOff;
     req6.y          = obj->baseY + y;
-    req6.otIndex    = (s16)obj->drawOrder + 1;
+    req6.otIndex    = obj->drawOrder + 1;
     req6.field_8    = 0x606060;
     req6.glyphTable = 5;
     req6.centerMode = 2;
@@ -609,7 +609,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
 
     req1.x          = obj->baseX + xOff;
     req1.y          = (s16)(obj->baseY - 2) + y;
-    req1.otIndex    = (s16)obj->drawOrder + 1;
+    req1.otIndex    = obj->drawOrder + 1;
     req1.field_8    = color;
     req1.glyphTable = 5;
     req1.centerMode = 0;
@@ -618,7 +618,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
 
     req2.x          = obj->baseX - xOff;
     req2.y          = obj->baseY + y;
-    req2.otIndex    = (s16)obj->drawOrder + 1;
+    req2.otIndex    = obj->drawOrder + 1;
     req2.field_8    = color;
     req2.glyphTable = 0;
     req2.centerMode = 2;
@@ -630,7 +630,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     y               = top + 0x25;
     req3.x          = obj->baseX + xOff;
     req3.y          = (s16)(obj->baseY - 2) + y;
-    req3.otIndex    = (s16)obj->drawOrder + 1;
+    req3.otIndex    = obj->drawOrder + 1;
     req3.field_8    = color;
     req3.glyphTable = 5;
     req3.centerMode = 0;
@@ -639,7 +639,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
 
     req4.x          = obj->baseX - xOff;
     req4.y          = obj->baseY + y;
-    req4.otIndex    = (s16)obj->drawOrder + 1;
+    req4.otIndex    = obj->drawOrder + 1;
     req4.field_8    = 0x37A78;
     req4.glyphTable = 0;
     req4.centerMode = 2;
@@ -732,7 +732,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
 
     req1.x          = obj->baseX + xOff;
     req1.y          = (s16)(obj->baseY - 8) + y;
-    req1.otIndex    = (s16)obj->drawOrder + 1;
+    req1.otIndex    = obj->drawOrder + 1;
     req1.field_8    = 0x606060;
     req1.glyphTable = 5;
     req1.centerMode = 0;
@@ -749,7 +749,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
 
     req2.x          = obj->baseX + xOff;
     req2.y          = (s16)(obj->baseY - 8) + y;
-    req2.otIndex    = (s16)obj->drawOrder + 1;
+    req2.otIndex    = obj->drawOrder + 1;
     req2.field_8    = 0x606060;
     req2.glyphTable = 5;
     req2.centerMode = 0;
@@ -781,7 +781,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
 
     req3.x          = obj->baseX + xOff;
     req3.y          = (s16)(obj->baseY - 8) + y;
-    req3.otIndex    = (s16)obj->drawOrder + 1;
+    req3.otIndex    = obj->drawOrder + 1;
     req3.field_8    = 0x606060;
     req3.glyphTable = 5;
     req3.centerMode = 0;
@@ -813,7 +813,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
 
     req4.x          = obj->baseX + xOff;
     req4.y          = (s16)(obj->baseY - 8) + y;
-    req4.otIndex    = (s16)obj->drawOrder + 1;
+    req4.otIndex    = obj->drawOrder + 1;
     req4.field_8    = 0x606060;
     req4.glyphTable = 5;
     req4.centerMode = 0;
@@ -871,7 +871,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label0.x          = obj->baseX + x;
     y                 = row + 0xB;
     label0.y          = (s16)(obj->baseY - 6) + y;
-    label0.otIndex    = (s16)obj->drawOrder + 1;
+    label0.otIndex    = obj->drawOrder + 1;
     rating            = &missionLevels.entries[Mc_SaveData.gameMode];
     label0.field_8    = 0x606060;
     label0.glyphTable = 5;
@@ -881,7 +881,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
 
     value0.x          = obj->baseX + 0x41;
     value0.y          = (s16)(obj->baseY - 3) + y;
-    value0.otIndex    = (s16)obj->drawOrder + 1;
+    value0.otIndex    = obj->drawOrder + 1;
     value0.field_8    = 0x606060;
     value0.glyphTable = 0;
     value0.centerMode = 2;
@@ -893,7 +893,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     y                 = row + 0x1E;
     label1.x          = obj->baseX + x;
     label1.y          = (s16)(obj->baseY - 6) + y;
-    label1.otIndex    = (s16)obj->drawOrder + 1;
+    label1.otIndex    = obj->drawOrder + 1;
     rating            = &conditions.entries[Mc_SaveData.gameMode];
     label1.field_8    = 0x606060;
     label1.glyphTable = 5;
@@ -903,7 +903,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
 
     value1.x          = obj->baseX + 0x41;
     value1.y          = (s16)(obj->baseY - 3) + y;
-    value1.otIndex    = (s16)obj->drawOrder + 1;
+    value1.otIndex    = obj->drawOrder + 1;
     value1.field_8    = 0x606060;
     value1.glyphTable = 0;
     value1.centerMode = 2;
@@ -914,7 +914,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     y                 = row + 0x2D;
     label2.x          = obj->baseX + x;
     label2.y          = (s16)(obj->baseY - 6) + y;
-    label2.otIndex    = (s16)obj->drawOrder + 1;
+    label2.otIndex    = obj->drawOrder + 1;
     rating            = &enemyLevels.entries[Mc_SaveData.gameMode];
     label2.field_8    = 0x606060;
     label2.glyphTable = 5;
@@ -924,7 +924,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
 
     value2.x          = obj->baseX + 0x41;
     value2.y          = (s16)(obj->baseY - 3) + y;
-    value2.otIndex    = (s16)obj->drawOrder + 1;
+    value2.otIndex    = obj->drawOrder + 1;
     value2.field_8    = 0x606060;
     value2.glyphTable = 0;
     value2.centerMode = 2;
@@ -935,7 +935,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     y                 = row + 0x3C;
     label3.x          = obj->baseX + x;
     label3.y          = (s16)(obj->baseY - 6) + y;
-    label3.otIndex    = (s16)obj->drawOrder + 1;
+    label3.otIndex    = obj->drawOrder + 1;
     rating            = &supplyLevels.entries[Mc_SaveData.gameMode];
     label3.field_8    = 0x606060;
     label3.glyphTable = 5;
@@ -945,7 +945,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
 
     value3.x          = obj->baseX + 0x41;
     value3.y          = (s16)(obj->baseY - 3) + y;
-    value3.otIndex    = (s16)obj->drawOrder + 1;
+    value3.otIndex    = obj->drawOrder + 1;
     value3.field_8    = 0x606060;
     value3.glyphTable = 0;
     value3.centerMode = 2;
@@ -1424,7 +1424,7 @@ void func_mist_shooting_gallery_8018055C(DialogPrompt* prompt, UiObject* obj)
     course              = &menu.lists[list][row];
     menu.req.x          = obj->baseX + (u16)prompt->field_18;
     menu.req.y          = (prompt->field_1A - 3) + obj->baseY;
-    menu.req.otIndex    = (s16)obj->drawOrder + 1;
+    menu.req.otIndex    = obj->drawOrder + 1;
     menu.req.field_8    = prompt->field_1C;
     menu.req.glyphTable = 4;
     menu.req.field_E    = 1;

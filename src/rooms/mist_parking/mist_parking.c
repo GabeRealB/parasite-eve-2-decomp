@@ -358,7 +358,7 @@ void func_mist_parking_8017DF68(DialogPrompt* prompt, UiObject* obj)
         req.x          = obj->baseX + prompt->field_18;
         y              = obj->baseY - 4;
         req.y          = prompt->field_1A + y;
-        req.otIndex    = (s16)obj->drawOrder + 1;
+        req.otIndex    = obj->drawOrder + 1;
         req.field_8    = prompt->field_1C;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -672,7 +672,7 @@ void func_mist_parking_8017E90C(Task* task)
     req.x          = obj->field_1E + x;
     y              = obj->baseY + 2;
     req.y          = obj->field_18 + y;
-    req.otIndex    = (s16)obj->drawOrder + 1;
+    req.otIndex    = obj->drawOrder + 1;
     req.field_8    = 0x606060;
     req.glyphTable = 5;
     req.centerMode = 2;
@@ -842,7 +842,7 @@ void func_mist_parking_8017EF24(Task* task)
 
     req0.x          = obj->baseX + x;
     req0.y          = obj->baseY + y + 9;
-    req0.otIndex    = (s16)obj->drawOrder + 1;
+    req0.otIndex    = obj->drawOrder + 1;
     req0.field_8    = 0x606060;
     req0.glyphTable = 5;
     req0.centerMode = 0;
@@ -855,7 +855,7 @@ void func_mist_parking_8017EF24(Task* task)
     y2              = y + 0x28;
     req1.x          = obj->baseX + x;
     req1.y          = obj->baseY + (y2 - 6);
-    req1.otIndex    = (s16)obj->drawOrder + 1;
+    req1.otIndex    = obj->drawOrder + 1;
     req1.field_8    = 0x606060;
     req1.glyphTable = 5;
     req1.centerMode = 0;
@@ -889,7 +889,7 @@ void func_mist_parking_8017F108(DialogPrompt* prompt, UiObject* obj)
 
     req.x          = obj->baseX + (u16)prompt->field_18;
     req.y          = obj->baseY + (u16)prompt->field_1A;
-    req.otIndex    = (s16)obj->drawOrder + 1;
+    req.otIndex    = obj->drawOrder + 1;
     req.field_8    = prompt->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;
@@ -1096,7 +1096,7 @@ void func_mist_parking_8017F764(Task* task)
         req.x          = obj->field_1C + (obj->baseX + 2);
         ry             = obj->baseY - 6;
         req.y          = ry + y;
-        req.otIndex    = (s16)obj->drawOrder + 1;
+        req.otIndex    = obj->drawOrder + 1;
         req.glyphTable = 5;
         req.field_8    = 0x606060;
         req.centerMode = 0;
@@ -1199,7 +1199,7 @@ void func_mist_parking_8017F938(Task* task)
     req.x          = obj->baseX - x;
     y              = top + 0x1A;
     req.y          = obj->baseY + y;
-    req.otIndex    = (s16)obj->drawOrder + 1;
+    req.otIndex    = obj->drawOrder + 1;
     req.field_8    = 0x606060;
     req.glyphTable = 5;
     req.centerMode = 2;
@@ -1240,7 +1240,7 @@ void func_mist_parking_8017FDB8(DialogPrompt* prompt, UiObject* obj)
 
     req.x          = obj->baseX + (u16)prompt->field_18;
     req.y          = obj->baseY + (u16)prompt->field_1A;
-    req.otIndex    = (s16)obj->drawOrder + 1;
+    req.otIndex    = obj->drawOrder + 1;
     req.field_8    = prompt->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;
@@ -1391,7 +1391,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -1408,7 +1408,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -1426,7 +1426,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -1444,7 +1444,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -1467,7 +1467,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -1518,7 +1518,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -1565,7 +1565,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -1583,7 +1583,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -1599,7 +1599,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -1665,7 +1665,7 @@ void func_mist_parking_8018089C(DialogPrompt* prompt, UiObject* obj)
         req.x          = obj->baseX + 0x11 + px;
         ry             = obj->baseY - 6;
         req.y          = ry + py;
-        req.otIndex    = (s16)obj->drawOrder + 1;
+        req.otIndex    = obj->drawOrder + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -1743,7 +1743,7 @@ void func_mist_parking_8018089C(DialogPrompt* prompt, UiObject* obj)
         prim->y2 = y0;
         prim->x3 = x1;
         prim->x1 = x1;
-        addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, prim);
+        addPrim(gGpuCurrentOt + obj->drawOrder + 1, prim);
     }
 
     one = 1;

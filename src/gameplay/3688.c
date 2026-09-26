@@ -837,7 +837,7 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         setlen(p, 9);
         setcode(p, 0x2C);
     }
-    addPrim(gGpuCurrentOt + (s16)arg0->drawOrder + 1, p);
+    addPrim(gGpuCurrentOt + arg0->drawOrder + 1, p);
     if (flag3 != 0) {
         q                     = (TILE*)gGpuPrimCursor;
         q->x0                 = p->x0 - 1;
@@ -848,7 +848,7 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         PRIM_COLOR_WORD(q, 0) = PRIM_RGBC(0xc0, 0xc0, 0xc0, 0);
         setlen(q, 3);
         setcode(q, 0x60);
-        addPrim(gGpuCurrentOt + (s16)arg0->drawOrder + 1, q);
+        addPrim(gGpuCurrentOt + arg0->drawOrder + 1, q);
     }
 }
 
@@ -871,8 +871,8 @@ void func_800C0B98(DialogPrompt* arg0, UiObject* arg1, u32 arg2)
     setlen(p, 4);
     p->u0 = arg2;
     setcode(p, 0x65);
-    addPrim(gGpuCurrentOt + (s16)arg1->drawOrder + 1, p);
-    Ui_InsertDrawTPage((s16)arg1->drawOrder + 1, 0);
+    addPrim(gGpuCurrentOt + arg1->drawOrder + 1, p);
+    Ui_InsertDrawTPage(arg1->drawOrder + 1, 0);
 }
 
 void Gp_StatusPanelTask(Task* arg0)
@@ -1201,9 +1201,9 @@ void Gp_HpMpBarTask(Task* arg0)
         PRIM_COLOR_WORD(p, 0) = color;
         setcode(p, 0x64);
         p->y0 = y + 3;
-        addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, p);
+        addPrim(gGpuCurrentOt + obj->drawOrder + 1, p);
     }
-    Ui_InsertDrawTPage((s16)obj->drawOrder + 1, 0);
+    Ui_InsertDrawTPage(obj->drawOrder + 1, 0);
 
     poly           = (POLY_FT4*)gGpuPrimCursor;
     x              = obj->field_C + obj->field_10;
@@ -1244,7 +1244,7 @@ void Gp_HpMpBarTask(Task* arg0)
         poly->y3 = fy;
         poly->y2 = fy;
     }
-    addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, poly);
+    addPrim(gGpuCurrentOt + obj->drawOrder + 1, poly);
     Ui_DrawVBar((UiPanel*)obj, (s16)obj->field_18 - 3, (s16)obj->field_1A + 2, (s16)obj->field_1E - 0x32);
     Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C - 2, (s16)obj->field_1E - 0x32, (s16)obj->field_18 + 8);
     Gp_DrawHpMpStats((UiPanel*)obj, 0xB);
@@ -1292,7 +1292,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
         y               = base + 0x1D;
         req1.x          = obj->baseX + 0x20 + x;
         req1.y          = obj->baseY + y;
-        req1.otIndex    = (s16)obj->drawOrder + 1;
+        req1.otIndex    = obj->drawOrder + 1;
         req1.field_8    = color;
         req1.glyphTable = 0;
         req1.centerMode = 0;
@@ -1301,7 +1301,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
 
         req2.x          = obj->baseX + (x + (mid + 0x1E));
         req2.y          = obj->baseY + y;
-        req2.otIndex    = (s16)obj->drawOrder + 1;
+        req2.otIndex    = obj->drawOrder + 1;
         req2.field_8    = color;
         req2.glyphTable = 0;
         req2.centerMode = 0;
@@ -1310,7 +1310,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
 
         req3.x          = obj->baseX + 2 + x;
         req3.y          = obj->baseY + (y - 2);
-        req3.otIndex    = (s16)obj->drawOrder + 1;
+        req3.otIndex    = obj->drawOrder + 1;
         req3.field_8    = color;
         req3.glyphTable = 5;
         req3.centerMode = 0;
@@ -1320,7 +1320,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
         req4.x          = obj->baseX + (x + mid);
         req4.y          = obj->baseY + (y - 2);
         x               = savedX + 4;
-        req4.otIndex    = (s16)obj->drawOrder + 1;
+        req4.otIndex    = obj->drawOrder + 1;
         req4.field_8    = color;
         req4.glyphTable = 5;
         req4.centerMode = 0;
@@ -1330,7 +1330,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
         y               = base + 0x3D;
         req5.x          = obj->baseX + x;
         req5.y          = obj->baseY + base + 0x2C;
-        req5.otIndex    = (s16)obj->drawOrder + 1;
+        req5.otIndex    = obj->drawOrder + 1;
         req5.field_8    = color;
         req5.glyphTable = 5;
         req5.centerMode = 0;
@@ -1419,7 +1419,7 @@ void Gp_PeGridPanelTask(Task* arg0)
             if ((row != 0) || (show != 0)) {
                 req.x          = obj->baseX + 0xC + x;
                 req.y          = obj->baseY + y;
-                req.otIndex    = (s16)obj->drawOrder + 1;
+                req.otIndex    = obj->drawOrder + 1;
                 req.field_8    = 0x606060;
                 req.glyphTable = 0;
                 req.centerMode = 0;
@@ -1438,7 +1438,7 @@ void Gp_PeGridPanelTask(Task* arg0)
         setlen(p, 4);
         PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
         setcode(p, 0x64);
-        addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, p);
+        addPrim(gGpuCurrentOt + obj->drawOrder + 1, p);
         p->x0   = D_8010E844[iconCol].xOffset + (obj->baseX + startX + iconCol * colStep);
         p->y0   = obj->baseY + panelY - 0x23;
         p->w    = (iconCol == 0) ? 0x18 : 0x20;
@@ -1472,12 +1472,12 @@ void Gp_PeGridPanelTask(Task* arg0)
                 PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
                 setcode(p, 0x64);
                 p->y0 = capY;
-                addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, p);
+                addPrim(gGpuCurrentOt + obj->drawOrder + 1, p);
             }
             markOff += 9;
         }
     }
-    Ui_InsertDrawTPage((s16)obj->drawOrder + 1, 0);
+    Ui_InsertDrawTPage(obj->drawOrder + 1, 0);
 }
 
 void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -1557,7 +1557,7 @@ void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         req.x          = x + arg1;
         y              = arg0->baseY - 2;
         req.y          = y + arg2;
-        req.otIndex    = (s16)arg0->drawOrder + 1;
+        req.otIndex    = arg0->drawOrder + 1;
         req.field_8    = color;
         req.glyphTable = 5;
         req.centerMode = 0;
@@ -1584,7 +1584,7 @@ void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         req.x          = x + arg1;
         y              = arg0->baseY - 2;
         req.y          = y + arg2;
-        req.otIndex    = (s16)arg0->drawOrder + 1;
+        req.otIndex    = arg0->drawOrder + 1;
         req.field_8    = color;
         req.glyphTable = 5;
         req.centerMode = 0;
@@ -1616,13 +1616,13 @@ void func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     PRIM_COLOR_WORD(p, 0) = color;
     setcode(p, 0x64);
     p->y0 = y + arg2 - 7;
-    addPrim(gGpuCurrentOt + (s16)arg0->drawOrder + 1, p);
-    Ui_InsertDrawTPage((s16)arg0->drawOrder + 1, 0);
+    addPrim(gGpuCurrentOt + arg0->drawOrder + 1, p);
+    Ui_InsertDrawTPage(arg0->drawOrder + 1, 0);
 
     req.x          = arg0->baseX + arg1 + 0x7C;
     textY          = arg0->baseY - 3;
     req.y          = textY + arg2;
-    req.otIndex    = (s16)arg0->drawOrder + 1;
+    req.otIndex    = arg0->drawOrder + 1;
     req.field_8    = color;
     req.glyphTable = 0;
     req.centerMode = 2;
@@ -1641,7 +1641,7 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
     if (obj->mode != 5) {
         req.x          = obj->baseX + 0x11 + x;
         req.y          = obj->baseY + (y - 6);
-        req.otIndex    = (s16)obj->drawOrder + 1;
+        req.otIndex    = obj->drawOrder + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -1774,7 +1774,7 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
                 req.x          = arg1->baseX + 0x84 + x;
                 baseY          = arg1->baseY - 3;
                 req.y          = baseY + y;
-                req.otIndex    = (s16)arg1->drawOrder + 1;
+                req.otIndex    = arg1->drawOrder + 1;
                 req.field_8    = color;
                 req.glyphTable = 5;
                 req.centerMode = 2;
@@ -2220,7 +2220,7 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* prompt, UiObject* obj)
     if (obj->mode != 5) {
         req.x          = obj->baseX + 0x11 + x;
         req.y          = obj->baseY + (y - 6);
-        req.otIndex    = (s16)obj->drawOrder + 1;
+        req.otIndex    = obj->drawOrder + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -2237,7 +2237,7 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* prompt, UiObject* obj)
 
     req.x          = obj->baseX + prompt->field_18;
     req.y          = prompt->field_1A + (obj->baseY + 9);
-    req.otIndex    = (s16)obj->drawOrder + 1;
+    req.otIndex    = obj->drawOrder + 1;
     req.field_8    = 0x606060;
     req.glyphTable = 5;
     req.centerMode = 0;
@@ -2304,7 +2304,7 @@ void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj)
         draw.qty.req.x          = obj->baseX + 0x84 + x;
         off                     = obj->baseY - 3;
         draw.qty.req.y          = off + y;
-        draw.qty.req.otIndex    = (s16)obj->drawOrder + 1;
+        draw.qty.req.otIndex    = obj->drawOrder + 1;
         draw.qty.req.field_8    = color;
         draw.qty.req.glyphTable = 5;
         draw.qty.req.centerMode = 2;
@@ -2328,7 +2328,7 @@ void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj)
                 draw.name.x          = obj->baseX + 0x11 + x;
                 off                  = obj->baseY - 6;
                 draw.name.y          = off + y;
-                draw.name.otIndex    = (s16)obj->drawOrder + 1;
+                draw.name.otIndex    = obj->drawOrder + 1;
                 draw.name.field_8    = color;
                 draw.name.glyphTable = 0;
                 draw.name.centerMode = 0;
@@ -2629,7 +2629,7 @@ void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
             draw.qty.req.x          = obj->baseX + 0x84 + x;
             off                     = obj->baseY - 3;
             draw.qty.req.y          = off + y;
-            draw.qty.req.otIndex    = (s16)obj->drawOrder + 1;
+            draw.qty.req.otIndex    = obj->drawOrder + 1;
             draw.qty.req.field_8    = color;
             draw.qty.req.glyphTable = 5;
             draw.qty.req.centerMode = 2;
@@ -2656,7 +2656,7 @@ void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
                 draw.name.x          = obj->baseX + 0x11 + x;
                 off                  = obj->baseY - 6;
                 draw.name.y          = off + y;
-                draw.name.otIndex    = (s16)obj->drawOrder + 1;
+                draw.name.otIndex    = obj->drawOrder + 1;
                 draw.name.field_8    = color;
                 draw.name.glyphTable = 0;
                 draw.name.centerMode = 0;
@@ -2945,7 +2945,7 @@ void Gp_ArmorMenuTask(Task* arg0)
         locals.req.x          = obj->baseX + 0x11 + x;
         off                   = obj->baseY - 6;
         locals.req.y          = off + y;
-        locals.req.otIndex    = (s16)obj->drawOrder + 1;
+        locals.req.otIndex    = obj->drawOrder + 1;
         locals.req.field_8    = color;
         locals.req.glyphTable = 0;
         locals.req.centerMode = 0;
@@ -2972,7 +2972,7 @@ void Gp_ArmorMenuTask(Task* arg0)
         grey                  = 0x606060;
         locals.req.x          = obj->baseX + 2 + obj->field_1C;
         locals.req.y          = obj->baseY + 0x18 + obj->field_18;
-        locals.req.otIndex    = (s16)obj->drawOrder + 1;
+        locals.req.otIndex    = obj->drawOrder + 1;
         locals.req.field_8    = grey;
         locals.req.glyphTable = 5;
         locals.req.centerMode = 0;
@@ -3191,7 +3191,7 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* prompt, UiObject* obj)
                 qty            = rec->qty - Gp_CountEquippedRelated(scan, item);
                 req.x          = obj->baseX + 0x84 + x;
                 req.y          = obj->baseY + (y - 3);
-                req.otIndex    = (s16)obj->drawOrder + 1;
+                req.otIndex    = obj->drawOrder + 1;
                 req.field_8    = color;
                 req.glyphTable = 5;
                 req.centerMode = 2;
@@ -3252,7 +3252,7 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* prompt, UiObject* obj)
             req.x          = obj->baseX + prompt->field_18;
             off            = obj->baseY - 6;
             req.y          = prompt->field_1A + off;
-            req.otIndex    = (s16)obj->drawOrder + 1;
+            req.otIndex    = obj->drawOrder + 1;
             req.field_8    = prompt->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -3538,7 +3538,7 @@ static inline void _gpDrawItemNameUnmarkedInto(UiObject* obj, TextDrawReq* req, 
     if (obj->mode != 5) {
         req->x          = obj->baseX + 0x11 + x;
         req->y          = obj->baseY + (y - 6);
-        req->otIndex    = (s16)obj->drawOrder + 1;
+        req->otIndex    = obj->drawOrder + 1;
         req->field_8    = color;
         req->glyphTable = 0;
         req->centerMode = 0;
@@ -3711,7 +3711,7 @@ void func_800C5F70(Task* arg0)
                 req20.x          = obj->baseX + x;
                 req20.y          = obj->baseY + y;
                 y               += 0xF;
-                req20.otIndex    = (s16)obj->drawOrder + 1;
+                req20.otIndex    = obj->drawOrder + 1;
                 req20.field_8    = 0x606060;
                 req20.glyphTable = 0;
                 req20.centerMode = 0;
@@ -3805,15 +3805,15 @@ void func_800C5F70(Task* arg0)
                         sprt->w = spriteW;
                         sprt->h = h;
                         setcode(sprt, 0x65);
-                        addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, sprt);
+                        addPrim(gGpuCurrentOt + obj->drawOrder + 1, sprt);
                         spriteI++;
                     } while (spriteI < spriteCount);
                 }
-                Ui_InsertDrawTPage((s16)obj->drawOrder + 1, 0);
+                Ui_InsertDrawTPage(obj->drawOrder + 1, 0);
                 x                = obj->field_1C + 2;
                 req30.x          = obj->baseX + x;
                 req30.y          = obj->baseY + 0x40;
-                req30.otIndex    = (s16)obj->drawOrder + 1;
+                req30.otIndex    = obj->drawOrder + 1;
                 req30.glyphTable = 5;
                 req30.field_8    = 0x606060;
                 req30.centerMode = 0;
@@ -3830,7 +3830,7 @@ void func_800C5F70(Task* arg0)
                 y                = (s16)obj->field_18 + 0x1E;
                 req30.x          = obj->baseX + x;
                 req30.y          = obj->baseY + (y - 2);
-                req30.otIndex    = (s16)obj->drawOrder + 1;
+                req30.otIndex    = obj->drawOrder + 1;
                 req30.glyphTable = 5;
                 req30.field_8    = 0x606060;
                 req30.centerMode = 0;
@@ -3839,7 +3839,7 @@ void func_800C5F70(Task* arg0)
                 if (attr->field_4 == 0) {
                     req60.x          = obj->baseX + 0x78;
                     req60.y          = obj->baseY + y;
-                    req60.otIndex    = (s16)obj->drawOrder + 1;
+                    req60.otIndex    = obj->drawOrder + 1;
                     req60.field_8    = 0x606060;
                     req60.glyphTable = 0;
                     req60.centerMode = 2;
@@ -3848,7 +3848,7 @@ void func_800C5F70(Task* arg0)
                 } else {
                     req60.x          = obj->baseX + 0x7A;
                     req60.y          = obj->baseY + y;
-                    req60.otIndex    = (s16)obj->drawOrder + 1;
+                    req60.otIndex    = obj->drawOrder + 1;
                     req60.field_8    = altColor;
                     req60.glyphTable = 0;
                     req60.centerMode = 2;
@@ -3859,7 +3859,7 @@ void func_800C5F70(Task* arg0)
 
                 req60.x          = obj->baseX + x;
                 req60.y          = obj->baseY + (y - 2);
-                req60.otIndex    = (s16)obj->drawOrder + 1;
+                req60.otIndex    = obj->drawOrder + 1;
                 req60.glyphTable = 5;
                 req60.field_8    = 0x606060;
                 req60.centerMode = 0;
@@ -3868,7 +3868,7 @@ void func_800C5F70(Task* arg0)
                 if (attr->field_6 == 0) {
                     req70.x          = obj->baseX + 0x76 + x;
                     req70.y          = obj->baseY + y;
-                    req70.otIndex    = (s16)obj->drawOrder + 1;
+                    req70.otIndex    = obj->drawOrder + 1;
                     req70.centerMode = 2;
                     req70.field_8    = 0x606060;
                     req70.glyphTable = 0;
@@ -3877,7 +3877,7 @@ void func_800C5F70(Task* arg0)
                 } else {
                     req70.x          = obj->baseX + 0x78 + x;
                     req70.y          = obj->baseY + y;
-                    req70.otIndex    = (s16)obj->drawOrder + 1;
+                    req70.otIndex    = obj->drawOrder + 1;
                     req70.centerMode = 2;
                     req70.field_8    = altColor;
                     req70.glyphTable = 0;
@@ -3888,7 +3888,7 @@ void func_800C5F70(Task* arg0)
 
                 req70.x          = obj->baseX + x;
                 req70.y          = obj->baseY + (y - 2);
-                req70.otIndex    = (s16)obj->drawOrder + 1;
+                req70.otIndex    = obj->drawOrder + 1;
                 req70.field_8    = 0x606060;
                 req70.glyphTable = 5;
                 req70.centerMode = 0;
@@ -3897,7 +3897,7 @@ void func_800C5F70(Task* arg0)
                 featIndex        = 0;
                 req80.x          = obj->baseX + 0x78 + x;
                 req80.y          = obj->baseY + y;
-                req80.otIndex    = (s16)obj->drawOrder + 1;
+                req80.otIndex    = obj->drawOrder + 1;
                 y               += 0xF;
                 req80.centerMode = 2;
                 req80.field_8    = altColor;
@@ -3906,7 +3906,7 @@ void func_800C5F70(Task* arg0)
                 func_8002E53C(&req80, Text_ItoaUnsigned(buf40, Gp_GetModLevel(item)));
                 req90.x          = obj->baseX + x;
                 req90.y          = obj->baseY + (y - 2);
-                req90.otIndex    = (s16)obj->drawOrder + 1;
+                req90.otIndex    = obj->drawOrder + 1;
                 y               += 8;
                 req90.field_8    = 0x606060;
                 req90.glyphTable = 5;
@@ -3918,7 +3918,7 @@ void func_800C5F70(Task* arg0)
                     if (flags & 1) {
                         reqA0.x          = obj->baseX + 8 + x;
                         reqA0.y          = obj->baseY + y;
-                        reqA0.otIndex    = (s16)obj->drawOrder + 1;
+                        reqA0.otIndex    = obj->drawOrder + 1;
                         reqA0.field_8    = 0x606060;
                         reqA0.glyphTable = 0;
                         reqA0.centerMode = 0;
@@ -3937,7 +3937,7 @@ void func_800C5F70(Task* arg0)
                 x                = obj->field_1C + 2;
                 reqB0.x          = obj->baseX + x;
                 reqB0.y          = obj->baseY + 0x40;
-                reqB0.otIndex    = (s16)obj->drawOrder + 1;
+                reqB0.otIndex    = obj->drawOrder + 1;
                 reqB0.glyphTable = 5;
                 reqB0.field_8    = 0x606060;
                 reqB0.centerMode = 0;
@@ -3953,7 +3953,7 @@ void func_800C5F70(Task* arg0)
                     baseY            = (s16)obj->field_18;
                     reqB0.x          = obj->baseX + 2;
                     reqB0.y          = obj->baseY + baseY + 0x1C;
-                    reqB0.otIndex    = (s16)obj->drawOrder + 1;
+                    reqB0.otIndex    = obj->drawOrder + 1;
                     reqB0.glyphTable = 5;
                     textColor        = 0x606060;
                     reqB0.field_8    = textColor;
@@ -3967,7 +3967,7 @@ void func_800C5F70(Task* arg0)
                     y                 = baseY + 0x2D;
                     req100.x          = obj->baseX + 2;
                     req100.y          = obj->baseY + (y - 2);
-                    req100.otIndex    = (s16)obj->drawOrder + 1;
+                    req100.otIndex    = obj->drawOrder + 1;
                     req100.glyphTable = 5;
                     req100.field_8    = textColor;
                     req100.centerMode = 0;
@@ -3975,7 +3975,7 @@ void func_800C5F70(Task* arg0)
                     func_8002E53C(&req100, Gp_StrPowerCaps);
                     req110.x          = obj->baseX + 0x4C;
                     req110.y          = obj->baseY + y;
-                    req110.otIndex    = (s16)obj->drawOrder + 1;
+                    req110.otIndex    = obj->drawOrder + 1;
                     req110.field_8    = textColor;
                     req110.glyphTable = 0;
                     req110.centerMode = 0;
@@ -3988,7 +3988,7 @@ void func_800C5F70(Task* arg0)
                     y                 = baseY + 0x3C;
                     req120.x          = obj->baseX + 2;
                     req120.y          = obj->baseY + (y - 2);
-                    req120.otIndex    = (s16)obj->drawOrder + 1;
+                    req120.otIndex    = obj->drawOrder + 1;
                     req120.glyphTable = 5;
                     req120.field_8    = textColor;
                     req120.centerMode = 0;
@@ -3996,7 +3996,7 @@ void func_800C5F70(Task* arg0)
                     func_8002E53C(&req120, Gp_StrCapacity);
                     req130.x          = obj->baseX + 0x4C;
                     req130.y          = obj->baseY + y;
-                    req130.otIndex    = (s16)obj->drawOrder + 1;
+                    req130.otIndex    = obj->drawOrder + 1;
                     req130.field_8    = textColor;
                     req130.glyphTable = 0;
                     req130.centerMode = 0;
@@ -4006,7 +4006,7 @@ void func_800C5F70(Task* arg0)
                     if (rec->field_4 != 0) {
                         req140.x          = obj->baseX + 2;
                         req140.y          = obj->baseY + (y - 2);
-                        req140.otIndex    = (s16)obj->drawOrder + 1;
+                        req140.otIndex    = obj->drawOrder + 1;
                         req140.glyphTable = 5;
                         req140.field_8    = textColor;
                         req140.centerMode = 0;
@@ -4014,7 +4014,7 @@ void func_800C5F70(Task* arg0)
                         func_8002E53C(&req140, Gp_StrSpecial);
                         req150.x          = obj->baseX + 0x4C;
                         req150.y          = obj->baseY + y;
-                        req150.otIndex    = (s16)obj->drawOrder + 1;
+                        req150.otIndex    = obj->drawOrder + 1;
                         req150.field_8    = 0xD287F;
                         req150.glyphTable = 0;
                         req150.centerMode = 0;
@@ -4024,7 +4024,7 @@ void func_800C5F70(Task* arg0)
                     x                 = obj->field_1C + 2;
                     req140.x          = obj->baseX + x;
                     req140.y          = obj->baseY + 0x40;
-                    req140.otIndex    = (s16)obj->drawOrder + 1;
+                    req140.otIndex    = obj->drawOrder + 1;
                     req140.glyphTable = 5;
                     req140.field_8    = textColor;
                     req140.centerMode = 0;
@@ -4195,7 +4195,7 @@ void Gp_DrawCollectedRow(DialogPrompt* arg0, UiObject* arg1)
         req.x          = arg1->baseX + 0x11 + x;
         baseY          = arg1->baseY - 6;
         req.y          = baseY + y;
-        req.otIndex    = (s16)arg1->drawOrder + 1;
+        req.otIndex    = arg1->drawOrder + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -4458,7 +4458,7 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 p->clut  = 0x3F40;
                 break;
         }
-        addPrim(gGpuCurrentOt + (s16)arg0->drawOrder + 1, p);
+        addPrim(gGpuCurrentOt + arg0->drawOrder + 1, p);
     }
     Ui_LayoutWithMode0(arg0, (arg1 - 1), (arg2 - 1), ((s16)vec.vx + 1),
                        ((s16)vec.vy + 1), 0x81008);
@@ -4558,7 +4558,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
             nx                 = arg0->baseX - 0xA;
             nameReq.x          = nx + xCopy;
             nameReq.y          = arg0->baseY + y;
-            ot                 = (s16)arg0->drawOrder + 1;
+            ot                 = arg0->drawOrder + 1;
             nameReq.otIndex    = ot;
             nameReq.field_8    = 0x606060;
             nameReq.glyphTable = 5;
@@ -4595,7 +4595,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                     valReq.x = arg0->field_1E + vx;
                 }
                 valReq.y          = arg0->baseY + 0xB + y;
-                valReq.otIndex    = (s16)arg0->drawOrder + 1;
+                valReq.otIndex    = arg0->drawOrder + 1;
                 valReq.field_8    = color;
                 valReq.glyphTable = 0;
                 valReq.centerMode = two;
@@ -4608,7 +4608,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                     valReq.x = arg0->field_1E + vx;
                 }
                 valReq.y          = arg0->baseY + 0xB + y;
-                valReq.otIndex    = (s16)arg0->drawOrder + 1;
+                valReq.otIndex    = arg0->drawOrder + 1;
                 valReq.field_8    = color;
                 valReq.glyphTable = 0;
                 valReq.centerMode = two;
@@ -4667,11 +4667,11 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 p->clut = 0x3C09;
                 setlen(p, 4);
                 setcode(p, 0x64);
-                addPrim(gGpuCurrentOt + (s16)arg0->drawOrder + 1, p);
+                addPrim(gGpuCurrentOt + arg0->drawOrder + 1, p);
                 i += 1;
             } while (i < count);
         }
-        Ui_InsertDrawTPage((s16)arg0->drawOrder + 1, 0);
+        Ui_InsertDrawTPage(arg0->drawOrder + 1, 0);
     }
 }
 
@@ -4787,7 +4787,7 @@ static inline void _gpDrawItemNameUnmarkedAt(UiObject* obj, s32 x, s32 y, s32 co
     if (obj->mode != 5) {
         req.x          = obj->baseX + 0x11 + x;
         req.y          = obj->baseY + (y - 6);
-        req.otIndex    = (s16)obj->drawOrder + 1;
+        req.otIndex    = obj->drawOrder + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -5088,7 +5088,7 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* prompt, UiObject* obj)
             color                     = prompt->field_1C;
             draw.count.req.x          = obj->baseX + 0x84 + x;
             draw.count.req.y          = obj->baseY + (y - 3);
-            draw.count.req.otIndex    = (s16)obj->drawOrder + 1;
+            draw.count.req.otIndex    = obj->drawOrder + 1;
             draw.count.req.field_8    = color;
             draw.count.req.glyphTable = 5;
             draw.count.req.centerMode = 2;
@@ -5109,7 +5109,7 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* prompt, UiObject* obj)
             if (obj->mode != 5) {
                 draw.req.x          = obj->baseX + 0x11 + x;
                 draw.req.y          = obj->baseY + (y - 6);
-                draw.req.otIndex    = (s16)obj->drawOrder + 1;
+                draw.req.otIndex    = obj->drawOrder + 1;
                 draw.req.field_8    = color;
                 draw.req.glyphTable = 0;
                 draw.req.centerMode = 0;
@@ -5128,7 +5128,7 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* prompt, UiObject* obj)
         draw.req.x          = obj->baseX + (u16)prompt->field_18;
         baseY               = obj->baseY - 6;
         draw.req.y          = baseY + (u16)prompt->field_1A;
-        draw.req.otIndex    = (s16)obj->drawOrder + 1;
+        draw.req.otIndex    = obj->drawOrder + 1;
         draw.req.field_8    = prompt->field_1C;
         draw.req.glyphTable = 0;
         draw.req.centerMode = 0;
@@ -5501,7 +5501,7 @@ void Gp_DrawArmorSelectRow(DialogPrompt* arg0, UiObject* arg1)
         req.x          = arg1->baseX + 0x11 + x;
         baseY          = arg1->baseY - 6;
         req.y          = baseY + y;
-        req.otIndex    = (s16)arg1->drawOrder + 1;
+        req.otIndex    = arg1->drawOrder + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -5931,7 +5931,7 @@ void Gp_DrawLoadCmd(DialogPrompt* arg0, UiObject* arg1)
 
     req.x          = arg1->baseX + (u16)arg0->field_18;
     req.y          = arg1->baseY + (u16)arg0->field_1A;
-    req.otIndex    = (s16)arg1->drawOrder + 1;
+    req.otIndex    = arg1->drawOrder + 1;
     req.field_8    = arg0->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;
@@ -5971,7 +5971,7 @@ void Gp_DrawExchangeCmd(DialogPrompt* arg0, UiObject* arg1)
 
     req.x          = arg1->baseX + (u16)arg0->field_18;
     req.y          = arg1->baseY + (u16)arg0->field_1A;
-    req.otIndex    = (s16)arg1->drawOrder + 1;
+    req.otIndex    = arg1->drawOrder + 1;
     req.field_8    = arg0->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;

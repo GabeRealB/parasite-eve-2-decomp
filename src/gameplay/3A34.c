@@ -461,7 +461,7 @@ void func_800D6334(Task* task)
             item            = selected->itemId;
             name.x          = panel->baseX + x;
             name.y          = panel->baseY + 10 + y;
-            name.otIndex    = (s16)panel->drawOrder + 1;
+            name.otIndex    = panel->drawOrder + 1;
             name.field_8    = 0x606060;
             name.glyphTable = 0;
             name.centerMode = 0;
@@ -508,7 +508,7 @@ void func_800D6334(Task* task)
     Ui_DrawHBar((UiPanel*)panel, (s16)panel->field_1C, (s16)panel->field_1E, (s16)panel->field_18 + 17);
     label.x          = panel->baseX + labelX;
     label.y          = panel->baseY + labelY + 24;
-    label.otIndex    = (s16)panel->drawOrder + 1;
+    label.otIndex    = panel->drawOrder + 1;
     label.field_8    = 0x606060;
     label.glyphTable = 5;
     label.centerMode = 0;

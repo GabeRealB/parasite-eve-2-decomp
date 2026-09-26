@@ -527,7 +527,7 @@ void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1)
 
     req.x          = arg1->baseX + (u16)arg0->field_18;
     req.y          = arg1->baseY + (u16)arg0->field_1A;
-    req.otIndex    = (s16)arg1->drawOrder + 1;
+    req.otIndex    = arg1->drawOrder + 1;
     req.field_8    = arg0->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;
@@ -610,7 +610,7 @@ void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1)
 
     req.x          = arg1->baseX + (u16)arg0->field_18;
     req.y          = arg1->baseY + (u16)arg0->field_1A;
-    req.otIndex    = (s16)arg1->drawOrder + 1;
+    req.otIndex    = arg1->drawOrder + 1;
     req.field_8    = arg0->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;
@@ -1007,7 +1007,7 @@ void func_800BDF6C(Task* task)
     setlen(line, 3);
     setcode(line, 0x40);
     line->y1 = coord;
-    addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, line);
+    addPrim(gGpuCurrentOt + obj->drawOrder + 1, line);
     qty = state->equipped;
     if (qty > 0) {
         equippedWidth = ((s32)(qty * widthM2) / (s32)(state->srcQty + state->dstQty)) + 2;

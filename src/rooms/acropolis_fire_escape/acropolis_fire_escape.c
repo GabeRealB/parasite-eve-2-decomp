@@ -176,7 +176,7 @@ void func_acropolis_fire_escape_8017D6D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -193,7 +193,7 @@ void func_acropolis_fire_escape_8017D6D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -211,7 +211,7 @@ void func_acropolis_fire_escape_8017D6D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -229,7 +229,7 @@ void func_acropolis_fire_escape_8017D6D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -252,7 +252,7 @@ void func_acropolis_fire_escape_8017D6D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -303,7 +303,7 @@ void func_acropolis_fire_escape_8017D6D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -350,7 +350,7 @@ void func_acropolis_fire_escape_8017D6D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -368,7 +368,7 @@ void func_acropolis_fire_escape_8017D6D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -384,7 +384,7 @@ void func_acropolis_fire_escape_8017D6D0(DialogPrompt* arg0, UiObject* arg1)
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.otIndex    = arg1->drawOrder + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -447,7 +447,7 @@ void func_acropolis_fire_escape_8017DE9C(DialogPrompt* arg0, UiObject* arg1)
         req.x          = arg1->baseX + 0x11 + x;
         textY          = arg1->baseY - 6;
         req.y          = textY + y;
-        req.otIndex    = (s16)arg1->drawOrder + 1;
+        req.otIndex    = arg1->drawOrder + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -517,7 +517,7 @@ void func_acropolis_fire_escape_8017DE9C(DialogPrompt* arg0, UiObject* arg1)
         prim->y2                 = ty;
         prim->x3                 = tx;
         prim->x1                 = tx;
-        addPrim(gGpuCurrentOt + (s16)arg1->drawOrder + 1, prim);
+        addPrim(gGpuCurrentOt + arg1->drawOrder + 1, prim);
     }
     one = 1;
     func_80046B34((UiPanel*)arg1, barX, arg0->field_1A - 0xC, barW, 9, 0, one);

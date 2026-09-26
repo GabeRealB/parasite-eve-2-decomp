@@ -465,7 +465,7 @@ void func_dryfield_night_saloon_g_r_8017E0C0(DialogPrompt* prompt, UiObject* obj
     course              = &menu.lists[list][row];
     menu.req.x          = obj->baseX + (u16)prompt->field_18;
     menu.req.y          = (prompt->field_1A - 3) + obj->baseY;
-    menu.req.otIndex    = (s16)obj->drawOrder + 1;
+    menu.req.otIndex    = obj->drawOrder + 1;
     menu.req.field_8    = prompt->field_1C;
     menu.req.glyphTable = 4;
     menu.req.field_E    = 1;

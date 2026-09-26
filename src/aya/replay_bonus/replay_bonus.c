@@ -516,7 +516,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req.x          = obj->baseX + xOff;
     req.y          = obj->baseY - 4;
     req.y         += yOff;
-    ot             = (s16)obj->drawOrder;
+    ot             = obj->drawOrder;
     req.field_8    = color;
     req.glyphTable = 5;
     req.centerMode = 0;
@@ -527,7 +527,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req2.x          = obj->baseX - xOff;
     req2.y          = obj->baseY - 4;
     req2.y         += yOff;
-    ot2             = (s16)obj->drawOrder;
+    ot2             = obj->drawOrder;
     req2.field_8    = color;
     req2.glyphTable = 5;
     req2.centerMode = 2;
@@ -542,7 +542,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req3.x          = obj->baseX + 0x70 + xOff;
     req3.y          = obj->baseY - 6;
     req3.y         += yOff;
-    ot3             = (s16)obj->drawOrder;
+    ot3             = obj->drawOrder;
     req3.field_8    = color;
     req3.glyphTable = 5;
     req3.centerMode = 2;
@@ -609,7 +609,7 @@ void func_replay_bonus_801166AC(Task* arg0)
     xOff           = obj->field_1C + 2;
     req.x          = obj->baseX + xOff;
     req.y          = obj->baseY - 8;
-    ot             = (s16)obj->drawOrder;
+    ot             = obj->drawOrder;
     req.field_8    = color;
     req.glyphTable = 5;
     req.centerMode = 0;
@@ -624,7 +624,7 @@ void func_replay_bonus_801166AC(Task* arg0)
     Text_DrawPrompt(obj, negX, -2, Text_ItoaSigned(buf, value), color, 3, 2);
     req2.x          = obj->baseX + xOff;
     req2.y          = obj->baseY + 0xB;
-    ot2             = (s16)obj->drawOrder;
+    ot2             = obj->drawOrder;
     req2.field_8    = color;
     req2.glyphTable = 5;
     req2.centerMode = 0;
@@ -874,7 +874,7 @@ void func_replay_bonus_80116D68(Task* arg0)
     xOff           = obj->field_1C + 2;
     req.x          = obj->baseX + xOff;
     req.y          = obj->baseY;
-    ot             = (s16)obj->drawOrder;
+    ot             = obj->drawOrder;
     req.glyphTable = 5;
     req.field_8    = color;
     req.centerMode = 0;

@@ -429,7 +429,7 @@ void func_dryfield_night_garage_8017DDC4(DialogPrompt* prompt, UiObject* obj)
         req.x          = obj->baseX + prompt->field_18;
         y              = obj->baseY - 4;
         req.y          = prompt->field_1A + y;
-        req.otIndex    = (s16)obj->drawOrder + 1;
+        req.otIndex    = obj->drawOrder + 1;
         req.field_8    = prompt->field_1C;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -723,7 +723,7 @@ void func_dryfield_night_garage_8017E768(Task* task)
     req.x          = obj->field_1E + x;
     y              = obj->baseY + 2;
     req.y          = obj->field_18 + y;
-    req.otIndex    = (s16)obj->drawOrder + 1;
+    req.otIndex    = obj->drawOrder + 1;
     req.field_8    = 0x606060;
     req.glyphTable = 5;
     req.centerMode = 2;
@@ -904,7 +904,7 @@ void func_dryfield_night_garage_8017ED80(Task* task)
 
     req0.x          = obj->baseX + x;
     req0.y          = obj->baseY + y + 9;
-    req0.otIndex    = (s16)obj->drawOrder + 1;
+    req0.otIndex    = obj->drawOrder + 1;
     req0.field_8    = 0x606060;
     req0.glyphTable = 5;
     req0.centerMode = 0;
@@ -917,7 +917,7 @@ void func_dryfield_night_garage_8017ED80(Task* task)
     y2              = y + 0x28;
     req1.x          = obj->baseX + x;
     req1.y          = obj->baseY + (y2 - 6);
-    req1.otIndex    = (s16)obj->drawOrder + 1;
+    req1.otIndex    = obj->drawOrder + 1;
     req1.field_8    = 0x606060;
     req1.glyphTable = 5;
     req1.centerMode = 0;
@@ -956,7 +956,7 @@ void func_dryfield_night_garage_8017EF64(DialogPrompt* prompt, UiObject* obj)
 
     req.x          = obj->baseX + (u16)prompt->field_18;
     req.y          = obj->baseY + (u16)prompt->field_1A;
-    req.otIndex    = (s16)obj->drawOrder + 1;
+    req.otIndex    = obj->drawOrder + 1;
     req.field_8    = prompt->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;
@@ -1166,7 +1166,7 @@ void func_dryfield_night_garage_8017F5C0(Task* task)
         req.x          = obj->field_1C + (obj->baseX + 2);
         ry             = obj->baseY - 6;
         req.y          = ry + y;
-        req.otIndex    = (s16)obj->drawOrder + 1;
+        req.otIndex    = obj->drawOrder + 1;
         req.glyphTable = 5;
         req.field_8    = 0x606060;
         req.centerMode = 0;
@@ -1275,7 +1275,7 @@ void func_dryfield_night_garage_8017F794(Task* task)
     req.x          = obj->baseX - x;
     y              = top + 0x1A;
     req.y          = obj->baseY + y;
-    req.otIndex    = (s16)obj->drawOrder + 1;
+    req.otIndex    = obj->drawOrder + 1;
     req.field_8    = 0x606060;
     req.glyphTable = 5;
     req.centerMode = 2;
@@ -1317,7 +1317,7 @@ void func_dryfield_night_garage_8017FC14(DialogPrompt* prompt, UiObject* obj)
 
     req.x          = obj->baseX + (u16)prompt->field_18;
     req.y          = obj->baseY + (u16)prompt->field_1A;
-    req.otIndex    = (s16)obj->drawOrder + 1;
+    req.otIndex    = obj->drawOrder + 1;
     req.field_8    = prompt->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;

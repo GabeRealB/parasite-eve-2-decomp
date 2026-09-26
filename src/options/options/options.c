@@ -627,7 +627,7 @@ void func_options_801D4D0C(Task* task)
     req0.x          = obj->baseX + x;
     req0.y          = obj->baseY + y;
     y              += 0xF;
-    req0.otIndex    = (s16)obj->drawOrder + one2;
+    req0.otIndex    = obj->drawOrder + one2;
     req0.field_8    = color;
     req0.glyphTable = 0;
     req0.centerMode = 0;
@@ -637,7 +637,7 @@ void func_options_801D4D0C(Task* task)
     req1.x          = obj->baseX + x;
     req1.y          = obj->baseY + y;
     y              += 0xF;
-    req1.otIndex    = (s16)obj->drawOrder + one2;
+    req1.otIndex    = obj->drawOrder + one2;
     req1.field_8    = color;
     req1.glyphTable = 0;
     req1.centerMode = 0;
@@ -647,7 +647,7 @@ void func_options_801D4D0C(Task* task)
     req2.x          = obj->baseX + x;
     req2.y          = obj->baseY + y;
     y              += 0xF;
-    req2.otIndex    = (s16)obj->drawOrder + one2;
+    req2.otIndex    = obj->drawOrder + one2;
     req2.field_8    = color;
     req2.glyphTable = 0;
     req2.centerMode = 0;
@@ -657,7 +657,7 @@ void func_options_801D4D0C(Task* task)
     req3.x          = obj->baseX + x;
     req3.y          = obj->baseY + y;
     y              += 0xF;
-    req3.otIndex    = (s16)obj->drawOrder + one2;
+    req3.otIndex    = obj->drawOrder + one2;
     req3.field_8    = color;
     req3.glyphTable = 0;
     req3.centerMode = 0;
@@ -667,7 +667,7 @@ void func_options_801D4D0C(Task* task)
     req4.x          = obj->baseX + x;
     req4.y          = obj->baseY + y;
     y              += 0x1E;
-    req4.otIndex    = (s16)obj->drawOrder + one2;
+    req4.otIndex    = obj->drawOrder + one2;
     req4.field_8    = color;
     req4.glyphTable = 0;
     req4.centerMode = 0;
@@ -678,7 +678,7 @@ void func_options_801D4D0C(Task* task)
     req5.y          = obj->baseY + y;
     x               = base + 0x6A;
     y               = yHdr;
-    req5.otIndex    = (s16)obj->drawOrder + one2;
+    req5.otIndex    = obj->drawOrder + one2;
     req5.field_8    = color;
     req5.glyphTable = 0;
     req5.centerMode = 0;
@@ -691,7 +691,7 @@ void func_options_801D4D0C(Task* task)
     if (type != one2) {
         req6.x          = obj->baseX + x;
         req6.y          = obj->baseY + y;
-        req6.otIndex    = (s16)obj->drawOrder + one2;
+        req6.otIndex    = obj->drawOrder + one2;
         req6.field_8    = color;
         req6.glyphTable = 0;
         req6.centerMode = 0;
@@ -700,7 +700,7 @@ void func_options_801D4D0C(Task* task)
     } else {
         req6.x          = obj->baseX + x;
         req6.y          = obj->baseY + y;
-        req6.otIndex    = (s16)obj->drawOrder + one2;
+        req6.otIndex    = obj->drawOrder + one2;
         req6.field_8    = color;
         req6.glyphTable = 0;
         req6.centerMode = 0;
@@ -712,7 +712,7 @@ void func_options_801D4D0C(Task* task)
     if (type != 1) {
         req6.x          = obj->baseX + x;
         req6.y          = obj->baseY + y;
-        req6.otIndex    = (s16)obj->drawOrder + 1;
+        req6.otIndex    = obj->drawOrder + 1;
         req6.field_8    = 0x606060;
         req6.glyphTable = 0;
         req6.centerMode = 0;
@@ -721,7 +721,7 @@ void func_options_801D4D0C(Task* task)
     } else {
         req6.x          = obj->baseX + x;
         req6.y          = obj->baseY + y;
-        req6.otIndex    = (s16)obj->drawOrder + 1;
+        req6.otIndex    = obj->drawOrder + 1;
         req6.field_8    = 0x606060;
         req6.glyphTable = 0;
         req6.centerMode = 0;
@@ -734,7 +734,7 @@ void func_options_801D4D0C(Task* task)
     req6.x          = obj->baseX + (((s16)obj->field_1E + 0x60 + (s16)obj->field_1C) / 2);
     req6.y          = obj->baseY + y;
     y              += 0xF;
-    req6.otIndex    = (s16)obj->drawOrder + 1;
+    req6.otIndex    = obj->drawOrder + 1;
     req6.field_8    = color2;
     req6.glyphTable = 0;
     req6.centerMode = 1;
@@ -745,7 +745,7 @@ void func_options_801D4D0C(Task* task)
     if (type == two) {
         req6.x          = obj->baseX + x;
         req6.y          = obj->baseY + y;
-        req6.otIndex    = (s16)obj->drawOrder + 1;
+        req6.otIndex    = obj->drawOrder + 1;
         req6.field_8    = color2;
         req6.glyphTable = 0;
         req6.centerMode = 0;
@@ -755,7 +755,7 @@ void func_options_801D4D0C(Task* task)
         y              += 0xF;
         req7.x          = obj->baseX + x;
         req7.y          = obj->baseY + y;
-        req7.otIndex    = (s16)obj->drawOrder + 1;
+        req7.otIndex    = obj->drawOrder + 1;
         req7.field_8    = color2;
         req7.glyphTable = 0;
         req7.centerMode = 0;
@@ -780,7 +780,7 @@ void func_options_801D4D0C(Task* task)
     req8.x          = obj->baseX + x;
     req8.y          = obj->baseY + y;
     y              += 0xF;
-    req8.otIndex    = (s16)obj->drawOrder + 1;
+    req8.otIndex    = obj->drawOrder + 1;
     req8.field_8    = 0x606060;
     req8.glyphTable = 0;
     req8.centerMode = center;
@@ -797,7 +797,7 @@ void func_options_801D4D0C(Task* task)
     req9.x          = obj->baseX + x;
     req9.y          = obj->baseY + y;
     y              += 0x1E;
-    req9.otIndex    = (s16)obj->drawOrder + 1;
+    req9.otIndex    = obj->drawOrder + 1;
     req9.field_8    = 0x606060;
     req9.glyphTable = 0;
     req9.centerMode = center;
@@ -807,7 +807,7 @@ void func_options_801D4D0C(Task* task)
     if (type == 2) {
         req10.x          = obj->baseX + x;
         req10.y          = obj->baseY + y;
-        req10.otIndex    = (s16)obj->drawOrder + 1;
+        req10.otIndex    = obj->drawOrder + 1;
         req10.field_8    = 0x606060;
         req10.glyphTable = 0;
         req10.centerMode = center;
@@ -816,7 +816,7 @@ void func_options_801D4D0C(Task* task)
     } else {
         req10.x          = obj->baseX + (((s16)obj->field_1E + 0x60 + (s16)obj->field_1C) / 2);
         req10.y          = obj->baseY + y;
-        req10.otIndex    = (s16)obj->drawOrder + 1;
+        req10.otIndex    = obj->drawOrder + 1;
         req10.field_8    = 0x606060;
         req10.glyphTable = 0;
         req10.centerMode = 1;
@@ -835,7 +835,7 @@ void func_options_801D4D0C(Task* task)
     req10.x          = obj->baseX + x;
     req10.y          = obj->baseY + y;
     y               += 0xF;
-    req10.otIndex    = (s16)obj->drawOrder + 1;
+    req10.otIndex    = obj->drawOrder + 1;
     req10.field_8    = 0x606060;
     req10.glyphTable = 0;
     req10.centerMode = center;
@@ -845,7 +845,7 @@ void func_options_801D4D0C(Task* task)
     if (type != 2) {
         last.req.x          = obj->baseX + x;
         last.req.y          = obj->baseY + y;
-        last.req.otIndex    = (s16)obj->drawOrder + 1;
+        last.req.otIndex    = obj->drawOrder + 1;
         last.req.field_8    = 0x606060;
         last.req.glyphTable = 0;
         last.req.centerMode = center;
@@ -854,7 +854,7 @@ void func_options_801D4D0C(Task* task)
     } else {
         last.req.x          = obj->baseX + (((s16)obj->field_1E + 0x60 + (s16)obj->field_1C) / 2);
         last.req.y          = obj->baseY + y;
-        last.req.otIndex    = (s16)obj->drawOrder + 1;
+        last.req.otIndex    = obj->drawOrder + 1;
         last.req.field_8    = 0x606060;
         last.req.glyphTable = 0;
         last.req.centerMode = 1;
@@ -886,7 +886,7 @@ void func_options_801D4D0C(Task* task)
         p->clut = 0x3C00;
         setlen(p, 4);
         setcode(p, 0x65);
-        addPrim(&gGpuCurrentOt[(s16)obj->drawOrder + 1], p);
+        addPrim(&gGpuCurrentOt[obj->drawOrder + 1], p);
         i++;
     } while (i < 7);
 
@@ -907,7 +907,7 @@ void func_options_801D4D0C(Task* task)
                 break;
         }
     }
-    Ui_InsertDrawTPage((s16)obj->drawOrder + 1, 0);
+    Ui_InsertDrawTPage(obj->drawOrder + 1, 0);
     if (obj->status == 1) {
         if (Pad_CheckButtons(0, 1, 0x6000) != 0) {
             SndEvt_EnqueueType6(2, 0, 0);

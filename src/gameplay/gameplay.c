@@ -3974,7 +3974,7 @@ void func_800A087C(Task* arg0)
     tx              = obj->baseX - 4;
     req1.x          = (s16)obj->field_1E + tx;
     req1.y          = obj->baseY + top + 5;
-    req1.otIndex    = (s16)obj->drawOrder + 1;
+    req1.otIndex    = obj->drawOrder + 1;
     req1.field_8    = color;
     req1.glyphTable = 5;
     req1.centerMode = 2;
@@ -3996,7 +3996,7 @@ void func_800A087C(Task* arg0)
         SOFT_BARRIER();
         step            = 0xA;
         req2.y          = (s16)(by - 2) + y;
-        req2.otIndex    = (s16)obj->drawOrder + 1;
+        req2.otIndex    = obj->drawOrder + 1;
         req2.field_8    = color;
         req2.glyphTable = 5;
         req2.centerMode = 0;
@@ -4005,7 +4005,7 @@ void func_800A087C(Task* arg0)
 
         req3.x          = obj->baseX + col;
         req3.y          = obj->baseY + y;
-        req3.otIndex    = (s16)obj->drawOrder + 1;
+        req3.otIndex    = obj->drawOrder + 1;
         req3.field_8    = color;
         req3.glyphTable = 0;
         req3.centerMode = 2;
@@ -4016,7 +4016,7 @@ void func_800A087C(Task* arg0)
 
     req4.x          = obj->field_1C + (obj->baseX + 6);
     req4.y          = (s16)(obj->baseY - 2) + y;
-    req4.otIndex    = (s16)obj->drawOrder + 1;
+    req4.otIndex    = obj->drawOrder + 1;
     req4.field_8    = color;
     req4.glyphTable = 5;
     req4.centerMode = 0;
@@ -4025,7 +4025,7 @@ void func_800A087C(Task* arg0)
 
     req5.x          = obj->baseX + col;
     req5.y          = obj->baseY + y;
-    req5.otIndex    = (s16)obj->drawOrder + 1;
+    req5.otIndex    = obj->drawOrder + 1;
     req5.field_8    = color;
     req5.glyphTable = 0;
     req5.centerMode = 2;
@@ -4037,7 +4037,7 @@ void func_800A087C(Task* arg0)
         Text_ItoaUnsigned(&buf[1], D_80114BE4);
         req6.x          = obj->baseX + col;
         req6.y          = obj->baseY + y;
-        req6.otIndex    = (s16)obj->drawOrder + 1;
+        req6.otIndex    = obj->drawOrder + 1;
         req6.field_8    = color;
         req6.glyphTable = 0;
         req6.centerMode = 0;
@@ -4048,7 +4048,7 @@ void func_800A087C(Task* arg0)
     y              -= step;
     req6.x          = obj->field_1C + (obj->baseX + 6);
     req6.y          = (s16)(obj->baseY - 2) + y;
-    req6.otIndex    = (s16)obj->drawOrder + 1;
+    req6.otIndex    = obj->drawOrder + 1;
     req6.field_8    = color;
     req6.glyphTable = 5;
     req6.centerMode = 0;
@@ -4058,7 +4058,7 @@ void func_800A087C(Task* arg0)
     if (D_80114BDC < 0) {
         req7.x          = obj->baseX + col;
         req7.y          = obj->baseY + y;
-        req7.otIndex    = (s16)obj->drawOrder + 1;
+        req7.otIndex    = obj->drawOrder + 1;
         req7.field_8    = 0xD287F;
         req7.glyphTable = 0;
         req7.centerMode = 2;
@@ -4067,7 +4067,7 @@ void func_800A087C(Task* arg0)
     } else {
         req7.x          = obj->baseX + col;
         req7.y          = obj->baseY + y;
-        req7.otIndex    = (s16)obj->drawOrder + 1;
+        req7.otIndex    = obj->drawOrder + 1;
         req7.field_8    = color;
         req7.glyphTable = 0;
         req7.centerMode = 2;
@@ -4079,7 +4079,7 @@ void func_800A087C(Task* arg0)
     color2          = 0x606060;
     req7.x          = obj->field_1C + (obj->baseX + 6);
     req7.y          = (s16)(obj->baseY - 2) + y;
-    req7.otIndex    = (s16)obj->drawOrder + 1;
+    req7.otIndex    = obj->drawOrder + 1;
     req7.field_8    = color2;
     req7.glyphTable = 5;
     req7.centerMode = 0;
@@ -4088,7 +4088,7 @@ void func_800A087C(Task* arg0)
 
     req8.x          = obj->baseX + col;
     req8.y          = obj->baseY + y;
-    req8.otIndex    = (s16)obj->drawOrder + 1;
+    req8.otIndex    = obj->drawOrder + 1;
     req8.field_8    = color2;
     req8.glyphTable = 0;
     req8.centerMode = 2;
@@ -4102,7 +4102,7 @@ void func_800A087C(Task* arg0)
         if (arg0->killCountdown >= 0x8D) {
             req9.x          = obj->baseX + col;
             req9.y          = obj->baseY + y;
-            req9.otIndex    = (s16)obj->drawOrder + 1;
+            req9.otIndex    = obj->drawOrder + 1;
             req9.field_8    = color2;
             req9.glyphTable = 0;
             req9.centerMode = 2;
@@ -4114,7 +4114,7 @@ void func_800A087C(Task* arg0)
     if (arg0->killCountdown >= 0x6F) {
         req9.x          = obj->baseX + col;
         req9.y          = obj->baseY + y;
-        req9.otIndex    = (s16)obj->drawOrder + 1;
+        req9.otIndex    = obj->drawOrder + 1;
         req9.field_8    = 0x606060;
         req9.glyphTable = 0;
         req9.centerMode = 2;
@@ -4125,7 +4125,7 @@ void func_800A087C(Task* arg0)
     if (arg0->killCountdown >= 0x51) {
         req10.x          = obj->baseX + col;
         req10.y          = obj->baseY + y;
-        req10.otIndex    = (s16)obj->drawOrder + 1;
+        req10.otIndex    = obj->drawOrder + 1;
         req10.field_8    = 0x606060;
         req10.glyphTable = 0;
         req10.centerMode = 2;
@@ -4136,7 +4136,7 @@ void func_800A087C(Task* arg0)
     if (arg0->killCountdown >= 0x33) {
         req11.x          = obj->baseX + col;
         req11.y          = obj->baseY + y;
-        req11.otIndex    = (s16)obj->drawOrder + 1;
+        req11.otIndex    = obj->drawOrder + 1;
         req11.field_8    = 0x606060;
         req11.glyphTable = 0;
         req11.centerMode = 2;
@@ -4966,7 +4966,7 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
             param <<= 1;
         }
 
-        *(s16*)&s.obj.drawOrder = -3;
+        s.obj.drawOrder         = -3;
         s.u.text.req.x          = arg1 + 7;
         s.u.text.req.y          = arg2 + 0x22;
         s.u.text.req.otIndex    = -2;
@@ -4991,15 +4991,15 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
         s.rect.h = 0x13;
         Ui_DrawTextInRect(&s.rect, -1, 0x40002, NULL);
 
-        i                       = 0;
-        sent                    = -0x7FFF;
-        pts                     = (GpWheelPt*)buf;
-        walk                    = pts;
-        buf                     = (u8*)i;
-        s.obj.baseX             = 0x30;
-        s.obj.baseY             = 0;
-        *(s16*)&s.obj.drawOrder = -3;
-        s.obj.mode              = 0;
+        i               = 0;
+        sent            = -0x7FFF;
+        pts             = (GpWheelPt*)buf;
+        walk            = pts;
+        buf             = (u8*)i;
+        s.obj.baseX     = 0x30;
+        s.obj.baseY     = 0;
+        s.obj.drawOrder = -3;
+        s.obj.mode      = 0;
         do {
             SOFT_TOUCH_REG_USE(buf, pts);
             if (i < count) {
@@ -6540,7 +6540,7 @@ void func_800A57B0(GpIdMapC* arg0)
     loc.s.req[0].x          = loc.s.obj.baseX + 0x2E;
     loc.s.req[0].x          = loc.s.req[0].x + x;
     loc.s.req[0].y          = loc.s.obj.baseY + 8 + y;
-    loc.s.req[0].otIndex    = (s16)loc.s.obj.drawOrder + textOrderStep;
+    loc.s.req[0].otIndex    = loc.s.obj.drawOrder + textOrderStep;
     loc.s.req[0].field_8    = color;
     loc.s.req[0].glyphTable = 5;
     loc.s.req[0].centerMode = 0;
