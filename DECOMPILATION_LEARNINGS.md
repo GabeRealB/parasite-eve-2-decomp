@@ -141866,3 +141866,24 @@ head's `move v1,t1` copy and the rest of the prologue came out of a plain
 `block = SCRATCH_PUSH(GpRingScratch)` with no further help: the prologue hacks
 were compensating for allocation pressure the wrong UV code created. Try the
 macro before steering a quad's setup piecemeal.
+
+## A tile UV written as repeated `setUV4` expressions, not locals: the dividend outlives the division's copy (func_neo_ark_bridge_8017FCA0, 2026-09-26)
+
+**Symptom.** A `POLY_FT4` picks a tile `(n % 4) * 0x38`, `(n % 8) / 4 * 0x38`.
+The target's `/ 4` keeps its dividend in `$a0`, copies it (`move v1,a0` in the
+`bgez` slot) and adds 3 from `$a0`, and the far edge is `addiu v0,v0,-0x59`.
+The seed held the dividend alive with `SOFT_USE_REG(x)`, wrote `vbase - 0x59`
+by hand and ordered the stores with barriers. With `u`/`v` locals the `/ 4`
+works in place (no copy) and the edge comes out `+0xa7`.
+
+**Cause.** `expand_divmod` copies the dividend into `t1` and tests `t1`. cse's
+`(set REG0 REG1)` swap then makes `t1` the class head whenever the dividend's
+last use is the copy, so the compare and the `+3` run on the copy and the two
+registers tie. Here the source wrote the expression out at every use. The
+second `(n % 8) / 4` is CSE'd away through the first result's `REG_EQUAL`, but
+by then it has already made the dividend's last use later, so the dividend
+stays the head. `-0x59` is `v + 0x70 + 0x37` folded to `+ 0xA7` in the tree and
+narrowed to the `u8` field, where `0xA7` is a QImode `-89`.
+
+**Fix.** Pass the full expressions to `setUV4`:
+`setUV4(p, (n % 4) * 0x38, (n % 8) / 4 * 0x38 + 0x70, (n % 4) * 0x38 + 0x37, ...)`.
