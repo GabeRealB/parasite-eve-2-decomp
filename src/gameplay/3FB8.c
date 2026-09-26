@@ -36,7 +36,7 @@ extern u16                  D_80113F9C[];
 extern u16                  Gp_AllyIdBase[];
 extern void*                Gp_AnimBlkTbl[];
 
-static s32  Gp_ApplyHpDamage(s32 arg0);
+static s32  Gp_ApplyHpDamage(s16 arg0);
 void        Gp_TickActorAnimState(Task* arg0);
 void        Gp_StepPlayerMove(Task* arg0);
 void        Gp_TurnPlayer(Task* arg0);
@@ -5757,7 +5757,7 @@ s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2)
     actor = arg0->work;
     ret   = 0;
     if (Mc_SaveData[0].cheatMode == 0) {
-        ret = Gp_ApplyHpDamage((s16)Gp_ScaleDamage(arg2, 0, &out, 0));
+        ret = Gp_ApplyHpDamage(Gp_ScaleDamage(arg2, 0, &out, 0));
         if (ret != 0) {
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 0, 0x7DE);
         } else if (actor->field_910 == 0) {
@@ -8533,11 +8533,10 @@ static void func_8010A670(Task* arg0)
     }
 }
 
-static s32 Gp_ApplyHpDamage(s32 arg0)
+static s32 Gp_ApplyHpDamage(s16 arg0)
 {
-    register s32  amount asm("s1");
+    s16           amount;
     s32           ret;
-    register s32  tmp asm("v0");
     PlayerStatus* p;
     Task*         slot;
     GpCoord*      coords;
@@ -8545,18 +8544,17 @@ static s32 Gp_ApplyHpDamage(s32 arg0)
     amount = arg0;
     ret    = 0;
     if (func_800B9D80(0x40000) != 0) {
-        tmp    = (s16)arg0 >> 2;
-        amount = arg0 - tmp;
+        amount = arg0 - (arg0 >> 2);
     }
     if (func_800B9D80(0x800) != 0) {
-        Player_Status.mp += (s16)amount / 5;
+        Player_Status.mp += amount / 5;
         if (Player_Status.mpMax < Player_Status.mp) {
             Player_Status.mp = Player_Status.mpMax;
         }
     }
     if (func_800B9D80(0x200) != 0) {
         p = &Player_Status;
-        if (p->hp >= 5 && (s16)amount >= p->hp) {
+        if (p->hp >= 5 && amount >= p->hp) {
             slot   = gameGetPtrSlot(3);
             coords = slot->extra.tmd->coords;
             p->hp  = 1;
@@ -8911,7 +8909,7 @@ static s32 Gp_TestHpDamage(s32 arg0)
     p       = &Player_Status;
     saved18 = p->hp;
     saved1c = p->mp;
-    ret     = Gp_ApplyHpDamage((s16)Gp_ScaleDamage(arg0, 0, &out, 0));
+    ret     = Gp_ApplyHpDamage(Gp_ScaleDamage(arg0, 0, &out, 0));
     p->hp   = saved18;
     p->mp   = saved1c;
     if (ret != 0) {
