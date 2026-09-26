@@ -67,18 +67,10 @@ extern s32      D_actor_420700_8013EFF4;
 /// context before running the first step body.
 static void func_actor_420700_80131E24(GpEnemy* enemy, Task* task)
 {
-    VECTOR       vec;
-    GpAreaKey    key;
-    GpCoord*     coord;
-    TmdObject*   obj;
-    TmdObject*   model;
-    GpAreaPlace* place;
-    s32          idx;
-    u32          raw;
-    GpAreaKey*   keyPtr;
-    u8           view;
-    GpAreaKey*   sessionKey;
-    void*        work;
+    VECTOR     vec;
+    GpCoord*   coord;
+    TmdObject* obj;
+    void*      work;
 
     obj                     = task->extra.tmd;
     coord                   = obj->coords;
@@ -100,26 +92,7 @@ static void func_actor_420700_80131E24(GpEnemy* enemy, Task* task)
     D_actor_420700_8013EFE4      = task;
     D_actor_420700_8013EFE8      = Task_SpawnFromTable(D_actor_420700_8013EF68, 1, 0, 0);
     D_actor_420700_8013EFEC      = Task_SpawnFromTable(D_actor_420700_8013EF68, 2, 0, 0);
-    sessionKey                   = (GpAreaKey*)&gGameSession->at4.loc;
-    raw                          = enemy->placeKey;
-    model                        = D_actor_420700_8013EFE8->extra.tmd;
-    key.stage                    = sessionKey->stage;
-    key.area                     = sessionKey->area;
-    key.room                     = sessionKey->room;
-    view                         = sessionKey->view;
-    idx                          = raw >> 12;
-    SOFT_BARRIER();
-    keyPtr = &key;
-    TOUCH_REG(keyPtr);
-    key.view = view;
-    Gp_SyncAreaKeyIndex(keyPtr);
-    place        = (GpAreaPlace*)((idx << 4) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-    model->tpage = place->tpage;
-    model->clut  = place->clut;
-    if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
-    }
+    actorTintTask(D_actor_420700_8013EFE8, enemy);
     obj->lightMtx           = &D_actor_420700_8013EFE0->light;
     obj->colorMtx           = &D_actor_420700_8013EFE0->color;
     D_actor_420700_8013EFF0 = 0;
