@@ -142097,3 +142097,24 @@ accessed partly through the pointer and partly directly. That mixture is what
 an inlined helper taking `TextDrawReq*` leaves behind: it is the
 `_gpDrawItemNameUnmarkedAt` body with the request passed in rather than
 declared locally.
+## Two-copy `move a0,v0; move v1,v0` before a clamp is an `s16` local, and a copied helper result is two identical `return`s (Midi_Event1, 2026-09-26)
+
+**Pan clamp.** Target: `addiu v0,v0,-0x40; move a0,v0; move v1,v0`, then
+`slti v1,0x80` / `bltz v1` and `sb a0` in the in-range arm. An `s32 pan` gives
+one register for all three (cse makes the copies' uses canonical, combine folds
+the sum into the survivor), which the tree had faked with three `TOUCH_REG`s.
+The original declared the local `s16`: `s16 pan = g->pan + n->pan - 0x40;`.
+The value is a sum of two zero-extended bytes, so combine proves the
+sign extension redundant (`num_sign_bit_copies`) and emits no `sll`/`sra`, but
+the narrowing leaves a separate HImode pseudo for the store and an SImode one
+for the compares - the two copies. Worth trying `s16`/`u8` locals whenever a
+byte or half store reads a different register from the test on the same value.
+
+**Inlined note-off.** `arg1 = helper(...)` whose helper ends `return ptr + 2;`
+computes straight into `arg1`'s register; the target computes into `$v0` and
+copies (`addiu v0,s2,2; j; move s4,v0`). Writing the helper's guard as an early
+exit - `if (busy) return ptr + 2;` before the loop, `return ptr + 2;` after it -
+sets the return pseudo twice, so combine cannot fold it into the caller's
+variable, and jump2 cross-jumps the two identical tails back into one (the
+branch's delay slot gets the duplicate). Same mechanism as the `angle` entry
+above: the result pseudo survives only when two paths set it.

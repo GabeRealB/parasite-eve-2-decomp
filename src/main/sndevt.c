@@ -1052,6 +1052,33 @@ after_volume:
     } while (i < 0x12);
 }
 
+/* Note off: keys off every voice slot playing this channel's key, unless the
+ * channel's field_0 flag is set. A note on with zero velocity is a note off
+ * too, and its event is one byte longer. Returns the cursor past the event. */
+static inline u8* _midiNoteOff(s32 status, u8* data, MidiSong* song)
+{
+    s32 i;
+    u8  channel;
+    u8  key;
+    u8* ptr;
+
+    ptr     = data;
+    channel = status & 0xF;
+    key     = ptr[1];
+    if ((status & 0xF0) == 0x90) {
+        ptr += 1;
+    }
+    if (song->field_484[channel].field_0 != 0) {
+        return ptr + 2;
+    }
+    for (i = 0; i < 0x12; i++) {
+        if ((song->voiceSlots[i].field_2 == key) && (song->voiceSlots[i].field_1 == channel)) {
+            Spu_KeyOff(song->voiceSlots[i].field_0);
+        }
+    }
+    return ptr + 2;
+}
+
 u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2)
 {
     s16           priorities[2];
@@ -1064,9 +1091,7 @@ u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2)
     s8            voice;
     u16           priority;
     s32           i;
-    s32           pan;
-    s32           panValue;
-    s8            panByte;
+    s16           pan;
     s32           reverb;
     s32           bend;
     s32           product;
@@ -1075,30 +1100,10 @@ u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2)
     SndNote*      note;
     MidiNoteSlot* slot;
     SpuVoiceAttr* attr;
-    u8*           cursor;
-    u8*           offResult;
-    u8            offChannel;
-    u8            offKey;
 
     velocity = arg1[2];
     if (velocity == 0) {
-        cursor = arg1;
-        SOFT_USE_REG(cursor);
-        offChannel = arg0 & 0xF;
-        offKey     = cursor[1];
-        if ((arg0 & 0xF0) == 0x90) {
-            cursor++;
-        }
-        if (arg2->field_484[offChannel].field_0 == 0) {
-            for (i = 0; i < 0x12; i++) {
-                if (arg2->voiceSlots[i].field_2 == offKey && arg2->voiceSlots[i].field_1 == offChannel) {
-                    Spu_KeyOff(arg2->voiceSlots[i].field_0);
-                }
-            }
-        }
-        offResult = cursor + 2;
-        SOFT_USE_REG(offResult);
-        arg1 = offResult;
+        arg1 = _midiNoteOff(arg0, arg1, arg2);
     } else {
         channel = arg0 & 0xF;
         if (arg2->field_484[channel].field_0 != 0) {
@@ -1130,14 +1135,9 @@ u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2)
                     slot->field_2 = key;
                     slot->field_4 = (group->volume * note->volume) >> 7;
                     pan           = group->pan + note->pan - 0x40;
-                    panByte       = pan;
-                    TOUCH_REG(panByte);
-                    panValue = pan;
-                    TOUCH_REG(panValue);
-                    TOUCH_REG(panValue);
-                    if (panValue < 0x80) {
-                        if (panValue >= 0) {
-                            slot->field_5 = panByte;
+                    if (pan < 0x80) {
+                        if (pan >= 0) {
+                            slot->field_5 = pan;
                         } else {
                             slot->field_5 = 0;
                         }
@@ -1389,26 +1389,7 @@ s32 Midi_IncPtr(s32 arg0, s32 arg1)
 
 u8* Midi_KeyOffChannel(s32 arg0, u8* arg1, MidiSong* arg2)
 {
-    s32 i;
-    u8  t;
-    u8  param;
-    u8* ptr;
-
-    ptr   = arg1;
-    t     = arg0 & 0xF;
-    param = ptr[1];
-    if ((arg0 & 0xF0) == 0x90) {
-        ptr += 1;
-    }
-    if (arg2->field_484[t].field_0 == 0) {
-        for (i = 0; i < 0x12; i++) {
-            if ((arg2->voiceSlots[i].field_2 == param) &&
-                (arg2->voiceSlots[i].field_1 == t)) {
-                Spu_KeyOff(arg2->voiceSlots[i].field_0);
-            }
-        }
-    }
-    return ptr + 2;
+    return _midiNoteOff(arg0, arg1, arg2);
 }
 
 u8* Midi_SetProgram(s32 arg0, u8* arg1, MidiOpcodeCtx* arg2)
