@@ -1628,96 +1628,66 @@ static s32 SndBank_SetupFromLoad(SndLoadState* arg0)
     return 0;
 }
 
+/// Turn the waveform addresses of the first `count` notes of `bank` from
+/// offsets into its waveform data into absolute SPU RAM addresses.
+static inline void _sndBankRebaseNotes(SndBank* bank, s32 count)
+{
+    u32      base = bank->spuAddr;
+    SndNote* note = bank->notes;
+
+    while (--count != -1) {
+        note->waveAddr += base;
+        note++;
+    }
+}
+
 static s32 SndLoad_Complete(SndLoadState* arg0)
 {
-    SndBank*     s2;
-    register s32 s1 asm("s1");
-    s32          s0;
-    s32          v0r;
-    MidiSong*    state;
-    s32          i;
-    SndNote*     note;
-    s32          base;
-    s32          temp;
-    s32          end;
-    u8           phase;
+    SndBank*  bank;
+    MidiSong* song;
+    s32       id;
+    s32       ret;
 
     if (D_800689E8 == 6) {
         D_800689E4 = 0xFF;
-        s1         = 0;
-        goto block_ret;
-    }
-    phase = arg0->field_22;
-    s1    = -1;
-    if (phase != 0) {
-        if (phase == 2) {
-            goto block_setup;
+        ret        = 0;
+    } else {
+        ret = -1;
+        switch (arg0->field_22) {
+            case 0:
+                bank = (SndBank*)arg0->field_18;
+                if (D_800689E8 != 0 || (id = bank->bankId) == 0xFFFF) {
+                    D_800689E4 = 0xFF;
+                } else {
+                    id            &= 0xFF;
+                    song           = (MidiSong*)Midi_GetSlot(id);
+                    song->field_1  = id;
+                    song->field_A  = (arg0->field_2A + 3) & 0xFFFC;
+                    song->field_10 = (void*)arg0->field_14;
+                    song->field_40 = bank;
+                    song->field_3C = arg0->field_2C;
+                    _sndBankRebaseNotes(bank, arg0->field_24);
+                    Snd_BuildGroupIndex(song->field_40);
+                    ret            = 0;
+                    D_800689E4     = 0xFF;
+                    arg0->field_18 = 0;
+                    arg0->field_14 = 0;
+                }
+                break;
+            case 2:
+                ret = SndBank_SetupFromLoad(arg0);
+                if (ret == -1) {
+                    SndHeap_Free((void*)arg0->field_14);
+                }
+                break;
+            default:
+                ret = -1;
+                break;
         }
-        arg0->field_14 = 0;
-        v0r            = s1;
-        goto block_clear18;
     }
-    s2 = (SndBank*)arg0->field_18;
-    if (D_800689E8 == 0) {
-        s0 = s2->bankId;
-        if (s0 != 0xFFFF) {
-            goto block_success;
-        }
-    }
-    D_800689E4 = 0xFF;
-    TOUCH_REG_MEM(s1);
-    v0r = s1;
-    goto block_clear14;
-
-block_success:
-    s0             &= 0xFF;
-    state           = (MidiSong*)Midi_GetSlot(s0);
-    state->field_1  = s0;
-    state->field_A  = (arg0->field_2A + 3) & 0xFFFC;
-    temp            = arg0->field_14;
-    state->field_40 = s2;
-    state->field_10 = (void*)temp;
-    state->field_3C = arg0->field_2C;
-    i               = arg0->field_24;
-    base            = ((volatile SndBank*)s2)->spuAddr;
-    temp            = (s32)((volatile SndBank*)s2)->notes;
-    i               = i - 1;
-    if (i != s1) {
-        end  = -1;
-        note = (SndNote*)temp;
-        do {
-            i              -= 1;
-            note->waveAddr += base;
-            note++;
-        } while (i != end);
-    }
-    Snd_BuildGroupIndex(state->field_40);
-    s1             = 0;
-    D_800689E4     = 0xFF;
-    arg0->field_18 = 0;
     arg0->field_14 = 0;
-    goto block_ret;
-
-block_setup:
-    s1  = SndBank_SetupFromLoad(arg0);
-    v0r = -1;
-    if (s1 != v0r) {
-        v0r = s1;
-        goto block_clear14;
-    }
-    SndHeap_Free((void*)arg0->field_14);
-    *(volatile s32*)&arg0->field_14 = 0;
-    arg0->field_18                  = 0;
-    return s1;
-
-block_ret:
-    SCHED_BARRIER();
-    v0r = s1;
-block_clear14:
-    *(volatile s32*)&arg0->field_14 = 0;
-block_clear18:
     arg0->field_18 = 0;
-    return v0r;
+    return ret;
 }
 
 void SndLoad_FromSectorMode8(void* arg0)

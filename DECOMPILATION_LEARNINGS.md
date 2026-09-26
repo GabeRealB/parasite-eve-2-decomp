@@ -143265,3 +143265,19 @@ cse substitutes and flow then deletes. Sharing `size` with a local of another
 branch also removes the boost, but it makes the pseudo global, which leaves
 two local quantities instead of three and flips the table base from `v0` to
 `v1` (see the three-quantity exception in `CODEGEN_MODEL.md` §10).
+
+## A `j tail+4; move v0,s1` right before the join's own `move v0,s1`: the last case is followed by a `default:` that repeats the preset (SndLoad_Complete, 2026-09-26)
+
+**Symptom:** a `switch` whose last arm should fall into the shared
+`field = 0; return ret;` tail instead ends in `j L+4` with the tail's first
+insn (`move v0,s1`) copied into the delay slot, directly above that same
+`move`. The seed forced it with gotos, a `SCHED_BARRIER()` at the join and
+volatile stores.
+
+**Fix:** `ret = -1;` before the switch *and* `default: ret = -1; break;` after
+the last case. The default's store is redundant and never appears in the
+output, but its block keeps the last arm's `break` as a real jump through
+jump2; reorg then steals the join's first insn into that jump's slot and
+retargets it one insn on. Without a default, or with an empty one, the arm
+falls through. Removing the preset instead (setting -1 only in the arms that
+need it) changes allocation throughout.
