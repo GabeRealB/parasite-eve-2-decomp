@@ -152,57 +152,22 @@ void func_metabolism_8012EF34(Task* arg0)
             rgb[0] = mem->scale >> 2;
             rgb[1] = (u8)mem->scale;
             rgb[2] = mem->scale >> 1;
-            Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
-            Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
-            {
-                GpCoord*     c;
-                s32          span;
-                unsigned int r;
-                unsigned int g;
-                unsigned int b;
-
-                c = coord;
-                COPY_REG_EC(c, coord);
-                span = 0x80;
-                TOUCH_REG(span);
-                r      = rgb[0];
-                b      = rgb[2];
-                rgb[0] = r >> 1;
-                SOFT_COMPILER_BARRIER();
-                g      = rgb[1];
-                rgb[2] = b >> 1;
-                rgb[1] = g >> 1;
-                Gp_DrawArc(c, mem->angle, span, rgb);
-            }
+            Gp_DrawRing(coord, mem->angle >> 1, rgb);
+            Gp_DrawRing(coord, mem->angle >> 1, rgb);
+            rgb[0] >>= 1;
+            rgb[1] >>= 1;
+            rgb[2] >>= 1;
+            Gp_DrawArc(coord, mem->angle, 0x80, rgb);
             if (mem->age & 1) {
-                unsigned int g;
-                unsigned int b;
-
-                g      = rgb[1];
-                b      = rgb[2];
-                rgb[1] = g >> 1;
-                rgb[2] = b << 1;
+                rgb[1] >>= 1;
+                rgb[2] <<= 1;
                 Gp_DrawArc(coord, 0x80, mem->angle, rgb);
             }
             if (mem->index != 0) {
-                GpCoord*     c;
-                s32          span;
-                unsigned int r;
-                unsigned int g;
-                unsigned int b;
-
-                c = coord;
-                COPY_REG_EC(c, coord);
-                span = 0x80;
-                TOUCH_REG(span);
-                r      = rgb[0];
-                b      = rgb[2];
-                rgb[0] = r >> 1;
-                SOFT_COMPILER_BARRIER();
-                g      = rgb[1];
-                rgb[2] = b >> 1;
-                rgb[1] = g >> 1;
-                Gp_DrawArc(c, (s16)(mem->angle + 0x200), span, rgb);
+                rgb[0] >>= 1;
+                rgb[1] >>= 1;
+                rgb[2] >>= 1;
+                Gp_DrawArc(coord, (s16)(mem->angle + 0x200), 0x80, rgb);
             }
             return;
         case 3:

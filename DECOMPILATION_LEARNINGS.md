@@ -141786,3 +141786,16 @@ original was an asm block hand-emitting the four stores.
 **Fix.** When a constant appears in a spill-looking callee-saved register right
 at its use, declare it once before the loop: `len = 9;` beside the other
 function-scope initialisers, `setlen(&poly[0], len)` in the body.
+
+## Halving a stack `u8 rgb[3]` in place is three `rgb[i] >>= 1`, not a helper taking `rgb` (func_metabolism_8012EF34, 2026-09-26)
+
+The pe arcs (`metabolism`, `healing`, `ofuda`) dim their colour between
+`Gp_DrawArc` calls with `lbu 0x10(sp)`/`lbu 0x12(sp)`/`sb 0x10`/`lbu 0x11`/
+`sb 0x12`/`sb 0x11`. Loading channels into `unsigned int` locals and
+separating them with `COPY_REG_EC`/`TOUCH_REG`/`SOFT_COMPILER_BARRIER` was
+steering; plain `rgb[0] >>= 1; rgb[1] >>= 1; rgb[2] >>= 1;` in index order
+matches, with the call's arguments written directly (`Gp_DrawArc(coord,
+mem->angle, 0x80, rgb)`). Other orders land 40-60 differences off. An
+`static inline` helper taking `u8* rgb` does *not* match (95%): the parameter
+is a pseudo holding `sp+0x10`, CSE keeps it in `$s0` and every channel is
+addressed `n($s0)`.
