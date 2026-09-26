@@ -141765,3 +141765,24 @@ register address that may trap), so the target's `move t2,a0` copy of the
 count has to be written as `n = count`. The `li t3,1` in front of it then also
 needs an explicit `one = 1` before the copy, the form the seed had. The
 `for` loop gets both for free but the inits in the wrong order.
+## `li $s4,9` / `move $s5,$s4` feeding two stores is a constant local that got no register (func_8009B500, 2026-09-26)
+
+Two `setlen` stores in a loop body took their `9` from otherwise unused
+callee-saved registers, the second as a copy of the first:
+
+```
+li    s4,9        ...   move  s5,s4   ...   sb  s4,-0x25(t3)   sb  s5,3(t3)
+```
+
+That is reload, not allocation. A `len = 9` set once at *function* scope has a
+`REG_EQUIV` constant and a live range spanning the whole loop (`used 5 times
+across 614 insns`), so global-alloc ranks it last and leaves it unallocated.
+Reload then rematerialises the constant at each use in a spill register - the
+same spare `$s4`/`$s5` it uses for the `gte_ldrgb(&D_...)` symbol inputs - and
+inheritance turns the second load into a copy. Setting `len = 9` inside the loop
+(or writing `setlen(p, 9)`) gives a block-local pseudo in `$v1` instead; the
+original was an asm block hand-emitting the four stores.
+
+**Fix.** When a constant appears in a spill-looking callee-saved register right
+at its use, declare it once before the loop: `len = 9;` beside the other
+function-scope initialisers, `setlen(&poly[0], len)` in the body.

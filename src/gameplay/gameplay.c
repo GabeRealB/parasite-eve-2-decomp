@@ -1438,43 +1438,29 @@ u32* gpXformStreamVertsOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* str
     return stream;
 }
 
-u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
 {
-    register TmdScratchModelBlock* ws asm("t8");
-    POLY_GT3*                      poly;
-    register SVECTOR*              svBase asm("s0");
-    DisplayState*                  ds;
-    u32                            mask;
-    u32                            maskHi;
-    u16*                           rec;
-    u8*                            verts;
-    u8*                            norms;
-    CVECTOR                        col;
-    SVECTOR*                       sv;
-    DVECTOR*                       sxy;
-    u8*                            dest;
-    u8*                            rgb;
-    u8*                            pCode;
-    u8*                            pU;
-    s32                            scale;
-    register s32                   combined asm("t7");
-    s32                            flag;
-    s32                            x;
-    s32                            i;
-    s32                            tpage;
-    s8                             su;
-    u8                             uu;
+    POLY_GT3* poly;
+    u16*      rec;
+    u8*       verts;
+    u8*       norms;
+    CVECTOR   col;
+    SVECTOR*  sv;
+    DVECTOR*  sxy;
+    u8*       dest;
+    u8*       rgb;
+    u8*       pCode;
+    u8*       pU;
+    s32       combined;
+    s32       flag;
+    s32       x;
+    s32       i;
+    s32       len;
 
-    ws = arg0;
-    TOUCH_REG(ws);
     poly = (POLY_GT3*)ws->primWrite;
     col  = gGpColorGrey;
+    len  = 9;
     if (ws->elemCount-- > 0) {
-        scale  = 0x1000;
-        svBase = &ws->elemNormal;
-        ds     = &gDisplayState;
-        mask   = 0xFFFFFF;
-        maskHi = 0xFF000000;
         do {
             rec   = (u16*)arg2;
             verts = (u8*)ws->verts;
@@ -1498,37 +1484,42 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     gte_strgb3_gt3(&poly[1]);
                     if (ws->obj->lightLevel < 0x1000) {
                         gte_lddp(ws->obj->lightLevel);
-                        rgb = (u8*)&poly[0].r0;
+                        rgb = &poly[0].r0;
                         gte_ldcv(rgb);
                         gte_gpf12();
-                        gte_lddp(scale - ws->obj->lightLevel);
+                        gte_lddp(0x1000 - ws->obj->lightLevel);
                         gte_ldcv(&col);
                         gte_gpl12();
                         gte_stcv(rgb);
                         gte_lddp(ws->obj->lightLevel);
-                        rgb = (u8*)&poly[0].r1;
+                        rgb = &poly[0].r1;
                         gte_ldcv(rgb);
                         gte_gpf12();
-                        gte_lddp(scale - ws->obj->lightLevel);
+                        gte_lddp(0x1000 - ws->obj->lightLevel);
                         gte_ldcv(&col);
                         gte_gpl12();
                         gte_stcv(rgb);
                         gte_lddp(ws->obj->lightLevel);
-                        rgb = (u8*)&poly[0].r2;
+                        rgb = &poly[0].r2;
                         gte_ldcv(rgb);
                         gte_gpf12();
-                        gte_lddp(scale - ws->obj->lightLevel);
+                        gte_lddp(0x1000 - ws->obj->lightLevel);
                         gte_ldcv(&col);
                         gte_gpl12();
                         gte_stcv(rgb);
                     }
+
+                    /* Environment-map UVs: each vertex's rotated normal, scaled by the
+                     * light level, offsets its screen position into the reflection
+                     * texture. A U past the first page wraps onto the second one and
+                     * is flagged in the pad byte after that vertex's colour. */
                     gte_rtv0();
-                    gte_stsv(svBase);
+                    gte_stsv(&ws->elemNormal);
                     combined = 0;
                     sxy      = (DVECTOR*)&poly[0].x0;
-                    dest     = (u8*)&poly[0].u0;
-                    flag     = combined;
-                    sv       = svBase;
+                    dest     = &poly[0].u0;
+                    flag     = 0;
+                    sv       = &ws->elemNormal;
                     gte_lddp(ws->obj->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12();
@@ -1536,7 +1527,7 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     x  = poly[0].x0 + 0xA0;
                     x -= ws->elemNormal.vx;
                     if (x < 0) {
-                        x = combined;
+                        x = 0;
                     } else if (x >= 0x100) {
                         x   -= 0x80;
                         flag = 1;
@@ -1558,12 +1549,12 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     dest[-6]  = flag;
 
                     gte_rtv1();
-                    gte_stsv(svBase);
+                    gte_stsv(&ws->elemNormal);
                     sxy = (DVECTOR*)&poly[0].x1;
                     TOUCH_REG(sxy);
-                    dest = (u8*)&poly[0].u1;
+                    dest = &poly[0].u1;
                     flag = 0;
-                    sv   = svBase;
+                    sv   = &ws->elemNormal;
                     gte_lddp(ws->obj->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12();
@@ -1571,7 +1562,7 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     x  = poly[0].x1 + 0xA0;
                     x -= ws->elemNormal.vx;
                     if (x < 0) {
-                        x = flag;
+                        x = 0;
                     } else if (x >= 0x100) {
                         x   -= 0x80;
                         flag = 1;
@@ -1593,12 +1584,12 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     dest[-6]  = flag;
 
                     gte_rtv2();
-                    gte_stsv(svBase);
+                    gte_stsv(&ws->elemNormal);
                     sxy = (DVECTOR*)&poly[0].x2;
                     TOUCH_REG(sxy);
-                    dest = (u8*)&poly[0].u2;
+                    dest = &poly[0].u2;
                     flag = 0;
-                    sv   = svBase;
+                    sv   = &ws->elemNormal;
                     gte_lddp(ws->obj->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12();
@@ -1606,7 +1597,7 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     x  = poly[0].x2 + 0xA0;
                     x -= ws->elemNormal.vx;
                     if (x < 0) {
-                        x = flag;
+                        x = 0;
                     } else if (x >= 0x100) {
                         x   -= 0x80;
                         flag = 1;
@@ -1626,18 +1617,19 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     combined |= flag;
                     *dest     = x;
                     dest[-6]  = flag;
+
                     if (combined == 0) {
-                        tpage = 0x137;
+                        poly[0].tpage = 0x137;
                     } else {
+                        /* The primitive samples the second page: a vertex that
+                         * did not wrap is shifted back 0x80, or clamped to 0. */
                         pCode = &poly[0].code;
                         i     = 0;
                         pU    = &poly[0].u0;
                         do {
                             if (*pCode == 0) {
-                                su = *pU;
-                                uu = *pU;
-                                if (su < 0) {
-                                    *pU = uu + 0x80;
+                                if ((s8)*pU < 0) {
+                                    *pU = *pU + 0x80;
                                 } else {
                                     *pU = 0;
                                 }
@@ -1646,29 +1638,15 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             i++;
                             pCode += 0xC;
                         } while (i < 3);
-                        tpage = 0x139;
+                        poly[0].tpage = 0x139;
                     }
-                    poly[0].tpage = tpage;
-                    __asm__ volatile(
-                        "li $20, 9\n\t"
-                        "li $2, 0x36\n\t"
-                        "move $21, $20\n\t"
-                        "sb $2, -33(%0)\n\t"
-                        "li $2, 0x34\n\t"
-                        "sb $2, 7(%0)\n\t"
-                        "addiu $2, %1, 40\n\t"
-                        "sb $20, -37(%0)\n\t"
-                        "sb $21, 3(%0)\n\t"
-                        "swc2 $7, 0($2)"
-                        :
-                        : "r"(&poly[1]), "r"(ws)
-                        : "$2", "memory");
-                    poly[0].tag = (poly[0].tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                    *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                        (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)&poly[0] & mask);
-                    poly[1].tag = (poly[1].tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                    *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                        (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)&poly[1] & mask);
+                    setlen(&poly[0], len);
+                    setcode(&poly[0], 0x36);
+                    setlen(&poly[1], len);
+                    setcode(&poly[1], 0x34);
+                    gte_stotz(&ws->gteResult);
+                    addPrim((u_long*)(((((u32)ws->gteResult << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot), &poly[0]);
+                    addPrim((u_long*)(((((u32)ws->gteResult << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot), &poly[1]);
                 }
             }
             poly += 2;
