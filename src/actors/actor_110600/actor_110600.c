@@ -130,7 +130,7 @@ typedef struct Actor110600Work {
     /* 0x892 */ s16  field_892;
     /* 0x894 */ s16  field_894;
     /* 0x896 */ s16  field_896;
-    /* 0x898 */ u16  field_898;
+    /* 0x898 */ s16  field_898;
     /* 0x89A */ s16  field_89A;
     /* 0x89C */ s16  field_89C;
     /* 0x89E */ byte pad_89E[4];
@@ -1947,8 +1947,6 @@ static void func_actor_110600_80135454(Task* arg0)
     SVECTOR*         d;
     s16              angle;
     u16              ramp;
-    u16              timer;
-    s32              mode;
     s32              pose;
     s32              nextPose;
 
@@ -1960,16 +1958,11 @@ static void func_actor_110600_80135454(Task* arg0)
         work->field_A90.flags    &= 0x7FFF;
         work->field_950.flags    |= 0x4000;
         enemy->node.state.b.flags = 8;
-        timer                     = work->field_898;
         work->field_88C           = 1;
-        do {
-            CLOBBER_REG(v0);
-            work->walker.state = 1;
-            mode               = (s16)work->field_898;
-            work->field_892    = 2;
-        } while (0);
-        work->field_896 = timer;
-        if (mode == 0x38)
+        work->field_892           = 2;
+        work->walker.state        = 1;
+        work->field_896           = work->field_898;
+        if (work->field_898 == 0x38)
             work->walker.field_5A = 0x30;
         work->walker.field_5A = 0x1C;
         work->field_BE0       = 0;
