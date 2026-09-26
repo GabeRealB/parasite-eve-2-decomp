@@ -1022,7 +1022,6 @@ static const TaskFuncTable3 Gp_EffTask07States = { {
 
 static void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
 {
-    u8*              head;
     GpFxQuadScratch* block;
     GpEffWork*       mem;
     TmdObject*       extra;
@@ -1031,40 +1030,30 @@ static void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
     u16              abr;
     s32              uv;
     s32              uv2;
-    u8               green;
-    u8               blue;
     s32              ang;
     u16              size;
     u16              frame;
     u16              angle;
-    u16              vz;
 
-    extra                                     = arg0->extra.tmd;
-    mem                                       = arg0->spawnArg2;
-    abr                                       = 1;
-    head                                      = SCRATCH_HEAD(u8);
-    coord                                     = extra->coords;
-    size                                      = mem->pos.vx;
-    frame                                     = mem->index;
-    angle                                     = mem->pos.vz;
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
-    {
-        register u8* tmp asm("v0");
-        tmp   = head - 0x1C;
-        block = (GpFxQuadScratch*)tmp;
-    }
-    block->vec.vy                 = (u16)coord->workm.t[1];
-    vz                            = (u16)coord->workm.t[2];
-    SCRATCH_HEAD(GpFxQuadScratch) = block;
-    block->vec.vz                 = vz;
+    extra         = arg0->extra.tmd;
+    mem           = arg0->spawnArg2;
+    abr           = 1;
+    coord         = extra->coords;
+    size          = mem->pos.vx;
+    frame         = mem->index;
+    angle         = mem->pos.vz;
+    block         = SCRATCH_PUSH(GpFxQuadScratch);
+    block->vec.vx = coord->workm.t[0];
+    block->vec.vy = coord->workm.t[1];
+    block->vec.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&block->otz);
         block->otz     = block->otz + 1;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -1072,23 +1061,15 @@ static void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
         setcode(prim, 0x2C);
         if (arg1 == 1) {
             if (arg2 != NULL) {
-                prim->r0 = arg2[0];
-                green    = arg2[1];
-                COMPILER_BARRIER();
                 abr = 2;
-                goto rgb;
+                setRGB0(prim, arg2[0], arg2[1], arg2[2]);
+                setSemiTrans(prim, 1);
+            } else {
+                setRGB0(prim, 0x20, 0x20, 0x20);
             }
-            prim->r0 = 0x20;
-            prim->g0 = 0x20;
-            prim->b0 = 0x20;
         } else if (arg2 != NULL) {
-            prim->r0 = arg2[0];
-            green    = arg2[1];
-        rgb:
-            prim->g0 = green;
-            blue     = arg2[2];
+            setRGB0(prim, arg2[0], arg2[1], arg2[2]);
             setSemiTrans(prim, 1);
-            prim->b0 = blue;
         } else {
             setcode(prim, 0x2D);
         }
@@ -1113,7 +1094,7 @@ static void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_POP(GpFxQuadScratch);
 }
 
 static void Gp_DrawEffQuadT29(GpCoord* arg0, s32 arg1, u16 arg2, u16 arg3)
