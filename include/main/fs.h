@@ -501,7 +501,6 @@ extern FsCdfStream Fs_Streams[0xa];
 #ifndef FS_C
 extern FsSector Fs_CdSector;
 #endif
-extern SpuCommonAttr Fs_SpuAttr;
 
 // Boot load-buffer pointer (data unit `boot_loadbuf`)
 extern FsImgBuffers* Fs_ImgBuffers;
@@ -530,7 +529,6 @@ extern u16          D5B498_8006D85A;
 extern u16          D5B498_8006EA1A;
 extern u16          D5B498_8006EBB0;
 #endif
-extern s16 D5B498_8006EBF0;
 
 // Args used by Fs_OnCdError
 #define FS_ERROR_SOFT 0x0

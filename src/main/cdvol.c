@@ -11,6 +11,17 @@ static void CdVol_ClearCallbackSlot(void);
 static void CdVol_Set(s32 arg0);
 static s32  Cd_Flush(void);
 
+static u16 D_8006EBB8;
+static s8  D_8006EBBA;
+/// Unreferenced.
+static u8            D_8006EBC0[8];
+static SpuCommonAttr Fs_SpuAttr;
+static s16           D5B498_8006EBF0;
+static s16           D_8006EBF2;
+static volatile s32  D_8006EBF4;
+/// Unreferenced.
+static u8 D_8006EBF8[8];
+
 void Fs_StreamReadyCb(u8 status, u8* result)
 {
     SndLoadState* state;
