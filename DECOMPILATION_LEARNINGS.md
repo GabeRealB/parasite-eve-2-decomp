@@ -142240,3 +142240,22 @@ complex operand the rule puts first, so baseY leads. The out-of-line `Gp_DrawQty
 same body, so it became a wrapper over the helper. When an inlined sum has
 its operands swapped, look at how many insns combine merged before changing
 the expression's order - reordering `y + arg2` / `arg2 + y` did nothing here.
+## `move sN,v0` after a scratch carve with the head store *late*, and `v0`/`v1` pins on two parallel conversions (Gp_DrawMapCursor, 2026-09-26)
+
+**Carve.** Target: `lw v0,0(a1); addiu v0,v0,-0x1C; move s1,v0`, field stores
+through `s1`, and `sw s1,0(a1)` only after the first computed field. That late
+store does not mean the source stored the head late: it is still
+`pos = SCRATCH_PUSH(T);` at the top. The push's value is used by both the head
+store and the copy into `pos`, so combine cannot fold the carve into `pos`;
+sched1 then sinks the scalar head store past the struct stores (they cannot
+alias it), and `optimize_reg_copy_1` rewrites it to read the copy. Writing
+`pos = SCRATCH_HEAD(T) - 1; ... SCRATCH_HEAD(T) = pos;` gives `addiu s1,v0,-0x1C`
+with no copy, wherever the store is placed.
+
+**Two conversions.** `x = base_x - (a - m.t[0]) / sx; y = base_y + (b - m.t[2]) / sy`
+needed pins to keep each quotient's chain in `v0`. Reusing two locals for both
+halves (`off = (...) / sx; base = rec->x0; pos->x = base - off;` then the same
+for `y`) makes `off` and `base` die twice, so they are global, local-alloc cannot
+tie the add/sub result to the field load, and the chain keeps `v0`. Writing
+`off = base + off` instead flips the `addu` operands (expand swaps a commutative
+op whose second operand is the target).

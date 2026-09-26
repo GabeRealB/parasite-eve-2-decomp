@@ -2706,21 +2706,17 @@ void Gp_MapTaskState2(Task* arg0)
 
 void Gp_DrawMapCursor(Task* arg0)
 {
-    UiObject*        obj;
-    GameActor*       actor;
-    GpMapRec*        rec;
-    PlayerStatus*    cfg;
-    GpMapCursorPos*  pos;
-    register s32     temp asm("v0");
-    register MATRIX* mat asm("v1");
-    register s32     origin asm("a0");
-    s32              scale;
-    register s32     base asm("v1");
-    s32              off;
-    SPRT_16*         p;
-    DR_TPAGE*        dr;
-    s32              u0;
-    s32              ang;
+    UiObject*       obj;
+    GameActor*      actor;
+    GpMapRec*       rec;
+    PlayerStatus*   cfg;
+    GpMapCursorPos* pos;
+    s32             off;
+    s32             base;
+    SPRT_16*        p;
+    DR_TPAGE*       dr;
+    s32             u0;
+    s32             ang;
 
     obj   = arg0->spawnArg2;
     cfg   = &Player_Status;
@@ -2731,29 +2727,16 @@ void Gp_DrawMapCursor(Task* arg0)
         return;
     }
 
-    temp          = (s32)SCRATCH_HEAD(void) - 0x1C;
-    pos           = (GpMapCursorPos*)temp;
+    pos           = SCRATCH_PUSH(GpMapCursorPos);
     pos->field_14 = 0;
     pos->field_12 = 0;
     pos->field_10 = 0;
-
-    mat                          = cfg->coordMtx;
-    origin                       = mat->t[0];
-    off                          = rec->field_0 - origin;
-    scale                        = rec->field_8;
-    off                          = off / scale;
-    base                         = rec->field_4;
-    off                          = base - off;
-    pos->x                       = off;
-    SCRATCH_HEAD(GpMapCursorPos) = pos;
-    mat                          = cfg->coordMtx;
-    origin                       = mat->t[2];
-    off                          = rec->field_2 - origin;
-    scale                        = rec->field_A;
-    off                          = off / scale;
-    base                         = rec->field_6;
-    temp                         = base + off;
-    pos->y                       = temp;
+    off           = (rec->field_0 - cfg->coordMtx->t[0]) / rec->field_8;
+    base          = rec->field_4;
+    pos->x        = base - off;
+    off           = (rec->field_2 - cfg->coordMtx->t[2]) / rec->field_A;
+    base          = rec->field_6;
+    pos->y        = base + off;
 
     p              = (SPRT_16*)gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
@@ -2794,12 +2777,12 @@ noDir:
 
     p->x0 = pos->x - 8;
     p->y0 = pos->y - 8;
-    addPrim(&gGpuCurrentOt[(s16)obj->drawOrder - 0x1C], p);
+    addPrim(&gGpuCurrentOt[obj->drawOrder - 0x1C], p);
     dr             = gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
     setDrawTPage(dr, 0, 0, 0xE);
-    addPrim(&gGpuCurrentOt[(s16)obj->drawOrder - 0x1C], dr);
-    SCRATCH_POP_BYTES(0x1C);
+    addPrim(&gGpuCurrentOt[obj->drawOrder - 0x1C], dr);
+    SCRATCH_POP(GpMapCursorPos);
 }
 
 void func_800D0614(Task* arg0)
