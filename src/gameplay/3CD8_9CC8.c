@@ -431,44 +431,28 @@ void Gp_DrawFadeQuad(u8* arg0, s32 arg1)
 
 void Gp_DrawArc(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
-    u8*           head;
     GpArcScratch* block;
     POLY_G4*      prim;
     DR_TPAGE*     dr;
     s32           ang;
-    s32           ang2;
     s32           otz;
-    u16           vz;
 
-    head = SCRATCH_HEAD(u8);
-    USE_REG(head);
-    {
-        register u16 vx asm("v0");
-        vx                                     = (u16)arg0->workm.t[0];
-        ((GpArcScratch*)(head - 0x1C))->vec.vx = vx;
-    }
-    {
-        register u8* tmp asm("v0");
-        tmp   = head - 0x1C;
-        block = (GpArcScratch*)tmp;
-    }
-    block->vec.vy              = (u16)arg0->workm.t[1];
-    vz                         = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpArcScratch) = block;
-    block->vec.vz              = vz;
+    block         = SCRATCH_PUSH(GpArcScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpArcScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpArcScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpArcScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&block->otz);
         block->otz++;
-        ang          = 0;
         block->inner = ((s16)arg1 * 64) / block->otz;
         block->outer = (((s16)arg1 + (s16)arg2) * 64) / block->otz;
-        do {
+        for (ang = 0; ang < 0x1000; ang += 0x100) {
             prim           = (POLY_G4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
@@ -477,14 +461,13 @@ void Gp_DrawArc(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
             setRGB2(prim, rgb[0], rgb[1], rgb[2]);
             setRGB3(prim, rgb[0], rgb[1], rgb[2]);
             prim->x0 = block->sx + ((block->inner * rsin(ang)) >> 12);
-            ang2     = ang + 0x100;
             prim->y0 = block->sy + ((block->inner * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->inner * rsin(ang2)) >> 12);
-            prim->y1 = block->sy + ((block->inner * rcos(ang2)) >> 12);
+            prim->x1 = block->sx + ((block->inner * rsin(ang + 0x100)) >> 12);
+            prim->y1 = block->sy + ((block->inner * rcos(ang + 0x100)) >> 12);
             prim->x2 = block->sx + ((block->outer * rsin(ang)) >> 12);
             prim->y2 = block->sy + ((block->outer * rcos(ang)) >> 12);
-            prim->x3 = block->sx + ((block->outer * rsin(ang2)) >> 12);
-            prim->y3 = block->sy + ((block->outer * rcos(ang2)) >> 12);
+            prim->x3 = block->sx + ((block->outer * rsin(ang + 0x100)) >> 12);
+            prim->y3 = block->sy + ((block->outer * rcos(ang + 0x100)) >> 12);
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);
@@ -496,10 +479,9 @@ void Gp_DrawArc(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
             addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     dr);
-            ang = ang2;
-        } while (ang < 0x1000);
+        }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_POP(GpArcScratch);
 }
 
 void Gp_DrawRing(GpCoord* arg0, s32 arg1, u8* rgb)
