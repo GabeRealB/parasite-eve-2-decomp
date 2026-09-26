@@ -987,17 +987,14 @@ void func_shelter_b1_sterilization_room_8017EFE4(Task* task)
 /// zero `arg5` or a width below 2.
 static void func_shelter_b1_sterilization_room_8017F0D4(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
 {
-    register s32 dx asm("v1");
-    register s32 w asm("t3");
-    POLY_G4*     prim;
-    s16          x;
-    s16          y;
+    POLY_G4* prim;
+    s16      x;
+    s32      y;
+    s16      bottom;
 
-    dx = arg1;
-    w  = arg3;
-    if ((arg5 != 0) && (w >= 2)) {
+    if ((arg5 != 0) && (arg3 >= 2)) {
         prim           = (POLY_G4*)gGpuPrimCursor;
-        x              = arg0->field_20 + dx + 1;
+        x              = arg0->field_20 + arg1 + 1;
         prim->x2       = x;
         prim->x0       = x;
         y              = arg0->field_22;
@@ -1008,15 +1005,16 @@ static void func_shelter_b1_sterilization_room_8017F0D4(UiPanel* arg0, s32 arg1,
         PRIM_COLOR_WORD(prim, 2) = arg5;
         PRIM_COLOR_WORD(prim, 3) = arg6;
         PRIM_COLOR_WORD(prim, 1) = arg6;
-        y                        = y + arg2 + 1;
-        x                        = (u16)prim->x0 + w - 1;
-        prim->y1                 = y;
-        prim->y0                 = y;
-        prim->x3                 = x;
-        prim->x1                 = x;
-        y                        = y + arg4 - 1;
-        prim->y3                 = y;
-        prim->y2                 = y;
+        y                       += arg2;
+        y++;
+        x        = prim->x0 + arg3 - 1;
+        prim->y1 = y;
+        prim->y0 = y;
+        prim->x3 = x;
+        prim->x1 = x;
+        bottom   = y + arg4 - 1;
+        prim->y3 = bottom;
+        prim->y2 = bottom;
         addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, prim);
     }
 }
