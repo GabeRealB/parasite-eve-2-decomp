@@ -115901,6 +115901,11 @@ with block topology and instruction counts matching throughout:
 __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
 ```
 
+  That asm is a hack, and the natural source needs neither it nor the stack
+  local: `gfxLoadRotSv(matrix, &blk->delta)` (`include/main/gfxgte.h`) replaces
+  the copy, `gte_SetRotMatrix` and the asm, and the helper's own inlined local
+  gets its address formed at the `lwc2` pair (`Actor01100_Fn06954`, 100%).
+
 The tell for both is `reorder` non-zero with `stack`/`branch`/`insert`/`delete`
 all zero and `blocks`/`instructions` matching: a statement position, not a
 missing or extra operation. The sibling `func_actor_403600_8013E66C` already

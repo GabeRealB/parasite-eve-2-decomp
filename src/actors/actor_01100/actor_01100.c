@@ -3035,7 +3035,6 @@ static void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
 /// later lets it take the call's delay slot instead of the third store.
 static s32 Actor01100_Fn06954(GpCoord* arg0, s32 arg1)
 {
-    SVECTOR              local;
     Task*                actor;
     GpCoord*             coord;
     s32                  angle;
@@ -3052,7 +3051,7 @@ static s32 Actor01100_Fn06954(GpCoord* arg0, s32 arg1)
     head  = SCRATCH_HEAD(ActorBearingScratch);
     blk   = head - 1;
 
-    (head - 1)->delta.vx              = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
+    blk->delta.vx                     = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
     blk->delta.vy                     = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
     SCRATCH_HEAD(ActorBearingScratch) = blk;
     blk->delta.vz                     = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
@@ -3060,9 +3059,7 @@ static s32 Actor01100_Fn06954(GpCoord* arg0, s32 arg1)
     matrix = &blk->frame;
     TransposeMatrix(&arg0->workm, matrix);
 
-    local = blk->delta;
-    gte_SetRotMatrix(matrix);
-    __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
+    gfxLoadRotSv(matrix, &blk->delta);
     gte_rtv0();
     gte_stsv(&blk->delta);
 
