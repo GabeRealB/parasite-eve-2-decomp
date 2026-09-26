@@ -3930,78 +3930,52 @@ static void func_shelter_b3_dumping_hole_801866CC(GpCoord* arg0, u16 arg1, s16 a
 /// drawn when the projection flags an error.
 static void func_shelter_b3_dumping_hole_80186AB8(GpCoord* arg0, s32 arg1, s32 arg2)
 {
-    void**         scratch;
-    u8*            head;
     GpRingScratch* block;
     POLY_FT4*      prim;
-    SVECTOR*       vec;
-    DisplayState*  ds;
-    s32            tex;
+    u16            idx;
     u32            cell;
-    s32            u1;
-    s32            v0;
-    s32            v1;
-    s32            sarg;
-    s32            t;
-    s16            xy;
-    u16            vz;
+    s32            row;
+    u8             u0;
+    u8             u1;
+    u8             v0;
+    u8             v1;
 
-    scratch                                 = (void**)G_SCRATCH_HEAD;
-    head                                    = *scratch;
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
-    block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = (u16)arg0->workm.t[1];
-    vz                                      = (u16)arg0->workm.t[2];
-    tex                                     = arg1;
-    SOFT_TOUCH_REG(tex);
-    *scratch      = block;
-    block->vec.vz = vz;
-    vec           = &block->vec;
+    idx           = arg1;
+    block         = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+        gte_stszotz(&block->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
         prim->tpage = 0x2B;
-        cell        = (u16)tex;
         prim->clut  = 0x4393;
-        tex         = (cell & 3) * 0x38;
-        SOFT_BARRIER();
-        v0          = ((cell & 7) >> 2) * 0x38;
-        u1          = tex + 0x37;
-        prim->v0    = v0;
-        prim->v1    = v0;
-        v1          = v0 + 0x37;
-        prim->u1    = u1;
-        prim->u3    = u1;
-        sarg        = (s16)arg2;
-        prim->v2    = v1;
-        prim->v3    = v1;
-        t           = sarg * 0x38;
-        prim->u0    = tex;
-        prim->u2    = tex;
-        block->step = (t - sarg) / block->otz;
-        xy          = (u16)block->sx - (u16)block->step;
-        prim->x0 = prim->x2 = xy;
-        xy                  = (u16)block->sx + (u16)block->step;
-        prim->x1 = prim->x3 = xy;
-        xy                  = ((u16)block->sy - (u16)block->step) - (block->step >> 1);
-        ds                  = &gDisplayState;
-        prim->y0 = prim->y1 = xy;
-        xy                  = (u16)block->sy + (block->step >> 1);
-        prim->y2 = prim->y3 = xy;
-        addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
+        cell        = idx;
+        u0          = (cell & 3) * 0x38;
+        row         = ((cell & 7) >> 2) * 0x38;
+        v0          = row;
+        v1          = row + 0x37;
+        u1          = u0 + 0x37;
+        setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
+        block->step = ((s16)arg2 * 55) / block->otz;
+        prim->x0 = prim->x2 = block->sx - block->step;
+        prim->x1 = prim->x3 = block->sx + block->step;
+        prim->y0 = prim->y1 = block->sy - block->step - (block->step >> 1);
+        prim->y2 = prim->y3 = block->sy + (block->step >> 1);
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x18);
+    SCRATCH_POP(GpRingScratch);
 }
 
 static void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
