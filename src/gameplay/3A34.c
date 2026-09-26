@@ -43,6 +43,17 @@ typedef struct {
 } _GpPanScratch;
 STATIC_ASSERT_SIZEOF(_GpPanScratch, 0x18);
 
+/// 0xB0-byte scratch from `G_SCRATCH_HEAD` used by `func_800DF6AC`: the
+/// quad-test block `func_800DEF80` works in, followed by `dir`, the normalised
+/// offset of the object's origin from the point the caller passes. The test
+/// goes no further unless `dir` points against the quad's normal.
+typedef struct {
+    GpQuadHitScratch quad;
+    u8               unk98[8];
+    VECTOR           dir;
+} _GpQuadDirScratch;
+STATIC_ASSERT_SIZEOF(_GpQuadDirScratch, 0xB0);
+
 void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 extern McItemRec* Gp_SelItemRec;
@@ -4645,147 +4656,101 @@ static void func_800DEF80(GpObj* node, GpObj4C* other)
     SCRATCH_POP(GpQuadHitScratch);
 }
 
-static void func_800DF6AC(GpObj* arg0, GpObj4C* arg1, VECTOR3* arg2)
+static void func_800DF6AC(GpObj* node, GpObj4C* other, VECTOR3* from)
 {
-    VECTOR*    va;
-    VECTOR*    vb;
-    GpU16Pair* pair;
-    u8*        t;
-    s32        off;
-    GpObj*     obj;
-    u8*        head;
-    VECTOR*    block;
-    s32        i;
-    void**     sp;
-    s32        dot;
-    s32        dx2;
-    s32        tmp2;
-    s32        tmp3;
-    s32        rawDot;
-    s32        pointDot;
-    s32        radius3;
-    s32        plane3;
-    VECTOR*    vec4;
-    s32        tmp5;
-    obj                  = arg0;
-    head                 = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(VECTOR) = (VECTOR*)(head - 0xB0);
-    block                = SCRATCH_HEAD(VECTOR);
-    block[10].vx         = (obj->coord)->coord.t[0] - arg2->vx;
-    block[10].vy         = (obj->coord)->coord.t[1] - arg2->vy;
-    block[10].vz         = (obj->coord)->coord.t[2] - arg2->vz;
-    SquareRoot0(block[10].vx * block[10].vx + block[10].vy * block[10].vy + block[10].vz * block[10].vz);
-    VectorNormal((VECTOR*)(head - 0x10), (VECTOR*)(head - 0x10));
+    _GpQuadDirScratch* block;
+    s32                dist;
+    s32                tmp;
+    s32                i;
+    VECTOR *           va, *vb;
+    s16                faceDot;
 
-    dot = (arg1->field_34.vx * block[10].vx) + (arg1->field_34.vy * block[10].vy) + (arg1->field_34.vz * block[10].vz);
-    if (dot >= 0) {
-        SCRATCH_POP_BYTES(0xB0);
-        return;
-    }
-    Gp_ObjWorldPosInline(obj, (VECTOR*)(head - 0x30));
-    gte_SetRotMatrix(&arg1->field_8->workm);
-    gte_ldv0(&arg1->field_C);
-    gte_rtv0();
-    gte_stlvnl((VECTOR*)(head - 0x70));
-    block[4].vx += arg1->field_8->workm.t[0];
-    block[4].vy += arg1->field_8->workm.t[1];
-    block[4].vz += arg1->field_8->workm.t[2];
-    block[6].vx  = block[4].vx - block[8].vx;
-    block[6].vy  = block[4].vy - block[8].vy;
-    block[6].vz  = block[4].vz - block[8].vz;
-    dx2          = block[6].vx * block[6].vx + block[6].vy * block[6].vy + block[6].vz * block[6].vz;
-    tmp2         = (u16)arg1->field_44 + (u16)obj->radius;
-    if ((tmp2 * tmp2) < dx2) {
-        SCRATCH_POP_BYTES(0xB0);
+    SCRATCH_PUSH(_GpQuadDirScratch);
+    block         = SCRATCH_HEAD(_GpQuadDirScratch);
+    block->dir.vx = node->coord->coord.t[0] - from->vx;
+    block->dir.vy = node->coord->coord.t[1] - from->vy;
+    block->dir.vz = node->coord->coord.t[2] - from->vz;
+    SquareRoot0(block->dir.vx * block->dir.vx + block->dir.vy * block->dir.vy + block->dir.vz * block->dir.vz);
+    VectorNormal(&block->dir, &block->dir);
+    if (other->field_34.vx * block->dir.vx + other->field_34.vy * block->dir.vy + other->field_34.vz * block->dir.vz >=
+        0) {
+        SCRATCH_POP(_GpQuadDirScratch);
         return;
     }
 
-    gte_ldv0(&arg1->field_14[0]);
+    Gp_ObjWorldPosInline(node, &block->quad.nodePos);
+    gte_SetRotMatrix(&other->field_8->workm);
+    gte_ldv0(&other->field_C);
     gte_rtv0();
-    gte_stlvnl(block);
-    ((VECTOR*)(head - 0xB0))->vx += block[4].vx;
-    block[0].vy                  += block[4].vy;
-    block[0].vz                  += block[4].vz;
+    gte_stlvnl(&block->quad.world);
+    block->quad.world.vx += other->field_8->workm.t[0];
+    block->quad.world.vy += other->field_8->workm.t[1];
+    block->quad.world.vz += other->field_8->workm.t[2];
 
-    gte_ldv0(&arg1->field_34);
-    gte_rtv0();
-    gte_stlvnl((VECTOR*)(head - 0x60));
-
-    rawDot   = (block[5].vx * ((VECTOR*)(head - 0xB0))->vx) + (block[5].vy * block[0].vy) + (block[5].vz * block[0].vz);
-    pointDot = (block[5].vx * block[8].vx) + (block[5].vy * block[8].vy) + (block[5].vz * block[8].vz);
-    tmp3     = (rawDot << 4) >> 16;
-    plane3   = (pointDot >> 12) - tmp3;
-    if (plane3 >= 0) {
-        SCRATCH_POP_BYTES(0xB0);
+    block->quad.delta.vx = block->quad.world.vx - block->quad.nodePos.vx;
+    block->quad.delta.vy = block->quad.world.vy - block->quad.nodePos.vy;
+    block->quad.delta.vz = block->quad.world.vz - block->quad.nodePos.vz;
+    tmp                  = other->field_44 + node->radius;
+    if (tmp * tmp < block->quad.delta.vx * block->quad.delta.vx + block->quad.delta.vy * block->quad.delta.vy +
+                        block->quad.delta.vz * block->quad.delta.vz) {
+        SCRATCH_POP(_GpQuadDirScratch);
         return;
     }
 
-    radius3 = -(s32)(u16)obj->radius;
-    if (plane3 >= radius3) {
-        goto body;
+    gte_ldv0(&other->field_14[0]);
+    gte_rtv0();
+    gte_stlvnl(&block->quad.verts[0]);
+    block->quad.verts[0].vx += block->quad.world.vx;
+    block->quad.verts[0].vy += block->quad.world.vy;
+    block->quad.verts[0].vz += block->quad.world.vz;
+
+    gte_ldv0(&other->field_34);
+    gte_rtv0();
+    gte_stlvnl(&block->quad.normal);
+
+    faceDot = (block->quad.normal.vx * block->quad.verts[0].vx + block->quad.normal.vy * block->quad.verts[0].vy +
+               block->quad.normal.vz * block->quad.verts[0].vz) >>
+              12;
+    dist = ((block->quad.normal.vx * block->quad.nodePos.vx + block->quad.normal.vy * block->quad.nodePos.vy +
+             block->quad.normal.vz * block->quad.nodePos.vz) >>
+            12) -
+           faceDot;
+    if (dist >= 0 || dist < -node->radius) {
+        SCRATCH_POP(_GpQuadDirScratch);
+        return;
     }
 
-restore_early:
-    SCRATCH_POP_BYTES(0xB0);
-    return;
-
-restore_reload:
-    sp = SCRATCH_HEAD_ADDR;
-    goto do_restore;
-
-body:
-    i    = 1;
-    vec4 = (VECTOR*)(head - 0xA0);
-    off  = 0x1C;
-    do {
-        gte_ldv0((SVECTOR*)((u8*)arg1 + off));
+    for (i = 1; i < 4; i++) {
+        gte_ldv0(&other->field_14[i]);
         gte_rtv0();
-        gte_stlvnl(vec4);
-        vec4->vx += block[4].vx;
-        TOUCH_REG(vec4);
-        off      += 8;
-        vec4->vy += block[4].vy;
-        i++;
-        vec4->vz += block[4].vz;
-        vec4++;
-    } while (i < 4);
+        gte_stlvnl(&block->quad.verts[i]);
+        block->quad.verts[i].vx += block->quad.world.vx;
+        block->quad.verts[i].vy += block->quad.world.vy;
+        block->quad.verts[i].vz += block->quad.world.vz;
+    }
 
-    i    = 1;
-    t    = (u8*)Gp_FaceEdgePairs;
-    pair = (GpU16Pair*)(t + 4);
-    do {
-        TOUCH_REG(block);
-        {
-            s32 ia;
-            s32 ib;
-            ia = pair->field_0;
-            ib = pair->field_2;
-            va = &block[ia];
-            vb = &block[ib];
-        }
-        block[6].vx = va->vx - vb->vx;
-        block[6].vy = va->vy - vb->vy;
-        block[6].vz = va->vz - vb->vz;
-        gte_ldopv1(&block[5]);
-        gte_ldopv2(&block[6]);
+    for (i = 1; i < 5; i++) {
+        va                   = &block->quad.verts[(u16)Gp_FaceEdgePairs[i].field_0];
+        vb                   = &block->quad.verts[(u16)Gp_FaceEdgePairs[i].field_2];
+        block->quad.delta.vx = va->vx - vb->vx;
+        block->quad.delta.vy = va->vy - vb->vy;
+        block->quad.delta.vz = va->vz - vb->vz;
+        gte_ldopv1(&block->quad.normal);
+        gte_ldopv2(&block->quad.delta);
         gte_op12();
-        gte_stlvnl(&block[7]);
-        tmp2   = (block[7].vx * block[8].vx) + (block[7].vy * block[8].vy);
-        tmp2  += block[7].vz * block[8].vz;
-        tmp2 >>= 12;
-        tmp5   = (block[7].vx * va->vx) + (block[7].vy * va->vy) + (block[7].vz * va->vz);
-        i++;
-        tmp2 -= tmp5 >> 12;
-        if (tmp2 >= 0) {
-            goto restore_reload;
+        gte_stlvnl(&block->quad.cross);
+        tmp   = block->quad.cross.vx * block->quad.nodePos.vx + block->quad.cross.vy * block->quad.nodePos.vy;
+        tmp  += block->quad.cross.vz * block->quad.nodePos.vz;
+        tmp >>= 12;
+        tmp  -= (block->quad.cross.vx * va->vx + block->quad.cross.vy * va->vy + block->quad.cross.vz * va->vz) >> 12;
+        if (tmp >= 0) {
+            SCRATCH_POP(_GpQuadDirScratch);
+            return;
         }
-        pair++;
-    } while (i < 5);
+    }
 
-    sp             = SCRATCH_HEAD_ADDR;
-    arg1->field_4B = 1;
-do_restore:
-    SCRATCH_POP_BYTES_AT(sp, 0xB0);
+    other->field_4B = 1;
+    SCRATCH_POP(_GpQuadDirScratch);
 }
 
 s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)

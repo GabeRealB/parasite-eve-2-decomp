@@ -143742,3 +143742,15 @@ field stores, and the `block` copy it leaves between the field store and the
 asm stops reload's equivalence search, as in `func_800D9794`. A head store in
 the middle of the block's initialisation is not evidence for hand-computed
 offsets.
+## `TOUCH_REG` on a walking pointer inside a loop stood for indexed source (func_800DF6AC, 2026-09-26)
+
+The seed walked both loops with hand-held pointers (`vec4++`, `off += 8`,
+`pair++`) and needed `TOUCH_REG(vec4)` and `TOUCH_REG(block)` in the bodies:
+without them loop.c strength-reduced `vec4`'s field addresses into a second
+pointer and hoisted `&block[5]`/`&block[6]`/`&block[7]`. The target's
+pointers (`a0` over the corners, `t3` over the edge table, `off` added to the
+object) are loop.c's own reductions of `for (i = 1; i < N; i++)` loops over
+`&other->field_14[i]`, `&block->verts[i]` and `Gp_FaceEdgePairs[i]`. Written that
+way, and with the scratch block as a struct, the body matched outright. The
+preceding function in the unit ran the same quad test hack-free, and its body
+was the template: check neighbours for the same algorithm before steering loops.
