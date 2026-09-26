@@ -322,21 +322,14 @@ typedef struct GpDisp2d {
 } GpDisp2d;
 STATIC_ASSERT_SIZEOF(GpDisp2d, 0x60);
 
-/// 4-byte recorded pad pair in the demo/replay stream at `Gp_ReplayCursor`.
-/// `Gp_ApplyPadReplay` copies `buttons` into `PadScratch` and counts `duration`
-/// frames before advancing. `0xFFFF` buttons is the end marker.
-typedef struct _GpPadReplay {
-    /* 0x0 */ u16 buttons;
-    /* 0x2 */ u16 duration;
-} GpPadReplay;
-STATIC_ASSERT_SIZEOF(GpPadReplay, 0x4);
-
 /// Current replay buttons / remaining frame count / stream cursor.
 extern u16 Gp_ReplayButtons;
 extern u16 Gp_ReplayFramesLeft;
 /// Word cleared by `Gp_SetAttachState`; `Gp_UseItemTask` increments and tests it.
-extern s32          D_80114C34;
-extern GpPadReplay* Gp_ReplayCursor;
+extern s32 D_80114C34;
+/// Read position in the recorded demo pad stream: `u16` pairs of a button mask
+/// and the number of frames it is held, ended by a `0xFFFF` button mask.
+extern u16* Gp_ReplayCursor;
 
 /// State of the gameplay random generator, kept in the resident image so every
 /// overlay draws from one sequence. A draw steps it to `state * 5 +

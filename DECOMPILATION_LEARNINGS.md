@@ -30568,7 +30568,7 @@ offset = (s32)Gp_ReplayCursor - (s32)D_8005C374;
 if (gDisplayState.demoScene == 0x10) {
     offset = (s32)Gp_ReplayCursor + 0x7F9FFF00;
 }
-/* later: Gp_ReplayCursor->buttons */
+/* later: Gp_ReplayCursor[0] */
 ```
 
 ```
@@ -30581,10 +30581,10 @@ subu  a2, a0, v0
 
 `Gp_ApplyPadReplay` is the example.
 
-## Pin the reload to `$a0` and barrier so increment store stays before `lhu`
+## A load kept below a fixed-address pointer store is a plain `*p`, not a struct field
 
-Advancing a global pointer then reading the next record through the old
-pointer wants:
+Advancing a global stream pointer and then testing the next record wants the
+load *after* the pointer store:
 
 ```
 lw    a0, ptr
@@ -30595,24 +30595,25 @@ sw    v0, ptr
 lhu   v1, 4(a0)
 ```
 
-A plain `rec = ptr; ptr = rec + 1; if (rec[1].field == SENTINEL)`
-schedules `lhu` before the `addiu`/`sw`. Wrapping the increment in
-`do { ptr = rec + 1; } while (0)` fixes the order but recolors: `%hi(ptr)`
-lands in `$a0` and the value in `$v1`/`$a1`.
-
-Pin the reload to `$a0` and put an empty `asm volatile("")` after the
-increment store. Dead `$a1` stays as `%hi(ptr)` and the `lhu` waits:
+With the stream typed as a struct (`rec[1].field` or `ptr->field` after the
+store), the load is `MEM_IN_STRUCT_P` at a varying address, so
+`fixed_scalar_and_varying_struct_p` says it cannot alias the store to the
+scalar global `ptr`, and sched2 hoists the `lhu` above the `addiu`/`sw` as soon
+as its destination register is free. A pin and an empty `asm volatile("")`
+only imitate the missing dependence. The real one appears when the stream is a
+`u16 *` and the test is a bare dereference - `*p` of a pointer variable is the
+one `INDIRECT_REF` form expand leaves without the in-struct flag (expr.c:5533):
 
 ```c
-register Rec* rec asm("a0");
+u16* next = ptr + 2;
 
-rec = ptr;
 cached = 0xFFFF;
-ptr    = rec + 1;
-asm volatile("");
-if (rec[1].field == 0xFFFF) {
+ptr    = next;
+if (*next == 0xFFFF) {
 ```
 
+Reading the pointer into a local *before* the `cached` store matters too: it
+creates `%hi(ptr)` first, which is what gives it `$a1` and `%hi(cached)` `$v1`.
 `Gp_ApplyPadReplay` is the example.
 
 ## Assign an `s16` index to `s32` before `& mask` so the load stays `lh`

@@ -3507,10 +3507,9 @@ static u32* func_8009FD28(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
 void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1)
 {
-    u16                   temp_v0;
-    u16                   temp_v1;
-    register GpPadReplay* rec asm("a0");
-    s32                   offset;
+    u16 temp_v0;
+    u16 temp_v1;
+    s32 offset;
 
     if (arg0 == 1) {
         func_807150F8(1);
@@ -3526,10 +3525,10 @@ void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1)
             arg1->buttons = Gp_ReplayButtons;
             return;
         }
-        temp_v1 = Gp_ReplayCursor->buttons;
+        temp_v1 = Gp_ReplayCursor[0];
         if (temp_v1 != Gp_ReplayButtons) {
             Gp_ReplayButtons    = temp_v1;
-            Gp_ReplayFramesLeft = Gp_ReplayCursor->duration;
+            Gp_ReplayFramesLeft = Gp_ReplayCursor[1];
         }
         if (arg1->buttons & 0x800) {
             arg1->buttons        = Gp_ReplayButtons | 0x800;
@@ -3540,11 +3539,11 @@ void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1)
         temp_v0             = Gp_ReplayFramesLeft - 1;
         Gp_ReplayFramesLeft = temp_v0;
         if (!(temp_v0 & 0xFFFF)) {
-            rec              = Gp_ReplayCursor;
+            u16* next = Gp_ReplayCursor + 2;
+
             Gp_ReplayButtons = 0xFFFF;
-            Gp_ReplayCursor  = rec + 1;
-            SCHED_BARRIER();
-            if (rec[1].buttons == 0xFFFF) {
+            Gp_ReplayCursor  = next;
+            if (*next == 0xFFFF) {
                 Wip_SysFlags.field_4    = 0;
                 Pad_RemapState->field_8 = 0;
             }
@@ -3584,9 +3583,9 @@ static void Gp_InitPlayClock(Task* task)
         ds->vsyncCount           = 0;
         ds->field_10             = 0;
         if (ds->demoScene == 0x10) {
-            Gp_ReplayCursor = (GpPadReplay*)0x80600E4C;
+            Gp_ReplayCursor = (u16*)0x80600E4C;
         } else {
-            Gp_ReplayCursor = (GpPadReplay*)((u8*)D_8005C374 + 0xD4C);
+            Gp_ReplayCursor = (u16*)((u8*)D_8005C374 + 0xD4C);
         }
         Gp_ReplayButtons        = 0xFFFF;
         Gp_ReplayFramesLeft     = 1;

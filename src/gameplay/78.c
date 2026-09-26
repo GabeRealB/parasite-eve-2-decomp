@@ -3236,9 +3236,9 @@ static void Gp_StartPadReplay(void)
     ds->vsyncCount           = 0;
     ds->field_10             = 0;
     if (ds->demoScene == 0x10) {
-        Gp_ReplayCursor = (GpPadReplay*)0x80600E4C;
+        Gp_ReplayCursor = (u16*)0x80600E4C;
     } else {
-        Gp_ReplayCursor = (GpPadReplay*)((u8*)D_8005C374 + 0xD4C);
+        Gp_ReplayCursor = (u16*)((u8*)D_8005C374 + 0xD4C);
     }
     Gp_ReplayButtons        = 0xFFFF;
     Gp_ReplayFramesLeft     = 1;
