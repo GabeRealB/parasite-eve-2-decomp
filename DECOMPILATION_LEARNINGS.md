@@ -144027,3 +144027,15 @@ merges the two `sh` stores back into the one join block. Duplicating the whole
 `flag = true; return p;` tail instead does not merge: sched1 hoists the
 return-value `addiu` above the longer arm's stores, the copies differ, and
 both survive.
+## Negative offsets from a pointer to a later field are a walking struct pointer; the field accessed last becomes the base (Midi_InitSequence, 2026-09-26)
+
+The target walks an array of 0x3C-byte records with one register seeded at
+`base + 0x38` and stores at `-0x10`, `-0xC`, `-0x4` and `0`. The seed rebuilt
+that with an `s32* p = &entries->field_38` pinned to `$s0` and every other field
+reached as `p[-4]`, `p[-3]`. The original was a plain `MidiTrack* track` bumped
+with `track++`: loop.c reduces each field address to a giv of the same biv,
+combines them, and keeps one register at the offset of the field the loop body
+touches *last*. Writing `track->field_38 = 0xE0F;` before `track->field_2C +=
+len;` based the register at 0x2C (`sw ...,0xc(s0)`); swapping the two statements
+based it at 0x38 and matched. When a walking pointer comes out at the wrong
+offset, sweep the order of the loop's final field accesses before anything else.

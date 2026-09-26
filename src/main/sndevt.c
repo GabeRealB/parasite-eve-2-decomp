@@ -467,18 +467,14 @@ s32 Midi_InitSystem(u32 arg0)
 static s32 Midi_InitSequence(u8 arg0, u16 arg1)
 {
     s32        i;
+    s32        j;
     MidiSong*  obj;
+    MidiTrack* tracks;
+    MidiTrack* track;
     u8*        data;
-    u32        magic;
-    s32*       clearPtr;
-    u8         sp10;
     u8*        trackPtr;
-    u8*        table;
-    u8*        end;
-    u8*        cur;
-    s32        d0;
-    s32        d1;
-    LinInterp* interp;
+    s32*       clearPtr;
+    u8         len;
 
     i = 0;
     do {
@@ -486,76 +482,58 @@ static s32 Midi_InitSequence(u8 arg0, u16 arg1)
         if (obj->field_1 != 0xFF) {
             if ((obj->field_1 == arg0) && (obj->field_0 == 0)) {
                 Midi_InitChannelTable((s32*)obj->field_484);
-                data  = (u8*)obj->field_10;
-                magic = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
-                if (magic != 0x4D546864) {
+                data = (u8*)obj->field_10;
+                if (((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]) != 0x4D546864) {
                     return -1;
                 }
 
-                {
-                    register MidiTrack* entries asm("a1");
-                    u32                 j;
+                tracks       = obj->entries;
+                obj->field_2 = data[9];
+                clearPtr     = (s32*)tracks;
+                obj->field_3 = data[0xB];
 
-                    entries      = obj->entries;
-                    obj->field_2 = data[9];
-                    clearPtr     = (s32*)entries;
-                    obj->field_3 = data[0xB];
+                for (j = 0; j < obj->field_3 * (sizeof(MidiTrack) / sizeof(s32)); j++) {
+                    *clearPtr++ = 0;
+                }
 
-                    for (j = 0; j < (u32)((obj->field_3 << 4) - obj->field_3);
-                         j++) {
-                        *clearPtr++ = 0;
-                    }
-
-                    if (obj->field_3 != 0) {
-                        register s32* p asm("s0");
-
-                        j   = 0;
-                        end = (u8*)&D_800820E0;
-                        p   = &entries->field_38;
-                        do {
-                            trackPtr =
-                                (u8*)Midi_ResolveTrackData(obj, j & 0xFF, (u8*)obj->field_10);
-                            ((u8**)p)[-4] = trackPtr;
-                            ((u8**)p)[-3] = trackPtr;
-                            if ((trackPtr < D_8007F8E0) || (trackPtr >= end)) {
-                                return -1;
-                            }
-                            p[-1] = Midi_ReadVlq(trackPtr, &sp10);
-                            j++;
-                            cur           = ((u8**)p)[-3] + sp10;
-                            *p            = 0xE0F;
-                            ((u8**)p)[-3] = cur;
-                            p            += 15;
-                        } while ((s32)j < obj->field_3);
-                    }
-
-                    interp        = &obj->field_14;
-                    obj->field_44 = obj->field_40->groups;
-                    obj->field_48 = obj->field_40->notes;
-                    d0            = data[0xC];
-                    d1            = data[0xD];
-                    obj->field_6  = 0xFF;
-                    obj->field_4  = 0xFF;
-                    obj->field_7  = 0;
-                    obj->field_5  = 0;
-                    obj->field_34 = (d0 << 8) | d1;
-                    table         = D_800689F0;
-                    obj->field_8  = (table[obj->field_1] * 3) << 5;
-                    LinInterp_Setup(interp, 0, D_8007F2F0, arg1);
-
-                    if (arg1 != 0) {
-                        obj->field_0 = 0x40;
-                    } else {
-                        obj->field_0 = 2;
-                    }
-
-                    j             = 0;
-                    obj->field_C  = 0xFFFF;
-                    obj->field_38 = 0;
+                if (obj->field_3 != 0) {
+                    j     = 0;
+                    track = tracks;
                     do {
-                        Midi_ClearVoiceEntry(&obj->voiceSlots[j]);
+                        trackPtr          = (u8*)Midi_ResolveTrackData(obj, j & 0xFF, (u8*)obj->field_10);
+                        track->field_8[8] = trackPtr;
+                        track->field_2C   = trackPtr;
+                        if ((trackPtr < D_8007F8E0) || (trackPtr >= (u8*)&D_800820E0)) {
+                            return -1;
+                        }
+                        track->field_34  = Midi_ReadVlq(trackPtr, &len);
+                        track->field_2C += len;
+                        track->field_38  = 0xE0F;
                         j++;
-                    } while ((s32)j < 0x12);
+                        track++;
+                    } while (j < obj->field_3);
+                }
+
+                obj->field_44 = obj->field_40->groups;
+                obj->field_48 = obj->field_40->notes;
+                obj->field_34 = (data[0xC] << 8) | data[0xD];
+                obj->field_6  = 0xFF;
+                obj->field_4  = 0xFF;
+                obj->field_7  = 0;
+                obj->field_5  = 0;
+                obj->field_8  = (D_800689F0[obj->field_1] * 3) << 5;
+                LinInterp_Setup(&obj->field_14, 0, D_8007F2F0, arg1);
+
+                if (arg1 != 0) {
+                    obj->field_0 = 0x40;
+                } else {
+                    obj->field_0 = 2;
+                }
+
+                obj->field_C  = 0xFFFF;
+                obj->field_38 = 0;
+                for (j = 0; j < 0x12; j++) {
+                    Midi_ClearVoiceEntry(&obj->voiceSlots[j]);
                 }
 
                 return i;
