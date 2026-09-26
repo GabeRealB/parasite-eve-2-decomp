@@ -400,58 +400,35 @@ void Gfx_RotMatrixY(MATRIX* arg0, s32 angle, s32 flag)
 
 void Gfx_RotMatrixZ(MATRIX* arg0, s32 angle, s32 flag)
 {
-    ScratchMat* head;
     ScratchMat* block;
-    ScratchMat* p;
-    s16         cos;
 
-    head                     = SCRATCH_HEAD(ScratchMat);
-    block                    = head - 1;
-    SCRATCH_HEAD(ScratchMat) = block;
-    p                        = block;
+    block = SCRATCH_PUSH(ScratchMat);
 
-    p->sin_val = rsin(angle);
-    cos        = rcos(angle);
-    p->cos_val = cos;
+    block->sin_val = rsin(angle);
+    block->cos_val = rcos(angle);
 
     if (flag != 0) {
-        u16 cos_u;
-        s16 t;
-
-        arg0->m[0][0] = cos;
-        t             = p->sin_val;
+        arg0->m[0][0] = block->cos_val;
+        arg0->m[0][1] = -block->sin_val;
         arg0->m[0][2] = 0;
-        arg0->m[0][1] = -t;
-        arg0->m[1][0] = p->sin_val;
-        cos_u         = p->cos_val;
+        arg0->m[1][0] = block->sin_val;
+        arg0->m[1][1] = block->cos_val;
         arg0->m[1][2] = 0;
         arg0->m[2][0] = 0;
         arg0->m[2][1] = 0;
         arg0->m[2][2] = ONE;
-        arg0->m[1][1] = cos_u;
     } else {
-        register u16     sin_u asm("v0");
-        s16              copy;
-        u16              cos2;
-        volatile MATRIX* vmat;
+        block->mat.m[0][0] = block->cos_val;
+        block->mat.m[0][1] = -block->sin_val;
+        block->mat.m[0][2] = 0;
+        block->mat.m[1][0] = block->sin_val;
+        block->mat.m[1][1] = block->cos_val;
+        block->mat.m[1][2] = 0;
+        block->mat.m[2][0] = 0;
+        block->mat.m[2][1] = 0;
+        block->mat.m[2][2] = ONE;
 
-        block->mat.m[0][0] = cos;
-        vmat               = &block->mat;
-        vmat->m[2][2]      = ONE;
-        COMPILER_BARRIER();
-        sin_u         = block->sin_val;
-        cos2          = block->cos_val;
-        vmat->m[0][2] = 0;
-        vmat->m[1][2] = 0;
-        vmat->m[2][0] = 0;
-        vmat->m[2][1] = 0;
-        copy          = sin_u;
-        TOUCH_REG_USE(copy, sin_u);
-        vmat->m[0][1] = -sin_u;
-        vmat->m[1][0] = copy;
-        vmat->m[1][1] = cos2;
-
-        gte_MulMatrix0(arg0, p, arg0);
+        gte_MulMatrix0(arg0, &block->mat, arg0);
     }
 
     SCRATCH_POP(ScratchMat);
