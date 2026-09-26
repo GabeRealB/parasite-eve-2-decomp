@@ -1452,92 +1452,80 @@ static void     Actor02000_Fn00078(Task*);
 static void     Actor02000_Fn01698(Task*);
 extern TaskFunc Actor02000_D16064[];
 
-static void Actor02000_Fn02A34(GpEnemy* ctx, Task* actor)
+/// Takes a pending reaction: while `field_6B8` is 0, bit 1 of the spawn
+/// context's `reactionFlags` is cleared and the enemy switches to entry 0xA of
+/// the `field_6A6` table with animation 0x14.
+static inline void _actor02000ApplyReaction(Task* actor)
 {
-    VECTOR3          pos;
     GpEnemy*         spawn;
-    TmdObject*       model;
-    Actor105600Work* moveWork;
-    Actor105600Work* animWork;
     Actor105600Work* work;
-    Actor105600Work* flagWork;
-    GpCoord*         moveCoord;
-    GpCoord*         part;
-    GpCoord*         coord;
-    GpCoord*         root;
-    s16              duration;
-    s32              i;
     u8               flags;
 
+    spawn = actor->spawnArg2;
+    flags = spawn->reactionFlags;
     work  = actor->work;
-    model = actor->extra.tmd;
-    coord = model->coords;
-    switch (Gp_StateF0.field_4) {
-        case 0:
-            model->flags            = 0;
-            ctx->node.state.b.flags = 0;
-            break;
-        case 1:
-            goto draw;
-        case 2:
-            model->flags            = 0x80;
-            ctx->node.state.b.flags = 1;
-            return;
+    if ((flags & 2) && (work->field_6B8 == 0)) {
+        spawn->reactionFlags = flags & 0xFD;
+        work->field_6A6      = 0xA;
+        work->field_694      = 0x14;
+        work->field_6A8      = 0;
+        work->field_6E0      = 1;
     }
+}
 
-    if (ctx->reactionFlags != 0) {
-        spawn    = actor->spawnArg2;
-        flags    = spawn->reactionFlags;
-        flagWork = actor->work;
-        if ((flags & 2) && (flagWork->field_6B8 == 0)) {
-            spawn->reactionFlags = flags & 0xFD;
-            flagWork->field_6A6  = 0xA;
-            flagWork->field_694  = 0x14;
-            flagWork->field_6A8  = 0;
-            flagWork->field_6E0  = 1;
+/// Saves the root coordinate's translation in `field_678`..`field_680`, then
+/// moves it `field_69C` along its facing, raising it by 0x80 while `field_6DE`
+/// is below 2.
+static inline void _actor02000StepRoot(Task* actor)
+{
+    GpCoord*         coord;
+    Actor105600Work* work;
+
+    coord              = actor->extra.tmd->coords;
+    work               = actor->work;
+    work->field_678    = coord->coord.t[0];
+    work->field_67C    = coord->coord.t[1];
+    work->field_680    = coord->coord.t[2];
+    coord->coord.t[0] += (s32)(coord->coord.m[0][2] * work->field_69C) >> 0xC;
+    if (work->field_6DE < 2) {
+        coord->coord.t[1] += 0x80;
+    }
+    coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->field_69C) >> 0xC;
+}
+
+/// Advances animation slots 1..0x12 by one frame, or, when `field_694` names a
+/// new animation, restarts the frame count and cross-fades every slot to it
+/// over the animation's `Actor02000_D03784` duration.
+static inline void _actor02000TickAnim(Task* actor)
+{
+    Actor105600Work* work;
+    s16              duration;
+    s32              i;
+
+    work = actor->work;
+    if (work->field_694 != work->field_696) {
+        work->field_696 = work->field_694;
+        work->field_698 = 0;
+        duration        = Actor02000_D03784[work->field_694];
+        for (i = 1; i < 0x13; i++) {
+            func_800B4114(&work->rig.anim, i, work->field_694, 0, duration);
+        }
+    } else {
+        work->field_698++;
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
-    Actor02000_Fn00078(actor);
-    Actor02000_D16064[work->field_6A6](actor);
-    if (work->field_69E != 0) {
-        Actor02000_Fn0150C(actor);
-    }
-    moveCoord              = actor->extra.tmd->coords;
-    moveWork               = actor->work;
-    moveWork->field_678    = (s32)moveCoord->coord.t[0];
-    moveWork->field_67C    = (s32)moveCoord->coord.t[1];
-    moveWork->field_680    = (s32)moveCoord->coord.t[2];
-    moveCoord->coord.t[0] += (s32)(moveCoord->coord.m[0][2] * moveWork->field_69C) >> 0xC;
-    if (moveWork->field_6DE < 2) {
-        moveCoord->coord.t[1] += 0x80;
-    }
-    moveCoord->coord.t[2] += (s32)(moveCoord->coord.m[2][2] * moveWork->field_69C) >> 0xC;
-    animWork               = actor->work;
-    i                      = 1;
-    if (animWork->field_694 != animWork->field_696) {
-        animWork->field_696 = (s16)(u16)animWork->field_694;
-        animWork->field_698 = 0;
-        duration            = Actor02000_D03784[animWork->field_694];
-        do {
-            func_800B4114(&animWork->rig.anim, i, (s32)animWork->field_694, 0, (s32)duration);
-            i += 1;
-        } while (i < 0x13);
-    } else {
-        TOUCH_REG(i);
-        animWork->field_698 = (u16)animWork->field_698 + i;
-        do {
-            Gp_AnimTickIndex(&animWork->rig.anim, i);
-            i += 1;
-        } while (i < 0x13);
-    }
-    if (work->field_6B4 != 0) {
-        Actor02000_Fn01698(actor);
-    }
-    Actor02000_Fn018A4(actor);
-    coord->flg                      = 0;
-    actor->extra.tmd->coords[3].flg = 0;
-    Gp_UpdateCoord(coord);
-draw:
+}
+
+/// Updates the enemy's colour from `coord`'s world position and draws the
+/// ground quad under part 3.
+static inline void _actor02000Draw(Task* actor, GpCoord* coord)
+{
+    VECTOR3  pos;
+    GpCoord* root;
+    GpCoord* part;
+
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
@@ -1548,7 +1536,49 @@ draw:
     pos.vy = root->workm.t[1];
     pos.vz = part->workm.t[2];
     Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
-    return;
+}
+
+static void Actor02000_Fn02A34(GpEnemy* ctx, Task* actor)
+{
+    TmdObject*       model;
+    Actor105600Work* work;
+    GpCoord*         coord;
+
+    work  = actor->work;
+    model = actor->extra.tmd;
+    coord = model->coords;
+    switch (Gp_StateF0.field_4) {
+        case 0:
+            model->flags            = 0;
+            ctx->node.state.b.flags = 0;
+            break;
+        case 1:
+            _actor02000Draw(actor, coord);
+            return;
+        case 2:
+            model->flags            = 0x80;
+            ctx->node.state.b.flags = 1;
+            return;
+    }
+
+    if (ctx->reactionFlags != 0) {
+        _actor02000ApplyReaction(actor);
+    }
+    Actor02000_Fn00078(actor);
+    Actor02000_D16064[work->field_6A6](actor);
+    if (work->field_69E != 0) {
+        Actor02000_Fn0150C(actor);
+    }
+    _actor02000StepRoot(actor);
+    _actor02000TickAnim(actor);
+    if (work->field_6B4 != 0) {
+        Actor02000_Fn01698(actor);
+    }
+    Actor02000_Fn018A4(actor);
+    coord->flg                      = 0;
+    actor->extra.tmd->coords[3].flg = 0;
+    Gp_UpdateCoord(coord);
+    _actor02000Draw(actor, coord);
 }
 
 void Actor02000_Fn02D5C(Task* arg0)
