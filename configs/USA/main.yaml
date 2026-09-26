@@ -475,9 +475,9 @@ segments:
       - [0x538d0, o, libgte/cstbl, .data] # rcossin_tbl
       - [0x578d0, .data, ui]
       - [0x57e98, o, libc2/sprintf, .data]
-      - [0x57ea8, data, "57EA8"] # game data (TODO: attribute)
+      - [0x57ea8, .data, taskbank]
       - [0x57f14, o, libgte/cor_04, .data] # H_ln_tbl
-      - [0x57f34, data, "57F34"] # game data (TODO: attribute)
+      - [0x57f34, .data, gameflag]
       - [0x58018, o, libmath/ferr, .data] # math_errno, math_err_point
       - [0x58028, data, "58028"] # Spu / audio game data
       - [0x588c4, o, libspu/s_ini, .data] # _spu_EVdma, _spu_keystat, _spu_trans_mode, _spu_rev_flag, _spu_rev_reserve_wa, _spu_rev_offsetaddr, _spu_rev_attr, _spu_RQvoice, _spu_RQmask, _spu_voice_centerNote, _spu_env, _spu_isCalled

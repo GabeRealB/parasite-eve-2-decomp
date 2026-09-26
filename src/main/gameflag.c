@@ -3,6 +3,30 @@
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/pad.h"
+#include "main/task.h"
+#include "gameplay/3CD8.h"
+
+TaskDesc D_80067734[] = {
+    { 0x0, 0xC0, taskKill },
+    { 0x0, 0xC0, taskKill },
+    { 0x0, 0xC0, taskKill },
+    { 0x0, 0xC0, taskKill },
+    { 0x0, 0xC0, NULL },
+    { 0x0, 0x20, taskKill },
+    { 0x0, 0x80, func_800E7570 },
+    { 0x0, 0x20, func_800E8830 },
+    { 0x0, 0x80, func_800E8888 },
+    { 0x0, 0xC0, taskKill },
+    { 0x0, 0x20, taskKill },
+    { 0x0, 0x80, Gp_EndWaitTask },
+    { 0x0, 0x20, Gp_ShakeTask },
+    { 0x0, 0x20, Gp_VolFadeTask },
+    { 0x0, 0x20, Gp_SndFadeTask },
+    { 0x0, 0xC0, NULL },
+    { 0x0, 0xC0, NULL },
+    { 0x0, 0x20, func_800E4028 },
+    { 0xFFFF, 0x20, NULL },
+};
 
 void GameFlag_SetNibble(s32 arg0, s32 arg1)
 {
