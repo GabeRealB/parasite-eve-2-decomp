@@ -2091,7 +2091,6 @@ common:
 static __inline__ void Actor00300_UpdateTransform(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*         obj;
-    TmdObject*         original;
     GpCoord*           saved;
     Actor100300Work*   work;
     s32                disabled;
@@ -2101,12 +2100,10 @@ static __inline__ void Actor00300_UpdateTransform(GpEnemy* arg0, Task* arg1)
     ActorScaleScratch* scratch;
     GpCoord*           coord;
 
-    original = arg1->extra.tmd;
+    saved    = arg1->extra.tmd->coords;
+    obj      = arg1->extra.tmd;
     disabled = Gp_StateF0.field_4;
-    USE_REG2(original, original);
-    __asm__ volatile("" : "=r"(obj) : "0"(original));
-    saved = obj->coords;
-    work  = arg1->parent->work;
+    work     = arg1->parent->work;
     if (disabled == 0) {
         if (gGameSession->eventState != 0) {
             flags      = ((work->field_678 & 1) == 0) << 7;
