@@ -163,14 +163,14 @@ s32 func_800AF590(void)
 
 s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
 {
-    CdCmdQueue*  p;
-    StreamSlot*  slot;
-    u16          count;
-    register s32 i asm("s2");
-    register s32 found asm("t1");
-    s32          temp;
-    u16          streamType;
-    s32          seed;
+    CdCmdQueue* p;
+    StreamSlot* slot;
+    u16         count;
+    u16         i;
+    u16         found;
+    s32         temp;
+    u16         streamType;
+    s32         seed;
 
     p = &CdCmd_Queue;
     if (arg0 == 0) {
@@ -181,31 +181,16 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
         count = 0xF;
     }
 
-    i     = 0;
-    found = i;
-    for (; (u16)i < count; i++, slot++) {
-        if (slot->field_0 == 2) {
-            if (slot->field_4 != 0) {
-                if (slot->field_C == arg0) {
-                    if (slot->field_E == arg1) {
-                        if (slot->field_10 == arg2) {
-                            if (slot->field_12 == arg3) {
-                                found = 1;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
+    for (i = 0, found = 0; i < count; i++, slot++) {
+        if (slot->field_0 == 2 && slot->field_4 != 0 && slot->field_C == arg0 && slot->field_E == arg1 &&
+            slot->field_10 == arg2 && slot->field_12 == arg3) {
+            found = 1;
+            break;
         }
     }
 
-    {
-        register u32 valid asm("v0");
-        valid = found & 0xFFFF;
-        if (valid == 0) {
-            return -1;
-        }
+    if (found == 0) {
+        return -1;
     }
 
     Mem_Set(p->field_58, 0, 0x12C);
