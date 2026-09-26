@@ -74,8 +74,7 @@ typedef struct _GpCapCmd {
 typedef void (*GpCapTextCb)(s16, s16, s32, s16, s32);
 
 typedef struct _GpCapChoice {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
+    /* 0x0 */ s16 pos[2]; // screen x, y the choice was laid out at
     /* 0x4 */ u16 eventKey;
     /* 0x6 */ u8  sound;
     /* 0x7 */ u8  pad_7;

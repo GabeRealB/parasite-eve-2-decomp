@@ -1258,8 +1258,8 @@ static u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u16 arg3)
                 ch          = D_801155D0;
                 p           = &ch[nChoice];
                 p->sound    = (attr & 0xF00) >> 8;
-                p->x        = x;
-                p->y        = y;
+                p->pos[0]   = x;
+                p->pos[1]   = y;
                 p->eventKey = attr & 0xFF;
                 if (nChoice == D_801155C0) {
                     selected = 1;
@@ -1358,13 +1358,13 @@ static u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u16 arg3)
 static void func_800E62C0(void)
 {
     POLY_G3*     p;
-    GpCapChoice* choice;
+    GpCapChoice* choices;
+    s16*         pos;
+    s32          i;
     s32          x;
     s32          y;
-    s32          offset;
+    s32          top;
     s32          color;
-    u32          mask;
-    u_long*      ot;
 
     if (D_801155BE != 0) {
         if (D_80115659 != 0) {
@@ -1372,30 +1372,25 @@ static void func_800E62C0(void)
         }
         p              = (POLY_G3*)gGpuPrimCursor;
         gGpuPrimCursor = p + 1;
-        asm("" : "+r"(p)::"memory");
-        x      = (D_801155C0 + D_801155D0)->x;
-        y      = (D_801155C0 + D_801155D0)->y;
-        offset = gDisplayState.vramYOffset;
-        choice = D_801155C0 + D_801155D0;
-        asm("" : "+r"(p) : "r"(choice), "r"(offset), "r"(x), "r"(y), "r"(x), "r"(y));
-        y = (offset + 2) * -1 + y;
+        i              = D_801155C0;
+        choices        = D_801155D0;
+        pos            = choices[i].pos;
+        x              = pos[0];
+        y              = pos[1];
+        top            = -(gDisplayState.vramYOffset + 2) + y;
         setPolyG3(p);
         color = (D_8010FB80 << 7) / 15;
         setRGB0(p, color, color, color);
         color = (D_8010FB80 * 0xC0) / 15;
         p->x0 = x;
-        p->y0 = y - 5;
-        x    -= 10;
-        p->x1 = x;
-        p->y1 = y - 10;
-        p->x2 = x;
-        p->y2 = y;
+        p->y0 = top - 5;
+        p->x1 = x - 10;
+        p->y1 = top - 10;
+        p->x2 = x - 10;
+        p->y2 = top;
         setRGB1(p, color, color, color);
         setRGB2(p, color, color, color);
-        mask = 0xFFFFFF;
-        SOFT_TOUCH_REG_USE(p, mask);
-        ot = gGpuCurrentOt;
-        addPrim(&ot[2], p);
+        addPrim(&gGpuCurrentOt[2], p);
         if (D_8010FB84 == 0) {
             D_8010FB80++;
             if (D_8010FB80 >= 15) {

@@ -143180,3 +143180,21 @@ the return. Separate `coord`/`m` locals in the caller do not.
 The `lbu; sll 24; sra 24` on an `s8` field there stayed a volatile read: combine
 folds the load into `lb` unless the load sits in another basic block or a store
 separates it from the extension, and the target has neither.
+
+## A `"memory"` asm after a prim-cursor bump stood for a load through a decayed array member (func_800E62C0, 2026-09-26)
+
+The seed kept every load after `gGpuPrimCursor = p + 1;` with
+`asm("" : "+r"(p) :: "memory")`. The luis for later constants still crossed
+it, so this was only a memory ordering. A `do { } while (0)` around the bump
+also blocks registers (loop notes are full sched barriers) and scored 95.9%.
+The loads are `x`/`y` of a table entry, and `choices[i].x` is a `mem/s` load,
+which `true_dependence` lets run ahead of a store to a plain global. Making
+the position an array member and reading it through the decayed pointer,
+`pos = choices[i].pos; x = pos[0]; y = pos[1];`, gives a non-struct `x` load
+(`pos[0]` folds to `*pos`) that keeps the edge to the store. Two tie-breaks
+finished it. `i = D_801155C0; choices = D_801155D0;` before `&choices[i]`
+emits the base address between the index load and its shift, which is the
+order the target's luis follow. The adjusted y went into its own
+single-set local (`top = -(off + 2) + y`), so the `y` load keeps sched1's
+birthing boost. `y - (off + 2)` is reassociated by fold into
+`(y - 2) - off`.
