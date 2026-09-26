@@ -29,7 +29,7 @@ extern void* D_dryfield_r08_8017F708;
 extern u32   D_dryfield_r08_801809C0[];
 extern u32   D_dryfield_r08_80180B58[];
 
-static void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3);
+static void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3);
 static void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2);
@@ -253,10 +253,8 @@ static void func_dryfield_r08_8017D8B4(Task* task)
 /// five-column grid (u = `cell % 5 * 48`, v = `cell / 5 * 48 + 0x68`), and the
 /// top four bits select the clut - row `0x10E + sel` at column `cell & 0x3F`
 /// for 0 and 1, the fixed clut 0x428F otherwise.
-static void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3)
+static void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
-    void**             scratch;
-    u8*                head;
     GpEffFlareScratch* block;
     POLY_FT4*          prim;
     s32                ang;
@@ -266,35 +264,26 @@ static void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s32 arg2, s32 ar
     s32                v0;
     s32                u1;
     s32                v1;
-    u16                vz;
     s32                tex;
     u16                sel;
     s32                sine;
-    GpEffFlareScratch* tmp;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    SOFT_TOUCH_REG(arg2);
-    head = *scratch;
-    tmp  = (GpEffFlareScratch*)(head - 0x1C);
-    SOFT_TOUCH_REG(tmp);
-    block         = tmp;
-    block->vec.vx = (u16)arg0->workm.t[0];
-    block->vec.vy = (u16)arg0->workm.t[1];
-    vz            = (u16)arg0->workm.t[2];
+    block         = SCRATCH_PUSH(GpEffFlareScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
     tex           = arg1 & 0xFFF;
     sel           = arg1 >> 12;
-    *scratch      = block;
-    block->vec.vz = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((GpEffFlareScratch*)(head - 0x1C))->vec);
+    gte_ldv0(&block->vec);
     gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&((GpEffFlareScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpEffFlareScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         prim->tpage = 0x2B;
@@ -304,7 +293,7 @@ static void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s32 arg2, s32 ar
         } else {
             prim->clut = ((sel + 0x10E) << 6) | (tex & 0x3F);
         }
-        ang = (s16)arg3;
+        ang = arg3;
         u0  = ((u16)tex % 5) * 0x30;
         v0  = ((u16)tex / 5) * 0x30;
         u1  = u0 + 0x2F;
@@ -312,7 +301,7 @@ static void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s32 arg2, s32 ar
         v0  = v0 + 0x68;
         setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
         sine      = rsin(ang);
-        span      = (s16)arg2 * 0x2F;
+        span      = arg2 * 0x2F;
         block->dx = ((span / block->otz) * sine) >> 12;
         block->dy = ((span / block->otz) * rcos(ang)) >> 12;
         prim->x0  = block->sx + (u16)block->dx;
@@ -330,7 +319,7 @@ static void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s32 arg2, s32 ar
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_POP(GpEffFlareScratch);
 }
 
 /// Projects `arg0`'s world translation through `GsWSMATRIX` and, unless the
