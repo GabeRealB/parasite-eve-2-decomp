@@ -39,69 +39,51 @@ extern u16              D_8017A9A0[];
 extern u16              D_8017AA0C[];
 extern u16              D_8017AD88[];
 
-s16 Gp_LookupStageFlag(s32 arg0)
+/// The flag entry `table[idx]`: its low 11 bits select a flag nibble, and its
+/// bit 0x800 is added onto that nibble's value.
+static inline s16 _gpStageFlagNibble(u16* table, s16 idx)
 {
-    u16* table;
-    u16* entry;
+    return GameFlag_GetNibble(table[idx] & 0x7FF) + (table[idx] & 0x800);
+}
 
+s16 Gp_LookupStageFlag(s16 idx)
+{
     switch (gGameSession->at4.loc.stage) {
         case 1:
-            arg0 = (s16)arg0;
-            if (arg0 >= 0xE) {
-                goto fail;
+            if (idx >= 0xE) {
+                break;
             }
-            table = D_8017AA0C;
-            break;
+            return _gpStageFlagNibble(D_8017AA0C, idx);
         case 2:
-            arg0 = (s16)arg0;
-            if (arg0 >= 0x1D) {
-                goto fail;
+            if (idx >= 0x1D) {
+                break;
             }
-            table = D_8017A824;
-            break;
+            return _gpStageFlagNibble(D_8017A824, idx);
         case 3:
-            arg0 = (s16)arg0;
-            if (arg0 >= 0x1E) {
-                goto fail;
+            if (idx >= 0x1E) {
+                break;
             }
-            if (arg0 == 0x1D) {
+            if (idx == 0x1D) {
                 if (GameFlag_GetNibble(0x7F) == 0) {
                     return 0;
                 }
                 return 0x802;
             }
-            table = D_8017A738;
-            break;
+            return _gpStageFlagNibble(D_8017A738, idx);
         case 4:
-            if ((s16)arg0 >= 0x1E) {
-                goto fail;
+            if (idx >= 0x1E) {
+                break;
             }
-            if ((s16)arg0 == 0) {
-                if (GameFlag_GetNibble(0x7A) == 6) {
-                    return GameFlag_GetNibble(D_8017AD88[0] & 0x7FF) + 0x800;
-                }
+            if (idx == 0 && GameFlag_GetNibble(0x7A) == 6) {
+                return GameFlag_GetNibble(D_8017AD88[0] & 0x7FF) + 0x800;
             }
-            table  = D_8017AD88;
-            arg0 <<= 16;
-            arg0 >>= 15;
-            goto lookup;
+            return _gpStageFlagNibble(D_8017AD88, idx);
         case 5:
-            arg0 = (s16)arg0;
-            if (arg0 >= 9) {
-                goto fail;
+            if (idx >= 9) {
+                break;
             }
-            table = D_8017A9A0;
-            break;
-        default:
-            goto fail;
+            return _gpStageFlagNibble(D_8017A9A0, idx);
     }
-
-    arg0 <<= 1;
-lookup:
-    arg0 += (s32)table;
-    entry = (u16*)arg0;
-    return GameFlag_GetNibble(*entry & 0x7FF) + (*entry & 0x800);
-fail:
     return -1;
 }
 

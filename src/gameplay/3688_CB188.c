@@ -2950,19 +2950,15 @@ void func_800D0C34(Task* arg0)
     GpMapFlagIcon*  icons;
     GpFlagBank*     bank;
     GpMapCursorPos* pos;
-    GpMapCursorPos* temp;
-    register s16    result asm("v0");
     SPRT_16*        p;
     DR_TPAGE*       dr;
     s32             flags[2];
-    s32             i;
+    u8              i;
     s16             which;
     s32             bit;
-    s32             scratchSize;
-    s32             one;
-    s32             u0;
+    u16             state;
     u8              stage;
-    s32             flag;
+    u8              flag;
 
     i        = 0;
     stage    = gGameSession->at4.loc.stage;
@@ -2971,76 +2967,64 @@ void func_800D0C34(Task* arg0)
     bank     = Gp_FlagBanks[stage];
     flags[0] = bank->field_4[0];
     flags[1] = bank->field_4[1];
-    one      = 1;
     for (;;) {
-        if (icons[(u8)i].roomId == 0) {
-            goto end;
+        if (icons[i].roomId == 0) {
+            return;
         }
-        flag = icons[(u8)i].flagId;
-        if (flag != 0xFF) {
-            TOUCH_REG_MEM(flag);
-            if (flag != 0) {
-                if ((u32)flag >= 0x21U) {
-                    bit   = one << (icons[(u8)i].flagId - 0x21);
-                    which = 1;
-                } else {
-                    bit   = one << (icons[(u8)i].flagId - 1);
-                    which = 0;
-                }
-                if (!(bit & flags[which])) {
-                    goto next;
-                }
+        flag = icons[i].flagId;
+        if (flag == 0xFF) {
+            i++;
+            continue;
+        }
+        if (flag != 0) {
+            if (flag >= 0x21) {
+                bit   = 1 << (icons[i].flagId - 0x21);
+                which = 1;
+            } else {
+                bit   = 1 << (icons[i].flagId - 1);
+                which = 0;
             }
-            result = Gp_LookupStageFlag((u8)i);
-            TOUCH_REG(i);
-            if (icons[(u8)i].roomId != (s8)Gp_MapRoomId) {
-                goto next;
-            }
-            bit = (u16)result;
-            if (bit == 2 || bit == 0x802) {
-                temp = (GpMapCursorPos*)(SCRATCH_HEAD(u8) - 0x1C);
-                TOUCH_REG(temp);
-                pos                          = temp;
-                pos->field_14                = 0;
-                pos->field_12                = 0;
-                pos->field_10                = 0;
-                SCRATCH_HEAD(GpMapCursorPos) = pos;
-                pos->x                       = icons[(u8)i].x;
-                p                            = (SPRT_16*)gGpuPrimCursor;
-                gGpuPrimCursor               = p + 1;
-                pos->y                       = icons[(u8)i].y;
-                setlen(p, 3);
-                setcode(p, 0x7F);
-                if (bit == 2) {
-                    p->clut = GetClut(0x30, 0x101);
-                    u0      = 0x60;
-                } else if (bit == 0x802) {
-                    p->clut = GetClut(0x60, 0x101);
-                    u0      = 0x90;
-                } else {
-                    goto linkPrims;
-                }
-                p->u0       = u0;
-                p->v0       = 0;
-                scratchSize = 0x1C;
-            linkPrims:
-                p->x0 = pos->x - 8;
-                p->y0 = pos->y - 8;
-                addPrim(&gGpuCurrentOt[(s16)obj->drawOrder - 0x1B], p);
-                dr             = gGpuPrimCursor;
-                gGpuPrimCursor = dr + 1;
-                setlen(dr, one);
-                dr->code[0] = 0xE100000E;
-                addPrim(&gGpuCurrentOt[(s16)obj->drawOrder - 0x1B], dr);
-                SCRATCH_POP_BYTES(scratchSize);
+            if (!(bit & flags[which])) {
+                i++;
+                continue;
             }
         }
-    next:
+        state = Gp_LookupStageFlag(i);
+        if (icons[i].roomId != (s8)Gp_MapRoomId) {
+            i++;
+            continue;
+        }
+        if (state == 2 || state == 0x802) {
+            pos            = SCRATCH_PUSH(GpMapCursorPos);
+            pos->field_14  = 0;
+            pos->field_12  = 0;
+            pos->field_10  = 0;
+            pos->x         = icons[i].x;
+            p              = (SPRT_16*)gGpuPrimCursor;
+            gGpuPrimCursor = p + 1;
+            pos->y         = icons[i].y;
+            setlen(p, 3);
+            setcode(p, 0x7F);
+            if (state == 2) {
+                p->clut = GetClut(0x30, 0x101);
+                p->u0   = 0x60;
+                p->v0   = 0;
+            } else if (state == 0x802) {
+                p->clut = GetClut(0x60, 0x101);
+                p->u0   = 0x90;
+                p->v0   = 0;
+            }
+            p->x0 = pos->x - 8;
+            p->y0 = pos->y - 8;
+            addPrim(&gGpuCurrentOt[(s16)obj->drawOrder - 0x1B], p);
+            dr             = gGpuPrimCursor;
+            gGpuPrimCursor = dr + 1;
+            setDrawTPage(dr, 0, 0, 0xE);
+            addPrim(&gGpuCurrentOt[(s16)obj->drawOrder - 0x1B], dr);
+            SCRATCH_POP(GpMapCursorPos);
+        }
         i++;
-        continue;
     }
-end:
-    return;
 }
 
 s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)

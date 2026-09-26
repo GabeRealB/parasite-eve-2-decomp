@@ -142271,3 +142271,30 @@ parameter) and field reads split between `base->` and `light->` - makes the
 `move` a later copy insn and matches with no hacks, wherever the assignment
 sits among the opening statements. When only the order of a parameter `move`
 at the top differs, look for a member-at-offset-0 alias local.
+
+## `i++; continue;` on every skip path of a `for (;;)`: one cross-jumped tail that keeps a field re-read and lifts the counter's priority (func_800D0C34, 2026-09-26)
+The target re-read a byte field in the fall-through arm of a test on it
+(`lbu a0,1(v1)` for the compares, `lbu v0,1(v1)` again in the arm) and gave the
+`u8` loop counter `s2` over a hoisted `0xFFFFFF` mask. The old body got both with
+`TOUCH_REG_MEM(flag)` and `TOUCH_REG(i)`. Without them the arm's load became
+`move v0,a0` - `reload_cse_regs` knows `a0` holds that load, and only a
+`CODE_LABEL` clears its table - and the counter lost `s2` on priority (11 refs
+against 13). The loop had no increment clause: each skip path was written
+`i++; continue;` and the end of the body `i++`. Each inline `i++; j top` puts a
+label behind it, which is the label `reload_cse` needed after the first test,
+and the extra increments are the missing refs. jump2 cross-jumps every copy
+into the last one, so the object shows a single `j top; addiu s2,s2,1`. With
+only the first path duplicated (the rest `goto next`), jump2 kept the early
+copy instead: an unconditional jump is merged into another jump's tail only
+when two insns match, or one does and a label precedes it.
+
+Same function: `(u8)i` not CSE'd across a call (`andi a0,s2,0xff` in the delay
+slot and again after it) was the callee's `s16` parameter. The argument goes
+through `(sign_extend (zero_extend:HI ...))`, a different expression from the
+index's `zero_extend`, and combine only folds both to `andi` later. The callee
+(`Gp_LookupStageFlag`) had been matched with an `s32` parameter, `arg0 =
+(s16)arg0` in each case and pointer arithmetic on an int; with `s16 idx` it
+matches as a switch whose cases each `return` an inline lookup of their own
+table. The extension each case keeps in `s0`, and the one case that re-extends
+with `sll 16; sra 15`, come from those per-case copies, which jump2 then
+cross-jumps into one tail.
