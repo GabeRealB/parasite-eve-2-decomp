@@ -119,24 +119,9 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
 
 void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
 {
-    ScratchRotXYZ*          head;
-    register void*          p asm("v0");
-    ScratchRotXYZ*          block;
-    SVECTOR*                vec;
-    volatile ScratchRotXYZ* vblock;
-    volatile MATRIX*        vmat;
-    u16                     sin_y;
-    u16                     cos_x;
-    register u16            sin_x asm("a1");
-    s16                     neg;
-    u16                     cos_y2;
-    void*                   col1;
-    void*                   col2;
+    ScratchRotXYZ* block;
 
-    head               = SCRATCH_HEAD(ScratchRotXYZ);
-    p                  = head - 1;
-    block              = p;
-    SCRATCH_HEAD(void) = p;
+    block = SCRATCH_PUSH(ScratchRotXYZ);
 
     block->sin_x = rsin(angles->vx);
     block->sin_y = rsin(angles->vy);
@@ -146,80 +131,45 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
     block->cos_z = rcos(angles->vz);
 
     block->mat.m[0][0] = block->cos_y;
-    vblock             = block;
-    {
-        sin_y         = vblock->sin_y;
-        cos_x         = vblock->cos_x;
-        sin_x         = vblock->sin_x;
-        vmat          = &block->mat;
-        vmat->m[0][1] = 0;
-        vmat->m[1][0] = 0;
-        vmat->m[1][1] = ONE;
-        vmat->m[1][2] = 0;
-        vmat->m[2][1] = 0;
-        block->vec.vx = 0;
-        neg           = sin_y;
-        TOUCH_REG_USE(neg, sin_y);
-        vmat->m[0][2] = sin_y;
-        cos_y2        = vblock->cos_y;
-        neg           = -neg;
-        vmat->m[2][0] = neg;
-        block->vec.vy = cos_x;
-        block->vec.vz = sin_x;
-        vmat->m[2][2] = cos_y2;
-    }
+    block->mat.m[0][1] = 0;
+    block->mat.m[0][2] = block->sin_y;
+    block->mat.m[1][0] = 0;
+    block->mat.m[1][1] = ONE;
+    block->mat.m[1][2] = 0;
+    block->mat.m[2][0] = -block->sin_y;
+    block->mat.m[2][1] = 0;
+    block->mat.m[2][2] = block->cos_y;
+
+    block->vec.vx = 0;
+    block->vec.vy = block->cos_x;
+    block->vec.vz = block->sin_x;
 
     gte_SetRotMatrix(&block->mat);
-    vec = &block->vec;
-
-    gte_ldsv(vec);
+    gte_ldsv(&block->vec);
     gte_rtir();
-    {
-        s16 sx;
-        u16 cx;
-        sx = sin_x;
-        TOUCH_REG_USE(sx, sin_x);
-        sx            = -sx;
-        cx            = block->cos_x;
-        col1          = &block->mat.m[0][1];
-        block->vec.vx = 0;
-        block->vec.vy = sx;
-        block->vec.vz = cx;
-    }
-    gte_stclmv(col1);
+    block->vec.vx = 0;
+    block->vec.vy = -block->sin_x;
+    block->vec.vz = block->cos_x;
+    gte_stclmv(&block->mat.m[0][1]);
 
-    gte_ldsv(vec);
+    gte_ldsv(&block->vec);
     gte_rtir();
-    {
-        register u16 cz asm("v0");
-        u16          sz;
-        cz            = block->cos_z;
-        sz            = block->sin_z;
-        col2          = &block->mat.m[0][2];
-        block->vec.vz = 0;
-        block->vec.vx = cz;
-        block->vec.vy = sz;
-    }
-    gte_stclmv(col2);
+    block->vec.vx = block->cos_z;
+    block->vec.vy = block->sin_z;
+    block->vec.vz = 0;
+    gte_stclmv(&block->mat.m[0][2]);
 
     gte_SetRotMatrix(&block->mat);
-    gte_ldsv(vec);
+    gte_ldsv(&block->vec);
     gte_rtir();
-    {
-        register s16 sz asm("v0");
-        u16          cz;
-        sz            = block->sin_z;
-        cz            = block->cos_z;
-        block->vec.vz = 0;
-        sz            = -sz;
-        block->vec.vx = sz;
-        block->vec.vy = cz;
-    }
-    gte_stclmv(&block->mat);
+    block->vec.vx = -block->sin_z;
+    block->vec.vy = block->cos_z;
+    block->vec.vz = 0;
+    gte_stclmv(&block->mat.m[0][0]);
 
-    gte_ldsv(vec);
+    gte_ldsv(&block->vec);
     gte_rtir();
-    gte_stclmv(col1);
+    gte_stclmv(&block->mat.m[0][1]);
 
     if (flag != 0) {
         MATRIX_PAIR(out, 0, 0) = MATRIX_PAIR(&block->mat, 0, 0);
