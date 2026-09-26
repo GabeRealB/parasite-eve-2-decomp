@@ -141540,3 +141540,17 @@ Same function: a scratch-block fill written as a pointer walk (`v++`) with
 pins on `v`, `i` and the head matched as a plain indexed loop over
 `block->vec[i]`. Loop strength reduction makes the one address giv the pins
 were imitating; the walk form gave an extra giv for `&v->vz` instead.
+
+## Hand-inlined view walks and Y-rescales are the `actor.h` helpers; pick the spelling by setup order (Actor00100_Fn04270, 2026-09-26)
+
+Symptom: a body with `goto` parent-chain loops pinned to `s0`/`s2` and two
+cross-jumped copies of the `ActorScaleRotScratch` rescale, each pinning the
+scratch head. Both are inlined helpers: `actorLocalToView` /
+`actorTransformToView` for the walk, and one `actorRescaleYawY` call per arm
+of an `if` for the rescale (jump2 merges the shared tail itself).
+
+The two walk helpers differ only in setup scheduling. `actorTransformToView`
+names `svp`/`view`/`vecp` locals, so the stack-address setups issue before
+the `extra.tmd` load; `actorLocalToView` takes `&acc`/`&v` directly and puts
+`view`, `svp` first and `vecp` after that load. When only those three
+`addiu`s are out of place, swap to the other helper.

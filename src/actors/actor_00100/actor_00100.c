@@ -1859,34 +1859,13 @@ void Actor00100_Fn0375C(Task* arg0)
     }
 }
 
-void Actor00100_Fn04270(Task* argx)
+void Actor00100_Fn04270(Task* arg0)
 {
-    register Task*        arg0 asm("s2");
-    Actor00100Work*       work;
-    TmdObject*            obj;
-    GpEnemy*              ctx;
-    ActorScaleRotScratch* blk;
-    GpCoord*              coords;
-    GpCoord*              p;
-    GpCoord*              view0;
-    register GpCoord*     view1 asm("s0");
-    SVECTOR*              out;
-    SVECTOR*              svp;
-    VECTOR*               vecp;
-    s32*                  fp;
-    SVECTOR               sv;
-    VECTOR                vec;
-    s32                   flag0;
-    s32                   flag1;
-    s32                   state;
-    s32                   st;
-    s32                   d;
-    s32                   eff;
-    s32                   v;
-    s16                   ang;
-    u16                   next;
+    Actor00100Work* work;
+    TmdObject*      obj;
+    GpEnemy*        ctx;
+    s32             v;
 
-    arg0 = argx;
     work = arg0->work;
     obj  = arg0->extra.tmd;
     ctx  = arg0->spawnArg2;
@@ -1910,10 +1889,7 @@ void Actor00100_Fn04270(Task* argx)
         arg0->state++;
         return;
     }
-    next          = (u16)work->field_6 + 1;
-    work->field_6 = next;
-    state         = (s16)next;
-    switch (state) {
+    switch (++work->field_6) {
         case 1:
             Gp_SetLightMode(ctx, 0);
             Gp_SetLightMode(ctx, 1);
@@ -1929,75 +1905,11 @@ void Actor00100_Fn04270(Task* argx)
             work->field_8B0.vx = 0;
             work->field_8B0.vy = 0;
             work->field_8B0.vz = 0;
-            view0              = &gGfxViewCoord;
-            svp                = &sv;
-            vecp               = &vec;
-            fp                 = &flag0;
-            out                = &work->field_8A8;
-            p                  = &arg0->extra.tmd->coords[2];
-            sv.vx              = work->field_8A8.vx;
-            sv.vy              = out->vy;
-            sv.vz              = out->vz;
-        loop0:
-            if (p->sub == NULL) {
-                goto done0;
-            }
-            {
-                if (p == view0) {
-                    out->vx = sv.vx;
-                    out->vy = sv.vy;
-                    out->vz = sv.vz;
-                    goto done0;
-                }
-                gte_SetTransMatrix(&p->coord);
-                gte_SetRotMatrix(&p->coord);
-                gte_ldv0(svp);
-                gte_rtv0tr();
-                gte_stlvnl(vecp);
-                gte_stflg(fp);
-                sv.vx = vec.vx;
-                sv.vy = vec.vy;
-                sv.vz = vec.vz;
-                p     = p->sub;
-                goto loop0;
-            }
-        done0:
-            view1 = &gGfxViewCoord;
-            Gp_SpawnEff(0x600A5, view1, 2, &work->field_8A8);
-            work->field_8A8.vy = (u16)arg0->extra.tmd->coords[0].coord.t[1];
-            svp                = &sv;
-            vecp               = &vec;
-            fp                 = &flag1;
-            out                = &work->field_8B0;
-            p                  = &arg0->extra.tmd->coords[9];
-            sv.vx              = work->field_8B0.vx;
-            sv.vy              = out->vy;
-            sv.vz              = out->vz;
-        loop1:
-            if (p->sub == NULL) {
-                goto done1;
-            }
-            {
-                if (p == view1) {
-                    out->vx = sv.vx;
-                    out->vy = sv.vy;
-                    out->vz = sv.vz;
-                    goto done1;
-                }
-                gte_SetTransMatrix(&p->coord);
-                gte_SetRotMatrix(&p->coord);
-                gte_ldv0(svp);
-                gte_rtv0tr();
-                gte_stlvnl(vecp);
-                gte_stflg(fp);
-                sv.vx = vec.vx;
-                sv.vy = vec.vy;
-                sv.vz = vec.vz;
-                p     = p->sub;
-                goto loop1;
-            }
-        done1:
-            work->field_8B0.vy = (u16)arg0->extra.tmd->coords[0].coord.t[1];
+            actorLocalToView(&arg0->extra.tmd->coords[2], &work->field_8A8);
+            Gp_SpawnEff(0x600A5, &gGfxViewCoord, 2, &work->field_8A8);
+            work->field_8A8.vy = arg0->extra.tmd->coords[0].coord.t[1];
+            actorLocalToView(&arg0->extra.tmd->coords[9], &work->field_8B0);
+            work->field_8B0.vy = arg0->extra.tmd->coords[0].coord.t[1];
             Gp_SpawnEff(0x600A5, &gGfxViewCoord, 2, &work->field_8B0);
             break;
         case 0x3C:
@@ -2005,75 +1917,13 @@ void Actor00100_Fn04270(Task* argx)
             break;
     }
 
-    st = work->field_6;
-    if (st < 0xB) {
-        return;
-    }
-    d = st - 0xA;
-    v = d * 107;
-    if (v < 0x1000) {
-        register u8* h asm("s4");
-        register s32 sy asm("s2");
-        register s32 k1000 asm("s3");
-        TmdObject*   o;
-
-        o      = arg0->extra.tmd;
-        k1000  = 0x1000;
-        sy     = k1000 - v;
-        h      = PSX_SCRATCH;
-        h      = *(u8**)(h + 0x3FC);
-        coords = o->coords;
-        blk    = (ActorScaleRotScratch*)(h - 0x34);
-
-        SCRATCH_HEAD(ActorScaleRotScratch) = blk;
-
-        ang        = ratan2(-coords[0].coord.m[2][0], coords[0].coord.m[2][2]);
-        blk->angle = ang;
-        Gfx_RotMatrixY(&blk->m, ang, 1);
-        blk->scale.vx = k1000;
-        blk->scale.vy = (s16)sy;
-        blk->scale.vz = k1000;
-        ScaleMatrix(&blk->m, &blk->scale);
-        coords[0].coord.m[0][0] = (u16)((ActorScaleRotScratch*)(h - 0x34))->m.m[0][0];
-    } else {
-        register u8* h2 asm("s2");
-        TmdObject*   o2;
-
-        o2     = arg0->extra.tmd;
-        h2     = PSX_SCRATCH;
-        h2     = *(u8**)(h2 + 0x3FC);
-        coords = o2->coords;
-        blk    = (ActorScaleRotScratch*)(h2 - 0x34);
-
-        SCRATCH_HEAD(ActorScaleRotScratch) = blk;
-
-        ang        = ratan2(-coords[0].coord.m[2][0], coords[0].coord.m[2][2]);
-        blk->angle = ang;
-        Gfx_RotMatrixY(&blk->m, ang, 1);
-        blk->scale.vx = 0x1000;
-        blk->scale.vy = 0;
-        blk->scale.vz = 0x1000;
-        ScaleMatrix(&blk->m, &blk->scale);
-        coords[0].coord.m[0][0] = (u16)((ActorScaleRotScratch*)(h2 - 0x34))->m.m[0][0];
-    }
-    coords[0].coord.m[0][1] = (u16)blk->m.m[0][1];
-    coords[0].coord.m[0][2] = (u16)blk->m.m[0][2];
-    coords[0].coord.m[1][0] = (u16)blk->m.m[1][0];
-    coords[0].coord.m[1][1] = (u16)blk->m.m[1][1];
-    coords[0].coord.m[1][2] = (u16)blk->m.m[1][2];
-    coords[0].coord.m[2][0] = (u16)blk->m.m[2][0];
-    coords[0].coord.m[2][1] = (u16)blk->m.m[2][1];
-    {
-        register u8* h3;
-        u8*          top;
-        u16          m22;
-
-        h3                      = PSX_SCRATCH;
-        top                     = *(u8**)(h3 + 0x3FC);
-        m22                     = (u16)blk->m.m[2][2];
-        coords[0].flg           = 0;
-        SCRATCH_HEAD(u8)        = top + 0x34;
-        coords[0].coord.m[2][2] = m22;
+    if (work->field_6 > 0xA) {
+        v = (work->field_6 - 0xA) * 107;
+        if (v < 0x1000) {
+            actorRescaleYawY(arg0->extra.tmd->coords, 0x1000, 0x1000 - v);
+        } else {
+            actorRescaleYawY(arg0->extra.tmd->coords, 0x1000, 0);
+        }
     }
 }
 
