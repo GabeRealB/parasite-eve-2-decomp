@@ -144419,3 +144419,20 @@ constant `$a2`.
 **Fix.** Declare the variable with the width its values need (`s16 scale;`). When
 a value that crosses a join loses a register to a constant computed after
 the join, try narrowing the variable before forcing the constant global.
+## A `nop` after a load at the end of a two-way choice: the dependent store was in both arms, cross-jumped after sched2 (Actor02400_Fn0095C, 2026-09-27)
+
+**Symptom.** `p = cond ? &A : &B; hp = p->max;` matched except that the
+`move a0,zero` of a later call filled the `lhu` delay slot, where the target has
+`lhu; nop; sh` and the `move` after the store (99.1%). The seed held it there
+with a `SCHED_BARRIER()` after the store.
+
+**Mechanism.** sched2 runs before jump2's cross-jumping. With the store after
+the join, it shares a block with the call setup and sched2 hoists the argument
+into the stall. Written in each arm, the `sw p; lhu; sh` tail is its own block
+at sched2 time, so the stall stays a `nop`; jump2 then merges the two identical
+tails into the shared `sw` / `lhu` / `sh` the target shows.
+
+**Fix.** Put the dependent assignment in both arms of an `if`/`else`
+(`param = &A; hp = A.max;` / `param = &B; hp = B.max;`). A `nop` in a load
+delay slot at the head of a join, with a movable instruction just below it, is
+the tell for a duplicated tail.

@@ -384,9 +384,13 @@ static void Actor02400_Fn0095C(GpEnemy* enemy, Task* task)
     enemy->bodyPos.vx         = 0;
     enemy->bodyPos.vz         = 0;
     enemy->recs               = work->rec60;
-    enemy->param              = work->variant == 0 ? &Actor02400_Params0 : &Actor02400_Params1;
-    enemy->hp                 = enemy->param->hpMax;
-    SCHED_BARRIER();
+    if (work->variant == 0) {
+        enemy->param = &Actor02400_Params0;
+        enemy->hp    = Actor02400_Params0.hpMax;
+    } else {
+        enemy->param = &Actor02400_Params1;
+        enemy->hp    = Actor02400_Params1.hpMax;
+    }
     work->effArg.coord      = &task->extra.tmd->coords[1];
     work->effArg.spawnArgLo = 0x200;
     work->effArg.spawnArgHi = 1;
