@@ -6073,25 +6073,22 @@ s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
     return rand < chance;
 }
 
+/// The same lookup as `Gp_GetIdParam0`, returned at the tables' own width.
+static inline u16 _gpIdParam0(s32 id)
+{
+    if ((id & 0x8000) == 0) {
+        return Gp_IdParamLo[id & 0x7F].field_4;
+    }
+    return Gp_IdParamHi[id & 0x7F].field[5];
+}
+
 static void Gp_ApplyObjKind(GpEnemy* arg0, s32 arg1)
 {
-    u16 raw;
-    s32 kind;
     s32 val;
     s32 limit;
     s32 rand;
 
-    if ((arg1 & 0x8000) == 0) {
-        raw = Gp_IdParamLo[arg1 & 0x7F].field_4;
-        TOUCH_REG(raw);
-        kind = raw;
-    } else {
-        raw = Gp_IdParamHi[arg1 & 0x7F].field[5];
-        TOUCH_REG(raw);
-        kind = raw;
-    }
-
-    switch (kind) {
+    switch (_gpIdParam0(arg1)) {
         case 0:
             break;
         case 1:
