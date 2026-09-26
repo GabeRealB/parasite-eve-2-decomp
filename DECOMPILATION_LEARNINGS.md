@@ -142259,3 +142259,15 @@ for `y`) makes `off` and `base` die twice, so they are global, local-alloc canno
 tie the add/sub result to the field load, and the chain keeps `v0`. Writing
 `off = base + off` instead flips the `addu` operands (expand swaps a commutative
 op whose second operand is the target).
+## `lui` of the scratch head *before* the parameter's `move tN,a0`: an alias of the parameter's first member (Gp_LightPoint, 2026-09-26)
+
+Target opens `lui a3,0x1F80; move t1,a0; ori a3,...`; the natural body gives
+`move t1,a0` first. Both insns have sched2 priority 1, so the tie falls to RTL
+order, and the parameter's own copy-in insn always precedes the scratch
+address. The seed forced it with `a3`/`a0` pins, an `obj = arg0` copy and two
+`TOUCH_REG`s. The source the sibling light functions use -
+`GpLight* base = &light->head;` (offset 0, so a plain second copy of the
+parameter) and field reads split between `base->` and `light->` - makes the
+`move` a later copy insn and matches with no hacks, wherever the assignment
+sits among the opening statements. When only the order of a parameter `move`
+at the top differs, look for a member-at-offset-0 alias local.

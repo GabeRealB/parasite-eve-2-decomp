@@ -830,82 +830,40 @@ s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos)
     return result;
 }
 
-s32 Gp_LightPoint(GpPointLight* arg0, VECTOR3* arg1)
+s32 Gp_LightPoint(GpPointLight* light, VECTOR3* pos)
 {
-    register void**         scratch asm("a3");
-    register u8*            head;
-    register GpAttnScratch* tmp asm("a0");
-    GpAttnScratch*          block;
-    s32                     result;
-    register s32            lum;
-    GpPointLight*           obj;
-    s32                     tooFar;
-    s32                     r;
-    s32                     g;
-    s32                     b;
-    s32                     dist;
-    s32                     inner;
-    s32                     vx;
-    s32                     sq;
-    u16                     scale;
-    u8*                     ptr;
+    GpAttnScratch* block;
+    s32            result;
+    GpLight*       base;
 
-    obj                                     = arg0;
-    scratch                                 = SCRATCH_HEAD_ADDR;
-    vx                                      = obj->head.u.at.world.t[0];
-    head                                    = SCRATCH_HEAD_AT(scratch, u8);
-    vx                                     -= arg1->vx;
-    vx                                    >>= 1;
-    tmp                                     = (GpAttnScratch*)(head - 0x20);
-    ((GpAttnScratch*)(head - 0x20))->vec.vx = vx;
-    block                                   = tmp;
-    block->vec.vy                           = (obj->head.u.at.world.t[1] - arg1->vy) >> 1;
-    block->vec.vz                           = (obj->head.u.at.world.t[2] - arg1->vz) >> 1;
-    sq                                      = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
-    block->distSq                           = sq;
-    sq                                      = obj->outer;
-    lum                                     = sq * sq;
-    sq                                      = lum >> 2;
-    lum                                     = block->distSq;
-    result                                  = 0;
-    block->outerSq                          = sq;
-    SCRATCH_HEAD_AT(scratch, GpAttnScratch) = block;
-    tooFar                                  = (u32)sq < (u32)lum;
-    block->scale                            = 0;
-    if (!tooFar) {
-        block->innerSq = (obj->inner * obj->inner) >> 2;
-        r              = obj->head.r;
-        g              = obj->head.g;
-        b              = obj->head.b;
+    base           = &light->head;
+    result         = 0;
+    block          = SCRATCH_PUSH(GpAttnScratch);
+    block->vec.vx  = (base->u.at.world.t[0] - pos->vx) >> 1;
+    block->vec.vy  = (base->u.at.world.t[1] - pos->vy) >> 1;
+    block->vec.vz  = (base->u.at.world.t[2] - pos->vz) >> 1;
+    block->distSq  = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
+    block->outerSq = (light->outer * light->outer) >> 2;
+    block->scale   = 0;
+    if ((u32)block->outerSq >= (u32)block->distSq) {
+        block->innerSq = (light->inner * light->inner) >> 2;
+        result         = ((light->head.r * 8 + light->head.g * 6 + light->head.b * 2) >> 8) + 0xF00;
         block->scale   = 0x1000;
-        lum            = (r * 8 + g * 6 + b * 2) >> 8;
-        dist           = block->distSq;
-        inner          = block->innerSq;
-        result         = lum + 0xF00;
-        if ((u32)inner < (u32)dist) {
-            s32 temp;
-
-            temp = block->outerSq;
-            TOUCH_REG(temp);
-            lum = inner;
-            TOUCH_REG(lum);
-            block->outerSq = temp - inner;
-            block->distSq -= lum;
+        if ((u32)block->distSq > (u32)block->innerSq) {
+            block->outerSq -= block->innerSq;
+            block->distSq  -= block->innerSq;
             while ((u32)block->outerSq > 0xFFFF) {
                 block->outerSq = (u32)block->outerSq >> 4;
                 block->distSq  = (u32)block->distSq >> 4;
             }
             if (block->outerSq != 0) {
                 block->scale = ((u32)(block->outerSq - block->distSq) << 12) / (u32)block->outerSq;
-                lum          = block->scale * result;
-                result       = (u32)lum >> 12;
+                result       = (u32)(block->scale * result) >> 12;
             }
         }
     }
-    scale                = block->scale;
-    ptr                  = SCRATCH_HEAD(u8);
-    obj->head.u.at.scale = scale;
-    SCRATCH_HEAD(u8)     = ptr + 0x20;
+    base->u.at.scale = block->scale;
+    SCRATCH_POP(GpAttnScratch);
     return result;
 }
 
