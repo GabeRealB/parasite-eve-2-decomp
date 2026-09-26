@@ -592,159 +592,134 @@ static void Mc_StateListDirectory(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 }
 
-static void Mc_StateFileSelect(Task* arg0, McWork* arg1)
+/// Inline form of Mc_DrawPrompt.
+static inline void _mcDrawPrompt(Task* task, s32 mode)
 {
-    UiObject*     saved;
+    s32           ret;
     UiObject*     obj;
-    UiObject*     childObj;
-    UiObject*     flag;
-    Task*         child;
     McPromptPair* entry;
     McPromptPair* base;
-    s32           ret;
-    s32           one;
-    s32           syncResult;
-    u8            ch;
 
-    one           = 1;
-    saved         = arg0->spawnArg2;
-    arg1->field_8 = 0x16;
-    obj           = arg0->spawnArg2;
+    obj           = task->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
-    entry = &base[0x16];
-    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
-    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
+    entry = &base[mode];
+    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+}
+
+/// Tear down the task's child UI and report status on the task's own object.
+static inline void _mcCloseChild(Task* task, s32 status)
+{
+    Task*     child;
+    UiObject* obj;
+    UiObject* flag;
+
+    child = task->firstChild;
+    if (child != NULL) {
+        obj         = child->spawnArg2;
+        flag        = task->spawnArg2;
+        obj->status = 0;
+        Ui_TeardownTree(obj, obj->owner);
+        flag->status = status;
+    }
+}
+
+/// Inline form of Mc_CopyFileName: 0 saves Mc_FileName to Mc_FileNameBuf, otherwise restores it.
+static inline void _mcCopyFileName(s32 arg0)
+{
+    u8* src;
+    u8* dst;
+    s32 i;
+
+    if (arg0 == 0) {
+        src = Mc_FileName;
+        dst = Mc_FileNameBuf;
+    } else {
+        src = Mc_FileNameBuf;
+        dst = Mc_FileName;
+    }
+
+    for (i = 0; i < 0x15; i++) {
+        *dst++ = *src++;
+    }
+}
+
+static void Mc_StateFileSelect(Task* arg0, McWork* arg1)
+{
+    UiObject* obj;
+    UiObject* childObj;
+    Task*     child;
+    s32       syncResult;
+    s32       i;
+
+    obj           = arg0->spawnArg2;
+    arg1->field_8 = 0x16;
+    _mcDrawPrompt(arg0, 0x16);
 
     child = arg0->firstChild;
     if (child == NULL) {
-        if (Ui_SpawnFromDesc(D_8006121C, (s32)arg1, 1, 2, saved) != 0) {
-            {
-                UiList* menu;
-                u8      t;
-
-                menu          = &D_80061194;
-                t             = arg1->field_288;
-                menu->field_4 = t;
-                if (arg1->field_288 < (0xF - arg1->field_28C)) {
-                    {
-                        register u8 sum asm("v0");
-                        sum           = t + one;
-                        menu->field_4 = sum;
-                    }
-                }
-                menu->field_10  = arg1->field_290;
-                saved->field_2C = 0;
-                saved->status   = 0;
+        if (Ui_SpawnFromDesc(D_8006121C, (s32)arg1, 1, 2, obj) != 0) {
+            D_80061194.field_4 = arg1->field_288;
+            if (arg1->field_288 < 0xF - arg1->field_28C) {
+                D_80061194.field_4++;
             }
+            D_80061194.field_10 = arg1->field_290;
+            obj->field_2C       = 0;
+            obj->status         = 0;
         }
     } else {
         childObj = child->spawnArg2;
         if (childObj->field_2E == 6) {
-            saved->field_2C  = childObj->field_2C;
+            obj->field_2C    = childObj->field_2C;
             childObj->status = 0;
             Ui_TeardownTree(childObj, childObj->owner);
-            saved->status = one;
-            if (saved->field_2C >= 0) {
-                if (saved->field_2C < arg1->field_288) {
-                    {
-                        u8* src;
-                        u8* name;
-                        s32 matchCount;
-                        u8* walk;
-                        u8* dst;
-                        s32 i;
-                        s32 j;
+            obj->status = 1;
+            if (obj->field_2C >= 0) {
+                if (obj->field_2C < arg1->field_288) {
+                    u8* src;
+                    u8* name;
+                    s32 matchCount;
 
-                        src        = (u8*)arg1->field_30[saved->field_2C].name;
-                        name       = Mc_FileName;
-                        matchCount = 0x14;
-                        walk       = name;
-                        dst        = Mc_FileNameBuf;
-                        i          = 0;
-                        do {
-                            {
-                                u8 ch;
-                                ch    = *walk;
-                                walk += 1;
-                                i    += 1;
-                                *dst  = ch;
-                            }
-                            dst += 1;
-                        } while (i < 0x15);
-                        j = 0;
-                        do {
-                            {
-                                u8 ch;
-                                u8 n;
-                                ch = *src;
-                                n  = *name;
-                                if (n == ch) {
-                                    matchCount -= 1;
-                                }
-                                *name = ch;
-                            }
-                            name += 1;
-                            j    += 1;
-                            src  += 1;
-                        } while (j < 0x14);
-                        *name = 0;
-                        if (matchCount != 0) {
-                            arg1->field_28 = -1;
+                    src        = (u8*)arg1->field_30[obj->field_2C].name;
+                    name       = Mc_FileName;
+                    matchCount = 0x14;
+                    _mcCopyFileName(0);
+                    for (i = 0; i < 0x14; i++) {
+                        if (*name == *src) {
+                            matchCount--;
                         }
+                        *name = *src;
+                        name++;
+                        src++;
+                    }
+                    *name = 0;
+                    if (matchCount != 0) {
+                        arg1->field_28 = -1;
                     }
                 } else {
-                    {
-                        u8* name;
-                        u8* dst;
-                        s32 i;
+                    register u8* fn asm("a0");
 
-                        name = Mc_FileName;
-                        dst  = Mc_FileNameBuf;
-                        i    = 0;
-                        do {
-                            ch    = *name;
-                            name += 1;
-                            i    += 1;
-                            *dst  = ch;
-                            dst  += 1;
-                        } while (i < 0x15);
-                    }
-                    {
-                        register u8* fn asm("a0");
-                        fn = Mc_FileName;
-                        Mc_BuildFileName(fn, saved->field_2C);
-                    }
+                    _mcCopyFileName(0);
+                    fn = Mc_FileName;
+                    Mc_BuildFileName(fn, obj->field_2C);
                 }
                 arg1->field_8 = 1;
                 arg0->state   = 5;
-                return;
+            } else {
+                arg0->state = 0x29;
             }
-            arg0->state = 0x29;
             return;
         }
     }
 
     syncResult = MemCardSync(1, (long*)&arg1->field_10, (long*)&arg1->field_14);
     if (syncResult != -1) {
-        if (syncResult == 1) {
-            if (arg1->field_14 != 0) {
-                {
-                    register Task* ch asm("v1");
-
-                    ch          = arg0->firstChild;
-                    arg0->state = 2;
-                    if (ch != NULL) {
-                        childObj         = ch->spawnArg2;
-                        flag             = arg0->spawnArg2;
-                        childObj->status = 0;
-                        Ui_TeardownTree(childObj, childObj->owner);
-                        flag->status = syncResult;
-                    }
-                }
-            }
+        if (syncResult == 1 && arg1->field_14 != 0) {
+            arg0->state = 2;
+            _mcCloseChild(arg0, syncResult);
         }
     } else {
         MemCardExist(arg1->field_C);
@@ -1000,41 +975,6 @@ static void Mc_StatePadFileName(Task* arg0, McWork* arg1)
     entry = &base[idx];
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
-}
-
-/// Inline form of Mc_DrawPrompt.
-static inline void _mcDrawPrompt(Task* task, s32 mode)
-{
-    s32           ret;
-    UiObject*     obj;
-    McPromptPair* entry;
-    McPromptPair* base;
-
-    obj           = task->spawnArg2;
-    ret           = Ui_LookupTable(obj, 1);
-    obj->field_2E = 0;
-    Ui_DrawTitle(obj, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[mode];
-    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
-    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
-}
-
-/// Tear down the task's child UI and report status on the task's own object.
-static inline void _mcCloseChild(Task* task, s32 status)
-{
-    Task*     child;
-    UiObject* obj;
-    UiObject* flag;
-
-    child = task->firstChild;
-    if (child != NULL) {
-        obj         = child->spawnArg2;
-        flag        = task->spawnArg2;
-        obj->status = 0;
-        Ui_TeardownTree(obj, obj->owner);
-        flag->status = status;
-    }
 }
 
 static void Mc_StateNameEntry(Task* task, McWork* work)
