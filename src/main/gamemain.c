@@ -16,7 +16,12 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-void GameMain_Init(void)
+static void Display_VSyncCallback(void);
+static void GameMain_ShowLoading(s32 arg0);
+static void GameMain_SpawnBootTask(void);
+static void Gfx_InitGraph(void);
+
+static void GameMain_Init(void)
 {
     s32 flag; // The indirection is required.
 
@@ -110,7 +115,8 @@ static inline void _displayPresentFrame(s32 buf)
     }
 }
 
-void Display_VSyncCallback(void)
+/// VSync callback: timed flip / strip load / audio tick (gamemain.c).
+static void Display_VSyncCallback(void)
 {
     s32 start;
 
@@ -138,7 +144,8 @@ void Display_VSyncCallback(void)
 }
 
 // Drawn by GameMain_ShowLoading (must stay in .rodata for this TU).
-const u8 GameMain_PauseText[] = "PAUSE!";
+/// "PAUSE!" overlay text for GameMain_ShowLoading (@ VA 0x80013404).
+static const u8 GameMain_PauseText[] = "PAUSE!";
 
 /// Nonzero while the game cannot be halted: a CD command is running without
 /// the halt flag that permits it, the flip is holding the displayed frame, a CD
@@ -160,7 +167,7 @@ static inline s32 _gameMainPauseBlocked(void)
     return blocked;
 }
 
-void GameMain_ShowLoading(s32 arg0)
+static void GameMain_ShowLoading(s32 arg0)
 {
     TextDrawReq req;
     TILE*       tile;
@@ -236,7 +243,7 @@ static inline s32 _gameMainPaceToStream(s32 start, s32 elapsed)
     return elapsed;
 }
 
-void GameMain_Loop(void)
+static void GameMain_Loop(void)
 {
     CdCmdQueue* cq;
     s32         start;
@@ -459,7 +466,7 @@ void Gpu_ClearOTag(s16 tableIdx)
     *tableStart = GPU_OT_END_PRIM;
 }
 
-void Gfx_InitGraph(void)
+static void Gfx_InitGraph(void)
 {
     RECT      rect;
     GpuOtBuf* otCtx;
@@ -493,7 +500,7 @@ void Gfx_InitGraph(void)
     gDisplayState.at100.flags.imageSource = 0;
 }
 
-void GameMain_SpawnBootTask(void)
+static void GameMain_SpawnBootTask(void)
 {
     if (D_8005EC64 == 1) {
         Task_Spawn(0, 0x1F, 0, 0);
@@ -502,7 +509,7 @@ void GameMain_SpawnBootTask(void)
     }
 }
 
-void Display_PutEnvAndDraw(s32 arg0)
+static void Display_PutEnvAndDraw(s32 arg0)
 {
     PutDrawEnv(&gDisplayState.drawEnv[arg0]);
     PutDispEnv(&gDisplayState.dispEnv[arg0]);

@@ -5,6 +5,8 @@
 
 #include "main/mem.h"
 
+static void memSetActiveHeap(bool auxHeap);
+
 void Mem_Set(void* dest, u32 ch, u32 count)
 {
     u32 i;
@@ -133,7 +135,17 @@ end:
     return ptr;
 }
 
-void memSetActiveHeap(bool auxHeap)
+/// Selects the heap the allocation routines operate on.
+///
+/// `malloc3` and `free3` work inside one heap at a time, and a block has to be
+/// released to the heap it came from, so the heap in play is set before each
+/// operation rather than once at start-up. The primary heap is the fixed
+/// region at `gMemHeap`; the auxiliary heap is the region `gMemActiveAuxHeap`
+/// currently points at.
+///
+/// @param auxHeap If `true`, the auxiliary heap becomes the active one,
+///                otherwise the primary heap.
+static void memSetActiveHeap(bool auxHeap)
 {
     if (auxHeap == true) {
         _freep = gMemActiveAuxHeap;
@@ -189,7 +201,7 @@ void Mem_Init()
 // The rom contains an empty function that is never called.
 // Might have been a debug utility that is not present in
 // the release.
-void Mem_Dummy0()
+static void Mem_Dummy0()
 {
 }
 

@@ -102,18 +102,6 @@ void memFree(void* ptr);
 ///                otherwise to the primary one.
 void memFreeFromHeap(void* ptr, bool auxHeap);
 
-/// Selects the heap the allocation routines operate on.
-///
-/// `malloc3` and `free3` work inside one heap at a time, and a block has to be
-/// released to the heap it came from, so the heap in play is set before each
-/// operation rather than once at start-up. The primary heap is the fixed
-/// region at `gMemHeap`; the auxiliary heap is the region `gMemActiveAuxHeap`
-/// currently points at.
-///
-/// @param auxHeap If `true`, the auxiliary heap becomes the active one,
-///                otherwise the primary heap.
-void memSetActiveHeap(bool auxHeap);
-
 /// Selects which region serves as the auxiliary heap.
 ///
 /// Passing `true` selects the region beyond the primary heap, `false` the

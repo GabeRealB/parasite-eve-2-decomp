@@ -16,7 +16,8 @@
 #include "main/wipsys.h"
 
 // Build stamp (must stay in .rodata ahead of Boot_LoadInitialFile jtbl).
-const char Boot_BuildStamp[] = "2000/05/01 19:24 ver2.49";
+/// Early-image build stamp string @ VA 0x80012750 ("2000/05/01 19:24 ver2.49").
+static const char Boot_BuildStamp[] = "2000/05/01 19:24 ver2.49";
 
 void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1)
 {

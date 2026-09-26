@@ -188,7 +188,6 @@ STATIC_ASSERT_SIZEOF(TaskDesc, 0xc);
 // Functions — src/main/task.c
 // =============================================================================
 
-Task* Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* list);
 Task* Task_SpawnFromTable(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
 Task* Task_Spawn(s32 bank, s32 type, s32 arg2, s32 arg3);
 Task* Task_SpawnOnDefaultList(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
@@ -223,8 +222,6 @@ s32       Task_PollKill(Task* task, s32* out);
 TaskNode* Task_GetActiveList(void);
 void      Task_SetActiveList(TaskNode* node);
 void      Task_ResetDefaultList(void);
-void      Task_Unlink(Task* task);
-void      Task_Free(Task* task);
 /// Task callback that counts a task's `killCountdown` down and releases the body
 /// it owns when the count reaches zero: a TMD model comes off the model list and
 /// has its buffer and object freed, a 2D display is freed, and a task owning
@@ -270,8 +267,6 @@ extern TaskNode gTaskDefaultList;
 /// main list, and the display frame walks it.
 extern TaskNode gTaskDisplayList;
 
-extern const TaskFuncTable5 GameFlow_States5;
-extern const TaskFuncTable3 GameFlow_States3;
 extern const TaskFuncTable6 Display_TaskStates;
 extern const TaskFuncTable3 Tmd_TaskStates;
 extern const TaskFuncTable4 Stage_TaskStates;

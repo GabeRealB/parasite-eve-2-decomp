@@ -14,7 +14,17 @@
 #include "main/stream.h"
 #include "main/wipsys.h"
 
-void Fs_ResetBootLoadState(void)
+static void Fs_ContinueDrawing(u_long* ot);
+static void Fs_OnCdError(u8 arg0);
+static u8   Fs_ProcessChunkData(void);
+static u8   Fs_ProcessChunkHeader(void);
+static void Fs_ReadNReadyCb(u8 status, u8* result);
+static void Fs_ReadNSyncCb(u8 status, u8* result);
+static void Fs_ReadSector(s32 sector);
+static void Fs_SeekToPos(s32 sector);
+static void Fs_SeekToPosCb(u8 status, u8* result);
+
+static void Fs_ResetBootLoadState(void)
 {
     Fs_BootLoadPhase      = 0;
     CdCmd_Queue.field_224 = 0;
@@ -225,7 +235,7 @@ end_return:
     return sector & 0xFFFF;
 }
 
-void Fs_CdReadyCb(u8 status, u8* result)
+static void Fs_CdReadyCb(u8 status, u8* result)
 {
     CdlLOC currLoc[3];
     s32    currPos;
@@ -273,7 +283,7 @@ end:
     return;
 }
 
-u8 Fs_ProcessChunkHeader(void)
+static u8 Fs_ProcessChunkHeader(void)
 {
     s32               i = 0;
     FsCdfChunkHeader* hdr;
@@ -459,7 +469,7 @@ u8 Fs_ProcessChunkHeader(void)
     return 0;
 }
 
-u8 Fs_ProcessChunkData(void)
+static u8 Fs_ProcessChunkData(void)
 {
     s32  status;
     s32  result;
@@ -821,7 +831,7 @@ loop_streams:
     }
 }
 
-void Fs_InitStage0TablesCb(u8 status, u8* result)
+static void Fs_InitStage0TablesCb(u8 status, u8* result)
 {
     CdlLOC          currLoc[3];
     s32             currPos;
@@ -1006,10 +1016,10 @@ on_error:
 }
 
 /* ISO directory name suffixes / special files (must sit in .rodata before ScanIso jtbl). */
-const char D_800132F4[] = ".CDF";
-const char D_800132FC[] = ".STR";
-const char D_80013304[] = "STAGE0.HED";
-const char D_80013310[] = "INIT.BS";
+static const char D_800132F4[] = ".CDF";
+static const char D_800132FC[] = ".STR";
+static const char D_80013304[] = "STAGE0.HED";
+static const char D_80013310[] = "INIT.BS";
 
 void Fs_ScanIsoDirectory(s32 mode)
 {
@@ -1703,7 +1713,7 @@ void Fs_ReadSectorEx(s32 sector, s32 arg1, u8* arg2, u8 arg3)
     }
 }
 
-void Fs_ReadSector(s32 sector)
+static void Fs_ReadSector(s32 sector)
 {
     CdlLOC loc[2];
 
@@ -1756,7 +1766,7 @@ void Fs_WaitDiskReset(s8 withSectHdr)
     VSync(3);
 }
 
-void Fs_SeekToPos(s32 sector)
+static void Fs_SeekToPos(s32 sector)
 {
     CdlLOC loc[2];
 
@@ -1820,7 +1830,7 @@ void Fs_InitStage0Tables(void)
     Fs_VBlank = VSync(-1);
 }
 
-void Fs_ReadNSyncCb(u8 status, u8* result)
+static void Fs_ReadNSyncCb(u8 status, u8* result)
 {
     if (status != CdlDiskError) {
         if (Fs_CdOpStatus == 0x41) {
@@ -1843,7 +1853,7 @@ void Fs_ReadNSyncCb(u8 status, u8* result)
     }
 }
 
-void Fs_ReadNReadyCb(u8 status, u8* result)
+static void Fs_ReadNReadyCb(u8 status, u8* result)
 {
     if (status != CdlDiskError) {
         Fs_VBlank       = VSync(-1);
@@ -1856,7 +1866,7 @@ void Fs_ReadNReadyCb(u8 status, u8* result)
     }
 }
 
-void Fs_SeekToPosCb(u8 status, u8* result)
+static void Fs_SeekToPosCb(u8 status, u8* result)
 {
     if (status == CdlComplete) {
         Fs_CdOpStatus = FS_CD_STATUS_IDLE;
@@ -1867,7 +1877,7 @@ void Fs_SeekToPosCb(u8 status, u8* result)
     }
 }
 
-void Fs_OnCdError(u8 arg0)
+static void Fs_OnCdError(u8 arg0)
 {
     Fs_CdErrorCount += 1;
     CdReadyCallback(NULL);
@@ -1883,7 +1893,7 @@ void Fs_OnCdError(u8 arg0)
     CdControlF(CdlPause, NULL);
 }
 
-void Fs_ContinueDrawing(u_long* ot)
+static void Fs_ContinueDrawing(u_long* ot)
 {
     // Wait until the gpu is idling and then continue drawing.
     while (IsIdleGPU(-1) != 0) {

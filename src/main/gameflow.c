@@ -14,9 +14,17 @@
 #include "main/wipsys.h"
 #include "main/mc.h"
 
-void Game_ResetSessionAndBuffers(Task* arg0);
+static void Game_ResetSessionAndBuffers(Task* arg0);
 
-const TaskFuncTable5 GameFlow_States5 = { {
+static void GameFlow_CopySaveIds(Task* arg0);
+static void GameFlow_CountdownAdvance(Task* arg0);
+static void GameFlow_EnqueueDefaultLoad(Task* arg0);
+static void GameFlow_SpawnMainWhenReady(Task* arg0);
+static void GameFlow_SpawnMenu(Task* arg0);
+static void GameFlow_SpawnWhenIdle(Task* arg0);
+static void GameFlow_WaitMenuDone(Task* arg0);
+
+static const TaskFuncTable5 GameFlow_States5 = { {
     Game_ResetSessionAndBuffers,
     GameFlow_SpawnMenu,
     GameFlow_WaitMenuDone,
@@ -24,7 +32,7 @@ const TaskFuncTable5 GameFlow_States5 = { {
     GameFlow_SpawnMainWhenReady,
 } };
 
-const TaskFuncTable3 GameFlow_States3 = { {
+static const TaskFuncTable3 GameFlow_States3 = { {
     GameFlow_CopySaveIds,
     GameFlow_EnqueueDefaultLoad,
     GameFlow_SpawnWhenIdle,
@@ -137,7 +145,7 @@ void Game_ClearSession(void)
     gDisplayState.at100.flags.pendingPlayerPos = 0;
 }
 
-void GameFlow_InitSystems(void)
+static void GameFlow_InitSystems(void)
 {
     Task_ResetDefaultList();
     Tmd_InitLists();
@@ -145,7 +153,7 @@ void GameFlow_InitSystems(void)
     Task_Spawn(0, 9, 0, 0);
 }
 
-void Game_ResetSessionAndBuffers(Task* arg0)
+static void Game_ResetSessionAndBuffers(Task* arg0)
 {
     s32         saved;
     CdCmdQueue* p;
@@ -165,7 +173,7 @@ void Game_ResetSessionAndBuffers(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-void GameFlow_SpawnMenu(Task* arg0)
+static void GameFlow_SpawnMenu(Task* arg0)
 {
     void* temp_v0;
 
@@ -180,7 +188,7 @@ void GameFlow_SpawnMenu(Task* arg0)
     }
 }
 
-void GameFlow_WaitMenuDone(Task* arg0)
+static void GameFlow_WaitMenuDone(Task* arg0)
 {
     UiObject* obj;
 
@@ -200,7 +208,7 @@ void GameFlow_WaitMenuDone(Task* arg0)
     }
 }
 
-void GameFlow_CountdownAdvance(Task* arg0)
+static void GameFlow_CountdownAdvance(Task* arg0)
 {
     arg0->killCountdown--;
     if (arg0->killCountdown != 0) {
@@ -210,7 +218,7 @@ void GameFlow_CountdownAdvance(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-void GameFlow_SpawnMainWhenReady(Task* arg0)
+static void GameFlow_SpawnMainWhenReady(Task* arg0)
 {
     if (gDisplayState.at100.flags.pendingPlayerPos == 0) {
         Task_Spawn(0, 2, 0, 0);
@@ -234,14 +242,14 @@ void GameFlow_DispatchTable5(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void GameFlow_CopySaveIds(Task* arg0)
+static void GameFlow_CopySaveIds(Task* arg0)
 {
     gGameSession->at4.raw = Mc_SaveData.at4.raw;
     D_8007A394            = 0;
     arg0->state           = arg0->state + 1;
 }
 
-void GameFlow_EnqueueDefaultLoad(Task* arg0)
+static void GameFlow_EnqueueDefaultLoad(Task* arg0)
 {
     u8 param1[8];
     u8 param2[8];
@@ -265,7 +273,7 @@ void Game_ClearEd68(void)
     D_8005ED68 = 0;
 }
 
-void GameFlow_SpawnWhenIdle(Task* arg0)
+static void GameFlow_SpawnWhenIdle(Task* arg0)
 {
     if (CdCmd_IsIdle() != 0) {
         Task_Spawn(0, 0x11, 1, 0);
@@ -282,7 +290,7 @@ void GameFlow_DispatchTable(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void Pad_TickEventBanks(PadState* arg0)
+static void Pad_TickEventBanks(PadState* arg0)
 {
     PadState* pad;
     u8*       temp;

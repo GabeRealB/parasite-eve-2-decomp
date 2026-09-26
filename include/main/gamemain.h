@@ -13,15 +13,8 @@
 /// Game entry point. Called by `main`.
 void GameMain(void);
 
-void GameMain_Init(void);
-void GameMain_Loop(void);
 u32  GameMain_GetResetCount(void);
-void GameMain_ShowLoading(s32 arg0);
 void GameMain_SetFrameTiming(s32 arg0);
-void GameMain_SpawnBootTask(void);
-
-/// "PAUSE!" overlay text for GameMain_ShowLoading (@ VA 0x80013404).
-extern const u8 GameMain_PauseText[];
 
 // Display/CD timing flags shared with the VSync path (GameMain_ShowLoading / GameMain_Loop).
 extern u32          D_8005EC64;

@@ -8,7 +8,7 @@
 // For some reason, the program starts by modifying its stack pointer and
 // calling the actual entry function of the game. This address does not
 // seem to be inserted by the linker.
-u32 GStackBase = 0x801fff00;
+static u32 GStackBase = 0x801fff00;
 
 // Base of the primary heap. The word sits at an address the game's memory map
 // fixes, and this unit's `.data` is the one the split places there, so the

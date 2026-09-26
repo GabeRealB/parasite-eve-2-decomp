@@ -7,7 +7,7 @@
 #include "main/mem.h"
 #include "main/text.h"
 
-s32 Fade_StepIn(s32 arg0)
+static s32 Fade_StepIn(s32 arg0)
 {
     TILE*        p;
     DR_TPAGE*    dr;
@@ -57,7 +57,7 @@ s32 Fade_StepIn(s32 arg0)
     return ret;
 }
 
-void Fade_StartWhite(void)
+static void Fade_StartWhite(void)
 {
     TILE*     p;
     DR_TPAGE* dr;
@@ -87,7 +87,7 @@ void Fade_StartWhite(void)
     addPrim(gGpuCurrentOt - 0x10, dr);
 }
 
-s32 Fade_StepOut(s32 arg0)
+static s32 Fade_StepOut(s32 arg0)
 {
     TILE*     p;
     DR_TPAGE* dr;
@@ -119,7 +119,7 @@ s32 Fade_StepOut(s32 arg0)
     return val < 0;
 }
 
-void Fs_SelectLoadHandlers0(u8* arg0)
+static void Fs_SelectLoadHandlers0(u8* arg0)
 {
     switch (Fs_LoadParams.field_2) {
         case 1:
@@ -168,7 +168,7 @@ void Fs_SelectLoadHandlers0(u8* arg0)
     }
 }
 
-void Fs_SelectLoadHandlers1(u8* arg0)
+static void Fs_SelectLoadHandlers1(u8* arg0)
 {
     switch (Fs_LoadParams.field_2) {
         case 1:
@@ -234,7 +234,7 @@ void Fs_SelectLoadHandlers1(u8* arg0)
     }
 }
 
-void Fs_SelectLoadHandlers2(u8* arg0)
+static void Fs_SelectLoadHandlers2(u8* arg0)
 {
     s32 temp_v1;
     s32 field2;
@@ -325,7 +325,7 @@ case_def_5:
     *arg0             = 0x20;
 }
 
-void Fs_SelectLoadHandlers3(u8* arg0)
+static void Fs_SelectLoadHandlers3(u8* arg0)
 {
     s32 temp_v1;
     s32 val;

@@ -178,8 +178,6 @@ s32 Display_DispatchModeId(s32 arg0);
 
 /// Put draw/disp env and optionally transfer framebuffer strips (gamemain.c).
 void Display_FlipDraw(s32 arg0);
-/// VSync callback: timed flip / strip load / audio tick (gamemain.c).
-void Display_VSyncCallback(void);
 /// LoadImage strips from Fs_ImgBuffers into the active display buffer.
 void Display_LoadImageStrips(s32 arg0);
 /// Mem heap reset via session (otutil.c wrapper around Display_ResetHeapFromSession).

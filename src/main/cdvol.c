@@ -7,6 +7,10 @@
 #include "main/cdstream.h"
 #include "main/fs.h"
 
+static void CdVol_ClearCallbackSlot(void);
+static void CdVol_Set(s32 arg0);
+static s32  Cd_Flush(void);
+
 void Fs_StreamReadyCb(u8 status, u8* result)
 {
     SndLoadState* state;
@@ -49,7 +53,7 @@ void Fs_StreamReadyCb(u8 status, u8* result)
     CdReadyCallback(NULL);
 }
 
-s32 Cd_InitStateMachine(u32* arg0)
+static s32 Cd_InitStateMachine(u32* arg0)
 {
     struct {
         u8     result[8];
@@ -185,7 +189,7 @@ void CdVol_CacheFromSpu(void)
     D_8006EBF4 = (Fs_SpuAttr.cd.volume.left / 256) & 0x7F;
 }
 
-void CdVol_RegisterCallbacks(void)
+static void CdVol_RegisterCallbacks(void)
 {
     struct {
         s32  pad[2];
@@ -202,18 +206,18 @@ void CdVol_RegisterCallbacks(void)
     *ptr     = func_8004DE18(&sp);
 }
 
-void CdVol_ClearCallbackSlot(void)
+static void CdVol_ClearCallbackSlot(void)
 {
     D_8006EBF2 = 0;
 }
 
-s32 Cd_Flush(void)
+static s32 Cd_Flush(void)
 {
     CdFlush();
     return 0;
 }
 
-s32 CdVol_Get(void)
+static s32 CdVol_Get(void)
 {
     return (Fs_SpuAttr.cd.volume.left / 256) & 0x7F;
 }
@@ -227,7 +231,7 @@ void CdVol_ApplyFromTable(u16 arg0)
     CdVol_Set(D_80068AF0[arg0]);
 }
 
-void CdVol_Set(s32 arg0)
+static void CdVol_Set(s32 arg0)
 {
     s16 vol;
 

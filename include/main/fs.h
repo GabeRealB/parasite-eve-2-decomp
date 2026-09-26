@@ -366,10 +366,8 @@ s32         CdCmd_CommitReplace(void);
 s32         CdCmd_DropPending(void);
 u16         CdCmd_IsIdle(void);
 u16         CdCmd_IsSlotEmpty(s16 slot);
-s16         CdCmd_GetStreamMode(void);
 void        CdCmd_SetBusy(void);
 void        CdCmd_ClearBusy(void);
-void        CdCmd_ResetRing(void);
 void        CdCmd_ResetEntryIter(void);
 CdCmdEntry* CdCmd_NextEntry(void);
 void        CdCmd_LoadActiveEntry(void);
@@ -378,11 +376,6 @@ void        CdCmd_AdvanceRead(void);
 void        CdCmd_Dispatch(void);
 s32         CdCmd_ActivatePhase1(void);
 u16         CdCmd_ActivatePhase2(void);
-void        CdCmd_ProcessPhase1(void);
-void        CdCmd_ProcessPhase2(void);
-void        CdCmd_HandleFileLoad(void);
-void        CdCmd_HandleMount(void);
-void        CdCmd_HandleStreamDecode(void);
 u16         CdCmd_EnqueueFollowUp(void);
 void        CdCmd_RequestVlcRebuild(void);
 s32         CdCmd_SeekL(u8* loc);
@@ -391,9 +384,7 @@ s32         CdCmd_PausePoll(void);
 s16         CdCmd_RecoverDisk(void);
 s32         CdCmd_PollStatus(s32 arg0, s32 arg1);
 s32         CdCmd_StopMdec(s32 clearFb);
-s32         CdCmd_GetOverlayStatus(void);
 void        CdCmd_EnqueueOverlay81(void);
-void        CdCmd_EnqueueReplaceOverlay81(void);
 void        CdCmd_EnqueueOverlay82(void);
 void        CdCmd_EnqueueReplaceOverlay82(void);
 void        func_8001D580(void);
@@ -411,10 +402,6 @@ extern u16 CdCmd_EntryIter;
 // Functions — filesystem / CD (src/main/fs.c)
 // =============================================================================
 
-void Fs_CdReadyCb(u8 status, u8* result);
-u8   Fs_ProcessChunkHeader(void);
-u8   Fs_ProcessChunkData(void);
-
 /// Resumable LZ/bit-stream unpack for CD chunk payloads (handwritten hasm).
 /// Uses globals Fs_ChunkReadPtr / Fs_ChunkWritePtr / D5B498_8006D748; may suspend
 /// mid-stream when the sector buffer ends (resume jtbl in same TU).
@@ -422,18 +409,13 @@ void Fs_DecompressChunk(void);
 /// Non-resumable LZ unpack for image strips before LoadImage2 (handwritten hasm).
 void Fs_DecompressImage(void);
 
-void Fs_InitStage0TablesCb(u8 status, u8* result);
 void Fs_InitFolderTable(s32 stageIdx);
 void Fs_SelectStage(s32 stageIdx);
 void Fs_InitStage0Tables(void);
 void Fs_ClearDiskError(void);
 u8   Fs_WaitDiskSwap(void);
 void Fs_ReadSectorEx(s32 sector, s32 endSector, u8* dest, u8 mode);
-void Fs_ReadSector(s32 sector);
 void Fs_WaitDiskReset(s8 withSectHdr);
-void Fs_SeekToPos(s32 sector);
-void Fs_SeekToPosCb(u8 status, u8* result);
-void Fs_ContinueDrawing(u_long* ot);
 void Fs_StopCd(void);
 s32  Fs_GetStageDiskKind(void);
 bool Fs_StageCdfIsAvailable(u32 stageIdx);
@@ -465,14 +447,10 @@ void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2);
 /// Boot path: scan ISO, parse HED, load initial CDF file (file id 1).
 void Boot_LoadInitialFile(struct Task* task);
 
-void Fs_ResetBootLoadState(void);
 void Fs_BeginBootLoad(u8* arg0, s16 arg1);
 void Fs_EnsureBootLoadStarted(void);
 void Fs_StepBootImage(void);
 void Fs_RetryReadN(void);
-void Fs_ReadNSyncCb(u8 status, u8* result);
-void Fs_ReadNReadyCb(u8 status, u8* result);
-void Fs_OnCdError(u8 arg0);
 void Fs_CheckReadTimeout(void);
 u8*  Fs_GetChunkPayload(void);
 
@@ -490,14 +468,8 @@ void Fs_StreamReadyCb(u8 status, u8* result);
 void CdVol_SetMixMode(s32 stereo);
 u8   CdVol_GetMixMode(void);
 void CdVol_CacheFromSpu(void);
-void CdVol_RegisterCallbacks(void);
-void CdVol_ClearCallbackSlot(void);
-s32  Cd_Flush(void);
-s32  CdVol_Get(void);
-void CdVol_Set(s32 level /* 0..0x7F */);
 void CdVol_ApplyFromTable(u16 index);
 s32  CdVol_StepDown(void);
-s32  Cd_InitStateMachine(u32* stateFlags);
 
 // =============================================================================
 // Globals — CD command queue

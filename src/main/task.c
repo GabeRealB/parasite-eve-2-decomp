@@ -4,7 +4,10 @@
 #include "main/unknown_syms.h"
 #include "main/text.h"
 
-Task* Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* list)
+static void Task_Free(Task* state);
+static void Task_Unlink(Task* state);
+
+static Task* Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* list)
 {
     Task*          task;
     s32            type;
@@ -470,7 +473,7 @@ void Task_ResetDefaultList(void)
     gTaskDefaultList.prev = &gTaskDefaultList;
 }
 
-void Task_Unlink(Task* state)
+static void Task_Unlink(Task* state)
 {
     Task*      next;
     TaskNode*  head;
@@ -490,7 +493,7 @@ void Task_Unlink(Task* state)
     prev->next = state->node.next;
 }
 
-void Task_Free(Task* state)
+static void Task_Free(Task* state)
 {
     memFree(state);
 }

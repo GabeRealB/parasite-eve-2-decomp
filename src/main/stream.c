@@ -8,7 +8,7 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-void Mdec_SetupBuffers(u8* arg0)
+static void Mdec_SetupBuffers(u8* arg0)
 {
     s32     temp_lo;
     u16*    temp_v1;
@@ -71,7 +71,7 @@ void Mdec_SetupBuffers(u8* arg0)
     }
 }
 
-void Stream_InitFromSlot(u32 arg0)
+static void Stream_InitFromSlot(u32 arg0)
 {
     StreamSlot* base;
     StreamSlot* entry;
@@ -373,7 +373,7 @@ s32 CdCmd_StopMdec(s32 arg0)
     return 0;
 }
 
-void func_8001F430(void)
+static void func_8001F430(void)
 {
     CdlLOC      loc;
     RECT        rect;
@@ -466,7 +466,7 @@ void func_8001F430(void)
     D_8005EAEE ^= 1;
 }
 
-void Mdec_UploadSlice(void)
+static void Mdec_UploadSlice(void)
 {
     RECT              rect;
     s32               index;
@@ -530,7 +530,7 @@ void Mdec_UploadSlice(void)
     func_8001F430();
 }
 
-void Mdec_KickStrip(void)
+static void Mdec_KickStrip(void)
 {
     CdCmdQueue* p;
     s32         size;
@@ -563,7 +563,7 @@ void Mdec_KickStrip(void)
     D_8005EAEC  ^= 1;
 }
 
-void Mdec_DecodeFrame(void)
+static void Mdec_DecodeFrame(void)
 {
     StHEADER*   header;
     CdCmdQueue* p;

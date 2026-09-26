@@ -23,7 +23,4 @@ void Boot_DispatchCdCmd(void);
 // Globals
 // =============================================================================
 
-/// Early-image build stamp string @ VA 0x80012750 ("2000/05/01 19:24 ver2.49").
-extern const char Boot_BuildStamp[];
-
 #endif // BOOT_H

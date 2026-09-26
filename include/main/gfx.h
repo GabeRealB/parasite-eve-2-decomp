@@ -31,7 +31,6 @@ void Gfx_LoadImageSlot(s32 arg0, s32 arg1, s32 arg2);
 // Functions — graph / coordinate trees (src/main/gamemain.c)
 // =============================================================================
 
-void Gfx_InitGraph(void);
 void Gfx_InitCoordinateTrees(void);
 
 // =============================================================================

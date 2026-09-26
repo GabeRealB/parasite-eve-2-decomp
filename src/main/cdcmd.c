@@ -96,7 +96,7 @@ void* CdCmd_SetupMdecBuffers(void)
     return D_8006AC00;
 }
 
-void CdCmd_HandleStreamDecode(void)
+static void CdCmd_HandleStreamDecode(void)
 {
     CdCmdQueue* state;
     CdCmdQueue* p;
@@ -194,7 +194,7 @@ void CdCmd_HandleStreamDecode(void)
     }
 }
 
-void CdCmd_HandleFileLoad(void)
+static void CdCmd_HandleFileLoad(void)
 {
     CdCmdQueue* state;
     CdCmdQueue* p;
@@ -428,7 +428,7 @@ end_check:
     }
 }
 
-void CdCmd_HandleMount(void)
+static void CdCmd_HandleMount(void)
 {
     CdCmdQueue* state;
     s32         cmd;
@@ -595,7 +595,7 @@ s32 CdCmd_ActivatePhase1(void)
     return 0;
 }
 
-void CdCmd_ProcessPhase1(void)
+static void CdCmd_ProcessPhase1(void)
 {
     CdCmdQueue* p;
     CdCmdQueue* q;
@@ -766,7 +766,7 @@ do_work:
     return 1;
 }
 
-void CdCmd_ProcessPhase2(void)
+static void CdCmd_ProcessPhase2(void)
 {
     CdCmdQueue* p;
     CdCmdQueue* p2;
@@ -1015,7 +1015,7 @@ void CdCmd_SelectMdecBuffer(void)
     p->field_1E6 = 0;
 }
 
-s32 CdCmd_GetOverlayStatus(void)
+static s32 CdCmd_GetOverlayStatus(void)
 {
     CdCmdQueue* p;
     s32         ret;
@@ -1031,7 +1031,7 @@ s32 CdCmd_GetOverlayStatus(void)
     return ret;
 }
 
-s16 CdCmd_GetStreamMode(void)
+static s16 CdCmd_GetStreamMode(void)
 {
     return CdCmd_Queue.field_20E;
 }
@@ -1057,11 +1057,11 @@ void CdCmd_CancelReplaceAndActivate(void)
     Gp_RestoreStreamRng();
 }
 
-void func_8001D5B4(void)
+static void func_8001D5B4(void)
 {
 }
 
-void func_8001D5BC(void)
+static void func_8001D5BC(void)
 {
 }
 
@@ -1084,7 +1084,7 @@ void CdCmd_EnqueueOverlay81(void)
     }
 }
 
-void CdCmd_EnqueueReplaceOverlay81(void)
+static void CdCmd_EnqueueReplaceOverlay81(void)
 {
     CdCmdQueue* p;
     u8          sp10;
@@ -1252,7 +1252,7 @@ void CdCmd_ClearBusy(void)
     }
 }
 
-void CdCmd_ResetRing(void)
+static void CdCmd_ResetRing(void)
 {
     CdCmdQueue* state;
 
