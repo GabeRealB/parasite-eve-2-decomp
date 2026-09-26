@@ -130864,44 +130864,36 @@ fails at the overlay checksum, where nothing points at the field.
 Before porting a match, confirm `wc -c <name>_diff` is 0. A score of 100% with a
 non-empty diff means the difference is in a constant.
 
-## A memory barrier restores one scratch-head dependence without retyping the head (Actor02100_Fn01FF0, 2026-09-18)
+## Barriers between scratch-head stores stood for pushes and pops written as `SCRATCH_PUSH`/`SCRATCH_POP` (Actor02100_Fn01FF0, 2026-09-26)
 
-`true_dependence` (sched.c) suppresses the dependence between a `MEM_IN_STRUCT`
-reference at a varying address and a non-`MEM_IN_STRUCT` reference at a fixed
-address, so the scratch-head slot - a plain dereference of an absolute address -
-floats freely against every struct access. That freedom is usually what the ROM
-shows, and it is why the head must stay a plain dereference. But a single function
-can need the dependence at one point and the freedom at another: a head load that
-must stay *below* a state store, a field load that must stay *above* a head store,
-and three release sites where the head load must hoist over a struct copy.
+This function once needed five `SOFT_COMPILER_BARRIER()`s and a `SOFT_TOUCH_REG`
+around the scratch head: a hand-computed `head + 0x10` block stored after a
+`head + 0x28` release, a `head - 8` block whose stores had to stay in order, and a
+state store that had to precede a push. All of them went once every block was
+taken with `SCRATCH_PUSH(T)` and given back with `SCRATCH_POP(T)` at the helper
+boundaries the code already had. Two things did the work:
 
-Expressing the head as a struct member reinstates the dependence everywhere, which
-fixes the first two sites and breaks the last three (the hoist is gone, a load-delay
-`nop` appears, and the overlay grows). A `SOFT_COMPILER_BARRIER()` at the two points
-that need ordering does the same job locally and leaves the other sites alone; here
-it took a 98.9% body to 99.8% with every ordering penalty at zero.
+- The ROM's back-to-back head stores (`sw head+0x28` then `sw head+0x10`) are a
+  pop followed by a push, and `flow` keeps both only when a memory read sits
+  between them (see "A scratch push the pop overwrites is deleted by `flow`").
+  Here that read is the next helper's `work = arg0->work`: the caller pops the
+  previous helper's block, then calls a helper that loads `work` before pushing.
+- `SCRATCH_PUSH(T)` addresses the block's first field off the old head
+  (`sh zero,-8(head)`), which is what the hand-written `((SVECTOR*)(head - 8))->vx`
+  plus `SOFT_TOUCH_REG(head)` was imitating.
 
-Read the requirement per site before reaching for the type change: retyping the head
-is global, the barrier is not.
+When a body pins or fences the scratch head, rewrite every block as push/pop
+before reasoning about dependences; the barrier was compensating for arithmetic
+on the head that the original never wrote.
 
-## `fold` associates a constant with the left operand, so split the operands into statements (Actor02100_Fn01FF0, 2026-09-18)
+## `(x << 8) | 0x20000 | x` is what `fold` makes of the packed key; write it that way (Actor02100_Fn01FF0, 2026-09-26)
 
-Written as one expression, `(x << 8) | (x | 0x20000)` does not emit the tree it
-spells. `fold` pulls the constant out of the right operand and into the left one,
-emitting `((x << 8) | 0x20000) | x` - the ROM's two `or`s in the other order, with
-the register assignment that follows from it. Swapping the operands does not help;
-the transformation is on the constant, not on the source order.
-
-Giving each operand its own statement removes the expression `fold` would rewrite:
-
-```c
-shifted = x << 8;
-orTmp   = x | 0x20000;
-work->field.value = shifted | orTmp;
-```
-
-Statement order then decides evaluation order, which is the second half of the
-match: the ROM computed the shift first. One statement per operand recovered both.
+`(x << 8) | (x | 0x20000)` does not emit the tree it spells: `fold` moves the
+constant into the left operand, giving `((x << 8) | 0x20000) | x` with the ROM's
+two `or`s in the other order. Spelling the folded form directly,
+`work->field_C8.key = ((work->field_178 + 0x26) << 8) | 0x20000 | (work->field_178 + 0x26);`,
+matches as one statement, with the field read twice and CSE'd - no
+statement-per-operand split and no register touch to order the load.
 
 ## A decompiled switch needs its jump table's rodata cut, even when the table is in the header block (Actor02100_Fn01FF0, 2026-09-18)
 

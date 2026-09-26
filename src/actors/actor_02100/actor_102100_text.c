@@ -1231,90 +1231,58 @@ static __inline__ void Actor02100_OrientScratch(Task* arg0)
     Gp_OrientAlong(&scratch->transformed, &work->field_144, 0);
 }
 
-/// Refreshes the two vectors the actor's facing matrix defines: the near one at
-/// `field_128[1]`, rotated from the length in `field_182` and advanced by 0x12C
-/// each frame, and the far one at `field_B0`, a fixed 0x2710 ahead, which is
-/// mirrored into `field_E8`. Both rotations borrow an `SVECTOR` from
-/// `G_SCRATCH_HEAD`; the first reuses the block `Actor02100_OrientScratch` just
-/// released.
-static __inline__ void Actor02100_UpdateVectors(Task* arg0)
-{
-    Actor02100Fn01FF0Scratch* scratch;
-    Actor02100Fn014E4Scratch* inner;
-    Actor02100Work*           work;
-    Actor02100Work*           work2;
-    SVECTOR*                  shortVec;
-    u8*                       head;
-    u8*                       head2;
-    u16                       vz;
-
-    head    = SCRATCH_HEAD(u8);
-    work    = arg0->work;
-    scratch = (Actor02100Fn01FF0Scratch*)head;
-    inner   = (Actor02100Fn014E4Scratch*)(head + 0x10);
-
-    work->field_128[0].vx = 0;
-    work->field_128[0].vy = 0;
-    work->field_128[0].vz = 0x12C;
-    inner->shortVec.vx    = 0;
-    inner->shortVec.vy    = 0;
-    vz                    = work->field_182;
-    SOFT_COMPILER_BARRIER();
-    SCRATCH_HEAD(u8) = head + 0x28;
-    SOFT_COMPILER_BARRIER();
-    SCRATCH_HEAD(u8)   = (u8*)inner;
-    inner->shortVec.vz = vz;
-    gte_SetRotMatrix(&work->field_144);
-    gte_ldv0(&scratch->shortVec);
-    gte_rtv0();
-    gte_stsv(&work->field_128[1]);
-    head2                  = SCRATCH_HEAD(u8);
-    work->field_128[1].vz += 0x12C;
-
-    work2            = arg0->work;
-    shortVec         = (SVECTOR*)(head2 + 0x10);
-    SCRATCH_HEAD(u8) = head2 + 0x18;
-    SOFT_COMPILER_BARRIER();
-    SCRATCH_HEAD(u8) = (u8*)shortVec;
-    shortVec->vx     = 0;
-    shortVec->vy     = 0;
-    shortVec->vz     = 0x2710;
-    gte_SetRotMatrix(&work2->field_144);
-    gte_ldv0(shortVec);
-    gte_rtv0();
-    gte_stsv(&work2->field_B0);
-    work2->field_E8 = work2->field_B0;
-    SCRATCH_POP_BYTES(8);
-}
-
-/// Rewrites the far vector alone, without the per-frame near vector: the same
-/// 0x2710 offset through the facing matrix into `field_B0`, mirrored into
-/// `field_E8`.
+/// Rewrites the far vector: a fixed 0x2710 offset rotated by the facing matrix
+/// into `field_B0`, mirrored into `field_E8`. The offset is built in an
+/// `SVECTOR` borrowed from `G_SCRATCH_HEAD` for the rotation.
 static __inline__ void Actor02100_SetVector(Task* arg0)
 {
     Actor02100Work* work;
     SVECTOR*        shortVec;
-    u8*             head;
 
-    head     = SCRATCH_HEAD(u8);
-    work     = arg0->work;
-    shortVec = (SVECTOR*)(head - 8);
-    SOFT_TOUCH_REG(head);
-    ((SVECTOR*)(head - 8))->vx = 0;
-    shortVec->vz               = 0x2710;
-    SCRATCH_HEAD(u8)           = (u8*)shortVec;
-    shortVec->vy               = 0;
+    work         = arg0->work;
+    shortVec     = SCRATCH_PUSH(SVECTOR);
+    shortVec->vx = 0;
+    shortVec->vy = 0;
+    shortVec->vz = 0x2710;
     gte_SetRotMatrix(&work->field_144);
     gte_ldv0(shortVec);
     gte_rtv0();
     gte_stsv(&work->field_B0);
     work->field_E8 = work->field_B0;
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_POP(SVECTOR);
 }
 
+/// Refreshes the two vectors the actor's facing matrix defines: the near one at
+/// `field_128[1]`, rotated from the length in `field_182` and advanced by 0x12C,
+/// and then the far one through `Actor02100_SetVector`. The near rotation's
+/// input is built in a block borrowed from `G_SCRATCH_HEAD`, and `field_128[0]`
+/// is reset to the fixed 0x12C offset it starts from.
+static __inline__ void Actor02100_UpdateVectors(Task* arg0)
+{
+    Actor02100Fn014E4Scratch* scratch;
+    Actor02100Work*           work;
+
+    work                  = arg0->work;
+    scratch               = SCRATCH_PUSH(Actor02100Fn014E4Scratch);
+    work->field_128[0].vx = 0;
+    work->field_128[0].vy = 0;
+    work->field_128[0].vz = 0x12C;
+    scratch->shortVec.vx  = 0;
+    scratch->shortVec.vy  = 0;
+    scratch->shortVec.vz  = work->field_182;
+    gte_SetRotMatrix(&work->field_144);
+    gte_ldv0(&scratch->shortVec);
+    gte_rtv0();
+    gte_stsv(&work->field_128[1]);
+    work->field_128[1].vz += 0x12C;
+    SCRATCH_POP(Actor02100Fn014E4Scratch);
+    Actor02100_SetVector(arg0);
+}
+
+/// Releases the block `Actor02100_OrientScratch` leaves on `G_SCRATCH_HEAD`.
 static __inline__ void Actor02100_ReleaseScratch28(void)
 {
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_POP(Actor02100Fn01FF0Scratch);
 }
 
 /// Seven-state attack cycle, run from `Actor02100_Fn031C4`. State 0 holds the
@@ -1333,29 +1301,17 @@ void Actor02100_Fn01FF0(Task* arg0)
     Actor02100Fn01FF0Block* root;
     Actor02100Work*         work;
     GpCoord*                coord;
-    u8*                     rootHead;
     s32                     pan0;
     s32                     pan2;
     s32                     sound2;
     u32                     random;
     s32                     packed2;
-    s32                     packed3;
-    s32                     shifted;
-    s32                     orTmp;
-    s32                     result3;
     s16                     state;
-    s16                     frame0;
-    s16                     frame1;
-    s16                     frame6;
-    u16                     flags96;
-    u16                     flagsE6;
 
-    rootHead         = SCRATCH_HEAD(u8) - 0x48;
-    SCRATCH_HEAD(u8) = rootHead;
-    root             = (Actor02100Fn01FF0Block*)rootHead;
-    work             = arg0->work;
-    state            = work->field_174;
-    coord            = arg0->extra.tmd->coords;
+    root  = SCRATCH_PUSH(Actor02100Fn01FF0Block);
+    work  = arg0->work;
+    state = work->field_174;
+    coord = arg0->extra.tmd->coords;
 
     switch (state) {
         case 0:
@@ -1371,6 +1327,7 @@ void Actor02100_Fn01FF0(Task* arg0)
                 }
 
                 Actor02100_OrientScratch(arg0);
+                Actor02100_ReleaseScratch28();
                 Actor02100_UpdateVectors(arg0);
             }
 
@@ -1385,12 +1342,10 @@ void Actor02100_Fn01FF0(Task* arg0)
                 Actor02100_Fn02924(arg0, 0);
             }
             work->field_78.flags |= 0x8000;
-            frame0                = (u16)work->field_17A + 1;
-            work->field_17A       = frame0;
             work->field_C8.flags |= 0x8000;
             work->field_78.flags |= 0x4000;
             work->field_C8.flags |= 0x4000;
-            if (frame0 >= Actor02100_D03D88[work->field_178].bounds.field_0) {
+            if (++work->field_17A >= Actor02100_D03D88[work->field_178].bounds.field_0) {
                 work->field_17A = 0;
                 work->field_174 = 1;
             }
@@ -1401,9 +1356,7 @@ void Actor02100_Fn01FF0(Task* arg0)
                 SndEvt_EnqueueType7(work->field_168, 1);
                 work->field_188 = 0;
             }
-            frame1          = (u16)work->field_17A + 1;
-            work->field_17A = frame1;
-            if (frame1 >= 4) {
+            if (++work->field_17A >= 4) {
                 work->field_17A = 0;
                 Actor02100_SetVector(arg0);
                 work->field_174 = 2;
@@ -1433,16 +1386,10 @@ void Actor02100_Fn01FF0(Task* arg0)
             break;
 
         case 3:
-            result3 = Gp_PackPair(&Actor02100_D03D64, work->field_178);
-            packed3 = work->field_178;
-            SOFT_TOUCH_REG_USE(result3, packed3);
-            work->field_78.key = result3;
+            work->field_78.key = Gp_PackPair(&Actor02100_D03D64, work->field_178);
             work->field_174    = 4;
-            packed3           += 0x26;
-            shifted            = packed3 << 8;
-            orTmp              = packed3 | 0x20000;
-            work->field_C8.key = shifted | orTmp;
-            work->field_17C    = (u16)work->field_17C + 1;
+            work->field_C8.key = ((work->field_178 + 0x26) << 8) | 0x20000 | (work->field_178 + 0x26);
+            work->field_17C++;
             break;
 
         case 4:
@@ -1454,36 +1401,30 @@ void Actor02100_Fn01FF0(Task* arg0)
         case 5:
             if (work->field_17C < 10) {
                 work->field_174 = 2;
-                SOFT_COMPILER_BARRIER();
                 Actor02100_SetVector(arg0);
                 break;
             }
-            work->field_174 = 6;
-            work->field_17A = 0;
-            flags96         = work->field_78.flags & 0x7FFF;
-            flagsE6         = work->field_C8.flags & 0x7FFF;
-            SOFT_TOUCH_REG2(flags96, flagsE6);
-            work->field_78.flags = flags96;
-            work->field_C8.flags = flagsE6;
-            work->field_78.flags = flags96 & 0xBFFF;
-            work->field_C8.flags = flagsE6 & 0xBFFF;
+            work->field_174       = 6;
+            work->field_17A       = 0;
+            work->field_78.flags &= 0x7FFF;
+            work->field_C8.flags &= 0x7FFF;
+            work->field_78.flags &= 0xBFFF;
+            work->field_C8.flags &= 0xBFFF;
             break;
 
         case 6:
-            frame6          = (u16)work->field_17A + 1;
-            work->field_17A = frame6;
-            if (frame6 >= Actor02100_D03D88[work->field_178].bounds.field_2) {
+            if (++work->field_17A >= Actor02100_D03D88[work->field_178].bounds.field_2) {
                 work->field_17A = 0;
                 work->field_174 = 0;
                 work->field_172 = work->field_176 != 0;
-                work->field_118 = (u16)work->field_120;
-                work->field_11A = (u16)work->field_122;
-                work->field_11C = (u16)work->field_124;
+                work->field_118 = work->field_120;
+                work->field_11A = work->field_122;
+                work->field_11C = work->field_124;
             }
             break;
     }
 
-    SCRATCH_POP_BYTES(0x48);
+    SCRATCH_POP(Actor02100Fn01FF0Block);
 }
 
 /// Draws one beam between the two screen points held in `Actor02100Work`
