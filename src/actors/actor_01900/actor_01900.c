@@ -3050,10 +3050,7 @@ static void Actor01900_Fn09694(Task* arg0)
     TmdObject*         obj;
     GpCoord*           coord;
     GpCoord*           facing;
-    GpCoord*           src;
     ActorChaseScratch* aim;
-    ActorChaseScratch* head;
-    ActorChaseScratch* next;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -3089,22 +3086,15 @@ static void Actor01900_Fn09694(Task* arg0)
         work->field_B48.flags &= 0x7FFF;
     }
 
-    head              = SCRATCH_HEAD(ActorChaseScratch);
-    next              = head - 1;
-    src               = arg0->extra.tmd->coords;
-    head[-1].delta.vx = Player_Status.coordMtx->t[0] - src->coord.t[0];
-    SOFT_USE_REG(next);
-    aim            = next;
-    next->delta.vy = Player_Status.coordMtx->t[1] - src->coord.t[1];
-    next->delta.vz = Player_Status.coordMtx->t[2] - src->coord.t[2];
-
-    SCRATCH_HEAD(ActorChaseScratch) = next;
-    arg0->extra.tmd->coords->flg    = 0;
+    SCRATCH_PUSH(ActorChaseScratch);
+    aim = SCRATCH_HEAD(ActorChaseScratch);
+    actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &aim->delta);
+    arg0->extra.tmd->coords->flg = 0;
     Actor01900_Fn01C94(arg0);
     if (work->field_6 < 0xE) {
         coord = arg0->extra.tmd->coords;
         aim->turn =
-            actorNormalizeYaw(ratan2(next->delta.vx, next->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+            actorNormalizeYaw(ratan2(aim->delta.vx, aim->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->field_8AE = aim->turn;
         if (aim->turn > 0x30) {
             aim->turn = 0x30;
