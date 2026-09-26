@@ -315,92 +315,58 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 void func_8017F450(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-void func_actor_560800_801321A0(Task* arg0)
+void func_actor_560800_801321A0(Task* task)
 {
     u8          slotParam[4];
     GameLoc     key;
-    s16         slot;
-    CdCmdQueue* queue;
-    Task*       task;
+    CdCmdQueue* queue = &CdCmd_Queue;
 
-    task  = arg0;
-    queue = &CdCmd_Queue;
     switch (task->state) {
         case 0:
-            goto L_case0;
+            SetDispMask(0);
+            Mem_AllocAuxWithImages(1);
+            task->state++;
+            break;
         case 1:
-            goto L_case1;
+            key = gGameSession->at4;
+            if (task->spawnArg1 != 0) {
+                key.loc.view = 0x65;
+            } else {
+                key.loc.view = 0x64;
+            }
+            slotParam[0] = Stream_FindSlot(key.raw.data, 0, 0);
+            CdCmd_Enqueue(0x61, 0, slotParam);
+            task->state++;
+            break;
         case 2:
-            goto L_case2;
+            if (queue->field_1FA != 0) {
+                SetDispMask(1);
+                task->state++;
+            }
+            break;
         case 3:
-            goto L_case3;
+            if (CdCmd_IsIdle()) {
+                SetDispMask(0);
+                task->state++;
+            } else if (Pad_CheckFlag800()) {
+                SetDispMask(0);
+                CdCmd_ActivatePhase1();
+                task->state++;
+            }
+            break;
         case 4:
-            goto L_case4;
+            if (CdCmd_IsIdle()) {
+                Stream_ResetRestoreState();
+                task->state++;
+            }
+            break;
         case 5:
-            goto L_case5;
+            if (Stream_RestoreAfterLoad(0, 1)) {
+                taskKill(task);
+                Display_ResetHeapWrapper();
+            }
+            break;
     }
-    return;
-
-L_case0:
-    SetDispMask(0);
-    Mem_AllocAuxWithImages(1);
-    goto advance;
-
-L_case1:
-    key = gGameSession->at4;
-    if (task->spawnArg1 != 0) {
-        key.loc.view = 0x65;
-    } else {
-        key.loc.view = 0x64;
-    }
-    slot = Stream_FindSlot(key.raw.data, 0, 0);
-    {
-        register s32 cmd asm("a0");
-        register s32 zero asm("a1");
-        register u8* p asm("a2");
-        cmd  = 0x61;
-        zero = 0;
-        p    = slotParam;
-        SOFT_TOUCH_REG4(cmd, zero, p, slot);
-        slotParam[0] = slot;
-        CdCmd_Enqueue(cmd, zero, p);
-    }
-    goto advance;
-
-L_case2:
-    if (queue->field_1FA == 0) {
-        return;
-    }
-    SetDispMask(1);
-    goto advance;
-
-L_case3:
-    if (CdCmd_IsIdle() & 0xFFFF) {
-        SetDispMask(0);
-        goto advance;
-    }
-    if (Pad_CheckFlag800() == 0) {
-        return;
-    }
-    SetDispMask(0);
-    CdCmd_ActivatePhase1();
-    goto advance;
-
-L_case4:
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-        return;
-    }
-    Stream_ResetRestoreState();
-advance:
-    task->state = task->state + 1;
-    return;
-
-L_case5:
-    if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
-        return;
-    }
-    taskKill(task);
-    Display_ResetHeapWrapper();
 }
 
 s32 func_actor_560800_80132340(Task* arg0)
