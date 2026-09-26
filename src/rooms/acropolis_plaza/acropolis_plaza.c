@@ -1872,25 +1872,22 @@ void func_acropolis_plaza_80180270(Task* arg0)
 
 static void func_acropolis_plaza_801802C0(Task* task)
 {
-    // Work spans both passes; s4 is reused for transient draw state.
-    GpCoord64*                       entry;
-    GpPointLight*                    light;
-    GpCoord*                         coord;
-    GpCoord*                         lightCoord;
-    register AcropolisPlazaBeamWork* work asm("s5");
-    u8 *                             head, *raw;
-    u16                              vz;
-    AcropolisPlazaBeamScratch*       blk;
-    SVECTOR*                         point;
-    POLY_G3*                         tri;
-    POLY_G4*                         prim;
-    s32                              i;
-    u32                              brightness;
-    u16                              red, green, blue;
-    s32                              slot, pulse;
-    u32                              pulse2;
-    s16                              spread, depthVal;
-    u16                              yaw;
+    GpCoord64*                 entry;
+    GpPointLight*              light;
+    GpCoord*                   coord;
+    GpCoord*                   lightCoord;
+    AcropolisPlazaBeamWork*    work;
+    AcropolisPlazaBeamScratch* blk;
+    SVECTOR*                   point;
+    POLY_G3*                   tri;
+    POLY_G4*                   prim;
+    s32                        i;
+    u32                        brightness;
+    u16                        red, green, blue;
+    s32                        slot, pulse;
+    u32                        pulse2;
+    s16                        spread, depthVal;
+    u16                        yaw;
 
     slot       = task->spawnArg1;
     entry      = &Gp_RoomCoords[slot & 7];
@@ -1905,44 +1902,26 @@ static void func_acropolis_plaza_801802C0(Task* task)
     Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
     coord->flg = 0;
     Gp_UpdateCoord(coord);
-    head = SCRATCH_HEAD(void);
-    raw  = head - 0x60;
-    SOFT_TOUCH_REG(raw);
-    blk                = (AcropolisPlazaBeamScratch*)raw;
-    blk->vec[0].vx     = (u16)coord->workm.t[0];
-    blk->vec[0].vy     = (u16)coord->workm.t[1];
-    vz                 = (u16)coord->workm.t[2];
-    SCRATCH_HEAD(void) = blk;
-    blk->vec[0].vz     = vz;
+    blk            = SCRATCH_PUSH(AcropolisPlazaBeamScratch);
+    blk->vec[0].vx = coord->workm.t[0];
+    blk->vec[0].vy = coord->workm.t[1];
+    blk->vec[0].vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((AcropolisPlazaBeamScratch*)(head - 0x60))->vec[0]);
+    gte_ldv0(&blk->vec[0]);
     gte_rtps();
-    gte_stsxy(&((AcropolisPlazaBeamScratch*)(head - 0x60))->sx);
-    gte_stszotz(&((AcropolisPlazaBeamScratch*)(head - 0x60))->otz);
+    gte_stsxy(&blk->sx);
+    gte_stszotz(&blk->otz);
     entry->framesLeft = 0;
     if (blk->otz >= 0x11) {
         if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             brightness  = ((Gp_LcgState >> 16) & 0x7F) | 0x80;
             if (task->spawnArg1 < 5) {
-                if (work->yaw - 0x800 >= 0) {
-                    if (work->yaw - 0x800 <= 0x200) {
-                        work->depth = 0x200;
-                        goto depth_done1;
-                    }
-                    goto depth_deep1;
-                }
-                if (0x800 - work->yaw <= 0x200) {
-                    work->depth = 0x200;
-                    goto depth_done1;
-                }
-            depth_deep1:
-                work->depth = 0x800;
-            depth_done1:;
-                red   = brightness >> 1;
-                green = brightness >> 1;
-                blue  = brightness;
+                work->depth = ABS(work->yaw - 0x800) > 0x200 ? 0x800 : 0x200;
+                red         = brightness >> 1;
+                green       = brightness >> 1;
+                blue        = brightness;
             } else {
                 work->depth = ABS(work->yaw - 0x800) < 0x600 ? 0x800 : 0x200;
                 red         = brightness;
@@ -2062,24 +2041,11 @@ static void func_acropolis_plaza_801802C0(Task* task)
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     brightness  = ((Gp_LcgState >> 16) & 0x7F) | 0x80;
     if (task->spawnArg1 < 5) {
-        if (work->yaw - 0x800 >= 0) {
-            if (work->yaw - 0x800 <= 0x300) {
-                work->depth = 0x200;
-                goto depth_done2;
-            }
-            goto depth_deep2;
-        }
-        if (0x800 - work->yaw <= 0x300) {
-            work->depth = 0x200;
-            goto depth_done2;
-        }
-    depth_deep2:
-        work->depth = 0x800;
-    depth_done2:;
-        pulse = brightness << 16;
-        red   = pulse >> 20;
-        green = pulse >> 20;
-        blue  = (u32)pulse >> 18;
+        work->depth = ABS(work->yaw - 0x800) > 0x300 ? 0x800 : 0x200;
+        pulse       = brightness << 16;
+        red         = pulse >> 20;
+        green       = pulse >> 20;
+        blue        = (u32)pulse >> 18;
     } else {
         work->depth = ABS(work->yaw - 0x800) < 0x500 ? 0x800 : 0x200;
         pulse2      = brightness << 16;

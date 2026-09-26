@@ -144219,3 +144219,16 @@ local is only ever assigned from an argument.
 ### A scratch push whose head store lands late: check that the other pointer arguments are really scalars (func_apobiosis_80130630, 2026-09-26)
 
 Target: the usual push pair `addiu v0,head,-K` / `move s2,v0`, but `sw s2,0(scratch)` only after the reads of `arg1[0..2]`, and `move v0,v1` in place of a reload of a field just stored from `$v1`. The seed used `SOFT_TOUCH_REG` on the carve plus a late `SCRATCH_HEAD = block`, and `TOUCH_REG` on a copy of the first coordinate. `block = SCRATCH_PUSH(T)` gives the copy but pins the head store early. That store is a scalar MEM, and so were the `s16* arg1` reads, so sched1 kept them in order. The callers pass `&mem->pos`, so the parameter is an `SVECTOR*`. With `arg1->vx` the reads are in-struct MEMs, which cannot alias a scalar store, and sched1 sinks the store past them. With the store gone from between them, `block->v1.vx += arg1->vx` becomes `move v0,v1`: `reload_cse` sees `$v1` still holds the value stored at `8(s2)`. The other two fields are reloaded because their registers were reused.
+
+### Nested `goto`s storing one field in several arms are a threshold ternary, and its orientation matters (func_acropolis_plaza_801802C0, 2026-09-26)
+
+A `sh` of `0x200` or `0x800` reached through an abs-style split (`x >= 0` then
+`x <= lim`, else `-x <= lim`) with a store in the delay slot of a `j` and
+another after the join had been rebuilt with four `goto`s plus a `$s5` pin on
+the work pointer. It is `w->depth = ABS(w->yaw - 0x800) > lim ? 0x800 : 0x200;`.
+The same test written `<= lim ? 0x200 : 0x800` fixes the allocation but
+inverts both branches (`bnez` for `beqz`, 99.17%); an `if/else` with a store
+in each arm keeps the gotos' allocation and needs the pin again (99.79%). When
+a pinned pointer's only neighbour is a hand-built branch ladder, rewrite the
+ladder first: the extra references it makes are what pushed the pointer ahead
+in `global-alloc`'s priority order.
