@@ -141118,3 +141118,17 @@ asm `ldv0` of a stack copy and a `COMPILER_BARRIER` for exactly this: with
 `main/gfxgte.h` visible, `gfxRotateSv` inlines and the plain body matches
 first try. When a helper swap mismatches, first check the object for a `jal`
 to the helper's name.
+## Copy-pasted blocks share their function-scope locals, and that sharing is what ranks them (func_actor_403600_8013DFE0, 2026-09-26)
+
+Three identical "turn this angle toward its target by a step" blocks each put
+the wrap-adjusted difference, `|diff|` and the sign-extended difference in
+`$a0`/`$a1`/`$a2`; ours came out `$a2`/`$a0`/`$a1`. The tree fixed it with two
+`SOFT_TOUCH_REG`s per block, which only add references. The copies were written
+with the same function-scope locals, as C89 copy-paste naturally is: a user
+variable used in three blocks is one allocno with three times the refs and
+three times the live length, and `floor_log2(refs) * refs / length` rises
+(3 refs over 12 insns → 9 over 36 ties `|diff|`'s 3 over 4). The tie goes to the
+lower pseudo number, and a declared variable precedes the temporaries created
+at its uses. `abs` is written at both uses rather than stored in a local: a
+shared `adiff` would outrank everything again. An inline helper or a block
+with its own locals gives each copy separate pseudos and cannot reproduce it.

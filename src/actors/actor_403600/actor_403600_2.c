@@ -3038,33 +3038,13 @@ s32 func_actor_403600_8013DFE0(Task* arg0)
     s16                     temp_v0_2;
     s16                     temp_v0_3;
     s16                     temp_v1_3;
-    s16                     temp_v1_4;
-    s32                     temp_v1_5;
-    s16                     temp_v1_6;
-    s32                     temp_v1_7;
-    s16                     temp_v1_8;
-    s32                     temp_v1_9;
-    s16                     var_a0_2;
-    s16                     var_a0_3;
-    s16                     var_a0_4;
-    s32                     var_a1;
-    s32                     var_a1_2;
-    s32                     var_a1_3;
-    s16                     var_v0;
-    s16                     var_v0_2;
-    s32                     var_v0_3;
-    s16                     var_v0_4;
-    s32                     var_v0_5;
-    s16                     var_v0_6;
-    s32                     var_v0_7;
+    s16                     diff;
+    s16                     turnDiff;
+    s16                     wrapped;
+    s32                     angle;
+    s32                     stepped;
     s32                     temp_lo;
     s32                     temp_s5;
-    s32                     temp_step;
-    s32                     temp_step_2;
-    s32                     temp_step_3;
-    u16                     temp_a3;
-    u16                     temp_a3_2;
-    u16                     temp_a3_3;
     Actor403600TurnMatrix*  temp_s0;
     MATRIX*                 temp_s0_2;
     Actor403600TurnMatrix*  temp_s0_3;
@@ -3142,92 +3122,67 @@ s32 func_actor_403600_8013DFE0(Task* arg0)
         Gfx_OrthonormalBasis((MATRIX*)temp_s0_3, temp_s1, (SVECTOR*)temp_v1_2);
         Gfx_MatrixToEuler((MATRIX*)temp_s0_3, (SVECTOR*)temp_v1_2);
         Gfx_MatrixToEuler(&temp_s4->field_4B8.coord, temp_s1);
-        temp_a3   = temp_v1_2->angles[0];
-        temp_v1_4 = (temp_a3 & 0xFFF) - ((u16)temp_v1_2->vector[0] & 0xFFF);
-        temp_step = temp_s4->field_76E;
-        var_a1    = temp_v1_4;
-        if (temp_v1_4 < 0) {
-            SOFT_TOUCH_REG(var_a1);
-            var_a1 = -var_a1;
-        }
-        var_a0_2 = temp_v1_4;
-        if (temp_step >= var_a1) {
-            temp_v1_2->vector[0] = (s16)temp_a3;
+        diff     = (temp_v1_2->angles[0] & 0xFFF) - (temp_v1_2->vector[0] & 0xFFF);
+        turnDiff = diff;
+        if (temp_s4->field_76E >= __builtin_abs(diff)) {
+            temp_v1_2->vector[0] = temp_v1_2->angles[0];
         } else {
-            SOFT_TOUCH_REG(var_a0_2);
-            SOFT_TOUCH_REG(var_a0_2);
-            if (var_a1 >= 0x801) {
-                var_v0_2 = temp_v1_4 - 0x1000;
-                if (temp_v1_4 <= 0) {
-                    var_v0_2 = 0x1000 - temp_v1_4;
+            if (__builtin_abs(diff) > 0x800) {
+                wrapped = diff - 0x1000;
+                if (diff <= 0) {
+                    wrapped = 0x1000 - diff;
                 }
-                var_a0_2 = var_v0_2;
+                turnDiff = wrapped;
             }
-            temp_v1_5 = temp_v1_2->vector[0];
-            if ((var_a0_2 << 0x10) > 0) {
-                var_v0_3 = temp_v1_5 + temp_s4->field_76E;
+            angle = temp_v1_2->vector[0];
+            if (turnDiff > 0) {
+                stepped = angle + temp_s4->field_76E;
             } else {
-                var_v0_3 = temp_v1_5 - temp_s4->field_76E;
+                stepped = angle - temp_s4->field_76E;
             }
-            temp_v1_2->vector[0] = var_v0_3;
+            temp_v1_2->vector[0] = stepped;
         }
-        temp_a3_2   = temp_v1_2->angles[1];
-        temp_v1_6   = (temp_a3_2 & 0xFFF) - ((u16)temp_v1_2->vector[1] & 0xFFF);
-        temp_step_2 = temp_s4->field_76E;
-        var_a1_2    = temp_v1_6;
-        if (temp_v1_6 < 0) {
-            SOFT_TOUCH_REG(var_a1_2);
-            var_a1_2 = -var_a1_2;
-        }
-        var_a0_3 = temp_v1_6;
-        if (temp_step_2 >= var_a1_2) {
-            temp_v1_2->vector[1] = (s16)temp_a3_2;
+
+        diff     = (temp_v1_2->angles[1] & 0xFFF) - (temp_v1_2->vector[1] & 0xFFF);
+        turnDiff = diff;
+        if (temp_s4->field_76E >= __builtin_abs(diff)) {
+            temp_v1_2->vector[1] = temp_v1_2->angles[1];
         } else {
-            SOFT_TOUCH_REG(var_a0_3);
-            SOFT_TOUCH_REG(var_a0_3);
-            if (var_a1_2 >= 0x801) {
-                var_v0_4 = temp_v1_6 - 0x1000;
-                if (temp_v1_6 <= 0) {
-                    var_v0_4 = 0x1000 - temp_v1_6;
+            if (__builtin_abs(diff) > 0x800) {
+                wrapped = diff - 0x1000;
+                if (diff <= 0) {
+                    wrapped = 0x1000 - diff;
                 }
-                var_a0_3 = var_v0_4;
+                turnDiff = wrapped;
             }
-            temp_v1_7 = temp_v1_2->vector[1];
-            if ((var_a0_3 << 0x10) > 0) {
-                var_v0_5 = temp_v1_7 + temp_s4->field_76E;
+            angle = temp_v1_2->vector[1];
+            if (turnDiff > 0) {
+                stepped = angle + temp_s4->field_76E;
             } else {
-                var_v0_5 = temp_v1_7 - temp_s4->field_76E;
+                stepped = angle - temp_s4->field_76E;
             }
-            temp_v1_2->vector[1] = var_v0_5;
+            temp_v1_2->vector[1] = stepped;
         }
-        temp_a3_3   = temp_v1_2->angles[2];
-        temp_v1_8   = (temp_a3_3 & 0xFFF) - ((u16)temp_v1_2->vector[2] & 0xFFF);
-        temp_step_3 = temp_s4->field_76E;
-        var_a1_3    = temp_v1_8;
-        if (temp_v1_8 < 0) {
-            SOFT_TOUCH_REG(var_a1_3);
-            var_a1_3 = -var_a1_3;
-        }
-        var_a0_4 = temp_v1_8;
-        if (temp_step_3 >= var_a1_3) {
-            temp_v1_2->vector[2] = (s16)temp_a3_3;
+
+        diff     = (temp_v1_2->angles[2] & 0xFFF) - (temp_v1_2->vector[2] & 0xFFF);
+        turnDiff = diff;
+        if (temp_s4->field_76E >= __builtin_abs(diff)) {
+            temp_v1_2->vector[2] = temp_v1_2->angles[2];
         } else {
-            SOFT_TOUCH_REG(var_a0_4);
-            SOFT_TOUCH_REG(var_a0_4);
-            if (var_a1_3 >= 0x801) {
-                var_v0_6 = temp_v1_8 - 0x1000;
-                if (temp_v1_8 <= 0) {
-                    var_v0_6 = 0x1000 - temp_v1_8;
+            if (__builtin_abs(diff) > 0x800) {
+                wrapped = diff - 0x1000;
+                if (diff <= 0) {
+                    wrapped = 0x1000 - diff;
                 }
-                var_a0_4 = var_v0_6;
+                turnDiff = wrapped;
             }
-            temp_v1_9 = temp_v1_2->vector[2];
-            if ((var_a0_4 << 0x10) > 0) {
-                var_v0_7 = temp_v1_9 + temp_s4->field_76E;
+            angle = temp_v1_2->vector[2];
+            if (turnDiff > 0) {
+                stepped = angle + temp_s4->field_76E;
             } else {
-                var_v0_7 = temp_v1_9 - temp_s4->field_76E;
+                stepped = angle - temp_s4->field_76E;
             }
-            temp_v1_2->vector[2] = var_v0_7;
+            temp_v1_2->vector[2] = stepped;
         }
         temp_s0_4            = &temp_s4->field_4B8.coord;
         temp_v1_2->vector[2] = (s16)((u16)temp_v1_2->vector[2] + temp_s4->field_75E);
