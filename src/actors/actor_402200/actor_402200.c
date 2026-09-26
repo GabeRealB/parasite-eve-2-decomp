@@ -2278,8 +2278,6 @@ static void func_actor_402200_801368E0(GpEnemy* arg0, Task* arg1)
 /// prepended to one list, so they run in reverse order of queueing.
 static void func_actor_402200_80136D9C(s32 otz)
 {
-    u8*                head;
-    u8*                allocated;
     ActorsDrawScratch* scratch;
     GpDrawAreaRec*     extra;
     DR_AREA*           area;
@@ -2290,30 +2288,16 @@ static void func_actor_402200_80136D9C(s32 otz)
     TILE*              tile;
     RECT*              clip;
     u_short*           ofs;
-    s32                val;
-    s32                z;
 
-    extra              = Gp_GetViewSprtExtra();
-    head               = SCRATCH_HEAD(u8);
-    area               = (DR_AREA*)gGpuPrimCursor;
-    allocated          = head - 0x14;
-    SCRATCH_HEAD(void) = allocated;
-    gGpuPrimCursor     = (DR_TPAGE*)(area + 1);
-    USE_REG(allocated);
-    scratch      = (ActorsDrawScratch*)allocated;
-    scratch->otz = otz;
-    if (extra != NULL) {
-        val = (extra->depth << gDisplayState.otDepthShift) & 0x3FFF;
-        z   = otz;
-        SOFT_TOUCH_REG(z);
-        if ((val >> 4) < z) {
-            scratch->rect   = extra->rect;
-            scratch->rect.y = (u16)scratch->rect.y + gDisplayState.drawBuffer * 0x110;
-        } else {
-            goto block_4;
-        }
+    extra          = Gp_GetViewSprtExtra();
+    scratch        = SCRATCH_PUSH(ActorsDrawScratch);
+    scratch->otz   = otz;
+    area           = (DR_AREA*)gGpuPrimCursor;
+    gGpuPrimCursor = (DR_TPAGE*)(area + 1);
+    if (extra != NULL && ((extra->depth << gDisplayState.otDepthShift) & 0x3FFF) >> 4 < scratch->otz) {
+        scratch->rect    = extra->rect;
+        scratch->rect.y += gDisplayState.drawBuffer * 0x110;
     } else {
-    block_4:
         scratch->rect.x = 0;
         scratch->rect.y = gDisplayState.drawBuffer * 0x110;
         scratch->rect.w = 0x140;
@@ -2404,7 +2388,7 @@ static void func_actor_402200_80136D9C(s32 otz)
     SetDrawArea(area, clip);
     addPrim(&gGpuCurrentOt[scratch->otz], area);
 
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_POP(ActorsDrawScratch);
 }
 
 /// Spawn handler. Allocates the 0x71C-byte work block, points the model at its
