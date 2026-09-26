@@ -708,85 +708,72 @@ void* SndHeap_Malloc(size_t size)
     HeapBlockHeader* block;
     HeapBlockHeader* newBlock;
 
-    // Start the search at the first header.
     maxBlockSize = 0;
-    block        = SndHeap_Start;
 
     // Reserve additional space for the header and align to 4 bytes.
     allocSize = (size + sizeof(HeapBlockHeader) + 3) & ~3;
 
-    // Find the first suitable block.
-    if (block != NULL) {
-        // If we use a normal while(...) loop GCC decides to allocate the
-        // registers in the order `t0`, `t1`, `t2`. Instead the registers
-        // must be allocated in the order `t1`, `t2`, `t0`. To achieve this
-        // we manually place the constants in the correct registers.
-        size_t          heapStart         = (size_t)&SndHeap_Buffer;
-        register size_t heapEnd asm("t1") = heapStart + SNDHEAP_SIZE;
-        register size_t magic asm("t2")   = SNDHEAP_MAGIC;
+    // Find the first suitable block, starting the search at the first header.
+    for (block = SndHeap_Start; block != NULL; block = block->next) {
+        // Check that the block is still in bounds of our heap.
+        if (block < (HeapBlockHeader*)SndHeap_Buffer ||
+            (HeapBlockHeader*)&SndHeap_Buffer[SNDHEAP_SIZE] < block) {
+            return NULL;
+        }
 
-        // Actual loop body.
-        do {
-            // Check that the block is still in bounds of our heap.
-            if ((size_t)block < heapStart || heapEnd < (size_t)block) {
-                return NULL;
-            }
+        // Skip allocated blocks.
+        if (block->isAllocated) {
+            continue;
+        }
 
-            // Skip allocated blocks.
-            if (block->isAllocated) {
-                goto next;
-            }
+        // Does not do anything, but is in the assembly for some reason.
+        if (maxBlockSize < block->size) {
+            maxBlockSize = block->size;
+        }
 
-            // Does not do anything, but is in the assembly for some reason.
-            if (maxBlockSize < block->size) {
-                maxBlockSize = block->size;
-            }
+        // If we found a block that is big enough, we can allocate from it.
+        if (block->size >= allocSize) {
+            // We allocate by splitting the block in two such that:
+            //
+            // [ block    | byte 0 | ... | byte blockSize ]
+            //
+            // Turns into the following if there is enough space
+            // for a new block:
+            //
+            // [ block    | byte 0 | ... | byte allocSize ]
+            // [ newBlock | byte 0 | ... | byte restSize  ]
+            //
+            // Or otherwise into:
+            //
+            // [ block    | byte 0 | ... | byte allocSize ]
+            // [            byte 0 | ... | byte restSize  ]
+            newBlockSize = block->size - allocSize;
+            newBlock     = (HeapBlockHeader*)((u8*)block + allocSize);
 
-            // If we found a block that is big enough, we can allocate from it.
-            if (block->size >= allocSize) {
-                // We allocate by splitting the block in two such that:
-                //
-                // [ block    | byte 0 | ... | byte blockSize ]
-                //
-                // Turns into the following if there is enough space
-                // for a new block:
-                //
-                // [ block    | byte 0 | ... | byte allocSize ]
-                // [ newBlock | byte 0 | ... | byte restSize  ]
-                //
-                // Or otherwise into:
-                //
-                // [ block    | byte 0 | ... | byte allocSize ]
-                // [            byte 0 | ... | byte restSize  ]
-                newBlockSize = block->size - allocSize;
-                newBlock     = (HeapBlockHeader*)((u8*)block + allocSize);
+            // If there is enough space for a new block, we must link it
+            // to the current block.
+            if (sizeof(HeapBlockHeader) < newBlockSize) {
+                newBlock->size        = newBlockSize;
+                newBlock->magic       = SNDHEAP_MAGIC;
+                newBlock->isAllocated = false;
 
-                // If there is enough space for a new block, we must link it
-                // to the current block.
-                if (sizeof(HeapBlockHeader) < newBlockSize) {
-                    newBlock->size        = newBlockSize;
-                    newBlock->magic       = magic;
-                    newBlock->isAllocated = false;
-
-                    if (block->next == NULL) {
-                        newBlock->next = NULL;
-                    } else {
-                        block->next->prev = newBlock;
-                        newBlock->next    = block->next;
-                    }
-                    block->next    = newBlock;
-                    newBlock->prev = block;
-                    block->size    = allocSize;
+                if (block->next == NULL) {
+                    newBlock->next = NULL;
+                } else {
+                    block->next->prev = newBlock;
+                    newBlock->next    = block->next;
                 }
-
-                // The allocated data is located just after the header.
+                block->next        = newBlock;
+                newBlock->prev     = block;
+                block->size        = allocSize;
                 block->isAllocated = true;
-                return (u8*)(block + 1);
+            } else {
+                block->isAllocated = true;
             }
 
-        next:
-            block = block->next;
-        } while (block != NULL);
+            // The allocated data is located just after the header.
+            return (u8*)(block + 1);
+        }
     }
 
     return NULL;

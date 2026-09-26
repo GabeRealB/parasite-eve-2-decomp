@@ -144013,3 +144013,17 @@ no placeholder. A 4-byte zero run before an already word-aligned object is not
 explained this way and stays a question: the map overlays have two (a `u8`
 flag table and the word after a task table), declared here as a longer array
 and as an unreferenced static respectively.
+
+## A hoisted constant losing its register to other loop invariants may be a store duplicated in both arms (SndHeap_Malloc, 2026-09-26)
+
+A loop hoists three invariants - a bound, a magic halfword and the `1` stored
+by `block->isAllocated = true` just before the loop's `return` - and the
+target gives the `1` the first free register. Written once after an `if`, the
+constant has 3 refs over the whole loop (66 insns) and ranks last in
+`allocno_compare`, below the bound (3/34) and the magic (3/44), so the three
+come out rotated; the seed pinned the other two. Setting the flag in both arms
+of the `if`/`else` gives the constant 5 refs and places it first, and jump2
+merges the two `sh` stores back into the one join block. Duplicating the whole
+`flag = true; return p;` tail instead does not merge: sched1 hoists the
+return-value `addiu` above the longer arm's stores, the copies differ, and
+both survive.
