@@ -143224,3 +143224,14 @@ the sector-header check and the directory walk each get their own local
 local initialised with its index. A `lui; addiu %lo(SYM); addiu +0x800` pair
 stored to a global came from `g = SYM.bytes; g += 0x800;` - the first store is
 dead and dropped, and the add is not folded back into the `%lo`.
+## A `register … asm` pin on a loop counter can stand for `while` written as `if/do-while` (Mc_StateVerifyFinish, 2026-09-26)
+
+**Symptom:** a byte-sum loop `j = 0; if (count != 0) do { j += 1; … } while (j < count);`
+swaps the counter and its bound between `a0` and `a1`; the seed pinned `j` to `a0`.
+
+**Fix:** write the plain `while (j < count) { j += 1; … }`. jump.c's loop
+inversion duplicates the exit test at the entry, and that copy still names `j`
+when flow counts references: in `.lreg` the counter went from 11 to 13 refs
+over the same 14 insns, which ranks it above the bound (11 refs over 12) in
+global allocation. The two spellings emit identical instructions otherwise, so
+a hand-inverted loop with a pinned counter is worth one `while` attempt first.

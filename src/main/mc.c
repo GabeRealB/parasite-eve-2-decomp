@@ -1514,78 +1514,74 @@ static void Mc_StateSyncOpen(Task* arg0, McWork* arg1)
     }
 }
 
+/// Inline form of Mc_VerifySlotChecksums.
+static inline s32 _mcVerifySlotChecksums(void)
+{
+    McChecksumBlock* block;
+    McBufferSlot*    p;
+    McBufferSlot*    base;
+    s16              sum;
+    u32              count;
+    u32              i;
+    u32              j;
+    u8*              ptr;
+    s32              ok;
+
+    ok   = 1;
+    i    = 1;
+    base = Mc_BufferSlots;
+    p    = base + 1;
+    do {
+        sum   = 0;
+        block = p->field_0;
+        count = p->field_4;
+        ptr   = block->field_4;
+        count = count - 4;
+        j     = 0;
+        while (j < count) {
+            j   += 1;
+            sum += (s8)*ptr++;
+        }
+        if ((u16)block->field_0 != (sum & 0xFFFF)) {
+            ok = 0;
+        }
+        i += 1;
+        p += 1;
+    } while (i < 9U);
+    return ok;
+}
+
+/// Inline form of Mc_VerifyFirstByteChecksum.
+static inline s32 _mcVerifyFirstByteChecksum(void)
+{
+    s32           sum;
+    u32           i;
+    McBufferSlot* p;
+    McBufferSlot* base;
+
+    sum  = 0;
+    i    = 1;
+    base = Mc_BufferSlots;
+    p    = base + 1;
+    do {
+        sum += *(u8*)p->field_0;
+        p   += 1;
+        i   += 1;
+    } while (i < 9);
+    return ((u16)Mc_SaveData.bufferChecksum ^ (sum & 0xFFFF)) == 0;
+}
+
 static void Mc_StateVerifyFinish(Task* arg0, McWork* arg1)
 {
-    McChecksumBlock*       temp;
-    McBufferSlot*          p;
-    McBufferSlot*          base;
-    s16                    sum;
-    u32                    count;
-    u32                    i;
-    register u32           j asm("a0");
-    u8*                    ptr;
-    s32                    flag;
-    s32                    slotSum;
-    u32                    i2;
-    register McBufferSlot* p2 asm("v1");
-    s32                    size;
-    void*                  mem;
-    s32                    ret;
-    s32                    one;
-    UiObject*              obj;
-    McPromptPair*          entry;
-    McPromptPair*          promptBase;
+    s32   size;
+    void* mem;
 
     if (arg1->field_24 == 0) {
-        flag = 1;
-        i    = 1;
-        base = Mc_BufferSlots;
-        p    = base + 1;
-        do {
-            sum   = 0;
-            j     = 0;
-            temp  = p->field_0;
-            count = p->field_4;
-            ptr   = temp->field_4;
-            count = count - 4;
-            if (count != 0) {
-                do {
-                    j   += 1;
-                    sum += (s8)*ptr;
-                    ptr += 1;
-                } while (j < count);
-            }
-            if ((u16)temp->field_0 != (sum & 0xFFFF)) {
-                flag = 0;
-            }
-            i += 1;
-            p += 1;
-        } while (i < 9U);
-
-        if (flag != 0) {
-            i2      = 1;
-            slotSum = 0;
-            base    = Mc_BufferSlots;
-            p2      = base + 1;
-            do {
-                slotSum += *(u8*)p2->field_0;
-                p2      += 1;
-                i2      += 1;
-            } while (i2 < 9);
-            {
-                u32          chk;
-                register u32 masked asm("v0");
-                chk    = Mc_SaveData.bufferChecksum;
-                masked = slotSum & 0xFFFF;
-                if (chk != masked) {
-                    goto fail;
-                }
-            }
+        if (_mcVerifySlotChecksums() && _mcVerifyFirstByteChecksum()) {
             Game_ClearEd68();
             gDisplayState.at100.flags.pendingPlayerPos = 1;
             arg0->state                                = 3;
         } else {
-        fail:
             Mc_InitBufferSlots();
             arg0->state = 0x19;
         }
@@ -1614,15 +1610,7 @@ static void Mc_StateVerifyFinish(Task* arg0, McWork* arg1)
     }
 
     arg1->field_8 = 5;
-    obj           = arg0->spawnArg2;
-    ret           = Ui_LookupTable(obj, 1);
-    obj->field_2E = 0;
-    Ui_DrawTitle(obj, Mc_StrMemoryCard);
-    one        = 1;
-    promptBase = Mc_PromptTable;
-    entry      = &promptBase[5];
-    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
-    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
+    _mcDrawPrompt(arg0, 5);
 }
 
 static void Mc_StateFinishWrite(Task* arg0, McWork* arg1)
