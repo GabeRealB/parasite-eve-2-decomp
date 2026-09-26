@@ -76,7 +76,7 @@ extern RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80185004[];
 
 /// The jukebox menu's title, "SELECT". A stray 0x0D byte follows its
 /// terminator, so the block stays in assembly.
-extern char D_dryfield_night_saloon_g_r_8017D898[];
+extern const char D_dryfield_night_saloon_g_r_8017D898[];
 
 /// The jukebox's track list.
 extern UiList D_dryfield_night_saloon_g_r_80185028;
@@ -278,7 +278,40 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
     taskKill(task);
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_saloon_g_r/dryfield_night_saloon_g_r", D_dryfield_night_saloon_g_r_8017D600);
+/// The mission titles the saloon lists, reached through the records in the
+/// room's data.
+const char D_dryfield_night_saloon_g_r_8017D600[] = "3. Heaven-sent Killer";
+const char D_dryfield_night_saloon_g_r_8017D618[] = "2. Eager For Blood";
+const char D_dryfield_night_saloon_g_r_8017D62C[] = "1. Crazy King";
+const char D_dryfield_night_saloon_g_r_8017D63C[] = "3. Crawling Waste Emperor";
+const char D_dryfield_night_saloon_g_r_8017D658[] = "2. Pick Up The Gauntlet";
+const char D_dryfield_night_saloon_g_r_8017D670[] = "3. Hunter's Moon";
+const char D_dryfield_night_saloon_g_r_8017D684[] = "2. Quadrumanous Leader";
+const char D_dryfield_night_saloon_g_r_8017D69C[] = "3. Genic Reactor";
+const char D_dryfield_night_saloon_g_r_8017D6B0[] = "2. Rebel Forces";
+const char D_dryfield_night_saloon_g_r_8017D6C0[] = "1. Yellow Rain";
+const char D_dryfield_night_saloon_g_r_8017D6D0[] = "3. Pick Up The Gauntlet";
+const char D_dryfield_night_saloon_g_r_8017D6E8[] = "2. Ambush!";
+const char D_dryfield_night_saloon_g_r_8017D6F4[] = "4. Dark Voice Of The Heart";
+const char D_dryfield_night_saloon_g_r_8017D710[] = "3. Requiem";
+const char D_dryfield_night_saloon_g_r_8017D71C[] = "2. Rock And Fire";
+const char D_dryfield_night_saloon_g_r_8017D730[] = "1. Ghost Town";
+const char D_dryfield_night_saloon_g_r_8017D740[] = "4. Snooper";
+const char D_dryfield_night_saloon_g_r_8017D74C[] = "3. Wild Hunt";
+const char D_dryfield_night_saloon_g_r_8017D75C[] = "2. Lightning Operation";
+const char D_dryfield_night_saloon_g_r_8017D774[] = "1. L.A. Maze";
+const char D_dryfield_night_saloon_g_r_8017D784[] = "4. Genic Reactor";
+const char D_dryfield_night_saloon_g_r_8017D798[] = "3. Mental Agony";
+const char D_dryfield_night_saloon_g_r_8017D7A8[] = "2. Wishwash";
+const char D_dryfield_night_saloon_g_r_8017D7B4[] = "1. Curse Your Fate!";
+const char D_dryfield_night_saloon_g_r_8017D7C8[] = "4. Killing Field";
+const char D_dryfield_night_saloon_g_r_8017D7DC[] = "3. Fool's Paradise";
+const char D_dryfield_night_saloon_g_r_8017D7F0[] = "2. Gazing into The Void";
+const char D_dryfield_night_saloon_g_r_8017D808[] = "1. Man Made Nature";
+const char D_dryfield_night_saloon_g_r_8017D81C[] = "4. Lazing Away the Morning";
+const char D_dryfield_night_saloon_g_r_8017D838[] = "3. Out Of Phase 2";
+const char D_dryfield_night_saloon_g_r_8017D84C[] = "2. The Vagrants";
+const char D_dryfield_night_saloon_g_r_8017D85C[] = "1. Tower Rendezvous";
 
 /// The jukebox's ten track lists: one per game mode, with list 4 standing in
 /// before the first clear, and the second five used outside the debug attach
@@ -298,7 +331,8 @@ const RoomsShared8018055cMenu D_dryfield_night_saloon_g_r_8017D870 = {
     },
 };
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_saloon_g_r/dryfield_night_saloon_g_r", D_dryfield_night_saloon_g_r_8017D898);
+/// "SELECT", followed by the non-zero padding the original toolchain left.
+const char D_dryfield_night_saloon_g_r_8017D898[8] = "SELECT\0\x0D";
 /// Handler for message 0x13EE in the room's message table, which filters a
 /// warp request: copies `in` to `out`, and for area 0xF picks the destination
 /// room from game-flag nibble 0x61 (unless `in->field_5` asks for a dry run),
