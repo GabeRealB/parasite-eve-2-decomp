@@ -85,87 +85,39 @@ void func_dryfield_night_parking_lot_8017DC88(void)
 /// colour channels take the flickering grey `((animFrame & 1) * 16) + 0x20`.
 void func_dryfield_night_parking_lot_8017DE10(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    void**             scratch;
-    u8*                head;
-    u8*                tmp;
     RoomDraw25Scratch* block;
     POLY_FT4*          prim;
-    DisplayState*      ds;
-    s32                tex;
-    s32                idx;
-    s32                u0;
-    s32                u1;
-    register s32       sarg asm("v1");
-    s32                t;
-    s32                field8;
     s32                blend;
-    s32                v;
-    u8                 code;
-    s16                xy;
+    s32                idx;
+    u8                 frame;
 
-    tex      = arg1;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    tmp      = head - 0xC;
-    block    = (RoomDraw25Scratch*)tmp;
-    *scratch = tmp;
-
+    block = SCRATCH_PUSH(RoomDraw25Scratch);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&((RoomDraw25Scratch*)(head - 0xC))->sx);
+    setPolyFT4(prim);
+    gte_stsxy(&block->sx);
     gte_stszotz(&block->otz);
-    if (((RoomDraw25Scratch*)(head - 0xC))->otz >= 0x11) {
-        ds          = &gDisplayState;
-        idx         = (s16)tex;
-        field8      = (u8)ds->animFrame;
+    if (block->otz >= 0x11) {
+        idx         = (s16)arg1;
+        frame       = gDisplayState.animFrame;
         prim->tpage = 0x2B;
         prim->clut  = (idx & 0x3F) | 0x4380;
-        u0          = idx * 40;
-        u1          = u0 + 0x27;
-        prim->u0    = u0;
-        prim->u2    = u0;
-        SOFT_USE_REG(u0);
-        v        = 0x27;
-        prim->u1 = u1;
-        prim->u3 = u1;
-        SOFT_USE_REG(u1);
-        sarg     = arg2 << 16;
-        prim->v2 = v;
-        prim->v3 = v;
-        code     = prim->code;
-        sarg     = sarg >> 16;
-        prim->v0 = 0;
-        prim->v1 = 0;
-        blend    = ((field8 & 1) * 16) + 0x20;
-        COMPILER_BARRIER();
-        prim->code = code | 2;
-        t          = sarg * 40;
+        setUVWH(prim, idx * 40, 0, 0x27, 0x27);
+        blend = ((frame & 1) << 4) + 0x20;
         setRGB0(prim, blend, blend, blend);
-        ((RoomDraw25Scratch*)tmp)->radius =
-            (t - sarg) / ((RoomDraw25Scratch*)(head - 0xC))->otz;
-        xy       = ((RoomDraw25Scratch*)tmp)->sx - (u16)((RoomDraw25Scratch*)tmp)->radius;
-        prim->x2 = xy;
-        prim->x0 = xy;
-        xy       = ((RoomDraw25Scratch*)tmp)->sx + (u16)((RoomDraw25Scratch*)tmp)->radius;
-        prim->x3 = xy;
-        prim->x1 = xy;
-        xy       = ((RoomDraw25Scratch*)tmp)->sy - (u16)((RoomDraw25Scratch*)tmp)->radius;
-        prim->y1 = xy;
-        prim->y0 = xy;
-        xy       = ((RoomDraw25Scratch*)tmp)->sy + (u16)((RoomDraw25Scratch*)tmp)->radius;
-        prim->y3 = xy;
-        prim->y2 = xy;
-        addPrim((u_long*)(((((u32)((RoomDraw25Scratch*)(head - 0xC))->otz << ds->otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
-                prim);
+        setSemiTrans(prim, 1);
+        block->radius = ((s16)arg2 * 39) / block->otz;
+        prim->x0 = prim->x2 = block->sx - block->radius;
+        prim->x1 = prim->x3 = block->sx + block->radius;
+        prim->y0 = prim->y1 = block->sy - block->radius;
+        prim->y2 = prim->y3 = block->sy + block->radius;
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0xC);
+    SCRATCH_POP(RoomDraw25Scratch);
 }
 
 /// Projects `arg0` and `arg1` through the view matrix and, when the far point is
