@@ -4900,6 +4900,43 @@ void func_actor_421600_8013BA70(Task* arg0)
     arg0->extra.tmd->coords->flg = 0;
 }
 
+/// Tint a freshly spawned effect model from the enemy's placement in the
+/// current area: fill the session's location key, let `Gp_SyncAreaKeyIndex`
+/// resolve its table index, copy that place's texture page and CLUT into the
+/// model, and re-stream the model when it already has a buffer.
+static __inline__ void _actor421600TintEffect(GpEffWork* eff, GpEnemy* enemy)
+{
+    GpAreaKey    key;
+    GpAreaKey*   sessionKey;
+    u8           areaByte0;
+    GpAreaRec*   rec;
+    GpAreaPlace* entry;
+    TmdObject*   model;
+    s32          idx;
+    u32          raw;
+
+    if (eff != NULL) {
+        sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+        raw        = enemy->placeKey;
+        model      = eff->task->extra.tmd;
+        key.stage  = sessionKey->stage;
+        key.area   = sessionKey->area;
+        key.room   = sessionKey->room;
+        areaByte0  = gGameSession->at4.loc.view;
+        idx        = raw >> 12;
+        key.view   = areaByte0;
+        Gp_SyncAreaKeyIndex(&key);
+        rec          = Gp_GetNestedAreaRec(&key);
+        entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        model->tpage = entry->tpage;
+        model->clut  = entry->clut;
+        if (model->buffer != NULL) {
+            tmdProcessStream(model);
+            tmdProcessStream(model);
+        }
+    }
+}
+
 /// Death tick: the live-actor edge arms the model (dirty 0x80, clip 0x19C, the
 /// 0xB6C node's 0x4000 flag down, the enemy's list node marked, the 0x83E /
 /// 0x840 / 0x844 triple and `field_6` cleared) and spawns the 0x60030 effect on
@@ -4913,38 +4950,6 @@ void func_actor_421600_8013C8E0(Task* arg0)
     GpEnemy*         ctx;
     TmdObject*       obj;
     SVECTOR          vec;
-    GpAreaKey        key;
-    GpAreaKey*       keyPtr;
-    GpAreaKey*       sessionKey1;
-    GpAreaKey*       sessionKey2;
-    GpAreaKey*       sessionKey3;
-    GpAreaKey*       sessionKey4;
-    u32              raw1;
-    u32              raw2;
-    u32              raw3;
-    u32              raw4;
-    u32              index1;
-    u32              index2;
-    u32              index3;
-    u32              index4;
-    GpEffWork*       effect1;
-    GpEffWork*       effect2;
-    GpEffWork*       effect3;
-    GpEffWork*       effect4;
-    TmdObject*       model1;
-    TmdObject*       model2;
-    TmdObject*       model3;
-    TmdObject*       model4;
-    GpAreaRec*       rec1;
-    GpAreaRec*       rec2;
-    GpAreaRec*       rec3;
-    GpAreaRec*       rec4;
-    GpAreaPlace*     entry1;
-    GpAreaPlace*     entry2;
-    GpAreaPlace*     entry3;
-    GpAreaPlace*     entry4;
-    u8               areaByte0;
-    u16              tick;
 
     work = arg0->work;
     ctx  = arg0->spawnArg2;
@@ -4952,7 +4957,7 @@ void func_actor_421600_8013C8E0(Task* arg0)
     if (work->field_4 != 0) {
         obj->flags              = 0x80;
         work->field_8EC.radius  = 0x19C;
-        work->field_B6C.flags   = (u16)(work->field_B6C.flags & 0xBFFF);
+        work->field_B6C.flags  &= ~0x4000;
         ctx->node.state.b.flags = 1;
         work->field_844         = 0;
         work->field_840         = 0;
@@ -4972,120 +4977,27 @@ void func_actor_421600_8013C8E0(Task* arg0)
         vec.vz        = 0x64;
         vec.vy        = 0;
         vec.vx        = 0;
-        effect1       = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec);
-        if (effect1 != NULL) {
-            sessionKey1 = (GpAreaKey*)&gGameSession->at4.loc;
-            raw1        = ctx->placeKey;
-            model1      = effect1->task->extra.tmd;
-            key.stage   = sessionKey1->stage;
-            key.area    = sessionKey1->area;
-            key.room    = sessionKey1->room;
-            areaByte0   = gGameSession->at4.loc.view;
-            index1      = raw1 >> 12;
-            SOFT_BARRIER();
-            keyPtr = &key;
-            TOUCH_REG(keyPtr);
-            key.view = areaByte0;
-            Gp_SyncAreaKeyIndex(keyPtr);
-            rec1          = Gp_GetNestedAreaRec(&key);
-            entry1        = (GpAreaPlace*)((index1 * 0x10) + (s32)rec1->field_0);
-            model1->tpage = entry1->tpage;
-            model1->clut  = entry1->clut;
-            if (model1->buffer != NULL) {
-                tmdProcessStream(model1);
-                tmdProcessStream(model1);
-            }
-        }
+        _actor421600TintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec), ctx);
     }
     if ((s16)work->field_6 == 5) {
         D_80114B78[0] = &D_actor_421600_801443C8;
         vec.vy        = 0;
         vec.vx        = 0;
-        effect2       = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec);
-        if (effect2 != NULL) {
-            sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
-            raw2        = ctx->placeKey;
-            model2      = effect2->task->extra.tmd;
-            key.stage   = sessionKey2->stage;
-            key.area    = sessionKey2->area;
-            key.room    = sessionKey2->room;
-            areaByte0   = gGameSession->at4.loc.view;
-            index2      = raw2 >> 12;
-            SOFT_BARRIER();
-            keyPtr = &key;
-            TOUCH_REG(keyPtr);
-            key.view = areaByte0;
-            Gp_SyncAreaKeyIndex(keyPtr);
-            rec2          = Gp_GetNestedAreaRec(&key);
-            entry2        = (GpAreaPlace*)((index2 * 0x10) + (s32)rec2->field_0);
-            model2->tpage = entry2->tpage;
-            model2->clut  = entry2->clut;
-            if (model2->buffer != NULL) {
-                tmdProcessStream(model2);
-                tmdProcessStream(model2);
-            }
-        }
+        _actor421600TintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec), ctx);
     }
     if ((s16)work->field_6 == 7) {
         D_80114B78[0] = &D_actor_421600_80145604;
-        effect3       = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL);
-        if (effect3 != NULL) {
-            sessionKey3 = (GpAreaKey*)&gGameSession->at4.loc;
-            raw3        = ctx->placeKey;
-            model3      = effect3->task->extra.tmd;
-            key.stage   = sessionKey3->stage;
-            key.area    = sessionKey3->area;
-            key.room    = sessionKey3->room;
-            areaByte0   = gGameSession->at4.loc.view;
-            index3      = raw3 >> 12;
-            SOFT_BARRIER();
-            keyPtr = &key;
-            TOUCH_REG(keyPtr);
-            key.view = areaByte0;
-            Gp_SyncAreaKeyIndex(keyPtr);
-            rec3          = Gp_GetNestedAreaRec(&key);
-            entry3        = (GpAreaPlace*)((index3 * 0x10) + (s32)rec3->field_0);
-            model3->tpage = entry3->tpage;
-            model3->clut  = entry3->clut;
-            if (model3->buffer != NULL) {
-                tmdProcessStream(model3);
-                tmdProcessStream(model3);
-            }
-        }
+        _actor421600TintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), ctx);
     }
     if ((s16)work->field_6 == 8) {
         D_80114B78[0] = &D_actor_421600_80145124;
-        effect4       = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL);
-        if (effect4 != NULL) {
-            sessionKey4 = (GpAreaKey*)&gGameSession->at4.loc;
-            raw4        = ctx->placeKey;
-            model4      = effect4->task->extra.tmd;
-            key.stage   = sessionKey4->stage;
-            key.area    = sessionKey4->area;
-            key.room    = sessionKey4->room;
-            areaByte0   = gGameSession->at4.loc.view;
-            index4      = raw4 >> 12;
-            SOFT_BARRIER();
-            keyPtr = &key;
-            TOUCH_REG(keyPtr);
-            key.view = areaByte0;
-            Gp_SyncAreaKeyIndex(keyPtr);
-            rec4          = Gp_GetNestedAreaRec(&key);
-            entry4        = (GpAreaPlace*)((index4 * 0x10) + (s32)rec4->field_0);
-            model4->tpage = entry4->tpage;
-            model4->clut  = entry4->clut;
-            if (model4->buffer != NULL) {
-                tmdProcessStream(model4);
-                tmdProcessStream(model4);
-            }
-        }
+        _actor421600TintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL), ctx);
     }
     if ((s16)work->field_6 == 0xA) {
         work->field_0 = 0x16;
     }
     if ((s16)work->field_6 < 0x400) {
-        tick          = work->field_6 + 1;
-        work->field_6 = tick;
+        work->field_6++;
     }
 }
 
