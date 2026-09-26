@@ -143571,3 +143571,16 @@ case of "Two SVECTOR copy loops need two source locals". The trace shows the
 mechanism is sched1's launch boost: a pointer reused for both walks has
 `REG_N_SETS == 2`, so `birthing_insn_p` does not boost its load, and the
 single-set `dst`/`nrm`/count loads claim the slots before the branch instead.
+
+## Two call sites of one inlined helper pin its store order together (func_actor_403600_801406A4, 2026-09-26)
+
+A seventeen-store field reset appeared in two switch cases in different
+orders, and the seed reproduced each with an asm hack. They are one inlined
+helper: `.sched` keeps same-base stores in source order, and sched2's backward
+list pass then pulls a store whose constant needs a fresh `li $v1` up to that
+`li`. A store whose constant CSE shares with the caller (`0xA` also stored to
+another field, `8` also stored as a byte flag) has no `li` of its own, so it
+stays at its source position. Each case therefore constrains a different
+store, and the helper order that satisfies both is the answer: here
+`742, 756=8, 778, …, 73A, 776=0xA, 76E, …`, not the order the rest of the TU
+spells the same reset in.
