@@ -2685,52 +2685,18 @@ s32 Gp_ScanStackQty(McItemScan* arg0, s32 arg1)
 
 void Gp_ConsumeScanQty(McItemScan* arg0, s32 arg1, s32 arg2)
 {
-    McItemRec*          tmp;
-    register McItemRec* table asm("v1");
-    register s32        qty asm("t1");
-    register McItemRec* base asm("t2");
-    McItemRec*          rec;
-    s32                 i;
-    s32                 count;
-    s32                 end;
-    s32                 loop_end;
+    McItemRec* table;
+    s32        qty;
+    s32        i;
 
-    switch (arg0->table) {
-        case 2:
-            tmp = Gp_ItemTable2;
-            break;
-        case 1:
-            tmp = Gp_ItemTable1;
-            break;
-        found:
-            qty = rec->qty;
-            goto after_loop;
-        default:
-            tmp = Mc_SaveData.itemRows;
-            break;
-    }
-    table = tmp;
+    table = _gpScanTable(arg0);
     qty   = 0;
-    USE_REG(qty);
-    i     = arg0->firstRow;
-    count = arg0->rowCount;
-    base  = table;
-    end   = i + count;
-    if (i < end) {
-        loop_end = end;
-        rec      = (McItemRec*)((i << 2) + (s32)base);
-    loop:
-        if (rec->itemId != arg1) {
-            i++;
-            rec++;
-            if (i < loop_end) {
-                goto loop;
-            }
-        } else {
-            goto found;
+    for (i = arg0->firstRow; i < arg0->firstRow + arg0->rowCount; i++) {
+        if (table[i].itemId == arg1) {
+            qty = table[i].qty;
+            break;
         }
     }
-after_loop:
     if (i != arg0->firstRow + arg0->rowCount) {
         if (arg2 < 0) {
             arg2 = qty;
@@ -2740,11 +2706,11 @@ after_loop:
             arg2 = 0;
         }
         if (arg2 == 0) {
-            base[i].itemId     = 0;
-            base[i].qty        = 0;
-            base[i].attachSlot = 0;
+            table[i].itemId     = 0;
+            table[i].qty        = 0;
+            table[i].attachSlot = 0;
         } else {
-            base[i].qty = arg2;
+            table[i].qty = arg2;
         }
     }
 }
