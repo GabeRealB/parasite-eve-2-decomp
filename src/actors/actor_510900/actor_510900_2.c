@@ -1888,9 +1888,6 @@ static void func_actor_510900_80138BF0(Task* arg0)
 /// `Actor510900Work::field_570` and then walks that residual 0x20 back towards
 /// zero on each axis, snapping to zero inside the last step. `field_584` is
 /// cleared on the frame both axes have come to rest.
-///
-/// The scratch head is taken through `ActorScratchStack` rather than as
-/// `SCRATCH_HEAD`: the struct store keeps the `arg0->work` load below it.
 static void func_actor_510900_80138D38(Task* arg0)
 {
     Actor510900Work* work;
@@ -1904,13 +1901,12 @@ static void func_actor_510900_80138D38(Task* arg0)
     s32              nextY;
     s32              active;
 
-    matrix                                     = (MATRIX*)((ActorScratchStack*)G_SCRATCH_HEAD)->head - 1;
-    ((ActorScratchStack*)G_SCRATCH_HEAD)->head = matrix;
-    active                                     = 0;
-    work                                       = arg0->work;
-    coord                                      = arg0->extra.tmd->coords;
+    SCRATCH_PUSH(MATRIX);
+    matrix = SCRATCH_HEAD(MATRIX);
+    active = 0;
+    work   = arg0->work;
+    coord  = arg0->extra.tmd->coords;
     RotMatrix(&work->field_570, matrix);
-    USE_REG(matrix);
     gte_SetRotMatrix(&coord[3].coord);
     gte_ldclmv(matrix);
     gte_rtir();
