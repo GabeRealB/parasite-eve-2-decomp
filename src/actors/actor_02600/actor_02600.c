@@ -446,9 +446,8 @@ static void Actor02600_Fn00914(Task* arg0)
     *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
 }
 
-static void Actor02600_Fn00A94(Task* arg0)
+static void Actor02600_Fn00A94(Task* actor)
 {
-    register Task*   actor asm("s5") = arg0;
     Actor105500Work* work;
     GpCoord*         coord;
     s32              state;
@@ -459,17 +458,15 @@ static void Actor02600_Fn00A94(Task* arg0)
     s32              dx;
     s32              dz;
     s32              value;
-    u32              random;
-    s32              index;
+    s32              sound;
     VECTOR*          delta;
     VECTOR*          scratchEnd;
 
-    SOFT_TOUCH_REG(actor);
     scratchEnd                         = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC);
     delta                              = scratchEnd - 1;
     *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = delta;
-    work                               = actor->work;
     coord                              = actor->extra.tmd->coords;
+    work                               = actor->work;
     state                              = work->field_39C;
     sessionFlags                       = GP_LOC_WORD(gGameSession->at4.loc);
     value                              = 0;
@@ -499,11 +496,16 @@ static void Actor02600_Fn00A94(Task* arg0)
                 work->field_2E4.key    = Gp_PackPair(&Actor02600_D08950, 5);
                 work->field_2E4.flags |= 0x8000;
                 if ((sessionFlags & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 32, 0, 0)) {
-                    value = ((((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x55200006;
+                    sound = ((((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x55200006;
                     pan0  = (s8)Gp_GetObjPan(coord);
-                    SndEvt_EnqueueType6(value, (s32)pan0, (s8)gpGetObjDepth(coord));
+                    SndEvt_EnqueueType6(sound, (s32)pan0, (s8)gpGetObjDepth(coord));
                 }
-            } else if (work->field_3D0 != 0) {
+                coord->flg = 0;
+                Gp_UpdateCoord(coord);
+                work->field_370 = coord->workm;
+                break;
+            }
+            if (work->field_3D0 != 0) {
                 if (work->field_3C6 == 0) {
                     Gp_StateF0.field_22 = 1;
                 }
@@ -518,10 +520,14 @@ static void Actor02600_Fn00A94(Task* arg0)
                 work->field_2E4.key    = Gp_PackPair(&Actor02600_D08950, 5);
                 work->field_2E4.flags |= 0x8000;
                 if ((sessionFlags & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 32, 0, 0)) {
-                    value = ((((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x55200006;
+                    sound = ((((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x55200006;
                     pan1  = (s8)Gp_GetObjPan(coord);
-                    SndEvt_EnqueueType6(value, (s32)pan1, (s8)gpGetObjDepth(coord));
+                    SndEvt_EnqueueType6(sound, (s32)pan1, (s8)gpGetObjDepth(coord));
                 }
+                coord->flg = 0;
+                Gp_UpdateCoord(coord);
+                work->field_370 = coord->workm;
+                break;
             }
             coord->flg = 0;
             Gp_UpdateCoord(coord);
@@ -545,9 +551,9 @@ static void Actor02600_Fn00A94(Task* arg0)
                 work->field_392        = 0xA;
                 work->field_3A8        = 0x80;
                 work->field_2E4.flags &= 0x7FFF;
-                value                  = ((((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x401A0002;
+                sound                  = ((((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x401A0002;
                 pan2                   = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(value, (s32)pan2, (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(sound, (s32)pan2, (s8)gpGetObjDepth(coord));
             }
             break;
         case 3:
@@ -556,13 +562,11 @@ static void Actor02600_Fn00A94(Task* arg0)
                 work->field_39A        = state;
                 work->field_39C        = 0;
                 work->field_392        = 1;
-                index                  = ((GpEnemy*)actor->spawnArg2)->place->rowIndex;
-                work->field_39E        = Actor02600_D08978[index] + (((random = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
+                work->field_39E        = Actor02600_D08978[((GpEnemy*)actor->spawnArg2)->place->rowIndex] + (((Gp_LcgState = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
                 work->field_2E4.coord  = actor->extra.tmd->coords + 4;
                 work->field_2E4.radius = 0xC8;
                 work->field_2E4.pos.vy = 0;
                 work->field_3C8        = 0;
-                Gp_LcgState            = random;
                 if (((GpEnemy*)actor->spawnArg2)->hp <= 0) {
                     work->field_39A = 9;
                     work->field_39C = 0;
