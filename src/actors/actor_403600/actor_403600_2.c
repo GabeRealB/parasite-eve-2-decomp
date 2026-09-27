@@ -39,18 +39,6 @@ typedef struct Actor403600DamageScratch {
 } Actor403600DamageScratch;
 STATIC_ASSERT_SIZEOF(Actor403600DamageScratch, 0x48);
 
-typedef struct Actor403600MotionState {
-    /* 0x00 */ s16  field_0[0x40];
-    /* 0x80 */ s32  field_80;
-    /* 0x84 */ s32  field_84;
-    /* 0x88 */ s32  field_88;
-    /* 0x8C */ s16  field_8C;
-    /* 0x8E */ s16  field_8E;
-    /* 0x90 */ byte pad_90[0x50];
-    /* 0xE0 */ s32  field_E0;
-} Actor403600MotionState;
-STATIC_ASSERT_SIZEOF(Actor403600MotionState, 0xE4);
-
 typedef struct Actor403600Pattern {
     u8 values[9];
 } __attribute__((packed)) Actor403600Pattern;
@@ -172,7 +160,7 @@ static void func_actor_403600_80138EF8(struct GpEnemy* enemy, Task* task);
 static void func_actor_403600_8013938C(GpEnemy* arg0, Task* arg1);
 void        func_8004BFF8(s32 angle, MATRIX* matrix);
 static void func_actor_403600_8013C864(Task* arg0);
-static void func_actor_403600_80138C9C(Actor403600MotionState* arg0);
+static void func_actor_403600_80138C9C(ActorEffectState* arg0);
 static u8*  func_actor_403600_80138DCC(Task* arg0);
 static void func_actor_403600_8013CCEC(Task* arg0, s32 arg1);
 static s32  func_actor_403600_8013D9A8(Task* arg0);
@@ -261,55 +249,38 @@ void func_actor_403600_80138C68(Task* arg0)
     taskKill(arg0);
 }
 
-static void func_actor_403600_80138C9C(Actor403600MotionState* arg0)
+/// Advances the trail by one step: moves the head back one slot in the two
+/// 0x20-entry rings, clears it, ramps the strength up while `field_8E` is set
+/// (restarting the phase on a rising edge) or down otherwise, and writes the
+/// phase and strength into the new head while the strength is non-zero.
+static void func_actor_403600_80138C9C(ActorEffectState* state)
 {
-    s32  temp_a1;
-    s32  temp_a1_2;
-    s32  temp_v0;
-    s32  temp_v0_3;
-    s32  temp_v1;
-    s32  temp_v1_2;
-    s32  var_v0;
-    s16* temp_v0_2;
-    s16* temp_v0_4;
+    s32 head;
 
-    temp_a1        = arg0->field_80;
-    temp_v1        = temp_a1 + 0x1F;
-    var_v0         = temp_v1;
-    arg0->field_80 = temp_v1;
-    if (temp_v1 < 0) {
-        var_v0 = temp_a1 + 0x3E;
+    state->field_80      += 0x1F;
+    state->field_80      %= 0x20;
+    head                  = state->field_80;
+    state->field_0[head]  = 0;
+    state->field_40[head] = 0;
+    if (state->field_8E != 0) {
+        if (state->field_8C == 0) {
+            state->field_84 = 0;
+        }
+        if (state->field_88 < 0x1000) {
+            state->field_88 += 0x200;
+        }
+    } else if (state->field_88 > 0) {
+        state->field_88 -= 0x80;
     }
-    temp_v0 = temp_v1 - ((var_v0 >> 5) << 5);
-    __asm__("move %0,%1" : "=r"(temp_a1_2) : "r"(temp_v0));
-    arg0->field_80  = temp_v0;
-    temp_v0_2       = &arg0->field_0[temp_a1_2];
-    temp_v0_2[0]    = 0;
-    temp_v0_2[0x20] = 0;
-    if (arg0->field_8E != 0) {
-        if (arg0->field_8C == 0) {
-            arg0->field_84 = 0;
+    state->field_8C = state->field_8E;
+    if (state->field_88 != 0) {
+        state->field_0[head]  = state->field_84;
+        state->field_40[head] = state->field_88;
+        if (state->field_E0 == 0) {
+            state->field_84 += 0x180;
+        } else {
+            state->field_84 += 0x100;
         }
-        temp_v1_2 = arg0->field_88;
-        if (temp_v1_2 < 0x1000) {
-            arg0->field_88 = temp_v1_2 + 0x200;
-        }
-    } else {
-        temp_v0_3 = arg0->field_88;
-        if (temp_v0_3 > 0) {
-            arg0->field_88 = temp_v0_3 - 0x80;
-        }
-    }
-    arg0->field_8C = (u16)arg0->field_8E;
-    if (arg0->field_88 != 0) {
-        temp_v0_4       = &arg0->field_0[temp_a1_2];
-        temp_v0_4[0]    = (u16)arg0->field_84;
-        temp_v0_4[0x20] = (u16)arg0->field_88;
-        if (arg0->field_E0 == 0) {
-            arg0->field_84 += 0x180;
-            return;
-        }
-        arg0->field_84 += 0x100;
     }
 }
 

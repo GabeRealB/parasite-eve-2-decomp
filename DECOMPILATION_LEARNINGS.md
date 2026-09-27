@@ -144856,3 +144856,16 @@ last arm fall into the exit. Each earlier arm's tail then merges into it
 through a new, unchained label, and the two identical arms can no longer find
 each other. When the anonymous-tail trick does not work, look at what sits
 between the last arm and the label the arms return to.
+
+### Two adjacent arrays flattened into one `[2N]` array is a different expression, and a `move` asm covered it (func_actor_403600_80138C9C, 2026-09-27)
+
+A local struct declared the two 0x20-halfword rings at the start of a state
+block as one `s16 field_0[0x40]`, so the second ring became
+`field_0[head + 0x20]`. Written naturally that scored 89%; the seed reached
+100% only by computing `&field_0[head]` once and pinning the index copy with
+`__asm__("move ...")`. The header already had the shared type with
+`s16 field_0[0x20]; s16 field_40[0x20];`, and with it the plain
+`state->field_40[head]` spelling matches with no hack. Where a body indexes
+`[i + N]` into an array of exactly `2N`, and especially where a sibling
+overlay or file declares the same block with two arrays, try the two-array
+view before steering the address arithmetic.
