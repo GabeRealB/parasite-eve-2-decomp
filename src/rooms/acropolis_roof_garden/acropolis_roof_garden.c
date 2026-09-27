@@ -559,11 +559,10 @@ static void func_acropolis_roof_garden_8017E29C(Task* arg0)
                         __asm__("" : "+r"(depth) : "r"(shift), "m"(gDisplayState.otDepthShift));
                         setaddr(prim, getaddr((u_long*)(depth + (s32)gGpuCurrentOt)));
                         ot  = (u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt);
-                        tag = (*ot & 0xFF000000) | ((u32)prim & 0xFFFFFF);
+                        tag = *ot;
+                        tag = (tag & 0xFF000000) | ((u32)prim & 0xFFFFFF);
                         *ot = tag;
                         z   = blk->otz;
-                        SOFT_TOUCH_REG(z);
-                        SOFT_TOUCH_REG(z);
                         SOFT_TOUCH_REG_USE(z, tag);
                         SOFT_TOUCH_REG_USE(prim, z);
                         Gp_AddTpageShift((P_TAG*)prim, 1, z);
