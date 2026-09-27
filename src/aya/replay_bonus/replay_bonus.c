@@ -141,29 +141,28 @@ u16* func_replay_bonus_80115C68(void)
     return table;
 }
 
+/// Field 0 of the `Gp_IdParamHi` row for attachment `slot` one level above `from`.
+static inline u16 _replayBonusUpgradeCost(s32 slot, s32 from)
+{
+    return Gp_IdParamHi[slot * 3 + from + 1].field[0];
+}
+
 s32 func_replay_bonus_80115CA4(void)
 {
     u8* levels;
     s32 spend;
     s32 i;
-    s32 idx;
     s32 j;
-    s32 base;
     s32 val;
-    s32 flag;
 
     levels = Mc_SaveData[0].attachLevels;
     spend  = Player_Status.exp;
     i      = 0;
     do {
-        idx = i * 3;
         if (*levels != 0) {
             for (j = 0; j < *levels; ++j) {
-                base = idx;
-                SOFT_TOUCH_REG(base);
-                val  = Gp_IdParamHi[base + j + 1].field[0];
-                flag = Mc_SaveData[0].gameMode;
-                if (flag > 0) {
+                val = _replayBonusUpgradeCost(i, j);
+                if (Mc_SaveData[0].gameMode > 0) {
                     val = (val * 4) / 5;
                 } else if (Mc_SaveData[0].clearCount > 0) {
                     val = (val * 2) / 5;
