@@ -144694,3 +144694,19 @@ sibling needs the id built in a caller-scope local and passed to a pan-and-enque
 helper, while this copy needs the id built inside the helper
 (`_playSound(task, 0x40050001)`); the other choice swaps `$s0`/`$s1` around
 `Gp_GetObjPan`. Try both before keeping a register hack.
+## A barrier after an if/else that picks a constant for one shared store is the store duplicated into both arms (func_actor_400500_80135414, 2026-09-27)
+
+An if/else set three fields and loaded a fourth field's value into a `val`
+local, and a single `work->field_A2C = val;` after the join matched only with
+`SOFT_BARRIER()` before the next statement's load. Without it sched1 keeps the
+store in the join block and moves it past the following `lh` into the call's
+delay slot. Writing `field_A2C = 0x10;` / `= 0x2000;` as the last store of each
+arm needs no barrier: the stores stay in their arms through sched1, and jump2
+cross-jumps them into the shared `sh` the target has at the join label, where
+nothing after it can take its slot. In the same function the file's
+`static inline` mode-request helper, called with `0x80`, fails where the
+hand-expanded body with `flag = 0x80;` inside the then-arm matches: inlining
+emits the constant's parameter copy in the block before the helper's first
+branch, and that extra insn lets sched1 hoist the preceding
+`gStageSceneMusicEntry = 2;` store to the top of the block. An explicit
+`flag = 0x80;` hoisted to the same place reproduces the failure exactly.

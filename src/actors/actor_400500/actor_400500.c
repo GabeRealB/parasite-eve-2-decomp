@@ -1062,6 +1062,16 @@ static inline void _actor400500SetAnim(Task* task, s16 id, s16 rate)
     work->field_9FA = 2;
 }
 
+/// Writes `state` and `subState` into the enemy's state and sub-state indices.
+static inline void _actor400500SetState(Task* task, s32 state, s32 subState)
+{
+    Actor400500Work* work;
+
+    work            = (Actor400500Work*)task->work;
+    work->field_A06 = state;
+    work->field_A08 = subState;
+}
+
 /// Advances the enemy's animation state machine by one frame, then ticks
 /// animation slots 1..0x11 at the current rate.
 static inline void _actor400500TickAnim(Task* task)
@@ -1770,18 +1780,13 @@ static void func_actor_400500_80135414(Task* arg0)
     GpEnemy*         enemy;
     GpCoord*         coord;
     Actor400500Work* work;
-    Actor400500Work* work2;
-    Actor400500Work* work3;
     Actor400500Work* work4;
     Actor400500Work* work5;
-    Actor400500Work* work6;
-    Actor400500Work* work7;
     GpCoord*         player;
     GpCoord*         coord2;
     TmdObject*       extra2;
-    s32              i;
+    Actor400500Work* work7;
     s32              flag;
-    s32              val;
     u8               mode;
 
     extra      = arg0->extra.tmd;
@@ -1809,33 +1814,9 @@ static void func_actor_400500_80135414(Task* arg0)
     enemy->hp = enemy->hpMax = D_actor_400500_80153C90.hpMax;
     func_800B3F84(&work->anim, D_actor_400500_80153CC0, extra, work->pad_2E4,
                   work->slots);
-    coord->sub       = &gGfxViewCoord;
-    work2            = (Actor400500Work*)arg0->work;
-    work2->field_9F8 = 0x18;
-    work2->field_9FE = 2;
-    work2->field_9FA = 2;
-    work3            = (Actor400500Work*)arg0->work;
-    if (work3->field_9FA == 1) {
-        if ((s16)work3->field_9FC != work3->field_9FE) {
-            work3->field_A00 = 0;
-        } else {
-            work3->field_A00 = func_actor_400500_8013DD8C(arg0, work3->field_A00);
-        }
-        func_actor_400500_8013DCD4(arg0);
-        work3->field_9FA = 3;
-    } else if (work3->field_9FA == 2) {
-        func_actor_400500_8013DC4C(arg0);
-        work3->field_9FA = 3;
-        work3->field_A00 = 0;
-    } else if (work3->field_9FA == 3) {
-        work3->field_A00 = (u16)work3->field_A00 + 1;
-    }
-    i = 1;
-    do {
-        work3->slots[i].rate = (u8)work3->field_9F8;
-        Gp_AnimTickIndex(&work3->anim, i);
-        i++;
-    } while (i < 0x12);
+    coord->sub = &gGfxViewCoord;
+    _actor400500SetAnim(arg0, 2, 0x18);
+    _actor400500TickAnim(arg0);
     arg0->msgTable = D_actor_400500_80153CA0;
     func_actor_400500_80132C54(arg0);
     work4 = (Actor400500Work*)arg0->work;
@@ -1849,35 +1830,28 @@ static void func_actor_400500_80135414(Task* arg0)
     mode   = gGameSession->at4.loc.room;
     extra2 = arg0->extra.tmd;
     if ((mode == 1) || (mode == 3) || (mode == 5) || (mode == 6)) {
-        val              = 0xFF;
-        work5->field_A20 = val;
-        val              = 0x10;
+        work5->field_A20 = 0xFF;
         work5->field_A24 = 0;
         work5->field_A28 = 0;
+        work5->field_A2C = 0x10;
     } else {
-        val              = 0x1000;
-        work5->field_A24 = val;
-        val              = 0xFF;
-        work5->field_A28 = val;
-        val              = 0x2000;
+        work5->field_A24 = 0x1000;
+        work5->field_A28 = 0xFF;
         work5->field_A20 = 0;
+        work5->field_A2C = 0x2000;
     }
-    work5->field_A2C = val;
-    SOFT_BARRIER();
     func_8009EA50(work5->field_A20);
     extra2->lightLevel = work5->field_A24;
     func_actor_400500_80132000(arg0);
     func_actor_400500_8013226C(arg0);
-    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    Gp_IncStateF0Ref(0);
     coord2                   = arg0->extra.tmd->coords;
     work->eff_940.spawnArgLo = 0x100;
     work->eff_940.spawnArgHi = 3;
     work->eff_940.coord      = &coord2[3];
-    work6                    = (Actor400500Work*)arg0->work;
-    work6->field_A06         = 6;
-    work6->field_A08         = 0;
-    work7                    = (Actor400500Work*)arg0->work;
-    gStageSceneMusicEntry    = 2;
+    _actor400500SetState(arg0, 6, 0);
+    gStageSceneMusicEntry = 2;
+    work7                 = (Actor400500Work*)arg0->work;
     if (((work7->field_A46 >= 0) || ((u8)work7->field_A46 & 0x7F)) && (work7->field_A30 == 0)) {
         flag             = 0x80;
         work7->field_A46 = flag;
@@ -3146,16 +3120,6 @@ static void func_actor_400500_801375B8(Task* arg0)
     work->field_A18 = 0;
     work->field_9BC = 0;
     work->field_A08 = work->field_A08 + 1;
-}
-
-/// Writes `state` and `subState` into the enemy's state and sub-state indices.
-static inline void _actor400500SetState(Task* task, s32 state, s32 subState)
-{
-    Actor400500Work* work;
-
-    work            = (Actor400500Work*)task->work;
-    work->field_A06 = state;
-    work->field_A08 = subState;
 }
 
 /// Stores `mode` in `field_A46` and clears `field_A47`, unless `field_A46`
