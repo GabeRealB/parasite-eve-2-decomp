@@ -145654,3 +145654,26 @@ both preserved the original load/load/compare order and matched 100.000% with
 all penalties zero. The rest of the function, including its pins and address
 asm, stayed unchanged. These paired results support removing the two barriers
 together; they do not establish that the remaining constraints are redundant.
+
+## Re-reading a guarded byte field can preserve both a pointer copy and a value copy (Gp_EnqueueWeaponCd, 2026-09-27)
+
+Replacing a cached attachment value with
+`if (slot->attachId != 0 && slot->attachId != 0xFF)` followed by
+`attach = slot->attachId - 0x9F` removes an `a0` pointer pin and two
+`TOUCH_REG` sites while retaining a 100.000% match. Caching the byte in an
+`s32` before the guard instead scores 98.441%, missing two copies.
+
+In the direct-field version, `.cse` retains a QI load plus extension for the
+guard and a separate extended load for the arithmetic. The slot pointer
+therefore survives the guard: `.greg` assigns it `a0`, conflicting with the
+guard value in `v1` and the constants in `v0`. UID 307 is still an extended
+byte load into `v0` in `.greg`, but becomes `move v0,v1` in `.sched2`; dbr
+places that copy in the second guard's delay slot. A copy after a field test
+can thus be a late-eliminated re-read, and caching the field too early also
+changes the pointer's lifetime. Check the load modes and the `.greg` to
+`.sched2` transition before introducing extra locals.
+
+Scratch inputs: `base_1.i` (cached value)
+`464cc4ea29513141fdf3145b208ba6aeb344e27eef8d33b8127c445113480aeb`;
+`base_3.i` (direct field reads)
+`1124be1c35fd783822a43ca33abf00ae43e53d2f28709f82f8760f08c023a4e4`.

@@ -88,7 +88,6 @@ static void Gp_EnqueueWeaponCd(void)
     u16 item;
     s32 val;
     s32 attach;
-    s32 temp;
     s32 flag;
 
     item = Player_Status.weapon;
@@ -154,16 +153,12 @@ static void Gp_EnqueueWeaponCd(void)
             }
             break;
         case 0x1B: {
-            register McItemSlot* slot asm("a0");
+            McItemSlot* slot;
 
             param1[0] = 0x10;
             slot      = Gp_GetItemSlot(item + 0x7F);
-            TOUCH_REG(slot);
-            attach = slot->attachId;
-            if (attach != 0 && attach != 0xFF) {
-                temp = attach;
-                TOUCH_REG(temp);
-                attach = temp - 0x9F;
+            if (slot->attachId != 0 && slot->attachId != 0xFF) {
+                attach = slot->attachId - 0x9F;
                 if (attach == 0xB) {
                     param1[0] = 0x11;
                 }
