@@ -144730,3 +144730,20 @@ Writing the child step as a `do { } while (0)` statement macro puts
 it. The arm whose extension is early assigns the field to an `s32` local before
 the macro; the arms passing the `s16` field (or its negation) straight to the
 macro's inner `static inline` setter extend at the call, as the target does.
+
+## A `+ $s0` increment wanted by the target: give each arm its own loop initialiser (func_actor_402200_80137EEC, 2026-09-27)
+
+The complement of "A constant store in a branch's delay slot decides whether
+post-reload CSE folds it into a later increment". The target increments a
+counter with `addu v0,v0,s0`, where `$s0` is a loop counter that is 1 at that
+point. A seed wrote `i = 1;` once before the `if`, shared by both arms, and
+needed `TOUCH_REG(i); x += i;` in the else arm: without the pin, CSE follows the
+branch, knows `i == 1` and emits `addiu v0,v0,1`. The else label then wipes
+`reload_cse_regs`' record of `$s0`, so post-reload CSE cannot put the register
+back.
+
+Write both arms as plain `for (i = 1; ...)` loops and the increment as `x++`.
+Each arm's own `i = 1` is in the same label-free stretch as the `+ 1`, so
+`reload_cse_simplify_operands` rewrites the constant to `$s0`. reorg still
+hoists the shared `li $s0,1` into the branch's delay slot, and the entry test
+of each `for` folds away because `1 < 0x13`.

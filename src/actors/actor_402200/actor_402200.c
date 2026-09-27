@@ -2789,27 +2789,7 @@ static void func_actor_402200_80137E48(Task* arg0)
 /// slot one frame and walks the id's frame counter up.
 static void func_actor_402200_80137EEC(Task* arg0)
 {
-    Actor402200Work* work;
-    s32              i;
-    s32              value;
-
-    work = arg0->work;
-    i    = 1;
-    if (work->field_6C0 != work->field_6C2) {
-        work->field_6C2 = work->field_6C0;
-        work->field_6C4 = 0;
-        value           = D_actor_402200_801383AC[work->field_6C0];
-        for (; i < 0x13; i++) {
-            func_800B4114(work, i, work->field_6C0, 0, value);
-        }
-    } else {
-        TOUCH_REG(i);
-        work->field_6C4 += i;
-        do {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
-            i++;
-        } while (i < 0x13);
-    }
+    Actor402200_ReseedAnim(arg0);
 }
 
 /// Out-of-line `actor402200UpdateTint`, for the callers after the inline one.
