@@ -495,85 +495,58 @@ void func_acropolis_plaza_8017DA58(Task* arg0)
     }
 }
 
-void func_acropolis_plaza_8017DBFC(Task* arg0)
+void func_acropolis_plaza_8017DBFC(Task* task)
 {
     u8          slotParam[4];
     GameLoc     key;
-    s16         slot;
     CdCmdQueue* queue;
-    Task*       task;
 
-    task  = arg0;
     queue = &CdCmd_Queue;
     switch (task->state) {
         case 0:
-            goto L_case0;
+            SetDispMask(0);
+            Mem_AllocAuxWithImages(1);
+            task->state++;
+            break;
         case 1:
-            goto L_case1;
+            key          = gGameSession->at4;
+            key.loc.view = 0x64;
+            slotParam[0] = Stream_FindSlot(key.raw.data, 0, 0);
+            CdCmd_Enqueue(0x61, 0, slotParam);
+            task->state++;
+            break;
         case 2:
-            goto L_case2;
+            if (queue->field_1FA != 0) {
+                SetDispMask(1);
+                task->state++;
+            }
+            break;
         case 3:
-            goto L_case3;
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                SetDispMask(0);
+                task->state++;
+            } else if (Pad_CheckFlag800() != 0) {
+                CdCmd_ActivatePhase1();
+                task->state++;
+            }
+            break;
         case 4:
-            goto L_case4;
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                SetDispMask(0);
+                task->state++;
+            }
+            break;
         case 5:
-            goto L_case5;
+            Stream_ResetRestoreState();
+            task->state++;
+            break;
         case 6:
-            goto L_case6;
+            if (Stream_RestoreAfterLoad(1, 0) & 0xFFFF) {
+                taskKill(task);
+                Display_ResetHeapWrapper();
+            }
+            break;
     }
-    return;
-
-L_case0:
-    SetDispMask(0);
-    Mem_AllocAuxWithImages(1);
-    goto advance;
-
-L_case1:
-    key          = gGameSession->at4;
-    key.loc.view = 0x64;
-    slot         = Stream_FindSlot(key.raw.data, 0, 0);
-    slotParam[0] = slot;
-    CdCmd_Enqueue(0x61, 0, slotParam);
-    goto advance;
-
-L_case2:
-    if (queue->field_1FA == 0) {
-        return;
-    }
-    SetDispMask(1);
-    goto advance;
-
-L_case3:
-    if (CdCmd_IsIdle() & 0xFFFF) {
-        SetDispMask(0);
-        SOFT_BARRIER();
-        goto advance;
-    }
-    if (Pad_CheckFlag800() == 0) {
-        return;
-    }
-    CdCmd_ActivatePhase1();
-    goto advance;
-
-L_case4:
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-        return;
-    }
-    SetDispMask(0);
-    goto advance;
-
-L_case5:
-    Stream_ResetRestoreState();
-advance:
-    task->state = task->state + 1;
-    return;
-
-L_case6:
-    if ((Stream_RestoreAfterLoad(1, 0) & 0xFFFF) == 0) {
-        return;
-    }
-    taskKill(task);
-    Display_ResetHeapWrapper();
 }
 
 /// Rebuilds the eight box vertices in `D_acropolis_plaza_80198B90` around the
