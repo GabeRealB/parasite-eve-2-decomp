@@ -144793,3 +144793,17 @@ chain's start (`second = coords + 7`) right after `coords` instead of after the
 call: the longer live range lowers its priority below `arg0`. The helper's
 separate `current = coord` copy also had to go - with it the `move s1,s6`
 schedules after the `lui/addiu` of the address.
+
+## A surviving `move vN,sN` before a single compare: the arm had a second test that jump2 folded away (func_actor_403200_801344C4, 2026-09-27)
+
+A view selector copies `view` into a scratch local before each test
+(`addu $v1,$s2,$zero`). One arm tests the copy once, and without
+`SOFT_TOUCH_REG(flag)` combine substituted `view` into the branch and deleted
+the copy. A register copy with one use always merges that way. It survives
+only if the copy still has a second use at combine. The sibling arms showed
+the source shape: `if (v != A && v != B) near; else if (v == A) hysteresis;
+else if (v == B) far; else 1`. In this arm the `v == B` body is identical to
+the default body. The `v == B` test is still there at combine, so the copy
+stays. jump2's cross-jumping then merges the two bodies and deletes the test.
+So when a copy survives with one visible use, rebuild the arm in its siblings'
+shape, including tests whose bodies turned out identical.

@@ -1352,19 +1352,29 @@ s32 func_actor_403200_801344C4(Task* arg0, s16 arg1)
             goto done;
         case 3:
             flag = view;
-            SOFT_TOUCH_REG(flag);
-            if (flag == 0x25) {
+            if ((flag != 0x25) && (flag != 0x1E)) {
                 flag  = task->extra.tmd->coords->coord.t[0];
-                value = 0x1E;
-                flag  = flag < 0x4651;
-                if (flag) {
-                    value = 0x25;
+                value = 0x25;
+                flag  = flag < 0x4268;
+            } else {
+                if (flag == 0x25) {
+                    flag  = task->extra.tmd->coords->coord.t[0];
+                    value = 0x1E;
+                    flag  = flag < 0x4651;
+                    if (flag) {
+                        value = 0x25;
+                    }
+                    goto done;
                 }
-                goto done;
+                if (flag == 0x1E) {
+                    flag  = task->extra.tmd->coords->coord.t[0];
+                    value = 0x25;
+                    flag  = flag < 0x4268;
+                } else {
+                    value = 1;
+                    goto done;
+                }
             }
-            flag  = task->extra.tmd->coords->coord.t[0];
-            value = 0x25;
-            flag  = flag < 0x4268;
             if (!flag) {
                 value = 0x1E;
             }
