@@ -102,7 +102,6 @@ void func_dryfield_night_breezeway_8017D680(Task* task)
 /// `arg1` sets the pulse rate. The work block lives on the scratchpad stack.
 static void func_dryfield_night_breezeway_8017D6D8(SVECTOR* arg0, s16 arg1, s32 arg2)
 {
-    u8*                head;
     RoomDraw13Scratch* block;
     POLY_G4*           prim;
     LINE_G3*           line;
@@ -116,27 +115,18 @@ static void func_dryfield_night_breezeway_8017D6D8(SVECTOR* arg0, s16 arg1, s32 
     u16                sx;
     u16                sy;
 
-    {
-        void**       scratch;
-        register u8* tmp asm("v0");
-
-        scratch  = (void**)G_SCRATCH_HEAD;
-        head     = *scratch;
-        tmp      = head - 0x10;
-        block    = (RoomDraw13Scratch*)tmp;
-        *scratch = tmp;
-    }
+    block = SCRATCH_PUSH(RoomDraw13Scratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
-    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         sine          = rsin(gDisplayState.animFrame * arg1);
-        radius        = ((s16)arg2 * 32) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
+        radius        = ((s16)arg2 * 32) / block->otz;
         i             = 0;
         pulse         = sine / 34 + 0x78;
         block->radius = radius;
@@ -148,17 +138,17 @@ static void func_dryfield_night_breezeway_8017D6D8(SVECTOR* arg0, s16 arg1, s32 
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, pulse, 0, 0);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx - (u16)block->radius;
+            prim->x0 = block->sx - block->radius;
             sx       = block->sx;
             prim->x2 = sx;
             prim->x1 = sx;
-            prim->x3 = block->sx + (u16)block->radius;
+            prim->x3 = block->sx + block->radius;
             sy       = block->sy;
             prim->y3 = sy;
             prim->y2 = sy;
             prim->y0 = sy;
             twice    = i * 2;
-            prim->y1 = (block->sy - (u16)block->radius) + (block->radius * twice);
+            prim->y1 = (block->sy - block->radius) + (block->radius * twice);
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
@@ -187,7 +177,7 @@ static void func_dryfield_night_breezeway_8017D6D8(SVECTOR* arg0, s16 arg1, s32 
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_POP(RoomDraw13Scratch);
 }
 
 /// Draws a glowing beam between the two world points `arg0[0]` and `arg0[1]`,
