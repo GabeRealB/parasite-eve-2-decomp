@@ -201,7 +201,6 @@ extern TmdSource D_8018864C;
 extern Task*     D_actor_403600_801606B4;
 
 extern TaskDesc             D_8016E468;
-extern u8                   D_actor_403600_80150ED4;
 extern TaskDesc             D_actor_403600_801421A0;
 extern s32                  D_actor_403600_8016056C;
 extern GpAnimArg            D_actor_403600_80160568;
@@ -626,8 +625,7 @@ static void func_actor_403600_8013955C(Task* arg0)
             temp_s0->reactionFlags &= 0xFD;
             temp_s1->field_730      = 3;
             temp_s1->field_736      = 0xE;
-            SOFT_BARRIER();
-            temp_s1->field_790 = D_actor_403600_80150ED4 * 0x1E;
+            temp_s1->field_790      = D_actor_403600_80150EC8.flag2Ticks * 0x1E;
         }
         if (temp_s0->reactionFlags & 0xC) {
             if (temp_s1->field_73E != 0x28) {
