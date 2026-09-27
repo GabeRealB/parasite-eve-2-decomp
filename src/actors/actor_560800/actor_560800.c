@@ -1554,13 +1554,20 @@ static void func_actor_560800_80134BFC(Task* arg0)
             break;
         case 4:
             switch (step = work->field_42) {
-                case 0:
-                    ctx            = (Actor560800AnimWork*)work->field_8->work;
-                    ctx->field_4C0 = 0;
-                    ctx->field_4CA = 0;
-                    Actor560800_ReseedAnim(work->field_8, 1, 0x10);
+                case 0: {
+                    Actor560800AnimWork* reseed;
+
+                    ctx               = (Actor560800AnimWork*)work->field_8->work;
+                    ctx->field_4C0    = 0;
+                    ctx->field_4CA    = 0;
+                    reseed            = (Actor560800AnimWork*)work->field_8->work;
+                    reseed->field_4B8 = 1;
+                    reseed->field_4C8 = 0x10;
+                    reseed->field_4BE = 0;
+                    _ACTOR560800_BLEND_SLOTS(reseed, 1, 10);
                     work->field_42++;
                     return;
+                }
                 case 1:
                     ((Actor560800AnimWork*)work->field_8->work)->field_4CA = 1;
                     break;
@@ -1694,11 +1701,18 @@ static void func_actor_560800_80134BFC(Task* arg0)
             break;
         case 35:
             switch (step = work->field_42) {
-                case 0:
-                    Actor560800_ReseedAnim(work->field_8, 7, 0x10);
+                case 0: {
+                    Actor560800AnimWork* reseed;
+
+                    reseed            = (Actor560800AnimWork*)work->field_8->work;
+                    reseed->field_4B8 = 7;
+                    reseed->field_4C8 = 0x10;
+                    reseed->field_4BE = 0;
+                    _ACTOR560800_BLEND_SLOTS(reseed, 7, 10);
                     work->field_44 = 0;
                     work->field_42++;
                     return;
+                }
                 case 1:
                     if (++work->field_44 < 0x5B) {
                         return;
@@ -1767,10 +1781,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     anim->field_4B8 = 3;
                     anim->field_4C8 = 0x10;
                     anim->field_4BE = 0;
-                    SOFT_BARRIER();
-                    for (i = 1; i < anim->field_4BA; i++) {
-                        func_800B4114(&anim->rig.anim, i, 3, 0, 10);
-                    }
+                    _ACTOR560800_BLEND_SLOTS(anim, 3, 10);
                     work->field_42++;
                     return;
                 case 1:
