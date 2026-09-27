@@ -2197,19 +2197,17 @@ void Gp_ClearEquipSlot(s32 arg0)
 
 void Gp_ClearEquipSlotSel(s32 arg0, s32 arg1)
 {
-    McItemSlot*  slot;
-    register s32 found asm("t0");
-    s32          i;
-    GpItemMap*   p;
+    McItemSlot* slot;
+    s32         found = 0;
+    s32         i;
 
     if ((u32)(arg0 - 0x80) >= 0x20) {
         return;
     }
 
-    found = 0;
-    slot  = &((McItemSlot*)((s32)Mc_SaveData[0].weaponItems - 0x400))[arg0];
-    for (i = found, p = Gp_ItemMaps; i < 8; i++, p++) {
-        if (arg0 == p->field_1) {
+    slot = &Mc_SaveData[0].weaponItems[arg0 - 0x80];
+    for (i = 0; i < 8; i++) {
+        if (arg0 == Gp_ItemMaps[i].field_1) {
             found = 1;
             break;
         }
