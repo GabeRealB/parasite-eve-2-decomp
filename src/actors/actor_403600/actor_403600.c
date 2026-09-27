@@ -299,92 +299,77 @@ static void func_actor_403600_801327A0(Actor403600GridQuad* arg0)
     arg0->page0 = adjust;
 }
 
-/* The quad arrives as an integer because the same variable then holds the
- * vertex's screen x: sharing it is what gives x the argument register. The
- * third argument's value is never read; the vertex pointer replaces it. */
-static void func_actor_403600_8013289C(s32 arg0, s32 arg1, Actor403600GridVertex* arg2, s32 arg3)
+/* Places vertex `corner` of a grid quad on screen: the vertex is moved to
+ * screen space, jittered by a few pixels with probability rising with `fade`,
+ * clamped to the 320x240 frame (the clamp is folded back into the vertex), and
+ * given the texture coordinate of the frame copy beneath it.
+ * The quad arrives as an integer because the same variable then holds the
+ * vertex's screen x. The third argument's value is never read. */
+static void func_actor_403600_8013289C(s32 x, s32 corner, Actor403600GridVertex* arg2, s32 fade)
 {
-    s16 temp_t3;
-    s16 temp_t5;
-    s16 var_v0;
-    s16 var_v0_3;
-    s32 temp_a1;
-    s32 temp_v0;
-    s32 temp_v1;
-    s32 temp_v1_2;
-    s32 var_v0_2;
-    s32 var_v0_4;
-    s32 var_t0;
-    u8  temp_v0_2;
-    u8* var_t2;
+    Actor403600GridVertex* vtx;
+    s16                    vx;
+    s16                    vy;
+    s32                    y;
+    s32                    top;
+    s32                    seed;
+    s32                    seed2;
+    s32                    seed3;
+    u8*                    page;
 
-    switch (arg1) {
+    switch (corner) {
         case 0:
-            arg2   = (Actor403600GridVertex*)&((Actor403600GridQuad*)arg0)->x0;
-            var_t2 = &((Actor403600GridQuad*)arg0)->page0;
+            vtx  = (Actor403600GridVertex*)&((Actor403600GridQuad*)x)->x0;
+            page = &((Actor403600GridQuad*)x)->page0;
             break;
         case 1:
-            arg2   = (Actor403600GridVertex*)&((Actor403600GridQuad*)arg0)->x1;
-            var_t2 = &((Actor403600GridQuad*)arg0)->page1;
+            vtx  = (Actor403600GridVertex*)&((Actor403600GridQuad*)x)->x1;
+            page = &((Actor403600GridQuad*)x)->page1;
             break;
         case 2:
-            arg2   = (Actor403600GridVertex*)&((Actor403600GridQuad*)arg0)->x2;
-            var_t2 = &((Actor403600GridQuad*)arg0)->page2;
+            vtx  = (Actor403600GridVertex*)&((Actor403600GridQuad*)x)->x2;
+            page = &((Actor403600GridQuad*)x)->page2;
             break;
         default:
-            arg2   = (Actor403600GridVertex*)&((Actor403600GridQuad*)arg0)->x3;
-            var_t2 = &((Actor403600GridQuad*)arg0)->page3;
+            vtx  = (Actor403600GridVertex*)&((Actor403600GridQuad*)x)->x3;
+            page = &((Actor403600GridQuad*)x)->page3;
             break;
     }
-    SOFT_TOUCH_REG(arg2);
-    temp_t3                 = arg2->x;
-    temp_t5                 = arg2->y;
-    arg0                    = temp_t3 + 0xA0;
-    var_t0                  = temp_t5 + 0x78;
-    temp_a1                 = (D_actor_403600_80160698 * 5) + 0x71357911;
-    D_actor_403600_80160698 = temp_a1;
-    if (((temp_a1 >> 0x10) & 0xFFF) < (arg3 + 0x400)) {
-        temp_v1                 = (temp_a1 * 5) + 0x71357911;
-        arg0                    = temp_t3 + 0x9C;
-        arg0                   += (temp_v1 >> 0x10) & 7;
-        temp_v0                 = (temp_v1 * 5) + 0x71357911;
-        D_actor_403600_80160698 = temp_v0;
-        temp_v1_2               = temp_t5 + 0x74;
-        var_t0                  = temp_v1_2 + ((temp_v0 >> 0x10) & 7);
+    vx                      = vtx->x;
+    vy                      = vtx->y;
+    x                       = vx + 0xA0;
+    y                       = vy + 0x78;
+    seed                    = D_actor_403600_80160698 * 5 + 0x71357911;
+    D_actor_403600_80160698 = seed;
+    if (((seed >> 16) & 0xFFF) < fade + 0x400) {
+        seed2                   = seed * 5 + 0x71357911;
+        x                       = vx + 0x9C;
+        x                      += (seed2 >> 16) & 7;
+        seed3                   = seed2 * 5 + 0x71357911;
+        D_actor_403600_80160698 = seed3;
+        top                     = vy + 0x74;
+        y                       = top + ((seed3 >> 16) & 7);
     }
-    if (var_t0 >= 0xF0) {
-        var_v0 = ((u16)arg2->y + 0xEF) - var_t0;
-        var_t0 = 0xEF;
-        goto block_15;
+    if (y >= 0xF0) {
+        vtx->y += 0xEF - y;
+        y       = 0xEF;
+    } else if (y < 0) {
+        vtx->y -= y;
+        y       = 0;
     }
-    var_v0_2 = arg0 < 0x140;
-    if (var_t0 < 0) {
-        var_v0 = (u16)arg2->y - var_t0;
-        var_t0 = 0;
-    block_15:
-        arg2->y  = var_v0;
-        var_v0_2 = arg0 < 0x140;
+    if (x >= 0x140) {
+        vtx->x += 0x13F - x;
+        x       = 0x13F;
+    } else if (x < 0) {
+        vtx->x -= x;
+        x       = 0;
     }
-    if (var_v0_2 == 0) {
-        var_v0_3 = ((u16)arg2->x + 0x13F) - arg0;
-        arg0     = 0x13F;
-        goto block_20;
+    *page = 0;
+    if (x >= 0x100) {
+        *page = 0x40;
     }
-    var_v0_4 = arg0 < 0x100;
-    if (arg0 < 0) {
-        var_v0_3 = (u16)arg2->x - arg0;
-        arg0     = 0;
-    block_20:
-        arg2->x  = var_v0_3;
-        var_v0_4 = arg0 < 0x100;
-    }
-    *var_t2 = 0;
-    if (var_v0_4 == 0) {
-        *var_t2 = 0x40;
-    }
-    temp_v0_2 = *var_t2;
-    arg2->v   = var_t0;
-    arg2->u   = (s8)(arg0 - temp_v0_2);
+    vtx->u = x - *page;
+    vtx->v = y;
 }
 
 static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2, Actor403600FxWork* arg3)
