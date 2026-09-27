@@ -145496,3 +145496,22 @@ new jump. `find_cross_jump` stops at a `CODE_LABEL` on the jumping side, so the
 two sound blocks are never compared and both survive. When a target has two
 identical blocks that each jump to one shared cleanup, write the cleanup out in
 each arm rather than using a `goto`.
+
+## The `move` before `gte_stszotz` comes from `SCRATCH_PUSH`, not a pin
+
+"A `move` between two registers holding the same pointer is a pin" says only
+`register T* p asm("a0")` reproduces a lone `move $a0, $a1` feeding
+`gte_stszotz`. In the room glow-sprite drawers (`RoomGlowSpriteScratch`) the
+same `move` falls out of the plain push, with no second local at all:
+
+```c
+blk = SCRATCH_PUSH(RoomGlowSpriteScratch);   /* was head/scratch/blk/p + pin */
+...
+gte_stszotz(&blk->otz);
+...
+SCRATCH_POP(RoomGlowSpriteScratch);
+```
+
+The object is byte-identical to the pinned version. Before pinning a
+scratch-block copy, rewrite the open-coded `head - N` push as `SCRATCH_PUSH`
+and score that first.

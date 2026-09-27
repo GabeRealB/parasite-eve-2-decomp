@@ -2169,28 +2169,17 @@ static void func_acropolis_bridge_80181D28(Task* task)
 {
     GpCoord*               coord;
     GpEffWork*             work;
-    void**                 scratch;
-    u8*                    head;
     RoomGlowSpriteScratch* blk;
-    // The `gte_stszotz` operand is a second register holding the same pointer;
-    // reload only emits that copy for a hard-register local (see
-    // DECOMPILATION_LEARNINGS.md, "A `move` between two registers holding the
-    // same pointer is a pin").
-    register RoomGlowSpriteScratch* p asm("a0");
-    POLY_FT4*                       prim;
-    s32                             grey;
-    s32                             clut;
+    POLY_FT4*              prim;
+    s32                    grey;
+    s32                    clut;
 
     coord = task->extra.tmd->coords;
     work  = task->spawnArg2;
     Gp_UpdateCoord(coord);
-    scratch     = (void**)G_SCRATCH_HEAD;
-    head        = *scratch;
-    blk         = (RoomGlowSpriteScratch*)(head - 0x14);
+    blk         = SCRATCH_PUSH(RoomGlowSpriteScratch);
     blk->pos.vx = coord->workm.t[0];
     blk->pos.vy = coord->workm.t[1];
-    *scratch    = blk;
-    p           = blk;
     blk->pos.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -2201,7 +2190,7 @@ static void func_acropolis_bridge_80181D28(Task* task)
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&blk->sxy);
-    gte_stszotz(&p->otz);
+    gte_stszotz(&blk->otz);
     if (blk->otz >= 0x11) {
         u8 base[3] = { 0x20, 0x60, 0x20 };
         u8 step[3] = { 0x08, 0x10, 0x0C };
@@ -2233,7 +2222,7 @@ static void func_acropolis_bridge_80181D28(Task* task)
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_POP(RoomGlowSpriteScratch);
     Gp_ReleaseState1CMem(work, task);
 }
 
