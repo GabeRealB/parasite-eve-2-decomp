@@ -1777,7 +1777,6 @@ static void func_actor_401000_80135AA4(Task* arg0)
     s32                angle;
     s32                diff;
     s32                kind;
-    u16                speed;
 
     kind = (arg0->spawnArg1 >> 16);
     work = arg0->work;
@@ -1792,23 +1791,21 @@ static void func_actor_401000_80135AA4(Task* arg0)
         Tmd_AllocBuffers(obj);
         work->field_8D0.radius = 0x1AE;
         work->field_898        = 1;
-        work->field_89E        = 3;
-        speed                  = work->field_8A4;
-        work->field_B50.flags &= 0x7FFF;
-        SOFT_BARRIER();
         work->field_89A        = 0;
-        work->field_8A2        = speed;
+        work->field_89E        = 3;
+        work->field_B50.flags &= 0x7FFF;
         work->field_A10.flags |= 0x4000;
+        work->field_8A2        = work->field_8A4;
         func_actor_401000_80132EF0(arg0);
         work->field_C24 = 0;
         work->field_6   = 0;
         work->field_8   = 0;
         return;
     }
-    work->field_6 = (u16)work->field_6 + 1;
-    work->field_8 = (u16)work->field_8 + 1;
-    head          = SCRATCH_HEAD(ActorChaseScratch);
-    chase         = (SCRATCH_HEAD(ActorChaseScratch) = head - 1);
+    work->field_6++;
+    work->field_8++;
+    head  = SCRATCH_HEAD(ActorChaseScratch);
+    chase = (SCRATCH_HEAD(ActorChaseScratch) = head - 1);
     actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &head[-1].delta);
     arg0->extra.tmd->coords->flg = 0;
     func_actor_401000_80132EF0(arg0);
@@ -1835,7 +1832,7 @@ static void func_actor_401000_80135AA4(Task* arg0)
         }
     }
     if (func_actor_401000_80132824(arg0) != 1) {
-        work->field_6   = (u16)work->field_6 + 1;
+        work->field_6++;
         coord           = arg0->extra.tmd->coords;
         chase->turn     = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->field_8AE = chase->turn;
@@ -1850,13 +1847,13 @@ static void func_actor_401000_80135AA4(Task* arg0)
         chase->turn     = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->field_8AE = chase->turn;
         if (work->field_C08 == 1) {
-            chase->turn = (u16)chase->turn + 0x300;
+            chase->turn += 0x300;
         } else {
-            chase->turn = (u16)chase->turn - 0x300;
+            chase->turn -= 0x300;
         }
         if (work->field_6 >= 0x169) {
             work->field_6   = 0;
-            work->field_C08 = -(u16)work->field_C08;
+            work->field_C08 = -work->field_C08;
         }
     }
     if (chase->turn > 0x40) {
@@ -1871,11 +1868,11 @@ static void func_actor_401000_80135AA4(Task* arg0)
     arg0->extra.tmd->coords->flg = 0;
     if (work->field_89E == 3) {
         if (work->field_89A == 0) {
-            if ((func_actor_401000_80132590(arg0->extra.tmd->coords, 0x12C, ((work->field_8A4 + 2) * 0x78) / 0x12) << 0x10) != 0) {
+            if ((s16)func_actor_401000_80132590(arg0->extra.tmd->coords, 0x12C, ((work->field_8A4 + 2) * 0x78) / 0x12) != 0) {
                 actorMoveForwardNonzero(arg0->extra.tmd->coords, ((work->field_8A4 + 2) * 0x78) / 0x12);
             }
         } else {
-            if ((func_actor_401000_80132590(arg0->extra.tmd->coords, 0x12C, (s16)(((work->field_8A4 + 2) * 0x78) / 0x12 << 0xE >> 0x10)) << 0x10) != 0) {
+            if ((s16)func_actor_401000_80132590(arg0->extra.tmd->coords, 0x12C, ((work->field_8A4 + 2) * 0x78) / 0x12 >> 2) != 0) {
                 actorMoveForwardNonzero(arg0->extra.tmd->coords, ((work->field_8A4 + 2) * 0x78) / 0x12 >> 2);
             }
         }

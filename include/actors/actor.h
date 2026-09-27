@@ -2371,7 +2371,6 @@ static __inline__ void actorMoveForwardNonzero(GpCoord* coord, s16 amount)
         SCRATCH_HEAD(SVECTOR) = vec;
         gteVec                = vec;
         if (amount != 0) {
-            SOFT_TOUCH_REG(vec);
             Gfx_MatrixCol2(&coord->coord, vec);
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
