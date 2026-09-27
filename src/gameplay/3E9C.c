@@ -246,16 +246,11 @@ void Gp_EffCtlTask6B(Task* arg0)
             coord->coord.t[2]             = D_801124DC[arg0->spawnArg1].vz;
             coord->flg                    = 0;
             Gp_UpdateCoord(coord);
-            mem->move.vx = 0;
-            mem->move.vy = 0;
             Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
             mem->scale   = ((u32)Gp_LcgState >> 16) & 0x1FF;
-            {
-                s32 sh;
-                sh = mem->scale;
-                SOFT_TOUCH_REG(sh);
-                mem->move.vz = -((s16)sh >> 1);
-            }
+            mem->move.vx = 0;
+            mem->move.vy = 0;
+            mem->move.vz = -(mem->scale >> 1);
             Gp_SpawnEff(0x60034, coord, mem->scale + 0x380, &mem->move);
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gp_SpawnEff(0x60072, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x380, 0);

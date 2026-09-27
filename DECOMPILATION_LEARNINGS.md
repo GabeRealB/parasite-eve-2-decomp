@@ -145063,3 +145063,21 @@ leaving the shifts on the stored register.
 **Fix.** Put the neighbouring field stores between: `w->scale = ...;
 w->move.vx = 0; w->move.vy = 0; w->move.vz = -(w->scale >> 1);` - the natural
 order anyway, assigning the vector's three components together.
+## A masked value re-read as `s16` keeps its `sll 16`/`sra` when a sibling field is stored in between (Gp_EffCtlTask6B, 2026-09-27)
+
+**Symptom.** `mem->scale = (rand >> 16) & 0x1FF; mem->move.vz = -(mem->scale >> 1);`
+should compile to `sh v0; sll v0,16; sra v0,17; negu`, but every hack-free
+spelling gave `srl v0,1`. The seed hid the value behind `SOFT_TOUCH_REG`.
+
+**Cause.** With the read directly after the store, CSE forwards the store's
+register into the read, and combine's `nonzero_bits` sees the `& 0x1FF`, so
+the sign extension and `>> 1` fold to a logical shift. Storing `move.vx` and
+`move.vy` between the `scale` store and its read makes CSE drop its memory
+equivalence and keep the `lh`. Combine then has only an HImode load to extend,
+so the `sll`/`sra` pair survives. `reload_cse` later deletes the load because
+`v0` already holds the stored value, which leaves exactly the target's code.
+
+**Fix.** When a stored field is re-read with a sign extension the range of its
+value should have removed, move neighbouring stores to the same struct between
+the store and the read. Here that meant writing the whole `move` vector after
+`scale` was set.
