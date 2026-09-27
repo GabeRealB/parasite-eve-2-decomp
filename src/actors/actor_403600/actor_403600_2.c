@@ -12,6 +12,7 @@
 #include "main/fs.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
+#include "main/gfxgte.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -3167,7 +3168,6 @@ static void func_actor_403600_8013E470(GpCoord* arg0, s32* arg1, s32* arg2)
 
 static s16 func_actor_403600_8013E66C(GpCoord* arg0)
 {
-    SVECTOR                    local;
     GpCoord*                   coord;
     s16                        angle;
     s16                        result;
@@ -3182,11 +3182,7 @@ static s16 func_actor_403600_8013E66C(GpCoord* arg0)
     vec->vy            = (s16)(arg0->workm.t[1] - coord->workm.t[1]);
     vec->vz            = (s16)(arg0->workm.t[2] - coord->workm.t[2]);
     TransposeMatrix(&coord->workm, &head[-1].rot);
-    local = *vec;
-    gte_SetRotMatrix(&head[-1].rot);
-    __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-    gte_rtv0();
-    gte_stsv(vec);
+    gfxRotateSv(&head[-1].rot, vec);
     angle  = ratan2(head[-1].rel.vx, vec->vz);
     result = angle;
     if (angle >= 0x801) {
