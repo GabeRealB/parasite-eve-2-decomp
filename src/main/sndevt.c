@@ -1328,12 +1328,26 @@ static u8* Midi_Event3(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3)
     return arg1 + 3;
 }
 
+/* Decodes the variable-length quantity at `p`, storing how many bytes it
+ * took in `*len`. */
+static inline s32 _midiReadVlq(u8* p, u8* len)
+{
+    s32 result;
+
+    result = 0;
+    *len   = 0;
+    do {
+        result <<= 7;
+        result  |= *p & 0x7F;
+        *len     = *len + 1;
+    } while (*p++ & 0x80);
+    return result;
+}
+
 static u8* Midi_HandleMetaSysex(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3)
 {
     u8  sp0;
     s32 var_a0;
-    u8* var_a1;
-    u8* var_a2;
     u8* var_t0;
     u8  temp_v1;
     s8  temp_v0;
@@ -1377,7 +1391,6 @@ static u8* Midi_HandleMetaSysex(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* a
             if (temp_v1 == 0x2F) {
                 goto eot;
             }
-            var_a1 = var_t0 + 1;
             if (temp_v1 == 0x51) {
                 goto tempo;
             }
@@ -1396,23 +1409,14 @@ static u8* Midi_HandleMetaSysex(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* a
             arg2->field_7 = 0;
             arg2->field_6 = 0x3938700U / tempo_val;
         } break;
-        vlq:
-            var_a2  = &sp0;
-            var_a0  = 0;
-            *var_a2 = 0;
-            do {
-                var_a0 <<= 7;
-                var_a0  |= *var_a1 & 0x7F;
-                *var_a2  = *var_a2 + 1;
-            } while (*var_a1++ & 0x80);
-            {
-                register s32 n asm("v0");
-                n      = sp0;
-                n      = n + 1;
-                n      = var_a0 + n;
-                var_t0 = var_t0 + n;
-            }
-            break;
+        vlq: {
+            s32 hdrLen;
+
+            var_a0 = _midiReadVlq(var_t0 + 1, &sp0);
+            /* The meta type byte and the length's own bytes precede the data. */
+            hdrLen  = sp0 + 1;
+            var_t0 += var_a0 + hdrLen;
+        } break;
         default:
             var_t0 = NULL;
             break;
@@ -1422,16 +1426,7 @@ static u8* Midi_HandleMetaSysex(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* a
 
 static s32 Midi_ReadVlq(u8* arg0, u8* arg1)
 {
-    s32 result;
-
-    result = 0;
-    *arg1  = 0;
-    do {
-        result <<= 7;
-        result  |= *arg0 & 0x7F;
-        *arg1    = *arg1 + 1;
-    } while (*arg0++ & 0x80);
-    return result;
+    return _midiReadVlq(arg0, arg1);
 }
 
 static void Midi_InitChannelTable(s32* arg0)
