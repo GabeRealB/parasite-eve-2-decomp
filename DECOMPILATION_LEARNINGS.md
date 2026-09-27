@@ -144777,3 +144777,19 @@ switch (scratch->base) { ... }
 ```
 
 `switch (b)` on the same local extends by 16 instead of 24.
+
+## `"+r"(view) : "r"(arg0)` after a call: a global's address passed to an inline helper, plus where a pointer local is assigned (func_actor_403100_8013C7B4, 2026-09-27)
+
+A function walked two coordinate chains up to `&gGfxViewCoord` - once through
+an inline helper taking the view as a third parameter, once open-coded - and
+matched only with `SOFT_TOUCH_REG_USE(view, arg0)` after `Gp_UpdateCoord(view)`.
+Without it `$s2/$s3/$s5/$s6` rotated: the `view` local and `arg0` lost priority
+to `playerCoord` and the second chain's start pointer. The fixes were two
+natural changes. Compare against `&gGfxViewCoord` inside the helper (the shape
+of the out-of-line sibling in the same file) and call the helper for both
+walks: CSE keeps the address in `$s2` for the first loop and rematerialises it
+in `$t0` for the second, exactly as the target does. Then assign the second
+chain's start (`second = coords + 7`) right after `coords` instead of after the
+call: the longer live range lowers its priority below `arg0`. The helper's
+separate `current = coord` copy also had to go - with it the `move s1,s6`
+schedules after the `lui/addiu` of the address.

@@ -4706,29 +4706,27 @@ static void func_actor_403100_8013C214(Task* arg0)
         }
     }
 }
-static inline s32 Actor403100CoordToViewInline(GpCoord* coord, SVECTOR* pos, GpCoord* view)
+static inline s32 Actor403100CoordToViewInline(GpCoord* coord, SVECTOR* pos)
 {
-    SVECTOR  local;
-    VECTOR   result;
-    s32      flag;
-    GpCoord* current;
+    SVECTOR local;
+    VECTOR  result;
+    s32     flag;
 
-    current  = coord;
     local.vx = pos->vx;
     local.vy = pos->vy;
     local.vz = pos->vz;
     while (1) {
-        if (current->sub == NULL) {
+        if (coord->sub == NULL) {
             return 0;
         }
-        if (current == view) {
+        if (coord == &gGfxViewCoord) {
             pos->vx = local.vx;
             pos->vy = local.vy;
             pos->vz = local.vz;
             return 1;
         }
-        gte_SetTransMatrix(&current->coord);
-        gte_SetRotMatrix(&current->coord);
+        gte_SetTransMatrix(&coord->coord);
+        gte_SetRotMatrix(&coord->coord);
         gte_ldv0(&local);
         gte_rtv0tr();
         gte_stlvnl(&result);
@@ -4736,7 +4734,7 @@ static inline s32 Actor403100CoordToViewInline(GpCoord* coord, SVECTOR* pos, GpC
         local.vx = result.vx;
         local.vy = result.vy;
         local.vz = result.vz;
-        current  = current->sub;
+        coord    = coord->sub;
     }
 }
 
@@ -4760,27 +4758,23 @@ static void func_actor_403100_8013C7B4(Task* arg0)
     u16      savedAngle;
     GpCoord* coords;
     GpCoord* second;
-    GpCoord* walker;
-    GpCoord* view;
 
     playerCoord = (*Gp_ActorSlots)->extra.tmd->coords;
     savedAngle  = (u16)D_actor_403100_80155808->field_5E2;
     coords      = arg0->extra.tmd->coords;
+    second      = coords + 7;
     Actor403100ResetStateInline(D_actor_403100_80155808->field_5DE, D_actor_403100_80155808->field_5E2, 0);
     func_actor_403100_801327CC();
     func_actor_403100_801328DC(arg0);
-    view              = &gGfxViewCoord;
     gGfxViewCoord.flg = 0;
-    Gp_UpdateCoord(view);
-    SOFT_TOUCH_REG_USE(view, arg0);
-    second        = coords + 7;
+    Gp_UpdateCoord(&gGfxViewCoord);
     joint         = coords + 8;
     coords[8].flg = 0;
     Gp_UpdateCoord(joint);
     pos0.vx = 0x160;
     pos0.vy = 0x148;
     pos0.vz = 0x2C0;
-    Actor403100CoordToViewInline(joint, &pos0, view);
+    Actor403100CoordToViewInline(joint, &pos0);
     dx0      = (u16)playerCoord->coord.t[0] - (u16)pos0.vx;
     delta.vx = dx0;
     delta.vy = (u16)playerCoord->coord.t[1] - ((u16)pos0.vy + 0x352);
@@ -4789,40 +4783,10 @@ static void func_actor_403100_8013C7B4(Task* arg0)
     if ((SquareRoot0((dx0 * dx0) + (dz0 * dz0)) < 0x401) && ((u32)(((u16)delta.vy + 0x351) & 0xFFFF) < 0x6A3U)) {
         D_actor_403100_80155808->field_668.b.field_668 = 1;
     }
-    {
-        SVECTOR  local;
-        VECTOR   result;
-        s32      flag;
-        SVECTOR* localp = &local;
-        walker          = second;
-        pos1.vx         = 0x160;
-        pos1.vy         = 0x148;
-        pos1.vz         = 0x180;
-        local.vx        = 0x160;
-        local.vy        = 0x148;
-        local.vz        = 0x180;
-        while (1) {
-            if (walker->sub == NULL)
-                break;
-            if (walker != &gGfxViewCoord) {
-                gte_SetTransMatrix(&walker->coord);
-                gte_SetRotMatrix(&walker->coord);
-                gte_ldv0(localp);
-                gte_rtv0tr();
-                gte_stlvnl(&result);
-                gte_stflg(&flag);
-                local.vx = result.vx;
-                local.vy = result.vy;
-                local.vz = result.vz;
-                walker   = walker->sub;
-                continue;
-            }
-            pos1.vx = local.vx;
-            pos1.vy = local.vy;
-            pos1.vz = local.vz;
-            break;
-        }
-    }
+    pos1.vx = 0x160;
+    pos1.vy = 0x148;
+    pos1.vz = 0x180;
+    Actor403100CoordToViewInline(second, &pos1);
     dx1      = (u16)playerCoord->coord.t[0] - (u16)pos1.vx;
     delta.vx = dx1;
     delta.vy = (u16)playerCoord->coord.t[1] - ((u16)pos1.vy + 0x352);
