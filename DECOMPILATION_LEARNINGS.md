@@ -145426,7 +145426,7 @@ imitated. The prefix's sense mattered too: `*p = x >= 0 ? '+' : '-'` gives the
 target's `bltz; li 0x2d` / `li 0x2b`, while `x < 0 ? '-' : '+'` and an
 if/else both invert the branch.
 
-### A forward branch landing one insn past a reload at the join: put the reloaded field first in the comparison (Ui_InitList, 2026-09-27)
+## A forward branch landing one insn past a reload at the join: put the reloaded field first in the comparison (Ui_InitList, 2026-09-27)
 
 **Shape.** `if (l->sel >= l->count) l->sel = l->count - 1;` followed by a
 second test against `l->count`. The target's guard branch skips the join's
