@@ -973,7 +973,6 @@ static void func_pyrokinesis_801312B4(GpCoord* arg0, s16 arg1, s32 arg2, s16 arg
 /// `arg1`, and a negative `gte_stflg` drops the segment.
 static void func_pyrokinesis_80131784(GpCoord* arg0, s16 arg1, s32 arg2, s32 arg3)
 {
-    register u8*   head asm("v0");
     GpBandScratch* block;
     SVECTOR*       op;
     POLY_FT4*      prim;
@@ -988,9 +987,7 @@ static void func_pyrokinesis_80131784(GpCoord* arg0, s16 arg1, s32 arg2, s32 arg
     u16            back;
     MATRIX*        rot;
 
-    head             = SCRATCH_HEAD(u8) - 0x118;
-    block            = (GpBandScratch*)head;
-    SCRATCH_HEAD(u8) = head;
+    block = SCRATCH_PUSH(GpBandScratch);
     if (arg3 != 0) {
         back    = (arg2 << 1) + (arg1 << 8);
         hubSize = 0x80;
@@ -1014,20 +1011,20 @@ static void func_pyrokinesis_80131784(GpCoord* arg0, s16 arg1, s32 arg2, s32 arg
         gte_ldv0(&block->inner[i]);
         gte_rtv0();
         gte_stsv(&block->inner[i]);
-        block->inner[i].vx = (u16)block->inner[i].vx + (u16)arg0->workm.t[0];
-        block->inner[i].vy = (u16)block->inner[i].vy + (u16)arg0->workm.t[1];
-        block->inner[i].vz = (u16)block->inner[i].vz + (u16)arg0->workm.t[2];
-        block->outer[i].vx = (rsin(ang) * hubRad) >> 12;
-        op                 = &block->inner[i] + 16;
-        op->vy             = (rcos(ang) * hubRad) >> 12;
-        op->vz             = 0;
+        block->inner[i].vx += arg0->workm.t[0];
+        block->inner[i].vy += arg0->workm.t[1];
+        block->inner[i].vz += arg0->workm.t[2];
+        block->outer[i].vx  = (rsin(ang) * hubRad) >> 12;
+        op                  = &block->inner[i] + 16;
+        op->vy              = (rcos(ang) * hubRad) >> 12;
+        op->vz              = 0;
         gte_SetRotMatrix(rot);
         gte_ldv0(&block->outer[i]);
         gte_rtv0();
         gte_stsv(&block->outer[i]);
-        block->outer[i].vx = (u16)block->outer[i].vx + (u16)arg0->workm.t[0];
-        op->vy             = (u16)op->vy + (u16)arg0->workm.t[1];
-        op->vz             = (u16)op->vz + (u16)arg0->workm.t[2];
+        block->outer[i].vx += arg0->workm.t[0];
+        op->vy             += arg0->workm.t[1];
+        op->vz             += arg0->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 0x10; i++) {
@@ -1051,20 +1048,20 @@ static void func_pyrokinesis_80131784(GpCoord* arg0, s16 arg1, s32 arg2, s32 arg
             setSemiTrans(prim, 1);
             u0 = (s16)((D_pyrokinesis_80131DFC[i] + arg1) % 6) * 40;
             setUV4(prim, u0, 0x60, u0 + 0x27, 0x60, u0, 0x87, u0 + 0x27, 0x87);
-            prim->x0 = (u16)block->sxy0.vx;
-            prim->y0 = (u16)block->sxy0.vy;
-            prim->x1 = (u16)block->sxy1.vx;
-            prim->y1 = (u16)block->sxy1.vy;
-            prim->x2 = (u16)block->sxy2.vx;
-            prim->y2 = (u16)block->sxy2.vy;
-            prim->x3 = (u16)block->sxy3.vx;
-            prim->y3 = (u16)block->sxy3.vy;
+            prim->x0 = block->sxy0.vx;
+            prim->y0 = block->sxy0.vy;
+            prim->x1 = block->sxy1.vx;
+            prim->y1 = block->sxy1.vy;
+            prim->x2 = block->sxy2.vx;
+            prim->y2 = block->sxy2.vy;
+            prim->x3 = block->sxy3.vx;
+            prim->y3 = block->sxy3.vy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x118);
+    SCRATCH_POP(GpBandScratch);
 }
 
 static void func_pyrokinesis_80131CE4(Task* arg0)
