@@ -507,16 +507,15 @@ s32 func_actor_511000_80132604(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 {
     Actor511000Work2* work;
     s32               i;
-    register s32      id asm("v1");
     TmdObject*        ext;
 
     work = (Actor511000Work2*)task->work;
-    id   = msg->animBlock.index;
     ext  = task->extra.tmd;
-    if (id != work->field_47C) {
+    if (msg->animBlock.index != work->field_47C) {
+        work->field_47C = msg->animBlock.index;
         work->field_478 = -1;
-        work->field_47C = id;
-        func_800B3F84(&work->rig.anim, D_actor_511000_801472E4[id], ext, work->rig.poses, work->rig.slots);
+        func_800B3F84(&work->rig.anim, D_actor_511000_801472E4[work->field_47C], ext, work->rig.poses,
+                      work->rig.slots);
     }
     if (msg->field_4 != work->field_478) {
         work->field_478 = msg->field_4;
