@@ -785,31 +785,22 @@ void func_replay_bonus_80116EC0(void)
     u8*           p;
     s32           i;
     s32           j;
-    s32           val92c;
-    s32           val930;
-    s32           val934;
-    u32           val938;
-    u8            val92a;
     s32           sum;
     s32           shift;
-    s8            tmp;
     s32           exp;
-    u32           bits;
-    u32           masked;
-    s32           n;
 
     cfg  = &Player_Status;
     copy = Mc_SaveData[0];
     Mc_InitBufferSlots();
     dst               = &Mc_SaveData[0];
-    dst->clearCount   = (u8)copy.clearCount;
-    dst->vibration    = (u8)copy.vibration;
-    dst->demoScene    = (u8)copy.demoScene;
+    dst->clearCount   = copy.clearCount;
+    dst->vibration    = copy.vibration;
+    dst->demoScene    = copy.demoScene;
     dst->moveMode     = copy.moveMode;
-    dst->buttonLayout = (u8)copy.buttonLayout;
+    dst->buttonLayout = copy.buttonLayout;
     dst->musicVolume  = copy.musicVolume;
-    dst->cursorMode   = (u8)copy.cursorMode;
-    dst->soundMode    = (u8)copy.soundMode;
+    dst->cursorMode   = copy.cursorMode;
+    dst->soundMode    = copy.soundMode;
     i                 = 0;
     do {
         dst->itemSeenBits[i] = copy.itemSeenBits[i];
@@ -817,7 +808,7 @@ void func_replay_bonus_80116EC0(void)
     } while (i < 0x60);
     i = 0;
     do {
-        Mc_SaveData[0].attachUseCounts[i] = (u16)copy.attachUseCounts[i];
+        Mc_SaveData[0].attachUseCounts[i] = copy.attachUseCounts[i];
         i                                += 1;
     } while (i < 0x12);
     i = 0;
@@ -826,29 +817,21 @@ void func_replay_bonus_80116EC0(void)
         i                                += 1;
     } while (i < 0x20);
 
-    save   = &Mc_SaveData[0];
-    val92c = copy.field_92C;
-    val930 = copy.field_930;
-    val934 = copy.shopTiers;
-    val938 = copy.shopStock;
-    val92a = (u8)copy.replayRank;
-    SOFT_BARRIER();
-    tmp              = (u8)save->clearCount;
+    save             = &Mc_SaveData[0];
     save->saveCount  = 0xFF;
-    tmp              = tmp + 1;
-    save->clearCount = tmp;
-    save->field_92C  = val92c;
-    save->field_930  = val930;
-    save->shopTiers  = val934;
-    save->shopStock  = val938;
-    save->replayRank = val92a;
-    if (tmp >= 0x64) {
-        save->clearCount = 0x63;
+    save->field_92C  = copy.field_92C;
+    save->field_930  = copy.field_930;
+    save->shopTiers  = copy.shopTiers;
+    save->shopStock  = copy.shopStock;
+    save->replayRank = copy.replayRank;
+    save->clearCount++;
+    if (save->clearCount >= 100) {
+        save->clearCount = 99;
     }
-    if (val92c < D_replay_bonus_80119274.unk0) {
+    if (save->field_92C < D_replay_bonus_80119274.unk0) {
         save->field_92C = D_replay_bonus_80119274.unk0;
     }
-    if (val930 < D_replay_bonus_80119274.field_4) {
+    if (save->field_930 < D_replay_bonus_80119274.field_4) {
         save->field_930 = D_replay_bonus_80119274.field_4;
     }
     sum = D_replay_bonus_80119274.field_C + D_replay_bonus_80119274.field_14;
@@ -872,12 +855,9 @@ void func_replay_bonus_80116EC0(void)
     j = 0;
     do {
         shift = j * 2;
-        bits  = Mc_SaveData[0].shopStock;
-        n     = *p;
-        if ((s32)((bits >> shift) & 3) < n) {
-            masked                   = bits & ~(3 << shift);
-            Mc_SaveData[0].shopStock = masked;
-            Mc_SaveData[0].shopStock = masked | (*p << shift);
+        if ((s32)((Mc_SaveData[0].shopStock >> shift) & 3) < *p) {
+            Mc_SaveData[0].shopStock &= ~(3 << shift);
+            Mc_SaveData[0].shopStock |= *p << shift;
         }
         j += 1;
         p += 1;
