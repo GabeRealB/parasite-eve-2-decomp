@@ -1481,6 +1481,12 @@ void func_actor_560800_80134B14(s32 arg0)
     Pad_PostEvent(0, 1, 0xFF, 2);
 }
 
+/// Restarts the animation clip's hold counter.
+#define _actor560800ResetAnimHold(work) \
+    do {                                \
+        (work)->field_4BE = 0;          \
+    } while (0)
+
 static inline void Actor560800_BlendSlotsFirst(Task* task, u16 id, s16 rate)
 {
     Actor560800AnimWork* w;
@@ -1491,10 +1497,8 @@ static inline void Actor560800_BlendSlotsFirst(Task* task, u16 id, s16 rate)
     w            = (Actor560800AnimWork*)task->work;
     w->field_4B8 = id;
     w->field_4C8 = rate;
-    w->field_4BE = 0;
-    SOFT_BARRIER();
+    _actor560800ResetAnimHold(w);
     count = w->field_4BA;
-    SOFT_BARRIER();
     __asm__("" : "=r"(first) : "0"((u16)1));
     if (first < count) {
         i = 1;
