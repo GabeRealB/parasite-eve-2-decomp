@@ -17814,6 +17814,14 @@ j   common
 
 `Mc_StateFreeBuffer` is the pure example — ~98% with `next`, 100% with per-case stores.
 
+The same shape shows up again when a call follows the switch. With a shared
+temp, the store and the call's argument move sit in one block during sched1,
+which puts the `move a0` first so dbr sinks the store into the `jal` delay
+slot. The target has `sh v0,field` / `jal` / `move a0` instead. Per-case stores
+keep that block down to the move and the call, because cross-jumping only
+merges the stores later, in jump2. A `SCHED_BARRIER()` between the store and
+the call was standing in for this (func_actor_401000_80133274).
+
 ## Capture TaskDesc tail field before assigning the callback
 
 When building a stack `TaskDesc` whose first two halfwords come from a source

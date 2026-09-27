@@ -879,8 +879,6 @@ static void func_actor_401000_80133274(GpEnemy* enemy, Task* actor)
     Actor401000Work* work;
     GpObj*           body;
     GpObj*           head;
-    u16              kind;
-    s16              clip;
     s32              variant;
 
     root        = actor->extra.tmd->coords;
@@ -918,27 +916,24 @@ static void func_actor_401000_80133274(GpEnemy* enemy, Task* actor)
     work->field_8AE = 0;
     work->field_8A4 = 0x10;
     work->field_8A2 = 0x10;
-    kind            = ((u16)enemy->placeKey >> 12) % 5;
-    switch (kind) {
+    switch (((u16)enemy->placeKey >> 12) % 5) {
         case 0:
-            clip = 0x11;
+            work->field_8A4 = 0x11;
             break;
         case 1:
-            clip = 0xF;
+            work->field_8A4 = 0xF;
             break;
         case 2:
-            clip = 0x10;
+            work->field_8A4 = 0x10;
             break;
         case 3:
-            clip = 0x12;
+            work->field_8A4 = 0x12;
             break;
         case 4:
         default:
-            clip = 0xE;
+            work->field_8A4 = 0xE;
             break;
     }
-    work->field_8A4 = clip;
-    SCHED_BARRIER();
     func_actor_401000_80132EF0(actor);
 
     work->field_A10.ctx.recs = work->field_A30;
