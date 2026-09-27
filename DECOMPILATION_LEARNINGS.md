@@ -36778,29 +36778,28 @@ so the checksum and the full build stay green either way. Delete the `rom:`
 line and re-split; the `.s` should read `%lo(sym + off)` where it read the
 numeric displacement. `Gp_LoadWaitAreaCd` is the worked example.
 
-## Barrier so temps fill the gap after a constructed RGB constant
+## Request field order replaces a setup barrier (`Gp_UpdateLockSlots`, 2026-09-27)
 
-`color = 0x37A78; req.field_8 = color;` stores immediately (`lui`/`ori`/`sw`)
-because the next `li v0, 5` clobbers `$v0`. The target wants independent
-`addiu s3, s2, 0xE` / `li t0, -0xA` between `ori` and `sw`.
+The former `USE_REG3(color, x14, ot)` held the coordinate and ordering-index
+computations ahead of the color store. Plain C matches when `ot = -0xA` is
+initialized before the slot loop and the request fields are assigned in this
+order: `x`, `y`, `otIndex`, `field_8`, `glyphTable`, `centerMode`, `field_E`.
+Assign the color literal directly at its store. Moving the coordinate/index
+stores earlier while leaving a separate color definition ahead of them made
+that constant's lifetime long enough for `.loop` to hoist it and cause a spill.
+Keeping the color definition at its use avoids that. In the controlled sequence,
+`base_16` puts x in the right place, `base_18` restores the rematerialized index
+in t0, and `base_19` fixes the last y/index store-order difference (100%).
 
-Compute those temps, pin the constant to `$v0`, then a barrier that lists
-the constant and the temps as inputs so the store cannot move up:
-
-```c
-register s32 color asm("v0");
-register s32 x14 asm("s3");
-s32          ot;
-
-color = 0x37A78;
-x14   = x + 0xE;
-ot    = -0xA;
-asm volatile("" :: "r"(color), "r"(x14), "r"(ot));
-req.field_8 = color;
-```
-
-`"+r"(color)` marks the constant modified and can spill it out of `$v0`.
-`Gp_UpdateLockSlots` is the example.
+The same function's pinned halfword pointer was a redundant induction variable.
+Merely unpinning `p6` made `.loop` retain it for `p6[0]` and derive another walk
+for `p6[-1]`, spilling a stack-object address (94.075%). Direct `slot->field_*`
+accesses let `.loop` combine the member addresses into one field_6-based walk,
+which naturally gets s4. A per-iteration `p6 = &slot->field_6` produced the same
+object as direct fields; an independently incremented p6 did not. Final
+`base_21` also uses a signed `s16` countdown with `timer > 0`, and matches
+without either hack. Scratch preprocessed-input SHA-256:
+`04bd8704deef8777522a3cca20f498bf32f7e66e3714d31e45647f6a70852628`.
 
 ## Split string `la` around HUD `TextDrawReq` setup; keep per-arm stores from sinking
 

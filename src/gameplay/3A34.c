@@ -2465,29 +2465,27 @@ static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
 
 static void Gp_UpdateLockSlots(void)
 {
-    RECT          rect;
-    u8            buf[16];
-    TextDrawReq   req;
-    s32           i;
-    GpSlot70*     slot;
-    u8*           bufp;
-    TextDrawReq*  reqp;
-    register s16* p6 asm("s4");
-    s32           x;
-    s32           y;
-    s32           val;
-    s32           x14;
-    s32           color;
-    s32           ot;
-    void*         obj;
-    GpLinkNode*   node;
-    s32           found;
+    RECT         rect;
+    u8           buf[16];
+    TextDrawReq  req;
+    s32          i;
+    GpSlot70*    slot;
+    u8*          bufp;
+    TextDrawReq* reqp;
+    s32          x;
+    s32          y;
+    s32          val;
+    s32          x14;
+    s32          ot;
+    void*        obj;
+    GpLinkNode*  node;
+    s32          found;
 
     slot = Gp_LockSlots;
     i    = 0;
     bufp = buf;
     reqp = &req;
-    p6   = &slot->field_6;
+    ot   = -0xA;
     do {
         obj = slot->field_0;
         if (obj == NULL) {
@@ -2511,13 +2509,13 @@ static void Gp_UpdateLockSlots(void)
             slot->field_0 = (void*)4;
         }
 
-        val = p6[-1];
+        val = slot->field_4;
         if (val >= 0) {
-            x = p6[1] + 0xA;
-            y = p6[2] + 4;
+            x = slot->field_8 + 0xA;
+            y = slot->field_A + 4;
         } else {
-            x = p6[1] - 0xA;
-            y = p6[2] - 0x10;
+            x = slot->field_8 - 0xA;
+            y = slot->field_A - 0x10;
         }
         if (x < -0x88) {
             x = (x & 7) - 0x8F;
@@ -2532,19 +2530,16 @@ static void Gp_UpdateLockSlots(void)
             y = -(y & 7) - 0x5D;
         }
 
-        color = 0x37A78;
-        x14   = x + 0xE;
-        ot    = -0xA;
-        USE_REG3(color, x14, ot);
-        req.field_8    = color;
-        req.glyphTable = 5;
-        req.centerMode = 2;
+        x14            = x + 0xE;
         req.x          = x14;
         req.y          = y;
         req.otIndex    = ot;
+        req.field_8    = 0x37A78;
+        req.glyphTable = 5;
+        req.centerMode = 2;
         req.field_E    = 1;
 
-        val = p6[-1];
+        val = slot->field_4;
         if (val < 0) {
             req.field_8 = 0x808008;
             val         = -val;
@@ -2574,25 +2569,24 @@ static void Gp_UpdateLockSlots(void)
         Ui_DrawTextInRect(&rect, -0xA, 2, NULL);
 
         {
-            u16 timer;
-            timer = p6[0];
+            s16 timer;
+            timer = slot->field_6;
             timer--;
-            p6[0] = timer;
-            if ((s32)(timer << 16) > 0) {
+            slot->field_6 = timer;
+            if (timer > 0) {
                 goto next;
             }
         }
-        p6[-1]        = 0;
-        p6[0]         = 0;
+        slot->field_4 = 0;
+        slot->field_6 = 0;
         slot->field_0 = NULL;
         goto next;
 
     empty:
-        p6[-1] = 0;
-        p6[0]  = 0;
+        slot->field_4 = 0;
+        slot->field_6 = 0;
     next:
         i++;
-        p6 += 6;
         slot++;
     } while (i < 0x20);
 }
