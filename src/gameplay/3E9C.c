@@ -149,7 +149,6 @@ void Gp_EffCtlTask6A(Task* arg0)
     GpCoord*      coord;
     GpCoord64*    base;
     GpPointLight* slot;
-    GpState1C*    st;
     s32           t2;
 
     base  = Gp_RoomCoords;
@@ -177,31 +176,25 @@ void Gp_EffCtlTask6A(Task* arg0)
                 coord->coord.t[2]             = D_801124DC[arg0->spawnArg1].vz;
                 coord->flg                    = 0;
                 Gp_UpdateCoord(coord);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->scale   = (Gp_LcgState >> 16) & 0x1FF;
                 mem->move.vx = 0;
                 mem->move.vy = 0;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->scale   = ((u32)Gp_LcgState >> 16) & 0x1FF;
-                {
-                    s32 sh;
-                    sh = mem->scale;
-                    SOFT_TOUCH_REG(sh);
-                    mem->move.vz = -((s16)sh >> 1);
-                }
+                mem->move.vz = -(mem->scale >> 1);
                 Gp_SpawnEff(0x60034, coord, mem->scale + 0x600, &mem->move);
-                st               = Gp_State1C;
-                arg0->state      = 1;
-                st->burstRequest = 1;
+                arg0->state              = 1;
+                Gp_State1C->burstRequest = 1;
                 break;
             case 1:
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x11280,
-                            (s32)&mem->move);
+                Gp_SpawnEff(0x60035, coord, ((Gp_LcgState >> 16) & 0x1FF) + 0x11280,
+                            &mem->move);
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x21280,
-                            (s32)&mem->move);
+                Gp_SpawnEff(0x60035, coord, ((Gp_LcgState >> 16) & 0x1FF) + 0x21280,
+                            &mem->move);
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x31280,
-                            (s32)&mem->move);
+                Gp_SpawnEff(0x60035, coord, ((Gp_LcgState >> 16) & 0x1FF) + 0x31280,
+                            &mem->move);
                 arg0->state++;
                 break;
         }

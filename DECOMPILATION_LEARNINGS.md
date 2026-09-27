@@ -145033,3 +145033,33 @@ identical.
 register swap is left, try the shift-and-mask spelling of the word before a
 byte overlay. It is also the more plausible source for a value the spawner
 packed as an integer.
+
+## `sll 16; sra 17` straight off a just-stored masked value: a field store between the store and the read
+
+**Symptom.** The target stores a masked value and then shifts the *register*
+it stored as a signed halfword:
+
+```
+andi  v0, v0, 0x1FF
+sh    v0, 0x24(s4)       ; field = rnd & 0x1FF
+sll   v0, v0, 16
+sra   v0, v0, 17         ; -(field >> 1), sign-extended although bit 15 is known clear
+```
+
+Writing the read straight after the store (`w->scale = r & 0x1FF;
+w->move.vz = -(w->scale >> 1);`) gives `srl v0, v0, 1` instead: CSE forwards
+the stored pseudo into the read, and `combine` sees the `and` and proves the
+sign extension away. An asm barrier on a copy of the field reproduces the
+target, but only by hiding the mask.
+
+**Mechanism.** In the target the read was never forwarded. A store to another
+halfword field of the same struct between the store and the read makes CSE
+drop the memory equivalence, so the read reaches `combine` as a HImode load
+plus the two shifts, which it cannot fold (the load's bits are unknown). After
+allocation the load lands in the register that already holds the stored value
+and is deleted before sched2 (`./insn.py <uid>` shows it `GONE` in sched2),
+leaving the shifts on the stored register.
+
+**Fix.** Put the neighbouring field stores between: `w->scale = ...;
+w->move.vx = 0; w->move.vy = 0; w->move.vz = -(w->scale >> 1);` - the natural
+order anyway, assigning the vector's three components together.
