@@ -1011,16 +1011,48 @@ static const GpPromptTexts Gp_ItemPromptTexts = { Gp_StrAll, Gp_StrSelect, Gp_St
 /// Fullscreen-fade vector template used by `Gp_FadeTileTask` / `Gp_ItemPickupTilt`.
 static const VECTOR D_80093DB0 = { 0, -100, 0, 0 };
 
+/// For each carried weapon, empties the loaded ammunition and attachment
+/// counts when the carried items no longer include any of that item.
+static inline void _gpDropOrphanedWeaponLoads(void)
+{
+    McItemScan* scan;
+    McItemRec*  rec;
+    McItemSlot* slot;
+    s32         i;
+    s32         attach;
+
+    scan = &Mc_SaveData[0].carriedItems;
+    rec  = Gp_GetItemTable(scan);
+    i    = 0;
+    rec  = &rec[scan->firstRow];
+    if (scan->rowCount != 0) {
+        do {
+            if ((u8)(rec->itemId + 0x80) < 0x20) {
+                slot   = Gp_GetItemSlot(rec->itemId);
+                attach = slot->ammoId;
+                if ((attach != 0) && (attach != 0xB9)) {
+                    if (Gp_SumScanQty(scan, attach) == 0) {
+                        slot->ammoQty = 0;
+                    }
+                }
+                attach = slot->attachId;
+                if ((attach != 0) && (attach != 0xFF) && (attach != 0xB5) && (attach != 0xBB) &&
+                    (attach != 0xBD) && (attach != 0xBE)) {
+                    if (Gp_SumScanQty(scan, attach) == 0) {
+                        slot->attachQty = 0;
+                    }
+                }
+            }
+            i++;
+            rec++;
+        } while (i < scan->rowCount);
+    }
+}
+
 void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
 {
-    GpPromptTexts        texts;
-    s32                  one;
-    s32                  i;
-    register McItemScan* scan asm("s3");
-    McItemRec*           rec;
-    McItemSlot*          slot;
-    s32                  attach;
-    s32                  mode;
+    GpPromptTexts texts;
+    s32           mode;
 
     texts = Gp_ItemPromptTexts;
     if (arg0->field_8 == 0) {
@@ -1034,10 +1066,9 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
         }
     }
     mode = arg0->field_8;
-    one  = 1;
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, texts.texts[mode], arg0->field_1C, one, 0);
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, texts.texts[mode], arg0->field_1C, 1, 0);
 
-    if (arg0->field_C == one) {
+    if (arg0->field_C == 1) {
         if (arg0->field_8 == 2) {
             if (arg0->field_22 == 0x21) {
                 arg0->field_22 = 0;
@@ -1056,64 +1087,14 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
                     break;
                 case 2:
                     SndEvt_EnqueueType6(4, 0, 0);
-                    scan = &Mc_SaveData[0].carriedItems;
-                    rec  = Gp_GetItemTable(scan);
-                    i    = 0;
-                    rec  = &rec[scan->firstRow];
-                    if (scan->rowCount != 0) {
-                        do {
-                            if ((u8)(rec->itemId + 0x80) < 0x20) {
-                                slot   = Gp_GetItemSlot(rec->itemId);
-                                attach = slot->ammoId;
-                                if ((attach != 0) && (attach != 0xB9)) {
-                                    if (Gp_SumScanQty(scan, attach) == 0) {
-                                        slot->ammoQty = 0;
-                                    }
-                                }
-                                attach = slot->attachId;
-                                if ((attach != 0) && (attach != 0xFF) && (attach != 0xB5) && (attach != 0xBB) &&
-                                    (attach != 0xBD) && (attach != 0xBE)) {
-                                    if (Gp_SumScanQty(scan, attach) == 0) {
-                                        slot->attachQty = 0;
-                                    }
-                                }
-                            }
-                            i++;
-                            rec++;
-                        } while (i < scan->rowCount);
-                    }
+                    _gpDropOrphanedWeaponLoads();
                     arg1->field_2E = 0x27;
                     break;
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
             if (arg0->field_10 == 2) {
-                scan = &Mc_SaveData[0].carriedItems;
-                rec  = Gp_GetItemTable(scan);
-                i    = 0;
-                rec  = &rec[scan->firstRow];
-                if (scan->rowCount != 0) {
-                    do {
-                        if ((u8)(rec->itemId + 0x80) < 0x20) {
-                            slot   = Gp_GetItemSlot(rec->itemId);
-                            attach = slot->ammoId;
-                            if ((attach != 0) && (attach != 0xB9)) {
-                                if (Gp_SumScanQty(scan, attach) == 0) {
-                                    slot->ammoQty = 0;
-                                }
-                            }
-                            attach = slot->attachId;
-                            if ((attach != 0) && (attach != 0xFF) && (attach != 0xB5) && (attach != 0xBB) &&
-                                (attach != 0xBD) && (attach != 0xBE)) {
-                                if (Gp_SumScanQty(scan, attach) == 0) {
-                                    slot->attachQty = 0;
-                                }
-                            }
-                        }
-                        i++;
-                        rec++;
-                    } while (i < scan->rowCount);
-                }
+                _gpDropOrphanedWeaponLoads();
                 arg1->field_2E = 0x27;
             } else {
                 arg0->field_22 = 0x21;
