@@ -8580,7 +8580,10 @@ static void func_8010AAB4(Task* arg0)
     }
 }
 
-static void func_8010AB70(Task* arg0)
+/// Ends the actor's current action: clears the fields `func_8010B210` resets,
+/// sets `field_97A` to 0x12 and restarts the state machine in the base state
+/// for its `field_956` mode.
+static inline void _gpResumeBaseState(Task* arg0)
 {
     GameActor* inner;
 
@@ -8592,6 +8595,11 @@ static void func_8010AB70(Task* arg0)
     } else {
         func_801066DC(arg0, 0);
     }
+}
+
+static void func_8010AB70(Task* arg0)
+{
+    _gpResumeBaseState(arg0);
 }
 
 void func_8010ABD4(Task* arg0)
@@ -8650,18 +8658,17 @@ static void func_8010AD64(Task* arg0)
     u8*        head;
     SVECTOR*   vec;
     GameActor* inner;
-    GameActor* inner2;
     GpEffArg*  params;
     GpCoord*   coord;
     s32        val;
     s32        idx;
 
+    inner                             = arg0->work;
     scratch                           = SCRATCH_HEAD_ADDR;
     head                              = SCRATCH_HEAD_AT(scratch, u8);
     params                            = &D_80113358;
     vec                               = (SVECTOR*)(head - 8);
     SCRATCH_HEAD_AT(scratch, SVECTOR) = vec;
-    inner                             = arg0->work;
     switch (inner->field_95E) {
         case 0:
             idx                     = (s8)inner->field_993;
@@ -8682,15 +8689,7 @@ static void func_8010AD64(Task* arg0)
         case 1:
             break;
         case 2:
-            SOFT_COMPILER_BARRIER();
-            inner2 = arg0->work;
-            func_8010B210(arg0);
-            inner2->field_97A = 0x12;
-            if (inner2->field_956 != 0) {
-                func_8010870C(arg0, 0xC);
-            } else {
-                func_801066DC(arg0, 0);
-            }
+            _gpResumeBaseState(arg0);
             break;
     }
     SCRATCH_POP_BYTES(8);
