@@ -534,44 +534,27 @@ static void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3
 /// `(0x20, 0x30, 0x20)`.
 static void func_energyball_801307D4(GpCoord* arg0, s32 arg1)
 {
-    u8*                   head;
     OverlayGroundScratch* sc;
     POLY_FT4*             prim;
-    GpQuadCorner*         tbl;
-    SVECTOR*              v;
     s32                   i;
     s32                   otz;
     s32                   flag;
     s32                   u;
-    s32                   prod;
-    s32                   rb;
 
-    head = SCRATCH_HEAD(u8) - sizeof(OverlayGroundScratch);
-    /* Store the freshly computed head and keep a copy for the rest of the
-       function; without the barrier GCC folds the two together. */
-    SCRATCH_HEAD(u8) = head;
-    sc               = (OverlayGroundScratch*)head;
+    sc = SCRATCH_PUSH(OverlayGroundScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    i   = 0;
-    v   = sc->vec;
-    tbl = D_80111E38;
-    do {
-        prod  = tbl->x * arg1;
-        v->vy = 0;
-        v->vx = prod;
-        TOUCH_REG(v);
-        v->vz = tbl->y * arg1;
+    for (i = 0; i < 4; i++) {
+        sc->vec[i].vx = D_80111E38[i].x * arg1;
+        sc->vec[i].vy = 0;
+        sc->vec[i].vz = D_80111E38[i].y * arg1;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(v);
+        gte_ldv0(&sc->vec[i]);
         gte_rtv0();
-        gte_stsv(v);
-        (u16) v->vx = (u16)v->vx + (u16)arg0->workm.t[0];
-        tbl++;
-        (u16) v->vy = (u16)v->vy + (u16)arg0->workm.t[1];
-        i++;
-        (u16) v->vz = (u16)v->vz + (u16)arg0->workm.t[2];
-        v++;
-    } while (i < 4);
+        gte_stsv(&sc->vec[i]);
+        sc->vec[i].vx += arg0->workm.t[0];
+        sc->vec[i].vy += arg0->workm.t[1];
+        sc->vec[i].vz += arg0->workm.t[2];
+    }
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&sc->vec[0]);
@@ -588,13 +571,10 @@ static void func_energyball_801307D4(GpCoord* arg0, s32 arg1)
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
-        /* Assign and store r0 first so 0x20 is loaded next to `setcode` and
-           stays live across g0/tpage; the `sb` itself schedules after tpage. */
-        rb          = 0x20;
-        prim->r0    = rb;
+        prim->r0    = 0x20;
         prim->g0    = 0x30;
+        prim->b0    = 0x20;
         prim->tpage = 0x28;
-        prim->b0    = rb;
         prim->clut  = 0x428C;
         u           = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
         prim->v0    = 0x38;
@@ -608,19 +588,19 @@ static void func_energyball_801307D4(GpCoord* arg0, s32 arg1)
         u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
         prim->v3    = 0x57;
         prim->u3    = u;
-        prim->x0    = (u16)sc->sxy0.vx;
-        prim->y0    = (u16)sc->sxy0.vy;
-        prim->x1    = (u16)sc->sxy1.vx;
-        prim->y1    = (u16)sc->sxy1.vy;
-        prim->x2    = (u16)sc->sxy2.vx;
-        prim->y2    = (u16)sc->sxy2.vy;
-        prim->x3    = (u16)sc->sxy3.vx;
-        prim->y3    = (u16)sc->sxy3.vy;
+        prim->x0    = sc->sxy0.vx;
+        prim->y0    = sc->sxy0.vy;
+        prim->x1    = sc->sxy1.vx;
+        prim->y1    = sc->sxy1.vy;
+        prim->x2    = sc->sxy2.vx;
+        prim->y2    = sc->sxy2.vy;
+        prim->x3    = sc->sxy3.vx;
+        prim->y3    = sc->sxy3.vy;
         addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(sizeof(OverlayGroundScratch));
+    SCRATCH_POP(OverlayGroundScratch);
 }
 
 /// Draws the energy ball's surface: two 16-vertex rings of the same radius
