@@ -966,50 +966,28 @@ static void func_shelter_b2_septic_tank_8017F984(GpCoord* arg0, s32 arg1, s32 ar
 /// eight 56-texel frames in a grid four wide, starting at v 0x70.
 static void func_shelter_b2_septic_tank_8017FD70(GpCoord* arg0, s16 arg1, s16 arg2)
 {
-    void**         scratch;
-    u8*            head;
     GpRingScratch* block;
-    GpRingScratch* p;
     POLY_FT4*      prim;
-    s16            col;
-    s16            row;
-    u16            vy;
 
-    scratch       = (void**)G_SCRATCH_HEAD;
-    head          = *scratch;
-    block         = (GpRingScratch*)(head - 0x18);
+    block         = SCRATCH_PUSH(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
-    vy            = arg0->workm.t[1];
-    SOFT_TOUCH_REG_USE(block, vy);
-    p = block;
-    SOFT_TOUCH_REG(p);
-    p->vec.vy = vy;
-    *scratch  = block;
-    p->vec.vz = arg0->workm.t[2];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&p->vec);
+    gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
-    if (p->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&block->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
         prim->tpage = 0x2B;
         prim->clut  = 0x43D2;
-        col         = arg1 % 4;
-        prim->u0    = col * 0x38;
-        row         = arg1 % 8;
-        prim->v0    = row / 4 * 0x38 + 0x70;
-        prim->u1    = col * 0x38 + 0x37;
-        prim->v1    = row / 4 * 0x38 + 0x70;
-        prim->u2    = col * 0x38;
-        prim->v2    = row / 4 * 0x38 + 0xA7;
-        prim->u3    = col * 0x38 + 0x37;
-        prim->v3    = row / 4 * 0x38 + 0xA7;
+        setUVWH(prim, (arg1 % 4) * 0x38, (arg1 % 8) / 4 * 0x38 + 0x70, 0x37, 0x37);
         block->step = (arg2 * 0x37) / block->otz;
         prim->x0 = prim->x2 = block->sx - block->step;
         prim->x1 = prim->x3 = block->sx + block->step;
@@ -1019,7 +997,7 @@ static void func_shelter_b2_septic_tank_8017FD70(GpCoord* arg0, s16 arg1, s16 ar
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a flickering light beam from `arg0[0]` to `arg0[1]`. Both points are
