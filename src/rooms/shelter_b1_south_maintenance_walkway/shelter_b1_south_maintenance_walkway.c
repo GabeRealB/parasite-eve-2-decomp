@@ -753,13 +753,7 @@ static void func_shelter_b1_south_maintenance_walkway_8017F6B4(GpCoord* arg0, Gp
     s32                g2;
     s32                b2;
 
-    {
-        register u8* tmp asm("v0");
-
-        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
-        blk                = (RoomDraw03Scratch*)tmp;
-        SCRATCH_HEAD(void) = tmp;
-    }
+    blk = SCRATCH_PUSH(RoomDraw03Scratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     i = 0;
@@ -767,23 +761,23 @@ static void func_shelter_b1_south_maintenance_walkway_8017F6B4(GpCoord* arg0, Gp
         j            = arg2 - i;
         i0           = j & 7;
         a            = &arg0[i0];
-        blk->v[0].vx = (u16)a->workm.t[0];
+        blk->v[0].vx = a->workm.t[0];
         j            = j - 1;
-        blk->v[0].vy = (u16)a->workm.t[1];
+        blk->v[0].vy = a->workm.t[1];
         i1           = j & 7;
-        blk->v[0].vz = (u16)a->workm.t[2];
+        blk->v[0].vz = a->workm.t[2];
         b            = &arg1[i0];
-        blk->v[1].vx = (u16)b->workm.t[0];
-        blk->v[1].vy = (u16)b->workm.t[1];
-        blk->v[1].vz = (u16)b->workm.t[2];
+        blk->v[1].vx = b->workm.t[0];
+        blk->v[1].vy = b->workm.t[1];
+        blk->v[1].vz = b->workm.t[2];
         a            = &arg0[i1];
-        blk->v[2].vx = (u16)a->workm.t[0];
-        blk->v[2].vy = (u16)a->workm.t[1];
-        blk->v[2].vz = (u16)a->workm.t[2];
+        blk->v[2].vx = a->workm.t[0];
+        blk->v[2].vy = a->workm.t[1];
+        blk->v[2].vz = a->workm.t[2];
         b            = &arg1[i1];
-        blk->v[3].vx = (u16)b->workm.t[0];
-        blk->v[3].vy = (u16)b->workm.t[1];
-        blk->v[3].vz = (u16)b->workm.t[2];
+        blk->v[3].vx = b->workm.t[0];
+        blk->v[3].vy = b->workm.t[1];
+        blk->v[3].vz = b->workm.t[2];
         gte_ldv0(&blk->v[0]);
         gte_rtps();
         gte_stsxy(&blk->sx0);
