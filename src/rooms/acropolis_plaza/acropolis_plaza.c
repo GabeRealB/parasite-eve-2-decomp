@@ -2076,9 +2076,6 @@ static void func_acropolis_plaza_801811D0(Task* task)
 {
     GpCoord*                    coord;
     AcropolisPlazaBeamWork*     work;
-    u8*                         head;
-    register u8*                raw asm("v0");
-    u16                         vz;
     AcropolisPlazaFlareScratch* blk;
     POLY_G4*                    prim;
     s32                         i;
@@ -2098,20 +2095,17 @@ static void func_acropolis_plaza_801811D0(Task* task)
     Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
     coord->flg = 0;
     Gp_UpdateCoord(coord);
-    head               = SCRATCH_HEAD(void);
-    raw                = head - 0x4C;
-    blk                = (AcropolisPlazaFlareScratch*)raw;
-    blk->vec.vx        = (u16)coord->workm.t[0];
-    blk->vec.vy        = (u16)coord->workm.t[1];
-    vz                 = (u16)coord->workm.t[2];
-    SCRATCH_HEAD(void) = blk;
-    blk->vec.vz        = vz;
+    SCRATCH_PUSH(AcropolisPlazaFlareScratch);
+    blk         = SCRATCH_HEAD(AcropolisPlazaFlareScratch);
+    blk->vec.vx = coord->workm.t[0];
+    blk->vec.vy = coord->workm.t[1];
+    blk->vec.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((AcropolisPlazaFlareScratch*)(head - 0x4C))->vec);
+    gte_ldv0(&blk->vec);
     gte_rtps();
-    gte_stsxy(&((AcropolisPlazaFlareScratch*)(head - 0x4C))->sx);
-    gte_stszotz(&((AcropolisPlazaFlareScratch*)(head - 0x4C))->otz);
+    gte_stsxy(&blk->sx);
+    gte_stszotz(&blk->otz);
     if (blk->otz >= 0x11) {
         if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
             pulse = gDisplayState.animFrame * 8 + task->spawnArg1 * 0xC0;
