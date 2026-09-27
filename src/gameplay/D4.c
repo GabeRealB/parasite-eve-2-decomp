@@ -1721,12 +1721,12 @@ void Gp_LinkViewSprts(void)
 /// `arg0[arg1->field_0]` for `arg1->field_2` entries, and OT-link each.
 static void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
 {
-    register u32  i asm("s4");
+    u32           i;
     GpTpageSprt*  dest;
     GpSprtElem*   elem;
     GpSprtElem*   cur;
     DisplayState* ds;
-    register u32  maskHi asm("s6");
+    u32           maskHi;
     u32           mask;
     SPRT*         sprt;
     u32           tpage;
@@ -1756,7 +1756,6 @@ static void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
             sprt->clut            = cur->clut;
             PRIM_XY_WORD(sprt, 0) = PRIM_XY_WORD(cur, 0);
             i++;
-            TOUCH_REG(i);
             *(u32*)&sprt->w = *(u32*)&cur->w;
             elem++;
             dest->tpage.tag = (dest->tpage.tag & maskHi) | (*(u_long*)(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt) & mask);
