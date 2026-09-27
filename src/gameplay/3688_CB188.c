@@ -1976,7 +1976,9 @@ static s32 Gp_IsEquippedItem(s32 arg0)
     return ret;
 }
 
-static s32 func_800CEC5C(McItemRec* arg0)
+/// 1 when row `arg0` has no slot assigned (`attachSlot` is 0) and its item is
+/// neither the equipped armour nor the equipped weapon, otherwise 0.
+static inline s32 _gpIsItemRowFree(McItemRec* arg0)
 {
     PlayerStatus* p;
     s32           ret;
@@ -1987,57 +1989,35 @@ static s32 func_800CEC5C(McItemRec* arg0)
     ret   = 1;
     count = arg0->attachSlot;
     id    = arg0->itemId;
-    if (count != 0) {
-        ret = 0;
-    } else if (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) {
-        ret = 0;
-    } else if (((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F)) {
+    if ((count != 0) || (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
+        (((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F))) {
         ret = 0;
     }
     return ret;
 }
 
+static s32 func_800CEC5C(McItemRec* arg0)
+{
+    return _gpIsItemRowFree(arg0);
+}
+
 static McItemRec* func_800CECC0(McItemScan* arg0, s32 arg1)
 {
-    McItemRec*    table;
-    s32           i;
-    s32           count;
-    s32           n;
-    McItemRec*    rec;
-    PlayerStatus* p;
-    register s32  ok asm("a2");
-    s32           id;
-    s32           one;
+    McItemRec* table;
+    s32        i;
+    McItemRec* rec;
 
     table = Gp_GetItemTable(arg0);
-    i     = 0;
     rec   = NULL;
     table = &table[arg0->firstRow];
-    count = arg0->rowCount;
-    if (count != 0) {
-        p   = &Player_Status;
-        one = 1;
-        n   = count;
-        do {
-            ok = 1;
-            id = table->itemId;
-            if (table->attachSlot != 0) {
-                ok = 0;
-            } else if (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) {
-                ok = 0;
-            } else if (((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F)) {
-                ok = 0;
-            }
-            if (ok == one) {
-                arg1--;
-            }
-            if (arg1 < 0) {
-                rec = table;
-                break;
-            }
-            i++;
-            table++;
-        } while (i < n);
+    for (i = 0; i < arg0->rowCount; i++, table++) {
+        if (_gpIsItemRowFree(table) == 1) {
+            arg1--;
+        }
+        if (arg1 < 0) {
+            rec = table;
+            break;
+        }
     }
     return rec;
 }
