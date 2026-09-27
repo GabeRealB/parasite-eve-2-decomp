@@ -3466,21 +3466,18 @@ static void func_actor_510900_8013BB20(Task* arg0)
     s32              value;
 
     work = arg0->work;
-    i    = 1;
     if (work->field_586 != work->field_588) {
         work->field_588 = work->field_586;
         work->field_58A = 0;
         value           = D_actor_510900_80167B38[work->field_586];
-        for (; i < 0x13; i++) {
+        for (i = 1; i < 0x13; i++) {
             func_800B4114((GpAnimCtx*)work, i, work->field_586, 0, value);
         }
     } else {
-        TOUCH_REG(i);
-        work->field_58A += i;
-        do {
+        work->field_58A++;
+        for (i = 1; i < 0x13; i++) {
             Gp_AnimTickIndex((GpAnimCtx*)work, i);
-            i++;
-        } while (i < 0x13);
+        }
     }
 }
 
