@@ -2040,45 +2040,21 @@ void func_800330D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         u8          buf[0x10];
         TextDrawReq req;
     } sp60;
-    TextDrawReq  sp70;
-    TextDrawReq  sp80;
-    TextDrawReq  sp90;
-    s32          x;
-    s32          y;
-    s32          off;
-    s32          textX;
-    s32          color;
-    s32          i;
-    s32          valid;
-    s32          sum;
-    s32          limit;
-    s32          ch;
-    volatile u8* ptr;
-    McSaveData*  save;
+    TextDrawReq sp70;
+    TextDrawReq sp80;
+    TextDrawReq sp90;
+    s32         x;
+    s32         y;
+    s32         off;
+    s32         textX;
+    s32         color;
+    McSaveData* save;
 
     color = Ui_LookupTable(arg0, 1);
     if (arg2 < ((McWork*)arg1)->field_288) {
         off  = (arg2 << 7) + 0x294;
         save = (McSaveData*)(arg1 + off);
-        if ((u32)(save->savePoint - 1) >= 0x10U) {
-            valid = 0;
-        } else {
-            sum = 0;
-            // Keep the checksum and counter zero initializations independent.
-            SOFT_TOUCH_REG(sum);
-            ptr   = &save->at4.loc.view;
-            limit = 0x38;
-            i     = 0;
-            do {
-                i   += 1;
-                ch   = (s8)*ptr;
-                sum  = sum + ch;
-                ptr += 1;
-            } while (i < limit);
-            sum  &= 0xFFFF;
-            valid = (save->hdrChecksum ^ sum) == 0;
-        }
-        if (valid == 0) {
+        if (!_mcVerifySaveHdrChecksum(save)) {
             x = arg3 + arg0->field_1C + 8;
             y = arg4 + (s16)arg0->field_18 + 0x11;
             if (((McWork*)arg1)->field_A20 == 0) {
