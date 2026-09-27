@@ -4403,24 +4403,14 @@ static void func_actor_403100_8013BA64(Task* arg0)
         coords->coord.t[0] += (-1100 - coords->coord.t[0]) >> 3;
     }
 }
-static void func_actor_403100_8013BB8C(Task* arg0)
+static inline void _actor403100StepRoot(TmdObject* obj, GpCoord* coords)
 {
-    s16                 mode;
-    s32                 delta;
-    s32                 delta2;
-    s32                 delta3;
-    s32                 sound;
-    s32                 pan;
-    s32                 depth;
-    TmdObject*          obj;
-    register TmdObject* original asm("v1");
-    GpCoord*            coords;
+    s16 mode;
+    s32 delta;
+    s32 delta2;
+    s32 delta3;
 
-    original = arg0->extra.tmd;
-    SOFT_TOUCH_REG(original);
-    obj    = original;
-    coords = obj->coords;
-    mode   = (u16)D_actor_403100_80155808->field_628 - 1;
+    mode = D_actor_403100_80155808->field_628 - 1;
     switch (mode) {
         case 0:
         case 4:
@@ -4428,10 +4418,10 @@ static void func_actor_403100_8013BB8C(Task* arg0)
             delta         = D_actor_403100_80155808->field_94 - coords->coord.t[2];
             if (delta > 4864) {
                 coords->coord.t[2]                += D_actor_403100_80155808->field_62C;
-                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+                D_actor_403100_80155808->field_600 = (D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
             } else if (delta < -4864) {
                 coords->coord.t[2]                -= D_actor_403100_80155808->field_62C;
-                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+                D_actor_403100_80155808->field_600 = (D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
             } else {
                 D_actor_403100_80155808->field_5F6++;
             }
@@ -4441,10 +4431,10 @@ static void func_actor_403100_8013BB8C(Task* arg0)
             delta2 = 1300 - coords->coord.t[2];
             if (delta2 > 48) {
                 coords->coord.t[2]                += D_actor_403100_80155808->field_62C;
-                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+                D_actor_403100_80155808->field_600 = (D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
             } else if (delta2 < -48) {
                 coords->coord.t[2]                -= D_actor_403100_80155808->field_62C;
-                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+                D_actor_403100_80155808->field_600 = (D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
             } else {
                 D_actor_403100_80155808->field_5F6++;
             }
@@ -4455,20 +4445,31 @@ static void func_actor_403100_8013BB8C(Task* arg0)
             delta3        = D_actor_403100_80155808->field_94 - coords->coord.t[2];
             if (delta3 > 640) {
                 coords->coord.t[2]                += D_actor_403100_80155808->field_62C;
-                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+                D_actor_403100_80155808->field_600 = (D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
             } else if (delta3 < -640) {
                 coords->coord.t[2]                -= D_actor_403100_80155808->field_62C;
-                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+                D_actor_403100_80155808->field_600 = (D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
             } else {
                 D_actor_403100_80155808->field_5F6++;
             }
             break;
     }
+}
+
+static void func_actor_403100_8013BB8C(Task* arg0)
+{
+    s32      sound;
+    s32      pan;
+    s32      depth;
+    GpCoord* coords;
+
+    coords = arg0->extra.tmd->coords;
+    _actor403100StepRoot(arg0->extra.tmd, coords);
     if (D_actor_403100_80155808->field_600 == 0) {
         if (D_actor_403100_80155808->field_602 != 0) {
             Gp_SpawnPadLerp(0x1E, 0xFF, 8);
             D_actor_403100_80155808->field_5FE = 0x1E;
-            sound                              = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0001;
+            sound                              = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0001;
             pan                                = (s8)Gp_GetObjPan(arg0->extra.tmd->coords + 1);
             depth                              = gpGetObjDepth(arg0->extra.tmd->coords + 1);
             SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
