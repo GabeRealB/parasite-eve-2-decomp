@@ -445,6 +445,20 @@ void Gp_InitStarterInv(void)
         Gp_EquipRelatedItem(scan, weapon, ammo, -1); \
     } while (0)
 
+/* Clears the carried inventory, equips the starting armour, restores HP/MP,
+ * and gives the initial supplies and their attachment slots. */
+#define _gpInitStartingItems(scan, cfg)                \
+    do {                                               \
+        Gp_ClearScanItems(scan);                       \
+        Gp_GiveItem(scan, 0x60, 1);                    \
+        Gp_EquipMod(0x60);                             \
+        (cfg)->hp = (cfg)->hpMax;                      \
+        (cfg)->mp = (cfg)->mpMax;                      \
+        Gp_GiveItem(scan, 0x92, 1);                    \
+        Gp_GiveItem(scan, 0x40, 1)->attachSlot    = 1; \
+        Gp_GiveItem(scan, 0xA0, 0x64)->attachSlot = 2; \
+    } while (0)
+
 void func_800B8014(void)
 {
     McItemRec*    rec;
@@ -455,7 +469,6 @@ void func_800B8014(void)
     McItemScan*   scan;
     McItemScan**  scans;
     PlayerStatus* cfg;
-    s32*          header;
     s32           word;
     s32           i;
     s32           j;
@@ -515,22 +528,16 @@ void func_800B8014(void)
             Mc_SaveData[0].attachLevels[col + row * 3] = 0;
         }
     }
-    save = &Mc_SaveData[0];
-    SOFT_TOUCH_REG(save);
+    save                  = &Mc_SaveData[0];
     scan                  = &save->carriedItems;
     save->attachLevels[0] = 1;
     cfg                   = &Player_Status;
     if (save->clearCount == 0) {
         cfg->bp = 0xC8;
+        _gpInitStartingItems(scan, cfg);
+    } else {
+        _gpInitStartingItems(scan, cfg);
     }
-    Gp_ClearScanItems(scan);
-    Gp_GiveItem(scan, 0x60, 1);
-    Gp_EquipMod(0x60);
-    cfg->hp = cfg->hpMax;
-    cfg->mp = cfg->mpMax;
-    Gp_GiveItem(scan, 0x92, 1);
-    Gp_GiveItem(scan, 0x40, 1)->attachSlot    = 1;
-    Gp_GiveItem(scan, 0xA0, 0x64)->attachSlot = 2;
     GP_GIVE_LOADED(scan, 0x81, 0xA0);
     Gp_GiveItem(scan, 2, 1)->attachSlot = 3;
     scans                               = Gp_ScanPtrs;
@@ -556,10 +563,9 @@ void func_800B8014(void)
     Gp_GiveItem(scan, 0xAC, 0x14);
     Gp_GiveItem(scan, 0xA9, 8);
     Gp_SetCollectedBit(0x106);
-    header = (s32*)&Mc_SaveData[0].at4.loc.view;
-    word   = *header;
-    word  &= 0xFFFF0000;
-    if (word == 0x01140000) {
+    word  = GP_LOC_WORD(Mc_SaveData[0].at4.loc);
+    word &= GP_LOC_STAGE_AREA;
+    if (word == GP_LOC_KEY(1, 0x14, 0, 0)) {
         Gp_ResetInventory();
         Gp_GiveItem(&Mc_SaveData[0].carriedItems, 0x81, 1);
         Gp_EquipHeld(0x81);

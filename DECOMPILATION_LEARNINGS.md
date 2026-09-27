@@ -142455,12 +142455,32 @@ three statements. A copy of a pointer set *before* the loop is opaque in both
 passes and gives the right tail. But that pointer then needs a register across
 the loop. `update_equiv_regs` never rematerialises it, because under split
 addresses the set is `lo_sum` and does not `rtx_equal_p` its `REG_EQUIV`
-symbol. One `SOFT_TOUCH_REG(save)` is still in the tree.
+symbol. This spelling still needed one `SOFT_TOUCH_REG(save)`; the follow-up
+below removes it.
 
 The `SCHED_BARRIER` between `Gp_GiveItem(scan, 0xA0, 0x64)->attachSlot = 2`
 and the next give/equip pair did have a natural source: a `do { } while (0)`
 macro around the pair. Its loop notes fence sched1, so the store stays ahead
 of the next call's argument setup.
+
+**Follow-up (2026-09-27): a shared initialization tail removes the last barrier.**
+Calling `Gp_ClearScanItems(scan)` in both arms of the clear-count test creates a
+join that stops cse2 from reusing the save base at the final location check.
+In the controlled scratch comparison, removing the barrier alone made `save`
+live across 244 instructions and 28 calls (96.170%); duplicating the clear call
+made it local to block 24, across 12 instructions with no calls (99.210%).
+The join also loses the shared byte constant `1`, so that change alone adds a
+second materialization before the first attachment-slot store.
+
+The exact C form puts the starting-item sequence, through the ammo slot-2
+store, in `_gpInitStartingItems`, a `do { } while (0)` macro invoked in both
+arms. The byte-one uses now share a constant within each arm, while the macro
+bounds scheduling between the BP store and the clear-call argument setup.
+Late cross-jumping merges the two initialization tails. The final save-location
+address is freshly materialized, and no asm remains: scratch `base_11.c` scores
+100.000% with every penalty zero. When duplicating tails to limit CSE, keep
+related constant uses inside those tails and inspect scheduling before the
+shared calls as well as the resulting address lifetimes.
 
 ## A copy the fall-through branch keeps but the jump-target branch drops is an inline helper's return (Gp_SetScanItem)
 
