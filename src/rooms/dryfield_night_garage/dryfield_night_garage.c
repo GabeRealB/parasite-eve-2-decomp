@@ -1190,19 +1190,15 @@ void func_dryfield_night_garage_8017F5C0(Task* task)
 /// cancel tells the parent panel to close with 6.
 void func_dryfield_night_garage_8017F794(Task* task)
 {
-    u8          buf[0x20];
-    TextDrawReq req;
-    UiObject*   obj;
-    UiObject*   parentObj;
-    s32         itemId;
-    s32         price;
-    s32         maxQty;
-    s32         scaled;
-    s32         afford;
-    s32         held;
-    /* The stock ceiling stays in $v0, so the scan count the shop just fetched
-       has to be copied out of the return register instead of coalescing into
-       it. */
+    u8           buf[0x20];
+    TextDrawReq  req;
+    UiObject*    obj;
+    UiObject*    parentObj;
+    s32          itemId;
+    s32          price;
+    s32          maxQty;
+    s32          afford;
+    s32          held;
     register s32 maxHeld asm("v0");
     s32          count;
     s32          left;
@@ -1223,17 +1219,16 @@ void func_dryfield_night_garage_8017F794(Task* task)
     }
 
     if ((u32)(itemId - 0xA0) < 0x20) {
-        /* Dead: emits the scaled index before the table base so the
-           `addu` is index-first, matching the original. */
-        scaled = itemId * 4;
-        if (D_8010E138[itemId].perBuy != 0) {
+        RoomShopStock* stock = &D_8010E138[itemId];
+
+        if (stock->perBuy != 0) {
             held    = Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, itemId);
-            maxHeld = D_8010E138[itemId].maxHeld;
+            maxHeld = stock->maxHeld;
             maxQty  = maxHeld - held;
             if (maxQty <= 0) {
                 maxQty = 1;
             } else {
-                maxQty = (maxQty - 1) / D_8010E138[itemId].perBuy;
+                maxQty = (maxQty - 1) / stock->perBuy;
                 maxQty = maxQty + 1;
             }
         }
@@ -1252,9 +1247,9 @@ void func_dryfield_night_garage_8017F794(Task* task)
     y    = top + 0xF;
     Gp_DrawItemLabel(obj, x, y, itemId, 0x606060, 0);
     if ((u32)(itemId - 0xA0) < 0x20) {
-        /* Dead: same index-first ordering as above. */
-        scaled = itemId * 4;
-        Gp_DrawQty(obj, x, y, D_8010E138[itemId].perBuy, 0x606060);
+        RoomShopStock* stock = &D_8010E138[itemId];
+
+        Gp_DrawQty(obj, x, y, stock->perBuy, 0x606060);
     }
 
     count = task->extraState;
