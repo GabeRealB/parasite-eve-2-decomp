@@ -4604,31 +4604,22 @@ static void Gp_DetachLinkNode(Task* arg0)
 
 static s32 Gp_ApplyDirArg(Task* arg0, GpMoveArg* arg1)
 {
-    GameActor*   actor;
-    GpCoord*     coord;
-    s32          delta;
-    register s32 temp asm("v1");
-    s32          val;
+    GameActor* actor;
+    GpCoord*   coord;
+    s16        delta;
 
     actor = arg0->work;
     if (arg1->field_10 == 7) {
         if ((arg1->x != 0) || (arg1->z != 0)) {
             coord = arg0->extra.tmd->coords;
-            delta = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-            delta = delta - ratan2(arg1->x, arg1->z);
-            temp  = delta;
-            if ((s16)delta >= 0x802) {
-                temp = delta - 0x1000;
+            delta = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) - ratan2(arg1->x, arg1->z);
+            if (delta > 0x801) {
+                delta -= 0x1000;
             }
-            if ((s16)temp < -0x800) {
-                temp += 0x1000;
+            if (delta < -0x800) {
+                delta += 0x1000;
             }
-            val = temp << 16;
-            val = val >> 16;
-            if (val < 0) {
-                val = -val;
-            }
-            if (val < 0x400) {
+            if (ABS(delta) < 0x400) {
                 actor->field_973 = 1;
             } else {
                 actor->field_973 = -1;
