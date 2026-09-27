@@ -1016,53 +1016,29 @@ static s16 func_actor_215100_8014C17C(u16* arg0, s32 arg1)
 /// Total height of the caption block the text stream `arg0` holds: every `-2`
 /// line break adds the line's height (the tallest glyph's `h + 2`, or 2 when
 /// the line is empty). Gameplay's `Gp_CapTextHeight` is the same walk plus a
-/// final `2 -> 0` clamp. `i` is initialised just before the loop test and
-/// declared ahead of `total` so their global-alloc priorities tie and the
-/// pseudo order hands `i` $t0.
+/// final `2 -> 0` clamp.
 static s16 func_actor_215100_8014C298(u16* arg0)
 {
-    s32                 lineH;
-    s32                 i;
-    s32                 total;
-    u16                 code;
-    s32                 shifted;
-    volatile GlyphUvwh* glyph;
-    register s32        v0tmp asm("v0");
-    GlyphUvwh*          table;
-    s32                 newline;
-    s32                 skip;
+    s16 lineH = 0;
+    s16 total = 0;
+    s16 i     = 0;
+    s16 code  = arg0[0];
 
-    lineH   = 0;
-    total   = lineH;
-    code    = arg0[0];
-    shifted = code << 16;
-    i       = lineH;
-    v0tmp   = -1;
-    if (shifted >> 16 != v0tmp) {
-        newline = -2;
-        skip    = -3;
-        table   = D_actor_215100_8015E654;
-        do {
-            if (shifted >> 16 == newline) {
-                if (lineH == 0) {
-                    lineH = 2;
-                }
-                total += lineH;
-                lineH  = 0;
-            } else if (shifted >> 16 != skip) {
-                if (shifted >> 16 >= 0) {
-                    glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table);
-                    if (lineH < glyph->h + 2) {
-                        v0tmp = glyph->h;
-                        lineH = v0tmp + 2;
-                    }
+    while (code != -1) {
+        if (code == -2) {
+            if (lineH == 0) {
+                lineH = 2;
+            }
+            total += lineH;
+            lineH  = 0;
+        } else if (code != -3) {
+            if (code >= 0) {
+                if (lineH < D_actor_215100_8015E654[code & 0x3FF].h + 2) {
+                    lineH = D_actor_215100_8015E654[code & 0x3FF].h + 2;
                 }
             }
-            v0tmp   = i + 1;
-            code    = arg0[(s16)v0tmp];
-            i       = v0tmp;
-            shifted = code << 16;
-        } while (shifted >> 16 != -1);
+        }
+        code = arg0[++i];
     }
     return total;
 }
