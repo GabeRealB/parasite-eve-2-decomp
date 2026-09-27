@@ -145384,3 +145384,24 @@ Same function: `D[(u32)(id & 0xF0000000) >> 28] = x;` followed by a test of
 `(id & 0xF0000000) == K` (CSE shares the `and`) loads `&D` *before* the mask,
 because an `ARRAY_REF` expands its base first. The m2c form, `id &= mask;` as
 a separate statement, puts the mask first.
+
+## A pinned list cursor plus a byte priority re-masked in place: an insertion helper taking the priority as `u32` (Task_SpawnFromDesc, 2026-09-27)
+
+**Symptom.** A spawn routine stores a descriptor's byte priority (`lbu v1;
+sb v1`), then walks a sorted list with `andi v1,v1,0xff` in the loop
+preheader. With a plain `u8 priority` local the zero-extension is hoisted into
+a second, global pseudo, `extra` (the attached body) outranks the byte in
+`global.c` and takes `$v1`, and priority is pushed to `$a1`. The tree held it
+with `register Task* curr asm("a3")` and an `s32 priority; priority &= 0xFF`.
+
+**Fix.** Move the ordered insertion into a `static inline` helper
+`(TaskNode* list, Task* task, u32 priority)` and call it with the `u8` local.
+The widening now happens at the call, in the same block as the load, so the
+byte is a local-alloc quantity allocated before any global and lands in `$v1`;
+the helper's own `curr`/`link` locals take `$a3` with no pin. An `s32`
+parameter compares signed (`slt`); a `u8` one re-creates the hoisted pseudo.
+
+The same function's `(flags & 0x100) != 0` is folded to `srl 8; andi 1`; the
+target's `andi 0x100; sltu` also comes out of the flag-building spelling
+`f = 0; if (flags & 0x100) f = 1; if (g) f |= 2;`, which reads more naturally
+than the two-step temp in the entry above.

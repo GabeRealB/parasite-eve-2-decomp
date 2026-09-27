@@ -24,84 +24,81 @@ TaskNode         gTaskDefaultList;
 /// Unreferenced.
 static u8 D_800716E8[8];
 
+/// Links `task` into `list` ahead of the first task whose priority is higher,
+/// so the list stays in ascending priority order and equal priorities keep
+/// the order they were spawned in.
+static inline void _taskInsert(TaskNode* list, Task* task, u32 priority)
+{
+    Task*      curr;
+    TaskNode** link;
+
+    for (curr = list->next; curr != NULL; curr = curr->node.next) {
+        if (priority < curr->priority) {
+            break;
+        }
+    }
+    if (curr == NULL) {
+        link = &list->prev;
+    } else {
+        link = &curr->node.prev;
+    }
+    task->node.next = (*link)->next;
+    (*link)->next   = task;
+    task->node.prev = *link;
+    *link           = &task->node;
+}
+
 static Task* Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* list)
 {
-    Task*          task;
-    s32            type;
-    s32            flags_a2;
-    TaskBody       extra;
-    u16            flags;
-    s32            temp;
-    u8             flags_lo;
-    s32            priority;
-    register Task* curr asm("a3");
-    TaskNode**     link;
+    Task*    task;
+    TaskBody extra;
+    u16      flags;
+    s32      attachFlags;
+    u8       priority;
+    s32      kind;
 
-    task = memCalloc(0x48, 0);
+    task = memCalloc(sizeof(Task), 0);
     if (task == NULL) {
         return NULL;
     }
 
     flags = desc->flags;
-    type  = flags & 0xFF;
-    if (type == 1) {
-        goto case1;
+    switch (flags & 0xFF) {
+        case 1:
+            attachFlags = 0;
+            if (flags & 0x100) {
+                attachFlags = 1;
+            }
+            if (D_8005ED8C != 0) {
+                attachFlags |= 2;
+            }
+            extra.tmd = Gp_AttachTmdFlags(task, desc->arg.model, attachFlags);
+            break;
+        case 2:
+            extra.disp2d = gpAttachDisp2d(task);
+            break;
+        case 0:
+        default:
+            extra.tmd = NULL;
+            break;
     }
-    extra.tmd = NULL;
-    if (type < 2) {
-        goto merge;
-    }
-    if (type == 2) {
-        goto case2;
-    }
-    goto merge;
 
-case1:
-    temp     = flags & 0x100;
-    flags_a2 = (u32)temp > 0;
-    if (D_8005ED8C != 0) {
-        flags_a2 |= 2;
-    }
-    extra.tmd = Gp_AttachTmdFlags(task, desc->arg.model, flags_a2);
-    goto merge;
-
-case2:
-    extra.disp2d = gpAttachDisp2d(task);
-
-merge:
-    if (((u8)desc->flags == 0) || (extra.tmd != NULL)) {
+    // A descriptor that asks for a body gets no task when the body cannot be attached.
+    if ((desc->flags & 0xFF) == 0 || extra.tmd != NULL) {
         task->callback     = desc->callback;
-        priority           = (u8)desc->priority;
+        priority           = desc->priority;
         task->exitCallback = taskKill;
         task->priority     = priority;
-        flags_lo           = (u8)desc->flags;
+        kind               = desc->flags & 0xFF;
         task->extra        = extra;
         task->spawnArg1    = arg1;
         task->spawnArg2    = (void*)arg2;
         task->parent       = NULL;
         task->firstChild   = NULL;
         task->nextSibling  = task;
-        task->spawnType    = flags_lo;
-        curr               = list->next;
-        if (curr != NULL) {
-            priority &= 0xFF;
-        loop:
-            if ((u32)priority >= (u8)curr->priority) {
-                curr = curr->node.next;
-                if (curr != NULL) {
-                    goto loop;
-                }
-            }
-        }
-        if (curr != NULL) {
-            link = &curr->node.prev;
-        } else {
-            link = &list->prev;
-        }
-        task->node.next = (*link)->next;
-        (*link)->next   = task;
-        task->node.prev = *link;
-        *link           = &task->node;
+        task->spawnType    = kind;
+
+        _taskInsert(list, task, priority);
     } else {
         memFree(task);
         task = NULL;
