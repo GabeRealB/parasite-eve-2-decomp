@@ -62462,6 +62462,18 @@ order is not fixed by the object dump": that entry moves one store earlier to
 force a *value* chain; this one uses barriers to stop an `addiu` gluing itself
 to a late use of the same register.
 
+**Superseded: no barrier is needed.** The whole block is one `setUV4`:
+
+```c
+u0 = (arg1 & 7) * 0x18;
+setUV4(prim, u0, 0xA0, u0 + 0x17, 0xA0, u0, 0xB7, u0 + 0x17, 0xB7);
+```
+
+The macro stores in `u0, v0, u1, v1, u2, v2, u3, v3` order, which gives sched1
+the RTL order the ROM's schedule falls out of; the locals `va`/`u1` and the
+barriers were reproducing that order by hand. Before steering the UV stores of
+a `POLY_FT4`, try the PsyQ `setUV4`/`setXY4` spelling first.
+
 ## A code-free `"=r"` def can flip a list-scheduler tie in an *earlier* block
 
 **Problem.** `func_energyball_8013035C` reached 99.79% with a single leftover:

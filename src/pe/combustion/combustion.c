@@ -478,8 +478,6 @@ static void func_combustion_8012FF0C(GpCoord* arg0, s32 arg1, s16 arg2)
     POLY_FT4*      prim;
     SVECTOR*       vec;
     s32            u0;
-    s32            u1;
-    s32            va;
     s16            x;
     s16            y;
     u16            vz;
@@ -508,17 +506,7 @@ static void func_combustion_8012FF0C(GpCoord* arg0, s32 arg1, s16 arg2)
         prim->tpage = 0x28;
         prim->clut  = 0x430D;
         u0          = (arg1 & 7) * 0x18;
-        va          = 0xA0;
-        u1          = u0 + 0x17;
-        SCHED_BARRIER();
-        prim->u0    = u0;
-        prim->u2    = u0;
-        prim->v0    = va;
-        prim->v1    = va;
-        prim->v2    = 0xB7;
-        prim->v3    = 0xB7;
-        prim->u1    = u1;
-        prim->u3    = u1;
+        setUV4(prim, u0, 0xA0, u0 + 0x17, 0xA0, u0, 0xB7, u0 + 0x17, 0xB7);
         block->step = (arg2 * 0x17) / block->otz;
         x           = (u16)block->sx - (u16)block->step;
         prim->x2    = x;
