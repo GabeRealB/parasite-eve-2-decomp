@@ -2827,12 +2827,11 @@ u32* gpXformStreamVertsUnlit(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     u32  idx;
     u16* rec;
 
-    prev  = -1;
     count = ws->elemCount;
     if (count == 0) {
         return stream;
     }
-    TOUCH_REG(prev);
+    prev          = -1;
     ws->elemCount = count + prev;
     if (count > 0) {
         do {
