@@ -1760,9 +1760,6 @@ static void func_actor_521100_80134EDC(Task* arg0)
 /// body armed, survives while either is still moving and is cleared on the
 /// frame both arrive, which is what the update body tests before calling this.
 ///
-/// The scratch stack head is read through `ActorScratchStack` rather than
-/// as `SCRATCH_HEAD`, which does not compile the same.
-///
 /// Same body as `Actor02000_Fn01698` and `func_actor_510900_80138D38`.
 static void func_actor_521100_80135024(Task* arg0)
 {
@@ -1777,13 +1774,12 @@ static void func_actor_521100_80135024(Task* arg0)
     s32              nextY;
     s32              active;
 
-    matrix                                     = (MATRIX*)((ActorScratchStack*)G_SCRATCH_HEAD)->head - 1;
-    ((ActorScratchStack*)G_SCRATCH_HEAD)->head = matrix;
-    active                                     = 0;
-    work                                       = arg0->work;
-    coord                                      = arg0->extra.tmd->coords;
+    SCRATCH_PUSH(MATRIX);
+    matrix = SCRATCH_HEAD(MATRIX);
+    active = 0;
+    work   = arg0->work;
+    coord  = arg0->extra.tmd->coords;
     RotMatrix(&work->field_678, matrix);
-    USE_REG(matrix);
     gte_SetRotMatrix(&coord[3].coord);
     gte_ldclmv(matrix);
     gte_rtir();
