@@ -2123,21 +2123,18 @@ static inline void Actor403900_ReseedAnim(Task* arg0)
     s32              value;
 
     work = arg0->work;
-    i    = 1;
     if (work->field_6C0 != work->field_6C2) {
         work->field_6C2 = work->field_6C0;
         work->field_6C4 = 0;
         value           = D_actor_403900_801383B0[work->field_6C0];
-        for (; i < 0x13; i++) {
+        for (i = 1; i < 0x13; i++) {
             func_800B4114(work, i, work->field_6C0, 0, value);
         }
     } else {
-        TOUCH_REG(i);
-        work->field_6C4 += i;
-        do {
+        work->field_6C4++;
+        for (i = 1; i < 0x13; i++) {
             Gp_AnimTickIndex((GpAnimCtx*)work, i);
-            i++;
-        } while (i < 0x13);
+        }
     }
 }
 
