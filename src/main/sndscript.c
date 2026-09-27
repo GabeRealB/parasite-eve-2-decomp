@@ -1220,11 +1220,8 @@ static void SndVoice_TickEnvelope(SndVoice* arg0)
     SndOneE*      chunk;
     s32           pitch;
     s32           temp;
-    s32           rate;
-    s32           new_var;
-    s32           new_var2;
+    s32           level;
     SpuVoiceAttr* attr;
-    s32           t;
 
     fx    = (SndVoiceFx*)&arg0->field_10;
     chunk = fx->field_20;
@@ -1232,22 +1229,21 @@ static void SndVoice_TickEnvelope(SndVoice* arg0)
     if (fx->field_2 == 1) {
         fx->field_1 = 5;
         temp        = (fx->field_10 - chunk->field_14) * chunk->field_16;
-        rate        = (u16)chunk->field_16;
         if (temp > 0) {
-            rate = -rate;
+            fx->field_E = -chunk->field_16;
+        } else {
+            fx->field_E = chunk->field_16;
         }
-        fx->field_E = rate;
-        COMPILER_BARRIER();
-        t            = fx->field_10;
+
         fx->field_C  = 0;
         fx->field_2  = 2;
-        fx->field_1C = t;
+        fx->field_1C = fx->field_10;
     }
 
     switch (fx->field_1) {
         case 0:
-            if ((s32)fx->field_C < chunk->field_4) {
-                fx->field_C = fx->field_C + 1;
+            if (fx->field_C < chunk->field_4) {
+                fx->field_C++;
                 break;
             }
             fx->field_1  = 1;
@@ -1257,34 +1253,28 @@ static void SndVoice_TickEnvelope(SndVoice* arg0)
         case 1:
             pitch = (fx->field_4 << 1) + fx->field_14;
             if (fx->field_C < chunk->field_A) {
-                s32 v;
-                fx->field_C  = fx->field_C + 1;
-                v            = (new_var = fx->field_14);
-                fx->field_14 = (v = v + chunk->field_8);
-                fx->field_10 = v;
+                fx->field_C++;
+                fx->field_10 = fx->field_14 += chunk->field_8;
                 goto apply;
             }
             fx->field_1 = 2;
             fx->field_C = 0;
         case 2:
             pitch = (fx->field_4 << 1) + chunk->field_6;
-            if ((s32)fx->field_C < chunk->field_C) {
-                fx->field_C = fx->field_C + 1;
+            if (fx->field_C < chunk->field_C) {
+                fx->field_C++;
                 goto apply;
             }
             fx->field_1  = 3;
             fx->field_18 = chunk->field_6;
-            rate         = chunk->field_6;
+            level        = chunk->field_6;
             fx->field_C  = 0;
-            fx->field_10 = rate;
+            fx->field_10 = level;
         case 3:
             pitch = (fx->field_4 << 1) + fx->field_18;
             if (fx->field_C < chunk->field_E) {
-                s32 v;
-                fx->field_C  = fx->field_C + 1;
-                v            = (new_var2 = fx->field_18);
-                fx->field_18 = (v = v + chunk->field_10);
-                fx->field_10 = v;
+                fx->field_C++;
+                fx->field_10 = fx->field_18 += chunk->field_10;
                 goto apply;
             }
             fx->field_1 = 4;
@@ -1296,10 +1286,7 @@ static void SndVoice_TickEnvelope(SndVoice* arg0)
             if (temp >= 0) {
                 fx->field_1 = 6;
             } else {
-                s32 v;
-                v            = fx->field_1C + (s16)fx->field_E;
-                fx->field_1C = v;
-                fx->field_10 = v;
+                fx->field_10 = fx->field_1C += fx->field_E;
             }
             pitch = (fx->field_4 << 1) + fx->field_1C;
             goto apply;
