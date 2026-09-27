@@ -3696,6 +3696,33 @@ static void func_actor_403600_8013F608(Task* arg0)
     }
 }
 
+/// Steps the rig's twenty parts: restarts every part on the animation in
+/// `field_736` when it changed, otherwise advances the frame counter and
+/// ticks each part at rate `field_778`. Animations with no entry in
+/// `D_actor_403600_8016057C` are not played.
+static __inline__ void _actor403600UpdateAnimation(Task* task, u8 count)
+{
+    Actor403600Work* work;
+    s32              i;
+
+    work = task->work;
+    if (D_actor_403600_8016057C[work->field_736] != 0) {
+        if (work->field_736 != work->field_738) {
+            work->field_738 = work->field_736;
+            work->field_73A = 0;
+            for (i = 1; i < count; i++) {
+                func_800B4114(&work->rig.anim, i, work->field_736, 0, work->field_756);
+            }
+        } else {
+            work->field_73A++;
+            for (i = 1; i < count; i++) {
+                work->rig.slots[i].rate = work->field_778;
+                Gp_AnimTickIndex(&work->rig.anim, i);
+            }
+        }
+    }
+}
+
 static void func_actor_403600_8013F7B8(GpEnemy* enemy, Task* task)
 {
     SVECTOR                rot;
@@ -3705,15 +3732,11 @@ static void func_actor_403600_8013F7B8(GpEnemy* enemy, Task* task)
     GpCoord*               bodyCoord;
     GpRec18*               bodyRecs;
     GpRec18*               attackRecs;
-    Actor403600Work*       animWork;
     Actor403600Work*       ownerWork;
     Actor403600Work*       work;
-    u8*                    anim;
-    s16                    animId;
     u32                    randomProduct;
     s32                    angle;
     s32                    i;
-    s32                    animIndex;
     u32                    randomState;
     Actor403600TurnMatrix* worldMatrix;
     Actor403600TurnMatrix* modelMatrix;
@@ -3833,35 +3856,7 @@ static void func_actor_403600_8013F7B8(GpEnemy* enemy, Task* task)
     if (task->spawnArg1 != 0) {
         Gp_AssignNodeSlot0(&enemy->node);
     }
-    animWork = task->work;
-    animId   = animWork->field_736;
-    if (D_actor_403600_8016057C[animId] != 0) {
-        animIndex = 1;
-        if (animId != animWork->field_738) {
-            animWork->field_738 = (s16)(u16)animWork->field_736;
-            animWork->field_73A = 0U;
-            do {
-                func_800B4114(&animWork->rig.anim, animIndex,
-                              (s32)animWork->field_736, 0,
-                              (s32)animWork->field_756);
-                animIndex += 1;
-            } while (animIndex < 0x14);
-        } else {
-            TOUCH_REG(animIndex);
-            animWork->field_73A += animIndex;
-            /* A byte cursor 0x28 bytes into the block reaches each slot's `rate` at
-             * +0x1D. The slot index is hidden from the compiler for the update
-             * above, so indexing `rig.slots` would derive the cursor from it with
-             * a multiply instead of this constant start. */
-            anim = (u8*)animWork + 0x28;
-            do {
-                anim[0x1D] = (u8)animWork->field_778;
-                Gp_AnimTickIndex(&animWork->rig.anim, animIndex);
-                animIndex += 1;
-                anim      += sizeof(GpAnimSlot);
-            } while (animIndex < 0x14);
-        }
-    }
+    _actor403600UpdateAnimation(task, 20);
     work->field_778    = 0x10;
     task->exitCallback = func_actor_403600_80141598;
     task->state       += 1;
@@ -3883,33 +3878,6 @@ static __inline__ void _actor403600UpdateColor(GpEnemy* enemy, Task* task)
     pos->vz              = work->field_4B8.workm.t[2];
     Gp_UpdateActorColor(enemy, pos, 0, 0);
     SCRATCH_POP(VECTOR);
-}
-
-/// Steps the rig's twenty parts: restarts every part on the animation in
-/// `field_736` when it changed, otherwise advances the frame counter and
-/// ticks each part at rate `field_778`. Animations with no entry in
-/// `D_actor_403600_8016057C` are not played.
-static __inline__ void _actor403600UpdateAnimation(Task* task, u8 count)
-{
-    Actor403600Work* work;
-    s32              i;
-
-    work = task->work;
-    if (D_actor_403600_8016057C[work->field_736] != 0) {
-        if (work->field_736 != work->field_738) {
-            work->field_738 = work->field_736;
-            work->field_73A = 0;
-            for (i = 1; i < count; i++) {
-                func_800B4114(&work->rig.anim, i, work->field_736, 0, work->field_756);
-            }
-        } else {
-            work->field_73A++;
-            for (i = 1; i < count; i++) {
-                work->rig.slots[i].rate = work->field_778;
-                Gp_AnimTickIndex(&work->rig.anim, i);
-            }
-        }
-    }
 }
 
 /// Turns coordinate 2 by the twist in `field_700`, then eases the twist back
