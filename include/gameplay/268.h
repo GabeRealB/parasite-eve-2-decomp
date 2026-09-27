@@ -209,6 +209,13 @@ extern u16        Gp_CollectedIds[];
 extern McItemRec  Gp_ItemTable2[];
 extern McItemRec* Gp_ItemTable1;
 
+/// Inline form of `Gp_GetItemSlot`: weapon `item`'s entry in the save's
+/// per-weapon equipment table.
+static inline McItemSlot* gpItemSlot(s32 item)
+{
+    return &Mc_SaveData[0].weaponItems[item - 0x80];
+}
+
 s32  func_800B7420(s32 arg0);
 void Gp_RecalcMaxMp(void);
 /// Equips item `arg0` (ids `0x60..0x7F`) as `Player_Status.armor`

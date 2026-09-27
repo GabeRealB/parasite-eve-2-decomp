@@ -28584,62 +28584,54 @@ if (acc < glyph->h + 2) {
 `addu v1, v0, t3`. `Gp_CapTextTopY` is the example; 99.8% with only that
 `lbu` dest wrong.
 
-## Pin the return through `$v0` + `+r` so `move v0, src` stays before the restores
+## `move v0, sum` before the restores, and `move t0, v1` for a loop bound: an explicit empty-range test with a return inside it
 
-A function that accumulates in `$a2` and returns that sum wants
-
-```
-move    v0, a2
-lw      ra, off(sp)
-lw      s1, off(sp)
-lw      s0, off(sp)
-jr      ra
-```
-
-`return count` (and even `register s32 ret asm("v0"); ret = count; return ret`)
-sinks the copy after the restores, because `$a2` / `$v0` are not clobbered by
-those `lw`s:
+A counting loop that the target ends as
 
 ```
-lw      ra, off(sp)
-lw      s1, off(sp)
-lw      s0, off(sp)
-move    v0, a2
-jr      ra
+    beqz    v0, .Lout           # range test; delay slot: move a2,zero
+    ...
+    addu    v1, a1, v0          # end = start + n
+    slt     v0, a1, v1
+    beqz    v0, .Lout
+    ...
+    move    t0, v1              # loop bound, a copy of end
+    ...
+.Lout:
+    move    v0, a2
+    lw      ra, ...
 ```
 
-Assign to a `register s32 ret asm("v0")` and barrier it so the copy is a
-real instruction in the body:
+has two features a single trailing `return count;` does not produce: the
+return-value move sinks below the `lw` restores (sched2 reorders the one
+epilogue block), and the loop bound is computed straight into its own register.
+Both come from writing the empty-range test explicitly, with a `return` inside
+it, and keeping the loop's own condition as the expression:
 
 ```c
-register s32 ret asm("v0");
-
-ret = count;
-asm volatile("" : "+r"(ret));
-return ret;
+count = 0;
+if ((u32)(item - 0xA0) < 0x20) {
+    i   = scan->firstRow;
+    end = i + scan->rowCount;
+    if (i < end) {
+        for (; i < scan->firstRow + scan->rowCount; i++) {
+            /* ... */
+        }
+        return count;
+    }
+}
+return count;
 ```
 
-`Gp_CountEquippedRelated` is the example. A bare `return count` stuck at 98.9% with
-only that `move` delayed.
-
-## Split `end` / `limit` so the bound is `addu v1` then `move t0, v1`
-
-A loop bound that is live through the body wants `$t0`, but the
-`start < end` compare wants the add in `$v1`.
-`limit = start + n; if (start < limit)` assigns the add straight to `$t0`.
-Compute the bound, compare, then copy:
-
-```c
-end = start + arg0->field_1;
-if (start < end) {
-    slots = (GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400);
-    limit = end;
-    /* ... */
-    for (; start < limit; start++, rec++) {
-```
-
-That is `addu v1, a1, v0; slt; ...; move t0, v1`. `Gp_CountEquippedRelated` is the
-example.
+Two `return count;` statements each emit `move v0,a2` and a jump to the return
+label, so the epilogue keeps a block of its own and the move cannot be scheduled
+past it; jump2 then cross-jumps the identical moves into one. The trailing
+return must be reached by two paths (range test and empty-range test) - with
+only one, cse follows the jump, sees `count == 0`, and emits `move v0,zero`.
+The loop condition re-evaluates `firstRow + rowCount`; loop hoists it into a new
+pseudo that cse finds equal to `end`, which is the `move t0,v1`. Writing
+`i < end` there instead drops the copy. `Gp_CountEquippedRelated`; this replaces
+a `$v0` pin with `asm volatile("" : "+r")` and a hand-made `limit = end` copy.
 
 ## Share `state++` with `else { goto epilogue; }` after a 3-way dispatch
 

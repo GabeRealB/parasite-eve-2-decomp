@@ -2122,46 +2122,34 @@ McItemSlot* Gp_GetItemSlot(s32 arg0)
 s32 Gp_CountEquippedRelated(McItemScan* arg0, s32 arg1)
 {
     McItemRec*  table;
-    s32         start;
-    s32         count;
-    s32         end;
-    s32         limit;
-    McItemRec*  rec;
-    McItemSlot* slots;
     McItemSlot* slot;
-    McItemSlot* alt;
+    s32         count;
+    s32         i;
+    s32         end;
     s32         itemId;
-    s32         off;
-    s32         ret;
 
     table = Gp_GetItemTable(arg0);
     count = 0;
-    if ((u32)(arg1 - 0xA0) < 0x20U) {
-        start = arg0->firstRow;
-        end   = start + arg0->rowCount;
-        if (start < end) {
-            slots = (McItemSlot*)((s32)Mc_SaveData[0].weaponItems - 0x400);
-            limit = end;
-            off   = start << 2;
-            rec   = (McItemRec*)(off + (s32)table);
-            for (; start < limit; start++, rec++) {
-                itemId = rec->itemId;
-                if ((u32)(itemId - 0x80) < 0x20U) {
-                    slot = (McItemSlot*)((itemId << 3) + (s32)slots);
-                    alt  = slot;
+    if ((u32)(arg1 - 0xA0) < 0x20) {
+        i   = arg0->firstRow;
+        end = i + arg0->rowCount;
+        if (i < end) {
+            for (; i < arg0->firstRow + arg0->rowCount; i++) {
+                itemId = table[i].itemId;
+                if ((u32)(itemId - 0x80) < 0x20) {
+                    slot = gpItemSlot(itemId);
                     if (slot->ammoId == arg1) {
                         count += slot->ammoQty;
                     }
-                    if (alt->attachId == arg1) {
-                        count += alt->attachQty;
+                    if (slot->attachId == arg1) {
+                        count += slot->attachQty;
                     }
                 }
             }
+            return count;
         }
     }
-    ret = count;
-    TOUCH_REG(ret);
-    return ret;
+    return count;
 }
 
 void Gp_ClearEquipSlot(s32 arg0)

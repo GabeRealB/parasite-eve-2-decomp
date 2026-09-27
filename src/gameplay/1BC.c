@@ -3717,13 +3717,6 @@ static inline s32 _gpRelatedQty(s32 item, s32 bank)
     return ret;
 }
 
-/// Inline form of `Gp_GetItemSlot`: weapon `item`'s entry in the save's
-/// per-weapon equipment table.
-static inline McItemSlot* _gpItemSlot(s32 item)
-{
-    return &Mc_SaveData[0].weaponItems[item - 0x80];
-}
-
 void Gp_ApplyItemMap(void)
 {
     s32         i;
@@ -3734,7 +3727,7 @@ void Gp_ApplyItemMap(void)
     for (i = 0; i < 8; i++) {
         map  = &Gp_ItemMaps[i];
         id   = map->field_1;
-        slot = _gpItemSlot(id);
+        slot = gpItemSlot(id);
         if (map->field_0 == 0) {
             slot->ammoId  = map->field_2;
             slot->ammoQty = _gpRelatedQty(id, 0);
