@@ -943,14 +943,14 @@ void Gp_StatusPanelTask(Task* arg0)
 
 void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, u32 arg6)
 {
-    TILE*        tile;
-    SPRT*        sp;
-    POLY_FT4*    poly;
-    s32          span;
-    s32          max;
-    s32          bar;
-    s32          right;
-    register s32 clut asm("t3");
+    TILE*     tile;
+    SPRT*     sp;
+    POLY_FT4* poly;
+    s32       span;
+    s32       max;
+    s32       bar;
+    s32       right;
+    s32       clut;
 
     if (arg1 < arg2) {
         span = arg2 - arg1;
@@ -1010,16 +1010,16 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
         poly->v2       = 0x70;
         poly->v3       = 0x70;
         poly->tpage    = 0x3E;
+        poly->x3       = right;
+        poly->x1       = right;
+        poly->y1       = arg3;
+        poly->y0       = arg3;
+        poly->v0       = 0x68;
+        poly->u1       = 0xA8;
+        poly->v1       = 0x68;
+        poly->u3       = 0xA8;
+        poly->clut     = clut;
         setlen(poly, 9);
-        poly->x3   = right;
-        poly->x1   = right;
-        poly->y1   = arg3;
-        poly->y0   = arg3;
-        poly->v0   = 0x68;
-        poly->u1   = 0xA8;
-        poly->v1   = 0x68;
-        poly->u3   = 0xA8;
-        poly->clut = clut;
         setcode(poly, 0x2D);
         addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, poly);
     }

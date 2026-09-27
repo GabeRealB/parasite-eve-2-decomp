@@ -144927,3 +144927,6 @@ its initialiser in the preheader where the target has it. In the same body a
 `x + (n + 0xE)` sum only kept `n + 0xE` as its own `addiu` when that was a
 separate statement *after* `x` was computed; assigned before, it changed the
 allocation of every pseudo in the block.
+
+## A pin swapping two block-local constants is local-alloc priority: move a statement out of the pinned one's range (func_800C0E20, 2026-09-27)
+A `register s32 clut asm("t3")` held a clut constant stored into two SPRTs and a POLY_FT4; unpinned, it swapped `t3`/`t4` with the `%hi(gGpuCurrentOt)` pseudo. Both had 4 refs in one block, so `local-alloc` ranked them by live length alone (170 vs 166 insns in `.lreg`'s `Register N used ... across` lines), and the constant lost by a few insns. The fix was a statement sitting inside the constant's range that belonged after it: `setlen(poly, 9)` had been written mid-primitive, and moving it down beside `setcode(poly, ...)`, after the last `clut` store, shortened the range by two insns and sched2 still emitted the stores in target order. When two equal-ref pseudos swap, compare their ranges in `.lreg` and look for a statement that can move across either end.
