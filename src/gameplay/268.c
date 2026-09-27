@@ -1703,7 +1703,8 @@ static inline void _gpClearEquipSlot(s32 item)
     }
 }
 
-/// Zeroes every row of the table window `scan`, as `Gp_ClearScanItems` does.
+/// Zeroes every row of the table window `scan`. Shared by `Gp_ClearScanItems`
+/// and the callers that clear a window in line.
 static inline void _gpClearScanItems(McItemScan* scan)
 {
     McItemRec* table;
@@ -1956,41 +1957,9 @@ void Gp_SetCurBit2Flag(s32 arg0, u8 arg1)
     *p   |= mask;
 }
 
-void Gp_ClearScanItems(McItemScan* arg0)
+void Gp_ClearScanItems(McItemScan* scan)
 {
-    McItemRec*          tmp;
-    register McItemRec* table asm("v1");
-    s32                 i;
-    s32                 count;
-    s32                 start;
-    s32                 off;
-
-    switch (arg0->table) {
-        case 2:
-            tmp = Gp_ItemTable2;
-            break;
-        case 1:
-            tmp = Gp_ItemTable1;
-            break;
-        default:
-            tmp = Mc_SaveData[0].itemRows;
-            break;
-    }
-    table = tmp;
-    i     = 0;
-    count = arg0->rowCount;
-    start = arg0->firstRow;
-    if (count != 0) {
-        off   = start << 2;
-        table = (McItemRec*)(off + (s32)table);
-        do {
-            i++;
-            table->itemId     = 0;
-            table->attachSlot = 0;
-            table->qty        = 0;
-            table++;
-        } while (i < arg0->rowCount);
-    }
+    _gpClearScanItems(scan);
 }
 
 McItemRec* Gp_GiveItem(McItemScan* arg0, s32 arg1, s32 arg2)
