@@ -1,5 +1,9 @@
 // Overlay-local symbols for dryfield_factory.
 
+// Stage 3 uses the night factory's view-sprite routines.
+func_dryfield_night_factory_80181620 = 0x80181620; // type:func absolute:True
+func_dryfield_night_factory_80181B38 = 0x80181B38; // type:func absolute:True
+
 // Past this room's image. What occupies this address when the code runs is not established.
 D_8018A7BC = 0x8018A7BC; // absolute:True
 D_8018A7C8 = 0x8018A7C8; // absolute:True

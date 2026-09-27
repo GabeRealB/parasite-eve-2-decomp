@@ -1133,9 +1133,8 @@ void func_dryfield_factory_8017FC18(Task* task)
             if (GameFlag_GetNibble(0x48) <= 0) {
                 if (gGameSession->at4.loc.stage == 2) {
                     func_dryfield_factory_80181B38(0);
-                    SOFT_BARRIER();
                 } else {
-                    func_dryfield_factory_80181B38(0);
+                    func_dryfield_night_factory_80181B38(0);
                 }
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F3, 0, 0);
             }
@@ -1153,10 +1152,9 @@ void func_dryfield_factory_8017FC18(Task* task)
                 if (gGameSession->at4.loc.stage == 2) {
                     func_dryfield_factory_80181B38(1);
                     func_dryfield_factory_80181620(1);
-                    SOFT_BARRIER();
                 } else {
-                    func_dryfield_factory_80181B38(1);
-                    func_dryfield_factory_80181620(1);
+                    func_dryfield_night_factory_80181B38(1);
+                    func_dryfield_night_factory_80181620(1);
                 }
                 Gp_StartCapSlot(task->spawnArg1, 1, 2);
             }

@@ -42274,6 +42274,23 @@ the label decides where the block is emitted.
 
 ## Byte-identical `if/else` call arms: barrier at the *end* of the first arm
 
+**2026-09-27 correction — distinguish overlay callees before adding a barrier.**
+`func_dryfield_factory_8017FC18` now needs neither barrier: its stage-2 arms
+call the day factory APIs, and its other arms call the existing night factory
+APIs. Both overlays define their view-9 and view-11 routines at `0x80181620`
+and `0x80181B38`; disassembly had named every call after the current overlay.
+Importing the night symbols through the day overlay's symbol map preserves
+the distinct call targets in GCC, so jump2 keeps both stage branches naturally.
+Removing just the barriers scores 79.602% and deletes 23 instructions;
+selecting the existing stage-specific APIs restores all 113 instructions.
+The raw scratch score is 99.867% solely because three callee names differ;
+the linked function matches all 452 bytes and the unscoped build passes.
+Check the other overlay's actual definitions and linked addresses before
+interpreting identical numeric call targets as identical C callees. This is
+evidence for separate overlay APIs, not permission to invent aliases.
+Scratch: `nonmatchings/func_dryfield_factory_8017FC18-dehack/base_2.c`,
+preprocessed SHA256 `a7f6a2b10c95acd4120c56eaf155916c99994bd16b977357b22958945853a9bf`.
+
 Room cutscene drivers contain conditionals whose two arms are literally the
 same call, e.g. `func_80181B38(0)` under both `gGameSession->at4.loc.stage == 2` and
 its `else`. Written plainly, GCC 2.8.1 does not just cross-jump the tails — it
