@@ -169,7 +169,7 @@ static s32  func_actor_403600_8013DDF4(Task* arg0, s16 arg1);
 static s32  func_actor_403600_8013DFE0(Task* arg0);
 static void func_actor_403600_8013E470(GpCoord* arg0, s32* arg1, s32* arg2);
 static s16  func_actor_403600_8013E66C(GpCoord* arg0);
-static s32  func_actor_403600_8013E7D4(s32 arg0, s32 arg1);
+static s32  func_actor_403600_8013E7D4(s32 arg0, u16 arg1);
 static void func_actor_403600_8013EA04(Task* arg0);
 static void func_actor_403600_8013F608(Task* arg0);
 static void func_actor_403600_801417A8(Task* arg0, s32 arg1);
@@ -3198,7 +3198,7 @@ static s16 func_actor_403600_8013E66C(GpCoord* arg0)
     return result;
 }
 
-static s32 func_actor_403600_8013E7D4(s32 arg0, s32 arg1)
+static s32 func_actor_403600_8013E7D4(s32 arg0, u16 arg1)
 {
     Task*    temp_s7;
     GpCoord* temp_s3;
@@ -3231,72 +3231,31 @@ static s32 func_actor_403600_8013E7D4(s32 arg0, s32 arg1)
     } else if (var_v1 < -0x800) {
         var_v1 += 0x1000;
     }
-    if (arg1 & 1) {
-        if (temp_s0_3 >= temp_s5) {
-            D_actor_403600_801606E0.rot.vy = (s16)var_v1;
-        } else {
-            goto block_14;
-        }
-    } else if (temp_s5 < temp_s0_3) {
-    block_14:
-        D_actor_403600_801606E0.rot.vy = (s16)var_s2;
+    if ((arg1 & 1) ? (temp_s0_3 < temp_s5) : (temp_s5 < temp_s0_3)) {
+        D_actor_403600_801606E0.rot.vy = var_s2;
     } else {
-        D_actor_403600_801606E0.rot.vy = (s16)var_v1;
+        D_actor_403600_801606E0.rot.vy = var_v1;
     }
-    SOFT_USE_REG(arg1);
-    __asm__ volatile(
-        ".set\tnoreorder\n\t"
-        ".set\tnomacro\n\t"
-        "lui $a1, %%hi(D_actor_403600_801606E0)\n\t"
-        "addiu $a0, $a1, %%lo(D_actor_403600_801606E0)\n\t"
-        "andi $v0, %1, 2\n\t"
-        "sw $zero, 0(%2)\n\t"
-        "sh $zero, 16($a0)\n\t"
-        "beqz $v0, 3f\n\t"
-        "sh $zero, 20($a0)\n\t"
-        "lw $v0, 28(%2)\n\t"
-        "lh $v1, 18($a0)\n\t"
-        "nop\n\t"
-        "bne $v1, %4, 1f\n\t"
-        "sw $v0, 4($a0)\n\t"
-        "lui $v0, %%hi(D_actor_403600_801605EC)\n\t"
-        "addiu $v1, $v0, %%lo(D_actor_403600_801605EC)\n\t"
-        "lh $v0, %%lo(D_actor_403600_801605EC)($v0)\n\t"
-        "lh $v1, 4($v1)\n\t"
-        "j 2f\n\t"
-        "move %0, $zero\n"
-        "1:\n\t"
-        "lui $v0, %%hi(D_actor_403600_801605E4)\n\t"
-        "addiu $v1, $v0, %%lo(D_actor_403600_801605E4)\n\t"
-        "lh $v0, %%lo(D_actor_403600_801605E4)($v0)\n\t"
-        "lh $v1, 4($v1)\n\t"
-        "li %0, 1\n"
-        "2:\n\t"
-        "sw $v0, %%lo(D_actor_403600_801606E0)($a1)\n\t"
-        "j 4f\n\t"
-        "sw $v1, 8($a0)\n"
-        "3:\n\t"
-        "lw $v0, 24(%2)\n\t"
-        "nop\n\t"
-        "sw $v0, %%lo(D_actor_403600_801606E0)($a1)\n\t"
-        "lw $v0, 28(%2)\n\t"
-        "nop\n\t"
-        "sw $v0, 4($a0)\n\t"
-        "lw $v0, 32(%2)\n\t"
-        "nop\n\t"
-        "sw $v0, 8($a0)\n"
-        "4:\n\t"
-        "move $a0, %3\n\t"
-        "li $a1, 0x3e9\n\t"
-        "lui $a2, %%hi(D_actor_403600_801606E0)\n\t"
-        "addiu $a2, $a2, %%lo(D_actor_403600_801606E0)\n\t"
-        "jal Gp_DispatchMsg\n\t"
-        "move $a3, $zero\n\t"
-        ".set\tmacro\n\t"
-        ".set\treorder"
-        : "+r"(var_s4)
-        : "r"(arg1), "r"(temp_s3), "r"(temp_s7), "r"(var_s2)
-        : "v0", "a0", "a1", "a2", "a3", "memory");
+    temp_s3->flg                   = 0;
+    D_actor_403600_801606E0.rot.vx = 0;
+    D_actor_403600_801606E0.rot.vz = 0;
+    if (arg1 & 2) {
+        D_actor_403600_801606E0.pos.vy = temp_s3->coord.t[1];
+        if (D_actor_403600_801606E0.rot.vy == var_s2) {
+            D_actor_403600_801606E0.pos.vx = D_actor_403600_801605EC.vx;
+            D_actor_403600_801606E0.pos.vz = D_actor_403600_801605EC.vz;
+            var_s4                         = 0;
+        } else {
+            D_actor_403600_801606E0.pos.vx = D_actor_403600_801605E4.vx;
+            D_actor_403600_801606E0.pos.vz = D_actor_403600_801605E4.vz;
+            var_s4                         = 1;
+        }
+    } else {
+        D_actor_403600_801606E0.pos.vx = temp_s3->coord.t[0];
+        D_actor_403600_801606E0.pos.vy = temp_s3->coord.t[1];
+        D_actor_403600_801606E0.pos.vz = temp_s3->coord.t[2];
+    }
+    Gp_DispatchMsg(temp_s7, 0x3E9, (s32)&D_actor_403600_801606E0, 0);
     return var_s4;
 }
 
