@@ -380,7 +380,7 @@ static s32 CdAudio_DriveSeek(void)
     SectorHdr*           hdr;
     volatile CdAudioCtl* stream;
     s32                  status;
-    register s32         tmp asm("a0");
+    s32                  tmp;
 
     phase = CdAudio_Phase.field_3;
     hdr   = (SectorHdr*)D_80082750;
@@ -423,7 +423,7 @@ static s32 CdAudio_DriveSeek(void)
             break;
         case 8:
             stream = &CdAudio_Ctl;
-            if ((u8)stream->field_A != 0) {
+            if (stream->field_A != 0) {
                 stream->field_8 = CdAudio_Phase.field_3;
                 stream->field_9 = 2;
                 goto error;
@@ -469,7 +469,10 @@ static s32 CdAudio_DriveSeek(void)
             CdAudio_Phase.field_3 = 4;
             break;
         default:
-            break;
+            tmp                 = CdAudio_Ctl.field_0;
+            tmp                 = tmp + 1;
+            CdAudio_Ctl.field_0 = tmp;
+            return 5;
     }
 
     tmp                 = CdAudio_Ctl.field_0;
