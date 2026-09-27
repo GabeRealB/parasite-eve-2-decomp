@@ -144668,3 +144668,17 @@ passing the expression directly, gives each call its own short pseudo and swaps
 `$s0`/`$s1` around `Gp_GetObjPan`. The frame-0 window start still needs
 `SOFT_MOVE_ZERO`; every literal, width and position tried either folded it into
 `$zero` or placed the `move` before the hit-test join.
+
+## Where a register-held zero window start lands when it is not an asm (func_actor_400500_8013403C, 2026-09-27)
+
+The frame-0 window start that `SOFT_MOVE_ZERO` supplies in the `actor_400500` /
+`actor_400600` walk handlers sits in the hit-test join block, between the frame
+`lh` and the `bne` that compares against it. Two plain-C ways keep it a register,
+and both put it in the wrong place. Assigning `start0 = 0` above the join survives
+CSE because CSE forgets values at a join, but the `move` then stays in the earlier
+block and takes a different callee-saved register. Assigning it in both arms
+(`if (hit) { A00 = 0; start0 = 0; } else start0 = 0;`) is merged by jump2's
+cross-jumping into the join block, but that happens after sched2, so the `move`
+sits ahead of the `lh`, and reorg then hoists it into the `beqz` delay slot
+(99.52% against 99.88%). Narrow widths (`s8`/`s16`/`u16`) and a fourth
+`0 / rate` bound fold or add code.
