@@ -5042,18 +5042,14 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* prompt, UiObject* obj)
 
 static void Gp_BuildAttachList(UiList* arg0, s32 arg1)
 {
-    s32         n;
+    McItemScan* scan;
+    McItemSlot* slot;
     s32         mode;
     s32         count;
+    s32         n;
     s32         i;
-    McItemScan* scan;
-    s32         off;
-    s32         off2;
-    s32         temp;
     s32         item;
     s32         qty;
-    s32*        dst;
-    McItemSlot* slot;
 
     scan  = &Mc_SaveData[0].carriedItems;
     mode  = Gp_ReloadMode;
@@ -5062,23 +5058,17 @@ static void Gp_BuildAttachList(UiList* arg0, s32 arg1)
     n     = count;
     if (mode != 2) {
         SOFT_TOUCH_REG(n);
-        i   = n;
-        off = (arg1 - 0x80) * 4;
-        dst = Gp_AttachListIds;
+        i = n;
         do {
-            temp = i + off;
-            item = ((GpItemQty*)(temp + (s32)Gp_RelatedQty0))->related[0];
+            item = Gp_RelatedQty0[arg1 - 0x80].related[i];
             if (item != 0) {
                 qty  = Gp_ScanStackQty(scan, item);
                 qty -= Gp_CountEquippedRelated(scan, item);
-                if (mode == 0) {
-                    if (slot->ammoId == item) {
-                        qty += slot->ammoQty;
-                    }
+                if (mode == 0 && slot->ammoId == item) {
+                    qty += slot->ammoQty;
                 }
                 if (qty > 0) {
-                    *dst++ = item;
-                    count++;
+                    Gp_AttachListIds[count++] = item;
                     n++;
                 }
             }
@@ -5086,34 +5076,24 @@ static void Gp_BuildAttachList(UiList* arg0, s32 arg1)
         } while (i < 3);
     }
     if (mode != 1) {
-        i    = 0;
-        off2 = (arg1 - 0x80) * 4;
-        dst  = &Gp_AttachListIds[count];
-        do {
-            temp = i + off2;
-            item = ((GpItemQty*)(temp + (s32)Gp_RelatedQty1))->related[0];
+        for (i = 0; i < 3; i++) {
+            item = Gp_RelatedQty1[arg1 - 0x80].related[i];
             if (item != 0) {
                 qty  = Gp_ScanStackQty(scan, item);
                 qty -= Gp_CountEquippedRelated(scan, item);
-                if (mode == 0) {
-                    if (slot->attachId == item) {
-                        qty += slot->attachQty;
-                    }
+                if (mode == 0 && slot->attachId == item) {
+                    qty += slot->attachQty;
                 }
                 if (qty > 0) {
-                    *dst++ = item;
-                    count++;
+                    Gp_AttachListIds[count++] = item;
                     n++;
                 }
             }
-            i++;
-        } while (i < 3);
-    }
-    if (mode != 0) {
-        if (n > 0) {
-            Gp_AttachListIds[count] = 0;
-            n++;
         }
+    }
+    if (mode != 0 && n > 0) {
+        Gp_AttachListIds[count] = 0;
+        n++;
     }
     arg0->field_4 = n;
     arg0->field_5 = n;

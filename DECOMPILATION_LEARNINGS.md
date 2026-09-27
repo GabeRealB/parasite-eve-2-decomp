@@ -144954,3 +144954,21 @@ A `register s32 ok asm("a2")` held a "row is usable" flag set by an `if / else i
 
 ## A pin on a value stored to a global and returned is `g = x; return g;` (Gp_GetMapRoomId, 2026-09-27)
 The target loads a record byte into `v1`, stores it to a `u8` global and returns `andi v0,v1,0xff`. Holding the byte in a `u8` local (`val = rec->f; g = val; return val;`, or `return g = rec->f;`) puts the load in `v0` and a `register u8 val asm("v1")` pin had been fixing that. Writing the natural `g = rec->f; return g;` matches: the return reads the global's value through CSE, which ties the return copy to the stored pseudo differently from a named local. When a pin sits on a "store then return it" local, try returning the global itself.
+## A `move` from a register that was itself filled by a copy is a real RTL copy, never a `reload_cse` fold (Gp_BuildAttachList, 2026-09-27)
+
+**Shape.** `count = 0` before a call, then `move s3,s5` (`n = count`) and
+`move s2,s3` (the loop index starting from `n`). Written as plain C
+(`n = 0; for (i = 0; ...)`) CSE folds both to `(const_int 0)` and post-reload
+CSE turns them into copies - but both copy `s5`, never `s3`.
+
+**Mechanism.** `reload_cse_record_set` (`reload1.c`) forwards a source register's
+values to the destination of a register copy only when their modes agree, and a
+`CONST_INT` is `VOIDmode`. So once `n = 0` has been folded to `move s3,s5`, `s3`
+is not known to hold 0, and the next `i = 0` can only borrow `s5`. A target
+`move s2,s3` therefore means the RTL after CSE already said `i = n` - CSE did
+not know `n` was 0 there. Only something opaque to CSE does that (an asm
+operand, a `volatile`, a local whose address is still taken during `cse1`);
+statement order, `for`/`do` shape, `register`, helpers for the qty test and
+initialisation variants all leave it folded. The extra use of `n` is also what
+lifts its allocation priority above the list pointer's, so the two symptoms
+share one cause.
