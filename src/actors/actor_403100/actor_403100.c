@@ -3510,7 +3510,6 @@ static void func_actor_403100_80139818(Task* arg0)
     s32              depth4;
     s32              depth5;
     GpCoord*         effectCoords;
-    u32              configHi;
     Actor403100Work* work;
     PlayerStatus*    config;
     GpCoord*         part;
@@ -3519,8 +3518,7 @@ static void func_actor_403100_80139818(Task* arg0)
     playerTask = *Gp_ActorSlots;
     coords     = arg0->extra.tmd->coords;
     part       = coords + 6;
-    __asm__("lui %0, %%hi(Player_Status)" : "=r"(configHi));
-    __asm__("addiu %0, %1, %%lo(Player_Status)" : "=r"(config) : "r"(configHi));
+    config     = &Player_Status;
     if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
         if ((u8)D_actor_403100_80155808->field_65F == 1) {
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
@@ -3543,7 +3541,7 @@ static void func_actor_403100_80139818(Task* arg0)
         sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0004;
         pan   = (s8)Gp_GetObjPan(arg0->extra.tmd->coords + 4);
         depth = gpGetObjDepth(arg0->extra.tmd->coords + 4);
-        SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
+        SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
         SndEvt_EnqueueType7(0x401F0004, 0xA);
@@ -3570,10 +3568,10 @@ static void func_actor_403100_80139818(Task* arg0)
         task = gameGetPtrSlot(3);
         Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 4), 0);
         if (config->hp <= 0) {
-            sound2 = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2)->placeKey >> 0xC) << 8) | 0x531D000B;
+            sound2 = (((u16)((GpEnemy*)playerTask->spawnArg2)->placeKey >> 0xC) << 8) | 0x531D000B;
             pan2   = (s8)Gp_GetObjPan(playerTask->extra.tmd->coords + 1);
             depth2 = gpGetObjDepth(playerTask->extra.tmd->coords + 1);
-            SndEvt_EnqueueType6(sound2, (s32)pan2, (s8)(depth2 / 2));
+            SndEvt_EnqueueType6(sound2, pan2, (s8)(depth2 / 2));
             gGameSession->areaBgmCountdown    = 0x7F;
             work                              = D_actor_403100_80155808;
             work->pad_670[0]                  = 1;
@@ -3583,23 +3581,23 @@ static void func_actor_403100_80139818(Task* arg0)
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x400, 0, 0);
             func_actor_403100_8013D1B8(6, 0x3FF);
         } else {
-            sound3 = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2)->placeKey >> 0xC) << 8) | 7;
+            sound3 = (((u16)((GpEnemy*)playerTask->spawnArg2)->placeKey >> 0xC) << 8) | 7;
             pan3   = (s8)Gp_GetObjPan(playerTask->extra.tmd->coords + 1);
             depth3 = gpGetObjDepth(playerTask->extra.tmd->coords + 1);
-            SndEvt_EnqueueType6(sound3, (s32)pan3, (s8)(depth3 / 2));
+            SndEvt_EnqueueType6(sound3, pan3, (s8)(depth3 / 2));
         }
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x80) {
         sound4 = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F000D;
         pan4   = (s8)Gp_GetObjPan(arg0->extra.tmd->coords + 4);
         depth4 = gpGetObjDepth(arg0->extra.tmd->coords + 4);
-        SndEvt_EnqueueType6(sound4, (s32)pan4, (s8)(depth4 / 2));
+        SndEvt_EnqueueType6(sound4, pan4, (s8)(depth4 / 2));
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0xC9) {
         sound5 = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F000E;
         pan5   = (s8)Gp_GetObjPan(arg0->extra.tmd->coords + 1);
         depth5 = gpGetObjDepth(arg0->extra.tmd->coords + 1);
-        SndEvt_EnqueueType6(sound5, (s32)pan5, (s8)(depth5 / 2));
+        SndEvt_EnqueueType6(sound5, pan5, (s8)(depth5 / 2));
         Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
         D_actor_403100_80155808->field_5FE = 0x12;
     }
@@ -3608,10 +3606,10 @@ static void func_actor_403100_80139818(Task* arg0)
     D_actor_403100_80155808->field_A0  = 0x290;
     D_actor_403100_80155808->field_A2  = 0x210;
     D_actor_403100_80155808->field_A4  = -0x160;
-    *(s32*)(u32)&part->coord.t[0]      = -0xE27;
-    *(s32*)(u32)&coords->coord.t[0]    = -0x44C;
-    *(s32*)(u32)&coords->coord.t[1]    = -0x1388;
-    *(s32*)(u32)&coords->coord.t[2]    = 0x2710;
+    part->coord.t[0]                   = -0xE27;
+    coords->coord.t[0]                 = -0x44C;
+    coords->coord.t[1]                 = -0x1388;
+    coords->coord.t[2]                 = 0x2710;
     D_actor_403100_80155808->field_80  = 0;
     D_actor_403100_80155808->field_82  = 0xA00;
     D_actor_403100_80155808->field_84  = 0;
