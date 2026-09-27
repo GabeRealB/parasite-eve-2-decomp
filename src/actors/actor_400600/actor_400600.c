@@ -2837,140 +2837,66 @@ static s32 func_actor_400600_801376EC(Task* arg0)
     return dist;
 }
 
+/// Replaces the rotation of `coord` with the one `func_8004BFF8` applies to an
+/// identity matrix for `angle`.
+static inline void _actor400600SetCoordRotation(GpCoord* coord, s16 angle)
+{
+    OverlayMat  rot;
+    OverlayMat* m;
+    MATRIX*     dst;
+
+    rot.ident.m00_m01 = 0x1000;
+    rot.ident.m02_m10 = 0;
+    m                 = &rot;
+    m->ident.m11_m12  = 0x1000;
+    rot.ident.m20_m21 = 0;
+    m->ident.m22      = 0x1000;
+    func_8004BFF8(angle, &m->mat);
+    dst          = &coord->coord;
+    dst->m[0][0] = rot.mat.m[0][0];
+    dst->m[0][1] = rot.mat.m[0][1];
+    dst->m[0][2] = rot.mat.m[0][2];
+    dst->m[1][0] = rot.mat.m[1][0];
+    dst->m[1][1] = rot.mat.m[1][1];
+    dst->m[1][2] = rot.mat.m[1][2];
+    dst->m[2][0] = rot.mat.m[2][0];
+    dst->m[2][1] = rot.mat.m[2][1];
+    dst->m[2][2] = rot.mat.m[2][2];
+}
+
+/// Sets the root rotation of the child task held in work field `child`, if it
+/// has been spawned.
+#define _ACTOR400600_ROTATE_CHILD(task, child, angle)                         \
+    do {                                                                      \
+        Task* _child = ((Actor400600Work*)(task)->work)->child;               \
+                                                                              \
+        if (_child != NULL) {                                                 \
+            _actor400600SetCoordRotation(_child->extra.tmd->coords, (angle)); \
+        }                                                                     \
+    } while (0)
+
 static void func_actor_400600_80137840(Task* arg0)
 {
     Actor400600Work* work;
-    Actor400600Work* work2;
-    Actor400600Work* work3;
-    Actor400600Work* work4;
-    Actor400600Work* work5;
-    Task*            child;
-    Task*            child2;
-    Task*            child3;
-    Task*            child4;
-    GpCoord*         coord;
-    GpCoord*         coord2;
-    GpCoord*         coord3;
-    GpCoord*         coord4;
-    OverlayMat       rot;
-    OverlayMat*      m1;
-    OverlayMat*      m2;
-    OverlayMat*      m3;
-    OverlayMat*      m4;
-    MATRIX*          dst;
-    MATRIX*          dst2;
-    MATRIX*          dst3;
-    MATRIX*          dst4;
-    s16              angle1;
-    s32              angle2;
-    s16              angle3;
-    s16              angle4;
+    s32              angle;
 
     work = (Actor400600Work*)arg0->work;
     if ((u8)work->field_765 != 0) {
         work->field_74E += (0x380 - work->field_74E) >> 2;
-        angle1           = work->field_74E;
-        work2            = (Actor400600Work*)arg0->work;
-        child            = work2->field_708;
-        if (child != NULL) {
-            coord             = child->extra.tmd->coords;
-            rot.ident.m00_m01 = 0x1000;
-            rot.ident.m02_m10 = 0;
-            m1                = &rot;
-            m1->ident.m11_m12 = 0x1000;
-            rot.ident.m20_m21 = 0;
-            m1->ident.m22     = 0x1000;
-            func_8004BFF8(angle1, &m1->mat);
-            dst          = &coord->coord;
-            dst->m[0][0] = rot.mat.m[0][0];
-            dst->m[0][1] = rot.mat.m[0][1];
-            dst->m[0][2] = rot.mat.m[0][2];
-            dst->m[1][0] = rot.mat.m[1][0];
-            dst->m[1][1] = rot.mat.m[1][1];
-            dst->m[1][2] = rot.mat.m[1][2];
-            dst->m[2][0] = rot.mat.m[2][0];
-            dst->m[2][1] = rot.mat.m[2][1];
-            dst->m[2][2] = rot.mat.m[2][2];
-        }
+        _ACTOR400600_ROTATE_CHILD(arg0, field_708, work->field_74E);
     } else {
         work->obj_594.flags &= 0x7FFF;
         work->field_74E     += -work->field_74E >> 3;
-        angle2               = work->field_74E;
-        TOUCH_REG_USE(arg0, angle2);
-        work3  = (Actor400600Work*)arg0->work;
-        child2 = work3->field_708;
-        if (child2 != NULL) {
-            coord2            = child2->extra.tmd->coords;
-            rot.ident.m00_m01 = 0x1000;
-            rot.ident.m02_m10 = 0;
-            m2                = &rot;
-            m2->ident.m11_m12 = 0x1000;
-            rot.ident.m20_m21 = 0;
-            m2->ident.m22     = 0x1000;
-            func_8004BFF8(angle2, &m2->mat);
-            dst2          = &coord2->coord;
-            dst2->m[0][0] = rot.mat.m[0][0];
-            dst2->m[0][1] = rot.mat.m[0][1];
-            dst2->m[0][2] = rot.mat.m[0][2];
-            dst2->m[1][0] = rot.mat.m[1][0];
-            dst2->m[1][1] = rot.mat.m[1][1];
-            dst2->m[1][2] = rot.mat.m[1][2];
-            dst2->m[2][0] = rot.mat.m[2][0];
-            dst2->m[2][1] = rot.mat.m[2][1];
-            dst2->m[2][2] = rot.mat.m[2][2];
-        }
+        angle                = work->field_74E;
+        _ACTOR400600_ROTATE_CHILD(arg0, field_708, angle);
     }
     if ((u8)work->field_766 != 0) {
         work->field_74C += (0x380 - work->field_74C) >> 2;
-        angle3           = work->field_74C;
-        work4            = (Actor400600Work*)arg0->work;
-        child3           = work4->field_704;
-        if (child3 != NULL) {
-            coord3            = child3->extra.tmd->coords;
-            rot.ident.m00_m01 = 0x1000;
-            rot.ident.m02_m10 = 0;
-            m3                = &rot;
-            m3->ident.m11_m12 = 0x1000;
-            rot.ident.m20_m21 = 0;
-            m3->ident.m22     = 0x1000;
-            func_8004BFF8((s16)-angle3, &m3->mat);
-            dst3          = &coord3->coord;
-            dst3->m[0][0] = rot.mat.m[0][0];
-            dst3->m[0][1] = rot.mat.m[0][1];
-            dst3->m[0][2] = rot.mat.m[0][2];
-            dst3->m[1][0] = rot.mat.m[1][0];
-            dst3->m[1][1] = rot.mat.m[1][1];
-            dst3->m[1][2] = rot.mat.m[1][2];
-            dst3->m[2][0] = rot.mat.m[2][0];
-            dst3->m[2][1] = rot.mat.m[2][1];
-            dst3->m[2][2] = rot.mat.m[2][2];
-        }
+        _ACTOR400600_ROTATE_CHILD(arg0, field_704, -work->field_74C);
     } else {
         work->obj_5CC.flags &= 0x7FFF;
         work->field_74C     += -work->field_74C >> 3;
-        angle4               = work->field_74C;
-        work5                = (Actor400600Work*)arg0->work;
-        child4               = work5->field_704;
-        if (child4 != NULL) {
-            coord4            = child4->extra.tmd->coords;
-            rot.ident.m00_m01 = 0x1000;
-            rot.ident.m02_m10 = 0;
-            m4                = &rot;
-            m4->ident.m11_m12 = 0x1000;
-            rot.ident.m20_m21 = 0;
-            m4->ident.m22     = 0x1000;
-            func_8004BFF8((s16)-angle4, &m4->mat);
-            dst4          = &coord4->coord;
-            dst4->m[0][0] = rot.mat.m[0][0];
-            dst4->m[0][1] = rot.mat.m[0][1];
-            dst4->m[0][2] = rot.mat.m[0][2];
-            dst4->m[1][0] = rot.mat.m[1][0];
-            dst4->m[1][1] = rot.mat.m[1][1];
-            dst4->m[1][2] = rot.mat.m[1][2];
-            dst4->m[2][0] = rot.mat.m[2][0];
-            dst4->m[2][1] = rot.mat.m[2][1];
-            dst4->m[2][2] = rot.mat.m[2][2];
-        }
+        _ACTOR400600_ROTATE_CHILD(arg0, field_704, -work->field_74C);
     }
     if ((u32)(work->field_71C - 6) >= 2U) {
         work->obj_594.flags &= 0x7FFF;

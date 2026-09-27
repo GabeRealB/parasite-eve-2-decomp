@@ -144718,3 +144718,15 @@ emits the constant's parameter copy in the block before the helper's first
 branch, and that extra insn lets sched1 hoist the preceding
 `gStageSceneMusicEntry = 2;` store to the top of the block. An explicit
 `flag = 0x80;` hoisted to the same place reproduces the failure exactly.
+## A barrier ordering one arm's sign extension before a reload is a statement macro's loop note (func_actor_400600_80137840, 2026-09-27)
+
+Four copies of "reload the child from `task->work`, null-check it, rotate it by an
+`s16` angle" matched only with `TOUCH_REG_USE(arg0, angle)` in one arm, which put
+that arm's `sll/sra` extension before the `lw 0x1c(s2)` reload while the other
+arms extend inside the null-checked block. An inline function for the child
+step cannot do it: sched1 fills the reload's load delays with the extension.
+Writing the child step as a `do { } while (0)` statement macro puts
+`NOTE_INSN_LOOP_BEG` before the reload, and sched1 will not move insns across
+it. The arm whose extension is early assigns the field to an `s32` local before
+the macro; the arms passing the `s16` field (or its negation) straight to the
+macro's inner `static inline` setter extend at the call, as the target does.
