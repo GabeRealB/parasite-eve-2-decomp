@@ -602,7 +602,7 @@ u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
     POLY_F3*      poly;
     s32*          opz;
     DisplayState* ds;
-    register u32  clipMask asm("t3");
+    u32           clipMask;
     u16*          rec;
     s32           sz;
     s32           idx;
