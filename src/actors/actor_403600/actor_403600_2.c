@@ -4115,100 +4115,55 @@ static void func_actor_403600_801400BC(Task* arg0)
 
 static void func_actor_403600_80140488(GpEnemy* arg0, Task* arg1)
 {
-    s32              state;
-    s32              i;
-    s16              countdown;
     TmdObject*       object;
-    Actor403600Work* initialWork;
+    Actor403600Work* work;
     Actor403600Work* globalWork;
     Actor403600Work* cleanupWork;
-    Actor403600Work* commonWork;
     GpEnemy*         enemy;
-    u8*              anim;
 
-    object      = arg1->extra.tmd;
-    initialWork = arg1->work;
-    globalWork  = D_actor_403600_801606A8->work;
-    state       = Gp_StateF0.field_4;
-    if (state == 1) {
-        goto case1;
+    object     = arg1->extra.tmd;
+    work       = arg1->work;
+    globalWork = D_actor_403600_801606A8->work;
+    switch (Gp_StateF0.field_4) {
+        case 1:
+            if (globalWork->field_742 != 1) {
+                return;
+            }
+            break;
+        case 2:
+            object->flags           |= 0x80;
+            arg0->node.state.b.flags = 1;
+            return;
+        case 0:
+        default:
+            break;
     }
-    if (state < 2) {
-        goto default_body;
+    switch (work->field_732) {
+        case 0:
+            object->lightLevel    += 3;
+            arg1->extra.tmd->flags = 0;
+            if (--arg1->killCountdown <= 0) {
+                work->field_732 = 1;
+                work->field_734 = 0;
+            }
+            break;
+        case 1:
+            Gp_ReleaseStateF0Add(arg1, 0x24);
+            globalWork->field_4B4        = NULL;
+            enemy                        = arg1->spawnArg2;
+            cleanupWork                  = arg1->work;
+            arg1->extra.tmd->coords->sub = &gGfxViewCoord;
+            enemy->recs                  = 0;
+            Gp_UnlinkNode(&enemy->node);
+            Gp_UnlinkObj(&cleanupWork->field_508);
+            Gp_UnlinkObj(&cleanupWork->field_588);
+            if (arg1 == D_actor_403600_801606A8) {
+                Gp_UnlinkObj(&cleanupWork->field_5C0);
+            }
+            Gp_EnemyTaskExit(arg1);
+            return;
     }
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case1:
-    if (globalWork->field_742 != 1) {
-        return;
-    }
-    goto default_body;
-case2:
-    object->flags           |= 0x80;
-    arg0->node.state.b.flags = 1;
-    return;
-default_body:
-    if (initialWork->field_732 == 0) {
-        goto inner0;
-    }
-    if (initialWork->field_732 == 1) {
-        goto inner1;
-    }
-    goto common;
-inner0:
-    object->lightLevel    += 3;
-    arg1->extra.tmd->flags = 0;
-    countdown              = (u16)arg1->killCountdown - 1;
-    arg1->killCountdown    = countdown;
-    if ((countdown << 0x10) <= 0) {
-        initialWork->field_732 = 1;
-        initialWork->field_734 = 0;
-    }
-    goto common;
-inner1:
-    Gp_ReleaseStateF0Add(arg1, 0x24);
-    globalWork->field_4B4        = NULL;
-    enemy                        = arg1->spawnArg2;
-    cleanupWork                  = arg1->work;
-    arg1->extra.tmd->coords->sub = &gGfxViewCoord;
-    enemy->recs                  = 0;
-    Gp_UnlinkNode(&enemy->node);
-    Gp_UnlinkObj(&cleanupWork->field_508);
-    Gp_UnlinkObj(&cleanupWork->field_588);
-    if (arg1 == D_actor_403600_801606A8) {
-        Gp_UnlinkObj(&cleanupWork->field_5C0);
-    }
-    Gp_EnemyTaskExit(arg1);
-    return;
-common:
-    commonWork = arg1->work;
-    if (D_actor_403600_8016057C[(s16)commonWork->field_736] != 0) {
-        i = 1;
-        if ((s16)commonWork->field_736 != commonWork->field_738) {
-            commonWork->field_738 = commonWork->field_736;
-            commonWork->field_73A = 0;
-            do {
-                func_800B4114(&commonWork->rig.anim, i, commonWork->field_736, 0, commonWork->field_756);
-                i++;
-            } while (i < 0x14);
-        } else {
-            TOUCH_REG(i);
-            commonWork->field_73A += i;
-            /* A byte cursor 0x28 bytes into the block reaches each slot's `rate` at
-             * +0x1D. The slot index is hidden from the compiler for the update
-             * above, so indexing `rig.slots` would derive the cursor from it with
-             * a multiply instead of this constant start. */
-            anim = (u8*)commonWork + 0x28;
-            do {
-                anim[0x1D] = (u8)commonWork->field_778;
-                Gp_AnimTickIndex(&commonWork->rig.anim, i);
-                i++;
-                anim += sizeof(GpAnimSlot);
-            } while (i < 0x14);
-        }
-    }
+    _actor403600UpdateAnimation(arg1, 20);
 }
 
 /// Restores a fixed set of fields in `task`'s work block to their starting
