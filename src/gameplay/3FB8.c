@@ -690,7 +690,6 @@ void func_800F91AC(Task* arg0)
     GpCoord*    coord;
     GpMtxWords* rot;
     s16         flag;
-    s32         temp;
     s16         width;
     s32         half;
     s32         i;
@@ -712,13 +711,10 @@ void func_800F91AC(Task* arg0)
             coord->coord.t[2] = mem->pos.vz;
             coord->flg        = 0;
             arg0->state       = 1;
-            mem->scale        = (u16)arg0->spawnArg1;
-            temp              = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
-            mem->angle        = temp;
-            mem->period       = temp * 3;
+            mem->scale        = arg0->spawnArg1;
+            mem->angle        = arg0->spawnArg1 >> 16;
+            mem->period       = mem->angle * 3;
             mem->step         = mem->scale / 768 + 1;
-            // Keep the duration live through the rate calculation.
-            SOFT_USE_REG(temp);
         }
         Gp_UpdateCoord(coord);
         if (Gp_State1C->eventState != 0) {
