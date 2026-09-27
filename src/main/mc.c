@@ -2507,11 +2507,11 @@ static void Mc_HideChildUi(Task* arg0)
 
 static void Mc_WriteDataChecksum(s32 arg0, McWork* arg1)
 {
-    s16          sum;
-    s32          count;
-    u8*          src;
-    s16*         dst;
-    register s32 i asm("v1");
+    s16  sum;
+    s32  count;
+    u8*  src;
+    s16* dst;
+    s32  i;
 
     sum   = 0;
     count = 0x200;
@@ -2526,12 +2526,10 @@ static void Mc_WriteDataChecksum(s32 arg0, McWork* arg1)
     i      = 0;
     dst[0] = sum;
     dst[1] = ~sum;
-    if (count != 0) {
-        do {
-            i   += 1;
-            sum += (s8)*src;
-            src += 1;
-        } while (i < count);
+    while (i < count) {
+        i   += 1;
+        sum += (s8)*src;
+        src += 1;
     }
     dst[0] = sum;
     dst[1] = ~sum;
