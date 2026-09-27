@@ -100,104 +100,80 @@ void Boot_LoadInitialFile(Task* task)
     u8          modeParam[8];
     u8          param1[8];
     u8          param2[8];
-    s32         state;
-    s32         next;
     u8          fade;
-    Task*       a0;
     CdCmdQueue* queue;
-    s32         ch;
-    u32         size;
 
-    a0    = task;
     queue = &CdCmd_Queue;
-    state = a0->state;
-    switch (state) {
+    switch (task->state) {
         case 0:
-            goto L_case0;
+            Display_SetMode(0xD010);
+            modeParam[0] = CdlModeSpeed | CdlModeSize1;
+            CdControlB(CdlSetmode, modeParam, NULL);
+            SetDispMask(0);
+            Fs_ScanIsoDirectory(1);
+            gDisplayState.at100.flags.imageSource = 1;
+            CdCmd_Enqueue(0x55, NULL, NULL);
+            Mem_ConfigureAuxHeap(0, 0);
+            while (queue->field_1FE != 0xFF) {
+                CdCmd_StepVlcRebuild();
+            }
+            param1[3] = 0;
+            param1[2] = 0;
+            param1[0] = 1;
+            param2[0] = 0;
+            param2[1] = 0;
+            param2[2] = 0;
+            param2[3] = 0;
+            CdCmd_Enqueue(0x21, param1, param2);
+            task->killCountdown = 0xFF;
+            fade                = task->killCountdown;
+            Fade_DrawOverlay(fade, fade, fade, 2);
+            task->state++;
+            break;
+
         case 1:
-            goto L_case1;
+            SetDispMask(1);
+            task->killCountdown -= 8;
+            if (task->killCountdown <= 0) {
+                task->killCountdown = 0;
+                task->state++;
+            }
+            fade = task->killCountdown;
+            Fade_DrawOverlay(fade, fade, fade, 2);
+            break;
+
         case 2:
-            goto L_case2;
+            if (task->killCountdown < 0x5A) {
+                task->killCountdown++;
+            }
+            if (CdCmd_IsIdle() == 0) {
+                return;
+            }
+            if (task->killCountdown < 0x5A) {
+                return;
+            }
+            task->killCountdown = 0;
+            task->state++;
+            break;
+
         case 3:
-            goto L_case3;
+            task->killCountdown += 8;
+            if (task->killCountdown >= 0x100) {
+                Mem_Set(Fs_ImgBuffers, 0, 0x25800);
+                task->state++;
+                break;
+            }
+            fade = task->killCountdown;
+            Fade_DrawOverlay(fade, fade, fade, 2);
+            break;
+
         case 4:
-            goto L_case4;
+            Task_Spawn(0, 0xD, 0, 0);
+            taskKill(task);
+            SetDispMask(1);
+            gDisplayState.field_112 = 0;
+            break;
     }
-    return;
-
-L_case0:
-    Display_SetMode(0xD010);
-    modeParam[0] = CdlModeSpeed | CdlModeSize1;
-    CdControlB(CdlSetmode, modeParam, NULL);
-    SetDispMask(0);
-    Fs_ScanIsoDirectory(1);
-    gDisplayState.at100.flags.imageSource = 1;
-    CdCmd_Enqueue(0x55, NULL, NULL);
-    Mem_ConfigureAuxHeap(0, 0);
-    while (queue->field_1FE != 0xFF) {
-        CdCmd_StepVlcRebuild();
-    }
-    param1[3] = 0;
-    param1[2] = 0;
-    param1[0] = 1;
-    param2[0] = 0;
-    param2[1] = 0;
-    param2[2] = 0;
-    param2[3] = 0;
-    CdCmd_Enqueue(0x21, param1, param2);
-    a0->killCountdown = 0xFF;
-    fade              = a0->killCountdown;
-    Fade_DrawOverlay(fade, fade, fade, 2);
-    goto advance;
-
-L_case1:
-    SetDispMask(1);
-    a0->killCountdown -= 8;
-    if (a0->killCountdown <= 0) {
-        a0->killCountdown = 0;
-        a0->state         = a0->state + 1;
-    }
-    goto do_fade;
-
-L_case2:
-    if (a0->killCountdown < 0x5A) {
-        a0->killCountdown = a0->killCountdown + 1;
-    }
-    if (CdCmd_IsIdle() == 0) {
-        return;
-    }
-    if (a0->killCountdown < 0x5A) {
-        return;
-    }
-    next              = a0->state;
-    a0->killCountdown = 0;
-    goto advance_inc;
-
-L_case3:
-    a0->killCountdown += 8;
-    if (a0->killCountdown < 0x100) {
-        goto do_fade;
-    }
-    ch   = 0;
-    size = 0x20000;
-    SOFT_TOUCH_REG2(ch, size);
-    Mem_Set(Fs_ImgBuffers, ch, size | 0x5800);
-advance:
-    next = a0->state;
-advance_inc:
-    a0->state = next + 1;
-    return;
-
-do_fade:
-    fade = a0->killCountdown;
-    Fade_DrawOverlay(fade, fade, fade, 2);
-    return;
-
-L_case4:
-    Task_Spawn(0, 0xD, 0, 0);
-    taskKill(a0);
-    SetDispMask(1);
-    gDisplayState.field_112 = 0;
 }
 
 void Boot_WaitCdAudioReady(void)

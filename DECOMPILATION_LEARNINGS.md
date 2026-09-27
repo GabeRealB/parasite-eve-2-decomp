@@ -145266,3 +145266,21 @@ read `*xy`, then `*++xy`. The increment is a second set when flow counts
 and deletes it, so it emits nothing. The increment has to sit in the same block
 as the load it feeds: `*xy++` on the first read leaves a separate `addiu`
 behind.
+
+## A label right after a call ends its block and changes how sched1 orders the argument setup (Boot_LoadInitialFile, 2026-09-27)
+
+**Symptom.** `Mem_Set(Fs_ImgBuffers, 0, 0x25800)` compiles as `lui/lw a0`
+then `move a1,zero; lui a2`, while the target sets `a1` and the `a2` high half
+first and loads `a0` last. The tree forced it with `SOFT_TOUCH_REG2` on two
+locals holding the constants.
+
+**Cause.** The goto-shaped source put a shared `advance:` label directly after
+the call, so the call was the last insn of its basic block. sched1 receives
+identical RTL either way, but with the state increment following the call in
+the same block it hoists the constant argument sets ahead of the global load.
+
+**Fix.** Write the case as a structured `switch` with its own tail
+(`Mem_Set(...); task->state++; break;`) and let jump2 cross-jump the shared
+`state++` tails back together. The block layout the goto version produced
+comes out of the inverted test (`if (x >= 0x100) { ...; break; }` then the
+fade path) rather than from labels.
