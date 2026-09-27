@@ -4347,10 +4347,9 @@ s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
 
 static void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
 {
-    u8*                    head;
-    GpGridPairScratch*     block;
-    VECTOR*                out;
-    register GpGridParams* p asm("a2");
+    u8*                head;
+    GpGridPairScratch* block;
+    VECTOR*            out;
 
     head                            = SCRATCH_HEAD(u8);
     block                           = (GpGridPairScratch*)(head - 0x40);
@@ -4360,18 +4359,24 @@ static void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
     out                             = (VECTOR*)(head - 0x30);
     SCRATCH_HEAD(GpGridPairScratch) = block;
     ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &block->in, out);
-    p              = Gp_GridParams;
-    block->pos0.vx = (s16)((u16)block->out.vx + (u16)p->field_14 - (u16)p->field_0->coord.t[0]);
-    block->pos0.vy = 0;
-    block->pos0.vz = (s16)((u16)block->out.vz + (u16)p->field_18 - (u16)p->field_0->coord.t[2]);
-    block->in.vx   = arg1->vx;
-    block->in.vy   = arg1->vy;
-    block->in.vz   = arg1->vz;
-    ApplyTransposeMatrixLV(&p->field_0->workm, &block->in, out);
-    p              = Gp_GridParams;
-    block->pos1.vx = (s16)((u16)block->out.vx + (u16)p->field_14 - (u16)p->field_0->coord.t[0]);
-    block->pos1.vy = 0;
-    block->pos1.vz = (s16)((u16)block->out.vz + (u16)p->field_18 - (u16)p->field_0->coord.t[2]);
+    {
+        GpGridParams* p = Gp_GridParams;
+
+        block->pos0.vx = (s16)(block->out.vx + p->field_14 - p->field_0->coord.t[0]);
+        block->pos0.vy = 0;
+        block->pos0.vz = (s16)(block->out.vz + p->field_18 - p->field_0->coord.t[2]);
+    }
+    block->in.vx = arg1->vx;
+    block->in.vy = arg1->vy;
+    block->in.vz = arg1->vz;
+    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &block->in, out);
+    {
+        GpGridParams* p = Gp_GridParams;
+
+        block->pos1.vx = (s16)(block->out.vx + p->field_14 - p->field_0->coord.t[0]);
+        block->pos1.vy = 0;
+        block->pos1.vz = (s16)(block->out.vz + p->field_18 - p->field_0->coord.t[2]);
+    }
     func_800DE2C0((VECTOR*)(head - 0x20), 0);
     SCRATCH_POP_BYTES(0x40);
 }
