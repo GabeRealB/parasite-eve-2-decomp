@@ -1206,21 +1206,19 @@ s32 func_actor_460200_80133C64(Task* task, s32 arg1, GpAnimArg* args)
     Actor160600Work* work;
 
     work = (Actor160600Work*)task->work;
-    if (args->field_4 >= 0x12) {
-        return -1;
+    if (args->field_4 < 0x12) {
+        work->st.animId = args->field_4;
+        if (args->field_8 != 0) {
+            work->st.state = 1;
+            work->animArg  = args->field_C;
+        } else {
+            work->st.state = 2;
+        }
+        work->st.field_6 = 0;
+        func_actor_460200_801336B4(task);
+        return 0;
     }
-
-    work->st.animId = args->field_4;
-    if (args->field_8 != 0) {
-        SOFT_BARRIER();
-        work->st.state = 1;
-        work->animArg  = args->field_C;
-    } else {
-        work->st.state = 2;
-    }
-    work->st.field_6 = 0;
-    func_actor_460200_801336B4(task);
-    return 0;
+    return -1;
 }
 
 /// Script opcode: set the visibility flags of this actor's model and of the
