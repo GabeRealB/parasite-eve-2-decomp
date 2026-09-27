@@ -145232,3 +145232,19 @@ as the hack-free sibling bodies do: `x = *xy + 0xA0; ... xy++; x = *xy + 0x78;`
 with `s16* xy = &ws->texCoord.vx`. The increment is the second set; combine
 folds it into the next load's displacement (`lh v0,2(t1)`), so no `addiu`
 appears.
+
+## `base + (col*2 + row*16)` with the column scaled first: a byte offset built in statements, not `rec[row].field[col]` (Gp_GetAttachParam, 2026-09-27)
+
+**Shape.** The target does `sll v1,a3,1` (column) before reloading the row
+index, then `addu v1,v1,v0` (column + row offset) and only then
+`addu v1,t0,v1` adds the table base; the incoming column is moved off `a0` at
+entry. The tree held this with a `register asm("v1")` pin on the offset.
+
+**Cause.** Every struct spelling (`recs[row].field[col]`, `&recs[row]`,
+`recs->field[col + row*8]`, an inline accessor) associates the base with the
+row first, `(base + row*16) + col*2`, and leaves the column in `a0` - about 91%.
+The pin was not what produced the order: an `s32` offset accumulated in two
+statements (`off = col*sizeof(u16); off += row*sizeof(T);`) already gives
+v1 and the entry move once the pin is dropped. The last operand order needs the
+base written first, `(u8*)base + off`; `(s32)base + off` or `off + base` put
+the offset first.

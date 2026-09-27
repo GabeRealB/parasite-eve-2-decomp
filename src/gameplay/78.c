@@ -244,7 +244,7 @@ static u16 Gp_GetAttachParam(s32 arg0)
     u8*           table;
     s32           idx;
     GpRec16*      recs;
-    register s32  off asm("v1");
+    s32           off;
 
     recs = Gp_IdParamHi;
     idx  = Gp_StateC08.field_5;
@@ -272,10 +272,10 @@ static u16 Gp_GetAttachParam(s32 arg0)
             }
         }
     }
-    off  = arg0 * 2;
-    off += (Gp_StateC08.field_5 * 3 + ret) * 16;
-    off  = (s32)recs + off;
-    return *(u16*)off;
+    // Byte offset of column `arg0` within the level's row.
+    off  = arg0 * sizeof(u16);
+    off += (Gp_StateC08.field_5 * 3 + ret) * sizeof(GpRec16);
+    return *(u16*)((u8*)recs + off);
 }
 
 static void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
