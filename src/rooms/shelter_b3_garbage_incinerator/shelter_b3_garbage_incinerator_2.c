@@ -809,19 +809,18 @@ static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
 
     if (work->field_2C == NULL) {
     ret1:
-        COMPILER_BARRIER();
         return 1;
     }
     if (Gp_DispatchMsg(work->field_2C, 0x3ED, 0, 0) != 0) {
         return 0;
     }
     if (work->field_38 < 0x2F) {
-        return 1;
+        goto ret1;
     }
     if (D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] < 0) {
         goto ret1;
     }
-    anim                = (u16)D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] + 0x2F;
+    anim                = D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] + 0x2F;
     msgWork             = (GarbageIncineratorWork*)arg0->work;
     weaponId            = Player_Status.weapon;
     setId               = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
@@ -832,7 +831,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
     msg.field_C         = 0xA;
     msg.field_10        = 0;
     Gp_DispatchMsg(msgWork->field_2C, 0x3E8, (s32)&msg, 0);
-    return 1;
+    goto ret1;
 }
 
 /// Each tick rolls the LCG and aims the effect record at one part of the
