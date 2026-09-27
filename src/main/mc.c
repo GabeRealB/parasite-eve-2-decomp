@@ -1052,15 +1052,14 @@ static void Mc_StateFileSelect(Task* arg0, McWork* arg1)
                     if (matchCount != 0) {
                         arg1->field_28 = -1;
                     }
+                    arg1->field_8 = 1;
+                    arg0->state   = 5;
                 } else {
-                    register u8* fn asm("a0");
-
                     _mcCopyFileName(0);
-                    fn = Mc_FileName;
-                    Mc_BuildFileName(fn, obj->field_2C);
+                    Mc_BuildFileName(Mc_FileName, obj->field_2C);
+                    arg1->field_8 = 1;
+                    arg0->state   = 5;
                 }
-                arg1->field_8 = 1;
-                arg0->state   = 5;
             } else {
                 arg0->state = 0x29;
             }
