@@ -51337,6 +51337,20 @@ otherwise (`func_actor_312200_80163178`, `func_actor_210600_8014B8C8`). The
 `mist_parking` case has no such intervening read, which is why it needed the
 soft use.
 
+The same shop-panel body can avoid that soft use entirely: in
+`func_dryfield_night_garage_8017E768`, assign `shop = mem` **inside** the
+successful arm, then reuse `shop` for the existing per-frame update:
+`shop = (RoomShopList*)task->work; Ui_UpdateListNoAnim(shop, obj);`.
+This later real assignment/use makes `shop` the CSE canonical pointer after
+the copy, while the earlier null test still reads `mem`. It does not extend
+the allocation's live range through the later reassignment.
+Scratch `base_8.c` reproduced the seed's 99.865% and identical normalized
+assembly without asm; `.cse` retains the r87 null test and subsequent r82
+copy, and `.greg` assigns them v0 and s0. Omitting the later reuse (`base_2`)
+or moving the copy before the guard (`base_9`) gives 98.514% and a test on s0.
+The successful preprocessed input SHA-256 is
+`b11a40268852163f91f3e7c31f82248e3c763c8925319ffed0a681dfce64e15f`.
+
 ## A loop entry test that reads a *copy* of the count: dead store plus a double soft use
 
 Target shape, for `count = 0; if (stackable) count = f(); else for (i = 0; i < n; i++) ...`:

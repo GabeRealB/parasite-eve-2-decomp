@@ -696,12 +696,9 @@ void func_dryfield_night_garage_8017E768(Task* task)
     obj->field_2E = 0;
     Ui_DrawText((UiPanel*)obj, (char*)D_dryfield_night_garage_8017D6D0);
     if (task->state == 0) {
-        mem  = memCalloc(sizeof(RoomShopList), 0);
-        shop = mem;
+        mem = memCalloc(sizeof(RoomShopList), 0);
         if (mem != NULL) {
-            /* Keeps the allocation's own register distinct from the tested one,
-               so the null test stays on $v0 and the copy fills its delay slot. */
-            SOFT_TOUCH_REG(shop);
+            shop               = mem;
             task->work         = (TaskIdMap*)shop;
             shop->list.funcs   = D_dryfield_night_garage_80181AD8;
             shop->list.field_6 = 0;
@@ -716,7 +713,8 @@ void func_dryfield_night_garage_8017E768(Task* task)
             task->state += 1;
         }
     }
-    Ui_UpdateListNoAnim(task->work, obj);
+    shop = (RoomShopList*)task->work;
+    Ui_UpdateListNoAnim(shop, obj);
     Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 6);
 
     x              = obj->baseX - 2;
