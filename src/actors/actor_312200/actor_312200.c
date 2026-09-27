@@ -568,22 +568,19 @@ static void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
 /// coordinate is rebuilt (`flg` dropped) and the 0x51030008 loop queued while
 /// the room is live, from view 0x10 with the 0x7DB action `field_8B8` at 1.
 ///
-/// The `SOFT_BARRIER` is a matching aid, not the original's: without it the
-/// scheduler pulls the handler table's first `lui` in front of the `work`
-/// load. The trailing `vec` is the original's own - three dead stores, but the
-/// frame and the rest of the schedule are built around them.
+/// The trailing `vec` is the original's own - three dead stores, but the frame
+/// and the rest of the schedule are built around them.
 static void func_actor_312200_80163370(GpEnemy* enemy, Task* task)
 {
     TmdObject*       obj;
-    Actor312200Work* work;
     VECTOR           vec;
-    void             (*states[2])(Task*);
     s32              pan;
+    Actor312200Work* work                = (Actor312200Work*)task->work;
+    void             (*states[2])(Task*) = {
+        func_actor_312200_80163778,
+        func_actor_312200_801637CC,
+    };
 
-    work = (Actor312200Work*)task->work;
-    SOFT_BARRIER();
-    states[0] = func_actor_312200_80163778;
-    states[1] = func_actor_312200_801637CC;
     if (Gp_StateF0.field_4 == 0) {
         if (work->field_2 != work->field_0) {
             work->field_4 = 1;
