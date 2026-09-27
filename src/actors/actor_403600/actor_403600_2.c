@@ -3457,15 +3457,13 @@ static void func_actor_403600_8013F0C0(Task* arg0)
     s16              temp_v1_3;
     s16              temp_v1_4;
     s32              temp_s2;
-    s32              temp_s4;
-    s32              var_v0_2;
+    GpCoord*         temp_s4;
     s32              temp_s0;
     s32              temp_s0_2;
     s32              temp_s0_3;
     s32              temp_s0_4;
-    s32              var_v0;
     u16              temp_v0;
-    register u16     temp_v0_2 asm("v0");
+    u16              temp_v0_2;
     GpCoord*         temp_a0;
     GpCoord*         temp_a0_2;
     GpCoord*         temp_a0_3;
@@ -3474,19 +3472,17 @@ static void func_actor_403600_8013F0C0(Task* arg0)
     Actor403600Work* temp_a1_3;
     Actor403600Work* temp_s3;
 
-    temp_s4 = (s32)Gp_ActorSlots[0]->extra.tmd->coords;
+    temp_s4 = Gp_ActorSlots[0]->extra.tmd->coords;
     temp_s3 = arg0->work;
     switch (D_actor_403600_8016056C) {
         case 1:
-            temp_s3->field_760 = (u16)(temp_s3->field_760 + 1);
-            temp_a1            = arg0->work;
-            temp_a0            = Gp_ActorSlots[0]->extra.tmd->coords;
-            temp_a0->coord.t[0] =
-                (s32)(temp_a0->coord.t[0] +
-                      ((s32)(temp_a0->coord.m[0][2] * temp_a1->field_762) >> 0xC));
-            temp_a0->coord.t[2] =
-                (s32)(temp_a0->coord.t[2] +
-                      ((s32)(temp_a0->coord.m[2][2] * temp_a1->field_762) >> 0xC));
+            temp_s3->field_760++;
+            temp_a1 = arg0->work;
+            temp_a0 = Gp_ActorSlots[0]->extra.tmd->coords;
+            temp_a0->coord.t[0] +=
+                (temp_a0->coord.m[0][2] * temp_a1->field_762) >> 0xC;
+            temp_a0->coord.t[2] +=
+                (temp_a0->coord.m[2][2] * temp_a1->field_762) >> 0xC;
             if (((s16)temp_s3->field_760 >= 0xC) || (gGameSession->viewReady != 0)) {
                 temp_s3->field_760 = 0;
                 if (func_actor_403600_8013E7D4((s32)arg0, 3) == 0) {
@@ -3497,7 +3493,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                 D_actor_403600_80160568.field_4 = 2;
                 Gp_StateC08.field_6            |= 1;
                 Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, (s32)&D_actor_403600_80160568, 0);
-                goto end;
+                return;
             }
             break;
 
@@ -3520,24 +3516,26 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                 Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F9,
                                Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
             }
-            var_v0_2 = (s16)temp_s3->field_760 < 0x66;
-            goto check_timeout;
+            if ((s16)temp_s3->field_760 >= 0x66) {
+                temp_s3->field_760      = 0;
+                D_actor_403600_8016056C = 0;
+                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F1, 0, 0);
+            }
+            break;
 
         case 3:
-            temp_s3->field_760 = (u16)(temp_s3->field_760 + 1);
+            temp_s3->field_760++;
             temp_v1            = (u16)temp_s3->field_762 + 2;
             temp_s3->field_762 = temp_v1;
-            if ((temp_v1 << 0x10) > 0) {
+            if (temp_v1 > 0) {
                 temp_s3->field_762 = 0;
             }
             temp_a1_2 = arg0->work;
             temp_a0_2 = Gp_ActorSlots[0]->extra.tmd->coords;
-            temp_a0_2->coord.t[0] =
-                (s32)(temp_a0_2->coord.t[0] +
-                      ((s32)(temp_a0_2->coord.m[0][2] * temp_a1_2->field_762) >> 0xC));
-            temp_a0_2->coord.t[2] =
-                (s32)(temp_a0_2->coord.t[2] +
-                      ((s32)(temp_a0_2->coord.m[2][2] * temp_a1_2->field_762) >> 0xC));
+            temp_a0_2->coord.t[0] +=
+                (temp_a0_2->coord.m[0][2] * temp_a1_2->field_762) >> 0xC;
+            temp_a0_2->coord.t[2] +=
+                (temp_a0_2->coord.m[2][2] * temp_a1_2->field_762) >> 0xC;
             temp_v1_2 = temp_s3->field_73E;
             if ((temp_v1_2 != 0x3C) && (temp_v1_2 != 0x28) &&
                 ((s16)temp_s3->field_760 == 0xC)) {
@@ -3552,12 +3550,12 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                 temp_s3->field_760              = 0;
                 D_actor_403600_80160568.field_4 = 5;
                 Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, (s32)&D_actor_403600_80160568, 0);
-                goto end;
+                return;
             }
             break;
 
         case 4:
-            temp_s3->field_760 = (u16)(temp_s3->field_760 + 1);
+            temp_s3->field_760++;
             temp_v1_3          = (u16)temp_s3->field_762 - 2;
             temp_s3->field_762 = temp_v1_3;
             if (temp_v1_3 < 0) {
@@ -3565,12 +3563,10 @@ static void func_actor_403600_8013F0C0(Task* arg0)
             }
             temp_a1_3 = arg0->work;
             temp_a0_3 = Gp_ActorSlots[0]->extra.tmd->coords;
-            temp_a0_3->coord.t[0] =
-                (s32)(temp_a0_3->coord.t[0] +
-                      ((s32)(temp_a0_3->coord.m[0][2] * temp_a1_3->field_762) >> 0xC));
-            temp_a0_3->coord.t[2] =
-                (s32)(temp_a0_3->coord.t[2] +
-                      ((s32)(temp_a0_3->coord.m[2][2] * temp_a1_3->field_762) >> 0xC));
+            temp_a0_3->coord.t[0] +=
+                (temp_a0_3->coord.m[0][2] * temp_a1_3->field_762) >> 0xC;
+            temp_a0_3->coord.t[2] +=
+                (temp_a0_3->coord.m[2][2] * temp_a1_3->field_762) >> 0xC;
             temp_v1_4 = temp_s3->field_73E;
             if ((temp_v1_4 != 0x3C) && (temp_v1_4 != 0x28) &&
                 ((s16)temp_s3->field_760 == 0xC)) {
@@ -3585,7 +3581,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                 temp_s3->field_760              = 0;
                 D_actor_403600_80160568.field_4 = 6;
                 Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, (s32)&D_actor_403600_80160568, 0);
-                goto end;
+                return;
             }
             break;
 
@@ -3593,22 +3589,13 @@ static void func_actor_403600_8013F0C0(Task* arg0)
         case 6:
             temp_v0_2          = temp_s3->field_760 + 1;
             temp_s3->field_760 = temp_v0_2;
-            SOFT_TOUCH_REG(temp_v0_2);
-            var_v0_2 = (s16)temp_v0_2 < 0x28;
-            goto check_timeout;
+            if ((s16)temp_v0_2 >= 0x28) {
+                temp_s3->field_760      = 0;
+                D_actor_403600_8016056C = 0;
+                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F1, 0, 0);
+            }
+            break;
     }
-    goto end;
-
-check_timeout:
-    if (var_v0_2 != 0) {
-        goto end;
-    }
-    temp_s3->field_760      = 0;
-    D_actor_403600_8016056C = 0;
-    Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F1, 0, 0);
-
-end:
-    return;
 }
 
 static void func_actor_403600_8013F608(Task* arg0)
