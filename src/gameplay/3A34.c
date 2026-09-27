@@ -2662,24 +2662,20 @@ void Gp_UnlinkNode(GpLinkNode* node)
 void Gp_LinkNode(GpLinkNode* node)
 {
     GpLinkNode** p;
-    register s32 val asm("v0");
 
     if (node->state.b.onList == 0) {
         p = &Gp_LinkList;
-        if (Gp_LinkList != NULL) {
-            do {
-                p = &(*p)->next;
-            } while (*p != NULL);
+        while (*p != NULL) {
+            p = &(*p)->next;
         }
         *p                     = node;
-        val                    = node->state.b.flags;
         node->next             = NULL;
         node->state.b.targeted = 0;
         node->state.b.onList   = 1;
+        node->state.b.flags   &= ~1;
     } else {
-        val = node->state.b.flags;
+        node->state.b.flags &= ~1;
     }
-    node->state.b.flags = val & 0xFE;
 }
 
 s32 Gp_NodeSlotMask(GpLinkNode* node)
