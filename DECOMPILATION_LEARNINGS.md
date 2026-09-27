@@ -32882,6 +32882,32 @@ as `3CD8_34D8.c` / `3FB8_75BC.c`.
 
 ## Isolate `ret = 1` from `* 10` so the shift stays `sll`, not `sllv`
 
+Update (Gp_SetAttachState, 2026-09-27): the barrier recipe below is superseded
+by reusing the existing `getAttachLevel` inline helper and expressing the ID's
+decimal stages with signed-byte row and column locals:
+
+```c
+row = idx / 3;
+rowPrefix = (row + 1) * 10 + 1;
+column = idx % 3;
+attachId = rowPrefix + column;
+attachId *= 10;
+level = getAttachLevel(idx);
+attachId += level;
+```
+
+Without the helper, the default level's `1` is already live before the
+arithmetic in `.greg`; immediate shifts become register shifts by `.sched2`.
+The helper restores the immediate operations. Keeping `rowPrefix` separate
+leaves it local, while assigning the sum to `attachId` before multiplying
+extends the accumulator's global pseudo to that sum. Combining those last
+two statements instead leaves the sum local in `$v1`, causing three register
+differences. Scratch `base_11.c` / `base_12.c` isolate this change (99.856% /
+100.000%). The final `base_14.c` also stores `-2` directly: the pin, scheduler
+barrier and store-constant barrier are all unnecessary in the complete body.
+
+Historical workaround:
+
 `x * 10` expands to `(x << 2) + x` then `<< 1`. A nearby live `1`
 (`ret = 1`, or extra `+ 1` in the same formula) CSEs into a register and
 turns those `sll`s into `sllv`. Finish the multiply first, then barrier

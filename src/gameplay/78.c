@@ -590,65 +590,35 @@ static s32 Gp_CheckAttachThreshold(s32 arg0)
 
 static void Gp_SetAttachState(s32 arg0)
 {
-    GpStateC08*   p;
-    PlayerStatus* cfg;
-    s32           cond;
-    s32           ret;
-    u8*           table;
-    s32           n;
-    register s32  val asm("a0");
-    s32           t;
-    s32           tmp;
-    s8            temp;
-    s32           neg;
+    GpStateC08* p;
+    s32         level;
+    s32         idx;
+    s32         attachId;
+    s32         rowPrefix;
+    s8          row;
+    s8          column;
+    s8          duration;
 
     Gp_StateC08.field_E = 0;
     if (Gp_StateC08.field_6 & 1) {
         return;
     }
-    n                   = (s8)arg0;
+    idx                 = (s8)arg0;
     Gp_StateC08.field_5 = arg0;
-    val                 = n / 3;
-    t                   = (s8)val + 1;
-    tmp                 = t * 10 + 1;
-    SCHED_BARRIER();
-    t   = (s8)(n - val * 3);
-    val = tmp + t;
-    t   = (val << 2) + val;
-    val = t << 1;
-    ret = 1;
-    if (n < 0xC) {
-        cfg = &Player_Status;
-        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
-            cond = 0;
-        } else {
-            cond = cfg->field_26 == 4;
-        }
-        if (cond == 0) {
-            table = Mc_SaveData[0].attachLevels;
-        } else {
-            table = Gp_DebugAttachLevels;
-        }
-        table += n;
-        ret    = *table;
-        if (ret == 0) {
-            ret = 1;
-        }
-        if (cfg->peStateFlags & 0x80) {
-            if (ret < 3) {
-                ret++;
-            }
-        }
-    }
-    val        = val + ret;
+    row                 = idx / 3;
+    rowPrefix           = (row + 1) * 10 + 1;
+    column              = idx % 3;
+    attachId            = rowPrefix + column;
+    attachId           *= 10;
+    level               = getAttachLevel(idx);
+    attachId           += level;
+
     p          = &Gp_StateC08;
-    p->field_0 = val;
-    neg        = -2;
-    TOUCH_REG(neg);
-    p->field_3 = neg;
-    temp       = Gp_GetAttachParam(3);
-    p->field_2 = temp;
-    if (temp <= 0) {
+    p->field_0 = attachId;
+    p->field_3 = -2;
+    duration   = Gp_GetAttachParam(3);
+    p->field_2 = duration;
+    if (duration <= 0) {
         p->field_2 = 1;
     }
     p->field_A         = 2;
