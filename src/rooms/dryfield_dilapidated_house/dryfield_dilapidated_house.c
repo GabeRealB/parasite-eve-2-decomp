@@ -2344,8 +2344,6 @@ static void func_dryfield_dilapidated_house_80182744(Task* task)
 /// Same body as `func_pyrokinesis_8012FC34`.
 static void func_dryfield_dilapidated_house_80182A18(GpCoord* arg0, s16 arg1, s16 arg2)
 {
-    void**         scratch;
-    register u8*   head asm("v0");
     GpBandScratch* block;
     SVECTOR*       op;
     POLY_G4*       prim;
@@ -2361,15 +2359,12 @@ static void func_dryfield_dilapidated_house_80182A18(GpCoord* arg0, s16 arg1, s1
 
     /* The ramp halves are unsigned: writing them as `(u16)arg2 >> 1` folds the
      * widening into an `andi`, where the ROM shifts the value up and back. */
-    ramp     = (u32)arg2 << 16;
-    red      = arg2;
-    grn      = ramp >> 17;
-    blu      = ramp >> 18;
-    r1       = arg1 + 0x100;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = SCRATCH_HEAD_AT(scratch, u8) - sizeof(GpBandScratch);
-    block    = (GpBandScratch*)head;
-    *scratch = head;
+    ramp  = (u32)arg2 << 16;
+    red   = arg2;
+    grn   = ramp >> 17;
+    blu   = ramp >> 18;
+    r1    = arg1 + 0x100;
+    block = SCRATCH_PUSH(GpBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     r0 = arg1;
     for (i = 0; i < 16; i++) {
@@ -2430,7 +2425,7 @@ static void func_dryfield_dilapidated_house_80182A18(GpCoord* arg0, s16 arg1, s1
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP_BYTES(0x118);
+    SCRATCH_POP(GpBandScratch);
 }
 
 /// Draws the flame ring: `arg0`'s origin is projected once through
