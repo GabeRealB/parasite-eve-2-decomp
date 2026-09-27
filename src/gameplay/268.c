@@ -2300,16 +2300,17 @@ s32 Gp_UnequipRelated(s32 arg0, s32 arg1)
 
 s32 Gp_GetCurBit2Flag(s32 arg0)
 {
-    register u32* p asm("v1");
-    u32           word;
-    s32           shift;
+    s32  stage;
+    u32* p;
+    u32  word;
+    s32  shift;
 
-    p     = Gp_Bit2Banks[gGameSession->at4.loc.stage].field_4;
-    p    += arg0 >> 4;
+    stage = gGameSession->at4.loc.stage;
+    p     = &Gp_Bit2Banks[stage].field_4[arg0 >> 4];
     shift = (arg0 & 0xF) * 2;
     word  = *p;
-    CLOBBER_REG(a1);
-    return (word & (3 << shift)) >> shift;
+    word &= 3 << shift;
+    return word >> shift;
 }
 
 s32 Gp_HasCollectedBit(s32 arg0)

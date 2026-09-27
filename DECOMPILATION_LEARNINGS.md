@@ -24859,6 +24859,35 @@ asm volatile("" ::: "a1");
 return (word & (3 << shift)) >> shift;
 ```
 
+### Natural C replacement for `Gp_GetCurBit2Flag` (2026-09-27)
+
+The one-argument reader above no longer needs either hack. Read the stage into
+a local, take `p = &Gp_Bit2Banks[stage].field_4[arg0 >> 4]`, and update the
+loaded word before returning it:
+
+```c
+word = *p;
+word &= 3 << shift;
+return word >> shift;
+```
+
+With that addressing already in place, changing only
+`return (word & (3 << shift)) >> shift` to this update raised the scratch
+score from 78.421% to 100%. Both sets now target r83. In `.sched`, the word
+load (UID 40) retains priority 4 instead of `LAUNCH_PRIORITY`, as expected
+from `birthing_insn_p`'s `REG_N_SETS == 1` test. Backward scheduling selects
+the mask constant before that load, so the forward stream loads the word
+first. The pointer then occupies v1 and the word v0; sched2 puts `li v1,3`
+in the load delay. Folding the load into the return or adding an inline
+packed-flag accessor alone produced the same nonmatching assembly.
+
+Controlled inputs in `nonmatchings/Gp_GetCurBit2Flag-dehack`: `base_2.i`
+SHA-256 `7be21a43b80aed34e14d9144de9191082b4e214dd2904d1de1caca7c2c11e5f2`;
+`base_5.i` SHA-256
+`ae0b3b8b19bbef05cdad96e1783ec86dda6fe6664f47f28a299981db445a4044`.
+This supersedes the clobber advice for `Gp_GetCurBit2Flag`; the two-argument
+reader was not changed or tested here.
+
 ## Barrier the shift so `li v0,K` is not hoisted above `andi`/`sll`
 
 The 2-bit writer wants the mask built *before* the bank pointer, but *after*
