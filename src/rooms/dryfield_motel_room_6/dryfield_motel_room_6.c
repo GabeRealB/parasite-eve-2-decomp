@@ -2058,20 +2058,19 @@ s32 func_dryfield_motel_room_6_80181740(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 /// at tick 0x50, then kills itself at tick 0x78.
 void func_dryfield_motel_room_6_80181880(Task* task)
 {
-    s32 zero;
-
     switch (task->state) {
         case 0x50:
         case 0x0:
-            zero = 0;
-            TOUCH_REG(zero);
-            SndEvt_EnqueueType6((s32)task->spawnArg2, zero, zero);
+            SndEvt_EnqueueType6((s32)task->spawnArg2, 0, 0);
+            task->state += 1;
             break;
         case 0x78:
             Task_RequestKill(task, 0);
-            return;
+            break;
+        default:
+            task->state += 1;
+            break;
     }
-    task->state += 1;
 }
 
 /// Fallback of the room's message-0x13F0 handler for every event other than
