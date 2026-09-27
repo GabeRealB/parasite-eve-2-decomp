@@ -1001,19 +1001,16 @@ static const CVECTOR Gp_ColorOrange = { 0xFF, 0xA0, 0x60, 0 };
 /// computations start from a copy of it and overwrite the channels they derive.
 static const CVECTOR gGpColorWhite = { 0xFF, 0xFF, 0xFF, 0 };
 
-static u32* func_8009A804(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_8009A804(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
 {
-    TmdScratchModelBlock* ws;
-    s32                   prev;
-    s32                   count;
-    u32                   idx;
-    u16*                  rec;
-    CVECTOR               col;
-    CVECTOR               col2;
-    u8*                   dest;
+    s32     prev;
+    s32     count;
+    u32     idx;
+    u16*    rec;
+    CVECTOR col;
+    CVECTOR col2;
+    u8*     dest;
 
-    ws = arg0;
-    TOUCH_REG(ws);
     col   = gGpColorGrey;
     col2  = gGpColorGrey;
     count = ws->elemCount;
