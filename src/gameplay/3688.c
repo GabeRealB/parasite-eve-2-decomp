@@ -2666,12 +2666,9 @@ void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
         mode = Gp_ItemOrderMode;
         if (mode == rowState) {
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-                s32 selected;
-                u8* selectedRec;
-                selectedRec = Gp_SelItemRec;
-                selected    = *selectedRec;
-                USE_REG(selectedRec);
-                if (!(Gp_ItemDescs[selected].field_3 & 4)) {
+                GpItemDesc* desc;
+                desc = &Gp_ItemDescs[*Gp_SelItemRec];
+                if (!(desc->field_3 & 4)) {
                     SndEvt_EnqueueType6(3, 0, 0);
                     if (*Gp_SelItemRec != 0) {
                         Gp_SelItemRec[1] = prompt->field_8 + 1;
