@@ -144923,3 +144923,15 @@ Writing the flag as `s32 found = 0;` at its declaration, above the
 the target has them. The `move $a3,$zero` still ends up in the guard branch's
 delay slot, so the extra liveness costs no instruction. This replaced a
 `register ... asm("a3")` pin.
+### A trailing pointer `prev = str - 1` walked beside `str` is `str[-1]` in the source (Gp_GetItemText, 2026-09-27)
+
+The target seeds `addiu a2,v1,-1` in the loop preheader, *after* the four
+hoisted compare constants, and the guard's `blez` keeps a `nop` in its delay
+slot. A hand-written `prev = str - 1` before the loop is an ordinary
+statement: delay-slot filling pulls it into the `blez` slot, and a pin plus a
+`goto` loop had been holding it in place. Reading the previous character as
+`str[-1]` leaves loop.c to create the `str - 1` giv itself, and loop.c puts
+its initialiser in the preheader where the target has it. In the same body a
+`x + (n + 0xE)` sum only kept `n + 0xE` as its own `addiu` when that was a
+separate statement *after* `x` was computed; assigned before, it changed the
+allocation of every pseudo in the block.

@@ -1080,45 +1080,58 @@ static McItemRec* Gp_AddItem(McItemScan* arg0, s32 arg1, s32 arg2)
     return dest;
 }
 
+/// Whether item `item` has been seen. Ids at or above 0x180 have no bit in
+/// the save and always count as seen. Inline form of `Gp_HasItemSeenBit`.
+static inline s32 _gpHasItemSeenBit(s32 item)
+{
+    McSaveData* p;
+    s32         word;
+    s32         bit;
+    s32         val;
+
+    word = item / 32;
+    bit  = 1 << (item % 32);
+    if ((u32)item >= 0x180) {
+        return 1;
+    }
+    p   = &Mc_SaveData[0];
+    val = p->itemSeenBits[word] & bit;
+    return val != 0;
+}
+
 char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2)
 {
-    s8*          str;
-    GpItemDesc*  table;
-    GpItemDesc*  desc;
-    s32          bit;
-    s32          val;
-    s8*          prev;
-    register s32 tmp asm("v1");
+    s8*         str;
+    GpItemDesc* desc;
+    s32         c;
+    s32         n;
+    s32         row;
+    s32         col;
+    s32         id;
+    s32         ofs;
 
     if (arg0 >= 0x500) {
         str = Gp_ItemTextHi[arg0 - 0x500];
     } else if (arg0 >= 0x300) {
-        tmp  = arg0 & 3;
-        arg2 = (arg0 & 0xF0) >> 4;
-        arg0 = (arg0 & 0xC) >> 2;
-        if (tmp == 0) {
-            tmp = 1;
+        // A packed id: bits 4-7 and 2-3 pick a run of three entries starting
+        // at id 0xF, bits 0-1 the entry within it (1-3, with 0 read as 1).
+        n   = arg0 & 3;
+        row = (arg0 & 0xF0) >> 4;
+        col = (arg0 & 0xC) >> 2;
+        if (n == 0) {
+            n = 1;
         }
-        arg0 = (arg2 * 3 + arg0) * 3;
-        val  = tmp + 0xE;
-        str  = Gp_GetItemText(arg0 + val, arg1, 1);
+        id  = (row * 3 + col) * 3;
+        ofs = n + 0xE;
+        str = Gp_GetItemText(id + ofs, arg1, 1);
     } else {
-        tmp = arg0 << 3;
         if (arg0 < 0x100) {
-            table = Gp_ItemDescs;
+            desc = &Gp_ItemDescs[arg0];
         } else {
-            table = Gp_ItemDescsHi;
+            desc = &Gp_ItemDescsHi[arg0];
         }
-        desc = (GpItemDesc*)(tmp + (s32)table);
         if (arg2 == 0) {
-            arg2 = arg0 / 32;
-            bit  = 1 << (arg0 % 32);
-            if ((u32)arg0 >= 0x180) {
-                arg2 = 1;
-            } else {
-                val  = Mc_SaveData[0].itemSeenBits[arg2] & bit;
-                arg2 = val != 0;
-            }
+            arg2 = _gpHasItemSeenBit(arg0);
         }
         str = desc->field_4;
         if (arg1 >= 3) {
@@ -1127,25 +1140,12 @@ char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2)
         if (arg2 == 0) {
             arg1 += 3;
         }
-        if (arg1 > 0) {
-            s32 c_nl = 0xA;
-            s32 c_n  = 0x6E;
-            s32 c_bs = 0x5C;
-            s32 c_N  = 0x4E;
-            prev     = str - 1;
-        loop:
-            arg0 = *str;
-            if (arg0 == 0 || arg0 == c_nl) {
+        // Skip `arg1` fields, each ended by a NUL, a newline or a `\n` / `\N`
+        // escape.
+        for (; arg1 > 0; str++) {
+            c = *str;
+            if (c == '\0' || c == '\n' || (c == 'n' && str[-1] == '\\') || (c == 'N' && str[-1] == '\\')) {
                 arg1--;
-            } else if (arg0 == c_n && *prev == c_bs) {
-                arg1--;
-            } else if (arg0 == c_N && *prev == c_bs) {
-                arg1--;
-            }
-            prev++;
-            str++;
-            if (arg1 > 0) {
-                goto loop;
             }
         }
     }
