@@ -49,7 +49,7 @@ static const char Title_DemoCardRestoreMsg[44] = "####DEMO_CARD_RESTORE STAGE %d
 
 static void Title_InitTask(Task* arg0)
 {
-    register s32  flag asm("s2");
+    s32           flag;
     DisplayState* ds;
     TitleWork*    work;
 
@@ -67,11 +67,11 @@ static void Title_InitTask(Task* arg0)
     }
     work = memCalloc(0x18, 0);
     if (work != NULL) {
-        arg0->work                            = (TaskIdMap*)work;
-        *(volatile s32*)&work->menuCount      = 5;
-        *(volatile s32*)&work->selection      = 2;
-        *(volatile s32*)&work->fadeTileEnable = flag;
-        *(volatile s32*)&work->timer          = 0;
+        arg0->work           = (TaskIdMap*)work;
+        work->fadeTileEnable = flag;
+        work->menuCount      = 5;
+        work->selection      = 2;
+        work->timer          = 0;
         if (Wip_SysFlags.field_1 != 0) {
             work->selection = 3;
         }
