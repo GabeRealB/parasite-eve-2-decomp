@@ -428,65 +428,64 @@ loop:
 
 s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
 {
-    s32                  orig;
-    SndBankSlot*         bank;
-    register SndBankHdr* header asm("a0");
-    SndVoiceParams*      entry;
-    u16                  offset;
-    u32                  index;
-    SndEvt*              temp;
-    SndEvtVoiceArgs*     args;
+    s32              orig;
+    SndBankSlot*     bank;
+    SndBankHdr*      header;
+    SndVoiceParams*  entry;
+    u16              offset;
+    u32              index;
+    SndEvt*          temp;
+    SndEvtVoiceArgs* args;
 
     orig = arg0;
-    if ((arg0 != 0) && (arg0 != 8)) {
-        if (*(volatile s32*)&D_800689E4 != 0xFF) {
-            if ((*(volatile s32*)&D_800689E4 & 0xF000) ==
-                (((u32)arg0 >> 16) & 0xF000)) {
-                return -1;
-            }
-        }
-        arg0  = SndBank_RemapId(arg0);
-        bank  = sndBankSlotFind((u32)arg0 >> 16, 0);
-        index = (u32)arg0 & 0xFF;
-        if ((bank == NULL) ||
-            (header = bank->image, (index >= header->entryCount))) {
-            return -2;
-        }
-        // Pointer form: a subscript would emit the addition base-first, and the
-        // target adds the index first.
-        offset = *(header->entryOffsets + index);
-        if (offset == 0) {
-            return -3;
-        }
-        entry = (SndVoiceParams*)((s32)header + offset);
-        if (D_800689EC != 0) {
-            if ((entry->flags & 0x80) != 0) {
-                return -5;
-            }
-        }
-        if (D_80082138[(u32)arg0 >> 28] == 0) {
-            if ((entry->flags & 1) == 0) {
-                return -4;
-            }
-        }
-        temp = sndEvtAlloc();
-        if (temp != NULL) {
-            temp->handlerIdx        = 6;
-            args                    = &temp->args.voice;
-            args->id                = arg0;
-            args->pan               = arg1;
-            args->level.attenuation = arg2;
-            args->bank              = bank;
-            args->params            = entry;
-            sndEvtEnqueue(temp);
-            goto ret_orig;
-        }
-        goto ret_neg1;
+    if ((arg0 == 0) || (arg0 == 8)) {
+        return orig;
     }
-ret_orig:
+    if (D_800689E4 != 0xFF) {
+        if ((D_800689E4 & 0xF000) == (((u32)arg0 >> 16) & 0xF000)) {
+            return -1;
+        }
+    }
+    arg0 = SndBank_RemapId(arg0);
+    bank = sndBankSlotFind((u32)arg0 >> 16, 0);
+    if (bank == NULL) {
+        return -2;
+    }
+    index  = (u32)arg0 & 0xFF;
+    header = bank->image;
+    if (index >= header->entryCount) {
+        return -2;
+    }
+    // Pointer form: a subscript would emit the addition base-first, and the
+    // target adds the index first.
+    offset = *(header->entryOffsets + index);
+    if (offset == 0) {
+        return -3;
+    }
+    entry = (SndVoiceParams*)((u8*)header + offset);
+    if (D_800689EC != 0) {
+        if ((entry->flags & 0x80) != 0) {
+            return -5;
+        }
+    }
+    if (D_80082138[(u32)arg0 >> 28] == 0) {
+        if ((entry->flags & 1) == 0) {
+            return -4;
+        }
+    }
+    temp = sndEvtAlloc();
+    if (temp == NULL) {
+        return -1;
+    }
+    temp->handlerIdx        = 6;
+    args                    = &temp->args.voice;
+    args->id                = arg0;
+    args->pan               = arg1;
+    args->level.attenuation = arg2;
+    args->bank              = bank;
+    args->params            = entry;
+    sndEvtEnqueue(temp);
     return orig;
-ret_neg1:
-    return -1;
 }
 
 void SndEvt_EnqueueType7(s32 arg0, s32 arg1)
