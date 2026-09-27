@@ -1002,7 +1002,7 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
 {
     GpRoomCoordSet* set;
     GpPointLight*   point;
-    GpPointLight*   current;
+    GpLight*        light;
     GpSpotLight*    cone;
     VECTOR*         delta;
     u32             best;
@@ -1019,31 +1019,31 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
         delta = SCRATCH_HEAD(VECTOR);
         if (set->n60 > 0) {
             point = set->arr60;
-            for (i = 0; i < set->n60; i++, point = current + 1) {
-                current = point;
-                TOUCH_REG(current);
-                delta->vx = (current->head.u.coord.workm.t[0] - arg0->vx) >> 1;
-                delta->vy = (current->head.u.coord.workm.t[1] - arg0->vy) >> 1;
-                delta->vz = (current->head.u.coord.workm.t[2] - arg0->vz) >> 1;
+            for (i = 0; i < set->n60; i++, point++) {
+                light     = &point->head;
+                delta->vx = (light->u.coord.workm.t[0] - arg0->vx) >> 1;
+                delta->vy = (light->u.coord.workm.t[1] - arg0->vy) >> 1;
+                delta->vz = (light->u.coord.workm.t[2] - arg0->vz) >> 1;
                 dist      = delta->vx * delta->vx + delta->vy * delta->vy + delta->vz * delta->vz;
                 if (dist < best) {
                     best        = dist;
                     arg1->kind  = 1;
-                    arg1->light = &current->head;
+                    arg1->light = light;
                 }
             }
         }
         if (set->n6C > 0) {
             cone = set->arr6C;
             for (i = 0; i < set->n6C; i++, cone++) {
-                delta->vx = (cone->head.u.coord.workm.t[0] - arg0->vx) >> 1;
-                delta->vy = (cone->head.u.coord.workm.t[1] - arg0->vy) >> 1;
-                delta->vz = (cone->head.u.coord.workm.t[2] - arg0->vz) >> 1;
+                light     = &cone->head;
+                delta->vx = (light->u.coord.workm.t[0] - arg0->vx) >> 1;
+                delta->vy = (light->u.coord.workm.t[1] - arg0->vy) >> 1;
+                delta->vz = (light->u.coord.workm.t[2] - arg0->vz) >> 1;
                 dist      = delta->vx * delta->vx + delta->vy * delta->vy + delta->vz * delta->vz;
                 if (dist < best) {
                     best        = dist;
                     arg1->kind  = 2;
-                    arg1->light = &cone->head;
+                    arg1->light = light;
                 }
             }
         }
