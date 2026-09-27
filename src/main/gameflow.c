@@ -63,10 +63,8 @@ static const TaskFuncTable3 GameFlow_States3 = { {
 
 void GameFlow_StateByField34(Task* arg0)
 {
-    CdCmdQueue*   p;
-    register s32  saved asm("s1");
-    s8            one;
-    DisplayState* ds;
+    CdCmdQueue* p;
+    s32         saved;
 
     p = &CdCmd_Queue;
     if (arg0->spawnArg1 == 2) {
@@ -86,15 +84,13 @@ void GameFlow_StateByField34(Task* arg0)
             }
             Title_RestoreDemoCard();
             MEM_CLEAR(gGameSession, sizeof(GameSession));
-            ds                               = &gDisplayState;
-            ds->at100.flags.pendingPlayerPos = 0;
-            ds->gameRunning                  = 0;
-            one                              = 1;
-            gGameSession->applySavePlace     = one;
-            gGameSession->field_80           = 0;
+            gDisplayState.at100.flags.pendingPlayerPos = 0;
+            gDisplayState.gameRunning                  = 0;
+            gGameSession->applySavePlace               = 1;
+            gGameSession->field_80                     = 0;
             Snd_SetMutedVolumes(1);
-            ds->at100.flags.pendingPlayerPos = 0;
-            ds->stopTaskWalk                 = one;
+            gDisplayState.at100.flags.pendingPlayerPos = 0;
+            gDisplayState.stopTaskWalk                 = 1;
             taskKill(arg0);
             Task_ResetDefaultList();
             Tmd_InitLists();
@@ -113,10 +109,8 @@ void GameFlow_StateByField34(Task* arg0)
             p->field_244                               = 1;
             Wip_SysFlags.field_4                       = 1;
             Mc_InitBufferSlots();
-            do {
-                Mc_SaveData[0].vibration = saved;
-            } while (0);
-            arg0->state = arg0->state + 1;
+            Mc_SaveData[0].vibration = saved;
+            arg0->state              = arg0->state + 1;
         } else {
             MEM_CLEAR(gGameSession, sizeof(GameSession));
             gDisplayState.gameRunning                  = 1;
