@@ -3509,28 +3509,25 @@ s32 Gp_SpendMp(s32 arg0)
     return ret;
 }
 
-/// Same math as `Gp_WorldToLocal`, but inlined so the scratch-head address is
-/// rematerialised on every access: `out` receives `root->workm` transposed and
-/// multiplied by `arg0->workm`, with the translation delta rotated into
-/// `out->t`.
-static __inline__ void coordToRoot(GpCoord* arg0, GpCoord* root, MATRIX* out)
+/// Updates both coordinate frames and writes the transform from `arg0` to
+/// `root` into `result->coord`, using the transposed root rotation to rotate
+/// the orientation and translation delta.
+static __inline__ void coordToRoot(GpCoord* arg0, GpCoord* root, GpCoord* result)
 {
     _GpRelMatScratch* tmp;
-    register MATRIX*  rootm asm("a3");
-    register MATRIX*  world asm("a2");
-    u8*               head;
-    VECTOR*           vec;
+    MATRIX*           rootm;
+    MATRIX*           world;
+    MATRIX*           out;
 
     Gp_UpdateCoord(arg0);
     Gp_UpdateCoord(root);
 
     rootm = &root->workm;
     world = &arg0->workm;
-    head  = SCRATCH_HEAD(u8);
-    tmp   = (_GpRelMatScratch*)(head - 0x30);
+    tmp   = SCRATCH_HEAD(_GpRelMatScratch) - 1;
+    out   = &result->coord;
 
-    SCRATCH_HEAD(void) = tmp;
-    TOUCH_REG3(tmp, rootm, head);
+    SCRATCH_HEAD(_GpRelMatScratch) = tmp;
 
     gte_TransposeMatrix(rootm, &tmp->rot);
 
@@ -3539,10 +3536,9 @@ static __inline__ void coordToRoot(GpCoord* arg0, GpCoord* root, MATRIX* out)
     tmp->delta.vx = world->t[0] - rootm->t[0];
     tmp->delta.vy = world->t[1] - rootm->t[1];
     tmp->delta.vz = world->t[2] - rootm->t[2];
-    vec           = (VECTOR*)(head - 0x10);
-    ApplyMatrixLV(&tmp->rot, vec, (VECTOR*)out->t);
+    ApplyMatrixLV(&tmp->rot, &tmp->delta, (VECTOR*)out->t);
 
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_POP(_GpRelMatScratch);
 }
 
 /// Points the active view at `arg0`: the transposed rotation goes to
@@ -3574,7 +3570,7 @@ static void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
         root->coord.t[1] = -arg0->coord.t[1];
         root->coord.t[2] = -arg0->coord.t[2];
     } else {
-        coordToRoot(arg0, root, &rel.coord);
+        coordToRoot(arg0, root, &rel);
         gte_TransposeMatrix(&rel.coord, &gGfxViewRotCoord.coord);
         root->coord.t[0] = -rel.coord.t[0];
         root->coord.t[1] = -rel.coord.t[1];
@@ -3628,7 +3624,7 @@ static s32 Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1)
         coord->coord.t[1] = -arg0->coord.t[1];
         coord->coord.t[2] = -arg0->coord.t[2];
     } else {
-        coordToRoot(arg0, root, &rel.coord);
+        coordToRoot(arg0, root, &rel);
         gte_TransposeMatrix(&rel.coord, &coord->coord);
         coord->coord.t[0] = -rel.coord.t[0];
         coord->coord.t[1] = -rel.coord.t[1];

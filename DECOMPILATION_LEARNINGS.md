@@ -3,6 +3,24 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Let an inline helper select the destination member (coordToRoot, 2026-09-27)
+
+An inline helper's parameter can expose a member address too early. After
+removing `coordToRoot`'s two matrix-pointer pins and `TOUCH_REG3`, the pointers
+already had the target `a3`/`a2` homes, but the caller's `&rel.coord` address
+was scheduled before them. Passing `&rel` as a `GpCoord*` and selecting
+`out = &result->coord` inside the helper after scratch allocation moved that
+definition after the matrix-pointer definitions in scheduled RTL. Its `s0`
+setup then filled the scratch-head load delay slot as required.
+
+Scratch `Gp_SetViewFromCoord-dehack/base_1.c` scored 99.718%; this interface
+change in `base_4.c` restored the seed's 99.906% (four symbol-name differences).
+Typed scratch allocation and `&tmp->delta` also preserve the match. The
+unscoped build passes for both callers. The custom `gte_TransposeMatrix` asm
+macro remains: scalar, column-temporary, inline and full-snapshot C variants
+did not reproduce its fixed `t4`/`t5`/`t6` sequence. This finding removes the
+three explicit hacks, not that hidden macro.
+
 ## Reusing the final component result separates it from local arithmetic quantities (func_actor_403600_80134398, 2026-09-27)
 
 Three weighted direction updates needed no barriers when their final results
