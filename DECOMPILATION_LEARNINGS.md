@@ -144907,3 +144907,19 @@ Reversing the stores, or a chained `a = b = 1`, shares `s2` but in the wrong
 order. A named `s32` local (`flag = 1; a = flag; b = flag;`), the same shape
 sibling actors use for their `1` flags, gives one `SImode` pseudo that CSE
 folds onto `s2` for both stores.
+
+## A flag initialised above an early-return guard ranks lower in `global_alloc` (Gp_ClearEquipSlot, 2026-09-27)
+
+A search flag (`found = 0; for (...) if (hit) { found = 1; break; }`) and a
+slot pointer, both live across the loop, came out with their argument registers
+swapped (`$a2`/`$a3`, 99.271%) when `found = 0` sat after the range check. The
+`.lreg` header shows the rank: `found` 5 refs over 26 insns
+(`floor_log2(5)*5/26 = 0.38`) beat the pointer's 6 refs over 34 (`0.35`), so
+`found` took the lower register.
+
+Writing the flag as `s32 found = 0;` at its declaration, above the
+`if (...) return;` guard, stretches its live range across the guard's compare
+(26 -> 29 insns, rank 0.34); the pointer now ranks first and both land where
+the target has them. The `move $a3,$zero` still ends up in the guard branch's
+delay slot, so the extra liveness costs no instruction. This replaced a
+`register ... asm("a3")` pin.
