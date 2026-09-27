@@ -54462,6 +54462,22 @@ offsets, and the local's size sets the frame padding.
 
 ## Cross-jumping merges identical switch arms; `SOFT_BARRIER()` un-merges them
 
+**Correction (2026-09-27): the barrier is unnecessary.** In
+`func_acropolis_square_80182148`, write `task->state++; return;` separately in
+cases 0, 1, 3, 4/5 and 6, placing case 4/5 **before** case 6 and the kill
+cases 2/7 last. Case 6 then owns a complete store/increment tail without an
+intervening case label. `jump2` shares that tail while retaining the separate
+calls in cases 0 and 3. Duplicating increments but retaining case 6's
+fallthrough into case 4/5 still merges the calls (90.957%); the complete-tail
+form reproduces the seed assembly (99.674%, the same scratch relocation
+artefacts) without any hacks. `find_cross_jump` stops at a label in its first
+stream (`jump.c:2564`), so source case order and intervening labels matter,
+not just the final instruction sequence. The historical claim below that
+honest C necessarily collapses these arms is superseded by this result.
+Evidence: scratch `base_4.i.jump2` versus `base_6.i.jump2`; the latter has
+separate calls and new shared-tail labels 161/162.
+
+
 A jump table can point two entries at two *separate* blocks holding the same
 instructions. GCC 2.8.1's cross-jumping normally refuses to leave that in:
 given two unconditional jumps to the same label whose preceding insns are

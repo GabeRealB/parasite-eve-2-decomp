@@ -2326,23 +2326,23 @@ void func_acropolis_square_80182148(Task* task)
     switch (task->state) {
         case 0:
             Gp_RunCapCmd1(5);
-            /* Keeps this arm from being cross-jumped into the identical
-               `case 3` arm; emits nothing. */
-            SOFT_BARRIER();
-            goto advance;
+            task->state++;
+            return;
         case 1:
             Mc_SaveData[0].at4.loc.view = 7;
-            goto advance;
+            task->state++;
+            return;
         case 3:
             Gp_RunCapCmd1(5);
-            goto advance;
+            task->state++;
+            return;
+        case 4:
+        case 5:
+            task->state++;
+            return;
         case 6:
             Gp_RunCapCmd1(5);
             Mc_SaveData[0].at4.loc.view = 8;
-            /* fallthrough */
-        case 4:
-        case 5:
-        advance:
             task->state++;
             return;
         case 2:
