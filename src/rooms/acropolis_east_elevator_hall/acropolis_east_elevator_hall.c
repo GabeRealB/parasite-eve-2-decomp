@@ -871,12 +871,10 @@ static void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
 static void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
 {
     u8*               head;
-    u8*               raw;
     RoomShaftScratch* block;
     POLY_G4*          prim;
     GpCoord*          coord;
     void*             mem;
-    u16               vz;
     s32               i;
     s32               red;
     s32               pulse;
@@ -885,34 +883,26 @@ static void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
     coord = arg0->extra.tmd->coords;
     mem   = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
-    head = SCRATCH_HEAD(void);
-    raw  = head - 0x14;
-    /* `raw` and `block` have to stay separate registers: the ROM computes the
-       block address into a scratch register and copies it into the callee-saved
-       one the rest of the function uses. */
-    SOFT_TOUCH_REG(raw);
-    block              = (RoomShaftScratch*)raw;
+    head               = SCRATCH_HEAD(void);
+    SCRATCH_HEAD(void) = head - 0x14;
+    block              = (RoomShaftScratch*)(head - 0x14);
     block->vec.vx      = (u16)coord->workm.t[0];
     block->vec.vy      = (u16)coord->workm.t[1];
-    vz                 = (u16)coord->workm.t[2];
-    SCRATCH_HEAD(void) = block;
-    block->vec.vz      = vz;
+    block->vec.vz      = (u16)coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((RoomShaftScratch*)(head - 0x14))->vec);
+    gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
+    gte_stsxy(&block->sx);
     gte_stszotz(&block->otz);
-    if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
+    if (block->otz >= 0x11) {
         pulse = gDisplayState.animFrame * ((RoomShaftArg*)&arg0->spawnArg1)->phase;
         if (pulse & 0x80) {
             level = 0x80 - (pulse & 0x7F);
         } else {
             level = pulse & 0x7F;
         }
-        /* Same split for the ramp: the ROM keeps the triangle result in a
-           scratch register and copies it into the callee-saved `red`. */
         red              = level;
         block->halfWidth = (((RoomShaftArg*)&arg0->spawnArg1)->height << 9) / block->otz;
         for (i = 0; i < 2; i++) {
