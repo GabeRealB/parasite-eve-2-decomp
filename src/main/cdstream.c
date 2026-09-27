@@ -46,8 +46,8 @@ static s32  func_80059EE0(CdReadyEntry* arg0);
 static volatile s32 D_80068B54 = 0;
 static volatile s32 D_80068B58 = 0;
 static volatile u8  D_80068B5C = 0;
-/// Unreferenced.
-static u8          D_80068B5D = 0;
+/// Shell-open errors reported by the stream poller and CD-ready callback.
+static volatile u8 D_80068B5D = 0;
 static u8          D_80068B5E = 0;
 static volatile u8 D_80068B5F = 0;
 static volatile u8 D_80068B60 = 0;
@@ -1487,8 +1487,7 @@ static s32 func_80059EE0(CdReadyEntry* arg0)
                     }
                     D_80082810            = D_80082808;
                     CdStream_State.flags |= 1;
-                    /* Keep each disk-error path separate before the shared counter update. */
-                    (*((volatile u8*)&D_80068B5C + 1))++;
+                    D_80068B5D++;
                     goto stream_error;
                 }
                 if (CdStatus() & CdlStatShellOpen) {
@@ -1497,7 +1496,7 @@ static s32 func_80059EE0(CdReadyEntry* arg0)
                     }
                     D_80082810            = D_80082808;
                     CdStream_State.flags |= 1;
-                    (*((volatile u8*)&D_80068B5C + 1))++;
+                    D_80068B5D++;
                     goto stream_error;
                 }
                 if (D_800827E8++ < 0x258) {
@@ -1538,7 +1537,7 @@ static s32 func_80059EE0(CdReadyEntry* arg0)
                     }
                     D_80082810            = D_80082808;
                     CdStream_State.flags |= 1;
-                    (*((volatile u8*)&D_80068B5C + 1))++;
+                    D_80068B5D++;
                     goto stream_error;
                 }
                 if (CdStatus() & CdlStatShellOpen) {
@@ -1547,7 +1546,7 @@ static s32 func_80059EE0(CdReadyEntry* arg0)
                     }
                     D_80082810            = D_80082808;
                     CdStream_State.flags |= 1;
-                    (*((volatile u8*)&D_80068B5C + 1))++;
+                    D_80068B5D++;
                     goto stream_error;
                 }
                 if (D_800827E8++ < 0x258) {
@@ -1580,7 +1579,7 @@ static s32 func_80059EE0(CdReadyEntry* arg0)
                     }
                     D_80082810            = D_80082808;
                     CdStream_State.flags |= 1;
-                    (*((volatile u8*)&D_80068B5C + 1))++;
+                    D_80068B5D++;
                     goto stream_error;
                 }
                 if (CdStatus() & CdlStatShellOpen) {
@@ -1589,7 +1588,7 @@ static s32 func_80059EE0(CdReadyEntry* arg0)
                     }
                     D_80082810            = D_80082808;
                     CdStream_State.flags |= 1;
-                    (*((volatile u8*)&D_80068B5C + 1))++;
+                    D_80068B5D++;
                     goto stream_error;
                 }
                 if (D_800827E8++ < 0x258) {
@@ -1639,7 +1638,7 @@ static s32 func_80059EE0(CdReadyEntry* arg0)
                     }
                     D_80082810            = D_80082808;
                     CdStream_State.flags |= 1;
-                    (*((volatile u8*)&D_80068B5C + 1))++;
+                    D_80068B5D++;
                     goto stream_error;
                 }
                 if (D_80082808 == 0) {
@@ -1667,7 +1666,7 @@ static s32 func_80059EE0(CdReadyEntry* arg0)
                 D_80068B64 += 1;
                 if ((sp.result[0] & CdlStatShellOpen) || (CdStatus() & CdlStatShellOpen)) {
                     CdStream_State.flags |= 1;
-                    (*((volatile u8*)&D_80068B5C + 1))++;
+                    D_80068B5D++;
                     if (D_80082808 == 0) {
                         D_80082808 = (u16)pauseSync;
                     }
