@@ -233,8 +233,7 @@ void func_shelter_1f_vehicular_airlock_8017DA48(Task* task)
 
 static void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
 {
-    u8       view;
-    SVECTOR* p;
+    u8 view;
 
     if (task->state == 0) {
         D_80115758  = 0x601D7;
@@ -245,17 +244,19 @@ static void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
 
     view = Gp_GetViewIndex();
     switch (view) {
-        case 2:
-            p = D_shelter_1f_vehicular_airlock_8018206C;
-            SOFT_TOUCH_REG(p);
+        case 2: {
+            SVECTOR* p = D_shelter_1f_vehicular_airlock_8018206C;
+
             func_shelter_1f_vehicular_airlock_8017DC80(&p[0], 0x200, 0x800, 0x210);
             func_shelter_1f_vehicular_airlock_8017DC80(&p[2], 0x200, 0x800, 0x210);
             func_shelter_1f_vehicular_airlock_8017DC80(&p[6], 0x200, 0, 0x210);
             func_shelter_1f_vehicular_airlock_8017DC80(&p[8], 0x200, 0, 0x210);
             func_shelter_1f_vehicular_airlock_8017E468(&p[12], 0x200, 0x200);
             break;
-        case 3:
-            p = D_shelter_1f_vehicular_airlock_8018205C;
+        }
+        case 3: {
+            SVECTOR* p = D_shelter_1f_vehicular_airlock_8018205C;
+
             func_shelter_1f_vehicular_airlock_8017DC80(&p[0], 0x200, 0x800, 0x210);
             func_shelter_1f_vehicular_airlock_8017DC80(&p[2], 0x200, 0x800, 0x210);
             func_shelter_1f_vehicular_airlock_8017DC80(&p[6], 0x200, 0, 0x210);
@@ -271,6 +272,7 @@ static void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
                 func_shelter_1f_vehicular_airlock_8017E468(&p[17], 0x140, 0x210);
             }
             break;
+        }
     }
 }
 
