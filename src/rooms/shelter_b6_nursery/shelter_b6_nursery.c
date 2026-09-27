@@ -937,30 +937,21 @@ void func_shelter_b6_nursery_8017EDBC(Task* task)
 /// of them, if fewer) follow it. Does nothing when `decimals` is not positive.
 static void func_shelter_b6_nursery_8017EE18(u8* str, s32 decimals)
 {
-    s32 len;
+    s32 len = 0;
+    s32 i;
 
-    len = 0;
     if (decimals > 0) {
-        if (*str != 0) {
-            do {
-                str += 1;
-                len += 1;
-            } while (*str != 0);
+        while (*str != 0) {
+            str++;
+            len++;
         }
         if (len < decimals) {
             decimals = len;
-            SOFT_TOUCH_REG(decimals);
-            decimals += 1;
-        } else {
-            decimals += 1;
         }
-        len = 0;
-        if (decimals > 0) {
-            do {
-                len   += 1;
-                str[1] = str[0];
-                str   -= 1;
-            } while (len < decimals);
+        decimals++;
+        for (i = 0; i < decimals; i++) {
+            str[1] = str[0];
+            str--;
         }
         str[1] = '.';
     }
