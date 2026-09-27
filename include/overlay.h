@@ -152,21 +152,13 @@ static __inline__ void overlayToWorld(GpCoord* coord, SVECTOR* v)
 {
     OverlayWalkScratch* blk;
 
-    {
-        register GpCoord* parent asm("v0");
-        parent                                                                               = coord;
-        ((OverlayWalkScratch*)((u8*)SCRATCH_HEAD(void) - sizeof(OverlayWalkScratch)))->coord = parent;
-    }
-    {
-        register u8* tmp asm("v0");
-        tmp = (u8*)SCRATCH_HEAD(void) - sizeof(OverlayWalkScratch);
-        blk = (OverlayWalkScratch*)tmp;
-    }
+    SCRATCH_HEAD(OverlayWalkScratch)[-1].coord = coord;
+    SCRATCH_PUSH(OverlayWalkScratch);
+    blk         = SCRATCH_HEAD(OverlayWalkScratch);
     blk->vec.vx = v->vx;
     blk->vec.vy = v->vy;
     blk->vec.vz = v->vz;
 
-    SCRATCH_HEAD(void) = blk;
     while (blk->coord != NULL) {
         gte_SetTransMatrix(&blk->coord->coord);
         gte_SetRotMatrix(&blk->coord->coord);
@@ -186,8 +178,8 @@ static __inline__ void overlayToWorld(GpCoord* coord, SVECTOR* v)
     SCRATCH_POP_BYTES(sizeof(OverlayWalkScratch));
 }
 
-/// The walk of `overlayToWorld` without its register bindings. The callers
-/// were compiled from both spellings, and each site matches only its own.
+/// Carries `v` into world space, reserving the scratch block after copying
+/// its initial coordinate and vector.
 static __inline__ void overlayToWorld2(GpCoord* coord, SVECTOR* v)
 {
     OverlayWalkScratch* blk;
