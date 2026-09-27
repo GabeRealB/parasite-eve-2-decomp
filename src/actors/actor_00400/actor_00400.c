@@ -589,8 +589,7 @@ static void Actor00400_Fn005DC(GpCoord* arg0, u16 arg1, u16 arg2, s32 arg3)
         prim->x2 = blk->sx - (u16)blk->dx;
         prim->y1 = blk->sy - (u16)blk->dy;
         prim->y2 = blk->sy + (u16)blk->dy;
-        addPrim((u_long*)(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES_AT(scratch, sizeof(GpEffFlareScratch));

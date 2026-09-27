@@ -9,57 +9,59 @@
 
 // Types — UI layout / dialogs
 
-/// Object passed to Ui_UpdateListNoAnim / Ui_SmoothCursor (e.g. via Task::spawnArg2).
-typedef struct _UiMiniObj {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ byte unknown_4[0x18];
-    /* 0x1C */ s16  field_1c;
-    /* 0x1E */ s16  unknown_1e;
-    /* 0x20 */ s16  field_20;
-    /* 0x22 */ s16  field_22;
-} UiMiniObj;
-STATIC_ASSERT_SIZEOF(UiMiniObj, 0x24);
+/// UI layout values are read as both signed coordinates and unsigned words.
+/// Explicit views preserve the original halfword loads without pointer casts.
+typedef union {
+    u16 u;
+    s16 s;
+} UiHalf;
+typedef union {
+    u8 u;
+    s8 s;
+} UiByte;
 
-/// Object at Task::spawnArg2 used by Ui_TeardownTree / Mc_HideChildUi /
-/// Mc_DrawPrompt / Ui_SpawnFromDesc. Shares the UiPanel layout through offset
-/// 0x24 (handlers cast field_20 to UiPanel*). field_0 is a status flag;
-/// field_4 is copied from UiObjectDesc::field_0 at spawn; field_8 is a mode
-/// (5 = skip draw in Text_DrawPrompt / Text_DrawMultiLine; set to 3 when torn down); field_C..field_12
-/// are layout halfwords (RECT-like); field_14 is a halfword counter used as the
-/// text draw priority/order; field_16 is a signed timer/counter; field_18/field_1A
-/// are layout offsets (shared with UiPanel; used when positioning child UI);
-/// field_1C is a position halfword (+2 when passed to Text_DrawPrompt); field_1E is
-/// an x offset paired with field_20; field_20/field_22 are base x/y for relative
-/// text placement; field_24 is a callback copied from the descriptor; field_28 is
-/// the owning Task*; field_2C / field_2E are halfwords polled by teardown state
-/// handlers (e.g. GameFlow_WaitMenuDone waits until field_2E == -1 before cleaning up;
-/// dialog pickers set field_2E == 6 when a choice is confirmed).
+/// Panel shared by standalone drawing helpers and the task-owned UiObject.
+/// Its signed rectangle and unsigned layout view occupy the same eight bytes.
+typedef struct _UiPanel {
+    /* 0x00 */ union {
+        s32 w;
+        s16 h[2];
+    } field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ union {
+        RECT rect;
+        struct {
+            u16 x, y, w, h;
+        } unsignedRect;
+    } bounds;
+    /* 0x14 */ UiHalf   field_14;
+    /* 0x16 */ s16      field_16;
+    /* 0x18 */ UiHalf   field_18;
+    /* 0x1A */ UiHalf   field_1A;
+    /* 0x1C */ UiHalf   field_1C;
+    /* 0x1E */ UiHalf   field_1E;
+    /* 0x20 */ UiHalf   field_20;
+    /* 0x22 */ UiHalf   field_22;
+    /* 0x24 */ TaskFunc field_24;
+} UiPanel;
+STATIC_ASSERT_SIZEOF(UiPanel, 0x28);
+
+/// A task-owned panel, with its owner and teardown/selection results.
+/// Panel helpers also accept standalone UiPanel values, so only paths known
+/// to operate on task-owned panels may recover the parent with PARENT_OF.
 typedef struct _UiObject {
-    /* 0x00 */ s32      status;
-    /* 0x04 */ s32      field_4; // from UiObjectDesc::field_0
-    /* 0x08 */ s32      mode;    // 5=skip draw, 3=torn down
-    /* 0x0C */ u16      field_C; // layout (RECT-like)
-    /* 0x0E */ u16      field_E;
-    /* 0x10 */ u16      field_10;
-    /* 0x12 */ u16      field_12;
-    /* 0x14 */ s16      drawOrder;
-    /* 0x16 */ s16      timer;
-    /* 0x18 */ u16      field_18; // layout offset
-    /* 0x1A */ u16      field_1A; // layout offset
-    /* 0x1C */ s16      field_1C; // position (+2 for text draw)
-    /* 0x1E */ u16      field_1E; // x offset with baseX
-    /* 0x20 */ u16      baseX;
-    /* 0x22 */ u16      baseY;
-    /* 0x24 */ TaskFunc callback;
-    /* 0x28 */ Task*    owner;
-    /* 0x2C */ s16      field_2C; // teardown / choice
-    /* 0x2E */ s16      field_2E; // teardown / choice (-1 wait, 6 confirm)
+    /* 0x00 */ UiPanel panel;
+    /* 0x28 */ Task*   owner;
+    /* 0x2C */ s16     field_2C;
+    /* 0x2E */ s16     field_2E;
 } UiObject;
 STATIC_ASSERT_SIZEOF(UiObject, 0x30);
+STATIC_ASSERT(OFFSET_OF(UiObject, owner) == 0x28, ui_object_owner_offset);
 
 /// Template/descriptor consumed by Ui_SpawnFromDesc to spawn a UiObject + Task.
 typedef struct _UiObjectDesc {
-    /* 0x00 */ s32      field_0; // → UiObject.field_4
+    /* 0x00 */ s32      field_0; // → UiObject.panel.field_4
     /* 0x04 */ u16      field_4; // → layout
     /* 0x06 */ u16      field_6;
     /* 0x08 */ u16      field_8;
@@ -82,7 +84,7 @@ typedef struct TextLineNode {
 /// Multi-line text block descriptor consumed by Ui_SpawnTextBlock to spawn a
 /// sized UiObject. field_0 is the line count; field_2 is cleared on return;
 /// field_4 is the head of a TextLineNode list; field_8 selects layout mode
-/// (0 forces UiObject::field_4 = 3).
+/// (0 forces UiObject::panel.field_4 = 3).
 typedef struct TextBlockDesc {
     /* 0x0 */ s16           count;
     /* 0x2 */ s16           field_2;
@@ -92,7 +94,8 @@ typedef struct TextBlockDesc {
 STATIC_ASSERT_SIZEOF(TextBlockDesc, 0xC);
 
 /// Per-item callbacks pointed to by UiList::funcs (two entries: draw / confirm).
-typedef void (*UiListItemFunc)(struct _DialogPrompt* arg0, struct _UiObject* arg1);
+struct _UiList;
+typedef void (*UiListItemFunc)(struct _UiList* arg0, struct _UiObject* arg1);
 
 /// UI list/menu object (data symbols D_8006116C, D_80061194, D_8006125C,
 /// D_80061284, D_800612AC, D_80067654; size 0x24).
@@ -109,71 +112,30 @@ typedef void (*UiListItemFunc)(struct _DialogPrompt* arg0, struct _UiObject* arg
 /// item id (`lhu`; copied to UiObject::field_2C by `Gp_YesNoMenuTask`). field_22
 /// is a selected action code polled by list-task handlers (`Gp_ItemCmdMenuTask`:
 /// 0x20 skips pad input, 0x23 is copied to UiObject::field_2E; 6 is confirm
-/// in `Gp_YesNoMenuTask`; same values DialogPrompt handlers write to
-/// DialogPrompt::field_22).
+/// in `Gp_YesNoMenuTask`; same values UiList handlers write to
+/// UiList::field_22).
 typedef struct _UiList {
     /* 0x00 */ UiListItemFunc* funcs;    // function-table pointer
     /* 0x04 */ u8              field_4;  // base index
-    /* 0x05 */ u8              field_5;  // base index (also used vs field_9)
+    /* 0x05 */ UiByte          field_5;  // base index (also used vs field_9)
     /* 0x06 */ s8              field_6;  // layout size
     /* 0x07 */ s8              field_7;  // TILE height / row height
-    /* 0x08 */ byte            unknown_8;
-    /* 0x09 */ u8              field_9;  // list cursor (visible offset)
+    /* 0x08 */ s8              field_8;
+    /* 0x09 */ UiByte          field_9;  // list cursor (visible offset)
     /* 0x0A */ u8              field_A;  // flag
-    /* 0x0B */ byte            unknown_B;
+    /* 0x0B */ s8              field_B;
     /* 0x0C */ s32             field_C;  // cleared by list reset
     /* 0x10 */ s32             field_10; // selection index
     /* 0x14 */ s16             field_14; // cleared by list reset
     /* 0x16 */ s8              field_16; // cleared by list reset
     /* 0x17 */ s8              field_17; // layout adjust for visible rows
-    /* 0x18 */ byte            unknown_18[8];
-    /* 0x20 */ u16             field_20; // selected item id
+    /* 0x18 */ s16             field_18;
+    /* 0x1A */ s16             field_1A;
+    /* 0x1C */ s32             field_1C;
+    /* 0x20 */ UiHalf          field_20; // selected item id
     /* 0x22 */ s16             field_22; // selected action (0x20 skip pad, 0x23 confirm)
 } UiList;
 STATIC_ASSERT_SIZEOF(UiList, 0x24);
-
-/// Signed list layout used by the list renderer. Shares UiList's 0x24-byte
-/// storage; field_8 is the item being drawn, field_B is the navigation step,
-/// field_18/field_1A are draw coordinates, and field_1C is per-item draw data.
-typedef struct {
-    /* 0x00 */ void (**funcs)(void*, void*);
-    /* 0x04 */ u8   field_4;
-    /* 0x05 */ s8   field_5;
-    /* 0x06 */ s8   field_6;
-    /* 0x07 */ s8   field_7;
-    /* 0x08 */ s8   field_8;
-    /* 0x09 */ s8   field_9;
-    /* 0x0A */ u8   field_A;
-    /* 0x0B */ s8   field_B;
-    /* 0x0C */ s32  field_C;
-    /* 0x10 */ s32  field_10;
-    /* 0x14 */ s16  field_14;
-    /* 0x16 */ s8   field_16;
-    /* 0x17 */ s8   field_17;
-    /* 0x18 */ s16  field_18;
-    /* 0x1A */ s16  field_1A;
-    /* 0x1C */ s32  field_1C;
-    /* 0x20 */ s16  field_20;
-    /* 0x22 */ s16  field_22;
-} UiListRender;
-STATIC_ASSERT_SIZEOF(UiListRender, 0x24);
-
-/// UiPanel/UiObject prefix used when drawing a list. The status word is also
-/// tested by its high halfword, and the cursor origin is signed.
-typedef struct {
-    /* 0x00 */ union {
-        s32 w;
-        s16 h[2];
-    } state;
-    /* 0x04 */ u8  pad4[0x14];
-    /* 0x18 */ u16 field_18;
-    /* 0x1A */ u16 field_1A;
-    /* 0x1C */ u16 field_1C;
-    /* 0x1E */ u16 field_1E;
-    /* 0x20 */ s16 field_20;
-    /* 0x22 */ s16 field_22;
-} UiPanelRender;
-STATIC_ASSERT_SIZEOF(UiPanelRender, 0x24);
 
 /// WIP: Task::spawnArg1 context for D_8006121C select-menu (McMenu_SelectListAlt).
 /// Only field_290 is used so far (seeds UiList cursor).
@@ -189,32 +151,8 @@ extern UiList       D_80061194;
 extern UiObjectDesc D_800611C8[];
 extern UiObjectDesc D_800612D0[];
 
-/// Object used by 34E98.c handlers (e.g. Ui_AnimOpenStep / Ui_ObjectStates table).
-/// field_4 low nibble selects layout padding (Ui_InsetLayout); high nibble of the
-/// low byte selects a fill mode (Ui_ScaleRect). field_8 is a small integer
-/// state; field_C is a source RECT used by layout helpers (Ui_InsetLayout /
-/// Ui_ComputeAnimRect); field_14 is a halfword counter temporarily adjusted around
-/// text draw (Ui_DrawTextAtLayout); field_16 is a signed counter/timer;
-/// field_18..field_22 are layout offsets (Ui_ClampDialogRect / Ui_InsetLayout);
-/// field_24 is a callback invoked with the second handler argument.
-typedef struct _UiPanel {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ s32  field_4;  // low nibble layout pad; high nibble fill mode
-    /* 0x08 */ s32  field_8;  // small integer state
-    /* 0x0C */ RECT field_C;  // source RECT for layout
-    /* 0x14 */ u16  field_14; // halfword counter (text draw)
-    /* 0x16 */ s16  field_16; // timer/counter
-    /* 0x18 */ u16  field_18; // layout offset
-    /* 0x1A */ u16  field_1A; // layout offset
-    /* 0x1C */ u16  field_1C; // layout (signed in some overlays)
-    /* 0x1E */ u16  field_1E; // layout (signed in some overlays)
-    /* 0x20 */ u16  field_20;
-    /* 0x22 */ u16  field_22;
-    /* 0x24 */ void (*field_24)(void*); // handler callback
-} UiPanel;
-
 /// Callback for UiPanel state handlers (e.g. entries in Ui_ObjectStates).
-typedef void (*UiPanelFunc)(UiPanel* arg0, void* arg1);
+typedef void (*UiPanelFunc)(UiPanel* arg0, Task* arg1);
 
 /// Fixed-size table of UiPanelFunc callbacks. Copied onto the stack by
 /// Ui_DispatchObjectState so the call uses a local jump table.
@@ -222,32 +160,7 @@ typedef struct {
     UiPanelFunc funcs[6];
 } UiPanelFuncTable6;
 
-/// Dialog / prompt descriptor used by 21FDC.c handlers (e.g. McMenu_ConfirmDialogAlt,
-/// McMenu_ConfirmDialog, McMenu_ConfirmWithRender). field_8 is a signed menu/option index passed
-/// to rendering helpers; field_B is a flag written on the alternate confirm
-/// path; field_C is a selection/confirm flag (1 = confirm); field_10 is compared
-/// to field_8 (`Gp_DrawSortCmd`); field_18/field_1A are position halfwords;
-/// field_1C is data passed through to Text_DrawPrompt; field_20/field_22 are
-/// state halfwords set on confirm (field_22 also on the alternate confirm path).
-typedef struct _DialogPrompt {
-    /* 0x00 */ byte unknown_0[0x4];
-    /* 0x04 */ u8   field_4; // row count (last row is field_4 - 1)
-    /* 0x05 */ byte unknown_5[0x3];
-    /* 0x08 */ s8   field_8;
-    /* 0x09 */ byte unknown_9[0x2];
-    /* 0x0B */ s8   field_B;
-    /* 0x0C */ s32  field_C;
-    /* 0x10 */ s32  field_10;
-    /* 0x14 */ byte unknown_14[0x4];
-    /* 0x18 */ s16  field_18;
-    /* 0x1A */ s16  field_1A;
-    /* 0x1C */ s32  field_1C;
-    /* 0x20 */ s16  field_20;
-    /* 0x22 */ s16  field_22;
-} DialogPrompt;
-STATIC_ASSERT_SIZEOF(DialogPrompt, 0x24);
-
-/// Linked text option node walked by Ui_DrawDialogLine (index via DialogPrompt::field_8).
+/// Linked text option node walked by Ui_DrawDialogLine (index via UiList::field_8).
 /// field_0 is the string passed to Text_DrawPrompt; field_4 is the next node.
 typedef struct _DialogOption {
     /* 0x0 */ u8*                   text;
@@ -290,30 +203,32 @@ s32       Ui_IsStateDone(UiObject* arg0);
 void      Ui_DrawTextColored(UiPanel* arg0, char* arg1);
 void      Ui_DrawText(UiPanel* arg0, char* arg1);
 void      Ui_InsetLayout(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
-void      Ui_ClampDialogRect(UiPanel* arg0, UiPanel* arg1, UiPanel* arg2);
-void      Ui_SetHolderParam(s32 arg0, s32 arg1, s32 arg2);
-void      Ui_SetHolderParamAlt(s32 arg0, s32 arg1, s32 arg2);
-void      Ui_ClampAnimOrClose(UiPanel* arg0, Task* arg1, s32 arg2);
-void      Ui_StartCloseAnim(UiPanel* arg0, void* arg1);
-void      Ui_LayoutListPanel(UiList* arg0, UiPanel* arg1);
-void      Ui_InitList(UiList* arg0, UiMiniObj* arg1);
-void      Ui_ComputeVisibleRows(UiList* arg0, UiPanel* arg1);
-void      Ui_UpdateListNoAnim(void* arg0, void* arg1);
-void      Ui_SmoothCursor(UiMiniObj* arg0, s32 arg1, s32 arg2);
-s32       Ui_GetCursorFixed(void);
-s32       Ui_LookupTable(void* arg0, s32 arg1);
-s32       Ui_Scale15(s32 arg0);
-void      Ui_DrawHBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
-void      Ui_DrawVBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
-void      Ui_DrawTextInRect(RECT* arg0, s32 arg1, s32 arg2, char* arg3);
-void      Ui_DrawTitle(UiPanel* arg0, char* arg1);
-void      Ui_SetListScrollFlag(UiList* arg0, s32 arg1);
-void      Ui_AllocTile(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
-void      Ui_InsertDrawTPage(s32 arg0, s32 arg1);
-void      func_80046B34(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
-void      Ui_LayoutWithMode0(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
-void      Ui_LayoutWithMode1(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
-void      Ui_WaitCdThenOverlay(Task* arg0);
+void      Ui_ClampDialogRect(UiPanel* arg0, UiList* arg1, UiPanel* arg2);
+/// Set the prompt text; the owner task stores it in its mixed spawn payload.
+void Ui_SetHolderParam(u8* arg0, s32 arg1, s32 arg2);
+/// Set a numeric item id (0x300..0x3FF) for the PE cost prompt.
+void Ui_SetHolderParamAlt(s32 arg0, s32 arg1, s32 arg2);
+void Ui_ClampAnimOrClose(UiPanel* arg0, Task* arg1, s32 arg2);
+void Ui_StartCloseAnim(UiPanel* arg0, Task* arg1);
+void Ui_LayoutListPanel(UiList* arg0, UiPanel* arg1);
+void Ui_InitList(UiList* arg0, UiPanel* arg1);
+void Ui_ComputeVisibleRows(UiList* arg0, UiPanel* arg1);
+void Ui_UpdateListNoAnim(void* arg0, void* arg1);
+void Ui_SmoothCursor(UiPanel* arg0, s32 arg1, s32 arg2);
+s32  Ui_GetCursorFixed(void);
+s32  Ui_LookupTable(void* arg0, s32 arg1);
+s32  Ui_Scale15(s32 arg0);
+void Ui_DrawHBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
+void Ui_DrawVBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
+void Ui_DrawTextInRect(RECT* arg0, s32 arg1, s32 arg2, char* arg3);
+void Ui_DrawTitle(UiPanel* arg0, char* arg1);
+void Ui_SetListScrollFlag(UiList* arg0, s32 arg1);
+void Ui_AllocTile(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
+void Ui_InsertDrawTPage(s32 arg0, s32 arg1);
+void func_80046B34(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+void Ui_LayoutWithMode0(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
+void Ui_LayoutWithMode1(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
+void Ui_WaitCdThenOverlay(Task* arg0);
 
 // Functions defined in this module but not previously declared anywhere.
 // Without a prototype m2c cannot type a call to them and the decompiled
@@ -322,7 +237,7 @@ void      Ui_WaitCdThenOverlay(Task* arg0);
 
 void Ui_DrawFlatCaret(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void McMenu_ConfirmWithRender(DialogPrompt* arg0, UiObject* arg1);
+void McMenu_ConfirmWithRender(UiList* arg0, UiObject* arg1);
 void McMenu_SelectList(Task* arg0);
 void McMenu_SelectListAlt(Task* arg0);
 void McMenu_FileInformation(Task* arg0);

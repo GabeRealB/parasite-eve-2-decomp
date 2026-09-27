@@ -234,29 +234,6 @@ typedef struct {
 } DumpingHoleEntity4;
 
 typedef struct {
-    /* 0x00 */ char magic[0x8];
-    /* 0x08 */ s32  field_8;
-    /* 0x0C */ s32  field_C;
-    /* 0x10 */ s32  field_10;
-} Reloc80181D68Hdr;
-
-typedef struct {
-    /* 0x00 */ u8  pad[0x8];
-    /* 0x08 */ s32 field_8;
-} Reloc80181D68Entry1;
-
-typedef struct {
-    /* 0x00 */ s16                 count;
-    /* 0x02 */ u8                  pad[0xE];
-    /* 0x10 */ Reloc80181D68Entry1 entries[1];
-} Reloc80181D68Table1;
-
-typedef struct {
-    /* 0x00 */ s32 count;
-    /* 0x04 */ s32 entries[1];
-} Reloc80181D68Table2;
-
-typedef struct {
     /* 0x00 */ u32 tag;
     /* 0x04 */ u8  r;
     /* 0x05 */ u8  g;
@@ -277,11 +254,6 @@ typedef struct {
     /* 0x18 */ s16 field_18;
     /* 0x1A */ s16 field_1A;
 } Prim82AA0;
-
-typedef struct {
-    /* 0x00 */ u8 pad[3];
-    /* 0x03 */ u8 field_3;
-} GlyphEntry;
 
 /// The encounter's enemy slots, in the order the controller starts them.
 extern OverlayEncounterSlot D_shelter_b3_dumping_hole_8018B7BC[];
@@ -317,7 +289,7 @@ extern GpEvt12*               D_shelter_b3_dumping_hole_8018F4BC;
 extern s16                    D_shelter_b3_dumping_hole_8018F4C6;
 extern OverlayCapWindow       D_shelter_b3_dumping_hole_8018B5A0[];
 extern GlyphUvwh*             D_shelter_b3_dumping_hole_8018F4B8;
-extern s32                    D_shelter_b3_dumping_hole_8018F4B4;
+extern GpCapEntry*            D_shelter_b3_dumping_hole_8018F4B4;
 extern s16                    D_shelter_b3_dumping_hole_8018F4C0;
 extern s16                    D_shelter_b3_dumping_hole_8018F4C2;
 extern s16                    D_shelter_b3_dumping_hole_8018F4C4;
@@ -358,17 +330,17 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183218(u8 arg0);
 static void func_shelter_b3_dumping_hole_8017FD9C(s32 arg0, s32 arg1);
 static void func_shelter_b3_dumping_hole_80181C8C(void);
-static s32  func_shelter_b3_dumping_hole_80181F80(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+static s32  func_shelter_b3_dumping_hole_80181F80(u16* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_shelter_b3_dumping_hole_80182AA0(void);
 static s32  func_shelter_b3_dumping_hole_80182FD0(s32 arg0);
 static s16  func_shelter_b3_dumping_hole_80182C24(u16* arg0);
 static s16  func_shelter_b3_dumping_hole_80182D34(u16* arg0, s32 arg1);
 static s32  func_shelter_b3_dumping_hole_80182F18(u16* arg0);
 static s16  func_shelter_b3_dumping_hole_801829B4(u16* arg0);
-static s32  func_shelter_b3_dumping_hole_80182E50(s32 arg0);
+static s32  func_shelter_b3_dumping_hole_80182E50(u16* arg0);
 static void func_shelter_b3_dumping_hole_801833EC(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2);
-static s32  func_shelter_b3_dumping_hole_80181D68(s32 arg0);
+static s32  func_shelter_b3_dumping_hole_80181D68(GpCapFileAddress base);
 static void func_shelter_b3_dumping_hole_80183298(Task* arg0);
 static void func_shelter_b3_dumping_hole_801836E0(Task* arg0);
 static void func_shelter_b3_dumping_hole_8018378C(Task* arg0);
@@ -2044,14 +2016,14 @@ static void func_shelter_b3_dumping_hole_80181C8C(void)
     if (D_shelter_b3_dumping_hole_8018F4BC == NULL) {
         return;
     }
-    if (D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8 == -1) {
+    if (D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8.offset == -1) {
         return;
     }
     if (Gp_CapBusy() != 0) {
         return;
     }
     func_shelter_b3_dumping_hole_80181F80(
-        D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8, 0x80, 1,
+        D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8.text, 0x80, 1,
         D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_0 |
             ((D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_1 & 0x10)
              << 4));
@@ -2061,43 +2033,42 @@ static void func_shelter_b3_dumping_hole_80181C8C(void)
     func_shelter_b3_dumping_hole_80182AA0();
 }
 
-static s32 func_shelter_b3_dumping_hole_80181D68(s32 arg0)
+static s32 func_shelter_b3_dumping_hole_80181D68(GpCapFileAddress base)
 {
-    Reloc80181D68Hdr*    hdr = (Reloc80181D68Hdr*)arg0;
-    Reloc80181D68Entry1* r;
-    s32*                 q;
-    s32                  n1;
-    s32                  n2;
-    s32                  i;
+    GpEvt12*    r;
+    GpCapEntry* q;
+    s32         n1;
+    s32         n2;
+    s32         i;
 
-    if (strncmp((char*)hdr, "CAP", 3) != 0) {
+    if (strncmp(base.file->magic, "CAP", 3) != 0) {
         return 0;
     }
-    if (hdr->field_8 > 0) {
-        hdr->field_8  += (s32)hdr;
-        hdr->field_C  += (s32)hdr;
-        hdr->field_10 += (s32)hdr;
-        n1             = ((Reloc80181D68Table1*)hdr->field_C)->count;
-        r              = &((Reloc80181D68Table1*)hdr->field_C)->entries[0];
+    if (base.file->field_8.offset > 0) {
+        base.file->field_8.offset  += base.address;
+        base.file->field_C.offset  += base.address;
+        base.file->field_10.offset += base.address;
+        n1                          = base.file->field_C.ptr->count;
+        r                           = &base.file->field_C.ptr->records[0];
         for (i = 0; i < n1; i++) {
-            if (r->field_8 != -1) {
-                r->field_8 += (s32)hdr;
+            if (r->field_8.offset != -1) {
+                r->field_8.offset += base.address;
             } else {
                 r++;
             }
             r++;
         }
-        n2 = ((Reloc80181D68Table2*)hdr->field_10)->count;
-        q  = &((Reloc80181D68Table2*)hdr->field_10)->entries[0];
+        n2 = base.file->field_10.ptr->count;
+        q  = &base.file->field_10.ptr->entries[0];
         for (i = 0; i < n2; i++) {
-            if (*q != 0) {
-                *q += (s32)hdr;
+            if (q->offset != 0) {
+                q->offset += base.address;
             }
             q++;
         }
     }
-    D_shelter_b3_dumping_hole_8018F4B8 = (GlyphUvwh*)hdr->field_8;
-    D_shelter_b3_dumping_hole_8018F4B4 = hdr->field_10 + 4;
+    D_shelter_b3_dumping_hole_8018F4B8 = base.file->field_8.ptr;
+    D_shelter_b3_dumping_hole_8018F4B4 = base.file->field_10.ptr->entries;
     return 1;
 }
 
@@ -2105,7 +2076,7 @@ static s32 func_shelter_b3_dumping_hole_80181E70(s16 arg0, s16 arg1, s32 arg2)
 {
     GpEvt12* entry;
 
-    entry                              = ((GpEvt12**)D_shelter_b3_dumping_hole_8018F4B4)[arg0];
+    entry                              = D_shelter_b3_dumping_hole_8018F4B4[arg0].events;
     D_shelter_b3_dumping_hole_8018F4BC = entry;
     if (entry == NULL) {
         return 1;
@@ -2114,16 +2085,16 @@ static s32 func_shelter_b3_dumping_hole_80181E70(s16 arg0, s16 arg1, s32 arg2)
     D_shelter_b3_dumping_hole_8018F4C6 = func_shelter_b3_dumping_hole_80182FD0(1);
     D_shelter_b3_dumping_hole_8018F4C4 = arg2;
     D_shelter_b3_dumping_hole_8018F4C0 = func_shelter_b3_dumping_hole_80182C24(
-        (u16*)D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8);
+        D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8.text);
     D_shelter_b3_dumping_hole_8018F4C2 = func_shelter_b3_dumping_hole_801829B4(
-        (u16*)D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8);
+        D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8.text);
     D_shelter_b3_dumping_hole_8018F4C8 = func_shelter_b3_dumping_hole_80182E50(
-        D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8);
+        D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8.text);
     D_shelter_b3_dumping_hole_8018F4D0 = 0x1E;
     return 0;
 }
 
-static s32 func_shelter_b3_dumping_hole_80181F80(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+static s32 func_shelter_b3_dumping_hole_80181F80(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u16*       text;
     u16*       body;
@@ -2152,8 +2123,8 @@ static s32 func_shelter_b3_dumping_hole_80181F80(s32 arg0, s32 arg1, s32 arg2, s
 
     lineIdx = 0;
     title   = arg3;
-    text    = (u16*)arg0;
-    x       = func_shelter_b3_dumping_hole_80182D34((u16*)arg0, 0) - 0xA0;
+    text    = arg0;
+    x       = func_shelter_b3_dumping_hole_80182D34(arg0, 0) - 0xA0;
     y       = (u16)D_shelter_b3_dumping_hole_8018F4C2 - 0x78;
 
     bg             = (POLY_G4*)gGpuPrimCursor;
@@ -2230,7 +2201,7 @@ static s32 func_shelter_b3_dumping_hole_80181F80(s32 arg0, s32 arg1, s32 arg2, s
             D_shelter_b3_dumping_hole_8018F4CC = x + 4;
             y                                 += func_shelter_b3_dumping_hole_80182F18(&body[i + 1]);
             if (centered != 0) {
-                x = func_shelter_b3_dumping_hole_80182D34((u16*)arg0, t2) - 0xA0;
+                x = func_shelter_b3_dumping_hole_80182D34(arg0, t2) - 0xA0;
             } else {
                 x = (u16)D_shelter_b3_dumping_hole_8018F4C0 - 0xA0;
             }
@@ -2477,17 +2448,21 @@ static s16 func_shelter_b3_dumping_hole_80182D34(u16* arg0, s32 arg1)
     return (0x140 - selectedW) / 2 - 5;
 }
 
-static s32 func_shelter_b3_dumping_hole_80182E50(s32 arg0)
+static s32 func_shelter_b3_dumping_hole_80182E50(u16* arg0)
 {
-    u16*        p = (u16*)arg0;
-    short       acc;
-    short       total;
-    u16         i;
-    u16         tok;
-    s32         sh;
-    s32         t;
-    s32         ni;
-    GlyphEntry* e;
+    u16*       p = arg0;
+    short      acc;
+    short      total;
+    u16        i;
+    u16        tok;
+    s32        sh;
+    s32        t;
+    s32        ni;
+    GlyphUvwh* e;
+    union {
+        GlyphUvwh* ptr;
+        u32        address;
+    } glyph;
 
     acc   = 0;
     total = acc;
@@ -2505,9 +2480,11 @@ static s32 func_shelter_b3_dumping_hole_80182E50(s32 arg0)
                 acc    = 0;
             } else if (t == -3) {
             } else if (t >= 0) {
-                e = (GlyphEntry*)((tok & 0x3FF) * sizeof(GlyphEntry) + (s32)D_shelter_b3_dumping_hole_8018F4B8);
-                if (acc < e->field_3 + 2) {
-                    acc = e->field_3 + 2;
+                glyph.ptr     = D_shelter_b3_dumping_hole_8018F4B8;
+                glyph.address = (tok & 0x3FF) * sizeof(GlyphUvwh) + glyph.address;
+                e             = glyph.ptr;
+                if (acc < e->h + 2) {
+                    acc = e->h + 2;
                 }
             }
             ni  = (i = i + 1);
@@ -2560,12 +2537,12 @@ static s32 func_shelter_b3_dumping_hole_80182F18(u16* arg0)
 static s32 func_shelter_b3_dumping_hole_80182FD0(s32 arg0)
 {
     s32      sentinel = -1;
-    s32      base     = (s32)D_shelter_b3_dumping_hole_8018F4BC;
+    GpEvt12* base     = D_shelter_b3_dumping_hole_8018F4BC;
     s32      target   = D_shelter_b3_dumping_hole_8018F4CA;
-    GpEvt12* e        = (GpEvt12*)(arg0 * sizeof(GpEvt12) + base);
+    GpEvt12* e        = Gp_CapEventAt(base, arg0);
 
 loop:
-    if (e->field_8 != sentinel) {
+    if (e->field_8.offset != sentinel) {
         if (e->field_5 != target) {
             e++;
             arg0++;
@@ -3312,7 +3289,7 @@ static void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 a
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
                     prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-                    addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -3332,8 +3309,7 @@ static void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 a
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx1;
                     prim->y3 = block->sy1;
-                    addPrim((u_long*)(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                                      (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
                     t3             = ang + 0x800;
@@ -3355,7 +3331,7 @@ static void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 a
                     prim->y2 = block->sy1;
                     prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
                     prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
                     ang = t2;
@@ -3424,7 +3400,7 @@ static void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 a
             prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
             prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
@@ -3652,8 +3628,7 @@ static void func_shelter_b3_dumping_hole_8018596C(GpCoord* arg0, u16 arg1, s16 a
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -3721,8 +3696,7 @@ static void func_shelter_b3_dumping_hole_80185DCC(GpCoord* arg0, u16 arg1, s16 a
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -3915,8 +3889,7 @@ static void func_shelter_b3_dumping_hole_801866CC(GpCoord* arg0, u16 arg1, s16 a
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES_AT(scratch, 0x1C);
@@ -3971,8 +3944,7 @@ static void func_shelter_b3_dumping_hole_80186AB8(GpCoord* arg0, s32 arg1, s32 a
         prim->x1 = prim->x3 = block->sx + block->step;
         prim->y0 = prim->y1 = block->sy - block->step - (block->step >> 1);
         prim->y2 = prim->y3 = block->sy + (block->step >> 1);
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP(GpRingScratch);

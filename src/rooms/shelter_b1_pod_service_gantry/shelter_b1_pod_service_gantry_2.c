@@ -266,8 +266,7 @@ static void func_shelter_b1_pod_service_gantry_8017DF70(GpCoord* arg0, u16 arg1,
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -337,8 +336,7 @@ static void func_shelter_b1_pod_service_gantry_8017E400(GpCoord* arg0, u16 arg1,
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -536,8 +534,7 @@ static void func_shelter_b1_pod_service_gantry_8017ED3C(GpCoord* arg0, u16 arg1,
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
-        addPrim((u_long*)(((((u32)((ShelterB1PodServiceGantrySpinScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)((ShelterB1PodServiceGantrySpinScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES_AT(scratch, 0x1C);
@@ -600,8 +597,7 @@ static void func_shelter_b1_pod_service_gantry_8017F160(GpCoord* arg0, u16 arg1,
         prim->y0 = prim->y1 = xy;
         xy                  = block->sy + (block->step >> 1);
         prim->y2 = prim->y3 = xy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES_AT(scratch, 0x18);
@@ -685,7 +681,7 @@ static void func_shelter_b1_pod_service_gantry_8017F450(GpCoord* arg0, s32 arg1,
             prim->x3 = (u16)block->sx + ((block->step * rsin(t2)) >> 12);
             prim->y3 = (u16)block->sy + ((block->step * rcos(t2)) >> 12);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);

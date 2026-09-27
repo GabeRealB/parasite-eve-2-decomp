@@ -562,7 +562,7 @@ static void func_acropolis_patio_8017E324(Task* task)
             xy               = block->sy + (u16)block->halfWidth;
             prim->y3         = xy;
             prim->y2         = xy;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
         }
         SCRATCH_POP_BYTES(0x14);
     }
@@ -674,8 +674,7 @@ static void func_acropolis_patio_8017E730(Task* task)
             prim->r0    = level;
             prim->g0    = level;
             prim->b0    = level;
-            addPrim((u_long*)(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 0, sc->otz);
         }

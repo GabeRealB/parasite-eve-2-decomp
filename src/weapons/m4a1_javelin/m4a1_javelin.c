@@ -328,7 +328,7 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
             line->y0 = sc->sy0;
             line->x1 = sc->sx1;
             line->y1 = sc->sy1;
-            addPrim((u_long*)(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), line);
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)), line);
             Gp_AddTpageShift((P_TAG*)line, 1, sc->otz0);
             sc->r0 = 0x4000 / sc->otz0;
             sc->r1 = 0x4000 / sc->otz1;
@@ -358,7 +358,7 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
                     tipAng   = i + 0xC00;
                     prim->x3 = (u16)line->x1 + ((sc->r1 * rsin(tipAng)) >> 12);
                     prim->y3 = (u16)line->y1 + ((sc->r1 * rcos(tipAng)) >> 12);
-                    addPrim((u_long*)(((((u32)sc->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)sc->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, sc->otz1);
                 }
@@ -384,7 +384,7 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
                     baseAng  = i + 0x400;
                     prim->x3 = (u16)line->x0 + ((sc->r0 * rsin(baseAng)) >> 12);
                     prim->y3 = (u16)line->y0 + ((sc->r0 * rcos(baseAng)) >> 12);
-                    addPrim((u_long*)(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, sc->otz0);
                 }
@@ -406,7 +406,7 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
                 prim->y2 = (u16)line->y0;
                 prim->x3 = (u16)line->x1;
                 prim->y3 = (u16)line->y1;
-                addPrim((u_long*)(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                addPrim(Gpu_OtEntryAtByteOffset(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, sc->otz0);
             }
@@ -482,8 +482,7 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
     line->y0 = sc->sy0;
     line->x1 = sc->sx1;
     line->y1 = sc->sy1;
-    addPrim((u_long*)(((((u32)((OverlayPointPairScratch*)head)[-1].otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                      (s32)gGpuCurrentOt),
+    addPrim(Gpu_OtEntryAtByteOffset(((((u32)((OverlayPointPairScratch*)head)[-1].otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
             line);
     Gp_AddTpageShift((P_TAG*)line, 1, ((OverlayPointPairScratch*)head)[-1].otz0);
     sc->r0 = 0x4000 / ((OverlayPointPairScratch*)head)[-1].otz0;
@@ -509,7 +508,7 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
             poly->y2 = line->y1;
             poly->x3 = (u16)line->x1 + ((sc->r1 * rsin(i + 0xC00)) >> 12);
             poly->y3 = (u16)line->y1 + ((sc->r1 * rcos(i + 0xC00)) >> 12);
-            addPrim((u_long*)(((((u32)sc->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), poly);
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)sc->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)), poly);
             Gp_AddTpageShift((P_TAG*)poly, 1, sc->otz1);
         }
     } else {
@@ -533,7 +532,7 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
             poly->y2 = line->y0;
             poly->x3 = (u16)line->x0 + ((sc->r0 * rsin(i + 0x400)) >> 12);
             poly->y3 = (u16)line->y0 + ((sc->r0 * rcos(i + 0x400)) >> 12);
-            addPrim((u_long*)(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), poly);
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)), poly);
             Gp_AddTpageShift((P_TAG*)poly, 1, sc->otz0);
         }
     }
@@ -554,7 +553,7 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
         poly->y2 = line->y0;
         poly->x3 = line->x1;
         poly->y3 = line->y1;
-        addPrim((u_long*)(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), poly);
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)), poly);
         Gp_AddTpageShift((P_TAG*)poly, 1, sc->otz0);
     }
     goto done;
@@ -610,7 +609,7 @@ static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
             line->y0 = sc->sy0;
             line->x1 = sc->sx1;
             line->y1 = sc->sy1;
-            addPrim((u_long*)(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), line);
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)), line);
             Gp_AddTpageShift((P_TAG*)line, 1, sc->otz0);
         }
     }
@@ -674,7 +673,7 @@ static void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
     }
     SCRATCH_POP_BYTES(sizeof(GpFxQuadScratch));
 }

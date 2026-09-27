@@ -188,8 +188,7 @@ static void func_tonfa_baton_8011D6B0(s16 slot, s16 flags)
             setRGB1(prim, hi * (flags >> 8), hi * ((flags >> 4) & 3), hi * (flags & 3));
             setRGB2(prim, lo * (flags >> 8), lo * ((flags >> 4) & 3), lo * (flags & 3));
             setRGB3(prim, lo * (flags >> 8), lo * ((flags >> 4) & 3), lo * (flags & 3));
-            addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
         }

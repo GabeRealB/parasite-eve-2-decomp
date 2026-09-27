@@ -761,7 +761,7 @@ static void func_acropolis_sanctuary_8017E338(Task* arg0)
                    D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_0;
         prim->v3 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col +
                    D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_2;
-        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x28);
@@ -943,7 +943,7 @@ static void func_acropolis_sanctuary_8017EC90(Task* arg0)
         prim->u2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].row;
         prim->v2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col +
                    ((D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_2 * mem->angle) >> 12);
-        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     coord->coord.t[0] += mem->move.vx;
@@ -1071,7 +1071,7 @@ static void func_acropolis_sanctuary_8017F4E8(Task* arg0)
             y              = blk->sy + (u16)blk->halfWidth;
             prim->y3       = y;
             prim->y2       = y;
-            addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
         }
         SCRATCH_POP_BYTES(0x14);

@@ -149,8 +149,7 @@ static void func_shelter_b1_armory_80180934(SVECTOR* arg0, s32 arg1, s32 arg2, s
             prim->y2 = block->sy0;
             prim->x3 = block->sx0 + ((block->r0 * rsin(base + t2)) >> 12);
             prim->y3 = block->sy0 + ((block->r0 * rcos(base + t2)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -169,8 +168,7 @@ static void func_shelter_b1_armory_80180934(SVECTOR* arg0, s32 arg1, s32 arg2, s
             prim->y2 = block->sy0;
             prim->x3 = block->sx1;
             prim->y3 = block->sy1;
-            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -195,8 +193,7 @@ static void func_shelter_b1_armory_80180934(SVECTOR* arg0, s32 arg1, s32 arg2, s
             prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
             prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
@@ -272,7 +269,7 @@ static void func_shelter_b1_armory_8018111C(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
             prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
@@ -362,7 +359,7 @@ static void func_shelter_b1_armory_801814C0(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
             prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -382,7 +379,7 @@ static void func_shelter_b1_armory_801814C0(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
             prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
@@ -407,7 +404,7 @@ static void func_shelter_b1_armory_801814C0(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->rInner * rsin(ang + 0x400)) >> 13);
             prim->y3 = block->sy + ((block->rInner * rcos(ang + 0x400)) >> 13);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -427,7 +424,7 @@ static void func_shelter_b1_armory_801814C0(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->x3 = block->sx + ((block->rInner * rsin(ang + 0x800)) >> 12);
             prim->y3 = block->sy + ((block->rInner * rcos(ang + 0x800)) >> 12);
             ang     += 0x800;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);

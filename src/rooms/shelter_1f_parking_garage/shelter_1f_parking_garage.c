@@ -548,8 +548,7 @@ static void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32
             prim->y2 = block->sy0;
             prim->x3 = block->sx0 + ((block->r0 * rsin(base + t2)) >> 12);
             prim->y3 = block->sy0 + ((block->r0 * rcos(base + t2)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -568,8 +567,7 @@ static void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32
             prim->y2 = block->sy0;
             prim->x3 = block->sx1;
             prim->y3 = block->sy1;
-            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -594,8 +592,7 @@ static void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32
             prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
             prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
@@ -672,7 +669,7 @@ static void func_shelter_1f_parking_garage_8017E868(SVECTOR* arg0, s32 arg1, s32
             prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
             prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
@@ -802,8 +799,7 @@ static void func_shelter_1f_parking_garage_8017EEB0(GpCoord* arg0, s32 arg1, s32
             prim->x3 = block->sx + ((block->rInner * rsin(t)) >> 12);
             prim->y3 = block->sy + ((block->rInner * rcos(t)) >> 12);
             ang      = t;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
@@ -856,7 +852,7 @@ static void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s16 arg1, u8*
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->radius * rsin(ang + 0x200)) >> 12);
             prim->y3 = block->sy + ((block->radius * rcos(ang + 0x200)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
@@ -1058,8 +1054,7 @@ static void func_shelter_1f_parking_garage_8017FB60(GpCoord* arg0, GpCoord* arg1
             prim->y2 = blk->sy2;
             prim->x3 = blk->sx3;
             prim->y3 = blk->sy3;
-            addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
         }
@@ -1194,7 +1189,7 @@ static void func_shelter_1f_parking_garage_801801E0(GpCoord* arg0, s16 arg1, u8*
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
             prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -1214,7 +1209,7 @@ static void func_shelter_1f_parking_garage_801801E0(GpCoord* arg0, s16 arg1, u8*
             prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
             prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
@@ -1238,7 +1233,7 @@ static void func_shelter_1f_parking_garage_801801E0(GpCoord* arg0, s16 arg1, u8*
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 13);
             prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -1259,7 +1254,7 @@ static void func_shelter_1f_parking_garage_801801E0(GpCoord* arg0, s16 arg1, u8*
             prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 12);
             prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 12);
             ang      = u;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);

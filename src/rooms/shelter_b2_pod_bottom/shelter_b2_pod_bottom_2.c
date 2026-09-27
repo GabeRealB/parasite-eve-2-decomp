@@ -293,8 +293,7 @@ static void func_shelter_b2_pod_bottom_8017DECC(GpCoord* arg0, u16 arg1, s16 arg
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -362,8 +361,7 @@ static void func_shelter_b2_pod_bottom_8017E334(GpCoord* arg0, u16 arg1, s16 arg
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -453,8 +451,7 @@ static void func_shelter_b2_pod_bottom_8017E788(GpCoord* coord, s16 arg1, s16 ar
             prim->y2 = (u16)block->sxy2.vy;
             prim->x3 = (u16)block->sxy3.vx;
             prim->y3 = (u16)block->sxy3.vy;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
@@ -615,8 +612,7 @@ static void func_shelter_b2_pod_bottom_8017EEAC(GpEffWork* work, GpCoord* coord,
             prim->y2 = (u16)block->sxy2.vy;
             prim->x3 = (u16)block->sxy3.vx;
             prim->y3 = (u16)block->sxy3.vy;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
         }
     }
@@ -764,7 +760,7 @@ static void func_shelter_b2_pod_bottom_8017F994(GpCoord* coord, s32 arg1, u8* rg
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->inner * rsin(next)) >> 12);
             prim->y3 = block->sy + ((block->inner * rcos(next)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -784,7 +780,7 @@ static void func_shelter_b2_pod_bottom_8017F994(GpCoord* coord, s32 arg1, u8* rg
             prim->x3 = block->sx + ((block->inner * rsin(next)) >> 13);
             prim->y3 = block->sy + ((block->inner * rcos(next)) >> 13);
             ang      = next;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
@@ -812,7 +808,7 @@ static void func_shelter_b2_pod_bottom_8017F994(GpCoord* coord, s32 arg1, u8* rg
             prim->x3 = block->sx + ((block->outer * rsin(far)) >> 12);
             prim->y3 = block->sy + ((block->outer * rcos(far)) >> 12);
             ang      = next;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
@@ -966,8 +962,7 @@ static void func_shelter_b2_pod_bottom_801805A0(GpCoord* arg0, s32 arg1, s32 arg
         ang        += 0x20;
         prim->x2    = (u16)block->sx + ((block->step * rsin(ang)) >> 12);
         prim->y2    = (u16)block->sy + ((block->step * rcos(ang)) >> 12);
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
     }
@@ -1104,7 +1099,7 @@ static void func_shelter_b2_pod_bottom_80180A4C(GpCoord* coord, s16 radius, SVEC
                 prim->y2 = (u16)block->sxy2.vy;
                 prim->x3 = (u16)block->sxy3.vx;
                 prim->y3 = (u16)block->sxy3.vy;
-                addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                         prim);
             }
         }
@@ -1225,7 +1220,7 @@ static void func_shelter_b2_pod_bottom_8018101C(GpCoord* coord, s16 size, u16 co
                         prim->y2 = block->sy1;
                         prim->x3 = block->sx1 + ((block->r1 * rsin(ang + 0xC00)) >> 12);
                         prim->y3 = block->sy1 + ((block->r1 * rcos(ang + 0xC00)) >> 12);
-                        addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                                 prim);
                         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
 
@@ -1245,7 +1240,7 @@ static void func_shelter_b2_pod_bottom_8018101C(GpCoord* coord, s16 size, u16 co
                         prim->y2 = block->sy0;
                         prim->x3 = block->sx0 + ((block->r0 * rsin(next)) >> 12);
                         prim->y3 = block->sy0 + ((block->r0 * rcos(next)) >> 12);
-                        addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                                 prim);
                         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -1265,7 +1260,7 @@ static void func_shelter_b2_pod_bottom_8018101C(GpCoord* coord, s16 size, u16 co
                         prim->y2 = block->sy0;
                         prim->x3 = block->sx1;
                         prim->y3 = block->sy1;
-                        addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                                 prim);
                         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
                         ang = next;

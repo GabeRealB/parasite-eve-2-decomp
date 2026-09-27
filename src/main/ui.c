@@ -19,16 +19,16 @@ static void Ui_DispatchObjectState(Task* arg0);
 static void Ui_InsetRect2(void* arg0, RECT* arg1, RECT* arg2);
 static void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
 static void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
-static void Ui_AnimCloseStep(UiPanel* arg0, void* arg1);
+static void Ui_AnimCloseStep(UiPanel* arg0, Task* arg1);
 
-static void Ui_AnimOpenStep(UiPanel* arg0, void* arg1);
-static void Ui_ClipAndCallback(UiPanel* arg0, void* arg1);
-static void Ui_DrawAndCallback(UiPanel* arg0, void* arg1);
+static void Ui_AnimOpenStep(UiPanel* arg0, Task* arg1);
+static void Ui_ClipAndCallback(UiPanel* arg0, Task* arg1);
+static void Ui_DrawAndCallback(UiPanel* arg0, Task* arg1);
 static void Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2, s32 arg3);
-static void Ui_LayoutDrawAndCallback(UiPanel* arg0, void* arg1);
-static void Ui_TickAnimCounter(UiPanel* arg0, void* arg1);
+static void Ui_LayoutDrawAndCallback(UiPanel* arg0, Task* arg1);
+static void Ui_TickAnimCounter(UiPanel* arg0, Task* arg1);
 static void func_80044698(void);
-static void Ui_DrawDialogLine(DialogPrompt* arg0, UiObject* arg1);
+static void Ui_DrawDialogLine(UiList* arg0, UiObject* arg1);
 static void Ui_ListTaskCallback(Task* arg0);
 
 TaskDesc D_800670D0[] = {
@@ -360,7 +360,7 @@ static void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
     spr->clut      = 0x3C03;
     setlen(spr, 3);
     setcode(spr, 0x75);
-    addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, spr);
+    addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 3, spr);
 
     spr            = (SPRT*)gGpuPrimCursor;
     gGpuPrimCursor = spr + 1;
@@ -372,7 +372,7 @@ static void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         spr->clut = 0x3C03;
         setlen(spr, 3);
         setcode(spr, 0x75);
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, spr);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 3, spr);
     }
 
     spr            = (SPRT*)gGpuPrimCursor;
@@ -385,7 +385,7 @@ static void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         spr->clut = 0x3C03;
         setlen(spr, 3);
         setcode(spr, 0x75);
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, spr);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 3, spr);
     }
 
     spr            = (SPRT*)gGpuPrimCursor;
@@ -398,7 +398,7 @@ static void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         spr->clut = 0x3C03;
         setlen(spr, 3);
         setcode(spr, 0x75);
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, spr);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 3, spr);
     }
 
     p              = (POLY_FT4*)gGpuPrimCursor;
@@ -421,7 +421,7 @@ static void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         p->clut  = 0x3C03;
         setPolyFT4(p);
         setShadeTex(p, 1);
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, p);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 3, p);
     }
 
     p              = (POLY_FT4*)gGpuPrimCursor;
@@ -444,7 +444,7 @@ static void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         p->clut  = 0x3C03;
         setPolyFT4(p);
         setShadeTex(p, 1);
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, p);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 3, p);
     }
 
     p              = (POLY_FT4*)gGpuPrimCursor;
@@ -467,7 +467,7 @@ static void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         p->clut  = 0x3C03;
         setPolyFT4(p);
         setShadeTex(p, 1);
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, p);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 3, p);
     }
 
     p              = (POLY_FT4*)gGpuPrimCursor;
@@ -490,9 +490,9 @@ static void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         p->clut  = 0x3C03;
         setPolyFT4(p);
         setShadeTex(p, 1);
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, p);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 3, p);
     }
-    Ui_DrawWindowBorder(arg2, arg0->field_4, (s16)arg0->field_14 + 3);
+    Ui_DrawWindowBorder(arg2, arg0->field_4, (s16)arg0->field_14.u + 3);
     if (arg0->field_4 & 0x20000) {
         tile           = (TILE*)gGpuPrimCursor;
         gGpuPrimCursor = tile + 1;
@@ -506,12 +506,12 @@ static void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         tile->h        = 0xF0;
         setlen(tile, 3);
         setcode(tile, 0x62);
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, tile);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 3, tile);
         dr             = gGpuPrimCursor;
         gGpuPrimCursor = dr + 1;
         setlen(dr, 1);
         dr->code[0] = 0xE1000240;
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, dr);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 3, dr);
     }
 }
 
@@ -534,7 +534,7 @@ static void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
             setRECT(&sp10, arg2->x + 0xA0, arg2->y + 0x78, arg2->w, arg2->h);
             sp10.y += gDisplayState.drawBuffer * 0x110;
             SetDrawArea(p, &sp10);
-            addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, p);
+            addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 3, p);
         }
         func_80044C34(arg0, arg1, arg2, arg3);
         if (arg3 != 0) {
@@ -544,7 +544,7 @@ static void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
             gGpuPrimCursor = p + 1;
             setRECT(&sp18, 0, gDisplayState.drawBuffer * 0x110, 0x140, 0xF0);
             SetDrawArea(p, &sp18);
-            addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, p);
+            addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, p);
         }
         if (arg0->field_4 & 0x10000) {
             poly           = (POLY_F4*)gGpuPrimCursor;
@@ -566,13 +566,13 @@ static void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
             t        = arg2->y + arg2->h;
             poly->y3 = t;
             poly->y2 = t;
-            addPrim(gGpuCurrentOt + (s16)arg0->field_14, poly);
+            addPrim(gGpuCurrentOt + (s16)arg0->field_14.u, poly);
 
             dr             = gGpuPrimCursor;
             gGpuPrimCursor = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000200;
-            addPrim(gGpuCurrentOt + (s16)arg0->field_14, dr);
+            addPrim(gGpuCurrentOt + (s16)arg0->field_14.u, dr);
         }
     }
 }
@@ -583,7 +583,7 @@ static void Ui_SetupClip(UiPanel* arg0)
     RECT     sp18;
     DR_AREA* p;
 
-    Ui_InsetRect2(arg0, &arg0->field_C, &sp18);
+    Ui_InsetRect2(arg0, &arg0->bounds.rect, &sp18);
     if ((arg0->field_4 & 0xF) == 2) {
         sp18.y += 9;
         sp18.h -= 0xB;
@@ -595,12 +595,12 @@ static void Ui_SetupClip(UiPanel* arg0)
         sp18.x += 2;
         sp18.w -= 4;
     }
-    arg0->field_1C = -(sp18.w >> 1);
-    arg0->field_1E = arg0->field_1C + sp18.w;
-    arg0->field_18 = -(sp18.h >> 1);
-    arg0->field_1A = arg0->field_18 + sp18.h;
-    arg0->field_20 = sp18.x - arg0->field_1C;
-    arg0->field_22 = sp18.y - arg0->field_18;
+    arg0->field_1C.u = -(sp18.w >> 1);
+    arg0->field_1E.u = arg0->field_1C.u + sp18.w;
+    arg0->field_18.u = -(sp18.h >> 1);
+    arg0->field_1A.u = arg0->field_18.u + sp18.h;
+    arg0->field_20.u = sp18.x - arg0->field_1C.u;
+    arg0->field_22.u = sp18.y - arg0->field_18.u;
 
     p              = (DR_AREA*)gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
@@ -609,7 +609,7 @@ static void Ui_SetupClip(UiPanel* arg0)
     sp10.h         = 0;
     sp10.y         = gDisplayState.drawBuffer * 0x110;
     SetDrawArea(p, &sp10);
-    addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, p);
+    addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 3, p);
 
     p              = (DR_AREA*)gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
@@ -618,7 +618,7 @@ static void Ui_SetupClip(UiPanel* arg0)
     sp10.h         = 0xF0;
     sp10.y         = gDisplayState.drawBuffer * 0x110;
     SetDrawArea(p, &sp10);
-    addPrim(gGpuCurrentOt + (s16)arg0->field_14, p);
+    addPrim(gGpuCurrentOt + (s16)arg0->field_14.u, p);
 }
 
 static void Ui_ScaleRect(UiPanel* arg0, RECT* arg1, s32 arg2, s32 arg3)
@@ -626,23 +626,23 @@ static void Ui_ScaleRect(UiPanel* arg0, RECT* arg1, s32 arg2, s32 arg3)
     s16 temp;
 
     if (((u8)arg0->field_4 >> 4) == 1) {
-        arg1->w = arg0->field_C.w;
-        arg1->h = (arg0->field_C.h * arg2) >> 3;
-        arg1->x = arg0->field_C.x;
-        arg1->y = (arg0->field_C.y + arg0->field_C.h) - arg1->h;
+        arg1->w = arg0->bounds.rect.w;
+        arg1->h = (arg0->bounds.rect.h * arg2) >> 3;
+        arg1->x = arg0->bounds.rect.x;
+        arg1->y = (arg0->bounds.rect.y + arg0->bounds.rect.h) - arg1->h;
     } else {
-        arg1->w = (arg0->field_C.w * arg2) >> 3;
-        temp    = arg0->field_C.h;
+        arg1->w = (arg0->bounds.rect.w * arg2) >> 3;
+        temp    = arg0->bounds.rect.h;
         if (temp >= 0xC) {
             temp = (((temp - 0xC) * arg2) >> 3) + 0xC;
         } else {
             temp = 0xC;
         }
         arg1->h = temp;
-        arg1->x = arg0->field_C.x;
-        arg1->y = (arg0->field_C.y + arg0->field_C.h) - arg1->h;
-        arg1->x = arg0->field_C.x;
-        arg1->w = arg0->field_C.w;
+        arg1->x = arg0->bounds.rect.x;
+        arg1->y = (arg0->bounds.rect.y + arg0->bounds.rect.h) - arg1->h;
+        arg1->x = arg0->bounds.rect.x;
+        arg1->w = arg0->bounds.rect.w;
     }
 }
 
@@ -676,16 +676,16 @@ static void Ui_LayoutAndClip(UiPanel* arg0)
                 Ui_ScaleRect(arg0, arg1, var_a2, 1);
                 goto after_fill;
         }
-        arg1->x = arg0->field_C.x;
-        arg1->y = arg0->field_C.y;
-        arg1->w = arg0->field_C.w;
-        arg1->h = arg0->field_C.h;
+        arg1->x = arg0->bounds.rect.x;
+        arg1->y = arg0->bounds.rect.y;
+        arg1->w = arg0->bounds.rect.w;
+        arg1->h = arg0->bounds.rect.h;
     }
 after_fill: {
     RECT* arg1;
 
     arg1 = &sp10;
-    Ui_InsetRect2(arg0, &arg0->field_C, &sp20);
+    Ui_InsetRect2(arg0, &arg0->bounds.rect, &sp20);
     if ((arg0->field_4 & 0xF) == 2) {
         sp20.y += 9;
         sp20.h -= 0xB;
@@ -697,12 +697,12 @@ after_fill: {
         sp20.x += 2;
         sp20.w -= 4;
     }
-    arg0->field_1C = -(sp20.w >> 1);
-    arg0->field_1E = arg0->field_1C + sp20.w;
-    arg0->field_18 = -(sp20.h >> 1);
-    arg0->field_1A = arg0->field_18 + sp20.h;
-    arg0->field_20 = sp20.x - arg0->field_1C;
-    arg0->field_22 = sp20.y - arg0->field_18;
+    arg0->field_1C.u = -(sp20.w >> 1);
+    arg0->field_1E.u = arg0->field_1C.u + sp20.w;
+    arg0->field_18.u = -(sp20.h >> 1);
+    arg0->field_1A.u = arg0->field_18.u + sp20.h;
+    arg0->field_20.u = sp20.x - arg0->field_1C.u;
+    arg0->field_22.u = sp20.y - arg0->field_18.u;
     if (arg1 != NULL) {
         Ui_InsetRect2(arg0, arg1, &sp18);
     }
@@ -740,16 +740,16 @@ static void Ui_LayoutAndDraw(UiPanel* arg0)
                 Ui_ScaleRect(arg0, arg1, var_a2, 1);
                 goto after_fill;
         }
-        arg1->x = arg0->field_C.x;
-        arg1->y = arg0->field_C.y;
-        arg1->w = arg0->field_C.w;
-        arg1->h = arg0->field_C.h;
+        arg1->x = arg0->bounds.rect.x;
+        arg1->y = arg0->bounds.rect.y;
+        arg1->w = arg0->bounds.rect.w;
+        arg1->h = arg0->bounds.rect.h;
     }
 after_fill: {
     RECT* arg1;
 
     arg1 = &sp10;
-    Ui_InsetRect2(arg0, &arg0->field_C, &sp20);
+    Ui_InsetRect2(arg0, &arg0->bounds.rect, &sp20);
     if ((arg0->field_4 & 0xF) == 2) {
         sp20.y += 9;
         sp20.h -= 0xB;
@@ -761,12 +761,12 @@ after_fill: {
         sp20.x += 2;
         sp20.w -= 4;
     }
-    arg0->field_1C = -(sp20.w >> 1);
-    arg0->field_1E = arg0->field_1C + sp20.w;
-    arg0->field_18 = -(sp20.h >> 1);
-    arg0->field_1A = arg0->field_18 + sp20.h;
-    arg0->field_20 = sp20.x - arg0->field_1C;
-    arg0->field_22 = sp20.y - arg0->field_18;
+    arg0->field_1C.u = -(sp20.w >> 1);
+    arg0->field_1E.u = arg0->field_1C.u + sp20.w;
+    arg0->field_18.u = -(sp20.h >> 1);
+    arg0->field_1A.u = arg0->field_18.u + sp20.h;
+    arg0->field_20.u = sp20.x - arg0->field_1C.u;
+    arg0->field_22.u = sp20.y - arg0->field_18.u;
     if (arg1 != NULL) {
         Ui_InsetRect2(arg0, arg1, &sp18);
     }
@@ -804,16 +804,16 @@ static void Ui_LayoutAndDrawAlt(UiPanel* arg0)
                 Ui_ScaleRect(arg0, arg1, var_a2, 1);
                 goto after_fill;
         }
-        arg1->x = arg0->field_C.x;
-        arg1->y = arg0->field_C.y;
-        arg1->w = arg0->field_C.w;
-        arg1->h = arg0->field_C.h;
+        arg1->x = arg0->bounds.rect.x;
+        arg1->y = arg0->bounds.rect.y;
+        arg1->w = arg0->bounds.rect.w;
+        arg1->h = arg0->bounds.rect.h;
     }
 after_fill: {
     RECT* arg1;
 
     arg1 = &sp10;
-    Ui_InsetRect2(arg0, &arg0->field_C, &sp20);
+    Ui_InsetRect2(arg0, &arg0->bounds.rect, &sp20);
     if ((arg0->field_4 & 0xF) == 2) {
         sp20.y += 9;
         sp20.h -= 0xB;
@@ -825,12 +825,12 @@ after_fill: {
         sp20.x += 2;
         sp20.w -= 4;
     }
-    arg0->field_1C = -(sp20.w >> 1);
-    arg0->field_1E = arg0->field_1C + sp20.w;
-    arg0->field_18 = -(sp20.h >> 1);
-    arg0->field_1A = arg0->field_18 + sp20.h;
-    arg0->field_20 = sp20.x - arg0->field_1C;
-    arg0->field_22 = sp20.y - arg0->field_18;
+    arg0->field_1C.u = -(sp20.w >> 1);
+    arg0->field_1E.u = arg0->field_1C.u + sp20.w;
+    arg0->field_18.u = -(sp20.h >> 1);
+    arg0->field_1A.u = arg0->field_18.u + sp20.h;
+    arg0->field_20.u = sp20.x - arg0->field_1C.u;
+    arg0->field_22.u = sp20.y - arg0->field_18.u;
     if (arg1 != NULL) {
         Ui_InsetRect2(arg0, arg1, &sp18);
     }
@@ -849,16 +849,16 @@ static void Ui_SetListClip(UiList* arg0, UiPanel* arg1, s32 arg2)
         for (i = 0; i < 2; i++) {
             p              = (DR_AREA*)gGpuPrimCursor;
             gGpuPrimCursor = p + 1;
-            sp10.x         = arg1->field_20 + (arg1->field_1C + 0xA0);
-            temp           = arg1->field_22 + (arg1->field_18 + 0x78) + (gDisplayState.drawBuffer * 0x110);
+            sp10.x         = arg1->field_20.u + (arg1->field_1C.u + 0xA0);
+            temp           = arg1->field_22.u + (arg1->field_18.u + 0x78) + (gDisplayState.drawBuffer * 0x110);
             sp10.y         = temp;
             sp10.y         = temp + arg0->field_17;
-            sp10.w         = arg1->field_1E - arg1->field_1C;
-            temp           = ((s16)arg1->field_1A - (s16)arg1->field_18 - arg0->field_17) / arg0->field_7;
+            sp10.w         = arg1->field_1E.u - arg1->field_1C.u;
+            temp           = ((s16)arg1->field_1A.u - (s16)arg1->field_18.u - arg0->field_17) / arg0->field_7;
             sp10.h         = temp;
             sp10.h         = temp * arg0->field_7;
             SetDrawArea(p, &sp10);
-            addPrim(gGpuCurrentOt + (i + (s16)arg1->field_14) + 1, p);
+            addPrim(gGpuCurrentOt + (i + (s16)arg1->field_14.u) + 1, p);
         }
     } else {
         for (i = 0; i < 2; i++) {
@@ -869,7 +869,7 @@ static void Ui_SetListClip(UiList* arg0, UiPanel* arg1, s32 arg2)
             sp10.h         = 0xF0;
             sp10.y         = gDisplayState.drawBuffer * 0x110;
             SetDrawArea(p, &sp10);
-            addPrim(gGpuCurrentOt + (i + (s16)arg1->field_14) + 1, p);
+            addPrim(gGpuCurrentOt + (i + (s16)arg1->field_14.u) + 1, p);
         }
     }
 }
@@ -885,11 +885,11 @@ static void Ui_DrawCursor(UiPanel* arg0, s32 arg1, s32 arg2)
     s32       t;
 
     n = (u32)gDisplayState.vsyncCount >> 3;
-    if (arg0->field_0 != 0) {
+    if (arg0->field_0.w != 0) {
         p              = (SPRT_8*)gGpuPrimCursor;
         gGpuPrimCursor = p + 1;
-        p->x0          = arg0->field_20 + arg1 - 8;
-        y              = arg0->field_22;
+        p->x0          = arg0->field_20.u + arg1 - 8;
+        y              = arg0->field_22.u;
         p->clut        = 0x3C0A;
         setlen(p, 3);
         setcode(p, 0x75);
@@ -923,20 +923,20 @@ static void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
     gGpuPrimCursor = p + 1;
     setPolyG3(p);
 
-    x     = arg1->field_C.x + arg1->field_C.w - 5;
+    x     = arg1->bounds.rect.x + arg1->bounds.rect.w - 5;
     p->x2 = x;
     p->x1 = x;
     p->x0 = x;
 
-    y     = arg1->field_22;
+    y     = arg1->field_22.u;
     p->y2 = y;
     p->y1 = y;
     p->y0 = y;
 
     if (arg2 == 0) {
-        y    += arg1->field_18;
+        y    += arg1->field_18.u;
         p->y0 = y;
-        if (arg1->field_0 == 1) {
+        if (arg1->field_0.w == 1) {
             p->y0 -= (((u32)gDisplayState.vsyncCount >> 3) & 3) - 3;
         }
         p->y0 += arg0->field_17;
@@ -947,8 +947,8 @@ static void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
         p->y1  = t;
     } else {
         y0    = y + 2;
-        p->y0 = arg1->field_1A + y0;
-        if (arg1->field_0 == 1) {
+        p->y0 = arg1->field_1A.u + y0;
+        if (arg1->field_0.w == 1) {
             p->y0 += (((u32)gDisplayState.vsyncCount >> 3) & 3) - 3;
         }
         p->x1 -= 3;
@@ -967,7 +967,7 @@ static void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
     p->g1 = 0xCF;
     p->b2 = 0xFF;
     p->b1 = 0xFF;
-    addPrim(gGpuCurrentOt + (s16)arg1->field_14 + 1, p);
+    addPrim(gGpuCurrentOt + (s16)arg1->field_14.u + 1, p);
 }
 
 void Ui_UpdateLayoutSize(UiPanel* arg0, s32 arg1, s32 arg2)
@@ -975,12 +975,12 @@ void Ui_UpdateLayoutSize(UiPanel* arg0, s32 arg1, s32 arg2)
     RECT sp10;
 
     if (arg1 > 0) {
-        arg0->field_C.w = (arg0->field_C.w - (arg0->field_1E - arg0->field_1C)) + arg1;
+        arg0->bounds.rect.w = (arg0->bounds.rect.w - (arg0->field_1E.u - arg0->field_1C.u)) + arg1;
     }
     if (arg2 > 0) {
-        arg0->field_C.h = (arg0->field_C.h - (arg0->field_1A - arg0->field_18)) + arg2;
+        arg0->bounds.rect.h = (arg0->bounds.rect.h - (arg0->field_1A.u - arg0->field_18.u)) + arg2;
     }
-    Ui_InsetRect2(arg0, &arg0->field_C, &sp10);
+    Ui_InsetRect2(arg0, &arg0->bounds.rect, &sp10);
     if ((arg0->field_4 & 0xF) == 2) {
         sp10.y += 9;
         sp10.h -= 0xB;
@@ -992,79 +992,49 @@ void Ui_UpdateLayoutSize(UiPanel* arg0, s32 arg1, s32 arg2)
         sp10.x += 2;
         sp10.w -= 4;
     }
-    arg0->field_1C = -(sp10.w >> 1);
-    arg0->field_1E = arg0->field_1C + sp10.w;
-    arg0->field_18 = -(sp10.h >> 1);
-    arg0->field_1A = arg0->field_18 + sp10.h;
-    arg0->field_20 = sp10.x - arg0->field_1C;
-    arg0->field_22 = sp10.y - arg0->field_18;
+    arg0->field_1C.u = -(sp10.w >> 1);
+    arg0->field_1E.u = arg0->field_1C.u + sp10.w;
+    arg0->field_18.u = -(sp10.h >> 1);
+    arg0->field_1A.u = arg0->field_18.u + sp10.h;
+    arg0->field_20.u = sp10.x - arg0->field_1C.u;
+    arg0->field_22.u = sp10.y - arg0->field_18.u;
 }
 
 /// Signed overlay of UiList so field_5/field_7 load with lb (visible-row counts).
-typedef struct {
-    /* 0x00 */ u8  pad0[4];
-    /* 0x04 */ u8  field_4;
-    /* 0x05 */ s8  field_5;
-    /* 0x06 */ s8  field_6;
-    /* 0x07 */ s8  field_7;
-    /* 0x08 */ u8  pad8;
-    /* 0x09 */ u8  field_9;
-    /* 0x0A */ u8  field_A;
-    /* 0x0B */ u8  padB;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-    /* 0x14 */ s16 field_14;
-    /* 0x16 */ s8  field_16;
-    /* 0x17 */ s8  field_17;
-} UiListSignedRows;
 
 /// Signed overlay of UiPanel layout halfwords (field_18..field_1E can be negative).
-typedef struct {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ s32  field_8;
-    /* 0x0C */ RECT field_C;
-    /* 0x14 */ u16  field_14;
-    /* 0x16 */ s16  field_16;
-    /* 0x18 */ s16  field_18;
-    /* 0x1A */ s16  field_1A;
-    /* 0x1C */ s16  field_1C;
-    /* 0x1E */ s16  field_1E;
-    /* 0x20 */ u16  field_20;
-    /* 0x22 */ u16  field_22;
-} UiPanelSignedLayoutFull;
 
 void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
 {
-    UiListSignedRows*        arg0;
-    UiPanelSignedLayoutFull* arg1;
-    RECT                     sp10;
-    s32                      height;
-    s32                      overflow;
-    s32                      growth;
+    UiList*  arg0;
+    UiPanel* arg1;
+    RECT     sp10;
+    s32      height;
+    s32      overflow;
+    s32      growth;
 
-    arg0 = (UiListSignedRows*)arg0_;
-    arg1 = (UiPanelSignedLayoutFull*)arg1_;
+    arg0 = arg0_;
+    arg1 = arg1_;
 
-    if (arg0->field_5 == 0) {
-        arg0->field_5 = arg0->field_4;
-    } else if (arg0->field_4 < arg0->field_5) {
-        arg0->field_5 = arg0->field_4;
+    if (arg0->field_5.s == 0) {
+        arg0->field_5.s = arg0->field_4;
+    } else if (arg0->field_4 < arg0->field_5.s) {
+        arg0->field_5.s = arg0->field_4;
     }
 
-    growth           = arg0->field_5 * arg0->field_7;
-    growth          -= arg1->field_1A - arg1->field_18;
-    arg1->field_C.h += growth;
-    overflow         = 0x98 - (arg1->field_C.x + arg1->field_C.w);
+    growth               = arg0->field_5.s * arg0->field_7;
+    growth              -= arg1->field_1A.s - arg1->field_18.s;
+    arg1->bounds.rect.h += growth;
+    overflow             = 0x98 - (arg1->bounds.rect.x + arg1->bounds.rect.w);
     if (overflow < 0) {
-        arg1->field_C.x += overflow;
+        arg1->bounds.rect.x += overflow;
     }
-    overflow = 0x70 - (arg1->field_C.y + arg1->field_C.h);
+    overflow = 0x70 - (arg1->bounds.rect.y + arg1->bounds.rect.h);
     if (overflow < 0) {
-        arg1->field_C.y += overflow;
+        arg1->bounds.rect.y += overflow;
     }
 
-    Ui_InsetRect2(arg1, &arg1->field_C, &sp10);
+    Ui_InsetRect2(arg1, &arg1->bounds.rect, &sp10);
     if ((arg1->field_4 & 0xF) == 2) {
         sp10.y += 9;
         sp10.h -= 0xB;
@@ -1076,44 +1046,44 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
         sp10.x += 2;
         sp10.w -= 4;
     }
-    arg1->field_1C = -(sp10.w >> 1);
-    arg1->field_1E = arg1->field_1C + sp10.w;
-    arg1->field_18 = -(sp10.h >> 1);
-    arg1->field_1A = arg1->field_18 + sp10.h;
-    arg1->field_20 = sp10.x - arg1->field_1C;
-    arg1->field_22 = sp10.y - arg1->field_18;
+    arg1->field_1C.s = -(sp10.w >> 1);
+    arg1->field_1E.s = arg1->field_1C.s + sp10.w;
+    arg1->field_18.s = -(sp10.h >> 1);
+    arg1->field_1A.s = arg1->field_18.s + sp10.h;
+    arg1->field_20.u = sp10.x - arg1->field_1C.s;
+    arg1->field_22.u = sp10.y - arg1->field_18.s;
 
     arg0->field_17 = 0;
-    sp10.x         = arg1->field_20 + arg1->field_1C;
-    sp10.y         = arg1->field_22 + arg1->field_18;
-    sp10.w         = arg1->field_1E - arg1->field_1C;
-    sp10.h         = arg1->field_1A - arg1->field_18;
+    sp10.x         = arg1->field_20.u + arg1->field_1C.s;
+    sp10.y         = arg1->field_22.u + arg1->field_18.s;
+    sp10.w         = arg1->field_1E.s - arg1->field_1C.s;
+    sp10.h         = arg1->field_1A.s - arg1->field_18.s;
     height         = sp10.h;
     height        -= arg0->field_17;
     if (arg0->field_7 == 0) {
         arg0->field_7 = 0xA;
     }
     if (height >= arg0->field_4 * arg0->field_7) {
-        arg0->field_5 = arg0->field_4;
+        arg0->field_5.s = arg0->field_4;
     } else {
-        arg0->field_5 = height / arg0->field_7;
-        if (arg0->field_5 <= 0) {
-            arg0->field_5 = 1;
+        arg0->field_5.s = height / arg0->field_7;
+        if (arg0->field_5.s <= 0) {
+            arg0->field_5.s = 1;
         }
     }
     if (arg0->field_10 >= arg0->field_4) {
         arg0->field_10 = arg0->field_4 - 1;
     }
-    if (arg0->field_4 <= arg0->field_5) {
-        arg0->field_9 = 0;
+    if (arg0->field_4 <= arg0->field_5.s) {
+        arg0->field_9.u = 0;
     }
     arg0->field_A  = 0;
     arg0->field_14 = 0;
     arg0->field_16 = 0;
     arg0->field_C  = 0;
     if (Mc_SaveData[0].cursorMode != 0) {
-        arg0->field_10 = 0;
-        arg0->field_9  = 0;
+        arg0->field_10  = 0;
+        arg0->field_9.u = 0;
     }
 }
 
@@ -1128,15 +1098,15 @@ static inline void _uiFillTile(UiPanel* panel, s32 x, s32 y, s32 w, s32 h, u32 c
     if (color != 0 && w >= 2) {
         p                     = (TILE*)gGpuPrimCursor;
         gGpuPrimCursor        = p + 1;
-        p->x0                 = panel->field_20 + x + 1;
-        top                   = panel->field_22;
+        p->x0                 = panel->field_20.u + x + 1;
+        top                   = panel->field_22.u;
         p->w                  = w - 1;
         p->h                  = h - 1;
         PRIM_COLOR_WORD(p, 0) = color;
         setlen(p, 3);
         p->y0 = top + y + 1;
         setcode(p, 0x60);
-        addPrim(gGpuCurrentOt + (s16)panel->field_14 + 1, p);
+        addPrim(gGpuCurrentOt + (s16)panel->field_14.u + 1, p);
     }
 }
 
@@ -1148,64 +1118,55 @@ void func_80046B34(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 ar
     _uiFillTile(arg0, arg1, arg2, arg3, arg4, arg5);
 
     l                     = (LINE_F3*)gGpuPrimCursor;
-    l->x2                 = arg0->field_20 + arg1 + 1;
-    t                     = arg0->field_20 + (arg1 + arg3);
+    l->x2                 = arg0->field_20.u + arg1 + 1;
+    t                     = arg0->field_20.u + (arg1 + arg3);
     l->x1                 = t;
     l->x0                 = t;
     gGpuPrimCursor        = l + 1;
-    l->y0                 = arg0->field_22 + arg2;
-    t                     = arg0->field_22 + (arg2 + arg4);
+    l->y0                 = arg0->field_22.u + arg2;
+    t                     = arg0->field_22.u + (arg2 + arg4);
     l->y2                 = t;
     l->y1                 = t;
     PRIM_COLOR_WORD(l, 0) = ((arg6 & 1) == 0) ? PRIM_RGBC(0x58, 0x60, 0x50, 0) : PRIM_RGBC(0x10, 0x18, 0x10, 0);
     setLineF3(l);
-    addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, l);
+    addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, l);
 
     l                     = (LINE_F3*)gGpuPrimCursor;
-    t                     = arg0->field_20 + arg1;
+    t                     = arg0->field_20.u + arg1;
     l->x1                 = t;
     l->x2                 = t;
-    l->x0                 = arg0->field_20 + (arg1 + arg3) - 1;
+    l->x0                 = arg0->field_20.u + (arg1 + arg3) - 1;
     gGpuPrimCursor        = l + 1;
-    t                     = arg0->field_22 + arg2;
+    t                     = arg0->field_22.u + arg2;
     l->y1                 = t;
     l->y0                 = t;
-    l->y2                 = arg0->field_22 + (arg2 + arg4);
+    l->y2                 = arg0->field_22.u + (arg2 + arg4);
     PRIM_COLOR_WORD(l, 0) = ((arg6 & 1) == 0) ? PRIM_RGBC(0x10, 0x18, 0x10, 0) : PRIM_RGBC(0x58, 0x60, 0x50, 0);
     setLineF3(l);
-    addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, l);
+    addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, l);
 }
 
 /// Overlay of UiPanel / UiObject at the layout halfwords that Ui_DrawListHighlight
 /// loads as signed (field_1C / field_1E are written with potentially negative
 /// values by Ui_InsetLayout; this function needs lh, not lhu).
-typedef struct {
-    /* 0x00 */ u8  pad0[0x14];
-    /* 0x14 */ u16 field_14;
-    /* 0x16 */ u8  pad16[6];
-    /* 0x1C */ s16 field_1C;
-    /* 0x1E */ s16 field_1E;
-    /* 0x20 */ u16 field_20;
-    /* 0x22 */ u16 field_22;
-} UiPanelSignedLayout;
 
 static void Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2, s32 arg3)
 {
-    UiPanelSignedLayout* a1;
-    s32                  h;
-    s32                  x1;
+    UiPanel* a1;
+    s32      h;
+    s32      x1;
 
-    a1 = (UiPanelSignedLayout*)arg1;
+    a1 = arg1;
     h  = arg0->field_7;
-    x1 = a1->field_1C;
-    a1->field_14++;
-    _uiFillTile(arg1, x1, arg2 - h, a1->field_1E - x1 - 1, h, 0x1741F);
-    a1->field_14--;
+    x1 = a1->field_1C.s;
+    a1->field_14.u++;
+    _uiFillTile(arg1, x1, arg2 - h, a1->field_1E.s - x1 - 1, h, 0x1741F);
+    a1->field_14.u--;
 }
 
 /// Eases the list cursor a quarter of the way toward (x, y) once per elapsed
 /// tick, in 24.8 fixed point, and draws it at the result.
-static inline void _uiListMoveCursor(UiPanelRender* panel, s32 x, s32 y)
+static inline void _uiListMoveCursor(UiPanel* panel, s32 x, s32 y)
 {
     s32 i;
     s16 baseX;
@@ -1215,8 +1176,8 @@ static inline void _uiListMoveCursor(UiPanelRender* panel, s32 x, s32 y)
     u8  ticks;
 
     i         = 0;
-    baseX     = panel->field_20;
-    baseY     = panel->field_22;
+    baseX     = panel->field_20.s;
+    baseY     = panel->field_22.s;
     targetX   = x + baseX;
     targetY   = y + baseY;
     targetX <<= 8;
@@ -1231,10 +1192,10 @@ static inline void _uiListMoveCursor(UiPanelRender* panel, s32 x, s32 y)
     }
     targetX = D_80067648 >> 8;
     targetY = D_8006764C >> 8;
-    Ui_DrawCursor((UiPanel*)panel, targetX - panel->field_20, targetY - panel->field_22);
+    Ui_DrawCursor(panel, targetX - panel->field_20.s, targetY - panel->field_22.s);
 }
 
-static void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
+static void func_80046EEC(UiList* arg0, UiPanel* arg1, s32 arg2)
 {
     s32 step;
     s32 playSound;
@@ -1259,52 +1220,52 @@ static void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
     step      = 0;
     playSound = 0;
     highlight = 0;
-    margin    = arg0->field_5 >> 2;
+    margin    = arg0->field_5.s >> 2;
     itemData  = D_80067640;
     if (margin < 2) {
         margin = 0;
     }
-    arg0->field_20 = 0;
-    arg0->field_22 = 0;
-    arg0->field_18 = arg1->field_1C + 2;
-    state          = arg1->state.w;
+    arg0->field_20.s = 0;
+    arg0->field_22   = 0;
+    arg0->field_18   = arg1->field_1C.u + 2;
+    state            = arg1->field_0.w;
     if (state >= 2) {
         switch (state) {
             case 19:
-                arg0->field_10 = arg0->field_9;
+                arg0->field_10 = arg0->field_9.s;
                 break;
             case 18:
-                arg0->field_10 = arg0->field_9 + arg0->field_5 - 1;
+                arg0->field_10 = arg0->field_9.s + arg0->field_5.s - 1;
                 break;
         }
     }
     if (arg0->field_10 < 0) {
         arg0->field_10 += arg0->field_4;
     }
-    rows = arg0->field_5;
+    rows = arg0->field_5.s;
     if (rows < arg0->field_4) {
-        if (arg0->field_6 != 0 || arg0->field_9 > 0) {
-            Ui_DrawCaret((UiList*)arg0, (UiPanel*)arg1, 0);
+        if (arg0->field_6 != 0 || arg0->field_9.s > 0) {
+            Ui_DrawCaret(arg0, arg1, 0);
         }
-        if (arg0->field_6 != 0 || arg0->field_9 + arg0->field_5 < arg0->field_4) {
-            Ui_DrawCaret((UiList*)arg0, (UiPanel*)arg1, 1);
+        if (arg0->field_6 != 0 || arg0->field_9.s + arg0->field_5.s < arg0->field_4) {
+            Ui_DrawCaret(arg0, arg1, 1);
         }
-        arg0->field_1A = arg1->field_18 + arg0->field_7;
+        arg0->field_1A = arg1->field_18.u + arg0->field_7;
         if (arg0->field_14 > 0) {
             arg0->field_14 -= gDisplayState.frameTicks * 2;
             if (arg0->field_14 <= 0) {
                 arg0->field_14 = 0;
                 if (arg0->field_16 == 1) {
-                    arg0->field_9++;
-                    if (arg0->field_9 >= arg0->field_4) {
-                        arg0->field_9 -= arg0->field_4;
+                    arg0->field_9.s++;
+                    if (arg0->field_9.s >= arg0->field_4) {
+                        arg0->field_9.s -= arg0->field_4;
                     }
                 }
                 arg0->field_16 = 0;
             } else {
                 if (arg0->field_16 == 1) {
                     s32 top         = arg0->field_1A + 7;
-                    cursorY         = top - arg0->field_7 + (arg0->field_5 - 1) * arg0->field_7;
+                    cursorY         = top - arg0->field_7 + (arg0->field_5.s - 1) * arg0->field_7;
                     arg0->field_1A -= arg0->field_7 - arg0->field_14;
                 } else {
                     s32 top         = arg0->field_1A + 7;
@@ -1315,7 +1276,7 @@ static void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
             }
         }
     } else {
-        arg0->field_1A = arg1->field_18 + arg0->field_7;
+        arg0->field_1A = arg1->field_18.u + arg0->field_7;
     }
     arg0->field_1A += arg0->field_17;
     highlightY      = arg0->field_1A;
@@ -1329,13 +1290,13 @@ static void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
         return;
     }
     if (arg0->field_14 != 0) {
-        Ui_SetListClip((UiList*)arg0, (UiPanel*)arg1, 1);
+        Ui_SetListClip(arg0, arg1, 1);
     }
-    item = arg0->field_9;
+    item = arg0->field_9.s;
     for (i = 0; i < rows; i++) {
         if (item == arg0->field_10) {
             if (arg0->field_16 == 0) {
-                if (arg1->state.w == 1) {
+                if (arg1->field_0.w == 1) {
                     arg0->field_C  = 1;
                     highlight      = 1;
                     arg0->field_1C = itemData;
@@ -1367,9 +1328,9 @@ static void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
         }
         arg0->field_1A = rowY - inset;
         if (arg0->field_A & 1) {
-            arg0->funcs[0](arg0, arg1);
+            arg0->funcs[0](arg0, PARENT_OF(arg1, UiObject, panel));
         } else {
-            arg0->funcs[item](arg0, arg1);
+            arg0->funcs[item](arg0, PARENT_OF(arg1, UiObject, panel));
         }
         if (item == arg0->field_10 && arg0->field_22 == 0x41) {
             highlight = 0;
@@ -1382,12 +1343,12 @@ static void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
         }
     }
     if (highlight == 1 && arg0->field_7 != 0x2E) {
-        Ui_DrawListHighlight((UiList*)arg0, (UiPanel*)arg1, highlightY, 0);
+        Ui_DrawListHighlight(arg0, arg1, highlightY, 0);
     }
     cursorX = arg0->field_18 - 2;
     if (arg0->field_14 != 0) {
-        Ui_SetListClip((UiList*)arg0, (UiPanel*)arg1, 0);
-    } else if (arg1->state.w == 1) {
+        Ui_SetListClip(arg0, arg1, 0);
+    } else if (arg1->field_0.w == 1) {
         if (arg0->field_22 == 0 && Pad_CheckButtons(arg2, 0, 0xA000) == 0) {
             if (Pad_CheckButtons(arg2, 1, 0x1000) != 0) {
                 playSound       = 1;
@@ -1399,7 +1360,7 @@ static void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
                 step            = 1;
                 arg0->field_10 += 1;
                 arg0->field_B   = 1;
-            } else if (arg0->field_5 < arg0->field_4 && arg0->field_6 == 0) {
+            } else if (arg0->field_5.s < arg0->field_4 && arg0->field_6 == 0) {
                 if (Pad_CheckButtons(0, 1, 4) != 0) {
                     if (arg0->field_10 != 0) {
                         playSound = 1;
@@ -1407,13 +1368,13 @@ static void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
                     arg0->field_B   = -1;
                     step            = -1;
                     arg0->field_10 -= 1;
-                    if (arg0->field_9 > 0) {
-                        arg0->field_9 -= arg0->field_5;
-                        if (arg0->field_9 < 0) {
-                            arg0->field_9 = 0;
+                    if (arg0->field_9.s > 0) {
+                        arg0->field_9.s -= arg0->field_5.s;
+                        if (arg0->field_9.s < 0) {
+                            arg0->field_9.s = 0;
                         }
-                        if (arg0->field_9 + arg0->field_5 - 1 < arg0->field_10) {
-                            arg0->field_10 = arg0->field_9 + arg0->field_5 - 1;
+                        if (arg0->field_9.s + arg0->field_5.s - 1 < arg0->field_10) {
+                            arg0->field_10 = arg0->field_9.s + arg0->field_5.s - 1;
                         }
                     } else {
                         arg0->field_10 = 0;
@@ -1425,13 +1386,13 @@ static void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
                     arg0->field_B   = 1;
                     step            = 1;
                     arg0->field_10 += 1;
-                    if (arg0->field_9 + arg0->field_5 < arg0->field_4) {
-                        arg0->field_9 += arg0->field_5;
-                        if (arg0->field_9 > arg0->field_4 - arg0->field_5) {
-                            arg0->field_9 = arg0->field_4 - arg0->field_5;
+                    if (arg0->field_9.s + arg0->field_5.s < arg0->field_4) {
+                        arg0->field_9.s += arg0->field_5.s;
+                        if (arg0->field_9.s > arg0->field_4 - arg0->field_5.s) {
+                            arg0->field_9.s = arg0->field_4 - arg0->field_5.s;
                         }
-                        if (arg0->field_10 < arg0->field_9) {
-                            arg0->field_10 = arg0->field_9;
+                        if (arg0->field_10 < arg0->field_9.s) {
+                            arg0->field_10 = arg0->field_9.s;
                         }
                     } else {
                         arg0->field_10 = arg0->field_4 - 1;
@@ -1448,7 +1409,7 @@ static void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
             step            = arg0->field_B;
         }
     }
-    if ((arg1->state.w == 1 || arg1->state.h[1] == 1) && arg0->field_7 != 0x2E) {
+    if ((arg1->field_0.w == 1 || arg1->field_0.h[1] == 1) && arg0->field_7 != 0x2E) {
         _uiListMoveCursor(arg1, cursorX, cursorY);
     }
     if (step == -1) {
@@ -1462,21 +1423,21 @@ static void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
                 arg0->field_B  = 1;
             }
         }
-        if (arg0->field_4 != arg0->field_5) {
+        if (arg0->field_4 != arg0->field_5.s) {
             s32 edge = margin - 1;
 
-            if (arg0->field_9 + edge >= arg0->field_10 % arg0->field_4) {
+            if (arg0->field_9.s + edge >= arg0->field_10 % arg0->field_4) {
                 if (arg0->field_6 != 0) {
-                    arg0->field_9 -= 1;
-                    if (arg0->field_9 < 0) {
-                        arg0->field_9 += arg0->field_4;
+                    arg0->field_9.s -= 1;
+                    if (arg0->field_9.s < 0) {
+                        arg0->field_9.s += arg0->field_4;
                     }
                     arg0->field_16 = -1;
                     arg0->field_14 = arg0->field_7;
                 } else {
-                    arg0->field_9 -= 1;
-                    if (arg0->field_9 < 0) {
-                        arg0->field_9 = 0;
+                    arg0->field_9.s -= 1;
+                    if (arg0->field_9.s < 0) {
+                        arg0->field_9.s = 0;
                     } else {
                         arg0->field_16 = -1;
                         arg0->field_14 = arg0->field_7;
@@ -1495,8 +1456,8 @@ static void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
                 arg0->field_B  = -1;
             }
         }
-        if (arg0->field_4 != arg0->field_5) {
-            if (arg0->field_10 % arg0->field_4 >= (arg0->field_9 + arg0->field_5 - margin) % arg0->field_4 && (arg0->field_6 != 0 || arg0->field_9 < arg0->field_4 - arg0->field_5)) {
+        if (arg0->field_4 != arg0->field_5.s) {
+            if (arg0->field_10 % arg0->field_4 >= (arg0->field_9.s + arg0->field_5.s - margin) % arg0->field_4 && (arg0->field_6 != 0 || arg0->field_9.s < arg0->field_4 - arg0->field_5.s)) {
                 arg0->field_16 = 1;
                 arg0->field_14 = arg0->field_7;
             }
@@ -1518,10 +1479,10 @@ void Ui_DrawHBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
 
     if (arg1 < arg2) {
         p     = (POLY_FT4*)gGpuPrimCursor;
-        p->x0 = p->x2  = arg0->field_20 + arg1;
+        p->x0 = p->x2  = arg0->field_20.u + arg1;
         gGpuPrimCursor = (u8*)(p + 1);
-        p->x1 = p->x3 = arg0->field_20 + arg2;
-        y             = arg0->field_22 + arg3;
+        p->x1 = p->x3 = arg0->field_20.u + arg2;
+        y             = arg0->field_22.u + arg3;
         p->y0 = p->y1 = y - 4;
         p->y2 = p->y3 = y + 3;
         setUV4(p, 0x68, 0x50, 0x6F, 0x50, 0x68, 0x57, 0x6F, 0x57);
@@ -1529,7 +1490,7 @@ void Ui_DrawHBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
         p->clut  = 0x3C03;
         setPolyFT4(p);
         setShadeTex(p, 1);
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 2, p);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 2, p);
     }
 }
 
@@ -1540,18 +1501,18 @@ void Ui_DrawVBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
 
     if (arg1 < arg2) {
         p     = (POLY_FT4*)gGpuPrimCursor;
-        x     = arg0->field_20 + arg3;
+        x     = arg0->field_20.u + arg3;
         p->x0 = p->x2 = x - 3;
         p->x1 = p->x3  = x + 5;
         gGpuPrimCursor = (u8*)(p + 1);
-        p->y0 = p->y1 = arg0->field_22 + arg1;
-        p->y2 = p->y3 = arg0->field_22 + arg2;
+        p->y0 = p->y1 = arg0->field_22.u + arg1;
+        p->y2 = p->y3 = arg0->field_22.u + arg2;
         setUV4(p, 0x70, 0x50, 0x77, 0x50, 0x70, 0x57, 0x77, 0x57);
         p->tpage = 0x1E;
         p->clut  = 0x3C03;
         setPolyFT4(p);
         setShadeTex(p, 1);
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 2, p);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 2, p);
     }
 }
 
@@ -1562,9 +1523,9 @@ static void Ui_DrawTextUnderline(UiPanel* arg0, s32 x, s32 y, char* arg3, s32 ar
     s16         textX;
     s32         otIdx;
 
-    otIdx          = (s16)arg0->field_14 + 1;
-    x             += (s16)arg0->field_20;
-    y             += (s16)arg0->field_22;
+    otIdx          = (s16)arg0->field_14.u + 1;
+    x             += (s16)arg0->field_20.u;
+    y             += (s16)arg0->field_22.u;
     req.x          = x + 2;
     req.y          = y + 5;
     req.otIndex    = otIdx;
@@ -1586,7 +1547,7 @@ static void Ui_DrawTextUnderline(UiPanel* arg0, s32 x, s32 y, char* arg3, s32 ar
     p->x1         = textX + 3;
     addPrim(gGpuCurrentOt + otIdx, p);
 
-    Ui_DrawHBar(arg0, x - (s16)arg0->field_20, req.x - (s16)arg0->field_20, y + 7 - (s16)arg0->field_22);
+    Ui_DrawHBar(arg0, x - (s16)arg0->field_20.u, req.x - (s16)arg0->field_20.u, y + 7 - (s16)arg0->field_22.u);
 }
 
 void Ui_DrawTextColored(UiPanel* arg0, char* arg1)
@@ -1601,13 +1562,13 @@ void Ui_DrawTextColored(UiPanel* arg0, char* arg1)
     UiPanel* related;
 
     color = 0x505040;
-    if (arg0->field_0 == 1) {
+    if (arg0->field_0.w == 1) {
         color = 0x806020;
     }
-    child = ((UiObject*)arg0)->owner->firstChild;
+    child = (PARENT_OF(arg0, UiObject, panel))->owner->firstChild;
     if (child != NULL) {
         related = (UiPanel*)child->spawnArg2;
-        if (related->field_0 == 1) {
+        if (related->field_0.w == 1) {
             if ((related->field_4 & 0xF) != 2) {
                 color = 0x806020;
             }
@@ -1634,19 +1595,19 @@ void Ui_DrawTextColored(UiPanel* arg0, char* arg1)
             break;
         default:
         block_default:
-            r->x = arg0->field_C.x;
-            r->y = arg0->field_C.y;
-            r->w = arg0->field_C.w;
-            r->h = arg0->field_C.h;
+            r->x = arg0->bounds.rect.x;
+            r->y = arg0->bounds.rect.y;
+            r->w = arg0->bounds.rect.w;
+            r->h = arg0->bounds.rect.h;
             break;
     }
-    x              = sp18.x;
-    y              = sp18.y;
-    x              = x + 1;
-    y              = y + 1;
-    arg0->field_14 = (u16)(arg0->field_14 - 1);
-    Ui_DrawTextUnderline(arg0, x - (s16)arg0->field_20, y - (s16)arg0->field_22, arg1, color);
-    arg0->field_14 = (u16)(arg0->field_14 + 1);
+    x                = sp18.x;
+    y                = sp18.y;
+    x                = x + 1;
+    y                = y + 1;
+    arg0->field_14.u = (u16)(arg0->field_14.u - 1);
+    Ui_DrawTextUnderline(arg0, x - (s16)arg0->field_20.u, y - (s16)arg0->field_22.u, arg1, color);
+    arg0->field_14.u = (u16)(arg0->field_14.u + 1);
 }
 
 void Ui_DrawText(UiPanel* arg0, char* arg1)
@@ -1659,7 +1620,7 @@ void Ui_DrawText(UiPanel* arg0, char* arg1)
     s32   y;
 
     color = 0x505040;
-    if (arg0->field_0 == 1) {
+    if (arg0->field_0.w == 1) {
         color = 0x806020;
     }
     r = &sp18;
@@ -1683,19 +1644,19 @@ void Ui_DrawText(UiPanel* arg0, char* arg1)
             break;
         default:
         block_default:
-            r->x = arg0->field_C.x;
-            r->y = arg0->field_C.y;
-            r->w = arg0->field_C.w;
-            r->h = arg0->field_C.h;
+            r->x = arg0->bounds.rect.x;
+            r->y = arg0->bounds.rect.y;
+            r->w = arg0->bounds.rect.w;
+            r->h = arg0->bounds.rect.h;
             break;
     }
-    x              = sp18.x;
-    y              = sp18.y;
-    x              = x + 1;
-    y              = y + 1;
-    arg0->field_14 = (u16)(arg0->field_14 - 1);
-    Ui_DrawTextUnderline(arg0, x - (s16)arg0->field_20, y - (s16)arg0->field_22, arg1, color);
-    arg0->field_14 = (u16)(arg0->field_14 + 1);
+    x                = sp18.x;
+    y                = sp18.y;
+    x                = x + 1;
+    y                = y + 1;
+    arg0->field_14.u = (u16)(arg0->field_14.u - 1);
+    Ui_DrawTextUnderline(arg0, x - (s16)arg0->field_20.u, y - (s16)arg0->field_22.u, arg1, color);
+    arg0->field_14.u = (u16)(arg0->field_14.u + 1);
 }
 
 /// Spawns a UiObject from a descriptor, with a task that runs it and frees it
@@ -1718,18 +1679,18 @@ static inline UiObject* _uiSpawnObject(UiObjectDesc* arg0, s32 arg1, s32 arg2, s
     if (task != NULL) {
         obj = (UiObject*)memCalloc(0x30, (s32)obj);
         if (obj != NULL) {
-            task->spawnArg2    = obj;
-            task->exitCallback = Ui_FreeAndKill;
-            obj->owner         = task;
-            obj->status        = arg2;
-            obj->field_4       = arg0->field_0;
-            obj->field_C       = arg0->field_4;
-            obj->field_E       = arg0->field_6;
-            obj->field_10      = arg0->field_8;
-            obj->field_12      = arg0->field_A;
-            obj->drawOrder     = arg0->field_C & 0xFFFC;
-            obj->callback      = arg0->field_14;
-            obj->timer         = arg3;
+            task->spawnArg2                  = obj;
+            task->exitCallback               = Ui_FreeAndKill;
+            obj->owner                       = task;
+            obj->panel.field_0.w             = arg2;
+            obj->panel.field_4               = arg0->field_0;
+            obj->panel.bounds.unsignedRect.x = arg0->field_4;
+            obj->panel.bounds.unsignedRect.y = arg0->field_6;
+            obj->panel.bounds.unsignedRect.w = arg0->field_8;
+            obj->panel.bounds.unsignedRect.h = arg0->field_A;
+            obj->panel.field_14.s            = arg0->field_C & 0xFFFC;
+            obj->panel.field_24              = arg0->field_14;
+            obj->panel.field_16              = arg3;
             if (parent != NULL) {
                 Task_Reparent(parent->owner, task);
             }
@@ -1758,7 +1719,7 @@ UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
             node     = arg0->lines;
             maxWidth = 0;
             if (arg0->field_8 == 0) {
-                obj->field_4 = 3;
+                obj->panel.field_4 = 3;
             }
             for (; count > 0; count--) {
                 width = Text_MeasureWidth(node->text);
@@ -1767,8 +1728,8 @@ UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
                 }
                 node = node->next;
             }
-            Ui_InsetRect2(obj, (RECT*)&obj->field_C, &rect);
-            if ((obj->field_4 & 0xF) == 2) {
+            Ui_InsetRect2(obj, (RECT*)&obj->panel.bounds.unsignedRect.x, &rect);
+            if ((obj->panel.field_4 & 0xF) == 2) {
                 rect.y += 9;
                 rect.h -= 0xB;
                 rect.x += 2;
@@ -1779,21 +1740,21 @@ UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
                 rect.x += 2;
                 rect.w -= 4;
             }
-            obj->field_1C = -(rect.w >> 1);
-            obj->field_1E = obj->field_1C + rect.w;
-            obj->field_18 = -(rect.h >> 1);
-            obj->field_1A = obj->field_18 + rect.h;
-            obj->baseX    = rect.x - obj->field_1C;
-            obj->baseY    = rect.y - obj->field_18;
+            obj->panel.field_1C.s = -(rect.w >> 1);
+            obj->panel.field_1E.u = obj->panel.field_1C.s + rect.w;
+            obj->panel.field_18.u = -(rect.h >> 1);
+            obj->panel.field_1A.u = obj->panel.field_18.u + rect.h;
+            obj->panel.field_20.u = rect.x - obj->panel.field_1C.s;
+            obj->panel.field_22.u = rect.y - obj->panel.field_18.u;
 
             // Grow the panel so the widest line and every line fit inside.
-            maxWidth     -= (s16)obj->field_1E - obj->field_1C;
-            obj->field_10 = obj->field_10 + maxWidth + 0xC;
-            obj->field_C  = -((s16)obj->field_10 / 2);
-            maxWidth      = arg0->count * 0xF;
-            maxWidth     -= (s16)obj->field_1A - (s16)obj->field_18;
-            obj->field_12 = obj->field_12 + maxWidth;
-            obj->field_E  = -((s16)obj->field_12 / 2);
+            maxWidth                        -= (s16)obj->panel.field_1E.u - obj->panel.field_1C.s;
+            obj->panel.bounds.unsignedRect.w = obj->panel.bounds.unsignedRect.w + maxWidth + 0xC;
+            obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
+            maxWidth                         = arg0->count * 0xF;
+            maxWidth                        -= (s16)obj->panel.field_1A.u - (s16)obj->panel.field_18.u;
+            obj->panel.bounds.unsignedRect.h = obj->panel.bounds.unsignedRect.h + maxWidth;
+            obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
         }
     }
     arg0->field_2 = 0;
@@ -1816,16 +1777,16 @@ void Ui_DrawTextInRect(RECT* arg0, s32 arg1, s32 arg2, char* arg3)
     s16      temp_t0;
     s16      temp_t1;
 
-    two           = 2;
-    sp18.field_8  = two;
-    sp18.field_14 = arg1 - 3;
-    sp18.field_4  = arg2;
-    temp_t0       = arg0->x + two;
-    sp48.x        = temp_t0;
-    temp_t1       = arg0->y + two;
-    sp48.y        = temp_t1;
-    sp48.w        = ((arg0->w + arg0->x) - temp_t0) - 1;
-    sp48.h        = ((arg0->h + arg0->y) - temp_t1) - 1;
+    two             = 2;
+    sp18.field_8    = two;
+    sp18.field_14.u = arg1 - 3;
+    sp18.field_4    = arg2;
+    temp_t0         = arg0->x + two;
+    sp48.x          = temp_t0;
+    temp_t1         = arg0->y + two;
+    sp48.y          = temp_t1;
+    sp48.w          = ((arg0->w + arg0->x) - temp_t0) - 1;
+    sp48.h          = ((arg0->h + arg0->y) - temp_t1) - 1;
     func_80044C34(&sp18, arg0, &sp48, 0);
     if (arg3 != NULL) {
         color = 0x707060;
@@ -1851,19 +1812,19 @@ void Ui_DrawTextInRect(RECT* arg0, s32 arg1, s32 arg2, char* arg3)
                 break;
             default:
             block_default:
-                r->x = self->field_C.x;
-                r->y = self->field_C.y;
-                r->w = self->field_C.w;
-                r->h = self->field_C.h;
+                r->x = self->bounds.rect.x;
+                r->y = self->bounds.rect.y;
+                r->w = self->bounds.rect.w;
+                r->h = self->bounds.rect.h;
                 break;
         }
-        x              = sp50.x;
-        y              = sp50.y;
-        x              = x + 1;
-        y              = y + 1;
-        self->field_14 = (u16)(self->field_14 - 1);
-        Ui_DrawTextUnderline(self, x - (s16)self->field_20, y - (s16)self->field_22, arg3, color);
-        self->field_14 = (u16)(self->field_14 + 1);
+        x                = sp50.x;
+        y                = sp50.y;
+        x                = x + 1;
+        y                = y + 1;
+        self->field_14.u = (u16)(self->field_14.u - 1);
+        Ui_DrawTextUnderline(self, x - (s16)self->field_20.u, y - (s16)self->field_22.u, arg3, color);
+        self->field_14.u = (u16)(self->field_14.u + 1);
     }
 }
 
@@ -1884,7 +1845,7 @@ void Ui_SizeFromText(UiPanel* arg0, u8* arg1, s32 arg2, s32 arg3)
     s32 u;
 
     sp.dims.as32 = Text_MeasureMultiLine(arg1);
-    Ui_InsetRect2(arg0, &arg0->field_C, &sp.rect);
+    Ui_InsetRect2(arg0, &arg0->bounds.rect, &sp.rect);
     if ((arg0->field_4 & 0xF) == 2) {
         sp.rect.y += 9;
         sp.rect.h -= 0xB;
@@ -1896,17 +1857,17 @@ void Ui_SizeFromText(UiPanel* arg0, u8* arg1, s32 arg2, s32 arg3)
         sp.rect.x += 2;
         sp.rect.w -= 4;
     }
-    arg0->field_1C = -(sp.rect.w >> 1);
-    arg0->field_1E = arg0->field_1C + sp.rect.w;
-    arg0->field_18 = -(sp.rect.h >> 1);
-    arg0->field_1A = arg0->field_18 + sp.rect.h;
-    arg0->field_20 = sp.rect.x - arg0->field_1C;
-    arg0->field_22 = sp.rect.y - arg0->field_18;
-    t              = arg2 + 5;
-    u              = arg3 + 1;
+    arg0->field_1C.u = -(sp.rect.w >> 1);
+    arg0->field_1E.u = arg0->field_1C.u + sp.rect.w;
+    arg0->field_18.u = -(sp.rect.h >> 1);
+    arg0->field_1A.u = arg0->field_18.u + sp.rect.h;
+    arg0->field_20.u = sp.rect.x - arg0->field_1C.u;
+    arg0->field_22.u = sp.rect.y - arg0->field_18.u;
+    t                = arg2 + 5;
+    u                = arg3 + 1;
     Ui_UpdateLayoutSize(arg0, sp.dims.hw.w + t, sp.dims.hw.h + u);
-    arg0->field_C.x = -(arg0->field_C.w / 2);
-    arg0->field_C.y = -(arg0->field_C.h / 2) - 0x14;
+    arg0->bounds.rect.x = -(arg0->bounds.rect.w / 2);
+    arg0->bounds.rect.y = -(arg0->bounds.rect.h / 2) - 0x14;
 }
 
 UiObject* Ui_SpawnFromDesc(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3, UiObject* arg4)
@@ -1927,9 +1888,9 @@ void Ui_TeardownTree(UiObject* arg0, Task* arg1)
             child = temp_s0->firstChild;
         } while (child != NULL);
     }
-    if (arg0->mode != 3) {
+    if (arg0->panel.field_8 != 3) {
         Task_DetachFromParent(temp_s0);
-        arg0->mode = 3;
+        arg0->panel.field_8 = 3;
     }
 }
 
@@ -1943,7 +1904,7 @@ void Ui_FreeAndKill(Task* arg0)
 
 void Ui_SetState4(UiObject* arg0, Task* arg1)
 {
-    arg0->mode = 4;
+    arg0->panel.field_8 = 4;
 }
 
 void Ui_ClampAnimOrClose(UiPanel* arg0, Task* arg1, s32 arg2)
@@ -1960,7 +1921,7 @@ void Ui_ClampAnimOrClose(UiPanel* arg0, Task* arg1, s32 arg2)
     }
 }
 
-void Ui_StartCloseAnim(UiPanel* arg0, void* arg1)
+void Ui_StartCloseAnim(UiPanel* arg0, Task* arg1)
 {
     if (arg0->field_8 != 2) {
         if ((u16)arg0->field_16 >= 0xA) {
@@ -1970,7 +1931,7 @@ void Ui_StartCloseAnim(UiPanel* arg0, void* arg1)
     }
 }
 
-void Ui_InitList(UiList* arg0, UiMiniObj* arg1)
+void Ui_InitList(UiList* arg0, UiPanel* arg1)
 {
     RECT     sp;
     UiPanel* a1;
@@ -1979,12 +1940,12 @@ void Ui_InitList(UiList* arg0, UiMiniObj* arg1)
     s8       temp_v1;
     s32      height;
 
-    a1             = (UiPanel*)arg1;
+    a1             = arg1;
     arg0->field_17 = 0;
-    sp.x           = a1->field_20 + a1->field_1C;
-    sp.y           = a1->field_22 + a1->field_18;
-    sp.w           = a1->field_1E - a1->field_1C;
-    temp_v0        = a1->field_1A - a1->field_18;
+    sp.x           = a1->field_20.u + a1->field_1C.u;
+    sp.y           = a1->field_22.u + a1->field_18.u;
+    sp.w           = a1->field_1E.u - a1->field_1C.u;
+    temp_v0        = a1->field_1A.u - a1->field_18.u;
     height         = temp_v0;
     sp.h           = temp_v0;
     height         = height - arg0->field_17;
@@ -1994,26 +1955,26 @@ void Ui_InitList(UiList* arg0, UiMiniObj* arg1)
     temp_a2 = arg0->field_4;
     temp_v1 = arg0->field_7;
     if (height >= (temp_a2 * temp_v1)) {
-        arg0->field_5 = temp_a2;
+        arg0->field_5.u = temp_a2;
     } else {
-        arg0->field_5 = height / temp_v1;
-        if ((s8)arg0->field_5 <= 0) {
-            arg0->field_5 = 1;
+        arg0->field_5.u = height / temp_v1;
+        if ((s8)arg0->field_5.u <= 0) {
+            arg0->field_5.u = 1;
         }
     }
     if (arg0->field_10 >= arg0->field_4) {
         arg0->field_10 = arg0->field_4 - 1;
     }
-    if (arg0->field_4 <= (s8)arg0->field_5) {
-        arg0->field_9 = 0;
+    if (arg0->field_4 <= (s8)arg0->field_5.u) {
+        arg0->field_9.u = 0;
     }
     arg0->field_A  = 0;
     arg0->field_14 = 0;
     arg0->field_16 = 0;
     arg0->field_C  = 0;
     if (Mc_SaveData[0].cursorMode != 0) {
-        arg0->field_10 = 0;
-        arg0->field_9  = 0;
+        arg0->field_10  = 0;
+        arg0->field_9.u = 0;
     }
 }
 
@@ -2022,28 +1983,28 @@ void Ui_ComputeVisibleRows(UiList* arg0, UiPanel* arg1)
     RECT sp;
     s32  height;
 
-    sp.x    = arg1->field_20 + arg1->field_1C;
-    sp.y    = arg1->field_22 + arg1->field_18;
-    sp.w    = arg1->field_1E - arg1->field_1C;
-    sp.h    = arg1->field_1A - arg1->field_18;
+    sp.x    = arg1->field_20.u + arg1->field_1C.u;
+    sp.y    = arg1->field_22.u + arg1->field_18.u;
+    sp.w    = arg1->field_1E.u - arg1->field_1C.u;
+    sp.h    = arg1->field_1A.u - arg1->field_18.u;
     height  = sp.h;
     height -= arg0->field_17;
     if (arg0->field_7 == 0) {
         arg0->field_7 = 0xA;
     }
     if (height >= arg0->field_4 * arg0->field_7) {
-        arg0->field_5 = arg0->field_4;
+        arg0->field_5.u = arg0->field_4;
     } else {
-        arg0->field_5 = height / arg0->field_7;
-        if ((s8)arg0->field_5 <= 0) {
-            arg0->field_5 = 1;
+        arg0->field_5.u = height / arg0->field_7;
+        if ((s8)arg0->field_5.u <= 0) {
+            arg0->field_5.u = 1;
         }
     }
     if (arg0->field_10 >= arg0->field_4) {
         arg0->field_10 = arg0->field_4 - 1;
     }
-    if (arg0->field_4 <= (s8)arg0->field_5) {
-        arg0->field_9 = 0;
+    if (arg0->field_4 <= (s8)arg0->field_5.u) {
+        arg0->field_9.u = 0;
     }
     arg0->field_A = 0;
 }
@@ -2062,10 +2023,10 @@ static void Ui_ComputeVisibleRowsEx(UiList* arg0, UiPanel* arg1, s32 arg2)
     s32  height;
 
     arg0->field_17 = arg2;
-    sp.x           = arg1->field_20 + arg1->field_1C;
-    sp.y           = arg1->field_22 + arg1->field_18;
-    sp.w           = arg1->field_1E - arg1->field_1C;
-    temp_v0        = arg1->field_1A - arg1->field_18;
+    sp.x           = arg1->field_20.u + arg1->field_1C.u;
+    sp.y           = arg1->field_22.u + arg1->field_18.u;
+    sp.w           = arg1->field_1E.u - arg1->field_1C.u;
+    temp_v0        = arg1->field_1A.u - arg1->field_18.u;
     height         = temp_v0;
     sp.h           = temp_v0;
     height         = height - arg0->field_17;
@@ -2075,23 +2036,23 @@ static void Ui_ComputeVisibleRowsEx(UiList* arg0, UiPanel* arg1, s32 arg2)
     temp_a2 = arg0->field_4;
     temp_v1 = arg0->field_7;
     if (height >= (temp_a2 * temp_v1)) {
-        arg0->field_5 = temp_a2;
+        arg0->field_5.u = temp_a2;
     } else {
-        arg0->field_5 = height / temp_v1;
-        if ((s8)arg0->field_5 <= 0) {
-            arg0->field_5 = 1;
+        arg0->field_5.u = height / temp_v1;
+        if ((s8)arg0->field_5.u <= 0) {
+            arg0->field_5.u = 1;
         }
     }
     if (arg0->field_10 >= arg0->field_4) {
         arg0->field_10 = arg0->field_4 - 1;
     }
-    if (arg0->field_4 <= (s8)arg0->field_5) {
-        arg0->field_9 = 0;
+    if (arg0->field_4 <= (s8)arg0->field_5.u) {
+        arg0->field_9.u = 0;
     }
     arg0->field_A = 0;
 }
 
-void Ui_SmoothCursor(UiMiniObj* arg0, s32 arg1, s32 arg2)
+void Ui_SmoothCursor(UiPanel* arg0, s32 arg1, s32 arg2)
 {
     s32 i;
     s32 targetX;
@@ -2101,8 +2062,8 @@ void Ui_SmoothCursor(UiMiniObj* arg0, s32 arg1, s32 arg2)
     u8  count;
 
     i         = 0;
-    baseX     = arg0->field_20;
-    baseY     = arg0->field_22;
+    baseX     = arg0->field_20.s;
+    baseY     = arg0->field_22.s;
     targetX   = arg1 + baseX;
     targetY   = arg2 + baseY;
     targetX <<= 8;
@@ -2117,7 +2078,7 @@ void Ui_SmoothCursor(UiMiniObj* arg0, s32 arg1, s32 arg2)
     }
     targetX = D_80067648 >> 8;
     targetY = D_8006764C >> 8;
-    Ui_DrawCursor(arg0, targetX - arg0->field_20, targetY - arg0->field_22);
+    Ui_DrawCursor(arg0, targetX - arg0->field_20.s, targetY - arg0->field_22.s);
 }
 
 s32 Ui_LookupTable(void* arg0, s32 arg1)
@@ -2161,19 +2122,19 @@ void Ui_DrawTitle(UiPanel* arg0, char* arg1)
             break;
         default:
         block_default:
-            r->x = arg0->field_C.x;
-            r->y = arg0->field_C.y;
-            r->w = arg0->field_C.w;
-            r->h = arg0->field_C.h;
+            r->x = arg0->bounds.rect.x;
+            r->y = arg0->bounds.rect.y;
+            r->w = arg0->bounds.rect.w;
+            r->h = arg0->bounds.rect.h;
             break;
     }
-    x              = sp18.x;
-    y              = sp18.y;
-    x              = x + 1;
-    y              = y + 1;
-    arg0->field_14 = (u16)(arg0->field_14 - 1);
-    Ui_DrawTextUnderline(arg0, x - (s16)arg0->field_20, y - (s16)arg0->field_22, arg1, color);
-    arg0->field_14 = (u16)(arg0->field_14 + 1);
+    x                = sp18.x;
+    y                = sp18.y;
+    x                = x + 1;
+    y                = y + 1;
+    arg0->field_14.u = (u16)(arg0->field_14.u - 1);
+    Ui_DrawTextUnderline(arg0, x - (s16)arg0->field_20.u, y - (s16)arg0->field_22.u, arg1, color);
+    arg0->field_14.u = (u16)(arg0->field_14.u + 1);
 }
 
 static void Ui_DrawTextAtLayout(UiPanel* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
@@ -2182,37 +2143,37 @@ static void Ui_DrawTextAtLayout(UiPanel* arg0, s32 arg1, s32 arg2, u8* arg3, s32
     s32         temp;
 
     if (arg0->field_8 == 2) {
-        arg0->field_14 = (u16)(arg0->field_14 - 1);
-        sp.x           = arg0->field_20 + arg1;
-        sp.y           = arg0->field_22 + arg2;
-        temp           = (s16)arg0->field_14;
-        sp.field_8     = arg4;
-        sp.glyphTable  = 0;
-        sp.centerMode  = (s8)arg6;
-        sp.otIndex     = temp + 1;
-        sp.field_E     = (s8)arg5;
+        arg0->field_14.u = (u16)(arg0->field_14.u - 1);
+        sp.x             = arg0->field_20.u + arg1;
+        sp.y             = arg0->field_22.u + arg2;
+        temp             = (s16)arg0->field_14.u;
+        sp.field_8       = arg4;
+        sp.glyphTable    = 0;
+        sp.centerMode    = (s8)arg6;
+        sp.otIndex       = temp + 1;
+        sp.field_E       = (s8)arg5;
         func_8002E53C(&sp, arg3);
-        arg0->field_14 = (u16)(arg0->field_14 + 1);
+        arg0->field_14.u = (u16)(arg0->field_14.u + 1);
     }
 }
 
-void Ui_ClampDialogRect(UiPanel* arg0, UiPanel* arg1, UiPanel* arg2)
+void Ui_ClampDialogRect(UiPanel* arg0, UiList* arg1, UiPanel* arg2)
 {
     s32 temp;
     s32 limit;
     s16 new_var;
 
-    limit           = 0x96;
-    arg0->field_C.x = (arg1->field_18 + arg2->field_20) + 8;
-    arg0->field_C.y = (arg1->field_1A + arg2->field_22) - 2;
-    new_var         = arg0->field_C.x;
-    temp            = limit - (new_var + arg0->field_C.w);
+    limit               = 0x96;
+    arg0->bounds.rect.x = ((u16)arg1->field_18 + arg2->field_20.u) + 8;
+    arg0->bounds.rect.y = ((u16)arg1->field_1A + arg2->field_22.u) - 2;
+    new_var             = arg0->bounds.rect.x;
+    temp                = limit - (new_var + arg0->bounds.rect.w);
     if (temp < 0) {
-        arg0->field_C.x = ((u16)new_var) + temp;
+        arg0->bounds.rect.x = ((u16)new_var) + temp;
     }
-    temp = 0x5A - (arg0->field_C.y + arg0->field_C.h);
+    temp = 0x5A - (arg0->bounds.rect.y + arg0->bounds.rect.h);
     if (temp < 0) {
-        arg0->field_C.y = ((u16)arg0->field_C.y) + temp;
+        arg0->bounds.rect.y = ((u16)arg0->bounds.rect.y) + temp;
     }
 }
 
@@ -2228,7 +2189,7 @@ void Ui_SizeFromTextWide(UiPanel* arg0, u8* arg1)
 
 s32 Ui_IsStateDone(UiObject* arg0)
 {
-    return arg0->mode >= 4;
+    return arg0->panel.field_8 >= 4;
 }
 
 void Ui_InsertDrawTPage(s32 arg0, s32 arg1)
@@ -2261,15 +2222,15 @@ void Ui_AllocTile(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg
     if ((color != 0) && (arg3 >= 2)) {
         p                     = (TILE*)gGpuPrimCursor;
         gGpuPrimCursor        = p + 1;
-        p->x0                 = arg0->field_20 + arg1 + 1;
-        y                     = arg0->field_22;
+        p->x0                 = arg0->field_20.u + arg1 + 1;
+        y                     = arg0->field_22.u;
         p->w                  = arg3 - 1;
         p->h                  = arg4 - 1;
         PRIM_COLOR_WORD(p, 0) = color;
         setlen(p, 3);
         p->y0 = y + arg2 + 1;
         setcode(p, 0x60);
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, p);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, p);
     }
 }
 
@@ -2295,7 +2256,7 @@ void Ui_InsetLayout(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
 {
     RECT sp10;
 
-    Ui_InsetRect2(arg0, &arg0->field_C, &sp10);
+    Ui_InsetRect2(arg0, &arg0->bounds.rect, &sp10);
     if ((arg0->field_4 & 0xF) == 2) {
         sp10.y += 9;
         sp10.h -= 0xB;
@@ -2307,12 +2268,12 @@ void Ui_InsetLayout(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         sp10.x += 2;
         sp10.w -= 4;
     }
-    arg0->field_1C = -(sp10.w >> 1);
-    arg0->field_1E = arg0->field_1C + sp10.w;
-    arg0->field_18 = -(sp10.h >> 1);
-    arg0->field_1A = arg0->field_18 + sp10.h;
-    arg0->field_20 = sp10.x - arg0->field_1C;
-    arg0->field_22 = sp10.y - arg0->field_18;
+    arg0->field_1C.u = -(sp10.w >> 1);
+    arg0->field_1E.u = arg0->field_1C.u + sp10.w;
+    arg0->field_18.u = -(sp10.h >> 1);
+    arg0->field_1A.u = arg0->field_18.u + sp10.h;
+    arg0->field_20.u = sp10.x - arg0->field_1C.u;
+    arg0->field_22.u = sp10.y - arg0->field_18.u;
     if (arg1 != NULL) {
         Ui_InsetRect2(arg0, arg1, arg2);
     }
@@ -2341,13 +2302,13 @@ static void Ui_ComputeAnimRect(UiPanel* arg0, RECT* arg1)
             Ui_ScaleRect(arg0, arg1, var_a2, 1);
             return;
     }
-    arg1->x = arg0->field_C.x;
-    arg1->y = arg0->field_C.y;
-    arg1->w = arg0->field_C.w;
-    arg1->h = arg0->field_C.h;
+    arg1->x = arg0->bounds.rect.x;
+    arg1->y = arg0->bounds.rect.y;
+    arg1->w = arg0->bounds.rect.w;
+    arg1->h = arg0->bounds.rect.h;
 }
 
-static void Ui_AnimOpenStep(UiPanel* arg0, void* arg1)
+static void Ui_AnimOpenStep(UiPanel* arg0, Task* arg1)
 {
     if (arg0->field_16 == 0) {
         arg0->field_16 = 9;
@@ -2362,12 +2323,12 @@ static void Ui_AnimOpenStep(UiPanel* arg0, void* arg1)
     }
 }
 
-static void Ui_DrawAndCallback(UiPanel* arg0, void* arg1)
+static void Ui_DrawAndCallback(UiPanel* arg0, Task* arg1)
 {
     s32 temp_s2;
 
-    temp_s2       = arg0->field_0;
-    arg0->field_0 = temp_s2 << 0x10;
+    temp_s2         = arg0->field_0.w;
+    arg0->field_0.w = temp_s2 << 0x10;
     Ui_LayoutAndClip(arg0);
     arg0->field_24(arg1);
     arg0->field_16 -= gDisplayState.frameTicks;
@@ -2377,18 +2338,18 @@ static void Ui_DrawAndCallback(UiPanel* arg0, void* arg1)
             arg0->field_8 = 2;
         }
     }
-    if (arg0->field_0 == (temp_s2 << 0x10)) {
-        arg0->field_0 = temp_s2;
+    if (arg0->field_0.w == (temp_s2 << 0x10)) {
+        arg0->field_0.w = temp_s2;
     }
 }
 
-static void Ui_LayoutDrawAndCallback(UiPanel* arg0, void* arg1)
+static void Ui_LayoutDrawAndCallback(UiPanel* arg0, Task* arg1)
 {
     Ui_LayoutAndDraw(arg0);
     arg0->field_24(arg1);
 }
 
-static void Ui_TickAnimCounter(UiPanel* arg0, void* arg1)
+static void Ui_TickAnimCounter(UiPanel* arg0, Task* arg1)
 {
     if (arg0->field_16 >= 0) {
         arg0->field_16 += gDisplayState.frameTicks;
@@ -2398,16 +2359,16 @@ static void Ui_TickAnimCounter(UiPanel* arg0, void* arg1)
         Task_CallExit(arg1);
         return;
     }
-    arg0->field_0 = 0;
+    arg0->field_0.w = 0;
     Ui_LayoutAndDrawAlt(arg0);
     arg0->field_24(arg1);
 }
 
-static void Ui_AnimCloseStep(UiPanel* arg0, void* arg1)
+static void Ui_AnimCloseStep(UiPanel* arg0, Task* arg1)
 {
     s32 temp_s1;
 
-    temp_s1 = arg0->field_0;
+    temp_s1 = arg0->field_0.w;
     if (arg0->field_16 >= 0) {
         arg0->field_16 += gDisplayState.frameTicks;
     }
@@ -2417,28 +2378,28 @@ static void Ui_AnimCloseStep(UiPanel* arg0, void* arg1)
         Ui_ClipAndCallback(arg0, arg1);
         return;
     }
-    arg0->field_0 <<= 0x10;
+    arg0->field_0.w <<= 0x10;
     Ui_LayoutAndDrawAlt(arg0);
     arg0->field_24(arg1);
-    if (arg0->field_0 == (temp_s1 << 0x10)) {
-        arg0->field_0 = temp_s1;
+    if (arg0->field_0.w == (temp_s1 << 0x10)) {
+        arg0->field_0.w = temp_s1;
     }
 }
 
-static void Ui_ClipAndCallback(UiPanel* arg0, void* arg1)
+static void Ui_ClipAndCallback(UiPanel* arg0, Task* arg1)
 {
     s16 temp_a0;
     s16 temp_v0;
     s32 temp_s0;
     s32 temp_s2;
 
-    temp_s2       = arg0->field_0;
-    temp_s0       = temp_s2 << 0x10;
-    arg0->field_0 = temp_s0;
+    temp_s2         = arg0->field_0.w;
+    temp_s0         = temp_s2 << 0x10;
+    arg0->field_0.w = temp_s0;
     Ui_SetupClip(arg0);
     arg0->field_24(arg1);
-    if (arg0->field_0 == temp_s0) {
-        arg0->field_0 = temp_s2;
+    if (arg0->field_0.w == temp_s0) {
+        arg0->field_0.w = temp_s2;
     }
     if (arg0->field_16 > 0) {
         temp_v0        = (u16)arg0->field_16 - gDisplayState.frameTicks;
@@ -2448,7 +2409,7 @@ static void Ui_ClipAndCallback(UiPanel* arg0, void* arg1)
         }
     }
     temp_a0 = arg0->field_16;
-    if (((temp_a0 < 0) && (arg0->field_0 == 1)) || (temp_a0 == 9)) {
+    if (((temp_a0 < 0) && (arg0->field_0.w == 1)) || (temp_a0 == 9)) {
         Ui_StartCloseAnim(arg0, arg1);
     }
 }
@@ -2482,12 +2443,12 @@ void Ui_DrawFlatCaret(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     u32*     ot;
 
     p              = (POLY_F3*)gGpuPrimCursor;
-    t              = arg0->field_20 + arg1;
+    t              = arg0->field_20.u + arg1;
     p->x2          = t;
     p->x1          = t;
     p->x0          = t;
     gGpuPrimCursor = (POLY_G3*)p + 1;
-    t              = arg0->field_22 + arg2;
+    t              = arg0->field_22.u + arg2;
     p->y2          = t;
     p->y1          = t;
     p->y0          = t;
@@ -2508,7 +2469,7 @@ void Ui_DrawFlatCaret(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     setlen(p, 4);
     setcode(p, 0x20);
     ot = gGpuCurrentOt;
-    addPrim(&ot[(s16)arg0->field_14 + 1], p);
+    addPrim(&ot[(s16)arg0->field_14.u + 1], p);
 }
 
 void Ui_WaitCdThenOverlay(Task* arg0)
@@ -2523,7 +2484,7 @@ void Ui_WaitCdThenOverlay(Task* arg0)
     temp_s0->field_16 += gDisplayState.frameTicks;
 }
 
-static void Ui_DrawDialogLine(DialogPrompt* arg0, UiObject* arg1)
+static void Ui_DrawDialogLine(UiList* arg0, UiObject* arg1)
 {
     DialogListCtx* temp_s3;
     DialogOption*  var_a3;
@@ -2570,19 +2531,19 @@ static void Ui_ListTaskCallback(Task* arg0)
     menu          = &D_80067654;
     obj->field_2E = 0;
     if (arg0->state == 0) {
-        base          = ctx->field_0;
-        menu->field_5 = base;
-        menu->field_4 = base;
-        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        base            = ctx->field_0;
+        menu->field_5.u = base;
+        menu->field_4   = base;
+        Ui_LayoutListPanel(menu, &(obj)->panel);
         menu->field_A = 1;
         arg0->state  += 1;
     }
     text = ctx->field_8;
     if (text != NULL) {
-        Ui_DrawText((UiPanel*)obj, text);
+        Ui_DrawText(&(obj)->panel, text);
     }
-    func_80046EEC((UiListRender*)menu, (UiPanelRender*)obj, 0);
-    if (obj->status == 1) {
+    func_80046EEC(menu, &(obj)->panel, 0);
+    if (obj->panel.field_0.w == 1) {
         status = obj->field_2E;
         if ((status == 6) || (status == -1)) {
             ctx->field_2 = obj->field_2C;
@@ -2594,18 +2555,18 @@ static void Ui_ListTaskCallback(Task* arg0)
                     child = parent->firstChild;
                 } while (child != NULL);
             }
-            if (obj->mode != 3) {
+            if (obj->panel.field_8 != 3) {
                 Task_DetachFromParent(parent);
-                obj->mode = 3;
+                obj->panel.field_8 = 3;
             }
         }
     }
 }
 
-void Ui_SetHolderParam(s32 arg0, s32 arg1, s32 arg2)
+void Ui_SetHolderParam(u8* arg0, s32 arg1, s32 arg2)
 {
     if (Wip_UiHolder != NULL) {
-        Wip_UiHolder->owner->spawnArg1 = arg0;
+        Wip_UiHolder->owner->spawnArg1 = (s32)arg0;
     }
 }
 

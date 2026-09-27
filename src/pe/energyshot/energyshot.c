@@ -298,8 +298,7 @@ static void func_energyshot_8012F750(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
         ang        += 0x20;
         prim->x2    = (u16)block->sx + ((block->step * rsin(ang)) >> 12);
         prim->y2    = (u16)block->sy + ((block->step * rcos(ang)) >> 12);
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
     }
@@ -389,8 +388,7 @@ static void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3
             prim->y2 = (u16)block->sxy2.vy;
             prim->x3 = (u16)block->sxy3.vx;
             prim->y3 = (u16)block->sxy3.vy;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
         }
     }

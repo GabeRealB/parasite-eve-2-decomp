@@ -149,7 +149,7 @@ static void func_shelter_b3_incinerator_control_room_8017FEB4(SVECTOR* arg0, s32
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
                     prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-                    addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -169,8 +169,7 @@ static void func_shelter_b3_incinerator_control_room_8017FEB4(SVECTOR* arg0, s32
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx1;
                     prim->y3 = block->sy1;
-                    addPrim((u_long*)(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                                      (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
                     t3             = ang + 0x800;
@@ -192,7 +191,7 @@ static void func_shelter_b3_incinerator_control_room_8017FEB4(SVECTOR* arg0, s32
                     prim->y2 = block->sy1;
                     prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
                     prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
                     ang = t2;
@@ -267,7 +266,7 @@ static void func_shelter_b3_incinerator_control_room_801806F8(SVECTOR* arg0, s32
             prim->y0 = sy;
             twice    = i * 2;
             prim->y1 = (block->sy - (u16)block->radius) + (block->radius * twice);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
             i++;
@@ -289,7 +288,7 @@ static void func_shelter_b3_incinerator_control_room_801806F8(SVECTOR* arg0, s32
             line->y1 = block->sy;
             line->x2 = block->sx - (block->radius * t1);
             line->y2 = block->sy + (block->radius * t2);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     line);
             Gp_AddTpageShift((P_TAG*)line, 1, block->otz);
             i = t2;
@@ -362,7 +361,7 @@ static void func_shelter_b3_incinerator_control_room_80180B6C(SVECTOR* arg0, s32
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
             prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -382,7 +381,7 @@ static void func_shelter_b3_incinerator_control_room_80180B6C(SVECTOR* arg0, s32
             prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
             prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
@@ -407,7 +406,7 @@ static void func_shelter_b3_incinerator_control_room_80180B6C(SVECTOR* arg0, s32
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 13);
             prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -428,7 +427,7 @@ static void func_shelter_b3_incinerator_control_room_80180B6C(SVECTOR* arg0, s32
             prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 12);
             prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 12);
             ang      = u;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);

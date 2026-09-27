@@ -38,17 +38,19 @@ typedef struct _AudioTickNode {
 STATIC_ASSERT_SIZEOF(AudioTickNode, 0x18);
 
 /// Per-voice SPU runtime (Spu_VoiceState). 24 voices.
+typedef void (*SpuVoiceCallback)(void* context);
+
 typedef struct _SpuVoiceState {
-    /* 0x000 */ u32 reverbVoiceStatus;
-    /* 0x004 */ u32 field_4[24];   // age / score for voice steal
-    /* 0x064 */ u8  field_64[24];  // state (0/3 ≈ free-ish)
-    /* 0x07C */ u8  field_7c[24];  // key-on staging (5 on note-on)
-    /* 0x094 */ s8  field_94[24];  // occupied (0 free, 1 busy)
-    /* 0x0AC */ u32 field_ac[24];  // alloc priority
-    /* 0x10C */ u32 field_10c[24]; // cleared on release
-    /* 0x16C */ u32 field_16c[24]; // cleared on release
-    /* 0x1CC */ u32 field_1cc;
-    /* 0x1D0 */ u32 field_1d0;     // key-on related mask
+    /* 0x000 */ u32              reverbVoiceStatus;
+    /* 0x004 */ u32              field_4[24];   // age / score for voice steal
+    /* 0x064 */ u8               field_64[24];  // state (0/3 ≈ free-ish)
+    /* 0x07C */ u8               field_7c[24];  // key-on staging (5 on note-on)
+    /* 0x094 */ s8               field_94[24];  // occupied (0 free, 1 busy)
+    /* 0x0AC */ u32              field_ac[24];  // alloc priority
+    /* 0x10C */ SpuVoiceCallback field_10c[24]; // cleared on release
+    /* 0x16C */ void*            field_16c[24]; // cleared on release
+    /* 0x1CC */ u32              field_1cc;
+    /* 0x1D0 */ u32              field_1d0;     // key-on related mask
 } SpuVoiceState;
 STATIC_ASSERT_SIZEOF(SpuVoiceState, 0x1D4);
 
@@ -710,9 +712,9 @@ s32      LinInterp_Apply(LinInterp* arg0, s32 arg1);
 void     LinInterp_Step(LinInterp* arg0);
 void     Spu_ApplyPanVolume(s16* arg0, s16 arg1, s32 arg2);
 void     AsyncCb_Cancel(s32 arg0);
-s16      func_8004DE18(void* arg0);
+s16      func_8004DE18(AsyncCbEntry* arg0);
 s32      Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2);
-void     Spu_SetVoiceCallbacks(u32 voiceIdx, s32 arg1, s32 arg2);
+void     Spu_SetVoiceCallbacks(u32 voiceIdx, SpuVoiceCallback arg1, void* arg2);
 s32      Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2);
 s32      Spu_GetVoiceRef(s8 arg0, SpuVoiceRef* arg1);
 u8       Spu_GetVoiceStatus(u32 voiceIdx);

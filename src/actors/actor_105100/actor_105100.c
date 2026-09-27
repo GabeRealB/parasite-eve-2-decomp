@@ -363,8 +363,7 @@ static void func_actor_105100_80131EBC(GpCoord* coord, s16 size)
         prim->y3 = bottom;
         prim->y2 = bottom;
         addPrim(
-            (u_long*)((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
-                      (s32)gGpuCurrentOt),
+            Gpu_OtEntryAtByteOffset((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC)),
             prim);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -390,8 +389,7 @@ static void func_actor_105100_80131EBC(GpCoord* coord, s16 size)
         prim->y3    = outerBottom;
         prim->y2    = outerBottom;
         addPrim(
-            (u_long*)((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
-                      (s32)gGpuCurrentOt),
+            Gpu_OtEntryAtByteOffset((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC)),
             prim);
         if (Gp_State1C->groundTrace != 0) {
             if (Gp_TraceGroundCoord(coord, &ground) == 1) {
@@ -476,8 +474,7 @@ static void func_actor_105100_80132414(GpCoord* arg0, s32 arg1)
             prim->y2 = sc->sxy2.vy;
             prim->x3 = sc->sxy3.vx;
             prim->y3 = sc->sxy3.vy;
-            addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
         }
     }

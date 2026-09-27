@@ -22,6 +22,15 @@ typedef struct _McPromptPair {
 } McPromptPair;
 STATIC_ASSERT_SIZEOF(McPromptPair, 0x8);
 
+/// Prompt helpers first locate a child task, then replace this handle with
+/// its UI object (or a newly spawned object). Each phase reads the member it
+/// assigned; the task and UI object are never reinterpreted as each other.
+typedef union {
+    Task*             task;
+    struct _UiObject* object;
+} McPromptChild;
+STATIC_ASSERT_SIZEOF(McPromptChild, 4);
+
 /// Second argument to memcard/save state handlers in mc.c (e.g. Mc_StateSetOpenDefaults,
 /// Mc_ResetWork, Mc_StateSyncPrompt3). Larger object; only fields used so far are named.
 /// field_10/field_14 are MemCardSync cmds/rslt outs.

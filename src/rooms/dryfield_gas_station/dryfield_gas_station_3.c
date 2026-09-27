@@ -403,8 +403,7 @@ static void func_dryfield_gas_station_80180B4C(GpCoord* arg0, SVECTOR* arg1, s32
             prim->y0 = prim->y2 = prim->y3 = block->sy;
             twice                          = i << 1;
             prim->y1                       = (block->sy - (u16)block->halfWidth) + block->halfWidth * twice;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
             i++;
@@ -426,8 +425,7 @@ static void func_dryfield_gas_station_80180B4C(GpCoord* arg0, SVECTOR* arg1, s32
             line->y1 = block->sy;
             line->x2 = block->sx - (block->halfWidth * t);
             line->y2 = block->sy + (block->halfWidth * t2);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     line);
             Gp_AddTpageShift((P_TAG*)line, 1, block->otz);
             i = t2;
@@ -507,7 +505,7 @@ static void func_dryfield_gas_station_80181058(GpCoord* coord, SVECTOR* data, s3
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
             prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -527,7 +525,7 @@ static void func_dryfield_gas_station_80181058(GpCoord* coord, SVECTOR* data, s3
             prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
             prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
@@ -552,7 +550,7 @@ static void func_dryfield_gas_station_80181058(GpCoord* coord, SVECTOR* data, s3
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 13);
             prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -573,7 +571,7 @@ static void func_dryfield_gas_station_80181058(GpCoord* coord, SVECTOR* data, s3
             prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 12);
             prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 12);
             ang      = u;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);

@@ -424,13 +424,13 @@ void Gp_DrawFadeQuad(u8* arg0, s32 arg1)
     p->y2 = yBot - gDisplayState.vramYOffset;
     p->x3 = x1;
     p->y3 = yBot - gDisplayState.vramYOffset;
-    addPrim((u_long*)(((((u32)0x10 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), p);
+    addPrim(Gpu_OtEntryAtByteOffset(((((u32)0x10 << gDisplayState.otDepthShift) >> 2) & 0xFFC)), p);
 
     setSemiTrans(p, 1);
     dr             = gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
     setDrawTPage(dr, 0, 1, 0xA | (arg1 << 5));
-    addPrim((u_long*)(((((u32)0x10 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), dr);
+    addPrim(Gpu_OtEntryAtByteOffset(((((u32)0x10 << gDisplayState.otDepthShift) >> 2) & 0xFFC)), dr);
 }
 
 void Gp_DrawArc(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
@@ -472,16 +472,14 @@ void Gp_DrawArc(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
             prim->y2 = block->sy + ((block->outer * rcos(ang)) >> 12);
             prim->x3 = block->sx + ((block->outer * rsin(ang + 0x100)) >> 12);
             prim->y3 = block->sy + ((block->outer * rcos(ang + 0x100)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             otz = block->otz;
             setSemiTrans(prim, 1);
             dr             = gGpuPrimCursor;
             gGpuPrimCursor = dr + 1;
             setDrawTPage(dr, 0, 1, 0x2A);
-            addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     dr);
         }
     }
@@ -526,16 +524,14 @@ void Gp_DrawRing(GpCoord* arg0, s32 arg1, u8* rgb)
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->step * rsin(ang + 0x200)) >> 12);
             prim->y3 = block->sy + ((block->step * rcos(ang + 0x200)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             otz = block->otz;
             setSemiTrans(prim, 1);
             dr             = gGpuPrimCursor;
             gGpuPrimCursor = dr + 1;
             setDrawTPage(dr, 0, 1, 0x2A);
-            addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     dr);
         }
     }
@@ -589,8 +585,7 @@ void Gp_DrawFxQuad(GpCoord* arg0, u16 arg1, s16 arg2, u16 arg3)
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP(GpFxQuadScratch);
@@ -637,8 +632,7 @@ void func_800EB6E8(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
         prim->x1 = prim->x3 = block->sx + block->step;
         prim->y0 = prim->y1 = block->sy - block->step;
         prim->y2 = prim->y3 = block->sy + block->step;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP(GpRingScratch);
@@ -713,16 +707,14 @@ void Gp_DrawBand(GpCoord* arg0, s16 arg1, u8* rgb)
             prim->y2 = (u16)block->sxy2.vy;
             prim->x3 = (u16)block->sxy3.vx;
             prim->y3 = (u16)block->sxy3.vy;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             otz = block->otz;
             setSemiTrans(prim, 1);
             dr             = gGpuPrimCursor;
             gGpuPrimCursor = dr + 1;
             setDrawTPage(dr, 0, 1, 0x2A);
-            addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     dr);
         }
     }
@@ -798,16 +790,14 @@ void Gp_DrawBandEx(GpCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
             prim->y2 = block->sxy2.vy;
             prim->x3 = block->sxy3.vx;
             prim->y3 = block->sxy3.vy;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             otz = block->otz;
             setSemiTrans(prim, 1);
             dr             = gGpuPrimCursor;
             gGpuPrimCursor = dr + 1;
             setDrawTPage(dr, 0, 1, 0x2A);
-            addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     dr);
         }
     }
@@ -957,7 +947,7 @@ void Gp_AddTpageShift(P_TAG* arg0, s32 arg1, s32 arg2)
     gGpuPrimCursor = p + 1;
     p->code[0]     = 0xE100020A | ((arg1 & 3) << 5);
     setlen(p, 1);
-    addPrim((u_long*)(((((u32)arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), p);
+    addPrim(Gpu_OtEntryAtByteOffset(((((u32)arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC)), p);
 }
 
 void func_800EC9C8(void)

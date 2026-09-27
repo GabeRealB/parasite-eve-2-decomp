@@ -1742,9 +1742,9 @@ static void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
             i++;
             *(u32*)&sprt->w = *(u32*)&cur->w;
             elem++;
-            dest->tpage.tag = (dest->tpage.tag & maskHi) | (*(u_long*)(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt) & mask);
-            *(u_long*)(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt) =
-                (*(u_long*)(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt) & maskHi) | ((u32)dest & mask);
+            dest->tpage.tag = (dest->tpage.tag & maskHi) | (*Gpu_OtEntryAtByteOffset(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC)) & mask);
+            *Gpu_OtEntryAtByteOffset(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC)) =
+                (*Gpu_OtEntryAtByteOffset(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC)) & maskHi) | ((u32)dest & mask);
             dest++;
             cur++;
         } while (i < arg1->field_2);

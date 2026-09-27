@@ -231,14 +231,14 @@ static s32 func_replay_bonus_80117598(s32 arg0)
     return 0;
 }
 
-static s16 func_replay_bonus_801175D0(UiList* list, ReplayBonusCtx* ctx, s32 index)
+static s16 func_replay_bonus_801175D0(UiList* list, UiObject* ctx, s32 index)
 {
-    s16* p = ctx->itemList->itemIds + index;
+    s16* p = ((s16*)ctx->owner->work) + index;
 
     return *p;
 }
 
-static s32 func_replay_bonus_801175F0(UiList* list, ReplayBonusCtx* ctx)
+static s32 func_replay_bonus_801175F0(UiList* list, UiObject* ctx)
 {
     s32           i;
     s32           sum;
@@ -246,8 +246,8 @@ static s32 func_replay_bonus_801175F0(UiList* list, ReplayBonusCtx* ctx)
 
     cfg = &Player_Status;
     sum = 0;
-    for (i = (s8)list->field_9; i < list->field_4; i++) {
-        sum += replayBonusItemBp(ctx->itemList->itemIds[i]);
+    for (i = (s8)list->field_9.u; i < list->field_4; i++) {
+        sum += replayBonusItemBp(((s16*)ctx->owner->work)[i]);
     }
     sum += cfg->bp;
     if (sum > 99999999) {
@@ -258,7 +258,7 @@ static s32 func_replay_bonus_801175F0(UiList* list, ReplayBonusCtx* ctx)
 
 /// Draws one row of the replay-bonus item list: marks the item as seen, then
 /// draws its label at the prompt's position and its BP value at the mirrored x.
-static inline void _replayBonusDrawItemRow(DialogPrompt* prompt, UiObject* obj, s32 id)
+static inline void _replayBonusDrawItemRow(UiList* prompt, UiObject* obj, s32 id)
 {
     u8 buf[0x20];
 
@@ -267,11 +267,11 @@ static inline void _replayBonusDrawItemRow(DialogPrompt* prompt, UiObject* obj, 
     Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, Text_ItoaSigned(buf, replayBonusItemBp(id)), 0x606060, 3, 2);
 }
 
-void func_replay_bonus_801176A8(DialogPrompt* prompt, UiObject* obj)
+void func_replay_bonus_801176A8(UiList* prompt, UiObject* obj)
 {
     s16* p;
 
-    p = &((ReplayBonusItemList*)obj->owner)->itemIds[prompt->field_8];
+    p = &((s16*)obj->owner->work)[prompt->field_8];
     _replayBonusDrawItemRow(prompt, obj, *p);
 }
 

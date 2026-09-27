@@ -37,7 +37,7 @@ typedef struct _GpItemDesc {
 STATIC_ASSERT_SIZEOF(GpItemDesc, 0x8);
 
 /// 4 prompt strings copied onto the stack by `Gp_ItemMenuPrompt` and indexed
-/// by `DialogPrompt::field_8`: All / Select / Discard / End
+/// by `UiList::field_8`: All / Select / Discard / End
 /// (`Gp_StrAll` / `Gp_StrSelect` / `Gp_StrDiscard` / `Gp_StrEnd`).
 typedef struct {
     u8* texts[4];
@@ -135,7 +135,7 @@ void Gp_ItemMoveTask(Task* arg0);
 /// row in `0x37A78`, draws the item (and ammo count for ids `0xA0..0xBF`),
 /// then on confirm either opens the stack/info popup (`owner->state == 1`)
 /// or starts a move / restriction prompt.
-void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1);
+void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1);
 /// Task callback for one `Gp_InvLists` inventory pane. `spawnArg1 >= 0x100`
 /// is masked to the low byte and `flags` is set so the title is
 /// `Gp_StrBattleField` ("Battle Field") instead of `Gp_StrItemBox` ("Item Box");
@@ -148,13 +148,13 @@ void Gp_ItemPaneTask(Task* arg0);
 /// Move action in `Gp_ItemActionFns`. Draws `Gp_StrMove2`, checks destination
 /// capacity and item/equipment restrictions, then opens a prompt or quantity
 /// selector, or transfers the selected stack and sets `field_2E = 6`.
-void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1);
+void func_800BD6DC(UiList* arg0, UiObject* arg1);
 /// List-item confirm for `Gp_ItemActionFns`. Draws `Gp_StrSwitch`, then on confirm
 /// looks up the selected inventory row and inlines `Gp_ItemUseRestricted` against
 /// `owner->parent->flags`. A true result opens prompt `0x1E`; dest inventory
 /// (`spawnArg1 == 1`) plus an equipped weapon/armor (`field_21+0x7F` /
 /// `field_23+0x5F`) opens prompt `7`; otherwise `field_2E = 0x23`.
-void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1);
+void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1);
 /// Task callback for the `Gp_ItemActionList` item list. On first run it copies
 /// `parent->flags`, clamps `field_E + field_12` to 0x64, then calls
 /// `Gp_FillItemActions` and `Ui_LayoutListPanel`. Confirm (`Pad_MaskMenu`) is
@@ -171,7 +171,7 @@ void func_800BDF6C(Task* task);
 /// `Mc_SaveData[0].carriedItems` and sets `field_2E = 0x27`. Cancel once sets
 /// `field_10 = 2` / `field_22 = 0x21`; a second cancel does the discard
 /// strip.
-void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1);
+void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1);
 void Gp_ItemMenuListTask(Task* arg0);
 /// Task callback. `spawnArg2` is the `UiObject`; on first run it is published
 /// as `Wip_UiHolder`. `spawnArg1` is a text pointer; when non-zero, two prompt

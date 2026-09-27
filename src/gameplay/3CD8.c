@@ -32,68 +32,68 @@ typedef struct {
     u8 vertical;
 } _GpCapLayout;
 
-extern TaskDesc      Gp_EvtSpawnTable[];
-extern TaskDesc      D_8010FB4C[];
-extern GpAnimArg     Gp_WeaponMsgRec;
-extern s32           D_8010FB80;
-extern s32           D_8010FB84;
-extern s32           Gp_CapCaretGrey;
-extern s32           Gp_CapCaretDir;
-extern s32           D_8010FB90[];
-extern u16           Gp_WeaponIdBase[];
-extern u16           Gp_AllyIdBase[];
-extern GpEvt12*      Gp_CapTable;
-extern GpCmdReply    D_801155A0;
-extern s16           D_801155AC;
-extern u16           D_801155AE;
-extern s16           D_801155B0;
-extern s16           D_801155B2;
-extern s16           D_801155B4;
-extern s16           D_801155B6;
-extern u8            D_801155B8;
-extern s8            D_801155B9;
-extern u8            D_801155BA;
-extern u8            D_801155BB;
-extern s16           D_801155BC;
-extern s16           D_801155BE;
-extern s16           D_801155C0;
-extern GpCapChoice   D_801155D0[];
-extern GlyphUvwh     D_8010FB70[];
-extern u8            D_80115670;
-extern Task*         Gp_CapTask;
-extern s16           D_80115678;
-extern s16           D_8011567A;
-extern GlyphUvwh*    Gp_CapGlyphs;
-extern u8            D_80115680;
-extern u8            D_80115688;
-extern u8            D_80115648;
-extern s16           D_8011564A;
-extern s16           D_80115650;
-extern s16           D_80115652;
-extern u16           Gp_CapCaretX;
-extern u16           Gp_CapCaretY;
-extern s16           D_80115654;
-extern s16           D_80115656;
-extern u8            Gp_CapCaretDelay;
-extern u8            D_80115659;
-extern u8            D_8011565A;
-extern u16           D_8011565C;
-extern s32           D_80115660;
-extern s16           D_80115664;
-extern s16           D_80115666;
-extern s16           Gp_CapEventKey;
-extern s16           D_8011566A;
-extern u8            D_8011566C;
-extern u8            D_8011566D;
-extern u8            D_8011566E;
-extern u8            D_8011566F;
-extern s32           Gp_CapFile;
-extern u8            D_80115690;
-extern u8            D_80115694;
-extern s16           D_80115698;
-extern s16           D_8011569A;
-extern u8            D_8011569C;
-extern s32*          Gp_CapCmds;
+extern TaskDesc    Gp_EvtSpawnTable[];
+extern TaskDesc    D_8010FB4C[];
+extern GpAnimArg   Gp_WeaponMsgRec;
+extern s32         D_8010FB80;
+extern s32         D_8010FB84;
+extern s32         Gp_CapCaretGrey;
+extern s32         Gp_CapCaretDir;
+extern s32         D_8010FB90[];
+extern u16         Gp_WeaponIdBase[];
+extern u16         Gp_AllyIdBase[];
+extern GpEvt12*    Gp_CapTable;
+extern GpCmdReply  D_801155A0;
+extern s16         D_801155AC;
+extern u16         D_801155AE;
+extern s16         D_801155B0;
+extern s16         D_801155B2;
+extern s16         D_801155B4;
+extern s16         D_801155B6;
+extern u8          D_801155B8;
+extern s8          D_801155B9;
+extern u8          D_801155BA;
+extern u8          D_801155BB;
+extern s16         D_801155BC;
+extern s16         D_801155BE;
+extern s16         D_801155C0;
+extern GpCapChoice D_801155D0[];
+extern GlyphUvwh   D_8010FB70[];
+extern u8          D_80115670;
+extern Task*       Gp_CapTask;
+extern s16         D_80115678;
+extern s16         D_8011567A;
+extern GlyphUvwh*  Gp_CapGlyphs;
+extern u8          D_80115680;
+extern u8          D_80115688;
+extern u8          D_80115648;
+extern s16         D_8011564A;
+extern s16         D_80115650;
+extern s16         D_80115652;
+extern u16         Gp_CapCaretX;
+extern u16         Gp_CapCaretY;
+extern s16         D_80115654;
+extern s16         D_80115656;
+extern u8          Gp_CapCaretDelay;
+extern u8          D_80115659;
+extern u8          D_8011565A;
+extern u16         D_8011565C;
+extern GpCapTextCb D_80115660;
+extern s16         D_80115664;
+extern s16         D_80115666;
+extern s16         Gp_CapEventKey;
+extern s16         D_8011566A;
+extern u8          D_8011566C;
+extern u8          D_8011566D;
+extern u8          D_8011566E;
+extern u8          D_8011566F;
+
+extern u8  D_80115690;
+extern u8  D_80115694;
+extern s16 D_80115698;
+extern s16 D_8011569A;
+extern u8  D_8011569C;
+
 extern u8            D_801156A4;
 extern s32           D_801156A8;
 extern s8            D_801156B0;
@@ -107,7 +107,7 @@ extern u8            D_801156F9;
 s32              Stage_HasTransitionFlags(void);
 s32              Stage_RequestImageCapture(void);
 void             func_8001D5C4(void);
-static u16       func_800E5578(s32 arg0, s32 arg1, u8 arg2, u16 arg3);
+static u16       func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3);
 static void      func_800E62C0(void);
 static void      func_800E44A0(Task* arg0);
 void             func_80724120(void);
@@ -151,7 +151,7 @@ void Gp_RunCapCmd(s32 arg0, s16 arg1)
     s32       i;
 
     for (;;) {
-        rec    = (GpCapCmd*)Gp_CapCmds[arg0];
+        rec    = Gp_CapCmds[arg0].command;
         flagId = rec->field_3 | (rec->field_7 << 8);
         switch (rec->field_0) {
             case 0:
@@ -485,33 +485,33 @@ void Gp_SpawnEvt1(s32 arg0, s32 arg1)
     Task_SpawnFromTable(Gp_EvtSpawnTable, 1, arg0, arg1);
 }
 
-static s32 Gp_RelocCapFile(GpCapFile* file)
+static s32 Gp_RelocCapFile(GpCapFileAddress base)
 {
     s32            i;
     s32            count;
     s32            flag;
     GpEvt12*       rec;
-    s32*           ptr;
+    GpCapEntry*    ptr;
     GpCapEvtTable* evts;
     GpCapPtrTable* ptrs;
 
-    if (strncmp(file->magic, Gp_StrCapMagic, 3) != 0) {
+    if (strncmp(base.file->magic, Gp_StrCapMagic, 3) != 0) {
         return 0;
     }
 
     i = 0;
-    if (file->field_8 > 0) {
-        file->field_8  += (s32)file;
-        file->field_C  += (s32)file;
-        file->field_10 += (s32)file;
-        evts            = (GpCapEvtTable*)file->field_C;
-        rec             = (GpEvt12*)(evts + 1);
-        count           = evts->count;
+    if (base.file->field_8.offset > 0) {
+        base.file->field_8.offset  += base.address;
+        base.file->field_C.offset  += base.address;
+        base.file->field_10.offset += base.address;
+        evts                        = base.file->field_C.ptr;
+        rec                         = evts->records;
+        count                       = evts->count;
         if (count > 0) {
             flag = -1;
             do {
-                if (rec->field_8 != flag) {
-                    rec->field_8 += (s32)file;
+                if (rec->field_8.offset != flag) {
+                    rec->field_8.offset += base.address;
                 } else {
                     rec++;
                 }
@@ -519,14 +519,14 @@ static s32 Gp_RelocCapFile(GpCapFile* file)
                 rec++;
             } while (i < count);
         }
-        ptrs  = (GpCapPtrTable*)file->field_10;
+        ptrs  = base.file->field_10.ptr;
         i     = 0;
         count = ptrs->count;
         ptr   = ptrs->entries;
         if (count > 0) {
             do {
-                if (*ptr != 0) {
-                    *ptr += (s32)file;
+                if (ptr->offset != 0) {
+                    ptr->offset += base.address;
                 }
                 i++;
                 ptr++;
@@ -534,12 +534,12 @@ static s32 Gp_RelocCapFile(GpCapFile* file)
         }
     }
 
-    Gp_CapGlyphs = (GlyphUvwh*)file->field_8;
-    Gp_CapCmds   = ((GpCapPtrTable*)file->field_10)->entries;
+    Gp_CapGlyphs = base.file->field_8.ptr;
+    Gp_CapCmds   = (base.file->field_10.ptr)->entries;
     return 1;
 }
 
-static s32 Gp_StartCap(s32 arg0, s16 arg1, s16 arg2)
+static s32 Gp_StartCap(GpEvt12* arg0, s16 arg1, s16 arg2)
 {
     CdCmdQueue* queue;
     TaskDesc*   desc;
@@ -550,7 +550,7 @@ static s32 Gp_StartCap(s32 arg0, s16 arg1, s16 arg2)
     }
 
     Gp_CapEventKey = arg2;
-    Gp_CapTable    = (GpEvt12*)arg0;
+    Gp_CapTable    = arg0;
     D_801155AC     = 0;
     D_801155AE     = 1;
     D_801155B0     = 0;
@@ -584,14 +584,14 @@ static s32 Gp_StartCap(s32 arg0, s16 arg1, s16 arg2)
     }
 
     D_801155AE = Gp_FindCapEvt((s16)D_801155AE);
-    if (Gp_CapTable[(s16)D_801155AE].field_8 == -1) {
+    if (Gp_CapTable[(s16)D_801155AE].field_8.offset == -1) {
         Gp_CapTable = 0;
         return 0;
     }
 
     Gp_ApplyCapEvtFlags();
-    D_801155B4 = Gp_CapTextTopY((u16*)Gp_CapTable[(s16)D_801155AE].field_8);
-    D_801155B6 = Gp_CapTextHeight((u16*)Gp_CapTable[(s16)D_801155AE].field_8);
+    D_801155B4 = Gp_CapTextTopY(Gp_CapTable[(s16)D_801155AE].field_8.text);
+    D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].field_8.text);
     D_80115666 = arg1;
     D_80115660 = 0;
     if (arg1 != 0) {
@@ -610,36 +610,36 @@ static s32 Gp_StartCap(s32 arg0, s16 arg1, s16 arg2)
 
 static void func_800E44A0(Task* task)
 {
-    Task* target;
-    Task* lookupTask;
-    s16   eventIndex;
-    s32   viewId;
-    s32   sceneText;
-    s32   dialogText;
-    s32   timedText;
-    s32   choiceText;
-    s32   nextView;
-    s32   taskState;
-    s32   phase;
-    s32   activeViewFlags;
-    s32   soundId;
-    s32   confirmMask;
-    u16   oldChoice;
-    u8    viewPhase;
-    s32   holdFrames;
-    s32   eventFlags;
-    u8    choiceSound;
-    u8    view;
-    u8    nextPhase;
-    s32   firstPhase;
-    s32   capFlags;
-    s32   viewFlags;
-    s32   activeFlags;
-    s8    savedViewPhase;
-    s8    spawnDelay;
-    s8    viewPending;
-    s32   nextChoiceIndex;
-    s32   nextTextIndex;
+    Task*        target;
+    Task*        lookupTask;
+    s16          eventIndex;
+    s32          viewId;
+    GpCapTextRef sceneText;
+    GpCapTextRef dialogText;
+    GpCapTextRef timedText;
+    GpCapTextRef choiceText;
+    s32          nextView;
+    s32          taskState;
+    s32          phase;
+    s32          activeViewFlags;
+    s32          soundId;
+    s32          confirmMask;
+    u16          oldChoice;
+    u8           viewPhase;
+    s32          holdFrames;
+    s32          eventFlags;
+    u8           choiceSound;
+    u8           view;
+    u8           nextPhase;
+    s32          firstPhase;
+    s32          capFlags;
+    s32          viewFlags;
+    s32          activeFlags;
+    s8           savedViewPhase;
+    s8           spawnDelay;
+    s8           viewPending;
+    s32          nextChoiceIndex;
+    s32          nextTextIndex;
 
     D_8011565A = 1;
     if (D_8011564A != -1) {
@@ -677,7 +677,7 @@ static void func_800E44A0(Task* task)
     }
     eventIndex = Gp_FindCapEvt((s32)(s16)D_801155AE);
     D_801155AE = (u16)eventIndex;
-    D_801155B2 = Gp_CapCenterX((u16*)Gp_CapTable[eventIndex].field_8);
+    D_801155B2 = Gp_CapCenterX(Gp_CapTable[eventIndex].field_8.text);
     eventFlags = Gp_CapTable[(s16)D_801155AE].field_1;
     if (D_8011567A > 0) {
         D_8011567A = (u16)D_8011567A - 1;
@@ -748,10 +748,10 @@ resumeView:
             }
             func_800E704C();
             sceneText = Gp_CapTable[(s16)D_801155AE].field_8;
-            if (sceneText != -1) {
-                D_801155B4 = Gp_CapTextTopY((u16*)sceneText);
-                D_801155B2 = Gp_CapCenterX((u16*)Gp_CapTable[(s16)D_801155AE].field_8);
-                D_801155B6 = Gp_CapTextHeight((u16*)Gp_CapTable[(s16)D_801155AE].field_8);
+            if (sceneText.offset != -1) {
+                D_801155B4 = Gp_CapTextTopY(sceneText.text);
+                D_801155B2 = Gp_CapCenterX(Gp_CapTable[(s16)D_801155AE].field_8.text);
+                D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].field_8.text);
                 nextView   = view & 0xFF;
                 D_801155BB = 0;
                 if ((nextView != 0) && (nextView != Mc_SaveData[0].at4.loc.view)) {
@@ -850,27 +850,27 @@ resumeView:
                     D_801155B0 = 0;
                     D_801155C0 = 0;
                     dialogText = Gp_CapTable[(s16)D_801155AE].field_8;
-                    if (dialogText == -1) {
+                    if (dialogText.offset == -1) {
                         task->state += 1;
                         return;
                     }
-                    D_801155B4 = Gp_CapTextTopY((u16*)dialogText);
-                    D_801155B6 = Gp_CapTextHeight((u16*)Gp_CapTable[(s16)D_801155AE].field_8);
+                    D_801155B4 = Gp_CapTextTopY(dialogText.text);
+                    D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].field_8.text);
                     return;
                 }
             } else if (D_801155AC == 1) {
                 if (*(u32*)&Gp_CapTable[(s16)D_801155AE] & 0xFFFF0000) {
                     if (D_80115698 != 0) {
-                        func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8, 0x80, 1, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
+                        func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
                         D_80115698 = (u16)D_80115698 - 1;
                         return;
                     }
                     if (D_8011569A == 0) {
                         func_800E704C();
                         timedText = Gp_CapTable[(s16)D_801155AE].field_8;
-                        if (timedText != -1) {
-                            D_801155B4 = Gp_CapTextTopY((u16*)timedText);
-                            D_801155B6 = Gp_CapTextHeight((u16*)Gp_CapTable[(s16)D_801155AE].field_8);
+                        if (timedText.offset != -1) {
+                            D_801155B4 = Gp_CapTextTopY(timedText.text);
+                            D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].field_8.text);
                             goto resetText;
                         }
                         task->state += 1;
@@ -881,9 +881,9 @@ resumeView:
                         return;
                     }
                 } else {
-                    func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8, 0x80, 1, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
+                    func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
                     nextChoiceIndex = Gp_FindCapEvt((s16)D_801155AE + 1);
-                    if ((Gp_CapTable[nextChoiceIndex].field_8 != -1) && (Gp_CapTable[nextChoiceIndex].field_6 == 0)) {
+                    if ((Gp_CapTable[nextChoiceIndex].field_8.offset != -1) && (Gp_CapTable[nextChoiceIndex].field_6 == 0)) {
                         if (Gp_CapTable[nextChoiceIndex].field_2 == 0) {
                             if (Gp_CapTable[nextChoiceIndex].field_3 == 0) {
                                 goto checkChoice;
@@ -955,11 +955,11 @@ resumeView:
                             D_8011567A = (s16)(u16)D_80115678;
                             func_800E704C();
                             choiceText = Gp_CapTable[(s16)D_801155AE].field_8;
-                            if (choiceText == -1) {
+                            if (choiceText.offset == -1) {
                                 task->state += 1;
                             } else {
-                                D_801155B4 = Gp_CapTextTopY((u16*)choiceText);
-                                D_801155B6 = Gp_CapTextHeight((u16*)Gp_CapTable[(s16)D_801155AE].field_8);
+                                D_801155B4 = Gp_CapTextTopY(choiceText.text);
+                                D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].field_8.text);
                             }
                         resetText:
                             D_801155AC = 0;
@@ -970,7 +970,7 @@ resumeView:
                     }
                 }
             } else if ((Gp_CapTable[(s16)D_801155AE].field_2 != 0) && !(D_80115670 & 1)) {
-                D_801155AC = func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8, 0x80, 0, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
+                D_801155AC = func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8.text, 0x80, 0, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
                 if ((s8)D_801155B8 > D_801155B9) {
                     D_801155B9 = (u8)D_801155B9 + 1;
                 } else {
@@ -978,7 +978,7 @@ resumeView:
                     D_801155B0 = (u16)D_801155B0 + 1;
                 }
                 if (D_80115660 != 0) {
-                    ((GpCapTextCb)D_80115660)(D_80115650, D_80115652, Gp_CapTable[(s16)D_801155AE].field_8, D_801155B0, D_801155B9 == 0);
+                    D_80115660(D_80115650, D_80115652, Gp_CapTable[(s16)D_801155AE].field_8.text, D_801155B0, D_801155B9 == 0);
                 }
                 if (D_801155AC != 0) {
                     D_8011569A = (s16)Gp_CapTable[(s16)D_801155AE].field_3;
@@ -989,7 +989,7 @@ resumeView:
             } else {
                 if (*(u32*)&Gp_CapTable[(s16)D_801155AE] & 0xFFFF0000) {
                     if (Gp_CapTable[(s16)D_801155AE].field_2 != 0) {
-                        func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8, 0x80, 1, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
+                        func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
                     }
                     D_80115664 = 0;
                     D_801155AC = 1;
@@ -1010,9 +1010,9 @@ resumeView:
                     return;
                 }
                 if ((Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (D_80115670 & 1)) {
-                    D_801155AC    = func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8, 0x80, 1, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
+                    D_801155AC    = func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
                     nextTextIndex = Gp_FindCapEvt((s16)D_801155AE + 1);
-                    if (((Gp_CapTable[nextTextIndex].field_8 != -1) && (Gp_CapTable[nextTextIndex].field_6 == 0) && ((Gp_CapTable[nextTextIndex].field_2 != 0) || (Gp_CapTable[nextTextIndex].field_3 == 0))) || (Gp_CapTable[(s16)D_801155AE].field_1 & 4)) {
+                    if (((Gp_CapTable[nextTextIndex].field_8.offset != -1) && (Gp_CapTable[nextTextIndex].field_6 == 0) && ((Gp_CapTable[nextTextIndex].field_2 != 0) || (Gp_CapTable[nextTextIndex].field_3 == 0))) || (Gp_CapTable[(s16)D_801155AE].field_1 & 4)) {
                         ((void (*)(s32, s32))Gp_DrawCapCaret)(0xA0, 0xDC);
                         return;
                     }
@@ -1020,7 +1020,7 @@ resumeView:
                     return;
                 }
 
-                D_801155AC = func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8, 0x80, 0, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
+                D_801155AC = func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8.text, 0x80, 0, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
                 if ((s8)D_801155B8 > D_801155B9) {
                     D_801155B9 = (u8)D_801155B9 + 1;
                     return;
@@ -1034,7 +1034,7 @@ resumeView:
     }
 }
 
-static u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u16 arg3)
+static u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
 {
     u8           title;
     u8           flagA;
@@ -1075,7 +1075,7 @@ static u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u16 arg3)
 
     const _GpCapLayout* layout;
 
-    text     = (u16*)arg0;
+    text     = arg0;
     layout   = &D_80097518;
     nChoice  = 0;
     title    = arg3;
@@ -1085,7 +1085,7 @@ static u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u16 arg3)
     centered = ((arg3 >> 9) ^ 1) & 1;
     flagA    = arg2;
     if (centered) {
-        x = Gp_CapCenterXLine((u16*)arg0, 0) - 0xA0;
+        x = Gp_CapCenterXLine(arg0, 0) - 0xA0;
     } else {
         x = (u16)D_801155B2 - 0xA0;
     }
@@ -1191,7 +1191,7 @@ static u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u16 arg3)
             if (layout->vertical == 0) {
                 y += func_800E6BB8(next);
                 if (centered != 0) {
-                    x = Gp_CapCenterXLine((u16*)arg0, (s16)lineIdx) - 0xA0;
+                    x = Gp_CapCenterXLine(arg0, (s16)lineIdx) - 0xA0;
                 } else {
                     x = (u16)D_801155B2 - 0xA0;
                 }
@@ -1646,13 +1646,13 @@ static s32 func_800E6BB8(u16* arg0)
 
 s32 Gp_StartCapSlot(s16 arg0, s16 arg1, s16 arg2)
 {
-    s32 entry;
+    GpEvt12* entry;
 
     if (Gp_CapTable != 0) {
         return 0;
     }
 
-    entry = Gp_CapCmds[arg0];
+    entry = Gp_CapCmds[arg0].events;
     if (entry == 0) {
         return 1;
     }
@@ -1699,8 +1699,8 @@ void Gp_LoadCapFile(s32 arg0)
                 if (gDisplayState.field_112 != 0) {
                     func_80724714();
                 }
-                Gp_CapFile = (s32)D_8006C338[i].field_4;
-                Gp_RelocCapFile((GpCapFile*)Gp_CapFile);
+                Gp_CapFile = D_8006C338[i].field_4;
+                Gp_RelocCapFile(Gp_CapFile);
                 break;
             }
             count++;
@@ -1719,7 +1719,7 @@ void Gp_ResetCap(void)
     D_8011569C = 0;
 }
 
-static void func_800E6E44(s32 arg0)
+static void func_800E6E44(GpCapTextCb arg0)
 {
     D_80115660 = arg0;
 }
@@ -1728,12 +1728,12 @@ static void Gp_ApplyCapEvtFlags(void)
 {
     GpEvt12* p;
     u8       field4;
-    s32      base;
+    GpEvt12* base;
     s32      idx;
 
     idx        = (s16)D_801155AE;
-    base       = (s32)Gp_CapTable;
-    p          = (GpEvt12*)(idx * sizeof(GpEvt12) + base);
+    base       = Gp_CapTable;
+    p          = Gp_CapEventAt(base, idx);
     field4     = p->field_4;
     D_80115670 = field4;
     if (p->field_7 != 0) {
@@ -1746,15 +1746,15 @@ static s32 Gp_FindCapEvt(s32 arg0)
 {
     s32      flag;
     s32      id;
-    s32      base;
+    GpEvt12* base;
     GpEvt12* p;
 
     flag = -1;
     id   = Gp_CapEventKey;
-    base = (s32)Gp_CapTable;
-    p    = (GpEvt12*)(arg0 * sizeof(GpEvt12) + base);
+    base = Gp_CapTable;
+    p    = Gp_CapEventAt(base, arg0);
 loop:
-    if (p->field_8 == flag) {
+    if (p->field_8.offset == flag) {
         goto done;
     }
     if (p->field_5 == id) {
@@ -1885,7 +1885,7 @@ static void Gp_CapTaskState1(void)
         func_80724324();
     }
     if (Gp_CapFile != 0) {
-        Gp_RelocCapFile((GpCapFile*)Gp_CapFile);
+        Gp_RelocCapFile(Gp_CapFile);
     }
     if (Gp_CapBusy() != 0 && D_801156B0 != 0) {
         D_801156BC++;

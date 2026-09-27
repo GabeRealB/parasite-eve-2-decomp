@@ -1426,9 +1426,9 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
             if (width < other) {
                 width = other;
             }
-            Ui_UpdateLayoutSize((UiPanel*)arg0, width + 5, Ui_Scale15(2) + 1);
-            ((UiPanel*)arg0)->field_C.x = (-((UiPanel*)arg0)->field_C.w) >> 1;
-            ((UiPanel*)arg0)->field_C.y = ((-((UiPanel*)arg0)->field_C.h) >> 1) - 0x14;
+            Ui_UpdateLayoutSize(&(arg0)->panel, width + 5, Ui_Scale15(2) + 1);
+            (&(arg0)->panel)->bounds.rect.x = (-(&(arg0)->panel)->bounds.rect.w) >> 1;
+            (&(arg0)->panel)->bounds.rect.y = ((-(&(arg0)->panel)->bounds.rect.h) >> 1) - 0x14;
             func_800B996C_RemoveItem(&Mc_SaveData[0].carriedItems, Gp_SelItemRec, 1);
             arg1->killCountdown = 0xBC;
             arg1->state++;
@@ -1442,16 +1442,16 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
         return;
     }
 
-    x = arg0->field_1C + 2;
-    y = (s16)arg0->field_18;
-    Ui_DrawText((UiPanel*)arg0, Gp_StrNotice2);
+    x = arg0->panel.field_1C.s + 2;
+    y = (s16)arg0->panel.field_18.u;
+    Ui_DrawText(&(arg0)->panel, Gp_StrNotice2);
     color = 0x606060;
     one   = 1;
     row   = y + 0xF;
     _gpDrawPromptItem(arg0, x, row, Gp_StrMore, item, color, one);
     Text_DrawPrompt(arg0, x, y + 0x1E, Gp_StrAttachAvail, color, one, 0);
 
-    if (arg0->status == one) {
+    if (arg0->panel.field_0.w == one) {
         arg1->killCountdown--;
         if ((arg1->killCountdown <= 0) || (Pad_CheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
             arg0->field_2E      = 9;
@@ -2945,8 +2945,8 @@ void Gp_TickBoostPanel(Task* arg0)
     panel = arg0->spawnArg2;
     if (arg0->state == 0) {
         Ui_UpdateLayoutSize(panel, 0xB0, 0x2F);
-        panel->field_C.y = -0xC;
-        panel->field_C.x = -panel->field_C.w / 2;
+        panel->bounds.rect.y = -0xC;
+        panel->bounds.rect.x = -panel->bounds.rect.w / 2;
         arg0->state++;
     }
     Gp_DrawHpMpStats(panel, 0);

@@ -82,19 +82,19 @@ extern u16        D_shelter_b3_garbage_incinerator_8018FC5A;
 extern s16        D_shelter_b3_garbage_incinerator_80187180;
 extern s16        D_shelter_b3_garbage_incinerator_80187182;
 
-extern GpEvt12** D_shelter_b3_garbage_incinerator_8018FC40;
-extern GpEvt12*  D_shelter_b3_garbage_incinerator_8018FC48;
-extern s16       D_shelter_b3_garbage_incinerator_8018FC52;
-extern s16       D_shelter_b3_garbage_incinerator_8018FC56;
-extern u8        D_shelter_b3_garbage_incinerator_8018FC5C;
-extern s32       D_shelter_b3_garbage_incinerator_80187278;
-extern s32       D_shelter_b3_garbage_incinerator_8018727C;
+extern GpCapEntry* D_shelter_b3_garbage_incinerator_8018FC40;
+extern GpEvt12*    D_shelter_b3_garbage_incinerator_8018FC48;
+extern s16         D_shelter_b3_garbage_incinerator_8018FC52;
+extern s16         D_shelter_b3_garbage_incinerator_8018FC56;
+extern u8          D_shelter_b3_garbage_incinerator_8018FC5C;
+extern s32         D_shelter_b3_garbage_incinerator_80187278;
+extern s32         D_shelter_b3_garbage_incinerator_8018727C;
 
 void        func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0);
 void        func_shelter_b3_garbage_incinerator_8017F930(s32 arg0);
 void        func_shelter_b3_garbage_incinerator_8017F968(void);
 static s32  func_shelter_b3_garbage_incinerator_8017FD64(s16 arg0, s16 arg1, s32 arg2);
-static s32  func_shelter_b3_garbage_incinerator_8017FE74(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+static s32  func_shelter_b3_garbage_incinerator_8017FE74(u16* arg0, s32 arg1, s32 arg2, s32 arg3);
 static s16  func_shelter_b3_garbage_incinerator_801808A8(u16* arg0);
 static s16  func_shelter_b3_garbage_incinerator_80180B18(u16* arg0);
 static s16  func_shelter_b3_garbage_incinerator_80180C28(u16* arg0, s32 arg1);
@@ -1094,9 +1094,9 @@ void func_shelter_b3_garbage_incinerator_8017FA58(Task* task, s32 arg1)
 static void func_shelter_b3_garbage_incinerator_8017FB80(void)
 {
     if ((D_shelter_b3_garbage_incinerator_8018FC48 != NULL) &&
-        (D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_8 != -1) &&
+        (D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_8.offset != -1) &&
         (Gp_CapBusy() == 0)) {
-        func_shelter_b3_garbage_incinerator_8017FE74(D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_8, 0x80, 1,
+        func_shelter_b3_garbage_incinerator_8017FE74(D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_8.text, 0x80, 1,
                                                      D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_0 |
                                                          ((D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_1 & 0x10) * 0x10));
         if (!(D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_4 & 1)) {
@@ -1109,33 +1109,33 @@ static void func_shelter_b3_garbage_incinerator_8017FB80(void)
 /// script pointers of its event records and its pointer table) and keeps its
 /// glyph table and script table for the caption code. Returns 0 when the file
 /// does not start with "CAP".
-static s32 func_shelter_b3_garbage_incinerator_8017FC5C(GpCapFile* file)
+static s32 func_shelter_b3_garbage_incinerator_8017FC5C(GpCapFileAddress base)
 {
     s32            i;
     s32            count;
     s32            flag;
     GpEvt12*       rec;
-    s32*           ptr;
+    GpCapEntry*    ptr;
     GpCapEvtTable* evts;
     GpCapPtrTable* ptrs;
 
-    if (strncmp(file->magic, "CAP", 3) != 0) {
+    if (strncmp(base.file->magic, "CAP", 3) != 0) {
         return 0;
     }
 
     i = 0;
-    if (file->field_8 > 0) {
-        file->field_8  += (s32)file;
-        file->field_C  += (s32)file;
-        file->field_10 += (s32)file;
-        evts            = (GpCapEvtTable*)file->field_C;
-        rec             = (GpEvt12*)(evts + 1);
-        count           = evts->count;
+    if (base.file->field_8.offset > 0) {
+        base.file->field_8.offset  += base.address;
+        base.file->field_C.offset  += base.address;
+        base.file->field_10.offset += base.address;
+        evts                        = base.file->field_C.ptr;
+        rec                         = evts->records;
+        count                       = evts->count;
         if (count > 0) {
             flag = -1;
             do {
-                if (rec->field_8 != flag) {
-                    rec->field_8 += (s32)file;
+                if (rec->field_8.offset != flag) {
+                    rec->field_8.offset += base.address;
                 } else {
                     rec++;
                 }
@@ -1143,14 +1143,14 @@ static s32 func_shelter_b3_garbage_incinerator_8017FC5C(GpCapFile* file)
                 rec++;
             } while (i < count);
         }
-        ptrs  = (GpCapPtrTable*)file->field_10;
+        ptrs  = base.file->field_10.ptr;
         i     = 0;
         count = ptrs->count;
         ptr   = ptrs->entries;
         if (count > 0) {
             do {
-                if (*ptr != 0) {
-                    *ptr += (s32)file;
+                if (ptr->offset != 0) {
+                    ptr->offset += base.address;
                 }
                 i++;
                 ptr++;
@@ -1158,8 +1158,8 @@ static s32 func_shelter_b3_garbage_incinerator_8017FC5C(GpCapFile* file)
         }
     }
 
-    D_shelter_b3_garbage_incinerator_8018FC44 = (GlyphUvwh*)file->field_8;
-    D_shelter_b3_garbage_incinerator_8018FC40 = (GpEvt12**)((GpCapPtrTable*)file->field_10)->entries;
+    D_shelter_b3_garbage_incinerator_8018FC44 = base.file->field_8.ptr;
+    D_shelter_b3_garbage_incinerator_8018FC40 = (base.file->field_10.ptr)->entries;
     return 1;
 }
 
@@ -1171,7 +1171,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017FD64(s16 arg0, s16 arg1, s32 
     GpEvt12* caption;
     s16      entry;
 
-    caption                                   = D_shelter_b3_garbage_incinerator_8018FC40[arg0];
+    caption                                   = D_shelter_b3_garbage_incinerator_8018FC40[arg0].events;
     D_shelter_b3_garbage_incinerator_8018FC48 = caption;
     if (caption == NULL) {
         return 1;
@@ -1180,14 +1180,14 @@ static s32 func_shelter_b3_garbage_incinerator_8017FD64(s16 arg0, s16 arg1, s32 
     entry                                     = func_shelter_b3_garbage_incinerator_80180EC4(1);
     D_shelter_b3_garbage_incinerator_8018FC52 = entry;
     D_shelter_b3_garbage_incinerator_8018FC50 = arg2;
-    D_shelter_b3_garbage_incinerator_8018FC4C = func_shelter_b3_garbage_incinerator_80180B18((u16*)D_shelter_b3_garbage_incinerator_8018FC48[entry].field_8);
-    D_shelter_b3_garbage_incinerator_8018FC4E = func_shelter_b3_garbage_incinerator_801808A8((u16*)D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_8);
-    D_shelter_b3_garbage_incinerator_8018FC54 = func_shelter_b3_garbage_incinerator_80180D44((u16*)D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_8);
+    D_shelter_b3_garbage_incinerator_8018FC4C = func_shelter_b3_garbage_incinerator_80180B18(D_shelter_b3_garbage_incinerator_8018FC48[entry].field_8.text);
+    D_shelter_b3_garbage_incinerator_8018FC4E = func_shelter_b3_garbage_incinerator_801808A8(D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_8.text);
+    D_shelter_b3_garbage_incinerator_8018FC54 = func_shelter_b3_garbage_incinerator_80180D44(D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_8.text);
     D_shelter_b3_garbage_incinerator_8018FC5C = 0x1E;
     return 0;
 }
 
-static s32 func_shelter_b3_garbage_incinerator_8017FE74(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+static s32 func_shelter_b3_garbage_incinerator_8017FE74(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u16*       text;
     u16*       body;
@@ -1216,8 +1216,8 @@ static s32 func_shelter_b3_garbage_incinerator_8017FE74(s32 arg0, s32 arg1, s32 
 
     lineIdx = 0;
     title   = arg3;
-    text    = (u16*)arg0;
-    x       = func_shelter_b3_garbage_incinerator_80180C28((u16*)arg0, 0) - 0xA0;
+    text    = arg0;
+    x       = func_shelter_b3_garbage_incinerator_80180C28(arg0, 0) - 0xA0;
     y       = (u16)D_shelter_b3_garbage_incinerator_8018FC4E - 0x78;
 
     bg             = (POLY_G4*)gGpuPrimCursor;
@@ -1294,7 +1294,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017FE74(s32 arg0, s32 arg1, s32 
             D_shelter_b3_garbage_incinerator_8018FC58 = x + 4;
             y                                        += func_shelter_b3_garbage_incinerator_80180E0C(&body[i + 1]);
             if (centered != 0) {
-                x = func_shelter_b3_garbage_incinerator_80180C28((u16*)arg0, t2) - 0xA0;
+                x = func_shelter_b3_garbage_incinerator_80180C28(arg0, t2) - 0xA0;
             } else {
                 x = (u16)D_shelter_b3_garbage_incinerator_8018FC4C - 0xA0;
             }
@@ -1610,15 +1610,15 @@ static s32 func_shelter_b3_garbage_incinerator_80180EC4(s32 arg0)
 {
     s32      flag;
     s32      id;
-    s32      base;
+    GpEvt12* base;
     GpEvt12* p;
 
     flag = -1;
     id   = D_shelter_b3_garbage_incinerator_8018FC56;
-    base = (s32)D_shelter_b3_garbage_incinerator_8018FC48;
-    p    = (GpEvt12*)(arg0 * sizeof(GpEvt12) + base);
+    base = D_shelter_b3_garbage_incinerator_8018FC48;
+    p    = Gp_CapEventAt(base, arg0);
 loop:
-    if (p->field_8 == flag) {
+    if (p->field_8.offset == flag) {
         goto done;
     }
     if (p->field_5 == id) {

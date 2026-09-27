@@ -148,7 +148,7 @@ static void func_dryfield_souvenir_shop_8017D6B4(GpCoord* coord, s16 arg1)
         setRGB1(prim, shade, shade, shade);
         setRGB2(prim, 0, 0, 0);
         setRGB3(prim, 0, 0, 0);
-        addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     }
@@ -195,7 +195,7 @@ static void func_dryfield_souvenir_shop_8017D6B4(GpCoord* coord, s16 arg1)
     setRGB1(prim, shade, shade, shade);
     setRGB2(prim, shade, shade, shade);
     setRGB3(prim, shade, shade, shade);
-    addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+    addPrim(Gpu_OtEntryAtByteOffset((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     SCRATCH_POP(RoomQuadScratch);
 }

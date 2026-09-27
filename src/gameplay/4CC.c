@@ -109,18 +109,18 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
             mem->objs[mem->field_8]->owner->state     = 1;
             mem->objs[mem->field_8 ^ 1]->owner->state = 1;
             mem->field_8                              = mem->field_8 ^ 1;
-            mem->objs[mem->field_8]->status           = 0;
+            mem->objs[mem->field_8]->panel.field_0.w  = 0;
             mem->field_8                              = mem->field_8 ^ 1;
-            mem->objs[mem->field_8]->status           = 1;
+            mem->objs[mem->field_8]->panel.field_0.w  = 1;
             break;
         case 0x23:
             mem->field_10                             = mem->field_8;
             mem->field_14                             = Gp_InvLists[mem->field_8].field_10;
             mem->objs[mem->field_8]->owner->state     = 2;
             mem->objs[mem->field_8 ^ 1]->owner->state = 2;
-            mem->objs[mem->field_8]->status           = 0;
+            mem->objs[mem->field_8]->panel.field_0.w  = 0;
             mem->field_8                              = mem->field_8 ^ 1;
-            mem->objs[mem->field_8]->status           = 1;
+            mem->objs[mem->field_8]->panel.field_0.w  = 1;
             break;
         case 0x25:
             if (mem->field_10 != mem->field_8) {
@@ -172,15 +172,15 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
             mem->objs[mem->field_8]->owner->state     = 1;
             mem->objs[mem->field_8 ^ 1]->owner->state = 1;
             if (mem->field_10 != mem->field_8) {
-                mem->objs[mem->field_8]->status = 0;
-                mem->field_8                    = mem->field_8 ^ 1;
-                mem->objs[mem->field_8]->status = 1;
+                mem->objs[mem->field_8]->panel.field_0.w = 0;
+                mem->field_8                             = mem->field_8 ^ 1;
+                mem->objs[mem->field_8]->panel.field_0.w = 1;
             }
             break;
         case 0xA:
-            mem->objs[mem->field_8]->status = 0;
-            mem->field_8                    = mem->field_8 ^ 1;
-            mem->objs[mem->field_8]->status = 1;
+            mem->objs[mem->field_8]->panel.field_0.w = 0;
+            mem->field_8                             = mem->field_8 ^ 1;
+            mem->objs[mem->field_8]->panel.field_0.w = 1;
             break;
     }
 }
@@ -216,10 +216,10 @@ void Gp_ItemMoveTask(Task* arg0)
         mem = memCalloc(0x1C, 0);
         i   = 0;
         if (mem == NULL) {
-            code          = -1;
-            obj->field_2E = code;
-            code          = 0x34;
-            obj->status   = 0;
+            code                 = -1;
+            obj->field_2E        = code;
+            code                 = 0x34;
+            obj->panel.field_0.w = 0;
             goto end;
         }
         scans           = Gp_ScanPtrs;
@@ -245,10 +245,10 @@ void Gp_ItemMoveTask(Task* arg0)
             mem->objs[1] = Ui_SpawnFromDesc(D_8010D6F4 + 1, 0x101, 0, 1, obj);
             Ui_SpawnFromDesc(D_8010D6F4 + 9, val, 1, 1, mem->objs[0]);
         } else {
-            mem->field_8 = 0;
-            mem->objs[0] = Ui_SpawnFromDesc(D_8010D6F4, 0, 1, 1, obj);
-            mem->objs[1] = Ui_SpawnFromDesc(D_8010D6F4 + 1, 1, 0, 1, obj);
-            obj->status  = 0;
+            mem->field_8         = 0;
+            mem->objs[0]         = Ui_SpawnFromDesc(D_8010D6F4, 0, 1, 1, obj);
+            mem->objs[1]         = Ui_SpawnFromDesc(D_8010D6F4 + 1, 1, 0, 1, obj);
+            obj->panel.field_0.w = 0;
         }
         Ui_SpawnFromDesc(&D_8010D80C, 0, 0, 1, obj);
         gGameSession->uiOpen = 1;
@@ -274,7 +274,7 @@ end:
     obj->field_2C = code;
 }
 
-void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
+void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
 {
     McItemRec* rec;
     s32        item;
@@ -293,7 +293,7 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
             arg0->field_1C = 0x37A78;
         }
     }
-    status = arg1->status;
+    status = arg1->panel.field_0.w;
     if (((status >> 16) == 1) || (status == 1)) {
         if (arg0->field_10 == arg0->field_8) {
             Gp_SetPreviewItem(item, 0);
@@ -317,14 +317,14 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
                 SndEvt_EnqueueType6(3, 0, 0);
                 spawned = Ui_SpawnFromDesc(&D_8010D764, arg1->owner->spawnArg1, 1, 1, arg1);
                 if (spawned != NULL) {
-                    spawned->field_C = arg1->baseX + (u16)arg1->field_1C + 0x14;
-                    spawned->field_E = (arg1->baseY + (u16)arg0->field_1A) - 0x14;
-                    arg1->status     = 0;
+                    spawned->panel.bounds.unsignedRect.x = arg1->panel.field_20.u + (u16)arg1->panel.field_1C.s + 0x14;
+                    spawned->panel.bounds.unsignedRect.y = (arg1->panel.field_22.u + (u16)arg0->field_1A) - 0x14;
+                    arg1->panel.field_0.w                = 0;
                 }
             } else if ((Pad_CheckButtons(0, 1, 0x10) != 0) && (item != 0)) {
                 SndEvt_EnqueueType6(3, 0, 0);
                 Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
-                arg1->status = 0;
+                arg1->panel.field_0.w = 0;
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             idx   = arg1->owner->spawnArg1;
@@ -352,7 +352,7 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
             }
             if (item >= 0) {
                 Gp_SpawnItemPrompt(arg1, item, 0, 1);
-                arg1->status = 0;
+                arg1->panel.field_0.w = 0;
             } else {
                 Gp_ItemMoveWork->field_18 = arg0->field_8;
                 arg1->field_2E            = 0x25;
@@ -395,37 +395,37 @@ void Gp_ItemPaneTask(Task* arg0)
         {
             s32 val;
 
-            val           = _gpItemPaneScan(arg0)->rowCount;
-            menu->field_4 = val;
-            menu->field_5 = val;
+            val             = _gpItemPaneScan(arg0)->rowCount;
+            menu->field_4   = val;
+            menu->field_5.u = val;
             if ((s8)val >= 0xB) {
-                menu->field_5 = 0xA;
+                menu->field_5.u = 0xA;
             }
         }
-        menu->field_10 = 0;
-        menu->field_9  = 0;
-        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        menu->field_10  = 0;
+        menu->field_9.u = 0;
+        Ui_LayoutListPanel(menu, &(obj)->panel);
         menu->field_A = 1;
         arg0->state   = arg0->state + 1;
     }
 
     if (arg0->spawnArg1 == 0) {
         if (arg0->status == 1) {
-            Ui_DrawText((UiPanel*)obj, Gp_StrBattleField);
+            Ui_DrawText(&(obj)->panel, Gp_StrBattleField);
         } else {
-            Ui_DrawText((UiPanel*)obj, Gp_StrItemBox);
+            Ui_DrawText(&(obj)->panel, Gp_StrItemBox);
         }
     } else {
-        Ui_DrawText((UiPanel*)obj, Gp_StrPlayerItem);
+        Ui_DrawText(&(obj)->panel, Gp_StrPlayerItem);
     }
-    Ui_ComputeVisibleRows(menu, (UiPanel*)obj);
+    Ui_ComputeVisibleRows(menu, &(obj)->panel);
     menu->field_A = 1;
     if (menu->field_10 >= menu->field_4) {
         menu->field_10 = menu->field_4 - 1;
     }
     n = menu->field_4;
-    if ((s8)menu->field_5 >= n) {
-        menu->field_9 = 0;
+    if ((s8)menu->field_5.u >= n) {
+        menu->field_9.u = 0;
     }
     if (menu->field_4 != 0) {
         Ui_UpdateListNoAnim(menu, obj);
@@ -435,23 +435,23 @@ void Gp_ItemPaneTask(Task* arg0)
     count = scan->rowCount;
     count = count < Gp_CountScanItems(scan);
     if (count != 0) {
-        obj->field_4 |= 0x20000;
+        obj->panel.field_4 |= 0x20000;
     } else {
-        obj->field_4 &= ~0x20000;
+        obj->panel.field_4 &= ~0x20000;
     }
 
-    status = obj->status;
+    status = obj->panel.field_0.w;
     if (status == 1) {
         if (menu->field_4 == 0) {
-            Ui_SmoothCursor((UiMiniObj*)obj, obj->field_1C + 4, (s16)obj->field_18 + 0xA);
+            Ui_SmoothCursor(&(obj)->panel, obj->panel.field_1C.s + 4, (s16)obj->panel.field_18.u + 0xA);
         }
         if (arg0->state == status) {
             if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-                obj->status   = 0;
-                obj->field_2E = -1;
+                obj->panel.field_0.w = 0;
+                obj->field_2E        = -1;
             } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-                obj->status   = 0;
-                obj->field_2E = -1;
+                obj->panel.field_0.w = 0;
+                obj->field_2E        = -1;
             } else if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
                 if (arg0->spawnArg1 == 0) {
                     if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
@@ -508,7 +508,7 @@ children:
     }
 }
 
-void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1)
+void func_800BD6DC(UiList* arg0, UiObject* arg1)
 {
     TextDrawReq req;
     s32         flags;
@@ -523,9 +523,9 @@ void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1)
     s32         qty;
     s32         item;
 
-    req.x          = arg1->baseX + (u16)arg0->field_18;
-    req.y          = arg1->baseY + (u16)arg0->field_1A;
-    req.otIndex    = arg1->drawOrder + 1;
+    req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
+    req.y          = arg1->panel.field_22.u + (u16)arg0->field_1A;
+    req.otIndex    = arg1->panel.field_14.s + 1;
     req.field_8    = arg0->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;
@@ -579,12 +579,12 @@ void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1)
         }
         if (prompt >= 0) {
             Gp_SpawnItemPrompt(arg1, prompt, 0, 0);
-            arg1->status = 0;
+            arg1->panel.field_0.w = 0;
             return;
         }
         if (chooseQty == 1) {
             if (Ui_SpawnFromDesc(&D_8010D780, item, 1, 1, arg1) != NULL) {
-                arg1->status = 0;
+                arg1->panel.field_0.w = 0;
             }
         } else {
             Gp_RemoveItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1)), rec, qty);
@@ -594,7 +594,7 @@ void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1)
+void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
 {
     TextDrawReq   req;
     s32           selected;
@@ -606,9 +606,9 @@ void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1)
     Task*         owner;
     PlayerStatus* cfg;
 
-    req.x          = arg1->baseX + (u16)arg0->field_18;
-    req.y          = arg1->baseY + (u16)arg0->field_1A;
-    req.otIndex    = arg1->drawOrder + 1;
+    req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
+    req.y          = arg1->panel.field_22.u + (u16)arg0->field_1A;
+    req.otIndex    = arg1->panel.field_14.s + 1;
     req.field_8    = arg0->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;
@@ -634,12 +634,12 @@ void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1)
             }
             if (flag) {
                 Gp_SpawnItemPrompt(arg1, 0x1E, 0, 0);
-                arg1->status = 0;
+                arg1->panel.field_0.w = 0;
             } else if (arg1->owner->spawnArg1 == 1) {
                 cfg = &Player_Status;
                 if ((item == cfg->weapon + 0x7F) || (item == cfg->armor + 0x5F)) {
                     Gp_SpawnItemPrompt(arg1, 7, 0, 0);
-                    arg1->status = 0;
+                    arg1->panel.field_0.w = 0;
                 } else {
                     arg1->field_2E = 0x23;
                 }
@@ -686,12 +686,13 @@ static void Gp_FillItemActions(UiList* arg0, UiObject* arg1)
             count                   = count + 1;
         }
     }
-    arg0->field_5 = count;
-    arg0->field_4 = count;
+    arg0->field_5.u = count;
+    arg0->field_4   = count;
 }
 
 void Gp_ItemActionListTask(Task* arg0)
 {
+    Task*     childTask;
     UiObject* obj;
     UiList*   menu;
     UiObject* child;
@@ -706,40 +707,40 @@ void Gp_ItemActionListTask(Task* arg0)
         if (parent != NULL) {
             arg0->status = parent->status;
         }
-        if (((s16)obj->field_E + (s16)obj->field_12) >= 0x65) {
-            obj->field_E = 0x64 - obj->field_12;
+        if (((s16)obj->panel.bounds.unsignedRect.y + (s16)obj->panel.bounds.unsignedRect.h) >= 0x65) {
+            obj->panel.bounds.unsignedRect.y = 0x64 - obj->panel.bounds.unsignedRect.h;
         }
         Gp_FillItemActions(menu, obj);
-        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        Ui_LayoutListPanel(menu, &(obj)->panel);
         arg0->state = arg0->state + 1;
     }
     Ui_UpdateListNoAnim(menu, obj);
-    if (obj->status == 1) {
+    if (obj->panel.field_0.w == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             if (obj->owner->status != 0) {
                 obj->field_2E = 6;
             } else {
-                obj->status   = 0;
-                obj->field_2E = -1;
+                obj->panel.field_0.w = 0;
+                obj->field_2E        = -1;
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             obj->field_2E = 6;
         }
     }
-    child = (UiObject*)arg0->firstChild;
-    if (child != NULL) {
-        child = ((Task*)child)->spawnArg2;
+    childTask = arg0->firstChild;
+    if (childTask != NULL) {
+        child = childTask->spawnArg2;
         flag  = child->field_2E;
         switch (flag) {
             case -1:
-                obj->status   = 0;
-                obj->field_2E = flag;
+                obj->panel.field_0.w = 0;
+                obj->field_2E        = flag;
                 break;
             case 9:
                 obj->field_2E = 6;
                 break;
             case 6:
-                obj->status = 1;
+                obj->panel.field_0.w = 1;
                 Ui_TeardownTree(child, child->owner);
                 break;
         }
@@ -797,8 +798,8 @@ void func_800BDF6C(Task* task)
 
     obj           = task->spawnArg2;
     obj->field_2E = 0;
-    width         = ((s16)obj->field_1E - obj->field_1C) - 0x50;
-    Ui_DrawText((UiPanel*)obj, (char*)Gp_StrBullet);
+    width         = ((s16)obj->panel.field_1E.u - obj->panel.field_1C.s) - 0x50;
+    Ui_DrawText(&(obj)->panel, (char*)Gp_StrBullet);
     if (task->state == 0) {
         state = (GpAmmoSplitState*)memCalloc(0x18U, 0);
         if (state == NULL) {
@@ -813,12 +814,12 @@ void func_800BDF6C(Task* task)
         state->dstQty   = dstTotal;
         state->dstOrig  = dstTotal;
         state->equipped = Gp_CountEquippedRelated(&Gp_MoveScanSrc + 1, task->spawnArg1);
-        Ui_SetHolderParam((s32)Gp_StrSetAmmoHelp, 0, 0);
+        Ui_SetHolderParam(Gp_StrSetAmmoHelp, 0, 0);
         state->limit = Gp_StackLimits[task->spawnArg1 - 0xA0].field_2;
         task->state  = task->state + 1;
     }
     state = (GpAmmoSplitState*)task->work;
-    Gp_DrawItemLabel(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, task->spawnArg1, 0x606060, 0);
+    Gp_DrawItemLabel(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, task->spawnArg1, 0x606060, 0);
     task->status = 0;
     totalQty     = state->srcQty + state->dstQty;
     color        = 0x606060;
@@ -831,7 +832,7 @@ void func_800BDF6C(Task* task)
     if (pad->autoRepeat != 0) {
         pad->autoRepeat += gDisplayState.frameTicks * 2;
     }
-    status = obj->status;
+    status = obj->panel.field_0.w;
     if (status == 1) {
         if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
             if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
@@ -942,8 +943,8 @@ void func_800BDF6C(Task* task)
         }
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
-            result      = -1;
-            obj->status = 0;
+            result               = -1;
+            obj->panel.field_0.w = 0;
             goto set_result;
         }
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
@@ -960,36 +961,36 @@ void func_800BDF6C(Task* task)
     sourceQty   = state->srcQty;
     usableWidth = width - 2;
     widthM2     = usableWidth;
-    panelY      = (s16)obj->field_18;
+    panelY      = (s16)obj->panel.field_18.u;
     splitWidth  = ((s32)(sourceQty * usableWidth) / (s32)(sourceQty + state->dstQty)) + 1;
     textY       = panelY + 0x20;
-    Text_DrawPrompt(obj, obj->field_1C + 0x20, textY, Text_ItoaUnsigned(buf, (u32)sourceQty), 0x606060, 1, 2);
-    Text_DrawPrompt(obj, (s16)obj->field_1E - 6, textY, Text_ItoaUnsigned(buf, (u32)state->dstQty), color, 1,
+    Text_DrawPrompt(obj, obj->panel.field_1C.s + 0x20, textY, Text_ItoaUnsigned(buf, (u32)sourceQty), 0x606060, 1, 2);
+    Text_DrawPrompt(obj, (s16)obj->panel.field_1E.u - 6, textY, Text_ItoaUnsigned(buf, (u32)state->dstQty), color, 1,
                     2);
     caretY    = panelY + 0x16;
     negWidth  = -width;
     halfWidth = (s32)(negWidth + ((u32)negWidth >> 0x1F)) >> 1;
     caretX    = halfWidth + splitWidth;
     half      = halfWidth;
-    Ui_DrawFlatCaret((UiPanel*)obj, caretX, caretY, 0x606060, 1);
-    Ui_DrawFlatCaret((UiPanel*)obj, caretX, panelY + 0x1E, 0x606060, 0);
+    Ui_DrawFlatCaret(&(obj)->panel, caretX, caretY, 0x606060, 1);
+    Ui_DrawFlatCaret(&(obj)->panel, caretX, panelY + 0x1E, 0x606060, 0);
     line                     = (LINE_F2*)gGpuPrimCursor;
     gGpuPrimCursor           = line + 1;
     PRIM_COLOR_WORD(line, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
-    coord                    = obj->baseX + caretX;
+    coord                    = obj->panel.field_20.u + caretX;
     line->x1                 = coord;
     line->x0                 = coord;
-    line->y0                 = (obj->baseY + textY) - 0xA;
-    coord                    = (obj->baseY + textY) - 2;
+    line->y0                 = (obj->panel.field_22.u + textY) - 0xA;
+    coord                    = (obj->panel.field_22.u + textY) - 2;
     setlen(line, 3);
     setcode(line, 0x40);
     line->y1 = coord;
-    addPrim(gGpuCurrentOt + obj->drawOrder + 1, line);
+    addPrim(gGpuCurrentOt + obj->panel.field_14.s + 1, line);
     qty = state->equipped;
     if (qty > 0) {
         equippedWidth = ((s32)(qty * widthM2) / (s32)(state->srcQty + state->dstQty)) + 2;
         if (equippedWidth > 0) {
-            Ui_AllocTile((UiPanel*)obj, (half + width) - equippedWidth, caretY, equippedWidth, 8, 0x37A78U);
+            Ui_AllocTile(&(obj)->panel, (half + width) - equippedWidth, caretY, equippedWidth, 8, 0x37A78U);
         }
     }
     Ui_LayoutWithMode0(obj, (void*)((s32)-width / 2), (void*)(textY - 0xA), (void*)width, (void*)8,
@@ -997,15 +998,15 @@ void func_800BDF6C(Task* task)
     message = task->status;
     if (message == 1) {
         task->killCountdown = 0xBC;
-        Ui_SetHolderParam((s32)Gp_StrAmmoLocked, 0, 0);
+        Ui_SetHolderParam(Gp_StrAmmoLocked, 0, 0);
     } else if (message == 2) {
         task->killCountdown = 0xBC;
-        Ui_SetHolderParam((s32)Gp_StrMaxCapacity, 0, 0);
+        Ui_SetHolderParam(Gp_StrMaxCapacity, 0, 0);
     } else if (task->killCountdown > 0) {
         result              = (u16)task->killCountdown - 1;
         task->killCountdown = result;
         if ((result << 0x10) == 0) {
-            Ui_SetHolderParam((s32)Gp_StrSetAmmoHelp, 0, 0);
+            Ui_SetHolderParam(Gp_StrSetAmmoHelp, 0, 0);
         }
     }
 }
@@ -1053,7 +1054,7 @@ static inline void _gpDropOrphanedWeaponLoads(void)
     }
 }
 
-void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
+void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
 {
     GpPromptTexts texts;
     s32           mode;
@@ -1359,16 +1360,16 @@ static void Gp_CloseItemPane(UiObject* arg0, Task* arg1)
     switch (arg0->field_2E) {
         case -1:
             if (parent->owner->status) {
-                parent->status = 1;
+                parent->panel.field_0.w = 1;
                 Ui_TeardownTree(arg0, arg0->owner);
             } else {
                 Ui_TeardownTree(arg0, arg0->owner);
-                parent->status   = 0;
-                parent->field_2E = -1;
+                parent->panel.field_0.w = 0;
+                parent->field_2E        = -1;
             }
             break;
         case 6:
-            parent->status = 1;
+            parent->panel.field_0.w = 1;
             Ui_TeardownTree(arg0, arg0->owner);
             break;
         case 0x23:
@@ -1391,7 +1392,7 @@ void Gp_ItemMenuListTask(Task* arg0)
     obj->field_2E = 0;
     menu          = &Gp_ItemMenuList;
     if (arg0->state == 0) {
-        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        Ui_LayoutListPanel(menu, &(obj)->panel);
         if (arg0->spawnArg1 == 0) {
             menu->field_10 = 1;
         } else {
@@ -1421,9 +1422,9 @@ void Gp_HolderPromptTask(Task* arg0)
     if (val != 0) {
         color = 0x606060;
         one   = 1;
-        Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, (u8*)val, color, one, 0);
+        Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, (u8*)val, color, one, 0);
         text = Text_SkipLines((u8*)val, one);
-        Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0x1E, text, color, one, 0);
+        Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0x1E, text, color, one, 0);
     }
 }
 
@@ -1542,12 +1543,12 @@ void Gp_FadeTileTask(Task* arg0)
         tile->r0 = color;
     }
 
-    addPrim((u_long*)((otIdx << 2) + (s32)gGpuCurrentOt), tile);
+    addPrim(Gpu_OtEntryAtByteOffset((otIdx << 2)), tile);
     dr             = (DR_TPAGE*)gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000640;
-    addPrim((u_long*)((otIdx << 2) + (s32)gGpuCurrentOt), dr);
+    addPrim(Gpu_OtEntryAtByteOffset((otIdx << 2)), dr);
 
     if ((flag == 0) && (arg0->killCountdown <= 0)) {
         if (arg0->spawnArg1 == 4) {

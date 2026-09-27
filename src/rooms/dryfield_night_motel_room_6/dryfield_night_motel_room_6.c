@@ -143,13 +143,13 @@ static void func_dryfield_night_motel_room_6_80181C78(Task* task);
 /// statistic `arg0->field_8` selects - play time, several save counters, and
 /// two percentages printed with two decimals and a "%" suffix. While the row is
 /// selected its help text goes to the UI holder.
-void func_dryfield_night_motel_room_6_8017D6DC(DialogPrompt* arg0, UiObject* arg1)
+void func_dryfield_night_motel_room_6_8017D6DC(UiList* arg0, UiObject* arg1)
 {
     u8  buf[0x20];
     u8* p;
 
     p = buf;
-    if (((arg1->status >> 16) == 1) || (arg1->status == 1)) {
+    if (((arg1->panel.field_0.w >> 16) == 1) || (arg1->panel.field_0.w == 1)) {
         if (arg0->field_10 == arg0->field_8) {
             u8* tbl[9] = {
                 D_dryfield_night_motel_room_6_80182BD4,
@@ -163,7 +163,7 @@ void func_dryfield_night_motel_room_6_8017D6DC(DialogPrompt* arg0, UiObject* arg
                 D_dryfield_night_motel_room_6_80182D60,
             };
 
-            Ui_SetHolderParam((s32)tbl[arg0->field_8], 0, 0);
+            Ui_SetHolderParam(tbl[arg0->field_8], 0, 0);
         }
     }
 
@@ -172,10 +172,10 @@ void func_dryfield_night_motel_room_6_8017D6DC(DialogPrompt* arg0, UiObject* arg
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
+            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.u - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->drawOrder + 1;
+            req.otIndex    = arg1->panel.field_14.s + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -189,10 +189,10 @@ void func_dryfield_night_motel_room_6_8017D6DC(DialogPrompt* arg0, UiObject* arg
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
+            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.u - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->drawOrder + 1;
+            req.otIndex    = arg1->panel.field_14.s + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -207,10 +207,10 @@ void func_dryfield_night_motel_room_6_8017D6DC(DialogPrompt* arg0, UiObject* arg
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
+            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.u - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->drawOrder + 1;
+            req.otIndex    = arg1->panel.field_14.s + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -225,10 +225,10 @@ void func_dryfield_night_motel_room_6_8017D6DC(DialogPrompt* arg0, UiObject* arg
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
+            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.u - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->drawOrder + 1;
+            req.otIndex    = arg1->panel.field_14.s + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -248,10 +248,10 @@ void func_dryfield_night_motel_room_6_8017D6DC(DialogPrompt* arg0, UiObject* arg
             s32         i;
             u8*         q;
 
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
+            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.u - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->drawOrder + 1;
+            req.otIndex    = arg1->panel.field_14.s + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -299,10 +299,10 @@ void func_dryfield_night_motel_room_6_8017D6DC(DialogPrompt* arg0, UiObject* arg
             u8*         q;
 
             total          = Mc_SaveData[0].field_6CC;
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
+            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.u - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->drawOrder + 1;
+            req.otIndex    = arg1->panel.field_14.s + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -338,7 +338,7 @@ void func_dryfield_night_motel_room_6_8017D6DC(DialogPrompt* arg0, UiObject* arg
             q[1] = 0x2E;
             Text_Strcat(p, D_dryfield_night_motel_room_6_80182BD0);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            Ui_DrawHBar((UiPanel*)arg1, arg1->field_1C, (s16)arg1->field_1E, arg0->field_1A + 3);
+            Ui_DrawHBar(&(arg1)->panel, arg1->panel.field_1C.s, (s16)arg1->panel.field_1E.u, arg0->field_1A + 3);
             arg0->field_1A = (u16)arg0->field_1A + 5;
             break;
         }
@@ -346,10 +346,10 @@ void func_dryfield_night_motel_room_6_8017D6DC(DialogPrompt* arg0, UiObject* arg
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
+            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.u - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->drawOrder + 1;
+            req.otIndex    = arg1->panel.field_14.s + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -364,10 +364,10 @@ void func_dryfield_night_motel_room_6_8017D6DC(DialogPrompt* arg0, UiObject* arg
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
+            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.u - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->drawOrder + 1;
+            req.otIndex    = arg1->panel.field_14.s + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -380,10 +380,10 @@ void func_dryfield_night_motel_room_6_8017D6DC(DialogPrompt* arg0, UiObject* arg
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
+            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.u - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->drawOrder + 1;
+            req.otIndex    = arg1->panel.field_14.s + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -407,7 +407,7 @@ static const u8 D_dryfield_night_motel_room_6_8017D61C[] = "100.0%";
 /// a two-decimal percentage, and a gouraud bar scaled by the row's
 /// `barWidths`. While the row is selected the item is previewed, and a confirm
 /// opens the item's detail panel.
-void func_dryfield_night_motel_room_6_8017DEA8(DialogPrompt* arg0, UiObject* arg1)
+void func_dryfield_night_motel_room_6_8017DEA8(UiList* arg0, UiObject* arg1)
 {
     u8             buf[0x20];
     TextDrawReq    req;
@@ -443,11 +443,11 @@ void func_dryfield_night_motel_room_6_8017DEA8(DialogPrompt* arg0, UiObject* arg
     item  = work->itemIds[arg0->field_8];
     value = work->percents[arg0->field_8];
     color = arg0->field_1C;
-    if (arg1->mode != 5) {
-        req.x          = arg1->baseX + 0x11 + x;
-        textY          = arg1->baseY - 6;
+    if (arg1->panel.field_8 != 5) {
+        req.x          = arg1->panel.field_20.u + 0x11 + x;
+        textY          = arg1->panel.field_22.u - 6;
         req.y          = textY + y;
-        req.otIndex    = arg1->drawOrder + 1;
+        req.otIndex    = arg1->panel.field_14.s + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -487,8 +487,8 @@ void func_dryfield_night_motel_room_6_8017DEA8(DialogPrompt* arg0, UiObject* arg
         Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
     }
 
-    base  = (s16)arg1->field_1C + 0x80;
-    avail = (s16)arg1->field_1E - 0x4A;
+    base  = (s16)arg1->panel.field_1C.s + 0x80;
+    avail = (s16)arg1->panel.field_1E.u - 0x4A;
     barW  = avail - base;
     barW  = (barW * work->barWidths[arg0->field_8]) >> 12;
     rowY  = arg0->field_1A - 0xC;
@@ -496,10 +496,10 @@ void func_dryfield_night_motel_room_6_8017DEA8(DialogPrompt* arg0, UiObject* arg
     barX  = avail - barW;
     if (barW >= 2) {
         prim                     = (POLY_G4*)gGpuPrimCursor;
-        tx                       = arg1->baseX + barX + 1;
+        tx                       = arg1->panel.field_20.u + barX + 1;
         prim->x2                 = tx;
         prim->x0                 = tx;
-        ty                       = arg1->baseY;
+        ty                       = arg1->panel.field_22.u;
         gGpuPrimCursor           = prim + 1;
         ty                       = ty + rowY;
         ty                      += 1;
@@ -517,11 +517,11 @@ void func_dryfield_night_motel_room_6_8017DEA8(DialogPrompt* arg0, UiObject* arg
         prim->y2                 = ty;
         prim->x3                 = tx;
         prim->x1                 = tx;
-        addPrim(gGpuCurrentOt + arg1->drawOrder + 1, prim);
+        addPrim(gGpuCurrentOt + arg1->panel.field_14.s + 1, prim);
     }
     one = 1;
-    func_80046B34((UiPanel*)arg1, barX, arg0->field_1A - 0xC, barW, 9, 0, one);
-    if (((arg1->status >> 16) == one) || (arg1->status == one)) {
+    func_80046B34(&(arg1)->panel, barX, arg0->field_1A - 0xC, barW, 9, 0, one);
+    if (((arg1->panel.field_0.w >> 16) == one) || (arg1->panel.field_0.w == one)) {
         if (arg0->field_10 == arg0->field_8) {
             Gp_SetPreviewItem(item, 0);
             Gp_SetHolderItemText(item);
@@ -531,7 +531,7 @@ void func_dryfield_night_motel_room_6_8017DEA8(DialogPrompt* arg0, UiObject* arg
         if (Pad_CheckButtons(0, 1, 0x10) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
             Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
-            arg1->status = 0;
+            arg1->panel.field_0.w = 0;
         }
     }
 }
@@ -614,9 +614,9 @@ static void func_dryfield_night_motel_room_6_8017E2A4(UiList* list, UiObject* ob
         }
     }
 
-    list->field_4  = count;
-    list->field_9  = 0;
-    list->field_10 = 0;
+    list->field_4   = count;
+    list->field_9.u = 0;
+    list->field_10  = 0;
 }
 
 /// Fills the "Play Data" PE-usage panel's `RoomPeUsage` block from the
@@ -714,9 +714,9 @@ static void func_dryfield_night_motel_room_6_8017E5A0(UiList* list, UiObject* ob
         }
     }
 
-    list->field_4  = count;
-    list->field_9  = 0;
-    list->field_10 = 0;
+    list->field_4   = count;
+    list->field_9.u = 0;
+    list->field_10  = 0;
 }
 
 /// Titles of the usage panel, one per kind: weapons and Parasite Energy.
@@ -740,9 +740,9 @@ void func_dryfield_night_motel_room_6_8017E8C0(Task* task)
     obj->field_2E = 0;
     list          = &D_dryfield_night_motel_room_6_80182DC4;
     if (task->spawnArg1 == 0) {
-        Ui_DrawText((UiPanel*)obj, D_dryfield_night_motel_room_6_8017D624);
+        Ui_DrawText(&(obj)->panel, D_dryfield_night_motel_room_6_8017D624);
     } else {
-        Ui_DrawText((UiPanel*)obj, D_dryfield_night_motel_room_6_8017D630);
+        Ui_DrawText(&(obj)->panel, D_dryfield_night_motel_room_6_8017D630);
     }
     if (task->state == 0) {
         work = memCalloc(0xC4, 0);
@@ -756,13 +756,13 @@ void func_dryfield_night_motel_room_6_8017E8C0(Task* task)
         } else {
             func_dryfield_night_motel_room_6_8017E5A0(list, obj);
         }
-        Ui_InitList(list, (UiMiniObj*)obj);
+        Ui_InitList(list, &(obj)->panel);
         list->field_A = 1;
         Ui_SetListScrollFlag(list, 1);
         task->state += 1;
     }
     Ui_UpdateListNoAnim(list, obj);
-    if (obj->status == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
         obj->field_2E = 6;
     }
     if (task->firstChild != NULL) {
@@ -772,7 +772,7 @@ void func_dryfield_night_motel_room_6_8017E8C0(Task* task)
             next     = child->nextSibling;
             if (childObj->field_2E == -1 || childObj->field_2E == 6) {
                 Ui_TeardownTree(childObj, childObj->owner);
-                obj->status = 1;
+                obj->panel.field_0.w = 1;
             }
             child = next;
         } while (child != task->firstChild);
@@ -814,13 +814,13 @@ static void func_dryfield_night_motel_room_6_8017EA74(Task* task)
         if (task->state == 0) {
             gGameSession->uiOpen = one;
             Ui_SpawnFromDesc(&D_800611E4, 0, 0, 0, obj);
-            obj->status   = 0;
-            obj->field_4 |= 0x80000000;
-            task->state   = task->state + 1;
+            obj->panel.field_0.w = 0;
+            obj->panel.field_4  |= 0x80000000;
+            task->state          = task->state + 1;
         }
     } else if (task->state == 0) {
-        Ui_LayoutListPanel(list, (UiPanel*)obj);
-        obj->status          = one;
+        Ui_LayoutListPanel(list, &(obj)->panel);
+        obj->panel.field_0.w = one;
         gGameSession->uiOpen = one;
         Ui_SetListScrollFlag(list, 1);
         Gp_ClearPreviewItems();
@@ -830,15 +830,15 @@ static void func_dryfield_night_motel_room_6_8017EA74(Task* task)
     } else {
         /* The literal carries its trailing "\0\1" - the room's rodata has
          * those two bytes right after the string and nothing else claims them. */
-        Ui_DrawText((UiPanel*)obj, D_dryfield_night_motel_room_6_8017D638);
+        Ui_DrawText(&(obj)->panel, D_dryfield_night_motel_room_6_8017D638);
         Ui_UpdateListNoAnim(list, obj);
     }
     if (obj->field_2E == 6) {
         obj->field_2E = 0;
         Ui_SetState4(obj, task);
-        obj->status = 0;
+        obj->panel.field_0.w = 0;
     }
-    if (obj->status == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
         if (task->state != 0) {
             SndEvt_EnqueueType6(0x3B, 0, 0);
         }
@@ -871,8 +871,8 @@ static void func_dryfield_night_motel_room_6_8017EA74(Task* task)
                 } else {
                     Ui_TeardownTree(childObj, childObj->owner);
                     SndEvt_EnqueueType6(0x3B, 0, 0);
-                    Ui_StartCloseAnim((UiPanel*)obj, task);
-                    obj->status = 1;
+                    Ui_StartCloseAnim(&(obj)->panel, task);
+                    obj->panel.field_0.w = 1;
                 }
                 break;
             case -1:
@@ -997,17 +997,17 @@ void func_dryfield_night_motel_room_6_8017EF2C(Task* task)
     list          = &D_dryfield_night_motel_room_6_80182D9C;
     obj           = task->spawnArg2;
     obj->field_2E = 0;
-    Ui_DrawText((UiPanel*)obj, D_dryfield_night_motel_room_6_8017D610);
+    Ui_DrawText(&(obj)->panel, D_dryfield_night_motel_room_6_8017D610);
     if (task->state == 0) {
         Ui_SpawnFromDesc(&D_dryfield_night_motel_room_6_80182DE8, 0, 0, 1, obj);
-        Ui_LayoutListPanel(list, (UiPanel*)obj);
-        obj->field_12 += 5;
-        list->field_A  = 1;
+        Ui_LayoutListPanel(list, &(obj)->panel);
+        obj->panel.bounds.unsignedRect.h += 5;
+        list->field_A                     = 1;
         Ui_SetListScrollFlag(list, 1);
         task->state += 1;
     }
     Ui_UpdateListNoAnim(list, obj);
-    if (obj->status == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
         obj->field_2E = 6;
     }
 }
@@ -1024,9 +1024,9 @@ static void func_dryfield_night_motel_room_6_8017F01C(UiPanel* arg0, s32 arg1, s
 
     if ((arg5 != 0) && (arg3 >= 2)) {
         prim     = (POLY_G4*)gGpuPrimCursor;
-        x        = arg0->field_20 + arg1 + 1;
+        x        = arg0->field_20.u + arg1 + 1;
         prim->x0 = prim->x2      = x;
-        y                        = arg0->field_22;
+        y                        = arg0->field_22.u;
         gGpuPrimCursor           = prim + 1;
         PRIM_COLOR_WORD(prim, 0) = arg5;
         setPolyG4(prim);
@@ -1039,13 +1039,13 @@ static void func_dryfield_night_motel_room_6_8017F01C(UiPanel* arg0, s32 arg1, s
         prim->x1 = prim->x3 = x;
         y                   = y + arg4 - 1;
         prim->y2 = prim->y3 = y;
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, prim);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, prim);
     }
 }
 
 /// Menu entry "Save": on a confirm while the CD is idle, opens the save panel
 /// and moves the owner task to state 1.
-void func_dryfield_night_motel_room_6_8017F120(DialogPrompt* prompt, UiObject* obj)
+void func_dryfield_night_motel_room_6_8017F120(UiList* prompt, UiObject* obj)
 {
     s32 sel;
 
@@ -1055,51 +1055,51 @@ void func_dryfield_night_motel_room_6_8017F120(DialogPrompt* prompt, UiObject* o
         SndEvt_EnqueueType6(0x16, 0, 0);
         gDisplayState.gameMode = 0xFF;
         Ui_SpawnFromDesc(&D_800611E4, 1, 0, 0, obj);
-        obj->status       = 0;
-        obj->field_2E     = 6;
-        obj->owner->state = sel;
+        obj->panel.field_0.w = 0;
+        obj->field_2E        = 6;
+        obj->owner->state    = sel;
     }
 }
 
 /// Menu entry "Play Data": on a confirm, opens the play-data panel and moves
 /// the owner task to state 2.
-void func_dryfield_night_motel_room_6_8017F204(DialogPrompt* prompt, UiObject* obj)
+void func_dryfield_night_motel_room_6_8017F204(UiList* prompt, UiObject* obj)
 {
     Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_dryfield_night_motel_room_6_80182B58, prompt->field_1C, 1, 0);
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
         Ui_SpawnFromDesc(&D_dryfield_night_motel_room_6_80182E04, 0, 1, 1, obj);
-        obj->field_2E     = 6;
-        obj->status       = 0;
-        obj->owner->state = 2;
+        obj->field_2E        = 6;
+        obj->panel.field_0.w = 0;
+        obj->owner->state    = 2;
     }
 }
 
 /// Menu entry "Weapon Data": on a confirm, opens the usage panel for weapons
 /// and moves the owner task to state 2.
-void func_dryfield_night_motel_room_6_8017F2CC(DialogPrompt* prompt, UiObject* obj)
+void func_dryfield_night_motel_room_6_8017F2CC(UiList* prompt, UiObject* obj)
 {
     Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_dryfield_night_motel_room_6_80182B64, prompt->field_1C, 1, 0);
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
         Ui_SpawnFromDesc(&D_dryfield_night_motel_room_6_80182E20, 0, 1, 1, obj);
-        obj->field_2E     = 6;
-        obj->status       = 0;
-        obj->owner->state = 2;
+        obj->field_2E        = 6;
+        obj->panel.field_0.w = 0;
+        obj->owner->state    = 2;
     }
 }
 
 /// Menu entry "PE Data": on a confirm, opens the usage panel for Parasite
 /// Energy and moves the owner task to state 2.
-void func_dryfield_night_motel_room_6_8017F394(DialogPrompt* prompt, UiObject* obj)
+void func_dryfield_night_motel_room_6_8017F394(UiList* prompt, UiObject* obj)
 {
     Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_dryfield_night_motel_room_6_80182B70, prompt->field_1C, 1, 0);
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
         Ui_SpawnFromDesc(&D_dryfield_night_motel_room_6_80182E20, 1, 1, 1, obj);
-        obj->field_2E     = 6;
-        obj->status       = 0;
-        obj->owner->state = 2;
+        obj->field_2E        = 6;
+        obj->panel.field_0.w = 0;
+        obj->owner->state    = 2;
     }
 }
 
@@ -2302,7 +2302,7 @@ static void func_dryfield_night_motel_room_6_80181CD8(SVECTOR* arg0, s32 arg1, s
             prim->y0 = sy;
             twice    = i * 2;
             prim->y1 = (block->sy - (u16)block->radius) + (block->radius * twice);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
             i++;
@@ -2324,7 +2324,7 @@ static void func_dryfield_night_motel_room_6_80181CD8(SVECTOR* arg0, s32 arg1, s
             line->y1 = block->sy;
             line->x2 = block->sx - (block->radius * t1);
             line->y2 = block->sy + (block->radius * t2);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     line);
             Gp_AddTpageShift((P_TAG*)line, 1, block->otz);
             i = t2;
@@ -2397,7 +2397,7 @@ static void func_dryfield_night_motel_room_6_80182158(SVECTOR* arg0, s32 arg1, s
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
             prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -2417,7 +2417,7 @@ static void func_dryfield_night_motel_room_6_80182158(SVECTOR* arg0, s32 arg1, s
             prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
             prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
@@ -2442,7 +2442,7 @@ static void func_dryfield_night_motel_room_6_80182158(SVECTOR* arg0, s32 arg1, s
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 13);
             prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -2463,7 +2463,7 @@ static void func_dryfield_night_motel_room_6_80182158(SVECTOR* arg0, s32 arg1, s
             prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 12);
             prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 12);
             ang      = u;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);

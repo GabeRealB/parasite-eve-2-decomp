@@ -247,7 +247,7 @@ static void func_shelter_b6_training_room_8017E28C(SVECTOR* arg0, s32 arg1, s32 
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
                     prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-                    addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -267,8 +267,7 @@ static void func_shelter_b6_training_room_8017E28C(SVECTOR* arg0, s32 arg1, s32 
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx1;
                     prim->y3 = block->sy1;
-                    addPrim((u_long*)(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                                      (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
                     t3             = ang + 0x800;
@@ -290,7 +289,7 @@ static void func_shelter_b6_training_room_8017E28C(SVECTOR* arg0, s32 arg1, s32 
                     prim->y2 = block->sy1;
                     prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
                     prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
                     ang = t2;
@@ -359,7 +358,7 @@ static void func_shelter_b6_training_room_8017EAD0(SVECTOR* arg0, s32 arg1, s32 
             prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
             prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
@@ -501,8 +500,7 @@ static void func_shelter_b6_training_room_8017F014(GpCoord* coord, s16 size)
         prim->y3    = bottom;
         prim->y2    = bottom;
         addPrim(
-            (u_long*)((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
-                      (s32)gGpuCurrentOt),
+            Gpu_OtEntryAtByteOffset((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC)),
             prim);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -527,8 +525,7 @@ static void func_shelter_b6_training_room_8017F014(GpCoord* coord, s16 size)
         prim->y3    = outerBottom;
         prim->y2    = outerBottom;
         addPrim(
-            (u_long*)((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
-                      (s32)gGpuCurrentOt),
+            Gpu_OtEntryAtByteOffset((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC)),
             prim);
         if (Gp_TraceGroundCoord(coord, &ground) == 1) {
             func_shelter_b6_training_room_8017F540(&ground, outerSize);
@@ -613,8 +610,7 @@ static void func_shelter_b6_training_room_8017F540(GpCoord* arg0, s32 arg1)
         prim->y2    = block->sxy2.vy;
         prim->x3    = block->sxy3.vx;
         prim->y3    = block->sxy3.vy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x38);
@@ -782,7 +778,7 @@ static void func_shelter_b6_training_room_8017FC40(GpCoord* coord, s16 size, u16
                         prim->y2 = block->sy1;
                         prim->x3 = block->sx1 + ((block->r1 * rsin(ang + 0xC00)) >> 12);
                         prim->y3 = block->sy1 + ((block->r1 * rcos(ang + 0xC00)) >> 12);
-                        addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                                 prim);
                         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
 
@@ -802,7 +798,7 @@ static void func_shelter_b6_training_room_8017FC40(GpCoord* coord, s16 size, u16
                         prim->y2 = block->sy0;
                         prim->x3 = block->sx0 + ((block->r0 * rsin(next)) >> 12);
                         prim->y3 = block->sy0 + ((block->r0 * rcos(next)) >> 12);
-                        addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                                 prim);
                         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -822,7 +818,7 @@ static void func_shelter_b6_training_room_8017FC40(GpCoord* coord, s16 size, u16
                         prim->y2 = block->sy0;
                         prim->x3 = block->sx1;
                         prim->y3 = block->sy1;
-                        addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                                 prim);
                         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
                         ang = next;
@@ -920,7 +916,7 @@ static void func_shelter_b6_training_room_80180530(GpCoord* from, GpCoord* to, s
                     prim->y2 = block->sy1;
                     prim->x3 = block->sx1 + ((block->r1 * rsin(ang + 0xC00)) >> 12);
                     prim->y3 = block->sy1 + ((block->r1 * rcos(ang + 0xC00)) >> 12);
-                    addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
 
@@ -940,7 +936,7 @@ static void func_shelter_b6_training_room_80180530(GpCoord* from, GpCoord* to, s
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx0 + ((block->r0 * rsin(next)) >> 12);
                     prim->y3 = block->sy0 + ((block->r0 * rcos(next)) >> 12);
-                    addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -960,7 +956,7 @@ static void func_shelter_b6_training_room_80180530(GpCoord* from, GpCoord* to, s
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx1;
                     prim->y3 = block->sy1;
-                    addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
                     ang = next;
@@ -1203,8 +1199,7 @@ static void func_shelter_b6_training_room_80181368(GpEffWork* mem, GpCoord* coor
             prim->y2 = block->sxy2 >> 16;
             prim->x3 = block->sxy3;
             prim->y3 = block->sxy3 >> 16;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
         }
     }
@@ -1336,7 +1331,7 @@ static void func_shelter_b6_training_room_80181BAC(GpCoord* coord, s16 arg1, s16
         prim->x2    = block->sx - (u16)block->dx;
         prim->y1    = block->sy - (u16)block->dy;
         prim->y2    = block->sy + (u16)block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -1410,7 +1405,7 @@ static void func_shelter_b6_training_room_80181FDC(GpCoord* arg0, GpCoord* arg1,
             prim->x2    = (u16)block->sxy0.vx - (u16)block->dx;
             prim->y1    = (u16)block->sxy1.vy - (u16)block->dy;
             prim->y2    = (u16)block->sxy0.vy + (u16)block->dy;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
         }
     }

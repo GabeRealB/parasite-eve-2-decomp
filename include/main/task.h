@@ -212,6 +212,9 @@ void Task_InitList(TaskNode* node);
 void Task_ExecList(TaskNode* node);
 /// Runs the default frame list. The body reloads `gTaskDefaultList` itself, so
 /// the argument is not read.
+/// Legacy ABI: GameMain_Loop passes no argument, while the display path
+/// passes the default-list pointer. The implementation ignores that argument.
+/// Keep this declaration unprototyped to preserve both original call sequences.
 void      Task_ExecDefaultList();
 void      Task_ExecListFiltered(TaskNode* node, s32 filter);
 void      Task_CallExitFiltered(TaskNode* node, s32 filter);

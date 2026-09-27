@@ -222,15 +222,15 @@ extern UiList D_80114DF8[4];
 
 void func_800D29B0(Task* arg0);
 
-void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj);
-void func_800C41A4(DialogPrompt* prompt, UiObject* obj);
+void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj);
+void func_800C41A4(UiList* prompt, UiObject* obj);
 void Gp_DrawItemLabel(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 /// `arg5` is supplied by the attachment menu but unused by this renderer.
 void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, McItemRec* arg3, s32 arg4, s32 arg5);
 void Gp_DrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void Gp_SetPreviewItem(s32 arg0, s32 arg1);
 void Gp_SetHolderItemText(s32 arg0);
-void Gp_DrawUsePrompt(DialogPrompt* arg0, UiObject* arg1);
+void Gp_DrawUsePrompt(UiList* arg0, UiObject* arg1);
 void Gp_SpawnItemPrompt(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_800D4D2C(s32 arg0);
 
@@ -270,7 +270,7 @@ void      Gp_DrawCastCostLines(UiObject* arg0, s32 arg1);
 UiObject* func_800CD89C(UiObject* arg0);
 void      Gp_DrawItemNameRow(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 void      Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
-void      Gp_DrawSortCmd(DialogPrompt* arg0, UiObject* arg1);
+void      Gp_DrawSortCmd(UiList* arg0, UiObject* arg1);
 void      Gp_AmmoListTask(Task* arg0);
 void      Gp_ItemRowSelect(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3);
 void      func_800CF148(UiObject* arg0, Task* arg1);

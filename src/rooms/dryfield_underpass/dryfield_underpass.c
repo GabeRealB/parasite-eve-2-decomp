@@ -340,8 +340,7 @@ static void func_dryfield_underpass_8017DB20(GpCoord* arg0, SVECTOR* arg1, s32 a
         xy               = block->sy + (u16)block->halfWidth;
         prim->y3         = xy;
         prim->y2         = xy;
-        addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x14);

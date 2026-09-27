@@ -229,7 +229,7 @@ static void func_neo_ark_garden_8017EFB8(SVECTOR* arg0, s16 arg1, s32 arg2)
             prim->y0 = sy;
             twice    = i * 2;
             prim->y1 = (block->sy - block->radius) + (block->radius * twice);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
             i++;
@@ -251,7 +251,7 @@ static void func_neo_ark_garden_8017EFB8(SVECTOR* arg0, s16 arg1, s32 arg2)
             line->y1 = block->sy;
             line->x2 = block->sx - (block->radius * t1);
             line->y2 = block->sy + (block->radius * t2);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     line);
             Gp_AddTpageShift((P_TAG*)line, 1, block->otz);
             i = t2;
@@ -320,8 +320,7 @@ static void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
         prim->y2    = block->sxy2.vy;
         prim->x3    = block->sxy3.vx;
         prim->y3    = block->sxy3.vy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP(GpQuadScratch);
@@ -565,8 +564,7 @@ static void func_neo_ark_garden_8017FF0C(GpCoord* arg0, s32 arg1, s32 arg2, s32 
         prim->y3    = xy;
         prim->y2    = xy;
         ds          = &gDisplayState;
-        addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES_AT(scratch, 0x18);
@@ -619,8 +617,7 @@ static void func_neo_ark_garden_80180190(GpCoord* arg0, s32 arg1, s32 arg2, u8* 
             prim->y2 = block->sy + ((block->outer * rcos(ang)) >> 12);
             prim->x3 = block->sx + ((block->outer * rsin(next)) >> 12);
             prim->y3 = block->sy + ((block->outer * rcos(next)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
@@ -673,7 +670,7 @@ static void func_neo_ark_garden_801805B4(GpCoord* arg0, s16 arg1, u8* rgb)
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->step * rsin(ang + 0x200)) >> 12);
             prim->y3 = block->sy + ((block->step * rcos(ang + 0x200)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
@@ -824,8 +821,7 @@ static void func_neo_ark_garden_80180AF4(GpCoord* coord, s16 size)
         prim->y3    = bottom;
         prim->y2    = bottom;
         addPrim(
-            (u_long*)((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
-                      (s32)gGpuCurrentOt),
+            Gpu_OtEntryAtByteOffset((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC)),
             prim);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -850,8 +846,7 @@ static void func_neo_ark_garden_80180AF4(GpCoord* coord, s16 size)
         prim->y3    = outerBottom;
         prim->y2    = outerBottom;
         addPrim(
-            (u_long*)((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
-                      (s32)gGpuCurrentOt),
+            Gpu_OtEntryAtByteOffset((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC)),
             prim);
         if (Gp_TraceGroundCoord(coord, &ground) == 1) {
             func_neo_ark_garden_80181020(&ground, outerSize);
@@ -936,8 +931,7 @@ static void func_neo_ark_garden_80181020(GpCoord* arg0, s32 arg1)
         prim->y2    = block->sxy2.vy;
         prim->x3    = block->sxy3.vx;
         prim->y3    = block->sxy3.vy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x38);

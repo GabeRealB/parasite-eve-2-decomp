@@ -250,7 +250,7 @@ static void func_acropolis_observatory_8017E424(Task* arg0)
         y           = blk->sy + (u16)blk->half;
         prim->y3    = y;
         prim->y2    = y;
-        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP(AobFlareScratch);

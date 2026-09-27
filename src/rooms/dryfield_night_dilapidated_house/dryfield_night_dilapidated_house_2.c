@@ -181,8 +181,7 @@ static void func_dryfield_night_dilapidated_house_8017DD30(GpCoord* coord, s16 a
         setRGB1(prim, red, green, blue);
         setRGB2(prim, 0, 0, 0);
         setRGB3(prim, 0, 0, 0);
-        addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     }
@@ -229,8 +228,7 @@ static void func_dryfield_night_dilapidated_house_8017DD30(GpCoord* coord, s16 a
     setRGB1(prim, red, green, blue);
     setRGB2(prim, red, green, blue);
     setRGB3(prim, red, green, blue);
-    addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                      (s32)gGpuCurrentOt),
+    addPrim(Gpu_OtEntryAtByteOffset((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
             prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     SCRATCH_POP(RoomQuadScratch);

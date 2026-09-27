@@ -454,13 +454,13 @@ void func_800D6334(Task* task)
     s32         labelX;
     s32         labelY;
 
-    scan            = NULL;
-    armor           = Player_Status.armor + 0x5F;
-    panel           = task->spawnArg2;
-    panel->field_2E = 0;
-    panel->field_E  = 0x1C - gDisplayState.vramYOffset;
-    Ui_InsetLayout((UiPanel*)panel, 0, 0, 0);
-    Ui_DrawText((UiPanel*)panel, (char*)D_80097440);
+    scan                               = NULL;
+    armor                              = Player_Status.armor + 0x5F;
+    panel                              = task->spawnArg2;
+    panel->field_2E                    = 0;
+    panel->panel.bounds.unsignedRect.y = 0x1C - gDisplayState.vramYOffset;
+    Ui_InsetLayout(&(panel)->panel, 0, 0, 0);
+    Ui_DrawText(&(panel)->panel, (char*)D_80097440);
     usable = 1;
     if (task->state == 0) {
         Gp_HealPending = 0;
@@ -471,8 +471,8 @@ void func_800D6334(Task* task)
         Ui_SpawnFromDesc(&D_8010F8B4, 0, 0, 0, panel);
         task->state++;
     }
-    x = (s16)panel->field_1C + 4;
-    y = (s16)panel->field_18 + 0x2B;
+    x = (s16)panel->panel.field_1C.s + 4;
+    y = (s16)panel->panel.field_18.u + 0x2B;
     if (task->state == 1) {
         selectedSlot = D_8010F884;
         selectedX    = x + selectedSlot * 13;
@@ -492,9 +492,9 @@ void func_800D6334(Task* task)
         selected = firstRec;
         if (selected != NULL) {
             item            = selected->itemId;
-            name.x          = panel->baseX + x;
-            name.y          = panel->baseY + 10 + y;
-            name.otIndex    = panel->drawOrder + 1;
+            name.x          = panel->panel.field_20.u + x;
+            name.y          = panel->panel.field_22.u + 10 + y;
+            name.otIndex    = panel->panel.field_14.s + 1;
             name.field_8    = 0x606060;
             name.glyphTable = 0;
             name.centerMode = 0;
@@ -535,19 +535,19 @@ void func_800D6334(Task* task)
             }
         }
     }
-    labelX = (s16)panel->field_1C + 2;
-    labelY = (s16)panel->field_18;
+    labelX = (s16)panel->panel.field_1C.s + 2;
+    labelY = (s16)panel->panel.field_18.u;
     Gp_DrawItemLabel(panel, labelX, labelY + 15, armor, 0x606060, 0);
-    Ui_DrawHBar((UiPanel*)panel, (s16)panel->field_1C, (s16)panel->field_1E, (s16)panel->field_18 + 17);
-    label.x          = panel->baseX + labelX;
-    label.y          = panel->baseY + labelY + 24;
-    label.otIndex    = panel->drawOrder + 1;
+    Ui_DrawHBar(&(panel)->panel, (s16)panel->panel.field_1C.s, (s16)panel->panel.field_1E.u, (s16)panel->panel.field_18.u + 17);
+    label.x          = panel->panel.field_20.u + labelX;
+    label.y          = panel->panel.field_22.u + labelY + 24;
+    label.otIndex    = panel->panel.field_14.s + 1;
     label.field_8    = 0x606060;
     label.glyphTable = 5;
     label.centerMode = 0;
     label.field_E    = 1;
     func_8002E53C(&label, (u8*)D_80097448);
-    if (panel->status == 1) {
+    if (panel->panel.field_0.w == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm)) {
             if (usable == 1) {
                 useSlot  = D_8010F884;
@@ -692,11 +692,11 @@ void Gp_DrawWeaponLabel(Task* arg0)
     s32      x;
     s32      y;
 
-    panel            = arg0->spawnArg2;
-    panel->field_C.y = 0x1C - gDisplayState.vramYOffset;
+    panel                = arg0->spawnArg2;
+    panel->bounds.rect.y = 0x1C - gDisplayState.vramYOffset;
     Ui_InsetLayout(panel, NULL, NULL, 0);
-    x = (s16)panel->field_1C;
-    y = (s16)panel->field_18;
+    x = (s16)panel->field_1C.u;
+    y = (s16)panel->field_18.u;
     Gp_DrawEquipSummary(panel, x + 2, y + 0xF, 1);
     Ui_DrawText(panel, Gp_StrWeapon);
 }

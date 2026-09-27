@@ -30,9 +30,9 @@ static volatile CdReadyQueue  CdReady_Queue;
 
 static void CdReady_ClearCallback(void);
 static void CdReady_InstallCallback(CdlCB arg0);
-static s32  CdStream_Flush(void);
+static s32  CdStream_Flush(AsyncCbEntry* unused);
 static s32  CdStream_InitDisc(AsyncCbEntry* arg0);
-static void CdStream_MarkEnding(void);
+static void CdStream_MarkEnding(AsyncCbEntry* unused);
 static void CdStream_ReadyMts(s32 interrupt, u8* result);
 static void CdStream_SpuIrqHandler(void);
 
@@ -1460,8 +1460,8 @@ static s32 func_80059EE0(CdReadyEntry* arg0)
                 AsyncCb_Cancel((s16)CdStream_State.pending);
             }
             sp.entry.field_8       = CdStream_InitDisc;
-            sp.entry.field_C       = (void (*)(AsyncCbEntry*))CdStream_MarkEnding;
-            sp.entry.field_10      = (s32 (*)(AsyncCbEntry*))CdStream_Flush;
+            sp.entry.field_C       = CdStream_MarkEnding;
+            sp.entry.field_10      = CdStream_Flush;
             CdStream_State.pending = func_8004DE18(&sp.entry);
         }
     }
@@ -2265,14 +2265,14 @@ void CdStream_SetLinkedPitch(s32 arg0)
     }
 }
 
-static void CdStream_MarkEnding(void)
+static void CdStream_MarkEnding(AsyncCbEntry* unused)
 {
     CdStream_State.flags   = CdStream_State.flags & 0xFE;
     CdStream_State.flags1  = CdStream_State.flags1 | 2;
     CdStream_State.pending = 0;
 }
 
-static s32 CdStream_Flush(void)
+static s32 CdStream_Flush(AsyncCbEntry* unused)
 {
     CdFlush();
     return 0;

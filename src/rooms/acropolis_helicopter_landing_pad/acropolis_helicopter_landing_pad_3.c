@@ -331,7 +331,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
                 c        = a + 0x200;
                 prim->x3 = blk->sx + ((blk->rOuter * rsin(c)) >> 12);
                 prim->y3 = blk->sy + ((blk->rOuter * rcos(c)) >> 12);
-                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
 
@@ -351,7 +351,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->rOuter * rsin(c)) >> 13);
                 prim->y3 = blk->sy + ((blk->rOuter * rcos(c)) >> 13);
-                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
@@ -376,7 +376,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
                 d        = a + 0x400;
                 prim->x3 = blk->sx + ((blk->rInner * rsin(d)) >> 13);
                 prim->y3 = blk->sy + ((blk->rInner * rcos(d)) >> 13);
-                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
 
@@ -397,7 +397,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
                 d        = a + 0x800;
                 prim->x3 = blk->sx + ((blk->rInner * rsin(d)) >> 12);
                 prim->y3 = blk->sy + ((blk->rInner * rcos(d)) >> 12);
-                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
@@ -532,7 +532,7 @@ static void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
             prim->x2    = blk->sx - (u16)blk->dx;
             prim->y1    = blk->sy - (u16)blk->dy;
             prim->y2    = blk->sy + (u16)blk->dy;
-            addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
         }
         SCRATCH_POP_BYTES(0x1C);
         if (Gp_State1C->eventState == 0) {
@@ -726,7 +726,7 @@ static void func_acropolis_helicopter_landing_pad_80180664(GpCoord* coord)
         prim->y0 = blk->y0;
         prim->x1 = blk->x1;
         prim->y1 = blk->y1;
-        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
     }
     SCRATCH_POP_BYTES(0x20);
 }
@@ -800,7 +800,7 @@ static void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord)
         prim->y0 = blk->y0;
         prim->x1 = blk->x1;
         prim->y1 = blk->y1;
-        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
     }
     SCRATCH_POP_BYTES(0x20);
 }
@@ -985,7 +985,7 @@ static void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
             prim->x2    = blk->sx - (u16)blk->dx;
             prim->y1    = blk->sy - (u16)blk->dy;
             prim->y2    = blk->sy + (u16)blk->dy;
-            addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
         }
         SCRATCH_POP_BYTES(0x1C);
         if (Gp_State1C->eventState == 0) {

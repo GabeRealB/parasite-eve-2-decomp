@@ -143,7 +143,7 @@ static void func_dryfield_night_toilet_8017D77C(SVECTOR* arg0, s32 arg1, s32 arg
         prim->x1 = prim->x3 = block->sx + block->radius;
         prim->y0 = prim->y1 = block->sy - block->radius;
         prim->y2 = prim->y3 = block->sy + block->radius;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
     }
     SCRATCH_POP(RoomDraw25Scratch);
 }

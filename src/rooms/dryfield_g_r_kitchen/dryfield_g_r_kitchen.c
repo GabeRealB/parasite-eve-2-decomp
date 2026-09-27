@@ -324,8 +324,7 @@ static void func_dryfield_g_r_kitchen_8017D9FC(GpCoord* arg0, SVECTOR* arg1, SVE
             prim->y2 = block->sy0;
             prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
             prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -344,8 +343,7 @@ static void func_dryfield_g_r_kitchen_8017D9FC(GpCoord* arg0, SVECTOR* arg1, SVE
             prim->y2 = block->sy0;
             prim->x3 = block->sx1;
             prim->y3 = block->sy1;
-            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -365,8 +363,7 @@ static void func_dryfield_g_r_kitchen_8017D9FC(GpCoord* arg0, SVECTOR* arg1, SVE
             prim->x3 = block->sx1 + ((block->r1 * rsin(0xC00 - ang)) >> 12);
             prim->y3 = block->sy1 + ((block->r1 * rcos(0xC00 - ang)) >> 12);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
@@ -463,8 +460,7 @@ static void func_dryfield_g_r_kitchen_8017E27C(GpCoord* arg0, SVECTOR* arg1, SVE
             prim->y2 = block->sy0;
             prim->x3 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
             prim->y3 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -483,8 +479,7 @@ static void func_dryfield_g_r_kitchen_8017E27C(GpCoord* arg0, SVECTOR* arg1, SVE
             prim->y2 = block->sy0;
             prim->x3 = block->sx1;
             prim->y3 = block->sy1;
-            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -504,8 +499,7 @@ static void func_dryfield_g_r_kitchen_8017E27C(GpCoord* arg0, SVECTOR* arg1, SVE
             prim->x3 = block->sx1 + ((block->r1 * rsin(0x800 - ang)) >> 12);
             prim->y3 = block->sy1 + ((block->r1 * rcos(0x800 - ang)) >> 12);
             ang     += 0x400;
-            addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);

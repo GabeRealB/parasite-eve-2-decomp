@@ -227,10 +227,10 @@ void              Gp_DrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 a
 static void       Gp_ItemListTask(Task* arg0);
 void              Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2);
 void              Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2);
-void              Gp_DrawOkCmd(DialogPrompt* arg0, UiObject* arg1);
-void              Gp_DrawCancelCmd(DialogPrompt* arg0, UiObject* arg1);
-void              Gp_DrawYesCmd(DialogPrompt* arg0, UiObject* arg1);
-void              Gp_DrawNoCmd(DialogPrompt* arg0, UiObject* arg1);
+void              Gp_DrawOkCmd(UiList* arg0, UiObject* arg1);
+void              Gp_DrawCancelCmd(UiList* arg0, UiObject* arg1);
+void              Gp_DrawYesCmd(UiList* arg0, UiObject* arg1);
+void              Gp_DrawNoCmd(UiList* arg0, UiObject* arg1);
 void              Gp_DrawMapCursor(Task* arg0);
 void              func_800D0C34(Task* arg0);
 void              func_800D0614(Task* arg0);
@@ -238,9 +238,9 @@ void              Gp_DrawMapMarks(Task* arg0);
 void              func_800D15D0(Task* arg0);
 void              Gp_EnqueueMapRoomCd(void);
 void              func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
-void              Gp_DrawReviveCmd(DialogPrompt* arg0, UiObject* arg1);
+void              Gp_DrawReviveCmd(UiList* arg0, UiObject* arg1);
 s32               func_800D50D4(s32 arg0, s32 arg1);
-void              Gp_DrawPeSlotCmd(DialogPrompt* arg0, UiObject* arg1);
+void              Gp_DrawPeSlotCmd(UiList* arg0, UiObject* arg1);
 void              Gp_LoadViewImages(void);
 void              Gp_SetCollectedBit(s32 arg0);
 void              Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1);
@@ -254,7 +254,7 @@ void              Gp_SpawnItemUsePrompt(s32 arg0, UiObject* arg1);
 void              func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void       func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 void              Gp_EquipSummaryTask(Task* arg0);
-void              Gp_DrawAmmoRow(DialogPrompt* arg0, UiObject* arg1);
+void              Gp_DrawAmmoRow(UiList* arg0, UiObject* arg1);
 static void       Gp_CountAmmoRows(UiList* arg0, s32 arg1);
 void              Gp_AmmoListTask(Task* arg0);
 void              Gp_EquipHeld(s32 arg0);
@@ -527,6 +527,7 @@ void Gp_MenuRootTask(Task* arg0)
 
 static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
 {
+    Task*     childTask;
     u8*       text;
     s32       color;
     s32       one;
@@ -541,16 +542,16 @@ static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
         if ((u32)val > 0xFFFF) {
             color = Ui_LookupTable(arg0, 1);
             one   = 1;
-            Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0xF, (u8*)val, color, one, 0);
+            Text_DrawPrompt(arg0, arg0->panel.field_1C.s + 2, (s16)arg0->panel.field_18.u + 0xF, (u8*)val, color, one, 0);
             text = Text_SkipLines((u8*)val, one);
-            Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0x1E, text, color, one, 0);
+            Text_DrawPrompt(arg0, arg0->panel.field_1C.s + 2, (s16)arg0->panel.field_18.u + 0x1E, text, color, one, 0);
         } else if ((u32)(val - 0x300) < 0x100U) {
             Gp_DrawCastCostLines(arg0, val);
         }
     }
-    child = (UiObject*)arg1->firstChild;
-    if (child != NULL) {
-        child = ((Task*)child)->spawnArg2;
+    childTask = arg1->firstChild;
+    if (childTask != NULL) {
+        child = childTask->spawnArg2;
         flag  = child->field_2E;
         if (flag == -1) {
             arg0->field_2E = flag;
@@ -587,9 +588,9 @@ static void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
         if ((u32)val > 0xFFFF) {
             color = Ui_LookupTable(arg0, 1);
             one   = 1;
-            Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0xF, (u8*)val, color, one, 0);
+            Text_DrawPrompt(arg0, arg0->panel.field_1C.s + 2, (s16)arg0->panel.field_18.u + 0xF, (u8*)val, color, one, 0);
             text = Text_SkipLines((u8*)val, one);
-            Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0x1E, text, color, one, 0);
+            Text_DrawPrompt(arg0, arg0->panel.field_1C.s + 2, (s16)arg0->panel.field_18.u + 0x1E, text, color, one, 0);
         } else if ((u32)(val - 0x300) < 0x100U) {
             Gp_DrawCastCostLines(arg0, val);
         }
@@ -604,8 +605,8 @@ static void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
         case 5:
             desc = &D_8010EAB4;
             Ui_SpawnFromDesc(desc + 5, 0, 1, 8, arg0);
-            Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
-            Ui_StartCloseAnim((UiPanel*)arg0, arg0->owner);
+            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+            Ui_StartCloseAnim(&(arg0)->panel, arg0->owner);
             break;
         case 0x14:
         case 0x19:
@@ -618,22 +619,22 @@ static void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
         case 0x101:
             Display_SetDrawMode(1);
             Ui_SpawnFromDesc(&D_8010EAD0, 0, 1, 8, arg0);
-            Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
-            Ui_StartCloseAnim((UiPanel*)arg0, arg0->owner);
+            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+            Ui_StartCloseAnim(&(arg0)->panel, arg0->owner);
             break;
         case 6:
         case 0xC:
             Display_SetDrawMode(1);
             Ui_SpawnFromDesc(&D_8010EAB4 + arg0->field_2C, 0, 0, 8, arg0);
-            Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
-            Ui_StartCloseAnim((UiPanel*)arg0, arg0->owner);
+            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+            Ui_StartCloseAnim(&(arg0)->panel, arg0->owner);
             break;
         case 0x24:
         default:
             Display_SetDrawMode(1);
             Ui_SpawnFromDesc(&D_8010EAB4 + arg0->field_2C, 0, 1, 8, arg0);
-            Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
-            Ui_StartCloseAnim((UiPanel*)arg0, arg0->owner);
+            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+            Ui_StartCloseAnim(&(arg0)->panel, arg0->owner);
             break;
     }
 
@@ -645,16 +646,16 @@ static void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
     } else if (flag != 0xC) {
         scale = 2;
     } else {
-        Ui_UpdateLayoutSize((UiPanel*)arg0, 0, Ui_Scale15(2) + 1);
-        width  = arg0->field_12;
+        Ui_UpdateLayoutSize(&(arg0)->panel, 0, Ui_Scale15(2) + 1);
+        width  = arg0->panel.bounds.unsignedRect.h;
         height = 0x4C;
         goto store;
     }
-    Ui_UpdateLayoutSize((UiPanel*)arg0, 0, Ui_Scale15(scale) + 1);
-    width  = arg0->field_12;
+    Ui_UpdateLayoutSize(&(arg0)->panel, 0, Ui_Scale15(scale) + 1);
+    width  = arg0->panel.bounds.unsignedRect.h;
     height = 0x68;
 store:
-    arg0->field_E = height - width;
+    arg0->panel.bounds.unsignedRect.y = height - width;
 }
 
 void Gp_ItemMenuInit(UiObject* arg0, Task* arg1);
@@ -818,9 +819,9 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 
     p              = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
-    p->x2 = p->x0 = arg0->baseX + arg1;
+    p->x2 = p->x0 = arg0->panel.field_20.u + arg1;
     p->x1 = p->x3 = p->x0 + 0xE;
-    p->y1 = p->y0 = arg0->baseY + arg2 - 0xE;
+    p->y1 = p->y0 = arg0->panel.field_22.u + arg2 - 0xE;
     p->y2 = p->y3 = p->y0 + 0xE;
     if (flag1 != 0) {
         p->x2 = p->x0 = p->x0 - 2;
@@ -848,7 +849,7 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         setlen(p, 9);
         setcode(p, 0x2C);
     }
-    addPrim(gGpuCurrentOt + arg0->drawOrder + 1, p);
+    addPrim(gGpuCurrentOt + arg0->panel.field_14.s + 1, p);
     if (flag3 != 0) {
         q                     = (TILE*)gGpuPrimCursor;
         q->x0                 = p->x0 - 1;
@@ -859,18 +860,18 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         PRIM_COLOR_WORD(q, 0) = PRIM_RGBC(0xc0, 0xc0, 0xc0, 0);
         setlen(q, 3);
         setcode(q, 0x60);
-        addPrim(gGpuCurrentOt + arg0->drawOrder + 1, q);
+        addPrim(gGpuCurrentOt + arg0->panel.field_14.s + 1, q);
     }
 }
 
-static void func_800C0B98(DialogPrompt* arg0, UiObject* arg1, u32 arg2)
+static void func_800C0B98(UiList* arg0, UiObject* arg1, u32 arg2)
 {
     SPRT* p;
 
     p              = (SPRT*)gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
-    p->x0          = (u16)arg0->field_18 + arg1->baseX;
-    p->y0          = (u16)arg0->field_1A + arg1->baseY - 0xF;
+    p->x0          = (u16)arg0->field_18 + arg1->panel.field_20.u;
+    p->y0          = (u16)arg0->field_1A + arg1->panel.field_22.u - 0xF;
     if (arg0->field_C == 1) {
         p->clut = 0x3C09;
     } else {
@@ -882,8 +883,8 @@ static void func_800C0B98(DialogPrompt* arg0, UiObject* arg1, u32 arg2)
     setlen(p, 4);
     p->u0 = arg2;
     setcode(p, 0x65);
-    addPrim(gGpuCurrentOt + arg1->drawOrder + 1, p);
-    Ui_InsertDrawTPage(arg1->drawOrder + 1, 0);
+    addPrim(gGpuCurrentOt + arg1->panel.field_14.s + 1, p);
+    Ui_InsertDrawTPage(arg1->panel.field_14.s + 1, 0);
 }
 
 void Gp_StatusPanelTask(Task* arg0)
@@ -900,12 +901,12 @@ void Gp_StatusPanelTask(Task* arg0)
     obj  = arg0->spawnArg2;
     if (arg0->state == 0) {
         Ui_SpawnFromDesc(&D_8010EB08, 0, 0, 4, obj);
-        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        Ui_LayoutListPanel(menu, &(obj)->panel);
         arg0->state = arg0->state + 1;
     } else {
         obj->field_2E = 0;
         Ui_UpdateListNoAnim(menu, obj);
-        if (obj->status == 1) {
+        if (obj->panel.field_0.w == 1) {
             if (obj->field_2E == 0) {
                 if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
                     obj->field_2E = -1;
@@ -927,7 +928,7 @@ void Gp_StatusPanelTask(Task* arg0)
                         obj->field_2E = 6;
                         break;
                     case 6:
-                        obj->status = 1;
+                        obj->panel.field_0.w = 1;
                         Ui_TeardownTree(childObj, childObj->owner);
                         break;
                     case -1:
@@ -955,8 +956,8 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
         span = arg2 - arg1;
         max  = span - 2;
         bar  = (max * arg5) / arg4;
-        arg1 = arg1 + (s16)arg0->field_20;
-        arg3 = arg3 + (s16)arg0->field_22;
+        arg1 = arg1 + (s16)arg0->field_20.u;
+        arg3 = arg3 + (s16)arg0->field_22.u;
         if (max < bar) {
             bar = max;
         }
@@ -970,7 +971,7 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
             PRIM_COLOR_WORD(tile, 0) = arg6;
             setlen(tile, 3);
             setcode(tile, 0x60);
-            addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, tile);
+            addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, tile);
         }
         arg3 = arg3 - 4;
         clut = 0x3C0B;
@@ -984,7 +985,7 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
         sp->clut       = clut;
         setlen(sp, 3);
         setcode(sp, 0x75);
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, sp);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, sp);
 
         sp             = (SPRT*)gGpuPrimCursor;
         gGpuPrimCursor = sp + 1;
@@ -996,7 +997,7 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
         sp->clut       = clut;
         setlen(sp, 3);
         setcode(sp, 0x75);
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, sp);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, sp);
 
         poly           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
@@ -1020,7 +1021,7 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
         poly->clut     = clut;
         setlen(poly, 9);
         setcode(poly, 0x2D);
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, poly);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, poly);
     }
 }
 
@@ -1048,10 +1049,10 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     s32           max;
 
     cfg  = &Player_Status;
-    xOff = (s16)arg0->field_1C;
+    xOff = (s16)arg0->field_1C.u;
     arg1 = arg1 + 8;
     x    = xOff + 6;
-    y    = (s16)arg0->field_18 + arg1;
+    y    = (s16)arg0->field_18.u + arg1;
     if (Gp_HpMpWork.field_0 < cfg->hp) {
         Gp_HpMpWork.field_0 = Gp_HpMpWork.field_0 + 1;
     }
@@ -1060,27 +1061,27 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     }
     color = 0x606060;
 
-    req1.x          = arg0->field_20 + 0x17 + x;
-    req1.y          = arg0->field_22 + y;
-    req1.otIndex    = (s16)arg0->field_14 + 1;
+    req1.x          = arg0->field_20.u + 0x17 + x;
+    req1.y          = arg0->field_22.u + y;
+    req1.otIndex    = (s16)arg0->field_14.u + 1;
     req1.field_8    = color;
     req1.glyphTable = 0;
     req1.centerMode = 0;
     req1.field_E    = 3;
     func_8002E53C(&req1, Text_ItoaUnsigned(buf, Gp_HpMpWork.field_0));
 
-    req2.x          = arg0->field_20 + 0x32 + x;
-    req2.y          = arg0->field_22 + y;
-    req2.otIndex    = (s16)arg0->field_14 + 1;
+    req2.x          = arg0->field_20.u + 0x32 + x;
+    req2.y          = arg0->field_22.u + y;
+    req2.otIndex    = (s16)arg0->field_14.u + 1;
     req2.field_8    = color;
     req2.glyphTable = 0;
     req2.centerMode = 1;
     req2.field_E    = 3;
     func_8002E53C(&req2, Gp_StrSlash);
 
-    req3.x          = arg0->field_20 + 0x37 + x;
-    req3.y          = arg0->field_22 + y;
-    req3.otIndex    = (s16)arg0->field_14 + 1;
+    req3.x          = arg0->field_20.u + 0x37 + x;
+    req3.y          = arg0->field_22.u + y;
+    req3.otIndex    = (s16)arg0->field_14.u + 1;
     req3.field_8    = color;
     req3.glyphTable = 0;
     req3.centerMode = 0;
@@ -1092,27 +1093,27 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     func_800C0E20(arg0, x, barX + ((max - 1) * 0x25) / 64, y + 5, max, Gp_HpMpWork.field_0, 0x1741F);
 
     y2              = y + 0x12;
-    req4.x          = arg0->field_20 + 0x17 + x;
-    req4.y          = arg0->field_22 + y2;
-    req4.otIndex    = (s16)arg0->field_14 + 1;
+    req4.x          = arg0->field_20.u + 0x17 + x;
+    req4.y          = arg0->field_22.u + y2;
+    req4.otIndex    = (s16)arg0->field_14.u + 1;
     req4.field_8    = color;
     req4.glyphTable = 0;
     req4.centerMode = 0;
     req4.field_E    = 3;
     func_8002E53C(&req4, Text_ItoaUnsigned(buf, Gp_HpMpWork.field_4));
 
-    req5.x          = arg0->field_20 + 0x32 + x;
-    req5.y          = arg0->field_22 + y2;
-    req5.otIndex    = (s16)arg0->field_14 + 1;
+    req5.x          = arg0->field_20.u + 0x32 + x;
+    req5.y          = arg0->field_22.u + y2;
+    req5.otIndex    = (s16)arg0->field_14.u + 1;
     req5.field_8    = color;
     req5.glyphTable = 0;
     req5.centerMode = 1;
     req5.field_E    = 3;
     func_8002E53C(&req5, Gp_StrSlash);
 
-    req6.x          = arg0->field_20 + 0x37 + x;
-    req6.y          = arg0->field_22 + y2;
-    req6.otIndex    = (s16)arg0->field_14 + 1;
+    req6.x          = arg0->field_20.u + 0x37 + x;
+    req6.y          = arg0->field_22.u + y2;
+    req6.otIndex    = (s16)arg0->field_14.u + 1;
     req6.field_8    = color;
     req6.glyphTable = 0;
     req6.centerMode = 0;
@@ -1123,54 +1124,54 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     func_800C0E20(arg0, x, barX + ((max - 1) * 0x25) / 64, y + 0x17, max, Gp_HpMpWork.field_4, 0x1741F);
 
     y2              = y + 0x24;
-    req7.x          = arg0->field_20 + 0x17 + x;
-    req7.y          = arg0->field_22 + y2;
-    req7.otIndex    = (s16)arg0->field_14 + 1;
+    req7.x          = arg0->field_20.u + 0x17 + x;
+    req7.y          = arg0->field_22.u + y2;
+    req7.otIndex    = (s16)arg0->field_14.u + 1;
     req7.field_8    = color;
     req7.glyphTable = 0;
     req7.centerMode = 0;
     req7.field_E    = 3;
     func_8002E53C(&req7, Text_ItoaUnsigned(buf, cfg->exp));
 
-    req8.x          = arg0->field_20 + xOff + 0x72;
-    req8.y          = arg0->field_22 + y2;
-    req8.otIndex    = (s16)arg0->field_14 + 1;
+    req8.x          = arg0->field_20.u + xOff + 0x72;
+    req8.y          = arg0->field_22.u + y2;
+    req8.otIndex    = (s16)arg0->field_14.u + 1;
     req8.field_8    = color;
     req8.glyphTable = 0;
     req8.centerMode = 0;
     req8.field_E    = 3;
     func_8002E53C(&req8, Text_ItoaUnsigned(buf, cfg->bp));
 
-    req8.x          = arg0->field_1C + (arg0->field_20 + 2);
-    req8.y          = arg0->field_22 + (y - 2);
-    req8.otIndex    = (s16)arg0->field_14 + 1;
+    req8.x          = arg0->field_1C.u + (arg0->field_20.u + 2);
+    req8.y          = arg0->field_22.u + (y - 2);
+    req8.otIndex    = (s16)arg0->field_14.u + 1;
     req8.field_8    = color;
     req8.glyphTable = 5;
     req8.centerMode = 0;
     req8.field_E    = 1;
     func_8002E53C(&req8, Gp_StrHp);
 
-    req9.x          = arg0->field_1C + (arg0->field_20 + 2);
-    req9.y          = arg0->field_22 + 0x10 + y;
-    req9.otIndex    = (s16)arg0->field_14 + 1;
+    req9.x          = arg0->field_1C.u + (arg0->field_20.u + 2);
+    req9.y          = arg0->field_22.u + 0x10 + y;
+    req9.otIndex    = (s16)arg0->field_14.u + 1;
     req9.field_8    = color;
     req9.glyphTable = 5;
     req9.centerMode = 0;
     req9.field_E    = 1;
     func_8002E53C(&req9, Gp_StrMp);
 
-    req10.x          = arg0->field_1C + (arg0->field_20 + 2);
-    req10.y          = arg0->field_22 + 0x22 + y;
-    req10.otIndex    = (s16)arg0->field_14 + 1;
+    req10.x          = arg0->field_1C.u + (arg0->field_20.u + 2);
+    req10.y          = arg0->field_22.u + 0x22 + y;
+    req10.otIndex    = (s16)arg0->field_14.u + 1;
     req10.field_8    = color;
     req10.glyphTable = 5;
     req10.centerMode = 0;
     req10.field_E    = 1;
     func_8002E53C(&req10, Gp_StrExp);
 
-    req11.x          = arg0->field_1C + (arg0->field_20 + 0x57);
-    req11.y          = arg0->field_22 + 0x22 + y;
-    req11.otIndex    = (s16)arg0->field_14 + 1;
+    req11.x          = arg0->field_1C.u + (arg0->field_20.u + 0x57);
+    req11.y          = arg0->field_22.u + 0x22 + y;
+    req11.otIndex    = (s16)arg0->field_14.u + 1;
     req11.field_8    = color;
     req11.glyphTable = 5;
     req11.centerMode = 0;
@@ -1200,10 +1201,10 @@ void Gp_HpMpBarTask(Task* arg0)
     color          = 0x606060;
     p              = (SPRT*)gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
-    p->x0          = obj->baseX + obj->field_1E - 0x72;
+    p->x0          = obj->panel.field_20.u + obj->panel.field_1E.u - 0x72;
     {
         s32 y;
-        y       = obj->field_E;
+        y       = obj->panel.bounds.unsignedRect.y;
         p->u0   = 0x38;
         p->v0   = 0x60;
         p->w    = 0x40;
@@ -1213,18 +1214,18 @@ void Gp_HpMpBarTask(Task* arg0)
         PRIM_COLOR_WORD(p, 0) = color;
         setcode(p, 0x64);
         p->y0 = y + 3;
-        addPrim(gGpuCurrentOt + obj->drawOrder + 1, p);
+        addPrim(gGpuCurrentOt + obj->panel.field_14.s + 1, p);
     }
-    Ui_InsertDrawTPage(obj->drawOrder + 1, 0);
+    Ui_InsertDrawTPage(obj->panel.field_14.s + 1, 0);
 
     poly           = (POLY_FT4*)gGpuPrimCursor;
-    x              = obj->field_C + obj->field_10;
+    x              = obj->panel.bounds.unsignedRect.x + obj->panel.bounds.unsignedRect.w;
     right          = x - 1;
     x              = x - 0x32;
     gGpuPrimCursor = poly + 1;
     poly->x0 = poly->x2 = x;
     poly->x1 = poly->x3 = right;
-    y                   = obj->field_E;
+    y                   = obj->panel.bounds.unsignedRect.y;
     poly->y0 = poly->y1 = y + 2;
     poly->y2 = poly->y3 = y + 0x40;
     setUVWH(poly, 0, 0x80, 0x31, 0x3E);
@@ -1232,10 +1233,10 @@ void Gp_HpMpBarTask(Task* arg0)
     poly->tpage = 0x9E;
     setlen(poly, 9);
     setcode(poly, 0x2D);
-    addPrim(gGpuCurrentOt + obj->drawOrder + 1, poly);
-    Ui_DrawVBar((UiPanel*)obj, (s16)obj->field_18 - 3, (s16)obj->field_1A + 2, (s16)obj->field_1E - 0x32);
-    Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C - 2, (s16)obj->field_1E - 0x32, (s16)obj->field_18 + 8);
-    Gp_DrawHpMpStats((UiPanel*)obj, 0xB);
+    addPrim(gGpuCurrentOt + obj->panel.field_14.s + 1, poly);
+    Ui_DrawVBar(&(obj)->panel, (s16)obj->panel.field_18.u - 3, (s16)obj->panel.field_1A.u + 2, (s16)obj->panel.field_1E.u - 0x32);
+    Ui_DrawHBar(&(obj)->panel, (s16)obj->panel.field_1C.s - 2, (s16)obj->panel.field_1E.u - 0x32, (s16)obj->panel.field_18.u + 8);
+    Gp_DrawHpMpStats(&(obj)->panel, 0xB);
 }
 
 void Gp_ArmorStatsPanelTask(Task* arg0)
@@ -1261,15 +1262,15 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
     obj           = arg0->spawnArg2;
     cfg           = &Player_Status;
     obj->field_2E = 0;
-    Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x11);
+    Ui_DrawHBar(&(obj)->panel, (s16)obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, (s16)obj->panel.field_18.u + 0x11);
 
-    savedX = (s16)obj->field_1C;
+    savedX = (s16)obj->panel.field_1C.s;
     x      = savedX + 2;
     item   = cfg->armor;
-    base   = (s16)obj->field_18;
+    base   = (s16)obj->panel.field_18.u;
     y      = base + 0xF;
-    mid    = ((s16)obj->field_1E - x) / 2;
-    Ui_DrawTitle((UiPanel*)obj, Gp_StrArmor);
+    mid    = ((s16)obj->panel.field_1E.u - x) / 2;
+    Ui_DrawTitle(&(obj)->panel, Gp_StrArmor);
 
     if (item > 0) {
         item += 0x5F;
@@ -1278,37 +1279,37 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
         Gp_DrawItemLabel(obj, x, y, item, color, 0);
 
         y               = base + 0x1D;
-        req1.x          = obj->baseX + 0x20 + x;
-        req1.y          = obj->baseY + y;
-        req1.otIndex    = obj->drawOrder + 1;
+        req1.x          = obj->panel.field_20.u + 0x20 + x;
+        req1.y          = obj->panel.field_22.u + y;
+        req1.otIndex    = obj->panel.field_14.s + 1;
         req1.field_8    = color;
         req1.glyphTable = 0;
         req1.centerMode = 0;
         req1.field_E    = 3;
         func_8002E53C(&req1, Text_ItoaSignedPlus(buf, attr->field_4));
 
-        req2.x          = obj->baseX + (x + (mid + 0x1E));
-        req2.y          = obj->baseY + y;
-        req2.otIndex    = obj->drawOrder + 1;
+        req2.x          = obj->panel.field_20.u + (x + (mid + 0x1E));
+        req2.y          = obj->panel.field_22.u + y;
+        req2.otIndex    = obj->panel.field_14.s + 1;
         req2.field_8    = color;
         req2.glyphTable = 0;
         req2.centerMode = 0;
         req2.field_E    = 3;
         func_8002E53C(&req2, Text_ItoaSignedPlus(buf, attr->field_6));
 
-        req3.x          = obj->baseX + 2 + x;
-        req3.y          = obj->baseY + (y - 2);
-        req3.otIndex    = obj->drawOrder + 1;
+        req3.x          = obj->panel.field_20.u + 2 + x;
+        req3.y          = obj->panel.field_22.u + (y - 2);
+        req3.otIndex    = obj->panel.field_14.s + 1;
         req3.field_8    = color;
         req3.glyphTable = 5;
         req3.centerMode = 0;
         req3.field_E    = 1;
         func_8002E53C(&req3, Gp_StrHp);
 
-        req4.x          = obj->baseX + (x + mid);
-        req4.y          = obj->baseY + (y - 2);
+        req4.x          = obj->panel.field_20.u + (x + mid);
+        req4.y          = obj->panel.field_22.u + (y - 2);
         x               = savedX + 4;
-        req4.otIndex    = obj->drawOrder + 1;
+        req4.otIndex    = obj->panel.field_14.s + 1;
         req4.field_8    = color;
         req4.glyphTable = 5;
         req4.centerMode = 0;
@@ -1316,9 +1317,9 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
         func_8002E53C(&req4, Gp_StrMp);
 
         y               = base + 0x3D;
-        req5.x          = obj->baseX + x;
-        req5.y          = obj->baseY + base + 0x2C;
-        req5.otIndex    = obj->drawOrder + 1;
+        req5.x          = obj->panel.field_20.u + x;
+        req5.y          = obj->panel.field_22.u + base + 0x2C;
+        req5.otIndex    = obj->panel.field_14.s + 1;
         req5.field_8    = color;
         req5.glyphTable = 5;
         req5.centerMode = 0;
@@ -1386,14 +1387,14 @@ void Gp_PeGridPanelTask(Task* arg0)
 
     obj           = arg0->spawnArg2;
     obj->field_2E = 0;
-    startX        = obj->field_1C + 3;
-    colStep       = ((s16)obj->field_1E - obj->field_1C) / 4;
-    Ui_DrawTitle((UiPanel*)obj, Gp_StrPEnergy);
+    startX        = obj->panel.field_1C.s + 3;
+    colStep       = ((s16)obj->panel.field_1E.u - obj->panel.field_1C.s) / 4;
+    Ui_DrawTitle(&(obj)->panel, Gp_StrPEnergy);
 
     row    = 0;
     three  = 3;
     rowOff = 2;
-    panelY = (s16)obj->field_1A;
+    panelY = (s16)obj->panel.field_1A.u;
     for (; row < 3; row++) {
         for (col = 0, y = panelY - rowOff, x = startX, slot = 2; col < 4; col++) {
             levels = Gp_GetAttachLevels() + (slot - row);
@@ -1405,9 +1406,9 @@ void Gp_PeGridPanelTask(Task* arg0)
                 }
             }
             if ((row != 0) || (show != 0)) {
-                req.x          = obj->baseX + 0xC + x;
-                req.y          = obj->baseY + y;
-                req.otIndex    = obj->drawOrder + 1;
+                req.x          = obj->panel.field_20.u + 0xC + x;
+                req.y          = obj->panel.field_22.u + y;
+                req.otIndex    = obj->panel.field_14.s + 1;
                 req.field_8    = 0x606060;
                 req.glyphTable = 0;
                 req.centerMode = 0;
@@ -1426,9 +1427,9 @@ void Gp_PeGridPanelTask(Task* arg0)
         setlen(p, 4);
         PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
         setcode(p, 0x64);
-        addPrim(gGpuCurrentOt + obj->drawOrder + 1, p);
-        p->x0   = D_8010E844[iconCol].xOffset + (obj->baseX + startX + iconCol * colStep);
-        p->y0   = obj->baseY + panelY - 0x23;
+        addPrim(gGpuCurrentOt + obj->panel.field_14.s + 1, p);
+        p->x0   = D_8010E844[iconCol].xOffset + (obj->panel.field_20.u + startX + iconCol * colStep);
+        p->y0   = obj->panel.field_22.u + panelY - 0x23;
         p->w    = (iconCol == 0) ? 0x18 : 0x20;
         p->h    = 8;
         p->u0   = D_8010E844[iconCol].u;
@@ -1449,8 +1450,8 @@ void Gp_PeGridPanelTask(Task* arg0)
             if ((row != 0) || (show != 0)) {
                 p              = (SPRT*)gGpuPrimCursor;
                 gGpuPrimCursor = p + 1;
-                p->x0          = obj->baseX + startX + iconCol * colStep;
-                capY           = obj->baseY + panelY - markOff;
+                p->x0          = obj->panel.field_20.u + startX + iconCol * colStep;
+                capY           = obj->panel.field_22.u + panelY - markOff;
                 p->w           = 8;
                 p->h           = 8;
                 p->u0          = 0xA8;
@@ -1460,12 +1461,12 @@ void Gp_PeGridPanelTask(Task* arg0)
                 PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
                 setcode(p, 0x64);
                 p->y0 = capY;
-                addPrim(gGpuCurrentOt + obj->drawOrder + 1, p);
+                addPrim(gGpuCurrentOt + obj->panel.field_14.s + 1, p);
             }
             markOff += 9;
         }
     }
-    Ui_InsertDrawTPage(obj->drawOrder + 1, 0);
+    Ui_InsertDrawTPage(obj->panel.field_14.s + 1, 0);
 }
 
 void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -1481,12 +1482,12 @@ void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
         item += 0x7F;
     }
     color = 0x606060;
-    Gp_DrawItemLabel((UiObject*)arg0, arg1, arg2, item, color, 0);
-    Ui_DrawHBar(arg0, (s16)arg0->field_1C, (s16)arg0->field_1E, (s16)arg0->field_18 + 0x11);
+    Gp_DrawItemLabel(PARENT_OF(arg0, UiObject, panel), arg1, arg2, item, color, 0);
+    Ui_DrawHBar(arg0, (s16)arg0->field_1C.u, (s16)arg0->field_1E.u, (s16)arg0->field_18.u + 0x11);
     arg2          += 7;
-    req.x          = arg0->field_20 + arg1;
-    req.y          = arg0->field_22 + 2 + arg2;
-    req.otIndex    = (s16)arg0->field_14 + 1;
+    req.x          = arg0->field_20.u + arg1;
+    req.y          = arg0->field_22.u + 2 + arg2;
+    req.otIndex    = (s16)arg0->field_14.u + 1;
     req.field_8    = color;
     req.glyphTable = 5;
     req.centerMode = 0;
@@ -1499,17 +1500,17 @@ void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
             attach = ((McItemSlot*)item)->ammoId;
             count  = ((McItemSlot*)item)->ammoQty;
             if (attach != 0) {
-                Gp_DrawQty((UiObject*)arg0, arg1, arg2, count, color);
+                Gp_DrawQty(PARENT_OF(arg0, UiObject, panel), arg1, arg2, count, color);
             }
-            Gp_DrawItemNameRow((UiObject*)arg0, arg1, arg2, attach, color, 0);
+            Gp_DrawItemNameRow(PARENT_OF(arg0, UiObject, panel), arg1, arg2, attach, color, 0);
             if (((McItemSlot*)item)->attachId != 0xFF) {
                 attach = ((McItemSlot*)item)->attachId;
                 count  = ((McItemSlot*)item)->attachQty;
                 arg2  += 0x10;
                 if (attach != 0) {
-                    Gp_DrawQty((UiObject*)arg0, arg1, arg2, count, color);
+                    Gp_DrawQty(PARENT_OF(arg0, UiObject, panel), arg1, arg2, count, color);
                 }
-                Gp_DrawItemNameRow((UiObject*)arg0, arg1, arg2, attach, color, 0);
+                Gp_DrawItemNameRow(PARENT_OF(arg0, UiObject, panel), arg1, arg2, attach, color, 0);
             }
         }
     }
@@ -1541,11 +1542,11 @@ void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     if (equipped != 0) {
         buf[0]         = 0x45;
         color          = 0x606060;
-        x              = arg0->baseX - 1;
+        x              = arg0->panel.field_20.u - 1;
         req.x          = x + arg1;
-        y              = arg0->baseY - 2;
+        y              = arg0->panel.field_22.u - 2;
         req.y          = y + arg2;
-        req.otIndex    = arg0->drawOrder + 1;
+        req.otIndex    = arg0->panel.field_14.s + 1;
         req.field_8    = color;
         req.glyphTable = 5;
         req.centerMode = 0;
@@ -1568,11 +1569,11 @@ void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     }
     if (buf[0] != 0) {
         color          = 0x606060;
-        x              = arg0->baseX - 1;
+        x              = arg0->panel.field_20.u - 1;
         req.x          = x + arg1;
-        y              = arg0->baseY - 2;
+        y              = arg0->panel.field_22.u - 2;
         req.y          = y + arg2;
-        req.otIndex    = arg0->drawOrder + 1;
+        req.otIndex    = arg0->panel.field_14.s + 1;
         req.field_8    = color;
         req.glyphTable = 5;
         req.centerMode = 0;
@@ -1592,8 +1593,8 @@ void func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 
     p              = (SPRT*)gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
-    p->x0          = arg0->baseX + arg1 + 0x6C;
-    y              = arg0->baseY;
+    p->x0          = arg0->panel.field_20.u + arg1 + 0x6C;
+    y              = arg0->panel.field_22.u;
     color          = arg4;
     p->w           = 8;
     p->h           = 8;
@@ -1604,13 +1605,13 @@ void func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     PRIM_COLOR_WORD(p, 0) = color;
     setcode(p, 0x64);
     p->y0 = y + arg2 - 7;
-    addPrim(gGpuCurrentOt + arg0->drawOrder + 1, p);
-    Ui_InsertDrawTPage(arg0->drawOrder + 1, 0);
+    addPrim(gGpuCurrentOt + arg0->panel.field_14.s + 1, p);
+    Ui_InsertDrawTPage(arg0->panel.field_14.s + 1, 0);
 
-    req.x          = arg0->baseX + arg1 + 0x7C;
-    textY          = arg0->baseY - 3;
+    req.x          = arg0->panel.field_20.u + arg1 + 0x7C;
+    textY          = arg0->panel.field_22.u - 3;
     req.y          = textY + arg2;
-    req.otIndex    = arg0->drawOrder + 1;
+    req.otIndex    = arg0->panel.field_14.s + 1;
     req.field_8    = color;
     req.glyphTable = 0;
     req.centerMode = 2;
@@ -1626,10 +1627,10 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
     TextDrawReq req;
     s32         temp;
 
-    if (obj->mode != 5) {
-        req.x          = obj->baseX + 0x11 + x;
-        req.y          = obj->baseY + (y - 6);
-        req.otIndex    = obj->drawOrder + 1;
+    if (obj->panel.field_8 != 5) {
+        req.x          = obj->panel.field_20.u + 0x11 + x;
+        req.y          = obj->panel.field_22.u + (y - 6);
+        req.otIndex    = obj->panel.field_14.s + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -1646,7 +1647,7 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
 
 /// Draws `item` as `_gpDrawItemNameAt` does, at the prompt row's position and
 /// in its colour.
-static inline void _gpDrawItemName(DialogPrompt* prompt, UiObject* obj, s32 item, s32 mode)
+static inline void _gpDrawItemName(UiList* prompt, UiObject* obj, s32 item, s32 mode)
 {
     _gpDrawItemNameAt(obj, prompt->field_18, prompt->field_1A, prompt->field_1C, item, mode);
 }
@@ -1699,17 +1700,17 @@ static inline McItemRec* _gpNthLooseRec(McItemScan* scan, s32 index)
 
 /// Shows `item`'s name in the holder (the empty-slot text for item 0) and
 /// makes it the preview in slot 0.
-#define GP_SHOW_ITEM_IN_HOLDER(item)                                    \
-    do {                                                                \
-        if ((item) == 0) {                                              \
-            Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);                  \
-        } else {                                                        \
-            Ui_SetHolderParam((s32)Gp_GetItemText((item), 1, 0), 0, 0); \
-        }                                                               \
-        Gp_SetPreviewItem((item), 0);                                   \
+#define GP_SHOW_ITEM_IN_HOLDER(item)                               \
+    do {                                                           \
+        if ((item) == 0) {                                         \
+            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);                  \
+        } else {                                                   \
+            Ui_SetHolderParam(Gp_GetItemText((item), 1, 0), 0, 0); \
+        }                                                          \
+        Gp_SetPreviewItem((item), 0);                              \
     } while (0)
 
-void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
+void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
 {
     McItemRec* sel;
     s32        item;
@@ -1725,13 +1726,13 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
     }
 
     item   = sel->itemId;
-    status = arg1->status;
+    status = arg1->panel.field_0.w;
     if (((status >> 16) == 1) || (status == 1)) {
         if (arg0->field_10 == arg0->field_8) {
             if (Gp_ItemOrderMode == 0) {
                 GP_SHOW_ITEM_IN_HOLDER(item);
             } else {
-                Ui_SetHolderParam((s32)Gp_StrSelectDest, 0, 0);
+                Ui_SetHolderParam(Gp_StrSelectDest, 0, 0);
             }
         }
     }
@@ -1759,10 +1760,10 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
         if (sel != NULL) {
             if ((u32)(sel->itemId - 0xA0) < 0x20U) {
                 qty            = sel->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].carriedItems, sel->itemId);
-                req.x          = arg1->baseX + 0x84 + x;
-                baseY          = arg1->baseY - 3;
+                req.x          = arg1->panel.field_20.u + 0x84 + x;
+                baseY          = arg1->panel.field_22.u - 3;
                 req.y          = baseY + y;
-                req.otIndex    = arg1->drawOrder + 1;
+                req.otIndex    = arg1->panel.field_14.s + 1;
                 req.field_8    = color;
                 req.glyphTable = 5;
                 req.centerMode = 2;
@@ -1783,8 +1784,8 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
                 SndEvt_EnqueueType6(3, 0, 0);
                 obj = Ui_SpawnFromDesc(&D_8010EE6C, 0, 1, 1, arg1);
                 if (obj != NULL) {
-                    Ui_ClampDialogRect((UiPanel*)obj, (UiPanel*)arg0, (UiPanel*)arg1);
-                    arg1->status = 0;
+                    Ui_ClampDialogRect(&(obj)->panel, arg0, &(arg1)->panel);
+                    arg1->panel.field_0.w = 0;
                 }
             } else {
                 Gp_CheckItemInfoButton(arg1);
@@ -1891,11 +1892,11 @@ static void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
         } while (i < scan->rowCount);
     }
 
-    arg0->field_4 = count;
-    arg0->field_5 = count;
+    arg0->field_4   = count;
+    arg0->field_5.u = count;
     if (arg1 == 0) {
-        arg0->field_7 = 0xF;
-        arg0->field_5 = 4;
+        arg0->field_7   = 0xF;
+        arg0->field_5.u = 4;
     } else {
         arg0->field_7 = 0xF;
     }
@@ -1927,10 +1928,10 @@ static __inline__ void countItemRows(UiList* menu)
             menu->field_4--;
         }
     }
-    menu->field_4 = menu->field_4 + 1;
-    menu->field_5 = menu->field_4;
-    if ((s8)menu->field_5 >= 0xA) {
-        menu->field_5 = 9;
+    menu->field_4   = menu->field_4 + 1;
+    menu->field_5.u = menu->field_4;
+    if ((s8)menu->field_5.u >= 0xA) {
+        menu->field_5.u = 9;
     }
 }
 
@@ -1963,31 +1964,31 @@ static void Gp_ItemListTask(Task* arg0)
         arg0->work    = map;
         menu->field_6 = 0;
         countItemRows(menu);
-        menu->field_5 = 9;
-        menu->field_4 = 9;
-        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        menu->field_5.u = 9;
+        menu->field_4   = 9;
+        Ui_LayoutListPanel(menu, &(obj)->panel);
         countItemRows(menu);
-        menu->field_A  = 1;
-        menu->field_10 = 0;
-        menu->field_9  = 0;
-        child          = Ui_SpawnFromDesc(&D_8010EB40, 0, 0, 1, obj);
+        menu->field_A   = 1;
+        menu->field_10  = 0;
+        menu->field_9.u = 0;
+        child           = Ui_SpawnFromDesc(&D_8010EB40, 0, 0, 1, obj);
         if (child != NULL) {
-            child->field_E = obj->field_E + obj->field_12;
+            child->panel.bounds.unsignedRect.y = obj->panel.bounds.unsignedRect.y + obj->panel.bounds.unsignedRect.h;
         }
         arg0->state = arg0->state + 1;
     }
-    Ui_DrawText((UiPanel*)obj, Gp_StrItemHdr);
+    Ui_DrawText(&(obj)->panel, Gp_StrItemHdr);
     countItemRows(menu);
-    Ui_ComputeVisibleRows(menu, (UiPanel*)obj);
+    Ui_ComputeVisibleRows(menu, &(obj)->panel);
     menu->field_A = 1;
     if (menu->field_10 >= (s32)menu->field_4) {
         menu->field_10 = menu->field_4 - 1;
     }
-    if ((menu->field_4 - (s8)menu->field_5) < (s8)menu->field_9) {
-        menu->field_9 = menu->field_4 - menu->field_5;
+    if ((menu->field_4 - (s8)menu->field_5.u) < (s8)menu->field_9.u) {
+        menu->field_9.u = menu->field_4 - menu->field_5.u;
     }
     Ui_UpdateListNoAnim(menu, obj);
-    status = obj->status;
+    status = obj->panel.field_0.w;
     if (status == 1) {
         if (obj->field_2E == 0) {
             if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
@@ -2006,7 +2007,7 @@ static void Gp_ItemListTask(Task* arg0)
             }
         }
     } else if (status >= 2) {
-        obj->status = 1;
+        obj->panel.field_0.w = 1;
     }
     owner = obj->owner;
     head  = owner->firstChild;
@@ -2024,14 +2025,14 @@ static void Gp_ItemListTask(Task* arg0)
                     break;
                 case 6:
                     Ui_TeardownTree(childObj, childObj->owner);
-                    obj->status   = one;
-                    obj->field_4 &= mask;
+                    obj->panel.field_0.w = one;
+                    obj->panel.field_4  &= mask;
                     break;
                 case 0x23:
                     Ui_TeardownTree(childObj, childObj->owner);
-                    obj->status      = one;
-                    Gp_ItemOrderMode = one;
-                    obj->field_4    &= mask;
+                    obj->panel.field_0.w = one;
+                    Gp_ItemOrderMode     = one;
+                    obj->panel.field_4  &= mask;
                     break;
             }
             head = owner->firstChild;
@@ -2067,20 +2068,20 @@ void Gp_ItemDestCursorTask(Task* arg0)
     if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone(obj) == 0)) {
         Ui_SetState4(obj, obj->owner);
     } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone(obj) == 1)) {
-        Ui_ClampAnimOrClose((UiPanel*)obj, obj->owner, 0x10);
+        Ui_ClampAnimOrClose(&(obj)->panel, obj->owner, 0x10);
     }
-    if (obj->status == 1) {
+    if (obj->panel.field_0.w == 1) {
         if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
             child          = D_80114D98[1];
             *(s32*)&cursor = Ui_GetCursorFixed();
-            if (cursor.unk2 < (s16)child->field_E) {
+            if (cursor.unk2 < (s16)child->panel.bounds.unsignedRect.y) {
                 child = D_80114D98[0];
             }
             SndEvt_EnqueueType6(2, 0, 0);
-            obj->status     = 0;
-            y               = cursor.unk2;
-            child->status   = 0x17;
-            child->field_2C = y;
+            obj->panel.field_0.w   = 0;
+            y                      = cursor.unk2;
+            child->panel.field_0.w = 0x17;
+            child->field_2C        = y;
         }
     }
 }
@@ -2089,11 +2090,11 @@ void Gp_ItemDestCursorTask(Task* arg0)
 /// with `x`, `y`.
 static inline void _gpSetSpawnOffset(UiObject* obj, s32 x, s32 y)
 {
-    obj->field_E = y;
-    obj->field_C = x;
+    obj->panel.bounds.unsignedRect.y = y;
+    obj->panel.bounds.unsignedRect.x = x;
 }
 
-void Gp_DrawWeaponSlotRow(DialogPrompt* prompt, UiObject* obj)
+void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
 {
     TextDrawReq   req;
     PlayerStatus* player;
@@ -2111,17 +2112,17 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* prompt, UiObject* obj)
         item = 0;
     }
 
-    status = obj->status;
+    status = obj->panel.field_0.w;
     if (((status >> 16) == 1 || status == 1) && prompt->field_10 == prompt->field_8) {
         if (Gp_ItemOrderMode == 0) {
             if (item == 0) {
-                Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
+                Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             } else {
-                Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
+                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
             }
             Gp_SetPreviewItem(item, 0);
         } else {
-            Ui_SetHolderParam((s32)Gp_StrSelectDest, 0, 0);
+            Ui_SetHolderParam(Gp_StrSelectDest, 0, 0);
         }
     }
 
@@ -2157,10 +2158,10 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* prompt, UiObject* obj)
                     if (spawned != NULL) {
                         _gpSetSpawnOffset(spawned, -8, -0x5C);
                     }
-                    obj->status = 0;
+                    obj->panel.field_0.w = 0;
                 } else {
                     Gp_SpawnItemPrompt(obj, 0x14, 0, 1);
-                    obj->status = 0;
+                    obj->panel.field_0.w = 0;
                 }
             } else {
                 Gp_CheckItemInfoButton(obj);
@@ -2182,9 +2183,9 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* prompt, UiObject* obj)
                     Task* parent;
                     parent = obj->owner->parent;
                     if (parent != NULL) {
-                        Gp_ItemOrderMode                       = 0;
-                        ((UiObject*)parent->spawnArg2)->status = mode;
-                        obj->status                            = 0;
+                        Gp_ItemOrderMode                                = 0;
+                        ((UiObject*)parent->spawnArg2)->panel.field_0.w = mode;
+                        obj->panel.field_0.w                            = 0;
                         SndEvt_EnqueueType6(3, 0, 0);
                     }
                 }
@@ -2195,10 +2196,10 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* prompt, UiObject* obj)
     x     = prompt->field_18;
     y     = prompt->field_1A;
     color = prompt->field_1C;
-    if (obj->mode != 5) {
-        req.x          = obj->baseX + 0x11 + x;
-        req.y          = obj->baseY + (y - 6);
-        req.otIndex    = obj->drawOrder + 1;
+    if (obj->panel.field_8 != 5) {
+        req.x          = obj->panel.field_20.u + 0x11 + x;
+        req.y          = obj->panel.field_22.u + (y - 6);
+        req.otIndex    = obj->panel.field_14.s + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -2211,11 +2212,11 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* prompt, UiObject* obj)
         Gp_DrawItemIcon(obj, x, y, item, 0);
     }
 
-    Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x11);
+    Ui_DrawHBar(&(obj)->panel, (s16)obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, (s16)obj->panel.field_18.u + 0x11);
 
-    req.x          = obj->baseX + prompt->field_18;
-    req.y          = prompt->field_1A + (obj->baseY + 9);
-    req.otIndex    = obj->drawOrder + 1;
+    req.x          = obj->panel.field_20.u + prompt->field_18;
+    req.y          = prompt->field_1A + (obj->panel.field_22.u + 9);
+    req.otIndex    = obj->panel.field_14.s + 1;
     req.field_8    = 0x606060;
     req.glyphTable = 5;
     req.centerMode = 0;
@@ -2224,7 +2225,7 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* prompt, UiObject* obj)
     prompt->field_1A += 0xA;
 }
 
-void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj)
+void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
 {
     union {
         struct {
@@ -2258,17 +2259,17 @@ void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj)
             count = slot->attachQty;
         }
     }
-    status = obj->status;
+    status = obj->panel.field_0.w;
     if (((status >> 16) == 1 || status == 1) && prompt->field_10 == prompt->field_8) {
         if (Gp_ItemOrderMode == 0) {
             if (item != 0) {
-                Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
+                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
                 Gp_SetPreviewItem(item, 0);
             } else {
-                Ui_SetHolderParam((s32)Gp_StrAmmoNone, 0, 0);
+                Ui_SetHolderParam(Gp_StrAmmoNone, 0, 0);
             }
         } else {
-            Ui_SetHolderParam((s32)Gp_StrSelectDest, 0, 0);
+            Ui_SetHolderParam(Gp_StrSelectDest, 0, 0);
         }
     }
     if (item != 0) {
@@ -2279,10 +2280,10 @@ void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj)
         x                       = prompt->field_18;
         y                       = prompt->field_1A;
         color                   = prompt->field_1C;
-        draw.qty.req.x          = obj->baseX + 0x84 + x;
-        off                     = obj->baseY - 3;
+        draw.qty.req.x          = obj->panel.field_20.u + 0x84 + x;
+        off                     = obj->panel.field_22.u - 3;
         draw.qty.req.y          = off + y;
-        draw.qty.req.otIndex    = obj->drawOrder + 1;
+        draw.qty.req.otIndex    = obj->panel.field_14.s + 1;
         draw.qty.req.field_8    = color;
         draw.qty.req.glyphTable = 5;
         draw.qty.req.centerMode = 2;
@@ -2302,11 +2303,11 @@ void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj)
         if (item == 0) {
             Ui_LayoutWithMode0(obj, x, y - 0xE, 0xE, 0xE, 0x102010);
         } else {
-            if (obj->mode != 5) {
-                draw.name.x          = obj->baseX + 0x11 + x;
-                off                  = obj->baseY - 6;
+            if (obj->panel.field_8 != 5) {
+                draw.name.x          = obj->panel.field_20.u + 0x11 + x;
+                off                  = obj->panel.field_22.u - 6;
                 draw.name.y          = off + y;
-                draw.name.otIndex    = obj->drawOrder + 1;
+                draw.name.otIndex    = obj->panel.field_14.s + 1;
                 draw.name.field_8    = color;
                 draw.name.glyphTable = 0;
                 draw.name.centerMode = 0;
@@ -2339,12 +2340,12 @@ void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj)
                 SndEvt_EnqueueType6(3, 0, 0);
                 child = Ui_SpawnFromDesc(&D_8010ECC8, currentWeapon, 1, 0x10, obj);
                 if (child != NULL) {
-                    yOffset        = -0x5C;
-                    child->field_E = yOffset;
-                    xOffset        = -8;
-                    child->field_C = xOffset;
+                    yOffset                            = -0x5C;
+                    child->panel.bounds.unsignedRect.y = yOffset;
+                    xOffset                            = -8;
+                    child->panel.bounds.unsignedRect.x = xOffset;
                 }
-                obj->status = 0;
+                obj->panel.field_0.w = 0;
             } else {
                 Gp_CheckItemInfoButton(obj);
             }
@@ -2359,9 +2360,9 @@ void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj)
                     if (parent != NULL) {
                         parentObj = parent->spawnArg2;
                         SndEvt_EnqueueType6(3, 0, 0);
-                        Gp_ItemOrderMode  = 0;
-                        parentObj->status = mode;
-                        obj->status       = 0;
+                        Gp_ItemOrderMode           = 0;
+                        parentObj->panel.field_0.w = mode;
+                        obj->panel.field_0.w       = 0;
                     }
                 }
             }
@@ -2409,28 +2410,28 @@ void Gp_WeaponMenuTask(Task* arg0)
     obj           = arg0->spawnArg2;
     menu          = &D_8010E884;
     obj->field_2E = 0;
-    Ui_DrawText((UiPanel*)obj, Gp_StrWeaponTitle);
+    Ui_DrawText(&(obj)->panel, Gp_StrWeaponTitle);
     if (arg0->state == 0) {
         _gpWeaponMenuSetRows(menu);
         menu->field_10 = 0;
-        Ui_InitList(menu, (UiMiniObj*)obj);
+        Ui_InitList(menu, &(obj)->panel);
         arg0->state = arg0->state + 1;
     }
     _gpWeaponMenuSetRows(menu);
-    Ui_ComputeVisibleRows(menu, (UiPanel*)obj);
+    Ui_ComputeVisibleRows(menu, &(obj)->panel);
     Ui_UpdateListNoAnim(menu, obj);
     if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone(obj) == 0)) {
         Ui_SetState4(obj, obj->owner);
     } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone(obj) == 1)) {
-        Ui_ClampAnimOrClose((UiPanel*)obj, obj->owner, 0x10);
+        Ui_ClampAnimOrClose(&(obj)->panel, obj->owner, 0x10);
     }
-    status = obj->status;
+    status = obj->panel.field_0.w;
     if (status == 1) {
         if (menu->field_22 == 3) {
             SndEvt_EnqueueType6(2, 0, 0);
-            D_80114D98[1]->field_2C = -0xA0;
-            D_80114D98[1]->status   = 0x17;
-            obj->status             = 0;
+            D_80114D98[1]->field_2C        = -0xA0;
+            D_80114D98[1]->panel.field_0.w = 0x17;
+            obj->panel.field_0.w           = 0;
         } else if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
             Task*     parent;
             UiObject* parentObj;
@@ -2447,10 +2448,10 @@ void Gp_WeaponMenuTask(Task* arg0)
                 SndEvt_EnqueueType6(2, 0, 0);
                 *(s32*)&cursor  = Ui_GetCursorFixed();
                 other           = &D_8010E854;
-                row             = cursor.unk2 - (parentObj->baseY + parentObj->field_18);
+                row             = cursor.unk2 - (parentObj->panel.field_22.u + parentObj->panel.field_18.u);
                 row             = row / other->field_7;
-                vis             = (s8)other->field_5;
-                row9            = (s8)other->field_9;
+                vis             = (s8)other->field_5.u;
+                row9            = (s8)other->field_9.u;
                 sel             = row + row9;
                 other->field_10 = sel;
                 if (sel >= row9 + vis) {
@@ -2459,8 +2460,8 @@ void Gp_WeaponMenuTask(Task* arg0)
                 if (other->field_10 >= other->field_4) {
                     other->field_10 = other->field_4 - 1;
                 }
-                parentObj->status = status;
-                obj->status       = 0;
+                parentObj->panel.field_0.w = status;
+                obj->panel.field_0.w       = 0;
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             Task*     parent;
@@ -2474,9 +2475,9 @@ void Gp_WeaponMenuTask(Task* arg0)
                     parentObj->field_2C = status;
                     parentObj->field_2E = 6;
                 } else {
-                    parentObj->status = status;
-                    obj->status       = 0;
-                    Gp_ItemOrderMode  = 0;
+                    parentObj->panel.field_0.w = status;
+                    obj->panel.field_0.w       = 0;
+                    Gp_ItemOrderMode           = 0;
                 }
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
@@ -2499,14 +2500,14 @@ void Gp_WeaponMenuTask(Task* arg0)
                     break;
                 case 6:
                     Ui_TeardownTree(childObj, childObj->owner);
-                    obj->status   = one;
-                    obj->field_4 &= mask;
+                    obj->panel.field_0.w = one;
+                    obj->panel.field_4  &= mask;
                     break;
                 case 0x23:
                     Ui_TeardownTree(childObj, childObj->owner);
-                    obj->status      = one;
-                    Gp_ItemOrderMode = one;
-                    obj->field_4    &= mask;
+                    obj->panel.field_0.w = one;
+                    Gp_ItemOrderMode     = one;
+                    obj->panel.field_4  &= mask;
                     break;
             }
             head  = owner->firstChild;
@@ -2516,11 +2517,11 @@ void Gp_WeaponMenuTask(Task* arg0)
             }
         } while (head != NULL);
     }
-    if (obj->status == 0x17) {
+    if (obj->panel.field_0.w == 0x17) {
         s32 t;
 
-        t  = (s16)obj->baseY;
-        t += (s16)obj->field_18;
+        t  = (s16)obj->panel.field_22.u;
+        t += (s16)obj->panel.field_18.u;
         t  = obj->field_2C - t;
         if (t < menu->field_7) {
             menu->field_10 = 0;
@@ -2531,12 +2532,12 @@ void Gp_WeaponMenuTask(Task* arg0)
         } else {
             menu->field_10 = 2;
         }
-        obj->field_2C = 0;
-        obj->status   = 1;
+        obj->field_2C        = 0;
+        obj->panel.field_0.w = 1;
     }
 }
 
-void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
+void func_800C41A4(UiList* prompt, UiObject* obj)
 {
     union {
         struct {
@@ -2578,17 +2579,17 @@ void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
     if (rec != NULL) {
         item = rec->itemId;
     }
-    status = obj->status;
+    status = obj->panel.field_0.w;
     if (((status >> 16) == 1 || status == 1) && prompt->field_10 == prompt->field_8) {
         if (Gp_ItemOrderMode == 0) {
             if (item != 0) {
-                Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
+                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
                 Gp_SetPreviewItem(item, 0);
             } else {
-                Ui_SetHolderParam((s32)Gp_StrAttachNone, 0, 0);
+                Ui_SetHolderParam(Gp_StrAttachNone, 0, 0);
             }
         } else {
-            Ui_SetHolderParam((s32)Gp_StrSelectDest, 0, 0);
+            Ui_SetHolderParam(Gp_StrSelectDest, 0, 0);
         }
     }
     if (rec != NULL) {
@@ -2604,10 +2605,10 @@ void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
         color = prompt->field_1C;
         if ((u32)(id - 0xA0) < 0x20U) {
             count                   = rec->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].carriedItems, id);
-            draw.qty.req.x          = obj->baseX + 0x84 + x;
-            off                     = obj->baseY - 3;
+            draw.qty.req.x          = obj->panel.field_20.u + 0x84 + x;
+            off                     = obj->panel.field_22.u - 3;
             draw.qty.req.y          = off + y;
-            draw.qty.req.otIndex    = obj->drawOrder + 1;
+            draw.qty.req.otIndex    = obj->panel.field_14.s + 1;
             draw.qty.req.field_8    = color;
             draw.qty.req.glyphTable = 5;
             draw.qty.req.centerMode = 2;
@@ -2630,11 +2631,11 @@ void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
         if (item == 0) {
             Ui_LayoutWithMode0(obj, x, y - 0xE, 0xE, 0xE, 0x102010);
         } else {
-            if (obj->mode != 5) {
-                draw.name.x          = obj->baseX + 0x11 + x;
-                off                  = obj->baseY - 6;
+            if (obj->panel.field_8 != 5) {
+                draw.name.x          = obj->panel.field_20.u + 0x11 + x;
+                off                  = obj->panel.field_22.u - 6;
                 draw.name.y          = off + y;
-                draw.name.otIndex    = obj->drawOrder + 1;
+                draw.name.otIndex    = obj->panel.field_14.s + 1;
                 draw.name.field_8    = color;
                 draw.name.glyphTable = 0;
                 draw.name.centerMode = 0;
@@ -2669,10 +2670,10 @@ void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
                 } else {
                     parent = obj->owner->parent;
                     if (parent != NULL) {
-                        parentObj         = parent->spawnArg2;
-                        Gp_ItemOrderMode  = 0;
-                        parentObj->status = mode;
-                        obj->status       = 0;
+                        parentObj                  = parent->spawnArg2;
+                        Gp_ItemOrderMode           = 0;
+                        parentObj->panel.field_0.w = mode;
+                        obj->panel.field_0.w       = 0;
                     }
                 }
             }
@@ -2684,12 +2685,12 @@ void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
                     if (child != NULL) {
                         s32 yOffset;
                         s32 xOffset;
-                        yOffset        = -0x5C;
-                        child->field_E = yOffset;
-                        xOffset        = -8;
-                        child->field_C = xOffset;
+                        yOffset                            = -0x5C;
+                        child->panel.bounds.unsignedRect.y = yOffset;
+                        xOffset                            = -8;
+                        child->panel.bounds.unsignedRect.x = xOffset;
                     }
-                    obj->status = 0;
+                    obj->panel.field_0.w = 0;
                 }
                 Gp_SelItemRec = rec;
             } else {
@@ -2698,8 +2699,8 @@ void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
                     SndEvt_EnqueueType6(3, 0, 0);
                     dialog = Ui_SpawnFromDesc(&D_8010EE6C, 4, 1, 1, obj);
                     if (dialog != NULL) {
-                        Ui_ClampDialogRect((UiPanel*)dialog, (UiPanel*)prompt, (UiPanel*)obj);
-                        obj->status = 0;
+                        Ui_ClampDialogRect(&(dialog)->panel, prompt, &(obj)->panel);
+                        obj->panel.field_0.w = 0;
                     }
                 } else {
                     Gp_CheckItemInfoButton(obj);
@@ -2746,7 +2747,7 @@ void Gp_ArmorMenuTask(Task* arg0)
     obj           = arg0->spawnArg2;
     cfg           = &Player_Status;
     obj->field_2E = 0;
-    Ui_DrawText((UiPanel*)obj, Gp_StrArmor);
+    Ui_DrawText(&(obj)->panel, Gp_StrArmor);
 
     if (arg0->state == 0) {
         s32 id;
@@ -2756,20 +2757,20 @@ void Gp_ArmorMenuTask(Task* arg0)
         if (id != 0) {
             menu->field_4 = Gp_GetModLevel(id);
         }
-        menu->field_5 = menu->field_4;
+        menu->field_5.u = menu->field_4;
         if ((s8)menu->field_4 >= 4) {
-            menu->field_5 = 3;
+            menu->field_5.u = 3;
         }
-        if ((menu->field_4 - (s8)menu->field_5) < (s8)menu->field_9) {
-            menu->field_9 = 0;
+        if ((menu->field_4 - (s8)menu->field_5.u) < (s8)menu->field_9.u) {
+            menu->field_9.u = 0;
         }
         if (menu->field_14 == 0) {
-            temp = (s8)menu->field_9 + (s8)menu->field_5;
+            temp = (s8)menu->field_9.u + (s8)menu->field_5.u;
             if (menu->field_10 >= temp) {
                 menu->field_10 = temp - 1;
             }
         }
-        Ui_InitList(menu, (UiMiniObj*)obj);
+        Ui_InitList(menu, &(obj)->panel);
         menu->field_17 = 0x1A;
         menu->field_A  = 1;
         arg0->state    = arg0->state + 2;
@@ -2789,22 +2790,22 @@ void Gp_ArmorMenuTask(Task* arg0)
         }
         {
             u8 n;
-            n             = menu->field_4;
-            menu->field_5 = n;
+            n               = menu->field_4;
+            menu->field_5.u = n;
             if ((s8)n >= 4) {
-                menu->field_5 = 3;
+                menu->field_5.u = 3;
             }
         }
-        if ((menu->field_4 - (s8)menu->field_5) < (s8)menu->field_9) {
-            menu->field_9 = 0;
+        if ((menu->field_4 - (s8)menu->field_5.u) < (s8)menu->field_9.u) {
+            menu->field_9.u = 0;
         }
         if (menu->field_14 == 0) {
-            temp = (s8)menu->field_9 + (s8)menu->field_5;
+            temp = (s8)menu->field_9.u + (s8)menu->field_5.u;
             if (menu->field_10 >= temp) {
                 menu->field_10 = temp - 1;
             }
         }
-        Ui_ComputeVisibleRows(menu, (UiPanel*)obj);
+        Ui_ComputeVisibleRows(menu, &(obj)->panel);
         menu->field_17 = 0x1A;
         menu->field_A  = 1;
     }
@@ -2812,7 +2813,7 @@ void Gp_ArmorMenuTask(Task* arg0)
     if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone(obj) == 0)) {
         Ui_SetState4(obj, obj->owner);
     } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone(obj) == 1)) {
-        Ui_ClampAnimOrClose((UiPanel*)obj, obj->owner, 0x10);
+        Ui_ClampAnimOrClose(&(obj)->panel, obj->owner, 0x10);
     }
 
     color = Ui_LookupTable(obj, 1);
@@ -2821,36 +2822,36 @@ void Gp_ArmorMenuTask(Task* arg0)
         {
             s32 t;
             s32 one;
-            t   = obj->status;
+            t   = obj->panel.field_0.w;
             one = 1;
             if (((t >> 16) == one) || (t == one)) {
                 if (Gp_ItemOrderMode == 0) {
                     if (item == 0) {
-                        Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
+                        Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
                     } else {
-                        Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
+                        Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
                     }
                     Gp_SetPreviewItem(item, 0);
                 } else {
-                    Ui_SetHolderParam((s32)Gp_StrSelectDest, 0, 0);
+                    Ui_SetHolderParam(Gp_StrSelectDest, 0, 0);
                 }
             }
         }
-        status      = obj->status;
-        obj->status = 0;
+        status               = obj->panel.field_0.w;
+        obj->panel.field_0.w = 0;
         Ui_UpdateListNoAnim(menu, obj);
-        obj->status = status;
+        obj->panel.field_0.w = status;
         if (status == 1) {
-            Ui_SmoothCursor((UiMiniObj*)obj, (s32)(s16)obj->field_1C, (s16)obj->field_18 + 7);
+            Ui_SmoothCursor(&(obj)->panel, (s32)(s16)obj->panel.field_1C.s, (s16)obj->panel.field_18.u + 7);
             if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
                 SndEvt_EnqueueType6(2, 0, 0);
                 arg0->state    = status;
-                menu->field_10 = (s8)menu->field_9;
+                menu->field_10 = (s8)menu->field_9.u;
             } else if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
                 SndEvt_EnqueueType6(2, 0, 0);
-                D_80114D98[0]->status = status;
-                D_8010E884.field_10   = D_8010E884.field_4 - 1;
-                obj->status           = 0;
+                D_80114D98[0]->panel.field_0.w = status;
+                D_8010E884.field_10            = D_8010E884.field_4 - 1;
+                obj->panel.field_0.w           = 0;
             } else {
                 s32 flag;
                 flag = Gp_ItemOrderMode;
@@ -2864,9 +2865,9 @@ void Gp_ArmorMenuTask(Task* arg0)
                     table = &table[scan->firstRow];
                     for (i = 0; i < scan->rowCount; i++, table++) {
                         if (table->itemId == item) {
-                            locals.x      = obj->field_1C + 2;
+                            locals.x      = obj->panel.field_1C.s + 2;
                             Gp_SelItemRec = table;
-                            locals.y      = obj->field_18 + 0xF;
+                            locals.y      = obj->panel.field_18.u + 0xF;
                             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
                                 SndEvt_EnqueueType6(3, 0, 0);
                                 func_800CF090(&D_8010E9F4, obj);
@@ -2877,15 +2878,15 @@ void Gp_ArmorMenuTask(Task* arg0)
                                     if (spawned != NULL) {
                                         s32 yOffset;
                                         s32 xOffset;
-                                        yOffset          = -0x5C;
-                                        spawned->field_E = yOffset;
-                                        xOffset          = -8;
-                                        spawned->field_C = xOffset;
+                                        yOffset                              = -0x5C;
+                                        spawned->panel.bounds.unsignedRect.y = yOffset;
+                                        xOffset                              = -8;
+                                        spawned->panel.bounds.unsignedRect.x = xOffset;
                                     }
-                                    obj->status = 0;
+                                    obj->panel.field_0.w = 0;
                                 } else {
                                     Gp_SpawnItemPrompt(obj, 0x15, 0, 1);
-                                    obj->status = 0;
+                                    obj->panel.field_0.w = 0;
                                 }
                             } else {
                                 Gp_CheckItemInfoButton(obj);
@@ -2904,10 +2905,10 @@ void Gp_ArmorMenuTask(Task* arg0)
                         parent = arg0->parent;
                         if (parent != 0) {
                             UiObject* po;
-                            po               = parent->spawnArg2;
-                            Gp_ItemOrderMode = 0;
-                            po->status       = flag;
-                            obj->status      = 0;
+                            po                   = parent->spawnArg2;
+                            Gp_ItemOrderMode     = 0;
+                            po->panel.field_0.w  = flag;
+                            obj->panel.field_0.w = 0;
                         }
                     }
                 }
@@ -2923,15 +2924,15 @@ void Gp_ArmorMenuTask(Task* arg0)
         }
     }
 
-    x = (s16)obj->field_1C + 2;
-    y = (s16)obj->field_18 + 0xF;
-    if (obj->mode != 5) {
+    x = (s16)obj->panel.field_1C.s + 2;
+    y = (s16)obj->panel.field_18.u + 0xF;
+    if (obj->panel.field_8 != 5) {
         s32 off;
         s32 temp;
-        locals.req.x          = obj->baseX + 0x11 + x;
-        off                   = obj->baseY - 6;
+        locals.req.x          = obj->panel.field_20.u + 0x11 + x;
+        off                   = obj->panel.field_22.u - 6;
         locals.req.y          = off + y;
-        locals.req.otIndex    = obj->drawOrder + 1;
+        locals.req.otIndex    = obj->panel.field_14.s + 1;
         locals.req.field_8    = color;
         locals.req.glyphTable = 0;
         locals.req.centerMode = 0;
@@ -2944,21 +2945,21 @@ void Gp_ArmorMenuTask(Task* arg0)
         Gp_DrawItemIcon(obj, x, y, item, 0);
     }
 
-    if ((obj->status == 1) && (arg0->state == 2)) {
-        obj->drawOrder += 1;
-        Ui_AllocTile((UiPanel*)obj, (s32)(s16)obj->field_1C, (s32)(s16)obj->field_18,
-                     ((s16)obj->field_1E - (s16)obj->field_1C) - 1, 0x10, 0x1741FU);
-        obj->drawOrder -= 1;
+    if ((obj->panel.field_0.w == 1) && (arg0->state == 2)) {
+        obj->panel.field_14.s += 1;
+        Ui_AllocTile(&(obj)->panel, (s32)(s16)obj->panel.field_1C.s, (s32)(s16)obj->panel.field_18.u,
+                     ((s16)obj->panel.field_1E.u - (s16)obj->panel.field_1C.s) - 1, 0x10, 0x1741FU);
+        obj->panel.field_14.s -= 1;
     }
 
-    Ui_DrawHBar((UiPanel*)obj, (s32)(s16)obj->field_1C, (s32)(s16)obj->field_1E, (s16)obj->field_18 + 0x11);
+    Ui_DrawHBar(&(obj)->panel, (s32)(s16)obj->panel.field_1C.s, (s32)(s16)obj->panel.field_1E.u, (s16)obj->panel.field_18.u + 0x11);
 
     {
         s32 grey;
         grey                  = 0x606060;
-        locals.req.x          = obj->baseX + 2 + obj->field_1C;
-        locals.req.y          = obj->baseY + 0x18 + obj->field_18;
-        locals.req.otIndex    = obj->drawOrder + 1;
+        locals.req.x          = obj->panel.field_20.u + 2 + obj->panel.field_1C.s;
+        locals.req.y          = obj->panel.field_22.u + 0x18 + obj->panel.field_18.u;
+        locals.req.otIndex    = obj->panel.field_14.s + 1;
         locals.req.field_8    = grey;
         locals.req.glyphTable = 5;
         locals.req.centerMode = 0;
@@ -2968,7 +2969,7 @@ void Gp_ArmorMenuTask(Task* arg0)
 
     {
         s32 st;
-        st = obj->status;
+        st = obj->panel.field_0.w;
         if (st == 1) {
             if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
                 obj->field_2E = -1;
@@ -2983,9 +2984,9 @@ void Gp_ArmorMenuTask(Task* arg0)
                         parentObj->field_2C = st;
                         parentObj->field_2E = 6;
                     } else {
-                        parentObj->status = st;
-                        obj->status       = 0;
-                        Gp_ItemOrderMode  = 0;
+                        parentObj->panel.field_0.w = st;
+                        obj->panel.field_0.w       = 0;
+                        Gp_ItemOrderMode           = 0;
                     }
                 }
             } else if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
@@ -3003,10 +3004,10 @@ void Gp_ArmorMenuTask(Task* arg0)
                     *(s32*)&locals.cursor = Ui_GetCursorFixed();
                     SndEvt_EnqueueType6(2, 0, 0);
                     other           = &D_8010E854;
-                    row             = locals.cursor.unk2 - (parentObj->baseY + parentObj->field_18);
+                    row             = locals.cursor.unk2 - (parentObj->panel.field_22.u + parentObj->panel.field_18.u);
                     row             = row / other->field_7;
-                    vis             = (s8)other->field_5;
-                    row9            = (s8)other->field_9;
+                    vis             = (s8)other->field_5.u;
+                    row9            = (s8)other->field_9.u;
                     sel             = row + row9;
                     other->field_10 = sel;
                     if (sel >= row9 + vis) {
@@ -3015,17 +3016,17 @@ void Gp_ArmorMenuTask(Task* arg0)
                     if (other->field_10 >= other->field_4) {
                         other->field_10 = other->field_4 - 1;
                     }
-                    parentObj->status = st;
-                    obj->status       = 0;
+                    parentObj->panel.field_0.w = st;
+                    obj->panel.field_0.w       = 0;
                 }
             }
         }
     }
 
-    if (obj->status == 0x17) {
+    if (obj->panel.field_0.w == 0x17) {
         s32 t;
 
-        t = obj->field_2C - ((s16)obj->baseY + (s16)obj->field_18);
+        t = obj->field_2C - ((s16)obj->panel.field_22.u + (s16)obj->panel.field_18.u);
         if (t < 0xF) {
             arg0->state = 2;
         } else {
@@ -3035,14 +3036,14 @@ void Gp_ArmorMenuTask(Task* arg0)
             h           = menu->field_7;
             t          -= h * 2 + 0xA;
             if (t < 0) {
-                menu->field_10 = (s8)menu->field_9;
+                menu->field_10 = (s8)menu->field_9.u;
             } else {
                 s32          row9;
                 s32          f5;
                 register s32 vis asm("a0");
                 t    = t / h;
-                row9 = (s8)menu->field_9;
-                f5   = (s8)menu->field_5;
+                row9 = (s8)menu->field_9.u;
+                f5   = (s8)menu->field_5.u;
                 vis  = row9;
                 TOUCH_REG(vis);
                 vis            = vis + f5;
@@ -3051,8 +3052,8 @@ void Gp_ArmorMenuTask(Task* arg0)
                 _gpClampArmorRow(menu, vis);
             }
         }
-        obj->field_2C = 0;
-        obj->status   = 1;
+        obj->field_2C        = 0;
+        obj->panel.field_0.w = 1;
     }
 
     {
@@ -3081,14 +3082,14 @@ void Gp_ArmorMenuTask(Task* arg0)
                         break;
                     case 6:
                         Ui_TeardownTree(childObj, childObj->owner);
-                        obj->status   = one;
-                        obj->field_4 &= mask;
+                        obj->panel.field_0.w = one;
+                        obj->panel.field_4  &= mask;
                         break;
                     case 0x23:
                         Ui_TeardownTree(childObj, childObj->owner);
-                        obj->status      = one;
-                        Gp_ItemOrderMode = one;
-                        obj->field_4    &= mask;
+                        obj->panel.field_0.w = one;
+                        Gp_ItemOrderMode     = one;
+                        obj->panel.field_4  &= mask;
                         break;
                 }
                 head  = owner->firstChild;
@@ -3145,7 +3146,7 @@ static McItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2)
     return rec;
 }
 
-void Gp_DrawRemoveArmorRow(DialogPrompt* prompt, UiObject* obj)
+void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
 {
     McItemScan* scan;
     McItemRec*  rec;
@@ -3168,9 +3169,9 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* prompt, UiObject* obj)
             color = prompt->field_1C;
             if ((u32)(item - 0xA0) < 0x20U) {
                 qty            = rec->qty - Gp_CountEquippedRelated(scan, item);
-                req.x          = obj->baseX + 0x84 + x;
-                req.y          = obj->baseY + (y - 3);
-                req.otIndex    = obj->drawOrder + 1;
+                req.x          = obj->panel.field_20.u + 0x84 + x;
+                req.y          = obj->panel.field_22.u + (y - 3);
+                req.otIndex    = obj->panel.field_14.s + 1;
                 req.field_8    = color;
                 req.glyphTable = 5;
                 req.centerMode = 2;
@@ -3186,11 +3187,11 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* prompt, UiObject* obj)
             _gpDrawItemName(prompt, obj, item, 1);
         }
 
-        if (((obj->status >> 16) == 1 || obj->status == 1) && prompt->field_10 == prompt->field_8) {
+        if (((obj->panel.field_0.w >> 16) == 1 || obj->panel.field_0.w == 1) && prompt->field_10 == prompt->field_8) {
             if (item == 0) {
-                Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
+                Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             } else {
-                Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
+                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
             }
         }
 
@@ -3217,21 +3218,21 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* prompt, UiObject* obj)
             } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
                 SndEvt_EnqueueType6(3, 0, 0);
                 Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, obj);
-                obj->status = 0;
+                obj->panel.field_0.w = 0;
             }
         }
     } else {
-        if (((obj->status >> 16) == 1 || obj->status == 1) && prompt->field_10 == prompt->field_8) {
-            Ui_SetHolderParam((s32)Gp_StrDetachArmorHelp, 0, 0);
+        if (((obj->panel.field_0.w >> 16) == 1 || obj->panel.field_0.w == 1) && prompt->field_10 == prompt->field_8) {
+            Ui_SetHolderParam(Gp_StrDetachArmorHelp, 0, 0);
         }
         {
             TextDrawReq req;
             s32         off;
 
-            req.x          = obj->baseX + prompt->field_18;
-            off            = obj->baseY - 6;
+            req.x          = obj->panel.field_20.u + prompt->field_18;
+            off            = obj->panel.field_22.u - 6;
             req.y          = prompt->field_1A + off;
-            req.otIndex    = obj->drawOrder + 1;
+            req.otIndex    = obj->panel.field_14.s + 1;
             req.field_8    = prompt->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -3281,8 +3282,8 @@ static void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
         }
         count++;
     }
-    arg0->field_4 = count + 1;
-    arg0->field_5 = 4;
+    arg0->field_4   = count + 1;
+    arg0->field_5.u = 4;
 }
 
 void Gp_EquipSelectMenuTask(Task* arg0)
@@ -3296,29 +3297,29 @@ void Gp_EquipSelectMenuTask(Task* arg0)
     obj           = arg0->spawnArg2;
     menu          = &D_8010E8D4;
     obj->field_2E = 0;
-    Ui_DrawText((UiPanel*)obj, Gp_StrSelectTitle);
+    Ui_DrawText(&(obj)->panel, Gp_StrSelectTitle);
     val = 0;
     if (arg0->state == 0) {
         Gp_CountEquippableRows(menu, obj);
-        Ui_LayoutListPanel(menu, (UiPanel*)obj);
-        menu->field_17 += 0x4C;
-        obj->field_12  += 0x4C;
-        menu->field_A   = 1;
-        menu->field_10  = 0;
-        menu->field_9   = 0;
-        parent          = arg0->parent;
+        Ui_LayoutListPanel(menu, &(obj)->panel);
+        menu->field_17                   += 0x4C;
+        obj->panel.bounds.unsignedRect.h += 0x4C;
+        menu->field_A                     = 1;
+        menu->field_10                    = 0;
+        menu->field_9.u                   = 0;
+        parent                            = arg0->parent;
         Ui_SetState4(parent->spawnArg2, parent);
         Ui_SpawnFromDesc(&D_8010EC3C, 3, val, 0x10, obj);
         arg0->state = arg0->state + 1;
     }
-    Ui_DrawHBar((UiPanel*)obj, obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x4A);
+    Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, (s16)obj->panel.field_18.u + 0x4A);
     Ui_UpdateListNoAnim(menu, obj);
     rec = Gp_NthEquippableRec(&Mc_SaveData[0].carriedItems, menu->field_10, 0);
     if (rec != NULL) {
         val = rec->itemId;
     }
     Gp_ItemRowSelect(menu, obj, val, 2);
-    if (obj->status == 1) {
+    if (obj->panel.field_0.w == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
@@ -3441,10 +3442,10 @@ static inline void _gpDrawItemNameUnmarkedInto(UiObject* obj, TextDrawReq* req, 
 {
     s32 temp;
 
-    if (obj->mode != 5) {
-        req->x          = obj->baseX + 0x11 + x;
-        req->y          = obj->baseY + (y - 6);
-        req->otIndex    = obj->drawOrder + 1;
+    if (obj->panel.field_8 != 5) {
+        req->x          = obj->panel.field_20.u + 0x11 + x;
+        req->y          = obj->panel.field_22.u + (y - 6);
+        req->otIndex    = obj->panel.field_14.s + 1;
         req->field_8    = color;
         req->glyphTable = 0;
         req->centerMode = 0;
@@ -3528,7 +3529,7 @@ void func_800C5F70(Task* arg0)
     if (arg0->state == 0) {
         if ((D_80067634 != NULL) && (D_80067634 != obj)) {
             Task_CallExit(D_80067634->owner);
-            obj->timer = 0x14;
+            obj->panel.field_16 = 0x14;
         }
         D_80067634         = obj;
         arg0->exitCallback = func_800CF330;
@@ -3543,11 +3544,11 @@ void func_800C5F70(Task* arg0)
         }
     } else {
         if (arg0->spawnArg1 & 0x20000) {
-            Ui_DrawText((UiPanel*)obj, Gp_StrNextReplay);
+            Ui_DrawText(&(obj)->panel, Gp_StrNextReplay);
         } else {
-            Ui_DrawText((UiPanel*)obj, Gp_StrSpecs);
+            Ui_DrawText(&(obj)->panel, Gp_StrSpecs);
         }
-        if (obj->mode == 2) {
+        if (obj->panel.field_8 == 2) {
             GameMain_SetFrameTiming(1);
         }
         state = arg0->state;
@@ -3583,16 +3584,16 @@ void func_800C5F70(Task* arg0)
                     lines = 2;
                 }
             }
-            menu->field_10 = 0;
-            menu->field_9  = 0;
-            menu->field_5  = lines;
-            menu->field_4  = lines;
-            Ui_InitList(menu, (UiMiniObj*)obj);
-            if ((s8)menu->field_5 >= 7) {
-                menu->field_5 = 6;
+            menu->field_10  = 0;
+            menu->field_9.u = 0;
+            menu->field_5.u = lines;
+            menu->field_4   = lines;
+            Ui_InitList(menu, &(obj)->panel);
+            if ((s8)menu->field_5.u >= 7) {
+                menu->field_5.u = 6;
             }
             menu->field_A  = 1;
-            menu->field_17 = -(s32)(u8)obj->field_18 + 7;
+            menu->field_17 = -(s32)(u8)obj->panel.field_18.u + 7;
             arg0->state    = 3;
         }
         goto hbar_setup;
@@ -3605,19 +3606,19 @@ void func_800C5F70(Task* arg0)
     hbar_setup:
         if (item >= 0x500) {
             flags |= 0x400;
-            Ui_DrawHBar((UiPanel*)obj, obj->field_1C, (s16)obj->field_1E, 0x25);
+            Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, 0x25);
         } else {
-            Ui_DrawHBar((UiPanel*)obj, obj->field_1C, (s16)obj->field_1E, 5);
+            Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, 5);
         }
         if (ready == 1) {
             x       = 2;
             payload = Fs_GetChunkPayload();
-            y       = (s16)obj->field_18 + 0x1E;
+            y       = (s16)obj->panel.field_18.u + 0x1E;
             for (i = 0; i < 5; i++) {
-                req20.x          = obj->baseX + x;
-                req20.y          = obj->baseY + y;
+                req20.x          = obj->panel.field_20.u + x;
+                req20.y          = obj->panel.field_22.u + y;
                 y               += 0xF;
-                req20.otIndex    = obj->drawOrder + 1;
+                req20.otIndex    = obj->panel.field_14.s + 1;
                 req20.field_8    = 0x606060;
                 req20.glyphTable = 0;
                 req20.centerMode = 0;
@@ -3625,25 +3626,25 @@ void func_800C5F70(Task* arg0)
                 func_8002E53C(&req20, Text_SkipLines(payload, i));
             }
             if (item >= 0x500) {
-                Text_DrawMultiLine(obj, obj->field_1C + 2, 0x34, Text_SkipLines(payload, 5),
+                Text_DrawMultiLine(obj, obj->panel.field_1C.s + 2, 0x34, Text_SkipLines(payload, 5),
                                    0x606060, 3, 0);
             } else {
-                saved       = obj->status;
-                obj->status = 0;
+                saved                = obj->panel.field_0.w;
+                obj->panel.field_0.w = 0;
                 Ui_UpdateListNoAnim(menu, obj);
-                obj->status = saved;
-                if ((saved == 1) && ((s32)menu->field_4 > (s8)menu->field_5)) {
+                obj->panel.field_0.w = saved;
+                if ((saved == 1) && ((s32)menu->field_4 > (s8)menu->field_5.u)) {
                     if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
-                        menu->field_9 = menu->field_9 - 1;
-                        if ((s8)menu->field_9 < 0) {
-                            menu->field_9 = 0;
+                        menu->field_9.u = menu->field_9.u - 1;
+                        if ((s8)menu->field_9.u < 0) {
+                            menu->field_9.u = 0;
                         } else {
                             menu->field_16 = -1;
                             menu->field_14 = (s8)menu->field_7;
                         }
-                        menu->field_10 = (s8)menu->field_9;
+                        menu->field_10 = (s8)menu->field_9.u;
                     } else if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
-                        menu->field_10 = (s8)menu->field_9 + (s8)menu->field_5;
+                        menu->field_10 = (s8)menu->field_9.u + (s8)menu->field_5.u;
                         if (menu->field_10 < (s32)menu->field_4) {
                             menu->field_16 = saved;
                             menu->field_14 = (s8)menu->field_7;
@@ -3651,25 +3652,25 @@ void func_800C5F70(Task* arg0)
                             menu->field_10 = menu->field_4 - 1;
                         }
                     } else if (Pad_CheckButtons(0, 1, 4) != 0) {
-                        if ((s8)menu->field_9 > 0) {
-                            menu->field_9 = menu->field_9 - menu->field_5;
-                            if ((s8)menu->field_9 < 0) {
-                                menu->field_9 = 0;
+                        if ((s8)menu->field_9.u > 0) {
+                            menu->field_9.u = menu->field_9.u - menu->field_5.u;
+                            if ((s8)menu->field_9.u < 0) {
+                                menu->field_9.u = 0;
                             }
-                            menu->field_10 = (s8)menu->field_9;
+                            menu->field_10 = (s8)menu->field_9.u;
                         }
                     } else if (Pad_CheckButtons(0, 1, 8) != 0) {
-                        if ((s8)menu->field_9 < (menu->field_4 - (s8)menu->field_5)) {
-                            menu->field_9 += menu->field_5;
-                            if ((s8)menu->field_9 > (menu->field_4 - (s8)menu->field_5)) {
-                                menu->field_9 = menu->field_4 - menu->field_5;
+                        if ((s8)menu->field_9.u < (menu->field_4 - (s8)menu->field_5.u)) {
+                            menu->field_9.u += menu->field_5.u;
+                            if ((s8)menu->field_9.u > (menu->field_4 - (s8)menu->field_5.u)) {
+                                menu->field_9.u = menu->field_4 - menu->field_5.u;
                             }
-                            menu->field_10 = ((s8)menu->field_9 + (s8)menu->field_5) - 1;
+                            menu->field_10 = ((s8)menu->field_9.u + (s8)menu->field_5.u) - 1;
                         }
                     }
                 }
             }
-            func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags);
+            func_800C7AE8(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 2, flags);
             if ((u32)(item - 0x80) < 0x20U) {
                 spriteCount = 1;
                 if ((Gp_GetItemSlot(item)->attachId != 0xFF) || (item == 0x8F) || (item == 0x93) ||
@@ -3680,7 +3681,7 @@ void func_800C5F70(Task* arg0)
                 h       = 0xF;
                 spriteW = h;
                 spriteI = 0;
-                x       = obj->field_1C + 2;
+                x       = obj->panel.field_1C.s + 2;
                 if (spriteCount != 0) {
                     do {
                         sprt           = (SPRT*)gGpuPrimCursor;
@@ -3711,15 +3712,15 @@ void func_800C5F70(Task* arg0)
                         sprt->w = spriteW;
                         sprt->h = h;
                         setcode(sprt, 0x65);
-                        addPrim(gGpuCurrentOt + obj->drawOrder + 1, sprt);
+                        addPrim(gGpuCurrentOt + obj->panel.field_14.s + 1, sprt);
                         spriteI++;
                     } while (spriteI < spriteCount);
                 }
-                Ui_InsertDrawTPage(obj->drawOrder + 1, 0);
-                x                = obj->field_1C + 2;
-                req30.x          = obj->baseX + x;
-                req30.y          = obj->baseY + 0x40;
-                req30.otIndex    = obj->drawOrder + 1;
+                Ui_InsertDrawTPage(obj->panel.field_14.s + 1, 0);
+                x                = obj->panel.field_1C.s + 2;
+                req30.x          = obj->panel.field_20.u + x;
+                req30.y          = obj->panel.field_22.u + 0x40;
+                req30.otIndex    = obj->panel.field_14.s + 1;
                 req30.glyphTable = 5;
                 req30.field_8    = 0x606060;
                 req30.centerMode = 0;
@@ -3733,28 +3734,28 @@ void func_800C5F70(Task* arg0)
                 text      = Gp_StrAddHp;
                 SOFT_TOUCH_REG_USE(text, attr);
                 flags            = *(u32*)attr;
-                y                = (s16)obj->field_18 + 0x1E;
-                req30.x          = obj->baseX + x;
-                req30.y          = obj->baseY + (y - 2);
-                req30.otIndex    = obj->drawOrder + 1;
+                y                = (s16)obj->panel.field_18.u + 0x1E;
+                req30.x          = obj->panel.field_20.u + x;
+                req30.y          = obj->panel.field_22.u + (y - 2);
+                req30.otIndex    = obj->panel.field_14.s + 1;
                 req30.glyphTable = 5;
                 req30.field_8    = 0x606060;
                 req30.centerMode = 0;
                 req30.field_E    = 1;
                 func_8002E53C(&req30, text);
                 if (attr->field_4 == 0) {
-                    req60.x          = obj->baseX + 0x78;
-                    req60.y          = obj->baseY + y;
-                    req60.otIndex    = obj->drawOrder + 1;
+                    req60.x          = obj->panel.field_20.u + 0x78;
+                    req60.y          = obj->panel.field_22.u + y;
+                    req60.otIndex    = obj->panel.field_14.s + 1;
                     req60.field_8    = 0x606060;
                     req60.glyphTable = 0;
                     req60.centerMode = 2;
                     req60.field_E    = 3;
                     func_8002E53C(&req60, D_8009707C);
                 } else {
-                    req60.x          = obj->baseX + 0x7A;
-                    req60.y          = obj->baseY + y;
-                    req60.otIndex    = obj->drawOrder + 1;
+                    req60.x          = obj->panel.field_20.u + 0x7A;
+                    req60.y          = obj->panel.field_22.u + y;
+                    req60.otIndex    = obj->panel.field_14.s + 1;
                     req60.field_8    = altColor;
                     req60.glyphTable = 0;
                     req60.centerMode = 2;
@@ -3763,27 +3764,27 @@ void func_800C5F70(Task* arg0)
                 }
                 y += 0xF;
 
-                req60.x          = obj->baseX + x;
-                req60.y          = obj->baseY + (y - 2);
-                req60.otIndex    = obj->drawOrder + 1;
+                req60.x          = obj->panel.field_20.u + x;
+                req60.y          = obj->panel.field_22.u + (y - 2);
+                req60.otIndex    = obj->panel.field_14.s + 1;
                 req60.glyphTable = 5;
                 req60.field_8    = 0x606060;
                 req60.centerMode = 0;
                 req60.field_E    = 1;
                 func_8002E53C(&req60, Gp_StrAddMp);
                 if (attr->field_6 == 0) {
-                    req70.x          = obj->baseX + 0x76 + x;
-                    req70.y          = obj->baseY + y;
-                    req70.otIndex    = obj->drawOrder + 1;
+                    req70.x          = obj->panel.field_20.u + 0x76 + x;
+                    req70.y          = obj->panel.field_22.u + y;
+                    req70.otIndex    = obj->panel.field_14.s + 1;
                     req70.centerMode = 2;
                     req70.field_8    = 0x606060;
                     req70.glyphTable = 0;
                     req70.field_E    = 3;
                     func_8002E53C(&req70, D_8009707C);
                 } else {
-                    req70.x          = obj->baseX + 0x78 + x;
-                    req70.y          = obj->baseY + y;
-                    req70.otIndex    = obj->drawOrder + 1;
+                    req70.x          = obj->panel.field_20.u + 0x78 + x;
+                    req70.y          = obj->panel.field_22.u + y;
+                    req70.otIndex    = obj->panel.field_14.s + 1;
                     req70.centerMode = 2;
                     req70.field_8    = altColor;
                     req70.glyphTable = 0;
@@ -3792,27 +3793,27 @@ void func_800C5F70(Task* arg0)
                 }
                 y += 0xF;
 
-                req70.x          = obj->baseX + x;
-                req70.y          = obj->baseY + (y - 2);
-                req70.otIndex    = obj->drawOrder + 1;
+                req70.x          = obj->panel.field_20.u + x;
+                req70.y          = obj->panel.field_22.u + (y - 2);
+                req70.otIndex    = obj->panel.field_14.s + 1;
                 req70.field_8    = 0x606060;
                 req70.glyphTable = 5;
                 req70.centerMode = 0;
                 req70.field_E    = 1;
                 func_8002E53C(&req70, Gp_StrAttachments3);
                 featIndex        = 0;
-                req80.x          = obj->baseX + 0x78 + x;
-                req80.y          = obj->baseY + y;
-                req80.otIndex    = obj->drawOrder + 1;
+                req80.x          = obj->panel.field_20.u + 0x78 + x;
+                req80.y          = obj->panel.field_22.u + y;
+                req80.otIndex    = obj->panel.field_14.s + 1;
                 y               += 0xF;
                 req80.centerMode = 2;
                 req80.field_8    = altColor;
                 req80.glyphTable = 0;
                 req80.field_E    = 3;
                 func_8002E53C(&req80, Text_ItoaUnsigned(buf40, Gp_GetModLevel(item)));
-                req90.x          = obj->baseX + x;
-                req90.y          = obj->baseY + (y - 2);
-                req90.otIndex    = obj->drawOrder + 1;
+                req90.x          = obj->panel.field_20.u + x;
+                req90.y          = obj->panel.field_22.u + (y - 2);
+                req90.otIndex    = obj->panel.field_14.s + 1;
                 y               += 8;
                 req90.field_8    = 0x606060;
                 req90.glyphTable = 5;
@@ -3822,9 +3823,9 @@ void func_800C5F70(Task* arg0)
                 names = Gp_FeatNameTbl;
                 do {
                     if (flags & 1) {
-                        reqA0.x          = obj->baseX + 8 + x;
-                        reqA0.y          = obj->baseY + y;
-                        reqA0.otIndex    = obj->drawOrder + 1;
+                        reqA0.x          = obj->panel.field_20.u + 8 + x;
+                        reqA0.y          = obj->panel.field_22.u + y;
+                        reqA0.otIndex    = obj->panel.field_14.s + 1;
                         reqA0.field_8    = 0x606060;
                         reqA0.glyphTable = 0;
                         reqA0.centerMode = 0;
@@ -3840,10 +3841,10 @@ void func_800C5F70(Task* arg0)
                     featIndex++;
                     names++;
                 } while (featIndex < 0xD);
-                x                = obj->field_1C + 2;
-                reqB0.x          = obj->baseX + x;
-                reqB0.y          = obj->baseY + 0x40;
-                reqB0.otIndex    = obj->drawOrder + 1;
+                x                = obj->panel.field_1C.s + 2;
+                reqB0.x          = obj->panel.field_20.u + x;
+                reqB0.y          = obj->panel.field_22.u + 0x40;
+                reqB0.otIndex    = obj->panel.field_14.s + 1;
                 reqB0.glyphTable = 5;
                 reqB0.field_8    = 0x606060;
                 reqB0.centerMode = 0;
@@ -3856,10 +3857,10 @@ void func_800C5F70(Task* arg0)
                     desc     = descBase + item;
                     TOUCH_REG(desc);
                     caliber          = desc->field_2 & 0xF;
-                    baseY            = (s16)obj->field_18;
-                    reqB0.x          = obj->baseX + 2;
-                    reqB0.y          = obj->baseY + baseY + 0x1C;
-                    reqB0.otIndex    = obj->drawOrder + 1;
+                    baseY            = (s16)obj->panel.field_18.u;
+                    reqB0.x          = obj->panel.field_20.u + 2;
+                    reqB0.y          = obj->panel.field_22.u + baseY + 0x1C;
+                    reqB0.otIndex    = obj->panel.field_14.s + 1;
                     reqB0.glyphTable = 5;
                     textColor        = 0x606060;
                     reqB0.field_8    = textColor;
@@ -3871,17 +3872,17 @@ void func_800C5F70(Task* arg0)
                     rec      = recBase + recIndex;
                     Text_ItoaSigned(bufC0, rec->field_0);
                     y                 = baseY + 0x2D;
-                    req100.x          = obj->baseX + 2;
-                    req100.y          = obj->baseY + (y - 2);
-                    req100.otIndex    = obj->drawOrder + 1;
+                    req100.x          = obj->panel.field_20.u + 2;
+                    req100.y          = obj->panel.field_22.u + (y - 2);
+                    req100.otIndex    = obj->panel.field_14.s + 1;
                     req100.glyphTable = 5;
                     req100.field_8    = textColor;
                     req100.centerMode = 0;
                     req100.field_E    = 1;
                     func_8002E53C(&req100, Gp_StrPowerCaps);
-                    req110.x          = obj->baseX + 0x4C;
-                    req110.y          = obj->baseY + y;
-                    req110.otIndex    = obj->drawOrder + 1;
+                    req110.x          = obj->panel.field_20.u + 0x4C;
+                    req110.y          = obj->panel.field_22.u + y;
+                    req110.otIndex    = obj->panel.field_14.s + 1;
                     req110.field_8    = textColor;
                     req110.glyphTable = 0;
                     req110.centerMode = 0;
@@ -3892,17 +3893,17 @@ void func_800C5F70(Task* arg0)
                     Text_Strcat(bufC0, Gp_StrSlash);
                     Text_Strcat(bufC0, bufE0);
                     y                 = baseY + 0x3C;
-                    req120.x          = obj->baseX + 2;
-                    req120.y          = obj->baseY + (y - 2);
-                    req120.otIndex    = obj->drawOrder + 1;
+                    req120.x          = obj->panel.field_20.u + 2;
+                    req120.y          = obj->panel.field_22.u + (y - 2);
+                    req120.otIndex    = obj->panel.field_14.s + 1;
                     req120.glyphTable = 5;
                     req120.field_8    = textColor;
                     req120.centerMode = 0;
                     req120.field_E    = 1;
                     func_8002E53C(&req120, Gp_StrCapacity);
-                    req130.x          = obj->baseX + 0x4C;
-                    req130.y          = obj->baseY + y;
-                    req130.otIndex    = obj->drawOrder + 1;
+                    req130.x          = obj->panel.field_20.u + 0x4C;
+                    req130.y          = obj->panel.field_22.u + y;
+                    req130.otIndex    = obj->panel.field_14.s + 1;
                     req130.field_8    = textColor;
                     req130.glyphTable = 0;
                     req130.centerMode = 0;
@@ -3910,27 +3911,27 @@ void func_800C5F70(Task* arg0)
                     func_8002E53C(&req130, bufC0);
                     y = baseY + 0x4B;
                     if (rec->field_4 != 0) {
-                        req140.x          = obj->baseX + 2;
-                        req140.y          = obj->baseY + (y - 2);
-                        req140.otIndex    = obj->drawOrder + 1;
+                        req140.x          = obj->panel.field_20.u + 2;
+                        req140.y          = obj->panel.field_22.u + (y - 2);
+                        req140.otIndex    = obj->panel.field_14.s + 1;
                         req140.glyphTable = 5;
                         req140.field_8    = textColor;
                         req140.centerMode = 0;
                         req140.field_E    = 1;
                         func_8002E53C(&req140, Gp_StrSpecial);
-                        req150.x          = obj->baseX + 0x4C;
-                        req150.y          = obj->baseY + y;
-                        req150.otIndex    = obj->drawOrder + 1;
+                        req150.x          = obj->panel.field_20.u + 0x4C;
+                        req150.y          = obj->panel.field_22.u + y;
+                        req150.otIndex    = obj->panel.field_14.s + 1;
                         req150.field_8    = 0xD287F;
                         req150.glyphTable = 0;
                         req150.centerMode = 0;
                         req150.field_E    = 3;
                         func_8002E53C(&req150, D_8010E7C0[rec->field_4]);
                     }
-                    x                 = obj->field_1C + 2;
-                    req140.x          = obj->baseX + x;
-                    req140.y          = obj->baseY + 0x40;
-                    req140.otIndex    = obj->drawOrder + 1;
+                    x                 = obj->panel.field_1C.s + 2;
+                    req140.x          = obj->panel.field_20.u + x;
+                    req140.y          = obj->panel.field_22.u + 0x40;
+                    req140.otIndex    = obj->panel.field_14.s + 1;
                     req140.glyphTable = 5;
                     req140.field_8    = textColor;
                     req140.centerMode = 0;
@@ -3939,10 +3940,10 @@ void func_800C5F70(Task* arg0)
                 }
             }
         } else {
-            func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags | 0x100);
+            func_800C7AE8(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 2, flags | 0x100);
         }
-        _gpDrawItemNameUnmarkedInto(obj, &req30, 2, (s16)obj->field_18 + 0xF, 0x606060, item);
-        if ((obj->status == 1) && (CdCmd_IsIdle() & 0xFFFF)) {
+        _gpDrawItemNameUnmarkedInto(obj, &req30, 2, (s16)obj->panel.field_18.u + 0xF, 0x606060, item);
+        if ((obj->panel.field_0.w == 1) && (CdCmd_IsIdle() & 0xFFFF)) {
             if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskConfirm | 0x10) != 0) {
                 if (!(arg0->spawnArg1 & 0x20000)) {
                     SndEvt_EnqueueType6(4, 0, 0);
@@ -3984,37 +3985,37 @@ void Gp_UseKeyItemRow(Task* arg0)
             if (width < other) {
                 width = other;
             }
-            Ui_UpdateLayoutSize((UiPanel*)obj, width + 5, Ui_Scale15(2) + 1);
-            ((UiPanel*)obj)->field_C.x = (-((UiPanel*)obj)->field_C.w) >> 1;
-            obj->field_4              &= 0x7FFFFFFF;
+            Ui_UpdateLayoutSize(&(obj)->panel, width + 5, Ui_Scale15(2) + 1);
+            (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
+            obj->panel.field_4            &= 0x7FFFFFFF;
         } else if (ret == 2) {
             Ui_SetState4(obj, arg0);
-            obj->field_2E = -1;
-            obj->timer    = 0x64;
-            arg0->state   = arg0->state + 1;
+            obj->field_2E       = -1;
+            obj->panel.field_16 = 0x64;
+            arg0->state         = arg0->state + 1;
         } else {
             arg0->spawnArg1 = -1;
-            Ui_SizeFromTextPlain((UiPanel*)obj, Gp_StrNoUseNow);
-            obj->field_4 &= 0x7FFFFFFF;
+            Ui_SizeFromTextPlain(&(obj)->panel, Gp_StrNoUseNow);
+            obj->panel.field_4 &= 0x7FFFFFFF;
         }
         arg0->killCountdown = 0xBC;
         arg0->state         = arg0->state + 1;
     }
     if (arg0->state != 2) {
-        Ui_DrawText((UiPanel*)obj, Gp_StrNotice);
+        Ui_DrawText(&(obj)->panel, Gp_StrNotice);
         if (arg0->spawnArg1 == -1) {
             color = Ui_LookupTable(obj, 1);
-            Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, Gp_StrNoUseNow, color, 1, 0);
+            Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, Gp_StrNoUseNow, color, 1, 0);
         } else {
             color = Ui_LookupTable(obj, 1);
             one   = 1;
-            Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, Gp_StrUsed, color, one, 0);
+            Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, Gp_StrUsed, color, one, 0);
             text  = Gp_GetItemText(arg0->spawnArg1, 0, 0);
-            width = Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0x1E, text, 0x37A78, one, 0);
-            Text_DrawPrompt(obj, width, (s16)obj->field_18 + 0x1E, Gp_StrDot, 0x606060, one, 0);
+            width = Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0x1E, text, 0x37A78, one, 0);
+            Text_DrawPrompt(obj, width, (s16)obj->panel.field_18.u + 0x1E, Gp_StrDot, 0x606060, one, 0);
         }
         arg0->killCountdown = arg0->killCountdown - gDisplayState.frameTicks;
-        if (obj->status == 1) {
+        if (obj->panel.field_0.w == 1) {
             if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
                 obj->field_2E = -1;
             } else if ((arg0->killCountdown <= 0) ||
@@ -4036,6 +4037,7 @@ void Gp_UseKeyItemRow(Task* arg0)
 
 void Gp_KeyItemSubMenuTask(Task* arg0)
 {
+    Task*     childTask;
     UiObject* obj;
     UiList*   menu;
     UiObject* child;
@@ -4045,12 +4047,12 @@ void Gp_KeyItemSubMenuTask(Task* arg0)
     obj->field_2E = 0;
     menu          = &D_8010E938;
     if (arg0->state == 0) {
-        obj->field_10 = 0x60;
-        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        obj->panel.bounds.unsignedRect.w = 0x60;
+        Ui_LayoutListPanel(menu, &(obj)->panel);
         arg0->state = arg0->state + 1;
     }
     Ui_UpdateListNoAnim(menu, obj);
-    if (obj->status == 1) {
+    if (obj->panel.field_0.w == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
@@ -4058,9 +4060,9 @@ void Gp_KeyItemSubMenuTask(Task* arg0)
             obj->field_2E = 6;
         }
     }
-    child = (UiObject*)arg0->firstChild;
-    if (child != NULL) {
-        child = ((Task*)child)->spawnArg2;
+    childTask = arg0->firstChild;
+    if (childTask != NULL) {
+        child = childTask->spawnArg2;
         flag  = child->field_2E;
         switch (flag) {
             case -1:
@@ -4068,7 +4070,7 @@ void Gp_KeyItemSubMenuTask(Task* arg0)
                 break;
             case 6:
                 Ui_TeardownTree(child, child->owner);
-                obj->status = 1;
+                obj->panel.field_0.w = 1;
                 break;
             case 9:
                 obj->field_2E = 6;
@@ -4077,7 +4079,7 @@ void Gp_KeyItemSubMenuTask(Task* arg0)
     }
 }
 
-void Gp_DrawCollectedRow(DialogPrompt* arg0, UiObject* arg1)
+void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
 {
     TextDrawReq req;
     s32         item;
@@ -4097,11 +4099,11 @@ void Gp_DrawCollectedRow(DialogPrompt* arg0, UiObject* arg1)
     x     = arg0->field_18;
     y     = arg0->field_1A;
     color = arg0->field_1C;
-    if (arg1->mode != 5) {
-        req.x          = arg1->baseX + 0x11 + x;
-        baseY          = arg1->baseY - 6;
+    if (arg1->panel.field_8 != 5) {
+        req.x          = arg1->panel.field_20.u + 0x11 + x;
+        baseY          = arg1->panel.field_22.u - 6;
         req.y          = baseY + y;
-        req.otIndex    = arg1->drawOrder + 1;
+        req.otIndex    = arg1->panel.field_14.s + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -4114,7 +4116,7 @@ void Gp_DrawCollectedRow(DialogPrompt* arg0, UiObject* arg1)
         Gp_DrawItemIcon(arg1, x, y, item, 0);
     }
 
-    status = arg1->status;
+    status = arg1->panel.field_0.w;
     one    = 1;
     if (((status >> 16) == one) || (status == one)) {
         if (arg0->field_10 == arg0->field_8) {
@@ -4131,9 +4133,9 @@ void Gp_DrawCollectedRow(DialogPrompt* arg0, UiObject* arg1)
                 Gp_EnqueueItemPreviewCd(item, 0);
             }
             if (item == 0) {
-                Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
+                Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             } else {
-                Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
+                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
             }
         }
     }
@@ -4144,18 +4146,18 @@ void Gp_DrawCollectedRow(DialogPrompt* arg0, UiObject* arg1)
             SndEvt_EnqueueType6(3, 0, 0);
             if (gGameSession->cutsceneHold == flag) {
                 Ui_SpawnFromDesc(&D_8010EF84, 0, 1, 1, arg1);
-                arg1->status = 0;
+                arg1->panel.field_0.w = 0;
             } else {
                 obj = Ui_SpawnFromDesc(&D_8010EF68, item, 1, 1, arg1);
                 if (obj != NULL) {
-                    Ui_ClampDialogRect((UiPanel*)obj, (UiPanel*)arg0, (UiPanel*)arg1);
-                    arg1->status = 0;
+                    Ui_ClampDialogRect(&(obj)->panel, arg0, &(arg1)->panel);
+                    arg1->panel.field_0.w = 0;
                 }
             }
         } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
             Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
-            arg1->status = 0;
+            arg1->panel.field_0.w = 0;
         }
     }
 }
@@ -4173,33 +4175,33 @@ void Gp_KeyItemMenuTask(Task* arg0)
     obj           = arg0->spawnArg2;
     menu          = &D_8010E960;
     obj->field_2E = 0;
-    Ui_DrawText((UiPanel*)obj, Gp_StrKeyItem);
+    Ui_DrawText(&(obj)->panel, Gp_StrKeyItem);
     if (arg0->state == 0) {
-        menu->field_5 = menu->field_4 = Gp_CountCollectedBits();
+        menu->field_5.u = menu->field_4 = Gp_CountCollectedBits();
         if (menu->field_4 < menu->field_10) {
             menu->field_10 = menu->field_4;
         }
-        Ui_InitList(menu, (UiMiniObj*)obj);
+        Ui_InitList(menu, &(obj)->panel);
         menu->field_A = 1;
         if (arg0->spawnArg1 == 0) {
-            Ui_UpdateLayoutSize((UiPanel*)obj, 0, Ui_Scale15(0xA) + 1);
+            Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(0xA) + 1);
             Ui_SpawnFromDesc(&D_8010F868, 0, 0, 1, obj);
         }
-        menu->field_10 = 0;
-        menu->field_9  = 0;
-        arg0->state    = arg0->state + 1;
+        menu->field_10  = 0;
+        menu->field_9.u = 0;
+        arg0->state     = arg0->state + 1;
     } else {
-        menu->field_5 = menu->field_4 = Gp_CountCollectedBits();
+        menu->field_5.u = menu->field_4 = Gp_CountCollectedBits();
         if (menu->field_4 < menu->field_10) {
             menu->field_10 = menu->field_4;
         }
-        Ui_ComputeVisibleRows(menu, (UiPanel*)obj);
+        Ui_ComputeVisibleRows(menu, &(obj)->panel);
         menu->field_A = 1;
         if (menu->field_10 >= menu->field_4) {
             menu->field_10 = menu->field_4 - 1;
         }
         Ui_UpdateListNoAnim(menu, obj);
-        if (obj->status == 1) {
+        if (obj->panel.field_0.w == 1) {
             if (obj->field_2E == 0) {
                 if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
                     obj->field_2E = -1;
@@ -4216,8 +4218,8 @@ void Gp_KeyItemMenuTask(Task* arg0)
                     Pad_CheckButtons(0, 1, 3);
                 }
             }
-        } else if (obj->status >= 2) {
-            obj->status = 1;
+        } else if (obj->panel.field_0.w >= 2) {
+            obj->panel.field_0.w = 1;
         }
     }
     head = arg0->firstChild;
@@ -4233,7 +4235,7 @@ void Gp_KeyItemMenuTask(Task* arg0)
                     break;
                 case 6:
                     Ui_TeardownTree(childObj, childObj->owner);
-                    obj->status = 1;
+                    obj->panel.field_0.w = 1;
                     break;
             }
             head  = arg0->firstChild;
@@ -4290,13 +4292,13 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
         gGpuPrimCursor = p + 1;
         setlen(p, 9);
         setcode(p, 0x2D);
-        x     = arg0->baseX + arg1;
+        x     = arg0->panel.field_20.u + arg1;
         p->x2 = x;
         p->x0 = x;
         x     = x + vec.vx;
         p->x3 = x;
         p->x1 = x;
-        y     = arg0->baseY + arg2;
+        y     = arg0->panel.field_22.u + arg2;
         p->y1 = y;
         p->y0 = y;
         y     = y + vec.vy;
@@ -4340,7 +4342,7 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 p->clut  = 0x3F40;
                 break;
         }
-        addPrim(gGpuCurrentOt + arg0->drawOrder + 1, p);
+        addPrim(gGpuCurrentOt + arg0->panel.field_14.s + 1, p);
     }
     Ui_LayoutWithMode0(arg0, (arg1 - 1), (arg2 - 1), ((s16)vec.vx + 1),
                        ((s16)vec.vy + 1), 0x81008);
@@ -4378,8 +4380,8 @@ static void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
     u32           itemVal;
     s32           val;
 
-    field18 = (s16)arg0->field_18;
-    xOff    = arg0->field_1C + 0x60;
+    field18 = (s16)arg0->panel.field_18.u;
+    xOff    = arg0->panel.field_1C.s + 0x60;
     yBase   = field18 + 8;
     cfg     = &Player_Status;
     if (arg2 == 0) {
@@ -4437,10 +4439,10 @@ static void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
         pItem = itemRow;
         pEq   = eqRow;
         do {
-            nx                 = arg0->baseX - 0xA;
+            nx                 = arg0->panel.field_20.u - 0xA;
             nameReq.x          = nx + xCopy;
-            nameReq.y          = arg0->baseY + y;
-            ot                 = arg0->drawOrder + 1;
+            nameReq.y          = arg0->panel.field_22.u + y;
+            ot                 = arg0->panel.field_14.s + 1;
             nameReq.otIndex    = ot;
             nameReq.field_8    = 0x606060;
             nameReq.glyphTable = 5;
@@ -4473,11 +4475,11 @@ static void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
             if (((u32)(arg1 - 0x60) < 0x20U) && (i < 2)) {
                 {
                     s32 vx;
-                    vx       = arg0->baseX - 2;
-                    valReq.x = arg0->field_1E + vx;
+                    vx       = arg0->panel.field_20.u - 2;
+                    valReq.x = arg0->panel.field_1E.u + vx;
                 }
-                valReq.y          = arg0->baseY + 0xB + y;
-                valReq.otIndex    = arg0->drawOrder + 1;
+                valReq.y          = arg0->panel.field_22.u + 0xB + y;
+                valReq.otIndex    = arg0->panel.field_14.s + 1;
                 valReq.field_8    = color;
                 valReq.glyphTable = 0;
                 valReq.centerMode = two;
@@ -4486,11 +4488,11 @@ static void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
             } else {
                 {
                     s32 vx;
-                    vx       = arg0->baseX - 2;
-                    valReq.x = arg0->field_1E + vx;
+                    vx       = arg0->panel.field_20.u - 2;
+                    valReq.x = arg0->panel.field_1E.u + vx;
                 }
-                valReq.y          = arg0->baseY + 0xB + y;
-                valReq.otIndex    = arg0->drawOrder + 1;
+                valReq.y          = arg0->panel.field_22.u + 0xB + y;
+                valReq.otIndex    = arg0->panel.field_14.s + 1;
                 valReq.field_8    = color;
                 valReq.glyphTable = 0;
                 valReq.centerMode = two;
@@ -4518,8 +4520,8 @@ static void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                     swap = list == &D_8010E9A4;
                 }
                 p              = (SPRT*)gGpuPrimCursor;
-                p->x0          = arg0->baseX + xCopy;
-                p->y0          = arg0->baseY + y + 5;
+                p->x0          = arg0->panel.field_20.u + xCopy;
+                p->y0          = arg0->panel.field_22.u + y + 5;
                 val            = 8;
                 p->w           = val;
                 p->h           = val;
@@ -4549,11 +4551,11 @@ static void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 p->clut = 0x3C09;
                 setlen(p, 4);
                 setcode(p, 0x64);
-                addPrim(gGpuCurrentOt + arg0->drawOrder + 1, p);
+                addPrim(gGpuCurrentOt + arg0->panel.field_14.s + 1, p);
                 i += 1;
             } while (i < count);
         }
-        Ui_InsertDrawTPage(arg0->drawOrder + 1, 0);
+        Ui_InsertDrawTPage(arg0->panel.field_14.s + 1, 0);
     }
 }
 
@@ -4616,23 +4618,23 @@ void Gp_EquipSummaryTask(Task* arg0)
     obj    = arg0->spawnArg2;
     slot   = 0;
     if (mode == 0) {
-        Ui_DrawText((UiPanel*)obj, Gp_StrWeaponTitle);
+        Ui_DrawText(&(obj)->panel, Gp_StrWeaponTitle);
         item = cfg->weapon + 0x7F;
         if (item < 0x80) {
             item = 0;
         }
     } else if (mode == 1) {
-        Ui_DrawText((UiPanel*)obj, Gp_StrAmmoCaps);
+        Ui_DrawText(&(obj)->panel, Gp_StrAmmoCaps);
         slotp = Gp_GetItemSlot(cfg->weapon + 0x7F);
         item  = slotp->ammoId;
         if (Gp_ReloadMode == 2) {
             item = slotp->attachId;
         }
     } else if (mode == 2) {
-        Ui_DrawText((UiPanel*)obj, Gp_StrArmor);
+        Ui_DrawText(&(obj)->panel, Gp_StrArmor);
         item = cfg->armor + 0x5F;
     } else {
-        Ui_DrawText((UiPanel*)obj, Gp_StrAttachments);
+        Ui_DrawText(&(obj)->panel, Gp_StrAttachments);
         skip = 1;
         if (Gp_SelItemRec != NULL) {
             item = Gp_SelItemRec->itemId;
@@ -4654,10 +4656,10 @@ void Gp_EquipSummaryTask(Task* arg0)
     }
 
     if (item != 0) {
-        _gpDrawItemNameAt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, Ui_LookupTable(obj, 1), item, 1);
+        _gpDrawItemNameAt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, Ui_LookupTable(obj, 1), item, 1);
     }
 
-    Ui_DrawHBar((UiPanel*)obj, obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x11);
+    Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, (s16)obj->panel.field_18.u + 0x11);
     if (skip == 0) {
         func_800C7DA8(obj, item, 0, 0);
     }
@@ -4666,7 +4668,7 @@ void Gp_EquipSummaryTask(Task* arg0)
     if ((arg0->state != 1) || (item == 0)) {
         flags |= 0x100;
     }
-    func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 0x16, flags);
+    func_800C7AE8(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0x16, flags);
 
     if (arg0->state == 2) {
         if (CdCmd_IsIdle()) {
@@ -4674,7 +4676,7 @@ void Gp_EquipSummaryTask(Task* arg0)
         }
     }
 
-    if (obj->mode == 3) {
+    if (obj->panel.field_8 == 3) {
         Gp_ItemCountShow = 0;
     }
 }
@@ -4686,10 +4688,10 @@ static inline void _gpDrawItemNameUnmarkedAt(UiObject* obj, s32 x, s32 y, s32 co
     TextDrawReq req;
     s32         temp;
 
-    if (obj->mode != 5) {
-        req.x          = obj->baseX + 0x11 + x;
-        req.y          = obj->baseY + (y - 6);
-        req.otIndex    = obj->drawOrder + 1;
+    if (obj->panel.field_8 != 5) {
+        req.x          = obj->panel.field_20.u + 0x11 + x;
+        req.y          = obj->panel.field_22.u + (y - 6);
+        req.otIndex    = obj->panel.field_14.s + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -4703,26 +4705,26 @@ static inline void _gpDrawItemNameUnmarkedAt(UiObject* obj, s32 x, s32 y, s32 co
     }
 }
 
-void Gp_DrawAmmoRow(DialogPrompt* arg0, UiObject* obj)
+void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj)
 {
-    register DialogPrompt* prompt asm("s5");
-    register s32           spawnArg asm("s4");
-    s32                    item;
-    s32                    status;
-    UiObject*              spawned;
+    register UiList* prompt asm("s5");
+    register s32     spawnArg asm("s4");
+    s32              item;
+    s32              status;
+    UiObject*        spawned;
 
     spawnArg = obj->owner->spawnArg1;
     USE_REG(spawnArg);
     prompt = arg0;
     USE_REG(arg0);
     item   = Gp_NthRelatedId(&Mc_SaveData[0].carriedItems, prompt->field_8, spawnArg);
-    status = obj->status;
+    status = obj->panel.field_0.w;
     if (((status >> 16) == 1) || (status == 1)) {
         if (prompt->field_10 == prompt->field_8) {
             if (item == 0) {
-                Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
+                Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             } else {
-                Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
+                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
             }
             if (spawnArg != 0) {
                 _gpSetPreviewItem(item, 0);
@@ -4745,13 +4747,13 @@ void Gp_DrawAmmoRow(DialogPrompt* arg0, UiObject* obj)
                 Gp_ReloadMode = 0;
                 spawned       = Ui_SpawnFromDesc(&D_8010EF14, item | 0x10000, 1, 1, obj);
                 if (spawned != NULL) {
-                    Ui_ClampDialogRect((UiPanel*)spawned, (UiPanel*)prompt, (UiPanel*)obj);
+                    Ui_ClampDialogRect(&(spawned)->panel, prompt, &(obj)->panel);
                 }
-                obj->status = 0;
+                obj->panel.field_0.w = 0;
             } else {
                 SndEvt_EnqueueType6(3, 0, 0);
                 Ui_SpawnFromDesc(&D_8010EEF8, (item << 8) | spawnArg, 1, 1, obj);
-                obj->status = 0;
+                obj->panel.field_0.w = 0;
             }
         } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
@@ -4760,9 +4762,9 @@ void Gp_DrawAmmoRow(DialogPrompt* arg0, UiObject* obj)
             } else {
                 Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, obj);
             }
-            obj->status = 0;
+            obj->panel.field_0.w = 0;
         }
-    } else if (obj->status != 1) {
+    } else if (obj->panel.field_0.w != 1) {
         if (prompt->field_8 == 0) {
             if (obj->field_2C == 0) {
                 obj->field_2C = item;
@@ -4789,32 +4791,32 @@ void Gp_AmmoListTask(Task* arg0)
     menu          = &D_8010E9A4;
     if (arg0->state == 0) {
         Gp_CountAmmoRows(menu, spawnArg);
-        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        Ui_LayoutListPanel(menu, &(obj)->panel);
         if (spawnArg == 0) {
-            menu->field_17 += 0x4C;
-            obj->field_12  += 0x4C;
+            menu->field_17                   += 0x4C;
+            obj->panel.bounds.unsignedRect.h += 0x4C;
         }
-        menu->field_A  = 1;
-        menu->field_10 = 0;
-        menu->field_9  = 0;
-        arg0->state    = arg0->state + 1;
+        menu->field_A   = 1;
+        menu->field_10  = 0;
+        menu->field_9.u = 0;
+        arg0->state     = arg0->state + 1;
         if (menu->field_4 == 0) {
             arg0->state         = arg0->state + 1;
             arg0->killCountdown = 0xBC;
-            obj->field_4       |= 2;
-            Ui_SizeFromTextPlain((UiPanel*)obj, Gp_StrNoWeaponEq);
+            obj->panel.field_4 |= 2;
+            Ui_SizeFromTextPlain(&(obj)->panel, Gp_StrNoWeaponEq);
             return;
         }
-        if ((s16)obj->field_E + (s16)obj->field_12 < 0x47) {
+        if ((s16)obj->panel.bounds.unsignedRect.y + (s16)obj->panel.bounds.unsignedRect.h < 0x47) {
             return;
         }
-        obj->field_E = 0x46 - obj->field_12;
+        obj->panel.bounds.unsignedRect.y = 0x46 - obj->panel.bounds.unsignedRect.h;
         return;
     }
     one = 1;
     if (arg0->state == one) {
         Ui_UpdateListNoAnim(menu, obj);
-        if (obj->status == one) {
+        if (obj->panel.field_0.w == one) {
             if (Pad_CheckButtons(0, one, Pad_MaskMenu) != 0) {
                 obj->field_2E = -1;
             } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
@@ -4838,7 +4840,7 @@ void Gp_AmmoListTask(Task* arg0)
                         break;
                     case 6:
                         Ui_TeardownTree(childObj, childObj->owner);
-                        obj->status = 1;
+                        obj->panel.field_0.w = 1;
                         break;
                 }
                 head  = arg0->firstChild;
@@ -4853,8 +4855,8 @@ void Gp_AmmoListTask(Task* arg0)
         }
         return;
     }
-    Ui_DrawText((UiPanel*)obj, Gp_StrAttention);
-    Text_DrawMultiLine(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, Gp_StrNoWeaponEq, 0x606060, one, 0);
+    Ui_DrawText(&(obj)->panel, Gp_StrAttention);
+    Text_DrawMultiLine(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, Gp_StrNoWeaponEq, 0x606060, one, 0);
     arg0->killCountdown--;
     if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
         obj->field_2E = -1;
@@ -4887,8 +4889,8 @@ void Gp_SelectWeaponMenuTask(Task* arg0)
     menu = &D_8010E9A4;
     obj  = arg0->spawnArg2;
     cfg  = &Player_Status;
-    Ui_DrawText((UiPanel*)obj, Gp_StrSelectWeapon);
-    Ui_DrawHBar((UiPanel*)obj, obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x4A);
+    Ui_DrawText(&(obj)->panel, Gp_StrSelectWeapon);
+    Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, (s16)obj->panel.field_18.u + 0x4A);
     if (arg0->state == 0) {
         parent     = arg0->parent;
         D_80114DD8 = -1;
@@ -4896,13 +4898,13 @@ void Gp_SelectWeaponMenuTask(Task* arg0)
         Ui_SpawnFromDesc(&D_8010EC3C, 0, 0, 0x10, obj);
     }
     val = Gp_NthRelatedId(&Mc_SaveData[0].carriedItems, menu->field_10, 0);
-    if (((obj->status >> 16) == 1) || (obj->status == 1) || (val != cfg->weapon + 0x7F)) {
+    if (((obj->panel.field_0.w >> 16) == 1) || (obj->panel.field_0.w == 1) || (val != cfg->weapon + 0x7F)) {
         flags = 0x12;
         if (val == 0) {
             flags = 0x112;
             goto draw;
         }
-        if (((obj->status >> 16) == 1) || (obj->status == 1)) {
+        if (((obj->panel.field_0.w >> 16) == 1) || (obj->panel.field_0.w == 1)) {
             _gpSetPreviewItemWalk(val, 2);
         }
     } else {
@@ -4914,7 +4916,7 @@ void Gp_SelectWeaponMenuTask(Task* arg0)
     }
     GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags);
 draw:
-    func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags);
+    func_800C7AE8(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 2, flags);
     func_800C7DA8(obj, val, 1, 0);
     Gp_AmmoListTask(arg0);
     obj->field_2C = 0;
@@ -4923,7 +4925,7 @@ draw:
     }
 }
 
-void Gp_DrawRemoveAmmoRow(DialogPrompt* prompt, UiObject* obj)
+void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
 {
     s32         item;
     s32         spawnArg;
@@ -4941,13 +4943,13 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* prompt, UiObject* obj)
 
     item     = Gp_AttachListIds[prompt->field_8];
     spawnArg = (u16)obj->owner->spawnArg1;
-    status   = obj->status;
+    status   = obj->panel.field_0.w;
     if (((status >> 16) == 1) || (status == 1)) {
         if (prompt->field_10 == prompt->field_8) {
             if (item == 0) {
-                Ui_SetHolderParam((s32)Gp_StrRemoveAmmoHelp, 0, 0);
+                Ui_SetHolderParam(Gp_StrRemoveAmmoHelp, 0, 0);
             } else {
-                Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
+                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
                 if (Gp_ReloadMode == 0) {
                     _gpSetPreviewItem(item, 2);
                 }
@@ -4974,9 +4976,9 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* prompt, UiObject* obj)
             x                         = prompt->field_18;
             y                         = prompt->field_1A;
             color                     = prompt->field_1C;
-            draw.count.req.x          = obj->baseX + 0x84 + x;
-            draw.count.req.y          = obj->baseY + (y - 3);
-            draw.count.req.otIndex    = obj->drawOrder + 1;
+            draw.count.req.x          = obj->panel.field_20.u + 0x84 + x;
+            draw.count.req.y          = obj->panel.field_22.u + (y - 3);
+            draw.count.req.otIndex    = obj->panel.field_14.s + 1;
             draw.count.req.field_8    = color;
             draw.count.req.glyphTable = 5;
             draw.count.req.centerMode = 2;
@@ -4994,10 +4996,10 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* prompt, UiObject* obj)
             x     = prompt->field_18;
             y     = prompt->field_1A;
             color = prompt->field_1C;
-            if (obj->mode != 5) {
-                draw.req.x          = obj->baseX + 0x11 + x;
-                draw.req.y          = obj->baseY + (y - 6);
-                draw.req.otIndex    = obj->drawOrder + 1;
+            if (obj->panel.field_8 != 5) {
+                draw.req.x          = obj->panel.field_20.u + 0x11 + x;
+                draw.req.y          = obj->panel.field_22.u + (y - 6);
+                draw.req.otIndex    = obj->panel.field_14.s + 1;
                 draw.req.field_8    = color;
                 draw.req.glyphTable = 0;
                 draw.req.centerMode = 0;
@@ -5013,10 +5015,10 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* prompt, UiObject* obj)
     } else {
         s32 baseY;
 
-        draw.req.x          = obj->baseX + (u16)prompt->field_18;
-        baseY               = obj->baseY - 6;
+        draw.req.x          = obj->panel.field_20.u + (u16)prompt->field_18;
+        baseY               = obj->panel.field_22.u - 6;
         draw.req.y          = baseY + (u16)prompt->field_1A;
-        draw.req.otIndex    = obj->drawOrder + 1;
+        draw.req.otIndex    = obj->panel.field_14.s + 1;
         draw.req.field_8    = prompt->field_1C;
         draw.req.glyphTable = 0;
         draw.req.centerMode = 0;
@@ -5027,7 +5029,7 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* prompt, UiObject* obj)
     if (prompt->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             Ui_SpawnFromDesc(&D_8010EEF8, (spawnArg << 8) | item, 1, 1, obj);
-            obj->status = 0;
+            obj->panel.field_0.w = 0;
         } else if ((Pad_CheckButtons(0, 1, 0x10) != 0) && (item != 0)) {
             SndEvt_EnqueueType6(3, 0, 0);
             // Both arms open the same prompt; the ammo row's handler, which
@@ -5037,7 +5039,7 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* prompt, UiObject* obj)
             } else {
                 Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, obj);
             }
-            obj->status = 0;
+            obj->panel.field_0.w = 0;
         }
     }
 }
@@ -5097,8 +5099,8 @@ static void Gp_BuildAttachList(UiList* arg0, s32 arg1)
         Gp_AttachListIds[count] = 0;
         n++;
     }
-    arg0->field_4 = n;
-    arg0->field_5 = n;
+    arg0->field_4   = n;
+    arg0->field_5.u = n;
 }
 
 void Gp_AttachListTask(Task* task)
@@ -5123,15 +5125,15 @@ void Gp_AttachListTask(Task* task)
     state         = task->state;
     if (state == 0) {
         Gp_BuildAttachList(menu, val);
-        Ui_LayoutListPanel(menu, (UiPanel*)obj);
-        menu->field_A  = 1;
-        menu->field_10 = 0;
-        menu->field_9  = 0;
-        task->state    = task->state + 1;
+        Ui_LayoutListPanel(menu, &(obj)->panel);
+        menu->field_A   = 1;
+        menu->field_10  = 0;
+        menu->field_9.u = 0;
+        task->state     = task->state + 1;
         if (menu->field_4 == 0) {
             task->state         = 2;
             task->killCountdown = 0xBC;
-            obj->field_4       |= 2;
+            obj->panel.field_4 |= 2;
             if (task->spawnArg1 & 0x10000) {
                 if (val != 0) {
                     slot = Gp_GetItemSlot(val);
@@ -5151,23 +5153,23 @@ void Gp_AttachListTask(Task* task)
                     }
                 }
             }
-            Ui_SizeFromTextPlain((UiPanel*)obj, Gp_StrWrongAmmo2);
+            Ui_SizeFromTextPlain(&(obj)->panel, Gp_StrWrongAmmo2);
             if (task->state != 2) {
-                Gp_SizeEquippedPanel((UiPanel*)obj, val);
+                Gp_SizeEquippedPanel(&(obj)->panel, val);
             }
-            obj->timer = 9;
+            obj->panel.field_16 = 9;
             return;
         }
-        if ((s16)obj->field_E + (s16)obj->field_12 < 0x47) {
+        if ((s16)obj->panel.bounds.unsignedRect.y + (s16)obj->panel.bounds.unsignedRect.h < 0x47) {
             return;
         }
-        obj->field_E = 0x46 - obj->field_12;
+        obj->panel.bounds.unsignedRect.y = 0x46 - obj->panel.bounds.unsignedRect.h;
         return;
     }
     one = 1;
     if (state == one) {
         Ui_UpdateListNoAnim(menu, obj);
-        if (obj->status == one) {
+        if (obj->panel.field_0.w == one) {
             if (Pad_CheckButtons(0, one, Pad_MaskMenu) != 0) {
                 obj->field_2E = -1;
             } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
@@ -5190,7 +5192,7 @@ void Gp_AttachListTask(Task* task)
                         break;
                     case 6:
                         Ui_TeardownTree(childObj, childObj->owner);
-                        obj->status = 1;
+                        obj->panel.field_0.w = 1;
                         break;
                 }
                 head  = task->firstChild;
@@ -5206,14 +5208,14 @@ void Gp_AttachListTask(Task* task)
         return;
     }
     if (state == 2) {
-        Ui_DrawText((UiPanel*)obj, Gp_StrNotice);
-        Text_DrawMultiLine(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, Gp_StrWrongAmmo2, 0x606060, one, 0);
+        Ui_DrawText(&(obj)->panel, Gp_StrNotice);
+        Text_DrawMultiLine(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, Gp_StrWrongAmmo2, 0x606060, one, 0);
     } else {
-        Ui_DrawText((UiPanel*)obj, Gp_StrEquip);
+        Ui_DrawText(&(obj)->panel, Gp_StrEquip);
         func_800CF6E8(obj, val);
     }
     task->killCountdown--;
-    if (obj->status == 1) {
+    if (obj->panel.field_0.w == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
             return;
@@ -5253,16 +5255,16 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
     }
     state = arg0->state;
     if (state == 1) {
-        Ui_DrawText((UiPanel*)obj, Gp_StrSelectAmmo);
+        Ui_DrawText(&(obj)->panel, Gp_StrSelectAmmo);
         if (savedState == 0) {
-            menu->field_17 += 0x4C;
-            obj->field_12  += 0x4C;
-            parent          = arg0->parent;
-            D_80114DD8      = -1;
+            menu->field_17                   += 0x4C;
+            obj->panel.bounds.unsignedRect.h += 0x4C;
+            parent                            = arg0->parent;
+            D_80114DD8                        = -1;
             Ui_SetState4(parent->spawnArg2, parent);
             Ui_SpawnFromDesc(&D_8010EC3C, 1, 0, 0x10, obj);
         }
-        Ui_DrawHBar((UiPanel*)obj, obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x4A);
+        Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, (s16)obj->panel.field_18.u + 0x4A);
         val = Gp_AttachListIds[menu->field_10];
         if (val != 0) {
             func_800C7DA8(obj, val, 1, 0);
@@ -5272,7 +5274,7 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
             flags = 0x112;
             goto draw;
         }
-        if (((obj->status >> 16) == state) || (obj->status == state)) {
+        if (((obj->panel.field_0.w >> 16) == state) || (obj->panel.field_0.w == state)) {
             table = Gp_PreviewItems;
             if (val != table[2]) {
                 i = 0;
@@ -5295,7 +5297,7 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
             flags |= 0x100;
         }
     draw:
-        func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags);
+        func_800C7AE8(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 2, flags);
     }
 }
 
@@ -5334,7 +5336,7 @@ static inline s32 _gpFindSpareArmor(s32 index)
     return found;
 }
 
-void Gp_DrawArmorSelectRow(DialogPrompt* arg0, UiObject* arg1)
+void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1)
 {
     TextDrawReq req;
     s32         item;
@@ -5347,13 +5349,13 @@ void Gp_DrawArmorSelectRow(DialogPrompt* arg0, UiObject* arg1)
     s32         status;
 
     item   = _gpFindSpareArmor(arg0->field_8);
-    status = arg1->status;
+    status = arg1->panel.field_0.w;
     if (((status >> 16) == 1) || (status == 1)) {
         if (arg0->field_10 == arg0->field_8) {
             if (item == 0) {
-                Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
+                Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             } else {
-                Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
+                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
             }
         }
     }
@@ -5362,11 +5364,11 @@ void Gp_DrawArmorSelectRow(DialogPrompt* arg0, UiObject* arg1)
     y     = arg0->field_1A;
     color = arg0->field_1C;
     one   = 1;
-    if (arg1->mode != 5) {
-        req.x          = arg1->baseX + 0x11 + x;
-        baseY          = arg1->baseY - 6;
+    if (arg1->panel.field_8 != 5) {
+        req.x          = arg1->panel.field_20.u + 0x11 + x;
+        baseY          = arg1->panel.field_22.u - 6;
         req.y          = baseY + y;
-        req.otIndex    = arg1->drawOrder + 1;
+        req.otIndex    = arg1->panel.field_14.s + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -5383,11 +5385,11 @@ void Gp_DrawArmorSelectRow(DialogPrompt* arg0, UiObject* arg1)
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             Ui_SpawnFromDesc(&D_8010EF30, item, 1, 1, arg1);
-            arg1->status = 0;
+            arg1->panel.field_0.w = 0;
         } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
             Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, arg1);
-            arg1->status = 0;
+            arg1->panel.field_0.w = 0;
         }
     }
 }
@@ -5491,7 +5493,7 @@ static inline void _gpApplyChildResults(UiObject* obj, Task* task)
                     break;
                 case 6:
                     Ui_TeardownTree(childObj, childObj->owner);
-                    obj->status = 1;
+                    obj->panel.field_0.w = 1;
                     break;
             }
             head  = task->firstChild;
@@ -5519,25 +5521,25 @@ void Gp_SelectArmorMenuTask(Task* arg0)
     menu          = &D_8010E9F4;
     obj           = arg0->spawnArg2;
     obj->field_2E = 0;
-    Ui_DrawText((UiPanel*)obj, Gp_StrSelectArmor);
+    Ui_DrawText(&(obj)->panel, Gp_StrSelectArmor);
 
     if (arg0->state == 0) {
         GP_COUNT_SPARE_ARMOR(count);
-        menu->field_4 = count;
-        menu->field_5 = 4;
-        Ui_LayoutListPanel(menu, (UiPanel*)obj);
-        menu->field_A   = 1;
-        menu->field_17 += 0x4C;
-        obj->field_12  += 0x4C;
-        menu->field_10  = 0;
-        menu->field_9   = 0;
-        parent          = arg0->parent;
+        menu->field_4   = count;
+        menu->field_5.u = 4;
+        Ui_LayoutListPanel(menu, &(obj)->panel);
+        menu->field_A                     = 1;
+        menu->field_17                   += 0x4C;
+        obj->panel.bounds.unsignedRect.h += 0x4C;
+        menu->field_10                    = 0;
+        menu->field_9.u                   = 0;
+        parent                            = arg0->parent;
         Ui_SetState4(parent->spawnArg2, parent);
         Ui_SpawnFromDesc(&D_8010EC3C, 2, 0, 0x10, obj);
         arg0->state++;
     }
 
-    Ui_DrawHBar((UiPanel*)obj, obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x4A);
+    Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, (s16)obj->panel.field_18.u + 0x4A);
     Ui_UpdateListNoAnim(menu, obj);
 
     GP_FIND_SPARE_ARMOR(found, menu->field_10);
@@ -5549,16 +5551,16 @@ void Gp_SelectArmorMenuTask(Task* arg0)
         flags = 0x112;
         goto draw;
     }
-    if (((obj->status >> 16) == 1) || (obj->status == 1)) {
+    if (((obj->panel.field_0.w >> 16) == 1) || (obj->panel.field_0.w == 1)) {
         GP_SET_PREVIEW_ITEM(item, 2);
     }
     if (CdCmd_IsIdle() == 0) {
         flags |= 0x100;
     }
 draw:
-    func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags);
+    func_800C7AE8(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 2, flags);
 
-    if (obj->status == 1) {
+    if (obj->panel.field_0.w == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
@@ -5591,7 +5593,7 @@ void Gp_ReloadPromptTask(Task* arg0)
     lo            = arg0->spawnArg1 & 0xFF;
     hi            = (arg0->spawnArg1 >> 8) & 0xFF;
     obj->field_2E = 0;
-    Ui_DrawText((UiPanel*)obj, Gp_StrReload);
+    Ui_DrawText(&(obj)->panel, Gp_StrReload);
     if (arg0->state == 0) {
         if (lo == 0) {
             slot        = Gp_GetItemSlot(hi);
@@ -5635,8 +5637,8 @@ void Gp_ReloadPromptTask(Task* arg0)
             width = Text_MeasureWidth(text);
             rows  = 1;
         }
-        Ui_UpdateLayoutSize((UiPanel*)obj, width + 5, Ui_Scale15(rows) + 1);
-        ((UiPanel*)obj)->field_C.x = (-((UiPanel*)obj)->field_C.w) >> 1;
+        Ui_UpdateLayoutSize(&(obj)->panel, width + 5, Ui_Scale15(rows) + 1);
+        (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
         if (arg0->state < 0x20) {
             if (arg0->state < 0x10) {
                 SndEvt_EnqueueType6(0x3C, 0, 0);
@@ -5650,19 +5652,19 @@ void Gp_ReloadPromptTask(Task* arg0)
     } else if (arg0->state < 0x20) {
         text = Gp_GetItemText(lo, 0, 0);
         if (arg0->state < 0x10) {
-            Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, Gp_StrLoaded, 0x606060, 1, 0);
+            Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, Gp_StrLoaded, 0x606060, 1, 0);
         } else {
-            Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, Gp_StrRemoved, 0x606060, 1, 0);
+            Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, Gp_StrRemoved, 0x606060, 1, 0);
         }
         one   = 1;
-        width = Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0x1E, text, 0x37A78, one, 0);
+        width = Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0x1E, text, 0x37A78, one, 0);
         color = 0x606060;
-        Text_DrawPrompt(obj, width, (s16)obj->field_18 + 0x1E, Gp_StrDot, color, one, 0);
+        Text_DrawPrompt(obj, width, (s16)obj->panel.field_18.u + 0x1E, Gp_StrDot, color, one, 0);
     } else {
-        Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, Gp_StrRemovedAmmo, 0x606060, 1, 0);
+        Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, Gp_StrRemovedAmmo, 0x606060, 1, 0);
     }
     arg0->killCountdown--;
-    if (obj->status == 1) {
+    if (obj->panel.field_0.w == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
         } else if ((arg0->killCountdown <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
@@ -5685,24 +5687,24 @@ void Gp_AttachPromptTask(Task* arg0)
     text          = Gp_GetItemText(arg0->spawnArg1, 0, 0);
     if (arg0->state == 0) {
         width = Text_MeasureWidth(text) + 0x40;
-        Ui_UpdateLayoutSize((UiPanel*)obj, width, Ui_Scale15(2) + 8);
-        ((UiPanel*)obj)->field_C.x = (-((UiPanel*)obj)->field_C.w) >> 1;
-        arg0->killCountdown        = 0xBC;
-        arg0->state                = arg0->state + 1;
+        Ui_UpdateLayoutSize(&(obj)->panel, width, Ui_Scale15(2) + 8);
+        (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
+        arg0->killCountdown            = 0xBC;
+        arg0->state                    = arg0->state + 1;
     } else if (arg0->state == 1) {
-        if (obj->mode == 2) {
+        if (obj->panel.field_8 == 2) {
             SndEvt_EnqueueType6(0xA, 0, 0);
             arg0->state = arg0->state + 1;
         }
     }
-    Ui_DrawText((UiPanel*)obj, Gp_StrAttach);
+    Ui_DrawText(&(obj)->panel, Gp_StrAttach);
     color = 0x606060;
     one   = 1;
-    Text_DrawPrompt(obj, obj->field_1C + 6, 0, Gp_StrEquipped, color, one, 0);
-    width = Text_DrawPrompt(obj, obj->field_1C + 6, 0xE, text, 0x37A78, one, 0);
+    Text_DrawPrompt(obj, obj->panel.field_1C.s + 6, 0, Gp_StrEquipped, color, one, 0);
+    width = Text_DrawPrompt(obj, obj->panel.field_1C.s + 6, 0xE, text, 0x37A78, one, 0);
     Text_DrawPrompt(obj, width, 0xE, Gp_StrDot, color, one, 0);
     arg0->killCountdown--;
-    if (obj->status == one) {
+    if (obj->panel.field_0.w == one) {
         if (Pad_CheckButtons(0, one, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
         } else if ((arg0->killCountdown <= 0) || (Pad_CheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
@@ -5755,12 +5757,12 @@ void Gp_EquipPromptTask(Task* arg0)
         if (width < other) {
             width = other;
         }
-        Ui_UpdateLayoutSize((UiPanel*)obj, width + 5, Ui_Scale15(2) + 1);
-        ((UiPanel*)obj)->field_C.x = (-((UiPanel*)obj)->field_C.w) >> 1;
-        arg0->killCountdown        = 0xBC;
-        arg0->state                = arg0->state + 1;
+        Ui_UpdateLayoutSize(&(obj)->panel, width + 5, Ui_Scale15(2) + 1);
+        (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
+        arg0->killCountdown            = 0xBC;
+        arg0->state                    = arg0->state + 1;
     } else if (arg0->state == 1) {
-        if (obj->mode == 2) {
+        if (obj->panel.field_8 == 2) {
             if ((u32)(arg0->spawnArg1 - 0x80) < 0x20U) {
                 SndEvt_EnqueueType6(0xA, 0, 0);
             } else {
@@ -5769,15 +5771,15 @@ void Gp_EquipPromptTask(Task* arg0)
             arg0->state = arg0->state + 1;
         }
     }
-    Ui_DrawText((UiPanel*)obj, Gp_StrEquip);
+    Ui_DrawText(&(obj)->panel, Gp_StrEquip);
     text  = Gp_GetItemText(arg0->spawnArg1, 0, 0);
     color = 0x606060;
     one   = 1;
-    Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, Gp_StrEquipped, color, one, 0);
-    width = Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0x1E, text, 0x37A78, one, 0);
-    Text_DrawPrompt(obj, width, (s16)obj->field_18 + 0x1E, Gp_StrDot, color, one, 0);
+    Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, Gp_StrEquipped, color, one, 0);
+    width = Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0x1E, text, 0x37A78, one, 0);
+    Text_DrawPrompt(obj, width, (s16)obj->panel.field_18.u + 0x1E, Gp_StrDot, color, one, 0);
     arg0->killCountdown--;
-    if (obj->status == one) {
+    if (obj->panel.field_0.w == one) {
         if (Pad_CheckButtons(0, one, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
         } else if ((arg0->killCountdown <= 0) || (Pad_CheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
@@ -5787,16 +5789,16 @@ void Gp_EquipPromptTask(Task* arg0)
     }
 }
 
-static void Gp_DrawLoadCmd(DialogPrompt* arg0, UiObject* arg1)
+static void Gp_DrawLoadCmd(UiList* arg0, UiObject* arg1)
 {
     TextDrawReq req;
     UiObject*   obj;
     s32         val;
     s32         one;
 
-    req.x          = arg1->baseX + (u16)arg0->field_18;
-    req.y          = arg1->baseY + (u16)arg0->field_1A;
-    req.otIndex    = arg1->drawOrder + 1;
+    req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
+    req.y          = arg1->panel.field_22.u + (u16)arg0->field_1A;
+    req.otIndex    = arg1->panel.field_14.s + 1;
     req.field_8    = arg0->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;
@@ -5817,15 +5819,15 @@ static void Gp_DrawLoadCmd(DialogPrompt* arg0, UiObject* arg1)
                 return;
             }
             if (obj != NULL) {
-                Ui_ClampDialogRect((UiPanel*)obj, (UiPanel*)arg0, (UiPanel*)arg1);
+                Ui_ClampDialogRect(&(obj)->panel, arg0, &(arg1)->panel);
             }
-            arg1->status   = 0;
-            arg0->field_22 = 0x20;
+            arg1->panel.field_0.w = 0;
+            arg0->field_22        = 0x20;
         }
     }
 }
 
-static void Gp_DrawExchangeCmd(DialogPrompt* arg0, UiObject* arg1)
+static void Gp_DrawExchangeCmd(UiList* arg0, UiObject* arg1)
 {
     TextDrawReq req;
     UiObject*   obj;
@@ -5834,9 +5836,9 @@ static void Gp_DrawExchangeCmd(DialogPrompt* arg0, UiObject* arg1)
     s32         x;
     s32         y;
 
-    req.x          = arg1->baseX + (u16)arg0->field_18;
-    req.y          = arg1->baseY + (u16)arg0->field_1A;
-    req.otIndex    = arg1->drawOrder + 1;
+    req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
+    req.y          = arg1->panel.field_22.u + (u16)arg0->field_1A;
+    req.otIndex    = arg1->panel.field_14.s + 1;
     req.field_8    = arg0->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;
@@ -5862,13 +5864,13 @@ static void Gp_DrawExchangeCmd(DialogPrompt* arg0, UiObject* arg1)
                 return;
             }
             if (obj != NULL) {
-                y            = -0x5C;
-                obj->field_E = y;
-                x            = -8;
-                obj->field_C = x;
+                y                                = -0x5C;
+                obj->panel.bounds.unsignedRect.y = y;
+                x                                = -8;
+                obj->panel.bounds.unsignedRect.x = x;
             }
-            arg1->status   = 0;
-            arg0->field_22 = 0x20;
+            arg1->panel.field_0.w = 0;
+            arg0->field_22        = 0x20;
         }
     }
 }
@@ -5918,20 +5920,20 @@ static const char Gp_StrReload[]        = "Reload";
 static const char Gp_StrAttach[]        = "Attach";
 
 extern UiListItemFunc Gp_ItemCmdFns[];
-static void           Gp_DrawLoadCmd(DialogPrompt* arg0, UiObject* arg1);
-static void           Gp_DrawExchangeCmd(DialogPrompt* arg0, UiObject* arg1);
-void                  Gp_DrawMovePrompt(DialogPrompt* arg0, UiObject* arg1);
-void                  Gp_DrawExchangeSlotCmd(DialogPrompt* arg0, UiObject* arg1);
-void                  Gp_DrawDiscardCmd(DialogPrompt* arg0, UiObject* arg1);
+static void           Gp_DrawLoadCmd(UiList* arg0, UiObject* arg1);
+static void           Gp_DrawExchangeCmd(UiList* arg0, UiObject* arg1);
+void                  Gp_DrawMovePrompt(UiList* arg0, UiObject* arg1);
+void                  Gp_DrawExchangeSlotCmd(UiList* arg0, UiObject* arg1);
+void                  Gp_DrawDiscardCmd(UiList* arg0, UiObject* arg1);
 
 void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, McItemRec* arg3)
 {
     s32 n;
     s32 mode;
 
-    n              = 0;
-    mode           = arg1->owner->spawnArg1;
-    arg1->field_10 = 0x60;
+    n                                 = 0;
+    mode                              = arg1->owner->spawnArg1;
+    arg1->panel.bounds.unsignedRect.w = 0x60;
     switch (mode) {
         case 0:
             if (arg2 == 0) {
@@ -5998,6 +6000,6 @@ void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, McItemRec* arg3
             }
             break;
     }
-    arg0->field_4 = n;
-    arg0->field_5 = n;
+    arg0->field_4   = n;
+    arg0->field_5.u = n;
 }

@@ -1129,7 +1129,7 @@ block_22:
                             ((POLY_FT4*)shared)->code = 0x2E;
                             ((POLY_FT4*)shared)->u3   = temp_v1_12;
                             ((POLY_FT4*)shared)->u1   = temp_v1_12;
-                            addPrim((u_long*)(((((u32)scratch->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                            addPrim(Gpu_OtEntryAtByteOffset(((((u32)scratch->otz << ds->otDepthShift) >> 2) & 0xFFC)),
                                     (POLY_FT4*)shared);
                         }
                     } else if (var_s4 >= (var_fp - 4)) {

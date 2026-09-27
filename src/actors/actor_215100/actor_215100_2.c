@@ -56,7 +56,7 @@ static void func_actor_215100_8014CBB8(Task* task);
 static void func_actor_215100_8014CC04(Task* task);
 static void func_actor_215100_8014CC7C(Task* task);
 
-static s32 func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+static s32 func_actor_215100_8014B3C8(u16* arg0, s32 arg1, s32 arg2, s32 arg3);
 static s16 func_actor_215100_8014C17C(u16* arg0, s32 arg1);
 static s32 func_actor_215100_8014C360(u16* arg0);
 
@@ -95,14 +95,14 @@ extern GlyphUvwh* D_actor_215100_8015E654;
 extern GlyphUvwh  D_8010FB70[];
 /// Caption script table, and the script currently being played back with the
 /// entry it is up to.
-extern GpEvt12** D_actor_215100_8015E650;
-extern GpEvt12*  D_actor_215100_8015E658;
-extern s16       D_actor_215100_8015E65C;
-extern s16       D_actor_215100_8015E65E;
-extern s16       D_actor_215100_8015E660;
-extern s16       D_actor_215100_8015E662;
-extern s16       D_actor_215100_8015E664;
-extern s16       D_actor_215100_8015E666;
+extern GpCapEntry* D_actor_215100_8015E650;
+extern GpEvt12*    D_actor_215100_8015E658;
+extern s16         D_actor_215100_8015E65C;
+extern s16         D_actor_215100_8015E65E;
+extern s16         D_actor_215100_8015E660;
+extern s16         D_actor_215100_8015E662;
+extern s16         D_actor_215100_8015E664;
+extern s16         D_actor_215100_8015E666;
 /// Frames left before the caret starts drawing.
 extern u8 D_actor_215100_8015E66C;
 /// Caret grey level (pulses between 9 and 15) and its direction flag.
@@ -120,7 +120,7 @@ extern Actor215100CharRec D_actor_215100_8015E678;
 extern OverlayCapWindow D_actor_215100_80154514[];
 extern u8               D_80115690;
 static void             func_actor_215100_8014B0D4(void);
-static s32              func_actor_215100_8014B1B0(GpCapFile* file);
+static s32              func_actor_215100_8014B1B0(GpCapFileAddress base);
 static s32              func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
 static s16              func_actor_215100_8014BDFC(u16* arg0);
 static s16              func_actor_215100_8014C06C(u16* arg0);
@@ -565,9 +565,9 @@ static void func_actor_215100_8014AFAC(Task* task, s32 arg1)
 static void func_actor_215100_8014B0D4(void)
 {
     if ((D_actor_215100_8015E658 != NULL) &&
-        (D_actor_215100_8015E658[D_actor_215100_8015E662].field_8 != -1) &&
+        (D_actor_215100_8015E658[D_actor_215100_8015E662].field_8.offset != -1) &&
         (Gp_CapBusy() == 0)) {
-        func_actor_215100_8014B3C8(D_actor_215100_8015E658[D_actor_215100_8015E662].field_8, 0x80, 1,
+        func_actor_215100_8014B3C8(D_actor_215100_8015E658[D_actor_215100_8015E662].field_8.text, 0x80, 1,
                                    D_actor_215100_8015E658[D_actor_215100_8015E662].field_0 |
                                        ((D_actor_215100_8015E658[D_actor_215100_8015E662].field_1 & 0x10) * 0x10));
         if (!(D_actor_215100_8015E658[D_actor_215100_8015E662].field_4 & 1)) {
@@ -579,33 +579,33 @@ static void func_actor_215100_8014B0D4(void)
 /// Relocates a caption file in place, the counterpart of gameplay's
 /// `Gp_RelocCapFile`, and publishes its glyph and script tables. Returns 0
 /// when the "CAP" magic is missing.
-static s32 func_actor_215100_8014B1B0(GpCapFile* file)
+static s32 func_actor_215100_8014B1B0(GpCapFileAddress base)
 {
     s32            i;
     s32            count;
     s32            flag;
     GpEvt12*       rec;
-    s32*           ptr;
+    GpCapEntry*    ptr;
     GpCapEvtTable* evts;
     GpCapPtrTable* ptrs;
 
-    if (strncmp(file->magic, "CAP", 3) != 0) {
+    if (strncmp(base.file->magic, "CAP", 3) != 0) {
         return 0;
     }
 
     i = 0;
-    if (file->field_8 > 0) {
-        file->field_8  += (s32)file;
-        file->field_C  += (s32)file;
-        file->field_10 += (s32)file;
-        evts            = (GpCapEvtTable*)file->field_C;
-        rec             = (GpEvt12*)(evts + 1);
-        count           = evts->count;
+    if (base.file->field_8.offset > 0) {
+        base.file->field_8.offset  += base.address;
+        base.file->field_C.offset  += base.address;
+        base.file->field_10.offset += base.address;
+        evts                        = base.file->field_C.ptr;
+        rec                         = evts->records;
+        count                       = evts->count;
         if (count > 0) {
             flag = -1;
             do {
-                if (rec->field_8 != flag) {
-                    rec->field_8 += (s32)file;
+                if (rec->field_8.offset != flag) {
+                    rec->field_8.offset += base.address;
                 } else {
                     rec++;
                 }
@@ -613,14 +613,14 @@ static s32 func_actor_215100_8014B1B0(GpCapFile* file)
                 rec++;
             } while (i < count);
         }
-        ptrs  = (GpCapPtrTable*)file->field_10;
+        ptrs  = base.file->field_10.ptr;
         i     = 0;
         count = ptrs->count;
         ptr   = ptrs->entries;
         if (count > 0) {
             do {
-                if (*ptr != 0) {
-                    *ptr += (s32)file;
+                if (ptr->offset != 0) {
+                    ptr->offset += base.address;
                 }
                 i++;
                 ptr++;
@@ -628,8 +628,8 @@ static s32 func_actor_215100_8014B1B0(GpCapFile* file)
         }
     }
 
-    D_actor_215100_8015E654 = (GlyphUvwh*)file->field_8;
-    D_actor_215100_8015E650 = (GpEvt12**)((GpCapPtrTable*)file->field_10)->entries;
+    D_actor_215100_8015E654 = base.file->field_8.ptr;
+    D_actor_215100_8015E650 = (base.file->field_10.ptr)->entries;
     return 1;
 }
 
@@ -642,7 +642,7 @@ static s32 func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2)
     GpEvt12* caption;
     s16      entry;
 
-    caption                 = D_actor_215100_8015E650[arg0];
+    caption                 = D_actor_215100_8015E650[arg0].events;
     D_actor_215100_8015E658 = caption;
     if (caption == NULL) {
         return 1;
@@ -651,14 +651,14 @@ static s32 func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2)
     entry                   = func_actor_215100_8014C418(1);
     D_actor_215100_8015E662 = entry;
     D_actor_215100_8015E660 = arg2;
-    D_actor_215100_8015E65C = func_actor_215100_8014C06C((u16*)D_actor_215100_8015E658[entry].field_8);
-    D_actor_215100_8015E65E = func_actor_215100_8014BDFC((u16*)D_actor_215100_8015E658[D_actor_215100_8015E662].field_8);
-    D_actor_215100_8015E664 = func_actor_215100_8014C298((u16*)D_actor_215100_8015E658[D_actor_215100_8015E662].field_8);
+    D_actor_215100_8015E65C = func_actor_215100_8014C06C(D_actor_215100_8015E658[entry].field_8.text);
+    D_actor_215100_8015E65E = func_actor_215100_8014BDFC(D_actor_215100_8015E658[D_actor_215100_8015E662].field_8.text);
+    D_actor_215100_8015E664 = func_actor_215100_8014C298(D_actor_215100_8015E658[D_actor_215100_8015E662].field_8.text);
     D_actor_215100_8015E66C = 0x1E;
     return 0;
 }
 
-static s32 func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+static s32 func_actor_215100_8014B3C8(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u16*       text;
     u16*       body;
@@ -687,8 +687,8 @@ static s32 func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
     lineIdx = 0;
     title   = arg3;
-    text    = (u16*)arg0;
-    x       = func_actor_215100_8014C17C((u16*)arg0, 0) - 0xA0;
+    text    = arg0;
+    x       = func_actor_215100_8014C17C(arg0, 0) - 0xA0;
     y       = (u16)D_actor_215100_8015E65E - 0x78;
 
     bg             = (POLY_G4*)gGpuPrimCursor;
@@ -765,7 +765,7 @@ static s32 func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
             D_actor_215100_8015E668 = x + 4;
             y                      += func_actor_215100_8014C360(&body[i + 1]);
             if (centered != 0) {
-                x = func_actor_215100_8014C17C((u16*)arg0, t2) - 0xA0;
+                x = func_actor_215100_8014C17C(arg0, t2) - 0xA0;
             } else {
                 x = (u16)D_actor_215100_8015E65C - 0xA0;
             }
@@ -1086,15 +1086,15 @@ static s32 func_actor_215100_8014C418(s32 arg0)
 {
     s32      flag;
     s32      id;
-    s32      base;
+    GpEvt12* base;
     GpEvt12* p;
 
     flag = -1;
     id   = D_actor_215100_8015E666;
-    base = (s32)D_actor_215100_8015E658;
-    p    = (GpEvt12*)(arg0 * sizeof(GpEvt12) + base);
+    base = D_actor_215100_8015E658;
+    p    = Gp_CapEventAt(base, arg0);
 loop:
-    if (p->field_8 == flag) {
+    if (p->field_8.offset == flag) {
         goto done;
     }
     if (p->field_5 == id) {

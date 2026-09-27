@@ -592,12 +592,12 @@ static void func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, S
             poly->r3              = c2;
             poly->g3              = c2;
             poly->b3              = c2;
-            addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), poly);
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), poly);
             dr             = (DR_MODE*)gGpuPrimCursor;
             gGpuPrimCursor = (u8*)(dr + 1);
             setlen(dr, 1);
             dr->code[0] = 0xE100002A;
-            addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), dr);
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), dr);
             c = c2;
         }
     }

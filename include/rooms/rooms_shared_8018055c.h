@@ -36,6 +36,6 @@ extern RoomsShared8018055cMenu RoomsShared8018055cCourses;
 /// on it: the press remembers the row in `Task::spawnArg1` and, when the course
 /// differs from the one already loaded, drops the pending CD command and asks
 /// the controller task to load the new one. Two rooms carry this body.
-void RoomsShared8018055c(DialogPrompt* prompt, UiObject* obj);
+void RoomsShared8018055c(UiList* prompt, UiObject* obj);
 
 #endif // ROOMS_SHARED_8018055C_H

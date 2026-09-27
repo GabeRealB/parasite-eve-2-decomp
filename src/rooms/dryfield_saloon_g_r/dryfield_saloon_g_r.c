@@ -367,8 +367,7 @@ static void func_dryfield_saloon_g_r_8017DBB4(GpCoord* arg0, SVECTOR* arg1, s32 
         xy               = block->sy + (u16)block->halfWidth;
         prim->y3         = xy;
         prim->y2         = xy;
-        addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x14);
@@ -473,8 +472,7 @@ static void func_dryfield_saloon_g_r_8017DEC4(GpCoord* coord)
             setRGB3(prim, 0, 0, 0);
             setRGB0(prim, rgb, rgb, rgb);
             setRGB1(prim, rgb, rgb, rgb);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
@@ -575,8 +573,7 @@ static void func_dryfield_saloon_g_r_8017E430(GpCoord* arg0, SVECTOR* arg1, SVEC
             prim->y2 = block->sy0;
             prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
             prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -595,8 +592,7 @@ static void func_dryfield_saloon_g_r_8017E430(GpCoord* arg0, SVECTOR* arg1, SVEC
             prim->y2 = block->sy0;
             prim->x3 = block->sx1;
             prim->y3 = block->sy1;
-            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -616,8 +612,7 @@ static void func_dryfield_saloon_g_r_8017E430(GpCoord* arg0, SVECTOR* arg1, SVEC
             prim->x3 = block->sx1 + ((block->r1 * rsin(0xC00 - ang)) >> 12);
             prim->y3 = block->sy1 + ((block->r1 * rcos(0xC00 - ang)) >> 12);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);

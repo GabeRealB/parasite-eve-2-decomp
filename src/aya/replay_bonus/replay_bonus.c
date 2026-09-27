@@ -176,7 +176,7 @@ s32 func_replay_bonus_80115CA4(void)
     return spend;
 }
 
-static void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx)
+static void func_replay_bonus_80115D60(UiList* list, UiObject* ctx)
 {
     McItemRec* rec;
     s16*       ids;
@@ -191,7 +191,7 @@ static void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx)
 
     rec   = Mc_SaveData[0].itemRows;
     count = 0;
-    ids   = ctx->itemList->itemIds;
+    ids   = ((s16*)ctx->owner->work);
     dest  = ids;
     i     = count;
     do {
@@ -248,20 +248,20 @@ static void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx)
         i += 1;
     } while (i < 0x200);
 
-    list->field_5 = 9;
-    list->field_4 = count;
-    list->field_9 = list->field_4 - list->field_5;
-    if ((s8)list->field_9 < 0) {
-        list->field_9 = 0;
+    list->field_5.u = 9;
+    list->field_4   = count;
+    list->field_9.u = list->field_4 - list->field_5.u;
+    if ((s8)list->field_9.u < 0) {
+        list->field_9.u = 0;
     }
-    list->field_10 = (s8)list->field_9;
+    list->field_10 = (s8)list->field_9.u;
 }
 static const char D_replay_bonus_80115774[] = "Complete Bonus";
 static const char D_replay_bonus_80115784[] = "GET ITEM";
 static const char D_replay_bonus_80115790[] = "BONUS BP";
 static const char D_replay_bonus_8011579C[] = "TOTAL BP";
 
-static inline s32 _replayBonusTotalBp(UiList* list, ReplayBonusCtx* ctx)
+static inline s32 _replayBonusTotalBp(UiList* list, UiObject* ctx)
 {
     s32           i;
     s32           sum;
@@ -269,8 +269,8 @@ static inline s32 _replayBonusTotalBp(UiList* list, ReplayBonusCtx* ctx)
 
     cfg = &Player_Status;
     sum = 0;
-    for (i = (s8)list->field_9; i < list->field_4; i++) {
-        sum += replayBonusItemBp(ctx->itemList->itemIds[i]);
+    for (i = (s8)list->field_9.u; i < list->field_4; i++) {
+        sum += replayBonusItemBp(((s16*)ctx->owner->work)[i]);
     }
     sum += cfg->bp;
     if (sum > 99999999) {
@@ -321,7 +321,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     list          = &D_replay_bonus_80119130;
     obj           = arg0->spawnArg2;
     obj->field_2E = 0;
-    Ui_DrawText((UiPanel*)obj, D_replay_bonus_80115774);
+    Ui_DrawText(&(obj)->panel, D_replay_bonus_80115774);
     if (arg0->state == 0) {
         cfg        = &Player_Status;
         mem        = Mem_Malloc(0x258, 0);
@@ -332,23 +332,23 @@ void func_replay_bonus_80115ED0(Task* arg0)
         }
         Gp_ClearPreviewItems();
         D_80067634 = 0;
-        func_replay_bonus_80115D60(list, (ReplayBonusCtx*)obj);
-        Ui_LayoutListPanel(list, (UiPanel*)obj);
-        list->field_A                = 1;
-        list->field_17               = 0xF;
-        obj->field_12                = obj->field_12 + 0x22;
-        arg0->killCountdown          = 0x3C;
-        arg0->state                  = arg0->state + 1;
-        list->field_9                = 0;
-        acc                          = _replayBonusTotalBp(list, (ReplayBonusCtx*)obj);
-        totals                       = &D_replay_bonus_80119274;
-        totals->field_4              = acc;
-        totals->field_C              = acc;
-        list->field_9                = list->field_4 - list->field_5;
-        tmp                          = func_replay_bonus_80115CA4();
-        exp                          = cfg->exp;
-        D_replay_bonus_80119274.unk0 = tmp;
-        totals->field_8              = exp;
+        func_replay_bonus_80115D60(list, obj);
+        Ui_LayoutListPanel(list, &(obj)->panel);
+        list->field_A                    = 1;
+        list->field_17                   = 0xF;
+        obj->panel.bounds.unsignedRect.h = obj->panel.bounds.unsignedRect.h + 0x22;
+        arg0->killCountdown              = 0x3C;
+        arg0->state                      = arg0->state + 1;
+        list->field_9.u                  = 0;
+        acc                              = _replayBonusTotalBp(list, obj);
+        totals                           = &D_replay_bonus_80119274;
+        totals->field_4                  = acc;
+        totals->field_C                  = acc;
+        list->field_9.u                  = list->field_4 - list->field_5.u;
+        tmp                              = func_replay_bonus_80115CA4();
+        exp                              = cfg->exp;
+        D_replay_bonus_80119274.unk0     = tmp;
+        totals->field_8                  = exp;
         switch (Mc_SaveData[0].gameMode) {
             case 3:
                 totals->field_8 = exp * 10;
@@ -424,12 +424,12 @@ void func_replay_bonus_80115ED0(Task* arg0)
         }
     }
 
-    status         = obj->status;
-    obj->status    = 0;
-    obj->field_1A -= 0x13;
+    status                 = obj->panel.field_0.w;
+    obj->panel.field_0.w   = 0;
+    obj->panel.field_1A.u -= 0x13;
     Ui_UpdateListNoAnim(list, obj);
-    obj->status    = status;
-    obj->field_1A += 0x13;
+    obj->panel.field_0.w   = status;
+    obj->panel.field_1A.u += 0x13;
 
     state = arg0->state;
     if (state == 1) {
@@ -441,12 +441,12 @@ void func_replay_bonus_80115ED0(Task* arg0)
         }
     } else if (state == 2) {
         n = list->field_4;
-        if ((s8)list->field_5 < n) {
+        if ((s8)list->field_5.u < n) {
             if (list->field_14 <= 0) {
-                nxt           = list->field_9 - 1;
-                list->field_9 = nxt;
+                nxt             = list->field_9.u - 1;
+                list->field_9.u = nxt;
                 if ((s8)nxt < 0) {
-                    list->field_9       = 0;
+                    list->field_9.u     = 0;
                     arg0->killCountdown = 0xBC;
                     arg0->state         = arg0->state + 1;
                 } else {
@@ -454,7 +454,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
                     list->field_16 = -1;
                     list->field_14 = (s8)(u8)list->field_7;
                 }
-                list->field_10 = (s8)list->field_9;
+                list->field_10 = (s8)list->field_9.u;
             }
             list->field_14 = (u16)list->field_14 - 1;
         } else {
@@ -469,15 +469,15 @@ void func_replay_bonus_80115ED0(Task* arg0)
         }
     }
 
-    yOff = (s16)obj->field_18 + 0xC;
-    xOff = (s16)obj->field_1C + 2;
-    Ui_DrawHBar((UiPanel*)obj, xOff, (s16)obj->field_1E - 2, yOff);
+    yOff = (s16)obj->panel.field_18.u + 0xC;
+    xOff = (s16)obj->panel.field_1C.s + 2;
+    Ui_DrawHBar(&(obj)->panel, xOff, (s16)obj->panel.field_1E.u - 2, yOff);
     color = 0x606060;
 
-    req.x          = obj->baseX + xOff;
-    req.y          = obj->baseY - 4;
+    req.x          = obj->panel.field_20.u + xOff;
+    req.y          = obj->panel.field_22.u - 4;
     req.y         += yOff;
-    ot             = obj->drawOrder;
+    ot             = obj->panel.field_14.s;
     req.field_8    = color;
     req.glyphTable = 5;
     req.centerMode = 0;
@@ -485,10 +485,10 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req.otIndex    = ot + 1;
     func_8002E53C(&req, D_replay_bonus_80115784);
 
-    req2.x          = obj->baseX - xOff;
-    req2.y          = obj->baseY - 4;
+    req2.x          = obj->panel.field_20.u - xOff;
+    req2.y          = obj->panel.field_22.u - 4;
     req2.y         += yOff;
-    ot2             = obj->drawOrder;
+    ot2             = obj->panel.field_14.s;
     req2.field_8    = color;
     req2.glyphTable = 5;
     req2.centerMode = 2;
@@ -496,14 +496,14 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req2.otIndex    = ot2 + 1;
     func_8002E53C(&req2, D_replay_bonus_80115790);
 
-    t    = (s16)obj->field_1A;
+    t    = (s16)obj->panel.field_1A.u;
     yOff = t - 1;
-    Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C + 2, (s16)obj->field_1E - 2, t - 0x10);
+    Ui_DrawHBar(&(obj)->panel, (s16)obj->panel.field_1C.s + 2, (s16)obj->panel.field_1E.u - 2, t - 0x10);
 
-    req3.x          = obj->baseX + 0x70 + xOff;
-    req3.y          = obj->baseY - 6;
+    req3.x          = obj->panel.field_20.u + 0x70 + xOff;
+    req3.y          = obj->panel.field_22.u - 6;
     req3.y         += yOff;
-    ot3             = obj->drawOrder;
+    ot3             = obj->panel.field_14.s;
     req3.field_8    = color;
     req3.glyphTable = 5;
     req3.centerMode = 2;
@@ -511,9 +511,9 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req3.otIndex    = ot3 + 1;
     func_8002E53C(&req3, D_replay_bonus_8011579C);
 
-    sum = _replayBonusTotalBp(list, (ReplayBonusCtx*)obj);
+    sum = _replayBonusTotalBp(list, obj);
     Text_DrawPrompt(obj, -xOff, yOff, Text_ItoaUnsigned(buf, (u32)sum), 0x606060, 3, 2);
-    if ((obj->status == 1) && (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
+    if ((obj->panel.field_0.w == 1) && (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
         obj->field_2E = 6;
     }
 }
@@ -548,15 +548,15 @@ void func_replay_bonus_801166AC(Task* arg0)
     }
     obj->field_2E = 0;
     if (arg0->spawnArg1 == 0) {
-        Ui_DrawText((UiPanel*)obj, D_replay_bonus_801157A8);
+        Ui_DrawText(&(obj)->panel, D_replay_bonus_801157A8);
     } else {
-        Ui_DrawText((UiPanel*)obj, D_replay_bonus_801157B0);
+        Ui_DrawText(&(obj)->panel, D_replay_bonus_801157B0);
     }
     color          = 0x606060;
-    xOff           = obj->field_1C + 2;
-    req.x          = obj->baseX + xOff;
-    req.y          = obj->baseY - 8;
-    ot             = obj->drawOrder;
+    xOff           = obj->panel.field_1C.s + 2;
+    req.x          = obj->panel.field_20.u + xOff;
+    req.y          = obj->panel.field_22.u - 8;
+    ot             = obj->panel.field_14.s;
     req.field_8    = color;
     req.glyphTable = 5;
     req.centerMode = 0;
@@ -569,9 +569,9 @@ void func_replay_bonus_801166AC(Task* arg0)
     }
     negX = -xOff;
     Text_DrawPrompt(obj, negX, -2, Text_ItoaSigned(buf, value), color, 3, 2);
-    req2.x          = obj->baseX + xOff;
-    req2.y          = obj->baseY + 0xB;
-    ot2             = obj->drawOrder;
+    req2.x          = obj->panel.field_20.u + xOff;
+    req2.y          = obj->panel.field_22.u + 0xB;
+    ot2             = obj->panel.field_14.s;
     req2.field_8    = color;
     req2.glyphTable = 5;
     req2.centerMode = 0;
@@ -589,14 +589,14 @@ void func_replay_bonus_801166AC(Task* arg0)
         if ((remaining << 0x10) <= 0) {
             if (arg0->spawnArg1 == 0) {
                 Ui_SpawnFromDesc(&D_replay_bonus_801191A8, 1, 1, 1, obj);
-                obj->status = 0;
-                arg0->state = arg0->state + 1;
+                obj->panel.field_0.w = 0;
+                arg0->state          = arg0->state + 1;
             } else {
                 obj->field_2E = 6;
             }
         }
     }
-    if (obj->status == 1) {
+    if (obj->panel.field_0.w == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
             obj->field_2E = 6;
         }
@@ -625,22 +625,22 @@ void func_replay_bonus_80116964(Task* arg0)
 
     obj           = arg0->spawnArg2;
     obj->field_2E = 0;
-    Ui_DrawTitle((UiPanel*)obj, "WARNING");
+    Ui_DrawTitle(&(obj)->panel, "WARNING");
     if (arg0->state == 0) {
         obj->field_2C = 0x34;
-        Ui_SizeFromText((UiPanel*)obj, D_replay_bonus_8011906C, 0, 0);
-        Ui_UpdateLayoutSize((UiPanel*)obj, 0, Ui_Scale15(3) + 4);
+        Ui_SizeFromText(&(obj)->panel, D_replay_bonus_8011906C, 0, 0);
+        Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(3) + 4);
         arg0->state = arg0->state + 1;
     } else if (arg0->state == 1) {
         spawned = func_800CD89C(obj);
         if (spawned != NULL) {
-            spawned->owner->spawnArg1 |= 0x10;
-            spawned->field_E          += 0x10;
-            arg0->state                = arg0->state + 1;
+            spawned->owner->spawnArg1            |= 0x10;
+            spawned->panel.bounds.unsignedRect.y += 0x10;
+            arg0->state                           = arg0->state + 1;
         }
     }
     color = 0x606060;
-    Text_DrawMultiLine(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, D_replay_bonus_80119014, color, 1, 0);
+    Text_DrawMultiLine(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, D_replay_bonus_80119014, color, 1, 0);
     child = arg0->firstChild;
     if (child != NULL) {
         childObj = child->spawnArg2;
@@ -750,16 +750,16 @@ void func_replay_bonus_80116D68(Task* arg0)
 
     obj   = arg0->spawnArg2;
     bonus = D_replay_bonus_80119288;
-    Ui_DrawText((UiPanel*)obj, "EXTRA BONUS\0\0\0\0");
+    Ui_DrawText(&(obj)->panel, "EXTRA BONUS\0\0\0\0");
     if (arg0->state == 0) {
         arg0->killCountdown = 0xBC;
         arg0->state         = arg0->state + 1;
     }
     color          = 0x606060;
-    xOff           = obj->field_1C + 2;
-    req.x          = obj->baseX + xOff;
-    req.y          = obj->baseY;
-    ot             = obj->drawOrder;
+    xOff           = obj->panel.field_1C.s + 2;
+    req.x          = obj->panel.field_20.u + xOff;
+    req.y          = obj->panel.field_22.u;
+    ot             = obj->panel.field_14.s;
     req.glyphTable = 5;
     req.field_8    = color;
     req.centerMode = 0;
@@ -769,7 +769,7 @@ void func_replay_bonus_80116D68(Task* arg0)
     Text_DrawPrompt(obj, -xOff, 6, Text_ItoaSigned(buf, bonus), color, 3, 2);
     remaining           = (u16)arg0->killCountdown - 1;
     arg0->killCountdown = remaining;
-    if (obj->status == 1) {
+    if (obj->panel.field_0.w == 1) {
         if (((remaining << 0x10) <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
             obj->field_2E = 6;
         }

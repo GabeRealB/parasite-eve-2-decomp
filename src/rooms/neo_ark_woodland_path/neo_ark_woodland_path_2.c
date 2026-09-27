@@ -387,7 +387,7 @@ static void func_neo_ark_woodland_path_8017F154(GpCoord* arg0, s32 arg1, s16 arg
         prim->y2    = block->sxy2.vy;
         prim->x3    = block->sxy3.vx;
         prim->y3    = block->sxy3.vy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP(GpQuadScratch);
@@ -505,8 +505,7 @@ static void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg
         prim->y2 = block->sxy2.vy;
         prim->x3 = block->sxy3.vx;
         prim->y3 = block->sxy3.vy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x38);
@@ -700,8 +699,7 @@ static void func_neo_ark_woodland_path_8017FDE4(GpCoord* arg0, s32 arg1, s32 arg
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES_AT(scratch, 0x1C);
@@ -757,8 +755,7 @@ static void func_neo_ark_woodland_path_801801D0(GpCoord* arg0, s32 arg1, s32 arg
         prim->x1 = prim->x3 = block->sx + block->step;
         prim->y0 = prim->y1 = block->sy - block->step - (block->step >> 1);
         prim->y2 = prim->y3 = block->sy + (block->step >> 1);
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP(GpRingScratch);

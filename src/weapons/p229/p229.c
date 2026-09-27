@@ -174,8 +174,7 @@ static void func_p229_8011D464(GpCoord* arg0, s16 arg1, s16 arg2)
         prim->x2 = (u16)blk->sxy.vx - (u16)blk->dx;
         prim->y1 = (u16)blk->sxy.vy - (u16)blk->dy;
         prim->y2 = (u16)blk->sxy.vy + (u16)blk->dy;
-        addPrim((u_long*)(((((u32)((OverlaySpriteScratch*)(head - 0x18))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)((OverlaySpriteScratch*)(head - 0x18))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(sizeof(OverlaySpriteScratch));
@@ -277,8 +276,7 @@ static void func_p229_8011D860(GpCoord* arg0, s16 arg1, s16 arg2)
         setRGB1(prim, 0, 0, 0);
         setRGB2(prim, arg2 >> 1, arg2 >> 1, arg2);
         setRGB3(prim, 0, 0, 0);
-        addPrim((u_long*)(((((u32)((WeaponQuadScratch*)(head - 0x24))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)((WeaponQuadScratch*)(head - 0x24))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, ((WeaponQuadScratch*)(head - 0x24))->otz);
     }

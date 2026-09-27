@@ -7,9 +7,9 @@
 #include "main/cdstream.h"
 #include "main/fs.h"
 
-static void CdVol_ClearCallbackSlot(void);
+static void CdVol_ClearCallbackSlot(AsyncCbEntry* unused);
 static void CdVol_Set(s32 arg0);
-static s32  Cd_Flush(void);
+static s32  Cd_Flush(AsyncCbEntry* unused);
 
 static u16 D_8006EBB8;
 static s8  D_8006EBBA;
@@ -64,7 +64,7 @@ void Fs_StreamReadyCb(u8 status, u8* result)
     CdReadyCallback(NULL);
 }
 
-static s32 Cd_InitStateMachine(u32* arg0)
+static s32 Cd_InitStateMachine(AsyncCbEntry* arg0)
 {
     struct {
         u8     result[8];
@@ -77,14 +77,14 @@ static s32 Cd_InitStateMachine(u32* arg0)
     u32 temp;
     s16 counter;
 
-    flags = *arg0;
+    flags = arg0->field_0.word;
     if ((flags >> 1) & 1) {
-        temp  = flags & ~2;
-        temp  = temp & ~0xFF0;
-        *arg0 = temp | 0x10;
+        temp               = flags & ~2;
+        temp               = temp & ~0xFF0;
+        arg0->field_0.word = temp | 0x10;
     }
 
-    switch ((*arg0 >> 4) & 0xFF) {
+    switch (((u32)arg0->field_0.word >> 4) & 0xFF) {
         case 1:
             if (CdControlB(CdlNop, NULL, sp.result) == 0) {
                 return 0;
@@ -93,32 +93,32 @@ static s32 Cd_InitStateMachine(u32* arg0)
                 return 0;
             }
             if (sp.result[0] & CdlStatStandby) {
-                *arg0 = (*arg0 & ~0xFF0) | 0x20;
+                arg0->field_0.word = (arg0->field_0.word & ~0xFF0) | 0x20;
                 case 2:
                     if (CdControlB(CdlGetTN, NULL, sp.result) != 0) {
-                        *arg0 = (*arg0 & ~0xFF0) | 0x40;
+                        arg0->field_0.word = (arg0->field_0.word & ~0xFF0) | 0x40;
                         case 3:
                             sync = CdSync(1, sp.result);
                             if (sync == CdlDiskError) {
-                                *arg0 = (*arg0 & ~0xFF0) | 0x20;
+                                arg0->field_0.word = (arg0->field_0.word & ~0xFF0) | 0x20;
                             } else if (sync == CdlComplete) {
-                                *arg0 = (*arg0 & ~0xFF0) | 0x40;
+                                arg0->field_0.word = (arg0->field_0.word & ~0xFF0) | 0x40;
                                 case 4:
                                     CdIntToPos(0, &sp.loc);
                                     if (CdControl(CdlSeekL, (u8*)&sp.loc, sp.result) != 0) {
-                                        *arg0 = (*arg0 & ~0xFF0) | 0x50;
+                                        arg0->field_0.word = (arg0->field_0.word & ~0xFF0) | 0x50;
                                         case 5:
                                             sync = CdSync(1, sp.result);
                                             if ((sync == CdlDiskError) && (sp.result[0] & CdlStatError) &&
                                                 (sp.result[1] & 0x40)) {
-                                                *arg0 = (*arg0 & ~0xFF0) | 0x10;
+                                                arg0->field_0.word = (arg0->field_0.word & ~0xFF0) | 0x10;
                                             } else if (sync != CdlComplete) {
-                                                *arg0 = (*arg0 & ~0xFF0) | 0x60;
+                                                arg0->field_0.word = (arg0->field_0.word & ~0xFF0) | 0x60;
                                                 case 6:
                                                     sp.mode = -0x60;
                                                     if (CdControl(CdlSetmode, (u8*)&sp.mode, NULL) != 0) {
-                                                        D_8006EBB8 = 0;
-                                                        *arg0      = (*arg0 & ~0xFF0) | 0x70;
+                                                        D_8006EBB8         = 0;
+                                                        arg0->field_0.word = (arg0->field_0.word & ~0xFF0) | 0x70;
                                                     }
                                             }
                                     }
@@ -202,27 +202,22 @@ void CdVol_CacheFromSpu(void)
 
 static void CdVol_RegisterCallbacks(void)
 {
-    struct {
-        s32  pad[2];
-        s32  (*unk8)(u32*);
-        void (*unkC)(void);
-        s32  (*unk10)(void);
-    } sp;
-    s16* ptr;
+    AsyncCbEntry sp;
+    s16*         ptr;
 
-    ptr      = &D_8006EBF2;
-    sp.unk8  = Cd_InitStateMachine;
-    sp.unkC  = CdVol_ClearCallbackSlot;
-    sp.unk10 = Cd_Flush;
-    *ptr     = func_8004DE18(&sp);
+    ptr         = &D_8006EBF2;
+    sp.field_8  = Cd_InitStateMachine;
+    sp.field_C  = CdVol_ClearCallbackSlot;
+    sp.field_10 = Cd_Flush;
+    *ptr        = func_8004DE18(&sp);
 }
 
-static void CdVol_ClearCallbackSlot(void)
+static void CdVol_ClearCallbackSlot(AsyncCbEntry* unused)
 {
     D_8006EBF2 = 0;
 }
 
-static s32 Cd_Flush(void)
+static s32 Cd_Flush(AsyncCbEntry* unused)
 {
     CdFlush();
     return 0;

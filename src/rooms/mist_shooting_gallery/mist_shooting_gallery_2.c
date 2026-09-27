@@ -274,7 +274,7 @@ static void func_mist_shooting_gallery_80182294(GpCoord* coord, s16 arg1, s16 ar
         prim->x2    = block->sx - (u16)block->dx;
         prim->y1    = block->sy - (u16)block->dy;
         prim->y2    = block->sy + (u16)block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -347,7 +347,7 @@ static void func_mist_shooting_gallery_801826C4(GpCoord* coord, SVECTOR* arg1, s
             prim->x2    = (u16)block->sxy0.vx - (u16)block->dx;
             prim->y1    = (u16)block->sxy1.vy - (u16)block->dy;
             prim->y2    = (u16)block->sxy0.vy + (u16)block->dy;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
         }
     }

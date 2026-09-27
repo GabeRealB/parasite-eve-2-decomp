@@ -75,7 +75,7 @@ void AsyncCb_Reset(void)
     } while (i < 0x15U);
 }
 
-s16 func_8004DE18(void* arg0)
+s16 func_8004DE18(AsyncCbEntry* arg0)
 {
     AsyncCbEntry* entry;
     s32           next;
@@ -93,9 +93,9 @@ s16 func_8004DE18(void* arg0)
         return 0;
     } else {
         entry                 = &AsyncCb_Queue.entries[writeIdx];
-        entry->field_8        = ((AsyncCbEntry*)arg0)->field_8;
-        entry->field_C        = ((AsyncCbEntry*)arg0)->field_C;
-        entry->field_10       = ((AsyncCbEntry*)arg0)->field_10;
+        entry->field_8        = arg0->field_8;
+        entry->field_C        = arg0->field_C;
+        entry->field_10       = arg0->field_10;
         entry->field_0.word  |= 1;
         entry->field_0.word  &= ~4;
         entry->field_0.word  &= ~8;
@@ -199,19 +199,19 @@ void Spu_InitVoices(void)
 
 s32 Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2)
 {
-    SpuVoiceRange* entry;
-    s32            maxField4;
-    s32            bestPriority;
-    s32            i;
-    s32            j;
-    s8             bestVoice;
-    u8             voice;
-    u8             field64;
-    u32            fieldAc;
-    s32            field4;
-    s32            (*callback)(s32);
-    s32            cbArg;
-    SpuVoiceState* base;
+    SpuVoiceRange*   entry;
+    s32              maxField4;
+    s32              bestPriority;
+    s32              i;
+    s32              j;
+    s8               bestVoice;
+    u8               voice;
+    u8               field64;
+    u32              fieldAc;
+    s32              field4;
+    SpuVoiceCallback callback;
+    void*            cbArg;
+    SpuVoiceState*   base;
 
     maxField4    = 0;
     bestPriority = arg2;
@@ -257,7 +257,7 @@ s32 Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2)
     }
 
     if (bestVoice >= 0) {
-        callback = (s32 (*)(s32))base->field_10c[bestVoice];
+        callback = base->field_10c[bestVoice];
         if (callback != NULL) {
             cbArg = base->field_16c[bestVoice];
             if (cbArg != 0) {
@@ -312,13 +312,13 @@ static inline s32 Spu_GetVoiceRefInline(s8 voiceIdx, SpuVoiceRef* ref)
 
 void func_8004E200(void)
 {
-    SpuVoiceRef    ref;
-    SpuVoiceState* base;
-    s32            i;
-    s32            age;
-    s8             status;
-    s32            (*callback)(s32);
-    s32            arg;
+    SpuVoiceRef      ref;
+    SpuVoiceState*   base;
+    s32              i;
+    s32              age;
+    s8               status;
+    SpuVoiceCallback callback;
+    void*            arg;
 
     base = &Spu_VoiceState;
     SpuGetAllKeysStatus((char*)base->field_64);
@@ -340,7 +340,7 @@ void func_8004E200(void)
             }
         }
         Spu_ReleaseVoiceSlotInline(i);
-        callback = (s32 (*)(s32))base->field_10c[i];
+        callback = base->field_10c[i];
         if (callback != NULL) {
             arg = base->field_16c[i];
             if (arg != 0) {
@@ -434,7 +434,7 @@ void Spu_FlushVoiceUpdates(void)
     }
 }
 
-void Spu_SetVoiceCallbacks(u32 voiceIdx, s32 arg1, s32 arg2)
+void Spu_SetVoiceCallbacks(u32 voiceIdx, SpuVoiceCallback arg1, void* arg2)
 {
     s8 sVoiceIdx = (s8)voiceIdx;
 

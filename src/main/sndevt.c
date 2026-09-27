@@ -33,7 +33,7 @@ static SndEvt* _gSndEvtTail;
 /// that finds no free slot reports the failure rather than allocating.
 static SndEvt _gSndEvtPool[0x40];
 
-static void  Midi_ClearVoiceEntry(MidiNoteSlot* slot);
+static void  Midi_ClearVoiceEntry(void* context);
 static void  Midi_DriveTrack(MidiSong* arg0, MidiTrack* arg1);
 static void  Midi_FadeVolume(u8 arg0, s32 arg1);
 static u8*   Midi_GetSlot(s32 arg0);
@@ -840,10 +840,11 @@ static void* Midi_GetFixedBuffer(s32 arg0, s32 arg1)
     return D_8007F8E0;
 }
 
-static void Midi_ClearVoiceEntry(MidiNoteSlot* slot)
+static void Midi_ClearVoiceEntry(void* context)
 {
-    u32  i;
-    s32* ptr;
+    MidiNoteSlot* slot = context;
+    u32           i;
+    s32*          ptr;
 
     ptr = (s32*)slot;
     i   = 0;
@@ -1191,7 +1192,7 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2)
                 if (voice >= 0) {
                     slot           = &arg2->voiceSlots[voice];
                     arg2->field_C |= 1 << channel;
-                    Spu_SetVoiceCallbacks(voice, (s32)Midi_ClearVoiceEntry, (s32)slot);
+                    Spu_SetVoiceCallbacks(voice, Midi_ClearVoiceEntry, slot);
                     Spu_GetVoiceRef(voice, &ref);
                     slot->field_0 = voice;
                     slot->field_1 = channel;

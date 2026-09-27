@@ -453,8 +453,7 @@ static void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2)
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->step * rsin(ang + 0x200)) >> 12);
             prim->y3 = block->sy + ((block->step * rcos(ang + 0x200)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
@@ -520,8 +519,7 @@ static void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP(GpFxQuadScratch);
@@ -598,8 +596,7 @@ static void func_energyball_801307D4(GpCoord* arg0, s32 arg1)
         prim->y2    = sc->sxy2.vy;
         prim->x3    = sc->sxy3.vx;
         prim->y3    = sc->sxy3.vy;
-        addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP(OverlayGroundScratch);
@@ -681,8 +678,7 @@ static void func_energyball_80130B54(GpCoord* arg0, s16 arg1, s16 arg2)
             prim->y2 = block->sxy2.vy;
             prim->x3 = block->sxy3.vx;
             prim->y3 = block->sxy3.vy;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
         }
     }

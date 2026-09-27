@@ -432,7 +432,7 @@ static void func_acropolis_roof_garden_8017DE90(Task* arg0)
                 y              = blk->sy + (u16)blk->halfWidth;
                 prim->y3       = y;
                 prim->y2       = y;
-                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                         prim);
             }
             SCRATCH_POP(RoomShaftScratch);
@@ -510,7 +510,7 @@ static void func_acropolis_roof_garden_8017E29C(Task* arg0)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->rOuter * D_acropolis_roof_garden_80184C5C[i + 6]) >> 12);
                 prim->y3 = blk->sy + ((blk->rOuter * D_acropolis_roof_garden_80184C5C[i + 2]) >> 12);
-                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
 
@@ -529,7 +529,7 @@ static void func_acropolis_roof_garden_8017E29C(Task* arg0)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->rOuter * D_acropolis_roof_garden_80184C5C[i + 6]) >> 13);
                 prim->y3 = blk->sy + ((blk->rOuter * D_acropolis_roof_garden_80184C5C[i + 2]) >> 13);
-                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
@@ -557,8 +557,8 @@ static void func_acropolis_roof_garden_8017E29C(Task* arg0)
                         depth    = (((u32)blk->otz << shift) >> 2) & 0xFFC;
                         // Keep the shift and its source live through the first OT address.
                         __asm__("" : "+r"(depth) : "r"(shift), "m"(gDisplayState.otDepthShift));
-                        setaddr(prim, getaddr((u_long*)(depth + (s32)gGpuCurrentOt)));
-                        ot  = (u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt);
+                        setaddr(prim, getaddr(Gpu_OtEntryAtByteOffset(depth)));
+                        ot  = Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC));
                         tag = *ot;
                         tag = (tag & 0xFF000000) | ((u32)prim & 0xFFFFFF);
                         *ot = tag;
@@ -583,7 +583,7 @@ static void func_acropolis_roof_garden_8017E29C(Task* arg0)
                     prim->y2 = blk->sy;
                     prim->x3 = blk->sx + ((blk->rInner * D_acropolis_roof_garden_80184C5C[i + 12]) >> 13);
                     prim->y3 = blk->sy + ((blk->rInner * D_acropolis_roof_garden_80184C5C[i + 8]) >> 13);
-                    addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     z = blk->otz;
                     __asm__("" : "+r"(z) : "r"(red), "r"(&D_acropolis_roof_garden_80184C5C[i]));
@@ -606,7 +606,7 @@ static void func_acropolis_roof_garden_8017E29C(Task* arg0)
                 prim->x3            = blk->sx + blk->rOuter;
                 prim->y0 = prim->y2 = prim->y3 = blk->sy;
                 prim->y1                       = (blk->sy - blk->rOuter) + blk->rOuter * (i + i);
-                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
@@ -624,8 +624,7 @@ static void func_acropolis_roof_garden_8017E29C(Task* arg0)
                     line->y1 = blk->sy;
                     line->x2 = blk->sx - blk->rOuter * (i * 3 - 1);
                     line->y2 = blk->sy + blk->rOuter * (i + 1);
-                    addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                                      (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             line);
                     Gp_AddTpageShift((P_TAG*)line, 1, blk->otz);
                 }
@@ -796,7 +795,7 @@ static void func_acropolis_roof_garden_8017F560(GpCoord* arg0, s32 arg1, s16 arg
         }
         prim->tpage = 0x2B;
         prim->clut  = 0x4390;
-        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP(RoomQuadScratch);

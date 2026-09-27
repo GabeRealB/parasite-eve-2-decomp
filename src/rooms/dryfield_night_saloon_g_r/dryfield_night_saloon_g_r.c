@@ -477,7 +477,7 @@ void func_dryfield_night_saloon_g_r_8017E0A8(u8 arg0)
 /// confirm, when the row is not the one already chosen, plays the select
 /// sound and, when the track differs from the one playing, fades the music
 /// out and hands the track id to the menu task to load.
-void func_dryfield_night_saloon_g_r_8017E0C0(DialogPrompt* prompt, UiObject* obj)
+void func_dryfield_night_saloon_g_r_8017E0C0(UiList* prompt, UiObject* obj)
 {
     RoomsShared8018055cMenu    menu;
     RoomsShared8018055cCourse* course;
@@ -497,9 +497,9 @@ void func_dryfield_night_saloon_g_r_8017E0C0(DialogPrompt* prompt, UiObject* obj
     }
 
     course              = &menu.lists[list][row];
-    menu.req.x          = obj->baseX + (u16)prompt->field_18;
-    menu.req.y          = (prompt->field_1A - 3) + obj->baseY;
-    menu.req.otIndex    = obj->drawOrder + 1;
+    menu.req.x          = obj->panel.field_20.u + (u16)prompt->field_18;
+    menu.req.y          = (prompt->field_1A - 3) + obj->panel.field_22.u;
+    menu.req.otIndex    = obj->panel.field_14.s + 1;
     menu.req.field_8    = prompt->field_1C;
     menu.req.glyphTable = 4;
     menu.req.field_E    = 1;
@@ -544,7 +544,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
     menu = &D_dryfield_night_saloon_g_r_80185028;
 
     obj->field_2E = 0;
-    Ui_DrawText((UiPanel*)obj, D_dryfield_night_saloon_g_r_8017D898);
+    Ui_DrawText(&(obj)->panel, D_dryfield_night_saloon_g_r_8017D898);
     if (task->state == 0) {
         task->spawnArg1 = -1;
         if (Gp_IsDebugAttachRoom() == 0) {
@@ -553,17 +553,17 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
             menu->field_4 = 3;
         }
         if (menu->field_4 >= 0xB) {
-            menu->field_5 = 0xA;
+            menu->field_5.u = 0xA;
         } else {
-            menu->field_5 = menu->field_4;
+            menu->field_5.u = menu->field_4;
         }
-        menu->field_10 = 0;
-        menu->field_9  = 0;
-        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        menu->field_10  = 0;
+        menu->field_9.u = 0;
+        Ui_LayoutListPanel(menu, &(obj)->panel);
         menu->field_A = 1;
         Ui_SetListScrollFlag(menu, 1);
-        obj->field_C = -((s16)obj->field_10 / 2);
-        obj->field_E = -((s16)obj->field_12 / 2);
+        obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
+        obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
         if (Gp_IsDebugAttachRoom() == 0) {
             task->status = 0xFF;
         } else {
@@ -607,13 +607,13 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
                 if (Gp_IsDebugAttachRoom() == 0) {
                     gGameSession->flowFlags |= 3;
                 }
-                if (obj->status != 1) {
+                if (obj->panel.field_0.w != 1) {
                     obj->field_2E = 6;
                 }
             }
         }
     }
-    if (obj->status == 1) {
+    if (obj->panel.field_0.w == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu | Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(0x3B, 0, 0);
             if (task->status != 0xFE) {
@@ -621,7 +621,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
                     obj->field_2E = 6;
                 } else {
                     Ui_SetState4(obj, obj->owner);
-                    obj->status = 0;
+                    obj->panel.field_0.w = 0;
                 }
             }
         }
@@ -760,7 +760,7 @@ static void func_dryfield_night_saloon_g_r_8017E8B0(SVECTOR* arg0, s32 arg1, s32
         prim->x1 = prim->x3 = block->sx + block->radius;
         prim->y0 = prim->y1 = block->sy - block->radius;
         prim->y2 = prim->y3 = block->sy + block->radius;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
     }
     SCRATCH_POP(RoomDraw13Scratch);
 }
@@ -864,8 +864,7 @@ static void func_dryfield_night_saloon_g_r_8017EB38(GpCoord* coord)
             setRGB3(prim, 0, 0, 0);
             setRGB0(prim, rgb, rgb, rgb);
             setRGB1(prim, rgb, rgb, rgb);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
@@ -957,8 +956,7 @@ static void func_dryfield_night_saloon_g_r_8017F0A4(GpCoord* coord, SVECTOR* arg
             prim->y2 = block->sy0;
             prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
             prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -977,8 +975,7 @@ static void func_dryfield_night_saloon_g_r_8017F0A4(GpCoord* coord, SVECTOR* arg
             prim->y2 = block->sy0;
             prim->x3 = block->sx1;
             prim->y3 = block->sy1;
-            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -998,8 +995,7 @@ static void func_dryfield_night_saloon_g_r_8017F0A4(GpCoord* coord, SVECTOR* arg
             prim->x3 = block->sx1 + ((block->r1 * rsin(0xC00 - ang)) >> 12);
             prim->y3 = block->sy1 + ((block->r1 * rcos(0xC00 - ang)) >> 12);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);

@@ -339,8 +339,7 @@ static void func_healing_8012F7FC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         y           = (u16)block->sy + (u16)block->step;
         prim->y3    = y;
         prim->y2    = y;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
 
         prim           = (POLY_FT4*)gGpuPrimCursor;
@@ -365,8 +364,7 @@ static void func_healing_8012F7FC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         y           = (u16)block->sy + (u16)block->step;
         prim->y3    = y;
         prim->y2    = y;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x18);

@@ -160,8 +160,7 @@ static void func_pepper_spray_8012F21C(GpCoord* arg0, s16 arg1, s16 arg2)
         prim->x2    = blk->sx - (u16)blk->dx;
         prim->y1    = blk->sy - (u16)blk->dy;
         prim->y2    = blk->sy + (u16)blk->dy;
-        addPrim((u_long*)(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -265,8 +264,7 @@ static void func_pepper_spray_8012F634(GpCoord* arg0, s16 arg1, s16 arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, arg2 >> 1, arg2 >> 1, color);
             setRGB3(prim, 0, 0, 0);
-            addPrim((u_long*)(((((u32)((OverlayFlaggedQuadScratch*)(head - 0x28))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)((OverlayFlaggedQuadScratch*)(head - 0x28))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, ((OverlayFlaggedQuadScratch*)(head - 0x28))->otz);
         }

@@ -128,7 +128,7 @@ static void Display_StepFadeOverlay(void)
             dr->code[0] = 0xE1000220;
         }
 
-        ot = (u_long*)((otIdx << 2) + (s32)gGpuCurrentOt);
+        ot = Gpu_OtEntryAtByteOffset((otIdx << 2));
         addPrim(ot, tile);
         addPrim(ot, dr);
     }

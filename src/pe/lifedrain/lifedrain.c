@@ -554,8 +554,7 @@ static void func_lifedrain_801301AC(GpCoord* arg0, s16 arg1, s16 arg2)
         y           = (u16)block->sy + (u16)block->step;
         prim->y3    = y;
         prim->y2    = y;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -584,8 +583,7 @@ static void func_lifedrain_801301AC(GpCoord* arg0, s16 arg1, s16 arg2)
         y           = (u16)block->sy + (u16)block->step;
         prim->y3    = y;
         prim->y2    = y;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x18);
@@ -639,8 +637,7 @@ static void func_lifedrain_801305C0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
         ang        += 0x20;
         prim->x2    = (u16)block->sx + ((block->step * rsin(ang)) >> 12);
         prim->y2    = (u16)block->sy + ((block->step * rcos(ang)) >> 12);
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
     }

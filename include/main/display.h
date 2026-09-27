@@ -123,6 +123,12 @@ extern GsOT Gpu_OrderingTables[2];
 extern u_long* gGpuCurrentOt;
 #endif
 
+/// Resolve an aligned byte offset from depth quantization to an OT tag.
+/// Callers supply a multiple of sizeof(u_long), within the current table.
+/// The numeric address operation is confined to this PS1 hardware boundary:
+/// using ordinary pointer addition reverses GCC 2.8.1's MIPS addu operands.
+#define Gpu_OtEntryAtByteOffset(byteOffset) ((u_long*)((byteOffset) + (uintptr)gGpuCurrentOt))
+
 /// The primitive buffer allocation cursor.
 ///
 /// Drawing code writes its packets straight into the primitive buffer and

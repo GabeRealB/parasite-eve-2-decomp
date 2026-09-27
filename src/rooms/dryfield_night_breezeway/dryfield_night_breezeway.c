@@ -149,7 +149,7 @@ static void func_dryfield_night_breezeway_8017D6D8(SVECTOR* arg0, s16 arg1, s32 
             prim->y0 = sy;
             twice    = i * 2;
             prim->y1 = (block->sy - block->radius) + (block->radius * twice);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
             i++;
@@ -171,7 +171,7 @@ static void func_dryfield_night_breezeway_8017D6D8(SVECTOR* arg0, s16 arg1, s32 
             line->y1 = block->sy;
             line->x2 = block->sx - (block->radius * t1);
             line->y2 = block->sy + (block->radius * t2);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                     line);
             Gp_AddTpageShift((P_TAG*)line, 1, block->otz);
             i = t2;
@@ -251,7 +251,7 @@ static void func_dryfield_night_breezeway_8017DB4C(SVECTOR* arg0, s32 arg1)
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
                     prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-                    addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -271,8 +271,7 @@ static void func_dryfield_night_breezeway_8017DB4C(SVECTOR* arg0, s32 arg1)
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx1;
                     prim->y3 = block->sy1;
-                    addPrim((u_long*)(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                                      (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
 
@@ -295,7 +294,7 @@ static void func_dryfield_night_breezeway_8017DB4C(SVECTOR* arg0, s32 arg1)
                     prim->y2 = block->sy1;
                     prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
                     prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
                     ang = t2;
@@ -347,7 +346,7 @@ static void func_dryfield_night_breezeway_8017E334(SVECTOR* arg0, s32 arg1, s32 
         prim->x1 = prim->x3 = block->sx + block->radius;
         prim->y0 = prim->y1 = block->sy - block->radius;
         prim->y2 = prim->y3 = block->sy + block->radius;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
     }
     SCRATCH_POP(RoomDraw13Scratch);
 }

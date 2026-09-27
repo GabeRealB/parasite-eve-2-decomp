@@ -269,8 +269,7 @@ static void func_necrosis_8012F6EC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -415,8 +414,7 @@ static void func_necrosis_8012FE64(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         prim->x2  = block->sx - block->dx;
         prim->y1  = block->sy - block->dy;
         prim->y2  = block->sy + block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP(GpFxQuadScratch);
@@ -480,8 +478,7 @@ static void func_necrosis_80130288(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         prim->x2  = block->sx - block->dx;
         prim->y1  = block->sy - block->dy;
         prim->y2  = block->sy + block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP(GpFxQuadScratch);

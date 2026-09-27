@@ -11,8 +11,6 @@
 #include "main/task.h"
 #include "rooms/room.h"
 
-extern GpCapCmd** Gp_CapCmds;
-
 /// The room's message table, installed on its event task in state 0.
 extern GpMsgEntry D_shelter_1f_guardroom_8017DA30[];
 extern TaskDesc   D_shelter_1f_guardroom_8017DA60;
@@ -53,7 +51,7 @@ void func_shelter_1f_guardroom_8017D5E8(Task* task)
             }
             break;
         case 2:
-            Gp_CapCmds[2]->field_4 = 1;
+            Gp_CapCmds[2].command->field_4 = 1;
             if (Gp_GetCapEventKey() != 0xB) {
                 taskKill(task);
                 Gp_MsgPlayerWeapon(1);

@@ -408,8 +408,7 @@ static void func_actor_800100_80162264(VECTOR3* pos, u16 frame, s32 brightness)
         y           = (u16)block->sy + (u16)block->step;
         prim->y3    = y;
         prim->y2    = y;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES_AT(scratch, 0x18);
@@ -626,8 +625,7 @@ static void func_actor_800100_80162A14(VECTOR3* pos, u16 frame, u16 width, s16 a
         prim->x2    = block->sx - (u16)block->dx;
         prim->y1    = block->sy - (u16)block->dy;
         prim->y2    = block->sy + (u16)block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES_AT(scratch, 0x1C);
@@ -697,8 +695,7 @@ static void func_actor_800100_80162E90(VECTOR3* pos, s32 width)
         prim->y2 = block->sxy[2].vy;
         prim->x3 = block->sxy[3].vx;
         prim->y3 = block->sxy[3].vy;
-        addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x30);
@@ -2709,7 +2706,7 @@ static void func_actor_800100_8016666C(GpCoord* arg0, s16 arg1)
         prim->r1 = prim->r0 - 0x50;
         prim->g1 = 0;
         prim->b1 = 0;
-        addPrim((u_long*)(((((u32)((Actor800100LineScratch*)newhead)->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)((Actor800100LineScratch*)newhead)->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, ((Actor800100LineScratch*)newhead)->otz);
     }
     SCRATCH_POP_BYTES_AT(scratch, sizeof(Actor800100LineScratch));

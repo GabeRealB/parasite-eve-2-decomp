@@ -8,10 +8,10 @@
 #include "main/ui.h"
 #include "main/mc.h"
 
-static void McMenu_ConfirmDialog(DialogPrompt* arg0, UiObject* arg1);
-static void McMenu_ConfirmNo(DialogPrompt* arg0, UiObject* arg1);
-static void McMenu_ConfirmDialogAlt(DialogPrompt* arg0, UiObject* arg1);
-static void McMenu_ConfirmYes(DialogPrompt* arg0, UiObject* arg1);
+static void McMenu_ConfirmDialog(UiList* arg0, UiObject* arg1);
+static void McMenu_ConfirmNo(UiList* arg0, UiObject* arg1);
+static void McMenu_ConfirmDialogAlt(UiList* arg0, UiObject* arg1);
+static void McMenu_ConfirmYes(UiList* arg0, UiObject* arg1);
 static void McMenu_InitByMode(Task* arg0);
 
 static const char D_80013B64[] = "Select";
@@ -41,38 +41,38 @@ void func_80036A1C(void)
     char pad[0x10];
 }
 
-static void McMenu_UpdateListCursor(void* arg0, UiMiniObj* arg1)
+static void McMenu_UpdateListCursor(void* arg0, UiPanel* arg1)
 {
     Ui_UpdateListNoAnim(arg0, arg1);
-    if (arg1->field_0 == 1) {
-        Ui_SmoothCursor(arg1, arg1->field_1c + 2, 0);
+    if (arg1->field_0.w == 1) {
+        Ui_SmoothCursor(arg1, arg1->field_1C.s + 2, 0);
     }
 }
 
 void McMenu_SelectList(Task* arg0)
 {
-    UiMiniObj* obj;
-    UiList*    menu;
+    UiPanel* obj;
+    UiList*  menu;
 
     obj  = arg0->spawnArg2;
     menu = &D_8006116C;
-    Ui_DrawText((UiPanel*)obj, D_80013B64);
+    Ui_DrawText(obj, D_80013B64);
     if (arg0->state == 0) {
         Ui_InitList(menu, obj);
-        menu->field_A  = 1;
-        menu->field_10 = 0;
-        menu->field_9  = 0;
+        menu->field_A   = 1;
+        menu->field_10  = 0;
+        menu->field_9.u = 0;
         Ui_SetListScrollFlag(menu, 1);
         arg0->state += 1;
     } else {
         Ui_UpdateListNoAnim(menu, obj);
-        if (obj->field_0 == 1) {
-            Ui_SmoothCursor(obj, obj->field_1c + 2, 0);
+        if (obj->field_0.w == 1) {
+            Ui_SmoothCursor(obj, obj->field_1C.s + 2, 0);
         }
     }
 }
 
-void McMenu_ConfirmWithRender(DialogPrompt* arg0, UiObject* arg1)
+void McMenu_ConfirmWithRender(UiList* arg0, UiObject* arg1)
 {
     s16 var_v0;
     s32 temp;
@@ -100,7 +100,7 @@ void McMenu_ConfirmWithRender(DialogPrompt* arg0, UiObject* arg1)
 
 void McMenu_SelectListAlt(Task* arg0)
 {
-    UiMiniObj*        obj;
+    UiPanel*          obj;
     UiList*           menu;
     WipSelectMenuExt* ctx;
     s32               temp;
@@ -108,22 +108,22 @@ void McMenu_SelectListAlt(Task* arg0)
     obj  = arg0->spawnArg2;
     ctx  = (WipSelectMenuExt*)arg0->spawnArg1;
     menu = &D_80061194;
-    Ui_DrawText((UiPanel*)obj, D_80013B64);
+    Ui_DrawText(obj, D_80013B64);
     if (arg0->state == 0) {
         Ui_InitList(menu, obj);
-        menu->field_A  = 1;
-        menu->field_10 = ctx->field_290;
-        temp           = (u8)menu->field_10 - menu->field_5 + 1;
-        menu->field_9  = temp;
+        menu->field_A   = 1;
+        menu->field_10  = ctx->field_290;
+        temp            = (u8)menu->field_10 - menu->field_5.u + 1;
+        menu->field_9.u = temp;
         if ((s8)temp < 0) {
-            menu->field_9 = 0;
+            menu->field_9.u = 0;
         }
         Ui_SetListScrollFlag(menu, 1);
         arg0->state += 1;
     } else {
         Ui_UpdateListNoAnim(menu, obj);
-        if (obj->field_0 == 1) {
-            Ui_SmoothCursor(obj, obj->field_1c + 2, 0);
+        if (obj->field_0.w == 1) {
+            Ui_SmoothCursor(obj, obj->field_1C.s + 2, 0);
         }
     }
 }
@@ -153,7 +153,7 @@ void McMenu_FileInformation(Task* arg0)
     func_800330D8(obj, data, val, 0, 0);
 }
 
-static void McMenu_ConfirmDialog(DialogPrompt* arg0, UiObject* arg1)
+static void McMenu_ConfirmDialog(UiList* arg0, UiObject* arg1)
 {
     s32 temp;
 
@@ -172,7 +172,7 @@ static void McMenu_ConfirmDialog(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-static void McMenu_ConfirmDialogAlt(DialogPrompt* arg0, UiObject* arg1)
+static void McMenu_ConfirmDialogAlt(UiList* arg0, UiObject* arg1)
 {
     s32 temp;
 
@@ -187,7 +187,7 @@ static void McMenu_ConfirmDialogAlt(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-static void McMenu_ConfirmYes(DialogPrompt* arg0, UiObject* arg1)
+static void McMenu_ConfirmYes(UiList* arg0, UiObject* arg1)
 {
     s32 temp;
 
@@ -202,7 +202,7 @@ static void McMenu_ConfirmYes(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-static void McMenu_ConfirmNo(DialogPrompt* arg0, UiObject* arg1)
+static void McMenu_ConfirmNo(UiList* arg0, UiObject* arg1)
 {
     Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_80060A58, arg0->field_1C, 1, 0);
     if (arg0->field_C == 1) {
@@ -241,13 +241,13 @@ block_default:
 block_done:
     if (arg0->state == 0) {
         Ui_LayoutListPanel(menu, obj);
-        obj->field_C.y -= obj->field_C.h / 2;
+        obj->bounds.rect.y -= obj->bounds.rect.h / 2;
         if (arg0->spawnArg1 != 3) {
             menu->field_10 = 0;
         } else {
             menu->field_10 = 1;
         }
-        menu->field_9 = 0;
+        menu->field_9.u = 0;
         Ui_SetListScrollFlag(menu, 1);
         arg0->state += 1;
     } else {

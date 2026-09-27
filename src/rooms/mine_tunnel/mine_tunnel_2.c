@@ -102,8 +102,7 @@ static void func_mine_tunnel_8017D8CC(SVECTOR* arg0, s32 arg1, s32 arg2)
         xy            = block->sy + (u16)block->radius;
         prim->y3      = xy;
         prim->y2      = xy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)gGpuCurrentOt),
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
     SCRATCH_POP(RoomDraw13Scratch);

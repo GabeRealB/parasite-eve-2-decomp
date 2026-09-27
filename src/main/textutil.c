@@ -126,10 +126,10 @@ static inline void _textDrawLine(UiObject* obj, s32 x, s32 y, u8* text, s32 arg4
     s32         temp;
 
     if (obj != NULL) {
-        if (obj->mode != 5) {
-            req.x          = obj->baseX + x;
-            req.y          = (obj->baseY + y) - 3;
-            temp           = obj->drawOrder;
+        if (obj->panel.field_8 != 5) {
+            req.x          = obj->panel.field_20.u + x;
+            req.y          = (obj->panel.field_22.u + y) - 3;
+            temp           = obj->panel.field_14.s;
             req.field_8    = arg4;
             req.otIndex    = temp + 1;
             req.glyphTable = 4;
@@ -238,7 +238,7 @@ s32 Text_DrawPrompt(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 
     s32         temp;
 
     if (arg0 != NULL) {
-        if (arg0->mode == 5) {
+        if (arg0->panel.field_8 == 5) {
             return 0;
         }
     } else {
@@ -252,16 +252,16 @@ s32 Text_DrawPrompt(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 
         func_8002E53C(&sp20, arg3);
         return arg1;
     }
-    sp10.x          = arg0->baseX + arg1;
-    sp10.y          = (arg0->baseY + arg2) - 3;
-    temp            = arg0->drawOrder;
+    sp10.x          = arg0->panel.field_20.u + arg1;
+    sp10.y          = (arg0->panel.field_22.u + arg2) - 3;
+    temp            = arg0->panel.field_14.s;
     sp10.field_8    = arg4;
     sp10.glyphTable = 4;
     sp10.centerMode = arg6;
     sp10.field_E    = arg5;
     sp10.otIndex    = temp + 1;
     func_8002E53C(&sp10, arg3);
-    return sp10.x - (s16)arg0->baseX;
+    return sp10.x - (s16)arg0->panel.field_20.u;
 }
 
 static void Text_DrawPromptCompat(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, void* arg6)

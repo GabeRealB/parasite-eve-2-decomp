@@ -370,17 +370,19 @@ s32                         Gp_IsDebugAttachRoom(void);
 void                        Gp_ResetHudFx(GpIdMapC* arg0);
 void                        Gp_EnqueueAttach7Cd(void);
 void                        Gp_TriggerPeIfArmed(void);
-void                        func_800A7DB8(s32 arg0);
-void                        func_800A7DE0(void);
-void                        Gp_LoadStageView(void);
-void                        Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
-s32                         Gp_TrySpawnViewTask(s32 arg0);
-void                        Gp_ApplyView(GpViewRec* arg0);
-void                        Gp_SpawnViewTasks(void);
-GpViewRec*                  Gp_GetStageView(GpAreaKey* arg0);
-void                        Gp_SpawnCurView(s32 arg0);
-void                        Gp_ViewBeginLoad(Task* task);
-void                        Gp_ViewLoadImage(Task* task);
+/// State-F0 gate stub; callers supply an unused action code.
+s32        func_800A7CB0(s32 unused);
+void       func_800A7DB8(s32 arg0);
+void       func_800A7DE0(void);
+void       Gp_LoadStageView(void);
+void       Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
+s32        Gp_TrySpawnViewTask(s32 arg0);
+void       Gp_ApplyView(GpViewRec* arg0);
+void       Gp_SpawnViewTasks(void);
+GpViewRec* Gp_GetStageView(GpAreaKey* arg0);
+void       Gp_SpawnCurView(s32 arg0);
+void       Gp_ViewBeginLoad(Task* task);
+void       Gp_ViewLoadImage(Task* task);
 
 /// Overlay of `Task::spawnArg2` for `Gp_EndingTask` / `Gp_AreaEnterTask`.
 /// `Gp_EndingTask` sets `field_4` to 1 on the first run (state 0).
