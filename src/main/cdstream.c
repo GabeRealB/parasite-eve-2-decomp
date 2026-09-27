@@ -1454,7 +1454,7 @@ static s32 func_80059EE0(CdReadyEntry* arg0)
                 } else {
                     arg0->flags &= ~0x10;
                 }
-                arg0->flags = (*(volatile u32*)&arg0->flags & ~0x1FE0) | 0x20;
+                arg0->flags = (arg0->flags & ~0x1FE0) | 0x20;
             }
         } else {
             arg0->flags = (arg0->flags & ~0x1FE0) | 0x80;
@@ -1510,7 +1510,7 @@ static s32 func_80059EE0(CdReadyEntry* arg0)
             CdStream_State.flags1 |= 2;
             modeFlags              = arg0->flags;
             if (!((modeFlags >> 4) & 1)) {
-                arg0->flags = ((u32)~0x1FE0 & modeFlags) | 0x80;
+                arg0->flags = (modeFlags & ~0x1FE0) | 0x80;
             } else {
                 arg0->flags = (modeFlags & ~0x1FE0) | 0x60;
                 D_800827E8  = 3;
