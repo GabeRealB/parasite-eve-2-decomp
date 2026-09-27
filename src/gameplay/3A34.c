@@ -5028,23 +5028,17 @@ static void Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1)
 
 static void func_800E0994(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2)
 {
-    u8*            head;
     GpAxisScratch* block;
     s32            i;
 
-    head = SCRATCH_HEAD(u8);
-    {
-        register u8* tmp asm("v0");
-        tmp   = head - 0x20;
-        block = (GpAxisScratch*)tmp;
-    }
-    block->local[0].vx          = 0;
-    block->local[0].vy          = (u16)arg0->pos.vy + (u16)arg0->radius;
-    block->local[0].vz          = 0;
-    block->local[1].vx          = 0;
-    block->local[1].vy          = (u16)arg0->pos.vy - (u16)arg0->radius;
-    block->local[1].vz          = 0;
-    SCRATCH_HEAD(GpAxisScratch) = block;
+    SCRATCH_PUSH_BYTES(0x20);
+    block              = SCRATCH_HEAD(GpAxisScratch);
+    block->local[0].vx = 0;
+    block->local[0].vy = (u16)arg0->pos.vy + (u16)arg0->radius;
+    block->local[0].vz = 0;
+    block->local[1].vx = 0;
+    block->local[1].vy = (u16)arg0->pos.vy - (u16)arg0->radius;
+    block->local[1].vz = 0;
     gte_SetRotMatrix(&arg0->coord->workm);
     for (i = 0; i < 2; i++) {
         gte_ldv0(&block->local[i]);
