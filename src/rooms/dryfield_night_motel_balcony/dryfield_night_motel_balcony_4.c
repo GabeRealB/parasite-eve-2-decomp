@@ -835,40 +835,33 @@ static void func_dryfield_night_motel_balcony_801809CC(Task* task)
 /// 0x43C3) centred on it. `index % 6` picks one of six 40-texel columns at
 /// v 0x40..0x67, and the half-extent is `pos.vx * 39 / otz` on both axes.
 /// `color` modulates the texture and makes the quad semi-transparent; NULL
-/// draws the texture raw and opaque. The block pointer goes through the same
-/// `asm` move as `func_dryfield_night_motel_balcony_8018221C`, for the same
-/// reason. The third argument is never read; every caller passes 0.
+/// draws the texture raw and opaque. The third argument is never read; every
+/// caller passes 0.
 static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unused)
 {
     GpEffWork*     work;
     GpCoord*       coord;
-    u8*            head;
     GpRingScratch* block;
     POLY_FT4*      prim;
     DisplayState*  ds;
-    SVECTOR*       vec;
     s16            xy;
-    u16            vz;
 
     coord = task->extra.tmd->coords;
     work  = task->spawnArg2;
 
-    head                                    = SCRATCH_HEAD(void);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)coord->workm.t[0];
-    vec                                     = (SVECTOR*)(head - 0x18);
-    __asm__("move %0,%1" : "=r"(block) : "r"(vec));
-    block->vec.vy      = (u16)coord->workm.t[1];
-    vz                 = (u16)coord->workm.t[2];
-    SCRATCH_HEAD(void) = block;
-    block->vec.vz      = vz;
+    SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_HEAD(GpRingScratch);
+    block->vec.vx = coord->workm.t[0];
+    block->vec.vy = coord->workm.t[1];
+    block->vec.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+        gte_stszotz(&block->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -892,16 +885,16 @@ static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s3
         prim->u3    = work->index % 6 * 40 + 0x27;
         prim->v3    = 0x67;
         block->step = work->pos.vx * 39 / block->otz;
-        xy          = (u16)block->sx - (u16)block->step;
+        xy          = block->sx - block->step;
         prim->x2    = xy;
         prim->x0    = xy;
-        xy          = (u16)block->sx + (u16)block->step;
+        xy          = block->sx + block->step;
         prim->x3    = xy;
         prim->x1    = xy;
-        xy          = (u16)block->sy - (u16)block->step;
+        xy          = block->sy - block->step;
         prim->y1    = xy;
         prim->y0    = xy;
-        xy          = (u16)block->sy + (u16)block->step;
+        xy          = block->sy + block->step;
         prim->y3    = xy;
         prim->y2    = xy;
         ds          = &gDisplayState;
@@ -909,7 +902,7 @@ static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s3
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Per-frame handler of an effect-spawning room task. Any non-zero event state
