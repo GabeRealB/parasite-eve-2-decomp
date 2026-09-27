@@ -307,76 +307,44 @@ void GameFlow_DispatchTable(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-static void Pad_TickEventBanks(PadState* arg0)
+static void Pad_TickEventBanks(PadState* pad)
 {
-    PadState* pad;
-    u8*       temp;
+    u8*       motor;
+    PadEvent* ev;
     s32       i;
-    u8*       p0;
-    u8*       p1;
-    s32       half;
-    u8        val;
-    u8        one;
-    u8*       p1b;
 
-    pad = arg0;
-    {
-        void**         scratch;
-        u8*            head;
-        register void* alloc asm("v0");
+    SCRATCH_PUSH_BYTES(4);
+    motor    = SCRATCH_HEAD(u8);
+    motor[1] = 0;
+    motor[0] = 0;
 
-        scratch                        = SCRATCH_HEAD_ADDR;
-        p0                             = &pad->events[0][0].field_0;
-        i                              = 0;
-        one                            = 1;
-        head                           = SCRATCH_HEAD_AT(scratch, u8);
-        p1                             = &pad->events[0][0].field_1;
-        alloc                          = head - 4;
-        temp                           = alloc;
-        SCRATCH_HEAD_AT(scratch, void) = alloc;
-        temp[1]                        = 0;
-        head[-4]                       = 0;
+    ev = pad->events[0];
+    for (i = 0; i < 8; i++, ev++) {
+        if (ev->field_0 != 0) {
+            if (--ev->field_2 == 0) {
+                ev->field_0 = 0;
+            }
+            if (ev->field_1 != 0) {
+                motor[0] = 1;
+            }
+        }
     }
 
-    do {
-        if (*p0 != 0) {
-            half                     = *(volatile u16*)(p1 + 1) - 1;
-            *(volatile u16*)(p1 + 1) = half;
-            if ((half << 16) == 0) {
-                *p0 = 0;
+    ev = pad->events[1];
+    for (i = 0; i < 8; i++, ev++) {
+        if (ev->field_0 != 0) {
+            if (--ev->field_2 == 0) {
+                ev->field_0 = 0;
             }
-            if (*p1 != 0) {
-                *temp = one;
-            }
-        }
-        i  += 1;
-        p1 += 4;
-        p0 += 4;
-    } while (i < 8);
-
-    p0  = &pad->events[1][0].field_0;
-    i   = 0;
-    p1b = &pad->events[1][0].field_1;
-    do {
-        if (*p0 != 0) {
-            half                      = *(volatile u16*)(p1b + 1) - 1;
-            *(volatile u16*)(p1b + 1) = half;
-            if ((half << 16) == 0) {
-                *p0 = 0;
-            }
-            val = *p1b;
-            if (temp[1] < val) {
-                temp[1] = val;
+            if (motor[1] < ev->field_1) {
+                motor[1] = ev->field_1;
             }
         }
-        i   += 1;
-        p1b += 4;
-        p0  += 4;
-    } while (i < 8);
+    }
 
     if (Mc_SaveData[0].vibration == 0) {
-        pad->field_5A = temp[0];
-        pad->field_5B = temp[1];
+        pad->field_5A = motor[0];
+        pad->field_5B = motor[1];
     } else {
         pad->field_5A = 0;
         pad->field_5B = 0;

@@ -12,7 +12,7 @@
 typedef struct _PadEvent {
     /* 0x0 */ u8  field_0;
     /* 0x1 */ u8  field_1;
-    /* 0x2 */ u16 field_2;
+    /* 0x2 */ s16 field_2;
 } PadEvent;
 STATIC_ASSERT_SIZEOF(PadEvent, 0x4);
 

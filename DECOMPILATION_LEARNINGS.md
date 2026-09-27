@@ -145300,3 +145300,11 @@ that shape gave the load a different slot.
 `base + (half * 2 + 0x40)` (the per-channel stride), with no temporary. The
 load lands after the stores on its own, and the hand-built sign-extend shift
 becomes a plain `half * 2` on the `s16` field.
+### `--field == 0` on a halfword: `sll 16`/`bnez` means `s16`, `andi 0xffff` means `u16` (Pad_TickEventBanks, 2026-09-27)
+
+Both types load with `lhu` when the decremented value is only stored back and
+tested, so the load says nothing. The zero test does: an `s16` field compiles
+`if (--ev->count == 0)` to `sll v0,v0,16; bnez`, a `u16` field to
+`andi v0,v0,0xffff; bnez`. A tree body that reached the `sll` through
+`*(volatile u16*)` and a hand-shifted `(half << 16) == 0` was standing in for
+an `s16` field declared `u16`; retyping the field removed both.
