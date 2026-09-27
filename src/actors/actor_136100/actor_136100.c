@@ -139,14 +139,13 @@ static s32 func_actor_136100_80131EC4(Task* arg0)
     work = (Actor136100Work*)arg0->work;
     if (work->field_4B4 == NULL) {
     ret1:
-        COMPILER_BARRIER();
         return 1;
     }
     if (Gp_DispatchMsg(work->field_4B4, 0x3ED, 0, 0) != 0) {
         return 0;
     }
     if ((u16)work->field_4DE < 0x2FU) {
-        return 1;
+        goto ret1;
     }
 
     i   = (u16)work->field_4DE - 0x2FU;
@@ -167,7 +166,7 @@ static s32 func_actor_136100_80131EC4(Task* arg0)
     rec.field_C         = 0xA;
     rec.field_10        = 0;
     Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32)&rec, 0);
-    return 1;
+    goto ret1;
 }
 
 static s32 func_actor_136100_80131FBC(Task* arg0)
