@@ -564,7 +564,6 @@ static void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoi
     s32       screen2;
     s32       screen3;
     s32       perspective;
-    s32       texU1;
     s32       flags;
     s16       angle;
     GpCoord*  secondCoord;
@@ -581,9 +580,6 @@ static void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoi
     POLY_FT4* poly;
     u8        room;
     u8        col;
-    u8        texU0;
-    u8        texV0;
-    s32       x3val;
 
     col         = shade;
     coords      = task->extra.tmd->coords;
@@ -633,27 +629,14 @@ static void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoi
             gGpuPrimCursor = poly + 1;
             setlen(poly, 9);
             poly->code            = 0x2E;
-            texU0                 = 0xC0;
-            texV0                 = 0x98;
             PRIM_XY_WORD(poly, 0) = screen0;
             PRIM_XY_WORD(poly, 1) = screen1;
-            poly->tpage           = 0x48;
             PRIM_XY_WORD(poly, 2) = screen2;
-            x3val                 = screen3;
-            SOFT_COMPILER_BARRIER();
-            texU1 = 0xF7;
-            SOFT_COMPILER_BARRIER();
-            poly->v0              = texV0;
-            poly->v1              = texV0;
-            poly->v2              = 0xCF;
-            poly->v3              = 0xCF;
-            poly->u0              = texU0;
-            poly->u1              = texU1;
-            poly->u2              = texU0;
-            poly->u3              = texU1;
-            PRIM_XY_WORD(poly, 3) = x3val;
-            poly->clut            = 0x4283;
-            room                  = gGameSession->at4.loc.room;
+            PRIM_XY_WORD(poly, 3) = screen3;
+            setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
+            poly->tpage = 0x48;
+            poly->clut  = 0x4283;
+            room        = gGameSession->at4.loc.room;
             if ((room == 1) || (room == 3) || (room == 5) || (room == 6)) {
                 poly->r0 = col;
                 poly->g0 = col;
