@@ -145012,3 +145012,24 @@ shared by several switch cases, look for a case that bypasses the local.
 Merging nested `if (a) { if (b) ...` into `if (a && b)`, and a
 `default: return;` in place of a return after the switch, did not change
 the code.
+## Two bytes of one packed word, read by shift and mask, lower the base pointer's allocation priority (Gp_DelayedMsgTask, 2026-09-27)
+
+**Symptom.** A task callback reads two bytes of `Task::spawnArg1` (`lbu 0x36`,
+`lbu 0x34`) just before three calls, and the second byte must survive the calls.
+Reading both through a `u8` overlay struct matched everything except
+`$s0`/`$s1`: the task pointer took `$s0` and the byte took `$s1`. The seed had
+pinned the byte to `$s0`.
+
+**Cause.** Global allocation ranks by `floor_log2(refs) * refs / live_length`.
+With byte-field reads, the task pointer had 12 refs over 94 insns (0.383) and
+the byte had 4 over 22 (0.364). Written as `(task->spawnArg1 >> 16) & 0xFF`
+and `task->spawnArg1 & 0xFF`, CSE shares one word load between the two, and
+flow counts refs and live lengths on that form. Combine then narrows each
+use into its own `lbu`, but does not recount. The pointer comes out at 11 refs
+over 96 insns (0.344), so the byte wins `$s0`. The final instructions are
+identical.
+
+**Fix.** If a packed spawn word's bytes are read together and a pin or
+register swap is left, try the shift-and-mask spelling of the word before a
+byte overlay. It is also the more plausible source for a value the spawner
+packed as an integer.

@@ -157,19 +157,6 @@ typedef struct _GpEvsState {
 } GpEvsState;
 STATIC_ASSERT_SIZEOF(GpEvsState, 0x34);
 
-/// Packed bytes in `Task::spawnArg1` for `Gp_DelayedMsgTask`.
-/// `field_0` is forwarded as a2 to `Gp_DispatchMsg`.
-/// `field_1` is copied into `Task::killCountdown` on state 0.
-/// `field_2` selects the target: 0 = slot 3, 1 = slot 0xA, else
-/// `Gp_LookupSlot4(field_2 - 2)`.
-typedef struct _GpSpawnArg {
-    /* 0x0 */ u8 field_0;
-    /* 0x1 */ u8 field_1;
-    /* 0x2 */ u8 field_2;
-    /* 0x3 */ u8 field_3;
-} GpSpawnArg;
-STATIC_ASSERT_SIZEOF(GpSpawnArg, 4);
-
 /// Object stored in `Task::spawnArg2` for `Gp_EndWaitTask`. `field_2` is a
 /// signed completion flag: when non-zero the task calls `Stage_SetEndingFlag`
 /// and kills itself.

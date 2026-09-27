@@ -1778,24 +1778,24 @@ void func_800E6EF4(Task* task)
     task->state++;
 }
 
+/// `spawnArg1` packs three bytes: bits 0-7 are the message argument, bits
+/// 8-15 the delay in frames, and bits 16-23 the recipient - 0 for slot 3, 1
+/// for slot 0xA, otherwise `Gp_LookupSlot4(n - 2)`.
 void Gp_DelayedMsgTask(Task* task)
 {
-    register s32 val asm("s0");
-    GpSpawnArg*  arg;
-    s32          mode;
-    Task*        slot;
+    s32   val;
+    s32   mode;
+    Task* slot;
 
     switch (task->state) {
         case 0:
-            arg                 = (GpSpawnArg*)&task->spawnArg1;
-            task->killCountdown = arg->field_1;
+            task->killCountdown = (task->spawnArg1 >> 8) & 0xFF;
             task->state++;
             break;
         case 1:
             if (task->killCountdown == 0) {
-                arg  = (GpSpawnArg*)&task->spawnArg1;
-                mode = arg->field_2;
-                val  = arg->field_0;
+                mode = (task->spawnArg1 >> 16) & 0xFF;
+                val  = task->spawnArg1 & 0xFF;
                 if (mode == 0) {
                     Gp_DispatchMsg(gameGetPtrSlot(3), 0x401, val, 0);
                 } else if (mode == 1) {
