@@ -84,7 +84,7 @@ extern TaskDesc  D_actor_335800_80164DE0;
 extern GpAnimArg D_actor_335800_80164E7C;
 
 /// The warp-payload table the two dispatchers reach by entry:
-/// `func_actor_335800_801621B4` selects `n * 3` 8-byte units of it.
+/// `func_actor_335800_801621B4` selects an entry of it by index.
 extern GpXformArg D_actor_335800_80164EA4[];
 extern s32        D_actor_335800_80164EBC;
 extern s32        D_actor_335800_80164ED4;
@@ -294,18 +294,14 @@ void func_actor_335800_80162114(void)
 
 void func_actor_335800_801621B4(s32 arg0)
 {
-    Task*      slot;
-    TmdObject* extra;
-    GpCoord*   coord;
-    s32        msgId;
-    s32        lowIdx;
-    s32        highIdx;
-    s32        unit;
+    Task*    slot;
+    GpCoord* coord;
+    s32      lowIdx;
+    s32      highIdx;
 
     slot = gameGetPtrSlot(3);
     if (slot != NULL) {
-        extra  = slot->extra.tmd;
-        coord  = extra->coords;
+        coord  = slot->extra.tmd->coords;
         lowIdx = 1;
         if (arg0 != 0) {
             highIdx = 2;
@@ -313,14 +309,11 @@ void func_actor_335800_801621B4(s32 arg0)
             lowIdx  = 3;
             highIdx = 4;
         }
-        msgId = 0x3E9;
         if (coord->coord.t[2] >= 0xC53) {
-            unit = highIdx * 3;
+            Gp_DispatchMsg(slot, 0x3E9, (s32)&D_actor_335800_80164EA4[highIdx], 0);
         } else {
-            unit = lowIdx * 3;
-            SOFT_USE_REG(msgId);
+            Gp_DispatchMsg(slot, 0x3E9, (s32)&D_actor_335800_80164EA4[lowIdx], 0);
         }
-        Gp_DispatchMsg(slot, msgId, (s32)((unit * 8) + (s32)D_actor_335800_80164EA4), 0);
     }
 }
 
