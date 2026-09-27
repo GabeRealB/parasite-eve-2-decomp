@@ -646,7 +646,6 @@ void func_800EB6E8(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 
 void Gp_DrawBand(GpCoord* arg0, s16 arg1, u8* rgb)
 {
-    register u8*   head asm("v0");
     GpBandScratch* block;
     SVECTOR*       op;
     POLY_G4*       prim;
@@ -658,10 +657,8 @@ void Gp_DrawBand(GpCoord* arg0, s16 arg1, u8* rgb)
     s16            r0;
     s16            r1;
 
-    r1               = arg1 + 0x100;
-    head             = SCRATCH_HEAD(u8) - 0x118;
-    block            = (GpBandScratch*)head;
-    SCRATCH_HEAD(u8) = head;
+    r1    = arg1 + 0x100;
+    block = SCRATCH_PUSH(GpBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     r0 = arg1;
     for (i = 0; i < 16; i++) {
@@ -676,17 +673,17 @@ void Gp_DrawBand(GpCoord* arg0, s16 arg1, u8* rgb)
         block->inner[i].vx = (u16)block->inner[i].vx + (u16)arg0->workm.t[0];
         block->inner[i].vy = (u16)block->inner[i].vy + (u16)arg0->workm.t[1];
         block->inner[i].vz = (u16)block->inner[i].vz + (u16)arg0->workm.t[2];
-        block->outer[i].vx = (rsin(ang) * r1) >> 12;
         op                 = &block->inner[i] + 16;
+        op->vx             = (rsin(ang) * r1) >> 12;
         op->vy             = (rcos(ang) * r1) >> 12;
         op->vz             = 0;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->outer[i]);
         gte_rtv0();
         gte_stsv(&block->outer[i]);
-        block->outer[i].vx = (u16)block->outer[i].vx + (u16)arg0->workm.t[0];
-        op->vy             = (u16)op->vy + (u16)arg0->workm.t[1];
-        op->vz             = (u16)op->vz + (u16)arg0->workm.t[2];
+        op->vx = (u16)op->vx + (u16)arg0->workm.t[0];
+        op->vy = (u16)op->vy + (u16)arg0->workm.t[1];
+        op->vz = (u16)op->vz + (u16)arg0->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
@@ -729,7 +726,7 @@ void Gp_DrawBand(GpCoord* arg0, s16 arg1, u8* rgb)
                     dr);
         }
     }
-    SCRATCH_POP_BYTES(0x118);
+    SCRATCH_POP(GpBandScratch);
 }
 
 void Gp_DrawBandEx(GpCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
