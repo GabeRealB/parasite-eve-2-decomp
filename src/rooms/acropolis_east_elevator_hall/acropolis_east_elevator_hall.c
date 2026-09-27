@@ -929,13 +929,13 @@ static void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
 
 static void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
 {
-    void**                    scratch;
-    u8*                       head;
-    register RoomMoteScratch* block asm("v1");
-    TILE_1*                   prim;
-    GpCoord*                  coord;
-    void*                     mem;
-    u16                       vz;
+    void**           scratch;
+    u8*              head;
+    RoomMoteScratch* block;
+    RoomMoteScratch* depth;
+    TILE_1*          prim;
+    GpCoord*         coord;
+    void*            mem;
 
     scratch = (void**)G_SCRATCH_HEAD;
     coord   = arg0->extra.tmd->coords;
@@ -943,11 +943,11 @@ static void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
     Gp_UpdateCoord(coord);
     head          = *scratch;
     block         = (RoomMoteScratch*)(head - 0xC);
+    *scratch      = block;
+    depth         = block;
     block->vec.vx = (u16)coord->workm.t[0];
     block->vec.vy = (u16)coord->workm.t[1];
-    vz            = (u16)coord->workm.t[2];
-    *scratch      = block;
-    block->vec.vz = vz;
+    block->vec.vz = (u16)coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -957,7 +957,7 @@ static void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
     gGpuPrimCursor = prim + 1;
     setTile1(prim);
     gte_stsxy(&prim->x0);
-    gte_stszotz(&block->otz);
+    gte_stszotz(&depth->otz);
     if (((RoomMoteScratch*)(head - 0xC))->otz >= 0x11) {
         setRGB0(prim, 0x80, 0x80, 0x80);
         addPrim((u_long*)(((((u32)((RoomMoteScratch*)(head - 0xC))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
