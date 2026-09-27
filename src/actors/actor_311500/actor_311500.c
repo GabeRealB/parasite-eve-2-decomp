@@ -322,17 +322,44 @@ static void func_actor_311500_801629D8(Task* arg0)
     Gp_SetTmdBytes(tmd, (s8)place->tpage, (s8)place->clut);
 }
 
+/// Sets animation slots 1 to 18 to play at `rate` and restarts each of them.
+static inline void _actor311500ResetAnim(Task* task, u8 rate)
+{
+    Actor311500Work* work = task->work;
+    s32              i;
+
+    i = 1;
+    do {
+        work->rig.slots[i & 0xFFFF].rate = rate;
+        Gp_AnimResetSlot(&work->rig.anim, i & 0xFFFF, 0);
+        i += 1;
+    } while ((u32)(i & 0xFFFF) < 0x13U);
+}
+
+/// Advances animation slots 1 to 18 by one frame and returns 1 when slot 1
+/// has bit 0 of its flags set, 0 otherwise.
+static inline u16 _actor311500TickAnim(Task* task)
+{
+    Actor311500Work* work = task->work;
+    s32              i;
+
+    i = 1;
+    do {
+        Gp_AnimTickIndex(&work->rig.anim, i & 0xFFFF);
+        i += 1;
+    } while ((u32)(i & 0xFFFF) < 0x13U);
+    if (work->rig.slots[1].flags & 1) {
+        return 1;
+    }
+    return 0;
+}
+
 static void func_actor_311500_80162C34(Task* arg0, TmdObject* arg1)
 {
     Actor311500Work* work;
-    Actor311500Work* anim;
-    Actor311500Work* anim2;
     SVECTOR          probe;
-    s32              i;
     u32              rng;
-    u16              v;
     u16              count;
-    u8               rate;
 
     work = arg0->work;
 
@@ -345,14 +372,7 @@ static void func_actor_311500_80162C34(Task* arg0, TmdObject* arg1)
             } else if (rng & 1) {
                 work->field_4C0 = (u16)work->field_4C0 + 1;
             } else {
-                rate = 0x20;
-                anim = arg0->work;
-                i    = 1;
-                do {
-                    anim->rig.slots[i & 0xFFFF].rate = rate;
-                    Gp_AnimResetSlot(&anim->rig.anim, i & 0xFFFF, 0);
-                    i += 1;
-                } while (((u32)(i & 0xFFFF)) < 0x13U);
+                _actor311500ResetAnim(arg0, 0x20);
                 work->field_4C0 = (u16)work->field_4C0 + 2;
             }
             work->field_4C4 = 0;
@@ -368,19 +388,7 @@ static void func_actor_311500_80162C34(Task* arg0, TmdObject* arg1)
             break;
 
         case 2:
-            anim2 = work;
-            i     = 1;
-            do {
-                Gp_AnimTickIndex(&anim2->rig.anim, i & 0xFFFF);
-                i += 1;
-            } while (((u32)(i & 0xFFFF)) < 0x13U);
-            if (!(anim2->rig.slots[1].flags & 1)) {
-                SOFT_BARRIER();
-                v = 0;
-            } else {
-                v = 1;
-            }
-            if (v) {
+            if (_actor311500TickAnim(arg0)) {
                 work->field_4C0 = 0;
                 work->field_4C8 = (u16)work->field_4C8 + 1;
             }
