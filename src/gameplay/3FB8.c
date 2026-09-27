@@ -3502,32 +3502,26 @@ void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
     SCRATCH_POP(VECTOR);
 }
 
+/// Steps a 16.16 value that has a fractional part one whole unit away from
+/// zero, so that its integer half rounds away from zero.
+#define GP_ROUND_FIXED_AWAY(x)                      \
+    do {                                            \
+        if (((x) & 0xFFFF) != 0) {                  \
+            (x) += ((x) >= 0) ? 0x10000 : -0x10000; \
+        }                                           \
+    } while (0)
+
 s32 func_801011D0(GpCoord* arg0, GpRec18* arg1, s32 arg2, s32* arg3)
 {
-    u8*             head;
-    register void*  p asm("v0");
     GpDeltaScratch* s;
     s32             ret;
-    s32             val;
 
-    head               = SCRATCH_HEAD(u8);
-    p                  = head - 0x10;
-    s                  = p;
-    SCRATCH_HEAD(void) = p;
-    ret                = func_800E0FEC(arg1, s, arg2, arg3);
+    s   = SCRATCH_PUSH(GpDeltaScratch);
+    ret = func_800E0FEC(arg1, s, arg2, arg3);
     if (ret != 0) {
-        val = ((GpDeltaScratch*)(head - 0x10))->vx.w;
-        if ((val & 0xFFFF) != 0) {
-            ((volatile GpDeltaScratch*)s)->vx.w = val + ((val >= 0) ? 0x10000 : -0x10000);
-        }
-        val = s->vy.w;
-        if ((val & 0xFFFF) != 0) {
-            s->vy.w = val + ((val >= 0) ? 0x10000 : -0x10000);
-        }
-        val = s->vz.w;
-        if ((val & 0xFFFF) != 0) {
-            s->vz.w = val + ((val >= 0) ? 0x10000 : -0x10000);
-        }
+        GP_ROUND_FIXED_AWAY(s->vx.w);
+        GP_ROUND_FIXED_AWAY(s->vy.w);
+        GP_ROUND_FIXED_AWAY(s->vz.w);
         arg0->coord.t[0] += s->vx.h.hi;
         arg0->coord.t[1] += s->vy.h.hi;
         arg0->coord.t[2] += s->vz.h.hi;
@@ -3538,7 +3532,7 @@ s32 func_801011D0(GpCoord* arg0, GpRec18* arg1, s32 arg2, s32* arg3)
             ret = 0;
         }
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_POP(GpDeltaScratch);
     return ret;
 }
 

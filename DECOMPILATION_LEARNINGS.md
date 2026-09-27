@@ -145081,3 +145081,15 @@ so the `sll`/`sra` pair survives. `reload_cse` later deletes the load because
 value should have removed, move neighbouring stores to the same struct between
 the store and the read. Here that meant writing the whole `move` vector after
 `scale` was set.
+
+## A store off the scratch pointer instead of `head-K`: write `x += ...` on the lvalue, not through a cached local (func_801011D0, 2026-09-27)
+
+After `s = SCRATCH_PUSH(T)`, cse knows `s == head - K`. The target loaded the
+first field as `lw -0x10($s1)` (the head form) but stored it back as
+`sw 0($s0)` (the pointer). Caching the field in a local, `val = s->f; if (val &
+0xFFFF) s->f = val + (val >= 0 ? A : -A);`, put both on `-0x10($s1)` (99.89%),
+and the tree held the store on `$s0` with a `volatile` cast. Writing the update
+on the lvalue itself - `if (s->f & 0xFFFF) s->f += (s->f >= 0) ? A : -A;`, as a
+block macro used for all three fields - matches with no hack. The same body as
+an inline function taking `&s->f` does not: the later fields' addresses become
+their own pseudos (`addiu a0,s0,4`).
