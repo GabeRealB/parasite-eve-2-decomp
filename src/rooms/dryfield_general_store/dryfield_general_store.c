@@ -190,12 +190,10 @@ s32 func_dryfield_general_store_8017D8D4(s32 arg0, s32 arg1, RoomEventMsg* in, R
         if (GameFlag_GetNibble(0x63) == 0) {
             out->field_3 = msgId;
         } else {
-            if (GameFlag_GetNibble(0x7A) < 4) {
+            if (GameFlag_GetNibble(0x7A) >= 4) {
                 v = 4;
-                TOUCH_REG(v);
-                v = GameFlag_GetNibble(0x61) + 2;
             } else {
-                v = 4;
+                v = GameFlag_GetNibble(0x61) + 2;
             }
             out->field_3 = v;
         }
