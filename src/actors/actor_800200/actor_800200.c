@@ -1587,41 +1587,29 @@ static void func_actor_800200_801649D8(Task* arg0)
 
 static void func_actor_800200_80164C54(Task* arg0)
 {
-    void**             scratch;
-    u8*                head;
-    TmdObject*         extra;
     GpApproachScratch* block;
     GpCoord*           coord;
     GameActor*         actor;
-    s32                angle;
     s32                val;
     s32                mode;
-    register s32       dx asm("v0");
-    register u8*       tmp asm("a0");
 
-    scratch                                      = SCRATCH_HEAD_ADDR;
-    head                                         = SCRATCH_HEAD_AT(scratch, void);
-    extra                                        = arg0->extra.tmd;
-    actor                                        = arg0->work;
-    tmp                                          = head - 0x14;
-    coord                                        = extra->coords;
-    block                                        = (GpApproachScratch*)tmp;
-    block->vec.vx                                = actor->field_20 - coord->coord.t[0];
-    SCRATCH_HEAD_AT(scratch, void)               = block;
-    block->vec.vy                                = actor->field_24 - coord->coord.t[1];
-    block->vec.vz                                = actor->field_28 - coord->coord.t[2];
-    angle                                        = ratan2(block->vec.vx, block->vec.vz);
-    actor->field_82                              = angle;
-    val                                          = func_80103E7C(actor->field_52, angle);
-    ((GpApproachScratch*)(head - 0x14))->field_0 = val;
-    if (val >= 0x41) {
-        ((GpApproachScratch*)(head - 0x14))->field_0 = 0x40;
+    actor           = arg0->work;
+    coord           = arg0->extra.tmd->coords;
+    block           = SCRATCH_PUSH(GpApproachScratch);
+    block->vec.vx   = actor->field_20 - coord->coord.t[0];
+    block->vec.vy   = actor->field_24 - coord->coord.t[1];
+    block->vec.vz   = actor->field_28 - coord->coord.t[2];
+    actor->field_82 = ratan2(block->vec.vx, block->vec.vz);
+    val             = func_80103E7C(actor->field_52, actor->field_82);
+    block->field_0  = val;
+    if (val > 0x40) {
+        block->field_0 = 0x40;
     } else if (val < -0x40) {
-        ((GpApproachScratch*)(head - 0x14))->field_0 = -0x40;
+        block->field_0 = -0x40;
     } else if (actor->field_95E == 0) {
         actor->field_95E = 1;
     }
-    actor->field_52 = ((u16)actor->field_52 + (u16)block->field_0) & 0xFFF;
+    actor->field_52 = (actor->field_52 + block->field_0) & 0xFFF;
     switch (actor->field_95E) {
         case 0:
             actor->field_95E = 1;
@@ -1646,18 +1634,8 @@ static void func_actor_800200_80164C54(Task* arg0)
             }
             break;
         case 2:
-            dx  = coord->coord.t[0];
-            dx -= actor->field_20;
-            if (dx < 0) {
-                dx = -dx;
-            }
-            if (dx < 0x69) {
-                dx  = coord->coord.t[2];
-                dx -= actor->field_28;
-                if (dx < 0) {
-                    dx = -dx;
-                }
-                if (dx < 0x69) {
+            if (abs(coord->coord.t[0] - actor->field_20) < 0x69) {
+                if (abs(coord->coord.t[2] - actor->field_28) < 0x69) {
                     actor->field_982 = 0;
                     actor->field_956 = 1;
                     mode             = 1;
@@ -1665,22 +1643,16 @@ static void func_actor_800200_80164C54(Task* arg0)
                         mode = actor->field_93E;
                     }
                     Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
-                } else {
-                    dx               = 1;
-                    actor->field_973 = dx;
-                    Gp_StepPlayerMove(arg0);
-                    func_80105ED4(arg0);
+                    break;
                 }
-            } else {
-                dx               = 1;
-                actor->field_973 = dx;
-                Gp_StepPlayerMove(arg0);
-                func_80105ED4(arg0);
             }
+            actor->field_973 = 1;
+            Gp_StepPlayerMove(arg0);
+            func_80105ED4(arg0);
             break;
     }
     Gp_AnimTickChildSlots(arg0);
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_POP(GpApproachScratch);
 }
 
 static void func_actor_800200_80164EBC(Task* arg0)
