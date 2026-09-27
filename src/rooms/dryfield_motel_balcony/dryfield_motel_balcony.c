@@ -417,10 +417,7 @@ static void func_dryfield_motel_balcony_8017DCB8(Task* task)
 /// the grey level and its top nibble picks the palette.
 static void func_dryfield_motel_balcony_8017DF84(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
-    void**         scratch;
-    u8*            head;
     GpRingScratch* block;
-    GpRingScratch* next;
     POLY_FT4*      prim;
     DisplayState*  ds;
     u16            row;
@@ -428,29 +425,23 @@ static void func_dryfield_motel_balcony_8017DF84(GpCoord* arg0, u16 arg1, u16 ar
     s32            u0;
     s32            u1;
     s16            xy;
-    u16            vz;
 
-    row                                     = arg2 >> 12;
-    arg2                                   &= 0xFFF;
-    scratch                                 = (void**)G_SCRATCH_HEAD;
-    pal                                     = arg3 >> 12;
-    arg3                                   &= 0xFF;
-    head                                    = *scratch;
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
-    next                                    = (GpRingScratch*)(head - 0x18);
-    __asm__("move %0,%1" : "=r"(block) : "r"(next));
-    block->vec.vy = (u16)arg0->workm.t[1];
-    vz            = (u16)arg0->workm.t[2];
-    *scratch      = block;
-    block->vec.vz = vz;
+    row           = arg2 >> 12;
+    arg2         &= 0xFFF;
+    pal           = arg3 >> 12;
+    arg3         &= 0xFF;
+    block         = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(block);
+    gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+        gte_stszotz(&block->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -467,16 +458,16 @@ static void func_dryfield_motel_balcony_8017DF84(GpCoord* arg0, u16 arg1, u16 ar
         u1 = u0 + 0x17;
         setUV4(prim, u0, 0, u1, 0, u0, 0x17, u1, 0x17);
         block->step = arg2 * 23 / block->otz;
-        xy          = (u16)block->sx - (u16)block->step;
+        xy          = block->sx - block->step;
         prim->x2    = xy;
         prim->x0    = xy;
-        xy          = (u16)block->sx + (u16)block->step;
+        xy          = block->sx + block->step;
         prim->x3    = xy;
         prim->x1    = xy;
-        xy          = (u16)block->sy - (u16)block->step;
+        xy          = block->sy - block->step;
         prim->y1    = xy;
         prim->y0    = xy;
-        xy          = (u16)block->sy + (u16)block->step;
+        xy          = block->sy + block->step;
         prim->y3    = xy;
         prim->y2    = xy;
         ds          = &gDisplayState;
@@ -484,7 +475,7 @@ static void func_dryfield_motel_balcony_8017DF84(GpCoord* arg0, u16 arg1, u16 ar
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
