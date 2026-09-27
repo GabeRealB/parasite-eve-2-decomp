@@ -985,10 +985,9 @@ static void Gp_LoadState2(Task* task)
         addPrim(gGpuCurrentOt - 0x10, dr);
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
-        sess = (GpAreaKey*)&Mc_SaveData[0].at4.loc.view;
+        sess = &Mc_SaveData[0].at4.loc;
         Gp_InitStageVisit(sess);
         save = &Mc_SaveData[0];
-        TOUCH_REG(save); /* keeps `save` as `sess - 4` (addiu s0, s0, -4) */
         Mem_ConfigureAuxHeap(save->at4.loc.stage, save->at4.loc.area);
         if ((GP_LOC_WORD(save->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 5, 0, 0)) {
             Mem_SetActiveAuxHeap(true);
