@@ -5990,18 +5990,9 @@ static void func_8010615C(Task* arg0)
 
 void func_801061F0(void)
 {
-    PlayerStatus* p;
-    Task*         work;
-    s32           flag;
-    register s32  f21 asm("a1");
-    s32           f22;
+    GameActor* actor = gameGetPtrSlot(3)->work;
 
-    work                                = gameGetPtrSlot(3);
-    p                                   = &Player_Status;
-    flag                                = 0x20000;
-    f21                                 = p->weapon;
-    f22                                 = p->weaponSlotItem;
-    ((GameActor*)work->work)->field_124 = (f21 << 8) | (f22 | flag);
+    actor->field_124 = 0x20000 | (Player_Status.weapon << 8) | Player_Status.weaponSlotItem;
 }
 
 void func_80106238(Task* arg0, s32 arg1, s32 arg2)
