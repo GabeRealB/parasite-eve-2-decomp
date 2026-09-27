@@ -177,42 +177,22 @@ void Gp_RecalcMaxMp(void)
 {
     PlayerStatus* cfg;
     McSaveData*   save;
-    GpRec16*      table;
     GpStatRow*    rows;
     s8*           levels;
     s32           acc;
     s32           i;
-    s32           base;
     s32           j;
-    s32           count;
-    register s32  start asm("a1");
-    s32           limit;
-    s32           idx;
 
     cfg    = &Player_Status;
     acc    = 0;
     levels = (s8*)Mc_SaveData[0].attachLevels;
-    i      = acc;
-    table  = Gp_IdParamHi;
-    base   = acc;
-    while (i < 0xC) {
-        count = *levels;
-        if (count > 0) {
-            j = 0;
-            if (j < count) {
-                start = base;
-                limit = count;
-                do {
-                    idx  = start + j;
-                    idx  = idx + 1;
-                    acc += table[idx].field[1];
-                    j++;
-                } while (j < limit);
+    for (i = 0; i < 0xC; i++) {
+        if (*levels > 0) {
+            for (j = 0; j < *levels; j++) {
+                acc += Gp_IdParamHi[i * 3 + j + 1].field[1];
             }
         }
         levels++;
-        i++;
-        base += 3;
     }
     if (cfg->armor != 0) {
         acc += Gp_ModStatAttrs[cfg->armor - 1].field_6;
