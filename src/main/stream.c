@@ -636,18 +636,41 @@ static __inline__ u16 Stream_SeekPosition(u8* loc)
     return 0;
 }
 
+/* Resets the decoder and the stream ring, routes decoded slices to the upload
+ * callback and applies CD volume table entry 0 ahead of a streaming read. */
+static __inline__ void _streamStartDecode(void)
+{
+    CdCmdQueue* queue;
+
+    queue = &CdCmd_Queue;
+    DecDCTReset(0);
+    StSetStream(D_8006AC14 == 2 ? 0 : D_8006AC14, 0, -1, NULL, NULL);
+    StSetRing((u_long*)D_8006AC60, D_8006AC24);
+    StClearRing();
+    Wip_SysFlags.field_6 = 1;
+    DecDCToutCallback(Mdec_UploadSlice);
+    CdVol_ApplyFromTable(0);
+    queue->field_1EC = 0;
+    D_8006AC1A       = 0;
+}
+
+/* Starts the streaming read; ADPCM playback is enabled when the stream's
+ * volume table entry is nonzero. */
+static __inline__ s32 _streamStartRead(void)
+{
+    if (D_8006AC58 != 0) {
+        return CdRead2(CdlModeStream2 | CdlModeSpeed | CdlModeRT);
+    }
+    return CdRead2(CdlModeStream2 | CdlModeSpeed);
+}
+
 s32 func_8001FAE0(u16 arg0, s32 arg1)
 {
     RECT        rect;
     CdCmdQueue* state;
-    CdCmdQueue* setup;
     CdCmdQueue* stop;
-    CdCmdQueue* restart;
     s32         sector;
     u16         ready;
-    u32         volumeAddress;
-    u32         volume;
-    s32         mode;
     s32         videoMode;
     s32         displayMode;
 
@@ -670,16 +693,7 @@ s32 func_8001FAE0(u16 arg0, s32 arg1)
             }
             break;
         case 1:
-            setup = &CdCmd_Queue;
-            DecDCTReset(0);
-            StSetStream(D_8006AC14 == 2 ? 0 : D_8006AC14, 0, -1, NULL, NULL);
-            StSetRing((u_long*)D_8006AC60, D_8006AC24);
-            StClearRing();
-            Wip_SysFlags.field_6 = 1;
-            DecDCToutCallback(Mdec_UploadSlice);
-            CdVol_ApplyFromTable(0);
-            setup->field_1EC = 0;
-            D_8006AC1A       = 0;
+            _streamStartDecode();
             state->field_1D6 = 0;
             state->field_1E4++;
         case 2:
@@ -694,8 +708,7 @@ s32 func_8001FAE0(u16 arg0, s32 arg1)
             ready = Stream_SeekPosition((u8*)&rect);
             if (ready & 0xFFFF) {
                 CdVol_ApplyFromTable((u8)D_8006AC58);
-                mode = D_8006AC58 != 0 ? 0x1E0 : 0x1A0;
-                if (!(CdRead2(mode) & 0xFFFF)) {
+                if (!(_streamStartRead() & 0xFFFF)) {
                     D_8006AC20       = 1;
                     state->field_1E4 = 9;
                     return 0;
@@ -786,25 +799,13 @@ s32 func_8001FAE0(u16 arg0, s32 arg1)
             CdIntToPos(D_8006AC08 + (state->field_1EA - 1) * 10, (CdlLOC*)&rect);
             ready = Stream_SeekPosition((u8*)&rect);
             if (ready & 0xFFFF) {
-                mode = D_8006AC58 != 0 ? 0x1E0 : 0x1A0;
-                if (!(CdRead2(mode) & 0xFFFF)) {
+                if (!(_streamStartRead() & 0xFFFF)) {
                     D_8006AC20       = 8;
                     state->field_1E4 = 9;
                     return 0;
                 }
-                restart = &CdCmd_Queue;
-                DecDCTReset(0);
-                StSetStream(D_8006AC14 == 2 ? 0 : D_8006AC14, 0, -1, NULL, NULL);
-                StSetRing((u_long*)D_8006AC60, D_8006AC24);
-                StClearRing();
-                Wip_SysFlags.field_6 = 1;
-                DecDCToutCallback(Mdec_UploadSlice);
-                CdVol_ApplyFromTable(0);
-                __asm__("lui %0, %%hi(D_8006AC58)\n\tlbu %1, %%lo(D_8006AC58)(%0)"
-                        : "=&r"(volumeAddress), "=r"(volume) : : "memory");
-                restart->field_1EC = 0;
-                D_8006AC1A         = 0;
-                ((void (*)())CdVol_ApplyFromTable)(volume);
+                _streamStartDecode();
+                CdVol_ApplyFromTable((u8)D_8006AC58);
                 state->field_24C = 0;
                 state->field_242 = 0;
                 state->field_1E4 = 3;

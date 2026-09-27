@@ -130532,6 +130532,16 @@ dumps: the block list is in the dump itself, as
 The same boundary also keeps two `li` of one constant apart, since a constant
 pseudo shared across the boundary is a second candidate for the same register.
 
+The same fork shows up when a condition picks a call argument. With
+`CdRead2(flag ? A : B)`, jump.c hoists one constant ahead of the branch, cse2
+skips the block around the other, and a global's `%hi` read before the call
+gets reused by a read of the same global several calls later. The target instead
+does a fresh `lui` right before the second read. Writing one call per arm
+(`if (flag) return CdRead2(A); return CdRead2(B);`, here as an inline helper)
+ends the block, and jump2 cross-jumps the calls back into
+`beqz; li a0,B; li a0,A; jal`. An asm that re-reads the global through its own
+`lui` is working around exactly this (func_8001FAE0).
+
 ## A reference that combine folds away still makes a pseudo global, and that decides which of two temps gets `$v0` (Actor01600_Fn04974, 2026-09-18)
 
 Two loads feeding one subtraction inside a single basic block always come out
