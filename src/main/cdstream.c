@@ -1296,11 +1296,9 @@ void CdStream_Drive(void)
                 } else {
                     position = CdStream_State.field_18;
                     if (position == 0) {
+                        channels = (CdStreamChannel*)(&CdStream_State + 1);
                         CdAudio_AllocVoices((s8*)&CdStream_State.voiceL, (s8*)&CdStream_State.voiceR);
-                        channels            = (CdStreamChannel*)(&CdStream_State + 1);
-                        channels->voiceMask = (s32)(1 << (s8)CdStream_State.voiceL);
-                        // Preserve the channel base for the second voice mask.
-                        SOFT_USE_REG(channels);
+                        channels->voiceMask   = (s32)(1 << (s8)CdStream_State.voiceL);
                         channels[1].voiceMask = (s32)(1 << CdStream_State.voiceR);
                         if (!(((u8)CdStream_State.flags0 >> 4) & 1)) {
                             Spu_ArmKeyOn((u32)(s8)CdStream_State.voiceL);
