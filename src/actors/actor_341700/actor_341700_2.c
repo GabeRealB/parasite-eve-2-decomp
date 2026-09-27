@@ -569,15 +569,13 @@ static void func_actor_341700_8016C0F4(GpEnemy* arg0, Task* arg1)
         if (*p == 0) {
             return;
         }
-        rnd   = Gp_LcgState * 5 + 0x71357911;
-        t     = (rnd >> 16) & 0xFF;
-        index = *p;
-        SOFT_TOUCH_REG_USE(t, index);
+        rnd         = Gp_LcgState * 5 + 0x71357911;
+        t           = (rnd >> 16) & 0xFF;
+        index       = *p;
         r           = t;
         Gp_LcgState = rnd;
-        TOUCH_REG(r);
-        vec = table[index];
-        if (r & 1) {
+        vec         = table[index];
+        if (r % 2) {
             r = -t;
         }
         vec.vx += r / 2;

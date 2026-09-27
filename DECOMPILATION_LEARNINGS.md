@@ -145677,3 +145677,25 @@ Scratch inputs: `base_1.i` (cached value)
 `464cc4ea29513141fdf3145b208ba6aeb344e27eef8d33b8127c445113480aeb`;
 `base_3.i` (direct field reads)
 `1124be1c35fd783822a43ca33abf00ae43e53d2f28709f82f8760f08c023a4e4`.
+
+## Halfword oddness tests: `% 2` can preserve a copy that `& 1` propagates away (func_actor_341700_8016C0F4, 2026-09-27)
+
+With `u32 t = (rnd >> 16) & 0xFF; s16 r = t;`, removing two empty-asm
+barriers scored 99.255%. Changing only `if (r & 1)` to `if (r % 2)` restored
+100.000% and all-zero penalties. Both tests select the same branch here:
+`r` is 0..255 before the test and is negated only afterward.
+
+The dumps explain the distinction. In `base_1.i.rtl`, the bit test reads a
+SI lowpart of HI r84; `.cse` substitutes the pre-mask random value r578.
+In `base_8.i.rtl`, the remainder test first zero-extends HI r84; that operand
+survives `.cse`. Combine reduces both tests to `andi`, but the latter still
+reads r84, retaining the early magnitude copy and its later delay-slot shift.
+Try the arithmetic oddness test before adding barriers to a narrow local.
+
+This removed both barriers, but a pre-existing integer-address cast remains:
+ordinary byte-pointer indexing swaps the final addition's operands (99.987%).
+Direct global indexing gets their order right but changes loop hoisting.
+Scratch evidence: `nonmatchings/func_actor_341700_8016C0F4-dehack/`, base_1/base_8
+RTL, CSE and combine dumps. Input SHA256s respectively:
+`4fd1232dd0218332d445fdff364dfcf91a07a3f4c4a9a40c295cdea7efc5da76`,
+`afac79f9a53e428ac8cba7a1cac59141dc78cbcf7a717bc75d039f77983d45d7`.
