@@ -369,36 +369,28 @@ static void func_options_801D4724(DialogPrompt* arg0, UiObject* arg1)
 
 static void func_options_801D4944(DialogPrompt* arg0, UiObject* arg1)
 {
-    u8*  labels[2];
+    u8*  labels[2] = { D_options_801D5BC4, D_options_801D5BCC };
     u8** p;
     u8*  title;
-    s32  a0tmp;
     s32  i;
     s32  y;
     s32  x;
     s32  span;
     s32  selected;
     s32  one;
-    s32  two;
     s32  look;
-    s32  n2;
+    s32  columnCount;
     s32  status;
 
-    SCHED_BARRIER();
-    a0tmp = (s32)arg1;
-    TOUCH_REG(a0tmp);
     title = D_options_801D5BB8;
-    TOUCH_REG(title);
-    i         = 0;
-    p         = labels;
-    y         = i;
-    labels[0] = D_options_801D5BC4;
-    labels[1] = D_options_801D5BCC;
-    Text_DrawPrompt((UiObject*)a0tmp, arg1->field_1C + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
-    selected = Mc_SaveData[0].moveMode;
-    x        = arg1->field_1C + 0x78;
-    span     = (s16)arg1->field_1E - x;
-    n2       = 2;
+    Text_DrawPrompt(arg1, arg1->field_1C + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
+    i           = 0;
+    p           = labels;
+    y           = i;
+    selected    = Mc_SaveData[0].moveMode;
+    x           = arg1->field_1C + 0x78;
+    span        = (s16)arg1->field_1E - x;
+    columnCount = 2;
     do {
         if (i != selected) {
             look = Ui_LookupTable(arg1, 2);
@@ -406,8 +398,7 @@ static void func_options_801D4944(DialogPrompt* arg0, UiObject* arg1)
             look = Ui_LookupTable(arg1, 1);
         }
         one = 1;
-        two = n2;
-        Text_DrawPrompt(arg1, x + y / two, arg0->field_1A, *p, look, one, 0);
+        Text_DrawPrompt(arg1, x + y / columnCount, arg0->field_1A, *p, look, one, 0);
         p++;
         y += span;
         i += one;
@@ -416,14 +407,14 @@ static void func_options_801D4944(DialogPrompt* arg0, UiObject* arg1)
         if (Pad_CheckButtons(0, one, 0x2000) != 0) {
             SndEvt_EnqueueType6(2, 0, 0);
             selected += one;
-            if (selected >= n2) {
+            if (selected >= columnCount) {
                 selected = 0;
             }
         } else if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
             SndEvt_EnqueueType6(2, 0, 0);
             selected -= 1;
             if (selected < 0) {
-                selected += n2;
+                selected += columnCount;
             }
         }
     }
