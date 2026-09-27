@@ -3128,7 +3128,6 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
 
 static void func_actor_403600_8013E470(GpCoord* arg0, s32* arg1, s32* arg2)
 {
-    SVECTOR                    local;
     GpCoord*                   coord;
     s32                        angle;
     s32                        x;
@@ -3147,9 +3146,7 @@ static void func_actor_403600_8013E470(GpCoord* arg0, s32* arg1, s32* arg2)
     vec->vz         = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
     matrix          = &head[-1].rot;
     TransposeMatrix(&arg0->workm, matrix);
-    local = *vec;
-    gte_SetRotMatrix(matrix);
-    __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
+    gfxLoadRotSv(matrix, vec);
     gte_rtv0();
     gte_stsv(vec);
     angle = ratan2(head[-1].rel.vx, vec->vz);
