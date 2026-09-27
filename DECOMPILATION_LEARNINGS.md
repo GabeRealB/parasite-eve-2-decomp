@@ -18566,27 +18566,34 @@ asm("" : : "m"(sp));
 the sign-extend of `h`. The trailing `"m"` constraint matches the target
 schedule. `Ui_ComputeVisibleRows`.
 
-## Memory clobber to force a same-field reload after store
+## A reload that only one arm carries can be reorg skipping a redundant join load
 
-When the target does `sw field_10; lbu field_4` (reload into the same reg
-used for the prior compare) even though `field_4` was not written, a plain
-`temp = arg0->field_4` after the store is CSE'd away. Defeat it with a
-memory clobber between store and reload (`Ui_ComputeVisibleRows`):
+Target: `lbu v1,4(a0)` / compare / `bnez L` / `sw v0,0x10(a0)` /
+`lbu v1,4(a0)` / `L: lb v0,5(a0)` - the field is re-read at the end of the
+then-arm, while the taken branch skips the re-read and reuses `v1`. It looks
+like a source-level reload that needs a memory clobber, and the clobber does
+match, but no source statement is needed there.
+
+Without the clobber, a reload written in the arm is hoisted by sched1 above the
+`sw` (constant offsets from one base never alias) and deleted by reload_cse as
+a self-copy. Instead read the field in the join, *first*:
 
 ```c
-temp = arg0->field_4;
-if (arg0->field_10 >= temp) {
-    arg0->field_10 = temp - 1;
-    asm("" ::: "memory");
-    temp = arg0->field_4; /* lbu only on this path, before the join */
+if (list->field_10 >= list->field_4) {
+    list->field_10 = list->field_4 - 1;
 }
-if ((s8)arg0->field_5 >= temp) {
+if (list->field_4 <= (s8)list->field_5) { /* not field_5 >= field_4 */
     …
 }
 ```
 
-A `u8` temporary for `temp` often inserts a redundant `andi …, 0xff` after
-the first `lbu`; prefer `s32 temp = arg0->field_4`.
+The join starts a new cse block, so its `lbu` survives. reorg, filling the
+`bnez`'s slot, finds that load at the head of the target thread and redundant
+on the taken path (`redundant_insn`); since it cannot delete it from a shared
+thread, it retargets the branch past it. The load is then left executing only
+on the fall-through, which is the target's shape. Written
+`(s8)field_5 >= field_4`, the join's first insn is the `lb` and nothing is
+skipped. (`Ui_ComputeVisibleRowsEx`.)
 
 ## `--expand-div` for TUs with signed division traps
 

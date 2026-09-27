@@ -2059,7 +2059,6 @@ static void Ui_ComputeVisibleRowsEx(UiList* arg0, UiPanel* arg1, s32 arg2)
     s16  temp_v0;
     u8   temp_a2;
     s8   temp_v1;
-    s32  temp_v1_2;
     s32  height;
 
     arg0->field_17 = arg2;
@@ -2083,13 +2082,10 @@ static void Ui_ComputeVisibleRowsEx(UiList* arg0, UiPanel* arg1, s32 arg2)
             arg0->field_5 = 1;
         }
     }
-    temp_v1_2 = arg0->field_4;
-    if (arg0->field_10 >= temp_v1_2) {
-        arg0->field_10 = temp_v1_2 - 1;
-        SOFT_COMPILER_BARRIER();
-        temp_v1_2 = arg0->field_4;
+    if (arg0->field_10 >= arg0->field_4) {
+        arg0->field_10 = arg0->field_4 - 1;
     }
-    if ((s8)arg0->field_5 >= temp_v1_2) {
+    if (arg0->field_4 <= (s8)arg0->field_5) {
         arg0->field_9 = 0;
     }
     arg0->field_A = 0;
