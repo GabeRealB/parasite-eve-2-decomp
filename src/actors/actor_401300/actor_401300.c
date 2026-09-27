@@ -666,18 +666,17 @@ static void func_actor_401300_80133254(Task* arg0)
     Actor401300AnimWork* work;
 
     work = (Actor401300AnimWork*)arg0->work;
-    TOUCH_REG(work);
 
     if (work->field_8A0 != work->field_8A2) {
         for (i = 1; i < 0x13; i++) {
             work->rig.slots[i].rate = work->field_8A6;
-            if (i >= 7) {
-                if (i < 9) {
-                    continue;
-                }
+            if (i < 7) {
+                func_800B4114(&work->rig.anim, i, work->field_8A2, 0,
+                              D_actor_401300_8015804C[work->field_8A0][work->field_8A2]);
+            } else if (i >= 9) {
+                func_800B4114(&work->rig.anim, i, work->field_8A2, 0,
+                              D_actor_401300_8015804C[work->field_8A0][work->field_8A2]);
             }
-            func_800B4114(&work->rig.anim, i, work->field_8A2, 0,
-                          D_actor_401300_8015804C[work->field_8A0][work->field_8A2]);
         }
         work->field_8A0 = work->field_8A2;
     }
