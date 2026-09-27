@@ -3,6 +3,26 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Advance an array index after its derived pointer's last use (func_dryfield_motel_balcony_8017F470, 2026-09-27)
+
+Removing `TOUCH_REG(v)` from a vertex-pointer walk creates a second induction
+pointer for the Y/Z fields (97.668%). Indexing the vector avoids that extra
+walk, but `v = &block->vec[i]` remains non-replaceable if `i++` precedes the
+last `v` access: `loop.c:record_giv` explicitly rejects a biv update within
+the derived pointer's lifetime. The combined giv is then rejected as
+`not worth while, -3472 vs 29` (96.938%). Moving `i++` after the last vertex
+update makes the giv replaceable and restores one vector walk (99.685%).
+
+Index the corner table with the same counter too: loop.c then generates both
+pointer initializations in the target order. A conventional `for` loop scores
+99.955%, equal to the seed's symbol-only discrepancy, without an inline helper
+or barrier. An indexed inline helper also worked, but the direct-loop
+counterfactual showed that the increment timing was sufficient. Ordinary
+compound assignments replace the cast-lvalue halfword updates without changing
+code. Evidence: scratch `func_dryfield_motel_balcony_8017F470-dehack/base_3`,
+`base_9`, and `base_10` `.loop` dumps; final preprocessed-input SHA-256
+`fc20753239151e9a57df3aa6c9664e0e23213e192bf02879d3825f9e65016705`.
+
 ## Decode the index before forming the invariant table address (Actor00700_Fn00334, 2026-09-27)
 
 The remaining `TOUCH_REG(slots)` prevented `loop.c` from hoisting
