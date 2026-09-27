@@ -26,7 +26,7 @@
 #include "main/wipsys.h"
 
 void        Gp_FinishLoadWait(Task* task);
-static s32  func_800AA120(void);
+static u16  func_800AA120(void);
 static void func_800AA548(s32 arg0);
 static void func_800AD024(void);
 static void func_800AD620(Task* task);
@@ -502,7 +502,7 @@ void Gp_PumpTmdStream(Task* task)
 /// Walk the inner area rec's 0x10-byte CdCmd 0x21 list (`Gp_CdRecCur`),
 /// matching each id against the 0xC-byte list (`D_80114C68`). Returns 1
 /// when the list is exhausted or missing, else 0 (still in flight).
-static s32 Gp_PollAreaCdLoads(void)
+static u16 Gp_PollAreaCdLoads(void)
 {
     u8           param1[8];
     u8           param2[8];
@@ -572,7 +572,7 @@ static s32 Gp_PollAreaCdLoads(void)
     return 0;
 }
 
-static s32 func_800AA120(void)
+static u16 func_800AA120(void)
 {
     u8           param1[8];
     u8           param2[8];
@@ -1150,6 +1150,31 @@ static void Gp_LoadWaitSave(Task* task)
     }
 }
 
+/// Steps the area CD load through its phases, one per frame: phase 0 resets
+/// `D_80114C70` and falls into phase 1, which runs `func_800AA120` until it
+/// finishes and then moves to phase 2, which polls `Gp_PollAreaCdLoads`.
+/// Returns 1 once phase 2 reports every load complete, 0 otherwise.
+static inline u16 _gpAdvanceAreaCd(void)
+{
+    switch (D_80114C74) {
+        case 0:
+            D_80114C70 = 0;
+            D_80114C74 = 1;
+        case 1:
+            if (func_800AA120()) {
+                Gp_AreaCdPhase = 0;
+                D_80114C74++;
+            }
+            return 0;
+        case 2:
+            if (Gp_PollAreaCdLoads()) {
+                return 1;
+            }
+        default:
+            return 0;
+    }
+}
+
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
 /// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
 /// Then walks `D_80114C74`: phase 0 resets `D_80114C70` and falls into
@@ -1191,41 +1216,15 @@ static void Gp_LoadWaitAreaCd(Task* task)
         addPrim(gGpuCurrentOt - 0x10, dr);
     }
 
-    {
-        register s32 done asm("v0");
-
-        switch (D_80114C74) {
-            case 0:
-                D_80114C70 = 0;
-                D_80114C74 = 1;
-            case 1:
-                if (func_800AA120() & 0xFFFF) {
-                    Gp_AreaCdPhase = 0;
-                    D_80114C74++;
-                }
-                done = 0;
-                break;
-            case 2:
-                done = Gp_PollAreaCdLoads() & 0xFFFF;
-                if (done) {
-                    done = 1;
-                    break;
-                }
-            default:
-                done = 0;
-                break;
-        }
-
-        if (done & 0xFFFF) {
-            Gp_ClearObjHeads();
-            Tmd_InitLists();
-            ds2 = &gDisplayState;
-            Gp_DrawActorTmdActive(&Gpu_OtBuffers[ds2->drawBuffer]);
-            task->state++;
-            if (Mc_SaveData[0].interlace != 0) {
-                ds2->dispEnv[1].isinter = 1;
-                ds2->dispEnv[0].isinter = 1;
-            }
+    if (_gpAdvanceAreaCd()) {
+        Gp_ClearObjHeads();
+        Tmd_InitLists();
+        ds2 = &gDisplayState;
+        Gp_DrawActorTmdActive(&Gpu_OtBuffers[ds2->drawBuffer]);
+        task->state++;
+        if (Mc_SaveData[0].interlace != 0) {
+            ds2->dispEnv[1].isinter = 1;
+            ds2->dispEnv[0].isinter = 1;
         }
     }
 }
