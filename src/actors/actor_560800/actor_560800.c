@@ -436,6 +436,12 @@ static s32 func_actor_560800_80132340(Task* arg0)
         }                                                            \
     } while (0)
 
+/// Restarts the animation clip's hold counter.
+#define _actor560800ResetAnimHold(work) \
+    do {                                \
+        (work)->field_4BE = 0;          \
+    } while (0)
+
 /// Reseeds the animation slots of the task's own `Actor560800AnimWork`: the
 /// id goes to `field_4B8` with `rate` in `field_4C8`, `field_4BE` is cleared,
 /// and slots 1..`field_4BA` are blended through `func_800B4114`.
@@ -447,8 +453,7 @@ static inline void Actor560800_ReseedAnim(Task* arg0, u16 id, s16 rate)
     w            = (Actor560800AnimWork*)arg0->work;
     w->field_4B8 = id;
     w->field_4C8 = rate;
-    w->field_4BE = 0;
-    SOFT_BARRIER();
+    _actor560800ResetAnimHold(w);
     for (i = 1; i < w->field_4BA; i++) {
         func_800B4114(&w->rig.anim, i, id, 0, 10);
     }
@@ -1480,12 +1485,6 @@ void func_actor_560800_80134B14(s32 arg0)
     Gp_SpawnEff(0x6002B, &work->field_8->extra.tmd->coords[8], 0x21, NULL);
     Pad_PostEvent(0, 1, 0xFF, 2);
 }
-
-/// Restarts the animation clip's hold counter.
-#define _actor560800ResetAnimHold(work) \
-    do {                                \
-        (work)->field_4BE = 0;          \
-    } while (0)
 
 static inline void Actor560800_BlendSlotsFirst(Task* task, u16 id, s16 rate)
 {
