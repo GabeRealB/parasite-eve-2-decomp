@@ -1286,12 +1286,10 @@ s32 func_dryfield_gas_station_8017FA20(s32 arg0, s32 arg1, RoomEventMsg* in, Roo
     *out = *in;
     if (in->msgId == 2 && in->field_5 == 0) {
         n = GameFlag_GetNibble(0x7A);
-        if (n < 4) {
+        if (n >= 4) {
             val = 3;
-            TOUCH_REG(val);
-            val = GameFlag_GetNibble(0x61) + 1;
         } else {
-            val = 3;
+            val = GameFlag_GetNibble(0x61) + 1;
         }
         out->field_3 = val;
     }
