@@ -144826,3 +144826,16 @@ the coordinate stores is a separate matter: it is a true dependence, because
 the `*(s32*)(u32)&coords->coord.t[i]` stores used across this file are scalar
 MEMs and so conflict with the scalar global load, where plain
 `coords->coord.t[i]` stores are in-struct and let sched1 sink the load.
+
+### A table declared as one struct makes `(&sym)[k].field` pick `sym + k*size` as the base (func_actor_403200_8013B740, 2026-09-27)
+
+A spawn table declared `extern TaskDesc tbl;` and indexed as `(&tbl)[4].arg.model`
+(or through a `desc = &tbl` local) is pointer arithmetic: the front end builds
+`&tbl + 0x30` and then adds the field, so CSE/loop hoist `%lo(tbl+0x30)` as the
+invariant and the call that also passes the table becomes `addiu $a0,$s4,-0x30`.
+The target kept `tbl` in the register (`move $a0,$s4`, `sw $v0,0x38($s4)`).
+Declaring the object as what it is - `extern TaskDesc tbl[];`, used as
+`tbl[4].arg.model` and `Gp_SpawnEnemyFromTable(tbl, 4, ...)` - makes the store a
+single constant address `tbl+0x38`, so the plain symbol is the shared base. The
+previous source reached the same bytes with a `desc` local, a hand-rolled goto
+loop and a `SOFT_USE_REG`; all three went away with the declaration.

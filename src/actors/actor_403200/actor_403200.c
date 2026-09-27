@@ -183,7 +183,7 @@ extern u8 D_actor_403200_8015E840[][8];
 
 /// Enemy spawn table the three launch states of `func_actor_403200_8013D9EC`
 /// draw from.
-extern TaskDesc D_actor_403200_8015E858;
+extern TaskDesc D_actor_403200_8015E858[];
 
 /// The enemy task's message-handler table, parked in `Task::msgTable`.
 extern void* D_actor_403200_8015F770;
@@ -4465,28 +4465,28 @@ static void func_actor_403200_8013B3C8(Task* arg0)
     state = work->field_6 - 0x13;
     switch (state) {
         case 0:
-            Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 1, 0, arg0->spawnArg2)->workType = 0x900;
+            Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 1, 0, arg0->spawnArg2)->workType = 0x900;
             break;
         case 7:
-            Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 1, 1, arg0->spawnArg2)->workType = 0x900;
+            Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 1, 1, arg0->spawnArg2)->workType = 0x900;
             break;
         case 9:
-            Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 1, 2, arg0->spawnArg2)->workType = 0x900;
+            Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 1, 2, arg0->spawnArg2)->workType = 0x900;
             break;
         case 0x10:
-            Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 1, 3, arg0->spawnArg2)->workType = 0x900;
+            Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 1, 3, arg0->spawnArg2)->workType = 0x900;
             break;
         case 0x1F:
-            Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 1, 4, arg0->spawnArg2)->workType = 0x900;
+            Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 1, 4, arg0->spawnArg2)->workType = 0x900;
             break;
         case 0x37:
-            Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 1, 5, arg0->spawnArg2)->workType = 0x900;
+            Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 1, 5, arg0->spawnArg2)->workType = 0x900;
             break;
         case 0x3B:
-            Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 1, 6, arg0->spawnArg2)->workType = 0x900;
+            Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 1, 6, arg0->spawnArg2)->workType = 0x900;
             break;
         case 0x3F:
-            Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 1, 7, arg0->spawnArg2)->workType = 0x900;
+            Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 1, 7, arg0->spawnArg2)->workType = 0x900;
             break;
     }
     func_actor_403200_80133DD8(arg0);
@@ -4523,17 +4523,10 @@ static void func_actor_403200_8013B3C8(Task* arg0)
 /// a spawn fails. Each member's index becomes the high nibble of its place key.
 static void func_actor_403200_8013B740(Task* arg0)
 {
-    Actor403200Work*     work;
-    TaskDesc*            desc;
-    Actor403200SpawnRec* entries;
-    SVECTOR(*positions)
-    [9];
-    SVECTOR* row;
-    s32      offset;
-    s32      rowOffset;
-    GpEnemy* enemy;
-    s16      i;
-    s16      formation;
+    Actor403200Work* work;
+    GpEnemy*         enemy;
+    s16              i;
+    s16              formation;
 
     work = (Actor403200Work*)arg0->work;
 
@@ -4543,29 +4536,18 @@ static void func_actor_403200_8013B740(Task* arg0)
         formation = 0;
     }
 
-    i         = 0;
-    desc      = &D_actor_403200_8015E858;
-    entries   = D_actor_403200_8015F888;
-    positions = D_actor_403200_8015F7B0;
-
-spawnNext:
-    offset = i * 8;
-    SOFT_USE_REG(offset);
-    desc[4].arg.model = ((Actor403200SpawnRec*)(offset + (u32)entries))->model;
-    enemy             = Gp_SpawnEnemyFromTable(desc, 4, ((Actor403200SpawnRec*)(offset + (u32)entries))->spawnArg, NULL);
-    work->field_EF0   = enemy;
-    if (enemy != NULL) {
-        rowOffset                                            = ((formation * 8) | formation) * 8;
-        row                                                  = (SVECTOR*)((offset + rowOffset) + (u32)positions);
-        enemy->task->extra.tmd->coords->coord.t[0]           = row->vx;
-        work->field_EF0->task->extra.tmd->coords->coord.t[1] = row->vy;
-        work->field_EF0->task->extra.tmd->coords->coord.t[2] = row->vz;
+    for (i = 0; i < 9; i++) {
+        D_actor_403200_8015E858[4].arg.model = D_actor_403200_8015F888[i].model;
+        enemy                                = Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 4, D_actor_403200_8015F888[i].spawnArg, NULL);
+        work->field_EF0                      = enemy;
+        if (enemy == NULL) {
+            break;
+        }
+        enemy->task->extra.tmd->coords->coord.t[0]           = D_actor_403200_8015F7B0[formation][i].vx;
+        work->field_EF0->task->extra.tmd->coords->coord.t[1] = D_actor_403200_8015F7B0[formation][i].vy;
+        work->field_EF0->task->extra.tmd->coords->coord.t[2] = D_actor_403200_8015F7B0[formation][i].vz;
         work->field_EF0->workType                            = 0x900;
         work->field_EF0->placeKey                           |= i << 12;
-        i++;
-        if (i < 9) {
-            goto spawnNext;
-        }
     }
 }
 
@@ -5427,7 +5409,7 @@ static void func_actor_403200_8013D9EC(Task* arg0)
         case 0:
         case 12:
         case 19:
-            spawned           = Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 0, 0, arg0->spawnArg2);
+            spawned           = Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 0, 0, arg0->spawnArg2);
             spawned->workType = 0x900;
             work->field_EF0   = spawned;
             break;
@@ -5566,7 +5548,7 @@ static void func_actor_403200_8013DC3C(Task* arg0)
             Gp_SpawnEff(0x60199, &D_actor_403200_8015F920, 0x97A0D680, NULL);
         }
         if ((s16)((s16)(u16)work->field_6 % 10) == 4) {
-            spawned           = Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 2, 0, arg0->spawnArg2);
+            spawned           = Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 2, 0, arg0->spawnArg2);
             spawned->workType = 0x900;
             work->field_EF0   = spawned;
         }
@@ -6277,7 +6259,7 @@ static void func_actor_403200_8013F700(Task* arg0)
             break;
         case 0xAF:
         case 0x145:
-            spawned           = Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 3, 0, arg0->spawnArg2);
+            spawned           = Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 3, 0, arg0->spawnArg2);
             spawned->workType = 0x900;
             work->field_EF0   = spawned;
             if (spawned != NULL) {
