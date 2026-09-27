@@ -35,60 +35,51 @@ static void Prim_DrawLoadingSprt(void);
 
 void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
 {
-    s8             param2[4];
-    u8*            param1;
-    u8*            head;
-    register void* temp asm("v0");
-    u8             f74;
+    s8  param2[4];
+    u8* param1;
 
-    head               = SCRATCH_HEAD(u8);
-    temp               = head - 8;
-    param1             = temp;
-    SCRATCH_HEAD(void) = temp;
+    param1 = SCRATCH_PUSH_BYTES(8);
 
     param1[2] = 2;
     param1[3] = 0;
-    head[-8]  = arg1;
+    param1[0] = arg1;
     param2[0] = arg0;
 
-    if ((u8)arg2 < 5) {
-        switch ((u8)arg2) {
-            case 0:
-                param2[1] = 3;
-                param2[2] = -8;
-                param2[3] = -3;
-                break;
-            case 1:
-                param2[2] = 0;
-                param2[1] = 0;
-                param2[3] = -2;
-                break;
-            case 2:
-                param2[1] = 3;
-                param2[2] = 0;
-                param2[3] = -2;
-                break;
-            case 3:
+    switch ((u8)arg2) {
+        case 0:
+            param2[1] = 3;
+            param2[2] = -8;
+            param2[3] = -3;
+            break;
+        case 1:
+            param2[2] = 0;
+            param2[1] = 0;
+            param2[3] = -2;
+            break;
+        case 2:
+            param2[1] = 3;
+            param2[2] = 0;
+            param2[3] = -2;
+            break;
+        case 3:
+            param2[3] = 0;
+            param2[2] = 0;
+            param2[1] = 0;
+            break;
+        case 4:
+            if (D_800626E8 != 0) {
+                param1[3] = gGameSession->at4.loc.stage;
+                param1[2] = gGameSession->at4.loc.area;
+                param1[0] = Gp_GetViewIndex();
+                param2[0] = gGameSession->sprtVariant;
+                param2[1] = 1;
                 param2[3] = 0;
                 param2[2] = 0;
-                param2[1] = 0;
-                break;
-            case 4:
-                if (D_800626E8 != 0) {
-                    param1[3] = gGameSession->at4.loc.stage;
-                    param1[2] = gGameSession->at4.loc.area;
-                    param1[0] = Gp_GetViewIndex();
-                    f74       = gGameSession->sprtVariant;
-                    param2[1] = 1;
-                    param2[3] = 0;
-                    param2[2] = 0;
-                    param2[0] = f74;
-                    CdCmd_EnqueueUnlessStream(0x21, param1, (u8*)param2);
-                    D_800626E8 = 0;
-                }
-                SCRATCH_POP_BYTES(8);
-                return;
-        }
+                CdCmd_EnqueueUnlessStream(0x21, param1, (u8*)param2);
+                D_800626E8 = 0;
+            }
+            SCRATCH_POP_BYTES(8);
+            return;
     }
 
     CdCmd_Enqueue(0x21, param1, (u8*)param2);
