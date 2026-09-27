@@ -351,16 +351,14 @@ static void func_actor_510900_80132D4C(Task* arg0)
     GpCoord          hit;
     GpEffWork*       mem;
     GpCoord*         coord;
-    void**           scratch;
     u8*              head;
+    GpFxQuadScratch* vecp;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
     s16              flag;
     s16              x;
     u8               col;
     u16              vz;
-    u32              vy;
-    u8*              carve;
     s32              x2;
 
     mem   = arg0->spawnArg2;
@@ -372,20 +370,17 @@ static void func_actor_510900_80132D4C(Task* arg0)
         }
     } else {
         Gp_UpdateCoord(coord);
-        scratch                                   = SCRATCH_HEAD_ADDR;
-        head                                      = SCRATCH_HEAD_AT(scratch, void);
-        ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
-        carve                                     = head - 0x1C;
-        vy                                        = (u16)coord->workm.t[1];
-        SOFT_TOUCH_REG_USE2(vy, carve, carve);
-        block                          = (GpFxQuadScratch*)carve;
-        block->vec.vy                  = vy;
-        vz                             = (u16)coord->workm.t[2];
-        SCRATCH_HEAD_AT(scratch, void) = block;
-        block->vec.vz                  = vz;
+        head                          = SCRATCH_HEAD(u8);
+        vecp                          = (GpFxQuadScratch*)(head - 0x1C);
+        vecp->vec.vx                  = (u16)coord->workm.t[0];
+        block                         = vecp;
+        block->vec.vy                 = (u16)coord->workm.t[1];
+        vz                            = (u16)coord->workm.t[2];
+        SCRATCH_HEAD(GpFxQuadScratch) = block;
+        block->vec.vz                 = vz;
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&block->vec);
+        gte_ldv0(&vecp->vec);
         gte_rtps();
         gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
         gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
@@ -449,7 +444,7 @@ static void func_actor_510900_80132D4C(Task* arg0)
                 hit.coord.t[2] = coord->coord.t[2];
                 hit.flg        = 0;
                 Gp_UpdateCoord(&hit);
-                Gp_DrawEffSprite7C(&hit, (s32)((u16)mem->scale << 16) >> 17, (u8)col);
+                Gp_DrawEffSprite7C(&hit, mem->scale >> 1, col);
             }
         }
         SCRATCH_POP_BYTES(0x1C);

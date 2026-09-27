@@ -41121,6 +41121,17 @@ Unlike `register s32 tmp asm("v1")`, this does not reserve a hard register, so
 it leaves the rest of the allocation alone — the pinned version stole `$v1`
 from two later `mult`/`mflo` pairs in `Gp_EffSprTask7C`.
 
+The same fade in `func_actor_510900_80132D4C` masks at the *call*
+(`andi a2,s3,0xFF` for a `u8 col` set to the fade or to `0x80` in an if/else),
+and no plain-C spelling tried keeps `0xFF`: `col` as `u8`/`s8`/`s16`/`s32`, the
+copy before or after the stores, chained assignment, `setRGB0`, a `u8`
+prototype, inline helpers for the fade or for the shadow call. Every one folds
+to `0xF0`. In `combine.c` the mask survives only if `nonzero_bits` of `col` is
+unknown: `col` live at function entry (`set_nonzero_bits_and_sign_copies` skips
+it), or a set from a memory load or other opaque value. Adding an
+uninitialised use of `col` confirmed the first but does not match the rest, so
+the copy there is still the asm.
+
 ## Put the `div`-derived `u` before the constant `v` so the constant fills the `mflo` slot
 
 In a `POLY_FT4` fill where each UV pair is `prim->uN = (a / b) << 5;` and
