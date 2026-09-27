@@ -2508,22 +2508,16 @@ static void Gp_ApplyBit2List(GpBit2List* table, u32* dest)
 
 void Gp_SetBit2Flag(s32 arg0, u8 arg1, s32 arg2)
 {
-    s32          shift;
-    u32          mask;
-    u32*         p;
-    u32          nmask;
-    register s32 temp asm("v0");
+    s32  shift;
+    u32  mask;
+    u32* p;
 
     shift = (arg0 & 0xF) * 2;
-    USE_REG(shift);
-    temp  = 3;
-    mask  = temp << shift;
-    p     = Gp_Bit2Banks[arg2].field_4;
-    p    += arg0 >> 4;
-    nmask = ~mask;
-    temp  = *p;
+    mask  = 3 << shift;
+    p     = &Gp_Bit2Banks[arg2].field_4[arg0 >> 4];
+    *p   &= ~mask;
     mask  = arg1 << shift;
-    *p    = (temp & nmask) | mask;
+    *p   |= mask;
 }
 
 s32 Gp_GetRelatedQty(s32 arg0, s32 arg1)
