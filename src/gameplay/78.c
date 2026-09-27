@@ -4065,28 +4065,19 @@ void Gp_ViewBeginLoad(Task* task)
 
 void Gp_ViewLoadImage(Task* task)
 {
-    CdCmdQueue*   q;
-    s32           i;
-    s32           raw;
-    s32           target;
-    u8            param;
-    register s32  type2 asm("v0");
-    FsFolderSlot* table;
-    FsFolderSlot* slot;
+    CdCmdQueue* q;
+    u8          view;
+    u8          i;
+    u8          param;
 
     q = &CdCmd_Queue;
     if (CdCmd_IsIdle() & 0xFFFF) {
         Mem_Set(&q->field_40, 0, 0x10);
-        raw    = Gp_GetViewIndex();
-        i      = 0;
-        table  = D_8006C338;
-        target = (u8)raw - 1;
-        for (; (u8)i < 50; i++) {
-            type2 = 2;
-            if (table[(u8)i].field_0 == type2) {
-                if (target == (u8)i) {
-                    slot = &table[(u8)i];
-                    while (Fs_LoadImageChunk(slot->field_4, 1)) {
+        view = Gp_GetViewIndex();
+        for (i = 0; i < 50; i++) {
+            if (D_8006C338[i].field_0 == 2) {
+                if (view - 1 == i) {
+                    while (Fs_LoadImageChunk(D_8006C338[i].field_4, 1)) {
                     }
                     break;
                 }
