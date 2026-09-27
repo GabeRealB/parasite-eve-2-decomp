@@ -547,11 +547,9 @@ static s32 Gp_RelocCapFile(GpCapFile* file)
 
 static s32 Gp_StartCap(s32 arg0, s16 arg1, s16 arg2)
 {
-    register s16 mode asm("s3");
-    CdCmdQueue*  queue;
-    TaskDesc*    desc;
+    CdCmdQueue* queue;
+    TaskDesc*   desc;
 
-    mode  = arg1;
     queue = &CdCmd_Queue;
     if (arg0 == 0) {
         return 0;
@@ -561,7 +559,6 @@ static s32 Gp_StartCap(s32 arg0, s16 arg1, s16 arg2)
     Gp_CapTable    = (GpEvt12*)arg0;
     D_801155AC     = 0;
     D_801155AE     = 1;
-    Gp_CapTable    = (GpEvt12*)arg0;
     D_801155B0     = 0;
     D_801155B2     = 0x30;
     D_801155B4     = 0xC0;
@@ -585,7 +582,6 @@ static s32 Gp_StartCap(s32 arg0, s16 arg1, s16 arg2)
     D_80115690     = 0;
     D_80115680     = 1;
     D_80115659     = 0xF;
-    D_801155AE     = 1;
     D_8011566C     = Mc_SaveData[0].at4.loc.view;
     D_8011565C     = queue->field_22A;
     if (gDisplayState.field_112 != 0) {
@@ -602,10 +598,9 @@ static s32 Gp_StartCap(s32 arg0, s16 arg1, s16 arg2)
     Gp_ApplyCapEvtFlags();
     D_801155B4 = Gp_CapTextTopY((u16*)Gp_CapTable[(s16)D_801155AE].field_8);
     D_801155B6 = Gp_CapTextHeight((u16*)Gp_CapTable[(s16)D_801155AE].field_8);
-    D_80115666 = mode;
+    D_80115666 = arg1;
     D_80115660 = 0;
-    if (mode != 0) {
-        D_80115666 = mode;
+    if (arg1 != 0) {
         desc       = Task_GetDesc(2, 7);
         Gp_CapTask = (Task*)Display_InitModeObj(desc, 0, 0, 0);
         if (D_80115666 != 3) {
