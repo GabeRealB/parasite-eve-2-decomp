@@ -145724,3 +145724,23 @@ argument locals, pointer locals and explicit counter masks without a helper.
 Scratch `base_2` demonstrated the expression change; `base_5` also simplified
 the counter type and loop. Both preserve the 99.953% seed score
 (`regs=8`, all other penalties zero); the unscoped integration build matches.
+## An early return before a switch can preserve its separate range-check exits
+
+`func_actor_421600_80136138` had two `SOFT_TOUCH_REG(state)` barriers in
+switch arms that assign the same state and return. Removing the barriers and
+the unnecessary `s32 state` local scored 95.283%: `.jump2` merged later range
+checks into earlier checks with the same width. Merely inverting each range
+guard or using an inline state setter emitted the same object.
+
+The working shape moves the equal-zone store/return from the trailing `else`
+of `if (playerZone != zone) { switch (...) { ... } } else { ... }` to an
+initial `if (playerZone == zone) { ...; return; }`, followed by the switch.
+That single change to the barrier-free candidate restores the seed's 99.973%
+with only its two scratch symbol differences. In `.jump2`, all seven range
+comparison/branch pairs remain separate while their state store is shared;
+`.dbr` then duplicates the short store tail into each exit. Thus a shared
+store after a switch in the binary need not have appeared after it in C.
+The exact jump-chain traversal behind this order sensitivity was not traced.
+
+Controlled candidates: `base_2.i` SHA-256 `9a92e51cfad6495d2f9487d5c78e8253b19370330f64fa4ac0dc150a52ca1ffe`;
+`base_12.i` SHA-256 `26b9cf0d6055556c074d6a1a0813f04d4a085d240deccfa451150b02f801b140`. No new helper or assembly is needed.

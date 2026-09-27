@@ -2241,7 +2241,6 @@ static void func_actor_421600_80136138(Task* arg0)
     s16               nextZone;
     s16               angle;
     s32               wrapped;
-    s32               state;
 
     work = arg0->work;
     ctx  = arg0->spawnArg2;
@@ -2260,73 +2259,67 @@ static void func_actor_421600_80136138(Task* arg0)
     playerZone = Actor421600_Zone(Gp_ActorSlots[0]->extra.tmd->coords);
     zone       = Actor421600_Zone(arg0->extra.tmd->coords);
     func_actor_421600_8013285C(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
-    if (playerZone != zone) {
-        switch ((s16)(playerZone - 1)) {
-            case 0:
-            case 1:
-                if (zone >= 1 && zone <= 3) {
-                    work->field_0 = 0x26;
-                    return;
-                }
-                break;
-            case 2:
-                if (zone >= 1 && zone <= 6) {
-                    work->field_0 = 0x26;
-                    return;
-                }
-                break;
-            case 3:
-            case 4:
-                if (zone >= 3 && zone <= 6) {
-                    work->field_0 = 0x26;
-                    return;
-                }
-                break;
-            case 5:
-                if (zone >= 3 && zone <= 9) {
-                    work->field_0 = 0x26;
-                    return;
-                }
-                break;
-            case 6:
-            case 7:
-                if (zone >= 6 && zone <= 9) {
-                    state         = 0x26;
-                    work->field_0 = state;
-                    return;
-                }
-                break;
-            case 8:
-                if (zone >= 6 && zone <= 11) {
-                    state = 0x26;
-                    SOFT_TOUCH_REG(state);
-                    work->field_0 = state;
-                    return;
-                }
-                break;
-            case 9:
-            case 10:
-                if (zone >= 9 && zone <= 11) {
-                    state = 0x26;
-                    SOFT_TOUCH_REG(state);
-                    work->field_0 = state;
-                    return;
-                }
-                break;
-            case 11:
-                if (zone >= 0xB) {
-                    work->field_0 = 0x26;
-                    return;
-                }
-                if (zone >= 0xC) {
-                    work->field_0 = 0x26;
-                    return;
-                }
-                break;
-        }
-    } else {
+    if (playerZone == zone) {
         work->field_0 = 0x26;
         return;
+    }
+    switch ((s16)(playerZone - 1)) {
+        case 0:
+        case 1:
+            if (zone >= 1 && zone <= 3) {
+                work->field_0 = 0x26;
+                return;
+            }
+            break;
+        case 2:
+            if (zone >= 1 && zone <= 6) {
+                work->field_0 = 0x26;
+                return;
+            }
+            break;
+        case 3:
+        case 4:
+            if (zone >= 3 && zone <= 6) {
+                work->field_0 = 0x26;
+                return;
+            }
+            break;
+        case 5:
+            if (zone >= 3 && zone <= 9) {
+                work->field_0 = 0x26;
+                return;
+            }
+            break;
+        case 6:
+        case 7:
+            if (zone >= 6 && zone <= 9) {
+                work->field_0 = 0x26;
+                return;
+            }
+            break;
+        case 8:
+            if (zone >= 6 && zone <= 11) {
+                work->field_0 = 0x26;
+                return;
+            }
+            break;
+        case 9:
+        case 10:
+            if (zone >= 9 && zone <= 11) {
+                work->field_0 = 0x26;
+                return;
+            }
+            break;
+        case 11:
+            if (zone >= 0xB) {
+                work->field_0 = 0x26;
+                return;
+            }
+            if (zone >= 0xC) {
+                work->field_0 = 0x26;
+                return;
+            }
+            break;
     }
     func_actor_421600_80134604(arg0);
     head = SCRATCH_HEAD(ActorTurnScratch);
