@@ -3,6 +3,31 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Reusing the final component result separates it from local arithmetic quantities (func_actor_403600_80134398, 2026-09-27)
+
+Three weighted direction updates needed no barriers when their final results
+used one `s32` temporary, assigned and stored separately for each axis:
+
+```c
+direction       = (scratch->dir.vx + work->velocity.vx * 7) >> 4;
+scratch->dir.vx = direction;
+```
+
+With the expression stored directly, the direction load/add/shift quantity has
+12 refs, span 8, priority 45000, beating the multiply's 8/6/40000 and taking
+`v0`. Reusing the final result across x/y/z gives it three deaths, excluding
+it from local allocation. The direction load/add quantity then has 8/6/40000;
+the earlier-born multiply wins their tie and takes `v0`, leaving `v1` for
+the direction load/add. Global allocation also gives the final result `v1`.
+Separate per-axis result locals and a scalar inline helper do not reproduce
+this; naming the sum before the shift removes a different quantity member.
+
+Both allocations were observed with `trace_gcc.py`. Scratch `base_9.c`
+reproduces the seed's 99.947% (only its 11 symbol differences), and the
+unscoped build passes. Inputs: `base_1.i`
+`3aadd01bafa0a69213322e550bd814bb5759d2ed8c442c3ce4feef46134ee765`,
+`base_9.i` `7a596cb05b5f2b25372326a2c6990bd1dcbf459dcdb8b5ec3f615af9444eb7d1`.
+
 ## A single-set `lui` loses `LAUNCH_PRIORITY` when the same local is loaded next (`ActorsShared801359cc`, 2026-09-21)
 
 sched1 raises a `REG_N_SETS == 1` definition to `LAUNCH_PRIORITY` (`0x7f000001`). The scratch `lui` that writes `sv`, then `sv = *(sv + 0x3FC)`, is two sets of one local, so it stays at priority 1 while the two `lhu`s of `t[0]` are births. Backward scheduling then emits the `lui` *before* the loads. Holding each half in its own local and naming both as unused inputs of `lui %0, 0x1F80` makes the loads predecessors. The template does not read them, so maspsx inserts no load-delay nop and the `lui` lands after both `lhu`s.
