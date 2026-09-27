@@ -2046,29 +2046,15 @@ static void func_actor_403900_80136184(Task* arg0)
     POLY_G4*                 poly;
     LINE_F2*                 line;
     DR_TPAGE*                tp;
-    u8*                      head;
-    u8*                      carve;
-    s16*                     y;
-    s32                      x0;
-    s32                      x1;
     s32                      i;
     s32                      j;
 
-    head  = SCRATCH_HEAD(u8);
-    carve = head - sizeof(Actor402200TrailScratch);
-    work  = arg0->work;
-    y     = work->field_700;
-    x1    = work->field_6FC[1];
-    x0    = work->field_6FC[0];
-    SOFT_TOUCH_REG_USE2(carve, x0, x1);
-    sc = (Actor402200TrailScratch*)carve;
-    SOFT_TOUCH_REG(sc);
-    SCRATCH_HEAD(u8)                                                             = carve;
-    ((Actor402200TrailScratch*)(head - sizeof(Actor402200TrailScratch)))->dir.vx = x1 - x0;
-    sc->dir.vy                                                                   = work->field_700[1] - y[0];
-    sc->dir.vz                                                                   = 0;
-    VectorNormalS((VECTOR*)carve, &((Actor402200TrailScratch*)(head - sizeof(Actor402200TrailScratch)))->norm);
-    carve        = 0;
+    sc         = SCRATCH_PUSH(Actor402200TrailScratch);
+    work       = arg0->work;
+    sc->dir.vx = work->field_6FC[1] - work->field_6FC[0];
+    sc->dir.vy = work->field_700[1] - work->field_700[0];
+    sc->dir.vz = 0;
+    VectorNormalS(&sc->dir, &sc->norm);
     sc->norm.vy *= -1;
     sc->dx       = (work->field_6FC[1] - work->field_6FC[0]) / 8;
     sc->dy       = (work->field_700[1] - work->field_700[0]) / 8;
@@ -2125,8 +2111,7 @@ static void func_actor_403900_80136184(Task* arg0)
         tp->code[0] = 0xE1000620;
         addPrim((u32*)((((u32)(sc->z << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), tp);
     }
-    SCRATCH_POP_BYTES(sizeof(Actor402200TrailScratch));
-    carve = 0;
+    SCRATCH_POP(Actor402200TrailScratch);
 }
 
 /// Inlined copy of `func_actor_403900_80137EF0`: reseeds animation slots
