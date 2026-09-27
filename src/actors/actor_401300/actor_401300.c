@@ -2193,7 +2193,6 @@ static void func_actor_401300_80136CE8(Task* arg0)
     Actor401300PursuitScratch* blk;
     Actor401300PursuitScratch* s;
     s32                        z;
-    u16                        speed;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2;
@@ -2204,13 +2203,11 @@ static void func_actor_401300_80136CE8(Task* arg0)
         Tmd_AllocBuffers(obj);
         work->field_970.radius = 0x280;
         work->field_89C        = 1;
-        work->field_8A2        = 3;
-        speed                  = work->field_8A8;
-        work->field_BF0.flags &= 0x7FFF;
-        SOFT_BARRIER();
         work->field_89E        = 0;
-        work->field_8A6        = speed;
+        work->field_8A2        = 3;
+        work->field_BF0.flags &= 0x7FFF;
         work->field_AB0.flags |= 0x4000;
+        work->field_8A6        = work->field_8A8;
         func_actor_401300_80133A3C(arg0);
         work->field_8B6 = 0x40;
         work->field_D1C = 0;
