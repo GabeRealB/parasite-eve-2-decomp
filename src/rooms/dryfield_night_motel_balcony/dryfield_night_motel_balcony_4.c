@@ -1297,45 +1297,37 @@ static void func_dryfield_night_motel_balcony_80181E7C(Task* task)
 /// half-width of `pos.vx * 47 / otz` and extends three quarters above and one
 /// quarter below. `color` is the RGB the texture is modulated by; NULL draws
 /// the texture raw.
-/// `tick` is unused. The block pointer is copied through an `asm` move because
-/// the ROM keeps the scratch-block address in a temporary and copies it into the
-/// pointer's own register, a copy no C spelling found here survives combine with.
+/// `tick` is unused.
 static void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick)
 {
     GpEffWork*     work = task->spawnArg2;
     GpCoord*       coord;
-    u8*            head;
     GpRingScratch* block;
     POLY_FT4*      prim;
     DisplayState*  ds;
-    SVECTOR*       vec;
     s16            frame;
     s32            u0;
     s32            u1;
     s32            vTop;
     s32            vBottom;
     s16            xy;
-    u16            vz;
 
     frame = work->index % 10;
     coord = task->extra.tmd->coords;
 
-    head                                    = SCRATCH_HEAD(void);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)coord->workm.t[0];
-    vec                                     = (SVECTOR*)(head - 0x18);
-    __asm__("move %0,%1" : "=r"(block) : "r"(vec));
-    block->vec.vy      = (u16)coord->workm.t[1];
-    vz                 = (u16)coord->workm.t[2];
-    SCRATCH_HEAD(void) = block;
-    block->vec.vz      = vz;
+    SCRATCH_PUSH(GpRingScratch);
+    block         = SCRATCH_HEAD(GpRingScratch);
+    block->vec.vx = coord->workm.t[0];
+    block->vec.vy = coord->workm.t[1];
+    block->vec.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+        gte_stszotz(&block->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -1364,17 +1356,17 @@ static void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s1
         prim->u3      = u1;
         prim->v3      = vBottom;
         block->step   = work->pos.vx * 47 / block->otz;
-        xy            = (u16)block->sx - (u16)block->step;
+        xy            = block->sx - block->step;
         prim->x2      = xy;
         prim->x0      = xy;
-        xy            = (u16)block->sx + (u16)block->step;
+        xy            = block->sx + block->step;
         prim->x3      = xy;
         prim->x1      = xy;
         block->step >>= 1;
-        xy            = (u16)block->sy - block->step * 3;
+        xy            = block->sy - block->step * 3;
         prim->y1      = xy;
         prim->y0      = xy;
-        xy            = (u16)block->sy + (u16)block->step;
+        xy            = block->sy + block->step;
         prim->y3      = xy;
         prim->y2      = xy;
         ds            = &gDisplayState;
@@ -1382,7 +1374,7 @@ static void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s1
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Spawns an 8-step burst of effect 0x6007E and then a 6-step burst of 0x60070
