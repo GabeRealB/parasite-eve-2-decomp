@@ -161,16 +161,16 @@ void func_acropolis_fountain_8017DCD4(Task* arg0)
 /// reaches 4 (the room is fading out).
 static void func_acropolis_fountain_8017DD44(Task* task)
 {
-    void**                     scratch;
-    u8*                        head;
-    RoomShaftScratch*          blk;
-    register RoomShaftScratch* p asm("a0");
-    GpCoord*                   coord;
-    POLY_FT4*                  prim;
-    s16                        x;
-    s16                        y;
-    u16                        vz;
-    s32                        level;
+    void**            scratch;
+    u8*               head;
+    RoomShaftScratch* blk;
+    s32*              otzp;
+    GpCoord*          coord;
+    POLY_FT4*         prim;
+    s16               x;
+    s16               y;
+    u16               vz;
+    s32               level;
 
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState < 4 && ((0x1040C0 >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
@@ -178,11 +178,11 @@ static void func_acropolis_fountain_8017DD44(Task* task)
         scratch     = (void**)G_SCRATCH_HEAD;
         head        = *scratch;
         blk         = (RoomShaftScratch*)(head - 0x14);
+        otzp        = &blk->otz;
         blk->vec.vx = (u16)coord->workm.t[0];
         blk->vec.vy = (u16)coord->workm.t[1];
         vz          = (u16)coord->workm.t[2];
         *scratch    = blk;
-        p           = blk;
         blk->vec.vz = vz;
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
@@ -193,7 +193,7 @@ static void func_acropolis_fountain_8017DD44(Task* task)
         setlen(prim, 9);
         setcode(prim, 0x2C);
         gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
-        gte_stszotz(&p->otz);
+        gte_stszotz(otzp);
         if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
             level          = (((u8)gDisplayState.animFrame & 1) << 4) + 0x40;
             prim->tpage    = 0x2B;
