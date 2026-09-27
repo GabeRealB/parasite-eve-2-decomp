@@ -1124,28 +1124,15 @@ static void Gp_LoadWaitSave(Task* task)
         session = gGameSession;
         if ((GP_LOC_WORD(session->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(3, 1, 0, 0)) {
             if (session->at4.loc.room >= 4) {
-                GameSession* sess;
-                s32          cmd;
-                u8*          p1;
-                u8*          p2;
-                s32          tmp;
-                register s32 loc asm("v1");
-
                 Snd_InitFromStage(session->at4.loc.stage, session->at4.loc.area);
-                cmd       = 0x21;
-                sess      = gGameSession;
-                tmp       = sess->at4.loc.stage;
-                p1        = param1;
-                param1[3] = tmp;
-                loc       = sess->at4.loc.area;
-                p2        = param2;
+                param1[3] = gGameSession->at4.loc.stage;
+                param1[2] = gGameSession->at4.loc.area;
                 param1[0] = 0x16;
                 param2[0] = 1;
                 param2[1] = 0;
                 param2[2] = 0;
                 param2[3] = 0;
-                param1[2] = loc;
-                CdCmd_Enqueue(cmd, p1, p2);
+                CdCmd_Enqueue(0x21, param1, param2);
             }
         }
         sess = gGameSession;
