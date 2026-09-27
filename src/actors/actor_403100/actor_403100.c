@@ -1776,19 +1776,16 @@ static void func_actor_403100_801355D4(Task* arg0)
 
 static void func_actor_403100_801356F4(Task* arg0)
 {
-    s16*    frame;
     SVECTOR first;
     SVECTOR second;
     s32     sound;
     s32     pan;
 
+    D_actor_403100_80155808->field_5EC += 1;
     D_actor_403100_80155808->field_98   = -0xFA0;
     D_actor_403100_80155808->field_9A   = 0;
     D_actor_403100_80155808->field_9C   = 0x7B2;
-    D_actor_403100_80155808->field_5EC += 1;
-    frame                               = (s16*)&D_actor_403100_80155808->field_5EC;
-    COMPILER_BARRIER();
-    if (*frame == 1) {
+    if ((s16)D_actor_403100_80155808->field_5EC == 1) {
         sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0004;
         pan   = (s8)Gp_GetObjPan(&arg0->extra.tmd->coords[4]);
         SndEvt_EnqueueType6(sound, pan, (s8)(gpGetObjDepth(&arg0->extra.tmd->coords[4]) / 2));
