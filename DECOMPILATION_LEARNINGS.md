@@ -145926,3 +145926,21 @@ Evidence: `nonmatchings/func_800D759C-dehack/trace_base_6/REPORT.txt`; observed
 and ordinary assembly are identical. Preprocessed SHA-256: `base_1.i`
 `35eb958c10f0d0dba532e0890d17ed15cb040a677123e0991718ac133686e01a`, `base_6.i`
 `859e4dd8af3ae482eb922fadac7318ef685028ca19f68211385dfa79e35dd07b`.
+
+
+### A startup statement macro preserves reloads by changing CSE's bypass path (func_acropolis_plaza_8017F770, 2026-09-27)
+
+Removing a memory barrier before the voice-state check let CSE replace six
+frame-counter reloads with the initial snapshot (85.642%). A `do { ... } while
+(0)` startup macro containing the state check, sound calls, state store and
+early return matches 100%, including when every frame read uses the same queue
+pointer. Its `LOOP_END` lies between the startup return's `BARRIER` and the
+no-start label. The predecessor scan in `cse_end_of_basic_block` stops there
+even during cse2 (cse.c:8292), selecting `AROUND` instead of `TAKEN`;
+`invalidate_skipped_block` then invalidates memory for the skipped sound calls.
+This differs from merely ending cse1's forward scan at a loop note: both CSE
+dumps retain all seven frame loads. An inline boolean startup helper instead
+retains its result join and call-crossing lifetimes (76.275%).
+
+Scratch: `nonmatchings/func_acropolis_plaza_8017F770-dehack/base_12.c`;
+input SHA256 `069b7a8b40d803626611f3608ea77e6f4f87bd5d9cd7a20ac22a3d6cf755832c`.
