@@ -957,10 +957,9 @@ static s32 Gp_LightCone(GpSpotLight* spot, VECTOR3* pos)
 
 static void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
-    register GpViewLightScratch* block asm("s0");
-    MATRIX*                      dirMtx;
-    MATRIX*                      colorMtx;
-    s32                          scale;
+    GpViewLightScratch* block;
+    MATRIX*             dirMtx;
+    MATRIX*             colorMtx;
 
     block    = SCRATCH_PUSH(GpViewLightScratch);
     dirMtx   = arg3->lightMtx;
@@ -981,9 +980,8 @@ static void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3
     dirMtx->m[arg0][1] = -block->dir.vy;
     dirMtx->m[arg0][2] = -block->dir.vz;
 
-    scale        = arg1->u.at.scale;
-    block->scale = scale;
-    gte_lddp(scale);
+    block->scale = arg1->u.at.scale;
+    gte_lddp(block->scale);
     gte_ldsv(&arg1->r);
     gte_gpf12();
     gte_stsv(&block->dir);

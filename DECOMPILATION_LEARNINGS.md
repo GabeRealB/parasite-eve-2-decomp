@@ -145865,3 +145865,22 @@ The exact jump-chain traversal behind this order sensitivity was not traced.
 
 Controlled candidates: `base_2.i` SHA-256 `9a92e51cfad6495d2f9487d5c78e8253b19370330f64fa4ac0dc150a52ca1ffe`;
 `base_12.i` SHA-256 `26b9cf0d6055556c074d6a1a0813f04d4a085d240deccfa451150b02f801b140`. No new helper or assembly is needed.
+
+## Read a stored GTE scalar directly before pinning its scratch pointer (func_800D759C, 2026-09-27)
+
+The remaining scratch-block pin disappears with `block->scale = light->u.at.scale;
+gte_lddp(block->scale);`, removing the scalar local previously passed to
+`gte_lddp`. In unpinned `base_1`, the block has 12 refs and loses `$s0` to the
+old scratch head. In `base_6`, the SDK asm's field operand retains the user
+block pointer through CSE. The `.lreg` copy UID 29 ends temporary r90's lifetime
+in user pointer r84; tracing confirms their shared quantity has 15 refs over
+142 half-insns (priority 3169), ahead of the old head's 8/88 (2727). They take
+`$s0`, the head takes `$s1`, and reload supplies the already-loaded scale to
+IR0 without adding a load. The scratch score returns to the seed's 99.948%
+(symbol spelling only); the unscoped build matches. Check whether a GTE scalar
+is already stored in the scratch struct before introducing a separate local.
+
+Evidence: `nonmatchings/func_800D759C-dehack/trace_base_6/REPORT.txt`; observed
+and ordinary assembly are identical. Preprocessed SHA-256: `base_1.i`
+`35eb958c10f0d0dba532e0890d17ed15cb040a677123e0991718ac133686e01a`, `base_6.i`
+`859e4dd8af3ae482eb922fadac7318ef685028ca19f68211385dfa79e35dd07b`.
