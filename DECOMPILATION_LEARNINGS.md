@@ -43621,6 +43621,21 @@ Symptom: ~99.9% with `regs=1`, object dump `move a0, zero` vs target `move a1, z
 
 ## Keep the switch selector out of a case body: `SOFT_TOUCH_REG` on the arg
 
+Dehack update (2026-09-27, `func_dryfield_junk_yard_8017D994`): the barrier is
+unnecessary when the two fallback calls share an `else`. Write
+`if (GameFlag_GetNibble(0x73) == 0 && GameFlag_GetNibble(0x7C) != 0)` to run
+command 8, with `Gp_StartCapSlot(arg2, 1, 0)` in the `else`. This preserves
+short-circuit evaluation and matches all 44 instructions without a helper or
+asm. The equivalent OR condition with the slot call in the `then` arm still
+folds the selector (83.500%); removing only the barrier gives 81.227%.
+
+In scratch `func_dryfield_junk_yard_8017D994-dehack/base_8.i.cse`, both failed
+tests jump to label 78 after a barrier. CSE processes its body as a fresh region
+starting at 79, retaining r82 in the signed-halfword conversion; `.greg` assigns
+r82 to s0. The OR variant's slot body remains in the region reached from the
+dispatch and becomes constant 8. Check the shared branch's placement and CSE
+regions before using an asm output to hide a case value.
+
 Inside `case 8:` GCC 2.8.1's cse records `arg2 == 8` from the dispatch `beq` and
 folds every later use of `arg2` in that arm — even across `jal`s. A call that
 takes the selector as a narrower type then becomes a plain `li a0, 8` instead of
