@@ -45,7 +45,6 @@ import cref  # noqa: E402
 import clang.cindex as ci  # noqa: E402
 
 _IMPLICIT = re.compile(r"implicit declaration of function '(\w+)'")
-_ARRAY = re.compile(r"^(.*?)\s*\[\d*\]$")
 
 _ROOT = None
 _DB = None
@@ -57,10 +56,16 @@ def _init(root, db):
     _ROOT, _DB = root, {f: a + ["-Wimplicit-function-declaration"] for f, a in db.items()}
 
 
-def _norm(spelling: str) -> str:
-    """Canonical type text with array bounds dropped for comparison."""
-    m = _ARRAY.match(spelling)
-    return f"{m.group(1)}[]" if m else spelling
+def _norm(ty: ci.Type) -> str:
+    """Drop an outer array bound, including arrays of function pointers.
+
+    Keep the element type intact: inner dimensions and pointer-to-array
+    bounds describe the elements themselves, not the length of the symbol.
+    """
+    ty = ty.get_canonical()
+    if ty.kind in (ci.TypeKind.CONSTANTARRAY, ci.TypeKind.INCOMPLETEARRAY):
+        return f"array[] of {ty.element_type.spelling}"
+    return ty.spelling
 
 
 def _scan(rel: str):
@@ -80,7 +85,7 @@ def _scan(rel: str):
         ty = cur.type.get_canonical()
         decls.append((
             cur.spelling,
-            _norm(ty.spelling),
+            _norm(ty),
             ty.spelling,
             cur.is_definition(),
             cur.kind == ci.CursorKind.FUNCTION_DECL and ty.kind == ci.TypeKind.FUNCTIONNOPROTO,
