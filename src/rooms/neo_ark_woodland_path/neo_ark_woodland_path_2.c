@@ -432,11 +432,12 @@ static void func_neo_ark_woodland_path_8017F4A0(Task* task)
     }
 }
 
-/// Scales the unit quad `D_80111E38` by `arg1`, rotates it by `arg0->workm`
-/// (no GTE translation) and adds `workm.t`, then projects the four corners
-/// through `GsWSMATRIX`. When `gte_stflg` is non-negative, queues one
-/// semi-transparent `POLY_FT4` (tpage 0x2B, clut 0x43D1, UV 0,0x38..0x37,0x6F)
-/// coloured `(arg2, arg2, arg2)`.
+/// Draws a flat textured quad at `arg0`: the four corners of the unit quad
+/// `D_80111E38`, scaled by `arg1`, are rotated by the coordinate's world
+/// matrix and offset by its translation, then projected through `GsWSMATRIX`.
+/// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
+/// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
+/// channels set to `arg2`. The work block lives on the scratchpad stack.
 static void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
@@ -445,7 +446,6 @@ static void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg
     SVECTOR*       v;
     s32            i;
     GpQuadCorner*  tbl;
-    MATRIX*        wm;
     POLY_FT4*      prim;
     s32            prod;
 
@@ -455,27 +455,21 @@ static void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg
     *scratch = head;
     block    = (GpQuadScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
-    i   = 0;
-    wm  = &arg0->workm;
-    v   = block->vec;
-    tbl = D_80111E38;
-    do {
+    for (i = 0; i < 4; i++) {
+        tbl   = &D_80111E38[i];
+        v     = &block->vec[i];
         prod  = tbl->x * arg1;
         v->vy = 0;
         v->vx = prod;
-        TOUCH_REG(v);
         v->vz = tbl->y * arg1;
-        gte_SetRotMatrix(wm);
+        gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        (u16) v->vx = (u16)v->vx + (u16)arg0->workm.t[0];
-        tbl++;
-        (u16) v->vy = (u16)v->vy + (u16)arg0->workm.t[1];
-        i++;
-        (u16) v->vz = (u16)v->vz + (u16)arg0->workm.t[2];
-        v++;
-    } while (i < 4);
+        v->vx += arg0->workm.t[0];
+        v->vy += arg0->workm.t[1];
+        v->vz += arg0->workm.t[2];
+    }
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
@@ -503,14 +497,14 @@ static void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg
         prim->u3 = 0x37;
         prim->v3 = 0x6F;
         setSemiTrans(prim, 1);
-        prim->x0 = (u16)block->sxy0.vx;
-        prim->y0 = (u16)block->sxy0.vy;
-        prim->x1 = (u16)block->sxy1.vx;
-        prim->y1 = (u16)block->sxy1.vy;
-        prim->x2 = (u16)block->sxy2.vx;
-        prim->y2 = (u16)block->sxy2.vy;
-        prim->x3 = (u16)block->sxy3.vx;
-        prim->y3 = (u16)block->sxy3.vy;
+        prim->x0 = block->sxy0.vx;
+        prim->y0 = block->sxy0.vy;
+        prim->x1 = block->sxy1.vx;
+        prim->y1 = block->sxy1.vy;
+        prim->x2 = block->sxy2.vx;
+        prim->y2 = block->sxy2.vy;
+        prim->x3 = block->sxy3.vx;
+        prim->y3 = block->sxy3.vy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);

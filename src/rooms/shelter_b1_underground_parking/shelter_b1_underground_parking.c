@@ -757,16 +757,15 @@ static void func_shelter_b1_underground_parking_8017E618(UiList* list, UiObject*
     list->field_10 = 0;
 }
 
-/// PE counterpart of `func_shelter_b1_underground_parking_8017E618`: fills the
-/// "Play Data" PE-usage panel's `RoomPeUsage` block from the save's per-slot
-/// use counters.
+/// Fills the "Play Data" PE-usage panel's `RoomPeUsage` block from the
+/// save's per-slot use counters.
 ///
 /// Each of the twelve Parasite Energy slots owns three consecutive ids starting
 /// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].attachLevels[i]`
 /// prints as `i * 3 + 0xF + level - 1` (a slot the player has never levelled
 /// keeps the base id). Every slot with a non-zero counter in
-/// `Mc_SaveData[0].attachUseCounts` - which really runs twelve entries wide, past the
-/// seven the struct names - is appended and its counter summed. The ids are
+/// `Mc_SaveData[0].attachUseCounts` is appended and its counter summed. Levels
+/// are addressed by page and column, with three slots per page. The ids are
 /// then insertion-sorted by use count, most-used first, and each row gets
 /// `percents`, its share of all recorded uses in hundredths of a percent, and
 /// `barWidths`, its counter as a 12-bit fraction of the top row's. Both are
@@ -788,33 +787,33 @@ static void func_shelter_b1_underground_parking_8017E914(UiList* list, UiObject*
     s32          shift;
     s32          top;
     s32          tmp;
-    /* Matching only. The original object frames 24 bytes it never touches and
-     * materialises GCC's `/3` magic constant before the first loop for a use
-     * that no longer survives, so `scratch` buys the frame size and `magic`
-     * plus the (instruction-free) SOFT_USE_REG below buy the allocation. */
-    s32 magic;
-    s16 scratch[12];
 
     count = 0;
     total = 0;
     i     = 0;
     work  = (RoomPeUsage*)obj->owner->work;
     p     = work->peIds;
-    magic = 0x55555556;
 
     for (; i < 12; i++) {
-        if (Mc_SaveData[0].attachUseCounts[i] > 0) {
-            id = i * 3 + 0xF;
-            *p = id;
-            if (Mc_SaveData[0].attachLevels[i] != 0) {
-                *p = id + (Mc_SaveData[0].attachLevels[i] - 1u);
+        s32 useCount;
+
+        useCount = Mc_SaveData[0].attachUseCounts[i];
+        id       = i * 3 + 0xF;
+        if (useCount > 0) {
+            s32 page;
+            s32 column;
+
+            page   = i / 3;
+            column = i % 3;
+            *p     = id;
+            if (Mc_SaveData[0].attachLevels[column + page * 3] != 0) {
+                *p = id + (Mc_SaveData[0].attachLevels[column + page * 3] - 1u);
             }
             p++;
             count++;
             total += Mc_SaveData[0].attachUseCounts[i];
         }
     }
-    SOFT_USE_REG(magic);
 
     if (count >= 2) {
         for (i = 1; i < count; i++) {
@@ -1712,6 +1711,13 @@ static const u8 D_shelter_b1_underground_parking_8017D750[] = "Select";
 /// Label drawn ahead of the BP balance and the purchase total.
 static const u8 D_shelter_b1_underground_parking_8017D758[] = "BP";
 
+/// The shop's "Select" panel. On its first frame it allocates the
+/// `RoomShopList` work block, fills it through
+/// `func_shelter_b1_underground_parking_80180454` and opens the panel
+/// `D_shelter_b1_underground_parking_801871B8` beside it. Every frame it draws the list and the
+/// "BP" caption; menu reports -1 and cancel 6 to the parent. A child that
+/// reports 6 is torn down and the list takes input again; one that reports -1
+/// passes it up.
 void func_shelter_b1_underground_parking_80180820(Task* task)
 {
     TextDrawReq   req;
@@ -1730,12 +1736,9 @@ void func_shelter_b1_underground_parking_80180820(Task* task)
     obj->field_2E = 0;
     Ui_DrawText((UiPanel*)obj, (char*)D_shelter_b1_underground_parking_8017D750);
     if (task->state == 0) {
-        mem  = memCalloc(sizeof(RoomShopList), 0);
-        shop = mem;
+        mem = memCalloc(sizeof(RoomShopList), 0);
         if (mem != NULL) {
-            /* Keeps the allocation's own register distinct from the tested one,
-               so the null test stays on $v0 and the copy fills its delay slot. */
-            SOFT_TOUCH_REG(shop);
+            shop               = mem;
             task->work         = (TaskIdMap*)shop;
             shop->list.funcs   = D_shelter_b1_underground_parking_8018709C;
             shop->list.field_6 = 0;
@@ -1750,7 +1753,8 @@ void func_shelter_b1_underground_parking_80180820(Task* task)
             task->state += 1;
         }
     }
-    Ui_UpdateListNoAnim(task->work, obj);
+    shop = (RoomShopList*)task->work;
+    Ui_UpdateListNoAnim(shop, obj);
     Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 6);
 
     x              = obj->baseX - 2;
@@ -2152,21 +2156,32 @@ void func_shelter_b1_underground_parking_801813B0(Task* task)
     }
 }
 
-/// Shop quantity row: the "Amount" label at the preview slot plus how many of
-/// the previewed item the player already holds. Stackable items (0xA0..0xBF)
-/// ask the scan for their stack quantity; everything else is counted by
-/// walking the item table.
-///
-/// `guard` is the register the loop's entry test reads. The target compares a
-/// copy of `count` (`move s4,s3` in the branch delay slot) rather than the
-/// loop counter, and everything that keeps GCC 2.8.1 on that shape is
-/// codegen-only:
-///  - the dead `guard = 0` after the last draw makes `guard`, not `count`,
-///    the cse-canonical zero, so the duplicated exit test is rewritten onto it;
-///  - the two soft uses give it four references: with two, local-alloc moves a
-///    single-use constant init next to its use (into the else block, past the
-///    label, where the `move` from `count` can no longer be formed), and with
-///    three it colours after `item` (`$s5`) instead of before (`$s4`).
+static inline s32 _shelter_b1_underground_parkingAddItemCount(s32 item, s32 count)
+{
+    s32         i;
+    s32         n;
+    McItemRec*  rec;
+    McItemScan* scan;
+
+    if ((u32)(item - 0xA0) < 0x20U) {
+        count += Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, item);
+    } else {
+        scan = &Mc_SaveData[0].carriedItems;
+        rec  = Gp_GetItemTable(scan) + scan->firstRow;
+        n    = scan->rowCount;
+        for (i = 0; i < n; i++) {
+            if (rec[i].itemId == item) {
+                count++;
+            }
+        }
+    }
+    return count;
+}
+
+/// Draws the preview of the item the shop list's cursor rests on and, for an
+/// item id below 0x100, the "Amount" caption with how many of it the player
+/// already holds. Stackable items (0xA0..0xBF) ask the scan for their stack
+/// quantity; everything else is counted by walking the item table.
 void func_shelter_b1_underground_parking_80181678(Task* task)
 {
     u8          buf[0x10];
@@ -2176,11 +2191,6 @@ void func_shelter_b1_underground_parking_80181678(Task* task)
     s32         y;
     s32         ry;
     s32         count;
-    s32         guard;
-    s32         i;
-    s32         n;
-    McItemRec*  rec;
-    McItemScan* scan;
 
     item         = D_shelter_b1_underground_parking_80186FB0;
     obj          = task->spawnArg2;
@@ -2202,22 +2212,8 @@ void func_shelter_b1_underground_parking_80181678(Task* task)
         req.field_E    = 1;
         func_8002E53C(&req, D_shelter_b1_underground_parking_80187088);
         count = 0;
-        guard = 0;
-        if ((u32)(item - 0xA0) < 0x20U) {
-            count = Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, item);
-        } else {
-            scan = &Mc_SaveData[0].carriedItems;
-            rec  = Gp_GetItemTable(scan) + scan->firstRow;
-            n    = scan->rowCount;
-            SOFT_USE_REG2(guard, guard);
-            for (i = 0; i < n; i++) {
-                if (rec[i].itemId == item) {
-                    count++;
-                }
-            }
-        }
+        count = _shelter_b1_underground_parkingAddItemCount(item, count);
         Text_DrawPrompt(obj, (s16)obj->field_1E - 2, y + 0xA, Text_ItoaSigned(buf, count), 0x606060, 3, 2);
-        guard = 0;
     }
 }
 

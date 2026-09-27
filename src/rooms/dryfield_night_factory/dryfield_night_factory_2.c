@@ -17,6 +17,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/dryfield_factory.h"
 #include "rooms/dryfield_night_factory.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -180,23 +181,11 @@ static const TaskFuncTable3 D_dryfield_night_factory_8017D638 = {
     { func_dryfield_night_factory_80180438, func_dryfield_night_factory_801809EC, taskKill },
 };
 
-/// Room entry task set-up: publish the room's message table in `Task::msgTable`
-/// and claim game pointer slot 7, then park the `memCalloc` slot the poller
-/// `func_dryfield_night_factory_8018076C` watches in it. Session variant
-/// `gGameSession::at4.loc.stage == 2` (the night factory) picks the larger spawn
-/// tables and the second progress-nibble interpretation; every other variant
-/// picks the day set. The entry's own task and callback are spawned from the
-/// selected table at index 4 and 5, then nibble 0x48 is read -- under variant
-/// 2 through a branch whose two arms are the same call, which is why the
-/// target keeps both copies of it.
-///
-/// `slot` and the store to `D_..._A7E8` are one chained assignment on purpose:
-/// that makes GCC materialise the global's address ahead of `memCalloc`, so
-/// the address quantity's live range spans the call. `local-alloc.c`'s
-/// `QTY_CMP_PRI` divides by the range length, which drops it below the
-/// `gGameSession` load quantity, and that load then wins `$v1` -- the target's
-/// allocation. Split into two statements it takes `$v1` itself and the load
-/// falls to `$a0`.
+/// Room entry task: publishes the room's message table, claims game pointer
+/// slot 7 and parks a fresh one-word slot at `Task::work` (also kept in
+/// `D_dryfield_night_factory_8018A7E8`) for the poller to fill. It then picks the spawn tables for
+/// the session variant (`stage == 2` or not), spawns entries 4 and 5 of the
+/// first, and passes progress nibble 0x48 to the variant's view-sprite helper.
 static void func_dryfield_night_factory_80180438(Task* arg0)
 {
     Task** slot;
@@ -218,8 +207,7 @@ static void func_dryfield_night_factory_80180438(Task* arg0)
     Task_SpawnFromTable(D_dryfield_night_factory_8018A7E4, 4, 0, (s32)D_dryfield_night_factory_8018A7E8);
     Task_SpawnFromTable(D_dryfield_night_factory_8018A7E4, 5, 0, 0);
     if (gGameSession->at4.loc.stage == 2) {
-        func_dryfield_night_factory_80181620(GameFlag_GetNibble(0x48) & 0xFF);
-        SOFT_BARRIER();
+        func_dryfield_factory_80181620(GameFlag_GetNibble(0x48) & 0xFF);
     } else {
         func_dryfield_night_factory_80181620(GameFlag_GetNibble(0x48) & 0xFF);
     }

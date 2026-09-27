@@ -605,16 +605,14 @@ static void func_dryfield_night_main_street_8017E484(Task* task)
     task->spawnArg1 = Gp_GetViewIndex() & 0xFF;
 }
 
-/// Draws a glow between the two world points `arg0[0]` and `arg0[1]`: a fan
-/// of gouraud wedges around each projected point, joined by wedges spanning
-/// the two, the sweep oriented along the screen-space line between them. Each
-/// radius is `(s16)arg1 * 64` over that point's OTZ. Nothing is drawn unless
-/// both points project. The lit vertices take a brightness that flickers with
-/// the frame counter.
+/// Draws a light shaft between the two world points `arg0[0]` and `arg0[1]`:
+/// a fan of gouraud wedges around each projected point, joined by wedges
+/// spanning the two, the sweep oriented along the screen-space line between
+/// them. Each radius is `(s16)arg1 * 64` over that point's OTZ. Nothing is
+/// drawn unless both points project. The lit vertices take a brightness that
+/// flickers with the frame counter.
 static void func_dryfield_night_main_street_8017E940(SVECTOR* arg0, s32 arg1)
 {
-    void**                   scratch;
-    u8*                      head;
     SVECTOR*                 p1;
     OverlayPointPairScratch* block;
     POLY_G4*                 prim;
@@ -631,32 +629,26 @@ static void func_dryfield_night_main_street_8017E940(SVECTOR* arg0, s32 arg1)
     s32                      scaled;
     s32                      blend;
 
-    p1      = arg0 + 1;
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    {
-        register u8* tmp asm("v0");
-        tmp      = head - 0x1C;
-        block    = (OverlayPointPairScratch*)tmp;
-        *scratch = tmp;
-    }
+    p1 = arg0 + 1;
+    SCRATCH_PUSH(OverlayPointPairScratch);
+    block = SCRATCH_HEAD(OverlayPointPairScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx0);
-    gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx0);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(p1);
         gte_rtps();
-        gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx1);
-        gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
+        gte_stsxy(&block->sx1);
+        gte_stflg(&block->flag);
         if (block->flag >= 0) {
-            gte_stszotz(&((OverlayPointPairScratch*)(head - 0x1C))->otz1);
+            gte_stszotz(&block->otz1);
             scaled    = (s16)arg1 * 64;
-            block->r0 = scaled / ((OverlayPointPairScratch*)(head - 0x1C))->otz0;
+            block->r0 = scaled / block->otz0;
             block->r1 = scaled / block->otz1;
             raw       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
             ds        = &gDisplayState;
@@ -736,7 +728,7 @@ static void func_dryfield_night_main_street_8017E940(SVECTOR* arg0, s32 arg1)
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_POP(OverlayPointPairScratch);
 }
 
 /// Draws a textured semi-transparent sprite centred on the world point `arg0`
@@ -854,15 +846,18 @@ static void func_dryfield_night_main_street_8017F3B0(Task* task)
     }
 }
 
-/// Draws one frame of a textured semi-transparent puff at the coordinate's
-/// world position, skipped when it fails to project or sits too close
-/// (OTZ below 0x41). `arg1` is the animation frame, a 48-texel cell of a
-/// five-wide grid; `arg2` is the half-extent, scaled by 47 over the OTZ on
-/// screen; `arg3` is the angle the quad is rotated by.
+/// Projects the coordinate's world position through `GsWSMATRIX` and, when
+/// the GTE flag is non-negative and `otz` is at least 0x41, queues one
+/// semi-transparent shade-tex `POLY_FT4` (tpage 0x2B, clut 0x4383) rotated
+/// about the projected centre. `arg1` selects a 48-texel UV tile in a 5-wide
+/// grid: u = `(arg1 % 5) * 48`, v = `(arg1 / 5) * 48 - 0x80`. `arg2` is a
+/// signed half-extent; the on-screen radius is `(s16)arg2 * 47 / otz`.
+/// `arg3` is the spin angle, applied at `arg3` and `arg3 + 0x400` through
+/// `rsin`/`rcos`.
 static void func_dryfield_night_main_street_8017F608(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**             scratch;
-    u8*                head;
+    GpEffFlareScratch* head;
     GpEffFlareScratch* block;
     s32*               otzp;
     POLY_FT4*          prim;
@@ -877,68 +872,60 @@ static void func_dryfield_night_main_street_8017F608(GpCoord* arg0, s32 arg1, s3
     u16                vz;
     u16                tex;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    SOFT_TOUCH_REG_USE(arg2, scratch);
-    head          = *scratch;
-    block         = (GpEffFlareScratch*)(head - 0x1C);
+    scratch       = SCRATCH_HEAD_ADDR;
+    head          = SCRATCH_HEAD_AT(scratch, GpEffFlareScratch);
+    block         = head - 1;
     block->vec.vx = (u16)arg0->workm.t[0];
     block->vec.vy = (u16)arg0->workm.t[1];
     vz            = (u16)arg0->workm.t[2];
     otzp          = &block->otz;
     *scratch      = block;
     block->vec.vz = vz;
+    tex           = arg1;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((GpEffFlareScratch*)(head - 0x1C))->vec);
+    gte_ldv0(&block->vec);
     gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&((GpEffFlareScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpEffFlareScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(otzp);
-        if (((GpEffFlareScratch*)(head - 0x1C))->otz >= 0x41) {
+        if (block->otz >= 0x41) {
             ang         = (s16)arg3;
             prim->tpage = 0x2B;
             prim->clut  = 0x4383;
             prim->code |= 3;
-            tex         = arg1;
             u0          = (tex % 5) * 0x30;
             v0          = (tex / 5) * 0x30;
             u1          = u0 + 0x2F;
             v1          = v0 - 0x51;
             v0          = v0 - 0x80;
             setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
-            sine = rsin(ang);
-            span = (s16)arg2 * 0x2F;
-            block->dx =
-                ((span / ((GpEffFlareScratch*)(head - 0x1C))->otz) * sine) >> 12;
-            block->dy =
-                ((span / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
-            prim->x0 = block->sx + (u16)block->dx;
-            prim->x3 = block->sx - (u16)block->dx;
-            prim->y0 = block->sy - (u16)block->dy;
-            prim->y3 = block->sy + (u16)block->dy;
-            ang2     = ang + 0x400;
-            block->dx =
-                ((span / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(ang2)) >> 12;
-            block->dy =
-                ((span / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(ang2)) >> 12;
-            prim->x1 = block->sx + (u16)block->dx;
-            prim->x2 = block->sx - (u16)block->dx;
-            prim->y1 = block->sy - (u16)block->dy;
-            prim->y2 = block->sy + (u16)block->dy;
-            addPrim((u_long*)(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz
-                                 << gDisplayState.otDepthShift) >>
-                                2) &
-                               0xFFC) +
+            sine      = rsin(ang);
+            span      = (s16)arg2 * 0x2F;
+            block->dx = ((span / block->otz) * sine) >> 12;
+            block->dy = ((span / block->otz) * rcos(ang)) >> 12;
+            prim->x0  = block->sx + (u16)block->dx;
+            prim->x3  = block->sx - (u16)block->dx;
+            prim->y0  = block->sy - (u16)block->dy;
+            prim->y3  = block->sy + (u16)block->dy;
+            ang2      = ang + 0x400;
+            block->dx = ((span / block->otz) * rsin(ang2)) >> 12;
+            block->dy = ((span / block->otz) * rcos(ang2)) >> 12;
+            prim->x1  = block->sx + (u16)block->dx;
+            prim->x2  = block->sx - (u16)block->dx;
+            prim->y1  = block->sy - (u16)block->dy;
+            prim->y2  = block->sy + (u16)block->dy;
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_POP(GpEffFlareScratch);
 }
 
 /// A drifting mote: the spawn argument gives its brightness flags, vertical
@@ -1028,17 +1015,15 @@ static void func_dryfield_night_main_street_8017FA68(Task* task)
     }
 }
 
-/// Draws one mote as a textured semi-transparent square at the coordinate's
-/// projected position, when it projects. The low two bits of `arg1` and the
-/// top nibble of `arg2` pick the 24-texel texture cell; the rest of `arg2` is
-/// the half-extent, scaled by 23 over the OTZ; the low byte of `arg3` is the
-/// grey level and its top nibble picks the palette.
+/// Draws one mote: projects the coordinate's world position through
+/// `GsWSMATRIX` and, unless the GTE flags the projection, queues one
+/// semi-transparent textured square centred on it. `arg1`'s low two bits and
+/// `arg2`'s top nibble pick the 24-texel texture cell, `arg2`'s low twelve
+/// bits are the half-extent (scaled by 23 / (otz + 1)), `arg3`'s low byte is
+/// the grey level and its top nibble picks the palette.
 static void func_dryfield_night_main_street_8017FD34(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
-    void**         scratch;
-    u8*            head;
     GpRingScratch* block;
-    GpRingScratch* next;
     POLY_FT4*      prim;
     DisplayState*  ds;
     u16            row;
@@ -1046,29 +1031,23 @@ static void func_dryfield_night_main_street_8017FD34(GpCoord* arg0, u16 arg1, u1
     s32            u0;
     s32            u1;
     s16            xy;
-    u16            vz;
 
-    row                                     = arg2 >> 12;
-    arg2                                   &= 0xFFF;
-    scratch                                 = (void**)G_SCRATCH_HEAD;
-    pal                                     = arg3 >> 12;
-    arg3                                   &= 0xFF;
-    head                                    = *scratch;
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
-    next                                    = (GpRingScratch*)(head - 0x18);
-    __asm__("move %0,%1" : "=r"(block) : "r"(next));
-    block->vec.vy = (u16)arg0->workm.t[1];
-    vz            = (u16)arg0->workm.t[2];
-    *scratch      = block;
-    block->vec.vz = vz;
+    row           = arg2 >> 12;
+    arg2         &= 0xFFF;
+    pal           = arg3 >> 12;
+    arg3         &= 0xFF;
+    block         = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(block);
+    gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+        gte_stszotz(&block->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -1085,16 +1064,16 @@ static void func_dryfield_night_main_street_8017FD34(GpCoord* arg0, u16 arg1, u1
         u1 = u0 + 0x17;
         setUV4(prim, u0, 0, u1, 0, u0, 0x17, u1, 0x17);
         block->step = arg2 * 23 / block->otz;
-        xy          = (u16)block->sx - (u16)block->step;
+        xy          = block->sx - block->step;
         prim->x2    = xy;
         prim->x0    = xy;
-        xy          = (u16)block->sx + (u16)block->step;
+        xy          = block->sx + block->step;
         prim->x3    = xy;
         prim->x1    = xy;
-        xy          = (u16)block->sy - (u16)block->step;
+        xy          = block->sy - block->step;
         prim->y1    = xy;
         prim->y0    = xy;
-        xy          = (u16)block->sy + (u16)block->step;
+        xy          = block->sy + block->step;
         prim->y3    = xy;
         prim->y2    = xy;
         ds          = &gDisplayState;
@@ -1102,7 +1081,7 @@ static void func_dryfield_night_main_street_8017FD34(GpCoord* arg0, u16 arg1, u1
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a ring of sixteen gouraud quads around the coordinate's projected
@@ -1359,12 +1338,12 @@ static void func_dryfield_night_main_street_80180B48(Task* arg0)
     }
 }
 
-/// Draws a flickering glow at the coordinate: an inner textured square of
-/// half-extent `size` and an outer one half as large again (each scaled by
-/// 0x37 over the OTZ), and, where the coordinate is over ground, a flat quad
-/// on the ground beneath it. It also points the `Gp_RoomCoords[2]` light at the
-/// coordinate with a random intensity. Nothing is drawn unless the coordinate
-/// projects.
+/// Draws a glow at the coordinate: two camera-facing textured squares, an
+/// inner one of half-extent `size` and an outer one of `size * 3 / 2`
+/// (each scaled by 0x37 / otz), plus a flat quad on the ground beneath it.
+/// It also points the `Gp_RoomCoords[2]` light at the
+/// coordinate with a randomly flickering intensity. Nothing is drawn when the
+/// GTE flags the projection.
 static void func_dryfield_night_main_street_80180CF4(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
@@ -1384,10 +1363,6 @@ static void func_dryfield_night_main_street_80180CF4(GpCoord* coord, s16 size)
     GpCoord64*     slot;
     GpPointLight*  light;
     GpRingScratch* block;
-    void**         scratch;
-    GpRingScratch* alias;
-    u16            vy;
-    GpRingScratch* sc;
 
     slot                        = &Gp_RoomCoords[2];
     slot->framesLeft            = 2;
@@ -1398,30 +1373,24 @@ static void func_dryfield_night_main_street_80180CF4(GpCoord* coord, s16 size)
     intensity                   = ((random >> 0x10) & 0x700) + 0x800;
     light->head.r               = intensity;
     shifted                     = intensity << 0x10;
-    light->head.g               = (s16)(shifted >> 0x11);
-    light->head.b               = (s16)(shifted >> 0x12);
-    light->head.u.at.local.t[0] = (s32)coord->coord.t[0];
-    light->head.u.at.local.t[1] = (s32)coord->coord.t[1];
+    light->head.g               = shifted >> 0x11;
+    light->head.b               = shifted >> 0x12;
+    light->head.u.at.local.t[0] = coord->coord.t[0];
+    light->head.u.at.local.t[1] = coord->coord.t[1];
     light->head.u.at.local.t[2] = coord->coord.t[2];
     slot->data.coord.flg        = 0;
-    scratch                     = (void**)G_SCRATCH_HEAD;
-    block                       = SCRATCH_HEAD_AT(scratch, GpRingScratch) - 1;
-    block->vec.vx               = (u16)coord->workm.t[0];
-    alias                       = block;
-    vy                          = (u16)coord->workm.t[1];
-    __asm__("move %0,%1" : "=r"(alias) : "r"(alias), "r"(vy), "r"(alias));
-    sc          = alias;
-    sc->vec.vy  = vy;
-    sc->vec.vz  = (u16)coord->workm.t[2];
-    Gp_LcgState = random;
-    *scratch    = sc;
+    Gp_LcgState                 = random;
+    block                       = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx               = coord->workm.t[0];
+    block->vec.vy               = coord->workm.t[1];
+    block->vec.vz               = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&sc->vec);
+    gte_ldv0(&block->vec);
     gte_rtps();
     gte_stsxy(&block->sx);
     gte_stflg(&block->flag);
-    if (sc->flag >= 0) {
+    if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -1437,23 +1406,23 @@ static void func_dryfield_night_main_street_80180CF4(GpCoord* coord, s16 size)
         } else {
             prim->clut = 0x428C;
             setUV4(prim, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF);
-            prim->code = (u8)(prim->code | 1);
+            prim->code |= 1;
         }
-        sc->step = (s32)((s32)((s16)size * 0x37) / (s32)sc->otz);
-        left     = sc->sx - sc->step;
-        prim->x2 = left;
-        prim->x0 = left;
-        right    = sc->sx + sc->step;
-        prim->x3 = right;
-        prim->x1 = right;
-        top      = sc->sy - sc->step;
-        prim->y1 = top;
-        prim->y0 = top;
-        bottom   = sc->sy + sc->step;
-        prim->y3 = bottom;
-        prim->y2 = bottom;
+        block->step = size * 0x37 / block->otz;
+        left        = block->sx - block->step;
+        prim->x2    = left;
+        prim->x0    = left;
+        right       = block->sx + block->step;
+        prim->x3    = right;
+        prim->x1    = right;
+        top         = block->sy - block->step;
+        prim->y1    = top;
+        prim->y0    = top;
+        bottom      = block->sy + block->step;
+        prim->y3    = bottom;
+        prim->y2    = bottom;
         addPrim(
-            (u_long*)((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
+            (u_long*)((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
                       (s32)gGpuCurrentOt),
             prim);
         prim           = (POLY_FT4*)gGpuPrimCursor;
@@ -1462,25 +1431,24 @@ static void func_dryfield_night_main_street_80180CF4(GpCoord* coord, s16 size)
         prim->code  = 0x2F;
         prim->tpage = 0x29;
         prim->clut =
-            (s16)(((u32)(((gDisplayState.animFrame & 1) * 0x10) + 0x120) >> 4) |
-                  0x4300);
+            (((gDisplayState.animFrame & 1) * 0x10 + 0x120) >> 4) | 0x4300;
         setUV4(prim, 0x38, 0xC8, 0x6F, 0xC8, 0x38, 0xFF, 0x6F, 0xFF);
-        outerSize   = (s16)((s16)size * 3 / 2);
-        sc->step    = (s32)((s32)(outerSize * 0x37) / (s32)sc->otz);
-        outerLeft   = sc->sx - sc->step;
+        outerSize   = (s16)(size * 3 / 2);
+        block->step = outerSize * 0x37 / block->otz;
+        outerLeft   = block->sx - block->step;
         prim->x2    = outerLeft;
         prim->x0    = outerLeft;
-        outerRight  = sc->sx + sc->step;
+        outerRight  = block->sx + block->step;
         prim->x3    = outerRight;
         prim->x1    = outerRight;
-        outerTop    = sc->sy - sc->step;
+        outerTop    = block->sy - block->step;
         prim->y1    = outerTop;
         prim->y0    = outerTop;
-        outerBottom = sc->sy + sc->step;
+        outerBottom = block->sy + block->step;
         prim->y3    = outerBottom;
         prim->y2    = outerBottom;
         addPrim(
-            (u_long*)((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
+            (u_long*)((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
                       (s32)gGpuCurrentOt),
             prim);
         if (Gp_TraceGroundCoord(coord, &ground) == 1) {
@@ -1490,10 +1458,11 @@ static void func_dryfield_night_main_street_80180CF4(GpCoord* coord, s16 size)
     SCRATCH_POP(GpRingScratch);
 }
 
-/// Draws a textured semi-transparent quad of half-size `arg1` at the
-/// coordinate's world position, turned to face the camera, when all four
-/// corners project. The texture alternates between two frames with the frame
-/// counter.
+/// Queues one semi-transparent textured quad lying flat at the coordinate's
+/// world position: the unit quad `D_80111E38` is scaled by `arg1`, turned by
+/// the view matrix and projected through `GsWSMATRIX`. Unless the GTE flags
+/// the projection, the quad is coloured (0x30, 0x20, 0x20) and its texture
+/// alternates between two 32-pixel columns on successive frames.
 static void func_dryfield_night_main_street_80181220(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
@@ -1512,26 +1481,21 @@ static void func_dryfield_night_main_street_80181220(GpCoord* arg0, s32 arg1)
     *scratch = head;
     block    = (GpQuadScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
-    i   = 0;
-    v   = block->vec;
-    tbl = D_80111E38;
-    do {
+    for (i = 0; i < 4; i++) {
+        v     = &block->vec[i];
+        tbl   = &D_80111E38[i];
         prod  = tbl->x * arg1;
         v->vy = 0;
         v->vx = prod;
-        TOUCH_REG(v);
         v->vz = tbl->y * arg1;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        (u16) v->vx = (u16)v->vx + (u16)arg0->workm.t[0];
-        tbl++;
-        (u16) v->vy = (u16)v->vy + (u16)arg0->workm.t[1];
-        i++;
-        (u16) v->vz = (u16)v->vz + (u16)arg0->workm.t[2];
-        v++;
-    } while (i < 4);
+        v->vx += arg0->workm.t[0];
+        v->vy += arg0->workm.t[1];
+        v->vz += arg0->workm.t[2];
+    }
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
@@ -1562,14 +1526,14 @@ static void func_dryfield_night_main_street_80181220(GpCoord* arg0, s32 arg1)
         u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
         prim->v3    = 0x57;
         prim->u3    = u;
-        prim->x0    = (u16)block->sxy0.vx;
-        prim->y0    = (u16)block->sxy0.vy;
-        prim->x1    = (u16)block->sxy1.vx;
-        prim->y1    = (u16)block->sxy1.vy;
-        prim->x2    = (u16)block->sxy2.vx;
-        prim->y2    = (u16)block->sxy2.vy;
-        prim->x3    = (u16)block->sxy3.vx;
-        prim->y3    = (u16)block->sxy3.vy;
+        prim->x0    = block->sxy0.vx;
+        prim->y0    = block->sxy0.vy;
+        prim->x1    = block->sxy1.vx;
+        prim->y1    = block->sxy1.vy;
+        prim->x2    = block->sxy2.vx;
+        prim->y2    = block->sxy2.vy;
+        prim->x3    = block->sxy3.vx;
+        prim->y3    = block->sxy3.vy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);

@@ -392,19 +392,17 @@ static __inline__ void Actor405800_TickAnim(Task* arg0)
     } while (i < 0x12);
 }
 
-/// Queues, at ordering-table entry `otz`, a copy of the frame in the current
-/// draw buffer into the off-screen 320x240 VRAM area at (0x1C0, 0x100). In
-/// execution order the chain retargets drawing there, fills it near-black
-/// with the mask bit set, draws the frame's two 160-pixel halves over it as
-/// 16-bit texture sprites, then restores the offset and the draw area. The
-/// restored area is the whole draw buffer, or the current view's draw-area
-/// rectangle when that rectangle's depth lies nearer than `otz`. The 0x14-byte
-/// `ActorsDrawScratch` it works in is taken off `G_SCRATCH_HEAD` and given
-/// back.
+/// Queues at depth `otz` a run of primitives that, executed in reverse of
+/// the order they are added, point drawing at the 320x240 area at VRAM
+/// (0x1C0, 0x100), fill it with a near-black tile with mask-bit setting on,
+/// draw two 160x240 raw-texture sprites copied from the current draw buffer
+/// over it, and then restore the draw offset, mask setting and draw area for
+/// the current buffer. The restored area is the view's sprite rectangle when
+/// one is active and nearer than `otz`, full screen otherwise. The 0x14-byte
+/// block holding the rectangle and offset is carved off the scratch head and
+/// released before returning.
 static void func_actor_405800_80131FC8(s32 otz)
 {
-    u8*                head;
-    u8*                allocated;
     ActorsDrawScratch* scratch;
     GpDrawAreaRec*     extra;
     DR_AREA*           area;
@@ -415,30 +413,16 @@ static void func_actor_405800_80131FC8(s32 otz)
     TILE*              tile;
     RECT*              clip;
     u_short*           ofs;
-    s32                val;
-    s32                z;
 
-    extra              = Gp_GetViewSprtExtra();
-    head               = SCRATCH_HEAD(u8);
-    area               = (DR_AREA*)gGpuPrimCursor;
-    allocated          = head - 0x14;
-    SCRATCH_HEAD(void) = allocated;
-    gGpuPrimCursor     = (DR_TPAGE*)(area + 1);
-    USE_REG(allocated);
-    scratch      = (ActorsDrawScratch*)allocated;
-    scratch->otz = otz;
-    if (extra != NULL) {
-        val = (extra->depth << gDisplayState.otDepthShift) & 0x3FFF;
-        z   = otz;
-        SOFT_TOUCH_REG(z);
-        if ((val >> 4) < z) {
-            scratch->rect   = extra->rect;
-            scratch->rect.y = (u16)scratch->rect.y + gDisplayState.drawBuffer * 0x110;
-        } else {
-            goto block_4;
-        }
+    extra          = Gp_GetViewSprtExtra();
+    scratch        = SCRATCH_PUSH(ActorsDrawScratch);
+    scratch->otz   = otz;
+    area           = (DR_AREA*)gGpuPrimCursor;
+    gGpuPrimCursor = (DR_TPAGE*)(area + 1);
+    if (extra != NULL && ((extra->depth << gDisplayState.otDepthShift) & 0x3FFF) >> 4 < scratch->otz) {
+        scratch->rect    = extra->rect;
+        scratch->rect.y += gDisplayState.drawBuffer * 0x110;
     } else {
-    block_4:
         scratch->rect.x = 0;
         scratch->rect.y = gDisplayState.drawBuffer * 0x110;
         scratch->rect.w = 0x140;
@@ -529,7 +513,7 @@ static void func_actor_405800_80131FC8(s32 otz)
     SetDrawArea(area, clip);
     addPrim(&gGpuCurrentOt[scratch->otz], area);
 
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_POP(ActorsDrawScratch);
 }
 
 static void func_actor_405800_80132670(Task* arg0)

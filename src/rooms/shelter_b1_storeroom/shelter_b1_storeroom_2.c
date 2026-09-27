@@ -413,16 +413,15 @@ static void func_shelter_b1_storeroom_8017E7A8(Task* task)
     }
 }
 
-/// Draws one semi-transparent textured sprite at the coordinate's world
-/// position. `arg1` picks the animation frame, `arg2` packs the texture row in
-/// its top nibble over a half-extent, and `arg3` packs the palette in its top
-/// nibble over a grey level.
+/// Draws one mote: projects the coordinate's world position through
+/// `GsWSMATRIX` and, unless the GTE flags the projection, queues one
+/// semi-transparent textured square centred on it. `arg1`'s low two bits and
+/// `arg2`'s top nibble pick the 24-texel texture cell, `arg2`'s low twelve
+/// bits are the half-extent (scaled by 23 / (otz + 1)), `arg3`'s low byte is
+/// the grey level and its top nibble picks the palette.
 static void func_shelter_b1_storeroom_8017EA74(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
-    void**         scratch;
-    u8*            head;
     GpRingScratch* block;
-    GpRingScratch* next;
     POLY_FT4*      prim;
     DisplayState*  ds;
     u16            row;
@@ -430,29 +429,23 @@ static void func_shelter_b1_storeroom_8017EA74(GpCoord* arg0, u16 arg1, u16 arg2
     s32            u0;
     s32            u1;
     s16            xy;
-    u16            vz;
 
-    row                                     = arg2 >> 12;
-    arg2                                   &= 0xFFF;
-    scratch                                 = (void**)G_SCRATCH_HEAD;
-    pal                                     = arg3 >> 12;
-    arg3                                   &= 0xFF;
-    head                                    = *scratch;
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
-    next                                    = (GpRingScratch*)(head - 0x18);
-    __asm__("move %0,%1" : "=r"(block) : "r"(next));
-    block->vec.vy = (u16)arg0->workm.t[1];
-    vz            = (u16)arg0->workm.t[2];
-    *scratch      = block;
-    block->vec.vz = vz;
+    row           = arg2 >> 12;
+    arg2         &= 0xFFF;
+    pal           = arg3 >> 12;
+    arg3         &= 0xFF;
+    block         = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(block);
+    gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+        gte_stszotz(&block->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -469,16 +462,16 @@ static void func_shelter_b1_storeroom_8017EA74(GpCoord* arg0, u16 arg1, u16 arg2
         u1 = u0 + 0x17;
         setUV4(prim, u0, 0, u1, 0, u0, 0x17, u1, 0x17);
         block->step = arg2 * 23 / block->otz;
-        xy          = (u16)block->sx - (u16)block->step;
+        xy          = block->sx - block->step;
         prim->x2    = xy;
         prim->x0    = xy;
-        xy          = (u16)block->sx + (u16)block->step;
+        xy          = block->sx + block->step;
         prim->x3    = xy;
         prim->x1    = xy;
-        xy          = (u16)block->sy - (u16)block->step;
+        xy          = block->sy - block->step;
         prim->y1    = xy;
         prim->y0    = xy;
-        xy          = (u16)block->sy + (u16)block->step;
+        xy          = block->sy + block->step;
         prim->y3    = xy;
         prim->y2    = xy;
         ds          = &gDisplayState;
@@ -486,7 +479,7 @@ static void func_shelter_b1_storeroom_8017EA74(GpCoord* arg0, u16 arg1, u16 arg2
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a ring of sixteen `POLY_G4` wedges around the coordinate's world
@@ -728,10 +721,12 @@ static void func_shelter_b1_storeroom_8017F888(Task* arg0)
     }
 }
 
-/// Draws a flickering glow at a coordinate: an inner and an outer
-/// camera-facing textured quad, the outer half as large again, plus a mark on
-/// the ground beneath it, and points the `Gp_RoomCoords[2]` light at the glow with
-/// a random intensity.
+/// Draws a glow at the coordinate: two camera-facing textured squares, an
+/// inner one of half-extent `size` and an outer one of `size * 3 / 2`
+/// (each scaled by 0x37 / otz), plus a flat quad on the ground beneath it.
+/// It also points the `Gp_RoomCoords[2]` light at the
+/// coordinate with a randomly flickering intensity. Nothing is drawn when the
+/// GTE flags the projection.
 static void func_shelter_b1_storeroom_8017FA34(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
@@ -751,10 +746,6 @@ static void func_shelter_b1_storeroom_8017FA34(GpCoord* coord, s16 size)
     GpCoord64*     slot;
     GpPointLight*  light;
     GpRingScratch* block;
-    void**         scratch;
-    GpRingScratch* alias;
-    u16            vy;
-    GpRingScratch* sc;
 
     slot                        = &Gp_RoomCoords[2];
     slot->framesLeft            = 2;
@@ -765,30 +756,24 @@ static void func_shelter_b1_storeroom_8017FA34(GpCoord* coord, s16 size)
     intensity                   = ((random >> 0x10) & 0x700) + 0x800;
     light->head.r               = intensity;
     shifted                     = intensity << 0x10;
-    light->head.g               = (s16)(shifted >> 0x11);
-    light->head.b               = (s16)(shifted >> 0x12);
-    light->head.u.at.local.t[0] = (s32)coord->coord.t[0];
-    light->head.u.at.local.t[1] = (s32)coord->coord.t[1];
+    light->head.g               = shifted >> 0x11;
+    light->head.b               = shifted >> 0x12;
+    light->head.u.at.local.t[0] = coord->coord.t[0];
+    light->head.u.at.local.t[1] = coord->coord.t[1];
     light->head.u.at.local.t[2] = coord->coord.t[2];
     slot->data.coord.flg        = 0;
-    scratch                     = (void**)G_SCRATCH_HEAD;
-    block                       = SCRATCH_HEAD_AT(scratch, GpRingScratch) - 1;
-    block->vec.vx               = (u16)coord->workm.t[0];
-    alias                       = block;
-    vy                          = (u16)coord->workm.t[1];
-    __asm__("move %0,%1" : "=r"(alias) : "r"(alias), "r"(vy), "r"(alias));
-    sc          = alias;
-    sc->vec.vy  = vy;
-    sc->vec.vz  = (u16)coord->workm.t[2];
-    Gp_LcgState = random;
-    *scratch    = sc;
+    Gp_LcgState                 = random;
+    block                       = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx               = coord->workm.t[0];
+    block->vec.vy               = coord->workm.t[1];
+    block->vec.vz               = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&sc->vec);
+    gte_ldv0(&block->vec);
     gte_rtps();
     gte_stsxy(&block->sx);
     gte_stflg(&block->flag);
-    if (sc->flag >= 0) {
+    if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -804,23 +789,23 @@ static void func_shelter_b1_storeroom_8017FA34(GpCoord* coord, s16 size)
         } else {
             prim->clut = 0x428C;
             setUV4(prim, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF);
-            prim->code = (u8)(prim->code | 1);
+            prim->code |= 1;
         }
-        sc->step = (s32)((s32)((s16)size * 0x37) / (s32)sc->otz);
-        left     = sc->sx - sc->step;
-        prim->x2 = left;
-        prim->x0 = left;
-        right    = sc->sx + sc->step;
-        prim->x3 = right;
-        prim->x1 = right;
-        top      = sc->sy - sc->step;
-        prim->y1 = top;
-        prim->y0 = top;
-        bottom   = sc->sy + sc->step;
-        prim->y3 = bottom;
-        prim->y2 = bottom;
+        block->step = size * 0x37 / block->otz;
+        left        = block->sx - block->step;
+        prim->x2    = left;
+        prim->x0    = left;
+        right       = block->sx + block->step;
+        prim->x3    = right;
+        prim->x1    = right;
+        top         = block->sy - block->step;
+        prim->y1    = top;
+        prim->y0    = top;
+        bottom      = block->sy + block->step;
+        prim->y3    = bottom;
+        prim->y2    = bottom;
         addPrim(
-            (u_long*)((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
+            (u_long*)((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
                       (s32)gGpuCurrentOt),
             prim);
         prim           = (POLY_FT4*)gGpuPrimCursor;
@@ -829,25 +814,24 @@ static void func_shelter_b1_storeroom_8017FA34(GpCoord* coord, s16 size)
         prim->code  = 0x2F;
         prim->tpage = 0x29;
         prim->clut =
-            (s16)(((u32)(((gDisplayState.animFrame & 1) * 0x10) + 0x120) >> 4) |
-                  0x4300);
+            (((gDisplayState.animFrame & 1) * 0x10 + 0x120) >> 4) | 0x4300;
         setUV4(prim, 0x38, 0xC8, 0x6F, 0xC8, 0x38, 0xFF, 0x6F, 0xFF);
-        outerSize   = (s16)((s16)size * 3 / 2);
-        sc->step    = (s32)((s32)(outerSize * 0x37) / (s32)sc->otz);
-        outerLeft   = sc->sx - sc->step;
+        outerSize   = (s16)(size * 3 / 2);
+        block->step = outerSize * 0x37 / block->otz;
+        outerLeft   = block->sx - block->step;
         prim->x2    = outerLeft;
         prim->x0    = outerLeft;
-        outerRight  = sc->sx + sc->step;
+        outerRight  = block->sx + block->step;
         prim->x3    = outerRight;
         prim->x1    = outerRight;
-        outerTop    = sc->sy - sc->step;
+        outerTop    = block->sy - block->step;
         prim->y1    = outerTop;
         prim->y0    = outerTop;
-        outerBottom = sc->sy + sc->step;
+        outerBottom = block->sy + block->step;
         prim->y3    = outerBottom;
         prim->y2    = outerBottom;
         addPrim(
-            (u_long*)((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
+            (u_long*)((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
                       (s32)gGpuCurrentOt),
             prim);
         if (Gp_TraceGroundCoord(coord, &ground) == 1) {
@@ -857,8 +841,11 @@ static void func_shelter_b1_storeroom_8017FA34(GpCoord* coord, s16 size)
     SCRATCH_POP(GpRingScratch);
 }
 
-/// Draws a flat textured quad of half-extent `arg1` lying on the ground plane
-/// at the coordinate, alternating between two frames with the frame counter.
+/// Queues one semi-transparent textured quad lying flat at the coordinate's
+/// world position: the unit quad `D_80111E38` is scaled by `arg1`, turned by
+/// the view matrix and projected through `GsWSMATRIX`. Unless the GTE flags
+/// the projection, the quad is coloured (0x30, 0x20, 0x20) and its texture
+/// alternates between two 32-pixel columns on successive frames.
 static void func_shelter_b1_storeroom_8017FF60(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
@@ -877,26 +864,21 @@ static void func_shelter_b1_storeroom_8017FF60(GpCoord* arg0, s32 arg1)
     *scratch = head;
     block    = (GpQuadScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
-    i   = 0;
-    v   = block->vec;
-    tbl = D_80111E38;
-    do {
+    for (i = 0; i < 4; i++) {
+        v     = &block->vec[i];
+        tbl   = &D_80111E38[i];
         prod  = tbl->x * arg1;
         v->vy = 0;
         v->vx = prod;
-        TOUCH_REG(v);
         v->vz = tbl->y * arg1;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        (u16) v->vx = (u16)v->vx + (u16)arg0->workm.t[0];
-        tbl++;
-        (u16) v->vy = (u16)v->vy + (u16)arg0->workm.t[1];
-        i++;
-        (u16) v->vz = (u16)v->vz + (u16)arg0->workm.t[2];
-        v++;
-    } while (i < 4);
+        v->vx += arg0->workm.t[0];
+        v->vy += arg0->workm.t[1];
+        v->vz += arg0->workm.t[2];
+    }
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
@@ -927,14 +909,14 @@ static void func_shelter_b1_storeroom_8017FF60(GpCoord* arg0, s32 arg1)
         u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
         prim->v3    = 0x57;
         prim->u3    = u;
-        prim->x0    = (u16)block->sxy0.vx;
-        prim->y0    = (u16)block->sxy0.vy;
-        prim->x1    = (u16)block->sxy1.vx;
-        prim->y1    = (u16)block->sxy1.vy;
-        prim->x2    = (u16)block->sxy2.vx;
-        prim->y2    = (u16)block->sxy2.vy;
-        prim->x3    = (u16)block->sxy3.vx;
-        prim->y3    = (u16)block->sxy3.vy;
+        prim->x0    = block->sxy0.vx;
+        prim->y0    = block->sxy0.vy;
+        prim->x1    = block->sxy1.vx;
+        prim->y1    = block->sxy1.vy;
+        prim->x2    = block->sxy2.vx;
+        prim->y2    = block->sxy2.vy;
+        prim->x3    = block->sxy3.vx;
+        prim->y3    = block->sxy3.vy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -1096,21 +1078,22 @@ static void func_shelter_b1_storeroom_80180C98(Task* arg0)
     }
 }
 
+/// A flash effect task. State 1 ramps its level up over `spawnArg1` ticks,
+/// drawing two fans and an inward-shrinking ring in a colour derived from the
+/// level, and queues a fade quad in that colour when it peaks; state 2 fades
+/// out through the star draw before the work block is released.
 static void func_shelter_b1_storeroom_80180DCC(Task* arg0)
 {
-    u8                rgb[3];
-    GpEffWork*        mem;
-    register GpCoord* coord asm("s2");
-    s16               flag;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     mem   = arg0->spawnArg2;
-    flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
-    if (flag != 0) {
-        if (flag < 4) {
-            return;
+    if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->eventState >= 4) {
+            Gp_ReleaseState1CMem(mem, arg0);
         }
-        goto kill;
     } else {
         Gp_UpdateCoord(coord);
         mem->age++;
@@ -1120,18 +1103,18 @@ static void func_shelter_b1_storeroom_80180DCC(Task* arg0)
                 mem->angle  = 0x80;
                 mem->step   = 0x100 / arg0->spawnArg1;
                 arg0->state = 1;
-                return;
+                break;
             case 1:
-                mem->scale      += mem->step;
-                mem->angle      += mem->step;
-                arg0->spawnArg1 -= 1;
-                rgb[0]           = mem->scale;
-                rgb[1]           = mem->scale >> 2;
-                rgb[2]           = mem->scale >> 1;
+                mem->scale += mem->step;
+                mem->angle += mem->step;
+                arg0->spawnArg1--;
+                rgb[0] = mem->scale;
+                rgb[1] = mem->scale >> 2;
+                rgb[2] = mem->scale >> 1;
                 func_shelter_b1_storeroom_8018149C(coord, mem->angle, rgb);
-                rgb[0] = rgb[0] >> 1;
-                rgb[1] = rgb[1] >> 1;
-                rgb[2] = rgb[2] >> 1;
+                rgb[0] >>= 1;
+                rgb[1] >>= 1;
+                rgb[2] >>= 1;
                 func_shelter_b1_storeroom_8018149C(coord, (u16)mem->angle * 2, rgb);
                 func_shelter_b1_storeroom_80181070(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
                 if (arg0->spawnArg1 == 0) {
@@ -1141,9 +1124,8 @@ static void func_shelter_b1_storeroom_80180DCC(Task* arg0)
                     rgb[1]      = mem->scale >> 2;
                     rgb[2]      = mem->scale >> 1;
                     Gp_DrawFadeQuad(rgb, 1);
-                    return;
                 }
-                return;
+                break;
             case 2:
                 if (mem->scale >= 0x11) {
                     rgb[0] = mem->scale;
@@ -1152,17 +1134,14 @@ static void func_shelter_b1_storeroom_80180DCC(Task* arg0)
                     func_shelter_b1_storeroom_801823A0(coord, mem->angle * 3, rgb);
                     mem->scale -= 0x10;
                     mem->angle -= 8;
-                    return;
+                    break;
                 }
                 /* fallthrough */
             case 3:
-                goto kill;
-            default:
-                return;
+                Gp_ReleaseState1CMem(mem, arg0);
+                break;
         }
     }
-kill:
-    Gp_ReleaseState1CMem(mem, arg0);
 }
 
 /// Draws a ring of sixteen `POLY_G4` wedges around the coordinate's world
@@ -1818,9 +1797,10 @@ static void func_shelter_b1_storeroom_801832B8(Task* task)
     }
 }
 
-/// Draws one semi-transparent textured sprite at the coordinate's world
-/// position, picking one of four frames from `arg1`, sized by `arg2` over
-/// depth and shaded grey by `arg3`.
+/// Queues a semi-transparent textured square centred on the projected world
+/// position of `arg0`, of half-size `arg2` scaled by depth. `arg1 & 3` picks
+/// the animation frame from a row of four 24-texel frames and `arg3` is the
+/// grey level. Nothing is drawn when the projection overflows.
 static void func_shelter_b1_storeroom_801834DC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
@@ -1830,8 +1810,6 @@ static void func_shelter_b1_storeroom_801834DC(GpCoord* arg0, s32 arg1, s32 arg2
     SVECTOR*       vec;
     DisplayState*  ds;
     s32            tex;
-    s32            u0;
-    s32            u1;
     s32            sarg;
     s32            t;
     s16            xy;
@@ -1840,10 +1818,10 @@ static void func_shelter_b1_storeroom_801834DC(GpCoord* arg0, s32 arg1, s32 arg2
     tex                                     = arg1;
     scratch                                 = (void**)G_SCRATCH_HEAD;
     head                                    = *scratch;
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
+    ((GpRingScratch*)(head - 0x18))->vec.vx = arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = (u16)arg0->workm.t[1];
-    vz                                      = (u16)arg0->workm.t[2];
+    block->vec.vy                           = arg0->workm.t[1];
+    vz                                      = arg0->workm.t[2];
     *scratch                                = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
@@ -1863,31 +1841,21 @@ static void func_shelter_b1_storeroom_801834DC(GpCoord* arg0, s32 arg1, s32 arg2
         prim->tpage = 0x2A;
         prim->clut  = 0x42CB;
         t           = (tex & 3) * 24;
-        u0          = t + 0x60;
-        u1          = t + 0x77;
-        SOFT_USE_REG(u1);
-        prim->u0 = u0;
-        prim->u2 = u0;
-        prim->v2 = 0x17;
-        prim->v3 = 0x17;
-        sarg     = (s16)arg2;
-        prim->u1 = u1;
-        prim->u3 = u1;
-        t        = sarg * 24;
         setRGB0(prim, arg3, arg3, arg3);
-        prim->v0    = 0;
-        prim->v1    = 0;
+        setUVWH(prim, t + 0x60, 0, 0x17, 0x17);
+        sarg        = (s16)arg2;
+        t           = sarg * 24;
         block->step = (t - sarg) / block->otz;
-        xy          = (u16)block->sx - (u16)block->step;
+        xy          = block->sx - block->step;
         prim->x2    = xy;
         prim->x0    = xy;
-        xy          = (u16)block->sx + (u16)block->step;
+        xy          = block->sx + block->step;
         prim->x3    = xy;
         prim->x1    = xy;
-        xy          = (u16)block->sy - (u16)block->step;
+        xy          = block->sy - block->step;
         prim->y1    = xy;
         prim->y0    = xy;
-        xy          = (u16)block->sy + (u16)block->step;
+        xy          = block->sy + block->step;
         prim->y3    = xy;
         prim->y2    = xy;
         ds          = &gDisplayState;
@@ -2054,10 +2022,12 @@ static void func_shelter_b1_storeroom_80183F18(Task* task)
     }
 }
 
-/// Draws a flickering glow at a coordinate: an inner and an outer
-/// camera-facing textured quad, the outer half as large again, plus a mark on
-/// the ground beneath it, and points the `Gp_RoomCoords[2]` light at the glow with
-/// a random intensity.
+/// Draws a glow at the coordinate: two camera-facing textured squares, an
+/// inner one of half-extent `size` and an outer one of `size * 3 / 2`
+/// (each scaled by 0x37 / otz), plus a flat quad on the ground beneath it.
+/// It also points the `Gp_RoomCoords[2]` light at the
+/// coordinate with a randomly flickering intensity. Nothing is drawn when the
+/// GTE flags the projection.
 static void func_shelter_b1_storeroom_801840C4(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
@@ -2077,10 +2047,6 @@ static void func_shelter_b1_storeroom_801840C4(GpCoord* coord, s16 size)
     GpCoord64*     slot;
     GpPointLight*  light;
     GpRingScratch* block;
-    void**         scratch;
-    GpRingScratch* alias;
-    u16            vy;
-    GpRingScratch* sc;
 
     slot                        = &Gp_RoomCoords[2];
     slot->framesLeft            = 2;
@@ -2091,30 +2057,24 @@ static void func_shelter_b1_storeroom_801840C4(GpCoord* coord, s16 size)
     intensity                   = ((random >> 0x10) & 0x700) + 0x800;
     light->head.r               = intensity;
     shifted                     = intensity << 0x10;
-    light->head.g               = (s16)(shifted >> 0x11);
-    light->head.b               = (s16)(shifted >> 0x12);
-    light->head.u.at.local.t[0] = (s32)coord->coord.t[0];
-    light->head.u.at.local.t[1] = (s32)coord->coord.t[1];
+    light->head.g               = shifted >> 0x11;
+    light->head.b               = shifted >> 0x12;
+    light->head.u.at.local.t[0] = coord->coord.t[0];
+    light->head.u.at.local.t[1] = coord->coord.t[1];
     light->head.u.at.local.t[2] = coord->coord.t[2];
     slot->data.coord.flg        = 0;
-    scratch                     = (void**)G_SCRATCH_HEAD;
-    block                       = SCRATCH_HEAD_AT(scratch, GpRingScratch) - 1;
-    block->vec.vx               = (u16)coord->workm.t[0];
-    alias                       = block;
-    vy                          = (u16)coord->workm.t[1];
-    __asm__("move %0,%1" : "=r"(alias) : "r"(alias), "r"(vy), "r"(alias));
-    sc          = alias;
-    sc->vec.vy  = vy;
-    sc->vec.vz  = (u16)coord->workm.t[2];
-    Gp_LcgState = random;
-    *scratch    = sc;
+    Gp_LcgState                 = random;
+    block                       = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx               = coord->workm.t[0];
+    block->vec.vy               = coord->workm.t[1];
+    block->vec.vz               = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&sc->vec);
+    gte_ldv0(&block->vec);
     gte_rtps();
     gte_stsxy(&block->sx);
     gte_stflg(&block->flag);
-    if (sc->flag >= 0) {
+    if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -2130,23 +2090,23 @@ static void func_shelter_b1_storeroom_801840C4(GpCoord* coord, s16 size)
         } else {
             prim->clut = 0x428C;
             setUV4(prim, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF);
-            prim->code = (u8)(prim->code | 1);
+            prim->code |= 1;
         }
-        sc->step = (s32)((s32)((s16)size * 0x37) / (s32)sc->otz);
-        left     = sc->sx - sc->step;
-        prim->x2 = left;
-        prim->x0 = left;
-        right    = sc->sx + sc->step;
-        prim->x3 = right;
-        prim->x1 = right;
-        top      = sc->sy - sc->step;
-        prim->y1 = top;
-        prim->y0 = top;
-        bottom   = sc->sy + sc->step;
-        prim->y3 = bottom;
-        prim->y2 = bottom;
+        block->step = size * 0x37 / block->otz;
+        left        = block->sx - block->step;
+        prim->x2    = left;
+        prim->x0    = left;
+        right       = block->sx + block->step;
+        prim->x3    = right;
+        prim->x1    = right;
+        top         = block->sy - block->step;
+        prim->y1    = top;
+        prim->y0    = top;
+        bottom      = block->sy + block->step;
+        prim->y3    = bottom;
+        prim->y2    = bottom;
         addPrim(
-            (u_long*)((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
+            (u_long*)((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
                       (s32)gGpuCurrentOt),
             prim);
         prim           = (POLY_FT4*)gGpuPrimCursor;
@@ -2155,25 +2115,24 @@ static void func_shelter_b1_storeroom_801840C4(GpCoord* coord, s16 size)
         prim->code  = 0x2F;
         prim->tpage = 0x29;
         prim->clut =
-            (s16)(((u32)(((gDisplayState.animFrame & 1) * 0x10) + 0x120) >> 4) |
-                  0x4300);
+            (((gDisplayState.animFrame & 1) * 0x10 + 0x120) >> 4) | 0x4300;
         setUV4(prim, 0x38, 0xC8, 0x6F, 0xC8, 0x38, 0xFF, 0x6F, 0xFF);
-        outerSize   = (s16)((s16)size * 3 / 2);
-        sc->step    = (s32)((s32)(outerSize * 0x37) / (s32)sc->otz);
-        outerLeft   = sc->sx - sc->step;
+        outerSize   = (s16)(size * 3 / 2);
+        block->step = outerSize * 0x37 / block->otz;
+        outerLeft   = block->sx - block->step;
         prim->x2    = outerLeft;
         prim->x0    = outerLeft;
-        outerRight  = sc->sx + sc->step;
+        outerRight  = block->sx + block->step;
         prim->x3    = outerRight;
         prim->x1    = outerRight;
-        outerTop    = sc->sy - sc->step;
+        outerTop    = block->sy - block->step;
         prim->y1    = outerTop;
         prim->y0    = outerTop;
-        outerBottom = sc->sy + sc->step;
+        outerBottom = block->sy + block->step;
         prim->y3    = outerBottom;
         prim->y2    = outerBottom;
         addPrim(
-            (u_long*)((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
+            (u_long*)((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
                       (s32)gGpuCurrentOt),
             prim);
         if (Gp_TraceGroundCoord(coord, &ground) == 1) {
@@ -2183,8 +2142,11 @@ static void func_shelter_b1_storeroom_801840C4(GpCoord* coord, s16 size)
     SCRATCH_POP(GpRingScratch);
 }
 
-/// Draws a flat textured quad of half-extent `arg1` lying on the ground plane
-/// at the coordinate, alternating between two frames with the frame counter.
+/// Queues one semi-transparent textured quad lying flat at the coordinate's
+/// world position: the unit quad `D_80111E38` is scaled by `arg1`, turned by
+/// the view matrix and projected through `GsWSMATRIX`. Unless the GTE flags
+/// the projection, the quad is coloured (0x30, 0x20, 0x20) and its texture
+/// alternates between two 32-pixel columns on successive frames.
 static void func_shelter_b1_storeroom_801845F0(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
@@ -2203,26 +2165,21 @@ static void func_shelter_b1_storeroom_801845F0(GpCoord* arg0, s32 arg1)
     *scratch = head;
     block    = (GpQuadScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
-    i   = 0;
-    v   = block->vec;
-    tbl = D_80111E38;
-    do {
+    for (i = 0; i < 4; i++) {
+        v     = &block->vec[i];
+        tbl   = &D_80111E38[i];
         prod  = tbl->x * arg1;
         v->vy = 0;
         v->vx = prod;
-        TOUCH_REG(v);
         v->vz = tbl->y * arg1;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        (u16) v->vx = (u16)v->vx + (u16)arg0->workm.t[0];
-        tbl++;
-        (u16) v->vy = (u16)v->vy + (u16)arg0->workm.t[1];
-        i++;
-        (u16) v->vz = (u16)v->vz + (u16)arg0->workm.t[2];
-        v++;
-    } while (i < 4);
+        v->vx += arg0->workm.t[0];
+        v->vy += arg0->workm.t[1];
+        v->vz += arg0->workm.t[2];
+    }
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
@@ -2253,14 +2210,14 @@ static void func_shelter_b1_storeroom_801845F0(GpCoord* arg0, s32 arg1)
         u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
         prim->v3    = 0x57;
         prim->u3    = u;
-        prim->x0    = (u16)block->sxy0.vx;
-        prim->y0    = (u16)block->sxy0.vy;
-        prim->x1    = (u16)block->sxy1.vx;
-        prim->y1    = (u16)block->sxy1.vy;
-        prim->x2    = (u16)block->sxy2.vx;
-        prim->y2    = (u16)block->sxy2.vy;
-        prim->x3    = (u16)block->sxy3.vx;
-        prim->y3    = (u16)block->sxy3.vy;
+        prim->x0    = block->sxy0.vx;
+        prim->y0    = block->sxy0.vy;
+        prim->x1    = block->sxy1.vx;
+        prim->y1    = block->sxy1.vy;
+        prim->x2    = block->sxy2.vx;
+        prim->y2    = block->sxy2.vy;
+        prim->x3    = block->sxy3.vx;
+        prim->y3    = block->sxy3.vy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);

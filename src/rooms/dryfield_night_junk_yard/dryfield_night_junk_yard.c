@@ -30,11 +30,8 @@ s32 func_dryfield_night_junk_yard_8017D5F4(s32 arg0, s32 arg1, s32 arg2)
             Gp_RunCapCmd1(GameFlag_GetNibble(0x3A) <= 0 ? 0xC : 6);
             break;
         case 8:
-            SOFT_TOUCH_REG(arg2);
             if (Gp_GetCurBit2Flag(0x1C) == 1) {
-                if (GameFlag_GetNibble(0x73) != 0) {
-                    Gp_StartCapSlot(arg2, 1, 0);
-                } else if (GameFlag_GetNibble(0x7C) != 0) {
+                if (GameFlag_GetNibble(0x73) == 0 && GameFlag_GetNibble(0x7C) != 0) {
                     Gp_RunCapCmd1(8);
                 } else {
                     Gp_StartCapSlot(arg2, 1, 0);

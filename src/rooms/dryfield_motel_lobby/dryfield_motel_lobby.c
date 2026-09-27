@@ -570,13 +570,20 @@ static void func_dryfield_motel_lobby_8017E218(UiList* list, UiObject* obj)
     list->field_10 = 0;
 }
 
-/// Fills the PE-usage panel's rows the same way from the save's per-slot
-/// Parasite Energy use counters (`Mc_SaveData[0].attachUseCounts`, twelve slots).
+/// Fills the "Play Data" PE-usage panel's `RoomPeUsage` block from the
+/// save's per-slot use counters.
 ///
-/// Slot `i` owns three consecutive ids from `i * 3 + 0xF`, one per level, and
-/// is listed under the id of its current level in `Mc_SaveData[0].attachLevels`
-/// (the base id while that level is 0). The sort, percentages and bar widths
-/// follow the weapon panel, with each row's slot recovered from its id.
+/// Each of the twelve Parasite Energy slots owns three consecutive ids starting
+/// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].attachLevels[i]`
+/// prints as `i * 3 + 0xF + level - 1` (a slot the player has never levelled
+/// keeps the base id). Every slot with a non-zero counter in
+/// `Mc_SaveData[0].attachUseCounts` is appended and its counter summed. Levels
+/// are addressed by page and column, with three slots per page. The ids are
+/// then insertion-sorted by use count, most-used first, and each row gets
+/// `percents`, its share of all recorded uses in hundredths of a percent, and
+/// `barWidths`, its counter as a 12-bit fraction of the top row's. Both are
+/// scaled down by halving until the top counter fits in 17 bits, so the
+/// multiply and the shift cannot overflow.
 static void func_dryfield_motel_lobby_8017E514(UiList* list, UiObject* obj)
 {
     RoomPeUsage* work;
@@ -593,33 +600,33 @@ static void func_dryfield_motel_lobby_8017E514(UiList* list, UiObject* obj)
     s32          shift;
     s32          top;
     s32          tmp;
-    /* Matching only. The original object frames 24 bytes it never touches and
-     * materialises GCC's `/3` magic constant before the first loop for a use
-     * that no longer survives, so `scratch` buys the frame size and `magic`
-     * plus the (instruction-free) SOFT_USE_REG below buy the allocation. */
-    s32 magic;
-    s16 scratch[12];
 
     count = 0;
     total = 0;
     i     = 0;
     work  = (RoomPeUsage*)obj->owner->work;
     p     = work->peIds;
-    magic = 0x55555556;
 
     for (; i < 12; i++) {
-        if (Mc_SaveData[0].attachUseCounts[i] > 0) {
-            id = i * 3 + 0xF;
-            *p = id;
-            if (Mc_SaveData[0].attachLevels[i] != 0) {
-                *p = id + (Mc_SaveData[0].attachLevels[i] - 1u);
+        s32 useCount;
+
+        useCount = Mc_SaveData[0].attachUseCounts[i];
+        id       = i * 3 + 0xF;
+        if (useCount > 0) {
+            s32 page;
+            s32 column;
+
+            page   = i / 3;
+            column = i % 3;
+            *p     = id;
+            if (Mc_SaveData[0].attachLevels[column + page * 3] != 0) {
+                *p = id + (Mc_SaveData[0].attachLevels[column + page * 3] - 1u);
             }
             p++;
             count++;
             total += Mc_SaveData[0].attachUseCounts[i];
         }
     }
-    SOFT_USE_REG(magic);
 
     if (count >= 2) {
         for (i = 1; i < count; i++) {

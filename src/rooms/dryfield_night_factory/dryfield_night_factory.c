@@ -11,6 +11,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/dryfield_factory.h"
 #include "rooms/dryfield_night_factory.h"
 
 #include <psyq/inline_c.h>
@@ -779,10 +780,10 @@ static s32 func_dryfield_night_factory_8017F1DC(Task* task)
     return ret;
 }
 
-/// Cutscene driver for the night factory room: silences both weapons, runs the
-/// cap (cutscene) command in `Task::spawnArg1`, then waits for the cap to
-/// report event key 3 before setting the two progress flags and starting the
-/// follow-up cap slot. Any state past 4 restores the weapons and kills the task.
+/// Cutscene driver for the factory room: silences both weapons, runs the cap
+/// (cutscene) command in `Task::spawnArg1`, then waits for the cap to report
+/// event key 3 before setting the two progress flags and starting the follow-up
+/// cap slot. Any state past 4 restores the weapons and kills the task.
 void func_dryfield_night_factory_8017F330(Task* task)
 {
     switch (task->state) {
@@ -794,8 +795,7 @@ void func_dryfield_night_factory_8017F330(Task* task)
         case 1:
             if (GameFlag_GetNibble(0x48) <= 0) {
                 if (gGameSession->at4.loc.stage == 2) {
-                    func_dryfield_night_factory_80181B38(0);
-                    SOFT_BARRIER();
+                    func_dryfield_factory_80181B38(0);
                 } else {
                     func_dryfield_night_factory_80181B38(0);
                 }
@@ -813,9 +813,8 @@ void func_dryfield_night_factory_8017F330(Task* task)
                 GameFlag_SetNibble(0x48, 1);
                 GameFlag_SetNibble(0x4A, 1);
                 if (gGameSession->at4.loc.stage == 2) {
-                    func_dryfield_night_factory_80181B38(1);
-                    func_dryfield_night_factory_80181620(1);
-                    SOFT_BARRIER();
+                    func_dryfield_factory_80181B38(1);
+                    func_dryfield_factory_80181620(1);
                 } else {
                     func_dryfield_night_factory_80181B38(1);
                     func_dryfield_night_factory_80181620(1);

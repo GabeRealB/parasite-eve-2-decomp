@@ -154,19 +154,20 @@ void func_dryfield_night_general_store_8017D794(Task* task)
     }
 }
 
-/// Handler for the room's event ids 1 and 0x26. Both write a reply byte into
-/// `out->field_3` unless `in->field_5` asks for a dry run.
+/// Handler for the store's two event ids. Both answer with a furniture-style
+/// "which variant" byte in `out->field_3`, and a non-zero `field_5` asks what
+/// would happen without the side effects.
 ///
-/// For id 1 the reply is the id itself while flag nibble 0x63 is clear;
-/// otherwise 4, or 2 + nibble 0x61 while nibble 0x7A is below 4. It then
-/// offers the event gate a request that plays stage sounds 0x5203000C and
-/// 0x52030003 under flag nibble 0x3B, and returns the gate's answer.
+/// Message 1 is the grandfather clock: with nibble 0x63 clear the reply is the
+/// id itself, otherwise 4, or 2 + nibble 0x61 while nibble 0x7A is still below
+/// 4. The final arm offers the gate a request that plays the two stage sounds
+/// 0x5203000C / 0x52030003 under flag nibble 0x3B.
 ///
-/// For id 0x26 the reply is 1 (2 with nibble 0x53 set), plus 2 while nibble
-/// 0x51 is clear, when nibble 0xC9 is set; otherwise 5, or 6 while nibble 0x51
-/// is clear. Outside a dry run it spawns the cutscene task with `field_2` /
-/// `field_3` latched as its destination, or runs CAP command 0xE once nibble
-/// 0x62 is set, and answers 2. Any other id answers 1.
+/// Message 0x26 is the shop till: with nibble 0xC9 set the reply is 2, or 1
+/// while nibble 0x53 is clear, plus 2 more while nibble 0x51 is clear;
+/// otherwise 5, or 6 while nibble 0x51 is clear. The arm that is not asking
+/// latches `field_2` / `field_3` for the spawned task and answers 2, or runs
+/// CAP command 0xE when nibble 0x62 is set. Anything else answers 1.
 s32 func_dryfield_night_general_store_8017D904(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventReq req;
@@ -179,12 +180,10 @@ s32 func_dryfield_night_general_store_8017D904(s32 arg0, s32 arg1, RoomEventMsg*
         if (GameFlag_GetNibble(0x63) == 0) {
             out->field_3 = msgId;
         } else {
-            if (GameFlag_GetNibble(0x7A) < 4) {
+            if (GameFlag_GetNibble(0x7A) >= 4) {
                 v = 4;
-                TOUCH_REG(v);
-                v = GameFlag_GetNibble(0x61) + 2;
             } else {
-                v = 4;
+                v = GameFlag_GetNibble(0x61) + 2;
             }
             out->field_3 = v;
         }

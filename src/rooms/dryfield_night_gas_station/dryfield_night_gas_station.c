@@ -624,10 +624,20 @@ static void func_dryfield_night_gas_station_8017E228(UiList* list, UiObject* obj
     list->field_10 = 0;
 }
 
-/// Fills the PE-usage list the same way from the save's per-slot Parasite
-/// Energy use counters: each of the twelve slots lists under its base id
-/// `i * 3 + 0xF` advanced by its current level, sorted most-used first, with
-/// the same percentage and bar-width columns.
+/// Fills the "Play Data" PE-usage panel's `RoomPeUsage` block from the
+/// save's per-slot use counters.
+///
+/// Each of the twelve Parasite Energy slots owns three consecutive ids starting
+/// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].attachLevels[i]`
+/// prints as `i * 3 + 0xF + level - 1` (a slot the player has never levelled
+/// keeps the base id). Every slot with a non-zero counter in
+/// `Mc_SaveData[0].attachUseCounts` is appended and its counter summed. Levels
+/// are addressed by page and column, with three slots per page. The ids are
+/// then insertion-sorted by use count, most-used first, and each row gets
+/// `percents`, its share of all recorded uses in hundredths of a percent, and
+/// `barWidths`, its counter as a 12-bit fraction of the top row's. Both are
+/// scaled down by halving until the top counter fits in 17 bits, so the
+/// multiply and the shift cannot overflow.
 static void func_dryfield_night_gas_station_8017E524(UiList* list, UiObject* obj)
 {
     RoomPeUsage* work;
@@ -644,33 +654,33 @@ static void func_dryfield_night_gas_station_8017E524(UiList* list, UiObject* obj
     s32          shift;
     s32          top;
     s32          tmp;
-    /* Matching only. The original object frames 24 bytes it never touches and
-     * materialises GCC's `/3` magic constant before the first loop for a use
-     * that no longer survives, so `scratch` buys the frame size and `magic`
-     * plus the (instruction-free) SOFT_USE_REG below buy the allocation. */
-    s32 magic;
-    s16 scratch[12];
 
     count = 0;
     total = 0;
     i     = 0;
     work  = (RoomPeUsage*)obj->owner->work;
     p     = work->peIds;
-    magic = 0x55555556;
 
     for (; i < 12; i++) {
-        if (Mc_SaveData[0].attachUseCounts[i] > 0) {
-            id = i * 3 + 0xF;
-            *p = id;
-            if (Mc_SaveData[0].attachLevels[i] != 0) {
-                *p = id + (Mc_SaveData[0].attachLevels[i] - 1u);
+        s32 useCount;
+
+        useCount = Mc_SaveData[0].attachUseCounts[i];
+        id       = i * 3 + 0xF;
+        if (useCount > 0) {
+            s32 page;
+            s32 column;
+
+            page   = i / 3;
+            column = i % 3;
+            *p     = id;
+            if (Mc_SaveData[0].attachLevels[column + page * 3] != 0) {
+                *p = id + (Mc_SaveData[0].attachLevels[column + page * 3] - 1u);
             }
             p++;
             count++;
             total += Mc_SaveData[0].attachUseCounts[i];
         }
     }
-    SOFT_USE_REG(magic);
 
     if (count >= 2) {
         for (i = 1; i < count; i++) {
@@ -1122,12 +1132,13 @@ static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
     D_80115598  = 1;
 }
 
-/// Answers the room message `in`, copying it to `out` first. For message 2 it reports in `out->field_3` how far nibble 0x61 has
-/// advanced (3 once nibble 0x7A reaches 4). Message 3 returns 2 when the
-/// session sits at stage 3, place 1 with `Gp_StateF0` agreeing, and 0 while
-/// nibble 0x3B is clear; message 2 returns 0 while nibble 0x45 reads 1. The
-/// cap commands and nibble write that go with those answers run only when
-/// `in->field_5` is clear. Every other case returns 1.
+/// Answers the room message `in`, copying it to `out` first. For message 2 it
+/// reports in `out->field_3` how far nibble 0x61 has advanced (3 once nibble
+/// 0x7A reaches 4). Message 3 returns 2 when the session sits at stage 3,
+/// place 1 with `Gp_StateF0` agreeing, and 0 while nibble 0x3B is clear;
+/// message 2 returns 0 while nibble 0x45 reads 1. The cap commands and nibble
+/// write that go with those answers run only when `in->field_5` is clear.
+/// Every other case returns 1.
 s32 func_dryfield_night_gas_station_8017F544(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     s32 n;
@@ -1136,12 +1147,10 @@ s32 func_dryfield_night_gas_station_8017F544(s32 arg0, s32 arg1, RoomEventMsg* i
     *out = *in;
     if (in->msgId == 2 && in->field_5 == 0) {
         n = GameFlag_GetNibble(0x7A);
-        if (n < 4) {
+        if (n >= 4) {
             val = 3;
-            TOUCH_REG(val);
-            val = GameFlag_GetNibble(0x61) + 1;
         } else {
-            val = 3;
+            val = GameFlag_GetNibble(0x61) + 1;
         }
         out->field_3 = val;
     }

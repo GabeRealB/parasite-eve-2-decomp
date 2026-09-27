@@ -736,17 +736,14 @@ static void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
     }
 }
 
-/// Draws a glowing beam between the two points `arg0[0]` and `arg0[1]`,
-/// projected through the view matrix. Each end is a gouraud half-disc of
-/// radius `(s16)arg1 * 64 / otz` around its projected point, lit at the centre
-/// and dark at the rim, turned to face the other end by the screen-space angle
-/// between them; quads join the two discs. The centre brightness flickers
-/// between 0x20 and 0x30 with the display frame counter. Nothing is drawn when
-/// either projection is invalid. The work block lives on the scratchpad stack.
+/// Draws a light shaft between the two world points `arg0[0]` and `arg0[1]`:
+/// a fan of gouraud wedges around each projected point, joined by wedges
+/// spanning the two, the sweep oriented along the screen-space line between
+/// them. Each radius is `(s16)arg1 * 64` over that point's OTZ. Nothing is
+/// drawn unless both points project. The lit vertices take a brightness that
+/// flickers with the frame counter.
 static void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1)
 {
-    void**                   scratch;
-    u8*                      head;
     SVECTOR*                 p1;
     OverlayPointPairScratch* block;
     POLY_G4*                 prim;
@@ -763,32 +760,26 @@ static void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1)
     s32                      scaled;
     s32                      blend;
 
-    p1      = arg0 + 1;
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    {
-        register u8* tmp asm("v0");
-        tmp      = head - 0x1C;
-        block    = (OverlayPointPairScratch*)tmp;
-        *scratch = tmp;
-    }
+    p1 = arg0 + 1;
+    SCRATCH_PUSH(OverlayPointPairScratch);
+    block = SCRATCH_HEAD(OverlayPointPairScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx0);
-    gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx0);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(p1);
         gte_rtps();
-        gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx1);
-        gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
+        gte_stsxy(&block->sx1);
+        gte_stflg(&block->flag);
         if (block->flag >= 0) {
-            gte_stszotz(&((OverlayPointPairScratch*)(head - 0x1C))->otz1);
+            gte_stszotz(&block->otz1);
             scaled    = (s16)arg1 * 64;
-            block->r0 = scaled / ((OverlayPointPairScratch*)(head - 0x1C))->otz0;
+            block->r0 = scaled / block->otz0;
             block->r1 = scaled / block->otz1;
             raw       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
             ds        = &gDisplayState;
@@ -868,7 +859,7 @@ static void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1)
             }
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_POP(OverlayPointPairScratch);
 }
 
 /// Per-frame driver of an expanding, fading flash effect. While the room's

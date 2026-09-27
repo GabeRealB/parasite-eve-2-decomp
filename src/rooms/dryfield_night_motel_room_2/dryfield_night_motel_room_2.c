@@ -29,10 +29,10 @@ s32 func_dryfield_night_motel_room_2_8017D5D0(void)
     return 0;
 }
 
-/// The room's handler for message 0x13EE. It passes the message on unchanged,
-/// except that message 2 with `field_5` clear gets its `field_3` rewritten:
-/// 3 once game-flag nibble 0x7A has reached 4, otherwise one more than nibble
-/// 0x61. Always reports the message handled.
+/// Message-table handler for id 0x13EE: echoes the incoming record into the
+/// reply and, for a message 2 that is not report-only (`field_5 == 0`),
+/// answers game nibble 0x61 plus one while game nibble 0x7A is below 4, and 3
+/// once it has reached 4. Returns 1.
 s32 func_dryfield_night_motel_room_2_8017D5D8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     s32 val;
@@ -41,12 +41,10 @@ s32 func_dryfield_night_motel_room_2_8017D5D8(s32 arg0, s32 arg1, RoomEventMsg* 
     *out = *in;
     if (in->msgId == 2 && in->field_5 == 0) {
         n = GameFlag_GetNibble(0x7A);
-        if (n < 4) {
+        if (n >= 4) {
             val = 3;
-            TOUCH_REG(val);
-            val = GameFlag_GetNibble(0x61) + 1;
         } else {
-            val = 3;
+            val = GameFlag_GetNibble(0x61) + 1;
         }
         out->field_3 = val;
     }

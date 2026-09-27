@@ -1,1 +1,5 @@
 // Overlay-local symbols for dryfield_night_factory.
+
+// Stage 2 uses the day factory's view-sprite routines.
+func_dryfield_factory_80181620 = 0x80181620; // type:func absolute:True
+func_dryfield_factory_80181B38 = 0x80181B38; // type:func absolute:True
