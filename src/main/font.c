@@ -147,19 +147,17 @@ block_20:
 
 static void Stage_LoadOrCountdownTask(Task* arg0)
 {
-    u8                   param1[8];
-    u8                   param2[8];
-    TaskIdMap*           temp;
-    register TaskIdPair* entry asm("v0");
-    s32                  field34;
-    u8                   flag;
+    u8         param1[8];
+    u8         param2[8];
+    TaskIdMap* temp;
+    s32        field34;
+    u8         flag;
 
     temp = arg0->work;
     if (Midi_IsBusy(gStageCurrentSong) == 0) {
         param1[3] = 0;
         param1[2] = 4;
-        entry     = (TaskIdPair*)((temp->index << 1) + (u32)temp->table);
-        param1[0] = entry->id;
+        param1[0] = temp->table[temp->index].id;
         param2[0] = gGameSession->sprtVariant;
         param2[3] = 0;
         param2[2] = 0;
@@ -170,8 +168,7 @@ static void Stage_LoadOrCountdownTask(Task* arg0)
             arg0->state = arg0->state + 2;
             return;
         }
-        entry = (TaskIdPair*)((temp->index << 1) + (u32)temp->table);
-        if ((entry->type == 1) && (field34 == 0)) {
+        if ((temp->table[temp->index].type == 1) && (field34 == 0)) {
             arg0->state = arg0->state + 2;
             return;
         }
