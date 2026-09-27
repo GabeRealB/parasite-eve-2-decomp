@@ -1391,7 +1391,7 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     u8*       norms;
     CVECTOR   col;
     SVECTOR*  sv;
-    DVECTOR*  sxy;
+    s16*      xy;
     u8*       dest;
     u8*       rgb;
     u8*       pCode;
@@ -1456,12 +1456,13 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
 
                     /* Environment-map UVs: each vertex's rotated normal, scaled by the
                      * light level, offsets its screen position into the reflection
-                     * texture. A U past the first page wraps onto the second one and
+                     * texture. xy steps from X to Y alongside the U/V destination.
+                     * A U past the first page wraps onto the second one and
                      * is flagged in the pad byte after that vertex's colour. */
                     gte_rtv0();
                     gte_stsv(&ws->elemNormal);
                     combined = 0;
-                    sxy      = (DVECTOR*)&poly[0].x0;
+                    xy       = &poly[0].x0;
                     dest     = &poly[0].u0;
                     flag     = 0;
                     sv       = &ws->elemNormal;
@@ -1469,8 +1470,8 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     gte_ldsv(sv);
                     gte_gpf12();
                     gte_stsv(sv);
-                    x  = poly[0].x0 + 0xA0;
-                    x -= ws->elemNormal.vx;
+                    x  = *xy + 0xA0;
+                    x -= sv->vx;
                     if (x < 0) {
                         x = 0;
                     } else if (x >= 0x100) {
@@ -1481,8 +1482,9 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                         }
                     }
                     *dest = x;
+                    xy++;
                     dest++;
-                    x  = sxy->vy + 0x78;
+                    x  = *xy + 0x78;
                     x -= sv->vy;
                     if (x < 0) {
                         x = 0;
@@ -1495,8 +1497,7 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
 
                     gte_rtv1();
                     gte_stsv(&ws->elemNormal);
-                    sxy = (DVECTOR*)&poly[0].x1;
-                    TOUCH_REG(sxy);
+                    xy   = &poly[0].x1;
                     dest = &poly[0].u1;
                     flag = 0;
                     sv   = &ws->elemNormal;
@@ -1504,8 +1505,8 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     gte_ldsv(sv);
                     gte_gpf12();
                     gte_stsv(sv);
-                    x  = poly[0].x1 + 0xA0;
-                    x -= ws->elemNormal.vx;
+                    x  = *xy + 0xA0;
+                    x -= sv->vx;
                     if (x < 0) {
                         x = 0;
                     } else if (x >= 0x100) {
@@ -1516,8 +1517,9 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                         }
                     }
                     *dest = x;
+                    xy++;
                     dest++;
-                    x  = sxy->vy + 0x78;
+                    x  = *xy + 0x78;
                     x -= sv->vy;
                     if (x < 0) {
                         x = 0;
@@ -1530,8 +1532,7 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
 
                     gte_rtv2();
                     gte_stsv(&ws->elemNormal);
-                    sxy = (DVECTOR*)&poly[0].x2;
-                    TOUCH_REG(sxy);
+                    xy   = &poly[0].x2;
                     dest = &poly[0].u2;
                     flag = 0;
                     sv   = &ws->elemNormal;
@@ -1539,8 +1540,8 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     gte_ldsv(sv);
                     gte_gpf12();
                     gte_stsv(sv);
-                    x  = poly[0].x2 + 0xA0;
-                    x -= ws->elemNormal.vx;
+                    x  = *xy + 0xA0;
+                    x -= sv->vx;
                     if (x < 0) {
                         x = 0;
                     } else if (x >= 0x100) {
@@ -1551,8 +1552,9 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                         }
                     }
                     *dest = x;
+                    xy++;
                     dest++;
-                    x  = sxy->vy + 0x78;
+                    x  = *xy + 0x78;
                     x -= sv->vy;
                     if (x < 0) {
                         x = 0;
