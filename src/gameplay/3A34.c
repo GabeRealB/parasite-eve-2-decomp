@@ -5012,20 +5012,17 @@ static void Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1)
 
 static void Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1)
 {
-    u8*      head;
     VECTOR3* vec;
 
-    head                  = SCRATCH_HEAD(u8);
-    vec                   = (VECTOR3*)(head - 0x30);
-    SCRATCH_HEAD(VECTOR3) = vec;
-    COMPILER_BARRIER();
+    SCRATCH_PUSH_BYTES(0x30);
+    vec = SCRATCH_HEAD(VECTOR3);
     gte_SetRotMatrix(&arg0->coord->workm);
     gte_ldv0(&arg0->pos.vx);
     gte_rtv0();
     gte_stlvnl(vec);
-    arg1->vx = (arg0->coord)->workm.t[0] + ((VECTOR3*)(head - 0x30))->vx;
-    arg1->vy = (arg0->coord)->workm.t[1] + vec->vy;
-    arg1->vz = (arg0->coord)->workm.t[2] + vec->vz;
+    arg1->vx = arg0->coord->workm.t[0] + vec->vx;
+    arg1->vy = arg0->coord->workm.t[1] + vec->vy;
+    arg1->vz = arg0->coord->workm.t[2] + vec->vz;
     SCRATCH_POP_BYTES(0x30);
 }
 
