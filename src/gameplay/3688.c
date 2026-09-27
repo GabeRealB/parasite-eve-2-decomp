@@ -5119,23 +5119,21 @@ static void Gp_BuildAttachList(UiList* arg0, s32 arg1)
     arg0->field_5 = n;
 }
 
-void Gp_AttachListTask(Task* arg0)
+void Gp_AttachListTask(Task* task)
 {
-    UiList*        menu;
-    UiObject*      obj;
-    s32            val;
-    register Task* task asm("s3");
-    s32            one;
-    s32            state;
-    McItemSlot*    slot;
-    u8             temp;
-    Task*          child;
-    Task*          next;
-    Task*          head;
-    UiObject*      childObj;
-    s32            flag;
+    UiList*     menu;
+    UiObject*   obj;
+    s32         val;
+    s32         one;
+    s32         state;
+    McItemSlot* slot;
+    u8          temp;
+    Task*       child;
+    Task*       next;
+    Task*       head;
+    UiObject*   childObj;
+    s32         flag;
 
-    task          = arg0;
     obj           = task->spawnArg2;
     val           = (u16)task->spawnArg1;
     menu          = &D_8010E9CC;
@@ -5197,7 +5195,6 @@ void Gp_AttachListTask(Task* arg0)
         }
         child = task->firstChild;
         if (child != NULL) {
-            val = 6;
             do {
                 childObj = child->spawnArg2;
                 flag     = childObj->field_2E;
