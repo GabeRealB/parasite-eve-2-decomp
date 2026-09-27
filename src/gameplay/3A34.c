@@ -6161,9 +6161,8 @@ s32 Gp_TickObjFlag4(GpEnemy* arg0)
 
 s32 Gp_ObjFlag4Expired(GpEnemy* arg0)
 {
-    s32          val;
-    s32          ret;
-    register s32 scale asm("v1");
+    s32 val;
+    s32 ret;
 
     ret = 0;
     val = arg0->param->flag4Ticks;
@@ -6173,8 +6172,8 @@ s32 Gp_ObjFlag4Expired(GpEnemy* arg0)
     if (val == 0) {
         return 0;
     }
-    scale = D_80113D28[arg0->flag4Grade];
-    if (arg0->flag4Ticks >= (val * scale) / 100) {
+    val = (val * D_80113D28[arg0->flag4Grade]) / 100;
+    if (arg0->flag4Ticks >= val) {
         ret = 1;
     }
     return ret;
