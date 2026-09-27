@@ -145093,3 +145093,21 @@ on the lvalue itself - `if (s->f & 0xFFFF) s->f += (s->f >= 0) ? A : -A;`, as a
 block macro used for all three fields - matches with no hack. The same body as
 an inline function taking `&s->f` does not: the later fields' addresses become
 their own pseudos (`addiu a0,s0,4`).
+
+## `lw sA,off(task); move sB,sA` with the halves used by different code: two reads of the pointer separated by a scratch push (func_80104E00, 2026-09-27)
+
+**Shape.** One load of `task->work` into `$s1`, an immediate `move $s0,$s1`,
+the leading block of field writes (a sequence several sibling commands repeat)
+through `$s0` and the rest of the function through `$s1`. The seed pinned the
+second variable to `$s1`.
+
+**Cause.** Two separate reads of `task->work` survive CSE because the scratch
+head store sits between them: the caller's `actor = task->work` comes before
+`SCRATCH_HEAD = head - K`, and the repeated block, an inline helper, reads
+`task->work` again after it. sched1 lets both loads pass the store and puts
+them side by side, and after reload `reload_cse` turns the second load into a
+copy of the first. Written as one variable, or with both reads after the push,
+CSE merges them and only one register remains.
+
+**Fix.** Load the pointer before the scratch push, and let the repeated block
+be a `static inline` helper that fetches it from the task itself.

@@ -5241,50 +5241,57 @@ s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2)
     return 0;
 }
 
-s32 func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2)
+/// Puts the player in `field_954` mode 2 (`Gp_TickPlayerMode2`): clears the
+/// movement state and the HUD flag, re-applies the equipped weapon, and during
+/// an event clears flag 0x2000 on the actor's first object.
+static inline void _gpSwitchToPlayerMode2(Task* arg0)
 {
-    GameActor*          actor;
-    register GameActor* inner asm("s1");
-    PlayerStatus*       p;
-    u8*                 head;
-    s32                 val;
-    s32                 mode;
-    s32                 angle;
-    s32                 flag;
+    GameActor*    actor;
+    PlayerStatus* p;
 
-    flag               = 2;
-    head               = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(void) = head - 0x10;
-    inner              = arg0->work;
-    actor              = inner;
-    p                  = &Player_Status;
-    actor->field_954   = flag;
-    actor->field_95E   = 0;
-    actor->field_973   = 0;
-    actor->field_975   = 0;
-    p->field_24        = 0;
-    actor->field_97E   = 0;
-    actor->field_60    = 0;
-    actor->field_58    = 0;
-    actor->field_64    = 0;
-    actor->field_5C    = 0;
-    actor->field_6A    = 0;
-    actor->field_68    = 0;
-    actor->field_70    = 0;
-    actor->field_96C   = 0;
-    actor->field_12A  &= 0x3FFF;
+    actor             = arg0->work;
+    p                 = &Player_Status;
+    actor->field_954  = 2;
+    actor->field_95E  = 0;
+    actor->field_973  = 0;
+    actor->field_975  = 0;
+    p->field_24       = 0;
+    actor->field_97E  = 0;
+    actor->field_60   = 0;
+    actor->field_58   = 0;
+    actor->field_64   = 0;
+    actor->field_5C   = 0;
+    actor->field_6A   = 0;
+    actor->field_68   = 0;
+    actor->field_70   = 0;
+    actor->field_96C  = 0;
+    actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
-    inner->field_982     = 1;
-    inner->field_956     = flag;
-    inner->field_983     = 0x38;
-    angle                = (u16)arg2->rot.vy;
-    inner->field_82      = angle;
-    val                  = func_80103E7C(inner->field_52, angle);
-    *(s32*)(head - 0x10) = val;
-    mode                 = 6;
+}
+
+s32 func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2)
+{
+    GameActor* actor;
+    s32*       head;
+    s32        val;
+    s32        mode;
+    s16        angle;
+
+    actor              = arg0->work;
+    head               = SCRATCH_HEAD(s32);
+    SCRATCH_HEAD(void) = head - 4;
+    _gpSwitchToPlayerMode2(arg0);
+    actor->field_982 = 1;
+    actor->field_956 = 2;
+    actor->field_983 = 0x38;
+    angle            = arg2->rot.vy;
+    actor->field_82  = angle;
+    val              = func_80103E7C(actor->field_52, angle);
+    head[-4]         = val;
+    mode             = 6;
     if (val < 0) {
         mode = 5;
     }
