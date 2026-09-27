@@ -1980,7 +1980,7 @@ static void Gp_ItemListTask(Task* arg0)
     }
     Ui_DrawText((UiPanel*)obj, Gp_StrItemHdr);
     countItemRows(menu);
-    Ui_ComputeVisibleRows(menu, (s32)obj);
+    Ui_ComputeVisibleRows(menu, (UiPanel*)obj);
     menu->field_A = 1;
     if (menu->field_10 >= (s32)menu->field_4) {
         menu->field_10 = menu->field_4 - 1;
@@ -2419,7 +2419,7 @@ void Gp_WeaponMenuTask(Task* arg0)
         arg0->state = arg0->state + 1;
     }
     _gpWeaponMenuSetRows(menu);
-    Ui_ComputeVisibleRows(menu, (s32)obj);
+    Ui_ComputeVisibleRows(menu, (UiPanel*)obj);
     Ui_UpdateListNoAnim(menu, obj);
     if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone((Task*)obj) == 0)) {
         Ui_SetState4((Task*)obj, obj->owner);
@@ -2795,7 +2795,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                 menu->field_10 = temp - 1;
             }
         }
-        Ui_ComputeVisibleRows(menu, (s32)obj);
+        Ui_ComputeVisibleRows(menu, (UiPanel*)obj);
         menu->field_17 = 0x1A;
         menu->field_A  = 1;
     }
@@ -4191,7 +4191,7 @@ void Gp_KeyItemMenuTask(Task* arg0)
         if (menu->field_4 < menu->field_10) {
             menu->field_10 = menu->field_4;
         }
-        Ui_ComputeVisibleRows(menu, (s32)obj);
+        Ui_ComputeVisibleRows(menu, (UiPanel*)obj);
         menu->field_A = 1;
         if (menu->field_10 >= menu->field_4) {
             menu->field_10 = menu->field_4 - 1;

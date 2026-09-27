@@ -308,7 +308,7 @@ void      Ui_ClampAnimOrClose(UiPanel* arg0, s32 arg1, s32 arg2);
 void      Ui_StartCloseAnim(UiPanel* arg0, void* arg1);
 void      Ui_LayoutListPanel(UiList* arg0, UiPanel* arg1);
 void      Ui_InitList(UiList* arg0, UiMiniObj* arg1);
-void      Ui_ComputeVisibleRows(UiList* arg0, s32 arg1);
+void      Ui_ComputeVisibleRows(UiList* arg0, UiPanel* arg1);
 void      Ui_UpdateListNoAnim(void* arg0, void* arg1);
 void      Ui_SmoothCursor(UiMiniObj* arg0, s32 arg1, s32 arg2);
 s32       Ui_GetCursorFixed(void);

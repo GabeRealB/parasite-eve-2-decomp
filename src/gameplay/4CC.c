@@ -419,7 +419,7 @@ void Gp_ItemPaneTask(Task* arg0)
     } else {
         Ui_DrawText((UiPanel*)obj, Gp_StrPlayerItem);
     }
-    Ui_ComputeVisibleRows(menu, (s32)obj);
+    Ui_ComputeVisibleRows(menu, (UiPanel*)obj);
     menu->field_A = 1;
     if (menu->field_10 >= menu->field_4) {
         menu->field_10 = menu->field_4 - 1;

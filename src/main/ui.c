@@ -2017,43 +2017,32 @@ void Ui_InitList(UiList* arg0, UiMiniObj* arg1)
     }
 }
 
-void Ui_ComputeVisibleRows(UiList* arg0, s32 arg1)
+void Ui_ComputeVisibleRows(UiList* arg0, UiPanel* arg1)
 {
-    RECT     sp;
-    UiPanel* a1;
-    s16      temp_v0;
-    u8       temp_a2;
-    s8       temp_v1;
-    s32      temp_v1_2;
+    RECT sp;
+    s32  height;
 
-    a1      = (UiPanel*)arg1;
-    sp.x    = a1->field_20 + a1->field_1C;
-    sp.y    = a1->field_22 + a1->field_18;
-    sp.w    = a1->field_1E - a1->field_1C;
-    temp_v0 = a1->field_1A - a1->field_18;
-    arg1    = temp_v0;
-    sp.h    = temp_v0;
-    arg1    = arg1 - arg0->field_17;
+    sp.x    = arg1->field_20 + arg1->field_1C;
+    sp.y    = arg1->field_22 + arg1->field_18;
+    sp.w    = arg1->field_1E - arg1->field_1C;
+    sp.h    = arg1->field_1A - arg1->field_18;
+    height  = sp.h;
+    height -= arg0->field_17;
     if (arg0->field_7 == 0) {
         arg0->field_7 = 0xA;
     }
-    temp_a2 = arg0->field_4;
-    temp_v1 = arg0->field_7;
-    if (arg1 >= (temp_a2 * temp_v1)) {
-        arg0->field_5 = temp_a2;
+    if (height >= arg0->field_4 * arg0->field_7) {
+        arg0->field_5 = arg0->field_4;
     } else {
-        arg0->field_5 = arg1 / temp_v1;
+        arg0->field_5 = height / arg0->field_7;
         if ((s8)arg0->field_5 <= 0) {
             arg0->field_5 = 1;
         }
     }
-    temp_v1_2 = arg0->field_4;
-    if (arg0->field_10 >= temp_v1_2) {
-        arg0->field_10 = temp_v1_2 - 1;
-        SOFT_COMPILER_BARRIER();
-        temp_v1_2 = arg0->field_4;
+    if (arg0->field_10 >= arg0->field_4) {
+        arg0->field_10 = arg0->field_4 - 1;
     }
-    if ((s8)arg0->field_5 >= temp_v1_2) {
+    if (arg0->field_4 <= (s8)arg0->field_5) {
         arg0->field_9 = 0;
     }
     arg0->field_A = 0;
