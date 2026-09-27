@@ -403,7 +403,7 @@ void Gp_EnqueueHeldWeaponCd(void);
 void func_800ABFF8(void);
 void func_800AC000(void);
 void Gp_EnqueueConfigCd(s32 arg0);
-void Gp_LoadViewAndCd(s32 arg0);
+void Gp_LoadViewAndCd(u8 arg0);
 void Gp_LoadViewImages(void);
 
 void Gp_AllocSprtListsTask(Task* task);

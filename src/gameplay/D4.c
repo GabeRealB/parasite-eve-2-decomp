@@ -350,28 +350,19 @@ void Gp_SetupSprtDisplay(Task* task)
     Display_ResetHeapWrapper();
 }
 
-void Gp_LoadViewAndCd(s32 arg0)
+void Gp_LoadViewAndCd(u8 arg0)
 {
-    s32           raw;
-    s32           i;
-    s32           target;
-    register s32  type2 asm("v0");
-    FsFolderSlot* table;
-    FsFolderSlot* slot;
-    GameSession*  session;
-    u8            param2[8];
-    u8            param1[8];
+    u8           view;
+    u8           i;
+    GameSession* session;
+    u8           param2[8];
+    u8           param1[8];
 
-    raw    = Gp_GetViewIndex();
-    i      = 0;
-    table  = D_8006C338;
-    target = (u8)raw - 1;
-    for (; (u8)i < 50; i++) {
-        type2 = 2;
-        if (table[(u8)i].field_0 == type2) {
-            if (target == (u8)i) {
-                slot = &table[(u8)i];
-                while (Fs_LoadImageChunk(slot->field_4, 1)) {
+    view = Gp_GetViewIndex();
+    for (i = 0; i < 50; i++) {
+        if (D_8006C338[i].field_0 == 2) {
+            if (view - 1 == i) {
+                while (Fs_LoadImageChunk(D_8006C338[i].field_4, 1)) {
                 }
                 break;
             }
@@ -382,7 +373,7 @@ void Gp_LoadViewAndCd(s32 arg0)
     param1[2] = session->at4.loc.area;
     param1[0] = Gp_GetViewIndex();
     param2[0] = 1;
-    if ((u8)arg0 != 0) {
+    if (arg0 != 0) {
         param2[1] = 4;
     } else {
         param2[1] = 0;

@@ -261,7 +261,7 @@ void        Gp_ClearPreviewItems(void);
 void        Gp_AgeFlag119Void(void);
 void        Gp_SyncHeldRelated(void);
 void        Gp_EnqueueAttach7Cd(void);
-void        Gp_LoadViewAndCd(s32 arg0);
+void        Gp_LoadViewAndCd(u8 arg0);
 void        Gp_EnqueueHeldWeaponCd(void);
 void        func_800A7E4C(void);
 s32         Gp_KillPlayerEffs(void);
