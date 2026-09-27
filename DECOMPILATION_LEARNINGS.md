@@ -145944,3 +145944,23 @@ retains its result join and call-crossing lifetimes (76.275%).
 
 Scratch: `nonmatchings/func_acropolis_plaza_8017F770-dehack/base_12.c`;
 input SHA256 `069b7a8b40d803626611f3608ea77e6f4f87bd5d9cd7a20ac22a3d6cf755832c`.
+
+### Distinct overlay callees at one address preserve stage branches (func_dryfield_factory_8017D9CC, 2026-09-27)
+
+A `SOFT_BARRIER()` kept two apparently identical stage-dependent call tails
+separate. Removing it let `jump2` delete the stage check and one call pair
+(83.544%, 13 deleted instructions); duplicated state increments and an early
+return did not help. The calls actually name different overlay helpers:
+stage 2 uses `func_dryfield_factory_80181620`, and the other arm uses the
+existing `func_dryfield_night_factory_80181620` import, as nearby cutscene code
+already does. Their distinct `symbol_ref`s stop cross-jumping without asm,
+while the existing overlay symbol map resolves both to `0x80181620`.
+
+Check stage-dependent imports before treating identical call addresses as
+identical source callees. Here the raw scratch score is 99.937% solely for the
+changed relocation name (`regs=1`); linking target and candidate with actual
+project symbols yields 100.000%, all-zero penalties, and identical 316-byte
+function bodies. The unscoped build and lost-match check pass. Evidence:
+`nonmatchings/func_dryfield_factory_8017D9CC-dehack/base_4.i.jump2` retains both
+call symbols; input SHA256
+`ec5833dbddfb797a219963a3e4ba0398dcb92525285474e2e8629b0a735cce89`.

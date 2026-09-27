@@ -181,14 +181,10 @@ void func_dryfield_factory_8017D85C(Task* task)
 /// slot 7 and parks a fresh one-word slot at `Task::work` (also kept in
 /// `D_..._8018A3C8`) for the poller to fill. It then picks the spawn tables for
 /// the session variant (`stage == 2` or not), spawns entries 4 and 5 of the
-/// first, and passes progress nibble 0x48 on.
+/// first, and passes progress nibble 0x48 to the variant's view-sprite helper.
 ///
 /// Outside stage 2 the second pick is the address of the room's script message
 /// table, stored where a spawn table is expected; the cast records that.
-///
-/// `slot` and the store to `D_..._8018A3C8` are one chained assignment on
-/// purpose: GCC then materialises the global's address ahead of `memCalloc`,
-/// which is the register allocation the target has.
 static void func_dryfield_factory_8017D9CC(Task* arg0)
 {
     Task** slot;
@@ -211,9 +207,8 @@ static void func_dryfield_factory_8017D9CC(Task* arg0)
     Task_SpawnFromTable(D_dryfield_factory_8018A3C4, 5, 0, 0);
     if (gGameSession->at4.loc.stage == 2) {
         func_dryfield_factory_80181620(GameFlag_GetNibble(0x48) & 0xFF);
-        SOFT_BARRIER();
     } else {
-        func_dryfield_factory_80181620(GameFlag_GetNibble(0x48) & 0xFF);
+        func_dryfield_night_factory_80181620(GameFlag_GetNibble(0x48) & 0xFF);
     }
     arg0->state++;
 }
