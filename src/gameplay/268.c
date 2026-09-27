@@ -2896,36 +2896,26 @@ s32 Gp_GetScanCount(McItemScan* scan)
     return scan->rowCount;
 }
 
-s32 Gp_ItemSortKey(s32 arg0)
+s32 Gp_ItemSortKey(s32 id)
 {
-    register s32 ret asm("v1");
-    s32          idx;
+    s32 key;
 
-    ret = 0;
-    if (arg0 == 0) {
-        ret = 0x1000;
-    } else if ((u32)(arg0 - 1) < 0x5F) {
-        ret = Gp_ItemSortKey0[arg0];
-    } else {
-        idx = arg0 - 0x60;
-        if ((u32)idx < 0x20) {
-            ret = Gp_ItemSortKey60[idx];
-        } else {
-            idx = arg0 - 0x80;
-            if ((u32)idx < 0x20) {
-                ret = Gp_ItemSortKey80[idx];
-            } else {
-                idx = arg0 - 0xA0;
-                if ((u32)idx < 0x20) {
-                    ret = Gp_ItemSortKeyA0[idx];
-                }
-            }
-        }
+    key = 0;
+    if (id == 0) {
+        key = 0x1000;
+    } else if (id > 0 && id < 0x60) {
+        key = Gp_ItemSortKey0[id];
+    } else if (id >= 0x60 && id < 0x80) {
+        key = Gp_ItemSortKey60[id - 0x60];
+    } else if (id >= 0x80 && id < 0xA0) {
+        key = Gp_ItemSortKey80[id - 0x80];
+    } else if (id >= 0xA0 && id < 0xC0) {
+        key = Gp_ItemSortKeyA0[id - 0xA0];
     }
-    if (ret == 0) {
-        ret = arg0 + 0x100;
+    if (key == 0) {
+        key = id + 0x100;
     }
-    return ret;
+    return key;
 }
 
 void Gp_MarkPlayTime(void)
