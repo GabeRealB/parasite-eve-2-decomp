@@ -4104,9 +4104,7 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
     s32   rawPrev;
     s32   prev;
     s32   color;
-    s32   y;
     s32   textY;
-    s32   u0;
     s32   prevId;
     s32   spriteX;
     s32   a;
@@ -4129,9 +4127,10 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
         } else if (Mc_SaveData[0].clearCount > 0) {
             raw = (raw * 2) / 5;
         }
+        width = (s16)arg0->field_1E;
+    } else {
+        width = (s16)arg0->field_1E;
     }
-    width = ((s16)arg0->field_1E);
-    SOFT_USE_REG(width);
     x    = arg3;
     span = width - x;
     val  = raw & 0xFFFF;
@@ -4184,30 +4183,32 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
         loc.req.field_E    = 3;
         func_8002E53C(&loc.req, Text_ItoaSigned(loc.buf, prev));
         if (prev < val) {
+            s32 y;
+
             y = arg4 - 3;
             Ui_AllocTile((UiPanel*)arg0, x, y, (span * prev) / max, 3, 0x1741FU);
             color = 0xD287F;
-            Ui_LayoutWithMode1(arg0, (void*)x, (void*)y, (void*)((span * val) / max), (void*)3, (void*)0x1A50FE);
+            Ui_LayoutWithMode1(arg0, x, y, ((span * val) / max), 3, 0x1A50FE);
             p->u0                 = 0xA0;
             PRIM_COLOR_WORD(p, 0) = color;
             p->y0                 = p->y0 - 1;
         } else {
             if (val < prev) {
-                do {
-                    y = arg4 - 3;
-                    Ui_AllocTile((UiPanel*)arg0, x, y, (span * val) / max, 3, 0x1741FU);
-                    color = 0x1741F;
-                    Ui_LayoutWithMode1(arg0, (void*)x, (void*)y, (void*)((span * prev) / max), (void*)3, (void*)1);
-                    u0 = 0x30;
-                } while (0);
+                s32 y;
+
+                y = arg4 - 3;
+                Ui_AllocTile((UiPanel*)arg0, x, y, (span * val) / max, 3, 0x1741FU);
+                color = 0x1741F;
+                Ui_LayoutWithMode1(arg0, x, y, ((span * prev) / max), 3, 1);
+                p->u0                 = 0x30;
+                PRIM_COLOR_WORD(p, 0) = color;
             } else {
                 if (val > 0) {
-                    Ui_LayoutWithMode1(arg0, (void*)x, (void*)(arg4 - 3), (void*)((span * val) / max), (void*)3, (void*)0x1741F);
+                    Ui_LayoutWithMode1(arg0, x, (arg4 - 3), ((span * val) / max), 3, 0x1741F);
                 }
-                u0 = 0x78;
+                p->u0                 = 0x78;
+                PRIM_COLOR_WORD(p, 0) = color;
             }
-            p->u0                 = u0;
-            PRIM_COLOR_WORD(p, 0) = color;
         }
         spriteX = arg0->baseX + x;
         p->w    = 8;
@@ -4251,7 +4252,7 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
         }
         func_8002E53C(&loc.req2, text);
         if (val > 0) {
-            Ui_LayoutWithMode1(arg0, (void*)x, (void*)(arg4 - 3), (void*)((span * val) / max), (void*)3, (void*)0x1741F);
+            Ui_LayoutWithMode1(arg0, x, (arg4 - 3), ((span * val) / max), 3, 0x1741F);
         }
     }
 }
