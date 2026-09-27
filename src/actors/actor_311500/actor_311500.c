@@ -442,74 +442,62 @@ done:
     return work->field_4CC;
 }
 
-/* clang-format off */
+/// Calls `func_800B4114` on animation slots 1 to 18 with a 10-frame count.
+static inline void _actor311500BlendAnim(Task* task)
+{
+    Actor311500Work* work = task->work;
+    s32              i;
+
+    i = 1;
+    do {
+        func_800B4114(&work->rig.anim, i & 0xFFFF, 1, 0, 0xA);
+        i += 1;
+    } while ((u32)(i & 0xFFFF) < 0x13U);
+}
+
+/// Spawns the actor's `func_800FDB18` effect on model coord 2, offset by
+/// (0x3C, -0xC, 0x1E), for the id parameter of `field_4D0`.
+static inline void _actor311500SpawnEffect(Task* task)
+{
+    Actor311500Work* work = task->work;
+    SVECTOR          pos;
+    GpEffArg         eff;
+
+    eff.coord      = &task->extra.tmd->coords[2];
+    eff.spawnArgLo = 0x100;
+    eff.spawnArgHi = 2;
+    pos.vx         = 0x3C;
+    pos.vy         = -0xC;
+    pos.vz         = 0x1E;
+    func_800FDB18(Gp_GetIdParam1(work->field_4D0) & 0xFFFF, &task->extra.tmd->coords[2], &pos, &eff);
+}
+
 static s32 func_actor_311500_80162F28(Task* arg0)
 {
-  Actor311500Work *work;
-  Actor311500Work *anim;
-  Actor311500Work *anim2;
-  GpEnemy *enemy;
-  SVECTOR pos;
-  GpEffArg eff;
-  s32 i;
-  s32 var_v0;
-  u16 var_v1;
-  work = arg0->work;
-  enemy = arg0->spawnArg2;
-  switch (work->field_4C0)
-  {
-    case 0:
-      anim = work;
-      i = 1;
-      do
-    {
-      func_800B4114(&anim->rig.anim, i & 0xFFFF, 1, 0, 0xA);
-      i += 1;
-    }
-    while (((u32) (i & 0xFFFF)) < 0x13U);
-      anim2 = arg0->work;
-      eff.coord = &arg0->extra.tmd->coords[2];
-      eff.spawnArgLo = 0x100;
-      eff.spawnArgHi = 2;
-      pos.vx = 0x3C;
-      pos.vy = -0xC;
-      pos.vz = 0x1E;
-      func_800FDB18(Gp_GetIdParam1(anim2->field_4D0) & 0xFFFF, &arg0->extra.tmd->coords[2], &pos, &eff);
-      if (enemy->hp > 0)
-    {
-      work->field_4C0 = ((u16) work->field_4C0) + 1;
-      goto block_12;
-    }
-      return -1;
+    Actor311500Work* work;
+    GpEnemy*         enemy;
 
-    case 1:
-      i = 1;
-      do {
-      Gp_AnimTickIndex(&work->rig.anim, i & 0xFFFF);
-      i += 1;
-      } while (((u32) (i & 0xFFFF)) < 0x13U);
-      var_v1 = 1;
-      if (!(work->rig.slots[1].flags & 1)) {
-      asm("");
-      var_v1 = 0;
-      }
-      var_v0 = 1;
-      if (var_v1) {
-      return var_v0;
-      }
-      break;
+    work  = arg0->work;
+    enemy = arg0->spawnArg2;
 
+    switch (work->field_4C0) {
+        case 0:
+            _actor311500BlendAnim(arg0);
+            _actor311500SpawnEffect(arg0);
+            if (enemy->hp <= 0) {
+                return -1;
+            }
+            work->field_4C0 = (u16)work->field_4C0 + 1;
+            break;
+
+        case 1:
+            if (_actor311500TickAnim(arg0)) {
+                return 1;
+            }
+            break;
+    }
     return 0;
-    default:
-
-  }
-
-  block_12:
-  var_v0 = 0;
-
-  return var_v0;
 }
-/* clang-format on */
 
 static s32 func_actor_311500_801630A4(Task* arg0)
 {
