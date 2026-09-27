@@ -4791,16 +4791,13 @@ static void func_801041FC(Task* arg0, s32 arg1)
 {
     GameActor* actor;
     GpPadEvt*  entry;
-    u8         count;
     s32        idx;
 
     actor = arg0->work;
-    count = actor->field_981;
-    if ((s8)actor->field_981 == 0) {
-        idx = arg1 & 0xFFFF;
-        SOFT_BARRIER();
-        actor->field_981 = count + 1;
-        entry            = &D_80112E28[idx];
+    idx   = arg1 & 0xFFFF;
+    if (actor->field_981 == 0) {
+        actor->field_981++;
+        entry = &D_80112E28[idx];
         Pad_PostEvent(0, 1, entry->field_0, entry->field_2);
     }
 }
