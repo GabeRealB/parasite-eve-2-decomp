@@ -1104,19 +1104,16 @@ static void func_dryfield_motel_balcony_801801A8(Task* arg0)
 /// out through the star draw before the work block is released.
 static void func_dryfield_motel_balcony_801802DC(Task* arg0)
 {
-    u8                rgb[3];
-    GpEffWork*        mem;
-    register GpCoord* coord asm("s2");
-    s16               flag;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     mem   = arg0->spawnArg2;
-    flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
-    if (flag != 0) {
-        if (flag < 4) {
-            return;
+    if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->eventState >= 4) {
+            Gp_ReleaseState1CMem(mem, arg0);
         }
-        goto kill;
     } else {
         Gp_UpdateCoord(coord);
         mem->age++;
@@ -1126,18 +1123,18 @@ static void func_dryfield_motel_balcony_801802DC(Task* arg0)
                 mem->angle  = 0x80;
                 mem->step   = 0x100 / arg0->spawnArg1;
                 arg0->state = 1;
-                return;
+                break;
             case 1:
-                mem->scale      += mem->step;
-                mem->angle      += mem->step;
-                arg0->spawnArg1 -= 1;
-                rgb[0]           = mem->scale;
-                rgb[1]           = mem->scale >> 2;
-                rgb[2]           = mem->scale >> 1;
+                mem->scale += mem->step;
+                mem->angle += mem->step;
+                arg0->spawnArg1--;
+                rgb[0] = mem->scale;
+                rgb[1] = mem->scale >> 2;
+                rgb[2] = mem->scale >> 1;
                 func_dryfield_motel_balcony_801809AC(coord, mem->angle, rgb);
-                rgb[0] = rgb[0] >> 1;
-                rgb[1] = rgb[1] >> 1;
-                rgb[2] = rgb[2] >> 1;
+                rgb[0] >>= 1;
+                rgb[1] >>= 1;
+                rgb[2] >>= 1;
                 func_dryfield_motel_balcony_801809AC(coord, (u16)mem->angle * 2, rgb);
                 func_dryfield_motel_balcony_80180580(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
                 if (arg0->spawnArg1 == 0) {
@@ -1147,9 +1144,8 @@ static void func_dryfield_motel_balcony_801802DC(Task* arg0)
                     rgb[1]      = mem->scale >> 2;
                     rgb[2]      = mem->scale >> 1;
                     Gp_DrawFadeQuad(rgb, 1);
-                    return;
                 }
-                return;
+                break;
             case 2:
                 if (mem->scale >= 0x11) {
                     rgb[0] = mem->scale;
@@ -1158,17 +1154,14 @@ static void func_dryfield_motel_balcony_801802DC(Task* arg0)
                     func_dryfield_motel_balcony_801818B0(coord, mem->angle * 3, rgb);
                     mem->scale -= 0x10;
                     mem->angle -= 8;
-                    return;
+                    break;
                 }
                 /* fallthrough */
             case 3:
-                goto kill;
-            default:
-                return;
+                Gp_ReleaseState1CMem(mem, arg0);
+                break;
         }
     }
-kill:
-    Gp_ReleaseState1CMem(mem, arg0);
 }
 
 /// Draws a ring of sixteen gouraud quads around the coordinate's projected
