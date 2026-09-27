@@ -722,9 +722,7 @@ mode_end:
         if (--work->field_51C <= 0)
             work->field_51C = 0;
     }
-    /* The record walk steps a work pointer one contact record at a time and
-       reads the record through it, keeping the record's offset in the
-       displacement as the ROM does. */
+    /* Process each of the eight collision contacts. */
     rec = work;
 next_record: {
     switch (rec->collision.named.hit.parts.kind) {
@@ -792,11 +790,11 @@ next_record: {
                 } else {
                     work->field_522 = 1;
                     Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                    work->field_4CC = (((u32)Gp_LcgState >> 11) & 0x60) + 0x100;
+                    work->field_4CC = ((Gp_LcgState >> 11) & 0x60) + 0x100;
                 }
                 if (work->field_4FE != 0 && work->field_528 != 0) {
                     work->field_3EA &= 0x7FFF;
-                    CLEAR_REC18_OCCUPIED((GpRec18*)work->pad_3EC);
+                    Gp_ClearRec18Occupied((GpRec18*)work->pad_3EC);
                     work->field_4FA  = 0;
                     work->field_51E += 20;
                     amount           = Actor01600_Fn045A8(actor, &distance);
@@ -820,17 +818,17 @@ next_record: {
             scratch->delta.v.vx = cx;
             cz                  = coord->workm.t[2] - rec->collision.named.field_318;
             scratch->delta.v.vz = cz;
-            push                = rec->collision.named.field_30E - SquareRoot0(cx * cx + cz * cz);
+            push                = cx * cx + cz * cz;
+            push                = SquareRoot0(push);
+            push                = -push;
+            push               += rec->collision.named.field_30E;
             clamped             = push;
             if (push <= 0)
                 clamped = 0;
             push = clamped;
             SOFT_TOUCH_REG_USE(push, rec);
-            SOFT_TOUCH_REG_USE(push, rec);
-            SOFT_TOUCH_REG_USE(push, rec);
             v1                  = &scratch->delta.v;
             scratch->delta.v.vx = coord->workm.t[0] - rec->collision.named.field_314;
-            SOFT_TOUCH_REG_USE(push, clamped);
             v2                  = &scratch->normal;
             scratch->delta.v.vy = coord->workm.t[1] - rec->collision.named.field_316;
             scratch->delta.v.vz = coord->workm.t[2] - rec->collision.named.field_318;
@@ -865,13 +863,13 @@ next_record: {
     rec = (void*)rec + 0x18;
     if ((s32)rec < (s32)work + 0xC0)
         goto next_record;
-    CLEAR_REC18_OCCUPIED((GpRec18*)&work->collision.field_2EC[0x20]);
+    Gp_ClearRec18Occupied((GpRec18*)&work->collision.field_2EC[0x20]);
     if (work->field_516 && Gp_FindRec18((GpRec18*)work->pad_3EC, 0)) {
         work->collision.named.field_2FE = -400;
         work->collision.named.field_308 = 400;
         work->field_52A                 = 1;
         work->field_3EA                &= 0x7FFF;
-        CLEAR_REC18_OCCUPIED((GpRec18*)work->pad_3EC);
+        Gp_ClearRec18Occupied((GpRec18*)work->pad_3EC);
         if (work->field_50A < 15) {
             work->field_516  = 8;
             work->field_4FA  = 0;
