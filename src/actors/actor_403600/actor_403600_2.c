@@ -2751,36 +2751,22 @@ static void func_actor_403600_8013D15C(Task* arg0)
 static s32 func_actor_403600_8013D9A8(Task* arg0)
 {
     s32              i;
-    s32              mask;
-    s32              kind;
-    s32              callResult;
-    s32              three;
     s32              x;
     s32              y;
     s32              z;
     Actor403600Work* work;
-    u8*              entry;
 
-    i     = 0;
-    mask  = 0xFFFF0000;
-    kind  = 0x10;
-    work  = arg0->work;
-    entry = (u8*)work;
-    do {
-        if ((((u32)(((volatile GpRec18*)(entry + 0x5F8))->key & mask)) >> 16) == kind) {
+    work = arg0->work;
+    for (i = 0; i < 4; i++) {
+        if (((u32)(work->field_5F8[i].key & 0xFFFF0000) >> 16) == 0x10) {
             if (work->field_786 == 0) {
                 work->field_786++;
-                callResult = func_800E1B24(((volatile GpRec18*)(entry + 0x5F8))->key);
-                three      = 3;
-                if (callResult == three) {
+                if (func_800E1B24(work->field_5F8[i].key) == 3) {
                     return 2;
                 }
-                SOFT_USE_REG(three);
             }
         }
-        i++;
-        entry += sizeof(GpRec18);
-    } while (i < 4);
+    }
 
     Gp_ClearRec18Occupied(work->field_5F8);
     x = work->field_4B8.coord.t[0] + ((work->field_4B8.coord.m[0][2] * 0x177) >> 9);
