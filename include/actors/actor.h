@@ -2532,24 +2532,31 @@ static __inline__ s32 actorFindHit(SVECTOR* pos, GpRec18* records)
     return 0;
 }
 
-/// Gives `model` the texture page and palette of the enemy's placement in the
-/// current area, and reprocesses its stream when it already has one.
-static __inline__ void actorTintModel(TmdObject* model, GpEnemy* enemy)
+/// Looks up the current area's placement record from the session location.
+static __inline__ GpAreaRec* actorGetCurrentAreaRec(void)
 {
-    GpAreaKey    key;
-    GpAreaKey*   sessionKey;
-    GpAreaRec*   rec;
-    GpAreaPlace* place;
-    s32          idx;
+    GpAreaKey  key;
+    GpAreaKey* sessionKey;
 
     sessionKey = &gGameSession->at4.loc;
-    idx        = enemy->placeKey >> 12;
     key.stage  = sessionKey->stage;
     key.area   = sessionKey->area;
     key.room   = sessionKey->room;
     key.view   = sessionKey->view;
     Gp_SyncAreaKeyIndex(&key);
-    rec          = Gp_GetNestedAreaRec(&key);
+    return Gp_GetNestedAreaRec(&key);
+}
+
+/// Gives `model` the texture page and palette of the enemy's placement in the
+/// current area, and reprocesses its stream when it already has one.
+static __inline__ void actorTintModel(TmdObject* model, GpEnemy* enemy)
+{
+    GpAreaRec*   rec;
+    GpAreaPlace* place;
+    s32          idx;
+
+    idx          = enemy->placeKey >> 12;
+    rec          = actorGetCurrentAreaRec();
     place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
     model->tpage = place->tpage;
     model->clut  = place->clut;

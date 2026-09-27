@@ -6187,6 +6187,21 @@ static void func_actor_403200_8013EF6C(Task* arg0)
     }
 }
 
+/// Gives the escort the texture page and palette of the current area's
+/// third placement, and refreshes its existing model stream.
+static inline void _actor403200TintEscort(TmdObject* model)
+{
+    GpAreaPlace* entry;
+
+    entry        = &((GpAreaPlace*)actorGetCurrentAreaRec()->field_0)[2];
+    model->tpage = entry->tpage;
+    model->clut  = entry->clut;
+    if (model->buffer != NULL) {
+        tmdProcessStream(model);
+        tmdProcessStream(model);
+    }
+}
+
 static void func_actor_403200_8013F700(Task* arg0)
 {
     Actor403200Work* work;
@@ -6194,16 +6209,10 @@ static void func_actor_403200_8013F700(Task* arg0)
     Actor403200Work* dying;
     GpEnemy*         enemy;
     GpEnemy*         spawned;
-    GpAreaKey*       sessionKey;
-    GpAreaKey*       keyp;
-    u8               areaByte0;
     SVECTOR          vec;
     SVECTOR*         v;
-    GpAreaKey        key;
     GpCoord*         coord;
     GpCoord*         rot;
-    GpAreaPlace*     entry;
-    TmdObject*       model;
     s16              i;
     s16              j;
     s16              angle;
@@ -6271,24 +6280,7 @@ static void func_actor_403200_8013F700(Task* arg0)
             spawned->workType = 0x900;
             work->field_EF0   = spawned;
             if (spawned != NULL) {
-                model      = spawned->task->extra.tmd;
-                sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
-                key.stage  = sessionKey->stage;
-                key.area   = sessionKey->area;
-                key.room   = sessionKey->room;
-                areaByte0  = sessionKey->view;
-                SOFT_BARRIER();
-                keyp = &key;
-                TOUCH_REG(keyp);
-                key.view = areaByte0;
-                Gp_SyncAreaKeyIndex(keyp);
-                entry        = (GpAreaPlace*)(0x20 + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-                model->tpage = entry->tpage;
-                model->clut  = entry->clut;
-                if (model->buffer != NULL) {
-                    tmdProcessStream(model);
-                    tmdProcessStream(model);
-                }
+                _actor403200TintEscort(spawned->task->extra.tmd);
                 work->field_EFE = 0;
             }
             break;
