@@ -144652,3 +144652,19 @@ local to a `static inline` setter whose parameter is a different width
 pseudo; the swap disappears and nothing else changes. Same-width pairs
 (`u8`/`u8`, `s32`/`s32`) coalesce and keep the swap, and a `u8` local into an
 `s32` parameter adds an `andi`.
+
+## A barrier that re-reads a divisor stands for the u8 bound temporaries and the inline helpers around them (func_actor_400500_801335E8, 2026-09-27)
+
+The walk handler computes three frame bounds as `rate == 0 ? 0 : (u32)(n / rate) >> 4`
+and then runs four frame windows that sample, sound and re-anchor two nodes. The seed
+kept every step expanded in one body with `s32` bounds and needed a
+`COMPILER_BARRIER` plus a manual reload of `rate` between two bounds. Writing each
+bound through its own `u8` temporary (the shape `actor_400600` already uses) and
+factoring the set-anim, tick, hit test, sample and anchor steps into `static inline`
+helpers removed the barrier with nothing else changed. The two sound calls then
+matched only with the sound id built into one caller-scope local and passed to an
+inline helper that does the pan and enqueue: building the id inside the helper, or
+passing the expression directly, gives each call its own short pseudo and swaps
+`$s0`/`$s1` around `Gp_GetObjPan`. The frame-0 window start still needs
+`SOFT_MOVE_ZERO`; every literal, width and position tried either folded it into
+`$zero` or placed the `move` before the hit-test join.
