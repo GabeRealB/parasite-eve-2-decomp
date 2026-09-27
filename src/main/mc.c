@@ -1110,7 +1110,8 @@ static inline s32 _mcCompareBufferHalves(void)
         i      += 1;
         flags <<= 1;
     } while (i < 8U);
-    flags |= 0x103;
+    flags |= 0x100;
+    flags |= 3;
     return flags;
 }
 
@@ -2401,38 +2402,7 @@ static void func_80033C38(void)
 
 static s32 Mc_CompareBufferHalves(void)
 {
-    McBufferSlot* base;
-    u8*           src;
-    u8*           dest;
-    s32           size;
-    register s32  flags asm("a3");
-    u32           i;
-    register u32  j asm("a0");
-    s32           idx;
-
-    flags = 0;
-    i     = 0;
-    base  = Mc_BufferSlots;
-    do {
-        idx  = 8 - i;
-        src  = (u8*)base[idx].field_0;
-        size = base[idx].field_4;
-        j    = 0;
-        dest = src + size;
-        if (size != 0) {
-            do {
-                if (*src != *dest) {
-                    flags |= 1;
-                }
-                j    += 1;
-                src  += 1;
-                dest += 1;
-            } while (j < (u32)size);
-        }
-        i     += 1;
-        flags *= 2;
-    } while (i < 8U);
-    return flags | 0x103;
+    return _mcCompareBufferHalves();
 }
 
 static void Mc_WriteSlotChecksums(void)
