@@ -1001,12 +1001,11 @@ resumeView:
                     D_801155AC = 1;
 
                     holdFrames = Gp_CapTable[(s16)D_801155AE].field_3;
-                    D_8011569A = (s16)holdFrames;
+                    D_8011569A = holdFrames;
                     D_80115698 = Gp_CapTable[(s16)D_801155AE].field_2;
-                    if ((s32)holdFrames < D_8011566A) {
-                        SOFT_USE_REG(holdFrames);
-                        D_80115698 = (u16)D_80115698 - (u16)D_8011566A;
-                        D_8011569A = 0;
+                    if (holdFrames < D_8011566A) {
+                        D_8011569A  = 0;
+                        D_80115698 -= D_8011566A;
                         if (D_80115698 < 0) {
                             D_80115698 = 0;
                         }
