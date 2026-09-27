@@ -145165,3 +145165,20 @@ to `$a2`, `prim` gets `$a1`, and the copy is deleted as a no-op.
 **Fix.** Store the global from the table and take the working pointer from the
 global, as sibling functions that start from the cursor do. The read may sit
 right after the store or just before the loop; both match.
+## A `u16` pinned to `$a0` across range checks: test the struct field and the published global, with no local (Gp_PublishItemObj, 2026-09-27)
+
+**Shape.** `lbu a0; sh a0,Id; lhu a0; sh a0,Loc`, then `andi 0xFFFF` kept on
+every range check of the loaded value, including the `x - 0x80` test after a
+label. The seed reused one `register u16 x asm("a0")` for both loads and copied
+it into a second local for the tests.
+
+**Cause.** Two attractors, neither the target. A local reused for both loads
+(or set twice for any reason) has known nonzero bits, so combine drops the
+`andi` from the range check in the block after the label. A local set once
+leaves the first block's two values as block-local pseudos, and local-alloc
+gives the short-lived `lbu` result `$v1` ahead of the object pointer.
+
+**Fix.** No local at all: `Loc = obj->f; if (obj->f < 0xA0) { if (Loc >= 0x60
+&& Loc < 0x80) ...`. The global store cannot alias the struct field, so cse
+reuses the load for the outer test, and the inner tests read the global the
+code goes on to overwrite. The permuter found the outer-field form.

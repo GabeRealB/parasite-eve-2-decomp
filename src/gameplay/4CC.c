@@ -1445,26 +1445,17 @@ s32 Gp_BindItemObj2(Task* arg0, s32 arg1, GpCmdReply* arg2)
 
 void Gp_PublishItemObj(Task* arg0)
 {
-    u16 item;
-    s32 count;
+    GpItemObj8* obj = arg0->spawnArg2;
+    s32         count;
 
-    {
-        GpItemObj8*  obj;
-        register u16 ritem asm("a0");
-
-        obj           = arg0->spawnArg2;
-        ritem         = obj->field_8;
-        Gp_PubItemId  = ritem;
-        ritem         = obj->field_A;
-        Gp_PubItemLoc = ritem;
-        item          = ritem;
-    }
-    if (item < 0xA0) {
-        if ((u16)(item - 0x60) < 0x20U) {
+    Gp_PubItemId  = obj->field_8;
+    Gp_PubItemLoc = obj->field_A;
+    if (obj->field_A < 0xA0) {
+        if (Gp_PubItemLoc >= 0x60 && Gp_PubItemLoc < 0x80) {
             if (func_800B7420(Gp_PubItemLoc) != 0) {
                 Gp_PubItemLoc = 0xD;
             }
-        } else if ((u16)(item - 0x80) < 0x20U) {
+        } else if (Gp_PubItemLoc >= 0x80 && Gp_PubItemLoc < 0xA0) {
             if (func_800B7420(Gp_PubItemLoc) != 0) {
                 Gp_PubItemLoc = 0x3D;
             }
