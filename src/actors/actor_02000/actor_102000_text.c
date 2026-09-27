@@ -1236,27 +1236,19 @@ static void Actor02000_Fn0251C(GpEnemy* ctx, Task* actor)
 {
     Actor105600Work* work;
     TmdObject*       obj;
-    TmdObject*       model;
     GpCoord*         coord;
     GpCoord*         parts;
     GpCoord*         partsA;
     GpCoord*         partsB;
     GpCoord*         partsC;
     GpCoord*         effParts;
-    GpAreaKey*       sessionKey;
-    GpAreaKey*       keyPtr;
-    u8               areaByte0;
-    GpAreaRec*       rec;
-    GpAreaPlace*     entry;
     GpEnemy*         eff;
     u16*             tbl;
     u8               param1[8];
     u8               param2[8];
-    GpAreaKey        key;
     s32              i;
     s32              one;
     s32              kind;
-    s32              idx;
     s32              param;
 
     obj   = actor->extra.tmd;
@@ -1280,34 +1272,8 @@ static void Actor02000_Fn0251C(GpEnemy* ctx, Task* actor)
     for (i = 1; i < 0x13; i++) {
         Gp_AnimResetSlot(&work->rig.anim, i, 1);
     }
-    eff        = Gp_SpawnEnemyFromTable(Actor02000_D15FD0, 1, 0, ctx);
-    sessionKey = &gGameSession->at4.loc;
-    model      = eff->task->extra.tmd;
-    idx        = ctx->placeKey >> 12;
-    key.stage  = sessionKey->stage;
-    key.area   = sessionKey->area;
-    key.room   = sessionKey->room;
-    areaByte0  = sessionKey->view;
-    /* Both calls take `&key`. Left alone, GCC 2.8.1 CSEs that address into one
-       pseudo that is live across the first call, costing a callee-saved
-       register; the ROM rematerializes `addiu a0, sp, key` for each call. The
-       barrier keeps the address materialization next to the call and the
-       `+r` touch makes the second one a fresh computation. */
-    SOFT_BARRIER();
-    keyPtr = &key;
-    TOUCH_REG(keyPtr);
-    key.view = areaByte0;
-    Gp_SyncAreaKeyIndex(keyPtr);
-    rec = Gp_GetNestedAreaRec(&key);
-    /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
-       onto the table (`addu s0, s0, v0`). */
-    entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-    model->tpage = entry->tpage;
-    model->clut  = entry->clut;
-    if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
-    }
+    eff = Gp_SpawnEnemyFromTable(Actor02000_D15FD0, 1, 0, ctx);
+    actorTintTask(eff->task, ctx);
 
     one  = 1;
     kind = ctx->spawnState;
