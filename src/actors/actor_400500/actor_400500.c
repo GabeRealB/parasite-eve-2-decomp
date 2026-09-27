@@ -5317,29 +5317,18 @@ static void func_actor_400500_8013BC9C(Task* arg0)
 static void func_actor_400500_8013BCCC(Task* arg0)
 {
     Actor400500Work* work;
-    Actor400500Work* work2;
     GpCoord*         coord;
-    u16              step;
-    u16              accum;
-    s32              y;
 
-    work  = (Actor400500Work*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    SCHED_BARRIER();
-    step              = (u16)work->field_A10 + 2;
-    accum             = (u16)work->field_A12 + step;
-    work->field_A12   = accum;
-    work->field_A10   = step;
-    y                 = coord->coord.t[1] + (s16)accum;
-    coord->coord.t[1] = y;
-    if (y >= -0x897) {
+    work               = (Actor400500Work*)arg0->work;
+    coord              = arg0->extra.tmd->coords;
+    work->field_A10   += 2;
+    work->field_A12   += work->field_A10;
+    coord->coord.t[1] += work->field_A12;
+    if (coord->coord.t[1] >= -0x897) {
         coord->coord.t[1] = -0x898;
-        work->field_A0A   = work->field_A0A + 1;
-        work2             = (Actor400500Work*)arg0->work;
-        work2->field_9F8  = 0x10;
-        work2->field_9FE  = 0x13;
-        work2->field_9FA  = 2;
-        work->field_94C   = (u16)work->field_94C + 0x800;
+        work->field_A0A++;
+        _actor400500SetAnim(arg0, 0x13, 0x10);
+        work->field_94C  += 0x800;
         coord->coord.t[1] = -0x3E8;
         work->field_A04   = 0;
     }
