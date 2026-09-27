@@ -1912,7 +1912,6 @@ static void func_actor_401800_80136560(Task* arg0)
     void**             scratch;
     u8*                head;
     u8*                block;
-    s16                animRate;
     ActorChaseScratch* s;
     s32                kind;
 
@@ -1929,13 +1928,11 @@ static void func_actor_401800_80136560(Task* arg0)
         Tmd_AllocBuffers(obj);
         work->field_8C8.radius = 0x12C;
         work->field_898        = 1;
+        work->field_89A        = 0;
         work->field_89E        = 3;
         work->field_B48.flags &= 0x7FFF;
-        animRate               = work->field_8A4;
-        TOUCH_REG(work);
-        work->field_89A        = 0;
-        work->field_8A2        = animRate;
         work->field_A08.flags |= 0x4000;
+        work->field_8A2        = work->field_8A4;
         func_actor_401800_80133EB8(arg0);
         work->field_C1C = 0;
         work->field_6   = 0;
