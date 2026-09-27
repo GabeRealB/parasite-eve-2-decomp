@@ -212,24 +212,14 @@ static const char D_mist_shooting_gallery_8017D65C[];
 static void func_mist_shooting_gallery_8017DCAC(s32 mode)
 {
     McItemScan* scan;
-    u8*         levels;
     s32         row;
     s32         col;
-    s32         i;
-    s32         k;
 
-    scan   = &Mc_SaveData[0].carriedItems;
-    row    = 0;
-    levels = Gp_DebugAttachLevels;
-    i      = row;
-    for (; row < 4; row++, i += 3) {
-        col = 0;
-        k   = i;
-        TOUCH_REG(k);
-        do {
-            *(u8*)((col + k) + (s32)levels) = 0;
-            col++;
-        } while (col < 3);
+    scan = &Mc_SaveData[0].carriedItems;
+    for (row = 0; row < 4; row++) {
+        for (col = 0; col < 3; col++) {
+            Gp_DebugAttachLevels[col + row * 3] = 0;
+        }
     }
     Gp_DebugAttachLevels[0] = 1;
 
