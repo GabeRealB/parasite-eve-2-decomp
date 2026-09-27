@@ -4367,7 +4367,6 @@ s32 Gp_SpawnWeaponEff(void)
     GpEffWork*    eff;
     GameActor*    inner;
     TmdObject*    anim;
-    register s32  ret asm("v0");
 
     work  = gameGetPtrSlot(3);
     actor = work->work;
@@ -4439,10 +4438,9 @@ join_50:
     func_800B3F84((GpAnimCtx*)inner->field_424, inner->field_928, anim, &inner->field_7A8,
                   inner->field_438);
     func_801066DC(work, 1);
-    ret                               = (s32)actor->field_91C;
     actor->field_983                  = 7;
     ((GpObj*)actor->field_AC)->flags |= 0x2000;
-    return ret;
+    return (s32)actor->field_91C;
 }
 
 Task* Gp_SpawnPlayer(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3)
