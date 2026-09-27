@@ -422,10 +422,7 @@ static void func_neo_ark_shrine_8017EDE0(Task* task)
     RoomActionPrompt*   prompt = &D_80114D28;
     NeoArkShrineScript* work   = (NeoArkShrineScript*)task->work;
 
-    func_neo_ark_shrine_8017EAC0();
-    /* Without this local-alloc ranks `work` (2 refs over 6 insns) above `task`
-       (3 refs over 12), which swaps their `$s1` / `$s2` homes. */
-    SOFT_TOUCH_REG(task);
+    func_neo_ark_shrine_8017EAC0(task);
     prompt->mode     = 0;
     prompt->targetId = 0;
     func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->field_E);
