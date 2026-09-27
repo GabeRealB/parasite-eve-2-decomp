@@ -2339,22 +2339,11 @@ McItemRec* Gp_GetItemTable(McItemScan* arg0)
 
 s32 Gp_ScanIndexOf(McItemScan* arg0, McItemRec* arg1)
 {
-    McItemRec*   table;
-    register s32 i asm("a2");
-    s32          ret;
+    McItemRec* table;
+    s32        i;
+    s32        ret;
 
-    switch (arg0->table) {
-        case 2:
-            table = Gp_ItemTable2;
-            break;
-        case 1:
-            table = Gp_ItemTable1;
-            break;
-        default:
-            table = Mc_SaveData[0].itemRows;
-            break;
-    }
-
+    table  = _gpScanTable(arg0);
     ret    = -1;
     table += arg0->firstRow;
     for (i = 0; i < arg0->rowCount; i++) {
