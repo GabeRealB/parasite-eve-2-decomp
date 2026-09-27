@@ -544,35 +544,27 @@ void Gp_DrawRing(GpCoord* arg0, s32 arg1, u8* rgb)
 
 void Gp_DrawFxQuad(GpCoord* arg0, u16 arg1, s16 arg2, u16 arg3)
 {
-    u8*              head;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
-    SVECTOR*         vec;
+    u16              clutIdx;
     s32              u0;
     s32              u1;
-    s32              clutIdx;
     s32              ang2;
-    u16              vz;
 
-    head                                      = SCRATCH_HEAD(u8);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpFxQuadScratch)             = block;
-    block->vec.vz                             = vz;
-    vec                                       = &block->vec;
+    block         = SCRATCH_PUSH(GpFxQuadScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(&block->vec);
     gte_rtps();
     clutIdx = arg3 >> 12;
-    USE_REG(clutIdx);
-    arg3 &= 0xFFF;
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
+    arg3   &= 0xFFF;
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&block->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -601,7 +593,7 @@ void Gp_DrawFxQuad(GpCoord* arg0, u16 arg1, s16 arg2, u16 arg3)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_POP(GpFxQuadScratch);
 }
 
 void func_800EB6E8(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
