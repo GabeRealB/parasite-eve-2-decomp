@@ -2694,7 +2694,6 @@ void Gp_EffSprTask80(Task* arg0)
 
 void Gp_EffSprTask8D(Task* arg0)
 {
-    u8*            head;
     GpRingScratch* block;
     GpCoord*       coord;
     GpEffWork*     mem;
@@ -2704,7 +2703,6 @@ void Gp_EffSprTask8D(Task* arg0)
     s32            amt;
     s32            t;
     u16            uv;
-    u16            vz;
     s32            scale;
     s32            c;
 
@@ -2712,25 +2710,18 @@ void Gp_EffSprTask8D(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState < 4) {
         Gp_UpdateCoord(coord);
-        head                                    = SCRATCH_HEAD(u8);
-        ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)coord->workm.t[0];
-        {
-            register u8* tmp asm("v0");
-            tmp   = head - 0x18;
-            block = (GpRingScratch*)tmp;
-        }
-        block->vec.vy               = (u16)coord->workm.t[1];
-        vz                          = (u16)coord->workm.t[2];
-        SCRATCH_HEAD(GpRingScratch) = block;
-        block->vec.vz               = vz;
+        block         = SCRATCH_PUSH(GpRingScratch);
+        block->vec.vx = coord->workm.t[0];
+        block->vec.vy = coord->workm.t[1];
+        block->vec.vz = coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec);
         gte_rtps();
-        gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-        gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
+        gte_stsxy(&block->sx);
+        gte_stflg(&block->flag);
         if (block->flag >= 0) {
-            gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+            gte_stszotz(&block->otz);
             block->otz++;
             prim           = (POLY_FT4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -2793,7 +2784,7 @@ void Gp_EffSprTask8D(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        SCRATCH_POP_BYTES(0x18);
+        SCRATCH_POP(GpRingScratch);
         if (Gp_State1C->eventState != 0) {
             return;
         }
