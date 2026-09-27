@@ -30,7 +30,7 @@ static s32 D_metabolism_8012FB6C[] = { 0xE01F0001, 0xE0220001, 0xE0250001 };
 /// random offset, seeded by state 0 and swept by `func_metabolism_8012F840`.
 static s16 D_metabolism_8012FB78[16] = { 0 };
 
-static void func_metabolism_8012F840(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_metabolism_8012F840(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
 /// Runs one frame of the metabolism cast. Cancel (`Gp_StateC08.field_3 == -2`
 /// or `Gp_State1C->fadeState >= 4`) releases the work block. State 0 parents the
@@ -265,7 +265,7 @@ static void func_metabolism_8012F5A0(Task* arg0)
 /// is a single channel: red is halved, green is `arg3`, blue is shifted by
 /// the low bit of `gDisplayState.animFrame`. The rim fades to black. A
 /// negative `gte_stflg` drops the wedge.
-static void func_metabolism_8012F840(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_metabolism_8012F840(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*            head;
     GpRingScratch* block;
@@ -273,7 +273,6 @@ static void func_metabolism_8012F840(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3
     POLY_G3*       prim;
     s32            ang;
     s32            ang2;
-    s32            color;
     u16            vz;
 
     head                                    = SCRATCH_HEAD(u8);
@@ -281,11 +280,9 @@ static void func_metabolism_8012F840(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = (u16)arg0->workm.t[1];
     vz                                      = (u16)arg0->workm.t[2];
-    color                                   = arg3;
-    SOFT_TOUCH_REG(color);
-    SCRATCH_HEAD(GpRingScratch) = block;
-    block->vec.vz               = vz;
-    vec                         = &block->vec;
+    SCRATCH_HEAD(GpRingScratch)             = block;
+    block->vec.vz                           = vz;
+    vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
@@ -298,11 +295,11 @@ static void func_metabolism_8012F840(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3
         prim           = (POLY_G3*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG3(prim);
-        setRGB0(prim, (s16)arg3 >> 1, color, (s16)arg3 >> (gDisplayState.animFrame & 1));
+        setRGB0(prim, arg3 >> 1, arg3, arg3 >> (gDisplayState.animFrame & 1));
         setRGB1(prim, 0, 0, 0);
         setRGB2(prim, 0, 0, 0);
-        block->step = ((s16)arg1 * 128) / block->otz;
-        ang         = (s16)arg2;
+        block->step = (arg1 * 128) / block->otz;
+        ang         = arg2;
         ang2        = ang - 0x20;
         prim->x0    = (u16)block->sx;
         prim->y0    = (u16)block->sy;
