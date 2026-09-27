@@ -4331,17 +4331,14 @@ static void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
     GpRec18*       slot;
     s32            flags;
     s32            i;
-    GpActorD4Rec*  shape;
 
+    rec   = arg0->ctx.d4rec;
     block = SCRATCH_PUSH(GpNormScratch);
     i     = 0;
-    rec   = arg0->ctx.d4rec;
 
     if (arg3 == 0) {
         if (arg0->flags & 0x800) {
-            shape = rec;
-            TOUCH_REG(shape);
-            slot = shape->recs;
+            slot = arg0->ctx.d4rec->recs;
             for (;;) {
                 flags = slot->flags;
                 if (flags & 1) {
@@ -4397,9 +4394,9 @@ done_search:
     gte_SetRotMatrix(&arg0->coord->workm);
     for (; i < 2; i++) {
         src             = &rec->end0 + i; // end0 and end1 are adjacent
-        block->local.vx = (u16)src->vx + (u16)arg0->pos.vx;
-        block->local.vy = (u16)src->vy + (u16)arg0->pos.vy;
-        block->local.vz = (u16)src->vz + (u16)arg0->pos.vz;
+        block->local.vx = src->vx + arg0->pos.vx;
+        block->local.vy = src->vy + arg0->pos.vy;
+        block->local.vz = src->vz + arg0->pos.vz;
         gte_ldv0(&block->local);
         gte_rtv0();
         gte_stlvnl(&block->vec);
