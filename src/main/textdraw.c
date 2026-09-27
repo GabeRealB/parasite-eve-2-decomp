@@ -548,6 +548,60 @@ static inline u8* _textItoaUnsigned(u8* arg0, u32 value)
     return arg0;
 }
 
+/// Writes `arg1` in decimal to `arg0`, with a leading '-' when negative, and
+/// terminates it; values past nine digits are written as all nines.
+static inline u8* _textItoaSigned(u8* arg0, s32 arg1)
+{
+    typedef struct {
+        u8 data[9];
+    } Bytes9;
+    typedef struct {
+        u8 data[2];
+    } Bytes2;
+
+    u8* dest;
+    s32 place;
+    s32 digit;
+    s32 temp;
+    s32 cmp;
+
+    place = 0x989680;
+    if (arg1 < 0) {
+        *arg0 = 0x2D;
+        Text_ItoaSigned(arg0 + 1, -arg1);
+        return arg0;
+    }
+    if (arg1 > 0x5F5E0FF) {
+        *(Bytes9*)arg0 = *(Bytes9*)D_800138BC;
+        return arg0;
+    }
+    cmp = arg1 < place;
+    if (arg1 == 0) {
+        *(Bytes2*)arg0 = *(Bytes2*)D_800138C8;
+        return arg0;
+    }
+    dest = arg0;
+    if (cmp) {
+        do {
+            place /= 10;
+        } while (arg1 < place);
+    }
+    if (place > 0) {
+        do {
+            digit  = arg1 / place;
+            *dest  = digit;
+            temp   = *dest & 0xFF;
+            digit  = temp * place;
+            place /= 10;
+            *dest  = temp + 0x30;
+            dest++;
+            arg1 -= digit;
+        } while (place > 0);
+    }
+    *dest = 0;
+    return arg0;
+}
+
 /// Writes `value` in decimal to `arg0` as exactly `width` digits, padded with
 /// leading zeros and clamped to the largest value that fits, and terminates it.
 static inline u8* _textItoaPadded(u8* arg0, u32 value, s32 width)
@@ -640,116 +694,14 @@ void Text_MeasureAndCenter(TextDrawReq* arg0, u8* arg1)
 
 u8* Text_ItoaSignedPlus(u8* arg0, s32 arg1)
 {
-    typedef struct {
-        u8 data[9];
-    } Bytes9;
-    typedef struct {
-        u8 data[2];
-    } Bytes2;
-
-    u8* dest;
-    u8* start;
-    s32 place;
-    s32 digit;
-    s32 temp;
-    s32 cmp;
-    s32 sign;
-
-    SOFT_COMPILER_BARRIER();
-    sign = 0x2D;
-    if (arg1 >= 0) {
-        sign = 0x2B;
-    }
-    *arg0 = sign;
-
-    place = 0x989680;
-    start = arg0 + 1;
-    if (arg1 < 0) {
-        arg0[1] = 0x2D;
-        Text_ItoaSigned(arg0 + 2, -arg1);
-        return arg0;
-    }
-    if (arg1 > 0x5F5E0FF) {
-        *(Bytes9*)(arg0 + 1) = *(Bytes9*)D_800138BC;
-        return arg0;
-    }
-    cmp = arg1 < place;
-    if (arg1 == 0) {
-        *(Bytes2*)(arg0 + 1) = *(Bytes2*)D_800138C8;
-        return arg0;
-    }
-    dest = start;
-    if (cmp) {
-        do {
-            place /= 10;
-        } while (arg1 < place);
-    }
-    if (place > 0) {
-        do {
-            digit  = arg1 / place;
-            *dest  = digit;
-            temp   = *dest & 0xFF;
-            digit  = temp * place;
-            place /= 10;
-            *dest  = temp + 0x30;
-            dest++;
-            arg1 -= digit;
-        } while (place > 0);
-    }
-    *dest = 0;
+    *arg0 = arg1 >= 0 ? '+' : '-';
+    _textItoaSigned(arg0 + 1, arg1);
     return arg0;
 }
 
 u8* Text_ItoaSigned(u8* arg0, s32 arg1)
 {
-    typedef struct {
-        u8 data[9];
-    } Bytes9;
-    typedef struct {
-        u8 data[2];
-    } Bytes2;
-
-    u8* dest;
-    s32 place;
-    s32 digit;
-    s32 temp;
-    s32 cmp;
-
-    place = 0x989680;
-    if (arg1 < 0) {
-        *arg0 = 0x2D;
-        Text_ItoaSigned(arg0 + 1, -arg1);
-        return arg0;
-    }
-    if (arg1 > 0x5F5E0FF) {
-        *(Bytes9*)arg0 = *(Bytes9*)D_800138BC;
-        return arg0;
-    }
-    cmp = arg1 < place;
-    if (arg1 == 0) {
-        *(Bytes2*)arg0 = *(Bytes2*)D_800138C8;
-        return arg0;
-    }
-    dest = arg0;
-    if (cmp) {
-        do {
-            place /= 10;
-        } while (arg1 < place);
-    }
-    if (place > 0) {
-        do {
-            digit  = arg1 / place;
-            *dest  = digit;
-            temp   = *dest & 0xFF;
-            digit  = temp * place;
-            place /= 10;
-            *dest  = temp + 0x30;
-            dest++;
-            arg1 -= digit;
-        } while (place > 0);
-    }
-    *dest = 0;
-    return arg0;
+    return _textItoaSigned(arg0, arg1);
 }
 
 u8* Text_ItoaUnsigned(u8* arg0, u32 arg1)

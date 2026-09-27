@@ -145405,3 +145405,13 @@ The same function's `(flags & 0x100) != 0` is folded to `srl 8; andi 1`; the
 target's `andi 0x100; sltu` also comes out of the flag-building spelling
 `f = 0; if (flags & 0x100) f = 1; if (g) f |= 2;`, which reads more naturally
 than the two-step temp in the entry above.
+## A leading barrier before a sibling's whole body is that sibling inlined behind a prefix (Text_ItoaSignedPlus, 2026-09-27)
+
+`Text_ItoaSignedPlus` stores a sign byte, then repeats `Text_ItoaSigned`'s
+body at `arg0 + 1` - including its recursive `jal Text_ItoaSigned`. The tree
+had the body spelled out with a `SOFT_COMPILER_BARRIER()` in front. Moving the
+body into a `static inline _textItoaSigned` that both public functions call
+matched without it: the inline's own parameters and block are what the barrier
+imitated. The prefix's sense mattered too: `*p = x >= 0 ? '+' : '-'` gives the
+target's `bltz; li 0x2d` / `li 0x2b`, while `x < 0 ? '-' : '+'` and an
+if/else both invert the branch.
