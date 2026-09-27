@@ -362,6 +362,13 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
+/// The inventory scan an item pane lists; the pane's `spawnArg1` selects which
+/// of the two side-by-side scans it shows.
+static inline McItemScan* _gpItemPaneScan(Task* task)
+{
+    return &Gp_MoveScanSrc + task->spawnArg1;
+}
+
 void Gp_ItemPaneTask(Task* arg0)
 {
     UiObject*   obj;
@@ -387,11 +394,9 @@ void Gp_ItemPaneTask(Task* arg0)
             arg0->status = 0;
         }
         {
-            s32                  val;
-            register McItemScan* s asm("v0");
+            s32 val;
 
-            s             = &Gp_MoveScanSrc;
-            val           = s[arg0->spawnArg1].rowCount;
+            val           = _gpItemPaneScan(arg0)->rowCount;
             menu->field_4 = val;
             menu->field_5 = val;
             if ((s8)val >= 0xB) {
@@ -427,7 +432,7 @@ void Gp_ItemPaneTask(Task* arg0)
         Ui_UpdateListNoAnim(menu, obj);
     }
 
-    scan  = &Gp_MoveScanSrc + arg0->spawnArg1;
+    scan  = _gpItemPaneScan(arg0);
     count = scan->rowCount;
     count = count < Gp_CountScanItems(scan);
     if (count != 0) {
