@@ -517,7 +517,6 @@ static void func_neo_ark_savanna_zone_8017E960(GpCoord* arg0, GpCoord* arg1, s16
     GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
-    s32                j;
     s32                i0;
     s32                i1;
     s32                hi;
@@ -530,37 +529,29 @@ static void func_neo_ark_savanna_zone_8017E960(GpCoord* arg0, GpCoord* arg1, s16
     s32                g2;
     s32                b2;
 
-    {
-        register u8* tmp asm("v0");
-
-        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
-        blk                = (RoomDraw03Scratch*)tmp;
-        SCRATCH_HEAD(void) = tmp;
-    }
+    blk = SCRATCH_PUSH(RoomDraw03Scratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     i = 0;
     do {
-        j            = arg2 - i;
-        i0           = j & 7;
+        i0           = (arg2 - i) & 7;
+        i1           = (arg2 - i - 1) & 7;
         a            = &arg0[i0];
-        blk->v[0].vx = (u16)a->workm.t[0];
-        j            = j - 1;
-        blk->v[0].vy = (u16)a->workm.t[1];
-        i1           = j & 7;
-        blk->v[0].vz = (u16)a->workm.t[2];
+        blk->v[0].vx = a->workm.t[0];
+        blk->v[0].vy = a->workm.t[1];
+        blk->v[0].vz = a->workm.t[2];
         b            = &arg1[i0];
-        blk->v[1].vx = (u16)b->workm.t[0];
-        blk->v[1].vy = (u16)b->workm.t[1];
-        blk->v[1].vz = (u16)b->workm.t[2];
+        blk->v[1].vx = b->workm.t[0];
+        blk->v[1].vy = b->workm.t[1];
+        blk->v[1].vz = b->workm.t[2];
         a            = &arg0[i1];
-        blk->v[2].vx = (u16)a->workm.t[0];
-        blk->v[2].vy = (u16)a->workm.t[1];
-        blk->v[2].vz = (u16)a->workm.t[2];
+        blk->v[2].vx = a->workm.t[0];
+        blk->v[2].vy = a->workm.t[1];
+        blk->v[2].vz = a->workm.t[2];
         b            = &arg1[i1];
-        blk->v[3].vx = (u16)b->workm.t[0];
-        blk->v[3].vy = (u16)b->workm.t[1];
-        blk->v[3].vz = (u16)b->workm.t[2];
+        blk->v[3].vx = b->workm.t[0];
+        blk->v[3].vy = b->workm.t[1];
+        blk->v[3].vz = b->workm.t[2];
         gte_ldv0(&blk->v[0]);
         gte_rtps();
         gte_stsxy(&blk->sx0);
@@ -570,20 +561,19 @@ static void func_neo_ark_savanna_zone_8017E960(GpCoord* arg0, GpCoord* arg1, s16
         gte_stflg(&blk->flag);
         if (blk->flag >= 0) {
             gte_stszotz(&blk->otz);
+            blk->otz       = blk->otz + 1;
             fade           = 0x40 - i * 9;
             hi             = fade & 0xFF;
+            lo             = (fade - 9) & 0xFF;
             r              = hi * (arg3 >> 8);
             g              = hi * ((arg3 >> 4) & 3);
             bl             = hi * (arg3 & 3);
-            lo             = (fade - 9) & 0xFF;
             r2             = lo * (arg3 >> 8);
             g2             = lo * ((arg3 >> 4) & 3);
+            b2             = lo * (arg3 & 3);
             prim           = (POLY_G4*)gGpuPrimCursor;
-            blk->otz       = blk->otz + 1;
             gGpuPrimCursor = prim + 1;
-            setlen(prim, 8);
-            b2 = lo * (arg3 & 3);
-            setcode(prim, 0x38);
+            setPolyG4(prim);
             prim->r0 = r;
             prim->r1 = r;
             prim->g0 = g;
