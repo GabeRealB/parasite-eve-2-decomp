@@ -1555,13 +1555,7 @@ static void func_shelter_b2_septic_tank_80181B34(GpCoord* arg0, GpCoord* arg1, s
     s32                g2;
     s32                b2;
 
-    {
-        register u8* tmp asm("v0");
-
-        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
-        blk                = (RoomDraw03Scratch*)tmp;
-        SCRATCH_HEAD(void) = tmp;
-    }
+    blk = SCRATCH_PUSH(RoomDraw03Scratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     i = 0;
