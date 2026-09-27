@@ -1205,26 +1205,7 @@ static void func_actor_207200_8014D5C4(Task* arg0)
 /// counter ticks and the slots are simply advanced by one.
 static void func_actor_207200_8014D65C(Task* arg0)
 {
-    Actor207200Work* work;
-    s32              i;
-
-    work = arg0->work;
-    i    = 1;
-    if (work->field_48C != (s16)work->field_48E) {
-        work->field_48E = work->field_48C;
-        work->field_490 = 0;
-        do {
-            func_800B4114((GpAnimCtx*)work, i, work->field_48C, 0, 8);
-            i++;
-        } while (i < 7);
-        return;
-    }
-    TOUCH_REG(i);
-    work->field_490 = (u16)(work->field_490 + i);
-    do {
-        Gp_AnimTickIndex((GpAnimCtx*)work, i);
-        i++;
-    } while (i < 7);
+    Actor207200_TickAnim(arg0);
 }
 
 /// Colours the actor from the *second* attach coordinate of its model: takes a
