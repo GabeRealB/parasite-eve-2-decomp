@@ -653,7 +653,9 @@ void func_replay_bonus_80116964(Task* arg0)
     }
 }
 
-void func_replay_bonus_80116AC0(Task* arg0)
+/// Shop tier offered for the current spend and game mode, skipping tiers
+/// already bought; -1 once every tier has been bought.
+static inline s32 _replayBonusShopTier(void)
 {
     ReplayBonusShopTier* p;
     u32                  spend;
@@ -662,16 +664,56 @@ void func_replay_bonus_80116AC0(Task* arg0)
     McSaveData*          save;
     s32                  mask;
     s32                  one;
-    s32                  result;
-    s32                  col;
-    s32                  col2;
-    s32                  item;
-    s32                  item2;
-    s32                  remaining;
-    s32                  dt;
-    s32                  temp;
-    s32                  tmp;
-    UiObject*            obj;
+
+    spend = func_replay_bonus_80115CA4();
+    p     = D_replay_bonus_80118F78;
+    idx   = 0;
+    if (Mc_SaveData[0].shopTiers == 0x1FFF) {
+        return -1;
+    }
+    for (i = 0; i < 0xD; i++, p++) {
+        if (p->spendThreshold >= spend) {
+            idx = i;
+            break;
+        }
+    }
+    save = &Mc_SaveData[0];
+    idx += save->gameMode;
+    i    = 0;
+    if (idx >= 0xD) {
+        idx = 0xC;
+    }
+    one  = 1;
+    mask = save->shopTiers;
+    for (; i < 0xD; i++) {
+        if ((mask & (one << idx)) == 0) {
+            break;
+        }
+        idx += 1;
+        if (idx >= 0xD) {
+            idx -= 0xD;
+        }
+    }
+    return idx;
+}
+
+/// Item in column `col` of the shop tier currently on offer, or 0 when none is.
+static inline s32 _replayBonusShopItem(s32 col)
+{
+    s32 tier;
+
+    tier = _replayBonusShopTier();
+    if (tier < 0) {
+        return 0;
+    }
+    return D_replay_bonus_80118F78[tier].items[col];
+}
+
+void func_replay_bonus_80116AC0(Task* arg0)
+{
+    s32       remaining;
+    s32       dt;
+    UiObject* obj;
 
     obj           = arg0->spawnArg2;
     obj->field_2E = 0;
@@ -680,114 +722,10 @@ void func_replay_bonus_80116AC0(Task* arg0)
             obj->field_2E = 6;
             return;
         }
+        arg0->extraState    = arg0->spawnArg1;
         arg0->killCountdown = 0xBC;
-        temp                = arg0->spawnArg1;
-        arg0->extraState    = temp;
-        SCHED_BARRIER();
-        col   = temp;
-        tmp   = func_replay_bonus_80115CA4();
-        p     = D_replay_bonus_80118F78;
-        spend = tmp;
-        idx   = 0;
-        if (Mc_SaveData[0].shopTiers == 0x1FFF) {
-            result = -1;
-        } else {
-            i = 0;
-            do {
-            loop:
-                if (!(p->spendThreshold < spend)) {
-                    idx = i;
-                    break;
-                }
-                i++;
-                p++;
-                if (i < 0xD) {
-                    goto loop;
-                }
-            } while (0);
-
-            save = &Mc_SaveData[0];
-            idx += save->gameMode;
-            i    = 0;
-            if (idx >= 0xD) {
-                idx = 0xC;
-            }
-            one  = 1;
-            mask = save->shopTiers;
-            do {
-            loop2:
-                if ((mask & (one << idx)) == 0) {
-                    break;
-                }
-                idx += 1;
-                if (idx >= 0xD) {
-                    idx -= 0xD;
-                }
-                i += 1;
-                if (i < 0xD) {
-                    goto loop2;
-                }
-            } while (0);
-            result = idx;
-        }
-        item = 0;
-        if (result >= 0) {
-            item = D_replay_bonus_80118F78[result].items[col];
-        }
-        Gp_SetPreviewItem(item, 0);
-
-        col2  = arg0->extraState;
-        tmp   = func_replay_bonus_80115CA4();
-        p     = D_replay_bonus_80118F78;
-        spend = tmp;
-        idx   = 0;
-        if (Mc_SaveData[0].shopTiers == 0x1FFF) {
-            result = -1;
-        } else {
-            i = 0;
-            do {
-            loop3:
-                if (!(p->spendThreshold < spend)) {
-                    idx = i;
-                    break;
-                }
-                i++;
-                p++;
-                if (i < 0xD) {
-                    goto loop3;
-                }
-            } while (0);
-
-            save = &Mc_SaveData[0];
-            idx += save->gameMode;
-            i    = 0;
-            if (idx >= 0xD) {
-                idx = 0xC;
-            }
-            one  = 1;
-            mask = save->shopTiers;
-            do {
-            loop4:
-                if ((mask & (one << idx)) == 0) {
-                    break;
-                }
-                idx += 1;
-                if (idx >= 0xD) {
-                    idx -= 0xD;
-                }
-                i += 1;
-                if (i < 0xD) {
-                    goto loop4;
-                }
-            } while (0);
-            result = idx;
-        }
-        if (result < 0) {
-            item2 = 0;
-        } else {
-            item2 = D_replay_bonus_80118F78[result].items[col2];
-        }
-        arg0->spawnArg1 = item2 + 0x20000;
+        Gp_SetPreviewItem(_replayBonusShopItem(arg0->extraState), 0);
+        arg0->spawnArg1 = _replayBonusShopItem(arg0->extraState) + 0x20000;
     }
     func_800C5F70(arg0);
     dt                  = gDisplayState.frameTicks;
