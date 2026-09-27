@@ -1497,6 +1497,22 @@ void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, McItemRec* arg3, s32 a
     }
 }
 
+static inline void _gpSetPreviewItem(s32 itemId, u8 slot)
+{
+    s32 i;
+
+    if (itemId != Gp_PreviewItems[slot]) {
+        for (i = 0; i < 3; i++) {
+            if (i == slot) {
+                Gp_PreviewItems[i] = itemId;
+            } else {
+                Gp_PreviewItems[i] = -1;
+            }
+        }
+        Gp_EnqueueItemPreviewCd(itemId, slot);
+    }
+}
+
 void Gp_ItemRowSelect(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3)
 {
     s32 flags;
@@ -1504,36 +1520,7 @@ void Gp_ItemRowSelect(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3)
     flags = arg3 + 0x10;
     if (arg2 != 0) {
         if (((arg1->status >> 16) == 1) || (arg1->status == 1)) {
-            register s32 val asm("t2");
-            s32*         table;
-            s32          i;
-            s32          slot;
-            s32          idx;
-            s32*         p;
-            s32          tmp;
-            s32          value;
-
-            value = arg2;
-            tmp   = arg3;
-            TOUCH_REG(tmp);
-            table = Gp_PreviewItems;
-            idx   = tmp & 0xFF;
-            if (value != table[idx]) {
-                i = 0;
-                do {
-                    slot = idx;
-                    val  = -1;
-                    p    = table;
-                } while (0);
-                for (; i < 3; i++, p++) {
-                    if (i == slot) {
-                        *p = value;
-                    } else {
-                        *p = val;
-                    }
-                }
-                Gp_EnqueueItemPreviewCd(value, tmp & 0xFF);
-            }
+            _gpSetPreviewItem(arg2, arg3);
         }
         if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
             flags |= 0x100;
@@ -1546,18 +1533,7 @@ void Gp_ItemRowSelect(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3)
 
 void Gp_SetPreviewItem(s32 arg0, s32 arg1)
 {
-    s32 i;
-
-    if (arg0 != Gp_PreviewItems[arg1 & 0xFF]) {
-        for (i = 0; i < 3; i++) {
-            if (i == (arg1 & 0xFF)) {
-                Gp_PreviewItems[i] = arg0;
-            } else {
-                Gp_PreviewItems[i] = -1;
-            }
-        }
-        Gp_EnqueueItemPreviewCd(arg0, arg1 & 0xFF);
-    }
+    _gpSetPreviewItem(arg0, arg1);
 }
 
 void Gp_ClearPreviewItems(void)
