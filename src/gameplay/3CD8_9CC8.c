@@ -731,7 +731,6 @@ void Gp_DrawBand(GpCoord* arg0, s16 arg1, u8* rgb)
 
 void Gp_DrawBandEx(GpCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
 {
-    register u8*   head asm("v0");
     GpBandScratch* block;
     SVECTOR*       op;
     POLY_G4*       prim;
@@ -743,10 +742,8 @@ void Gp_DrawBandEx(GpCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
     s16            r0;
     s16            r1;
 
-    r1               = arg1 + arg2;
-    head             = SCRATCH_HEAD(u8) - 0x118;
-    block            = (GpBandScratch*)head;
-    SCRATCH_HEAD(u8) = head;
+    r1    = arg1 + arg2;
+    block = SCRATCH_PUSH(GpBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     r0 = arg1;
     for (i = 0; i < 16; i++) {
@@ -758,20 +755,20 @@ void Gp_DrawBandEx(GpCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
         gte_ldv0(&block->inner[i]);
         gte_rtv0();
         gte_stsv(&block->inner[i]);
-        block->inner[i].vx = (u16)block->inner[i].vx + (u16)arg0->workm.t[0];
-        block->inner[i].vy = (u16)block->inner[i].vy + (u16)arg0->workm.t[1];
-        block->inner[i].vz = (u16)block->inner[i].vz + (u16)arg0->workm.t[2];
-        block->outer[i].vx = (rsin(ang) * r1) >> 12;
-        op                 = &block->inner[i] + 16;
-        op->vy             = 0;
-        op->vz             = (rcos(ang) * r1) >> 12;
+        block->inner[i].vx += arg0->workm.t[0];
+        block->inner[i].vy += arg0->workm.t[1];
+        block->inner[i].vz += arg0->workm.t[2];
+        block->outer[i].vx  = (rsin(ang) * r1) >> 12;
+        op                  = &block->inner[i] + 16;
+        op->vy              = 0;
+        op->vz              = (rcos(ang) * r1) >> 12;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->outer[i]);
         gte_rtv0();
         gte_stsv(&block->outer[i]);
-        block->outer[i].vx = (u16)block->outer[i].vx + (u16)arg0->workm.t[0];
-        op->vy             = (u16)op->vy + (u16)arg0->workm.t[1];
-        op->vz             = (u16)op->vz + (u16)arg0->workm.t[2];
+        block->outer[i].vx += arg0->workm.t[0];
+        op->vy             += arg0->workm.t[1];
+        op->vz             += arg0->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
@@ -793,14 +790,14 @@ void Gp_DrawBandEx(GpCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
             setRGB1(prim, rgb[0], rgb[1], rgb[2]);
             setRGB2(prim, 0, 0, 0);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = (u16)block->sxy0.vx;
-            prim->y0 = (u16)block->sxy0.vy;
-            prim->x1 = (u16)block->sxy1.vx;
-            prim->y1 = (u16)block->sxy1.vy;
-            prim->x2 = (u16)block->sxy2.vx;
-            prim->y2 = (u16)block->sxy2.vy;
-            prim->x3 = (u16)block->sxy3.vx;
-            prim->y3 = (u16)block->sxy3.vy;
+            prim->x0 = block->sxy0.vx;
+            prim->y0 = block->sxy0.vy;
+            prim->x1 = block->sxy1.vx;
+            prim->y1 = block->sxy1.vy;
+            prim->x2 = block->sxy2.vx;
+            prim->y2 = block->sxy2.vy;
+            prim->x3 = block->sxy3.vx;
+            prim->y3 = block->sxy3.vy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);
@@ -814,7 +811,7 @@ void Gp_DrawBandEx(GpCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
                     dr);
         }
     }
-    SCRATCH_POP_BYTES(0x118);
+    SCRATCH_POP(GpBandScratch);
 }
 
 void func_800EC47C(Task* arg0)
