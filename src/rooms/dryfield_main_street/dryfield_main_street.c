@@ -764,7 +764,7 @@ static void func_dryfield_main_street_8017E830(Task* task)
 static void func_dryfield_main_street_8017EA88(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**             scratch;
-    u8*                head;
+    GpEffFlareScratch* head;
     GpEffFlareScratch* block;
     s32*               otzp;
     POLY_FT4*          prim;
@@ -779,68 +779,60 @@ static void func_dryfield_main_street_8017EA88(GpCoord* arg0, s32 arg1, s32 arg2
     u16                vz;
     u16                tex;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    SOFT_TOUCH_REG_USE(arg2, scratch);
-    head          = *scratch;
-    block         = (GpEffFlareScratch*)(head - 0x1C);
+    scratch       = SCRATCH_HEAD_ADDR;
+    head          = SCRATCH_HEAD_AT(scratch, GpEffFlareScratch);
+    block         = head - 1;
     block->vec.vx = (u16)arg0->workm.t[0];
     block->vec.vy = (u16)arg0->workm.t[1];
     vz            = (u16)arg0->workm.t[2];
     otzp          = &block->otz;
     *scratch      = block;
     block->vec.vz = vz;
+    tex           = arg1;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((GpEffFlareScratch*)(head - 0x1C))->vec);
+    gte_ldv0(&block->vec);
     gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&((GpEffFlareScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpEffFlareScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(otzp);
-        if (((GpEffFlareScratch*)(head - 0x1C))->otz >= 0x41) {
+        if (block->otz >= 0x41) {
             ang         = (s16)arg3;
             prim->tpage = 0x2B;
             prim->clut  = 0x4383;
             prim->code |= 3;
-            tex         = arg1;
             u0          = (tex % 5) * 0x30;
             v0          = (tex / 5) * 0x30;
             u1          = u0 + 0x2F;
             v1          = v0 - 0x51;
             v0          = v0 - 0x80;
             setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
-            sine = rsin(ang);
-            span = (s16)arg2 * 0x2F;
-            block->dx =
-                ((span / ((GpEffFlareScratch*)(head - 0x1C))->otz) * sine) >> 12;
-            block->dy =
-                ((span / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
-            prim->x0 = block->sx + (u16)block->dx;
-            prim->x3 = block->sx - (u16)block->dx;
-            prim->y0 = block->sy - (u16)block->dy;
-            prim->y3 = block->sy + (u16)block->dy;
-            ang2     = ang + 0x400;
-            block->dx =
-                ((span / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(ang2)) >> 12;
-            block->dy =
-                ((span / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(ang2)) >> 12;
-            prim->x1 = block->sx + (u16)block->dx;
-            prim->x2 = block->sx - (u16)block->dx;
-            prim->y1 = block->sy - (u16)block->dy;
-            prim->y2 = block->sy + (u16)block->dy;
-            addPrim((u_long*)(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz
-                                 << gDisplayState.otDepthShift) >>
-                                2) &
-                               0xFFC) +
+            sine      = rsin(ang);
+            span      = (s16)arg2 * 0x2F;
+            block->dx = ((span / block->otz) * sine) >> 12;
+            block->dy = ((span / block->otz) * rcos(ang)) >> 12;
+            prim->x0  = block->sx + (u16)block->dx;
+            prim->x3  = block->sx - (u16)block->dx;
+            prim->y0  = block->sy - (u16)block->dy;
+            prim->y3  = block->sy + (u16)block->dy;
+            ang2      = ang + 0x400;
+            block->dx = ((span / block->otz) * rsin(ang2)) >> 12;
+            block->dy = ((span / block->otz) * rcos(ang2)) >> 12;
+            prim->x1  = block->sx + (u16)block->dx;
+            prim->x2  = block->sx - (u16)block->dx;
+            prim->y1  = block->sy - (u16)block->dy;
+            prim->y2  = block->sy + (u16)block->dy;
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_POP(GpEffFlareScratch);
 }
 
 /// A flash on an effect's anchor, lasting `spawnArg1` frames. State 1 grows a
