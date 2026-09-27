@@ -111,33 +111,26 @@ static UiObjectDesc D_options_801D5EFC = {
 
 static void func_options_801D404C(DialogPrompt* arg0, UiObject* arg1)
 {
-    u8*          labels[2];
-    u8**         p;
-    u8*          title;
-    s32          a0tmp;
-    s32          i;
-    s32          y;
-    s32          x;
-    s32          span;
-    s32          selected;
-    s32          one;
-    s32          look;
-    s32          status;
-    s32          saved;
-    s32          cur;
-    s32          tmp;
-    register s32 two asm("t0");
+    u8*  labels[2] = { D_options_801D5B68, D_options_801D5B70 };
+    u8** p;
+    u8*  title;
+    s32  i;
+    s32  y;
+    s32  x;
+    s32  span;
+    s32  selected;
+    s32  one;
+    s32  look;
+    s32  status;
+    s32  saved;
+    s32  cur;
+    s32  columnCount;
 
-    SCHED_BARRIER();
-    a0tmp = (s32)arg1;
-    TOUCH_REG(a0tmp);
-    title = D_options_801D5B60;
-    TOUCH_REG(title);
-    i         = 0;
-    p         = labels;
-    labels[0] = D_options_801D5B68;
-    labels[1] = D_options_801D5B70;
-    Text_DrawPrompt((UiObject*)a0tmp, arg1->field_1C + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
+    columnCount = 2;
+    title       = D_options_801D5B60;
+    Text_DrawPrompt(arg1, arg1->field_1C + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
+    i        = 0;
+    p        = labels;
     saved    = Mc_SaveData[0].soundMode;
     y        = i;
     selected = saved;
@@ -150,8 +143,7 @@ static void func_options_801D404C(DialogPrompt* arg0, UiObject* arg1)
             look = Ui_LookupTable(arg1, 1);
         }
         one = 1;
-        two = 2;
-        Text_DrawPrompt(arg1, x + y / two, arg0->field_1A, *p, look, one, 0);
+        Text_DrawPrompt(arg1, x + y / columnCount, arg0->field_1A, *p, look, one, 0);
         p++;
         y += span;
         i += one;
@@ -172,12 +164,8 @@ static void func_options_801D404C(DialogPrompt* arg0, UiObject* arg1)
         }
     }
     Mc_SaveData[0].soundMode = selected;
-    tmp                      = selected << 24;
-    SOFT_TOUCH_REG(tmp);
-    two = saved;
-    SOFT_TOUCH_REG(two);
-    cur = tmp >> 24;
-    if (two != cur) {
+    cur                      = Mc_SaveData[0].soundMode;
+    if (saved != cur) {
         if (cur != 0) {
             if (cur != 1) {
                 CdVol_SetMixMode(1);
