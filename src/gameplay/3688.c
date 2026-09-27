@@ -1833,10 +1833,8 @@ static void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
                      : "=r"(cfg), "=r"(hi));
     }
     limit = scan->rowCount;
-    USE_REG(limit);
-    item = scan->firstRow;
-    TOUCH_REG(count);
-    i = count;
+    item  = scan->firstRow;
+    i     = count;
     if (count < limit) {
         table0 = Gp_RelatedQty0;
         table1 = Gp_RelatedQty1;

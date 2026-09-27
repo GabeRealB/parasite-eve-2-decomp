@@ -145547,3 +145547,15 @@ A helper returning `s16` (or `s8`) matches: the return value is narrowed and
 re-extended on the way out, the pattern no longer fits the store-flag rewrite,
 and both arms survive. A narrow local in the caller does not do the same, since
 it is promoted to a full register before the test.
+
+## Test coupled barriers together before preserving either one (Gp_CountAmmoRows, 2026-09-27)
+
+Two empty-asm sites can each appear necessary only because the other remains.
+`Gp_CountAmmoRows` had `USE_REG(limit)` after loading the row count and
+`TOUCH_REG(count)` after loading the first row. Removing only the touch moved
+`slt` ahead of the first-row load and added a load-delay nop (98.179%); removing
+only the use reversed the two loads and also added a nop (98.495%). Removing
+both preserved the original load/load/compare order and matched 100.000% with
+all penalties zero. The rest of the function, including its pins and address
+asm, stayed unchanged. These paired results support removing the two barriers
+together; they do not establish that the remaining constraints are redundant.
