@@ -33,7 +33,7 @@ static u8            SndHeap_Buffer[SNDHEAP_SIZE];
 static AudioTickNode AudioTick_List;
 static u32           AudioTick_Enabled;
 static u8            D_8007E0CC;
-static long          D648E0_SpuTimerED;
+static volatile long D648E0_SpuTimerED;
 s32                  D_8007E0D4;
 SndBank              Snd_Banks[16];
 /// Unreferenced.
@@ -296,31 +296,6 @@ setup_events:
         StartRCnt(RCntCNT0);
         EnterCriticalSection();
         D648E0_SpuTimerED = OpenEvent(RCntCNT0, EvSpINT, EvMdINTR, Spu_TimerCallback);
-
-        // HACK: What is this? The control flow of this function already
-        // looks bad. To add insult to injury, This is the output that we
-        // want:
-        //
-        // jal      OpenEvent
-        // addiu    a3, a3, %lo(Spu_TimerCallback)
-        // sw       v0, %lo(DE648E0_SpuTimerED)(s0)
-        // jal      ExitCriticalSection
-        // nop
-        //
-        // And this is the assembly that we get without this line:
-        //
-        // jal      OpenEvent
-        // addiu    a3, a3, %lo(Spu_TimerCallback)
-        // jal      ExitCriticalSection
-        // sw       v0, %lo(DE648E0_SpuTimerED)(s0)
-        //
-        // Somehow the developers managed to insert the additional nop
-        // instruction, and the only way I could think of is to insert
-        // an empty assembler instruction. Maybe it has something to do with
-        // the compiler/maspsx version, or rewriting the function with more
-        // sensible control flow could fix it, but this matches.
-        SOFT_BARRIER();
-
         ExitCriticalSection();
         EnableEvent(D648E0_SpuTimerED);
         D58028_SpuTimerEnabled = true;
