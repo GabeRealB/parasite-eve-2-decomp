@@ -7915,6 +7915,16 @@ static void func_80109818(Task* arg0)
     inner->field_981 = 0;
 }
 
+/// Caps a level at 2.
+static inline s32 _gpCapLevel(s32 level)
+{
+    s32 capped = 2;
+    if (level < 3) {
+        capped = level;
+    }
+    return capped;
+}
+
 static void func_80109844(Task* arg0)
 {
     u8*        head;
@@ -7928,18 +7938,13 @@ static void func_80109844(Task* arg0)
     s32        val;
 
     inner            = arg0->work;
-    temp             = (u16)((u16)inner->field_96E / 12);
-    idx              = 2;
+    temp             = (u16)inner->field_96E / 12;
     head             = SCRATCH_HEAD(u8);
     params           = &D_80113358;
     head            -= 8;
     SCRATCH_HEAD(u8) = head;
     vec              = (SVECTOR*)head;
-    if (temp < 3) {
-        idx = temp;
-    }
-    temp = idx;
-    __asm__ volatile("" : "+r"(temp) : "r"(head), "r"(vec));
+    temp             = _gpCapLevel(temp);
     switch (inner->field_95E) {
         case 0:
             inner->field_95E   = 1;
