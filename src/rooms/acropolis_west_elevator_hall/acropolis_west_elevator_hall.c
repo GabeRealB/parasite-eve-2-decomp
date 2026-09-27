@@ -1101,9 +1101,9 @@ static void func_acropolis_west_elevator_hall_8017FE18(Task* task)
     otz  = 0x72;
 
     for (i = 0; i < 0x52; i++) {
-        SOFT_TOUCH_REG(y);
-        y = i + base;
-        t = 0x800 - rcos((gDisplayState.animFrame + i * 2) * 16);
+        y  = i;
+        y += base;
+        t  = 0x800 - rcos((gDisplayState.animFrame + i * 2) * 16);
         if (gDisplayState.animFrame & 0x80) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             x           = t / (s32)(((Gp_LcgState >> 16) & 0x3F) + 0xC0) + 0x50;

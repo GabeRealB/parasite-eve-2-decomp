@@ -54210,6 +54210,17 @@ rejects - and the asm is also the 71st loop insn. Without it, `y` declared
 `s16` supplies the 71st insn but not the non-replaceability; initialising `y`
 before the loop or using it after the loop is undone by `check_final_value`.
 
+**Resolved without asm (2026-09-27):** write `y = i; y += base;`. Both
+statements contribute to the coordinate calculation. CSE retains two sets of
+`y` into loop analysis, where its giv is non-replaceable (`used 2`). The two
+row givs still combine, but reduction is rejected as `not worth while, -2790
+vs 71`; flow then deletes the initial copy. The 71-insn loop also keeps the
+tag mask unhoisted. Scratch `base_5.c` scores 100.000% with all penalties zero,
+versus 83.522% for simply removing the asm. Evidence:
+`nonmatchings/func_acropolis_west_elevator_hall_8017FE18-dehack/base_5.i`
+(`.cse`, `.loop`, `.flow`), SHA-256
+`72b4ddd3b3b596e877b398d68b40549d0f13a598d2a2a484f5a40a152291d989`.
+
 ## Naming an inline-asm pointer operand as its own local unblocks the delay-slot steal
 
 `fill_slots_from_thread` can only steal the join block's first instruction into
