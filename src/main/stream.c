@@ -303,13 +303,26 @@ ret_zero:
     return 0;
 }
 
+/* Clears both display buffers to black, at the width of the current MDEC mode. */
+static __inline__ void _streamClearDisplayBuffers(RECT* rect)
+{
+    rect->y = 0;
+    rect->x = 0;
+    if (D_8006AC14 == 1) {
+        rect->w = 0x1E0;
+    } else {
+        rect->w = 0x140;
+    }
+    rect->h = 0xF0;
+    ClearImage(rect, 0, 0, 0);
+    rect->y = 0x110;
+    ClearImage(rect, 0, 0, 0);
+}
+
 u32 func_8001F180(u32 arg0)
 {
     u8          params[8];
     RECT        clearRect;
-    RECT*       rect;
-    RECT*       firstImage;
-    RECT*       secondImage;
     CdCmdQueue* queue;
     u32         slot;
 
@@ -329,23 +342,8 @@ u32 func_8001F180(u32 arg0)
     if (D_8006AC14 != 0) {
         params[3] = 0xFF;
         Mdec_SetupBuffers(params);
-        rect             = &clearRect;
         queue->field_1EA = 1;
-        clearRect.y      = 0;
-        clearRect.x      = 0;
-        if (D_8006AC14 == 1) {
-            rect->w = 0x1E0;
-        } else {
-            rect->w = 0x140;
-        }
-        /* Keep each call argument as a fresh stack-address calculation. */
-        firstImage = &clearRect;
-        TOUCH_REG(firstImage);
-        rect->h = 0xF0;
-        ClearImage(firstImage, 0U, 0U, 0U);
-        secondImage = &clearRect;
-        rect->y     = 0x110;
-        ClearImage(secondImage, 0U, 0U, 0U);
+        _streamClearDisplayBuffers(&clearRect);
         if (D_8006AC14 == 1) {
             Display_SetMode(0xF010);
         } else {

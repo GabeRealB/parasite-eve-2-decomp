@@ -145349,3 +145349,18 @@ tie it to the load pseudo, so the move and the `$a0` choice both disappear.
 `s32 entry = table[i]; s8 slot = entry; if (entry == -1) return NULL;`. The two
 pseudos overlap across the compare, so the allocator must give `slot` its own
 register, which is the move the target shows.
+
+## Field stores through `$s0` but every call gets a fresh `addiu a0,sp,N`: the stack struct was passed to an inline helper (func_8001F180, 2026-09-27)
+
+**Symptom.** `addiu s0,sp,0x18` feeds `sh v0,4(s0)` / `sh v0,6(s0)` /
+`sh v0,2(s0)`, yet both `ClearImage` calls load `addiu a0,sp,0x18` afresh. The
+tree reproduced it with a `RECT* rect = &local` for the stores plus a
+`TOUCH_REG`'d copy per call argument. Without the pin, `ClearImage(&local)`
+twice is CSE'd into one callee-saved pseudo (`move a0,s0`, 89.6%), and
+`ClearImage(rect)` gives `move a0,s0` (95.7%).
+
+**Fix.** Move the stores and both calls into a `static __inline__` helper
+taking `RECT*`, called with `&local`. The parameter gives the field stores
+their register and the calls their per-use frame address, with no pin. Zeroing
+`x`/`y` inside the helper or at the call site both matched, so let the helper's
+purpose decide which.
