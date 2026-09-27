@@ -145478,3 +145478,21 @@ before the grow step. Stores through one base register at disjoint offsets do
 not conflict, so sched1 is free to sink `sh 0x22` below the grow step's stores.
 When a store order looks shuffled against the sibling pattern, write the
 sibling's order first before hoisting a load into a temp.
+
+## `goto` to a shared cleanup lets two identical blocks cross-jump; a written-out tail keeps them apart (func_energyball_8012F180, 2026-09-27)
+
+Two switch arms end with the same `if (n > 0) { if (--n == 0) sound(tbl[i], 1); }`
+followed by the same cleanup. The target keeps both sound blocks, and each ends
+in `j <cleanup>` straight after its `jal`. Writing the cleanup once and reaching
+it with `goto unlink;` from both arms merges the two blocks: early jump
+optimization threads the `if` joins away, so each `jal` sits directly before a
+`j` to the same label, and jump2's `find_cross_jump` folds one copy into the
+other. An empty `asm` after the call only hid that.
+
+Write the cleanup out in each arm instead (`Gp_UnlinkObj(...); release(...);
+return;`). jump2 still folds each copy of the cleanup into the shared one, and
+the `j` is the same, but each arm's `if` join label is still in front of the
+new jump. `find_cross_jump` stops at a `CODE_LABEL` on the jumping side, so the
+two sound blocks are never compared and both survive. When a target has two
+identical blocks that each jump to one shared cleanup, write the cleanup out in
+each arm rather than using a `goto`.

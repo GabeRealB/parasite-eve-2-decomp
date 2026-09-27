@@ -147,7 +147,6 @@ static void func_energyball_8012F180(Task* arg0)
                 }
             }
             if (arg0->state != 0) {
-            unlink:
                 Gp_UnlinkObj(&work->obj);
             }
             goto release;
@@ -250,7 +249,9 @@ static void func_energyball_8012F180(Task* arg0)
                             SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                         }
                     }
-                    goto unlink;
+                    Gp_UnlinkObj(&work->obj);
+                    Gp_ReleaseState1CMem(mem, arg0);
+                    return;
                 }
             }
             return;
@@ -311,10 +312,11 @@ static void func_energyball_8012F180(Task* arg0)
                         D_80115724 -= 1;
                         if (D_80115724 == 0) {
                             SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
-                            SCHED_BARRIER();
                         }
                     }
-                    goto unlink;
+                    Gp_UnlinkObj(&work->obj);
+                    Gp_ReleaseState1CMem(mem, arg0);
+                    return;
                 }
             }
             if (Gp_CountRec18Hi(work->obj.ctx.recs, 0x30000) != 0) {
