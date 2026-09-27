@@ -127,7 +127,7 @@ static const SVECTOR D_actor_403600_80131E2C;
 static const CVECTOR D_actor_403600_80131E34;
 
 static void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1);
-static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2, Actor403600FxWork* arg3);
+static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2);
 void        func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2);
 
 /// Links, at ordering-table depth `otz`, the primitives that copy the frame
@@ -372,7 +372,7 @@ static void func_actor_403600_8013289C(s32 x, s32 corner, Actor403600GridVertex*
     vtx->v = y;
 }
 
-static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2, Actor403600FxWork* arg3)
+static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2)
 {
     s32                       fade;
     s32                       x;
@@ -683,9 +683,9 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
 
 void func_actor_403600_80134288(Task* arg0)
 {
-    Actor403600Work*            work;
-    register Actor403600FxWork* fx asm("a3");
-    Task*                       child;
+    Actor403600Work*   work;
+    Actor403600FxWork* fx;
+    Task*              child;
 
     work = (Actor403600Work*)arg0->parent->work;
     if (arg0->state == 0) {
@@ -708,7 +708,7 @@ void func_actor_403600_80134288(Task* arg0)
     fx                      = arg0->work;
     D_actor_403600_8016069C = (s32)D_8005C374 + (gDisplayState.otBuffer * 0xC000);
     if (work->field_742 != 1 && work->field_708 > 0) {
-        func_actor_403600_80132A18(arg0, work, fx, fx);
+        func_actor_403600_80132A18(arg0, work, fx);
     }
 }
 static const SVECTOR D_actor_403600_80131E24 = { -100, 700, -280, 0 };

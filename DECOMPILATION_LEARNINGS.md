@@ -146093,3 +146093,21 @@ In `nonmatchings/func_dryfield_toilet_8017DEF4-dehack/base_4.i.combine`, UIDs
 151/161 are the resulting shifts. `base_4.c` preserves the seed's 99.979%
 score and passes the unscoped build; the two scratch symbol differences are
 unchanged. Preprocessed input SHA256: `1ea8571e1b2701b14adb43a849a666411bf65a76683bc672a0aa9d5227aee61b`.
+
+### Check private callee arity before preserving an argument-register pin (actor403600 80134288, 2026-09-27)
+
+`func_actor_403600_80134288` pinned its effect-work pointer to `a3` and passed
+that pointer twice to `func_actor_403600_80132A18`. The callee never reads its
+fourth parameter; its incoming `a3` value is overwritten before use in the
+original assembly. Removing that parameter from the declaration, definition
+and sole call lets the caller drop the pin without changing any instructions.
+The leftover pointer in `a3` at the call was not evidence of a fourth argument.
+
+In `nonmatchings/func_actor_403600_80134288-dehack-manual/base_1.i.greg`, the
+ordinary `fx` pseudo 82 is allocated to `a3`; its hard conflicts are
+`v0`, `v1`, `a0`, `a1`, `a2` and `sp`. The candidate has the same assembly hash
+and 68 instructions as the pinned seed. Both scratch scores are 99.853% solely
+because the target names `gDisplayState.otBuffer` with its old data symbol.
+The unscoped matching build verifies both caller and callee, and the lost-match
+check passes. Preprocessed input SHA256:
+`ecfb60e4de7c62ca6965ffafa604738936ec640c8ded8e4930865168edce5c7e`.
