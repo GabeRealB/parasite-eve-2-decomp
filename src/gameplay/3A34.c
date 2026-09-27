@@ -4062,26 +4062,14 @@ static void func_800DDC2C(GpObj* arg0)
     SCRATCH_POP(GpEdgeScratch);
 }
 
-static void func_800DDDF8(GpObj* node)
+static void func_800DDDF8(GpObj* obj)
 {
-    GpObj*               obj;
-    s32                  i;
     GpSegmentHitScratch* block;
-    u8*                  head0;
     GpRec18*             slot;
-    void**               head;
-    s32                  flags;
-    GpActorD4Rec*        rec;
-    s32                  mask;
-    s32                  idx;
-    s32                  t;
-    GpGridParams*        grid2;
+    u16                  flags;
+    s32                  i;
 
-    obj              = node;
-    head0            = SCRATCH_HEAD(u8);
-    head0           -= 0x30;
-    SCRATCH_HEAD(u8) = head0;
-    block            = (GpSegmentHitScratch*)head0;
+    block = SCRATCH_PUSH(GpSegmentHitScratch);
     for (i = 0; i < Gp_GridParams->field_22; i++) {
         D_80115450[i] = 0;
     }
@@ -4089,68 +4077,51 @@ static void func_800DDDF8(GpObj* node)
     func_800DE150(obj);
     func_800DEC80(obj, block->pos, block->ray, 1);
 
-    /* The single-pass scope preserves GCC 2.8.1 register allocation. */
-    do {
-        for (i = 0; i < Gp_GridParams->field_22; i++) {
-            if (D_80115450[i] != 0) {
-                if (func_800DD324(i, block->pos, block->ray, (s32)obj) != 0) {
-                    rec  = obj->ctx.d4rec;
-                    slot = rec->recs;
-                    if (obj->flags & 0x400) {
-                        if (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1]
-                                              [gGameSession->at4.loc.area - 1]
-                                              [Gp_GridParams->field_C[i].field_A]
-                                                  ->field_1 == 0) {
-                            mask              = 0x100000;
-                            slot->depth       = 0;
-                            slot->flags      |= 1;
-                            idx               = Gp_GridParams->field_C[i].field_A;
-                            slot->key         = idx | mask;
-                            slot->point       = block->ray[1];
-                            grid2             = Gp_GridParams;
-                            slot->at10.normal = grid2->field_4[grid2->field_C[i].field_8];
-                            block->pos[0].vx  = block->ray[1].vx;
-                            block->pos[0].vy  = block->ray[1].vy;
-                            block->pos[0].vz  = block->ray[1].vz;
-                        }
-                    } else {
-                        t    = i * sizeof(GpGridFace);
-                        head = SCRATCH_HEAD_ADDR;
-                        for (;;) {
-                            flags = slot->flags;
-                            if (!(flags & 1)) {
-                                slot->flags       = flags | 1;
-                                slot->depth       = 0;
-                                mask              = 0x100000;
-                                idx               = ((GpGridFace*)(t + (s32)Gp_GridParams->field_C))->field_A;
-                                slot->key         = idx | mask;
-                                slot->point       = block->ray[1];
-                                grid2             = Gp_GridParams;
-                                slot->at10.normal = grid2->field_4[((GpGridFace*)(t + (s32)grid2->field_C))->field_8];
-                                if (slot->flags & 2) {
-                                    SCRATCH_POP_BYTES_AT(head, 0x30);
-                                    return;
-                                }
-                                break;
-                            }
-                            mask = (u16)flags;
-                            SOFT_USE_REG(flags);
-                            idx = 3;
-                            if (mask != idx) {
-                                goto next_slot;
-                            }
-                            SCRATCH_POP_BYTES_AT(head, 0x30);
+    for (i = 0; i < Gp_GridParams->field_22; i++) {
+        if (D_80115450[i] != 0 && func_800DD324(i, block->pos, block->ray, (s32)obj) != 0) {
+            slot = obj->ctx.d4rec->recs;
+            if (obj->flags & 0x400) {
+                if (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1]
+                                      [Gp_GridParams->field_C[i].field_A]
+                                          ->field_1 == 0) {
+                    slot->depth       = 0;
+                    slot->flags      |= 1;
+                    slot->key         = Gp_GridParams->field_C[i].field_A | 0x100000;
+                    slot->point       = block->ray[1];
+                    slot->at10.normal = Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8];
+                    block->pos[0].vx  = block->ray[1].vx;
+                    block->pos[0].vy  = block->ray[1].vy;
+                    block->pos[0].vz  = block->ray[1].vz;
+                }
+            } else {
+                for (;;) {
+                    flags = slot->flags;
+                    if (!(flags & 1)) {
+                        slot->flags       = flags | 1;
+                        slot->depth       = 0;
+                        slot->key         = Gp_GridParams->field_C[i].field_A | 0x100000;
+                        slot->point       = block->ray[1];
+                        slot->at10.normal = Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8];
+                        if (slot->flags & 2) {
+                            void** head = SCRATCH_HEAD_ADDR;
+
+                            SCRATCH_POP_BYTES_AT(head, sizeof(GpSegmentHitScratch));
                             return;
-                        next_slot:
-                            slot++;
                         }
+                        break;
                     }
+                    if (flags == 3) {
+                        void** head = SCRATCH_HEAD_ADDR;
+
+                        SCRATCH_POP_BYTES_AT(head, sizeof(GpSegmentHitScratch));
+                        return;
+                    }
+                    slot++;
                 }
             }
         }
-
-    } while (0);
-    SCRATCH_POP_BYTES(0x30);
+    }
+    SCRATCH_POP(GpSegmentHitScratch);
 }
 
 static void func_800DE150(GpObj* arg0)

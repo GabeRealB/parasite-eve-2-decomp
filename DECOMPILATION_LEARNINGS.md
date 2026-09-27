@@ -144972,3 +144972,24 @@ statement order, `for`/`do` shape, `register`, helpers for the qty test and
 initialisation variants all leave it folded. The extra use of `n` is also what
 lifts its allocation priority above the list pointer's, so the two symptoms
 share one cause.
+
+## A scratch-head constant hoisted out of an inner loop but not the outer one is one block-scoped local per exit (func_800DDDF8, 2026-09-27)
+
+**Shape.** A slot search nested in a face loop gives the scratch block back
+and returns from two exits. The target materialises `lui/ori 0x1F8003FC`
+once, in the inner loop's preheader, *after* the copy of the outer loop's
+`i * 12` giv. A bare `SCRATCH_POP_BYTES` at each exit is hoisted out of
+both loops (a compiler temporary is movable even when conditional); one
+function-scope `head = SCRATCH_HEAD_ADDR` before the inner loop is not
+moved at all, so it lands *ahead* of the loop-moved giv copy.
+
+**Fix.** Declare the local inside each exit block
+(`void** head = SCRATCH_HEAD_ADDR; SCRATCH_POP_BYTES_AT(head, n); return;`).
+In the inner loop each set and its use share a basic block, which
+`scan_loop` accepts even for a user variable, so both are moved and matched
+into one preheader insn placed after the giv. In the outer loop that insn
+is a conditional user-variable set whose uses span blocks, so it stays.
+The seed faked the same result with a function-scope `head` plus an
+explicit `t = i * sizeof(face)` ahead of it. Separately, an `andi 0xFFFF`
+on a value already loaded with `lhu` is a `u16` local compared with a
+constant, not an `s32` kept alive by `SOFT_USE_REG`.
