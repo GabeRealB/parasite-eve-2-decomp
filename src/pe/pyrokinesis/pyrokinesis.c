@@ -452,7 +452,6 @@ L_release:
 /// negative `gte_stflg` drops the segment.
 static void func_pyrokinesis_8012FC34(GpCoord* arg0, s16 arg1, s16 arg2)
 {
-    register u8*   head asm("v0");
     GpBandScratch* block;
     SVECTOR*       op;
     POLY_G4*       prim;
@@ -468,14 +467,12 @@ static void func_pyrokinesis_8012FC34(GpCoord* arg0, s16 arg1, s16 arg2)
 
     /* The ramp halves are unsigned: writing them as `(u16)arg2 >> 1` folds the
      * widening into an `andi`, where the ROM shifts the value up and back. */
-    ramp             = (u32)arg2 << 16;
-    red              = arg2;
-    grn              = ramp >> 17;
-    blu              = ramp >> 18;
-    r1               = arg1 + 0x100;
-    head             = SCRATCH_HEAD(u8) - 0x118;
-    block            = (GpBandScratch*)head;
-    SCRATCH_HEAD(u8) = head;
+    ramp  = (u32)arg2 << 16;
+    red   = arg2;
+    grn   = ramp >> 17;
+    blu   = ramp >> 18;
+    r1    = arg1 + 0x100;
+    block = SCRATCH_PUSH(GpBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     r0 = arg1;
     for (i = 0; i < 16; i++) {
@@ -536,7 +533,7 @@ static void func_pyrokinesis_8012FC34(GpCoord* arg0, s16 arg1, s16 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP_BYTES(0x118);
+    SCRATCH_POP(GpBandScratch);
 }
 
 /// Draws the flame ring: `arg0`'s origin is projected once through
