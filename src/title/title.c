@@ -27,6 +27,35 @@ static void Title_FlagAdvanceTask(Task* arg0);
 static void Title_InitTask(Task* arg0);
 static void Title_MenuTask(Task* task);
 
+char Title_StrNewGame[]       = "New Game";
+char Title_StrLoadGame[]      = "Load Game";
+char Title_StrConfiguration[] = "Configuration";
+char Title_StrDebugOption[]   = "Debug Option";
+char Title_StrExtraGame[]     = "Extra Game";
+char Title_StrSurvival[]      = "Survival";
+
+/// Retained menu labels in selection order. The retail menu draws its labels
+/// from the texture atlas instead of reading this table.
+static char* Title_MenuLabels[] = {
+    Title_StrSurvival,
+    Title_StrExtraGame,
+    Title_StrNewGame,
+    Title_StrLoadGame,
+    Title_StrConfiguration,
+    Title_StrDebugOption,
+};
+
+s32 Title_MenuSpawnIds[] = { 6, 6, 3, 4, 5, 6 };
+
+TaskDesc Title_TaskDescs[] = {
+    { 0, 0xC0, Title_BootTask },
+    { 0, 0xC0, Title_DemoStreamTask },
+};
+
+/// Overlay state is stored in the loaded image; the loader does not clear BSS.
+s32 Title_LastRand     = 0;
+u16 Title_SkipFadeFlag = 0;
+
 /// The title task's states, which `Title_Dispatch` copies and indexes by
 /// `Task::state`: set-up, the flag advance, the menu in two states and the kill.
 static const TaskFuncTable5 Title_PhaseTable = {

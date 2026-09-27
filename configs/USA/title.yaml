@@ -79,9 +79,6 @@ segments:
       - [0x0, .rodata, packageid] # the package id
       - [0x4, .rodata, title] # the phase table, the demo strings and the jump tables
       - [0x9C, c, title]
-      # Menu item strings ("New Game", "Load Game", …) + tables
-      # Plain `data` (not `.data`): dotted sibling is not linked as its own object.
-      - [0x140C, data, menu]
-      # Trailing 2 zero bytes past the last word (file size 0x14AA)
-      - [0x14A8, pad]
+      # Menu strings, tables and initialized state, including the final u16 flag.
+      - [0x140C, .data, title]
   - [0x14AA]

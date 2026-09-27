@@ -34,7 +34,7 @@ Title_BootTask = 0x80094A08; // type:func
 Title_EnqueueDemoScene = 0x80094B90; // type:func
 
 // ---------------------------------------------------------------------------
-// Menu data (asm/USA/title/data/menu.data.s)
+// Menu data (src/title/title.c)
 // ---------------------------------------------------------------------------
 Title_StrNewGame = 0x80094C0C;
 Title_StrLoadGame = 0x80094C18;
@@ -42,9 +42,11 @@ Title_StrConfiguration = 0x80094C24;
 Title_StrDebugOption = 0x80094C34;
 Title_StrExtraGame = 0x80094C44;
 Title_StrSurvival = 0x80094C50;
+Title_MenuLabels = 0x80094C5C; // size:0x18
 // Task spawn ids for menu selection indices (New Game / Load / Config / …).
 Title_MenuSpawnIds = 0x80094C74; // size:0x18
 Title_TaskDescs = 0x80094C8C; // size:0x18
 Title_LastRand = 0x80094CA4;
 // When set, Title_BootTask spawns with arg 0x80000000 (skip fade TILE).
-Title_SkipFadeFlag = 0x80094CA8;
+// C owns the final halfword, which splat's word scan does not emit.
+Title_SkipFadeFlag = 0x80094CA8; // type:u16 size:0x2 defined:True

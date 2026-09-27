@@ -24,7 +24,7 @@ STATIC_ASSERT_SIZEOF(TitleWork, 0x18);
 // Overlay globals (assets/USA/OVR/title — load @ 0x80093800)
 // =============================================================================
 
-/// Menu label strings (menu.data.s).
+/// Retained text labels for the title menu (src/title/title.c).
 extern char Title_StrNewGame[];
 extern char Title_StrLoadGame[];
 extern char Title_StrConfiguration[];
