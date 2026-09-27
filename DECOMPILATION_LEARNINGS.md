@@ -3,6 +3,25 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Decode the index before forming the invariant table address (Actor00700_Fn00334, 2026-09-27)
+
+The remaining `TOUCH_REG(slots)` prevented `loop.c` from hoisting
+`Gp_ActorSlots` in the contact loop. Direct `Gp_ActorSlots[(id >> 7) & 1]`
+expands the address before both index operations: its high-half lifetime is
+five, savings two, and the 266-insn loop hoists it (98.807%). Writing
+`slot = id >> 7;` followed by `Gp_ActorSlots[slot & 1]` shortens that lifetime
+to four; `.loop` reports `not desirable`. Combine then folds the index
+operations to `id >> 5` and `& 4` after the address setup, retaining the target
+schedule and registers without the barrier (100.000%, all penalties zero).
+
+Computing the complete masked index first also prevents hoisting (lifetime
+three), but leaves the shift before the address in `.lreg`, scoring 99.276%.
+A lookup inline and a damage-calculation inline both reproduce the direct
+access mismatch. Thus the relevant boundary is the index expression, not
+extra loop instructions. Evidence: `Actor00700_Fn00334-dehack/base_1`,
+`base_5`, and `base_6` dumps; winning preprocessed-input SHA-256
+`835510e5afcef7cd644147aa3ce90f148b3239a3c669f863bd6509e8b432a411`.
+
 ## Let an inline helper select the destination member (coordToRoot, 2026-09-27)
 
 An inline helper's parameter can expose a member address too early. After

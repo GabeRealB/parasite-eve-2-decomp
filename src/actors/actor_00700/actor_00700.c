@@ -360,7 +360,7 @@ static void Actor00700_Fn00334(Task* actor)
     s32                 cooldownParam;
     u32                 lastId;
     u32                 id;
-    Task**              slots;
+    u32                 slot;
     u32                 hitId;
     u32                 damage;
 
@@ -399,9 +399,8 @@ static void Actor00700_Fn00334(Task* actor)
                 break;
             case 2:
                 if (work->field_378 == 0) {
-                    slots = Gp_ActorSlots;
-                    TOUCH_REG(slots);
-                    sourceCoord       = slots[(id >> 7) & 1]->extra.tmd->coords;
+                    slot              = id >> 7;
+                    sourceCoord       = Gp_ActorSlots[slot & 1]->extra.tmd->coords;
                     frame->delta.vx.w = sourceCoord->coord.t[0] - coord->coord.t[0];
                     frame->delta.vy.w = sourceCoord->coord.t[1] - coord->coord.t[1];
                     frame->delta.vz.w = sourceCoord->coord.t[2] - coord->coord.t[2];
