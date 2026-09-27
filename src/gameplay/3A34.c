@@ -2293,7 +2293,6 @@ void Gp_DrawTargetCursor(void)
 
 static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
 {
-    u8*                head;
     GpLockScanScratch* block;
     GameActor*         actor;
     GpCoord*           coord;
@@ -2310,27 +2309,22 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
     SVECTOR*           srcp;
 
     best = NULL;
-    head = SCRATCH_HEAD(u8);
-    {
-        register u8* newhead asm("a1");
-        newhead = head - 0x38;
-        block   = (GpLockScanScratch*)newhead;
-    }
-    actor                           = arg0->work;
-    coord                           = arg0->extra.tmd->coords;
-    block->src.vx                   = (u16)coord->coord.t[0];
-    block->src.vy                   = (u16)coord->coord.t[1] - 1000;
-    block->src.vz                   = (u16)coord->coord.t[2];
-    SCRATCH_HEAD(GpLockScanScratch) = block;
+    SCRATCH_PUSH(GpLockScanScratch);
+    block         = SCRATCH_HEAD(GpLockScanScratch);
+    actor         = arg0->work;
+    coord         = arg0->extra.tmd->coords;
+    block->src.vx = coord->coord.t[0];
+    block->src.vy = coord->coord.t[1] - 1000;
+    block->src.vz = coord->coord.t[2];
     Gp_UpdateCoord(&gGfxViewCoord);
-    srcp = &((GpLockScanScratch*)(head - 0x38))->src;
+    srcp = &block->src;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(srcp);
     gte_rtv0();
     gte_stsv(&block->self);
-    (u16) block->self.vx = (u16)block->self.vx + (u16)gGfxViewCoord.workm.t[0];
-    (u16) block->self.vy = (u16)block->self.vy + (u16)gGfxViewCoord.workm.t[1];
-    (u16) block->self.vz = (u16)block->self.vz + (u16)gGfxViewCoord.workm.t[2];
+    block->self.vx += gGfxViewCoord.workm.t[0];
+    block->self.vy += gGfxViewCoord.workm.t[1];
+    block->self.vz += gGfxViewCoord.workm.t[2];
 
     if (actor->field_90C != NULL && flag != 0) {
         node      = actor->field_90C;
@@ -2387,18 +2381,18 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
             continue;
         }
         Gp_UpdateCoord(GP_NODE_ENEMY(node)->coord);
-        block->node.vx = (u16)GP_NODE_ENEMY(node)->bodyPos.vx;
-        block->node.vy = (u16)GP_NODE_ENEMY(node)->bodyPos.vy;
-        block->node.vz = (u16)GP_NODE_ENEMY(node)->bodyPos.vz;
+        block->node.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
+        block->node.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
+        block->node.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
         nodeCoord      = GP_NODE_ENEMY(node)->coord;
         tmp            = block->node;
         gte_SetRotMatrix(&nodeCoord->workm);
         gte_ldv0(&tmp);
         gte_rtv0();
         gte_stsv(&block->node);
-        block->node.vx += (u16)GP_NODE_ENEMY(node)->coord->workm.t[0];
-        block->node.vy += (u16)GP_NODE_ENEMY(node)->coord->workm.t[1];
-        block->node.vz += (u16)GP_NODE_ENEMY(node)->coord->workm.t[2];
+        block->node.vx += GP_NODE_ENEMY(node)->coord->workm.t[0];
+        block->node.vy += GP_NODE_ENEMY(node)->coord->workm.t[1];
+        block->node.vz += GP_NODE_ENEMY(node)->coord->workm.t[2];
         if (func_800E0308(&block->node, &block->self) != 1) {
             bestAngle = angle;
             best      = node;
@@ -2408,7 +2402,7 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
     if (best != NULL) {
         Gp_GetLockPos(best, out);
     }
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_POP(GpLockScanScratch);
     return best;
 }
 
