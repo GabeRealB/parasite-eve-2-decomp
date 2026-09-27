@@ -4443,31 +4443,30 @@ void Gp_MapScreenTask(Task* arg0)
 /// the vertices by byte offset in the low halfword.
 static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
 {
-    RECT                       tw;
-    DR_MODE*                   dr;
-    s32                        otz;
-    u8*                        verts;
-    register GpMapMarkScratch* scratch asm("t0");
-    u32*                       cur;
-    s32                        type;
-    u32                        word;
-    s32                        count;
-    s32                        stride;
-    u16                        vz;
-    s32                        minX;
-    s32                        minY;
+    RECT              tw;
+    DR_MODE*          dr;
+    s32               otz;
+    u8*               verts;
+    GpMapMarkScratch* scratch;
+    u32*              cur;
+    s32               type;
+    u32               word;
+    s32               count;
+    s32               stride;
+    u16               vz;
+    s32               minX;
+    s32               minY;
 
-    otz                            = obj->drawOrder;
-    verts                          = (u8*)mesh->verts;
-    cur                            = mesh->stream;
-    tw.y                           = 0;
-    tw.x                           = 0;
-    scratch                        = (GpMapMarkScratch*)(SCRATCH_HEAD(u8) - sizeof(GpMapMarkScratch));
-    SCRATCH_HEAD(GpMapMarkScratch) = scratch;
-    dr                             = (DR_MODE*)gGpuPrimCursor;
-    gGpuPrimCursor                 = dr + 1;
-    tw.h                           = 0xFF;
-    tw.w                           = 0xFF;
+    otz            = obj->drawOrder;
+    verts          = (u8*)mesh->verts;
+    cur            = mesh->stream;
+    tw.y           = 0;
+    tw.x           = 0;
+    scratch        = SCRATCH_PUSH(GpMapMarkScratch);
+    dr             = (DR_MODE*)gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
+    tw.h           = 0xFF;
+    tw.w           = 0xFF;
     setTexWindow(dr, &tw);
     addPrim(&gGpuCurrentOt[otz], dr);
     scratch->offX = 0;
@@ -4684,7 +4683,7 @@ static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
     tw.h           = 0x20;
     setTexWindow(dr, &tw);
     addPrim(&gGpuCurrentOt[otz], dr);
-    SCRATCH_POP_BYTES(sizeof(GpMapMarkScratch));
+    SCRATCH_POP(GpMapMarkScratch);
 }
 
 s32 func_800D4D2C(s32 arg0)
