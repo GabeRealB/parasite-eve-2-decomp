@@ -755,10 +755,6 @@ static void func_dryfield_motel_balcony_8017EF44(GpCoord* coord, s16 size)
     GpCoord64*     slot;
     GpPointLight*  light;
     GpRingScratch* block;
-    void**         scratch;
-    GpRingScratch* alias;
-    u16            vy;
-    GpRingScratch* sc;
 
     slot                        = &Gp_RoomCoords[2];
     slot->framesLeft            = 2;
@@ -769,30 +765,24 @@ static void func_dryfield_motel_balcony_8017EF44(GpCoord* coord, s16 size)
     intensity                   = ((random >> 0x10) & 0x700) + 0x800;
     light->head.r               = intensity;
     shifted                     = intensity << 0x10;
-    light->head.g               = (s16)(shifted >> 0x11);
-    light->head.b               = (s16)(shifted >> 0x12);
-    light->head.u.at.local.t[0] = (s32)coord->coord.t[0];
-    light->head.u.at.local.t[1] = (s32)coord->coord.t[1];
+    light->head.g               = shifted >> 0x11;
+    light->head.b               = shifted >> 0x12;
+    light->head.u.at.local.t[0] = coord->coord.t[0];
+    light->head.u.at.local.t[1] = coord->coord.t[1];
     light->head.u.at.local.t[2] = coord->coord.t[2];
     slot->data.coord.flg        = 0;
-    scratch                     = (void**)G_SCRATCH_HEAD;
-    block                       = SCRATCH_HEAD_AT(scratch, GpRingScratch) - 1;
-    block->vec.vx               = (u16)coord->workm.t[0];
-    alias                       = block;
-    vy                          = (u16)coord->workm.t[1];
-    __asm__("move %0,%1" : "=r"(alias) : "r"(alias), "r"(vy), "r"(alias));
-    sc          = alias;
-    sc->vec.vy  = vy;
-    sc->vec.vz  = (u16)coord->workm.t[2];
-    Gp_LcgState = random;
-    *scratch    = sc;
+    Gp_LcgState                 = random;
+    block                       = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx               = coord->workm.t[0];
+    block->vec.vy               = coord->workm.t[1];
+    block->vec.vz               = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&sc->vec);
+    gte_ldv0(&block->vec);
     gte_rtps();
     gte_stsxy(&block->sx);
     gte_stflg(&block->flag);
-    if (sc->flag >= 0) {
+    if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -808,23 +798,23 @@ static void func_dryfield_motel_balcony_8017EF44(GpCoord* coord, s16 size)
         } else {
             prim->clut = 0x428C;
             setUV4(prim, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF);
-            prim->code = (u8)(prim->code | 1);
+            prim->code |= 1;
         }
-        sc->step = (s32)((s32)((s16)size * 0x37) / (s32)sc->otz);
-        left     = sc->sx - sc->step;
-        prim->x2 = left;
-        prim->x0 = left;
-        right    = sc->sx + sc->step;
-        prim->x3 = right;
-        prim->x1 = right;
-        top      = sc->sy - sc->step;
-        prim->y1 = top;
-        prim->y0 = top;
-        bottom   = sc->sy + sc->step;
-        prim->y3 = bottom;
-        prim->y2 = bottom;
+        block->step = size * 0x37 / block->otz;
+        left        = block->sx - block->step;
+        prim->x2    = left;
+        prim->x0    = left;
+        right       = block->sx + block->step;
+        prim->x3    = right;
+        prim->x1    = right;
+        top         = block->sy - block->step;
+        prim->y1    = top;
+        prim->y0    = top;
+        bottom      = block->sy + block->step;
+        prim->y3    = bottom;
+        prim->y2    = bottom;
         addPrim(
-            (u_long*)((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
+            (u_long*)((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
                       (s32)gGpuCurrentOt),
             prim);
         prim           = (POLY_FT4*)gGpuPrimCursor;
@@ -833,25 +823,24 @@ static void func_dryfield_motel_balcony_8017EF44(GpCoord* coord, s16 size)
         prim->code  = 0x2F;
         prim->tpage = 0x29;
         prim->clut =
-            (s16)(((u32)(((gDisplayState.animFrame & 1) * 0x10) + 0x120) >> 4) |
-                  0x4300);
+            (((gDisplayState.animFrame & 1) * 0x10 + 0x120) >> 4) | 0x4300;
         setUV4(prim, 0x38, 0xC8, 0x6F, 0xC8, 0x38, 0xFF, 0x6F, 0xFF);
-        outerSize   = (s16)((s16)size * 3 / 2);
-        sc->step    = (s32)((s32)(outerSize * 0x37) / (s32)sc->otz);
-        outerLeft   = sc->sx - sc->step;
+        outerSize   = (s16)(size * 3 / 2);
+        block->step = outerSize * 0x37 / block->otz;
+        outerLeft   = block->sx - block->step;
         prim->x2    = outerLeft;
         prim->x0    = outerLeft;
-        outerRight  = sc->sx + sc->step;
+        outerRight  = block->sx + block->step;
         prim->x3    = outerRight;
         prim->x1    = outerRight;
-        outerTop    = sc->sy - sc->step;
+        outerTop    = block->sy - block->step;
         prim->y1    = outerTop;
         prim->y0    = outerTop;
-        outerBottom = sc->sy + sc->step;
+        outerBottom = block->sy + block->step;
         prim->y3    = outerBottom;
         prim->y2    = outerBottom;
         addPrim(
-            (u_long*)((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
+            (u_long*)((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
                       (s32)gGpuCurrentOt),
             prim);
         if (Gp_TraceGroundCoord(coord, &ground) == 1) {
