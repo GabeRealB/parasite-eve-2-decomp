@@ -169,12 +169,10 @@ s32 func_dryfield_parking_lot_8017D8BC(Task* task, s32 msgId, RoomEventMsg* msg,
     *out = *msg;
     if ((msg->msgId == 2) && (msg->field_5 == 0)) {
         n = GameFlag_GetNibble(0x7A);
-        if (n < 4) {
+        if (n >= 4) {
             val = 3;
-            TOUCH_REG(val);
-            val = GameFlag_GetNibble(0x61) + 1;
         } else {
-            val = 3;
+            val = GameFlag_GetNibble(0x61) + 1;
         }
         out->field_3 = val;
     }
