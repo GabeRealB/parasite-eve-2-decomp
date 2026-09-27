@@ -241,7 +241,6 @@ static void func_shelter_b1_control_room_access_tunnel_8017D6E4(SVECTOR* arg0, s
 /// on odd and even frames.
 static void func_shelter_b1_control_room_access_tunnel_8017DE60(SVECTOR* arg0, s16 arg1)
 {
-    u8*                head;
     RoomDraw25Scratch* block;
     POLY_G4*           prim;
     s32                ang;
@@ -250,25 +249,16 @@ static void func_shelter_b1_control_room_access_tunnel_8017DE60(SVECTOR* arg0, s
     s32                rgb;
     s32                radius;
 
-    {
-        void**       scratch;
-        register u8* tmp asm("v0");
-
-        scratch  = (void**)G_SCRATCH_HEAD;
-        head     = *scratch;
-        tmp      = head - 0xC;
-        block    = (RoomDraw25Scratch*)tmp;
-        *scratch = tmp;
-    }
+    block = SCRATCH_PUSH(RoomDraw25Scratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((RoomDraw25Scratch*)(head - 0xC))->sx);
+    gte_stsxy(&block->sx);
     gte_stszotz(&block->otz);
-    if (((RoomDraw25Scratch*)(head - 0xC))->otz >= 0x11) {
-        radius        = (arg1 * 64) / ((RoomDraw25Scratch*)(head - 0xC))->otz;
+    if (block->otz >= 0x11) {
+        radius        = (arg1 * 64) / block->otz;
         rgb           = (((u8)gDisplayState.animFrame & 1) * 8) | 0x20;
         ang           = 0;
         block->radius = radius;
@@ -296,7 +286,7 @@ static void func_shelter_b1_control_room_access_tunnel_8017DE60(SVECTOR* arg0, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_POP(RoomDraw25Scratch);
 }
 
 /// On its first tick stores six effect ids in gameplay's `D_801157xx` slots;
