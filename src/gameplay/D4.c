@@ -1303,67 +1303,49 @@ static void Gp_InitStageVisit(GpAreaKey* arg0)
 /// in `GameSession.companionType`.
 static s32 Gp_PickCompanion(void)
 {
-    McSaveData*           save;
-    McSaveData*           p;
-    McSaveData*           q;
-    GameSession*          sess;
-    register GameSession* session asm("a0");
-    u8*                   bytes;
-    s32                   stage;
-    u8                    hi;
-    s32                   arg;
+    McSaveData* save;
+    u8*         bytes;
+    s32         stage;
+    u8          variant;
 
-    arg   = 0x4B;
     save  = &Mc_SaveData[0];
     stage = save->at4.loc.stage;
-    bytes = D_80114198[GameFlag_GetNibble(arg)].field_0;
-    if (bytes != NULL) {
-        if (D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage) {
-            if (bytes[save->at4.loc.area - 1] != 0) {
-                sess                   = gGameSession;
-                save->companionType    = 2;
-                save->companionVariant = 0;
-                return (sess->companionType != 2) * 2;
-            }
-        }
+    bytes = D_80114198[GameFlag_GetNibble(0x4B)].field_0;
+    if (bytes != NULL && D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage && bytes[save->at4.loc.area - 1] != 0) {
+        GameSession* sess = gGameSession;
+
+        save->companionType    = 2;
+        save->companionVariant = 0;
+        return (sess->companionType != 2) * 2;
     }
 
     bytes = D_801141F0[GameFlag_GetNibble(0x4C)].field_0;
-    if (bytes != NULL) {
-        if (D_801141F0[GameFlag_GetNibble(0x4C)].field_4 == stage) {
-            p = &Mc_SaveData[0];
-            if (bytes[p->at4.loc.area - 1] & 0xF) {
-                session          = gGameSession;
-                p->companionType = 1;
-                if (session->companionType == 1) {
-                    hi = bytes[p->at4.loc.area - 1] >> 4;
-                    if (session->companionVariant == hi) {
-                        p->companionVariant = hi;
-                        return 0;
-                    }
-                }
-                q                              = &Mc_SaveData[0];
-                q->companionVariant            = bytes[q->at4.loc.area - 1] >> 4;
-                gGameSession->companionVariant = bytes[q->at4.loc.area - 1] >> 4;
-                return 1;
+    if (bytes != NULL && D_801141F0[GameFlag_GetNibble(0x4C)].field_4 == stage && (bytes[Mc_SaveData[0].at4.loc.area - 1] & 0xF)) {
+        GameSession* sess = gGameSession;
+
+        Mc_SaveData[0].companionType = 1;
+        if (sess->companionType == 1) {
+            variant = bytes[Mc_SaveData[0].at4.loc.area - 1] >> 4;
+            if (sess->companionVariant == variant) {
+                Mc_SaveData[0].companionVariant = variant;
+                return 0;
             }
         }
+        Mc_SaveData[0].companionVariant = bytes[Mc_SaveData[0].at4.loc.area - 1] >> 4;
+        gGameSession->companionVariant  = bytes[Mc_SaveData[0].at4.loc.area - 1] >> 4;
+        return 1;
     }
 
     bytes = D_80114248[GameFlag_GetNibble(0x4D)].field_0;
-    if (bytes != NULL) {
-        if (D_80114248[GameFlag_GetNibble(0x4D)].field_4 == stage) {
-            p = &Mc_SaveData[0];
-            if (bytes[p->at4.loc.area - 1] != 0) {
-                session             = gGameSession;
-                p->companionType    = 3;
-                p->companionVariant = 0;
-                if (session->companionType == 3) {
-                    return 0;
-                }
-                return 3;
-            }
+    if (bytes != NULL && D_80114248[GameFlag_GetNibble(0x4D)].field_4 == stage && bytes[Mc_SaveData[0].at4.loc.area - 1] != 0) {
+        GameSession* sess = gGameSession;
+
+        Mc_SaveData[0].companionType    = 3;
+        Mc_SaveData[0].companionVariant = 0;
+        if (sess->companionType == 3) {
+            return 0;
         }
+        return 3;
     }
 
     Mc_SaveData[0].companionType    = 0;
