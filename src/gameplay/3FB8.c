@@ -6091,13 +6091,9 @@ void Gp_PlayObjSfx(GpCoord* coord, s32 sfx, s32 arg2)
 
 void func_80106518(s32 arg0)
 {
-    register s32 cap asm("v0");
-    s32          idx;
-
-    cap = 0x1869E;
-    idx = arg0 - 1;
-    if (Mc_SaveData[0].weaponUseCounts[idx] <= cap) {
-        Mc_SaveData[0].weaponUseCounts[idx]++;
+    arg0--;
+    if (Mc_SaveData[0].weaponUseCounts[arg0] < 99999) {
+        Mc_SaveData[0].weaponUseCounts[arg0]++;
     }
 }
 
