@@ -396,7 +396,7 @@ static void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
     hp                             = enemy->param->hpMax;
     work->field_B92                = hp;
     enemy->hp                      = hp;
-    task->extra.tmd->coords[1].sub = (GpCoord*)work;
+    task->extra.tmd->coords[1].sub = &work->coord;
     task->extra.tmd->coords[1].flg = 0;
 
     i = 1;

@@ -31,7 +31,7 @@ static void Gp_MsgPlayer3EF(void);
 static u8   Gp_GetViewCountLo(void);
 static void Gp_ApplyAreaFlag4List(s16 arg0, GpAreaFlagRec* arg1);
 
-extern u16 D_80114CD0;
+extern s16 D_80114CD0;
 extern u16 Gp_DirFlags;
 extern u16 D_80114CD4;
 extern u16 Gp_DirPhase;

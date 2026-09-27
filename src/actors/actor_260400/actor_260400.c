@@ -130,11 +130,11 @@ void func_actor_260400_80149F5C(s32 arg0)
 
 static void func_actor_260400_80149FA4(void)
 {
-    s32 slot;
+    Task* slot;
 
     slot = Gp_LookupSlot4(0);
     if (slot != 0) {
-        Gp_DispatchMsg((Task*)slot, 0x7D4, (s32)&D_actor_260400_8014C6C0, 0);
+        Gp_DispatchMsg(slot, 0x7D4, (s32)&D_actor_260400_8014C6C0, 0);
     }
 }
 

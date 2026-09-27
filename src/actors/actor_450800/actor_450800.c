@@ -185,8 +185,8 @@ static void func_actor_450800_80132000(void)
 
 static void func_actor_450800_80132028(void)
 {
-    Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D3, (s32)&D_actor_450800_801397A4, 0);
-    Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D4, (s32)&D_actor_450800_801398EC, 0);
+    Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D3, (s32)&D_actor_450800_801397A4, 0);
+    Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D4, (s32)&D_actor_450800_801398EC, 0);
 }
 
 void func_actor_450800_80132080(void)

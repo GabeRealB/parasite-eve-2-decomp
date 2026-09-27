@@ -3709,9 +3709,9 @@ static inline s32 _gpRelatedQty(s32 item, s32 bank)
     ret   = 0;
     if ((u32)item < 0x20) {
         if (bank == 0) {
-            ret = Gp_RelatedQty0[item].field_0;
+            ret = Gp_RelatedQty0.rows[item].field_0;
         } else {
-            ret = Gp_RelatedQty1[item].field_0;
+            ret = Gp_RelatedQty1.rows[item].field_0;
         }
     }
     return ret;
@@ -3841,10 +3841,10 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         return -1;
     }
     if (arg0 == 0) {
-        row    = &Gp_RelatedQty0[arg1 - 0x80];
+        row    = &Gp_RelatedQty0.rows[arg1 - 0x80];
         maxQty = _gpRelatedQty(arg1, 0);
     } else {
-        row    = &Gp_RelatedQty1[arg1 - 0x80];
+        row    = &Gp_RelatedQty1.rows[arg1 - 0x80];
         maxQty = _gpRelatedQty(arg1, 1);
     }
     for (i = 0; i < 3; i++) {
@@ -3912,7 +3912,7 @@ s32 Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (_gpScanHeldQty(table, arg0, arg1) <= 0) {
         return -1;
     }
-    row    = &Gp_RelatedQty0[arg1 - 0x80];
+    row    = &Gp_RelatedQty0.rows[arg1 - 0x80];
     maxQty = _gpRelatedQty(arg1, 0);
     for (i = 0; i < 3; i++) {
         if (row->related[i] == arg2) {
@@ -3921,7 +3921,7 @@ s32 Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
     if (i == 3) {
         useSecond = 1;
-        row       = &Gp_RelatedQty1[arg1 - 0x80];
+        row       = &Gp_RelatedQty1.rows[arg1 - 0x80];
         maxQty    = _gpRelatedQty(arg1, 1);
         for (i = 0; i < 3; i++) {
             if (row->related[i] == arg2) {

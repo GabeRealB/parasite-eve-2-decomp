@@ -536,7 +536,7 @@ void func_actor_361100_801627D4(Task* task)
     u16        rate;
 
     looker = gameGetPtrSlot(3);
-    target = (Task*)Gp_LookupSlot4(2);
+    target = Gp_LookupSlot4(2);
     if (D_801156F9 == 0) {
         if ((looker == NULL) || (target == NULL)) {
             task->state = -1;

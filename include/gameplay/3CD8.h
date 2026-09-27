@@ -368,7 +368,7 @@ extern u16 Gp_FadeQuadColors[];
 /// flags, clears `GameSession::padScriptFlags` and flushes the pad event queue.
 void  Gp_HaltPadScripts(void);
 Task* Gp_SpawnScript18(s32 arg0, s32 arg1);
-s32   Gp_LookupSlot4(s32 arg0);
+Task* Gp_LookupSlot4(s32 arg0);
 void  Gp_RunCapCmd(s32 arg0, s16 arg1);
 void  Gp_EvtCapWeaponTask(Task* arg0);
 s32   Gp_StartCapSlot(s16 arg0, s16 arg1, s16 arg2);

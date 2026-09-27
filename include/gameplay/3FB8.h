@@ -771,4 +771,7 @@ s32   func_801055D4(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 void Gp_PlayerWorkTask(Task* arg0);
 void func_8010B610(Task* arg0);
 
+void func_8010870C(Task* arg0, s32 arg1);
+void func_80108874(Task* arg0);
+
 #endif // GAMEPLAY_3FB8_H

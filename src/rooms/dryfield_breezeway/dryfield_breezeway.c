@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/D4.h"
 
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
@@ -18,7 +19,6 @@ struct _GpMsgEntry;
 
 /* The room calls the dispatcher with only the task, leaving a1-a3 holding
    whatever the caller had, so the declaration must stay unprototyped. */
-s32 Gp_DispatchMsg();
 
 /// The message and request the event gate latched, and the descriptor of the
 /// event task it spawns to act on them.
@@ -163,14 +163,14 @@ void func_dryfield_breezeway_8017D79C(Task* task)
     }
 }
 
-s32 func_dryfield_breezeway_8017D90C(void)
+s32 func_dryfield_breezeway_8017D90C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     s32 ret;
 
     if (D_dryfield_breezeway_801843A8 == NULL) {
         ret = 0;
     } else {
-        ret = Gp_DispatchMsg(D_dryfield_breezeway_801843A8);
+        ret = Gp_DispatchMsg(D_dryfield_breezeway_801843A8, msgId, arg2, arg3);
     }
     return ret;
 }

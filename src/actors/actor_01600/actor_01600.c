@@ -6,6 +6,7 @@
 #include "gte.h"
 
 #include "actors/actor.h"
+#include "actors/actor_01600.h"
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -24,48 +25,8 @@
 #include "main/wipsys.h"
 #include <psyq/abs.h>
 
-typedef struct Actor01600Range {
-    /* 0x0 */ s32 low;
-    /* 0x4 */ s32 high;
-} Actor01600Range;
-STATIC_ASSERT_SIZEOF(Actor01600Range, 0x8);
-
 /* Declared here with a signed id: see the note in gameplay/1BC.h. */
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
-
-/// Packed contact record fields over the existing 0x2EC collision block.
-typedef union Actor01600ContactId {
-    s32 id;
-    struct {
-        u8  byte0;
-        u8  byte1;
-        u16 kind;
-    } parts;
-} Actor01600ContactId;
-
-typedef union Actor01600Contacts {
-    byte field_2EC[0xE0];
-    struct {
-        /* 0x2EC */ byte                pad_2EC[8];
-        /* 0x2F4 */ GpCoord*            field_2F4;
-        /* 0x2F8 */ s8*                 field_2F8;
-        /* 0x2FC */ s16                 field_2FC;
-        /* 0x2FE */ s16                 field_2FE;
-        /* 0x300 */ s16                 field_300;
-        /* 0x302 */ byte                pad_302[2];
-        /* 0x304 */ s32                 field_304;
-        /* 0x308 */ s16                 field_308;
-        /* 0x30A */ u16                 field_30A;
-        /* 0x30C */ byte                pad_30C[2];
-        /* 0x30E */ s16                 field_30E;
-        /* 0x310 */ Actor01600ContactId hit;
-        /* 0x314 */ s16                 field_314;
-        /* 0x316 */ s16                 field_316;
-        /* 0x318 */ s16                 field_318;
-        /* 0x31A */ byte                pad_31A[0xB2];
-    } named;
-} Actor01600Contacts;
-STATIC_ASSERT_SIZEOF(Actor01600Contacts, 0xE0);
 
 typedef union Actor01600HitVector {
     VECTOR v;
@@ -83,142 +44,6 @@ typedef struct Actor01600HitScratch {
     /* 0x40 */ byte                tail[0xC];
 } Actor01600HitScratch;
 STATIC_ASSERT_SIZEOF(Actor01600HitScratch, 0x4C);
-
-typedef struct Actor01600Work {
-    /* 0x000 */ GpAnimCtx          anim;
-    /* 0x014 */ GpAnimSlot         slots[9];
-    /* 0x17C */ byte               pad_17C[0x90];
-    /* 0x20C */ MATRIX             field_20C;
-    /* 0x22C */ MATRIX             field_22C;
-    /* 0x24C */ GpCoord            field_24C;
-    /* 0x29C */ byte               field_29C[8];
-    /* 0x2A4 */ GpCoord*           field_2A4;
-    /* 0x2A8 */ s8*                field_2A8;
-    /* 0x2AC */ s16                field_2AC;
-    /* 0x2AE */ s16                field_2AE;
-    /* 0x2B0 */ s16                field_2B0;
-    /* 0x2B2 */ s16                field_2B2;
-    /* 0x2B4 */ s32                field_2B4;
-    /* 0x2B8 */ s16                field_2B8;
-    /* 0x2BA */ u16                field_2BA;
-    /* 0x2BC */ byte               pad_2BC[4];
-    /* 0x2C0 */ s16                field_2C0;
-    /* 0x2C2 */ byte               pad_2C2[0xA];
-    /* 0x2CC */ s16                field_2CC;
-    /* 0x2CE */ s16                field_2CE;
-    /* 0x2D0 */ GpRec18*           field_2D0;
-    /* 0x2D4 */ GpRec18            field_2D4;
-    /* 0x2EC */ Actor01600Contacts collision;
-    /* 0x3CC */ byte               field_3CC[8];
-    /* 0x3D4 */ GpCoord*           field_3D4;
-    /* 0x3D8 */ s8*                field_3D8;
-    /* 0x3DC */ s16                field_3DC;
-    /* 0x3DE */ s16                field_3DE;
-    /* 0x3E0 */ s16                field_3E0;
-    /* 0x3E2 */ s16                field_3E2;
-    /* 0x3E4 */ s32                field_3E4;
-    /* 0x3E8 */ s16                field_3E8;
-    /* 0x3EA */ u16                field_3EA;
-    /* 0x3EC */ byte               pad_3EC[0x18];
-    /* 0x404 */ GpCoord*           field_404;
-    /* 0x408 */ s16                field_408;
-    /* 0x40A */ s16                field_40A;
-    /* 0x40C */ byte               field_40C[8];
-    /* 0x414 */ GpCoord*           field_414;
-    /* 0x418 */ s8*                field_418;
-    /* 0x41C */ s16                field_41C;
-    /* 0x41E */ s16                field_41E;
-    /* 0x420 */ s16                field_420;
-    /* 0x422 */ s16                field_422;
-    /* 0x424 */ s32                field_424;
-    /* 0x428 */ s16                field_428;
-    /* 0x42A */ u16                field_42A;
-    /* 0x42C */ s16                field_42C;
-    /* 0x42E */ byte               pad_42E[2];
-    /* 0x430 */ s16                field_430;
-    /* 0x432 */ byte               pad_432[0xA];
-    /* 0x43C */ s16                field_43C;
-    /* 0x43E */ s16                field_43E;
-    /* 0x440 */ s8*                field_440;
-    /* 0x444 */ GpRec18            field_444;
-    /* 0x45C */ Actor01600Range    ranges[8];
-    /* 0x49C */ MATRIX             field_49C;
-    /* 0x4BC */ s32                field_4BC;
-    /* 0x4C0 */ s32                field_4C0;
-    /* 0x4C4 */ s32                field_4C4;
-    /* 0x4C8 */ byte               pad_4C8[4];
-    /* 0x4CC */ s16                field_4CC;
-    /* 0x4CE */ byte               pad_4CE[6];
-    /* 0x4D4 */ Task*              field_4D4;
-    /* 0x4D8 */ s16                field_4D8;
-    /* 0x4DA */ s16                field_4DA;
-    /* 0x4DC */ s16                field_4DC;
-    /* 0x4DE */ byte               pad_4DE[2];
-    /* 0x4E0 */ s32                field_4E0;
-    /* 0x4E4 */ s32                field_4E4;
-    /* 0x4E8 */ s16                field_4E8;
-    /* 0x4EA */ s16                field_4EA;
-    /* 0x4EC */ s16                field_4EC;
-    /* 0x4EE */ s16                field_4EE;
-    /* 0x4F0 */ s16                field_4F0;
-    /* 0x4F2 */ s16                field_4F2;
-    /* 0x4F4 */ u16                field_4F4;
-    /* 0x4F6 */ s16                field_4F6;
-    /* 0x4F8 */ s16                field_4F8;
-    /* 0x4FA */ s16                field_4FA;
-    /* 0x4FC */ s16                field_4FC;
-    /* 0x4FE */ s16                field_4FE;
-    /* 0x500 */ s16                field_500;
-    /* 0x502 */ s16                field_502;
-    /* 0x504 */ s16                field_504;
-    /* 0x506 */ s16                field_506;
-    /* 0x508 */ s16                field_508;
-    /* 0x50A */ s16                field_50A;
-    /* 0x50C */ s16                field_50C;
-    /* 0x50E */ s16                field_50E;
-    /* 0x510 */ s16                field_510;
-    /* 0x512 */ s16                field_512;
-    /* 0x514 */ s16                field_514;
-    /* 0x516 */ s16                field_516;
-    /* 0x518 */ s16                field_518;
-    /* 0x51A */ s16                field_51A;
-    /* 0x51C */ s16                field_51C;
-    /* 0x51E */ s16                field_51E;
-    /* 0x520 */ s16                field_520;
-    /* 0x522 */ s16                field_522;
-    /* 0x524 */ s16                field_524;
-    /* 0x526 */ s16                field_526;
-    /* 0x528 */ s16                field_528;
-    /* 0x52A */ s16                field_52A;
-    /* 0x52C */ s16                field_52C;
-    /* 0x52E */ s16                field_52E;
-    /* 0x530 */ s16                field_530;
-    /* 0x532 */ s16                field_532;
-    /* 0x534 */ s16                field_534;
-    /* 0x536 */ s16                field_536;
-    /* 0x538 */ s16                field_538;
-    /* 0x53A */ s16                field_53A;
-    /* 0x53C */ s16                field_53C;
-    /* 0x53E */ s16                field_53E;
-    /* 0x540 */ s16                field_540;
-    /* 0x542 */ u16                field_542;
-    /* 0x544 */ s16                field_544;
-    /// Second animation id the `variant == 2` and `variant == 4` paths of
-    /// `Actor01600_Fn05F80` run their countdown against: it is stored into
-    /// `field_506` and steps 7 -> 9.
-    /* 0x546 */ s16 field_546;
-    /* 0x548 */ u16 field_548;
-    /// Copy of the spawn variant `Actor01600_Fn05F80` takes its `case 0x1A`
-    /// path for.
-    /* 0x54A */ s16  field_54A;
-    /* 0x54C */ u16  field_54C;
-    /* 0x54E */ s16  field_54E;
-    /* 0x550 */ s16  field_550;
-    /* 0x552 */ byte pad_552[2];
-    /* 0x554 */ s16  field_554;
-    /* 0x556 */ s16  field_556;
-} Actor01600Work;
-STATIC_ASSERT_SIZEOF(Actor01600Work, 0x558);
 
 typedef struct Actor01600RotScratch {
     /* 0x00 */ VECTOR  position;
@@ -420,17 +245,17 @@ static void Actor01600_Fn001F4(GpEnemy* ctx, Task* actor)
     ctx->field_4                              = &coord->coord;
     ctx->field_48                             = 0;
     Gp_LinkNode(&ctx->node);
-    ctx->bodyPos.vy         = -0x190;
-    ctx->node.state.b.flags = 0;
-    ctx->coord              = coord;
-    ctx->bodyPos.vx         = 0;
-    ctx->bodyPos.vz         = 0;
-    ctx->param              = &Actor01600_D09F0C;
-    ctx->recs               = (GpRec18*)&work->collision.named.pad_30C;
-    ctx->hp                 = (u16)Actor01600_D09F0C.hpMax;
-    work->field_408         = 0x280;
-    work->field_40A         = 2;
-    work->field_404         = next_coord;
+    ctx->bodyPos.vy            = -0x190;
+    ctx->node.state.b.flags    = 0;
+    ctx->coord                 = coord;
+    ctx->bodyPos.vx            = 0;
+    ctx->bodyPos.vz            = 0;
+    ctx->param                 = &Actor01600_D09F0C;
+    ctx->recs                  = work->collision.entries.recs;
+    ctx->hp                    = (u16)Actor01600_D09F0C.hpMax;
+    work->hitEffect.spawnArgLo = 0x280;
+    work->hitEffect.spawnArgHi = 2;
+    work->hitEffect.coord      = next_coord;
     func_800B3F84(&work->anim, Actor01600_D127EC, obj, work->pad_17C, work->slots);
     for (i = 1; i < 9; i++) {
         Gp_AnimResetSlot(&work->anim, i, 1);
@@ -475,9 +300,9 @@ static void Actor01600_Fn00480(Task* actor)
     Actor01600Work* work;
     GpRec18*        table1;
     GpCoord*        coord;
-    s8*             table2;
+    GpRec18*        table2;
     s8*             table3;
-    s8*             table4;
+    GpRec18*        table4;
 
     work            = actor->work;
     coord           = actor->extra.tmd->coords;
@@ -496,36 +321,36 @@ static void Actor01600_Fn00480(Task* actor)
     work->field_2A4 = coord;
     Gp_LinkObj(3, (struct _GpObj*)work->field_29C);
     Gp_InitRec18Table(table1, 1, 0);
-    table2                          = &work->collision.field_2EC[0x20];
-    work->collision.named.field_2F4 = coord;
-    work->collision.named.field_2F8 = table2;
-    work->collision.named.field_304 = 0x30010;
-    work->collision.named.field_308 = 0x190;
-    work->collision.named.field_2FC = 0;
-    work->collision.named.field_2FE = -0x190;
-    work->collision.named.field_300 = 0;
-    work->collision.named.field_30A = 1;
-    work->field_2BA                |= 0xC000;
-    Gp_LinkObj(2, (struct _GpObj*)work->collision.field_2EC);
-    Gp_InitRec18Table((GpRec18*)table2, 8, 0);
-    table3                           = (s8*)&work->field_444;
-    work->field_430                  = 0x1F4;
-    work->field_42C                  = 0x1F4;
-    work->field_43C                  = 1;
-    work->field_43E                  = 1;
-    work->field_440                  = table3;
-    work->field_414                  = coord;
-    work->field_418                  = (s8*)&work->field_42C;
-    work->field_41C                  = 0;
-    work->field_41E                  = -0x190;
-    work->field_420                  = 0;
-    work->field_424                  = 0;
-    work->field_428                  = 0;
-    work->field_42A                  = 3;
-    work->collision.named.field_30A |= 0xC200;
+    table2                       = work->collision.entries.recs;
+    work->collision.obj.coord    = coord;
+    work->collision.obj.ctx.recs = table2;
+    work->collision.obj.key      = 0x30010;
+    work->collision.obj.radius   = 0x190;
+    work->collision.obj.pos.vx   = 0;
+    work->collision.obj.pos.vy   = -0x190;
+    work->collision.obj.pos.vz   = 0;
+    work->collision.obj.flags    = 1;
+    work->field_2BA             |= 0xC000;
+    Gp_LinkObj(2, &work->collision.obj);
+    Gp_InitRec18Table(table2, 8, 0);
+    table3                     = (s8*)&work->field_444;
+    work->field_430            = 0x1F4;
+    work->field_42C            = 0x1F4;
+    work->field_43C            = 1;
+    work->field_43E            = 1;
+    work->field_440            = table3;
+    work->field_414            = coord;
+    work->field_418            = (s8*)&work->field_42C;
+    work->field_41C            = 0;
+    work->field_41E            = -0x190;
+    work->field_420            = 0;
+    work->field_424            = 0;
+    work->field_428            = 0;
+    work->field_42A            = 3;
+    work->collision.obj.flags |= 0xC200;
     Gp_LinkObj(2, (struct _GpObj*)work->field_40C);
     Gp_InitRec18Table((GpRec18*)table3, 1, 0);
-    table4           = work->pad_3EC;
+    table4           = &work->contact_3EC;
     work->field_3D4  = coord;
     work->field_3D8  = table4;
     work->field_3DC  = 0;
@@ -536,7 +361,7 @@ static void Actor01600_Fn00480(Task* actor)
     work->field_3E8  = 0x12C;
     work->field_3EA  = 1;
     Gp_LinkObj(3, (struct _GpObj*)work->field_3CC);
-    Gp_InitRec18Table((GpRec18*)table4, 1, 0);
+    Gp_InitRec18Table(table4, 1, 0);
     work->field_3EA &= 0x7FFF;
 }
 
@@ -677,7 +502,7 @@ static void Actor01600_Fn00BAC(Task* actor)
     Actor01600Work*       work;
     GpEnemy*              ctx;
     GpCoord*              coord;
-    Actor01600Work*       rec;
+    s32                   contactIndex;
     Actor01600HitScratch* scratch;
     void*                 old;
     GpCoord*              other;
@@ -690,13 +515,14 @@ static void Actor01600_Fn00BAC(Task* actor)
     s32                   cx, cz;
     s16                   count;
     s32                   mode;
-    VECTOR *              v1, *v2;
+    /* Keep the comparison state local to each reaction branch (GCC 2.8.1). */
+    s32 ignoredState;
     work    = actor->work;
     old     = SCRATCH_HEAD(void);
     scratch = (SCRATCH_HEAD(void) = old - 0x4C);
     ctx     = actor->spawnArg2;
     coord   = actor->extra.tmd->coords;
-    mode    = func_800E0C10((GpRec18*)&work->collision.field_2EC[0x20], old - 0x2C, 8, old - 4);
+    mode    = func_800E0C10(work->collision.entries.recs, old - 0x2C, 8, old - 4);
     world   = coord + 1;
     if (mode == 1)
         goto mode1;
@@ -723,153 +549,156 @@ mode_end:
             work->field_51C = 0;
     }
     /* Process each of the eight collision contacts. */
-    rec = work;
-next_record: {
-    switch (rec->collision.named.hit.parts.kind) {
-        case 2:
-            if (work->field_51C == 0) {
-                other               = slots[rec->collision.named.hit.parts.byte0 >> 7]->extra.tmd->coords;
-                x                   = other->coord.t[0] - coord->coord.t[0];
-                scratch->delta.v.vx = x;
-                y                   = other->coord.t[1] - coord->coord.t[1];
-                scratch->delta.v.vy = y;
-                z                   = other->coord.t[2] - coord->coord.t[2];
-                scratch->delta.v.vz = z;
-                damage              = Gp_ComputeDamage(rec->collision.named.hit.id, SquareRoot0(x * x + y * y + z * z), 0, 0);
-                if (Gp_RollEnemyChance(actor->spawnArg2, rec->collision.named.hit.id, 0)) {
-                    damage *= 4;
-                    Gp_SpawnEff(0x6009C, actor->extra.tmd->coords + 1, 0, 0);
-                }
-                if (work->field_4FE == 1 && work->field_528 != 0 && work->field_51E < 0) {
-                    damage *= 2;
-                    Gp_SpawnEff(0x6009C, actor->extra.tmd->coords + 1, 3, 0);
-                }
-                func_800E2C78(ctx, rec->collision.named.hit.id, damage, 0);
-                Actor01600_Fn0131C(actor, damage);
-                count = Gp_GetIdParam2(rec->collision.named.hit.id);
-                if (count > 0)
-                    work->field_51C = count;
-                switch (Gp_GetIdParam0(rec->collision.named.hit.id) & 0xFFFF) {
-                    case 4:
-                    case 6:
-                        if ((s16)ctx->hp <= 0)
-                            goto dead;
-                        Gp_SetObjFlag1(actor->spawnArg2);
-                        break;
-                    case 2:
-                    case 9:
-                        if (work->field_4FE != 3 && work->field_4FE != 5) {
-                            Gp_SetObjFlag2(actor->spawnArg2, rec->collision.named.hit.id, 0);
-                            work->field_556 = 1;
-                        }
-                        break;
-                    case 8:
-                        if (work->field_4FE != 3 && work->field_4FE != 5) {
-                            Gp_SetObjFlag2(actor->spawnArg2, rec->collision.named.hit.id, 0);
-                            work->field_556 = 0;
-                        }
-                        break;
-                    case 1:
-                    case 5:
-                        if (work->field_4FE != 3 && work->field_4FE != 5)
+    for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->collision.entries.hits); contactIndex++) {
+        switch (work->collision.entries.hits[contactIndex].hit.parts.kind) {
+            case 2:
+                if (work->field_51C == 0) {
+                    other               = slots[work->collision.entries.hits[contactIndex].hit.parts.byte0 >> 7]->extra.tmd->coords;
+                    x                   = other->coord.t[0] - coord->coord.t[0];
+                    scratch->delta.v.vx = x;
+                    y                   = other->coord.t[1] - coord->coord.t[1];
+                    scratch->delta.v.vy = y;
+                    z                   = other->coord.t[2] - coord->coord.t[2];
+                    scratch->delta.v.vz = z;
+                    damage              = Gp_ComputeDamage(work->collision.entries.hits[contactIndex].hit.id, SquareRoot0(x * x + y * y + z * z), 0, 0);
+                    if (Gp_RollEnemyChance(actor->spawnArg2, work->collision.entries.hits[contactIndex].hit.id, 0)) {
+                        damage *= 4;
+                        Gp_SpawnEff(0x6009C, actor->extra.tmd->coords + 1, 0, 0);
+                    }
+                    if (work->field_4FE == 1 && work->field_528 != 0 && work->field_51E < 0) {
+                        damage *= 2;
+                        Gp_SpawnEff(0x6009C, actor->extra.tmd->coords + 1, 3, 0);
+                    }
+                    func_800E2C78(ctx, work->collision.entries.hits[contactIndex].hit.id, damage, 0);
+                    Actor01600_Fn0131C(actor, damage);
+                    count = Gp_GetIdParam2(work->collision.entries.hits[contactIndex].hit.id);
+                    if (count > 0)
+                        work->field_51C = count;
+                    switch (Gp_GetIdParam0(work->collision.entries.hits[contactIndex].hit.id) & 0xFFFF) {
+                        case 4:
+                        case 6:
+                            if ((s16)ctx->hp <= 0)
+                                goto dead;
                             Gp_SetObjFlag1(actor->spawnArg2);
-                        break;
-                    case 0:
-                        break;
-                    case 3:
-                        Gp_SetObjFlag4(actor->spawnArg2, rec->collision.named.hit.id, 0);
-                        break;
-                }
-                if (damage >= 40 && work->field_556 == 0) {
-                    Gp_SetObjFlag1(ctx);
-                    if (work->field_4FE == 0 && work->field_528 != 0) {
-                        work->field_528 = 0;
-                        work->field_51E = 0;
-                        work->field_520 = 0;
+                            break;
+                        case 2:
+                        case 9:
+                            if (work->field_4FE != 3) {
+                                ignoredState = 5;
+                                if (work->field_4FE != ignoredState) {
+                                    Gp_SetObjFlag2(actor->spawnArg2, work->collision.entries.hits[contactIndex].hit.id, 0);
+                                    work->field_556 = 1;
+                                }
+                            }
+                            break;
+                        case 8:
+                            if (work->field_4FE != 3) {
+                                ignoredState = 5;
+                                if (work->field_4FE != ignoredState) {
+                                    Gp_SetObjFlag2(actor->spawnArg2, work->collision.entries.hits[contactIndex].hit.id, 0);
+                                    work->field_556 = 0;
+                                }
+                            }
+                            break;
+                        case 1:
+                        case 5:
+                            if (work->field_4FE != 3) {
+                                ignoredState = 5;
+                                if (work->field_4FE != ignoredState) {
+                                    Gp_SetObjFlag1(actor->spawnArg2);
+                                }
+                            }
+                            break;
+                        case 0:
+                            break;
+                        case 3:
+                            Gp_SetObjFlag4(actor->spawnArg2, work->collision.entries.hits[contactIndex].hit.id, 0);
+                            break;
                     }
-                } else {
-                    work->field_522 = 1;
-                    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                    work->field_4CC = ((Gp_LcgState >> 11) & 0x60) + 0x100;
-                }
-                if (work->field_4FE != 0 && work->field_528 != 0) {
-                    work->field_3EA &= 0x7FFF;
-                    Gp_ClearRec18Occupied((GpRec18*)work->pad_3EC);
-                    work->field_4FA  = 0;
-                    work->field_51E += 20;
-                    amount           = Actor01600_Fn045A8(actor, &distance);
-                    if (amount < 0)
-                        amount = -amount;
-                    if (amount < 0x400) {
-                        work->field_506 = 14;
-                        work->field_50E = -40;
+                    if (damage >= 40 && work->field_556 == 0) {
+                        Gp_SetObjFlag1(ctx);
+                        if (work->field_4FE == 0 && work->field_528 != 0) {
+                            work->field_528 = 0;
+                            work->field_51E = 0;
+                            work->field_520 = 0;
+                        }
                     } else {
-                        work->field_506 = 11;
-                        work->field_50E = 40;
+                        work->field_522 = 1;
+                        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                        work->field_4CC = ((Gp_LcgState >> 11) & 0x60) + 0x100;
                     }
-                    work->field_516 = 8;
+                    if (work->field_4FE != 0 && work->field_528 != 0) {
+                        work->field_3EA &= 0x7FFF;
+                        Gp_ClearRec18Occupied(&work->contact_3EC);
+                        work->field_4FA  = 0;
+                        work->field_51E += 20;
+                        amount           = Actor01600_Fn045A8(actor, &distance);
+                        if (amount < 0)
+                            amount = -amount;
+                        if (amount < 0x400) {
+                            work->field_506 = 14;
+                            work->field_50E = -40;
+                        } else {
+                            work->field_506 = 11;
+                            work->field_50E = 40;
+                        }
+                        work->field_516 = 8;
+                    }
+                    func_800FDB18(Gp_GetIdParam1(work->collision.entries.hits[contactIndex].hit.id) & 0xFFFF, world, 0, &work->hitEffect);
                 }
-                func_800FDB18(Gp_GetIdParam1(rec->collision.named.hit.id) & 0xFFFF, world, 0, (GpEffArg*)&work->pad_3EC[0x18]);
-            }
-            break;
-        case 3:
-            cx                  = coord->workm.t[0] - rec->collision.named.field_314;
-            scratch->delta.v.vy = 0;
-            scratch->delta.v.vx = cx;
-            cz                  = coord->workm.t[2] - rec->collision.named.field_318;
-            scratch->delta.v.vz = cz;
-            push                = cx * cx + cz * cz;
-            push                = SquareRoot0(push);
-            push                = -push;
-            push               += rec->collision.named.field_30E;
-            clamped             = push;
-            if (push <= 0)
-                clamped = 0;
-            push = clamped;
-            SOFT_TOUCH_REG_USE(push, rec);
-            v1                  = &scratch->delta.v;
-            scratch->delta.v.vx = coord->workm.t[0] - rec->collision.named.field_314;
-            v2                  = &scratch->normal;
-            scratch->delta.v.vy = coord->workm.t[1] - rec->collision.named.field_316;
-            scratch->delta.v.vz = coord->workm.t[2] - rec->collision.named.field_318;
-            VectorNormal(v1, v2);
-            ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, v2, v1);
-            if (work->field_506 == 23 || work->field_506 == 5 || work->field_506 == 6) {
-                coord->coord.t[0] += (push * scratch->delta.v.vx) >> 12;
-                product            = push * scratch->delta.v.vy;
-                if (product < 0)
-                    coord->coord.t[1] += product >> 12;
-                coord->coord.t[2] += (push * scratch->delta.v.vz) >> 12;
-            }
-            break;
-        case 0:
-        case 1:
-        case 4:
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9:
-        case 10:
-        case 11:
-        case 12:
-        case 13:
-        case 14:
-        case 15:
-        case 16:
-            break;
+                break;
+            case 3:
+                cx                  = coord->workm.t[0] - work->collision.entries.hits[contactIndex].point.vx;
+                scratch->delta.v.vy = 0;
+                scratch->delta.v.vx = cx;
+                cz                  = coord->workm.t[2] - work->collision.entries.hits[contactIndex].point.vz;
+                scratch->delta.v.vz = cz;
+                push                = cx * cx + cz * cz;
+                push                = SquareRoot0(push);
+                push                = -push;
+                push               += work->collision.entries.hits[contactIndex].depth;
+                clamped             = push;
+                if (push <= 0)
+                    clamped = 0;
+                push                = clamped;
+                scratch->delta.v.vx = coord->workm.t[0] - work->collision.entries.hits[contactIndex].point.vx;
+                scratch->delta.v.vy = coord->workm.t[1] - work->collision.entries.hits[contactIndex].point.vy;
+                scratch->delta.v.vz = coord->workm.t[2] - work->collision.entries.hits[contactIndex].point.vz;
+                VectorNormal(&scratch->delta.v, &scratch->normal);
+                ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &scratch->normal, &scratch->delta.v);
+                if (work->field_506 == 23 || work->field_506 == 5 || work->field_506 == 6) {
+                    coord->coord.t[0] += (push * scratch->delta.v.vx) >> 12;
+                    product            = push * scratch->delta.v.vy;
+                    if (product < 0)
+                        coord->coord.t[1] += product >> 12;
+                    coord->coord.t[2] += (push * scratch->delta.v.vz) >> 12;
+                }
+                break;
+            case 0:
+            case 1:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+            case 10:
+            case 11:
+            case 12:
+            case 13:
+            case 14:
+            case 15:
+            case 16:
+                break;
+        }
     }
-}
-    rec = (void*)rec + 0x18;
-    if ((s32)rec < (s32)work + 0xC0)
-        goto next_record;
-    Gp_ClearRec18Occupied((GpRec18*)&work->collision.field_2EC[0x20]);
-    if (work->field_516 && Gp_FindRec18((GpRec18*)work->pad_3EC, 0)) {
-        work->collision.named.field_2FE = -400;
-        work->collision.named.field_308 = 400;
-        work->field_52A                 = 1;
-        work->field_3EA                &= 0x7FFF;
-        Gp_ClearRec18Occupied((GpRec18*)work->pad_3EC);
+    Gp_ClearRec18Occupied(work->collision.entries.recs);
+    if (work->field_516 && Gp_FindRec18(&work->contact_3EC, 0)) {
+        work->collision.obj.pos.vy = -400;
+        work->collision.obj.radius = 400;
+        work->field_52A            = 1;
+        work->field_3EA           &= 0x7FFF;
+        Gp_ClearRec18Occupied(&work->contact_3EC);
         if (work->field_50A < 15) {
             work->field_516  = 8;
             work->field_4FA  = 0;
@@ -1689,13 +1518,13 @@ static void Actor01600_Fn020F8(Task* actor)
             if ((u32)(temp_v1_3 - 8) < 0x17U) {
                 if (work->field_52A == 0) {
                     if ((s16)temp_v1_3 < 0xC) {
-                        work->collision.named.field_2FE = -0x258;
-                        work->collision.named.field_308 = 0x258;
-                        work->field_50E                 = 0x12C;
+                        work->collision.obj.pos.vy = -0x258;
+                        work->collision.obj.radius = 0x258;
+                        work->field_50E            = 0x12C;
                     } else if ((s16)temp_v1_3 < 0x18) {
-                        work->collision.named.field_2FE = -0x190;
-                        work->collision.named.field_308 = 0x190;
-                        work->field_50E                 = 0x32;
+                        work->collision.obj.pos.vy = -0x190;
+                        work->collision.obj.radius = 0x190;
+                        work->field_50E            = 0x32;
                     } else {
                         work->field_50E = 0x19;
                     }
@@ -1706,8 +1535,8 @@ static void Actor01600_Fn020F8(Task* actor)
                 work->field_3EA |= 0x8000;
             }
             if (work->field_50A == 0x17) {
-                work->collision.named.field_30A = (u16)(work->collision.named.field_30A | 0x4000);
-                work->field_3EA                &= 0x7FFF;
+                work->collision.obj.flags = (u16)(work->collision.obj.flags | 0x4000);
+                work->field_3EA          &= 0x7FFF;
             }
             if (work->field_50A >= 0x34) {
                 if (work->field_53C != 0) {
@@ -1757,14 +1586,14 @@ static void Actor01600_Fn020F8(Task* actor)
                     if (work->field_50A >= 8) {
                         if (work->field_544 == 0) {
                             if (work->field_50A < 0xC) {
-                                work->collision.named.field_2FE = -0x258;
-                                work->collision.named.field_308 = 0x258;
-                                work->field_50E                 = 0x12C;
+                                work->collision.obj.pos.vy = -0x258;
+                                work->collision.obj.radius = 0x258;
+                                work->field_50E            = 0x12C;
                             } else {
                                 if (work->field_50A < 0x18) {
-                                    work->collision.named.field_2FE = -0x190;
-                                    work->collision.named.field_308 = 0x190;
-                                    work->field_50E                 = 0x32;
+                                    work->collision.obj.pos.vy = -0x190;
+                                    work->collision.obj.radius = 0x190;
+                                    work->field_50E            = 0x32;
                                 } else {
                                     work->field_50E = 0x19;
                                 }
@@ -1783,8 +1612,8 @@ static void Actor01600_Fn020F8(Task* actor)
                         work->field_3EA |= 0x8000;
                     }
                     if (work->field_50A == 0x17) {
-                        work->collision.named.field_30A = (u16)(work->collision.named.field_30A | 0x4000);
-                        work->field_3EA                &= 0x7FFF;
+                        work->collision.obj.flags = (u16)(work->collision.obj.flags | 0x4000);
+                        work->field_3EA          &= 0x7FFF;
                     }
                     if (work->field_50A >= 0x19) {
                         work->field_506 = 0x1B;
@@ -1914,7 +1743,7 @@ static void Actor01600_Fn020F8(Task* actor)
                     if ((s16)temp_v0_6 == 0x14) {
                         work->field_54C = 0U;
                         work->field_554 = (u16)work->field_554 + 1;
-                        func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, effectCoord, &offset, (GpEffArg*)&work->pad_3EC[0x18]);
+                        func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, effectCoord, &offset, &work->hitEffect);
                         if (work->field_53E == 0) {
                             Gp_SpawnPadLerp(0xA, 0x80U, 0x80U);
                         }
@@ -2092,13 +1921,13 @@ static void Actor01600_Fn020F8(Task* actor)
                 case 14:
                     temp_v0_7 = work->field_50A;
                     if (temp_v0_7 <= 0) {
-                        work->collision.named.field_2FE = -0x258;
-                        work->collision.named.field_308 = 0x258;
-                        work->field_50E                 = 0x1F4;
+                        work->collision.obj.pos.vy = -0x258;
+                        work->collision.obj.radius = 0x258;
+                        work->field_50E            = 0x1F4;
                     } else if (temp_v0_7 < 0x13) {
-                        work->collision.named.field_2FE = -0x190;
-                        work->collision.named.field_308 = 0x190;
-                        work->field_50E                 = 0x4B;
+                        work->collision.obj.pos.vy = -0x190;
+                        work->collision.obj.radius = 0x190;
+                        work->field_50E            = 0x4B;
                     } else {
                         work->field_50E = 0;
                     }
@@ -2416,7 +2245,7 @@ static void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
             Gp_UnlinkNode(&arg0->node);
             Gp_UnlinkObj((GpObj*)work->field_40C);
             Gp_UnlinkObj((GpObj*)work->field_29C);
-            Gp_UnlinkObj((GpObj*)work->collision.field_2EC);
+            Gp_UnlinkObj(&work->collision.obj);
             Gp_UnlinkObj((GpObj*)work->field_3CC);
             state = &Gp_StateF0;
             if (state->field_1C >= 3) {
@@ -3144,7 +2973,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
             work->field_52E         = 1;
             Actor01600_Fn00480(arg0);
             if (Gp_StateF0.field_1C == 1) {
-                work->collision.named.field_30A &= 0xBFFF;
+                work->collision.obj.flags &= 0xBFFF;
             }
             Tmd_AllocBuffers(arg0->extra.tmd);
             obj             = arg0->extra.tmd;
@@ -3433,10 +3262,10 @@ static void Actor01600_Fn05F80(Task* arg0)
             case 0xFF:
                 anim = work->field_50A;
                 if (anim == 2) {
-                    work->field_404 = part1;
-                    work->field_408 = 0x100;
-                    work->field_40A = anim;
-                    func_800FDB18(1, part1, 0, (GpEffArg*)&work->field_404);
+                    work->hitEffect.coord      = part1;
+                    work->hitEffect.spawnArgLo = 0x100;
+                    work->hitEffect.spawnArgHi = anim;
+                    func_800FDB18(1, part1, 0, (GpEffArg*)&work->hitEffect.coord);
                     Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[1], 0, NULL);
                 }
                 if ((u32)((u16)work->field_50A - 0xF) < 8U) {
@@ -3878,7 +3707,7 @@ static void Actor01600_Fn06EA4(Task* arg0)
     Gp_UnlinkNode(&ctx->node);
     Gp_UnlinkObj((GpObj*)work->field_40C);
     Gp_UnlinkObj((GpObj*)work->field_29C);
-    Gp_UnlinkObj((GpObj*)work->collision.field_2EC);
+    Gp_UnlinkObj(&work->collision.obj);
     Gp_UnlinkObj((GpObj*)work->field_3CC);
     Gp_EnemyTaskExit(arg0);
 }
@@ -3941,7 +3770,7 @@ static void Actor01600_Fn06FDC(Task* arg0, s32 arg1)
     if (!(arg1 & 0xFF)) {
         Gp_UnlinkObj((GpObj*)work->field_40C);
         Gp_UnlinkObj((GpObj*)work->field_29C);
-        Gp_UnlinkObj((GpObj*)work->collision.field_2EC);
+        Gp_UnlinkObj(&work->collision.obj);
         Gp_UnlinkObj((GpObj*)work->field_3CC);
     }
     Gp_SetLightMode(ctx, 1);

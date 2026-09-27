@@ -2,6 +2,7 @@
 #define GAMEPLAY_3688_H
 
 #include "common.h"
+#include "main/mc.h"
 
 #include <psyq/libgte.h>
 
@@ -11,6 +12,9 @@
 #include "main/ui.h"
 
 struct _UiObject;
+
+/// Selected inventory row shared by the item menu and its command panels.
+extern McItemRec* Gp_SelItemRec;
 
 /// Callback for UiObject + Task state handlers (e.g. entries in `Gp_ItemMenuStates`).
 typedef void (*UiObjectTaskFunc)(struct _UiObject* arg0, Task* arg1);

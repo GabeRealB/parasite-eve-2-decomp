@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/sound.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"

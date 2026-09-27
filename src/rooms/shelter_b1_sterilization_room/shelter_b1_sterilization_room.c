@@ -813,7 +813,7 @@ static void func_shelter_b1_sterilization_room_8017EB2C(Task* task)
     }
     if (obj->field_2E == 6) {
         obj->field_2E = 0;
-        Ui_SetState4((Task*)obj, task);
+        Ui_SetState4(obj, task);
         obj->status = 0;
     }
     if (obj->status == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
@@ -883,7 +883,7 @@ void func_shelter_b1_sterilization_room_8017EE24(Task* task)
     obj           = task->spawnArg2;
     obj->field_2E = 0;
     if (task->state == 0) {
-        Wip_UiHolder       = (WipUiHolder*)obj;
+        Wip_UiHolder       = obj;
         task->exitCallback = func_shelter_b1_sterilization_room_8017F514;
         task->state       += 1;
     }
@@ -1076,7 +1076,7 @@ void func_shelter_b1_sterilization_room_8017F44C(DialogPrompt* prompt, UiObject*
 /// task owns it, then frees the task's UI object and kills it.
 static void func_shelter_b1_sterilization_room_8017F514(Task* task)
 {
-    WipUiHolder* holder;
+    UiObject* holder;
 
     holder = task->spawnArg2;
     if (Wip_UiHolder == holder) {
@@ -1310,7 +1310,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
     }
     func_shelter_b1_sterilization_room_80180340(0);
     if (gGameSession->at4.loc.place == 5) {
-        target = (Task*)Gp_LookupSlot4(0);
+        target = Gp_LookupSlot4(0);
         if (target != NULL) {
             Gp_DispatchMsg(target, 0x7DB, (s32)&D_shelter_b1_sterilization_room_80184E7C, 0);
         }
@@ -1539,7 +1539,7 @@ void func_shelter_b1_sterilization_room_801802B0(Task* task)
 
 static void func_shelter_b1_sterilization_room_80180340(s32 arg0)
 {
-    Task* slot   = (Task*)Gp_LookupSlot4(0);
+    Task* slot   = Gp_LookupSlot4(0);
     Task* task   = slot;
     s32   isNull = (slot == NULL);
 

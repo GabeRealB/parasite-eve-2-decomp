@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/D4.h"
 
 #include <psyq/libgte.h>
 
@@ -17,7 +18,6 @@
 
 /* The room calls the dispatcher with only the task, leaving a1-a3 holding
    whatever the caller had, so the declaration must stay unprototyped. */
-s32 Gp_DispatchMsg();
 
 /// The saved view byte the scene task keeps while its CAP command runs, and
 /// puts back when the answer is not 0xA.
@@ -317,9 +317,9 @@ s32 func_dryfield_water_tower_8017DD3C(void)
 
 /// The room's handler for message 0x13F4: passes the message on to the cap
 /// script task with the arguments it arrived with.
-void func_dryfield_water_tower_8017DD44(void)
+s32 func_dryfield_water_tower_8017DD44(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    Gp_DispatchMsg(D_dryfield_water_tower_801876A0);
+    return Gp_DispatchMsg(D_dryfield_water_tower_801876A0, msgId, arg2, arg3);
 }
 
 /// State 0 of the room entry task: installs the room's message table,

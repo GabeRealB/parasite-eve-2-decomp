@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/3FB8.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
@@ -68,7 +69,6 @@ extern s16      D_80114C40;
 extern DR_STP   D_80114C50;
 extern s32      D_80115724;
 
-extern McItemRec* Gp_SelItemRec;
 extern const char D_8009388C[];
 extern const char D_80093890[];
 extern const char D_80093894[];
@@ -77,7 +77,6 @@ extern const char D_800938AC[];
 
 void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_80108874(void);
 void func_800A57B0(GpIdMapC* arg0);
 void Gp_UseItemTask(GpIdMapC* arg0);
 s32  func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2);

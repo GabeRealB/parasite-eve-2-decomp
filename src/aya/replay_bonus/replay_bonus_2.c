@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/gamemain.h"
 
 #include "aya/replay_bonus.h"
 #include "gameplay/1BC.h"
@@ -510,7 +511,7 @@ static void func_replay_bonus_80117E04(void)
     count                   = D_replay_bonus_801192A0;
     D_replay_bonus_801192B4 = 0;
     D_replay_bonus_801192C0 =
-        Gpu_PrimHeapBase + Gpu_PrimHeapSize + (D_replay_bonus_80119224 << 16);
+        (u8*)(Gpu_PrimHeapBase + Gpu_PrimHeapSize + (D_replay_bonus_80119224 << 16));
     D_replay_bonus_80119224 ^= 1;
     end                      = count - 1;
 
@@ -654,7 +655,6 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
     u16                  page;
     u8                   pageFlags;
     ReplayBonusStfGlyph* glyph;
-    ReplayBonusStfSpr*   spr;
     POLY_FT4*            p;
     SPRT*                sprt;
     DR_TPAGE*            dr;
@@ -696,7 +696,7 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
                         gh                       = glyph->h;
                         gu                       = glyph->u;
                         gv                       = glyph->v;
-                        p                        = (POLY_FT4*)((u8*)D_replay_bonus_801192C0 + D_replay_bonus_801192B4);
+                        p                        = (POLY_FT4*)(D_replay_bonus_801192C0 + D_replay_bonus_801192B4);
                         D_replay_bonus_801192B4 += 0x28;
                         setPolyFT4(p);
                         y0        = gh & 0x7F;
@@ -708,12 +708,12 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
                         p->v2     = gv + y0;
                         p->u3     = width + gu;
                         p->v3     = gv + y0;
-                        p->r0     = ((CVECTOR*)&D_replay_bonus_801192AC)->r;
+                        p->r0     = D_replay_bonus_801192AC;
                         p->x0     = x;
                         p->x2     = x;
                         p->y2     = y;
                         p->y3     = y;
-                        p->g0     = ((CVECTOR*)&D_replay_bonus_801192AC)->r;
+                        p->g0     = D_replay_bonus_801192AC;
                         p->b0     = D_replay_bonus_801192AC;
                         y0        = y - y0;
                         x1        = x + width;
@@ -790,14 +790,13 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
                             break;
                     }
                     shift  = 2;
-                    spr    = (ReplayBonusStfSpr*)(idx * sizeof(*spr) + (size_t)D_replay_bonus_8011929C);
-                    tpageX = spr->tpageX;
-                    gu     = spr->u;
-                    gv     = spr->v;
-                    gh     = spr->h;
-                    clutY  = spr->clutY << 6;
-                    clut   = clutY | ((spr->clutX >> 4) & 0x3F);
-                    flags  = spr->flags;
+                    tpageX = D_replay_bonus_8011929C[idx].tpageX;
+                    gu     = D_replay_bonus_8011929C[idx].u;
+                    gv     = D_replay_bonus_8011929C[idx].v;
+                    gh     = D_replay_bonus_8011929C[idx].h;
+                    clutY  = D_replay_bonus_8011929C[idx].clutY << 6;
+                    clut   = clutY | ((D_replay_bonus_8011929C[idx].clutX >> 4) & 0x3F);
+                    flags  = D_replay_bonus_8011929C[idx].flags;
                     switch (flags) {
                         case 1:
                             shift = 1;
@@ -822,7 +821,7 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
                         sprt->r0   = D_replay_bonus_801192AC;
                         sprt->x0   = x - 0x140;
                         sprt->g0   = D_replay_bonus_801192AC;
-                        sprt->b0   = ((CVECTOR*)&D_replay_bonus_801192AC)->r;
+                        sprt->b0   = D_replay_bonus_801192AC;
                         sprt->y0   = y - gh;
                         sprt->w    = piece;
                         sprt->h    = gh;

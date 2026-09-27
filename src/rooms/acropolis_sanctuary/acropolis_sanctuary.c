@@ -348,7 +348,7 @@ static void func_acropolis_sanctuary_8017D930(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     arg0->state = arg0->state + 1;
     if (GameFlag_GetNibble(6) != 1) {
-        slot = (Task*)Gp_LookupSlot4(1);
+        slot = Gp_LookupSlot4(1);
         Gp_MsgSlot4Chain(1, 1);
         if (GameFlag_GetNibble(2) != 0 && slot != NULL) {
             Gp_DispatchMsg(slot, 0x7D3, (s32)&D_acropolis_sanctuary_80180AE8, 0);

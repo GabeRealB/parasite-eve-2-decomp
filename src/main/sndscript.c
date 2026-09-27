@@ -33,7 +33,7 @@ static s32          SndScript_TickVoices(SndScript* arg0);
 static SndVoice*    SndVoice_Alloc(s32 arg0);
 static void         SndVoice_Attach(SndVoiceOwner* arg0, SndVoice* arg1);
 static void         SndVoice_ClearActive(void);
-static s32          SndVoice_DriveSlots(void);
+static s32          SndVoice_DriveSlots(s32* unused);
 static void         SndVoice_Init(void);
 static void         SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16* arg4);
 static void         SndVoice_SetPriority(s8 arg0);
@@ -316,7 +316,7 @@ void Snd_SetModeFlag(s32 arg0)
     }
 }
 
-void Snd_PollAsync(void)
+void Snd_PollAsync(s32 unused)
 {
     AsyncCb_Poll();
 }
@@ -717,7 +717,7 @@ static void SndVoice_StepMasterLevel(void)
     SndVoice_ApplyMasterVolume(var_a0);
 }
 
-static s32 SndVoice_DriveSlots(void)
+static s32 SndVoice_DriveSlots(s32* unused)
 {
     SpuVoiceRef   ref;
     s16           vol[2];

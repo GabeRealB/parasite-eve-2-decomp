@@ -72,7 +72,7 @@ STATIC_ASSERT_SIZEOF(GpEnemy, 0x60);
 
 /// The enemy a lock-on list entry belongs to: every `GpLinkNode` on that list
 /// is the `node` member of an enemy.
-#define GP_NODE_ENEMY(n) ((GpEnemy*)((u8*)(n) - OFFSET_OF(GpEnemy, node)))
+#define GP_NODE_ENEMY(n) PARENT_OF(n, GpEnemy, node)
 
 /// Callback for GpEnemy + Task state handlers (entries in `Gp_EnemyWaitFuncs`).
 typedef void (*GpEnemyTaskFunc)(GpEnemy* enemy, Task* task);

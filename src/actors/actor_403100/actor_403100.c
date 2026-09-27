@@ -619,7 +619,7 @@ static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2,
 static void func_actor_403100_80132320(Task* arg0)
 {
     D_actor_403100_80155808->field_47C.coord    = &arg0->extra.tmd->coords[3];
-    D_actor_403100_80155808->field_47C.ctx.recs = (GpRec18*)D_actor_403100_80155808->pad_49C;
+    D_actor_403100_80155808->field_47C.ctx.recs = D_actor_403100_80155808->pad_49C;
     D_actor_403100_80155808->field_47C.pos.vz   = 0x300;
     D_actor_403100_80155808->field_47C.pos.vx   = 0;
     D_actor_403100_80155808->field_47C.pos.vy   = 0;
@@ -627,10 +627,10 @@ static void func_actor_403100_80132320(Task* arg0)
     D_actor_403100_80155808->field_47C.radius   = 0x400;
     D_actor_403100_80155808->field_47C.flags    = 1;
     Gp_LinkObj(2, &D_actor_403100_80155808->field_47C);
-    Gp_InitRec18Table((GpRec18*)D_actor_403100_80155808->pad_49C, 8, 0);
+    Gp_InitRec18Table(D_actor_403100_80155808->pad_49C, 8, 0);
     D_actor_403100_80155808->field_47C.flags   |= 0x8000;
     D_actor_403100_80155808->field_414.coord    = &arg0->extra.tmd->coords[1];
-    D_actor_403100_80155808->field_414.ctx.recs = (GpRec18*)D_actor_403100_80155808->pad_49C;
+    D_actor_403100_80155808->field_414.ctx.recs = D_actor_403100_80155808->pad_49C;
     D_actor_403100_80155808->field_414.pos.vx   = 0;
     D_actor_403100_80155808->field_414.pos.vy   = 0;
     D_actor_403100_80155808->field_414.pos.vz   = 0;
@@ -2142,7 +2142,7 @@ static void func_actor_403100_80136610(Task* arg0)
     TOUCH_REG(kind);
     D_actor_403100_8015580C->node.state.b.flags = kind;
     D_actor_403100_8015580C->param              = &D_actor_403100_8014762C;
-    D_actor_403100_8015580C->recs               = (GpRec18*)D_actor_403100_80155808->pad_49C;
+    D_actor_403100_8015580C->recs               = D_actor_403100_80155808->pad_49C;
     D_actor_403100_80155630                     = arg0->extra.tmd->coords;
     flags                                       = &obj->flags;
     *flags                                      = 0;

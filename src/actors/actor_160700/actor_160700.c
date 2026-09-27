@@ -46,12 +46,12 @@ static void func_actor_160700_8013258C(Task* task);
 
 static void func_actor_160700_80131E24(void)
 {
-    s32 slot;
+    Task* slot;
 
     if (GameFlag_GetNibble(0x113) != 0) {
         slot = Gp_LookupSlot4(0);
         if (slot != 0) {
-            Gp_DispatchMsg((Task*)slot, 0x7D3, (s32)&D_actor_160700_801354CC, 0);
+            Gp_DispatchMsg(slot, 0x7D3, (s32)&D_actor_160700_801354CC, 0);
         }
     }
 }

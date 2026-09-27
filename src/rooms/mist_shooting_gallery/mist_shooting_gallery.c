@@ -524,7 +524,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
 
     if (task->state == 0) {
         if (gGameSession->field_126 == 1) {
-            Ui_SetState4((Task*)obj, obj->owner);
+            Ui_SetState4(obj, obj->owner);
             obj->field_2E = 6;
             task->state   = 0x100;
             return;
@@ -1585,7 +1585,7 @@ void func_mist_shooting_gallery_80180728(Task* task)
                 if (task->status == 0xFF) {
                     obj->field_2E = 6;
                 } else {
-                    Ui_SetState4((Task*)obj, obj->owner);
+                    Ui_SetState4(obj, obj->owner);
                     obj->status = 0;
                 }
             }

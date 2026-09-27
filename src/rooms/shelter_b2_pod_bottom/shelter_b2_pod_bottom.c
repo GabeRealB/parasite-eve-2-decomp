@@ -69,7 +69,7 @@ static void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
         msg.from.loc.stage = 0;
         msg.from.loc.area  = 0;
         msg.command        = 7;
-        Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7DB, (s32)&msg, 0);
+        Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7DB, (s32)&msg, 0);
     }
     arg0->state++;
 }

@@ -122,7 +122,7 @@ void func_actor_403600_80134398(Task* arg0);
 extern TaskDesc      D_actor_403600_801421A0;
 extern s32           D_actor_403600_80160698;
 extern s32           D_actor_403600_8016069C;
-extern s32           D_actor_403600_801606A0;
+extern GpCoord*      D_actor_403600_801606A0;
 static const SVECTOR D_actor_403600_80131E2C;
 static const CVECTOR D_actor_403600_80131E34;
 
@@ -1572,7 +1572,7 @@ void func_actor_403600_80135C28(Task* arg0)
                     D_actor_403600_801606A0 = NULL;
                     temp_a0_5->flags        = (u16)(temp_a0_5->flags | 0x80);
                 } else if (temp_v0_9 > 0) {
-                    D_actor_403600_801606A0 = (s32)&temp_s0->field_90;
+                    D_actor_403600_801606A0 = &temp_s0->field_90;
                     Gp_UpdateCoord(&temp_s0->field_90);
                 }
                 break;
@@ -1581,11 +1581,11 @@ void func_actor_403600_80135C28(Task* arg0)
                 temp_s0->field_E4 = temp_v1_10;
                 if (temp_v1_10 == 0) {
                     temp_a1                 = ((Task*)arg0->spawnArg2)->extra.tmd;
-                    D_actor_403600_801606A0 = (s32)&temp_s0->field_90;
+                    D_actor_403600_801606A0 = &temp_s0->field_90;
                     temp_a1->flags          = (u16)(temp_a1->flags & 0xFF7F);
                     Gp_UpdateCoord(&temp_s0->field_90);
                 } else if (temp_v1_10 >= -7) {
-                    D_actor_403600_801606A0 = (s32)&temp_s0->field_90;
+                    D_actor_403600_801606A0 = &temp_s0->field_90;
                     Gp_UpdateCoord(&temp_s0->field_90);
                 } else if (temp_v1_10 == -8) {
                     D_actor_403600_801606A0 = NULL;
@@ -2360,8 +2360,8 @@ static u32* func_actor_403600_801379B4(TmdScratchModelBlock* ws, s32 flags, u32*
             (_Actor403600TriScratch*)(head - sizeof(_Actor403600TriScratch));
         gte_sttr(&sc->trans);
         gte_ReadRotMatrix(&sc->savedRot);
-        TransposeMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm, &sc->local);
-        coord         = (GpCoord*)D_actor_403600_801606A0;
+        TransposeMatrix(&D_actor_403600_801606A0->workm, &sc->local);
+        coord         = D_actor_403600_801606A0;
         sc->offset.vx = sc->trans.vx - coord->workm.t[0];
         sc->offset.vy = sc->trans.vy - coord->workm.t[1];
         sc->offset.vz = sc->trans.vz - coord->workm.t[2];
@@ -2386,8 +2386,8 @@ static u32* func_actor_403600_801379B4(TmdScratchModelBlock* ws, s32 flags, u32*
                     sc->verts[i].vy = 0;
                 }
             }
-            gte_SetRotMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
-            gte_SetTransMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
+            gte_SetRotMatrix(&D_actor_403600_801606A0->workm);
+            gte_SetTransMatrix(&D_actor_403600_801606A0->workm);
             gte_ldv3(&sc->verts[0], &sc->verts[1], &sc->verts[2]);
             gte_rtpt();
             gte_stflg(&ws->gteFlag);
@@ -2448,8 +2448,8 @@ static u32* func_actor_403600_80138004(TmdScratchModelBlock* ws, s32 flags, u32*
             (_Actor403600QuadScratch*)(head - sizeof(_Actor403600QuadScratch));
         gte_sttr(&sc->trans);
         gte_ReadRotMatrix(&sc->savedRot);
-        TransposeMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm, &sc->local);
-        coord         = (GpCoord*)D_actor_403600_801606A0;
+        TransposeMatrix(&D_actor_403600_801606A0->workm, &sc->local);
+        coord         = D_actor_403600_801606A0;
         sc->offset.vx = sc->trans.vx - coord->workm.t[0];
         sc->offset.vy = sc->trans.vy - coord->workm.t[1];
         sc->offset.vz = sc->trans.vz - coord->workm.t[2];
@@ -2475,8 +2475,8 @@ static u32* func_actor_403600_80138004(TmdScratchModelBlock* ws, s32 flags, u32*
                     sc->verts[i].vy = 0;
                 }
             }
-            gte_SetRotMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
-            gte_SetTransMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
+            gte_SetRotMatrix(&D_actor_403600_801606A0->workm);
+            gte_SetTransMatrix(&D_actor_403600_801606A0->workm);
             gte_ldv3(&sc->verts[0], &sc->verts[1], &sc->verts[2]);
             gte_rtpt();
             gte_stflg(&ws->gteFlag);
@@ -2542,8 +2542,8 @@ static u32* func_actor_403600_801386EC(TmdScratchModelBlock* ws, s32 flags, u32*
             (_Actor403600TriScratch*)(head - sizeof(_Actor403600TriScratch));
         gte_sttr(&sc->trans);
         gte_ReadRotMatrix(&sc->savedRot);
-        TransposeMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm, &sc->local);
-        coord         = (GpCoord*)D_actor_403600_801606A0;
+        TransposeMatrix(&D_actor_403600_801606A0->workm, &sc->local);
+        coord         = D_actor_403600_801606A0;
         sc->offset.vx = sc->trans.vx - coord->workm.t[0];
         sc->offset.vy = sc->trans.vy - coord->workm.t[1];
         sc->offset.vz = sc->trans.vz - coord->workm.t[2];
@@ -2564,8 +2564,8 @@ static u32* func_actor_403600_801386EC(TmdScratchModelBlock* ws, s32 flags, u32*
                 if (sc->verts[0].vy > 0) {
                     sc->verts[0].vy = 0;
                 }
-                gte_SetRotMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
-                gte_SetTransMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
+                gte_SetRotMatrix(&D_actor_403600_801606A0->workm);
+                gte_SetTransMatrix(&D_actor_403600_801606A0->workm);
                 gte_ldv0(&sc->verts[0]);
                 gte_rtps();
                 gte_stsz(&ws->gteResult);

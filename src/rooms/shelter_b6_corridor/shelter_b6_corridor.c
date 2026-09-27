@@ -379,8 +379,8 @@ void func_shelter_b6_corridor_8017E19C(s32 arg0)
     if (!(gGameSession->flowFlags & 0x80)) {
         gGameSession->flowFlags |= 0x80;
         Gp_StateF0.field_1       = arg0;
-        Gp_ReleaseStateF0Add((Task*)Gp_LookupSlot4(1), 0x31);
-        Task_CallExit((Task*)Gp_LookupSlot4(1));
+        Gp_ReleaseStateF0Add(Gp_LookupSlot4(1), 0x31);
+        Task_CallExit(Gp_LookupSlot4(1));
     }
 }
 

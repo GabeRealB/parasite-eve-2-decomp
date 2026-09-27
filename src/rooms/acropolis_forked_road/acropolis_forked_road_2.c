@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/D4.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>

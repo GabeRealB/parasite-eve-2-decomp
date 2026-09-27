@@ -4951,7 +4951,7 @@ static void func_actor_444000_8013E058(Task* task)
         posp->vz        = 0;
         posp->vy        = 0;
         posp->vx        = 0;
-        actorLocalToView(&((Task*)Gp_LookupSlot4(0))->extra.tmd->coords[3], posp);
+        actorLocalToView(&Gp_LookupSlot4(0)->extra.tmd->coords[3], posp);
         D_actor_444000_80161888.from.loc.stage = 0;
         D_actor_444000_80161888.from.loc.area  = 0x2C;
         D_actor_444000_80161888.command        = 2;

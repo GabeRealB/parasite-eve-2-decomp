@@ -190,7 +190,7 @@ static s32 D_8006764C = 0xFFFFFF7E;
 static UiListItemFunc D_80067650[] = { Ui_DrawDialogLine };
 static UiList         D_80067654   = { D_80067650, 1, 1, 0, 0x0F };
 static UiObjectDesc   D_80067678   = { 2, 0xFFD0, 0xFFE0, 0x60, 0x40, 0x20, 0, 0, 0xC0, Ui_ListTaskCallback, 0 };
-WipUiHolder*          Wip_UiHolder = NULL;
+UiObject*             Wip_UiHolder = NULL;
 
 static const UiPanelFuncTable6 Ui_ObjectStates = { {
     Ui_AnimOpenStep,
@@ -1941,12 +1941,12 @@ void Ui_FreeAndKill(Task* arg0)
     taskKill(arg0);
 }
 
-void Ui_SetState4(Task* arg0, Task* arg1)
+void Ui_SetState4(UiObject* arg0, Task* arg1)
 {
-    arg0->parent = (Task*)4;
+    arg0->mode = 4;
 }
 
-void Ui_ClampAnimOrClose(UiPanel* arg0, s32 arg1, s32 arg2)
+void Ui_ClampAnimOrClose(UiPanel* arg0, Task* arg1, s32 arg2)
 {
     s16 temp_v1;
 
@@ -1956,7 +1956,7 @@ void Ui_ClampAnimOrClose(UiPanel* arg0, s32 arg1, s32 arg2)
             arg0->field_16 = (s16)(arg2 + 9);
         }
     } else {
-        Ui_StartCloseAnim(arg0, (void*)arg1);
+        Ui_StartCloseAnim(arg0, arg1);
     }
 }
 
@@ -2226,9 +2226,9 @@ void Ui_SizeFromTextWide(UiPanel* arg0, u8* arg1)
     Ui_SizeFromText(arg0, arg1, 0x20, 0);
 }
 
-s32 Ui_IsStateDone(Task* arg0)
+s32 Ui_IsStateDone(UiObject* arg0)
 {
-    return (s32)arg0->parent >= 4;
+    return arg0->mode >= 4;
 }
 
 void Ui_InsertDrawTPage(s32 arg0, s32 arg1)
@@ -2605,13 +2605,13 @@ static void Ui_ListTaskCallback(Task* arg0)
 void Ui_SetHolderParam(s32 arg0, s32 arg1, s32 arg2)
 {
     if (Wip_UiHolder != NULL) {
-        Wip_UiHolder->field_28->field_34 = arg0;
+        Wip_UiHolder->owner->spawnArg1 = arg0;
     }
 }
 
 void Ui_SetHolderParamAlt(s32 arg0, s32 arg1, s32 arg2)
 {
     if (Wip_UiHolder != NULL) {
-        Wip_UiHolder->field_28->field_34 = arg0;
+        Wip_UiHolder->owner->spawnArg1 = arg0;
     }
 }

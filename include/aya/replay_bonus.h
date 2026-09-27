@@ -169,8 +169,8 @@ extern s32 D_replay_bonus_801192A8;
 /// Frame counter incremented while the credits draw.
 extern s32 D_replay_bonus_801192B0;
 /// Credits primitive-buffer selector and current buffer address.
-extern u8     D_replay_bonus_80119224;
-extern size_t D_replay_bonus_801192C0;
+extern u8  D_replay_bonus_80119224;
+extern u8* D_replay_bonus_801192C0;
 /// Bytes allocated in the current credits primitive buffer.
 extern s32 D_replay_bonus_801192B4;
 /// Stream sprite brightness and horizontal position.

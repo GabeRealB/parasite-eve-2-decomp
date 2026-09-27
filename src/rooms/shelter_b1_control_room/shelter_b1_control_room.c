@@ -155,7 +155,7 @@ static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg)
             if (area == 0x12) {
                 if (key->place == 0xB) {
                     cfg->field_10 = 0;
-                    cfg->subject  = (Task*)Gp_LookupSlot4(0);
+                    cfg->subject  = Gp_LookupSlot4(0);
                     if (view == 4 || view == 1) {
                         cfg->normal.vz   = -0x1000;
                         cfg->offset.vz   = -0xABE;

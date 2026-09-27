@@ -225,7 +225,7 @@ void func_actor_503500_80132CA4(void)
 
 void func_actor_503500_80132CC4(s8 arg0)
 {
-    Gp_ReleaseStateF0Add((Task*)Gp_LookupSlot4(0), 0x23);
+    Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x23);
     Gp_StateF0.field_1 = arg0;
 }
 

@@ -131,11 +131,11 @@ static void func_neo_ark_power_plant_2_8017D6F4(Task* arg0)
 
 static void func_neo_ark_power_plant_2_8017D758(Task* task)
 {
-    s32 temp_v0;
+    Task* temp_v0;
 
     if (GameFlag_GetNibble(0xDF) == 0) {
         temp_v0 = Gp_LookupSlot4(0);
-        if ((temp_v0 != 0) && (Gp_DispatchMsg((Task*)temp_v0, 0x7D6, 0, 0) == 0) && (Gp_StateC08.field_A != 1) &&
+        if ((temp_v0 != 0) && (Gp_DispatchMsg(temp_v0, 0x7D6, 0, 0) == 0) && (Gp_StateC08.field_A != 1) &&
             (gDisplayState.pendingMode == 0)) {
             GameFlag_SetNibble(0xDF, 1);
             GameFlag_SetNibble(0xB9, 1);

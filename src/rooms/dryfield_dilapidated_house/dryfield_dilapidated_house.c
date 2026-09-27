@@ -456,7 +456,7 @@ static void func_dryfield_dilapidated_house_8017E014(Task* task)
         if (D_dryfield_dilapidated_house_80183EFC == 1) {
             D_dryfield_dilapidated_house_80183EFC = 2;
         } else if ((D_dryfield_dilapidated_house_80183EFC == 2) &&
-                   (Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0)) {
+                   (Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0)) {
             if (Gp_StateC08.field_A != 1) {
                 if (gDisplayState.pendingMode == 0) {
                     D_dryfield_dilapidated_house_80183EFC += 1;
@@ -722,7 +722,7 @@ s32 func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, GpMsg13EF* a
 void func_dryfield_dilapidated_house_8017E6DC(Task* arg0)
 {
     Task* temp_s1;
-    s32   temp_a1;
+    Task* temp_a1;
     s32   temp_v1;
 
     temp_s1 = gameGetPtrSlot(3);
@@ -734,7 +734,7 @@ void func_dryfield_dilapidated_house_8017E6DC(Task* arg0)
             arg0->state    += 1;
             return;
         case 2:
-            func_800B0928(temp_s1, (Task*)temp_a1, 0x200, 0x180, 0x1000);
+            func_800B0928(temp_s1, temp_a1, 0x200, 0x180, 0x1000);
             /* fallthrough */
         case 1:
             return;

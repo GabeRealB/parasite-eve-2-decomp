@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/3FB8.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
@@ -36,7 +37,6 @@ extern s32            Gp_ReloadMode;
 extern UiObject*      D_80114D98[];
 extern s32            Gp_AttachListIds[];
 extern u32            D_80114DCC;
-extern u8*            Gp_SelItemRec;
 extern s32            D_80114DD8;
 extern s32            D_80114E88;
 extern s32            D_80114E8C;
@@ -280,7 +280,6 @@ void              Gp_EnqueueHeldWeaponCd(void);
 void              func_800A7E4C(void);
 s32               Gp_KillPlayerEffs(void);
 s32               Gp_SpawnWeaponEff(void);
-void              func_8010870C(void* arg0, s32 arg1);
 void              Gp_PlayerWeaponId(s32* arg0);
 
 static const char D_8009707C[];
@@ -559,7 +558,7 @@ static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
         } else if (flag == 6) {
             arg0->field_2C = child->field_2C;
             Ui_TeardownTree(child, child->owner);
-            Ui_SetState4((Task*)arg0, arg0->owner);
+            Ui_SetState4(arg0, arg0->owner);
             arg1->killCountdown = 0x10;
             *map                = 0;
             GameMain_SetFrameTiming(0);
@@ -761,7 +760,7 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         icon = 9;
         kind = 3;
     } else if (arg3 < 0xA0) {
-        rel = Gp_RelatedQty0[arg3 - 0x80].related[0];
+        rel = Gp_RelatedQty0.rows[arg3 - 0x80].related[0];
         if (rel == 0) {
             icon = 2;
         } else {
@@ -1739,7 +1738,7 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
 
     if (Gp_ItemOrderMode == 1) {
         if (arg0->field_C != 1) {
-            if (sel == (McItemRec*)Gp_SelItemRec) {
+            if (sel == Gp_SelItemRec) {
                 arg0->field_1C = 0x37A78;
             }
         }
@@ -1779,7 +1778,7 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
 
     if (arg0->field_C == 1) {
         if (Gp_ItemOrderMode == 0) {
-            Gp_SelItemRec = (u8*)sel;
+            Gp_SelItemRec = sel;
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
                 SndEvt_EnqueueType6(3, 0, 0);
                 obj = Ui_SpawnFromDesc(&D_8010EE6C, 0, 1, 1, arg1);
@@ -1793,7 +1792,7 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             McItemScan* scan2;
             scan2 = &Mc_SaveData[0].carriedItems;
-            idx1  = Gp_ScanIndexOf(scan2, (McItemRec*)Gp_SelItemRec);
+            idx1  = Gp_ScanIndexOf(scan2, Gp_SelItemRec);
             idx2  = Gp_ScanIndexOf(scan2, sel);
             SndEvt_EnqueueType6(3, 0, 0);
             if (idx1 >= 0) {
@@ -1816,16 +1815,17 @@ static void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
     s32                 off;
     s32                 temp;
     s32                 limit;
-    McItemRec*          table;
+    u8*                 rowBytes;
     McItemRec*          rec2;
     McItemScan*         scan;
     PlayerStatus*       cfg;
-    GpItemQty*          table0;
-    GpItemQty*          table1;
+    u8*                 table0;
+    u8*                 table1;
 
     count = 0;
-    table = Mc_SaveData[0].itemRows;
-    scan  = &Mc_SaveData[0].carriedItems;
+    /* Byte view of the entire array; offsets below always select whole records. */
+    rowBytes = (u8*)&Mc_SaveData[0].itemRows;
+    scan     = &Mc_SaveData[0].carriedItems;
     {
         register s32 hi asm("v1");
         asm volatile("lui %1, %%hi(Player_Status)\n\t"
@@ -1836,10 +1836,10 @@ static void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
     item  = scan->firstRow;
     i     = count;
     if (count < limit) {
-        table0 = Gp_RelatedQty0;
-        table1 = Gp_RelatedQty1;
-        temp   = item << 2;
-        rec    = (McItemRec*)(temp + (s32)table);
+        table0 = Gp_RelatedQty0.bytes;
+        table1 = Gp_RelatedQty1.bytes;
+        temp   = (u8)item * sizeof(McItemRec);
+        rec    = (McItemRec*)&rowBytes[temp];
         do {
             if ((u8)(rec->itemId + 0x80) < 0x20) {
                 rec2 = rec;
@@ -1849,11 +1849,11 @@ static void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
                 j = 0;
                 USE_REG(j);
                 item = rec->itemId;
-                off  = (item - 0x80) * 4;
+                off  = (item - 0x80) * sizeof(GpItemQty);
                 item = item - 0x7F;
                 do {
                     temp = j + off;
-                    if (((GpItemQty*)(temp + (s32)table0))->related[0] == arg1) {
+                    if (table0[temp + OFFSET_OF(GpItemQty, related)] == arg1) {
                         if (rec2->attachSlot > 0) {
                             count++;
                         } else if (cfg->weapon == item) {
@@ -1867,11 +1867,11 @@ static void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
                 j    = 0;
                 item = rec->itemId;
                 rec2 = rec;
-                off  = (item - 0x80) * 4;
+                off  = (item - 0x80) * sizeof(GpItemQty);
                 item = item - 0x7F;
                 do {
                     temp = j + off;
-                    if (((GpItemQty*)(temp + (s32)table1))->related[0] == arg1) {
+                    if (table1[temp + OFFSET_OF(GpItemQty, related)] == arg1) {
                         if (rec2->attachSlot > 0) {
                             goto increment;
                         }
@@ -2064,10 +2064,10 @@ void Gp_ItemDestCursorTask(Task* arg0)
         D_80114D98[1]    = Ui_SpawnFromDesc(desc + 1, one, 0, one, obj);
     }
     Gp_ItemListTask(arg0);
-    if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone((Task*)obj) == 0)) {
-        Ui_SetState4((Task*)obj, obj->owner);
-    } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone((Task*)obj) == 1)) {
-        Ui_ClampAnimOrClose((UiPanel*)obj, (s32)obj->owner, 0x10);
+    if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone(obj) == 0)) {
+        Ui_SetState4(obj, obj->owner);
+    } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone(obj) == 1)) {
+        Ui_ClampAnimOrClose((UiPanel*)obj, obj->owner, 0x10);
     }
     if (obj->status == 1) {
         if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
@@ -2144,7 +2144,7 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* prompt, UiObject* obj)
                         break;
                     }
                 }
-                Gp_SelItemRec = (u8*)table;
+                Gp_SelItemRec = table;
             } else {
                 Gp_SelItemRec = NULL;
             }
@@ -2167,15 +2167,15 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* prompt, UiObject* obj)
             }
         } else if (mode == status) {
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-                if ((u8)(*Gp_SelItemRec + 0x80) < 0x20) {
+                if ((u8)(Gp_SelItemRec->itemId + 0x80) < 0x20) {
                     PlayerStatus* p;
-                    u8*           rec;
+                    McItemRec*    rec;
 
                     p = &Player_Status;
                     Gp_ClearEquipSlotSel(item, 0);
                     rec       = Gp_SelItemRec;
-                    p->weapon = *rec - 0x7F;
-                    Gp_SetItemSeenBit(*rec, 1);
+                    p->weapon = rec->itemId - 0x7F;
+                    Gp_SetItemSeenBit(rec->itemId, 1);
                     Gp_ItemOrderMode = 0;
                     SndEvt_EnqueueType6(3, 0, 0);
                 } else {
@@ -2330,7 +2330,7 @@ void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj)
             if (item != 0) {
                 rec = Gp_FindItemById(item);
             }
-            Gp_SelItemRec = (u8*)rec;
+            Gp_SelItemRec = rec;
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
                 s32 currentWeapon;
                 s32 yOffset;
@@ -2350,8 +2350,8 @@ void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj)
             }
         } else if (mode == rowState) {
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-                if (Gp_EquipRelatedItem(&Mc_SaveData[0].carriedItems, weapon, *Gp_SelItemRec, -1) >= 0) {
-                    Gp_SetItemSeenBit(*Gp_SelItemRec, 1);
+                if (Gp_EquipRelatedItem(&Mc_SaveData[0].carriedItems, weapon, Gp_SelItemRec->itemId, -1) >= 0) {
+                    Gp_SetItemSeenBit(Gp_SelItemRec->itemId, 1);
                     SndEvt_EnqueueType6(3, 0, 0);
                     Gp_ItemOrderMode = 0;
                 } else {
@@ -2419,10 +2419,10 @@ void Gp_WeaponMenuTask(Task* arg0)
     _gpWeaponMenuSetRows(menu);
     Ui_ComputeVisibleRows(menu, (UiPanel*)obj);
     Ui_UpdateListNoAnim(menu, obj);
-    if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone((Task*)obj) == 0)) {
-        Ui_SetState4((Task*)obj, obj->owner);
-    } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone((Task*)obj) == 1)) {
-        Ui_ClampAnimOrClose((UiPanel*)obj, (s32)obj->owner, 0x10);
+    if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone(obj) == 0)) {
+        Ui_SetState4(obj, obj->owner);
+    } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone(obj) == 1)) {
+        Ui_ClampAnimOrClose((UiPanel*)obj, obj->owner, 0x10);
     }
     status = obj->status;
     if (status == 1) {
@@ -2656,11 +2656,11 @@ void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
         if (mode == rowState) {
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
                 GpItemDesc* desc;
-                desc = &Gp_ItemDescs[*Gp_SelItemRec];
+                desc = &Gp_ItemDescs[Gp_SelItemRec->itemId];
                 if (!(desc->field_3 & 4)) {
                     SndEvt_EnqueueType6(3, 0, 0);
-                    if (*Gp_SelItemRec != 0) {
-                        Gp_SelItemRec[1] = prompt->field_8 + 1;
+                    if (Gp_SelItemRec->itemId != 0) {
+                        Gp_SelItemRec->attachSlot = prompt->field_8 + 1;
                     }
                     if (item != 0) {
                         Gp_RefreshItemRow(rec);
@@ -2691,9 +2691,9 @@ void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
                     }
                     obj->status = 0;
                 }
-                Gp_SelItemRec = (u8*)rec;
+                Gp_SelItemRec = rec;
             } else {
-                Gp_SelItemRec = (u8*)rec;
+                Gp_SelItemRec = rec;
                 if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
                     SndEvt_EnqueueType6(3, 0, 0);
                     dialog = Ui_SpawnFromDesc(&D_8010EE6C, 4, 1, 1, obj);
@@ -2809,10 +2809,10 @@ void Gp_ArmorMenuTask(Task* arg0)
         menu->field_A  = 1;
     }
 
-    if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone((Task*)obj) == 0)) {
-        Ui_SetState4((Task*)obj, obj->owner);
-    } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone((Task*)obj) == 1)) {
-        Ui_ClampAnimOrClose((UiPanel*)obj, (s32)obj->owner, 0x10);
+    if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone(obj) == 0)) {
+        Ui_SetState4(obj, obj->owner);
+    } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone(obj) == 1)) {
+        Ui_ClampAnimOrClose((UiPanel*)obj, obj->owner, 0x10);
     }
 
     color = Ui_LookupTable(obj, 1);
@@ -2865,7 +2865,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                     for (i = 0; i < scan->rowCount; i++, table++) {
                         if (table->itemId == item) {
                             locals.x      = obj->field_1C + 2;
-                            Gp_SelItemRec = (u8*)table;
+                            Gp_SelItemRec = table;
                             locals.y      = obj->field_18 + 0xF;
                             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
                                 SndEvt_EnqueueType6(3, 0, 0);
@@ -2894,10 +2894,10 @@ void Gp_ArmorMenuTask(Task* arg0)
                         }
                     }
                 } else if ((flag == status) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
-                    if ((u32)(*Gp_SelItemRec - 0x60) < 0x20U) {
+                    if ((u32)(Gp_SelItemRec->itemId - 0x60) < 0x20U) {
                         SndEvt_EnqueueType6(3, 0, 0);
-                        Gp_EquipMod((s32)*Gp_SelItemRec);
-                        Gp_SetItemSeenBit((s32)*Gp_SelItemRec, 1);
+                        Gp_EquipMod((s32)Gp_SelItemRec->itemId);
+                        Gp_SetItemSeenBit((s32)Gp_SelItemRec->itemId, 1);
                         Gp_ItemOrderMode = 0;
                     } else {
                         Task* parent;
@@ -3988,7 +3988,7 @@ void Gp_UseKeyItemRow(Task* arg0)
             ((UiPanel*)obj)->field_C.x = (-((UiPanel*)obj)->field_C.w) >> 1;
             obj->field_4              &= 0x7FFFFFFF;
         } else if (ret == 2) {
-            Ui_SetState4((Task*)obj, arg0);
+            Ui_SetState4(obj, arg0);
             obj->field_2E = -1;
             obj->timer    = 0x64;
             arg0->state   = arg0->state + 1;
@@ -4635,7 +4635,7 @@ void Gp_EquipSummaryTask(Task* arg0)
         Ui_DrawText((UiPanel*)obj, Gp_StrAttachments);
         skip = 1;
         if (Gp_SelItemRec != NULL) {
-            item = *Gp_SelItemRec;
+            item = Gp_SelItemRec->itemId;
         }
     }
 
@@ -5062,7 +5062,7 @@ static void Gp_BuildAttachList(UiList* arg0, s32 arg1)
         SOFT_TOUCH_REG(n);
         i = n;
         do {
-            item = Gp_RelatedQty0[arg1 - 0x80].related[i];
+            item = Gp_RelatedQty0.rows[arg1 - 0x80].related[i];
             if (item != 0) {
                 qty  = Gp_ScanStackQty(scan, item);
                 qty -= Gp_CountEquippedRelated(scan, item);
@@ -5079,7 +5079,7 @@ static void Gp_BuildAttachList(UiList* arg0, s32 arg1)
     }
     if (mode != 1) {
         for (i = 0; i < 3; i++) {
-            item = Gp_RelatedQty1[arg1 - 0x80].related[i];
+            item = Gp_RelatedQty1.rows[arg1 - 0x80].related[i];
             if (item != 0) {
                 qty  = Gp_ScanStackQty(scan, item);
                 qty -= Gp_CountEquippedRelated(scan, item);
@@ -5804,7 +5804,7 @@ static void Gp_DrawLoadCmd(DialogPrompt* arg0, UiObject* arg1)
     func_8002E53C(&req, Gp_StrLoad);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            val = *Gp_SelItemRec;
+            val = Gp_SelItemRec->itemId;
             SndEvt_EnqueueType6(3, 0, 0);
             if ((u32)(val - 0x80) < 0x20U) {
                 Gp_ReloadMode = 0;
@@ -5847,7 +5847,7 @@ static void Gp_DrawExchangeCmd(DialogPrompt* arg0, UiObject* arg1)
             SndEvt_EnqueueType6(3, 0, 0);
             val = 0;
             if (Gp_SelItemRec != NULL) {
-                val = *Gp_SelItemRec;
+                val = Gp_SelItemRec->itemId;
             }
             if (((u32)(val - 0xA0) < 0x20U) || (val == 0)) {
                 one = 1;

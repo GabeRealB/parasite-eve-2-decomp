@@ -1987,7 +1987,7 @@ common:
             work->field_674 = 0x1000;
             work->field_608 = coord->coord;
             arg0->recs      = NULL;
-            Gp_UnlinkNode(&arg0->node.next);
+            Gp_UnlinkNode(&arg0->node);
             Gp_UnlinkObj(&work->obj480);
             Gp_UnlinkObj(&work->obj538);
             Gp_UnlinkObj(&work->obj4D0);

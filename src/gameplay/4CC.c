@@ -24,7 +24,6 @@ extern s32          Pad_MaskMenu;
 extern char         Gp_StrSwitch[];
 extern UiObject*    D_80067634;
 extern u8           D_8010D828[];
-extern McItemRec*   Gp_SelItemRec;
 extern UiObjectDesc D_8010EFA0;
 
 void Gp_ClearPreviewItems(void);
@@ -1415,7 +1414,7 @@ void Gp_HolderPromptTask(Task* arg0)
     obj           = arg0->spawnArg2;
     obj->field_2E = 0;
     if (arg0->state == 0) {
-        Wip_UiHolder = (WipUiHolder*)obj;
+        Wip_UiHolder = obj;
         arg0->state += 1;
     }
     val = arg0->spawnArg1;

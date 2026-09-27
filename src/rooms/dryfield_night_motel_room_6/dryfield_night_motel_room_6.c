@@ -835,7 +835,7 @@ static void func_dryfield_night_motel_room_6_8017EA74(Task* task)
     }
     if (obj->field_2E == 6) {
         obj->field_2E = 0;
-        Ui_SetState4((Task*)obj, task);
+        Ui_SetState4(obj, task);
         obj->status = 0;
     }
     if (obj->status == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
@@ -908,7 +908,7 @@ void func_dryfield_night_motel_room_6_8017ED6C(Task* task)
     obj           = task->spawnArg2;
     obj->field_2E = 0;
     if (task->state == 0) {
-        Wip_UiHolder       = (WipUiHolder*)obj;
+        Wip_UiHolder       = obj;
         task->exitCallback = func_dryfield_night_motel_room_6_8017F45C;
         task->state       += 1;
     }
@@ -1107,7 +1107,7 @@ void func_dryfield_night_motel_room_6_8017F394(DialogPrompt* prompt, UiObject* o
 /// `Wip_UiHolder`, clear it, then free the spawned UI object and kill the task.
 static void func_dryfield_night_motel_room_6_8017F45C(Task* task)
 {
-    WipUiHolder* holder;
+    UiObject* holder;
 
     holder = task->spawnArg2;
     if (Wip_UiHolder == holder) {

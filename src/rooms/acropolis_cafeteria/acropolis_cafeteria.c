@@ -346,11 +346,11 @@ void func_acropolis_cafeteria_8017DF68(Task* task)
 {
     GpCoord* coord;
 
-    coord = ((Task*)Gp_LookupSlot4(0))->extra.tmd->coords;
+    coord = Gp_LookupSlot4(0)->extra.tmd->coords;
     switch (task->state) {
         case 0:
-            Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D4, (s32)&D_acropolis_cafeteria_80182D28, 0);
-            Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7DB, (s32)&D_acropolis_cafeteria_80182DB8, 0);
+            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D4, (s32)&D_acropolis_cafeteria_80182D28, 0);
+            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7DB, (s32)&D_acropolis_cafeteria_80182DB8, 0);
             D_acropolis_cafeteria_8018D6A0 = 0;
             D_acropolis_cafeteria_8018D6A4 = -0x14;
             D_acropolis_cafeteria_8018D6A8 = -0x14;
@@ -461,7 +461,7 @@ static void func_acropolis_cafeteria_8017E348(Task* task)
         Gp_MsgSlot4Chain(1, 2);
         Gp_MsgSlot4Chain(2, 1);
         D_acropolis_cafeteria_80189490[0].field_4A &= 0xBF;
-        Gp_DispatchMsg((Task*)Gp_LookupSlot4(2), 0x7D4, (s32)&D_acropolis_cafeteria_80182DDC, 0);
+        Gp_DispatchMsg(Gp_LookupSlot4(2), 0x7D4, (s32)&D_acropolis_cafeteria_80182DDC, 0);
     }
     task->state = task->state + 1;
 }

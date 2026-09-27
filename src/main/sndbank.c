@@ -587,7 +587,7 @@ void Spu_ApplyPanVolume(s16* arg0, s16 arg1, s32 arg2)
     }
 }
 
-s32 AudioTick_Insert(void* poll, u32 onRemove, u16 id, s32* arg)
+s32 AudioTick_Insert(AudioTickPoll poll, AudioTickOnRemove onRemove, u16 id, s32* arg)
 {
     AudioTickNode* node;
     AudioTickNode* head;
@@ -608,19 +608,19 @@ s32 AudioTick_Insert(void* poll, u32 onRemove, u16 id, s32* arg)
         AudioTick_Enabled = 1;
         return -1;
     }
-    node->poll     = (s32)poll;
+    node->poll     = poll;
     node->onRemove = onRemove;
     node->id       = id16;
-    node->arg      = (s32)arg;
+    node->arg      = arg;
     node->prev     = 0;
     node->next     = 0;
 
     p = head;
     for (;;) {
-        next = (AudioTickNode*)p->next;
+        next = p->next;
         if (next == NULL) {
-            p->next           = (s32)node;
-            node->prev        = (s32)p;
+            p->next           = node;
+            node->prev        = p;
             node->next        = 0;
             AudioTick_Enabled = 1;
             return 0;
@@ -631,11 +631,11 @@ s32 AudioTick_Insert(void* poll, u32 onRemove, u16 id, s32* arg)
             return -2;
         }
         if (key < (u16)next->id) {
-            node->next                      = (s32)next;
-            AudioTick_Enabled               = 1;
-            ((AudioTickNode*)p->next)->prev = (s32)node;
-            p->next                         = (s32)node;
-            node->prev                      = (s32)p;
+            node->next        = next;
+            AudioTick_Enabled = 1;
+            p->next->prev     = node;
+            p->next           = node;
+            node->prev        = p;
             return 0;
         }
         p = next;
@@ -846,24 +846,24 @@ static void AudioTick_Process(void)
 {
     AudioTickNode* head;
     AudioTickNode* node;
-    s32            (*callback)(s32);
+    AudioTickPoll  callback;
 
     head = &AudioTick_List;
     if (AudioTick_Enabled != 0) {
         if (head != NULL) {
-            node = (AudioTickNode*)head->next;
+            node = head->next;
             while (1) {
                 if (node == NULL) {
                     break;
                 }
-                callback = (s32 (*)(s32))node->poll;
+                callback = node->poll;
                 if (callback != NULL) {
                     if (callback(node->arg) == -1) {
                         node = AudioTick_Remove(node);
                         continue;
                     }
                 }
-                node = (AudioTickNode*)node->next;
+                node = node->next;
             }
         }
     }
@@ -871,13 +871,13 @@ static void AudioTick_Process(void)
 
 static AudioTickNode* AudioTick_Remove(AudioTickNode* arg0)
 {
-    void           (*callback)(void);
-    AudioTickNode* head;
-    AudioTickNode* prev;
-    AudioTickNode* curr;
+    AudioTickOnRemove callback;
+    AudioTickNode*    head;
+    AudioTickNode*    prev;
+    AudioTickNode*    curr;
 
     head              = &AudioTick_List;
-    callback          = (void (*)(void))arg0->onRemove;
+    callback          = arg0->onRemove;
     AudioTick_Enabled = 0;
     if (callback != NULL) {
         callback();
@@ -886,14 +886,14 @@ static AudioTickNode* AudioTick_Remove(AudioTickNode* arg0)
     prev = head;
     if (prev->next != 0) {
         do {
-            curr = (AudioTickNode*)prev->next;
+            curr = prev->next;
             if ((u16)curr->id == (u16)arg0->id) {
                 prev->next = arg0->next;
                 if (arg0->next != 0) {
-                    ((AudioTickNode*)arg0->next)->prev = (s32)prev;
+                    arg0->next->prev = prev;
                 }
                 AudioTick_Enabled = 1;
-                return (AudioTickNode*)prev->next;
+                return prev->next;
             }
             prev = curr;
         } while (prev->next != 0);

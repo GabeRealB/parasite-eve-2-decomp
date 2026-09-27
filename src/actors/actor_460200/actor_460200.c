@@ -258,7 +258,7 @@ static void func_actor_460200_80132210(void)
 {
     Task* slot;
 
-    slot = (Task*)Gp_LookupSlot4(0);
+    slot = Gp_LookupSlot4(0);
     if (slot != NULL) {
         Gp_DispatchMsg(slot, 0x7D4, (s32)&D_actor_460200_80136234, 0);
         Gp_DispatchMsg(slot, 0x7D3, (s32)&D_actor_460200_8013607C, 0);
@@ -266,7 +266,7 @@ static void func_actor_460200_80132210(void)
     if (Gp_LookupSlot4(1) != 0) {
         Gp_MsgSlot4Chain(1, 2);
     }
-    slot = (Task*)Gp_LookupSlot4(2);
+    slot = Gp_LookupSlot4(2);
     if (slot != NULL) {
         Gp_MsgSlot4Chain(2, 1);
         Gp_DispatchMsg(slot, 0x7D3, (s32)&D_actor_460200_80135F14, 0);

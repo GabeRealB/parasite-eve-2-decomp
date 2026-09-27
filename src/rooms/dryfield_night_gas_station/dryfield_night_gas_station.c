@@ -833,7 +833,7 @@ static void func_dryfield_night_gas_station_8017E9F8(Task* task)
     }
     if (obj->field_2E == 6) {
         obj->field_2E = 0;
-        Ui_SetState4((Task*)obj, task);
+        Ui_SetState4(obj, task);
         obj->status = 0;
     }
     if (obj->status == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
@@ -905,7 +905,7 @@ void func_dryfield_night_gas_station_8017ECF0(Task* task)
     obj           = task->spawnArg2;
     obj->field_2E = 0;
     if (task->state == 0) {
-        Wip_UiHolder       = (WipUiHolder*)obj;
+        Wip_UiHolder       = obj;
         task->exitCallback = func_dryfield_night_gas_station_8017F3E0;
         task->state       += 1;
     }
@@ -1100,7 +1100,7 @@ void func_dryfield_night_gas_station_8017F318(DialogPrompt* prompt, UiObject* ob
 /// the task owns it, then frees the task's UI object and kills it.
 static void func_dryfield_night_gas_station_8017F3E0(Task* task)
 {
-    WipUiHolder* holder;
+    UiObject* holder;
 
     holder = task->spawnArg2;
     if (Wip_UiHolder == holder) {

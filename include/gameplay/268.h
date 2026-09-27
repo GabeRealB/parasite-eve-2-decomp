@@ -38,6 +38,13 @@ typedef struct _GpItemQty {
 } GpItemQty;
 STATIC_ASSERT_SIZEOF(GpItemQty, 0x4);
 
+/// The 32 weapon entries, also read as packed bytes by the ammo-row scan.
+typedef union GpRelatedItemTable {
+    GpItemQty rows[32];
+    u8        bytes[32 * sizeof(GpItemQty)];
+} GpRelatedItemTable;
+STATIC_ASSERT_SIZEOF(GpRelatedItemTable, 0x80);
+
 /// 16-byte record of a room's `GpBit2List.field_0` list, ended by a `field_0`
 /// of 0xFFFF. The same list serves two readers. The 2-bit bank code
 /// (`Gp_ApplyBit2List` / `Gp_ApplyBit2Bank` / `Gp_LookupBit2Item`) keys on
@@ -173,10 +180,10 @@ extern GpBit2Rec D_80114998[];
 extern GpBit2Rec D_801149B8[];
 /// Qty table indexed by raw item id. `Gp_RelatedQty1` is the 0x80–0x9F slice
 /// at +0x200 (`Gp_EquipRelatedBank`).
-extern GpItemQty  Gp_QtyById1[];
-extern GpItemQty  Gp_RelatedQty1[];
-extern GpItemMap  Gp_ItemMaps[];
-extern McItemScan Gp_DefaultScan;
+extern GpItemQty          Gp_QtyById1[];
+extern GpRelatedItemTable Gp_RelatedQty1;
+extern GpItemMap          Gp_ItemMaps[];
+extern McItemScan         Gp_DefaultScan;
 /// Source item-table scan (`Gp_CanMoveItems` / item-move UI). field_0 is the
 /// start index, field_1 the entry count, field_2 the table id.
 extern McItemScan Gp_MoveScanSrc;
@@ -190,10 +197,10 @@ extern GpStatRow   Gp_StatRows[];
 extern GpItemAttr  Gp_ItemAttrs[];
 /// Qty table indexed by raw item id. `Gp_RelatedQty0` is the 0x80–0x9F slice
 /// at +0x200 (`Gp_EquipRelatedBank`).
-extern GpItemQty  Gp_QtyById0[];
-extern GpItemQty  Gp_RelatedQty0[];
-extern GpItemAttr Gp_ModStatAttrs[];
-extern GpItemA0   Gp_StackLimits[];
+extern GpItemQty          Gp_QtyById0[];
+extern GpRelatedItemTable Gp_RelatedQty0;
+extern GpItemAttr         Gp_ModStatAttrs[];
+extern GpItemA0           Gp_StackLimits[];
 /// Byte remap of an item id used as a sort/order key (`Gp_ItemSortKey` /
 /// `Gp_SortItems`). Split by item class: 0x01–0x5F → `Gp_ItemSortKey0[id]`,
 /// 0x60–0x7F → `Gp_ItemSortKey60[id-0x60]`, 0x80–0x9F → `Gp_ItemSortKey80[id-0x80]`,

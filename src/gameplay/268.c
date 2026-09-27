@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/3688.h"
 
 #include <psyq/libgte.h>
 #include <psyq/memory.h>
@@ -19,7 +20,6 @@
 #include "main/wipsys.h"
 
 extern u16          Gp_PlayTimeMark;
-extern McItemRec*   Gp_SelItemRec;
 extern UiObjectDesc Gp_BoostPanelDesc;
 extern u8           Gp_DebugAttachLevels[];
 static const char   Gp_StrNotice2[];
@@ -1174,7 +1174,7 @@ s32 Gp_NthRelatedId(McItemScan* arg0, s32 arg1, s32 arg2)
                 arg1--;
             } else {
                 for (i = 0; i < 3; i++) {
-                    if (Gp_RelatedQty0[table[idx].itemId - 0x80].related[i] == arg2) {
+                    if (Gp_RelatedQty0.rows[table[idx].itemId - 0x80].related[i] == arg2) {
                         if (table[idx].attachSlot > 0 || cfg->weapon == table[idx].itemId - 0x7F) {
                             arg1--;
                         }
@@ -1182,7 +1182,7 @@ s32 Gp_NthRelatedId(McItemScan* arg0, s32 arg1, s32 arg2)
                     }
                 }
                 for (i = 0; i < 3; i++) {
-                    if (Gp_RelatedQty1[table[idx].itemId - 0x80].related[i] == arg2) {
+                    if (Gp_RelatedQty1.rows[table[idx].itemId - 0x80].related[i] == arg2) {
                         if (table[idx].attachSlot > 0 || cfg->weapon == table[idx].itemId - 0x7F) {
                             arg1--;
                         }
@@ -2506,9 +2506,9 @@ s32 Gp_GetRelatedQty(s32 arg0, s32 arg1)
     ret   = 0;
     if ((u32)arg0 < 0x20) {
         if (arg1 == 0) {
-            ret = Gp_RelatedQty0[arg0].field_0;
+            ret = Gp_RelatedQty0.rows[arg0].field_0;
         } else {
-            ret = Gp_RelatedQty1[arg0].field_0;
+            ret = Gp_RelatedQty1.rows[arg0].field_0;
         }
     }
     return ret;

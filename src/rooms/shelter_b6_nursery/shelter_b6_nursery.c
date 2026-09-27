@@ -862,7 +862,7 @@ static void func_shelter_b6_nursery_8017EAC4(Task* task)
     }
     if (obj->field_2E == 6) {
         obj->field_2E = 0;
-        Ui_SetState4((Task*)obj, task);
+        Ui_SetState4(obj, task);
         obj->status = 0;
     }
     if (obj->status == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
@@ -935,7 +935,7 @@ void func_shelter_b6_nursery_8017EDBC(Task* task)
     obj           = task->spawnArg2;
     obj->field_2E = 0;
     if (task->state == 0) {
-        Wip_UiHolder       = (WipUiHolder*)obj;
+        Wip_UiHolder       = obj;
         task->exitCallback = func_shelter_b6_nursery_8017F4AC;
         task->state       += 1;
     }
@@ -1141,7 +1141,7 @@ void func_shelter_b6_nursery_8017F3E4(DialogPrompt* prompt, UiObject* obj)
 /// task's panel still holds it, then frees the panel and kills the task.
 static void func_shelter_b6_nursery_8017F4AC(Task* task)
 {
-    WipUiHolder* holder;
+    UiObject* holder;
 
     holder = task->spawnArg2;
     if (Wip_UiHolder == holder) {

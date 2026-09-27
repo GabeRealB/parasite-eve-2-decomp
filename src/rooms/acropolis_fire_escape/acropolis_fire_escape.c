@@ -830,7 +830,7 @@ static void func_acropolis_fire_escape_8017EA68(Task* task)
     }
     if (obj->field_2E == 6) {
         obj->field_2E = 0;
-        Ui_SetState4((Task*)obj, task);
+        Ui_SetState4(obj, task);
         obj->status = 0;
     }
     if (obj->status == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
@@ -903,7 +903,7 @@ void func_acropolis_fire_escape_8017ED60(Task* task)
     obj           = task->spawnArg2;
     obj->field_2E = 0;
     if (task->state == 0) {
-        Wip_UiHolder       = (WipUiHolder*)obj;
+        Wip_UiHolder       = obj;
         task->exitCallback = func_acropolis_fire_escape_8017F450;
         task->state       += 1;
     }
@@ -1112,7 +1112,7 @@ void func_acropolis_fire_escape_8017F388(DialogPrompt* prompt, UiObject* obj)
 /// `Wip_UiHolder`, clear it, then free the spawned UI object and kill the task.
 static void func_acropolis_fire_escape_8017F450(Task* task)
 {
-    WipUiHolder* holder;
+    UiObject* holder;
 
     holder = task->spawnArg2;
     if (Wip_UiHolder == holder) {
@@ -1373,7 +1373,7 @@ s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 ar
         func_800E3FAC(0xA2, 7);
     }
     if (event == 1) {
-        slot = (Task*)Gp_LookupSlot4(0);
+        slot = Gp_LookupSlot4(0);
         cap  = 1;
         if (slot != NULL) {
             result = Gp_DispatchMsg(slot, 0x7D6, 0, 0);
@@ -1522,7 +1522,7 @@ static void func_acropolis_fire_escape_8017FECC(Task* task)
 {
     Task* slot;
 
-    slot = (Task*)Gp_LookupSlot4(0);
+    slot = Gp_LookupSlot4(0);
     if (slot == NULL || Gp_DispatchMsg(slot, 0x7D6, 0, 0) == 0) {
         D_acropolis_fire_escape_801826A8.field_4A &= 0xBF;
     }

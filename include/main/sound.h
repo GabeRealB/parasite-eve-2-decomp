@@ -22,14 +22,18 @@ typedef struct _SpuReverbConfig {
 } SpuReverbConfig;
 STATIC_ASSERT_SIZEOF(SpuReverbConfig, 0x24);
 
+/// Per-frame audio callback; return -1 to remove the registration.
+typedef s32  (*AudioTickPoll)(s32* arg);
+typedef void (*AudioTickOnRemove)(void);
+
 /// Per-frame audio callback list node (AudioTick_List sentinel + chain).
 typedef struct _AudioTickNode {
-    /* 0x00 */ s32 poll;     // s32 (*)(s32) — return -1 to remove
-    /* 0x04 */ s32 onRemove; // void (*)(void)
-    /* 0x08 */ s16 id;
-    /* 0x0C */ s32 arg;
-    /* 0x10 */ s32 prev;
-    /* 0x14 */ s32 next;
+    /* 0x00 */ AudioTickPoll          poll;
+    /* 0x04 */ AudioTickOnRemove      onRemove;
+    /* 0x08 */ s16                    id;
+    /* 0x0C */ s32*                   arg;
+    /* 0x10 */ struct _AudioTickNode* prev;
+    /* 0x14 */ struct _AudioTickNode* next;
 } AudioTickNode;
 STATIC_ASSERT_SIZEOF(AudioTickNode, 0x18);
 
@@ -786,11 +790,11 @@ void         Spu_Init(void);
 void         AsyncCb_Poll(void);
 void         AsyncCb_Reset(void);
 void         Spu_InitVoices(void);
-s32          AudioTick_Insert(void*, u32, u16, s32*);
+s32          AudioTick_Insert(AudioTickPoll poll, AudioTickOnRemove onRemove, u16 id, s32* arg);
 void         SndEvt_Reset(void);
 s32          Midi_InitSystem(u32);
-s32          Midi_Tick(void);
-void         Snd_PollAsync();
+s32          Midi_Tick(s32* unused);
+void         Snd_PollAsync(s32 unused);
 void         Snd_SetModeFlag(s32 arg0);
 void         Snd_RegisterTickCallbacks(void);
 s32          Snd_ReverbWarmupCb(s32* arg0);

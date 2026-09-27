@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/gameflow.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -6,6 +7,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/abs.h>
+#include <psyq/rand.h>
 
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"

@@ -56,8 +56,6 @@ STATIC_ASSERT_SIZEOF(_GpQuadDirScratch, 0xB0);
 
 void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-extern McItemRec* Gp_SelItemRec;
-
 static void            Gp_BindDefaultMtx(Task* arg0);
 static void            Gp_ClearPendingObj4C(void);
 static void            Gp_CollideListGrid(GpObj* node);

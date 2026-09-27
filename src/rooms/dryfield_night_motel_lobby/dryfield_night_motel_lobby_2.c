@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/gameflag.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>

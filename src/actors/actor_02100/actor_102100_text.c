@@ -34,7 +34,8 @@ STATIC_ASSERT_SIZEOF(Actor02100Fn014E4Scratch, 0x18);
 typedef struct Actor02100Fn011C4Scratch {
     /* 0x00 */ VECTOR  transformed;
     /* 0x10 */ VECTOR  delta;
-    /* 0x20 */ VECTOR  lock;
+    /* 0x20 */ VECTOR3 lock;
+    /* 0x2C */ s32     pad_2C;
     /* 0x30 */ SVECTOR from;
     /* 0x38 */ SVECTOR to;
 } Actor02100Fn011C4Scratch;
@@ -783,7 +784,7 @@ static void Actor02100_Fn011C4(Task* arg0)
                 index = 0;
             }
             if (Actor02100_D03E2C[index] == 0 && enemy->hp > 0) {
-                Gp_GetLockPos(&enemy->node, (VECTOR3*)&scratch->lock);
+                Gp_GetLockPos(&enemy->node, &scratch->lock);
                 scratch->delta.vx = scratch->lock.vx - coord->coord.t[0];
                 scratch->delta.vy = scratch->lock.vy - coord->coord.t[1];
                 scratch->delta.vz = scratch->lock.vz - coord->coord.t[2];

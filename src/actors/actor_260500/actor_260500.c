@@ -79,11 +79,11 @@ void func_actor_260500_80149E38(s32 arg0)
 /// `D_actor_260500_8014CB38` to the task in lookup slot 4, when there is one.
 static void func_actor_260500_80149E80(void)
 {
-    s32 slot;
+    Task* slot;
 
     slot = Gp_LookupSlot4(0);
     if (slot != 0) {
-        Gp_DispatchMsg((Task*)slot, 0x7D4, (s32)&D_actor_260500_8014CB38, 0);
+        Gp_DispatchMsg(slot, 0x7D4, (s32)&D_actor_260500_8014CB38, 0);
     }
 }
 

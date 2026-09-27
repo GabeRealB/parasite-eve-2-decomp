@@ -182,19 +182,8 @@ typedef struct _WipSelectMenuExt {
     /* 0x290 */ s32  field_290;
 } WipSelectMenuExt;
 
-/// WIP: nested object reached via WipUiHolder::field_28 (Ui_SetHolderParam writes field_34).
-typedef struct _WipUiChild {
-    /* 0x00 */ byte unknown_0[0x34];
-    /* 0x34 */ s32  field_34;
-} WipUiChild;
-
-/// WIP: UI holder pointer Wip_UiHolder; field_28 → WipUiChild.
-typedef struct _WipUiHolder {
-    /* 0x00 */ byte        unknown_0[0x28];
-    /* 0x28 */ WipUiChild* field_28;
-} WipUiHolder;
-
-extern WipUiHolder* Wip_UiHolder;
+/// Prompt panel whose owning task carries the current text in spawnArg1.
+extern UiObject*    Wip_UiHolder;
 extern UiList       D_8006116C;
 extern UiList       D_80061194;
 extern UiObjectDesc D_800611C8[];
@@ -296,15 +285,15 @@ void      Ui_SizeFromTextWide(UiPanel* arg0, u8* arg1);
 void      Ui_UpdateLayoutSize(UiPanel* arg0, s32 arg1, s32 arg2);
 void      Ui_TeardownTree(UiObject* arg0, Task* arg1);
 void      Ui_FreeAndKill(Task* arg0);
-void      Ui_SetState4(Task* arg0, Task* arg1);
-s32       Ui_IsStateDone(Task* arg0);
+void      Ui_SetState4(UiObject* arg0, Task* arg1);
+s32       Ui_IsStateDone(UiObject* arg0);
 void      Ui_DrawTextColored(UiPanel* arg0, char* arg1);
 void      Ui_DrawText(UiPanel* arg0, char* arg1);
 void      Ui_InsetLayout(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
 void      Ui_ClampDialogRect(UiPanel* arg0, UiPanel* arg1, UiPanel* arg2);
 void      Ui_SetHolderParam(s32 arg0, s32 arg1, s32 arg2);
 void      Ui_SetHolderParamAlt(s32 arg0, s32 arg1, s32 arg2);
-void      Ui_ClampAnimOrClose(UiPanel* arg0, s32 arg1, s32 arg2);
+void      Ui_ClampAnimOrClose(UiPanel* arg0, Task* arg1, s32 arg2);
 void      Ui_StartCloseAnim(UiPanel* arg0, void* arg1);
 void      Ui_LayoutListPanel(UiList* arg0, UiPanel* arg1);
 void      Ui_InitList(UiList* arg0, UiMiniObj* arg1);

@@ -305,9 +305,9 @@ static void func_dryfield_night_water_hole_8017D958(Task* arg0)
     }
     if (gGameSession->at4.loc.place == 1 && Gp_LookupSlot4(0) != 0 && GameFlag_GetNibble(0x95) != 0) {
         if (gGameSession->at4.loc.warp == 2) {
-            Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7DB, (s32)&D_dryfield_night_water_hole_80180660, 0);
+            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7DB, (s32)&D_dryfield_night_water_hole_80180660, 0);
         } else {
-            Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7DB, (s32)&D_dryfield_night_water_hole_8018065C, 0);
+            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7DB, (s32)&D_dryfield_night_water_hole_8018065C, 0);
         }
     }
     if (gGameSession->at4.loc.place == 0xA && gameGetPtrSlot(0xA) != 0 && GameFlag_GetNibble(0xCF) == 0) {

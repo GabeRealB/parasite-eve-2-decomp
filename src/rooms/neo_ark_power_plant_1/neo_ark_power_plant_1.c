@@ -58,7 +58,7 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
     Task* slot;
 
     if (GameFlag_GetNibble(0xDE) == 0) {
-        slot = (Task*)Gp_LookupSlot4(0);
+        slot = Gp_LookupSlot4(0);
         if (slot != 0) {
             if (Gp_DispatchMsg(slot, 0x7D6, 0, 0) == 0) {
                 if (Gp_StateC08.field_A != 1) {

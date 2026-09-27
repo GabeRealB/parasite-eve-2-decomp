@@ -25,7 +25,7 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 
-extern u16                  D_8007A396;
+extern s16                  D_8007A396;
 extern u16                  D_8007A39C;
 static const TaskFuncTable3 Gp_Script18States;
 static const TaskFuncTable5 Gp_ScriptAStates;
@@ -77,7 +77,7 @@ extern s16                  Gp_MenuLockDelay;
 extern s16                  Gp_PadSuppressTimer;
 
 s32         Gp_AbortCap(void);
-s32         Gp_LookupSlot4(s32 arg0);
+Task*       Gp_LookupSlot4(s32 arg0);
 static void Gp_StepScriptA(Task* task);
 static void Gp_StepScriptB(Task* task);
 static void Gp_SpawnPadHold(s16 arg0);
@@ -630,9 +630,9 @@ void func_800E8634(s32 arg0, s32 arg1, s32 arg2)
     Task_Spawn(9, 7, arg1, arg0);
 }
 
-s32 Gp_LookupSlot4(s32 arg0)
+Task* Gp_LookupSlot4(s32 arg0)
 {
-    s32 out;
+    Task* out;
 
     arg0 = (arg0 << 12) | (gGameSession->at4.loc.stage << 8) | gGameSession->at4.loc.area;
     Gp_DispatchMsg(gameGetPtrSlot(4), 0x7D0, arg0, (s32)&out);

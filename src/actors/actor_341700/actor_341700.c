@@ -2692,7 +2692,7 @@ static void func_actor_341700_80167744(Task* arg0)
     Gp_UnlinkObj(&objs->obj_2CC);
     Gp_UnlinkObj(&objs->obj_3AC);
     enter_state(arg0, 5);
-    Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x13F4, 0, 0);
+    Gp_DispatchMsg(Gp_LookupSlot4(0), 0x13F4, 0, 0);
     tmd->flags |= 0x80;
 }
 
@@ -3792,7 +3792,7 @@ static void func_actor_341700_801697D4(Task* arg0)
     work->field_412 = ticks;
     if ((s16)ticks >= 0x24) {
         if ((gGameSession->at4.loc.stage == 4) && ((u32)(gGameSession->at4.loc.area - 0x27) < 2U) && (gGameSession->at4.loc.place == 1)) {
-            Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x13F4, 1, 0);
+            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x13F4, 1, 0);
         }
         Gp_DestroyEnemy(arg0->spawnArg2, arg0);
     }
@@ -4212,7 +4212,7 @@ static void func_actor_341700_8016A2CC(Task* arg0)
     work->field_422++;
     pos     = &work->field_70;
     pos->vx = pos->vy = pos->vz = 0;
-    current                     = &((Task*)Gp_LookupSlot4(0))->extra.tmd->coords[3];
+    current                     = &Gp_LookupSlot4(0)->extra.tmd->coords[3];
     local.vx                    = pos->vx;
     local.vy                    = pos->vy;
     local.vz                    = pos->vz;

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/sound.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"

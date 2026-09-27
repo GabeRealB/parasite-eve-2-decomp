@@ -110,7 +110,7 @@ void func_shelter_b1_golem_freezer_1_8017D6EC(Task* task)
 
 static void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0)
 {
-    Task* slot   = (Task*)Gp_LookupSlot4(0);
+    Task* slot   = Gp_LookupSlot4(0);
     Task* task   = slot;
     s32   isNull = (slot == NULL);
 

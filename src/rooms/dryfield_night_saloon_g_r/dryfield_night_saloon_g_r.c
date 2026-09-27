@@ -620,7 +620,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
                 if (task->status == 0xFF) {
                     obj->field_2E = 6;
                 } else {
-                    Ui_SetState4((Task*)obj, obj->owner);
+                    Ui_SetState4(obj, obj->owner);
                     obj->status = 0;
                 }
             }

@@ -963,7 +963,7 @@ static void func_shelter_b1_underground_parking_8017EDE8(Task* task)
     }
     if (obj->field_2E == 6) {
         obj->field_2E = 0;
-        Ui_SetState4((Task*)obj, task);
+        Ui_SetState4(obj, task);
         obj->status = 0;
     }
     if (obj->status == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
@@ -1033,7 +1033,7 @@ void func_shelter_b1_underground_parking_8017F0E0(Task* task)
     obj           = task->spawnArg2;
     obj->field_2E = 0;
     if (task->state == 0) {
-        Wip_UiHolder       = (WipUiHolder*)obj;
+        Wip_UiHolder       = obj;
         task->exitCallback = func_shelter_b1_underground_parking_8017F7D0;
         task->state       += 1;
     }
@@ -1229,7 +1229,7 @@ void func_shelter_b1_underground_parking_8017F708(DialogPrompt* prompt, UiObject
 /// `Wip_UiHolder`, clear it, then free the spawned UI object and kill the task.
 static void func_shelter_b1_underground_parking_8017F7D0(Task* task)
 {
-    WipUiHolder* holder;
+    UiObject* holder;
 
     holder = task->spawnArg2;
     if (Wip_UiHolder == holder) {

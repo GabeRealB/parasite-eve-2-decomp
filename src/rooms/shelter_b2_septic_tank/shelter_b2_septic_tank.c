@@ -215,7 +215,7 @@ void func_shelter_b2_septic_tank_8017D9A0(void)
     GpCoord* player;
     GpCoord* coords;
 
-    target = (Task*)Gp_LookupSlot4(0);
+    target = Gp_LookupSlot4(0);
     player = gameGetPtrSlot(3)->extra.tmd->coords;
     if (target != NULL) {
         coords = target->extra.tmd->coords;

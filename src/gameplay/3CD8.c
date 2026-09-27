@@ -122,7 +122,7 @@ s32              Gp_AbortCap(void);
 void             Gp_LoadCapFile(s32 arg0);
 static void      Gp_ApplyCapEvtFlags(void);
 static s32       Gp_FindCapEvt(s32 arg0);
-s32              Gp_LookupSlot4(s32 arg0);
+Task*            Gp_LookupSlot4(s32 arg0);
 extern GpAnimArg D_8010FB10;
 extern GpAnimArg D_8010FB24;
 
@@ -1804,7 +1804,7 @@ void Gp_DelayedMsgTask(Task* task)
                         Gp_DispatchMsg(slot, 0x401, val, 0);
                     }
                 } else {
-                    slot = (Task*)Gp_LookupSlot4(mode - 2);
+                    slot = Gp_LookupSlot4(mode - 2);
                     if (slot != NULL) {
                         Gp_DispatchMsg(slot, 0x7E0, val, 0);
                     }

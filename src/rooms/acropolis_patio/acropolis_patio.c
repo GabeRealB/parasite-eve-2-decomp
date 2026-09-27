@@ -82,34 +82,34 @@ static const TaskFuncTable3 D_acropolis_patio_8017D5C4 = {
 static void func_acropolis_patio_8017D5EC(Task* arg0)
 {
     GpCmdArg msg;
-    s32      temp;
+    Task*    temp;
 
     arg0->msgTable = &D_acropolis_patio_8018028C;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0) < 2) {
         if (Mc_SaveData[0].at4.loc.room == 1) {
-            Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D4, (s32)&D_acropolis_patio_80180428, 0);
-            Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7DB, (s32)&D_acropolis_patio_8018044C, 0);
-            Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D5, 1, 0);
+            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D4, (s32)&D_acropolis_patio_80180428, 0);
+            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7DB, (s32)&D_acropolis_patio_8018044C, 0);
+            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D5, 1, 0);
             D_acropolis_patio_80187060 = Task_SpawnFromTable(&D_acropolis_patio_801802BC, 2, 0, 0);
         }
         temp = Gp_LookupSlot4(1);
         if (temp != 0) {
-            Gp_DispatchMsg((Task*)temp, 0x7D4, (s32)&D_acropolis_patio_8018046C, 0);
+            Gp_DispatchMsg(temp, 0x7D4, (s32)&D_acropolis_patio_8018046C, 0);
         }
     }
     if ((gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0x21) < 2) && (GameFlag_GetNibble(0x21) < 2)) {
         temp = Gp_LookupSlot4(1);
         if (temp != 0) {
-            Gp_DispatchMsg((Task*)temp, 0x7DB, (s32)&D_acropolis_patio_80180440, 0);
+            Gp_DispatchMsg(temp, 0x7DB, (s32)&D_acropolis_patio_80180440, 0);
         }
     }
     if ((gGameSession->at4.loc.place == 2) && (GameFlag_GetNibble(0x26) == 0)) {
         msg.from.loc.stage = 1;
         msg.from.loc.area  = 3;
         msg.command        = 0;
-        Gp_DispatchMsg((Task*)Gp_LookupSlot4(2), 0x7DB, (s32)&msg, 0);
-        Gp_DispatchMsg((Task*)Gp_LookupSlot4(3), 0x7DB, (s32)&msg, 0);
+        Gp_DispatchMsg(Gp_LookupSlot4(2), 0x7DB, (s32)&msg, 0);
+        Gp_DispatchMsg(Gp_LookupSlot4(3), 0x7DB, (s32)&msg, 0);
     }
     arg0->state = arg0->state + 1;
 }
@@ -243,7 +243,7 @@ void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2)
         gGameSession->flowFlags   = 0xC1;
     }
     if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x21) == 3) &&
-        (Gp_DispatchMsg((Task*)Gp_LookupSlot4(1), 0x7D6, 0, 0) == 0)) {
+        (Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D6, 0, 0) == 0)) {
         GameFlag_SetNibble(0x21, 4);
         func_800E8634((s32)&D_acropolis_patio_8018082C, 0, (s32)&D_acropolis_patio_80180C64);
     }

@@ -547,7 +547,7 @@ static s32 Midi_InitSequence(u8 arg0, u16 arg1)
     return -5;
 }
 
-s32 Midi_Tick(void)
+s32 Midi_Tick(s32* unused)
 {
     MidiSong* song;
     s32       i;

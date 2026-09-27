@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/message.h"
 #include "main/display.h"
@@ -10,7 +11,6 @@
 
 struct GpAreaKey;
 struct _GpActorArg;
-struct _GpAreaFlagRec;
 struct _GpAreaRec;
 struct _GpGridParams;
 struct _GpObj4A;
