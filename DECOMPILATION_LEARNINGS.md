@@ -146050,3 +146050,17 @@ Evidence: `nonmatchings/func_dryfield_night_motel_room_6_80181A9C-dehack/`:
 `base_1.i.cse` substitutes 6 in UIDs 49/86; `base_6.i.cse` keeps pseudo 82 in
 UID 76 after label 72. Input SHA256 for `base_6.i`:
 `b943fa705f6f74149177ded8a7e7ed9e1bc3f4428786c723dbe0b228289ce47d`.
+
+### A masked signed nibble can come from an `s16` local (dryfield toilet 8017DEF4, 2026-09-27)
+
+The sequence `lhu; andi 0xF000; sll 16; branch-if-zero; sra 28` need not be
+written as a cast to `u16` followed by explicit 32-bit sign-extension shifts.
+Use `s16 temp; temp = arg0->spawnArg1 & 0xF000;` and, when nonzero,
+`temp >>= 12`. Narrowing gives the high nibble its sign, and combine folds the
+halfword extension and right shift into the observed pair. With an `s32`
+local and no cast, the same masked load becomes `lw` instead of `lhu`.
+
+In `nonmatchings/func_dryfield_toilet_8017DEF4-dehack/base_4.i.combine`, UIDs
+151/161 are the resulting shifts. `base_4.c` preserves the seed's 99.979%
+score and passes the unscoped build; the two scratch symbol differences are
+unchanged. Preprocessed input SHA256: `1ea8571e1b2701b14adb43a849a666411bf65a76683bc672a0aa9d5227aee61b`.
