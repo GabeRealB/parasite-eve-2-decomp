@@ -753,7 +753,7 @@ static void func_actor_403000_80132AE0(GpCoord* parent)
     SVECTOR*                 pos;
     s16                      i;
     POLY_FT4*                prim;
-    s32                      previousFlag;
+    SVECTOR*                 n;
 
     SCRATCH_PUSH_BYTES(sizeof(Actor403000TrailScratch));
     scratch = SCRATCH_HEAD(Actor403000TrailScratch);
@@ -821,55 +821,55 @@ static void func_actor_403000_80132AE0(GpCoord* parent)
         gte_stdp(&scratch->p);
         gte_stflg(&scratch->flag);
         gte_stszotz(&scratch->otz);
-        if (i != 0 && scratch->flag >= 0) {
-            SVECTOR* n = &scratch->normal;
-
-            scratch->normal.vz = 0;
-            scratch->normal.vx = scratch->sxy.v.vy - scratch->prevSxy.v.vy;
-            scratch->normal.vy = scratch->prevSxy.v.vx - scratch->sxy.v.vx;
-            VectorNormalSS(n, n);
-            if (scratch->otz > 0) {
-                gte_lddp((gDisplayState.screenDistance * 50 / scratch->otz) >> 2);
-                gte_ldsv(n);
-                gte_gpf12();
-                gte_stsv(n);
-            }
-            prim->x2 = scratch->sxy.v.vx + scratch->normal.vx;
-            prim->y2 = scratch->sxy.v.vy + scratch->normal.vy;
-            prim->x3 = scratch->sxy.v.vx - scratch->normal.vx;
-            prim->y3 = scratch->sxy.v.vy - scratch->normal.vy;
-            if (scratch->prevFlag >= 0) {
-                if (i != 1) {
-                    POLY_FT4* prev = prim - 1;
-
-                    PRIM_XY_WORD(prim, 0) = PRIM_XY_WORD(prev, 2);
-                    PRIM_XY_WORD(prim, 1) = PRIM_XY_WORD(prev, 3);
-                } else {
-                    prim->x0 = scratch->prevSxy.v.vx + scratch->normal.vx;
-                    prim->y0 = scratch->prevSxy.v.vy + scratch->normal.vy;
-                    prim->x1 = scratch->prevSxy.v.vx - scratch->normal.vx;
-                    prim->y1 = scratch->prevSxy.v.vy - scratch->normal.vy;
-                }
-                prim->u2                 = 4;
-                prim->u0                 = 4;
-                prim->u3                 = 5;
-                prim->u1                 = 5;
-                prim->v1                 = 7;
-                prim->v0                 = 7;
-                prim->v3                 = 8;
-                prim->v2                 = 8;
-                prim->tpage              = 0x3F;
-                prim->clut               = 0x3C51;
-                PRIM_COLOR_WORD(prim, 0) = ((17 - i) * 4) & 0xFF;
-                setlen(prim, 9);
-                prim->code = 0x2E;
-                addPrim(&gGpuCurrentOt[(((u32)(scratch->otz - 10) << gDisplayState.otDepthShift) >> 4) & 0x3FF], prim);
-            }
+        if (i == 0 || scratch->flag < 0) {
+            scratch->prevSxy.w = scratch->sxy.w;
+            scratch->prevFlag  = scratch->flag;
+            continue;
         }
-        previousFlag       = scratch->flag;
+        n                  = &scratch->normal;
+        scratch->normal.vz = 0;
+        scratch->normal.vx = scratch->sxy.v.vy - scratch->prevSxy.v.vy;
+        scratch->normal.vy = scratch->prevSxy.v.vx - scratch->sxy.v.vx;
+        VectorNormalSS(n, n);
+        if (scratch->otz > 0) {
+            gte_lddp((gDisplayState.screenDistance * 50 / scratch->otz) >> 2);
+            gte_ldsv(n);
+            gte_gpf12();
+            gte_stsv(n);
+        }
+        prim->x2 = scratch->sxy.v.vx + scratch->normal.vx;
+        prim->y2 = scratch->sxy.v.vy + scratch->normal.vy;
+        prim->x3 = scratch->sxy.v.vx - scratch->normal.vx;
+        prim->y3 = scratch->sxy.v.vy - scratch->normal.vy;
+        if (scratch->prevFlag >= 0) {
+            if (i != 1) {
+                POLY_FT4* prev = prim - 1;
+
+                PRIM_XY_WORD(prim, 0) = PRIM_XY_WORD(prev, 2);
+                PRIM_XY_WORD(prim, 1) = PRIM_XY_WORD(prev, 3);
+            } else {
+                prim->x0 = scratch->prevSxy.v.vx + scratch->normal.vx;
+                prim->y0 = scratch->prevSxy.v.vy + scratch->normal.vy;
+                prim->x1 = scratch->prevSxy.v.vx - scratch->normal.vx;
+                prim->y1 = scratch->prevSxy.v.vy - scratch->normal.vy;
+            }
+            prim->u2                 = 4;
+            prim->u0                 = 4;
+            prim->u3                 = 5;
+            prim->u1                 = 5;
+            prim->v1                 = 7;
+            prim->v0                 = 7;
+            prim->v3                 = 8;
+            prim->v2                 = 8;
+            prim->tpage              = 0x3F;
+            prim->clut               = 0x3C51;
+            PRIM_COLOR_WORD(prim, 0) = ((17 - i) * 4) & 0xFF;
+            setlen(prim, 9);
+            prim->code = 0x2E;
+            addPrim(&gGpuCurrentOt[(((u32)(scratch->otz - 10) << gDisplayState.otDepthShift) >> 4) & 0x3FF], prim);
+        }
         scratch->prevSxy.w = scratch->sxy.w;
-        SCHED_BARRIER();
-        scratch->prevFlag = previousFlag;
+        scratch->prevFlag  = scratch->flag;
     }
     SCRATCH_POP_BYTES(sizeof(Actor403000TrailScratch));
 }

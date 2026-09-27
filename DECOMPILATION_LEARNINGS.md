@@ -144747,3 +144747,14 @@ Each arm's own `i = 1` is in the same label-free stretch as the `+ 1`, so
 `reload_cse_simplify_operands` rewrites the constant to `$s0`. reorg still
 hoists the shared `li $s0,1` into the branch's delay slot, and the entry test
 of each `for` folds away because `1 < 0x13`.
+## A barrier between a loop body's trailing copy and the latch is an early `continue` that repeats the copy (func_actor_403000_80132AE0, 2026-09-27)
+
+A trail loop ended `prevSxy = sxy; prevFlag = flag;` and matched only with
+`SCHED_BARRIER()` between the two stores. Without it the copy shares a block
+with the `s16` counter's `addiu/move/sll/sra/slti` latch, whose chain is the
+longer path, so sched1 and sched2 put the increment ahead of both loads. Guard
+the drawing with `if (i == 0 || flag < 0) { <copy>; continue; }` and keep the
+copy at the bottom as well: each copy is scheduled in its own block ahead of the
+continue label, and jump2 cross-jumps the two into the single tail the target
+branches to, loads first. A plain if/else with the copy in both arms matches
+the same way.
