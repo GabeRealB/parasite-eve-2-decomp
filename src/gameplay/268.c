@@ -566,91 +566,65 @@ void func_800B8014(void)
     }
 }
 
-void Gp_MoveItemSlot(McItemScan* arg0, s32 arg1, s32 arg2)
+/* Item table a scan window lies in. */
+static inline McItemRec* _gpScanTable(McItemScan* scan)
 {
-    register McItemRec* tmp asm("v0");
-    McItemRec*          table;
-    McItemRec*          rec;
-    McItemRec*          src;
-    McItemRec           saved;
-    s32                 i;
-    s32                 off;
+    McItemRec* table;
 
-    switch (arg0->table) {
+    switch (scan->table) {
         case 2:
-            tmp = Gp_ItemTable2;
+            table = Gp_ItemTable2;
             break;
         case 1:
-            tmp = Gp_ItemTable1;
+            table = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData[0].itemRows;
+            table = Mc_SaveData[0].itemRows;
             break;
     }
-    table = tmp;
+    return table;
+}
 
-    if (arg1 == arg2) {
+void Gp_MoveItemSlot(McItemScan* scan, s32 from, s32 to)
+{
+    McItemRec* table;
+    McItemRec  saved;
+    s32        i;
+
+    table = _gpScanTable(scan);
+    if (from == to) {
         return;
     }
 
-    arg1 += arg0->firstRow;
-    arg2 += arg0->firstRow;
-    i     = arg2;
+    from += scan->firstRow;
+    to   += scan->firstRow;
 
-    if (arg1 < arg2) {
-        off         = arg2 << 2;
-        rec         = (McItemRec*)(off + (s32)table);
-        off         = arg1 << 2;
-        src         = (McItemRec*)(off + (s32)table);
-        saved       = *src;
-        src->itemId = 0;
-        src->qty    = 0;
-    loop1:
-        if (rec->itemId != 0) {
-            i--;
-            if (arg1 < i) {
-                rec--;
-                goto loop1;
+    if (from < to) {
+        saved              = table[from];
+        table[from].itemId = 0;
+        table[from].qty    = 0;
+        for (i = to; from < i; i--) {
+            if (table[i].itemId == 0) {
+                break;
             }
         }
-        if (i < arg2) {
-            off = i << 2;
-            rec = (McItemRec*)(off + (s32)table);
-            do {
-                *rec = rec[1];
-                i++;
-                rec++;
-            } while (i < arg2);
+        for (; i < to; i++) {
+            table[i] = table[i + 1];
         }
     } else {
-        off         = arg1 << 2;
-        src         = (McItemRec*)(off + (s32)table);
-        saved       = *src;
-        src->itemId = 0;
-        src->qty    = 0;
-        if (arg2 < arg1) {
-            off = arg2 << 2;
-            rec = (McItemRec*)(off + (s32)table);
-        loop2:
-            if (rec->itemId != 0) {
-                i++;
-                if (i < arg1) {
-                    rec++;
-                    goto loop2;
-                }
+        saved              = table[from];
+        table[from].itemId = 0;
+        table[from].qty    = 0;
+        for (i = to; i < from; i++) {
+            if (table[i].itemId == 0) {
+                break;
             }
         }
-        if (arg2 < i) {
-            off = i << 2;
-            rec = (McItemRec*)(off + (s32)table);
-            do {
-                *rec = rec[-1];
-                i--;
-                rec--;
-            } while (arg2 < i);
+        for (; to < i; i--) {
+            table[i] = table[i - 1];
         }
     }
-    *(McItemRec*)((arg2 << 2) + (s32)table) = saved;
+    table[to] = saved;
 }
 
 void Gp_SortItems(McItemScan* arg0, s32 arg1)
@@ -984,25 +958,6 @@ s32 Gp_CanAddItem(McItemScan* arg0, s32 arg1)
         used++;
     }
     return used <= capacity;
-}
-
-/* Item table a scan window lies in. */
-static inline McItemRec* _gpScanTable(McItemScan* scan)
-{
-    McItemRec* table;
-
-    switch (scan->table) {
-        case 2:
-            table = Gp_ItemTable2;
-            break;
-        case 1:
-            table = Gp_ItemTable1;
-            break;
-        default:
-            table = Mc_SaveData[0].itemRows;
-            break;
-    }
-    return table;
 }
 
 McItemRec* Gp_SetScanItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
