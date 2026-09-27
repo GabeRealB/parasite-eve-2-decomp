@@ -1996,34 +1996,29 @@ void func_800F289C(Task* arg0)
 
 void Gp_EffSprTask76(Task* arg0)
 {
-    u8*                       head;
-    register GpFxQuadScratch* vecp asm("v0");
-    GpFxQuadScratch*          block;
-    GpCoord*                  coord;
-    GpEffWork*                mem;
-    POLY_FT4*                 prim;
-    u16                       size;
-    s16                       scale;
-    s32                       rng;
+    GpFxQuadScratch* block;
+    GpCoord*         coord;
+    GpEffWork*       mem;
+    POLY_FT4*        prim;
+    u16              size;
+    s16              scale;
+    s32              rng;
 
-    coord                         = arg0->extra.tmd->coords;
-    head                          = SCRATCH_HEAD(u8);
-    vecp                          = (GpFxQuadScratch*)(head - 0x1C);
-    block                         = vecp;
-    SCRATCH_HEAD(GpFxQuadScratch) = vecp;
-    mem                           = arg0->spawnArg2;
+    coord = arg0->extra.tmd->coords;
+    block = SCRATCH_PUSH(GpFxQuadScratch);
+    mem   = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
-    block->vec.vy                             = (u16)coord->workm.t[1];
-    block->vec.vz                             = (u16)coord->workm.t[2];
+    block->vec.vx = coord->workm.t[0];
+    block->vec.vy = coord->workm.t[1];
+    block->vec.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&block->otz);
         block->otz     = block->otz + 1;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
