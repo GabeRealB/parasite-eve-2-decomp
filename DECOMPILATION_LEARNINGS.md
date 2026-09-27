@@ -145334,3 +145334,18 @@ constant *between* pointer and offset, `p + 8 + len + 8`, matches with no cast:
 variable offset ends up as the first operand of the remaining add. Where the
 source already has a natural constant step before the offset (skip a header,
 then the body it sizes), try that spelling before an integer cast.
+## `lb v1; beq v1,-1; move a0,v1`: a narrow local taken from a widened value *before* the test (Snd_AllocBank, 2026-09-27)
+
+**Symptom.** A signed-byte table entry is loaded once, compared with `-1`, and
+copied into `$a0` in the delay slot; the slot index later re-extends it
+(`sll 24; sra 19`). The tree pinned the copy with `register s32 p asm("a0")`.
+
+**Cause.** `s8 slot = table[i]; if (slot == -1)` keeps a QI pseudo alive
+beside the sign-extended compare value, and combine duplicates the load
+(`lbu` + `lb`). Assigning the narrow local *after* the test lets global alloc
+tie it to the load pseudo, so the move and the `$a0` choice both disappear.
+
+**Fix.** Read the entry as an `int` and narrow it before the test:
+`s32 entry = table[i]; s8 slot = entry; if (entry == -1) return NULL;`. The two
+pseudos overlap across the compare, so the allocator must give `slot` its own
+register, which is the move the target shows.

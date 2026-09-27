@@ -334,75 +334,59 @@ end:
 
 SndBank* Snd_AllocBank(SndBankPayload* payload)
 {
-    u16      type;
-    s8       temp;
-    s32      slot;
     SndBank* bank;
     s32      size;
-    s32      temp_v0;
-    s32      temp_a0;
-    s32      temp_a0_2;
-    s32      shared;
+    u8*      heap;
+    u16      type  = payload->field_4 & 0xF000;
+    s32      entry = D_800680AC[type >> 12];
+    s8       slot  = entry;
 
-    type = payload->field_4 & 0xF000;
-    temp = D_800680AC[type >> 12];
-    {
-        register s32 p asm("a0");
-        p = temp;
-        if (temp == -1) {
-            return NULL;
-        }
-        slot = p;
+    if (entry == -1) {
+        return NULL;
     }
 
     if (type == 0x4000) {
         slot = D_80082122 + 4;
     }
 
-    if (type == 0xF000) {
-        shared = D_8007E0D4;
-        if (shared != 0) {
-            bank            = &Snd_Banks[(s8)slot];
-            bank->heapBlock = (void*)shared;
-            goto setup_ptrs;
+    if (type == 0xF000 && D_8007E0D4 != 0) {
+        bank            = &Snd_Banks[slot];
+        bank->heapBlock = (void*)D_8007E0D4;
+    } else {
+        bank = &Snd_Banks[slot];
+        Snd_FreeBank(bank);
+
+        size = (payload->field_8 * 5 + payload->field_7) * 4 + payload->field_7 * 2;
+
+        switch (payload->field_4 & 0xF000) {
+            case 0x2000:
+                if (size < 0xCF) {
+                    size = 0xCE;
+                }
+                break;
+            case 0xE000:
+                if (size < 0x79) {
+                    size = 0x78;
+                }
+                break;
+            case 0xF000:
+                if (size < 0x583) {
+                    size = 0x582;
+                }
+                break;
+        }
+
+        bank->heapBlock = SndHeap_Malloc(size);
+        if (bank->heapBlock == NULL) {
+            return NULL;
         }
     }
 
-    bank = &Snd_Banks[(s8)slot];
-    Snd_FreeBank(bank);
-
-    size = ((payload->field_8 * 5) + payload->field_7) * 4 + (payload->field_7 * 2);
-
-    switch (payload->field_4 & 0xF000) {
-        case 0x2000:
-            if (size < 0xCF) {
-                size = 0xCE;
-            }
-            break;
-        case 0xE000:
-            if (size < 0x79) {
-                size = 0x78;
-            }
-            break;
-        case 0xF000:
-            if (size < 0x583) {
-                size = 0x582;
-            }
-            break;
-    }
-
-    temp_v0         = (s32)SndHeap_Malloc(size);
-    bank->heapBlock = (void*)temp_v0;
-    if (temp_v0 == 0) {
-        return NULL;
-    }
-
-setup_ptrs:
-    temp_a0          = (s32)bank->heapBlock;
-    bank->groups     = (SndBankGroup*)temp_a0;
-    temp_a0_2        = temp_a0 + (payload->field_7 * 4);
-    bank->notes      = (SndNote*)temp_a0_2;
-    bank->groupIndex = (u16*)(temp_a0_2 + (payload->field_8 * 0x14));
+    heap             = bank->heapBlock;
+    bank->groups     = (SndBankGroup*)heap;
+    heap            += payload->field_7 * 4;
+    bank->notes      = (SndNote*)heap;
+    bank->groupIndex = (u16*)(heap + payload->field_8 * 0x14);
     return bank;
 }
 
