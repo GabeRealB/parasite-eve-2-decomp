@@ -1135,7 +1135,7 @@ static u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     CVECTOR  col2;
     u8*      dest;
     u8*      cptr;
-    DVECTOR* xy;
+    s16*     xy;
     SVECTOR* sv;
     s32      page;
     s32      uv;
@@ -1182,8 +1182,7 @@ static u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                 gte_gpl12();
                 gte_stcv(cptr);
             }
-            xy = &ws->texCoord;
-            TOUCH_REG(xy);
+            xy   = &ws->texCoord.vx;
             page = 0;
             dest = ws->preXformWrite + rec[2] + 4;
             sv   = &ws->elemNormal;
@@ -1191,8 +1190,8 @@ static u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
             gte_ldsv(sv);
             gte_gpf12();
             gte_stsv(sv);
-            uv  = ws->texCoord.vx + 0xA0;
-            uv -= ws->elemNormal.vx;
+            uv  = *xy + 0xA0;
+            uv -= sv->vx;
             if (uv < 0) {
                 uv = page;
             } else if (uv >= 0x100) {
@@ -1203,7 +1202,7 @@ static u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                 }
             }
             *dest = uv;
-            uv    = xy->vy + 0x78;
+            uv    = *++xy + 0x78;
             uv   -= sv->vy;
             dest++;
             if (uv < 0) {

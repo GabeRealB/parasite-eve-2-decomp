@@ -145248,3 +145248,21 @@ statements (`off = col*sizeof(u16); off += row*sizeof(T);`) already gives
 v1 and the entry move once the pin is dropped. The last operand order needs the
 base written first, `(u8*)base + off`; `(s32)base + off` or `off + base` put
 the offset first.
+## A pointer walked with `*++p` is multiply-set at no cost: the natural form of a `TOUCH_REG` on a pointer copy (func_8009AC58)
+
+**Symptom.** A loop-invariant address is copied into a local (`move t1,t8`)
+that the target emits first in its block, while an unpinned
+`xy = &ws->texCoord;` drifts into a load-delay slot further down and shifts
+the allocation of its neighbours. A `TOUCH_REG(xy)` held it in place.
+
+**Mechanism.** The copy is single-set, so `birthing_insn_p` gives it
+`LAUNCH_PRIORITY` (see "sched1 starves an insn whose destination pseudo is
+assigned more than once"). The pin's `"+r"` operand was a second set, which
+starved it back to the front of the block.
+
+**Fix.** Walk the fields instead of naming them: `s16* xy = &ws->texCoord.vx;`,
+read `*xy`, then `*++xy`. The increment is a second set when flow counts
+`REG_N_SETS`, and combine then folds it into the load's offset (`lh v0,2(t1)`)
+and deletes it, so it emits nothing. The increment has to sit in the same block
+as the load it feeds: `*xy++` on the first read leaves a separate `addiu`
+behind.
