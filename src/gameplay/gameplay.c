@@ -1062,20 +1062,17 @@ static u32* func_8009A804(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     return arg2;
 }
 
-static u32* func_8009AA5C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+/// Projects each vertex of a record run into the pre-transform buffer, with a
+/// texture coordinate derived from its screen position offset by its rotated
+/// normal, and a colour lit from the colour already loaded into the GTE.
+static inline u32* _gpPreXformEnvMapLit(TmdScratchModelBlock* ws, u32* arg2)
 {
-    TmdScratchModelBlock* ws;
-    s32                   prev;
-    s32                   count;
-    u32                   idx;
-    u16*                  rec;
-    CVECTOR               col;
-    u8*                   dest;
+    s32  prev;
+    s32  count;
+    u32  idx;
+    u16* rec;
+    u8*  dest;
 
-    ws = arg0;
-    TOUCH_REG(ws);
-    col = Gp_ColorOrange;
-    gte_ldrgb(&col);
     count = ws->elemCount;
     if (count == 0) {
         return arg2;
@@ -1117,6 +1114,15 @@ static u32* func_8009AA5C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         } while (ws->elemCount-- > 0);
     }
     return arg2;
+}
+
+static u32* func_8009AA5C(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
+{
+    CVECTOR col;
+
+    col = Gp_ColorOrange;
+    gte_ldrgb(&col);
+    return _gpPreXformEnvMapLit(ws, arg2);
 }
 
 static u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)

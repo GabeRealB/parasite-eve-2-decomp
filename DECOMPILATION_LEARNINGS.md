@@ -145182,3 +145182,20 @@ gives the short-lived `lbu` result `$v1` ahead of the object pointer.
 && Loc < 0x80) ...`. The global store cannot alias the struct field, so cse
 reuses the load for the outer test, and the inner tests read the global the
 code goes on to overwrite. The permuter found the outer-field form.
+
+## `TOUCH_REG` on the argument copy at entry, ahead of a prologue struct copy: the rest is an inline helper taking the pointer (func_8009AA5C, 2026-09-27)
+
+**Symptom.** A function that copies a `const CVECTOR` to the stack and
+`gte_ldrgb`s it before a loop over `ws` emits `lui %hi(colour)` before the
+incoming-argument copy `move a1,a0`; the target has the `move` first. The seed
+held the order with `ws = arg0; TOUCH_REG(ws);`.
+
+**Cause.** sched1 gives an insn that kills a hard argument register a boosted
+priority, so once the copy and the struct copy are both ready it is scheduled
+later (emitted after the `lui`). When the loop is an inlined helper, the only
+use of the argument pseudo before the asm is the helper's parameter copy, which
+changes the dependence order so the entry copy is emitted first.
+
+**Fix.** Keep the colour load in the function and move the loop into a
+`static inline u32* helper(ws, arg2)` it returns from. Reordering `ws = arg0`
+around the colour statements changes nothing.
