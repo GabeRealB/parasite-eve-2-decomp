@@ -440,12 +440,7 @@ static void func_neo_ark_shrine_8017EE44(Task* task)
 
     prompt->mode     = 0;
     prompt->targetId = 0;
-    func_neo_ark_shrine_8017EAC0();
-    /* Same `task` / `work` home swap as `func_neo_ark_shrine_8017EDE0`. */
-    SOFT_TOUCH_REG(task);
-    /* Each path writes `task->state` itself. That puts a second store in the
-       last arm's block, so sched1 moves the `field_F` store below the
-       argument setup; jump2 then merges only the `jal` and the state store. */
+    func_neo_ark_shrine_8017EAC0(task);
     if (func_800D4EC0() == 0) {
         task->state = 2;
         return;
