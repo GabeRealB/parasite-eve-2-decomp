@@ -145699,3 +145699,28 @@ Scratch evidence: `nonmatchings/func_actor_341700_8016C0F4-dehack/`, base_1/base
 RTL, CSE and combine dumps. Input SHA256s respectively:
 `4fd1232dd0218332d445fdff364dfcf91a07a3f4c4a9a40c295cdea7efc5da76`,
 `afac79f9a53e428ac8cba7a1cac59141dc78cbcf7a717bc75d039f77983d45d7`.
+
+
+## Indexed call arguments can replace barriers before an effect loop (func_actor_403600_801396F8, 2026-09-27)
+
+Two `SOFT_TOUCH_REG3` sites kept constant spawn arguments ahead of an
+explicitly computed pattern-entry pointer. Removing only the macros moved
+the pointer computation first and changed both loop delay slots: 98.919%,
+`regs=8 reorder=8 insert=2 delete=2`.
+
+Write the array indexing directly in each call instead:
+
+```c
+for (patternIndex = 0; patternIndex < 9; patternIndex++) {
+    Gp_SpawnEff(0x60070, &task->extra.tmd->coords[pattern.values[patternIndex]], 0x34C00, NULL);
+    Gp_SpawnEff(0x601BF, &task->extra.tmd->coords[pattern.values[patternIndex]], 0xC00, NULL);
+}
+```
+
+With a `u8 patternIndex`, sched1 puts the constant arguments before the
+index/address chain. The compiled code retains one entry pointer across the
+two calls and reloads its byte for the second call. This removes the barriers,
+argument locals, pointer locals and explicit counter masks without a helper.
+Scratch `base_2` demonstrated the expression change; `base_5` also simplified
+the counter type and loop. Both preserve the 99.953% seed score
+(`regs=8`, all other penalties zero); the unscoped integration build matches.

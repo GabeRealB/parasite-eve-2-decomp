@@ -632,10 +632,8 @@ static void func_actor_403600_801396F8(Task* arg0)
     SVECTOR            sp18;
     Actor403600Pattern sp20;
     u8                 sp30[4];
+    u8                 patternIndex;
     s32                temp_a0_4;
-    s32                temp_a0_6;
-    s32                temp_a2_2;
-    SVECTOR*           temp_a3_2;
     s16                temp_v0_13;
     s32                temp_v0_14;
     s16                temp_v0_16;
@@ -655,9 +653,6 @@ static void func_actor_403600_801396F8(Task* arg0)
     s32                temp_s2;
     s32                temp_v0_17;
     s32                var_a0;
-    s32                patternIndex;
-    s32                var_s2;
-    s32                var_s2_2;
     s32                var_v0;
     s32                temp_s0_2;
     s32                temp_s0_4;
@@ -671,8 +666,6 @@ static void func_actor_403600_801396F8(Task* arg0)
     u16                var_v0_4;
     u32                temp_v0_10;
     u32                temp_v0_11;
-    u8*                temp_s0_5;
-    u8*                temp_s0_6;
     u8                 temp_a0;
     u8                 temp_a0_2;
     u8                 temp_a0_3;
@@ -752,8 +745,8 @@ static void func_actor_403600_801396F8(Task* arg0)
             temp_v0_4          = temp_s1->field_790 - 1;
             temp_s1->field_790 = temp_v0_4;
             if ((temp_v0_4 << 0x10) != 0) {
-                *(volatile s16*)&temp_s1->field_778 = 0;
-                temp_s1->field_4B8.coord.t[1]       = (s32)(temp_s1->field_4B8.coord.t[1] + (rsin(*(volatile s32*)&gDisplayState.animFrame << 9) >> 8));
+                temp_s1->field_778             = 0;
+                temp_s1->field_4B8.coord.t[1] += rsin(gDisplayState.animFrame << 9) >> 8;
                 return;
             }
             goto block_31;
@@ -956,12 +949,12 @@ static void func_actor_403600_801396F8(Task* arg0)
                     temp_v0_17                    = temp_s1->field_4B8.coord.t[1] + temp_s1->field_73C;
                     temp_s1->field_4B8.coord.t[1] = temp_v0_17;
                     if (temp_v0_17 < -0x1B61) {
-                        *(volatile s16*)&temp_s1->field_776 = 0;
-                        temp_s1->field_776                  = -0x19;
-                        temp_s1->field_73C                  = 0;
-                        temp_s1->field_73A                  = 0;
-                        temp_s1->field_794                  = 3U;
-                        temp_s1->field_732                  = (s16)((u16)temp_s1->field_732 + 1);
+                        temp_s1->field_776 = 0;
+                        temp_s1->field_73C = 0;
+                        temp_s1->field_73A = 0;
+                        temp_s1->field_776 = -0x19;
+                        temp_s1->field_794 = 3U;
+                        temp_s1->field_732 = (s16)((u16)temp_s1->field_732 + 1);
                     }
                     if (!((u16)temp_s1->field_73A & 1)) {
                         temp_v0_18         = (u16)temp_s1->field_73C + 2;
@@ -1015,20 +1008,11 @@ static void func_actor_403600_801396F8(Task* arg0)
                         }
                     }
                     if (temp_s1->field_792 >= 0x14) {
-                        sp20   = D_actor_403600_80131E38;
-                        var_s2 = 0;
-                        do {
-                            temp_a0_6 = 0x60070;
-                            temp_a2_2 = 0x34C00;
-                            temp_a3_2 = NULL;
-                            SOFT_TOUCH_REG3(temp_a0_6, temp_a2_2, temp_a3_2);
-                            patternIndex = var_s2 & 0xFF;
-                            temp_s0_5    = sp20.values;
-                            temp_s0_5   += patternIndex;
-                            var_s2      += 1;
-                            Gp_SpawnEff(temp_a0_6, &arg0->extra.tmd->coords[*temp_s0_5], temp_a2_2, temp_a3_2);
-                            Gp_SpawnEff(0x601BF, &arg0->extra.tmd->coords[*temp_s0_5], 0xC00, NULL);
-                        } while ((u32)(var_s2 & 0xFF) < 9U);
+                        sp20 = D_actor_403600_80131E38;
+                        for (patternIndex = 0; patternIndex < 9; patternIndex++) {
+                            Gp_SpawnEff(0x60070, &arg0->extra.tmd->coords[sp20.values[patternIndex]], 0x34C00, NULL);
+                            Gp_SpawnEff(0x601BF, &arg0->extra.tmd->coords[sp20.values[patternIndex]], 0xC00, NULL);
+                        }
                         temp_s1->field_792 = 0;
                     }
                     temp_s1->field_792 = (s16)((u16)temp_s1->field_792 + 1);
@@ -1041,20 +1025,11 @@ static void func_actor_403600_801396F8(Task* arg0)
                 case 2:
                     temp_s1->field_736 = 0x14;
                     if (temp_s1->field_792 >= 0x14) {
-                        sp20     = D_actor_403600_80131E38;
-                        var_s2_2 = 0;
-                        do {
-                            temp_a0_6 = 0x60070;
-                            temp_a2_2 = 0x34C00;
-                            temp_a3_2 = NULL;
-                            SOFT_TOUCH_REG3(temp_a0_6, temp_a2_2, temp_a3_2);
-                            patternIndex = var_s2_2 & 0xFF;
-                            temp_s0_6    = sp20.values;
-                            temp_s0_6   += patternIndex;
-                            var_s2_2    += 1;
-                            Gp_SpawnEff(temp_a0_6, &arg0->extra.tmd->coords[*temp_s0_6], temp_a2_2, temp_a3_2);
-                            Gp_SpawnEff(0x601BF, &arg0->extra.tmd->coords[*temp_s0_6], 0xC00, NULL);
-                        } while ((u32)(var_s2_2 & 0xFF) < 9U);
+                        sp20 = D_actor_403600_80131E38;
+                        for (patternIndex = 0; patternIndex < 9; patternIndex++) {
+                            Gp_SpawnEff(0x60070, &arg0->extra.tmd->coords[sp20.values[patternIndex]], 0x34C00, NULL);
+                            Gp_SpawnEff(0x601BF, &arg0->extra.tmd->coords[sp20.values[patternIndex]], 0xC00, NULL);
+                        }
                         temp_s1->field_792 = 0;
                     }
                     temp_s1->field_792 = (s16)((u16)temp_s1->field_792 + 1);
