@@ -3270,41 +3270,21 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* prompt, UiObject* obj)
 
 static void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
 {
-    McItemRec*    table;
-    s32           i;
-    s32           count;
-    register s32  equipped asm("s3");
-    PlayerStatus* p;
-    s32           id;
-    s32           wrap;
-    McItemScan*   scan;
+    McItemRec*  table;
+    s32         i;
+    s32         count;
+    McItemScan* scan;
 
     scan  = &Mc_SaveData[0].carriedItems;
     table = Gp_GetItemTable(scan);
-    i     = 0;
     count = 0;
     table = &table[scan->firstRow];
-    for (; i < scan->rowCount; i++, table++) {
-        id = table->itemId;
-        if ((Gp_ItemDescs[id].field_3 & 4) || (id == 0)) {
+    for (i = 0; i < scan->rowCount; i++, table++) {
+        if ((Gp_ItemDescs[table->itemId].field_3 & 4) || (table->itemId == 0)) {
             continue;
         }
-        wrap = id + 0x80;
-        if ((u8)wrap < 0x20) {
-            p        = &Player_Status;
-            equipped = 0;
-            if (((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F)) {
-                equipped = 1;
-            } else if (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) {
-                equipped = 1;
-            } else if (((u32)(id - 0xA0) < 0x20U) && (p->weapon != 0) &&
-                       ((Gp_GetItemSlot(p->weapon + 0x7F)->ammoId == id) ||
-                        (Gp_GetItemSlot(p->weapon + 0x7F)->attachId == id))) {
-                equipped = 1;
-            }
-            if (equipped != 0) {
-                continue;
-            }
+        if ((u8)(table->itemId + 0x80) < 0x20 && _gpIsEquippedItem(table->itemId)) {
+            continue;
         }
         count++;
     }
