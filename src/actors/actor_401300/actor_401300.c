@@ -2050,7 +2050,6 @@ static void func_actor_401300_801365F8(Task* arg0)
     s32                        dy;
     s32                        dz;
     s32                        mask;
-    u16                        speed;
 
     config = &Player_Status;
     work   = arg0->work;
@@ -2067,13 +2066,11 @@ static void func_actor_401300_801365F8(Task* arg0)
         Tmd_AllocBuffers(obj);
         work->field_970.radius = 0x280;
         work->field_89C        = 1;
-        work->field_8A2        = 3;
-        speed                  = work->field_8A8;
-        work->field_BF0.flags &= 0x7FFF;
-        SOFT_BARRIER();
         work->field_89E        = 0;
-        work->field_8A6        = speed;
+        work->field_8A2        = 3;
+        work->field_BF0.flags &= 0x7FFF;
         work->field_AB0.flags |= 0x4000;
+        work->field_8A6        = work->field_8A8;
         func_actor_401300_80133A3C(arg0);
         work->field_D1C = 0;
         work->field_6   = 0;
