@@ -283,18 +283,17 @@ static void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
     PlayerStatus* p;
     GpStateF0*    state;
     GpRec8*       rec;
+    GpRec8*       row;
     s32           cond;
     s32           ret;
     u8*           table;
     s32           idx;
     s32           val1;
-    register s32  val2 asm("s2");
+    s32           val2;
     s32           flag;
     s32           temp2;
     s32           temp4;
     u8            kind;
-    register s32  off asm("v1");
-    register s32  scaled asm("v0");
 
     idx = Gp_StateC08.field_B;
     if (arg0 == 1) {
@@ -324,22 +323,15 @@ static void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
             }
         }
     }
-    off             = idx * 3;
-    off             = off * 8;
-    off            += (s32)D_80113D38;
-    scaled          = ret * 8;
-    rec             = (GpRec8*)(off + scaled);
+    row             = (GpRec8*)D_80113D38 + idx * 3;
+    rec             = row + ret;
     state           = &Gp_StateF0;
     temp2           = rec->field_2;
     temp4           = rec->field_4;
     state->field_5  = 0;
     state->field_14 = 0;
-    scaled          = (temp2 << 1) + temp2;
-    scaled          = (scaled << 3) + temp2;
-    val1            = scaled << 2;
-    scaled          = (temp4 << 1) + temp4;
-    scaled          = (scaled << 3) + temp4;
-    val2            = scaled << 2;
+    val1            = temp2 * 100;
+    val2            = temp4 * 100;
     if ((Gp_StateF0.field_0 == 1 && state->field_6 != 0) || state->field_1 != 0) {
         flag = 1;
     } else {
@@ -359,12 +351,16 @@ static void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
                 break;
             case 2:
                 Gp_InitSlot18(arg0, val1, val2, rec->field_6);
-                goto after_23;
+                if (arg1 != NULL) {
+                    kind           = rec->field_6;
+                    arg1->field_18 = val1;
+                    arg1->field_16 = kind + 2;
+                }
+                break;
             case 3:
                 func_800A5574(arg0, val1, val2, rec->field_6);
-            after_23:
                 if (arg1 != NULL) {
-                    kind           = (u8)rec->field_6;
+                    kind           = rec->field_6;
                     arg1->field_18 = val1;
                     arg1->field_16 = kind + 2;
                 }
