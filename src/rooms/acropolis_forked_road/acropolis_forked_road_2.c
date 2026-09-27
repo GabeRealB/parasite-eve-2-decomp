@@ -375,9 +375,8 @@ static void func_acropolis_forked_road_8017E410(Task* task)
     GpEffWork*        work;
     GpCoord*          coord;
     POLY_FT4*         prim;
-    DisplayState*     ds;
     s32               rgb;
-    s32               flip;
+    s32               flicker;
     s16               xy;
 
     work  = (GpEffWork*)task->spawnArg2;
@@ -415,12 +414,9 @@ static void func_acropolis_forked_road_8017E410(Task* task)
         gte_stsxy(&block->sx);
         gte_stszotz(&block->otz);
         if (block->otz >= 0x11) {
-            ds   = &gDisplayState;
-            flip = (u8)ds->animFrame;
-            SOFT_BARRIER();
-            rgb         = (u8)work->period;
+            flicker     = ((u8)gDisplayState.animFrame & 1) * 0x10;
+            rgb         = (u8)work->period + flicker;
             prim->tpage = 0x2B;
-            rgb        += (flip & 1) << 4;
             prim->r0    = rgb;
             prim->g0    = rgb;
             prim->b0    = rgb;
@@ -448,7 +444,7 @@ static void func_acropolis_forked_road_8017E410(Task* task)
             xy               = block->sy + (u16)block->halfWidth;
             prim->y3         = xy;
             prim->y2         = xy;
-            addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
         }
         SCRATCH_POP_BYTES(0x14);
     }
