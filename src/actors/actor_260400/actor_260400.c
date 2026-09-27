@@ -148,18 +148,11 @@ static void func_actor_260400_80149FA4(void)
 /// first update with the reset mode 2 / id 1 it seeds.
 static void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task)
 {
-    VECTOR       vec;
-    GpAreaKey    key;
-    GpCoord*     coord;
-    TmdObject*   obj;
-    TmdObject*   model;
-    Task*        spawned;
-    GpAreaPlace* place;
-    s32          idx;
-    u32          raw;
-    GpAreaKey*   sessionKey;
-    GpAreaKey*   keyPtr;
-    void*        work;
+    VECTOR     vec;
+    GpCoord*   coord;
+    TmdObject* obj;
+    Task*      spawned;
+    void*      work;
 
     obj                     = task->extra.tmd;
     coord                   = obj->coords;
@@ -192,24 +185,7 @@ static void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task)
     spawned                            = Task_SpawnFromTable(D_actor_260400_80154C18, 1, 8, 0);
     if (spawned != NULL) {
         D_actor_260400_80154C70->helper = spawned;
-        sessionKey                      = (GpAreaKey*)&gGameSession->at4.loc;
-        model                           = spawned->extra.tmd;
-        raw                             = ((GpEnemy*)task->spawnArg2)->placeKey;
-        key.stage                       = sessionKey->stage;
-        key.area                        = sessionKey->area;
-        key.room                        = sessionKey->room;
-        keyPtr                          = &key;
-        TOUCH_REG(keyPtr);
-        key.view = sessionKey->view;
-        idx      = raw >> 12;
-        Gp_SyncAreaKeyIndex(keyPtr);
-        place        = (GpAreaPlace*)((idx << 4) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model->tpage = place->tpage;
-        model->clut  = place->clut;
-        if (model->buffer != NULL) {
-            tmdProcessStream(model);
-            tmdProcessStream(model);
-        }
+        actorTintTask(spawned, (GpEnemy*)task->spawnArg2);
     }
     D_actor_260400_80154C70->st.travel   = 0;
     D_actor_260400_80154C70->turnFrames  = 0;
