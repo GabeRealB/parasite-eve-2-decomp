@@ -145,10 +145,10 @@ static const TaskFuncTable3 D_800974C8 = { {
 
 void Gp_RunCapCmd(s32 arg0, s16 arg1)
 {
-    register GpCapCmd* rec asm("s2");
-    s32                flagId;
-    s32                val;
-    s32                i;
+    GpCapCmd* rec;
+    s32       flagId;
+    s32       val;
+    s32       i;
 
     for (;;) {
         rec    = (GpCapCmd*)Gp_CapCmds[arg0];
@@ -163,11 +163,9 @@ void Gp_RunCapCmd(s32 arg0, s16 arg1)
                 } else {
                     val = rec->field_4;
                 }
-                if (rec->field_1 & 4) {
-                    if (rec->field_2 < val) {
-                        arg0 = rec->field_8;
-                        continue;
-                    }
+                if ((rec->field_1 & 4) && rec->field_2 < val) {
+                    arg0 = rec->field_8;
+                    continue;
                 }
                 Gp_StartCapSlot(arg0, arg1, val);
                 if ((val < rec->field_2) || (rec->field_1 & 4)) {
@@ -182,34 +180,30 @@ void Gp_RunCapCmd(s32 arg0, s16 arg1)
                 }
                 return;
             case 2:
-                Gp_StartCapSlot(arg0, arg1, GameFlag_GetNibble(flagId));
+                val = GameFlag_GetNibble(flagId);
+                Gp_StartCapSlot(arg0, arg1, val);
                 return;
             case 3:
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F0, arg0, 0);
                 return;
             case 4:
-                i   = 0;
-                val = i;
-                if (rec->field_6 != 0) {
-                    do {
-                        if (Gp_GetCurBit2Flag(rec->field_5 + i) == 0 ||
-                            Gp_GetCurBit2Flag(rec->field_5 + i) == 1 ||
-                            Gp_GetCurBit2Flag(rec->field_5 + i) == 3) {
-                            val++;
-                        }
-                        i++;
-                    } while (i < rec->field_6);
-                }
-                if (rec->field_1 & 4) {
-                    if (val == 0) {
-                        arg0 = rec->field_8;
-                        continue;
+                val = 0;
+                for (i = 0; i < rec->field_6; i++) {
+                    if (Gp_GetCurBit2Flag(rec->field_5 + i) == 0 ||
+                        Gp_GetCurBit2Flag(rec->field_5 + i) == 1 ||
+                        Gp_GetCurBit2Flag(rec->field_5 + i) == 3) {
+                        val++;
                     }
+                }
+                if ((rec->field_1 & 4) && val == 0) {
+                    arg0 = rec->field_8;
+                    continue;
                 }
                 Gp_StartCapSlot(arg0, arg1, val);
                 return;
+            default:
+                return;
         }
-        return;
     }
 }
 

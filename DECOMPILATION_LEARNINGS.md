@@ -144993,3 +144993,22 @@ The seed faked the same result with a function-scope `head` plus an
 explicit `t = i * sizeof(face)` ahead of it. Separately, an `andi 0xFFFF`
 on a value already loaded with `lhu` is a `u16` local compared with a
 constant, not an `s32` kept alive by `SOFT_USE_REG`.
+
+## A pointer and a counter swapped between `$s1`/`$s2` can hinge on one case passing a call result straight through (Gp_RunCapCmd, 2026-09-27)
+
+**Shape.** A `for (;;) { rec = table[idx]; switch (rec->op) {...} }` command
+runner keeps `rec` and a function-level counter `val` in callee-saved
+registers. Without a `register ... asm("s2")` pin on `rec`, the two came out
+swapped: `lreg` showed `rec` at 44 refs over 77 insns and `val` at 34 over 60,
+a near tie in global-alloc priority (`floor_log2(refs) * refs / length`) that
+`rec` won.
+
+**Fix.** One case read `f(a, b, GameFlag_GetNibble(id))`. Writing it as
+`val = GameFlag_GetNibble(id); f(a, b, val);` gives `val` two more references
+over a slightly longer life, which is enough to rank it above `rec`; the code
+is otherwise identical, since the call result is only copied into the argument
+register. When a register swap is a near-tie between a pointer and a local
+shared by several switch cases, look for a case that bypasses the local.
+Merging nested `if (a) { if (b) ...` into `if (a && b)`, and a
+`default: return;` in place of a return after the switch, did not change
+the code.
