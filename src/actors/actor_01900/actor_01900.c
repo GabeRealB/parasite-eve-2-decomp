@@ -2761,17 +2761,7 @@ static void Actor01900_Fn083E8(Task* arg0)
 static void Actor01900_Fn08724(Task* arg0)
 {
     SVECTOR         vec;
-    GpAreaKey       key;
-    GpAreaKey*      sessionKey;
-    GpAreaKey*      keyPtr;
-    u8              areaByte0;
-    GpAreaRec*      rec;
-    GpAreaPlace*    entry;
     GpEffWork*      eff;
-    TmdObject*      model;
-    s32             idx;
-    u32             raw;
-    u16             next;
     Actor01900Work* work;
     GpEnemy*        enemy;
 
@@ -2780,19 +2770,18 @@ static void Actor01900_Fn08724(Task* arg0)
     if (work->field_4 != 0) {
         arg0->extra.tmd->flags    = 0x80;
         work->field_8C8.radius    = 0x180;
-        work->field_A08.flags     = (u16)(work->field_A08.flags & 0xBFFF);
+        work->field_A08.flags    &= 0xBFFF;
         enemy->node.state.b.flags = 1;
         work->field_8AE           = 0;
-        work->field_6             = 0U;
+        work->field_6             = 0;
         vec.vx                    = 0x64;
         vec.vz                    = 0;
         vec.vy                    = 0;
         Gp_SpawnEff(0x60030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
         Gp_ReleaseStateF0Add(arg0, 0x13);
     }
-    next          = work->field_6 + 1;
-    work->field_6 = next;
-    switch ((s16)next) {
+    work->field_6++;
+    switch (work->field_6) {
         case 3:
             D_80114B78[0] = &Actor01900_D10B68;
             vec.vz        = 0x64;
@@ -2807,35 +2796,11 @@ static void Actor01900_Fn08724(Task* arg0)
             eff           = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec);
         body:
             if (eff != NULL) {
-                sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
-                raw        = enemy->placeKey;
-                model      = eff->task->extra.tmd;
-                key.stage  = sessionKey->stage;
-                key.area   = sessionKey->area;
-                key.room   = sessionKey->room;
-                areaByte0  = gGameSession->at4.loc.view;
-                idx        = raw >> 12;
-                /* Both calls take `&key`. CSE of that address across the first
-                   jal costs a callee-saved register; the ROM rematerializes
-                   `addiu a0, sp, key` for each call. Same shape as
-                   Actor02000_Fn0251C. */
-                SOFT_BARRIER();
-                keyPtr = &key;
-                TOUCH_REG(keyPtr);
-                key.view = areaByte0;
-                Gp_SyncAreaKeyIndex(keyPtr);
-                rec          = Gp_GetNestedAreaRec(&key);
-                entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-                model->tpage = entry->tpage;
-                model->clut  = entry->clut;
-                if (model->buffer != NULL) {
-                    tmdProcessStream(model);
-                    tmdProcessStream(model);
-                }
+                actorTintTask(eff->task, enemy);
             }
             break;
     }
-    if ((s16)work->field_6 >= 0x3D) {
+    if (work->field_6 >= 0x3D) {
         work->field_0 = 0;
     }
 }
