@@ -1905,38 +1905,29 @@ static void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
 
 static __inline__ void countItemRows(UiList* menu)
 {
-    McItemScan*   scan;
-    McItemRec*    table;
-    PlayerStatus* p;
-    register s32  i asm("a2");
-    s32           n;
-    s32           count;
-    s32           ok;
-    s32           id;
+    McItemScan* scan;
+    McItemRec*  table;
+    s32         i;
+    u16         count;
+    s32         ok;
+    s32         id;
 
     scan          = &Mc_SaveData[0].carriedItems;
     table         = Gp_GetItemTable(scan);
-    i             = 0;
     table         = &table[scan->firstRow];
     menu->field_4 = scan->rowCount;
-    n             = scan->rowCount;
-    if (n != 0) {
-        p     = &Player_Status;
-        count = n;
-        do {
-            id = table->itemId;
-            ok = 1;
-            if ((table->attachSlot != 0) ||
-                (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
-                (((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F))) {
-                ok = 0;
-            }
-            if (ok == 0) {
-                menu->field_4--;
-            }
-            i++;
-            table++;
-        } while (i < count);
+    count         = scan->rowCount;
+    for (i = 0; i < count; i++, table++) {
+        id = table->itemId;
+        ok = 1;
+        if ((table->attachSlot != 0) ||
+            (((u32)(id - 0x60) < 0x20U) && (Player_Status.armor == id - 0x5F)) ||
+            (((u32)(id - 0x80) < 0x20U) && (Player_Status.weapon == id - 0x7F))) {
+            ok = 0;
+        }
+        if (ok == 0) {
+            menu->field_4--;
+        }
     }
     menu->field_4 = menu->field_4 + 1;
     menu->field_5 = menu->field_4;

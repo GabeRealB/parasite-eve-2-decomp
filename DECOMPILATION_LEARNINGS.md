@@ -143455,6 +143455,21 @@ over the same 14 insns, which ranks it above the bound (11 refs over 12) in
 global allocation. The two spellings emit identical instructions otherwise, so
 a hand-inverted loop with a pinned counter is worth one `while` attempt first.
 
+### The entry-tested loop's bound copy and pre-header address come from a narrow bound and a direct global (countItemRows, 2026-09-27)
+
+A counted loop in the shape `andi a3,a0,0xff; beqz a3; …; lui/addiu t0,Global;
+move t1,a3; loop: … slt v0,a2,t1` was seeded as `if (n != 0) { p = &Global;
+count = n; do … while (i < count); }` with the counter pinned. Written as
+`for (i = 0; i < count; i++)` the counter ranks correctly (entry above), but
+two more pieces are needed. The bound is a `u16 count = scan->rowCount` (a
+`u8` field): the widening gives loop.c a separate bound register, which is the
+`move t1,a3`; an `s32` bound merges into the tested value and the copy
+disappears. And the loop body reads `Global.field` directly instead of through
+a `p = &Global` local: loop.c hoists the address into the pre-header, after the
+entry test, whereas a local assigned before the loop sits in the entry block
+and pushes the bound's load after the preceding `sb`, so `reload_cse` can no
+longer turn it into `andi` of the stored register.
+
 ### A `u16` checksum accumulator: `lbu`+sign-extend with no copy, where `s16` needs a pin (Mc_StateSaveSlotUi, 2026-09-26)
 
 In a byte-sum loop compared against a stored `u16` checksum, an `s16 sum` gives
