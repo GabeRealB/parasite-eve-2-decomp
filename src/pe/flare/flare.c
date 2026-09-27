@@ -86,12 +86,8 @@ static void flareSparkTask(Task* arg0)
     GpCoord*    player;
     GpMtxWords* dstm;
     GpMtxWords* srcm;
-    s32         rng;
+    u32         rng;
     s32         temp_lo;
-    s32         hi;
-    s32         ang;
-    s32         pitch;
-    s32         rsin_arg;
 
     mem      = arg0->spawnArg2;
     coord    = arg0->extra.tmd->coords;
@@ -107,23 +103,12 @@ static void flareSparkTask(Task* arg0)
         dstm->m22     = srcm->m22;
         coord->flg    = 0;
         Gp_UpdateCoord(coord);
-        rng = Gp_LcgState * 5 + 0x71357911;
-        do {
-            hi  = (u32)rng >> 16;
-            ang = (u16)arg0->spawnArg1;
-            TOUCH_REG(ang);
-            mem->scale = hi & 0xFFF;
-            SOFT_COMPILER_BARRIER();
-            rsin_arg = mem->scale;
-        } while (0);
-        Gp_LcgState = rng;
-        ang         = ang & 0xFFF;
-        mem->period = ang;
-        SCHED_BARRIER();
-        pitch = ang;
-        TOUCH_REG(pitch);
-        mem->angle   = (s32)(pitch << 16) >> 21;
-        mem->move.vx = (rsin(rsin_arg) * mem->angle) >> 12;
+        rng          = Gp_LcgState * 5 + 0x71357911;
+        mem->period  = arg0->spawnArg1 & 0xFFF;
+        mem->scale   = (rng >> 16) & 0xFFF;
+        Gp_LcgState  = rng;
+        mem->angle   = mem->period >> 5;
+        mem->move.vx = (rsin(mem->scale) * mem->angle) >> 12;
         temp_lo      = rcos(mem->scale) * mem->angle;
         mem->move.vz = 0x100;
         mem->move.vy = temp_lo >> 12;
