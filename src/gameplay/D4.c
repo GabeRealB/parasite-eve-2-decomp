@@ -239,23 +239,14 @@ static void Gp_LoadWaitDone(Task* task)
 
 void Gp_LoadViewImages(void)
 {
-    s32           raw;
-    s32           i;
-    s32           target;
-    register s32  type2 asm("v0");
-    FsFolderSlot* table;
-    FsFolderSlot* slot;
+    u8 view;
+    u8 i;
 
-    raw    = Gp_GetViewIndex();
-    i      = 0;
-    table  = D_8006C338;
-    target = (u8)raw - 1;
-    for (; (u8)i < 50; i++) {
-        type2 = 2;
-        if (table[(u8)i].field_0 == type2) {
-            if (target == (u8)i) {
-                slot = &table[(u8)i];
-                while (Fs_LoadImageChunk(slot->field_4, 1)) {
+    view = Gp_GetViewIndex();
+    for (i = 0; i < 50; i++) {
+        if (D_8006C338[i].field_0 == 2) {
+            if (view - 1 == i) {
+                while (Fs_LoadImageChunk(D_8006C338[i].field_4, 1)) {
                 }
                 break;
             }
