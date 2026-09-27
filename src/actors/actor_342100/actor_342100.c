@@ -393,18 +393,6 @@ void func_actor_342100_80162748(Task* arg0)
 /// The step that survives re-sends `GpAnimArg {setId, anim, 1, 0xA, 0}` as
 /// message 0x3E8 -- `func_actor_342100_8016334C`'s tail with `field_C` = 0xA --
 /// to the same target, and reports 1.
-///
-/// The `ret1` label and the `goto` are load-bearing, not leftovers. Every
-/// `return 1;` compiles to `[v0=1][use v0][j return_label][barrier]`, and the
-/// last `jump_optimize` pass (the one that runs after reload, `jump.c`'s
-/// cross-jumping) merges those identical blocks into one: the branch that
-/// dangled over the first of them is then rewritten to point at the survivor,
-/// which costs the function an extra `j` and moves the block. Leaving the last
-/// table check a bare `j ret1` instead keeps its branch a plain jump over an
-/// unconditional jump, and `COMPILER_BARRIER()` after the label keeps an active
-/// insn between the first branch and the jump it dangles over, so neither
-/// branch is inverted. Both are needed for the target's shape; see
-/// DECOMPILATION_LEARNINGS.md, "Several identical `return <const>;` blocks".
 static s32 func_actor_342100_801629B8(Task* arg0)
 {
     Actor342100Work* work;
@@ -417,19 +405,18 @@ static s32 func_actor_342100_801629B8(Task* arg0)
     work = (Actor342100Work*)arg0->work;
     if (work->field_2C == NULL) {
     ret1:
-        COMPILER_BARRIER();
         return 1;
     }
     if (Gp_DispatchMsg(work->field_2C, 0x3ED, 0, 0) != 0) {
         return 0;
     }
     if (work->field_3C < 0x2F) {
-        return 1;
+        goto ret1;
     }
     if (D_actor_342100_80164910[work->field_3C - 0x2F] < 0) {
         goto ret1;
     }
-    anim                = (u16)D_actor_342100_80164910[work->field_3C - 0x2F] + 0x2F;
+    anim                = D_actor_342100_80164910[work->field_3C - 0x2F] + 0x2F;
     w                   = (Actor342100Work*)arg0->work;
     weaponId            = Player_Status.weapon;
     setId               = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
@@ -440,7 +427,7 @@ static s32 func_actor_342100_801629B8(Task* arg0)
     msg.field_C         = 0xA;
     msg.field_10        = 0;
     Gp_DispatchMsg(w->field_2C, 0x3E8, (s32)&msg, 0);
-    return 1;
+    goto ret1;
 }
 
 /// State 0 allocates the overlay's effect record -- eight bytes, scale 0x100,

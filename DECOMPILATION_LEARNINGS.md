@@ -127445,6 +127445,21 @@ Inputs: `base.i`
 
 ## Several identical `return <const>;` blocks are merged by the *last* `jump_optimize` call; a `goto` on the last of them plus a `COMPILER_BARRIER()` after its label is what keeps the target's shape (func_actor_342100_801629B8, 2026-09-17)
 
+**Correction (2026-09-27): the barrier is unnecessary when every completed
+path uses the same return block.** Keep the first `ret1: return 1;`, and use
+`goto ret1` for the range check, negative table entry and successful message
+dispatch. With no duplicate constant-return suffix, `.jump2` retains the
+first block's `v0 = 1` and its preceding `bnez`; `.dbr` threads the later
+jumps and places the constant in the required delay slots. Removing only the
+barrier scored 92.032%; also sharing only the final return scored 87.210%;
+sharing the range-check return as well restored the seed's 99.677%, whose
+four remaining differences are renamed global symbols. The redundant `u16`
+table-entry cast can also go: the `s16` destination supplies the truncation.
+Evidence: dehack scratch `base_1`, `base_2`, `base_4` and `base_5` dumps;
+`base_5.i` SHA-256
+`ae04227a27e87b447607ca71dd13165b777a2a0afefce60fbb82c7ffd064b460`.
+The original barrier-based explanation below is retained as history.
+
 A function whose early exits all `return 1;` compiles each one to
 `[v0=1][USE v0][j return_label][barrier][return_label]` (the `USE` is
 `expand_value_return`'s, stmt.c). The target of
