@@ -2989,14 +2989,10 @@ static void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
 
 static void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
 {
-    register u8*  head asm("v0");
     GpHudScratch* block;
     s32           val;
 
-    head             = SCRATCH_HEAD(u8);
-    head             = head - 0x1C;
-    block            = (GpHudScratch*)head;
-    SCRATCH_HEAD(u8) = head;
+    block = SCRATCH_PUSH(GpHudScratch);
     if (func_800B9D80(0x100000) != 0) {
         block->field_14 = 0x6A;
         block->field_16 = -0x35;
@@ -3024,8 +3020,8 @@ static void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
         Gp_DrawHudNumbers(block->field_14 - 8, block->field_16, arg0->hp, val, 1);
     }
     arg1->field_4 = block->field_14;
-    SCRATCH_POP_BYTES(0x1C);
     arg1->field_6 = block->field_16;
+    SCRATCH_POP(GpHudScratch);
 }
 
 /// Rotates `v` in place by `m` on the GTE, reading it through a copy.
