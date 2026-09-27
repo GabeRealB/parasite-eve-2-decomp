@@ -2653,21 +2653,16 @@ void Gp_WaitItemFlag2(Task* arg0)
         arg0->state += 1;
     }
     if (arg0->state == 1) {
-        GpBit2Bank*   banks;
-        register u32* p asm("v1");
-        GameSession*  sess;
-        s32           id;
-        s32           shift;
-        u32           word;
+        s32  id;
+        s32  stage;
+        u32* p;
+        s32  shift;
 
-        sess  = gGameSession;
-        banks = Gp_Bit2Banks;
         id    = ((GpItemObj8*)arg0->spawnArg2)->field_8;
-        p     = banks[sess->at4.loc.stage].field_4;
-        p    += id >> 4;
+        stage = gGameSession->at4.loc.stage;
+        p     = &Gp_Bit2Banks[stage].field_4[id >> 4];
         shift = (id & 0xF) * 2;
-        word  = *p;
-        if (((word & (3 << shift)) >> shift) == 2) {
+        if (((*p & (3 << shift)) >> shift) == 2) {
             extra->flags &= 0xFFF7;
             Task_CallExit(arg0);
         }
