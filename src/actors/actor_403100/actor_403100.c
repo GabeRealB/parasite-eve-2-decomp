@@ -3316,7 +3316,6 @@ static void func_actor_403100_8013922C(Task* arg0)
     s32      message[6];
     s16      health;
     s32      damage;
-    s32      state;
     u16      frame;
     u32      random;
     u8       request;
@@ -3392,17 +3391,14 @@ static void func_actor_403100_8013922C(Task* arg0)
             return;
         }
         func_actor_403100_8013D1B8(1, 0x3F4);
-        TOUCH_MEM(D_actor_403100_80155808);
-        state = 8;
-        TOUCH_REG(state);
+        D_actor_403100_80155808->field_5EC = 0;
+        D_actor_403100_80155808->field_5E2 = 8;
         D_actor_403100_80155808->field_5DE = 0xE;
         D_actor_403100_80155808->field_5DA = 2;
-        D_actor_403100_80155808->field_5EC = 0;
-        D_actor_403100_80155808->field_5E2 = state;
         Mc_SaveData[0].at4.loc.view        = 0xC;
-        *(s32*)(u32)&coords->coord.t[0]    = -0x44C;
-        *(s32*)(u32)&coords->coord.t[2]    = 0x1770;
-        *(s32*)(u32)&coords->coord.t[1]    = 0;
+        coords->coord.t[0]                 = -0x44C;
+        coords->coord.t[2]                 = 0x1770;
+        coords->coord.t[1]                 = 0;
         D_actor_403100_80155808->field_82  = 0xC00;
         D_actor_403100_80155808->field_80  = 0;
         D_actor_403100_80155808->field_84  = 0;
@@ -3412,7 +3408,7 @@ static void func_actor_403100_8013922C(Task* arg0)
         D_actor_403100_80155808->field_A2  = 0;
         D_actor_403100_80155808->field_A4  = 0;
         part->coord.t[0]                   = -0x877;
-        D_actor_403100_80155808->field_5FA = state;
+        D_actor_403100_80155808->field_5FA = 8;
     }
 }
 static void func_actor_403100_801395EC(Task* arg0)
