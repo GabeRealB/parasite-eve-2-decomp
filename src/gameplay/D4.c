@@ -2598,81 +2598,58 @@ void Gp_RunDirAction(void)
     }
 }
 
-void Gp_ApplyAreaRecs(GpAreaApplyRec* arg0)
+void Gp_ApplyAreaRecs(GpAreaApplyRec* recs)
 {
-    GpAreaKey                key;
-    register GpAreaApplyRec* rec asm("s0");
-    GpAreaRec*               tbl;
-    GpAreaObj*               obj;
-    GpAreaKey*               sess;
-    McSaveData*              save;
-    GpAreaRec**              tables;
-    s32                      mask;
-    s32                      apply;
-    s32                      expected;
-    s32                      cond;
-    s8                       mode;
-    u8                       idx;
-    u8                       temp;
+    GpAreaKey  key;
+    GpAreaRec* tbl;
+    GpAreaObj* obj;
+    GpAreaKey* sess;
+    s32        i;
+    s32        stage;
+    s32        mask;
+    s8         apply;
+    s8         mode;
 
     apply = 0;
     sess  = &gGameSession->at4.loc;
-    if (arg0->field_0 != 0xFF) {
-        tables = Gp_AreaTables;
-        save   = &Mc_SaveData[0];
-        rec    = arg0;
-        idx    = *(volatile u8*)&rec->field_0;
-        do {
-            tbl       = tables[idx];
-            key.stage = idx;
-            temp      = rec->field_1;
-            key.room  = 1;
-            key.area  = temp;
-            key.view  = sess->view;
-            mask      = rec->field_3 & 0xF0;
-            if (mask == 0) {
-                goto set_apply;
-            }
-            mode = save->gameMode;
-            if (mode == 0 || mode == 2) {
-                expected = 0x10;
-                goto cmp;
-            }
-            if (mode == 1 || mode == 3) {
-                expected = 0x20;
-            } else {
-                goto set_zero;
-            }
-        cmp:
-            if (mask != expected) {
-                cond = apply;
-                goto test;
-            }
-        set_apply:
+    for (i = 0; recs[i].field_0 != 0xFF; i++) {
+        stage     = recs[i].field_0;
+        tbl       = Gp_AreaTables[stage];
+        key.stage = stage;
+        key.area  = recs[i].field_1;
+        key.room  = 1;
+        key.view  = sess->view;
+        mask      = recs[i].field_3 & 0xF0;
+        if (mask == 0) {
             apply = 1;
-            goto join;
-        set_zero:
-            apply = 0;
-        join:
-            cond = apply;
-        test:
-            if (cond != 0) {
-                Gp_SetAreaObjId(&key, rec->field_2, 1);
-                if (tbl != NULL) {
-                    obj = tbl[rec->field_1].field_4;
-                    if (obj != NULL) {
-                        if (rec->field_3 & 0xF) {
-                            obj->field_1 |= 4;
-                        } else {
-                            obj->field_1 &= 0xFB;
-                        }
+        } else {
+            mode = Mc_SaveData[0].gameMode;
+            if (mode == 0 || mode == 2) {
+                if (mask == 0x10) {
+                    apply = 1;
+                }
+            } else if (mode == 1 || mode == 3) {
+                if (mask == 0x20) {
+                    apply = 1;
+                }
+            } else {
+                apply = 0;
+            }
+        }
+        if (apply) {
+            Gp_SetAreaObjId(&key, recs[i].field_2, 1);
+            if (tbl != NULL) {
+                obj = tbl[recs[i].field_1].field_4;
+                if (obj != NULL) {
+                    if (recs[i].field_3 & 0xF) {
+                        obj->field_1 |= 4;
+                    } else {
+                        obj->field_1 &= 0xFB;
                     }
                 }
             }
-            rec++;
-            apply = 0;
-            idx   = rec->field_0;
-        } while (idx != 0xFF);
+        }
+        apply = 0;
     }
 }
 

@@ -145199,3 +145199,21 @@ changes the dependence order so the entry copy is emitted first.
 **Fix.** Keep the colour load in the function and move the loop into a
 `static inline u32* helper(ws, arg2)` it returns from. Reordering `ws = arg0`
 around the colour statements changes nothing.
+
+## A loop's back branch landing one insn past a reload of its test field: index loop plus an `int` local for the field (Gp_ApplyAreaRecs, 2026-09-27)
+
+**Shape.** The rotated exit test reads `lbu v1,0(a0)`, the preheader does
+`move s0,a0; lbu v1,0(s0)`, and the back branch targets the insn *after* that
+second load, reusing the `v1` its own exit test just loaded. The tree faked it
+with a `register asm("s0")` pin on a walking pointer and a `volatile` read.
+
+**Cause.** Two separate mechanisms. The `move s0,a0` plus reload is `recs[i]`
+with a counter: the biv `i` is eliminated and every `recs[i].field` becomes one
+reduced giv seeded from `a0`, while the copied exit test still reads `a0`
+(a walked `rec++` pointer keeps the biv and buys a second `rec+3` giv instead).
+The skipped load is reorg's `redundant_insn` on the back branch, which needs the
+body's first load to be the *same RTL* as the exit test's: with the field held
+in a `u8` local the body loads QImode and nothing is skipped; an `s32` local
+gives the same `zero_extend:SI` as the test.
+
+**Fix.** `for (i = 0; recs[i].field_0 != 0xFF; i++) { s32 stage = recs[i].field_0; ... }`.
