@@ -1542,21 +1542,20 @@ void func_mist_shooting_gallery_80184C0C(Task* arg0)
         case 1:
             if (arg0->killCountdown != 0) {
                 arg0->killCountdown--;
-                goto call_func;
+            } else {
+                if (Pad_CheckButtons(0, 1, arg0->spawnArg1) != 0) {
+                    arg0->state = arg0->state + 1;
+                } else {
+                    func_8014B0D4();
+                }
+                break;
             }
-        pad_check:
-            asm volatile("" : : "i"(&&pad_check));
-            if (Pad_CheckButtons(0, 1, arg0->spawnArg1) != 0) {
-                arg0->state = arg0->state + 1;
-                return;
-            }
-        call_func:
             func_8014B0D4();
-            return;
+            break;
         case 2:
             taskKill(arg0);
             Stage_SetEndingFlag();
-            return;
+            break;
     }
 }
 

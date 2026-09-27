@@ -44273,6 +44273,35 @@ A `static void *keep = &&pad` also works but adds a `.data` word. `fs.c`
 already uses `"i"(&&label)` operands. `func_mist_shooting_gallery_80184C0C`
 is the example.
 
+### Natural C replacement: nest one copy of the shared tail
+
+The label-address asm above is unnecessary. Keep the countdown decrement in
+the outer `if`, put the button check and its own update call in the `else`,
+and `break` from that else. A second update call follows the outer conditional:
+
+```c
+if (task->killCountdown != 0) {
+    task->killCountdown--;
+} else {
+    if (Pad_CheckButtons(0, 1, task->spawnArg1) != 0) {
+        task->state++;
+    } else {
+        update();
+    }
+    break;
+}
+update();
+break;
+```
+
+In the `.jump` dump, the countdown jumps past the inner else label to the
+second call. This fails jump.c's range-swap precondition that its destination
+be the next label after the button-check entry. `.jump2` then removes the
+first call by cross-jumping to the second. Putting the two calls directly in
+the countdown and button-failure arms instead retains the earlier call and
+does not match. `func_mist_shooting_gallery_80184C0C` scratch `base_13.c`
+matches at 100% without hacks; direct duplication (`base_2.c`) scores 87.184%.
+
 ## Scratch-head `*(u8**)G_SCRATCH_HEAD`: one use per block, or CSE takes a register
 
 `memory_address()` leaves a large `CONST_INT` address inside the `MEM`, so a
