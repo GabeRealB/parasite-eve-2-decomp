@@ -48829,13 +48829,28 @@ exactly where the target has data.
 ## An unused local still costs frame space
 
 A target frame that is larger than yours by a round number, with the saved
-registers pushed up to the top of it and no spills to explain the gap, is a
-declared-but-unused local. GCC 2.8.1 calls `assign_stack_local` for every
-declared aggregate whether or not it survives optimisation, so
-`func_acropolis_fire_escape_8017E594`'s `addiu sp,sp,-0x20` against our
-`-0x8` is 0x18 = 24 bytes of local the source declares and never reads.
-Adding one moved that function from 96.7% to 96.8% with the whole prologue and
-epilogue matching.
+registers pushed up to the top of it and no spills to explain the gap, can
+come from a declared-but-unused local. GCC 2.8.1 calls `assign_stack_local`
+for every declared aggregate whether or not it survives optimisation. But
+unused frame space does not prove that the original declared an aggregate.
+
+**Correction (2026-09-27):** `func_acropolis_fire_escape_8017E594` previously
+used an unused `s16[12]` to grow its frame from 8 to 32 bytes. Natural PE grid
+indexing, `page = i / 3; column = i % 3; attachLevels[column + page * 3]`,
+reproduces that frame without any array. As in `Gp_InvokePeItemPanel` below,
+combine cancels the index arithmetic but leaves `use` nodes for removed
+pseudos; reload can allocate their stack slots. Here loop.c also hoists the
+division multiplier before combine, leaving the target's unused
+`0x55555556` load without the old `SOFT_USE_REG`.
+
+The exact match additionally loads a loop-local `useCount`, computes the
+base PE ID, then tests `useCount`. Computing the ID only inside the branch
+loses full strength reduction; reusing the sorting loop's `uses` local
+makes the first count load global and assigns v1 instead of v0 (99.950%).
+Scratch `func_acropolis_fire_escape_8017E594-dehack/base_11.c` matches 100%;
+its `.combine` retains uses of r109/r111/r113/r118/r119, and `.lreg` assigns
+the separate count r98 to v0. Preprocessed SHA-256:
+`f7d3d853b3519e9d6a96b3ba019e8289afc6e5887a191c0b202c9ba7f6174940`.
 
 **Slots go up in declaration order from `0x10`.** The outgoing-argument area
 occupies `sp+0x0..0x0F` and the first declared local lands at `sp+0x10`; each
