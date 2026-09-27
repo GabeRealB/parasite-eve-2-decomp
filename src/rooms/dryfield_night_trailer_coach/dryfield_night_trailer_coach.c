@@ -2697,20 +2697,19 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
 /// 0x50, then asks for the task's own kill at frame 0x78.
 void func_dryfield_night_trailer_coach_80182610(Task* task)
 {
-    s32 zero;
-
     switch (task->state) {
         case 0x50:
         case 0x0:
-            zero = 0;
-            TOUCH_REG(zero);
-            SndEvt_EnqueueType6((s32)task->spawnArg2, zero, zero);
+            SndEvt_EnqueueType6((s32)task->spawnArg2, 0, 0);
+            task->state += 1;
             break;
         case 0x78:
             Task_RequestKill(task, 0);
-            return;
+            break;
+        default:
+            task->state += 1;
+            break;
     }
-    task->state += 1;
 }
 
 s32 func_dryfield_night_trailer_coach_801826A0(void)
