@@ -4260,13 +4260,13 @@ typedef struct {
 
 void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    POLY_FT4*    p;
-    SizeVec      vec;
-    register s32 w asm("a0");
-    s32          h;
-    s32          x;
-    s32          y;
-    s32          scale;
+    POLY_FT4* p;
+    SizeVec   vec;
+    s32       w;
+    s32       h;
+    s32       x;
+    s32       y;
+    s32       scale;
 
     w = 0x80;
     h = 0x60;
@@ -4323,27 +4323,27 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 p->clut  = 0x3F40;
                 break;
             case 2:
+                p->u0    = 0;
+                p->u1    = w;
+                p->u2    = 0;
+                p->u3    = w;
                 p->v0    = 0x80;
                 p->v1    = 0x80;
                 p->v2    = h - 0x80;
                 p->v3    = h - 0x80;
                 p->tpage = 0x8F;
+                p->clut  = 0x3F80;
+                break;
+            default:
                 p->u0    = 0;
                 p->u1    = w;
                 p->u2    = 0;
                 p->u3    = w;
-                p->clut  = 0x3F80;
-                break;
-            default:
                 p->v0    = 0x80;
                 p->v1    = 0x80;
                 p->v2    = h - 0x80;
                 p->v3    = h - 0x80;
                 p->tpage = 0x87;
-                p->u0    = 0;
-                p->u1    = w;
-                p->u2    = 0;
-                p->u3    = w;
                 p->clut  = 0x3F40;
                 break;
         }
