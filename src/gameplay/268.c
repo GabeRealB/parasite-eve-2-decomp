@@ -1191,38 +1191,21 @@ s32 Gp_NthRelatedId(McItemScan* arg0, s32 arg1, s32 arg2)
     return table[idx].itemId;
 }
 
-void Gp_RefreshItemRow(McItemRec* arg0)
+/// Empties the ammunition and attachment of weapon item `item`, the same clear
+/// `Gp_ClearEquipSlot` performs.
+static inline void _gpClearEquipSlot(s32 item)
 {
-    u8           item;
-    McItemSlot*  slot;
-    register s32 found asm("a3");
-    s32          i;
-    GpItemMap*   p;
-    s32          inRange;
-
-    if (arg0->attachSlot <= 0) {
-        return;
-    }
-
-    inRange          = (u8)(arg0->itemId + 0x80) < 0x20;
-    arg0->attachSlot = 0;
-    if (!inRange) {
-        return;
-    }
-
-    item = arg0->itemId;
-    if (item == Player_Status.weapon + 0x7F) {
-        return;
-    }
+    McItemSlot* slot;
+    s32         found = 0;
+    s32         i;
 
     if ((u32)(item - 0x80) >= 0x20) {
         return;
     }
 
-    found = 0;
-    slot  = &((McItemSlot*)((s32)Mc_SaveData[0].weaponItems - 0x400))[item];
-    for (i = found, p = Gp_ItemMaps; i < 8; i++, p++) {
-        if (item == p->field_1) {
+    slot = &Mc_SaveData[0].weaponItems[item - 0x80];
+    for (i = 0; i < 8; i++) {
+        if (item == Gp_ItemMaps[i].field_1) {
             found = 1;
             break;
         }
@@ -1239,6 +1222,29 @@ void Gp_RefreshItemRow(McItemRec* arg0)
         }
         slot->attachQty = 0;
     }
+}
+
+void Gp_RefreshItemRow(McItemRec* arg0)
+{
+    u8  item;
+    s32 inRange;
+
+    if (arg0->attachSlot <= 0) {
+        return;
+    }
+
+    inRange          = (u8)(arg0->itemId + 0x80) < 0x20;
+    arg0->attachSlot = 0;
+    if (!inRange) {
+        return;
+    }
+
+    item = arg0->itemId;
+    if (item == Player_Status.weapon + 0x7F) {
+        return;
+    }
+
+    _gpClearEquipSlot(item);
 }
 
 void func_800B92CC(void)
@@ -1667,40 +1673,6 @@ s32 func_800B9D80(s32 arg0)
             break;
     }
     return ret;
-}
-
-/// Empties the ammunition and attachment of weapon item `item`, the same clear
-/// `Gp_ClearEquipSlot` performs.
-static inline void _gpClearEquipSlot(s32 item)
-{
-    McItemSlot* slot;
-    s32         found;
-    s32         i;
-
-    if ((u32)(item - 0x80) >= 0x20) {
-        return;
-    }
-
-    found = 0;
-    slot  = &Mc_SaveData[0].weaponItems[item - 0x80];
-    for (i = 0; i < 8; i++) {
-        if (item == Gp_ItemMaps[i].field_1) {
-            found = 1;
-            break;
-        }
-    }
-
-    if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
-        slot->ammoId  = 0;
-        slot->ammoQty = 0;
-    }
-
-    if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
-        if (slot->attachId != 0xFF) {
-            slot->attachId = 0;
-        }
-        slot->attachQty = 0;
-    }
 }
 
 /// Zeroes every row of the table window `scan`. Shared by `Gp_ClearScanItems`
