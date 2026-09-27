@@ -30,7 +30,7 @@ extern u32   D_dryfield_r08_801809C0[];
 extern u32   D_dryfield_r08_80180B58[];
 
 static void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3);
+static void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2);
 
@@ -327,12 +327,10 @@ static void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s16 arg2, s16 ar
 /// the projected point. The low 12 bits of `arg1` pick a 48x48 cell from a
 /// five-column grid (u = `cell % 5 * 48`, v = `cell / 5 * 48 - 0x80`); any of
 /// its top four bits set selects clut 0x428F instead of 0x43D0. The quad's
-/// diagonals are `(s16)arg2 * 47 / otz` long, turned by `arg3` and
+/// diagonals are `arg2 * 47 / otz` long, turned by `arg3` and
 /// `arg3 + 0x400`, so it shrinks with distance and spins with the angle.
-static void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3)
+static void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
-    void**             scratch;
-    u8*                head;
     GpEffFlareScratch* block;
     POLY_FT4*          prim;
     s32                ang;
@@ -342,35 +340,26 @@ static void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s32 arg2, s32 ar
     s32                v0;
     s32                u1;
     s32                v1;
-    u16                vz;
     u16                tex;
     u16                sel;
     s32                sine;
-    GpEffFlareScratch* tmp;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    SOFT_TOUCH_REG(arg2);
-    head = *scratch;
-    tmp  = (GpEffFlareScratch*)(head - 0x1C);
-    SOFT_TOUCH_REG(tmp);
-    block         = tmp;
-    block->vec.vx = (u16)arg0->workm.t[0];
+    block         = SCRATCH_PUSH(GpEffFlareScratch);
+    block->vec.vx = arg0->workm.t[0];
     sel           = arg1 >> 12;
-    block->vec.vy = (u16)arg0->workm.t[1];
-    vz            = (u16)arg0->workm.t[2];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
     tex           = arg1 & 0xFFF;
-    *scratch      = block;
-    block->vec.vz = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((GpEffFlareScratch*)(head - 0x1C))->vec);
+    gte_ldv0(&block->vec);
     gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&((GpEffFlareScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpEffFlareScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         prim->tpage = 0x2C;
@@ -380,7 +369,7 @@ static void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s32 arg2, s32 ar
         } else {
             prim->clut = 0x43D0;
         }
-        ang = (s16)arg3;
+        ang = arg3;
         u0  = (tex % 5) * 0x30;
         v0  = (tex / 5) * 0x30;
         u1  = u0 + 0x2F;
@@ -388,25 +377,25 @@ static void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s32 arg2, s32 ar
         v0  = v0 - 0x80;
         setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
         sine      = rsin(ang);
-        span      = (s16)arg2 * 0x2F;
+        span      = arg2 * 0x2F;
         block->dx = ((span / block->otz) * sine) >> 12;
         block->dy = ((span / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
+        prim->x0  = block->sx + block->dx;
+        prim->x3  = block->sx - block->dx;
+        prim->y0  = block->sy - block->dy;
+        prim->y3  = block->sy + block->dy;
         ang2      = ang + 0x400;
         block->dx = ((span / block->otz) * rsin(ang2)) >> 12;
         block->dy = ((span / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
+        prim->x1  = block->sx + block->dx;
+        prim->x2  = block->sx - block->dx;
+        prim->y1  = block->sy - block->dy;
+        prim->y2  = block->sy + block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_POP(GpEffFlareScratch);
 }
 
 /// Draws a glowing disc around the point `arg0`, projected through
