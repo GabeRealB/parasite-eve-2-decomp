@@ -7340,10 +7340,9 @@ void func_801088D4(Task* arg0, s32 arg1, s32 arg2)
 
 static void func_80108A0C(Task* arg0)
 {
-    GameActor*   inner;
-    u16          prev;
-    u16          tens;
-    register s32 temp asm("v0");
+    GameActor* inner;
+    u16        prev;
+    s32        tens;
 
     inner            = arg0->work;
     prev             = inner->field_956;
@@ -7356,8 +7355,7 @@ static void func_80108A0C(Task* arg0)
     inner->field_95E = 0;
     inner->field_973 = 0;
     inner->field_960 = prev;
-    temp             = (Gp_StateC08.field_0 % 100U) / 10U;
-    tens             = temp;
+    tens             = Gp_StateC08.field_0 % 100 / 10;
     if (Gp_StateC08.field_0 >= 0x259U) {
         if (tens == 1) {
             inner->field_93C = 0;
