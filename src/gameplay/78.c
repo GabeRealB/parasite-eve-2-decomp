@@ -3072,50 +3072,35 @@ static void Gp_UpdateLinkXforms(void)
 
 void Gp_StartAreaBgm(s16* arg0)
 {
-    s16*          dest;
-    register s32  three asm("s2");
-    GameSession*  sess;
-    GameSession*  next;
     PlayerStatus* cfg;
     s8            type;
     u8            mode;
 
-    dest  = arg0;
-    cfg   = &Player_Status;
-    mode  = gGameSession->restartMode;
-    three = 3;
-    if (mode == three) {
+    cfg  = &Player_Status;
+    mode = gGameSession->restartMode;
+    if (mode == 3 || mode == 0xFF || !CdCmd_IsIdle() || *arg0 != 0) {
         return;
     }
-    if (mode == 0xFF) {
+    if (gGameSession->areaBgmCountdown == 0x7F) {
+        *arg0 = 1;
         return;
     }
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+    gGameSession->areaBgmCountdown--;
+    if (gGameSession->areaBgmCountdown >= 0) {
         return;
     }
-    if (*dest != 0) {
-        return;
-    }
-    sess = gGameSession;
-    if (sess->areaBgmCountdown != 0x7F) {
-        sess->areaBgmCountdown = (u8)sess->areaBgmCountdown - 1;
-        next                   = gGameSession;
-        if (next->areaBgmCountdown >= 0) {
-            return;
-        }
-        if (cfg->hp <= 0) {
-            SndEvt_EnqueueType6((next->deathVariant << 16) | 0x70000001, 0, 0);
-        } else {
-            type = Mc_SaveData[0].companionType;
-            if (type == 1) {
-                SndEvt_EnqueueType6(((next->deathVariant + 0x31) << 16) | 0x70000001, 0, 0);
-            } else if (type == three) {
-                SndEvt_EnqueueType7(0x50000000, 1);
-                SndEvt_EnqueueType6(0x55170008, 0, 0);
-            }
+    if (cfg->hp <= 0) {
+        SndEvt_EnqueueType6((gGameSession->deathVariant << 16) | 0x70000001, 0, 0);
+    } else {
+        type = Mc_SaveData[0].companionType;
+        if (type == 1) {
+            SndEvt_EnqueueType6(((gGameSession->deathVariant + 0x31) << 16) | 0x70000001, 0, 0);
+        } else if (type == 3) {
+            SndEvt_EnqueueType7(0x50000000, 1);
+            SndEvt_EnqueueType6(0x55170008, 0, 0);
         }
     }
-    *dest = 1;
+    *arg0 = 1;
 }
 
 u8* Gp_GetAttachLevels(void)
