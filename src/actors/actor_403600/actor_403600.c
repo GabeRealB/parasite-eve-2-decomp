@@ -1851,7 +1851,6 @@ static u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32
     s32           upper_limit;
     s32*          opz;
     s32*          flg;
-    u32           mask;
     u32           clip_mask;
     u16*          rec;
     u8*           verts;
@@ -1868,8 +1867,6 @@ static u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32
         opz         = &arg0->gteResult;
         upper_limit = 0x168 - light;
         ds          = &gDisplayState;
-        mask        = 0xFFFFFF;
-        SOFT_TOUCH_REG(mask);
         do {
             rec   = (u16*)arg2;
             verts = (u8*)arg0->verts;
