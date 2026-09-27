@@ -2542,18 +2542,22 @@ s32 Gp_GetRelatedQty(s32 arg0, s32 arg1)
     return ret;
 }
 
+static inline s32 _gpReadBit2Flag(u32* p, s32 index)
+{
+    u32 word;
+    s32 shift;
+
+    p     += index >> 4;
+    shift  = (index & 0xF) * 2;
+    word   = *p;
+    word  &= 3 << shift;
+    word >>= shift;
+    return word;
+}
+
 static s32 Gp_GetBit2Flag(GpAreaKey* arg0, s32 arg1)
 {
-    register u32* p asm("v1");
-    u32           word;
-    s32           shift;
-
-    p     = Gp_Bit2Banks[arg0->stage].field_4;
-    p    += arg1 >> 4;
-    shift = (arg1 & 0xF) * 2;
-    word  = *p;
-    USE_REG(arg0);
-    return (word & (3 << shift)) >> shift;
+    return _gpReadBit2Flag(Gp_Bit2Banks[arg0->stage].field_4, arg1);
 }
 
 void Gp_SavePlayerPos(void)

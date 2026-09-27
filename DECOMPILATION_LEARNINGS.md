@@ -24814,6 +24814,18 @@ the success path and uses `beqz`.
 
 ## Keep `$a0` live so `li v1,K` fills the load-delay of `lw v0,0(v1)`
 
+**Natural C replacement (Gp_GetBit2Flag, 2026-09-27):** the pin and keep-live
+below are unnecessary when a `static inline` reader takes the bank's `u32*`
+and the signed index, advances the pointer, computes the shift, then uses
+`word = *p; word &= 3 << shift; word >>= shift; return word;`.
+In scratch `Gp_GetBit2Flag-dehack`, base_2's expression return scored 75.882%;
+base_10 changed only these word updates and scored 100.000%. The `.lreg` dumps
+show the loaded word's references increasing from two to six, the adjusted
+pointer's span shrinking from five to two, and its home moving from a0 to v1.
+The mask constant's span shrinks from six to four; it follows the word load.
+An extraction-only helper did not help. Test an accumulated result local and
+the reader's parameter boundary before treating the historical pins as required.
+
 A 2-bit extract that walks `bank->field_4[idx >> 4]` wants this tail:
 
 ```
