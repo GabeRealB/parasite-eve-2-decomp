@@ -1227,7 +1227,7 @@ u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     CVECTOR  col;
     u8*      dest;
     u8*      rgb;
-    DVECTOR* sxy;
+    s16*     xy;
     SVECTOR* sv;
     s32      dp;
     s32      flag;
@@ -1281,8 +1281,7 @@ u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                 gte_gpl12();
                 gte_stcv(rgb);
             }
-            sxy = &ws->texCoord;
-            TOUCH_REG(sxy);
+            xy   = &ws->texCoord.vx;
             flag = 0;
             dest = ws->preXformWrite + rec[2] + 8;
             sv   = &ws->elemNormal;
@@ -1292,9 +1291,10 @@ u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
             gte_stsv(sv);
             // dest[8]/dest[9] are the U/V pair; dest[3] (dest[-6] once dest has
             // been advanced onto the V byte) is the primitive's code byte, set
-            // when U had to be pulled back onto the second texture page.
-            x  = ws->texCoord.vx + 0xA0;
-            x -= ws->elemNormal.vx;
+            // when U had to be pulled back onto the second texture page. xy
+            // steps from the screen X to Y alongside dest.
+            x  = *xy + 0xA0;
+            x -= sv->vx;
             if (x < 0) {
                 x = 0;
             } else if (x >= 0x100) {
@@ -1305,8 +1305,9 @@ u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                 }
             }
             *dest = x;
+            xy++;
             dest++;
-            x  = sxy->vy + 0x78;
+            x  = *xy + 0x78;
             x -= sv->vy;
             if (x < 0) {
                 x = 0;

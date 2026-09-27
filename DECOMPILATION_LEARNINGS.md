@@ -145217,3 +145217,18 @@ in a `u8` local the body loads QImode and nothing is skipped; an `s32` local
 gives the same `zero_extend:SI` as the test.
 
 **Fix.** `for (i = 0; recs[i].field_0 != 0xFF; i++) { s32 stage = recs[i].field_0; ... }`.
+## `p = &s->field; TOUCH_REG(p);` ahead of a two-component read: the pointer is stepped, `p++` (func_8009AF90, 2026-09-27)
+
+**Symptom.** A loop-invariant address copy (`move t1,t8`) must open its block,
+where dbr steals it into the preceding branch's delay slot; without the pin
+sched1 emits it mid-block and the registers around it rotate.
+
+**Cause.** The copy's pseudo is set once, so `birthing_insn_p` gives it the
+`7f000001` launch boost and it is placed late. The `"+r"` asm is a second set,
+which removes the boost.
+
+**Fix.** Read both components through the pointer and step it between them,
+as the hack-free sibling bodies do: `x = *xy + 0xA0; ... xy++; x = *xy + 0x78;`
+with `s16* xy = &ws->texCoord.vx`. The increment is the second set; combine
+folds it into the next load's displacement (`lh v0,2(t1)`), so no `addiu`
+appears.
