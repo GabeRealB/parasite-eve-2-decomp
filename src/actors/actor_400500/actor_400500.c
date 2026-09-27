@@ -1150,6 +1150,17 @@ static inline void _actor400500EnqueueSound(Task* task, s32 sound)
     SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
 }
 
+/// Queues sound `id` from the enemy's position, in its placement's sound bank.
+static inline void _actor400500PlaySound(Task* task, s32 id)
+{
+    s32 sound;
+    s32 pan;
+
+    sound = ((((GpEnemy*)task->spawnArg2)->placeKey >> 0xC) << 8) | id;
+    pan   = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+    SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
+}
+
 /// Plays animation 2 at rate 0x18, moving the root so that node 0xB holds its
 /// view-space position from frame 0 to 0xB00 / rate / 16 and node 8 from
 /// 0xC00 / rate / 16 to 0x1500 / rate / 16, each with a sound on its first
@@ -1216,176 +1227,67 @@ static void func_actor_400500_801335E8(Task* arg0)
     coord->flg = 0;
 }
 
+/// Plays animation 2 at the current rate, moving the root so that node 0xB
+/// holds its view-space position from frame 0 to 0xB00 / rate / 16 and node 8
+/// from 0xC00 / rate / 16 to 0x1500 / rate / 16, each with a sound on its
+/// first frame. The cycle restarts at frame 0 while the hit flags are set.
 static void func_actor_400500_80133B14(Task* arg0)
 {
-    MATRIX              local;
-    MATRIX              local2;
-    MATRIX              world;
-    Actor400500Work*    work;
-    Actor400500Work*    work2;
-    Actor400500HitView* hit;
-    Actor400500ViewPos* posA;
-    Actor400500ViewPos* posB;
-    Actor400500ViewPos* posC;
-    Actor400500ViewPos* posD;
-    Actor400500ViewPos* saveA;
-    Actor400500ViewPos* saveB;
-    Actor400500ViewPos* saveC;
-    Actor400500ViewPos* saveD;
-    GpCoord*            root;
-    GpCoord*            coords;
-    GpCoord*            coord;
-    GpCoord*            soundCoords;
-    GpCoord*            soundCoords2;
-    s32                 i;
-    s32                 cond;
-    s32                 z;
-    s32                 soundId;
-    s32                 pan;
-    s32                 soundId2;
-    s32                 pan2;
-    s32                 sc0;
-    s32                 sc1;
-    s32                 cur;
-    s32                 q0;
-    s32                 q1;
-    s32                 q2;
-    s32                 dx;
-    s32                 dz;
-    s32                 posZ;
-    s32                 dx2;
-    s32                 dz2;
-    s32                 posZ2;
+    Actor400500Work* work;
+    GpCoord*         coord;
+    u8               tmp0;
+    u8               tmp1;
+    u8               tmp2;
+    u8               end0;
+    u8               start1;
+    u8               end1;
+    s32              start0;
 
-    work = (Actor400500Work*)arg0->work;
-    root = arg0->extra.tmd->coords;
+    work  = (Actor400500Work*)arg0->work;
+    coord = arg0->extra.tmd->coords;
     if (work->field_9FE != 2) {
-        work->field_9FE = 2;
-        work->field_9FA = 2;
-        work2           = (Actor400500Work*)arg0->work;
-        (void)*(volatile u16*)&work->field_9F8;
-        if (work2->field_9FA == 1) {
-            if ((s16)work2->field_9FC != work2->field_9FE) {
-                work2->field_A00 = 0;
-            } else {
-                work2->field_A00 = func_actor_400500_8013DD8C(arg0, work2->field_A00);
-            }
-            func_actor_400500_8013DCD4(arg0);
-            work2->field_9FA = 3;
-        } else if (work2->field_9FA == 2) {
-            func_actor_400500_8013DC4C(arg0);
-            work2->field_9FA = 3;
-            work2->field_A00 = 0;
-        } else if (work2->field_9FA == 3) {
-            work2->field_A00 = (u16)work2->field_A00 + 1;
-        }
-        i = 1;
-        do {
-            work2->slots[i].rate = (u8)work2->field_9F8;
-            Gp_AnimTickIndex(&work2->anim, i);
-            i++;
-        } while (i < 0x12);
+        _actor400500SetAnim(arg0, 2, work->field_9F8);
+        _actor400500TickAnim(arg0);
     }
-
-    sc0 = ((Actor400500Work*)arg0->work)->field_9F8;
-    if (sc0 == 0) {
-        cur = 0;
+    if (((Actor400500Work*)arg0->work)->field_9F8 == 0) {
+        tmp0 = 0;
     } else {
-        cur = (u32)(0xB00 / sc0) >> 4;
+        tmp0 = (u32)(0xB00 / ((Actor400500Work*)arg0->work)->field_9F8) >> 4;
     }
-    q0 = cur;
-
-    sc1 = ((Actor400500Work*)arg0->work)->field_9F8;
-    if (sc1 == 0) {
-        cur = 0;
+    end0 = tmp0;
+    if (((Actor400500Work*)arg0->work)->field_9F8 == 0) {
+        tmp1 = 0;
     } else {
-        cur = (u32)(0xC00 / sc1) >> 4;
-        COMPILER_BARRIER();
-        sc1 = ((Actor400500Work*)arg0->work)->field_9F8;
+        tmp1 = (u32)(0xC00 / ((Actor400500Work*)arg0->work)->field_9F8) >> 4;
     }
-    q1 = cur;
-
-    if (sc1 == 0) {
-        sc0 = 0;
+    start1 = tmp1;
+    if (((Actor400500Work*)arg0->work)->field_9F8 == 0) {
+        tmp2 = 0;
     } else {
-        sc0 = (u32)(0x1500 / sc1) >> 4;
+        tmp2 = (u32)(0x1500 / ((Actor400500Work*)arg0->work)->field_9F8) >> 4;
     }
-    q2 = sc0;
-
-    hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    end1 = tmp2;
+    if (_actor400500HitFlagged(arg0)) {
         work->field_A00 = 0;
     }
-
-    SOFT_MOVE_ZERO(z);
-    if (work->field_A00 == z) {
-        saveA       = &work->field_9A0;
-        soundCoords = arg0->extra.tmd->coords;
-        Gp_UpdateCoord(&soundCoords[0xB]);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &soundCoords[0xB].workm, &local);
-        posA                 = saveA;
-        posA->x              = local.t[0];
-        posA->z              = local.t[2];
-        soundCoords[0xB].flg = 0;
-        soundId              = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x40050001;
-        pan                  = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
+    /* The first window starts at frame 0, which the original compares against
+     * in a register; a literal 0 is folded into `$zero`. */
+    SOFT_MOVE_ZERO(start0);
+    if (work->field_A00 == start0) {
+        _actor400500SampleView(arg0, 0xB, &work->field_9A0);
+        _actor400500PlaySound(arg0, 0x40050001);
     }
-    if (work->field_A00 == (s32)(q1 & 0xFF)) {
-        saveB        = &work->field_9A0;
-        soundCoords2 = arg0->extra.tmd->coords;
-        Gp_UpdateCoord(&soundCoords2[8]);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &soundCoords2[8].workm, &local);
-        posB                = saveB;
-        posB->x             = local.t[0];
-        posB->z             = local.t[2];
-        soundCoords2[8].flg = 0;
-        soundId2            = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x40050002;
-        pan2                = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId2, pan2, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
+    if (work->field_A00 == start1) {
+        _actor400500SampleView(arg0, 8, &work->field_9A0);
+        _actor400500PlaySound(arg0, 0x40050002);
     }
-    if ((work->field_A00 >= z) && (work->field_A00 <= (s32)(q0 & 0xFF))) {
-        coords = arg0->extra.tmd->coords;
-        coord  = &coords[0xB];
-        Gp_UpdateCoord(coord);
-        saveC = &work->field_9A0;
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &coords->workm, &local2);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &world);
-        dx                 = world.t[0] - local2.t[0];
-        coords->coord.t[0] = work->field_9A0.x - dx;
-        posC               = saveC;
-        posZ               = posC->z;
-        dz                 = world.t[2] - local2.t[2];
-        coords->flg        = 0;
-        coords[0xB].flg    = 0;
-        coords->coord.t[2] = posZ - dz;
-        Gp_UpdateCoord(coord);
-        Gp_UpdateCoord(coords);
+    if (work->field_A00 >= start0 && work->field_A00 <= end0) {
+        _actor400500AnchorPart(arg0, 0xB, &work->field_9A0);
     }
-    if ((work->field_A00 >= (s32)(q1 & 0xFF)) && (work->field_A00 <= (s32)(q2 & 0xFF))) {
-        coords = arg0->extra.tmd->coords;
-        coord  = &coords[8];
-        Gp_UpdateCoord(coord);
-        saveD = &work->field_9A0;
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &coords->workm, &local);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &local2);
-        dx2                = local2.t[0] - local.t[0];
-        coords->coord.t[0] = work->field_9A0.x - dx2;
-        posD               = saveD;
-        posZ2              = posD->z;
-        dz2                = local2.t[2] - local.t[2];
-        coords->flg        = 0;
-        coords[8].flg      = 0;
-        coords->coord.t[2] = posZ2 - dz2;
-        Gp_UpdateCoord(coord);
-        Gp_UpdateCoord(coords);
+    if (work->field_A00 >= start1 && work->field_A00 <= end1) {
+        _actor400500AnchorPart(arg0, 8, &work->field_9A0);
     }
-    root->flg = 0;
+    coord->flg = 0;
 }
 
 /// Plays animation 4 at rate 0x10, moving the root so that node 8 holds its
@@ -3337,17 +3239,6 @@ static inline s16 _actor400500PlayerDistance(GpCoord* part)
     delta.vx = (u16)playerView.t[0] - (u16)partView.t[0];
     delta.vz = (u16)playerView.t[2] - (u16)partView.t[2];
     return SquareRoot0((delta.vx * delta.vx) + (delta.vz * delta.vz));
-}
-
-/// Queues sound `id` from the enemy's position, in its placement's sound bank.
-static inline void _actor400500PlaySound(Task* task, s32 id)
-{
-    s32 sound;
-    s32 pan;
-
-    sound = ((((GpEnemy*)task->spawnArg2)->placeKey >> 0xC) << 8) | id;
-    pan   = (s8)Gp_GetObjPan(task->extra.tmd->coords);
-    SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
 }
 
 /// Starts animation `id` at rate 0x10.

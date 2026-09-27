@@ -144682,3 +144682,15 @@ cross-jumping into the join block, but that happens after sched2, so the `move`
 sits ahead of the `lh`, and reorg then hoists it into the `beqz` delay slot
 (99.52% against 99.88%). Narrow widths (`s8`/`s16`/`u16`) and a fourth
 `0 / rate` bound fold or add code.
+## A dead load of a field just after two stores is an inline setter handed that field's own value (func_actor_400500_80133B14, 2026-09-27)
+
+A seed kept `(void)*(volatile u16*)&work->rate;` to reproduce an `lhu` of the rate
+whose value is never used, right after the id and state stores. The body is a copy
+of a sibling that calls `_setAnim(task, id, 0x18)`; here the original kept the
+current rate, `_setAnim(task, id, work->rate)`. The store of the field back to
+itself disappears and the load survives, which is exactly the dead `lhu`. The same
+body also shows that which of two sound helpers matches is per function: the
+sibling needs the id built in a caller-scope local and passed to a pan-and-enqueue
+helper, while this copy needs the id built inside the helper
+(`_playSound(task, 0x40050001)`); the other choice swaps `$s0`/`$s1` around
+`Gp_GetObjPan`. Try both before keeping a register hack.
