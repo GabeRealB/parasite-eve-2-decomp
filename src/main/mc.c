@@ -1079,8 +1079,44 @@ static void Mc_StateFileSelect(Task* arg0, McWork* arg1)
     }
 }
 
+/// Mask of the buffer slots to write, bit n for slot n: set where the slot's
+/// two halves differ, and always for slots 0, 1 and 8.
+static inline s32 _mcCompareBufferHalves(void)
+{
+    McBufferSlot* base;
+    u8*           src;
+    u8*           dest;
+    u32           count;
+    u32           i;
+    u32           j;
+    s32           flags;
+
+    flags = 0;
+    i     = 0;
+    base  = Mc_BufferSlots;
+    do {
+        src   = (u8*)base[8 - i].field_0;
+        count = base[8 - i].field_4;
+        j     = 0;
+        dest  = src + count;
+        while (j < count) {
+            if (*src != *dest) {
+                flags |= 1;
+            }
+            j    += 1;
+            src  += 1;
+            dest += 1;
+        }
+        i      += 1;
+        flags <<= 1;
+    } while (i < 8U);
+    flags |= 0x103;
+    return flags;
+}
+
 static void Mc_StateCompareBuffers(Task* arg0, McWork* arg1)
 {
+    s32           flags;
     s32           ret;
     u32           status;
     s32           idx;
@@ -1095,43 +1131,13 @@ static void Mc_StateCompareBuffers(Task* arg0, McWork* arg1)
 
     status = arg1->field_14;
     switch (status) {
-        case 0: {
-            s32           flags;
-            u32           i0;
-            register u32  j asm("a1");
-            s32           size;
-            u8*           src;
-            u8*           dest;
-            McBufferSlot* slots;
-
+        case 0:
             arg1->field_24 = 9;
-            flags          = 0;
-            i0             = flags;
-            slots          = Mc_BufferSlots;
-            do {
-                src  = (u8*)slots[8 - i0].field_0;
-                size = slots[8 - i0].field_4;
-                j    = 0;
-                dest = src + size;
-                if (size != 0) {
-                    do {
-                        if (*src != *dest) {
-                            flags |= 1;
-                        }
-                        j    += 1;
-                        src  += 1;
-                        dest += 1;
-                    } while (j < (u32)size);
-                }
-                i0    += 1;
-                flags *= 2;
-            } while (i0 < 8U);
-            flags         |= 0x103;
+            flags          = _mcCompareBufferHalves();
             arg1->field_2C = 1;
             arg1->field_28 = flags;
             arg0->state    = 0x1F;
             break;
-        }
         case 3:
             ptr1 = Mc_FileName;
             ptr0 = Mc_FileNameBuf;
