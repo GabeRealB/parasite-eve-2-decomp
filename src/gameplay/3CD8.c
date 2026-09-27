@@ -1695,26 +1695,17 @@ void func_800E6D4C(s16 arg0, s16 arg1)
 
 void Gp_LoadCapFile(s32 arg0)
 {
-    s32           i;
-    s32           count;
-    register s32  type3 asm("v0");
-    s32*          out;
-    FsFolderSlot* slot;
-    DisplayState* ds;
+    s32 i;
+    s32 count;
 
     count = 0;
-    i     = count;
-    ds    = &gDisplayState;
-    for (; i < 50; i++) {
-        out   = &Gp_CapFile;
-        slot  = &D_8006C338[i];
-        type3 = 3;
-        if (slot->field_0 == type3) {
+    for (i = 0; i < 50; i++) {
+        if (D_8006C338[i].field_0 == 3) {
             if (count == arg0) {
-                if (ds->field_112 != 0) {
+                if (gDisplayState.field_112 != 0) {
                     func_80724714();
                 }
-                Gp_CapFile = slot->field_4;
+                Gp_CapFile = (s32)D_8006C338[i].field_4;
                 Gp_RelocCapFile((GpCapFile*)Gp_CapFile);
                 break;
             }
