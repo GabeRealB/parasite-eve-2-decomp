@@ -247,82 +247,58 @@ static const TaskFuncTable3 D_shelter_b3_elevator_hall_8017D5F0 = {
     },
 };
 
-void func_shelter_b3_elevator_hall_8017DAF0(Task* arg0)
+void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
 {
-    Task* task;
-
-    task = arg0;
     switch (task->state) {
         case 0:
-            goto L_case0;
+            Gp_MsgPlayerWeapon(0);
+            Gp_StateF0.field_4 = 1;
+            task->state++;
+            break;
         case 1:
-            goto L_case1;
+            if (Gp_CapBusy() == 0) {
+                task->state++;
+            }
+            break;
         case 2:
-            goto L_case2;
+            if (GameFlag_GetNibble(0xCF) != 0) {
+                Gp_RunCapCmd(4, 0);
+                Task_SpawnFromTable(D_shelter_b3_elevator_hall_80182A2C, 0, 0x542A0001, 0);
+                taskKill(task);
+            } else {
+                Gp_RunCapCmd1(3);
+            }
+            task->state++;
+            break;
         case 3:
-            goto L_case3;
+            if (Gp_CapBusy() == 0) {
+                task->state++;
+            }
+            break;
         case 4:
-            goto L_case4;
+            if (Gp_GetCapEventKey() == 0x15) {
+                Mc_SaveData[0].at4.loc.area = 0x1A;
+                Mc_SaveData[0].at4.loc.warp = 1;
+                Mc_SaveData[0].at4.loc.room = 1;
+            } else {
+                Gp_MsgPlayerWeapon(1);
+                Gp_StateF0.field_4 = 0;
+                taskKill(task);
+            }
+            task->state++;
+            break;
         case 5:
-            goto L_case5;
+            if (SndVoice_HasActiveId(0x542A0001) == 0) {
+                task->state++;
+            }
+            break;
         case 6:
-            goto L_case6;
+            SndEvt_EnqueueType7(0x80000000, 0);
+            gDisplayState.roomVariant = 1;
+            Task_Spawn(0, 0x11, 0, 0);
+            taskKill(task);
+            break;
     }
-    return;
-
-L_case0:
-    Gp_MsgPlayerWeapon(0);
-    Gp_StateF0.field_4 = 1;
-    goto advance;
-
-L_case1:
-    if (Gp_CapBusy() != 0) {
-        return;
-    }
-    goto advance;
-
-L_case2:
-    if (GameFlag_GetNibble(0xCF) != 0) {
-        Gp_RunCapCmd(4, 0);
-        Task_SpawnFromTable(D_shelter_b3_elevator_hall_80182A2C, 0, 0x542A0001, 0);
-        taskKill(task);
-        SCHED_BARRIER();
-    } else {
-        Gp_RunCapCmd1(3);
-    }
-    goto advance;
-
-L_case3:
-    if (Gp_CapBusy() != 0) {
-        return;
-    }
-    goto advance;
-
-L_case4:
-    if (Gp_GetCapEventKey() == 0x15) {
-        Mc_SaveData[0].at4.loc.area = 0x1A;
-        Mc_SaveData[0].at4.loc.warp = 1;
-        Mc_SaveData[0].at4.loc.room = 1;
-    } else {
-        Gp_MsgPlayerWeapon(1);
-        Gp_StateF0.field_4 = 0;
-        taskKill(task);
-    }
-    goto advance;
-
-L_case5:
-    if (SndVoice_HasActiveId(0x542A0001) != 0) {
-        return;
-    }
-advance:
-    task->state = task->state + 1;
-    return;
-
-L_case6:
-    SndEvt_EnqueueType7(0x80000000, 0);
-    gDisplayState.roomVariant = 1;
-    Task_Spawn(0, 0x11, 0, 0);
-    taskKill(task);
 }
 
 s32 func_shelter_b3_elevator_hall_8017DC78(void)
