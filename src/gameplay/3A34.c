@@ -2893,27 +2893,23 @@ void Gp_ResetLinkState(void)
 
 static s32 Gp_ProjectToSxy(GpLinkNode* arg0, s32* sxy)
 {
-    u8*             head;
     GpPerspScratch* block;
     s32             ret;
 
-    head                         = SCRATCH_HEAD(u8);
-    block                        = (GpPerspScratch*)(head - 0x14);
-    block->vec.vx                = GP_NODE_ENEMY(arg0)->bodyPos.vx;
-    block->vec.vy                = GP_NODE_ENEMY(arg0)->bodyPos.vy;
-    SCRATCH_HEAD(GpPerspScratch) = block;
-    block->vec.vz                = GP_NODE_ENEMY(arg0)->bodyPos.vz;
-    COMPILER_BARRIER();
+    block         = SCRATCH_PUSH(GpPerspScratch);
+    block->vec.vx = GP_NODE_ENEMY(arg0)->bodyPos.vx;
+    block->vec.vy = GP_NODE_ENEMY(arg0)->bodyPos.vy;
+    block->vec.vz = GP_NODE_ENEMY(arg0)->bodyPos.vz;
     gte_SetRotMatrix(&GP_NODE_ENEMY(arg0)->coord->workm);
     gte_SetTransMatrix(&GP_NODE_ENEMY(arg0)->coord->workm);
     gte_ldv0(&block->vec);
     gte_rtps();
     gte_stsxy(sxy);
-    gte_stdp(&((GpPerspScratch*)(head - 0x14))->p);
-    gte_stflg(&((GpPerspScratch*)(head - 0x14))->flag);
-    gte_stszotz(&((GpPerspScratch*)(head - 0x14))->otz);
+    gte_stdp(&block->p);
+    gte_stflg(&block->flag);
+    gte_stszotz(&block->otz);
     ret = block->otz;
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_POP(GpPerspScratch);
     return ret;
 }
 
