@@ -1500,7 +1500,6 @@ static void Gp_DebugPanTask(Task* arg0)
     GameActor*     actor;
     GameActor*     actor2;
     MATRIX*        mtx;
-    u8*            head;
     _GpPanScratch* block;
     SVECTOR*       vecp;
     VECTOR         vec;
@@ -1515,32 +1514,31 @@ static void Gp_DebugPanTask(Task* arg0)
     }
 
     extra = slot->extra.tmd;
-    coord = &(extra->coords)[1];
+    coord = &extra->coords[1];
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1] - 0x64;
     vec.vz = coord->workm.t[2];
 
     if (Pad_RemapState->field_1 == 0x13) {
-        head                        = SCRATCH_HEAD(u8);
-        block                       = (_GpPanScratch*)(head - 0x18);
-        SCRATCH_HEAD(_GpPanScratch) = block;
-        D_80760618->field_1         = 1;
+        SCRATCH_PUSH(_GpPanScratch);
+        block               = SCRATCH_HEAD(_GpPanScratch);
+        D_80760618->field_1 = 1;
         func_800D7A9C(extra, &vec, 0, 3);
         func_800D78A4(&vec, &D_80760618->field_24);
         vecp                = &block->vec;
         D_80760618->field_1 = 0;
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_SetTransMatrix(&GsWSMATRIX);
-        ((_GpPanScratch*)(head - 0x18))->vec.vx = vec.vx;
-        block->vec.vy                           = vec.vy;
-        block->vec.vz                           = vec.vz;
+        block->vec.vx = vec.vx;
+        block->vec.vy = vec.vy;
+        block->vec.vz = vec.vz;
         gte_ldv0(vecp);
         gte_rtps();
-        gte_stsxy(&((_GpPanScratch*)(head - 0x18))->sx);
-        gte_stdp(&((_GpPanScratch*)(head - 0x18))->dp);
-        gte_stflg(&((_GpPanScratch*)(head - 0x18))->flag);
-        gte_stszotz(&((_GpPanScratch*)(head - 0x18))->otz);
+        gte_stsxy(&block->sx);
+        gte_stdp(&block->dp);
+        gte_stflg(&block->flag);
+        gte_stszotz(&block->otz);
         if (block->flag >= 0) {
             req.x          = block->sx;
             req.y          = block->sy;
@@ -1551,7 +1549,7 @@ static void Gp_DebugPanTask(Task* arg0)
             req.field_E    = 0;
             func_8002E53C(&req, (u8*)D_8009745C);
         }
-        SCRATCH_POP_BYTES(0x18);
+        SCRATCH_POP(_GpPanScratch);
     } else {
         func_800D7A9C(extra, &vec, 0, 3);
         if (D_80114F28 != 0) {
@@ -1563,11 +1561,11 @@ static void Gp_DebugPanTask(Task* arg0)
             _gpSetColorMtx(mtx, 0x200, val, 0x200);
             D_80114F28 = 0;
         } else if ((gDisplayState.animFrame % 3) == 0 && cfg->hp > 0 && gGameSession->eventState == 0) {
-            if (Gp_StateC08.field_14 > 0 || (Gp_StateC08.field_16 != 0 && (s8)Gp_StateC08.field_17 != 0)) {
+            if (Gp_StateC08.field_14 > 0 || (Gp_StateC08.field_16 != 0 && Gp_StateC08.field_17 != 0)) {
                 _gpSetColorMtx(extra->colorMtx, 0x400, 0x2000, 0x2000);
             } else if (Gp_StateC08.field_16 != 0) {
                 _gpSetColorMtx(extra->colorMtx, 0x400, 0x400, 0x2000);
-            } else if ((s8)Gp_StateC08.field_17 != 0) {
+            } else if (Gp_StateC08.field_17 != 0) {
                 _gpSetColorMtx(extra->colorMtx, 0x2000, 0x2000, 0x400);
             }
             if (cfg->peStateFlags & 0x80) {
@@ -1578,42 +1576,34 @@ static void Gp_DebugPanTask(Task* arg0)
 
     actor = slot->work;
     {
-        register Task* task asm("v0");
-        i = 0;
-        do {
+        Task* task;
+
+        for (i = 0; i < 2; i++) {
             task = (&actor->field_920)[i];
             if (task != NULL) {
                 extra           = task->extra.tmd;
                 extra->lightMtx = &Gp_DefaultMtx;
                 extra->colorMtx = &Gp_DefaultMtx2;
             }
-            i++;
-        } while (i < 2);
-        i = 0;
-        do {
+        }
+        for (i = 0; i < 2; i++) {
             task = (&actor->field_918)[i];
             if (task != NULL) {
                 extra           = task->extra.tmd;
                 extra->lightMtx = &Gp_DefaultMtx;
                 extra->colorMtx = &Gp_DefaultMtx2;
             }
-            i++;
-        } while (i < 2);
+        }
     }
 
     work = Gp_ActorSlots[1];
     if (work != NULL) {
-        {
-            /* The target loads the extra into $v0 and copies it into the saved
-               register; the non-volatile asm keeps that copy without acting as
-               a scheduling barrier. */
-            register TmdObject* e asm("v0");
-            e      = work->extra.tmd;
-            actor2 = work->work;
-            SOFT_TOUCH_REG(e);
-            extra = e;
-        }
-        coord           = &(extra->coords)[1];
+        TmdObject* model;
+
+        model           = work->extra.tmd;
+        actor2          = work->work;
+        coord           = &model->coords[1];
+        extra           = model;
         extra->colorMtx = &D_80114EF8;
         extra->lightMtx = &D_80114ED8;
         Gp_UpdateCoord(coord);
@@ -1622,27 +1612,24 @@ static void Gp_DebugPanTask(Task* arg0)
         vec.vz = coord->workm.t[2];
         func_800D7A9C(extra, &vec, 0, 3);
         {
-            register Task* task asm("v0");
-            i = 0;
-            do {
+            Task* task;
+
+            for (i = 0; i < 2; i++) {
                 task = (&actor2->field_920)[i];
                 if (task != NULL) {
                     extra           = task->extra.tmd;
                     extra->lightMtx = &D_80114ED8;
                     extra->colorMtx = &D_80114EF8;
                 }
-                i++;
-            } while (i < 2);
-            i = 0;
-            do {
+            }
+            for (i = 0; i < 2; i++) {
                 task = (&actor2->field_918)[i];
                 if (task != NULL) {
                     extra           = task->extra.tmd;
                     extra->lightMtx = &D_80114ED8;
                     extra->colorMtx = &D_80114EF8;
                 }
-                i++;
-            } while (i < 2);
+            }
         }
     }
 }

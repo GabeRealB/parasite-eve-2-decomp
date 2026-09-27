@@ -142337,6 +142337,21 @@ forward pass. At `extra = task->...`, `task` dies without conflicting with
 separate loop variable (it lands in `$v0`, not the target's `$s2`), a
 per-loop or per-block helper, a `for` loop, a pointer walk, an inline wrapper
 around the call, or 15 minutes of the permuter. Two `v0` pins remain.
+
+**Resolved (2026-09-27).** The second actor's object local needs two real uses:
+`model = work->extra.tmd; actor2 = work->work; coord = &model->coords[1];
+extra = model;`. Selecting the coordinate before copying to the reused
+`extra` keeps that copy through combine. Local allocation gives `model` `$v0`;
+the child-task pseudos then have both `$v0` and `$a0` preferences in `.greg`,
+where the stripped seed had only `$a0`, and choose `$v0`. This removes the
+setup pin/touch and both loop pins together. Reusing `work` for the child
+tasks instead makes them conflict with the setup's `$v0` and breaks the match.
+The typed `SCRATCH_PUSH/HEAD/POP` macros also replace all repeated scratch
+address casts unchanged. Evidence: `Gp_DebugPanTask-dehack/base_15` matches
+the seed's 99.972%; `.combine` retains load 696 and copy 707, `.lreg` assigns
+model r273 to 2, and `.greg` gives task r252/r283 preferences `{2,4}`.
+Preprocessed SHA-256: `7501ef02377207ff2b33bcc580c23ce36852c3fe01c310ec224fd27c89bab6ab`.
+
 ## `TOUCH_REG(p)` on a pointer that only feeds offsets is a pointer walk combine folded away (func_8009C414, 2026-09-26)
 
 An env-map UV block per vertex read `lh 2(t0)` and stored `sb 0(a1)` / `sb 0(a1)` /
