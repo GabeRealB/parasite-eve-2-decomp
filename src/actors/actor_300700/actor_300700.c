@@ -56,7 +56,7 @@ void        func_actor_300700_80163D64(Task* arg0);
 void        func_actor_300700_80164070(Task* arg0);
 void        func_actor_300700_801643D0(Task* arg0);
 void        func_actor_300700_801645F8(Task* arg0);
-void        func_actor_300700_80164E38(Task* arg0, TmdObject* arg1, s32 arg2);
+void        func_actor_300700_80164E38(Task* arg0);
 void        func_actor_300700_80164F68(Task* arg0);
 void        func_actor_300700_80165000(Task* arg0);
 void        func_actor_300700_801650C0(Task* arg0);

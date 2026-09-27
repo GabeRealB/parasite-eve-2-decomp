@@ -24,7 +24,7 @@ static void func_actor_300700_80163D64(Task* arg0);
 static void func_actor_300700_80164070(Task* arg0);
 static void func_actor_300700_801643D0(Task* arg0);
 static void func_actor_300700_801645F8(Task* arg0);
-static void func_actor_300700_80164E38(Task* arg0, TmdObject* arg1, s32 arg2);
+static void func_actor_300700_80164E38(Task* arg0);
 static void func_actor_300700_80164F68(Task* arg0);
 static void func_actor_300700_80165000(Task* arg0);
 static void func_actor_300700_801650C0(Task* arg0);
@@ -840,44 +840,29 @@ static void func_actor_300700_80164D3C(GpEnemy* arg0, Task* arg1)
     GpCoord*         coord;
     TmdObject*       obj;
     Actor300700Work* work;
-    s32              state;
-    s32              one;
 
     obj   = arg1->extra.tmd;
-    state = Gp_StateF0.field_4;
-    work  = arg1->work;
     coord = obj->coords;
-    one   = 1;
-    if (state == one) {
-        goto case1;
+    work  = arg1->work;
+    switch (Gp_StateF0.field_4) {
+        case 0:
+            obj->flags               = 0;
+            arg0->node.state.b.flags = 0;
+            break;
+        case 1:
+            func_actor_300700_801652F4(arg1);
+            func_actor_300700_8016534C(arg1);
+            return;
+        case 2:
+            obj->flags               = 0x80;
+            arg0->node.state.b.flags = 1;
+            return;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    obj->flags               = 0;
-    arg0->node.state.b.flags = 0;
-    goto default_body;
-case2:
-    obj->flags               = 0x80;
-    arg0->node.state.b.flags = one;
-    return;
-default_body:
     if (arg0->reactionFlags != 0) {
-        func_actor_300700_80164E38(arg1, obj, one);
+        func_actor_300700_80164E38(arg1);
     }
     func_actor_300700_801637E4(arg1);
     func_actor_300700_80164F68(arg1);
-    SOFT_USE_REG(work);
     if (work->field_386 != 0) {
         func_actor_300700_80164794(arg1);
     }
@@ -885,7 +870,6 @@ default_body:
     func_actor_300700_80165230(arg1);
     coord->flg = 0;
     Gp_UpdateCoord(coord);
-case1:
     func_actor_300700_801652F4(arg1);
     func_actor_300700_8016534C(arg1);
 }
@@ -893,7 +877,7 @@ case1:
 /// Damage tick: folds the generic hit flags into the work state, applies the
 /// pending hit and drops the actor to its death state once the hit points run
 /// out.
-static void func_actor_300700_80164E38(Task* arg0, TmdObject* arg1, s32 arg2)
+static void func_actor_300700_80164E38(Task* arg0)
 {
     GpEnemy*         ctx;
     Actor300700Work* work;
