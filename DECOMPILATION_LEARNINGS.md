@@ -144807,3 +144807,22 @@ the default body. The `v == B` test is still there at combine, so the copy
 stays. jump2's cross-jumping then merges the two bodies and deletes the test.
 So when a copy survives with one visible use, rebuild the arm in its siblings'
 shape, including tests whose bodies turned out identical.
+## A `SOFT_TOUCH_REG` that only lifts a pointer's local-alloc priority is not replaced by routing the global through an inline helper
+
+`func_actor_403100_80138F88` loads a scalar global work pointer into a local and
+stores ~20 fields through it. Without its `SOFT_TOUCH_REG(work)` the pointer has
+21 refs over a span of 86 (priority 9767) against the constant pseudos' exact
+10000 (2 refs, span 2), so the constants take `$v0` first and the pointer lands
+in `$a1`; the touch's set+use makes it 23 refs over 88 (10454) and it wins
+`$v0`. The target has no extra instruction using the pointer, so the missing
+refs would have to come from a copy that local-alloc ties into the same
+quantity and reload then deletes as a no-op. Natural sources of such a copy do
+not produce one: a `static inline` helper taking the global as its argument, or
+returning it, still yields a single pseudo - integrate loads the argument
+straight into the parameter (or combine merges the load into the copy because
+the temporary dies there) - and statement order, block scope and splitting the
+stores into a pose helper leave the count at 21. The load's position between
+the coordinate stores is a separate matter: it is a true dependence, because
+the `*(s32*)(u32)&coords->coord.t[i]` stores used across this file are scalar
+MEMs and so conflict with the scalar global load, where plain
+`coords->coord.t[i]` stores are in-struct and let sched1 sink the load.

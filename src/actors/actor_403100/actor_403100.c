@@ -3252,7 +3252,6 @@ static void func_actor_403100_80138F88(Task* arg0)
     s32              message[6];
     Actor403100Work* work;
     s32              sound;
-    s32              y;
     s32              pan;
     s32              depth;
     GpCoord*         coords;
@@ -3263,8 +3262,7 @@ static void func_actor_403100_80138F88(Task* arg0)
     func_actor_403100_8013C008(D_actor_403100_80155808->field_60E, D_actor_403100_80155808->field_610);
     D_actor_403100_80155808->field_60E = (u16)D_actor_403100_80155808->field_60E - 1;
     D_actor_403100_80155808->field_610 = (u16)D_actor_403100_80155808->field_610 + 6;
-    y                                  = *(s32*)(u32)&coords->coord.t[1];
-    *(s32*)(u32)&coords->coord.t[1]    = y + (-y >> 6);
+    coords->coord.t[1]                += -coords->coord.t[1] >> 6;
     D_actor_403100_80155808->field_80  = 0;
     D_actor_403100_80155808->field_82  = 0xA00;
     D_actor_403100_80155808->field_84  = 0;
