@@ -277,33 +277,25 @@ end:
 
 void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
 {
-    McItemRec*     rec;
-    s32            item;
-    register Task* owner asm("a1");
-    s32            item2;
-    s32            status;
-    s32            one;
-    s32            selected;
-    s32            flag;
-    s32            flags;
-    s32            idx;
-    UiObject*      spawned;
-    PlayerStatus*  cfg;
-    s32            one2;
+    McItemRec* rec;
+    s32        item;
+    s32        item2;
+    s32        status;
+    s32        flag;
+    s32        flags;
+    s32        idx;
+    UiObject*  spawned;
 
     rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + arg1->owner->spawnArg1, arg0->field_8, 0);
-    one  = 1;
     item = rec->itemId;
-    if (arg0->field_C != one) {
-        owner = arg1->owner;
-        if ((owner->state != one) && (arg0->field_8 == Gp_ItemMoveWork->field_14) &&
-            (owner->spawnArg1 == Gp_ItemMoveWork->field_10)) {
+    if (arg0->field_C != 1) {
+        if ((arg1->owner->state != 1) && (arg0->field_8 == Gp_ItemMoveWork->field_14) &&
+            (arg1->owner->spawnArg1 == Gp_ItemMoveWork->field_10)) {
             arg0->field_1C = 0x37A78;
         }
     }
     status = arg1->status;
-    one2   = 1;
-    if (((status >> 16) == one2) || (status == one2)) {
+    if (((status >> 16) == 1) || (status == 1)) {
         if (arg0->field_10 == arg0->field_8) {
             Gp_SetPreviewItem(item, 0);
             Gp_SetHolderItemText(item);
@@ -316,13 +308,12 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
     } else {
         Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 2);
     }
-    if ((u32)(item - 0xA0) < 0x20U) {
+    if (item >= 0xA0 && item < 0xC0) {
         Gp_DrawQty(arg1, arg0->field_18, arg0->field_1A, rec->qty, arg0->field_1C);
     }
-    selected = arg0->field_C;
-    if (selected == 1) {
+    if (arg0->field_C == 1) {
         Gp_SelItemRec = rec;
-        if (arg1->owner->state == selected) {
+        if (arg1->owner->state == 1) {
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
                 SndEvt_EnqueueType6(3, 0, 0);
                 spawned = Ui_SpawnFromDesc(&D_8010D764, arg1->owner->spawnArg1, 1, 1, arg1);
@@ -340,24 +331,22 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
             idx   = arg1->owner->spawnArg1;
             item2 = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].field_10, 0)->itemId;
             SndEvt_EnqueueType6(3, 0, 0);
-            owner = arg1->owner;
-            item  = -1;
-            if (Gp_ItemMoveWork->field_10 != owner->spawnArg1) {
-                flags = owner->status;
+            item = -1;
+            if (Gp_ItemMoveWork->field_10 != arg1->owner->spawnArg1) {
+                flags = arg1->owner->status;
                 flag  = 0;
                 if (Gp_ItemDescs[item2].field_3 & 1) {
                     flag = flags == 1;
                 }
-                if ((Gp_MoveItemKey == 0x703) && (item2 == 0x81) && (Mc_SaveData[0].at4.loc.stage == selected)) {
+                if ((Gp_MoveItemKey == 0x703) && (item2 == 0x81) && (Mc_SaveData[0].at4.loc.stage == 1)) {
                     flag = 1;
                 }
                 if (flag) {
                     item = 0x20;
-                } else if (((u32)(item2 - 0xA0) < 0x20U) && (arg1->owner->status == 0)) {
+                } else if ((item2 >= 0xA0 && item2 < 0xC0) && (arg1->owner->status == 0)) {
                     item = 8;
                 } else if (arg1->owner->spawnArg1 == 1) {
-                    cfg = &Player_Status;
-                    if ((item2 == cfg->weapon + 0x7F) || (item2 == cfg->armor + 0x5F)) {
+                    if ((item2 == Player_Status.weapon + 0x7F) || (item2 == Player_Status.armor + 0x5F)) {
                         item = 0xA;
                     }
                 }
