@@ -2152,26 +2152,17 @@ static void func_mist_parking_801817BC(u8* str, s32 decimals)
 
     len = 0;
     if (decimals > 0) {
-        if (*str != 0) {
-            do {
-                str += 1;
-                len += 1;
-            } while (*str != 0);
+        while (*str != 0) {
+            str++;
+            len++;
         }
         if (len < decimals) {
             decimals = len;
-            SOFT_TOUCH_REG(decimals);
-            decimals += 1;
-        } else {
-            decimals += 1;
         }
-        len = 0;
-        if (decimals > 0) {
-            do {
-                len   += 1;
-                str[1] = str[0];
-                str   -= 1;
-            } while (len < decimals);
+        decimals += 1;
+        for (len = 0; len < decimals; len++) {
+            str[1] = str[0];
+            str--;
         }
         str[1] = '.';
     }
