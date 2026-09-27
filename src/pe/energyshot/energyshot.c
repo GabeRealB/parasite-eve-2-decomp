@@ -130,7 +130,6 @@ static void func_energyshot_8012EF34(Task* arg0)
                     SndEvt_EnqueueType6(D_energyshot_801300FC[mem->index], pan,
                                         (s8)gpGetObjDepth(coord));
                 }
-                SOFT_USE_REG(arg0);
                 return;
             }
             case 1: {
@@ -200,7 +199,8 @@ static void func_energyshot_8012EF34(Task* arg0)
                 s16              count;
 
                 if (mem->scale < 0x11) {
-                    goto release;
+                    Gp_ReleaseState1CMem(mem, arg0);
+                    return;
                 }
                 mem->scale        = mem->scale - 0x10;
                 rgb[0]            = (u8)mem->scale;
@@ -247,7 +247,6 @@ static void func_energyshot_8012EF34(Task* arg0)
         }
         return;
     }
-release:
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
