@@ -2105,29 +2105,19 @@ static void Gp_RoomObjState1(Task* task)
 
 static void Gp_LinkSprtCmd(GpSprtElem* arg0, GpSprtCmd* arg1)
 {
-    register u32  i asm("t0");
-    GpSprtPrim*   prim;
-    GpSprtElem*   elem;
-    DisplayState* ds;
-    u_long*       otBase;
+    u32         i;
+    GpSprtPrim* prim;
+    GpSprtElem* elem;
 
-    i = 0;
     if (Gp_SprtLists[0] == NULL) {
         return;
     }
     prim = Gp_SprtCursor;
     elem = arg0 + arg1->field_0;
-    if (arg1->field_2 != 0) {
-        ds     = &gDisplayState;
-        otBase = gGpuCurrentOt;
-        do {
-            if (arg1->field_4 == 0) {
-                addPrim(&otBase[((u32)elem->otz << ds->otDepthShift) >> 4 & 0x3FF], prim);
-            }
-            prim++;
-            i++;
-            elem++;
-        } while (i < arg1->field_2);
+    for (i = 0; i < arg1->field_2; prim++, i++, elem++) {
+        if (arg1->field_4 == 0) {
+            addPrim(&gGpuCurrentOt[((u32)elem->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF], prim);
+        }
     }
     Gp_SprtCursor = prim;
 }
