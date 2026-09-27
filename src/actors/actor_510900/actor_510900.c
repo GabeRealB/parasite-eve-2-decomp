@@ -669,40 +669,29 @@ static void func_actor_510900_80133C84(Task* arg0)
 {
     GpEffWork*       mem;
     GpCoord*         coord;
-    void**           scratch;
-    u8*              head;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
     s16              flag;
     s16              x;
     s32              amt;
-    u16              vz;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
-        scratch                                   = SCRATCH_HEAD_ADDR;
-        head                                      = SCRATCH_HEAD_AT(scratch, void);
-        ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
-        {
-            register u8* tmp asm("v0");
-            tmp   = head - 0x1C;
-            block = (GpFxQuadScratch*)tmp;
-        }
-        block->vec.vy                  = (u16)coord->workm.t[1];
-        vz                             = (u16)coord->workm.t[2];
-        SCRATCH_HEAD_AT(scratch, void) = block;
-        block->vec.vz                  = vz;
+        block         = SCRATCH_PUSH(GpFxQuadScratch);
+        block->vec.vx = coord->workm.t[0];
+        block->vec.vy = coord->workm.t[1];
+        block->vec.vz = coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec);
         gte_rtps();
-        gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-        gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
+        gte_stsxy(&block->sx);
+        gte_stflg(&block->flag);
         if (block->flag >= 0) {
-            gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+            gte_stszotz(&block->otz);
             prim           = (POLY_FT4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
@@ -750,7 +739,7 @@ static void func_actor_510900_80133C84(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        SCRATCH_POP_BYTES(0x1C);
+        SCRATCH_POP(GpFxQuadScratch);
         if (Gp_State1C->eventState != 0) {
             return;
         }
