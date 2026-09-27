@@ -179,9 +179,6 @@ static void func_necrosis_8012F52C(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
-    s32        rng;
-    s32        val;
-    s32        step;
     GpEffWork* spawned;
 
     mem   = arg0->spawnArg2;
@@ -192,26 +189,21 @@ static void func_necrosis_8012F52C(Task* arg0)
 
     mem->age = mem->age + 1;
     if (arg0->state == 0) {
-        mem->scale  = (u16)arg0->spawnArg1 & 0xFFF;
-        rng         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rng;
-        mem->angle  = ((u32)rng >> 16) & 0xFFF;
-        SOFT_COMPILER_BARRIER();
-        val         = (u16)mem->scale;
-        step        = val;
-        val         = val - 0x100;
-        mem->period = val;
-        mem->step   = (s32)(step << 16) >> 20;
+        mem->scale  = arg0->spawnArg1 & 0xFFF;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        mem->angle  = (Gp_LcgState >> 16) & 0xFFF;
+        mem->period = mem->scale - 0x100;
+        mem->step   = mem->scale >> 4;
         arg0->state = 1;
     }
     Gp_UpdateCoord(coord);
-    func_necrosis_8012F6EC(coord, (s16)(mem->age % 6), mem->scale, mem->angle);
+    func_necrosis_8012F6EC(coord, mem->age % 6, mem->scale, mem->angle);
     mem->scale = mem->scale - mem->step;
     if (mem->scale < mem->step) {
         Gp_ReleaseState1CMem(mem, arg0);
         return;
     }
-    if ((s16)(mem->age % 3) == 0) {
+    if (mem->age % 3 == 0) {
         spawned = Gp_SpawnEff(0x6001A, coord, mem->period, 0);
         if (spawned != NULL) {
             Task_Reparent(arg0, spawned->task);
