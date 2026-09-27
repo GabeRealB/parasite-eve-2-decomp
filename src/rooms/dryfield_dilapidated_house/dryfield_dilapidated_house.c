@@ -1255,9 +1255,9 @@ static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts,
     GpMtxWords*    words;
     s32            i;
     u16            f;
-    u16            x0;
+    s16            x0;
     s32            y0;
-    u16            x1;
+    s16            x1;
     s32            y1;
     s32            dx;
     s32            dy;
@@ -1310,9 +1310,9 @@ static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts,
     gte_stflg(arg3);
     gte_stszotz(arg2);
     dy                = proj[0].sxy.vy - proj[1].sxy.vy;
-    dx                = proj[1].sxy.vx - proj[0].sxy.vx;
     x1                = proj[1].sxy.vx;
     x0                = proj[0].sxy.vx;
+    dx                = x1 - x0;
     y0                = proj[0].sxy.vy;
     y1                = proj[1].sxy.vy;
     i                 = ratan2(dx, dy);
@@ -1334,7 +1334,6 @@ static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts,
         verts[i].vx = b.vx + x0;
         verts[i].vy = b.vy + y0;
     }
-    USE_REG(x0);
     for (i = 0; i < 6; i++) {
         a.vx = D_dryfield_dilapidated_house_801867D4[i].vx * scale / *arg2;
         a.vy = D_dryfield_dilapidated_house_801867D4[i].vy * scale / *arg2;
