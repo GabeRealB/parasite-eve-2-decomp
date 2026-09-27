@@ -3108,40 +3108,40 @@ void Gp_ArmorMenuTask(Task* arg0)
     }
 }
 
+/// Whether item `id` is the equipped weapon, the equipped armour, or the ammo
+/// or attachment loaded in the equipped weapon.
+static inline s32 _gpIsEquippedItem(s32 id)
+{
+    s32           ret;
+    PlayerStatus* p;
+
+    ret = 0;
+    p   = &Player_Status;
+    if ((((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F)) ||
+        (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
+        (((u32)(id - 0xA0) < 0x20U) && (p->weapon != 0) &&
+         ((Gp_GetItemSlot(p->weapon + 0x7F)->ammoId == id) ||
+          (Gp_GetItemSlot(p->weapon + 0x7F)->attachId == id)))) {
+        ret = 1;
+    }
+    return ret;
+}
+
 static McItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2)
 {
-    McItemRec*    table;
-    s32           i;
-    McItemRec*    rec;
-    register s32  equipped asm("s3");
-    PlayerStatus* p;
-    s32           id;
-    s32           wrap;
+    McItemRec* table;
+    s32        i;
+    McItemRec* rec;
 
     table = Gp_GetItemTable(arg0);
     rec   = NULL;
     table = &table[arg0->firstRow];
     for (i = 0; i < arg0->rowCount; i++, table++) {
-        id = table->itemId;
-        if ((Gp_ItemDescs[id].field_3 & 4) || (id == 0)) {
+        if ((Gp_ItemDescs[table->itemId].field_3 & 4) || (table->itemId == 0)) {
             continue;
         }
-        wrap = id + 0x80;
-        if ((u8)wrap < 0x20) {
-            p        = &Player_Status;
-            equipped = 0;
-            if (((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F)) {
-                equipped = 1;
-            } else if (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) {
-                equipped = 1;
-            } else if (((u32)(id - 0xA0) < 0x20U) && (p->weapon != 0) &&
-                       ((Gp_GetItemSlot(p->weapon + 0x7F)->ammoId == id) ||
-                        (Gp_GetItemSlot(p->weapon + 0x7F)->attachId == id))) {
-                equipped = 1;
-            }
-            if (equipped != 0) {
-                continue;
-            }
+        if ((u8)(table->itemId + 0x80) < 0x20 && _gpIsEquippedItem(table->itemId)) {
+            continue;
         }
         arg1--;
         if (arg1 < 0) {
