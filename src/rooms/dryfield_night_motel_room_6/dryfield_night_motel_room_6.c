@@ -2148,12 +2148,9 @@ void func_dryfield_night_motel_room_6_80181A0C(Task* task)
 static s32 func_dryfield_night_motel_room_6_80181A9C(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 6) {
-        SOFT_TOUCH_REG(arg2);
         if (GameFlag_GetNibble(0x61) != 0) {
             Gp_RunCapCmd1(0x14);
-        } else if (GameFlag_GetNibble(0x6C) <= 0) {
-            Gp_RunCapCmd1(arg2);
-        } else if (GameFlag_GetNibble(0x70) < 2) {
+        } else if (GameFlag_GetNibble(0x6C) > 0 && GameFlag_GetNibble(0x70) < 2) {
             Task_SpawnFromTable(&D_dryfield_night_motel_room_6_80182EE0, 0, 0x11, 0);
         } else {
             Gp_RunCapCmd1(arg2);

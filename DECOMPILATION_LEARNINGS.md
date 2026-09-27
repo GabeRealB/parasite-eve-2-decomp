@@ -146032,3 +146032,21 @@ The scratch score equals the seed's 99.786% (`regs=5` only), and the unscoped
 build verifies the complete match. A pointer accumulator retains a stack slot
 instead, so it is not an interchangeable spelling here. Input SHA256:
 `6effee1ff8f14aa5877ab7156ee8668b07badb5e25dcedb45d0d11fd84a37933`.
+
+### A short-circuit fallback join prevents branch-constant substitution (dryfield motel 80181A9C, 2026-09-27)
+
+Inside `if (event == 6)`, two separate fallback calls to `Gp_RunCapCmd1(event)`
+became literal-6 calls in CSE when `SOFT_TOUCH_REG(event)` was removed (92.593%).
+Write the successful story path as `flag6c > 0 && flag70 < 2`, followed by one
+fallback `else` call. Both failed checks then reach a shared label: CSE starts
+a new region there and retains the event pseudo instead of substituting 6.
+The short-circuit expression preserves the flag-read order and conditions;
+delay-slot filling still emits both required `move a0,s0` instructions (100%).
+An inline helper around the original chain and a single-case switch each
+retained the unwanted constant substitution. Check the fallback join before
+adding a barrier to defeat an enclosing equality test.
+
+Evidence: `nonmatchings/func_dryfield_night_motel_room_6_80181A9C-dehack/`:
+`base_1.i.cse` substitutes 6 in UIDs 49/86; `base_6.i.cse` keeps pseudo 82 in
+UID 76 after label 72. Input SHA256 for `base_6.i`:
+`b943fa705f6f74149177ded8a7e7ed9e1bc3f4428786c723dbe0b228289ce47d`.
