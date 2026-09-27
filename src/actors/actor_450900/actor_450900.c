@@ -112,9 +112,6 @@ void func_actor_450900_8013207C(Task* task)
 {
     GpCoord* coord;
     Task*    slot;
-    Task*    msgTask;
-    s32      msgId;
-    s32      msgArg;
     s32      value;
     s8       pan;
     s8       depth;
@@ -139,22 +136,13 @@ void func_actor_450900_8013207C(Task* task)
                     }
                     Gp_DispatchMsg(slot, 0x3F7, (s32)&D_actor_450900_80135F08, 0);
                     Gp_PlayerWeaponId(&D_actor_450900_80135FEC);
-                    msgTask = slot;
-                    msgId   = 0x3E8;
-                    msgArg  = (s32)&D_actor_450900_80135FEC;
-                    goto dispatch;
-                }
-                if ((D_8017A99C - 0x456) % 210 == 0x46) {
+                    Gp_DispatchMsg(slot, 0x3E8, (s32)&D_actor_450900_80135FEC, 0);
+                } else if ((D_8017A99C - 0x456) % 210 == 0x46) {
                     value = D_actor_450900_80136C98;
                     value++;
                     D_actor_450900_80136C98 = value;
                     SCHED_BARRIER();
-                    msgTask = slot;
-                    msgId   = 0x3F1;
-                    msgArg  = 0;
-                    TOUCH_MEM(D_actor_450900_80136C98);
-                dispatch:
-                    Gp_DispatchMsg(msgTask, msgId, msgArg, 0);
+                    Gp_DispatchMsg(slot, 0x3F1, 0, 0);
                 }
             }
             return;
