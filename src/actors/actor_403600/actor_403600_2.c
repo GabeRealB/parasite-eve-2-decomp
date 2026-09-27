@@ -4459,48 +4459,7 @@ void func_actor_403600_80141180(Task* task)
 
 static void func_actor_403600_801411D4(Task* arg0, s32 arg1)
 {
-    Actor403600Work* work;
-    s32              i;
-    s32              masked1;
-    s32              masked2;
-    s32              limit1;
-    s32              limit2;
-    u8*              anim;
-
-    work = arg0->work;
-    if (D_actor_403600_8016057C[(s16)work->field_736] != 0) {
-        i = 1;
-        if ((s16)work->field_736 != work->field_738) {
-            masked1         = arg1 & 0xFF;
-            work->field_738 = work->field_736;
-            work->field_73A = 0;
-            if (i < masked1) {
-                limit1 = masked1;
-                do {
-                    func_800B4114(&work->rig.anim, i, work->field_736, 0, work->field_756);
-                    i++;
-                } while (i < limit1);
-            }
-        } else {
-            TOUCH_REG(i);
-            masked2          = arg1 & 0xFF;
-            work->field_73A += i;
-            if (i < masked2) {
-                limit2 = masked2;
-                /* A byte cursor 0x28 bytes into the block reaches each slot's `rate` at
-                 * +0x1D. The slot index is hidden from the compiler for the update
-                 * above, so indexing `rig.slots` would derive the cursor from it with
-                 * a multiply instead of this constant start. */
-                anim = (u8*)work + 0x28;
-                do {
-                    anim[0x1D] = (u8)work->field_778;
-                    Gp_AnimTickIndex(&work->rig.anim, i);
-                    i++;
-                    anim += 0x28;
-                } while (i < limit2);
-            }
-        }
-    }
+    _actor403600UpdateAnimation(arg0, arg1);
 }
 
 static void func_actor_403600_801412D0(GpEnemy* arg0, Task* arg1)
