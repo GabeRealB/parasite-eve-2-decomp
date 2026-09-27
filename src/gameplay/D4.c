@@ -578,7 +578,6 @@ static s32 func_800AA120(void)
     u8           param2[8];
     GpCdAreaRec* rec;
     GpCdRec0C*   rec12;
-    GpCdRec0C*   next;
     u16          key;
     s32          val;
     s16          d;
@@ -586,16 +585,13 @@ static s32 func_800AA120(void)
 
     switch (D_80114C70) {
         case 0:
-            val        = (s32)Gp_GetNestedAreaRec((GpAreaKey*)&Mc_SaveData[0].at4.loc.view);
-            rec        = (GpCdAreaRec*)val;
+            rec        = (GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&Mc_SaveData[0].at4.loc.view);
             D_80114C64 = rec;
             D_80114C68 = rec->field_4;
             if (rec == NULL) {
                 goto finished;
             }
-            next = D_80114C68;
-            TOUCH_REG(next);
-            if (next == NULL) {
+            if (rec->field_4 == NULL) {
                 return 1;
             }
             D_80114C70++;
