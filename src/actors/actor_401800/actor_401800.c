@@ -2373,26 +2373,26 @@ static __inline__ void Actor401800_ViewWalk(GpCoord* coord, SVECTOR* svp, SVECTO
     svp->vx          = outp->vx;
     svp->vy          = outp->vy;
     svp->vz          = outp->vz;
-loop:
-    if (p->sub != NULL) {
-        if (p != view) {
-            gte_SetTransMatrix(&p->coord);
-            gte_SetRotMatrix(&p->coord);
-            gte_ldv0(svp);
-            gte_rtv0tr();
-            gte_stlvnl(vecp);
-            gte_stflg(flagp);
-            svp->vx = vec.vx;
-            svp->vy = vec.vy;
-            svp->vz = vec.vz;
-            p       = p->sub;
-            SOFT_TOUCH_REG(p);
-            goto loop;
+    for (;;) {
+        if (p->sub != NULL) {
+            if (p != view) {
+                gte_SetTransMatrix(&p->coord);
+                gte_SetRotMatrix(&p->coord);
+                gte_ldv0(svp);
+                gte_rtv0tr();
+                gte_stlvnl(vecp);
+                gte_stflg(flagp);
+                svp->vx = vec.vx;
+                svp->vy = vec.vy;
+                svp->vz = vec.vz;
+                p       = p->sub;
+                continue;
+            }
+            outp->vx = svp->vx;
+            outp->vy = svp->vy;
+            outp->vz = svp->vz;
         }
-        SOFT_USE_REG(svp);
-        outp->vx = svp->vx;
-        outp->vy = svp->vy;
-        outp->vz = svp->vz;
+        break;
     }
     dir->vx = outp->vx - coord->coord.t[0];
     dir->vy = 0;
