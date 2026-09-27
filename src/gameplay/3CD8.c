@@ -1564,50 +1564,28 @@ static s16 Gp_CapCenterXLine(u16* arg0, s32 arg1)
 
 static s16 Gp_CapTextHeight(u16* arg0)
 {
-    s32                 lineH;
-    s32                 total;
-    s32                 i;
-    u16                 code;
-    s32                 shifted;
-    volatile GlyphUvwh* glyph;
-    register s32        v0tmp asm("v0");
-    GlyphUvwh*          table;
-    s32                 newline;
-    s32                 skip;
+    s16 lineH = 0;
+    s16 total = 0;
+    s16 i     = 0;
+    s16 code  = arg0[0];
 
-    lineH   = 0;
-    total   = lineH;
-    i       = lineH;
-    code    = arg0[0];
-    shifted = code << 16;
-    v0tmp   = -1;
-    if (shifted >> 16 != v0tmp) {
-        newline = -2;
-        skip    = -3;
-        table   = Gp_CapGlyphs;
-        do {
-            if (shifted >> 16 == newline) {
-                if (lineH == 0) {
-                    lineH = 2;
-                }
-                total += lineH;
-                lineH  = 0;
-            } else if (shifted >> 16 != skip) {
-                if (shifted >> 16 >= 0) {
-                    glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table);
-                    if (lineH < glyph->h + 2) {
-                        v0tmp = glyph->h;
-                        lineH = v0tmp + 2;
-                    }
+    while (code != -1) {
+        if (code == -2) {
+            if (lineH == 0) {
+                lineH = 2;
+            }
+            total += lineH;
+            lineH  = 0;
+        } else if (code != -3) {
+            if (code >= 0) {
+                if (lineH < Gp_CapGlyphs[code & 0x3FF].h + 2) {
+                    lineH = Gp_CapGlyphs[code & 0x3FF].h + 2;
                 }
             }
-            v0tmp   = i + 1;
-            code    = arg0[(s16)v0tmp];
-            i       = v0tmp;
-            shifted = code << 16;
-        } while (shifted >> 16 != -1);
+        }
+        code = arg0[++i];
     }
-    if ((s16)total == 2) {
+    if (total == 2) {
         total = 0;
     }
     return total;
