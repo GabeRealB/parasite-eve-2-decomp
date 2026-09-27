@@ -1566,17 +1566,14 @@ void Gp_EffCtlTaskF3(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->fadeState != 0 ||
         ((gameGetPtrSlot(3))->extra.tmd->flags & 0x80)) {
-        if (Gp_State1C->fadeState < 4) {
-            return;
+        if (Gp_State1C->fadeState >= 4) {
+            Gp_ReleaseState1CMem(mem, arg0);
         }
-        goto kill;
+        return;
     }
 
     mem->age++;
     if (arg0->state == 0) {
-        s32 x;
-        s32 y;
-
         Gp_State1C->peFxFlags |= 0x400;
         slot                   = gameGetPtrSlot(3);
         parent                 = slot->extra.tmd->coords;
@@ -1587,12 +1584,9 @@ void Gp_EffCtlTaskF3(Task* arg0)
         coord->sub             = parent + 8;
         arg0->state            = 1;
         mem->index             = (Gp_StateC08.field_0 % 10U) - 1;
-        __asm__ volatile("" : "+m"(mem->index));
-        x           = mem->index;
-        mem->angle  = 0x20;
-        y           = mem->index;
-        mem->period = (x << 7) + 0x180;
-        mem->step   = (y << 8) + 0x400;
+        mem->angle             = 0x20;
+        mem->period            = mem->index * 128 + 0x180;
+        mem->step              = mem->index * 256 + 0x400;
     }
 
     Gp_UpdateCoord(coord);
@@ -1606,19 +1600,12 @@ void Gp_EffCtlTaskF3(Task* arg0)
         Gp_State1C->burstRequest = 0;
     }
 
-    if (Gp_StateC08.field_12 == 0) {
-        goto kill;
+    if (Gp_StateC08.field_12 == 0 || !(Gp_State1C->peFxFlags & 0x400) ||
+        Gp_State1C->battleState != 1) {
+        Gp_ReleaseState1CMem(mem, arg0);
+        return;
     }
-    if (!(Gp_State1C->peFxFlags & 0x400)) {
-        goto kill;
-    }
-    if (Gp_State1C->battleState == 1) {
-        goto lcg;
-    }
-kill:
-    Gp_ReleaseState1CMem(mem, arg0);
-    return;
-lcg:
+
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     if (((u32)Gp_LcgState >> 16) & 3) {
         return;
