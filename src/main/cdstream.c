@@ -887,47 +887,35 @@ static void func_80058748(void);
 
 static void CdStream_TeardownVoices(void)
 {
-    CdReadyEntry            entry;
-    volatile CdStreamState* p;
-    s32                     flag;
-    s16                     arg0;
-    s16                     idx;
-    u32                     flags;
-    CdReadyEntry*           e;
-    u8                      saved;
-    u8                      t;
-    s32                     dead;
-    s32                     rem_tmp;
-    s32                     temp;
+    CdReadyEntry  entry;
+    s32           flag;
+    s16           slot;
+    u32           flags;
+    CdReadyEntry* e;
+    u8            saved;
 
-    p = &CdStream_State;
-    if (p->flags2 & 1) {
-        dead                  = p->field_20;
-        t                     = p->flags2;
-        t                     = t & 0xFE;
-        p->flags2             = t;
-        t                     = CdStream_State.flags0;
-        t                     = t & 0xFE;
-        CdStream_State.flags0 = t;
-        p->flags2             = p->flags2 & 0xFD;
-        CdStream_State.flags0 = CdStream_State.flags0 & 0xDF;
-        flag                  = (CdStream_State.flags0 >> 4) & 1;
+    if (CdStream_State.flags2 & 1) {
+        CdStream_State.field_20;
+        CdStream_State.flags2 &= 0xFE;
+        CdStream_State.flags0 &= 0xFE;
+        CdStream_State.flags2 &= 0xFD;
+        CdStream_State.flags0 &= 0xDF;
+        flag                   = (CdStream_State.flags0 >> 4) & 1;
         if (flag == 1) {
-            Spu_KeyOff((s8)p->voiceL);
-            Spu_KeyOff((s8)p->voiceR);
-            CdStream_State.flags0 = CdStream_State.flags0 & 0xEF;
-            if (p->voiceFreeCb != NULL) {
-                p->voiceFreeCb((flag << (s8)p->voiceL) | (flag << (s8)p->voiceR));
+            Spu_KeyOff((s8)CdStream_State.voiceL);
+            Spu_KeyOff((s8)CdStream_State.voiceR);
+            CdStream_State.flags0 &= 0xEF;
+            if (CdStream_State.voiceFreeCb != NULL) {
+                CdStream_State.voiceFreeCb((flag << (s8)CdStream_State.voiceL) | (flag << (s8)CdStream_State.voiceR));
             }
         }
         SpuSetIRQ(0);
         SpuSetIRQCallback(0);
         if (CdStream_State.readySlot != 0) {
-            arg0  = CdStream_State.readySlot;
+            slot  = CdStream_State.readySlot;
             saved = CdReady_Queue.locked;
-            if (arg0 != 0) {
-                idx   = arg0 - 1;
-                e     = (CdReadyEntry*)&CdReady_Queue.entries[idx];
+            if (slot != 0) {
+                e     = &CdReady_Queue.entries[(s16)(slot - 1)];
                 flags = e->flags;
                 if (flags & 1) {
                     e->flags = (flags & ~1) | 4;
@@ -936,20 +924,13 @@ static void CdStream_TeardownVoices(void)
             }
             CdStream_State.readySlot = 0;
         }
-        rem_tmp = (s32)&entry;
-        SOFT_TOUCH_REG(rem_tmp);
-        do {
-            temp = (s32)func_80059EE0;
-        } while (0);
-        entry.pollFn          = temp;
-        temp                  = (s32)func_80058748;
-        p                     = &CdStream_State;
-        entry.doneFn          = temp;
-        entry.sectorPos       = p->field_30;
-        CdStream_State.flags0 = CdStream_State.flags0 & 0xFB;
-        entry.errorFn         = (s32)CdStream_FinishQueueEntry;
-        p->readySlot          = CdReady_Enqueue((CdReadyEntry*)rem_tmp);
-        p->phase              = 2;
+        entry.pollFn             = (s32)func_80059EE0;
+        entry.doneFn             = (s32)func_80058748;
+        entry.sectorPos          = CdStream_State.field_30;
+        CdStream_State.flags0   &= 0xFB;
+        entry.errorFn            = (s32)CdStream_FinishQueueEntry;
+        CdStream_State.readySlot = CdReady_Enqueue(&entry);
+        CdStream_State.phase     = 2;
     }
 }
 
