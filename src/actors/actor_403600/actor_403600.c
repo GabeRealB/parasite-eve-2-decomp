@@ -1232,14 +1232,10 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1)
     s32                       radiusOffset;
     s32                       scale;
     s32                       scanCount;
-    s32                       otz;
     s32*                      height;
     MATRIX*                   matrix;
     s32*                      heightBase;
     s32*                      scan;
-    u32                       mask;
-    u32                       maskHi;
-    u_long*                   ot;
     u16                       oldY;
     u8*                       head;
     u8*                       newHead;
@@ -1300,7 +1296,6 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1)
     matrix          = &scratch->matrix;
     vec             = &scratch->vec;
     heightBase      = heights;
-    mask            = 0xFFFFFF;
     do {
         scratch->matrix = arg1->workm;
         Gfx_RotMatrixY(matrix, (j << 12) / 12, 0);
@@ -1312,6 +1307,10 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1)
         radiusOffset = 0;
         angle        = arg0->field_80;
         do {
+            /* The screen the quad corners are clamped to. */
+            s32 screenW = 320;
+            s32 screenH = 240;
+
             angle                   %= 32;
             poly                     = (Actor403600GridQuad*)D_actor_403600_8016069C;
             D_actor_403600_8016069C += sizeof(POLY_FT4);
@@ -1344,15 +1343,15 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1)
             screenX               = (s16)poly->x0 + projectedX;
             projectedY            = scratch->vec.vy + 0x78;
             screenY               = (s16)poly->y0 + projectedY;
-            if (screenY >= 0xF0) {
-                poly->y0 = oldY + 0xEF - screenY;
-                screenY  = 0xEF;
+            if (screenY >= screenH) {
+                poly->y0 = oldY + (screenH - 1) - screenY;
+                screenY  = screenH - 1;
             } else if (screenY < 0) {
                 poly->y0 = oldY - screenY;
                 screenY  = 0;
             }
-            if (screenX >= 0x140) {
-                poly->x0 = (u16)poly->x0 + 0x13F - screenX;
+            if (screenX >= screenW) {
+                poly->x0 = (u16)poly->x0 + (screenW - 1) - screenX;
             } else if (screenX < 0) {
                 poly->x0 = (u16)poly->x0 - screenX;
                 screenX  = 0;
@@ -1372,12 +1371,7 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1)
                 if (scratch->maxOtz < scratch->otz) {
                     scratch->maxOtz = scratch->otz;
                 }
-                ot     = gGpuCurrentOt;
-                otz    = scratch->otz;
-                maskHi = 0xFF000000;
-                SOFT_TOUCH_REG_USE(maskHi, otz);
-                poly->tag        = (poly->tag & maskHi) | (ot[otz] & mask);
-                ot[scratch->otz] = (ot[scratch->otz] & maskHi) | ((u32)poly & mask);
+                addPrim(&gGpuCurrentOt[scratch->otz], poly);
             }
             previous = poly - 1;
             if (i != 0) {

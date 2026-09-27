@@ -138218,6 +138218,21 @@ shift counts, `slti`/`addiu` operands. A constant that feeds an `and`/`or`
 with another constant, or a store, is reloaded into a spill register instead
 and shows up in the output.
 
+### `addPrim`'s `0xFF000000` hoisted out of a loop: block-scoped limit constants spend the threshold (func_actor_403600_801353D0, 2026-09-27)
+
+A projection loop linked each quad with a hand-written tag mask pinned by
+`SOFT_TOUCH_REG_USE(maskHi, otz)`. Without the pin, `.loop` showed the
+`lui 0xff00` (life 8-13) moved out of a 187-insn loop with a call
+(29 × 8 ≥ 187), after which reload rematerialised it into a different
+register. The addPrim link cannot get its life under 7: the second
+`setaddr` must reload the OT index after the tag store. Two block-scoped
+locals at the top of the loop body, `s32 screenW = 320, screenH = 240`, used
+in the clamp (`>= screenW`, `screenW - 1`), are moved first and become
+immediates again (threshold 29 → 23). Plain `addPrim(&ot[otz], poly)` then
+matched. The explicit `(ot & mask) | (tag & 0xFF000000)` spelling still
+swapped `v0`/`v1`, because the `ior` ties to its first dying operand, and
+`store_fixed_bit_field` puts the masked tag first.
+
 ### A store in a `j` delay slot that repeats the insn just before the jump's target is one store at the join (func_mine_cavern_801830F0, 2026-09-23)
 
 A search loop's "found" arm ended `lw v0,4(v1)` / `j L+4` / `sw v0,0x1C(s1)`,
