@@ -1726,14 +1726,12 @@ static void CdStream_ReadyMts(s32 interrupt, u8* result)
     s32                     skipStamp;
     s32                     timer;
     s32                     sectorPos;
-    s32                     attributes;
     s32                     writeSize;
     u32                     timerPhase;
     u32                     previousPhase;
     volatile CdStreamState* channelState;
     volatile CdStreamState* regionState;
     CdStreamChannels*       channels;
-    s32                     channelBase;
     s32                     channelCount;
 
     if ((u16)D_80068B6A != 0) {
@@ -1859,18 +1857,15 @@ static void CdStream_ReadyMts(s32 interrupt, u8* result)
                             channels                     = &CdStream_Channels;
                             /* CdStream_State sits directly before the channels; reaching it back
                              * from `channels` keeps one base register for both objects. */
-                            channelState                             = (volatile CdStreamState*)channels - 1;
-                            *(volatile s32*)&channels->ch[0].spuAddr = channelState->spuBase;
-                            /* Keep the channel address stores in initialization order. */
-                            channelBase             = channelState->spuBase + 0x40;
-                            channels->ch[1].spuAddr = channelBase + ((s32)((u16)channelState->ringHalf << 0x10) >> 0xF);
-                            channelState->flags1    = (u8)(channelState->flags1 | 1);
-                            SOFT_BARRIER();
-                            attributes             = channels->ch[0].attr | 0x80;
-                            channels->ch[0].attr   = attributes;
-                            channels->ch[1].attr   = attributes;
-                            channelState->field_1C = (s32)channelState->sector->field_0;
-                            channelState->field_38 = (s32)channelState->sector->field_4;
+                            channelState            = (volatile CdStreamState*)channels - 1;
+                            channels->ch[0].spuAddr = channelState->spuBase;
+                            /* The channels' SPU buffers sit back to back, ringHalf * 2 + 0x40 bytes apart. */
+                            channels->ch[1].spuAddr = channelState->spuBase + (channelState->ringHalf * 2 + 0x40);
+                            channelState->flags1   |= 1;
+                            channels->ch[0].attr   |= 0x80;
+                            channels->ch[1].attr    = channels->ch[0].attr;
+                            channelState->field_1C  = (s32)channelState->sector->field_0;
+                            channelState->field_38  = (s32)channelState->sector->field_4;
                             if (!((u8)channelState->sector->field_F & 0x60)) {
                                 channelState->flags1 = (u8)(channelState->flags1 | 0x40);
                             } else if ((u8)channelState->sector->field_F & 0x40) {
@@ -1910,7 +1905,7 @@ static void CdStream_ReadyMts(s32 interrupt, u8* result)
                         } else {
                             CdStream_State.spuAddr = CdStream_State.spuBase;
                         }
-                        CdStream_State.spuAddr += CdStream_State.sector->field_C * (((s32)((u16)CdStream_State.ringHalf << 0x10) >> 0xF) + 0x40);
+                        CdStream_State.spuAddr += CdStream_State.sector->field_C * (CdStream_State.ringHalf * 2 + 0x40);
                         SpuSetTransferStartAddr((u32)CdStream_State.spuAddr);
                         *(volatile s32*)&D_80068B70 = CdStream_State.spuAddr;
                         /* The audio in a header sector starts after the MtsSector header. */

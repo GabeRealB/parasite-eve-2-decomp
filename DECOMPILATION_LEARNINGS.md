@@ -145284,3 +145284,19 @@ the same block it hoists the constant argument sets ahead of the global load.
 `state++` tails back together. The block layout the goto version produced
 comes out of the inverted test (`if (x >= 0x100) { ...; break; }` then the
 fade path) rather than from labels.
+
+## An empty-asm barrier holding a load in place can stand for the association of a nearby sum (CdStream_ReadyMts, 2026-09-27)
+
+**Symptom.** With `SOFT_BARRIER()` removed, a non-volatile `ch[0].attr` load is
+scheduled above two earlier stores it has no dependence on; the barrier kept it
+after them. Reordering the statements around it changed nothing.
+
+**Cause.** sched1 is free to move the load, so its position comes from the
+priorities of the neighbouring insns. The sum just before it was written as
+`base + 0x40` into a temporary, then `+ ((s32)((u16)half << 16) >> 15)`, and
+that shape gave the load a different slot.
+
+**Fix.** Write the sum the way the function uses the quantity elsewhere,
+`base + (half * 2 + 0x40)` (the per-channel stride), with no temporary. The
+load lands after the stores on its own, and the hand-built sign-extend shift
+becomes a plain `half * 2` on the `s16` field.
