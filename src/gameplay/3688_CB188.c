@@ -3431,13 +3431,9 @@ static u8 Gp_GetMapRoomId(void)
     f6      = session->at4.loc.area;
     recs    = table[idx];
     recs    = recs + f6;
-    {
-        register u8 val asm("v1");
 
-        val          = recs->field_C;
-        Gp_MapRoomId = val;
-        return val;
-    }
+    Gp_MapRoomId = recs->field_C;
+    return Gp_MapRoomId;
 }
 
 static void func_800D2020(u8 arg0)
