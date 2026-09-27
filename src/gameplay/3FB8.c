@@ -1767,8 +1767,6 @@ void Gp_EffCtlTaskAC(Task* arg0)
 
     mem->age++;
     if (arg0->state == 0) {
-        s32 x;
-
         Gp_State1C->peFxFlags |= 0x200;
         slot                   = gameGetPtrSlot(3);
         parent                 = slot->extra.tmd->coords;
@@ -1779,11 +1777,9 @@ void Gp_EffCtlTaskAC(Task* arg0)
         coord->sub             = parent + 1;
         arg0->state            = 1;
         mem->index             = (Gp_StateC08.field_0 % 10U) - 1;
-        __asm__ volatile("" : "+m"(mem->index));
-        x           = mem->index;
-        mem->angle  = 0x20;
-        mem->period = ((x + 1) * 3) << 7;
-        mem->step   = Player_Status.hp;
+        mem->angle             = 0x20;
+        mem->period            = ((mem->index + 1) * 3) << 7;
+        mem->step              = Player_Status.hp;
     }
 
     Gp_UpdateCoord(coord);
