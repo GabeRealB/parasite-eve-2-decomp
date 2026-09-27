@@ -145425,3 +145425,22 @@ matched without it: the inline's own parameters and block are what the barrier
 imitated. The prefix's sense mattered too: `*p = x >= 0 ? '+' : '-'` gives the
 target's `bltz; li 0x2d` / `li 0x2b`, while `x < 0 ? '-' : '+'` and an
 if/else both invert the branch.
+
+### A forward branch landing one insn past a reload at the join: put the reloaded field first in the comparison (Ui_InitList, 2026-09-27)
+
+**Shape.** `if (l->sel >= l->count) l->sel = l->count - 1;` followed by a
+second test against `l->count`. The target's guard branch skips the join's
+`lbu count` (the value is still in `$v1` from its own compare), so the reload
+looks like it sits inside the then-block. The tree faked that with a local
+reassigned after a `SOFT_COMPILER_BARRIER()`; a plain reassignment is folded by
+CSE, because the `sw` to `sel` provably does not alias `count`.
+
+**Cause.** reorg's `redundant_insn` lets `fill_slots_from_thread` step over the
+first insn of the branch target when that value is already in the register on
+the taken path - but only the *first* insn. Written as
+`(s8)l->field_5 >= l->count`, sched1 emits the `field_5` load first at the join
+and nothing is skipped.
+
+**Fix.** Swap the operands, `l->count <= (s8)l->field_5`: the `count` load
+leads the join block and reorg retargets the branch past it. No local, no
+barrier.
