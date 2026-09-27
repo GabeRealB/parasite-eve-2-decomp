@@ -239,50 +239,18 @@ static s16 func_replay_bonus_801175D0(UiList* list, ReplayBonusCtx* ctx, s32 ind
 
 static s32 func_replay_bonus_801175F0(UiList* list, ReplayBonusCtx* ctx)
 {
-    PlayerStatus* cfg;
     s32           i;
-    s32           n;
     s32           sum;
-    s32           limit;
-    s16*          p;
-    s32           item;
-    s32           idx;
-    s32           lo;
-    s32           hi;
-    s32           ptr;
-    s32           price;
-    s32           ids;
-    s32           off;
+    PlayerStatus* cfg;
 
     cfg = &Player_Status;
-    i   = (s8)list->field_9;
-    n   = list->field_4;
     sum = 0;
-    if (i < n) {
-        lo    = (s32)Gp_ItemDescs;
-        hi    = (s32)D_8010DE38;
-        limit = n;
-        ids   = (s32)ctx->itemList->itemIds;
-        off   = i * 2;
-        p     = (s16*)(off + ids);
-        do {
-            item = *p;
-            idx  = item;
-            if (item < 0x100) {
-                ptr = (item * 8) + lo;
-            } else {
-                ptr = ((idx - 0x100) * 8) + hi;
-            }
-            price = *(u16*)ptr;
-            SOFT_TOUCH_REG(price);
-            sum += price >> 1;
-            i++;
-            p++;
-        } while (i < limit);
+    for (i = (s8)list->field_9; i < list->field_4; i++) {
+        sum += replayBonusItemBp(ctx->itemList->itemIds[i]);
     }
     sum += cfg->bp;
-    if (sum > 0x05F5E0FF) {
-        sum = 0x05F5E0FF;
+    if (sum > 99999999) {
+        sum = 99999999;
     }
     return sum;
 }
