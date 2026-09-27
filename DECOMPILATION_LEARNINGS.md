@@ -145515,3 +145515,16 @@ SCRATCH_POP(RoomGlowSpriteScratch);
 The object is byte-identical to the pinned version. Before pinning a
 scratch-block copy, rewrite the open-coded `head - N` push as `SCRATCH_PUSH`
 and score that first.
+## Duplicated early-exit bodies count as references until jump2 merges them (func_pyrokinesis_8012EF48, 2026-09-27)
+
+A state machine's cases each start with "release if the player is dying or the
+room is fading". Two of five cases were written as two separate `if` blocks,
+each repeating `Gp_UnlinkObj(&work->obj2); release; return;`, the others as one
+`a || (fade = ..., fade >= 4)` guard. jump2 folds the repeated bodies, so the
+object code is identical either way, but global allocation runs before jump2:
+each written-out copy adds a reference to `work`, and two extra references
+were enough to lift `work` above `coord` in `floor_log2(refs)*refs/live_length`
+and swap their callee-saved registers. A `SOFT_USE_REG(coord)` was compensating
+by adding a reference to the other side. When two long-lived pointers have
+swapped registers, and a guard's body is repeated, write the guard the way its
+sibling cases do (one condition, one body) before touching anything else.

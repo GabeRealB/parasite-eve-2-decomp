@@ -77,7 +77,6 @@ static void func_pyrokinesis_8012EF48(Task* arg0)
     s32           radius;
     s32           next;
     s16           amp;
-    s32           tz;
 
     work     = (PyroWork*)arg0->work;
     mem      = arg0->spawnArg2;
@@ -89,12 +88,7 @@ static void func_pyrokinesis_8012EF48(Task* arg0)
     slot     = &base->data.light;
     switch (arg0->state) {
         case 0:
-            if (Gp_StateC08.field_3 == -2) {
-                Gp_ReleaseState1CMem(mem, arg0);
-                return;
-            }
-            fade = Gp_State1C->fadeState;
-            if (fade >= 4) {
+            if ((Gp_StateC08.field_3 == -2) || ((fade = Gp_State1C->fadeState), fade >= 4)) {
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
@@ -211,7 +205,6 @@ static void func_pyrokinesis_8012EF48(Task* arg0)
             coord->coord.t[2] += mem->move.vz;
             coord->flg         = 0;
             Gp_UpdateCoord(coord);
-            SOFT_USE_REG(coord);
             func_pyrokinesis_80130848(coord, mem->age, mem->angle, mem->period);
             func_pyrokinesis_80130130(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             if (arg0->spawnArg1 != 0) {
@@ -239,9 +232,8 @@ static void func_pyrokinesis_8012EF48(Task* arg0)
             slot->head.b      = slot->head.r >> 2;
             slotc->coord.t[0] = coord->coord.t[0];
             slotc->coord.t[1] = coord->coord.t[1];
-            tz                = coord->coord.t[2];
+            slotc->coord.t[2] = coord->coord.t[2];
             slotc->flg        = 0;
-            slotc->coord.t[2] = tz;
             if (Gp_CountRec18Hi(work->obj.ctx.recs, 0x30000) != 0) {
                 Gp_UnlinkObj(&work->obj);
                 for (i = 0; i < 0x556; i += 0x2AA) {
@@ -322,13 +314,7 @@ static void func_pyrokinesis_8012EF48(Task* arg0)
             Gp_ClearRec18Occupied(&work->rec);
             return;
         case 3:
-            if (Gp_StateC08.field_3 == -2) {
-                Gp_UnlinkObj(&work->obj2);
-                Gp_ReleaseState1CMem(mem, arg0);
-                return;
-            }
-            fade = Gp_State1C->fadeState;
-            if (fade >= 4) {
+            if ((Gp_StateC08.field_3 == -2) || ((fade = Gp_State1C->fadeState), fade >= 4)) {
                 Gp_UnlinkObj(&work->obj2);
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
@@ -350,13 +336,7 @@ static void func_pyrokinesis_8012EF48(Task* arg0)
             }
             return;
         case 4:
-            if (Gp_StateC08.field_3 == -2) {
-                Gp_UnlinkObj(&work->obj2);
-                Gp_ReleaseState1CMem(mem, arg0);
-                return;
-            }
-            fade = Gp_State1C->fadeState;
-            if (fade >= 4) {
+            if ((Gp_StateC08.field_3 == -2) || ((fade = Gp_State1C->fadeState), fade >= 4)) {
                 Gp_UnlinkObj(&work->obj2);
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
