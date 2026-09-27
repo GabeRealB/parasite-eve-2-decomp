@@ -255,32 +255,22 @@ static void func_options_801D42A8(DialogPrompt* arg0, UiObject* arg1)
 
 static void func_options_801D4504(DialogPrompt* arg0, UiObject* arg1)
 {
-    u8*  labels[2];
+    u8*  labels[2] = { D_options_801D5BA4, D_options_801D5B98 };
     u8** p;
-    u8*  title;
-    s32  a0tmp;
     s32  i;
     s32  y;
     s32  x;
     s32  span;
     s32  selected;
     s32  one;
-    s32  two;
     s32  look;
     s32  n2;
     s32  status;
 
-    SCHED_BARRIER();
-    a0tmp = (s32)arg1;
-    TOUCH_REG(a0tmp);
-    title = D_options_801D5B90;
-    TOUCH_REG(title);
-    i         = 0;
-    p         = labels;
-    y         = i;
-    labels[0] = D_options_801D5BA4;
-    labels[1] = D_options_801D5B98;
-    Text_DrawPrompt((UiObject*)a0tmp, arg1->field_1C + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg1->field_1C + 6, arg0->field_1A, D_options_801D5B90, arg0->field_1C, 1, 0);
+    i        = 0;
+    p        = labels;
+    y        = i;
     selected = Mc_SaveData[0].cursorMode;
     x        = arg1->field_1C + 0x78;
     span     = (s16)arg1->field_1E - x;
@@ -292,8 +282,7 @@ static void func_options_801D4504(DialogPrompt* arg0, UiObject* arg1)
             look = Ui_LookupTable(arg1, 1);
         }
         one = 1;
-        two = n2;
-        Text_DrawPrompt(arg1, x + y / two, arg0->field_1A, *p, look, one, 0);
+        Text_DrawPrompt(arg1, x + y / n2, arg0->field_1A, *p, look, one, 0);
         p++;
         y += span;
         i += one;
