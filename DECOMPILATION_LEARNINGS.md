@@ -144758,3 +144758,22 @@ copy at the bottom as well: each copy is scheduled in its own block ahead of the
 continue label, and jump2 cross-jumps the two into the single tail the target
 branches to, loads first. A plain if/else with the copy in both arms matches
 the same way.
+
+### `lb`, `sb`, then `sll 24`/`sra 24` on the same value: an `s16` local between an `s8` helper and an `s8` field (func_actor_403000_8013B74C, 2026-09-27)
+
+**Symptom.** A table byte is loaded with `lb`, stored to an `s8` field, and the
+loaded register is sign-extended again before a `switch`. An `s32` local drops
+the second extension (combine knows the `lb` result is already sign-extended,
+giving `move`); an `s8` local turns the load into `lbu`. The old source held it
+with `TOUCH_REG`.
+
+**Fix.** The value came from an inline helper returning `s8`, kept in an `s16`
+local, stored to the field, and the switch read the field back:
+
+```c
+s16 b = Actor403000_Cell(coords);   /* static inline s8, int inside */
+scratch->base = b;
+switch (scratch->base) { ... }
+```
+
+`switch (b)` on the same local extends by 16 instead of 24.

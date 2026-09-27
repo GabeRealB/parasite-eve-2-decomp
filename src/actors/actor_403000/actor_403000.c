@@ -3998,11 +3998,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
     GpCoord*                coord2;
     SVECTOR*                t;
     Task*                   task;
-    s32                     x;
-    s32                     z;
-    s8                      col;
-    s8                      row;
-    s32                     b;
+    s16                     b;
     GameActor*              pw;
     s32                     frame;
     s16                     angle;
@@ -4023,22 +4019,9 @@ static void func_actor_403000_8013B74C(Task* arg0)
         work->field_ACA                     = 0;
         work->field_FCA                     = 0;
         scratch                             = SCRATCH_PUSH(Actor403000DropScratch);
-        x                                   = player->extra.tmd->coords->coord.t[0];
-        z                                   = player->extra.tmd->coords->coord.t[2];
-        if (x < 0xD48) {
-            col = 4;
-        } else if (x < 0x1A90) {
-            col = 3;
-        } else if (x < 0x2AF8) {
-            col = 2;
-        } else {
-            col = x < 0x3C8C;
-        }
-        row           = z >= 0x1068;
-        b             = (s8)D_actor_403000_80158D48[col + row * 5];
-        scratch->base = b;
-        TOUCH_REG(b);
-        switch ((s8)b) {
+        b                                   = Actor403000_Cell(player->extra.tmd->coords);
+        scratch->base                       = b;
+        switch (scratch->base) {
             case 0:
                 Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, 0x800, 1);
                 break;
