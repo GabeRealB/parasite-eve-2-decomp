@@ -426,6 +426,16 @@ static s32 func_actor_560800_80132340(Task* arg0)
     return 0;
 }
 
+/// Cross-fades slots 1..`field_4BA`-1 of `work`'s animation context to animation
+/// `id` over `frames` frames.
+#define _ACTOR560800_BLEND_SLOTS(work, id, frames)                   \
+    do {                                                             \
+        u16 _i;                                                      \
+        for (_i = 1; _i < (work)->field_4BA; _i++) {                 \
+            func_800B4114(&(work)->rig.anim, _i, (id), 0, (frames)); \
+        }                                                            \
+    } while (0)
+
 /// Reseeds the animation slots of the task's own `Actor560800AnimWork`: the
 /// id goes to `field_4B8` with `rate` in `field_4C8`, `field_4BE` is cleared,
 /// and slots 1..`field_4BA` are blended through `func_800B4114`. The
@@ -2156,7 +2166,6 @@ void func_actor_560800_801365D0(u16 arg0)
 {
     Actor560800Work*     work;
     Actor560800AnimWork* anim;
-    u16                  i;
 
     work = (Actor560800Work*)D_actor_560800_8017578C->work;
     anim = (Actor560800AnimWork*)work->field_8->work;
@@ -2164,14 +2173,7 @@ void func_actor_560800_801365D0(u16 arg0)
     anim->field_4B8 = arg0;
     anim->field_4C8 = 0x10;
     anim->field_4BE = 0;
-    SOFT_BARRIER();
-    i = 1;
-    if (i < anim->field_4BA) {
-        do {
-            func_800B4114(&anim->rig.anim, i, arg0, 0, 10);
-            i++;
-        } while (i < anim->field_4BA);
-    }
+    _ACTOR560800_BLEND_SLOTS(anim, arg0, 10);
 }
 
 void func_actor_560800_80136678(s32 arg0)
