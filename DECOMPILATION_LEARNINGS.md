@@ -145528,3 +145528,14 @@ and swap their callee-saved registers. A `SOFT_USE_REG(coord)` was compensating
 by adding a reference to the other side. When two long-lived pointers have
 swapped registers, and a guard's body is repeated, write the guard the way its
 sibling cases do (one condition, one body) before touching anything else.
+## A 0/1 flag kept as `li 1` / `move zero` branches is a narrow-typed inline helper's return (func_acropolis_bridge_801861A0, 2026-09-27)
+
+The target materialises a flag with branches - `bnez v0,L; li v0,1; move v0,zero;
+L: beqz v0,...` - and then tests it. Writing `done = 0` / `done = 1` in an
+if/else, or as an `s32` inline helper returning 0 or 1, lets the first jump pass
+turn the pair into a store-flag (`gtu`), which combine then folds into the next
+branch, so the flag disappears. An empty `asm` in one arm only blocked that.
+A helper returning `s16` (or `s8`) matches: the return value is narrowed and
+re-extended on the way out, the pattern no longer fits the store-flag rewrite,
+and both arms survive. A narrow local in the caller does not do the same, since
+it is promoted to a full register before the test.

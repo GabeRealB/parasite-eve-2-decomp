@@ -3980,6 +3980,16 @@ static __inline__ void bridge_scale_up(AcropolisBridgeEnemyWork* work)
     SCRATCH_POP_BYTES(0x10);
 }
 
+/// Reports whether the bridge enemy's hit box has recorded a contact: its
+/// one-entry contact table is occupied once something has struck it.
+static __inline__ s16 _acropolisBridgeWasHit(Task* task)
+{
+    if (((AcropolisBridgeEnemyWork*)task->work)->hitRecs[0].key == 0) {
+        return 0;
+    }
+    return 1;
+}
+
 /// Runs the bridge enemy's spawn state. On the first frame (work block still
 /// live) it tags the link node while `Gp_PackObjPair` rebuilds the enemy's
 /// pair table, sets bit 15 of both behaviour flag words, seeds the walker's
@@ -3995,7 +4005,6 @@ void func_acropolis_bridge_801861A0(Task* task)
     OverlayWalker*            walker;
     GpEnemy*                  enemy;
     PlayerStatus*             cfg;
-    s32                       done;
     u16                       height;
 
     cfg  = &Player_Status;
@@ -4030,13 +4039,7 @@ void func_acropolis_bridge_801861A0(Task* task)
     }
     func_acropolis_bridge_8018532C(&work->walker);
     func_acropolis_bridge_8018581C(task);
-    if (((AcropolisBridgeEnemyWork*)task->work)->hitRecs[0].key == 0) {
-        done = 0;
-        SOFT_BARRIER();
-    } else {
-        done = 1;
-    }
-    if (done != 0) {
+    if (_acropolisBridgeWasHit(task)) {
         work->field_0 = 3;
     }
     if (cfg->coordMtx->t[1] < 0x321) {
