@@ -145083,6 +145083,16 @@ the `*(s32*)(u32)&coords->coord.t[i]` stores used across this file are scalar
 MEMs and so conflict with the scalar global load, where plain
 `coords->coord.t[i]` stores are in-struct and let sched1 sink the load.
 
+A scalar cursor removes those pointer/integer round-trip casts without changing
+the emitted code: initialize `long* translation = coords->coord.t`, then write
+the X, Y and Z values through `*translation++`, `*translation++` and
+`*translation`. In `base_9.c` of the 2026-09-27 dehack retry, `.combine` has plain
+`mem:SI` stores at root offsets 24, 28 and 32; the increments fold away, and
+the scratch score stays at the seed's 99.941% (only its symbol-name difference).
+Using `translation[i]` instead leaves the nonzero indexes as `mem/s:SI` and
+retains an extra array-base instruction. This removes the three cast hacks;
+the work-pointer touch is still needed for allocation.
+
 ### A table declared as one struct makes `(&sym)[k].field` pick `sym + k*size` as the base (func_actor_403200_8013B740, 2026-09-27)
 
 A spawn table declared `extern TaskDesc tbl;` and indexed as `(&tbl)[4].arg.model`
