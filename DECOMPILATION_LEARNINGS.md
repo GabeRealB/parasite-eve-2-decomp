@@ -146013,3 +146013,22 @@ function bodies. The unscoped build and lost-match check pass. Evidence:
 `nonmatchings/func_dryfield_factory_8017D9CC-dehack/base_4.i.jump2` retains both
 call symbols; input SHA256
 `ec5833dbddfb797a219963a3e4ba0398dcb92525285474e2e8629b0a735cce89`.
+
+### An inline accumulator supplies a loop-entry zero without a dummy guard (func_dryfield_night_garage_8017F5C0, 2026-09-27)
+
+A dummy zero with `SOFT_USE_REG2(guard, guard)` kept the inventory loop's
+entry comparison separate from its running count. Simply removing it gives
+95.325%; extracting a zero-initialized quantity getter produces the same code.
+An inline accumulator called as `count = 0; count = addItemCount(item, count);`
+instead preserves the caller's initial value and the helper's running count.
+Both branches add their quantity to the input, so the initialization is read
+and no dead guard assignment is needed.
+
+In `base_14.i.cse2`, the entry comparison uses caller pseudo 85 while the loop
+increments helper parameter 134. `.lreg` reports 4 references / 28 instructions
+for 85 and 7 / 41 for 134; `.greg` assigns s4 and s3 respectively. By `.sched2`
+the initial zero becomes `move s4,s3`, and the final argument uses s3 directly.
+The scratch score equals the seed's 99.786% (`regs=5` only), and the unscoped
+build verifies the complete match. A pointer accumulator retains a stack slot
+instead, so it is not an interchangeable spelling here. Input SHA256:
+`6effee1ff8f14aa5877ab7156ee8668b07badb5e25dcedb45d0d11fd84a37933`.

@@ -1121,21 +1121,32 @@ void func_dryfield_night_garage_8017F2F8(Task* task)
     }
 }
 
+static inline s32 _dryfieldNightGarageAddItemCount(s32 item, s32 count)
+{
+    s32         i;
+    s32         n;
+    McItemRec*  rec;
+    McItemScan* scan;
+
+    if ((u32)(item - 0xA0) < 0x20U) {
+        count += Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, item);
+    } else {
+        scan = &Mc_SaveData[0].carriedItems;
+        rec  = Gp_GetItemTable(scan) + scan->firstRow;
+        n    = scan->rowCount;
+        for (i = 0; i < n; i++) {
+            if (rec[i].itemId == item) {
+                count++;
+            }
+        }
+    }
+    return count;
+}
+
 /// Draws the preview of the item the shop list's cursor rests on and, for an
 /// item id below 0x100, the "Amount" caption with how many of it the player
 /// already holds. Stackable items (0xA0..0xBF) ask the scan for their stack
 /// quantity; everything else is counted by walking the item table.
-///
-/// `guard` is the register the loop's entry test reads. The target compares a
-/// copy of `count` (`move s4,s3` in the branch delay slot) rather than the
-/// loop counter, and everything that keeps GCC 2.8.1 on that shape is
-/// codegen-only:
-///  - the dead `guard = 0` after the last draw makes `guard`, not `count`,
-///    the cse-canonical zero, so the duplicated exit test is rewritten onto it;
-///  - the two soft uses give it four references: with two, local-alloc moves a
-///    single-use constant init next to its use (into the else block, past the
-///    label, where the `move` from `count` can no longer be formed), and with
-///    three it colours after `item` (`$s5`) instead of before (`$s4`).
 void func_dryfield_night_garage_8017F5C0(Task* task)
 {
     u8          buf[0x10];
@@ -1145,11 +1156,6 @@ void func_dryfield_night_garage_8017F5C0(Task* task)
     s32         y;
     s32         ry;
     s32         count;
-    s32         guard;
-    s32         i;
-    s32         n;
-    McItemRec*  rec;
-    McItemScan* scan;
 
     item         = D_dryfield_night_garage_801819EC;
     obj          = task->spawnArg2;
@@ -1171,22 +1177,8 @@ void func_dryfield_night_garage_8017F5C0(Task* task)
         req.field_E    = 1;
         func_8002E53C(&req, D_dryfield_night_garage_80181AC4);
         count = 0;
-        guard = 0;
-        if ((u32)(item - 0xA0) < 0x20U) {
-            count = Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, item);
-        } else {
-            scan = &Mc_SaveData[0].carriedItems;
-            rec  = Gp_GetItemTable(scan) + scan->firstRow;
-            n    = scan->rowCount;
-            SOFT_USE_REG2(guard, guard);
-            for (i = 0; i < n; i++) {
-                if (rec[i].itemId == item) {
-                    count++;
-                }
-            }
-        }
+        count = _dryfieldNightGarageAddItemCount(item, count);
         Text_DrawPrompt(obj, (s16)obj->field_1E - 2, y + 0xA, Text_ItoaSigned(buf, count), 0x606060, 3, 2);
-        guard = 0;
     }
 }
 
