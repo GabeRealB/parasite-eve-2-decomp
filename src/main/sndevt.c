@@ -943,22 +943,25 @@ static void Midi_InitSlot(s32 arg0)
     } while ((s32)i < 0x12);
 }
 
+/// Reads the big-endian 32-bit value at `p`, the form every length in a
+/// Standard MIDI File takes.
+#define MIDI_READ_BE32(p) (((p)[0] << 24) | ((p)[1] << 16) | ((p)[2] << 8) | (p)[3])
+
+/* Returns where the event data of track `arg1` starts. Every chunk is an 8-byte
+ * id/length header followed by `length` bytes, so track 0 follows the file
+ * header chunk at `arg2`, and each later track follows the one before it,
+ * whose data pointer must already be set. */
 static void* Midi_ResolveTrackData(MidiSong* arg0, s32 arg1, u8* arg2)
 {
-    register s32 idx asm("v1");
-    u32          offset;
+    u32 len;
 
-    idx = arg1 & 0xFF;
-    if (idx != 0) {
-        idx  = idx - 1;
-        arg2 = arg0->entries[idx].field_8[8];
-        offset =
-            (arg2[-4] << 24) | (arg2[-3] << 16) | (arg2[-2] << 8) | arg2[-1];
-        return arg2 + offset + 8;
+    if ((u8)arg1 != 0) {
+        arg2 = arg0->entries[(u8)arg1 - 1].field_8[8];
+        len  = MIDI_READ_BE32(arg2 - 4);
+        return arg2 + len + 8;
     }
-    offset = (arg2[4] << 24) | (arg2[5] << 16) | (arg2[6] << 8) | arg2[7];
-    offset = offset + (u32)arg2;
-    return (void*)(offset + 0x10);
+    len = MIDI_READ_BE32(arg2 + 4);
+    return arg2 + 8 + len + 8;
 }
 
 static void Midi_ResetTrackFlags(MidiSong* arg0)

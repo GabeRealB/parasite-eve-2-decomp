@@ -145323,3 +145323,14 @@ spelled through `stream` or `src`.
 **Fix.** Statement order: do the update first, then take `src`/`dst` for the
 copy loop (`stream->offset += base; src = (u8*)stream; dst = ...;`). The move
 then has only the copy loop as a user and keeps its source position.
+
+### Pointer operand behind the offset without a cast: add a constant first (Midi_ResolveTrackData, 2026-09-27)
+
+Target `addu v0,v0,a2; addiu v0,v0,0x10` (offset first, pointer `a2` second).
+`p + len + 16` emits `addu v0,a2,v0` (pointer first, 99.714%), and the tree's
+seed reached the target order with `(void*)(len + (u32)p + 0x10)`. Writing the
+constant *between* pointer and offset, `p + 8 + len + 8`, matches with no cast:
+`fold()` reassociates `(p + 8) + len` so the constant moves out and the
+variable offset ends up as the first operand of the remaining add. Where the
+source already has a natural constant step before the offset (skip a header,
+then the body it sizes), try that spelling before an integer cast.
