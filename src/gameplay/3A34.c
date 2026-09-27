@@ -1053,39 +1053,31 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
 
 static __inline__ void solve_func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
-    u8*                      head;
-    register GpLightScratch* block;
-    SVECTOR*                 dir;
-    MATRIX*                  dirMtx;
-    MATRIX*                  colorMtx;
-    register s32             val;
+    GpLightScratch* block;
+    MATRIX*         dirMtx;
+    MATRIX*         colorMtx;
 
-    head                         = SCRATCH_HEAD(u8);
-    block                        = (GpLightScratch*)(head - 0x1C);
-    dir                          = (SVECTOR*)(head - 0xC);
-    SCRATCH_HEAD(GpLightScratch) = block;
-    dirMtx                       = arg3->lightMtx;
-    colorMtx                     = arg3->colorMtx;
-    Gfx_NormalizeLightDir((VECTOR*)arg1->u.coord.workm.t, dir);
-    SOFT_USE_REG(block);
-    SOFT_USE_REG(block);
+    SCRATCH_PUSH(GpLightScratch);
+    block    = SCRATCH_HEAD(GpLightScratch);
+    dirMtx   = arg3->lightMtx;
+    colorMtx = arg3->colorMtx;
+    Gfx_NormalizeLightDir((VECTOR*)arg1->u.coord.workm.t, &block->dir);
 
     dirMtx->m[arg0][0] = block->dir.vx;
     dirMtx->m[arg0][1] = block->dir.vy;
     dirMtx->m[arg0][2] = block->dir.vz;
 
-    val          = arg1->u.at.scale;
-    block->scale = val;
-    __asm__ volatile("mtc2 %0, $8" : "+&r"(val) : "r"(val));
+    block->scale = arg1->u.at.scale;
+    gte_lddp(block->scale);
     gte_ldsv(&arg1->r);
     gte_gpf12();
-    gte_stsv(dir);
+    gte_stsv(&block->dir);
 
     colorMtx->m[0][arg0] = block->dir.vx;
     colorMtx->m[1][arg0] = block->dir.vy;
     colorMtx->m[2][arg0] = block->dir.vz;
 
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_POP(GpLightScratch);
 }
 
 static __inline__ void solve_func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
