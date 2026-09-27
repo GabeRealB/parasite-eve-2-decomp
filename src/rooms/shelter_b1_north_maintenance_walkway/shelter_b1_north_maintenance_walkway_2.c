@@ -1356,13 +1356,7 @@ static void func_shelter_b1_north_maintenance_walkway_80181E30(GpCoord* arg0, Gp
     s32                g2;
     s32                b2;
 
-    {
-        register u8* tmp asm("v0");
-
-        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
-        blk                = (RoomDraw03Scratch*)tmp;
-        SCRATCH_HEAD(void) = tmp;
-    }
+    blk = SCRATCH_PUSH(RoomDraw03Scratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     i = 0;
