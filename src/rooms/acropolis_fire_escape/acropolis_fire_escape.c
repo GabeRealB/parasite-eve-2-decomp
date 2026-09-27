@@ -1606,30 +1606,20 @@ static void func_acropolis_fire_escape_80180154(Task* task)
 {
     GpEffWork*                      work;
     GpCoord*                        coord;
-    void**                          scratch;
-    u8*                             head;
-    u8*                             tmp;
     AcropolisFireEscapeGlowScratch* block;
     POLY_G4*                        prim;
     s32                             play;
     s32                             i;
     u16                             level;
-    u16                             vx;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
     play  = 0;
     if (Gp_State1C->eventState < 4 && ((0x46 >> (gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
-        scratch = (void**)G_SCRATCH_HEAD;
-        head    = *scratch;
-        vx      = coord->workm.t[0];
-        tmp     = head - 0x18;
-        SOFT_USE_REG(tmp); /* keeps the carve apart from `block`, so the head store takes the copy */
-        block         = (AcropolisFireEscapeGlowScratch*)tmp;
-        block->vec.vx = vx;
+        block         = SCRATCH_PUSH(AcropolisFireEscapeGlowScratch);
+        block->vec.vx = coord->workm.t[0];
         block->vec.vy = coord->workm.t[1];
-        *scratch      = block;
         block->vec.vz = coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
