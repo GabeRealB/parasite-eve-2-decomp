@@ -2123,10 +2123,10 @@ static void func_actor_403100_80136610(Task* arg0)
         Gp_DestroyEnemy(D_actor_403100_8015580C, arg0);
         return;
     }
-    enemy                               = ((volatile Task*)arg0)->spawnArg2;
-    work                                = ((volatile Task*)arg0)->work;
-    obj->lightMtx                       = &work->field_0.matrices.light;
+    enemy                               = arg0->spawnArg2;
     D_actor_403100_8015580C             = enemy;
+    work                                = arg0->work;
+    obj->lightMtx                       = &work->field_0.matrices.light;
     D_actor_403100_80155808             = work;
     obj->colorMtx                       = &work->field_0.matrices.color;
     arg0->msgTable                      = &D_actor_403100_801556EC;
