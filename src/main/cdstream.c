@@ -762,12 +762,8 @@ void CdStream_Start(CdStreamParams* arg0)
     t0->voiceMask       = one << a3->voiceL;
     t0->spuAddr         = a3->spuBase;
     {
-        s32          addr;
-        register s32 mask asm("v1");
-        addr            = a3->spuBase;
-        mask            = a3->voiceR;
-        addr            = addr + 0x10;
-        mask            = one << mask;
+        s32 addr        = a3->spuBase + 0x10;
+        s32 mask        = one << a3->voiceR;
         t0->spuAddr2    = addr;
         t0[1].voiceMask = mask;
     }
