@@ -743,8 +743,8 @@ static void func_actor_361100_80162D28(Task* arg0)
     GpCoord*         coord;
     GpEnemy*         enemy;
 
-    enemy = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
+    enemy = arg0->spawnArg2;
 
     work = (Actor361100Work*)memCalloc(sizeof(Actor361100Work), false);
     if (work == NULL) {
@@ -765,7 +765,6 @@ static void func_actor_361100_80162D28(Task* arg0)
     enemy->recs     = 0;
 
     func_actor_361100_80162E04(arg0);
-    TOUCH_REG(enemy);
 
     arg0->msgTable     = D_actor_361100_8016BAF0;
     arg0->exitCallback = func_actor_361100_80162DE4;
