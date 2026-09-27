@@ -1770,39 +1770,32 @@ static void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
 
 static void Gp_SetSprtShadeBits(s32 arg0)
 {
-    GpAreaKey*           sess;
-    s32                  view;
-    register GpSprtPrim* prim asm("a1");
-    GpSprtTbl*           tbl;
-    GpSprtRec*           recs;
-    GpSprtCmd*           rec;
-    u8*                  p;
-    u32                  i;
-    u8                   flags;
+    GpAreaKey*  sess;
+    s32         view;
+    GpSprtPrim* prim;
+    GpSprtTbl*  tbl;
+    GpSprtRec*  recs;
+    GpSprtCmd*  rec;
+    u32         i;
 
     sess          = &gGameSession->at4.loc;
     view          = Gp_GetViewIndex();
-    prim          = Gp_SprtLists[gDisplayState.drawBuffer];
-    Gp_SprtCursor = prim;
+    Gp_SprtCursor = Gp_SprtLists[gDisplayState.drawBuffer];
     tbl           = Gp_SprtTables[sess->stage - 1];
     recs          = tbl->field_0[sess->area - 1];
     rec           = recs[(u8)view - 1].field_4;
+    prim          = Gp_SprtCursor;
     if (rec->field_0 != 0xFFFF) {
         do {
             if (rec->field_5 == 0) {
                 if (Gp_SprtLists[0] != NULL) {
-                    for (i = 0; i < rec->field_2;) {
-                        p = &prim->field_F;
-                        do {
-                            if (arg0 != 0) {
-                                flags = *p | 1;
-                            } else {
-                                flags = *p & 0xFE;
-                            }
-                            *p = flags;
-                            p += 0x1C;
-                            prim++;
-                        } while (++i < rec->field_2);
+                    for (i = 0; i < rec->field_2; i++) {
+                        if (arg0 != 0) {
+                            prim->field_F |= 1;
+                        } else {
+                            prim->field_F &= ~1;
+                        }
+                        prim++;
                     }
                 }
             }

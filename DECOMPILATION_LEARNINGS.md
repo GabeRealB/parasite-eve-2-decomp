@@ -145146,3 +145146,22 @@ first. The emitted code is unchanged apart from the registers.
 
 **Fix.** `coords = task->extra.tmd->coords;` as the first statement, then the
 push, then the call with `coords`.
+## A global pointer local one register too high: store the global first, then read the local back from it (Gp_SetSprtShadeBits, 2026-09-27)
+
+**Shape.** A function sets a cursor global from a table (`lw $a1,0(...)`,
+`sw $a1,%lo(cursor)`) and then walks a loop with the same pointer in `$a1`.
+Written as `prim = table[i]; cursor = prim;`, the pointer is a global-alloc
+allocno of low priority (few refs over a long span), so the loop counter and
+other pseudos take `$a1`/`$a2` first and the pointer lands in `$t0`: a pure
+register permutation, which the tree pinned with `register asm("a1")`.
+
+**Cause.** `cursor = table[i]; ... prim = cursor;` reads the global back; CSE
+turns that read into a copy from the load's block-local pseudo. Local-alloc
+places the temp in the lowest free register (`$a1`), and the copy gives `prim`
+a preference for it. Global-alloc's `find_reg` makes every conflicting allocno
+avoid a register someone prefers on its first pass, so the counter moves up
+to `$a2`, `prim` gets `$a1`, and the copy is deleted as a no-op.
+
+**Fix.** Store the global from the table and take the working pointer from the
+global, as sibling functions that start from the cursor do. The read may sit
+right after the store or just before the loop; both match.
