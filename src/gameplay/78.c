@@ -1977,7 +1977,6 @@ static void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     GpCoord*         coord;
     GpCoord*         other;
     GpCircleScratch* sc;
-    u8*              head;
     s32              base;
     s32              limit;
     s32              ang;
@@ -1985,19 +1984,12 @@ static void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     s32              t;
     s32              pass;
 
-    slot = gameGetPtrSlot(3);
-    {
-        register u8* newhead asm("v1");
-
-        head                          = SCRATCH_HEAD(u8);
-        newhead                       = head - 0x60;
-        sc                            = (GpCircleScratch*)newhead;
-        coord                         = slot->extra.tmd->coords;
-        sc->rx                        = arg1;
-        sc->ry                        = arg2;
-        base                          = gDisplayState.animFrame << 4;
-        SCRATCH_HEAD(GpCircleScratch) = sc;
-    }
+    slot   = gameGetPtrSlot(3);
+    sc     = SCRATCH_PUSH(GpCircleScratch);
+    coord  = slot->extra.tmd->coords;
+    sc->rx = arg1;
+    sc->ry = arg2;
+    base   = gDisplayState.animFrame << 4;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     if (arg3 & 4) {
         other      = &slot->extra.tmd->coords[4];
@@ -2076,16 +2068,8 @@ static void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
             sc->radius = sc->rx;
         }
         for (i = 0; i < 25; i++) {
-            register s32 prod asm("v1");
-            register s32 val asm("v0");
-
-            ang        = base + ((i << 12) / 24);
-            prod       = sc->radius * rcos(ang);
-            val        = prod >> 12;
-            sc->vec.vx = val;
-            prod       = sc->radius * rsin(ang);
-            val        = prod >> 12;
-            sc->vec.vz = val;
+            ang = base + ((i << 12) / 24);
+            Gp_RingPointXZ(sc, ang);
             Gp_ProjectRingPt(sc);
             if (i != 0) {
                 Gp_LinkRingSeg(sc);
