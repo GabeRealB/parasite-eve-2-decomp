@@ -513,7 +513,9 @@ void func_8002E53C(TextDrawReq* arg0, u8* arg1)
     }
 }
 
-u8* Text_FormatTime(u8* arg0, s32 arg1)
+/// Writes `value` in decimal to `arg0` and terminates it; values past nine
+/// digits are written as all nines.
+static inline u8* _textItoaUnsigned(u8* arg0, u32 value)
 {
     typedef struct {
         u8 data[10];
@@ -523,120 +525,87 @@ u8* Text_FormatTime(u8* arg0, s32 arg1)
     } Bytes2;
 
     u8* dest;
-    u8* ret;
-    u8* ptr;
     u32 place;
-    s32 minutes;
-    u32 mins_work;
-    u32 quot;
-    u32 digit;
-    u32 temp;
-    s32 i;
-    s32 tmp;
-    s32 lt10;
 
-    ptr = arg0;
-    SOFT_TOUCH_REG(ptr);
-    if ((u32)(arg1 & 0xFFFF) > 0xEA5FU) {
-        arg1 = 0xEA5F;
-        ret  = ptr;
+    place = 0x5F5E100;
+    if (value > 0x3B9AC9FEU) {
+        *(Bytes10*)arg0 = *(Bytes10*)D_800138CC;
+    } else if (value == 0) {
+        *(Bytes2*)arg0 = *(Bytes2*)D_800138C8;
     } else {
-        ret = ptr;
-    }
-    arg1 = arg1 & 0xFFFF;
-
-    place     = 0x5F5E100;
-    quot      = (u32)arg1 / 60;
-    minutes   = quot & 0xFFFF;
-    mins_work = minutes;
-    arg1      = arg1 - quot * 60;
-    arg1      = arg1 & 0xFFFF;
-
-    if ((u32)minutes > 0x3B9AC9FEU) {
-        *(Bytes10*)ret = *(Bytes10*)D_800138CC;
-    } else if (minutes == 0) {
-        *(Bytes2*)ret = *(Bytes2*)D_800138C8;
-    } else {
-        dest = ret;
-        if ((u32)minutes < place) {
-            do {
-                place /= 10;
-            } while (mins_work < place);
+        dest = arg0;
+        while (value < place) {
+            place /= 10;
         }
-        if (place != 0) {
-            do {
-                digit  = mins_work / place;
-                *dest  = digit;
-                temp   = *dest & 0xFF;
-                digit  = temp * place;
-                place /= 10;
-                *dest  = temp + 0x30;
-                dest++;
-                mins_work -= digit;
-            } while (place != 0);
+        while (place != 0) {
+            *dest    = value / place;
+            value   -= *dest * place;
+            place   /= 10;
+            *dest++ += '0';
         }
         *dest = 0;
     }
+    return arg0;
+}
 
-    if (minutes < 0x64) {
-        goto check_lt10;
-    }
-    ptr += 3;
-    goto after_off;
-check_lt10:
-    lt10 = minutes < 0xA;
-    if (lt10 != 0) {
-        goto plus1;
-    }
-    ptr += 2;
-    goto after_off;
-plus1:
-    ptr += 1;
-after_off:
-    *ptr = 0x3A;
-    ptr += 1;
+/// Writes `value` in decimal to `arg0` as exactly `width` digits, padded with
+/// leading zeros and clamped to the largest value that fits, and terminates it.
+static inline u8* _textItoaPadded(u8* arg0, u32 value, s32 width)
+{
+    u8* p;
+    u32 place;
+    s32 count;
+    u32 limit;
 
     place = 1;
-    i     = place;
-    do {
-        tmp   = place * 5;
-        place = tmp * 2;
-    } while (--i > 0);
-    i = ((tmp * 8) + place) * 2 - 1;
-    if ((u32)i < (u32)arg1) {
-        arg1 = i;
+    count = width - 1;
+    while (count > 0) {
+        place *= 10;
+        count--;
     }
-    dest = ptr;
-    if ((u32)arg1 < place) {
-        {
-            u32 mag;
-            mag = 0xCCCCCCCD;
-            i   = 0x30;
-            do {
-                asm volatile(
-                    "multu %0, %2\n\t"
-                    "sb %3, 0(%1)\n\t"
-                    "mfhi $12\n\t"
-                    "srl %0, $12, 3"
-                    : "+r"(place)
-                    : "r"(dest), "r"(mag), "r"(i));
-                dest += 1;
-            } while ((u32)arg1 < place);
-        }
+    limit = place * 10 - 1;
+    if (limit < value) {
+        value = limit;
     }
-    if (place != 0) {
-        do {
-            digit  = (u32)arg1 / place;
-            *dest  = digit;
-            temp   = *dest & 0xFF;
-            digit  = temp * place;
-            place /= 10;
-            *dest  = temp + 0x30;
-            dest  += 1;
-            arg1  -= digit;
-        } while (place != 0);
+    p = arg0;
+    while (value < place) {
+        place /= 10;
+        *p++   = '0';
     }
-    *dest = 0;
+    while (place != 0) {
+        *p     = value / place;
+        value -= *p * place;
+        place /= 10;
+        *p++  += '0';
+    }
+    *p = 0;
+    return arg0;
+}
+
+/// Writes a play time given in minutes as `H:MM` to `arg0`, capping it at
+/// 999:59, and returns `arg0`.
+u8* Text_FormatTime(u8* arg0, u16 time)
+{
+    u8* ret;
+    s32 hours;
+    s32 minutes;
+
+    ret = arg0;
+    if (time > 59999) {
+        time = 59999;
+    }
+    hours   = time / 60;
+    minutes = time % 60;
+    _textItoaUnsigned(ret, hours);
+    if (hours >= 100) {
+        arg0 += 3;
+    } else if (hours >= 10) {
+        arg0 += 2;
+    } else {
+        arg0 += 1;
+    }
+    *arg0++ = ':';
+    _textItoaPadded(arg0, minutes, 2);
     return ret;
 }
 
@@ -785,35 +754,7 @@ u8* Text_ItoaSigned(u8* arg0, s32 arg1)
 
 u8* Text_ItoaUnsigned(u8* arg0, u32 arg1)
 {
-    typedef struct {
-        u8 data[10];
-    } Bytes10;
-    typedef struct {
-        u8 data[2];
-    } Bytes2;
-
-    u8* dest;
-    u32 place;
-
-    place = 0x5F5E100;
-    if (arg1 > 0x3B9AC9FEU) {
-        *(Bytes10*)arg0 = *(Bytes10*)D_800138CC;
-    } else if (arg1 == 0) {
-        *(Bytes2*)arg0 = *(Bytes2*)D_800138C8;
-    } else {
-        dest = arg0;
-        while (arg1 < place) {
-            place /= 10;
-        }
-        while (place != 0) {
-            *dest    = arg1 / place;
-            arg1    -= *dest * place;
-            place   /= 10;
-            *dest++ += '0';
-        }
-        *dest = 0;
-    }
-    return arg0;
+    return _textItoaUnsigned(arg0, arg1);
 }
 
 static u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
@@ -906,50 +847,7 @@ static u8* Text_ItoaHex(u8* arg0, u32 arg1)
 
 u8* func_8002F44C(u8* arg0, s32 arg1, s32 arg2)
 {
-    u8* p;
-    u32 place;
-    s32 val;
-    s32 count;
-    u32 limit;
-    u32 raw;
-    u32 digit;
-    s32 product;
-
-    val   = arg1;
-    count = arg2 - 1;
-    place = 1;
-    if (count > 0) {
-        do {
-            place *= 10;
-            count--;
-        } while (count > 0);
-    }
-    limit = place * 10 - 1;
-    if (limit < (u32)val) {
-        val = limit;
-    }
-    p = arg0;
-    if ((u32)val < place) {
-        do {
-            place /= 10;
-            *p     = 0x30;
-            p++;
-        } while ((u32)val < place);
-    }
-    if (place != 0) {
-        do {
-            raw     = (u32)val / place;
-            *p      = raw;
-            digit   = *p;
-            product = digit * place;
-            place  /= 10;
-            *p      = digit + 0x30;
-            p++;
-            val -= product;
-        } while (place != 0);
-    }
-    *p = 0;
-    return arg0;
+    return _textItoaPadded(arg0, arg1, arg2);
 }
 
 u8* Text_SkipLines(u8* arg0, s32 arg1)
