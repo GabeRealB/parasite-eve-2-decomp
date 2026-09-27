@@ -9267,19 +9267,16 @@ s32 func_8010BC70(GpCoord* arg0)
 
 s16 func_8010BCF4(Task* arg0, VECTOR3* arg1)
 {
-    u8*                 head;
-    VECTOR3*            vec;
-    TmdObject*          extra;
-    register GameActor* actor asm("s2");
-    s16                 ret;
+    GpCoord*   coords;
+    VECTOR3*   vec;
+    GameActor* actor;
+    s16        ret;
 
-    extra                 = arg0->extra.tmd;
-    head                  = SCRATCH_HEAD(u8);
-    vec                   = (VECTOR3*)(head - 0x10);
-    SCRATCH_HEAD(VECTOR3) = vec;
-    actor                 = (GameActor*)arg0->work;
-    func_80103C74(extra->coords, arg1, vec);
-    ret = func_80103E7C(actor->field_52, ratan2(((VECTOR3*)(head - 0x10))->vx, vec->vz));
+    coords = arg0->extra.tmd->coords;
+    vec    = SCRATCH_PUSH_BYTES(0x10);
+    actor  = arg0->work;
+    func_80103C74(coords, arg1, vec);
+    ret = func_80103E7C(actor->field_52, ratan2(vec->vx, vec->vz));
     SCRATCH_POP_BYTES(0x10);
     return ret;
 }

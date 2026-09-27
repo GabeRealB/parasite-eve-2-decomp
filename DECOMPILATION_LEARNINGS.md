@@ -145128,3 +145128,21 @@ insns, and the load is several blocks and calls away.
 **Fix.** `if (item < 0xA0) spawn(...); else spawn(...);` around a call the
 function already makes; any placement that keeps the value live across a call
 matches. Prefer the identical-arms form over a folded bit test.
+## Two call-crossing pointers swapped between `$s2`/`$s3`: a local for another call argument lengthens one of their spans (func_8010BCF4, 2026-09-27)
+
+**Shape.** A scratch push (`head` load, `vec = head - K`) and an `actor =
+task->work` load both live across the first call; the target puts `actor` in
+the lower `$s` register and `head` in the higher one. Every spelling of the
+body gave the reverse, and the tree held `actor` with a `register asm("s2")`
+pin. Statement order does not help: sched1 always puts the `actor` load
+directly before the call.
+
+**Cause.** Both are local-alloc quantities ranked by `refs / span` (CODEGEN_MODEL
+§10.3): `head` 3/14 against `actor` 2/10, so `head` goes first. Passing
+`task->extra.tmd->coords` inline lets combine fold its load into the `a0` move;
+held in its own local, the load stays a separate insn and the `move a0,coords`
+lands inside `head`'s live range (span 18, priority 0.167), which puts `actor`
+first. The emitted code is unchanged apart from the registers.
+
+**Fix.** `coords = task->extra.tmd->coords;` as the first statement, then the
+push, then the call with `coords`.
