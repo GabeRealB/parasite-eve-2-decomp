@@ -597,6 +597,12 @@ typedef struct _Actor00300HitScratch {
         }                                                                \
     } while (0)
 
+/// Maps a random byte's low seven bits to a tilt magnitude of 0x40..0xBF.
+static inline s16 _actor00300TiltMagnitude(s8 value)
+{
+    return (value & 0x7F) + 0x40;
+}
+
 static void Actor00300_Fn00E54(Task* arg0)
 {
     Actor100300Work*       work;
@@ -744,10 +750,9 @@ static void Actor00300_Fn00E54(Task* arg0)
                         work->field_684 = 5;
                         work->field_686 = 0;
                     } else {
-                        random = Gp_LcgState * 5 + 0x71357911;
-                        rng    = random >> 16;
-                        tilt   = (rng & 0x7F) + 0x40;
-                        TOUCH_MEM(Gp_LcgState);
+                        random      = Gp_LcgState * 5 + 0x71357911;
+                        rng         = random >> 16;
+                        tilt        = _actor00300TiltMagnitude(rng);
                         bit         = rng & 1;
                         Gp_LcgState = random;
                         if (!bit) {
@@ -755,7 +760,7 @@ static void Actor00300_Fn00E54(Task* arg0)
                         }
                         work->field_65C.vx = tilt;
                         byte1              = rng >> 8;
-                        val                = (byte1 & 0x7F) + 0x40;
+                        val                = _actor00300TiltMagnitude(byte1);
                         if (!(byte1 & 1)) {
                             val = -val;
                         }
