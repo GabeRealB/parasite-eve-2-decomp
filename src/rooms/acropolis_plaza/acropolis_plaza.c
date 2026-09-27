@@ -2251,8 +2251,6 @@ static void func_acropolis_plaza_801811D0(Task* task)
 static void func_acropolis_plaza_80182054(Task* task)
 {
     GpCoord*                   coord;
-    u8 *                       head, *raw;
-    u16                        vz;
     AcropolisPlazaGlowScratch* blk;
     POLY_G4*                   prim;
     s32                        i, pulse;
@@ -2262,22 +2260,18 @@ static void func_acropolis_plaza_80182054(Task* task)
 
     coord = task->extra.tmd->coords;
     Gp_UpdateCoord(coord);
-    head = SCRATCH_HEAD(void);
-    raw  = head - 0x14;
-    SOFT_TOUCH_REG(raw);
-    blk                = (AcropolisPlazaGlowScratch*)raw;
-    blk->vec.vx        = (u16)coord->workm.t[0];
-    blk->vec.vy        = (u16)coord->workm.t[1];
-    vz                 = (u16)coord->workm.t[2];
-    SCRATCH_HEAD(void) = blk;
-    blk->vec.vz        = vz;
+    SCRATCH_PUSH(AcropolisPlazaGlowScratch);
+    blk         = SCRATCH_HEAD(AcropolisPlazaGlowScratch);
+    blk->vec.vx = coord->workm.t[0];
+    blk->vec.vy = coord->workm.t[1];
+    blk->vec.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((AcropolisPlazaGlowScratch*)(head - 0x14))->vec);
+    gte_ldv0(&blk->vec);
     gte_rtps();
-    gte_stsxy(&((AcropolisPlazaGlowScratch*)(head - 0x14))->sx);
+    gte_stsxy(&blk->sx);
     gte_stszotz(&blk->otz);
-    if (((AcropolisPlazaGlowScratch*)(head - 0x14))->otz >= 0x11) {
+    if (blk->otz >= 0x11) {
         if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
             if (task->spawnArg1 < 0x10) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -2286,7 +2280,7 @@ static void func_acropolis_plaza_80182054(Task* task)
                 red         = shade0;
                 green       = shade0;
                 blue        = (u32)brightness >> 18;
-                blk->half   = 0xC000 / ((AcropolisPlazaGlowScratch*)(head - 0x14))->otz;
+                blk->half   = 0xC000 / blk->otz;
             } else {
                 pulse = gDisplayState.animFrame * 6;
                 if (pulse & 0x80) {
@@ -2321,7 +2315,7 @@ static void func_acropolis_plaza_80182054(Task* task)
             }
         }
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_POP(AcropolisPlazaGlowScratch);
 }
 
 /// Plaza ambient-effect spawner. On its first frame only, it fires three bursts
