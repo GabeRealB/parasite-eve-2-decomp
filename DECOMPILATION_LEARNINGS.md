@@ -141457,7 +141457,7 @@ just `addPrim(&ot[scratch->otz], p)` re-reading after the store to `p->tag`.
 
 The target copies a loaded value, adds to the copy in place, and then reads the
 original as the right-hand operand of a later add (`end = top; end += count;
-sel = row + top`). The tree keeps two pins and a `TOUCH_REG` for it. Every plain
+sel = row + top`). This initially kept two pins and a `TOUCH_REG`. Every plain
 spelling fails on one of four mechanisms, which is worth knowing before trying
 them again:
 
@@ -141475,6 +141475,17 @@ them again:
 
 The remaining allocation (`t` in `a1`, not `a0`) only follows once the copy is
 live in `a0`. Nothing has been found that reproduces both at once.
+
+Follow-up (2026-09-27): the `top` pin can be removed by storing `row + top`
+directly to the selection field and moving both upper-bound clamps into
+`_gpClampArmorRow(menu, end)`. With the clamps in the caller, `end - 1`
+inherits the pinned end's `a0`; the inline parameter instead uses the sum's
+pseudo (`r448` in `base_16.i.cse`), and the decrement result (`r453`) locally
+allocates to `v0`. `base_16.c` preserves the seed's 99.971% score and the full
+build matches. The end pin and `TOUCH_REG` remain: unpinning end exchanges
+`a0`/`a1`, and removing the barrier still eliminates the copy. Evidence is in
+`nonmatchings/Gp_ArmorMenuTask-dehack`; preprocessed input SHA256
+`f9d920b291bf8c683378cc6bff69e6cde2219323016ed7d276f3dbb73c145c73`.
 
 ## An inline helper called without its header compiles to a real `jal`, silently (bearing helpers, 2026-09-26)
 

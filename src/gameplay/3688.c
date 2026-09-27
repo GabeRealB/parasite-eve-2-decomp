@@ -2709,6 +2709,17 @@ void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
     }
 }
 
+/// Keeps the armor attachment selection within the visible rows and item count.
+static inline void _gpClampArmorRow(UiList* menu, s32 end)
+{
+    if (menu->field_10 >= end) {
+        menu->field_10 = end - 1;
+    }
+    if (menu->field_10 >= menu->field_4) {
+        menu->field_10 = menu->field_4 - 1;
+    }
+}
+
 void Gp_ArmorMenuTask(Task* arg0)
 {
     UiObject*     obj;
@@ -3026,7 +3037,7 @@ void Gp_ArmorMenuTask(Task* arg0)
             if (t < 0) {
                 menu->field_10 = (s8)menu->field_9;
             } else {
-                register s32 row9 asm("v0");
+                s32          row9;
                 s32          f5;
                 register s32 vis asm("a0");
                 t    = t / h;
@@ -3036,15 +3047,8 @@ void Gp_ArmorMenuTask(Task* arg0)
                 TOUCH_REG(vis);
                 vis            = vis + f5;
                 t              = t + 1;
-                row9           = t + row9;
-                menu->field_10 = row9;
-                if (row9 >= vis) {
-                    row9           = vis - 1;
-                    menu->field_10 = row9;
-                }
-                if (menu->field_10 >= (s32)menu->field_4) {
-                    menu->field_10 = menu->field_4 - 1;
-                }
+                menu->field_10 = t + row9;
+                _gpClampArmorRow(menu, vis);
             }
         }
         obj->field_2C = 0;
