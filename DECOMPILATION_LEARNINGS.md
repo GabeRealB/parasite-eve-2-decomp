@@ -145364,3 +145364,23 @@ taking `RECT*`, called with `&local`. The parameter gives the field stores
 their register and the calls their per-use frame address, with no pin. Zeroing
 `x`/`y` inside the helper or at the call site both matched, so let the helper's
 purpose decide which.
+## An up-counting loop that recomputes `addu i, base` every iteration stores to a `volatile` object (SndBank_SetEnableFlags, 2026-09-27)
+
+**Target:** `move a1,zero; lui/addiu a2,&D; andi v1,a0,1; L: addu v0,a1,a2;
+sb v1,0(v0); addiu a1,1; slti v0,a1,0x10; bnez v0,L`. The invariants are
+hoisted, so `loop.c` ran, yet the address is neither strength-reduced nor
+counted down.
+
+**Mechanism:** the combined `i + &D` giv is `not worth while, 0 vs 8` on its
+own. A plain `for (i = 0; i < 16; i++) D[i] = x;` still comes out as a
+countdown with a walking pointer, because `check_dbra_loop` reverses a loop
+with one store, and a giv of a reversed biv is reduced unconditionally (the
+entry above). `check_dbra_loop` refuses to reverse when `loop_has_volatile`,
+so a `volatile` array keeps the counter counting up and leaves the giv
+unreduced. A `goto` loop only gets the same shape with the invariants hoisted
+by hand, plus a register pin.
+
+Same function: `D[(u32)(id & 0xF0000000) >> 28] = x;` followed by a test of
+`(id & 0xF0000000) == K` (CSE shares the `and`) loads `&D` *before* the mask,
+because an `ARRAY_REF` expands its base first. The m2c form, `id &= mask;` as
+a separate statement, puts the mask first.

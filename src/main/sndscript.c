@@ -5,7 +5,7 @@
 #include "main/unknown_syms.h"
 #include "main/cdaudio.h"
 
-static u8 D_80082138[0x10];
+static volatile u8 D_80082138[0x10];
 
 /// The loaded sound banks: one record per bank, at the slot its bank type maps
 /// to.
@@ -575,35 +575,23 @@ void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1)
 
 void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
 {
-    u8*              ptr;
-    register s32     flag asm("v1");
     SndEvt*          temp;
     SndEvtVoiceArgs* args;
 
     if (arg1 == 0x80000000) {
-        arg1 = 0;
-        ptr  = D_80082138;
-        flag = arg0 & 1;
-    loop:
-        *(u8*)(arg1 + (s32)ptr) = flag;
-        arg1                   += 1;
-        if (arg1 < 0x10) {
-            goto loop;
+        for (arg1 = 0; arg1 < 0x10; arg1++) {
+            D_80082138[arg1] = arg0 & 1;
         }
     } else {
-        flag                                  = (s32)D_80082138;
-        arg1                                 &= 0xF0000000;
-        ((volatile u8*)flag)[(u32)arg1 >> 28] = arg0 & 1;
-        if (arg0 == 0) {
-            if (arg1 == 0x40000000) {
-                temp = sndEvtAlloc();
-                if (temp != NULL) {
-                    temp->handlerIdx = 7;
-                    args             = &temp->args.voice;
-                    args->id         = SndBank_RemapId(0x40000000);
-                    args->stopFrames = 1;
-                    sndEvtEnqueue(temp);
-                }
+        D_80082138[(u32)(arg1 & 0xF0000000) >> 28] = arg0 & 1;
+        if (arg0 == 0 && (arg1 & 0xF0000000) == 0x40000000) {
+            temp = sndEvtAlloc();
+            if (temp != NULL) {
+                temp->handlerIdx = 7;
+                args             = &temp->args.voice;
+                args->id         = SndBank_RemapId(0x40000000);
+                args->stopFrames = 1;
+                sndEvtEnqueue(temp);
             }
         }
     }
