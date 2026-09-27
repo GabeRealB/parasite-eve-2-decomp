@@ -990,13 +990,7 @@ static void func_shelter_1f_parking_garage_8017FB60(GpCoord* arg0, GpCoord* arg1
     s32                g2;
     s32                b2;
 
-    {
-        register u8* tmp asm("v0");
-
-        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
-        blk                = (RoomDraw03Scratch*)tmp;
-        SCRATCH_HEAD(void) = tmp;
-    }
+    blk = SCRATCH_PUSH(RoomDraw03Scratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     i = 0;
