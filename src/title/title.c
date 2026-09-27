@@ -413,10 +413,10 @@ void Title_DemoStreamTask(Task* task)
 
 void Title_BootTask(Task* arg0)
 {
-    u8             param1[4];
-    u8             param2[4];
-    s32            next;
-    register Task* task asm("s0");
+    u8    param1[4];
+    u8    param2[4];
+    s32   next;
+    Task* task;
 
     task = arg0;
     switch (task->state) {
