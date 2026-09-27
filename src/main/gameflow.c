@@ -494,7 +494,6 @@ void func_8002C1D8(void)
 void Pad_UpdatePort0(void)
 {
     s32           i;
-    PadRawPort*   raw;
     DisplayState* ds;
     PadScratch*   scratch;
     PadState*     pad;
@@ -505,14 +504,13 @@ void Pad_UpdatePort0(void)
     head    = SCRATCH_HEAD_ADDR;
     i       = 0;
     ds      = &gDisplayState;
-    raw     = Pad_RawPorts;
     scratch = SCRATCH_PUSH_AT(head, PadScratch);
 
     do {
         pad = &Pad_States[i];
         if (pad->cooldown == 0) {
-            scratch->rawHi   = raw->field_2;
-            scratch->rawLo   = raw->field_3;
+            scratch->rawHi   = Pad_RawPorts[i].field_2;
+            scratch->rawLo   = Pad_RawPorts[i].field_3;
             buttons          = ~*(u16*)&scratch->rawLo;
             scratch->buttons = buttons;
 
@@ -562,25 +560,18 @@ void Pad_UpdatePort0(void)
                 }
             }
         } else {
-            {
-                volatile u8* cooldown;
-
-                cooldown         = &pad->cooldown;
-                *cooldown        = *cooldown - 1;
-                pad->prevButtons = 0;
-                pad->triggered   = 0;
-                pad->buttons     = 0;
-                if (*cooldown == 0) {
-                    scratch->rawHi = raw->field_2;
-                    scratch->rawLo = raw->field_3;
-                    TOUCH_REG(raw);
-                    buttons          = ~*(u16*)&scratch->rawLo;
-                    scratch->buttons = buttons;
-                    pad->buttons     = buttons;
-                }
+            pad->cooldown--;
+            pad->prevButtons = 0;
+            pad->triggered   = 0;
+            pad->buttons     = 0;
+            if (pad->cooldown == 0) {
+                scratch->rawHi   = Pad_RawPorts[i].field_2;
+                scratch->rawLo   = Pad_RawPorts[i].field_3;
+                buttons          = ~*(u16*)&scratch->rawLo;
+                scratch->buttons = buttons;
+                pad->buttons     = buttons;
             }
         }
-        raw++;
         i++;
     } while (i <= 0);
 
