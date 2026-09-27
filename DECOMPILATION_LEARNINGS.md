@@ -145308,3 +145308,18 @@ tested, so the load says nothing. The zero test does: an `s16` field compiles
 `andi v0,v0,0xffff; bnez`. A tree body that reached the `sll` through
 `*(volatile u16*)` and a hand-shifted `(half << 16) == 0` was standing in for
 an `s16` field declared `u16`; retyping the field removed both.
+## A pointer copy that must lead its block is written after the store through the original pointer (Fs_BuildFolderTables, 2026-09-27)
+
+**Symptom.** After `if (stream->x != 0)` the target copies the pointer
+(`move a2,a0`) as the first insn of the fall-through, so dbr puts it in the
+branch delay slot; ours scheduled the leaf setups (`dst = ...`, `k = 0`) above
+it. The tree held the copy on top with `SOFT_BARRIER()` after `src = stream`.
+
+**Cause.** sched1 places low-priority leaves at the top of a block, and a copy
+feeding the `stream->offset += ...` chain outranks them. CSE makes the
+longer-lived copy canonical either way, so the update uses `a2` whether it is
+spelled through `stream` or `src`.
+
+**Fix.** Statement order: do the update first, then take `src`/`dst` for the
+copy loop (`stream->offset += base; src = (u8*)stream; dst = ...;`). The move
+then has only the copy loop as a user and keeps its source position.

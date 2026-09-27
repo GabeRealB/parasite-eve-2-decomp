@@ -912,10 +912,9 @@ loop_files:
 loop_streams:
     stream = (FsCdfStream*)(((j & 0xFFFF) * 0x28) + (s32)streams);
     if (*(s32*)&stream->data.movie.field_c != 0) {
-        src = (u8*)stream;
-        SOFT_BARRIER();
-        dst             = (u8*)(((j & 0xFFFF) * 0x28) + (s32)destBase);
         stream->offset += files->offset + *table;
+        src             = (u8*)stream;
+        dst             = (u8*)(((j & 0xFFFF) * 0x28) + (s32)destBase);
         for (k = 0; (u16)k < 0x28; k++) {
             dst[k & 0xFFFF] = src[k & 0xFFFF];
         }
