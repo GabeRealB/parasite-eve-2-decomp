@@ -2127,20 +2127,19 @@ L_case5:
 /// at tick 0x50, then kills itself at tick 0x78.
 void func_dryfield_night_motel_room_6_80181A0C(Task* task)
 {
-    s32 zero;
-
     switch (task->state) {
         case 0x50:
         case 0x0:
-            zero = 0;
-            TOUCH_REG(zero);
-            SndEvt_EnqueueType6((s32)task->spawnArg2, zero, zero);
+            SndEvt_EnqueueType6((s32)task->spawnArg2, 0, 0);
+            task->state += 1;
             break;
         case 0x78:
             Task_RequestKill(task, 0);
-            return;
+            break;
+        default:
+            task->state += 1;
+            break;
     }
-    task->state += 1;
 }
 
 /// Runs the cap command for events 6, 0xD and 0xB, picking an alternative
