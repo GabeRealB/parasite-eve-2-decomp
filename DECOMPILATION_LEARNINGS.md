@@ -145111,3 +145111,20 @@ CSE merges them and only one register remains.
 
 **Fix.** Load the pointer before the scratch push, and let the repeated block
 be a `static inline` helper that fetches it from the task itself.
+
+## A dead load held in an `$s` register to the end of the function is a test whose arms were merged after allocation (Gp_ItemPickupTilt, 2026-09-27)
+
+**Symptom.** `lhu s4,0xA(a2)` in the entry block, never read again, while the
+function makes calls throughout. Seeded with `USE_REG(item)` at the end.
+
+**Cause.** Something used the value after `flow` computed lifetimes but was
+deleted before output, so the pseudo got a call-saved register and the load
+stayed. Two mechanisms produce it: an `if` with identical arms, merged by the
+post-reload cross-jump, and a test that `combine` folds from `nonzero_bits`
+(`u16 >> 16`), which CSE cannot. Unlike the single-block case above, one
+compare is enough here: `delete_computation` walks back only through plain
+insns, and the load is several blocks and calls away.
+
+**Fix.** `if (item < 0xA0) spawn(...); else spawn(...);` around a call the
+function already makes; any placement that keeps the value live across a call
+matches. Prefer the identical-arms form over a folded bit test.

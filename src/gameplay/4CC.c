@@ -1233,7 +1233,12 @@ void Gp_ItemPickupTilt(Task* arg0)
         Gfx_RotMatrixX(&rot->coord, arg0->killCountdown << 5, 1);
         rot->flg = 0;
         if (arg0->killCountdown >= 0x14) {
-            Display_InitModeObj(Task_GetDesc(1, 0x26), 0, (s32)arg0->spawnArg2, 0);
+            /* Unique items and stackables open the same pickup result task. */
+            if (item < 0xA0) {
+                Display_InitModeObj(Task_GetDesc(1, 0x26), 0, (s32)arg0->spawnArg2, 0);
+            } else {
+                Display_InitModeObj(Task_GetDesc(1, 0x26), 0, (s32)arg0->spawnArg2, 0);
+            }
             arg0->state++;
         }
     } else if (arg0->state >= 3) {
@@ -1305,7 +1310,6 @@ void Gp_ItemPickupTilt(Task* arg0)
     vec2 = D_80093DB0;
     Gp_UpdateCoord(arg0->extra.tmd->coords);
     func_800D7A9C(extra, &vec2, 0, 3);
-    USE_REG(item);
 }
 
 static void Gp_ForEachUiChild(UiObject* arg0, void (*arg1)(UiObject*, Task*))
