@@ -2737,8 +2737,6 @@ static void func_800D0614(Task* arg0)
     POLY_FT4*       p;
     SPRT*           sprt;
     DR_TPAGE*       dr;
-    s32             one;
-    u16             tpage;
 
     obj                          = arg0->spawnArg2;
     p                            = (POLY_FT4*)gGpuPrimCursor;
@@ -2754,14 +2752,10 @@ static void func_800D0614(Task* arg0)
     setRGB0(p, 0x80, 0x80, 0x80);
     p->clut = 0x4000;
     setSemiTrans(p, 1);
-    tpage = GetTPage(1, 0, 0x380, 0x20);
-    one   = 1;
-    /* Keep the shared constant initialization before the texture-page store. */
-    SCHED_BARRIER();
-    p->tpage = tpage;
+    p->tpage = GetTPage(1, 0, 0x380, 0x20);
+    p->u0 = p->u2 = 1;
     p->v0 = p->v1 = 0x20;
     p->u3 = p->u1 = 0xFF;
-    p->u0 = p->u2 = one;
     p->v3 = p->v2 = 0xF0;
     p->x0 = p->x2 = pos->x - 0x7F;
     p->y0 = p->y1 = pos->y - 0x68;
