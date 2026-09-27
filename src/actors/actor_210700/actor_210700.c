@@ -266,16 +266,15 @@ s32 func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* msg, s32 a
 {
     Actor210700Work* work;
     s32              i;
-    register s32     id asm("v1");
     TmdObject*       ext;
 
     work = (Actor210700Work*)task->work;
-    id   = msg->field_0;
     ext  = task->extra.tmd;
-    if (id != work->field_47C) {
+    if (msg->field_0 != work->field_47C) {
+        work->field_47C = msg->field_0;
         work->field_478 = -1;
-        work->field_47C = id;
-        func_800B3F84(&work->rig.anim, D_actor_210700_801585C8[id], ext, work->rig.poses, work->rig.slots);
+        func_800B3F84(&work->rig.anim, D_actor_210700_801585C8[work->field_47C], ext, work->rig.poses,
+                      work->rig.slots);
     }
     if (msg->field_4 != work->field_478) {
         work->field_478 = msg->field_4;
