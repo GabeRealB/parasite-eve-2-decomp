@@ -1114,6 +1114,7 @@ static __inline__ void Actor405800_ProjectPart(GpCoord* part)
     }
     block->otz = (block->otz >> 4) + 0x1E;
     func_actor_405800_80131FC8(block->otz);
+    SCRATCH_POP(Actor405800PerspScratch);
 }
 
 static void func_actor_405800_80133800(Task* arg0)
@@ -1126,7 +1127,6 @@ static void func_actor_405800_80133800(Task* arg0)
     GpCoord*         root  = coord;
     TaskFuncTable18  fns   = D_actor_405800_80131E64;
     Actor405800Work* w;
-    u8*              head;
 
     switch (Gp_StateF0.field_4) {
         case 2:
@@ -1154,11 +1154,7 @@ static void func_actor_405800_80133800(Task* arg0)
             actorUpdateModelColor(arg0);
             func_actor_405800_80132E3C(arg0, work->field_86A, work->field_866);
             Actor405800_ProjectPart(part);
-            __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
-            head             = *(u8**)(head + 0x3FC);
-            head            += 0x18;
-            SCRATCH_HEAD(u8) = head;
-            model->flags    &= 0xFF7F;
+            model->flags &= 0xFF7F;
             break;
     }
 }
