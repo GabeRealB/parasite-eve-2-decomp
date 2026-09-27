@@ -2109,7 +2109,6 @@ void func_actor_560800_801363F8(u16 arg0)
 {
     Actor560800Work*     work;
     Actor560800AnimWork* anim;
-    u16                  i;
 
     work = (Actor560800Work*)D_actor_560800_8017578C->work;
     anim = (Actor560800AnimWork*)work->field_4->work;
@@ -2117,14 +2116,7 @@ void func_actor_560800_801363F8(u16 arg0)
     anim->field_4B8 = arg0;
     anim->field_4C8 = 0x10;
     anim->field_4BE = 0;
-    SOFT_BARRIER();
-    i = 1;
-    if (i < anim->field_4BA) {
-        do {
-            func_800B4114(&anim->rig.anim, i, arg0, 0, 10);
-            i++;
-        } while (i < anim->field_4BA);
-    }
+    _ACTOR560800_BLEND_SLOTS(anim, arg0, 10);
 }
 
 /// Reseeds the animation slots of the sub-task at `field_C` from `arg0`: the
