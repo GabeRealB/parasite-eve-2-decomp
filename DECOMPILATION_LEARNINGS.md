@@ -144839,3 +144839,20 @@ Declaring the object as what it is - `extern TaskDesc tbl[];`, used as
 single constant address `tbl+0x38`, so the plain symbol is the shared base. The
 previous source reached the same bytes with a `desc` local, a hand-rolled goto
 loop and a `SOFT_USE_REG`; all three went away with the declaration.
+## Anonymous-tail cross-jumping needs the last arm to fall into the exit: put `default: return 1;` first (func_actor_403200_80134900, 2026-09-27)
+
+Three arms of a view selector end in the same `if (!flag) value = 0x19;` test,
+and the first two are identical (`value = 0x25; flag = dist < 0x1E5A`). The
+target keeps both, each a `j` into the third arm's test. A shared tail after
+the `if`/`else` gives the test a label of its own, so jump2 merges the two
+identical arms (see "A join label at the merge point..." above); the seed held
+them apart with `SOFT_BARRIER()`. Duplicating the tail into every arm was not
+enough on its own: with `return 1;` after the switch, its `li v0,1` block sat
+between the last arm and the exit label, so no arm's tail could cross-jump into
+the fallthrough. The first arm's tail then matched the second's whole block
+through `jump_chain` and swallowed it. Writing the out-of-range case first,
+`switch (arg1) { default: return 1; case 0: case 1: case 2: ... }`, lets the
+last arm fall into the exit. Each earlier arm's tail then merges into it
+through a new, unchained label, and the two identical arms can no longer find
+each other. When the anonymous-tail trick does not work, look at what sits
+between the last arm and the label the arms return to.

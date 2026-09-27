@@ -1481,27 +1481,35 @@ s32 func_actor_403200_80134900(Task* arg0, s16 arg1)
     dist  += pos.vy * pos.vy;
     dist   = SquareRoot0(dist + (pos.vz * pos.vz));
     switch (arg1) {
+        default:
+            return 1;
         case 0:
         case 1:
         case 2:
             flag = view;
             if ((flag != 0x25) && (flag != 0x19)) {
                 value = 0x25;
-                SOFT_BARRIER();
-                flag = dist < 0x1E5A;
+                flag  = dist < 0x1E5A;
+                if (!flag) {
+                    value = 0x19;
+                }
+                return value;
             } else if (flag == 0x25) {
                 value = 0x25;
                 flag  = dist < 0x1E5A;
+                if (!flag) {
+                    value = 0x19;
+                }
+                return value;
             } else {
                 value = 0x25;
                 flag  = dist < 0x1B58;
+                if (!flag) {
+                    value = 0x19;
+                }
+                return value;
             }
-            if (!flag) {
-                value = 0x19;
-            }
-            return value;
     }
-    return 1;
 }
 
 /// Reference positions the view selector below measures the player against.
