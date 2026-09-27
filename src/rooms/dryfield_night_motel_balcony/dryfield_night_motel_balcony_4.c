@@ -598,36 +598,29 @@ static void func_dryfield_night_motel_balcony_8017F84C(Task* task)
 /// `index & 7`. The quad's half-extent is the frame width times `pos.vx`
 /// divided by the projected depth, rotated by `pos.vz`. A non-NULL `color`
 /// tints the quad and makes it semi-transparent; NULL draws it raw. `arg` is
-/// unused. The block pointer goes through an `asm` move for the same reason as
-/// in `func_dryfield_night_motel_balcony_8018221C`.
+/// unused.
 static void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
 {
     GpEffWork*       work  = task->spawnArg2;
     GpCoord*         coord = task->extra.tmd->coords;
-    u8*              head;
     GpFxQuadScratch* block;
-    GpFxQuadScratch* vecp;
     POLY_FT4*        prim;
     s16              size;
-    u16              vx;
 
-    size                                      = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1].w - 1;
-    head                                      = SCRATCH_HEAD(void);
-    vx                                        = (u16)coord->workm.t[0];
-    vecp                                      = (GpFxQuadScratch*)(head - 0x1C);
-    SCRATCH_HEAD(void)                        = vecp;
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
-    __asm__("move %0,%1" : "=r"(block) : "r"(vecp));
-    block->vec.vy = (u16)coord->workm.t[1];
-    block->vec.vz = (u16)coord->workm.t[2];
+    size = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1].w - 1;
+    SCRATCH_PUSH(GpFxQuadScratch);
+    block         = SCRATCH_HEAD(GpFxQuadScratch);
+    block->vec.vx = coord->workm.t[0];
+    block->vec.vy = coord->workm.t[1];
+    block->vec.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&block->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -652,19 +645,19 @@ static void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s3
         prim->v3    = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1].v + size;
         block->dx   = (((size * work->pos.vx) / block->otz) * rsin(work->pos.vz)) >> 12;
         block->dy   = (((size * work->pos.vx) / block->otz) * rcos(work->pos.vz)) >> 12;
-        prim->x0    = block->sx + (u16)block->dx;
-        prim->x3    = block->sx - (u16)block->dx;
-        prim->y0    = block->sy - (u16)block->dy;
-        prim->y3    = block->sy + (u16)block->dy;
+        prim->x0    = block->sx + block->dx;
+        prim->x3    = block->sx - block->dx;
+        prim->y0    = block->sy - block->dy;
+        prim->y3    = block->sy + block->dy;
         block->dx   = (((size * work->pos.vx) / block->otz) * rsin(work->pos.vz + 0x400)) >> 12;
         block->dy   = (((size * work->pos.vx) / block->otz) * rcos(work->pos.vz + 0x400)) >> 12;
-        prim->x1    = block->sx + (u16)block->dx;
-        prim->x2    = block->sx - (u16)block->dx;
-        prim->y1    = block->sy - (u16)block->dy;
-        prim->y2    = block->sy + (u16)block->dy;
+        prim->x1    = block->sx + block->dx;
+        prim->x2    = block->sx - block->dx;
+        prim->y1    = block->sy - block->dy;
+        prim->y2    = block->sy + block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_POP(GpFxQuadScratch);
 }
 
 static void func_dryfield_night_motel_balcony_80180580(Task* task)
