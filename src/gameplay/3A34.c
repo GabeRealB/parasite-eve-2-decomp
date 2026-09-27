@@ -3418,7 +3418,6 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1)
     s32               ret;
     s32               tapered;
     VECTOR3*          pos;
-    s32               ratioDelta;
     s32               radiusSquared;
     s32               dx0;
     s32               dy0;
@@ -3439,7 +3438,7 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1)
     s32               plen;
     s32               r0;
     s32               r1;
-    s32               radius;
+    s32               tmp; // combined radius on a straight capsule, taper ratio less 1.0 on a tapered one
 
     head               = SCRATCH_HEAD(u8);
     pos                = (VECTOR3*)(head - 0x78);
@@ -3482,11 +3481,11 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1)
     r1      = rec->end0Radius;
     tapered = r1 != rec->end1Radius;
     if (!tapered) {
-        radius        = (u16)arg0->radius + r1;
+        tmp           = (u16)arg0->radius + r1;
         block->hit.vx = (u16)block->planeB.vx + ((block->normal.vx * proj) >> 12);
         block->hit.vy = (u16)block->planeB.vy + ((block->normal.vy * proj) >> 12);
         block->hit.vz = (u16)block->planeB.vz + ((block->normal.vz * proj) >> 12);
-        proj          = radius;
+        proj          = tmp;
         goto check;
     }
 
@@ -3520,12 +3519,11 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1)
     proj             = len;
     plen             = SquareRoot0(dx3 + dy3 + dz3);
 
-    r0         = (rec->end0Radius << 12) / rec->end1Radius;
-    proj       = (plen << 12) / proj;
-    ratioDelta = r0 - 0x1000;
-    SOFT_TOUCH_REG_USE(ratioDelta, r0);
+    r0            = (rec->end0Radius << 12) / rec->end1Radius;
+    proj          = (plen << 12) / proj;
+    tmp           = r0 - 0x1000;
     r1            = (u16)arg0->radius;
-    proj          = r1 + ((((ratioDelta * proj) >> 12) * rec->end1Radius >> 12) + rec->end1Radius);
+    proj          = r1 + ((((tmp * proj) >> 12) * rec->end1Radius >> 12) + rec->end1Radius);
     block->hit.vx = (u16)block->scaled.vx + (u16)block->planeB.vx;
     block->hit.vy = (u16)block->scaled.vy + (u16)block->planeB.vy;
     block->hit.vz = (u16)block->scaled.vz + (u16)block->planeB.vz;
