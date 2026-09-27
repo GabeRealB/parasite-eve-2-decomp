@@ -1138,8 +1138,6 @@ void func_acropolis_fire_escape_8017F48C(Task* task)
     s32              a0;
     s32              a1;
     s32              flag;
-    s32              key;
-    s32              one;
     RoomCutsceneRec* script;
     McSaveData*      save;
 
@@ -1228,41 +1226,32 @@ void func_acropolis_fire_escape_8017F48C(Task* task)
                     }
                 }
             }
-            cmd = script->field_1;
-            one = 1;
-            SOFT_TOUCH_REG(one);
-            if (cmd != one) {
-                goto L_run_cmd;
+            if (script->field_1 == 1) {
+                Gp_RunCapCmd(GameFlag_GetNibble(0x155) + 0x10, 0);
+            } else {
+                Gp_RunCapCmd(script->field_1, 0);
             }
-            cmd = GameFlag_GetNibble(0x155) + 0x10;
-        L_run_cmd:
-            Gp_RunCapCmd(cmd, 0);
-            flag = GameFlag_GetNibble(0x7A);
-            if (flag != 1) {
-                goto L_case7_done;
-            }
-            if (GameFlag_GetNibble(0) == 2) {
-                GameFlag_SetNibble(0, 3);
-                GameFlag_SetNibble(0xE, 4);
-                if ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
-                    Gp_ApplyAreaRecs(D_80188888);
-                    func_800E3FAC(0xA2, 5);
+            if (GameFlag_GetNibble(0x7A) == 1) {
+                if (GameFlag_GetNibble(0) == 2) {
+                    GameFlag_SetNibble(0, 3);
+                    GameFlag_SetNibble(0xE, 4);
+                    if ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
+                        Gp_ApplyAreaRecs(D_80188888);
+                        func_800E3FAC(0xA2, 5);
+                    }
                 }
             }
-        L_case7_done:
             task->state++;
             break;
         case 8:
             if (Gp_CapBusy() == 0) {
-                if (GameFlag_GetNibble(0x155) == 0xE) {
-                    if (GameFlag_GetNibble(3) == 0) {
-                        GameFlag_SetNibble(3, 1);
-                        task->state = 0x14;
-                        break;
-                    }
+                if ((GameFlag_GetNibble(0x155) == 0xE) && (GameFlag_GetNibble(3) == 0)) {
+                    GameFlag_SetNibble(3, 1);
+                    task->state = 0x14;
+                } else {
+                    Gp_RunCapCmd1(task->spawnArg1);
+                    task->state++;
                 }
-                Gp_RunCapCmd1(task->spawnArg1);
-                task->state++;
             }
             break;
         case 9:
@@ -1314,25 +1303,20 @@ void func_acropolis_fire_escape_8017F48C(Task* task)
             }
             break;
         case 22:
-            key = Gp_GetCapEventKey();
-            if (key == 0xB) {
-                goto L_keyB;
+            switch (Gp_GetCapEventKey()) {
+                case 11:
+                    Gp_RunCapCmd(0x20, 0);
+                    task->state++;
+                    break;
+                case 12:
+                    Gp_RunCapCmd(0x21, 0);
+                    task->state++;
+                    break;
+                default:
+                    GameFlag_SetNibble(3, 2);
+                    task->state = 8;
+                    break;
             }
-            if (key == 0xC) {
-                goto L_keyC;
-            }
-            goto L_keyDefault;
-        L_keyB:
-            Gp_RunCapCmd(0x20, 0);
-            task->state++;
-            break;
-        L_keyC:
-            Gp_RunCapCmd(0x21, 0);
-            task->state++;
-            break;
-        L_keyDefault:
-            GameFlag_SetNibble(3, 2);
-            task->state = 8;
             break;
         case 23:
             if (Gp_CapBusy() == 0) {
