@@ -144895,3 +144895,15 @@ block as one `s16 field_0[0x40]`, so the second ring became
 `[i + N]` into an array of exactly `2N`, and especially where a sibling
 overlay or file declares the same block with two arrays, try the two-array
 view before steering the address arithmetic.
+
+### A halfword then a byte store of the same constant: only an `s32` local makes both reuse an earlier register (func_actor_800200_80164598, 2026-09-27)
+
+The target stores `sh s2,0x95E` then `sb s2,0x973`, where `s2` already holds
+the switch's `1`. Written as two `= 1` stores, the `sh` takes `s2` but the
+`sb` gets a fresh `li v0,1`: expand gives each store its own `HImode`/`QImode`
+constant pseudo, and CSE rewrites the byte's constant to a subreg of the
+halfword's pseudo, which then survives because the byte store still reads it.
+Reversing the stores, or a chained `a = b = 1`, shares `s2` but in the wrong
+order. A named `s32` local (`flag = 1; a = flag; b = flag;`), the same shape
+sibling actors use for their `1` flags, gives one `SImode` pseudo that CSE
+folds onto `s2` for both stores.
