@@ -317,25 +317,28 @@ void func_actor_335800_801621B4(s32 arg0)
     }
 }
 
+/// Moves the saved and the live location to `view` and marks the view and
+/// the room objects for reloading.
+static inline void _actor335800SetView(s32 view)
+{
+    Mc_SaveData[0].at4.loc.view = view;
+    gGameSession->at4.loc.view  = view;
+    gGameSession->viewDirty     = 1;
+    gGameSession->roomObjsDirty = 1;
+}
+
 void func_actor_335800_8016224C(void)
 {
-    register u8 areaId asm("a0");
-    Task*       slot;
-    TmdObject*  extra;
-    GpCoord*    coord;
+    Task* slot;
+    s16   view;
 
     slot = gameGetPtrSlot(3);
     if (slot != NULL) {
-        areaId = 6;
-        extra  = slot->extra.tmd;
-        coord  = extra->coords;
-        if (coord->coord.t[2] >= 0xC53) {
-            areaId = 5;
+        view = 6;
+        if (slot->extra.tmd->coords->coord.t[2] >= 0xC53) {
+            view = 5;
         }
-        Mc_SaveData[0].at4.loc.view = areaId;
-        gGameSession->at4.loc.view  = areaId;
-        gGameSession->viewDirty     = 1;
-        gGameSession->roomObjsDirty = 1;
+        _actor335800SetView(view);
     }
 }
 

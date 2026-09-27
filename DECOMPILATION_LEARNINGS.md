@@ -144640,3 +144640,15 @@ a reload of `field_0`. Writing the source store first -
 swaps the two non-aliasing stores back into the target's order. Where a pinned
 local stands in for a field that is copied and then reused, try the store
 order that needs no reload before keeping the local.
+
+## A cross-block byte local pinned to `$a0` is an inline helper whose parameter has another width (func_actor_335800_8016224C, 2026-09-27)
+
+A `view = 6; if (z >= 0xC53) view = 5;` choice stored into two view fields
+matched only with `register u8 view asm("a0")`. Unpinned, the local spans
+blocks, so global-alloc places it after local-alloc has already given the
+store block's `%hi(gGameSession)` pseudo `$a0`, and the two swap. Passing the
+local to a `static inline` setter whose parameter is a different width
+(`s16` local, `s32` parameter, or the reverse) makes the conversion a separate
+pseudo; the swap disappears and nothing else changes. Same-width pairs
+(`u8`/`u8`, `s32`/`s32`) coalesce and keep the swap, and a `u8` local into an
+`s32` parameter adds an `andi`.
