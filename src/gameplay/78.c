@@ -2663,10 +2663,7 @@ after_uv:
 
 static void Gp_DrawHudSprites(GpIdMapC* arg0)
 {
-    register u8*    newhead asm("v0");
-    u8*             head;
     GpXformScratch* block;
-    SVECTOR*        vec;
     GpLinkNode*     node;
     s32             mode;
     s32             x;
@@ -2689,29 +2686,25 @@ static void Gp_DrawHudSprites(GpIdMapC* arg0)
     cx = x + 0x23;
     cy = y + 0x23;
     func_800A63B4(cx, cy, 0);
-    head             = SCRATCH_HEAD(u8);
-    node             = Gp_LinkList;
-    newhead          = head - 0x48;
-    block            = (GpXformScratch*)newhead;
-    SCRATCH_HEAD(u8) = newhead;
-    mode             = func_800B9D80(0x400);
+    node  = Gp_LinkList;
+    block = SCRATCH_PUSH(GpXformScratch);
+    mode  = func_800B9D80(0x400);
     if (node != NULL) {
-        vec = (SVECTOR*)(head - 8);
         do {
             if ((node->state.word & 5) != 1) {
-                block->vec.vx = (u16)GP_NODE_ENEMY(node)->playerRelPos.vx;
-                block->vec.vz = (u16)GP_NODE_ENEMY(node)->playerRelPos.vz;
+                block->vec.vx = GP_NODE_ENEMY(node)->playerRelPos.vx;
+                block->vec.vz = GP_NODE_ENEMY(node)->playerRelPos.vz;
                 block->vec.vy = 0;
                 if (mode == 0) {
                     gte_lddp(0x1555);
-                    gte_ldsv(vec);
+                    gte_ldsv(&block->vec);
                     gte_gpf12();
-                    gte_stsv(vec);
+                    gte_stsv(&block->vec);
                 } else {
                     gte_lddp(0xAAA);
-                    gte_ldsv(vec);
+                    gte_ldsv(&block->vec);
                     gte_gpf12();
-                    gte_stsv(vec);
+                    gte_stsv(&block->vec);
                 }
                 if (node->state.b.flags & 1) {
                     goto next;
@@ -2834,7 +2827,7 @@ static void Gp_DrawHudSprites(GpIdMapC* arg0)
         LoadImage(&D_80114BD0, (u_long*)D_80114BB0);
         arg0->field_16 = -1;
     }
-    SCRATCH_POP_BYTES(0x48);
+    SCRATCH_POP(GpXformScratch);
 }
 
 static void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
