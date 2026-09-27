@@ -1698,107 +1698,106 @@ void Ui_DrawText(UiPanel* arg0, char* arg1)
     arg0->field_14 = (u16)(arg0->field_14 + 1);
 }
 
-UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0_, s32 arg1, s32 arg2, s32 arg3)
+/// Spawns a UiObject from a descriptor, with a task that runs it and frees it
+/// on exit, optionally as a child of `parent`'s task. Returns NULL, leaving
+/// no task behind, when either allocation fails.
+static inline UiObject* _uiSpawnObject(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3, UiObject* parent)
 {
-    union {
-        TaskDesc desc;
-        RECT     rect;
-    } sp;
-    Task*          task;
-    UiObject*      obj;
-    UiObject*      result;
-    TextLineNode*  node;
-    s32            count;
-    s32            maxWidth;
-    s32            width;
-    s32            field_8;
-    s16            new_var;
-    TaskFunc       cb;
-    TextBlockDesc* arg0;
-    s32            dummy;
+    TaskDesc  desc;
+    Task*     task;
+    UiObject* obj;
+    s32       field_8;
 
-    arg0   = arg0_;
-    result = NULL;
-    if (arg0->count > 0) {
-        obj               = NULL;
-        sp.desc.flags     = D_80067678.field_10;
-        sp.desc.priority  = D_80067678.field_12;
-        field_8           = D_80067678.field_18;
-        sp.desc.callback  = Ui_DispatchObjectState;
-        sp.desc.arg.value = field_8;
-        task              = Task_SpawnFromTable(&sp.desc, (s32)obj, (s32)arg0, (s32)obj);
-        dummy             = 1;
-        if (task != NULL) {
-            obj = (UiObject*)memCalloc(0x30, (s32)obj);
-            if (obj != NULL) {
-                task->spawnArg2    = obj;
-                task->exitCallback = Ui_FreeAndKill;
-                obj->owner         = task;
-                obj->status        = dummy;
-                obj->field_4       = D_80067678.field_0;
-                obj->field_C       = D_80067678.field_4;
-                obj->field_E       = D_80067678.field_6;
-                obj->field_10      = D_80067678.field_8;
-                obj->field_12      = D_80067678.field_A;
-                obj->drawOrder     = D_80067678.field_C & 0xFFFC;
-                cb                 = D_80067678.field_14;
-                obj->timer         = dummy;
-                obj->callback      = cb;
-            } else {
-                taskKill(task);
+    obj            = NULL;
+    desc.flags     = arg0->field_10;
+    desc.priority  = arg0->field_12;
+    field_8        = arg0->field_18;
+    desc.callback  = Ui_DispatchObjectState;
+    desc.arg.value = field_8;
+    task           = Task_SpawnFromTable(&desc, (s32)obj, arg1, (s32)obj);
+    if (task != NULL) {
+        obj = (UiObject*)memCalloc(0x30, (s32)obj);
+        if (obj != NULL) {
+            task->spawnArg2    = obj;
+            task->exitCallback = Ui_FreeAndKill;
+            obj->owner         = task;
+            obj->status        = arg2;
+            obj->field_4       = arg0->field_0;
+            obj->field_C       = arg0->field_4;
+            obj->field_E       = arg0->field_6;
+            obj->field_10      = arg0->field_8;
+            obj->field_12      = arg0->field_A;
+            obj->drawOrder     = arg0->field_C & 0xFFFC;
+            obj->callback      = arg0->field_14;
+            obj->timer         = arg3;
+            if (parent != NULL) {
+                Task_Reparent(parent->owner, task);
             }
+        } else {
+            taskKill(task);
         }
-        result = obj;
-        if (result != NULL) {
+    }
+    return obj;
+}
+
+UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    UiObject*     obj;
+    TextLineNode* node;
+    s32           count;
+    s32           maxWidth;
+    s32           width;
+
+    obj = NULL;
+    if (arg0->count > 0) {
+        obj = _uiSpawnObject(&D_80067678, (s32)arg0, 1, 1, NULL);
+        if (obj != NULL) {
+            RECT rect;
+
             count    = arg0->count;
             node     = arg0->lines;
             maxWidth = 0;
-            dummy    = dummy;
             if (arg0->field_8 == 0) {
-                result->field_4 = 3;
+                obj->field_4 = 3;
             }
-            if (count > 0) {
-                do {
-                    width = Text_MeasureWidth(node->text);
-                    if (maxWidth < width) {
-                        maxWidth = width;
-                    }
-                    node   = node->next;
-                    count -= 1;
-                } while (count > 0);
+            for (; count > 0; count--) {
+                width = Text_MeasureWidth(node->text);
+                if (maxWidth < width) {
+                    maxWidth = width;
+                }
+                node = node->next;
             }
-            Ui_InsetRect2(result, (RECT*)&result->field_C, &sp.rect);
-            if ((result->field_4 & 0xF) == 2) {
-                sp.rect.y += 9;
-                sp.rect.h -= 0xB;
-                sp.rect.x += 2;
-                sp.rect.w -= 4;
+            Ui_InsetRect2(obj, (RECT*)&obj->field_C, &rect);
+            if ((obj->field_4 & 0xF) == 2) {
+                rect.y += 9;
+                rect.h -= 0xB;
+                rect.x += 2;
+                rect.w -= 4;
             } else {
-                sp.rect.y += 2;
-                sp.rect.h -= 4;
-                sp.rect.x += 2;
-                sp.rect.w -= 4;
+                rect.y += 2;
+                rect.h -= 4;
+                rect.x += 2;
+                rect.w -= 4;
             }
-            result->field_1C = -(sp.rect.w >> 1);
-            result->field_1E = result->field_1C + sp.rect.w;
-            count            = result->field_1E;
-            maxWidth        -= (s16)count - (s16)result->field_1C;
-            result->field_18 = -(sp.rect.h >> 1);
-            result->field_1A = result->field_18 + sp.rect.h;
-            result->baseX    = sp.rect.x - result->field_1C;
-            new_var          = sp.rect.y;
-            result->field_10 = (result->field_10 + maxWidth) + 0xC;
-            result->field_C  = -((s16)result->field_10 / 2);
-            result->baseY    = new_var - (s16)result->field_18;
-            maxWidth         = arg0->count * 0xF;
-            maxWidth        -= (s16)result->field_1A - (s16)result->field_18;
-            result->field_12 = result->field_12 + maxWidth;
-            result->field_E  = -((s16)result->field_12 / 2);
-            USE_REG(dummy);
+            obj->field_1C = -(rect.w >> 1);
+            obj->field_1E = obj->field_1C + rect.w;
+            obj->field_18 = -(rect.h >> 1);
+            obj->field_1A = obj->field_18 + rect.h;
+            obj->baseX    = rect.x - obj->field_1C;
+            obj->baseY    = rect.y - obj->field_18;
+
+            // Grow the panel so the widest line and every line fit inside.
+            maxWidth     -= (s16)obj->field_1E - obj->field_1C;
+            obj->field_10 = obj->field_10 + maxWidth + 0xC;
+            obj->field_C  = -((s16)obj->field_10 / 2);
+            maxWidth      = arg0->count * 0xF;
+            maxWidth     -= (s16)obj->field_1A - (s16)obj->field_18;
+            obj->field_12 = obj->field_12 + maxWidth;
+            obj->field_E  = -((s16)obj->field_12 / 2);
         }
     }
     arg0->field_2 = 0;
-    return result;
+    return obj;
 }
 
 void Ui_DrawTextInRect(RECT* arg0, s32 arg1, s32 arg2, char* arg3)
@@ -1912,41 +1911,7 @@ void Ui_SizeFromText(UiPanel* arg0, u8* arg1, s32 arg2, s32 arg3)
 
 UiObject* Ui_SpawnFromDesc(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3, UiObject* arg4)
 {
-    TaskDesc  desc;
-    Task*     task;
-    UiObject* obj;
-    s32       field_8;
-
-    obj            = NULL;
-    desc.flags     = arg0->field_10;
-    desc.priority  = arg0->field_12;
-    field_8        = arg0->field_18;
-    desc.callback  = Ui_DispatchObjectState;
-    desc.arg.value = field_8;
-    task           = Task_SpawnFromTable(&desc, (s32)obj, arg1, (s32)obj);
-    if (task != NULL) {
-        obj = (UiObject*)memCalloc(0x30, (s32)obj);
-        if (obj != NULL) {
-            task->spawnArg2    = obj;
-            task->exitCallback = Ui_FreeAndKill;
-            obj->owner         = task;
-            obj->status        = arg2;
-            obj->field_4       = arg0->field_0;
-            obj->field_C       = arg0->field_4;
-            obj->field_E       = arg0->field_6;
-            obj->field_10      = arg0->field_8;
-            obj->field_12      = arg0->field_A;
-            obj->drawOrder     = arg0->field_C & 0xFFFC;
-            obj->callback      = arg0->field_14;
-            obj->timer         = arg3;
-            if (arg4 != NULL) {
-                Task_Reparent(arg4->owner, task);
-            }
-        } else {
-            taskKill(task);
-        }
-    }
-    return obj;
+    return _uiSpawnObject(arg0, arg1, arg2, arg3, arg4);
 }
 
 void Ui_TeardownTree(UiObject* arg0, Task* arg1)

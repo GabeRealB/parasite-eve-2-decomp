@@ -145444,3 +145444,18 @@ and nothing is skipped.
 **Fix.** Swap the operands, `l->count <= (s8)l->field_5`: the `count` load
 leads the join block and reorg retargets the branch past it. No local, no
 barrier.
+## A temp that reads a stack field ahead of stores is sched1 reordering disjoint-offset stores (Ui_SpawnTextBlock, 2026-09-27)
+
+`Ui_SpawnTextBlock` repeats a sibling's whole spawn routine and then the usual
+rect-to-layout block, but the target stores `baseY` (0x22) *after* two later
+fields (0x10, 0xC), with `rect.y` loaded before them. The tree reproduced that
+with `new_var = rect.y` hoisted above the other stores, a `dummy = 1` plus
+`USE_REG(dummy)` for the constant `1`, and a union of the spawn `TaskDesc`
+with the `RECT`. All three were the natural source: the spawn routine as a
+`static inline` helper shared with `Ui_SpawnFromDesc` (its constant arguments
+give the `1` pseudo, its frame is a temp the block-scoped `RECT` reuses), and
+the layout block written in its usual order - `baseY` last among the six -
+before the grow step. Stores through one base register at disjoint offsets do
+not conflict, so sched1 is free to sink `sh 0x22` below the grow step's stores.
+When a store order looks shuffled against the sibling pattern, write the
+sibling's order first before hoisting a load into a temp.
