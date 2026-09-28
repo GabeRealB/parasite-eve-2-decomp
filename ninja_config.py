@@ -1055,11 +1055,17 @@ def ninja_build(
     )
     version = GAME_VERSIONS[game_version_idx].version_name
     ASSET_INC_OUTPUTS.clear()
+    # Matching and nonmatching C builds are separate Ninja graphs. Both must
+    # be able to generate their resource includes from an empty build tree.
+    asset_writers = [ninja_file]
+    if objdiff_mode:
+        asset_writers.append(ninja_nonmatching_file)
     for raw, inc, width in asset_includes(version):
-        ninja_file.build(
-            outputs=str(inc), rule="asset-inc", inputs=str(raw), implicit=[str(GEN_ASSET_INC)],
-            variables={"width": str(width)},
-        )
+        for writer in asset_writers:
+            writer.build(
+                outputs=str(inc), rule="asset-inc", inputs=str(raw), implicit=[str(GEN_ASSET_INC)],
+                variables={"width": str(width)},
+            )
         ASSET_INC_OUTPUTS.append(str(inc))
 
     ninja_rules_file.rule(

@@ -6,11 +6,13 @@ address and exact size of each - and then handed to the normal
 :class:`AssetStore`, so they land in ``raw/{type}/`` and inflate into the type
 directory like any other asset. There is no separate output tree for them.
 
-Two entry points:
+Entry points:
 
 ``collect``
     Slice the catalogued regions out of a binary. ``extract.py`` calls this and
     feeds the bytes to ``store.put_embedded``.
+    ``collect_bytes`` also accepts packages decoded in memory, before their
+    inflated files have been materialized.
 ``materialize_save_header_asset``
     Decode one stored ``.mcsave`` into its type-store form (meta + images).
     Called from the materialize dispatch, alongside the image/BS/SPK decoders.
@@ -89,15 +91,24 @@ def collect(path: Path, *, base: int | None = None) -> list[Embedded]:
         logging.debug("embedded assets: %s not present, skipping", path)
         return []
 
-    entries = embedded_for_source(path.name)
+    if not embedded_for_source(path.name):
+        return []
+
+    return collect_bytes(path.read_bytes(), path.name, base=base)
+
+
+def collect_bytes(
+    data: bytes, source: str, *, base: int | None = None
+) -> list[Embedded]:
+    """Slice catalogued assets from an executable or a decoded package."""
+    entries = embedded_for_source(source)
     if not entries:
         return []
 
-    data = path.read_bytes()
     vram_base = base if base is not None else load_base(data)
     if vram_base is None:
         logging.warning(
-            "embedded assets: no load base for %s; pass one for flat overlays", path.name
+            "embedded assets: no load base for %s; pass one for flat overlays", source
         )
         return []
 
@@ -107,13 +118,13 @@ def collect(path: Path, *, base: int | None = None) -> list[Embedded]:
         size = spec["size"]
         if off < 0 or off + size > len(data):
             logging.warning(
-                "embedded asset %s at 0x%08X is outside %s", asset_id, spec["vram"], path.name
+                "embedded asset %s at 0x%08X is outside %s", asset_id, spec["vram"], source
             )
             continue
         out.append(
             Embedded(
                 asset_id=asset_id,
-                source=path.name,
+                source=source,
                 vram=spec["vram"],
                 file_offset=off,
                 ext=spec["ext"],

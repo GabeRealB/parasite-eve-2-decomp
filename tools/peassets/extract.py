@@ -16,7 +16,7 @@ _SCRIPT_DIR = Path(__file__).resolve().parent
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
 
-from format import validate_sector_len  # noqa: E402
+from format import parse_load_addr, validate_sector_len  # noqa: E402
 from asset_decode import (  # noqa: E402
     decode_ascii_payload,
     decode_pe2pkg_payload,
@@ -31,6 +31,7 @@ from asset_db import (  # noqa: E402
     chunk_key,
     chunk_path_key,
     disk_file_rel,
+    embedded_for_source,
     lookup,
     lookup_image_bpps,
     tree_chunk_asset,
@@ -1130,40 +1131,43 @@ def write_pack_manifests(args, output_path: Path, store: "AssetStore", rom_root)
 def store_embedded_assets(output_path: Path, store: "AssetStore", *, skip: bool) -> int:
     """Carve catalogued assets out of the binaries and into the normal store.
 
-    Runs on every extraction mode: the inputs are just the binaries the build
-    splits, which even a minimal extract materialises. The decoded form is
-    produced later by ``materialize_inflated`` like any other type, so a
-    raw-only run stores the bytes and stops there.
+    Runs before materialization in every extraction mode. Decode catalogued
+    packages from this extraction's raw store, using their CDF load addresses;
+    neither inflated packages nor stages.json exist yet on a fresh extraction.
+    A raw-only run also collects these assets without writing inflated files.
     """
     if skip:
         logging.info("skip-embedded: skipped embedded assets")
         return 0
     try:
-        from exe_assets import collect
+        from exe_assets import collect, collect_bytes
     except ImportError as exc:
         logging.warning("Skipping embedded assets (%s)", exc)
         return 0
 
-    targets: list[tuple[Path, int | None]] = [(output_path / "main.exe", None)]
-    pkg_dir = output_path / "pe2pkg"
-    if pkg_dir.is_dir():
-        # Overlays are flat and carry no PS-X EXE header, so `load_base` cannot
-        # derive one and `collect` bails. Passing the splat load address is what
-        # lets a package hold catalogued assets at all - every mesh does.
-        try:
-            from pkg_model import _load_addrs
-
-            bases = _load_addrs(output_path)
-        except Exception:
-            bases = {}
-        targets += [
-            (p, bases.get(p.stem)) for p in sorted(pkg_dir.glob("*.pe2pkg"))
-        ]
+    # Several CDF entries may share a package. Visit each raw file once and
+    # only decode packages with catalogued embedded assets.
+    packages = {
+        entry["raw_path"]: parse_load_addr(
+            entry["load_addr"], chunk_type=FileChunkType.RoomPkg
+        )
+        for entry in store.map.values()
+        if entry["type"] == "pe2pkg"
+        and embedded_for_source(Path(entry["raw_path"]).name)
+    }
+    targets = [(output_path / "main.exe", None)] + [
+        (output_path / raw_path, base)
+        for raw_path, base in sorted(packages.items())
+    ]
 
     total = 0
     for path, base in targets:
         try:
-            found = collect(path, base=base)
+            if base is None:
+                found = collect(path)
+            else:
+                data = decode_pe2pkg_payload(path.read_bytes())
+                found = collect_bytes(data, path.name, base=base)
         except Exception:
             logging.exception("Failed to read embedded assets from %s", path.name)
             continue
