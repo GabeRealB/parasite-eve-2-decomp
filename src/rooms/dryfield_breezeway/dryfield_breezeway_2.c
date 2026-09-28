@@ -5,14 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -26,6 +18,25 @@
 #include "rooms/dryfield_breezeway.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
+#include "main/wipsys.h"
 
 /// 0x14 work block the breezeway's room task hangs off the `Task::work` slot
 /// (0x1C) -- that slot is *not* a `TaskIdMap` here. Reach it with
@@ -199,14 +210,6 @@ extern OverlayHotspot D_dryfield_breezeway_80182DDC[];
 /// below, together with the room task's coordinate frame.
 extern u8 D_dryfield_breezeway_80183164[];
 
-/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
-/// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
-/// `Mc_SaveData[0].characterId` picks which of the two weapon-id bases that record uses.
-/// `gDisplayState.pendingMode` gates the "everything is dead" message and `Gp_StateC08.field_A` the
-/// cutscene/among-us mode flag: the second arming state machine below waits for
-/// both to be clear.
-extern s16 D_80114D08;
-
 static void func_dryfield_breezeway_8017E464(Task* arg0);
 static void func_dryfield_breezeway_8017E65C(Task* task);
 static void func_dryfield_breezeway_8017E81C(Task* task);
@@ -284,10 +287,10 @@ static void func_dryfield_breezeway_8017DEC0(Task* arg0)
             msg.from.loc.stage = gGameSession->at4.loc.stage;
             msg.from.loc.area  = gGameSession->at4.loc.area;
             msg.command        = 1;
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
-            Gp_DispatchMsg(work->field_4, 0x7D4, (s32)&D_dryfield_breezeway_80181E28, 0);
-            Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_dryfield_breezeway_80181E40[0], 0);
-            Gp_DispatchMsg(work->field_0, 0x3EE, (s32)&D_dryfield_breezeway_80181E40[1], 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+            Gp_DispatchMsgPtr(work->field_4, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
+            Gp_DispatchMsgPtr(work->field_0, 0x3E9, &D_dryfield_breezeway_80181E40[0], 0);
+            Gp_DispatchMsgPtr(work->field_0, 0x3EE, &D_dryfield_breezeway_80181E40[1], 0);
             Mc_SaveData[0].at4.loc.view = Gp_FindViewIndex(4);
             break;
         case 2:
@@ -298,7 +301,7 @@ static void func_dryfield_breezeway_8017DEC0(Task* arg0)
             rec->field_8            = 1;
             rec->field_C            = 0xA;
             buf.rec.field_10        = 0;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf, 0);
             break;
     }
     work->field_C = 0;
@@ -388,8 +391,8 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
             buf.field_8         = 1;
             buf.field_C         = 0xA;
             buf.field_10        = 0;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf, 0);
-            func_800E8634((s32)&D_dryfield_breezeway_80181E70, 0, (s32)&D_dryfield_breezeway_80181F90);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf, 0);
+            func_800E8634(&D_dryfield_breezeway_80181E70, 0, &D_dryfield_breezeway_80181F90);
             arg0->state += 1;
             break;
         case 1:
@@ -411,8 +414,8 @@ void func_dryfield_breezeway_8017E2D4(void)
     msg.from.loc.stage = gGameSession->at4.loc.stage;
     msg.from.loc.area  = gGameSession->at4.loc.area;
     msg.command        = 2;
-    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
-    Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_dryfield_breezeway_80181E28, 0);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+    Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
 }
 
 void func_dryfield_breezeway_8017E350(void)
@@ -441,14 +444,15 @@ void func_dryfield_breezeway_8017E390(void)
     buf.rec.field_8         = 0;
     buf.rec.field_C         = 0;
     buf.rec.field_10        = 0;
+    /* The message ABI carries this object address in one 32-bit word. */
     Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf, 0);
 
     work                   = (DbwWork*)D_dryfield_breezeway_801843C0->work;
     buf.msg.from.loc.stage = gGameSession->at4.loc.stage;
     buf.msg.from.loc.area  = gGameSession->at4.loc.area;
     buf.msg.command        = 2;
-    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&buf, 0x7DB);
-    Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_dryfield_breezeway_80181E28, 0);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &buf, 0x7DB);
+    Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
 }
 
 /// Brings up the room's second task family, the key-item event the prompt in
@@ -618,7 +622,7 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
     coord  = task->extra.tmd->coords;
     work   = (DbwEventWork*)task->work;
     hs     = D_dryfield_breezeway_80182E00;
-    prompt = &D_80114D28;
+    prompt = D_80114D28;
 
     if (task->killCountdown == 0) {
         Gp_LoadImages(&D_dryfield_breezeway_80182F24);
@@ -646,7 +650,7 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
     prompt->targetId = 0x80;
     if (func_dryfield_breezeway_8017FCB4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
-        if ((prompt->buttons[0].state == 2) && (hs->id != -1)) {
+        if ((prompt->buttons.slots[0].state == 2) && (hs->id != -1)) {
             do {
                 if (hs->hit != 0) {
                     prompt->mode     = 0;
@@ -662,7 +666,7 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
     } else {
         prompt->mode = 1;
     }
-    if (prompt->buttons[1].state == 2) {
+    if (prompt->buttons.slots[1].state == 2) {
         task->state = 5;
     }
 }
@@ -681,7 +685,7 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
 /// A cancel press (`buttons[1].state` 2) ends it in state 5 as well.
 static void func_dryfield_breezeway_8017E81C(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     GpCoord*          coord  = task->extra.tmd->coords;
     DbwEventWork*     work   = (DbwEventWork*)task->work;
     OverlayHotspot*   hs     = D_dryfield_breezeway_80182DDC;
@@ -712,7 +716,7 @@ static void func_dryfield_breezeway_8017E81C(Task* task)
         }
     }
 
-    if (prompt->buttons[1].state == 2) {
+    if (prompt->buttons.slots[1].state == 2) {
         task->state = 5;
     }
 }
@@ -813,7 +817,7 @@ static void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2)
     x      = arg1;
     ay     = arg2;
     work   = (DbwEventWork*)task->work;
-    prompt = &D_80114D28;
+    prompt = D_80114D28;
     ty     = ay + 0x50;
     dist   = SquareRoot0(x * x + ty * ty);
     sx     = work->cursorX;
@@ -1106,7 +1110,7 @@ static void func_dryfield_breezeway_8017F538(Task* task)
     }
 
     for (port = first; port < count; port++) {
-        prompt = &D_80114D28 + port;
+        prompt = &D_80114D28[port];
         pad    = &Pad_States[port];
         status = pad->status;
         if (status == 0x12) {
@@ -1176,20 +1180,20 @@ static void func_dryfield_breezeway_8017F538(Task* task)
             prompt->field_4 = 0xDC00;
         }
 
-        statep = &prompt->buttons[0].state;
-        heldp  = &prompt->buttons[0].heldFrames;
+        statep = &prompt->buttons.halfwords[0];
+        heldp  = &prompt->buttons.halfwords[1];
         idx    = 0;
         for (i = 0; i < 2; i++, statep += 4, idx += 4) {
             mask = (i == 0) ? 0x40 : 0xA0;
             if (Pad_CheckButtons(port, 1, mask) != 0) {
                 if (heldp[idx] < prompt->field_E &&
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed == prompt->screen.packed) {
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
                     *statep    = 4;
                     heldp[idx] = prompt->field_E;
                 } else {
-                    heldp[idx]                                           = 0;
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed = prompt->screen.packed;
-                    *statep                                              = 2;
+                    heldp[idx]                                                          = 0;
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
+                    *statep                                                             = 2;
                 }
             } else if (Pad_CheckButtons(port, 3, mask) != 0) {
                 *statep = 3;
@@ -1359,7 +1363,7 @@ static s32 func_dryfield_breezeway_8017FCB4(OverlayHotspot* table, s16 x, s16 y)
 /// state.
 static void func_dryfield_breezeway_8017FD68(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
 
     prompt->targetId    = 0x80;
     prompt->mode        = 1;
@@ -1377,7 +1381,7 @@ static void func_dryfield_breezeway_8017FD68(Task* task)
 /// `DbwEventWork::promptKind`, and steps the caller's script on one state.
 static void func_dryfield_breezeway_8017FD9C(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     DbwEventWork*     work   = (DbwEventWork*)task->work;
 
     func_dryfield_breezeway_8017EB8C(task, 0, 0x20);
@@ -1397,7 +1401,7 @@ static void func_dryfield_breezeway_8017FD9C(Task* task)
 /// state 6 (the key item was accepted here) and state 2.
 static void func_dryfield_breezeway_8017FE08(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     DbwEventWork*     work   = (DbwEventWork*)task->work;
     s32               state;
 
@@ -1446,17 +1450,17 @@ static void func_dryfield_breezeway_8017FE90(Task* arg0)
 /// marks the slot as highlighted (`mode` 1).
 static void func_dryfield_breezeway_8017FF1C(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     s32               i;
 
     for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0               = 0;
-        prompt->field_4               = 0;
-        prompt->targetId              = 0x100;
-        prompt->field_E               = 0xF;
-        prompt->buttons[0].heldFrames = 0;
-        prompt->buttons[1].heldFrames = 0;
-        prompt->mode                  = 1;
+        prompt->field_0                     = 0;
+        prompt->field_4                     = 0;
+        prompt->targetId                    = 0x100;
+        prompt->field_E                     = 0xF;
+        prompt->buttons.slots[0].heldFrames = 0;
+        prompt->buttons.slots[1].heldFrames = 0;
+        prompt->mode                        = 1;
     }
     task->state = task->state + 1;
 }

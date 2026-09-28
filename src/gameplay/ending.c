@@ -1,0 +1,499 @@
+#include "ending.h"
+
+#include "types.h"
+
+#include "area_transitions.h"
+#include "gameplay/ending.h"
+#include "ending_work.h"
+#include "hud_sprites.h"
+#include "items.h"
+#include "model_lighting.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/sound_params.h"
+#include "gameplay/world_state.h"
+#include "gameplay/world_targets.h"
+
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
+#include "main/wipsys.h"
+
+s16 D_80114BDC;
+
+s16 D_80114BDE;
+
+s16 D_80114BE0;
+
+s16 D_80114BE2;
+
+s16 D_80114BE4;
+
+extern const char Gp_StrBattleResult[];
+
+extern const char Gp_StrTotal[];
+
+extern const char Gp_StrBP[];
+
+extern const char Gp_StrEXP[];
+
+extern u16 D_8007A39C;
+
+extern s32 Pad_MaskConfirm;
+
+extern s32 Pad_MaskCancel;
+
+GpScriptCmd D_80114A24[4] = {
+    { 0, 1 },
+    { 513, 1026 },
+    { 4, 257 },
+    { 0, 0 }
+};
+GpScriptRec D_80114A34[3] = {
+    { 200, 255, 7, 1 },
+    { 170, 70, 7, 1 },
+    { 180, 60, 1, 0 }
+};
+
+const TaskFuncTable6 Gp_PlayClockStates = { {
+    Gp_InitPlayClock,
+    Gp_TickPlayClock,
+    Gp_PlayClockState2,
+    Gp_PlayClockState3,
+    Gp_RestartSessionTask,
+    taskKill,
+} };
+
+const char Gp_StrBattleResult[] = "Battle Result";
+
+const char Gp_StrTotal[] = "Total";
+
+const char Gp_StrHP[] = "HP";
+
+const char Gp_StrMP[] = "MP";
+
+const char Gp_StrBP[] = "BP";
+
+const char Gp_StrEXP[] = "EXP";
+
+const char Gp_StrItem[] = "Item";
+
+// "Item obtained!"
+// "Bonus item!!"
+
+/* r1 = long vector in, r2 = long vector out: r2 = RT * r1 + TR at full
+ * 32-bit precision, the input split into three 10/11-bit slices. */
+#define gte_RotTransLV(r1, r2) __asm__ volatile( \
+    "lw	$14, 0( %0 );"                           \
+    "lw	$15, 4( %0 );"                           \
+    "addiu	$16, $0, -0x400;"                     \
+    "sra	$12, $14, 21;"                          \
+    "and	$12, $16, $12;"                         \
+    "andi	$13, $14, 0x3ff;"                      \
+    "or	$12, $13, $12;"                          \
+    "andi	$12, $12, 0xffff;"                     \
+    "sra	$13, $15, 21;"                          \
+    "and	$13, $16, $13;"                         \
+    "andi	$16, $15, 0x3ff;"                      \
+    "or	$13, $16, $13;"                          \
+    "sll	$13, $13, 16;"                          \
+    "or	$12, $13, $12;"                          \
+    "mtc2	$12, $0;"                              \
+    "sra	$14, $14, 10;"                          \
+    "sra	$15, $15, 10;"                          \
+    "addiu	$16, $0, -0x400;"                     \
+    "sra	$12, $14, 21;"                          \
+    "and	$12, $16, $12;"                         \
+    "andi	$13, $14, 0x3ff;"                      \
+    "or	$12, $13, $12;"                          \
+    "sra	$13, $15, 21;"                          \
+    "and	$13, $16, $13;"                         \
+    "andi	$16, $15, 0x3ff;"                      \
+    "or	$13, $16, $13;"                          \
+    "srl	$16, $15, 31;"                          \
+    "addu	$13, $13, $16;"                        \
+    "sll	$13, $13, 16;"                          \
+    "srl	$16, $14, 31;"                          \
+    "addu	$12, $12, $16;"                        \
+    "andi	$12, $12, 0xffff;"                     \
+    "or	$12, $13, $12;"                          \
+    "mtc2	$12, $2;"                              \
+    "sra	$14, $14, 10;"                          \
+    "sra	$15, $15, 10;"                          \
+    "andi	$12, $14, 0xffff;"                     \
+    "srl	$16, $14, 31;"                          \
+    "addu	$12, $16, $12;"                        \
+    "andi	$12, $12, 0xffff;"                     \
+    "andi	$13, $15, 0xffff;"                     \
+    "srl	$16, $15, 31;"                          \
+    "addu	$13, $16, $13;"                        \
+    "sll	$13, $13, 16;"                          \
+    "or	$12, $13, $12;"                          \
+    "mtc2	$12, $4;"                              \
+    "lw	$16, 8( %0 );"                           \
+    "addiu	$14, $0, -0x400;"                     \
+    "srl	$15, $16, 31;"                          \
+    "sra	$12, $16, 21;"                          \
+    "and	$12, $14, $12;"                         \
+    "andi	$13, $16, 0x3ff;"                      \
+    "or	$12, $13, $12;"                          \
+    "mtc2	$12, $1;"                              \
+    "sra	$16, $16, 10;"                          \
+    "sra	$12, $16, 21;"                          \
+    "and	$12, $14, $12;"                         \
+    "andi	$13, $16, 0x3ff;"                      \
+    "or	$12, $13, $12;"                          \
+    "addu	$12, $12, $15;"                        \
+    "mtc2	$12, $3;"                              \
+    "sra	$16, $16, 10;"                          \
+    "addu	$12, $16, $15;"                        \
+    "mtc2	$12, $5;"                              \
+    "nop;"                                       \
+    "nop;"                                       \
+    ".word 0x4A480012;"                          \
+    "mfc2	$14, $25;"                             \
+    "mfc2	$15, $26;"                             \
+    "mfc2	$16, $27;"                             \
+    "nop;"                                       \
+    "nop;"                                       \
+    ".word 0x4A40E012;"                          \
+    "mfc2	$12, $25;"                             \
+    "nop;"                                       \
+    "sra	$12, $12, 2;"                           \
+    "addu	$14, $12, $14;"                        \
+    "mfc2	$12, $26;"                             \
+    "nop;"                                       \
+    "sra	$12, $12, 2;"                           \
+    "addu	$15, $12, $15;"                        \
+    "mfc2	$12, $27;"                             \
+    "nop;"                                       \
+    "sra	$12, $12, 2;"                           \
+    "addu	$16, $12, $16;"                        \
+    "nop;"                                       \
+    "nop;"                                       \
+    ".word 0x4A416012;"                          \
+    "mfc2	$12, $25;"                             \
+    "nop;"                                       \
+    "sll	$12, $12, 8;"                           \
+    "addu	$14, $12, $14;"                        \
+    "mfc2	$12, $26;"                             \
+    "nop;"                                       \
+    "sll	$12, $12, 8;"                           \
+    "addu	$15, $12, $15;"                        \
+    "mfc2	$12, $27;"                             \
+    "nop;"                                       \
+    "sll	$12, $12, 8;"                           \
+    "addu	$16, $12, $16;"                        \
+    "sw	$14, 0( %1 );"                           \
+    "sw	$15, 4( %1 );"                           \
+    "sw	$16, 8( %1 )"                            \
+    :                                            \
+    : "r"(r1), "r"(r2)                           \
+    : "$12", "$13", "$14", "$15", "$16", "memory")
+
+void Gp_EndingTask(Task* arg0)
+{
+    GameSession* session;
+    GpEndWork*   work;
+    GpSndParam*  pair;
+
+    if (arg0->state == 0) {
+        work                = arg0->spawnArg2;
+        work->field_4       = 1;
+        arg0->killCountdown = 0x1E;
+        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 48, 0, 0)) {
+            arg0->killCountdown = 0x5A;
+        }
+        SndEvt_EnqueueType6(0xB, 0, 0);
+        Gp_SpawnScript18(&D_80114A24, &D_80114A34);
+        Gp_SetCurAreaFlag4();
+    } else if (arg0->state == 1) {
+        session = gGameSession;
+        if (!(session->flowFlags & 1)) {
+            pair          = (GpSndParam*)&D_8007A39C;
+            pair->field_0 = 0;
+            pair->field_2 = 0;
+            if ((session->flowFlags & 4) == 0) {
+                Task_SpawnFromTable(&D_80062774, 0, 2, 0);
+            } else {
+                Task_SpawnFromTable(&D_80062774, 0, 3, 0);
+            }
+        } else {
+            gStageMusicLoadState = 0xFF;
+        }
+    } else {
+        goto countdown;
+    }
+    arg0->state++;
+countdown:
+    arg0->killCountdown--;
+    if (arg0->killCountdown <= 0) {
+        if (gStageMusicLoadState == 0xFF) {
+            taskKill(arg0);
+            Stage_SetEndingFlag();
+        }
+    }
+}
+
+void func_800A087C(Task* arg0)
+{
+    u8            buf[0x20];
+    TextDrawReq   req1;
+    TextDrawReq   req2;
+    TextDrawReq   req3;
+    TextDrawReq   req4;
+    TextDrawReq   req5;
+    TextDrawReq   req6;
+    TextDrawReq   req7;
+    TextDrawReq   req8;
+    TextDrawReq   req9;
+    TextDrawReq   req10;
+    TextDrawReq   req11;
+    UiObject*     obj;
+    PlayerStatus* cfg;
+    s32           col;
+    s32           step;
+    s32           color;
+    s32           color2;
+    s32           y;
+    s32           top;
+    s32           h;
+    s32           tx;
+    u16           add;
+
+    cfg = &Player_Status;
+    obj = arg0->spawnArg2;
+    if (arg0->state == 0) {
+        if (arg0->spawnArg1 == 0) {
+            D_80114BE2 = 0;
+            D_80114BE4 = 0;
+            D_80114BDC = Gp_StateF0.field_C;
+            D_80114BDE = Gp_StateF0.field_8;
+            D_80114BE0 = Gp_StateF0.field_10;
+            if (func_800B9D80(0x8000) != 0) {
+                D_80114BE4 = ((u32)(Gp_StateF0.field_10 - 1) >> 2) + 1;
+                if (D_80114BE4 >= 100) {
+                    D_80114BE4 = 99;
+                }
+            }
+            if (func_800B9D80(0x1000) != 0) {
+                add        = (u16)Gp_StateF0.field_10;
+                D_80114BE2 = add;
+                cfg->hp   += add;
+                if (cfg->hp >= cfg->hpMax) {
+                    cfg->hp = cfg->hpMax;
+                }
+            }
+        } else {
+            D_80114BDE = 0;
+            D_80114BDC = -10;
+            D_80114BE0 = 1;
+            D_80114BE2 = 0;
+            D_80114BE4 = 0;
+        }
+        cfg->bp += D_80114BDC;
+        if (cfg->bp > 999999) {
+            cfg->bp = 999999;
+        }
+        if (cfg->bp < 0) {
+            cfg->bp = 0;
+        }
+        cfg->exp += D_80114BDE;
+        if (cfg->exp > 999999) {
+            cfg->exp = 999999;
+        }
+        cfg->mp += D_80114BE0 + D_80114BE4;
+        if (cfg->mp > cfg->mpMax) {
+            cfg->mp = cfg->mpMax;
+        }
+        arg0->killCountdown = 0;
+        arg0->state++;
+    }
+
+    Ui_DrawTitle(&(obj)->panel, (char*)Gp_StrBattleResult);
+    if (arg0->killCountdown < 500) {
+        arg0->killCountdown++;
+    }
+
+    col   = 0;
+    step  = 0xE;
+    color = 0x606060;
+
+    top             = (s16)obj->panel.field_18.u;
+    tx              = obj->panel.field_20.u - 4;
+    req1.x          = (s16)obj->panel.field_1E.u + tx;
+    req1.y          = obj->panel.field_22.u + top + 5;
+    req1.otIndex    = obj->panel.field_14.s + 1;
+    req1.field_8    = color;
+    req1.glyphTable = 5;
+    req1.centerMode = 2;
+    req1.field_E    = 1;
+    func_8002E53C(&req1, Gp_StrTotal);
+
+    Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, top + 9);
+    Ui_DrawVBar(&(obj)->panel, top + 0xC, (s16)obj->panel.field_1A.u, 0x1C);
+
+    h = (s16)obj->panel.field_1A.u;
+    y = h - 2;
+    if (D_80114BE2 > 0) {
+        y               = h - 1;
+        req2.x          = obj->panel.field_1C.s + (obj->panel.field_20.u + 6);
+        req2.y          = (s16)(obj->panel.field_22.u - 2) + y;
+        req2.otIndex    = obj->panel.field_14.s + 1;
+        req2.field_8    = color;
+        req2.glyphTable = 5;
+        req2.centerMode = 0;
+        req2.field_E    = 1;
+        func_8002E53C(&req2, Gp_StrHP);
+        step = 0xA;
+
+        req3.x          = obj->panel.field_20.u + col;
+        req3.y          = obj->panel.field_22.u + y;
+        req3.otIndex    = obj->panel.field_14.s + 1;
+        req3.field_8    = color;
+        req3.glyphTable = 0;
+        req3.centerMode = 2;
+        req3.field_E    = 3;
+        func_8002E53C(&req3, Text_ItoaUnsigned(buf, D_80114BE2));
+        y -= 0xA;
+    }
+
+    req4.x          = obj->panel.field_1C.s + (obj->panel.field_20.u + 6);
+    req4.y          = (s16)(obj->panel.field_22.u - 2) + y;
+    req4.otIndex    = obj->panel.field_14.s + 1;
+    req4.field_8    = color;
+    req4.glyphTable = 5;
+    req4.centerMode = 0;
+    req4.field_E    = 1;
+    func_8002E53C(&req4, Gp_StrMP);
+
+    req5.x          = obj->panel.field_20.u + col;
+    req5.y          = obj->panel.field_22.u + y;
+    req5.otIndex    = obj->panel.field_14.s + 1;
+    req5.field_8    = color;
+    req5.glyphTable = 0;
+    req5.centerMode = 2;
+    req5.field_E    = 3;
+    func_8002E53C(&req5, Text_ItoaUnsigned(buf, D_80114BE0));
+
+    if (D_80114BE4 > 0) {
+        buf[0] = '+';
+        Text_ItoaUnsigned(&buf[1], D_80114BE4);
+        req6.x          = obj->panel.field_20.u + col;
+        req6.y          = obj->panel.field_22.u + y;
+        req6.otIndex    = obj->panel.field_14.s + 1;
+        req6.field_8    = color;
+        req6.glyphTable = 0;
+        req6.centerMode = 0;
+        req6.field_E    = 3;
+        func_8002E53C(&req6, buf);
+    }
+
+    y              -= step;
+    req6.x          = obj->panel.field_1C.s + (obj->panel.field_20.u + 6);
+    req6.y          = (s16)(obj->panel.field_22.u - 2) + y;
+    req6.otIndex    = obj->panel.field_14.s + 1;
+    req6.field_8    = color;
+    req6.glyphTable = 5;
+    req6.centerMode = 0;
+    req6.field_E    = 1;
+    func_8002E53C(&req6, Gp_StrBP);
+
+    if (D_80114BDC < 0) {
+        req7.x          = obj->panel.field_20.u + col;
+        req7.y          = obj->panel.field_22.u + y;
+        req7.otIndex    = obj->panel.field_14.s + 1;
+        req7.field_8    = 0xD287F;
+        req7.glyphTable = 0;
+        req7.centerMode = 2;
+        req7.field_E    = 3;
+        func_8002E53C(&req7, Text_ItoaSigned(buf, D_80114BDC));
+    } else {
+        req7.x          = obj->panel.field_20.u + col;
+        req7.y          = obj->panel.field_22.u + y;
+        req7.otIndex    = obj->panel.field_14.s + 1;
+        req7.field_8    = color;
+        req7.glyphTable = 0;
+        req7.centerMode = 2;
+        req7.field_E    = 3;
+        func_8002E53C(&req7, Text_ItoaUnsigned(buf, D_80114BDC));
+    }
+
+    y              -= step;
+    color2          = 0x606060;
+    req7.x          = obj->panel.field_1C.s + (obj->panel.field_20.u + 6);
+    req7.y          = (s16)(obj->panel.field_22.u - 2) + y;
+    req7.otIndex    = obj->panel.field_14.s + 1;
+    req7.field_8    = color2;
+    req7.glyphTable = 5;
+    req7.centerMode = 0;
+    req7.field_E    = 1;
+    func_8002E53C(&req7, Gp_StrEXP);
+
+    req8.x          = obj->panel.field_20.u + col;
+    req8.y          = obj->panel.field_22.u + y;
+    req8.otIndex    = obj->panel.field_14.s + 1;
+    req8.field_8    = color2;
+    req8.glyphTable = 0;
+    req8.centerMode = 2;
+    req8.field_E    = 3;
+    func_8002E53C(&req8, Text_ItoaUnsigned(buf, D_80114BDE));
+
+    y   = (s16)obj->panel.field_1A.u - 2;
+    col = (s16)obj->panel.field_1E.u - 2;
+    if (D_80114BE2 > 0) {
+        y = (s16)obj->panel.field_1A.u - 1;
+        if (arg0->killCountdown >= 0x8D) {
+            req9.x          = obj->panel.field_20.u + col;
+            req9.y          = obj->panel.field_22.u + y;
+            req9.otIndex    = obj->panel.field_14.s + 1;
+            req9.field_8    = color2;
+            req9.glyphTable = 0;
+            req9.centerMode = 2;
+            req9.field_E    = 3;
+            func_8002E53C(&req9, Text_ItoaUnsigned(buf, cfg->hp));
+        }
+        y -= step;
+    }
+    if (arg0->killCountdown >= 0x6F) {
+        req9.x          = obj->panel.field_20.u + col;
+        req9.y          = obj->panel.field_22.u + y;
+        req9.otIndex    = obj->panel.field_14.s + 1;
+        req9.field_8    = 0x606060;
+        req9.glyphTable = 0;
+        req9.centerMode = 2;
+        req9.field_E    = 3;
+        func_8002E53C(&req9, Text_ItoaUnsigned(buf, cfg->mp));
+    }
+    y -= step;
+    if (arg0->killCountdown >= 0x51) {
+        req10.x          = obj->panel.field_20.u + col;
+        req10.y          = obj->panel.field_22.u + y;
+        req10.otIndex    = obj->panel.field_14.s + 1;
+        req10.field_8    = 0x606060;
+        req10.glyphTable = 0;
+        req10.centerMode = 2;
+        req10.field_E    = 3;
+        func_8002E53C(&req10, Text_ItoaUnsigned(buf, cfg->bp));
+    }
+    y -= step;
+    if (arg0->killCountdown >= 0x33) {
+        req11.x          = obj->panel.field_20.u + col;
+        req11.y          = obj->panel.field_22.u + y;
+        req11.otIndex    = obj->panel.field_14.s + 1;
+        req11.field_8    = 0x606060;
+        req11.glyphTable = 0;
+        req11.centerMode = 2;
+        req11.field_E    = 3;
+        func_8002E53C(&req11, Text_ItoaUnsigned(buf, cfg->exp));
+    }
+
+    if (obj->panel.field_0.w == 1) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
+            obj->field_2E = 6;
+        }
+    }
+}

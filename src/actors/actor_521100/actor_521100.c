@@ -8,19 +8,30 @@
 #include "actors/actor.h"
 #include "actors/actor_521100.h"
 #include "actors/actors_shared_80132074.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/sound.h"
 #include "main/fs.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 
 typedef struct Actor521100FireRow {
     /* 0x0 */ s16 field_0;
@@ -140,11 +151,6 @@ static void func_actor_521100_80135A90(Task* arg0);
 static void func_actor_521100_80135B40(GpEnemy* enemy, Task* task);
 static void func_actor_521100_80135B80(GpEnemy* arg0, Task* task);
 
-/// Declared locally with a signed `arg2`, as `include/gameplay/1BC.h` explains:
-/// the definition takes `u16` so that its own body matches, but this caller
-/// passes a sign-extended `s16` clip id.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
 /// Spawn state of the actor: allocates its 0x6C0 work block, registers the
 /// enemy on the lock-on list with its parameter record, contact table and body
 /// coordinate (the model's fourth part), and starts the animation on clip 0x15.
@@ -243,7 +249,7 @@ static void func_actor_521100_80131E8C(GpEnemy* enemy, Task* task)
     Gp_SyncAreaKeyIndex(&key);
     /* offset + base, as in the sibling spawn bodies: the ROM adds the scaled
        index onto the table. */
-    place        = (GpAreaPlace*)((idx << 4) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+    place        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, idx);
     model->tpage = place->tpage;
     model->clut  = place->clut;
     if (model->buffer != NULL) {
@@ -662,7 +668,7 @@ static s32 func_actor_521100_80132C70(Task* arg0)
     }
     if ((wrap < 0x400) && (work->field_6AA < 0x4E2) && (work->field_6BE == 0) && (Player_Status.hp > 0) && (work->field_69C = 0x50, (wrap < 0x20)) && (((GameActor*)player->work)->field_954 != 2)) {
         msg->field_14 = 0x19;
-        if (Gp_DispatchMsg(player, 0x3F8, (s32)msg, 0) == 0) {
+        if (Gp_DispatchMsgPtr(player, 0x3F8, msg, 0) == 0) {
             ret             = 1;
             work->field_6A8 = 0;
             work->field_69E = 2;
@@ -1135,7 +1141,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                 sc->msg.field_8       = 0;
                 sc->msg.field_C       = 0;
                 sc->msg.field_10      = 1;
-                Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
+                Gp_DispatchMsgPtr(player, 0x3FF, &sc->msg, 0);
             } else if ((s16)work->field_68A >= 0x2B) {
                 work->field_6A0       = 1;
                 work->field_686       = 0xB;
@@ -1146,7 +1152,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                 sc->msg.field_8       = 0;
                 sc->msg.field_C       = 0;
                 sc->msg.field_10      = 1;
-                Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
+                Gp_DispatchMsgPtr(player, 0x3FF, &sc->msg, 0);
             }
             if ((u16)(work->field_68A - 4) < 9) {
                 sc->vec.vz = 0x4E2;
@@ -1199,7 +1205,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                         }
                     }
                 }
-                Gp_DispatchMsg(player, 0x3E9, (s32)&sc->aim, 0);
+                Gp_DispatchMsgPtr(player, 0x3E9, &sc->aim, 0);
             }
             break;
         case 1:
@@ -1218,7 +1224,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                     sc->msg.field_8       = 0;
                     sc->msg.field_C       = 0;
                     sc->msg.field_10      = 1;
-                    Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
+                    Gp_DispatchMsgPtr(player, 0x3FF, &sc->msg, 0);
                     flag = 1;
                 } else {
                     work->field_68E = 0x20;
@@ -1239,7 +1245,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                     sc->msg.field_8       = 0;
                     sc->msg.field_C       = 0;
                     sc->msg.field_10      = 1;
-                    Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
+                    Gp_DispatchMsgPtr(player, 0x3FF, &sc->msg, 0);
                 } else {
                     if (work->field_6A8 == 0) {
                         timer           = work->field_690 + 1;
@@ -1256,7 +1262,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                     sc->msg.field_8       = 0;
                     sc->msg.field_C       = 0;
                     sc->msg.field_10      = 1;
-                    Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
+                    Gp_DispatchMsgPtr(player, 0x3FF, &sc->msg, 0);
                 }
             }
             break;
@@ -1289,7 +1295,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                 sc->aim.rot.vx = 0;
                 sc->aim.rot.vy = work->field_696;
                 sc->aim.rot.vz = 0;
-                Gp_DispatchMsg(player, 0x3E9, (s32)&sc->aim, 0);
+                Gp_DispatchMsgPtr(player, 0x3E9, &sc->aim, 0);
             }
             if ((s16)work->field_68A == 0x23) {
                 Gp_SpawnEff(0x60054, player->extra.tmd->coords + 3, 0x80003400, NULL);
@@ -1302,7 +1308,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                 sc->msg.field_8       = 0;
                 sc->msg.field_C       = 0;
                 sc->msg.field_10      = 1;
-                Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
+                Gp_DispatchMsgPtr(player, 0x3FF, &sc->msg, 0);
             }
             turn = 0;
             if ((s16)work->field_68A < 0x5F) {
@@ -1317,7 +1323,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                 sc->aim.rot.vx = 0;
                 sc->aim.rot.vy = (work->field_696 + 0x800) & 0xFFF;
                 sc->aim.rot.vz = 0;
-                Gp_DispatchMsg(player, 0x3E9, (s32)&sc->aim, 0);
+                Gp_DispatchMsgPtr(player, 0x3E9, &sc->aim, 0);
             }
             if (((s16)work->field_68A >= 0x6F) && (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0)) {
                 Gp_DispatchMsg(player, 0x3F1, 0, 0);
@@ -1345,7 +1351,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                 sc->msg.field_8       = 0;
                 sc->msg.field_C       = 0;
                 sc->msg.field_10      = 1;
-                Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
+                Gp_DispatchMsgPtr(player, 0x3FF, &sc->msg, 0);
             }
             break;
         case 4:

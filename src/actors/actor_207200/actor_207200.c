@@ -7,23 +7,28 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/gameplay.h"
-
 #include "actors/actor.h"
 #include "actors/actors_shared_8014df20.h"
 #include "actors/actor_207200.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
 
 extern GpPairSrcE D_actor_207200_8014DBBC;
 extern u8         D_actor_207200_8014E7B0[];
 extern SVECTOR    D_actor_207200_8014E7BC;
 extern SVECTOR    D_actor_207200_8014E7C4;
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -145,7 +150,7 @@ static void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
 }
 
 /// State-0 tick of the small enemy. A 0x10000-class hit on either of its two
-/// single-record tables sets `Gp_StateF0.field_3`, latches `field_2AA` and selects
+/// single-record tables sets `Gp_StateF0.prefix.bytes.field_3`, latches `field_2AA` and selects
 /// animation 2; if the light blend is fully up, one sound plays, the blend is
 /// turned to fall and a new 0x12..0x31 frame wait is rolled. A latched hit
 /// plays a second sound, clears the 0x8000 bit of both nodes and arms state
@@ -167,9 +172,9 @@ static void func_actor_207200_8014A1C4(Task* arg0)
     SCRATCH_PUSH_BYTES(8);
     obj = arg0->extra.tmd->coords;
     if (Gp_CountRec18Hi(work->field_16C, 0x10000) != 0 || Gp_CountRec18Hi(work->field_134, 0x10000) != 0) {
-        Gp_StateF0.field_3 = 1;
-        work->field_2AA    = 1;
-        work->field_28C    = 2;
+        Gp_StateF0.prefix.bytes.field_3 = 1;
+        work->field_2AA                 = 1;
+        work->field_28C                 = 2;
         if (work->field_2A6 != 0 && work->field_2A4 == 0x12) {
             if (work->field_2AC != 0) {
                 ctx = arg0->spawnArg2;

@@ -1,13 +1,16 @@
 #include "common.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "main/fs.h"
 
 extern TaskDesc       D_80135E78;
 extern GpMsgEntry     D_shelter_b6_growth_room_8017F16C[];
@@ -67,7 +70,7 @@ static void func_shelter_b6_growth_room_8017D71C(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     Gp_FillAllyHp();
     Gp_ApplyAreaRecs(&D_shelter_b6_growth_room_801807C8);
-    func_800E8634((s32)D_80136110, 0, (s32)D_80136308);
+    func_800E8634(D_80136110, 0, D_80136308);
     Task_SpawnFromTable(&D_80135E78, 1, 0, 0);
     Task_SpawnFromTable(&D_80135E78, 2, 0, 0);
     func_800E3FAC(0xA2, 0x33);

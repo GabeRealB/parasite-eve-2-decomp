@@ -4,8 +4,6 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-
-#include "gameplay/3FB8.h"
 #include "main/task.h"
 
 /// The part of the carriers' work block this body touches. Each carrier's block

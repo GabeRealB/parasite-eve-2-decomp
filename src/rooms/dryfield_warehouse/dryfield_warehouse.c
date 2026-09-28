@@ -1,9 +1,5 @@
 #include "common.h"
 
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -12,6 +8,12 @@
 #include "rooms/dryfield_warehouse.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "gameplay/world_collision.h"
+#include "main/fs.h"
 
 extern GpMsgEntry D_dryfield_warehouse_8017F554[];
 extern TaskDesc   D_dryfield_warehouse_8017F56C[];

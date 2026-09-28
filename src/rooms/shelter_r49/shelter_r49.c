@@ -1,11 +1,14 @@
 #include "common.h"
-
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "main/fs.h"
+#include "main/mc.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -57,7 +60,7 @@ static void func_shelter_r49_8017D648(Task* arg0)
     arg0->msgTable = D_shelter_r49_8017D9D8;
     Game_SetPtrSlot(arg0, 7);
     if (Mc_SaveData[0].demoScene != 9) {
-        func_800E8634((s32)&D_80133560, 0, (s32)&D_80133860);
+        func_800E8634(&D_80133560, 0, &D_80133860);
     }
     arg0->state = (s32)(arg0->state + 1);
 }

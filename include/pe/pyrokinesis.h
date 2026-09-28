@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "gameplay/3A34.h"
+#include "gameplay/actor.h"
 
 /// Collision pair allocated by `func_pyrokinesis_8012EF48` (`memCalloc(0x58)`)
 /// and stored in `Task::work`. `obj` is linked on list 1 and carries the
@@ -17,19 +17,7 @@ typedef struct PyroWork {
 } PyroWork;
 STATIC_ASSERT_SIZEOF(PyroWork, 0x58);
 
-/// One 8-byte row of the gameplay table `D_80113D40`, indexed by
-/// `GpEffWork.index` (`Gp_StateC08.field_0 % 10 - 1`, the combo counter).
-/// Only `field_4` is read here: the cone burns while `GpEffWork.age * 6`
-/// is still within it, so the three rows (0x41 / 0x5A / 0xC8) are how long
-/// each combo level sustains the flame.
-typedef struct PyroLevel {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ s16 field_2;
-    /* 0x4 */ s16 field_4;
-    /* 0x6 */ s16 field_6;
-} PyroLevel;
-STATIC_ASSERT_SIZEOF(PyroLevel, 8);
-
-extern PyroLevel D_80113D40[];
+/// Pyrokinesis uses the first three attachment rows (indices 1..3).
+/// Their dispatch.field_4 values (65, 90, 200) are the flame duration budgets.
 
 #endif /* PE_PYROKINESIS_H */

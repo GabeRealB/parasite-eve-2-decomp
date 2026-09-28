@@ -10,7 +10,13 @@
 #include "main/gamemain.h"
 #include "main/stage.h"
 #include "main/task.h"
-#include "gameplay/3688.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/loading.h"
+#include "main/mem.h"
+#include "main/session.h"
 
 static void Display_ResetHeapFromSession(void);
 

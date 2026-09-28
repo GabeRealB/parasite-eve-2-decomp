@@ -3,10 +3,9 @@
 
 #include "common.h"
 #include <psyq/libgte.h>
-
-#include "gameplay/3A34.h"
 #include "main/session.h"
-#include "gameplay/3CD8.h"
+
+#include "gameplay/actor.h"
 
 /// 0x38 block the flying dart's spawn state allocates with `memCalloc` and
 /// parks in `Task::work`. It leads with the `GpObj` list node

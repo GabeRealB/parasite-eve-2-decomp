@@ -1,10 +1,11 @@
 #ifndef GAMEPLAY_LIGHT_H
 #define GAMEPLAY_LIGHT_H
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
 #include "common.h"
 
-#include <psyq/libgte.h>
-#include <psyq/libgs.h>
 #include "main/coord.h"
 
 /// A light source: a coordinate that places it, and the colour it casts.
@@ -79,7 +80,5 @@ typedef struct _GpCoord64 {
     } data;
 } GpCoord64;
 STATIC_ASSERT_SIZEOF(GpCoord64, 0x64);
-
-extern GpCoord64 Gp_RoomCoords[8];
 
 #endif // GAMEPLAY_LIGHT_H

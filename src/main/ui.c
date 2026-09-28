@@ -8,12 +8,17 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/4CC.h"
 #include "main/devkit.h"
+
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/display.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/sound.h"
 
 static void Ui_DispatchObjectState(Task* arg0);
 static void Ui_InsetRect2(void* arg0, RECT* arg1, RECT* arg2);

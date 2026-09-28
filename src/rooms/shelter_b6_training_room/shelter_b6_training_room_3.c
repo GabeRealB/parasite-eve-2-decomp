@@ -4,12 +4,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -18,6 +12,15 @@
 #include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/loading.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// Scratchpad block `func_shelter_b6_training_room_80181FDC` takes from
 /// `G_SCRATCH_HEAD`: the two world points the textured strip joins, the first

@@ -55,7 +55,11 @@ options:
   rodata_string_guesser_level: 2
   data_string_guesser_level: 2
 
-  ld_bss_is_noload: True
+  # The overlay loader copies the stored BSS zeros; it does not clear them.
+  ld_bss_is_noload: False
+  # Recovered data belongs to code-bearing C translation units.
+  # Explicit ownership preserves the interleaved section layout.
+  auto_link_sections: []
   # File ends at an unaligned size (0x81F69); do not pad sections to align.
   ld_align_section_vram_end: False
   ld_align_segment_vram_end: False
@@ -70,47 +74,232 @@ segments:
     # Not exclusive_ram_id: this yaml is splat'd alone (not with main).
     # Runtime still loads at 0x80093800 (main BSS), replacing title.
     subsegments:
-      # Rodata file splits from splat (GCC jtbl 8-align remainder changes).
-      # Names are unique (not shared with the c TUs) so migrate_rodata_to_functions
-      # does not treat these as dotted siblings.
+      # C-owned read-only sections, including compiler-generated jump tables.
+      # Explicit padding preserves the original jump-table alignment.
       - [0x0, .rodata, packageid] # the package id
-      - [0x4, .rodata, gameplay] # the colours, the play-clock table and the battle-result labels
-      - [0x78, .rodata, 78] # jtbl from Gp_ApplyAttachStats, then the prompt labels
-      - [0xB4, .rodata, D4] # Gp_LoadWaitFns and Gp_ConfigCdTable, the jtbl from Gp_EnqueueWeaponCd, then the session, load and room-object tables
-      - [0x150, .rodata, 1A8] # the direction tables, then the jtbl from Gp_LookupStageFlag
-      - [0x1BC, .rodata, 1BC] # jtbls from func_800AF590 and Gp_StepCdAudioCmd, then its strings and state tables
-      - [0x268, .rodata, 268] # jtbl from func_800B7420, then Gp_StrNotice2
-      - [0x4CC, .rodata, 4CC] # jtbls: Gp_ItemMoveChild + strings/tables + Gp_CloseItemPane
-      - [0x668, rodata, rodata_4CC_2]
-      - [0x3688, .rodata, 3688] # jtbl from Gp_MenuRootTask, the menu labels, then the jtbl from Gp_BuildItemCmdList
-      - [0x397C, .rodata, 3688_CB188] # the status, message and map labels and tables
-      - [0x3A34, .rodata, 3A34] # jtbls: Gp_ApplyItemUse + Gp_ItemIsUnusable + mid + Gp_CollideListGrid
-      - [0x3CC8, .rodata, 3CD8] # D_800974C8, the jtbls from Gp_RunCapCmd and Gp_EvtCapWeaponTask, then the cap strings and tables
-      - [0x3D38, .rodata, 3CD8_75C8] # Gp_ScriptTaskStates and the demo labels, the jtbl from Gp_ScriptTaskState1, then the script state tables
-      - [0x3E60, .rodata, 3CD8_9BDC] # jtbl from func_800E9BDC
-      - [0x3E78, .rodata, 3CD8_9CC8] # D_80097678, then the jtbl from Gp_InitState1C
-      - [0x3E9C, .rodata, 3E9C] # jtbls: Gp_EffCtlTask2B + Gp_EffModelTask
-      - [0x3FB8, .rodata, 3FB8] # jtbls from Gp_EffSprTask46 and Gp_EffSprTask81, then jtbls: Gp_EffSprTask30 + inline Gp_EffTask07States/jtbl_80097808/Gp_PlayerWorkStates + Gp_TickActorAnimState + still-asm mid + Gp_PlayerMode1State0 + jtbl_80097A68 + func_8010A42C, then D_80097AB0
-      # Text TUs: first function that uses each group's jtbl (file 0 starts
-      # at the first addiu $sp).
-      - [0x42C0, c, gameplay] # Gp_DrawActorTmdFlagged
-      - [0xD90C, c, 78] # Gp_AreaEnterTask
-      - [0x15B10, c, D4] # Gp_EnqueueWeaponCd
-      - [0x1B3A4, c, 1A8] # Gp_LookupStageFlag
-      - [0x1BD90, c, 1BC] # func_800AF590
-      - [0x23C20, c, 268] # func_800B7420
-      - [0x28E34, c, 4CC] # Gp_ItemMoveChild
-      - [0x2C1FC, c, 3688] # Gp_MenuRootTask
-      - [0x37988, c, 3688_CB188] # Gp_ItemCmdMenuTask
-      - [0x42314, c, 3A34] # Gp_ApplyItemUse
-      - [0x4FCD8, c, 3CD8] # Gp_RunCapCmd .. the cap and event units, one source
-      - [0x53DC8, c, 3CD8_75C8] # Gp_ScriptTaskState1
-      - [0x563DC, c, 3CD8_9BDC] # func_800E9BDC
-      - [0x564C8, c, 3CD8_9CC8] # Gp_InitState1C
-      - [0x592A8, c, 3E9C] # Gp_EffCtlTask2B
-      - [0x63DBC, c, 3FB8] # Gp_EffSprTask46 .. the effect sprite and player units, one source
+      - [0x4, .rodata, model_objects] # model allocation diagnostic and colours
+      - [0x28, .rodata, model_lighting] # play-clock punctuation
+      - [0x30, .rodata, ending] # play-clock state table and battle-result labels
+      - [0x78, .rodata, attachment_stats] # jtbl from Gp_ApplyAttachStats, then the prompt labels
+      - [0xB4, .rodata, cd_loading] # Gp_LoadWaitFns and Gp_ConfigCdTable, the jtbl from Gp_EnqueueWeaponCd, then the session, load and room-object tables
+      - [0x150, .rodata, area_transitions] # the direction tables, then the jtbl from Gp_LookupStageFlag
+      - [0x1BC, .rodata, scene_runtime] # jtbls from func_800AF590 and Gp_StepCdAudioCmd, then its strings and state tables
+      - [0x268, .rodata, equipment] # jtbl from func_800B7420, then Gp_StrNotice2
+      - [0x4CC, .rodata, item_menu] # jtbls: Gp_ItemMoveChild + strings/tables + Gp_CloseItemPane
+      - [0x668, .rodata, item_inventory]
+      - [0x364C, .rodata, attachment_menu]
+      - [0x3670, .rodata, pickup_dispatch]
+      - [0x3684, pad] # end of pickup dispatcher before the menu TU
+      - [0x3688, .rodata, menu_root] # jtbl from Gp_MenuRootTask, the menu labels, then the jtbl from Gp_BuildItemCmdList
+      - [0x37A0, .rodata, menu_prompt] # Gp_DrawItemIcon jump tables
+      - [0x37D8, .rodata, menu_armor] # menu labels
+      - [0x3964, pad] # original 8-byte jump-table alignment
+      - [0x3968, .rodata, item_panels] # item-command jump table, panel labels and tables
+      - [0x3A34, .rodata, item_use] # jtbls: Gp_ApplyItemUse + Gp_ItemIsUnusable + mid + Gp_CollideListGrid
+      - [0x3C84, .rodata, world_collision]
+      - [0x3CB0, pad] # alignment before the grid-list jump table
+      - [0x3CB4, .rodata, object_lists]
+      - [0x3CC8, .rodata, cap_commands] # D_800974C8, the jtbls from Gp_RunCapCmd and Gp_EvtCapWeaponTask, then the cap strings and tables
+      - [0x3D38, .rodata, evs_scripts] # Gp_ScriptTaskStates and the demo labels, the jtbl from Gp_ScriptTaskState1, then the script state tables
+      - [0x3E2C, .rodata, pad_scripts] # script dispatch tables
+      - [0x3E60, .rodata, pad_input] # jtbl from func_800E9BDC
+      - [0x3E78, .rodata, room_effects] # D_80097678, then the jtbl from Gp_InitState1C
+      - [0x3E9C, .rodata, effect_tasks] # jtbls: Gp_EffCtlTask2B + Gp_EffModelTask
+      - [0x3FB8, .rodata, player_actor] # effect and player-state dispatch tables through func_8010A42C
+      - [0x4268, .rodata, player_state] # player state jump tables and callbacks
+      # Code units group related functions where the section layout permits it.
+      - [0x42C0, c, actor_render] # Gp_DrawActorTmdFlagged
+      - [0x582C, c, model_objects] # Gp_AttachTmd
+      - [0x7790, c, model_lighting] # func_8009AF90
+      - [0xCF18, c, ending] # Gp_EndingTask
+      - [0xD90C, c, area_entry] # Gp_AreaEnterTask
+      - [0xDD58, c, attachments] # Gp_GetAttachParam
+      - [0xDE34, c, attachment_stats] # Gp_ApplyAttachStats
+      - [0x10DF0, c, attach_combo] # Gp_UpdateAttachCombo
+      - [0x11104, c, linked_actors] # func_800A4904
+      - [0x12C80, c, hud_sprites] # Gp_DrawHudSprites
+      - [0x15810, c, view_load] # Gp_ViewBeginLoad
+      - [0x159CC, c, view_image] # Gp_ViewLoadImage
+      - [0x15B10, c, cd_loading] # Gp_EnqueueWeaponCd
+      - [0x16644, c, area_cd] # Gp_PollAreaCdLoads
+      - [0x16D48, c, load_screen] # func_800AA548
+      - [0x1824C, c, companion_load] # Gp_PickCompanion
+      - [0x18E88, c, sprite_link] # Gp_LinkViewSprts
+      - [0x19EBC, c, direction_input] # func_800AD6BC
+      - [0x1A9F0, c, direction_facing] # Gp_MsgPlayerDirFacing
+      - [0x1AFAC, c, area_transitions] # area flags and transition tasks
+      - [0x1BD90, c, scene_runtime] # func_800AF590
+      - [0x22BB8, c, item_publish] # Gp_LookupBit2Item
+      - [0x22DB0, c, item_notice] # func_800B65B0
+      - [0x23150, c, item_placement] # Gp_SpawnPlaceById
+      - [0x234F0, c, equipment] # related item quantities and equipment changes
+      - [0x24518, c, starter_inventory] # Gp_InitStarterInv
+      - [0x24814, c, item_inventory] # item-description readers and inventory operations
+      - [0x24D88, c, item_sort] # Gp_SortItems
+      - [0x25D4C, c, item_boost] # Gp_UiBoostAttach
+      - [0x27E68, c, item_collect] # Gp_NthCollectedId
+      - [0x28D0C, c, item_move_check] # Gp_CanMoveItems
+      - [0x28E34, c, item_menu] # Gp_ItemMoveChild
+      - [0x2C1FC, c, menu_root] # Gp_MenuRootTask
+      - [0x2CAA0, c, menu_prompt] # Gp_UiPromptDispatch
+      - [0x31B28, c, menu_armor] # Gp_DrawRemoveArmorRow
+      - [0x32770, c, item_stats] # func_800C5F70
+      - [0x345A8, c, weapon_stats] # func_800C7DA8
+      - [0x35E54, c, attachment_menu] # Gp_AttachListTask
+      - [0x375FC, c, item_panels] # item command lists and panels
+      - [0x3AA2C, c, pickup_dispatch] # func_800CE22C
+      - [0x3ADF0, c, menu_actions] # Gp_DrawPeEnergyCmd
+      - [0x42314, c, item_use] # Gp_ApplyItemUse
+      - [0x43320, c, world_coords] # Gp_UpdateRoomCoords
+      - [0x465FC, c, world_targets] # Gp_DrawTargetCursor
+      - [0x47F2C, c, world_collision] # Gp_TickWorldCollision
+      - [0x4A140, c, collision_grid] # func_800DD940
+      - [0x4CA94, c, object_lists] # Gp_ClearObjHeads
+      - [0x4E7EC, c, damage] # Gp_ComputeDamage
+      - [0x4F4D4, c, object_fields] # Gp_LookupIdField
+      - [0x4F9E8, c, object_task] # func_800E31E8
+      - [0x4FCD8, c, cap_commands] # Gp_RunCapCmd and gameplay caption commands
+      - [0x508EC, c, cap_reloc] # Gp_RelocCapFile
+      - [0x509F4, c, cap_start] # Gp_StartCap
+      - [0x50CA0, c, captions] # caption interpreter, layout, events and file loading
+      - [0x538AC, c, cap_script] # func_800E70AC
+      - [0x539B0, c, cap_control] # Gp_InitCapTask
+      - [0x53DC8, c, evs_scripts] # Gp_ScriptTaskState1
+      - [0x55290, c, pad_scripts] # Gp_StepScriptA; separate script-halt work
+      - [0x55D6C, c, pad_input] # pad input and menu suppression
+      - [0x564C8, c, room_effects] # room effect state, presets and spawning
+      - [0x592A8, c, effect_tasks] # Gp_EffCtlTask2B
+      - [0x63518, c, effect_attach] # Gp_EffAttachTask37
+      - [0x63DBC, c, player_actor] # Gp_EffSprTask46 .. the effect sprite and player units, one source
+      - [0x763B4, c, player_state] # func_80109BB4
       # "Item obtained!" / UI strings / tables after last jr ra
-      - [0x79208, data, data]
-      # Trailing 1 zero byte past the last word (file size 0x81F69)
-      - [0x81F68, pad]
+      - [0x79208, .data, area_entry]
+      - [0x792C8, .data, area_cd]
+      - [0x792E4, pad, area_cd_table_pad]
+      - [0x792E8, .data, sprite_link]
+      - [0x792F0, .data, direction_input]
+      - [0x7932C, .data, view_image]
+      - [0x79340, .data, load_screen]
+      - [0x793CC, .data, cd_loading]
+      - [0x799C4, .data, scene_runtime]
+      - [0x79A60, pad, bit2_banks_pad]
+      - [0x79A78, .data, equipment]
+      - [0x79B48, .data, item_notice]
+      - [0x79B64, .data, item_boost]
+      - [0x79BA0, .data, pickup_dispatch]
+      - [0x79D20, .data, starter_inventory]
+      - [0x79D80, .data, item_move_check]
+      - [0x79E88, pad, item_move_callbacks_pad]
+      - [0x79E8C, .data, item_menu]
+      - [0x7A038, .data, item_inventory]
+      - [0x7AA38, .data, item_publish]
+      - [0x7AC38, pad] # end of the 32 stack-limit rows
+      - [0x7AC4C, .data, menu_root]
+      - [0x7B82C, .data, item_panels]
+      - [0x7BE8C, pad, menu_unused_descriptors]
+      - [0x7BEFC, .data, attachment_menu]
+      - [0x7C0D0, .data, menu_prompt]
+      - [0x7C0F0, .data, menu_actions]
+      - [0x7C168, pad, menu_map_help_pad]
+      - [0x7C16C, .data, menu_armor]
+      - [0x7C1E4, .data, item_use]
+      - [0x7C238, .data, world_collision]
+      - [0x7C28C, .data, object_lists]
+      - [0x7C2BC, .data, object_task]
+      - [0x7C2EC, .data, cap_commands]
+      - [0x7C390, .data, cap_control]
+      - [0x7C3E0, .data, evs_scripts]
+      - [0x7C3EC, .data, pad_input]
+      - [0x7C42C, .data, room_effects]
+      - [0x7E638, .data, effect_tasks]
+      - [0x7F164, .data, player_actor]
+      - [0x7FB90, .data, item_stats]
+      - [0x7FD68, .data, damage]
+      - [0x80084, .data, weapon_stats]
+      - [0x8018C, .data, attachments]
+      - [0x804FC, .data, attachment_stats]
+      - [0x8079C, .data, player_state]
+      - [0x80828, .data, object_fields]
+      - [0x80898, .data, area_transitions]
+      - [0x80998, .data, companion_load]
+      - [0x80D88, .data, item_placement]
+      - [0x811E8, .data, direction_facing]
+      - [0x81224, .data, ending]
+      - [0x81240, .data, item_sort]
+      - [0x812E0, .data, item_collect]
+      - [0x81334, .data, effect_attach]
+      - [0x81380, .data, model_objects]
+      - [0x81394, pad, tmd_stash_pad]
+      - [0x8139C, .data, actor_render]
+      - [0x813A0, pad, current_coord_pad]
+      - [0x813A4, .data, model_lighting]
+      # Loaded BSS. Of the 28 explicit gaps, 21 fit eight-byte TU alignment;
+      # the seven exceptions are annotated below. No identified access needs
+      # these bytes. Alignment-consistent gaps may still contain unused fields
+      # or capacity: matching zeros alone do not establish object boundaries.
+      # Keep the BSS alignment rules unchanged.
+      - [0x813B0, .bss, hud_sprites]
+      - [0x813DC, .bss, ending]
+      - [0x813E6, pad] # zero interval before HUD work
+      - [0x813E8, .bss, attachments]
+      - [0x8143C, pad]
+      - [0x81440, .bss, view_load]
+      - [0x81442, pad] # 14 bytes after a stream-slot halfword; eight beyond normal alignment
+      - [0x81450, .bss, view_image]
+      - [0x8145C, pad]
+      - [0x81460, .bss, area_cd]
+      - [0x81476, pad] # 10 bytes after a load-state halfword; eight beyond normal alignment
+      - [0x81480, .bss, load_screen]
+      - [0x814C0, pad] # eight unexplained bytes after the complete 16-byte spawn transform
+      - [0x814C8, .bss, sprite_link]
+      - [0x814CC, pad]
+      - [0x814D0, .bss, direction_input]
+      - [0x8150A, pad] # zero interval after the recovered direction work
+      - [0x81510, .bss, scene_runtime]
+      - [0x81524, pad] # four zero bytes before the action-prompt array
+      - [0x81528, .bss, menu_actions]
+      - [0x81570, .bss, equipment]
+      - [0x81574, pad]
+      - [0x81578, .bss, item_menu]
+      - [0x8157E, pad] # zero interval before menu work
+      - [0x81580, .bss, menu_root]
+      - [0x815B8, pad] # attachment array capacity beyond six entries is unconfirmed
+      - [0x815C8, .bss, item_publish]
+      - [0x815EE, pad]
+      - [0x815F0, .bss, item_panels]
+      - [0x81698, .bss, item_use]
+      - [0x81728, .bss, attach_combo]
+      - [0x8172C, pad]
+      - [0x81730, .bss, world_coords]
+      - [0x81A68, .bss, linked_actors]
+      - [0x81A6C, pad]
+      - [0x81A70, .bss, world_targets]
+      - [0x81C1C, pad] # eight possible trailing bytes of Gp_StateF0; next flag is independent
+      - [0x81C24, .bss, world_collision]
+      - [0x81C28, .bss, collision_grid]
+      - [0x81D58, pad] # 20 unexplained bytes after the list-head pointer
+      - [0x81D6C, .bss, object_lists]
+      - [0x81D94, pad]
+      - [0x81D98, .bss, object_task]
+      - [0x81D99, pad]
+      - [0x81DA0, .bss, cap_commands]
+      - [0x81DA4, pad]
+      - [0x81DA8, .bss, cap_start]
+      - [0x81DC2, pad] # 14 bytes after the choice halfword; eight beyond normal alignment
+      - [0x81DD0, .bss, cap_reloc]
+      - [0x81E81, pad]
+      - [0x81E88, .bss, captions] # includes natural word alignment at 0x81E91
+      - [0x81EAC, pad]
+      - [0x81EB0, .bss, cap_control]
+      - [0x81EBE, pad]
+      - [0x81EC0, .bss, evs_scripts] # includes word alignment before the shared EVS state at 0x81EF4
+      - [0x81EFA, pad]
+      - [0x81F00, .bss, pad_scripts]
+      - [0x81F03, pad] # gap before the separate input-state run
+      - [0x81F08, .bss, pad_input]
+      - [0x81F1A, pad]
+      - [0x81F20, .bss, room_effects]
+      - [0x81F5C, pad] # zero interval after the recovered State1C work
+      - [0x81F60, .bss, area_entry]
+      - [0x81F68, .bss, attachment_stats] # referenced player-control flag
   - [0x81F69]

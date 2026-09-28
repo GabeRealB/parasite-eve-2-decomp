@@ -10,13 +10,11 @@
 #include "main/stream.h"
 #include "main/task.h"
 
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
-
 #include "rooms/dryfield_gas_station.h"
 #include "rooms/room.h"
+
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
 
 /// Work block the gas station's shaft sequencer (`func_dryfield_gas_station_801802C0`)
 /// allocates as 4 bytes in its state 0 and hangs off `Task::work` (0x1C) for

@@ -18,10 +18,6 @@ struct GpU16Pair;
 /// `Gp_SetObjFlag4`; a member named `flagN…` is the parameter of the reaction
 /// that flag `N` selects. Trailing pad keeps 4-byte alignment.
 ///
-/// The overlays that hold an enemy record share this type only, so it sits in a
-/// header of its own: including the pair machinery's header instead would drag
-/// the gameplay prototypes into translation units that redeclare them locally
-/// against their own view of a shared object.
 typedef struct {
     struct GpU16Pair* pairTable;   // GpU16Pair table this enemy's body keys are packed from
     u16               hpMax;       // hit points; a body is spawned at this value

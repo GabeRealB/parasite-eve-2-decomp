@@ -1,12 +1,6 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -16,20 +10,17 @@
 #include "rooms/room_common.h"
 #include "rooms/shelter_b1_north_maintenance_walkway.h"
 
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/loading.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
+#include "main/fs.h"
+
 extern GpMsgEntry D_shelter_b1_north_maintenance_walkway_80184A84[];
 extern TaskDesc   D_shelter_b1_north_maintenance_walkway_80184AAC[];
-extern u8         D_80115690;
-
-extern s32 D_80115720;
-extern s32 D_80115728;
-extern s32 D_8011572C;
-extern s32 D_80115730;
-extern s32 D_80115734;
-extern s32 D_8011573C;
-extern s32 D_80115744;
-extern s32 D_80115750;
-extern s32 D_80115754;
-extern s32 D_80115758;
 
 extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184AB8[];
 extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B08[];
@@ -162,7 +153,7 @@ void func_shelter_b1_north_maintenance_walkway_8017D918(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (Gp_StateF0.field_0 == 1) {
+            if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                 gGameSession->flowFlags |= 0x80;
                 gGameSession->flowFlags |= 0x40;
                 arg0->state++;
@@ -170,8 +161,8 @@ void func_shelter_b1_north_maintenance_walkway_8017D918(Task* arg0)
             break;
         case 1:
             if (Gp_StateF0.field_6 == 0) {
-                Gp_StateF0.field_1  = 0x3C;
-                arg0->killCountdown = 0x3E;
+                Gp_StateF0.prefix.bytes.field_1 = 0x3C;
+                arg0->killCountdown             = 0x3E;
                 arg0->state++;
             }
             break;

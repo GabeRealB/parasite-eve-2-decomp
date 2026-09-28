@@ -4,9 +4,6 @@
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 #include "actors/actor.h"
-#include "gameplay/268.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -15,10 +12,14 @@
 #include "main/stage.h"
 #include "main/task.h"
 
-/// Script pair handed to `Gp_SpawnScript18`. Both live in gameplay's image, so
-/// the overlay imports them by absolute address and passes them as `s32`.
-extern s32 D_80114A24;
-extern s32 D_80114A34;
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/ending.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/pad_script.h"
+#include "main/session.h"
 
 extern TaskDesc D_actor_136300_8013B134;
 extern TaskDesc D_80183380;
@@ -277,7 +278,7 @@ void func_actor_136300_80132854(Task* arg0)
     s32 var_v0;
 
     if (arg0->state == 0) {
-        Gp_SpawnScript18((s32)&D_80114A24, (s32)&D_80114A34);
+        Gp_SpawnScript18(&D_80114A24, &D_80114A34);
         arg0->state += 1;
     }
     var_v0 = arg0->spawnArg1;
@@ -356,7 +357,7 @@ void func_actor_136300_801329EC(void)
         var_s0 = &D_actor_136300_8013B230;
     }
     Gp_AllyAnimId(var_s0);
-    Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3E8, (s32)var_s0, 0);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E8, var_s0, 0);
 }
 
 void func_actor_136300_80132A4C(s32 arg0)

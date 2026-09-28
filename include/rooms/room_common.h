@@ -6,67 +6,13 @@
 #include <psyq/libgte.h>
 
 #include "main/coord.h"
-#include "gameplay/message.h"
-#include "gameplay/3CD8.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/ui.h"
 #include "overlay.h"
 
-/// On-screen position of an action prompt's cursor. `Room_UtilCursor` compares
-/// the pair against a previously latched copy as a single word to decide whether
-/// the cursor has moved since the last press, so the two shorts are reachable
-/// both individually and as one `s32`.
-typedef struct RoomActionPromptPos {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-} RoomActionPromptPos;
-
-typedef union RoomActionPromptScreen {
-    /* 0x0 */ RoomActionPromptPos xy;
-    /* 0x0 */ s32                 packed;
-} RoomActionPromptScreen;
-
-/// One of the two button slots at the tail of `RoomActionPrompt`. `state` is the
-/// press classification the cursor task writes each frame (0 none, 1 held,
-/// 2 pressed, 3 released, 4 double-press), `heldFrames` counts the frames since
-/// the slot was last armed and `lastPos` latches the cursor position of the
-/// previous press so a double-press only registers when the cursor has not
-/// moved. Slot 0 watches the confirm mask (0x40) and slot 1 the cancel mask
-/// (0xA0).
-typedef struct RoomActionPromptButton {
-    /* 0x0 */ u16 state;
-    /* 0x2 */ u16 heldFrames;
-    /* 0x4 */ s32 lastPos;
-} RoomActionPromptButton;
-STATIC_ASSERT_SIZEOF(RoomActionPromptButton, 0x8);
-
-/// Gameplay-side action-prompt state, imported by room overlays as the unnamed
-/// data symbol `D_80114D28` (the gameplay symbol map has no name for it yet).
-/// There are two of them, one per pad port.
-///
-/// A room's hotspot scan stores the id of the thing under the cursor in
-/// `targetId` and a mode in `mode` (0 = nothing under the cursor, 1 = a hotspot
-/// is highlighted, 2 = the hotspot is confirmed). `screen` holds the
-/// coordinates handed to `func_800D4E78`, which parks them in the gameplay
-/// globals the prompt's display task reads; `field_0` / `field_4` are the same
-/// position in 1/512-pixel fixed point, which is what the analog stick and the
-/// d-pad actually integrate into. `targetId` doubles as the cursor speed and
-/// `field_E` as the double-press window. Fields no room overlay touches are
-/// left as padding.
-typedef struct RoomActionPrompt {
-    /* 0x00 */ s32                    field_0;
-    /* 0x04 */ s32                    field_4;
-    /* 0x08 */ RoomActionPromptScreen screen;
-    /* 0x0C */ s16                    targetId;
-    /* 0x0E */ u16                    field_E;
-    /* 0x10 */ u8                     mode;
-    /* 0x11 */ byte                   pad_11[0x3];
-    /* 0x14 */ RoomActionPromptButton buttons[2];
-} RoomActionPrompt;
-STATIC_ASSERT_SIZEOF(RoomActionPrompt, 0x24);
-
-extern RoomActionPrompt D_80114D28;
+#include "gameplay/inventory.h"
+#include "gameplay/message.h"
 
 /// Screen rectangle outlined by `Room_Draw26`: the corners it draws are
 /// (`x`, `y`) and (`x + w`, `y + h`), so `w` and `h` are extents rather than a
@@ -93,16 +39,9 @@ typedef struct RoomTextBlock {
 } RoomTextBlock;
 STATIC_ASSERT_SIZEOF(RoomTextBlock, 0x20);
 
-/// Per-item shop stock row (`D_8010E138`, the tail of `Gp_QtyById0` covering
-/// item ids 0xA0-0xBF). `perBuy` is how many units one purchase adds and
-/// `maxHeld` the ceiling the shop will stock the player up to, so the row
-/// handler offers at most `(maxHeld - held + perBuy - 1) / perBuy` purchases.
-typedef struct RoomShopStock {
-    /* 0x00 */ u8   perBuy;
-    /* 0x01 */ byte pad_1[1];
-    /* 0x02 */ u16  maxHeld;
-} RoomShopStock;
-STATIC_ASSERT_SIZEOF(RoomShopStock, 0x4);
+/// Shop stock uses gameplay's pickup/purchase quantity limits. Item ids
+/// 0xA0–0xBF index `Gp_StackLimits[id - 0xA0]`.
+typedef GpItemA0 RoomShopStock;
 
 /// 0xA4 work block a shop / vending-machine panel task allocates and parks in
 /// `Task::work`: the `UiList` the panel is drawn from, followed by the ids of

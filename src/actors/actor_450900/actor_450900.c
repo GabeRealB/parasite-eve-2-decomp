@@ -1,10 +1,4 @@
 #include "common.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -14,6 +8,16 @@
 #include "main/tmd.h"
 #include "main/unknown_syms.h"
 #include "psyq/rand.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 extern s32 D_8017A99C;
 extern s8  D_actor_450900_80135E70;
@@ -134,9 +138,9 @@ void func_actor_450900_8013207C(Task* task)
                     } else {
                         SndEvt_EnqueueType6(0x55170004, pan, depth);
                     }
-                    Gp_DispatchMsg(slot, 0x3F7, (s32)&D_actor_450900_80135F08, 0);
+                    Gp_DispatchMsgPtr(slot, 0x3F7, &D_actor_450900_80135F08, 0);
                     Gp_PlayerWeaponId(&D_actor_450900_80135FEC);
-                    Gp_DispatchMsg(slot, 0x3E8, (s32)&D_actor_450900_80135FEC, 0);
+                    Gp_DispatchMsgPtr(slot, 0x3E8, &D_actor_450900_80135FEC, 0);
                 } else if ((D_8017A99C - 0x456) % 210 == 0x46) {
                     value = D_actor_450900_80136C98;
                     value++;

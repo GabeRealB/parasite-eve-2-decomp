@@ -18,6 +18,14 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
+#include "gameplay/display.h"
+#include "main/display.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+
 static void Display_VSyncCallback(void);
 static void GameMain_ShowLoading(s32 arg0);
 static void GameMain_SpawnBootTask(void);

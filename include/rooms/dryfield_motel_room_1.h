@@ -3,12 +3,12 @@
 
 #include "common.h"
 
-#include "gameplay/3CD8.h"
-
 #include "main/task.h"
 
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/message.h"
 
 /// Work block hung off `Task::work` (0x1C) of the room task parked in
 /// `D_dryfield_motel_room_1_8018159C`, which every entry point in this overlay

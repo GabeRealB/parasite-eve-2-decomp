@@ -5,8 +5,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "gameplay/D4.h"
-
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -17,6 +15,10 @@
 #include "rooms/dryfield_night_motel_room_1.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "main/fs.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_night_motel_room_1_8017DA2C[];

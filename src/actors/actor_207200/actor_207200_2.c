@@ -11,14 +11,23 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/gameplay.h"
-
 #include "actors/actor.h"
 #include "actors/actor_207200.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -116,10 +125,6 @@ extern TmdSource D_actor_207200_80150BCC;
 extern TmdSource D_actor_207200_80151074;
 extern TmdSource D_actor_207200_801517F8;
 extern SVECTOR   D_actor_207200_80153F18;
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -274,7 +279,7 @@ static void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
 }
 
 /// Helper-slot state 0 of the enemy: while it is still alive, a hit recorded in
-/// the first render node's table (or the global flag `Gp_StateF0.field_3`) arms the
+/// the first render node's table (or the global flag `Gp_StateF0.prefix.bytes.field_3`) arms the
 /// death sequence - helper state 1, a random 0..89 delay in `field_4AA` and
 /// `Gp_ArmStateF0(1)`. Then runs the idle cycle in `field_48C`: state 1 waits
 /// 0x5B frames and rolls a 30% chance of moving to 9, which plays the
@@ -295,7 +300,7 @@ static void func_actor_207200_8014B628(Task* arg0)
         if (Gp_CountRec18Hi((GpRec18*)work->field_1DC.field_20, 0x10000) != 0) {
             work->field_4A2 = 1;
         }
-        if (work->field_4A2 != 0 || Gp_StateF0.field_3 != 0) {
+        if (work->field_4A2 != 0 || Gp_StateF0.prefix.bytes.field_3 != 0) {
             rnd                        = Gp_LcgState * 5 + 0x71357911;
             hi                         = rnd >> 16;
             work->field_49A            = 0;

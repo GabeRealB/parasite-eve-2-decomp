@@ -18,15 +18,29 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
-
 #include "actors/actors_shared_80131fc8.h"
 #include <psyq/libgte.h>
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/attachments.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/model_lighting.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/loading.h"
+#include "gameplay/sprites.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
 /// State handlers copied onto the stack by func_actor_400500_80135770.
 typedef struct Actor400500TaskFuncTable13 {
@@ -216,10 +230,6 @@ extern u8         D_actor_400500_80153CC0[];
 extern TaskDesc   D_actor_400500_80153D48;
 extern u16        D_actor_400500_80153DB4[];
 extern u8         D_actor_400500_80153DD4[];
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_400500_80132438(Task* arg0);
 static void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2);
@@ -1972,11 +1982,11 @@ static void func_actor_400500_80135770(Task* arg0)
             if (work->field_A4D != 0) {
                 msg.field_4     = 3;
                 work->field_A48 = 4;
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&msg, 0);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &msg, 0);
             } else {
                 msg.field_4     = handshake;
                 work->field_A48 = 3;
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F4, &msg, 0);
             }
             break;
         case 3:
@@ -3233,7 +3243,7 @@ static void func_actor_400500_8013771C(Task* arg0)
                 msg.field_8       = 0;
                 msg.field_C       = 0;
                 msg.field_10      = 0;
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F4, &msg, 0);
                 work->field_A48      = 1;
                 Gp_StateC08.field_6 |= 1;
                 work->field_A18      = 1;

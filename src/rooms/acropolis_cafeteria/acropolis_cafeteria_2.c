@@ -8,14 +8,6 @@
 #include "gte.h"
 #include <psyq/abs.h>
 #include <psyq/rand.h>
-
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/4CC.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -32,6 +24,17 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/inventory.h"
+#include "gameplay/items.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_coords.h"
+#include "main/gamemain.h"
 
 /// 0xD8 work block the falling-debris task keeps at `Task::work`
 /// (`memCalloc(0xD8)` in `func_acropolis_cafeteria_801818DC`, released by
@@ -61,10 +64,6 @@ typedef struct AcropolisCafeteriaDebris {
 STATIC_ASSERT_SIZEOF(AcropolisCafeteriaDebris, 0xD8);
 
 extern void Stage_RequestFromAreaTable(s32 arg0);
-
-extern s32 D_8011572C;
-extern s32 D_80115750;
-extern s32 D_80115758;
 
 extern GpMsgEntry D_acropolis_cafeteria_80184CEC[];
 extern s32        D_acropolis_cafeteria_80184CFC;

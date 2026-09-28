@@ -5,12 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -22,6 +16,13 @@
 #include "main/task.h"
 #include "rooms/acropolis_fountain.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
 
 /// Work block the fountain's splash task keeps at `Task::spawnArg2`.
 /// `func_acropolis_fountain_8017E014` latches the camera the splash effect was
@@ -78,7 +79,7 @@ static void func_acropolis_fountain_8017DAA4(Task* arg0)
     msg.rot.vx = 0;
     msg.rot.vy = 0x800;
     msg.rot.vz = 0;
-    Gp_DispatchMsg(slot, 0x3EE, (s32)&msg, 0);
+    Gp_DispatchMsgPtr(slot, 0x3EE, &msg, 0);
     arg0->state = arg0->state + 1;
 }
 
@@ -97,7 +98,7 @@ static void func_acropolis_fountain_8017DB54(Task* arg0)
     slot         = gameGetPtrSlot(3);
     args.field_0 = 0;
     args.field_4 = 1;
-    Gp_DispatchMsg(slot, 0x3EF, (s32)&args, 0);
+    Gp_DispatchMsgPtr(slot, 0x3EF, &args, 0);
     arg0->state = arg0->state + 1;
 }
 
@@ -118,7 +119,7 @@ static void func_acropolis_fountain_8017DC00(Task* arg0)
     msg.pos.vx = 0xA27;
     msg.pos.vy = -0xC8;
     msg.pos.vz = -0x17A6;
-    Gp_DispatchMsg(slot, 0x3F2, (s32)&msg, 0);
+    Gp_DispatchMsgPtr(slot, 0x3F2, &msg, 0);
     arg0->state = arg0->state + 1;
 }
 

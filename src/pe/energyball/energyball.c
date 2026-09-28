@@ -2,11 +2,6 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -15,6 +10,16 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "pe/energyball.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 static void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
@@ -40,8 +45,6 @@ static EnergyBallStep D_energyball_80131194[] = {
     { 0x0480, 0x0048 },
     { 0x0500, 0x0050 },
 };
-
-extern s32 D_80115724;
 
 /// Sixteen 8-bit draws from `Gp_LcgState`, refilled once per cast by
 /// `func_energyball_8012EF48` and consumed by the GTE pass in

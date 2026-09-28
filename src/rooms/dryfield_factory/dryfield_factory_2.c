@@ -1,8 +1,4 @@
 #include "common.h"
-
-#include "gameplay/3688.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -20,14 +16,22 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgte.h>
 
+#include "gameplay/captions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/loading.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "main/fs.h"
+#include "main/mc.h"
+
 /// The room script task's work block as the prompt-spawning state reads it:
 /// `promptKind` is the display mode forwarded to `func_800D4E78`, read signed.
 typedef struct RoomUtil21Work {
     /* 0x00 */ byte pad_0[0xE];
     /* 0x0E */ s8   promptKind;
 } RoomUtil21Work;
-
-extern s16 D_80114D08;
 
 extern TaskDesc       D_dryfield_factory_80186E88[];
 extern GpMsgEntry     D_dryfield_factory_80186EA0[];
@@ -70,7 +74,7 @@ static const TaskFuncTable7 D_dryfield_factory_8017D678 = {
 /// cancel button leaves for state 5.
 static void func_dryfield_factory_80180A4C(Task* task)
 {
-    RoomActionPrompt*       prompt = &D_80114D28;
+    RoomActionPrompt*       prompt = D_80114D28;
     OverlayHotspot*         hs     = D_dryfield_factory_80186EB0;
     NightFactoryScriptWork* st     = (NightFactoryScriptWork*)task->work;
 
@@ -87,7 +91,7 @@ static void func_dryfield_factory_80180A4C(Task* task)
     prompt->targetId = 0x80;
     if (func_dryfield_factory_80181778(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
-        if (prompt->buttons[0].state == 2) {
+        if (prompt->buttons.slots[0].state == 2) {
             for (; hs->id != -1; hs++) {
                 if (hs->hit != 0) {
                     prompt->mode     = 0;
@@ -102,7 +106,7 @@ static void func_dryfield_factory_80180A4C(Task* task)
     } else {
         prompt->mode = 1;
     }
-    if (prompt->buttons[1].state == 2) {
+    if (prompt->buttons.slots[1].state == 2) {
         task->state = 5;
     }
 }
@@ -306,7 +310,7 @@ static void func_dryfield_factory_801810D8(Task* task)
     }
 
     for (port = first; port < count; port++) {
-        prompt = &D_80114D28 + port;
+        prompt = &D_80114D28[port];
         pad    = &Pad_States[port];
         status = pad->status;
         if (status == 0x12) {
@@ -376,20 +380,20 @@ static void func_dryfield_factory_801810D8(Task* task)
             prompt->field_4 = 0xDC00;
         }
 
-        statep = &prompt->buttons[0].state;
-        heldp  = &prompt->buttons[0].heldFrames;
+        statep = &prompt->buttons.halfwords[0];
+        heldp  = &prompt->buttons.halfwords[1];
         idx    = 0;
         for (i = 0; i < 2; i++, statep += 4, idx += 4) {
             mask = (i == 0) ? 0x40 : 0xA0;
             if (Pad_CheckButtons(port, 1, mask) != 0) {
                 if (heldp[idx] < prompt->field_E &&
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed == prompt->screen.packed) {
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
                     *statep    = 4;
                     heldp[idx] = prompt->field_E;
                 } else {
-                    heldp[idx]                                           = 0;
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed = prompt->screen.packed;
-                    *statep                                              = 2;
+                    heldp[idx]                                                          = 0;
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
+                    *statep                                                             = 2;
                 }
             } else if (Pad_CheckButtons(port, 3, mask) != 0) {
                 *statep = 3;
@@ -552,7 +556,7 @@ static void func_dryfield_factory_8018182C(Task* task)
 /// when the prompt is actually spawned.
 static void func_dryfield_factory_80181938(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
 
     prompt->targetId    = 0x80;
     prompt->mode        = 1;
@@ -566,7 +570,7 @@ static void func_dryfield_factory_80181938(Task* task)
 /// in `D_80114D28` with the display mode this state picked.
 static void func_dryfield_factory_8018196C(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     RoomUtil21Work*   work   = (RoomUtil21Work*)task->work;
 
     prompt->mode     = 0;
@@ -583,8 +587,8 @@ static void func_dryfield_factory_801819BC(Task* task)
 {
     NightFactoryScriptWork* work = (NightFactoryScriptWork*)task->work;
 
-    D_80114D28.mode     = 0;
-    D_80114D28.targetId = 0;
+    D_80114D28[0].mode     = 0;
+    D_80114D28[0].targetId = 0;
     if (func_800D4EC0() != 0) {
         func_dryfield_factory_80180DE8(task, work->field_C);
     } else {
@@ -618,7 +622,7 @@ static void func_dryfield_factory_80181AB8(Task* task)
     RoomActionPrompt*       prompt;
     NightFactoryScriptWork* work;
 
-    prompt           = &D_80114D28;
+    prompt           = D_80114D28;
     work             = (NightFactoryScriptWork*)task->work;
     prompt->targetId = 0;
     prompt->mode     = 0;
@@ -661,17 +665,17 @@ void func_dryfield_factory_80181B38(s32 arg0)
 /// marks the slot as highlighted (`mode` 1).
 static void func_dryfield_factory_80181BB4(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     s32               i;
 
     for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0               = 0;
-        prompt->field_4               = 0;
-        prompt->targetId              = 0x100;
-        prompt->field_E               = 0xF;
-        prompt->buttons[0].heldFrames = 0;
-        prompt->buttons[1].heldFrames = 0;
-        prompt->mode                  = 1;
+        prompt->field_0                     = 0;
+        prompt->field_4                     = 0;
+        prompt->targetId                    = 0x100;
+        prompt->field_E                     = 0xF;
+        prompt->buttons.slots[0].heldFrames = 0;
+        prompt->buttons.slots[1].heldFrames = 0;
+        prompt->mode                        = 1;
     }
     task->state = task->state + 1;
 }

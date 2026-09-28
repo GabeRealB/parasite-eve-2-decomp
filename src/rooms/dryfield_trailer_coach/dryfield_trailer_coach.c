@@ -7,14 +7,6 @@
 #include "gte.h"
 
 #include "decomp/common.h"
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/4CC.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -34,6 +26,18 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181228.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_targets.h"
 
 /// The "%" suffix the room's percentage formatters append.
 extern u8 D_dryfield_trailer_coach_801845F8[];
@@ -320,10 +324,6 @@ static u16* func_dryfield_trailer_coach_8017D7F4(s32 mode)
     return D_dryfield_trailer_coach_80183E2C;
 }
 
-extern RoomShopStock D_8010E138[];
-extern UiObjectDesc  D_8010EFA0;
-extern char          Gp_StrEmpty[];
-
 /// Texts and panel descriptors of the shop list's two special rows (ids
 /// 0xFFFE and 0xFFFC) and of the panel a bought item opens.
 extern u8           D_dryfield_trailer_coach_80183D78[];
@@ -448,7 +448,7 @@ void func_dryfield_trailer_coach_8017DE64(UiList* prompt, UiObject* obj)
         /* Dead: emits the scaled index before the table base so the
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
-        Gp_DrawQty(obj, prompt->field_18, prompt->field_1A, D_8010E138[itemId].perBuy, prompt->field_1C);
+        Gp_DrawQty(obj, prompt->field_18, prompt->field_1A, gpItemStock(itemId)->perBuy, prompt->field_1C);
     }
     Text_ItoaUnsigned(buf, price);
     Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, buf, prompt->field_1C, 3, 2);
@@ -610,8 +610,7 @@ static void func_dryfield_trailer_coach_8017E43C(RoomShopList* shop, UiObject* o
     D_dryfield_trailer_coach_80183D44 = -1;
 }
 
-extern UiObject*    D_80067634;
-extern UiObjectDesc D_8010D80C;
+extern UiObject* D_80067634;
 
 /// Titles and captions of the shop's panels.
 static const u8 D_dryfield_trailer_coach_8017D6D0[] = "Select";
@@ -1209,14 +1208,14 @@ void func_dryfield_trailer_coach_8017F834(Task* task)
         /* Dead: emits the scaled index before the table base so the
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
-        if (D_8010E138[itemId].perBuy != 0) {
+        if (gpItemStock(itemId)->perBuy != 0) {
             held    = Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, itemId);
-            maxHeld = D_8010E138[itemId].maxHeld;
+            maxHeld = gpItemStock(itemId)->maxHeld;
             maxQty  = maxHeld - held;
             if (maxQty <= 0) {
                 maxQty = 1;
             } else {
-                maxQty = (maxQty - 1) / D_8010E138[itemId].perBuy;
+                maxQty = (maxQty - 1) / gpItemStock(itemId)->perBuy;
                 maxQty = maxQty + 1;
             }
         }
@@ -1237,7 +1236,7 @@ void func_dryfield_trailer_coach_8017F834(Task* task)
     if ((u32)(itemId - 0xA0) < 0x20) {
         /* Dead: same index-first ordering as above. */
         scaled = itemId * 4;
-        Gp_DrawQty(obj, x, y, D_8010E138[itemId].perBuy, 0x606060);
+        Gp_DrawQty(obj, x, y, gpItemStock(itemId)->perBuy, 0x606060);
     }
 
     count = task->extraState;
@@ -2378,9 +2377,6 @@ static void func_dryfield_trailer_coach_80181D4C(Task* task)
     Ui_FreeAndKill(task);
 }
 
-extern s16 D_80114D08;
-extern u32 D_80115694;
-
 /// The scene sub-task while it runs, NULL otherwise.
 extern Task* D_dryfield_trailer_coach_80189C94;
 
@@ -2608,8 +2604,8 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
             if (Gp_GetCapEventKey() == 0xB) {
                 func_800E8614((s32)&D_dryfield_trailer_coach_80185C4C, 0);
             } else if (GameFlag_GetNibble(0x28) < 2) {
-                func_800E8634((s32)&D_dryfield_trailer_coach_80185D54, 0,
-                              (s32)&D_dryfield_trailer_coach_80186684);
+                func_800E8634(&D_dryfield_trailer_coach_80185D54, 0,
+                              &D_dryfield_trailer_coach_80186684);
                 GameFlag_SetNibble(0x28, 2);
                 GameFlag_SetNibble(0x3A, 1);
                 GameFlag_SetNibble(0x4B, 1);
@@ -2624,8 +2620,8 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
                     func_800E8614((s32)&D_dryfield_trailer_coach_80187074, 0);
                 }
             } else if (GameFlag_GetNibble(0x28) == 2) {
-                func_800E8634((s32)&D_dryfield_trailer_coach_8018681C, 0,
-                              (s32)&D_dryfield_trailer_coach_80186A74);
+                func_800E8634(&D_dryfield_trailer_coach_8018681C, 0,
+                              &D_dryfield_trailer_coach_80186A74);
                 GameFlag_SetNibble(0x28, 3);
             } else {
                 func_800E8614((s32)&D_dryfield_trailer_coach_80186BDC, 0);
@@ -2843,7 +2839,7 @@ static void func_dryfield_trailer_coach_80182888(Task* arg0)
     arg0->msgTable = D_dryfield_trailer_coach_80184FA0;
     Game_SetPtrSlot(arg0, 7);
     if (Mc_SaveData[0].at4.loc.warp == 2) {
-        func_800E8634((s32)&D_dryfield_trailer_coach_801853F4, 0, (s32)&D_dryfield_trailer_coach_80185964);
+        func_800E8634(&D_dryfield_trailer_coach_801853F4, 0, &D_dryfield_trailer_coach_80185964);
         GameFlag_SetNibble(3, 0);
         GameFlag_SetNibble(0x155, 4);
     } else {

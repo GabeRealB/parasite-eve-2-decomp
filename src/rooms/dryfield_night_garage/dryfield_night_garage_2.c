@@ -4,11 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -22,6 +17,13 @@
 #include "main/wipsys.h"
 #include "rooms/dryfield_night_garage.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
 
 extern s32            D_dryfield_night_garage_80182DE0;
 extern s32            D_dryfield_night_garage_80182DE4;
@@ -48,13 +50,13 @@ void func_dryfield_night_garage_801809A4(Task* arg0)
     switch (temp_v1) {
         case 0:
             Gp_RunCapCmd(arg0->spawnArg1, 0);
-            Gp_DispatchMsg(func_dryfield_night_garage_80180A64(0), 0x7DB, (s32)&D_dryfield_night_garage_80182DE0, 0);
+            Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), 0x7DB, &D_dryfield_night_garage_80182DE0, 0);
             arg0->state = arg0->state + 1;
             return;
         case 1:
             if (Gp_CapBusy() == 0) {
                 Gp_MsgPlayerWeapon(1);
-                Gp_DispatchMsg(func_dryfield_night_garage_80180A64(0), 0x7DB, (s32)&D_dryfield_night_garage_80182DE4, 0);
+                Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), 0x7DB, &D_dryfield_night_garage_80182DE4, 0);
                 break;
             }
             return;

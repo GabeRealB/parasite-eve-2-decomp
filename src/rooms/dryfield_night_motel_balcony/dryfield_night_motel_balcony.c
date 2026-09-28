@@ -1,12 +1,6 @@
 #include "common.h"
-#include "gameplay/gameplay.h"
 
 #include <psyq/libgte.h>
-
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -15,6 +9,16 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/dryfield_night_motel_balcony.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
+#include "main/fs.h"
 
 /// A gameplay state byte; the one-shot balcony event waits while it is 1.
 
@@ -262,7 +266,7 @@ static void func_dryfield_night_motel_balcony_8017DC30(Task* task)
     func_dryfield_night_motel_balcony_8017E3C8();
     field9 = gGameSession->at4.loc.place;
     if (field9 == 2 && gGameSession->at4.loc.room == field9 && GameFlag_GetNibble(0x61) == 0) {
-        func_800E8634((s32)&D_80165060, 0, (s32)&D_80165798);
+        func_800E8634(&D_80165060, 0, &D_80165798);
         GameFlag_SetNibble(0x61, 1);
         GameFlag_SetNibble(0x10E, 1);
         GameFlag_SetNibble(3, 0);

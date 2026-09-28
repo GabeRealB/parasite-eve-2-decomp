@@ -4,12 +4,6 @@
 #include <psyq/libgpu.h>
 
 #include "decomp/common.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/4CC.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -27,6 +21,16 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181228.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/message.h"
+#include "gameplay/world_targets.h"
 
 /// The "%" suffix the room's percentage formatters append.
 extern u8 D_dryfield_night_trailer_coach_80184D44[];
@@ -313,10 +317,6 @@ static u16* func_dryfield_night_trailer_coach_8017D81C(s32 mode)
     return D_dryfield_night_trailer_coach_80184578;
 }
 
-extern RoomShopStock D_8010E138[];
-extern UiObjectDesc  D_8010EFA0;
-extern char          Gp_StrEmpty[];
-
 /// Texts and panel descriptors of the shop list's two special rows (ids
 /// 0xFFFE and 0xFFFC) and of the panel a bought item opens.
 extern u8           D_dryfield_night_trailer_coach_801844C4[];
@@ -441,7 +441,7 @@ void func_dryfield_night_trailer_coach_8017DE8C(UiList* prompt, UiObject* obj)
         /* Dead: emits the scaled index before the table base so the
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
-        Gp_DrawQty(obj, prompt->field_18, prompt->field_1A, D_8010E138[itemId].perBuy, prompt->field_1C);
+        Gp_DrawQty(obj, prompt->field_18, prompt->field_1A, gpItemStock(itemId)->perBuy, prompt->field_1C);
     }
     Text_ItoaUnsigned(buf, price);
     Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, buf, prompt->field_1C, 3, 2);
@@ -603,8 +603,7 @@ static void func_dryfield_night_trailer_coach_8017E464(RoomShopList* shop, UiObj
     D_dryfield_night_trailer_coach_80184490 = -1;
 }
 
-extern UiObject*    D_80067634;
-extern UiObjectDesc D_8010D80C;
+extern UiObject* D_80067634;
 
 /// Titles and captions of the shop's panels.
 static const u8 D_dryfield_night_trailer_coach_8017D6D0[] = "Select";
@@ -1202,14 +1201,14 @@ void func_dryfield_night_trailer_coach_8017F85C(Task* task)
         /* Dead: emits the scaled index before the table base so the
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
-        if (D_8010E138[itemId].perBuy != 0) {
+        if (gpItemStock(itemId)->perBuy != 0) {
             held    = Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, itemId);
-            maxHeld = D_8010E138[itemId].maxHeld;
+            maxHeld = gpItemStock(itemId)->maxHeld;
             maxQty  = maxHeld - held;
             if (maxQty <= 0) {
                 maxQty = 1;
             } else {
-                maxQty = (maxQty - 1) / D_8010E138[itemId].perBuy;
+                maxQty = (maxQty - 1) / gpItemStock(itemId)->perBuy;
                 maxQty = maxQty + 1;
             }
         }
@@ -1230,7 +1229,7 @@ void func_dryfield_night_trailer_coach_8017F85C(Task* task)
     if ((u32)(itemId - 0xA0) < 0x20) {
         /* Dead: same index-first ordering as above. */
         scaled = itemId * 4;
-        Gp_DrawQty(obj, x, y, D_8010E138[itemId].perBuy, 0x606060);
+        Gp_DrawQty(obj, x, y, gpItemStock(itemId)->perBuy, 0x606060);
     }
 
     count = task->extraState;
@@ -2371,9 +2370,6 @@ static void func_dryfield_night_trailer_coach_80181D74(Task* task)
     Ui_FreeAndKill(task);
 }
 
-extern s16 D_80114D08;
-extern u32 D_80115694;
-
 /// The scene sub-task while it runs, NULL otherwise.
 extern Task* D_dryfield_night_trailer_coach_8018C218;
 
@@ -2571,9 +2567,6 @@ void func_dryfield_night_trailer_coach_80181DB0(Task* task)
     }
 }
 
-extern void           func_800E8614(s32 arg0, s32 arg1);
-extern void           func_800E8634(s32 arg0, s32 arg1, s32 arg2);
-extern s32            func_800E3FCC(s32 arg0);
 extern s32            D_dryfield_night_trailer_coach_8018794C;
 extern s32            D_dryfield_night_trailer_coach_801879B8;
 extern s32            D_dryfield_night_trailer_coach_80187CEC;
@@ -2611,14 +2604,14 @@ static void func_dryfield_night_trailer_coach_8018231C(Task* task)
     task->msgTable = &D_dryfield_night_trailer_coach_8018794C;
     Game_SetPtrSlot(task, 7);
     if (gameGetPtrSlot(0xA) != NULL) {
-        Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3E9, (s32)&D_dryfield_night_trailer_coach_801879B8, 0);
-        Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3E8, (s32)&D_dryfield_night_trailer_coach_80187CEC, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E9, &D_dryfield_night_trailer_coach_801879B8, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E8, &D_dryfield_night_trailer_coach_80187CEC, 0);
     }
     if (Mc_SaveData[0].at4.loc.warp == 2) {
-        func_800E8634((s32)&D_dryfield_night_trailer_coach_80187D00, 0, (s32)&D_dryfield_night_trailer_coach_80187F58);
+        func_800E8634(&D_dryfield_night_trailer_coach_80187D00, 0, &D_dryfield_night_trailer_coach_80187F58);
     }
     if (Mc_SaveData[0].at4.loc.warp == 3) {
-        func_800E8634((s32)&D_dryfield_night_trailer_coach_80189080, 0, (s32)&D_dryfield_night_trailer_coach_801892C0);
+        func_800E8634(&D_dryfield_night_trailer_coach_80189080, 0, &D_dryfield_night_trailer_coach_801892C0);
         Gp_SetCurBit2Flag(0x22, 1);
     }
     if (func_800E3FCC(0xA2) == 0x25) {
@@ -2660,8 +2653,8 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
                     GameFlag_SetNibble(0x5B, 1);
                     GameFlag_SetNibble(0x4C, 0);
                     Gp_ApplyAreaRecs(&D_dryfield_night_trailer_coach_8018C208);
-                    func_800E8634((s32)&D_dryfield_night_trailer_coach_801889A8, 1,
-                                  (s32)&D_dryfield_night_trailer_coach_80188F00);
+                    func_800E8634(&D_dryfield_night_trailer_coach_801889A8, 1,
+                                  &D_dryfield_night_trailer_coach_80188F00);
                     func_800E3FAC(0xA2, 0x13);
                     Mc_SaveData[0].sceneEvent = 2;
                 } else {

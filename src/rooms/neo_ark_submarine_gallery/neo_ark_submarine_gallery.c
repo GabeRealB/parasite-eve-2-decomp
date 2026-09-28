@@ -6,14 +6,7 @@
 #include "gte.h"
 #include "main/gfxgte.h"
 #include <psyq/rand.h>
-
-#include "gameplay/1A8.h"
 #include "main/display.h"
-#include "gameplay/gameplay.h"
-#include "gameplay/D4.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
 #include "main/fs.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -23,6 +16,14 @@
 #include "main/sound.h"
 #include "rooms/room.h"
 
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/world_targets.h"
+
 s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
@@ -31,8 +32,6 @@ extern GpMsgEntry D_neo_ark_submarine_gallery_80181884[];
 extern TaskDesc   D_neo_ark_submarine_gallery_801818BC[];
 extern TaskDesc   D_neo_ark_submarine_gallery_801818AC;
 extern s16        D_neo_ark_submarine_gallery_801818B8;
-
-extern s8 D_80115690;
 
 /// 0x1E pair the gallery hands `Task_Spawn` for the helper it raises in state 3,
 /// the same shape `D_mine_mesa_80189B38` has.
@@ -809,7 +808,7 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             gDisplayState.roomVariant   = 1;
             Mc_SaveData[0].at4.loc.area = D_neo_ark_submarine_gallery_80185924.field_2;
             Mc_SaveData[0].at4.loc.warp = D_neo_ark_submarine_gallery_80185924.field_4;
-            Mc_SaveData[0].at4.loc.room = D_neo_ark_submarine_gallery_80185924.field_1;
+            Mc_SaveData[0].at4.loc.room = D_neo_ark_submarine_gallery_80185924.prefix.bytes.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -831,9 +830,9 @@ s32 func_neo_ark_submarine_gallery_8017EA0C(Task* task, s32 msgId, GpSaveLoc* sr
     func_80179B14(src, dst);
     if (*(u16*)src == 0xE) {
         if (src->field_5 == 0) {
-            D_neo_ark_submarine_gallery_80185924.field_2 = dst->field_0;
-            D_neo_ark_submarine_gallery_80185924.field_4 = dst->field_2;
-            D_neo_ark_submarine_gallery_80185924.field_1 = dst->field_3;
+            D_neo_ark_submarine_gallery_80185924.field_2              = dst->prefix.bytes.field_0;
+            D_neo_ark_submarine_gallery_80185924.field_4              = dst->field_2;
+            D_neo_ark_submarine_gallery_80185924.prefix.bytes.field_1 = dst->field_3;
             Task_SpawnFromTable(&D_neo_ark_submarine_gallery_801818AC, 0, 0, 0);
         }
         return 0;
@@ -854,7 +853,7 @@ s32 func_neo_ark_submarine_gallery_8017EABC(s32 arg0, s32 arg1, s32 arg2)
         case 3:
             if (gGameSession->at4.loc.place == 4) {
                 Gp_SpawnIfCapIdle(5, 0);
-            } else if (Gp_StateF0.field_0 == 1) {
+            } else if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                 Gp_SpawnIfCapIdle(3, 0);
             } else {
                 Gp_SpawnIfCapIdle(6, 0);

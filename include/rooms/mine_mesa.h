@@ -2,9 +2,6 @@
 #define ROOMS_MINE_MESA_H
 
 #include "common.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
 #include "main/task.h"
 #include "rooms/room.h"
 
@@ -12,6 +9,9 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include "main/coord.h"
+
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
 
 extern GpGridParams D_mine_mesa_801864A4;
 extern GpGridParams D_mine_mesa_8018700C;

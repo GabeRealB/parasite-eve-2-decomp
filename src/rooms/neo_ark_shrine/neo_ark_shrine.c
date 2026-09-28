@@ -3,11 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/abs.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/session.h"
@@ -16,6 +11,14 @@
 #include "rooms/neo_ark_shrine.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/pad_script.h"
+#include "main/fs.h"
 
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -167,7 +170,7 @@ void func_neo_ark_shrine_8017D948(Task* task)
 void func_neo_ark_shrine_8017D9A0(Task* task)
 {
     OverlayHotspot*     hs     = D_neo_ark_shrine_80182430;
-    RoomActionPrompt*   prompt = &D_80114D28;
+    RoomActionPrompt*   prompt = D_80114D28;
     NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
     u16                 id;
 
@@ -181,7 +184,7 @@ void func_neo_ark_shrine_8017D9A0(Task* task)
     prompt->targetId = 0x80;
     if (func_neo_ark_shrine_8017EC10(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
-        if (prompt->buttons[0].state == 2) {
+        if (prompt->buttons.slots[0].state == 2) {
             id = hs->id;
             if (hs->id != -1) {
                 do {
@@ -207,7 +210,7 @@ void func_neo_ark_shrine_8017D9A0(Task* task)
     } else {
         prompt->mode = 1;
     }
-    if (prompt->buttons[1].state == 2) {
+    if (prompt->buttons.slots[1].state == 2) {
         do {
             task->state = 5;
         } while (0);

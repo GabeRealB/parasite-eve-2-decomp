@@ -5,12 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -20,11 +14,15 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+#include "gameplay/actor_render.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
-extern s32 D_8011572C;
-extern s32 D_80115750;
-extern s32 D_80115758;
+extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 /// The room's message table, which the message-driven task installs.
 extern GpMsgEntry D_neo_ark_south_promenade_8017F6B4[];

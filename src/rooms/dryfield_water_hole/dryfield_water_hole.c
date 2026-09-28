@@ -5,12 +5,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/abs.h>
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -22,6 +16,16 @@
 #include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
 /// One rectangle of water surface drawn by `func_dryfield_water_hole_8017D898`,
 /// in world coordinates: it spans `width` along X from `x` and `depth` along Z
@@ -42,9 +46,6 @@ typedef struct {
     byte pad_0[0x26];
     s16  strength;
 } _DryfieldWaterHoleSplash;
-
-extern s32 D_80115738;
-extern s32 D_8011574C;
 
 /// The room's message table, the `GpMsgEntry` list the room task publishes in
 /// `Task::msgTable` for `Gp_DispatchMsg` to walk: 0x13EE, 0x13F1, 0x13EF, 0x13F0

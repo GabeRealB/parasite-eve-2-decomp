@@ -1,0 +1,2642 @@
+#include "gameplay/item_menu.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgpu.h>
+
+#include "common.h"
+
+#include "attachment_state.h"
+#include "attachments.h"
+#include "hud_sprites.h"
+#include "gameplay/inventory.h"
+#include "inventory.h"
+#include "item_menu.h"
+#include "item_use.h"
+#include "gameplay/items.h"
+#include "items.h"
+#include "menu.h"
+
+#include "main/display.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
+#include "main/wipsys.h"
+
+#define D_8010EB08 D_8010EAB4[3]
+
+#define D_8010EB24 D_8010EAB4[4]
+
+#define D_8010EB40 D_8010EAB4[5]
+
+#define D_8010EFD8 D_8010EAB4[47]
+
+static void func_800C0B98(UiList* arg0, UiObject* arg1, u32 arg2);
+
+/// Draws `item`'s name, its `func_800C22D8` marker in `mode`, the variant
+/// marker for items 0x0F-0x32 and its icon at (`x`, `y`) in `obj`. Nothing is
+/// drawn while `obj` is in mode 5.
+static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item, s32 mode);
+
+/// Draws `item` as `_gpDrawItemNameAt` does, at the prompt row's position and
+/// in its colour.
+static inline void _gpDrawItemName(UiList* prompt, UiObject* obj, s32 item, s32 mode);
+
+/// Returns the `index`-th row (from 0) of `scan` that is free to reorder -
+/// not attached to a weapon and not the equipped armour or weapon - or NULL
+/// when there are fewer. The out-of-line copy is `func_800CECC0`.
+static inline McItemRec* _gpNthLooseRec(McItemScan* scan, s32 index);
+
+static __inline__ void countItemRows(UiList* menu);
+
+static void Gp_ItemListTask(Task* arg0);
+
+/// Replaces the layout position a spawned child copied from its descriptor
+/// with `x`, `y`.
+static inline void _gpSetSpawnOffset(UiObject* obj, s32 x, s32 y);
+
+/// Sets the weapon menu's row count from the current weapon's item: one row
+/// for weapon index 0 and for item 0x92, otherwise three when the item's
+/// slot has an attachment (`attachId` != 0xFF) and two when it does not.
+static inline void _gpWeaponMenuSetRows(UiList* menu);
+
+/// Keeps the armor attachment selection within the visible rows and item count.
+static inline void _gpClampArmorRow(UiList* menu, s32 end);
+
+/// Whether item `id` is the equipped weapon, the equipped armour, or the ammo
+/// or attachment loaded in the equipped weapon.
+static inline s32 _gpIsEquippedItem(s32 id);
+
+extern s32 Pad_MaskConfirm;
+
+extern s32 Pad_MaskCancel;
+
+extern s32 Pad_MaskMenu;
+
+char Gp_StrEmpty[]     = "";
+char Gp_StrReleasePe[] = "Release Parasite Energy.";
+
+void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
+{
+    u8*           text;
+    s32           color;
+    s32           one;
+    s32           val;
+    s32           flag;
+    s32           scale;
+    s32           height;
+    s32           width;
+    UiObjectDesc* desc;
+
+    val = arg1->spawnArg1;
+    if (val != 0) {
+        if ((u32)val > 0xFFFF) {
+            color = Ui_LookupTable(arg0, 1);
+            one   = 1;
+            Text_DrawPrompt(arg0, arg0->panel.field_1C.s + 2, (s16)arg0->panel.field_18.u + 0xF, (u8*)val, color, one, 0);
+            text = Text_SkipLines((u8*)val, one);
+            Text_DrawPrompt(arg0, arg0->panel.field_1C.s + 2, (s16)arg0->panel.field_18.u + 0x1E, text, color, one, 0);
+        } else if ((u32)(val - 0x300) < 0x100U) {
+            Gp_DrawCastCostLines(arg0, val);
+        }
+    }
+
+    arg1->killCountdown--;
+    if (arg1->killCountdown > 0) {
+        return;
+    }
+
+    switch (arg0->field_2C) {
+        case 5:
+            desc = D_8010EAB4;
+            Ui_SpawnFromDesc(desc + 5, 0, 1, 8, arg0);
+            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+            Ui_StartCloseAnim(&(arg0)->panel, arg0->owner);
+            break;
+        case 0x14:
+        case 0x19:
+            Ui_SpawnFromDesc(D_8010EAB4 + arg0->field_2C, 0, 1, 8, arg0);
+            break;
+        case 0x100:
+            D_80114D88 = 1;
+            Ui_SpawnFromDesc(&D_8010F140, 0, 1, 8, arg0);
+            break;
+        case 0x101:
+            Display_SetDrawMode(1);
+            Ui_SpawnFromDesc(&D_8010EAD0, 0, 1, 8, arg0);
+            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+            Ui_StartCloseAnim(&(arg0)->panel, arg0->owner);
+            break;
+        case 6:
+        case 0xC:
+            Display_SetDrawMode(1);
+            Ui_SpawnFromDesc(D_8010EAB4 + arg0->field_2C, 0, 0, 8, arg0);
+            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+            Ui_StartCloseAnim(&(arg0)->panel, arg0->owner);
+            break;
+        case 0x24:
+        default:
+            Display_SetDrawMode(1);
+            Ui_SpawnFromDesc(D_8010EAB4 + arg0->field_2C, 0, 1, 8, arg0);
+            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+            Ui_StartCloseAnim(&(arg0)->panel, arg0->owner);
+            break;
+    }
+
+    arg1->state--;
+
+    flag = arg0->field_2C;
+    if ((flag == 1) || (flag == 0x101)) {
+        scale = 1;
+    } else if (flag != 0xC) {
+        scale = 2;
+    } else {
+        Ui_UpdateLayoutSize(&(arg0)->panel, 0, Ui_Scale15(2) + 1);
+        width  = arg0->panel.bounds.unsignedRect.h;
+        height = 0x4C;
+        goto store;
+    }
+    Ui_UpdateLayoutSize(&(arg0)->panel, 0, Ui_Scale15(scale) + 1);
+    width  = arg0->panel.bounds.unsignedRect.h;
+    height = 0x68;
+store:
+    arg0->panel.bounds.unsignedRect.y = height - width;
+}
+
+void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+{
+    POLY_FT4* p;
+    TILE*     q;
+    s32       icon;
+    s32       kind;
+    s32       tu;
+    s32       tv;
+    s32       clut;
+    s32       flag0;
+    s32       flag1;
+    s32       flag2;
+    s32       flag3;
+    s32       idx;
+    s32       rel;
+    s32       tmp;
+
+    clut  = 0;
+    tv    = 0;
+    tu    = 0;
+    flag0 = arg4 & 1;
+    flag1 = (arg4 >> 1) & 1;
+    flag2 = (arg4 >> 2) & 1;
+    flag3 = (arg4 >> 3) & 1;
+
+    if (arg3 >= 0x300) {
+        icon = -1;
+        kind = -1;
+        if (arg3 < 0x340) {
+            tu   = ((arg3 & 0xC) << 2) + 0xB0;
+            tv   = (arg3 & 0xF0) + 0x80;
+            clut = getClut((arg3 & 0xF0) + 0x40, 0xF0);
+        } else {
+            tu   = 0xE0;
+            tv   = 0x40;
+            clut = 0x3C8B;
+        }
+    } else if (arg3 == 0) {
+        icon = 6;
+        kind = 8;
+    } else if (flag0 == 0 && Gp_HasItemSeenBit(arg3) == 0) {
+        icon = 2;
+        kind = 2;
+    } else if (arg3 < 0x60) {
+        if ((u32)(arg3 - 0xF) < 0x24) {
+            idx  = (arg3 - 0xF) / 3;
+            icon = -1;
+            kind = -1;
+            tu   = (idx % 3) * 16 + 0xB0;
+            tv   = (idx / 3) * 16 + 0x80;
+            clut = getClut((idx / 3) * 16 + 0x40, 0xF0);
+        } else if ((Gp_ItemDescs[arg3].field_2 & 0xF) == 1) {
+            icon = 1;
+            kind = 4;
+        } else {
+            if (arg3 < 0x47) {
+                if (arg3 < 0x42) {
+                    switch (arg3) {
+                        case 9:
+                        case 0xC:
+                            icon = 3;
+                            break;
+                        case 0xA:
+                            icon = 6;
+                            break;
+                        default:
+                            icon = 9;
+                            break;
+                    }
+                } else {
+                    icon = 6;
+                }
+            } else {
+                icon = 9;
+            }
+            kind = 6;
+        }
+    } else if (arg3 < 0x80) {
+        icon = 9;
+        kind = 3;
+    } else if (arg3 < 0xA0) {
+        rel = Gp_RelatedQty0.rows[arg3 - 0x80].related[0];
+        if (rel == 0) {
+            icon = 2;
+        } else {
+            switch (Gp_ItemDescs[rel].field_2 & 0xF) {
+                case 1:
+                    icon = 3;
+                    break;
+                case 3:
+                    icon = 4;
+                    break;
+                case 4:
+                    icon = 7;
+                    break;
+                case 5:
+                    icon = 5;
+                    break;
+                case 6:
+                    icon = 6;
+                    break;
+                case 8:
+                    icon = 8;
+                    break;
+                default:
+                    icon = 2;
+                    break;
+            }
+        }
+        kind = 0;
+    } else if (arg3 < 0xC0) {
+        switch (Gp_ItemDescs[arg3].field_2 & 0xF) {
+            case 1:
+                icon = 3;
+                break;
+            case 3:
+                icon = 4;
+                break;
+            case 4:
+                icon = 7;
+                break;
+            case 5:
+                icon = 5;
+                break;
+            case 6:
+                icon = 6;
+                break;
+            default:
+                icon = 2;
+                break;
+        }
+        kind = 1;
+    } else {
+        icon = 1;
+        kind = 7;
+    }
+
+    p              = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
+    p->x2 = p->x0 = arg0->panel.field_20.u + arg1;
+    p->x1 = p->x3 = p->x0 + 0xE;
+    p->y1 = p->y0 = arg0->panel.field_22.u + arg2 - 0xE;
+    p->y2 = p->y3 = p->y0 + 0xE;
+    if (flag1 != 0) {
+        p->x2 = p->x0 = p->x0 - 2;
+        p->x3 = p->x1 = p->x1 + 2;
+        p->y1 = p->y0 = p->y0 - 2;
+        p->y3 = p->y2 = p->y2 + 2;
+    }
+    if (kind >= 0) {
+        tmp = (kind + 1) * 16;
+        setUV4(p, -tmp, 0xF0, 0xE - tmp, 0xF0, -tmp, 0xFE, 0xE - tmp, 0xFE);
+    } else {
+        setUVWH(p, tu + 1, tv + 1, 0xE, 0xE);
+    }
+    if (icon >= 0) {
+        p->clut = D_80096F88[icon];
+    } else {
+        p->clut = clut;
+    }
+    p->tpage = 0x1E;
+    if (flag2 == 0) {
+        setlen(p, 9);
+        setcode(p, 0x2D);
+    } else {
+        PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x40, 0x40, 0x40, 0);
+        setlen(p, 9);
+        setcode(p, 0x2C);
+    }
+    addPrim(gGpuCurrentOt + arg0->panel.field_14.s + 1, p);
+    if (flag3 != 0) {
+        q                     = (TILE*)gGpuPrimCursor;
+        q->x0                 = p->x0 - 1;
+        q->y0                 = p->y0 - 1;
+        q->w                  = p->x1 - p->x0 + 2;
+        q->h                  = p->y2 - p->y0 + 2;
+        gGpuPrimCursor        = q + 1;
+        PRIM_COLOR_WORD(q, 0) = PRIM_RGBC(0xc0, 0xc0, 0xc0, 0);
+        setlen(q, 3);
+        setcode(q, 0x60);
+        addPrim(gGpuCurrentOt + arg0->panel.field_14.s + 1, q);
+    }
+}
+
+static void func_800C0B98(UiList* arg0, UiObject* arg1, u32 arg2)
+{
+    SPRT* p;
+
+    p              = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
+    p->x0          = (u16)arg0->field_18 + arg1->panel.field_20.u;
+    p->y0          = (u16)arg0->field_1A + arg1->panel.field_22.u - 0xF;
+    if (arg0->field_C == 1) {
+        p->clut = 0x3C09;
+    } else {
+        p->clut = 0x3C01;
+    }
+    p->v0 = arg2 >> 8;
+    p->w  = (arg2 >> 16) & 0xFF;
+    p->h  = arg2 >> 24;
+    setlen(p, 4);
+    p->u0 = arg2;
+    setcode(p, 0x65);
+    addPrim(gGpuCurrentOt + arg1->panel.field_14.s + 1, p);
+    Ui_InsertDrawTPage(arg1->panel.field_14.s + 1, 0);
+}
+
+void Gp_StatusPanelTask(Task* arg0)
+{
+    UiObject* obj;
+    UiList*   menu;
+    Task*     child;
+    Task*     next;
+    Task*     head;
+    UiObject* childObj;
+    s32       flag;
+
+    menu = &D_8010E820;
+    obj  = arg0->spawnArg2;
+    if (arg0->state == 0) {
+        Ui_SpawnFromDesc(&D_8010EB08, 0, 0, 4, obj);
+        Ui_LayoutListPanel(menu, &(obj)->panel);
+        arg0->state = arg0->state + 1;
+    } else {
+        obj->field_2E = 0;
+        Ui_UpdateListNoAnim(menu, obj);
+        if (obj->panel.field_0.w == 1) {
+            if (obj->field_2E == 0) {
+                if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+                    obj->field_2E = -1;
+                } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+                    obj->field_2E = -1;
+                }
+            }
+        }
+        head = arg0->firstChild;
+        if (head != NULL) {
+            child = head;
+            do {
+                childObj = child->spawnArg2;
+                flag     = childObj->field_2E;
+                next     = child->nextSibling;
+                switch (flag) {
+                    case 9:
+                        obj->field_2C = childObj->field_2C;
+                        obj->field_2E = 6;
+                        break;
+                    case 6:
+                        obj->panel.field_0.w = 1;
+                        Ui_TeardownTree(childObj, childObj->owner);
+                        break;
+                    case -1:
+                        obj->field_2E = flag;
+                        break;
+                }
+                child = next;
+            } while (child != arg0->firstChild);
+        }
+    }
+}
+
+void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, u32 arg6)
+{
+    TILE*     tile;
+    SPRT*     sp;
+    POLY_FT4* poly;
+    s32       span;
+    s32       max;
+    s32       bar;
+    s32       right;
+    s32       clut;
+
+    if (arg1 < arg2) {
+        span = arg2 - arg1;
+        max  = span - 2;
+        bar  = (max * arg5) / arg4;
+        arg1 = arg1 + (s16)arg0->field_20.u;
+        arg3 = arg3 + (s16)arg0->field_22.u;
+        if (max < bar) {
+            bar = max;
+        }
+        if (bar > 0) {
+            tile                     = (TILE*)gGpuPrimCursor;
+            gGpuPrimCursor           = tile + 1;
+            tile->x0                 = arg1 + 1;
+            tile->y0                 = arg3 - 1;
+            tile->w                  = bar;
+            tile->h                  = 2;
+            PRIM_COLOR_WORD(tile, 0) = arg6;
+            setlen(tile, 3);
+            setcode(tile, 0x60);
+            addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, tile);
+        }
+        arg3 = arg3 - 4;
+        clut = 0x3C0B;
+
+        sp             = (SPRT*)gGpuPrimCursor;
+        gGpuPrimCursor = sp + 1;
+        sp->x0         = arg1;
+        sp->y0         = arg3;
+        sp->u0         = 0x98;
+        sp->v0         = 0x68;
+        sp->clut       = clut;
+        setlen(sp, 3);
+        setcode(sp, 0x75);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, sp);
+
+        sp             = (SPRT*)gGpuPrimCursor;
+        gGpuPrimCursor = sp + 1;
+        right          = (arg1 + span) - 8;
+        sp->x0         = right;
+        sp->y0         = arg3;
+        sp->u0         = 0xA8;
+        sp->v0         = 0x68;
+        sp->clut       = clut;
+        setlen(sp, 3);
+        setcode(sp, 0x75);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, sp);
+
+        poly           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = poly + 1;
+        poly->x2       = arg1 + 8;
+        poly->x0       = arg1 + 8;
+        poly->y3       = arg3 + 8;
+        poly->y2       = arg3 + 8;
+        poly->u0       = 0xA0;
+        poly->u2       = 0xA0;
+        poly->v2       = 0x70;
+        poly->v3       = 0x70;
+        poly->tpage    = 0x3E;
+        poly->x3       = right;
+        poly->x1       = right;
+        poly->y1       = arg3;
+        poly->y0       = arg3;
+        poly->v0       = 0x68;
+        poly->u1       = 0xA8;
+        poly->v1       = 0x68;
+        poly->u3       = 0xA8;
+        poly->clut     = clut;
+        setlen(poly, 9);
+        setcode(poly, 0x2D);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, poly);
+    }
+}
+
+void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
+{
+    u8            buf[0x20];
+    TextDrawReq   req1;
+    TextDrawReq   req2;
+    TextDrawReq   req3;
+    TextDrawReq   req4;
+    TextDrawReq   req5;
+    TextDrawReq   req6;
+    TextDrawReq   req7;
+    TextDrawReq   req8;
+    TextDrawReq   req9;
+    TextDrawReq   req10;
+    TextDrawReq   req11;
+    PlayerStatus* cfg;
+    s32           xOff;
+    s32           x;
+    s32           y;
+    register s32  y2 asm("s2");
+    s32           barX;
+    s32           color;
+    s32           max;
+
+    cfg  = &Player_Status;
+    xOff = (s16)arg0->field_1C.u;
+    arg1 = arg1 + 8;
+    x    = xOff + 6;
+    y    = (s16)arg0->field_18.u + arg1;
+    if (Gp_HpMpWork.field_0 < cfg->hp) {
+        Gp_HpMpWork.field_0 = Gp_HpMpWork.field_0 + 1;
+    }
+    if (Gp_HpMpWork.field_4 < cfg->mp) {
+        Gp_HpMpWork.field_4 = Gp_HpMpWork.field_4 + 1;
+    }
+    color = 0x606060;
+
+    req1.x          = arg0->field_20.u + 0x17 + x;
+    req1.y          = arg0->field_22.u + y;
+    req1.otIndex    = (s16)arg0->field_14.u + 1;
+    req1.field_8    = color;
+    req1.glyphTable = 0;
+    req1.centerMode = 0;
+    req1.field_E    = 3;
+    func_8002E53C(&req1, Text_ItoaUnsigned(buf, Gp_HpMpWork.field_0));
+
+    req2.x          = arg0->field_20.u + 0x32 + x;
+    req2.y          = arg0->field_22.u + y;
+    req2.otIndex    = (s16)arg0->field_14.u + 1;
+    req2.field_8    = color;
+    req2.glyphTable = 0;
+    req2.centerMode = 1;
+    req2.field_E    = 3;
+    func_8002E53C(&req2, Gp_StrSlash);
+
+    req3.x          = arg0->field_20.u + 0x37 + x;
+    req3.y          = arg0->field_22.u + y;
+    req3.otIndex    = (s16)arg0->field_14.u + 1;
+    req3.field_8    = color;
+    req3.glyphTable = 0;
+    req3.centerMode = 0;
+    req3.field_E    = 3;
+    func_8002E53C(&req3, Text_ItoaUnsigned(buf, cfg->hpMax));
+
+    max  = cfg->hpMax;
+    barX = xOff + 7;
+    func_800C0E20(arg0, x, barX + ((max - 1) * 0x25) / 64, y + 5, max, Gp_HpMpWork.field_0, 0x1741F);
+
+    y2              = y + 0x12;
+    req4.x          = arg0->field_20.u + 0x17 + x;
+    req4.y          = arg0->field_22.u + y2;
+    req4.otIndex    = (s16)arg0->field_14.u + 1;
+    req4.field_8    = color;
+    req4.glyphTable = 0;
+    req4.centerMode = 0;
+    req4.field_E    = 3;
+    func_8002E53C(&req4, Text_ItoaUnsigned(buf, Gp_HpMpWork.field_4));
+
+    req5.x          = arg0->field_20.u + 0x32 + x;
+    req5.y          = arg0->field_22.u + y2;
+    req5.otIndex    = (s16)arg0->field_14.u + 1;
+    req5.field_8    = color;
+    req5.glyphTable = 0;
+    req5.centerMode = 1;
+    req5.field_E    = 3;
+    func_8002E53C(&req5, Gp_StrSlash);
+
+    req6.x          = arg0->field_20.u + 0x37 + x;
+    req6.y          = arg0->field_22.u + y2;
+    req6.otIndex    = (s16)arg0->field_14.u + 1;
+    req6.field_8    = color;
+    req6.glyphTable = 0;
+    req6.centerMode = 0;
+    req6.field_E    = 3;
+    func_8002E53C(&req6, Text_ItoaUnsigned(buf, cfg->mpMax));
+
+    max = cfg->mpMax;
+    func_800C0E20(arg0, x, barX + ((max - 1) * 0x25) / 64, y + 0x17, max, Gp_HpMpWork.field_4, 0x1741F);
+
+    y2              = y + 0x24;
+    req7.x          = arg0->field_20.u + 0x17 + x;
+    req7.y          = arg0->field_22.u + y2;
+    req7.otIndex    = (s16)arg0->field_14.u + 1;
+    req7.field_8    = color;
+    req7.glyphTable = 0;
+    req7.centerMode = 0;
+    req7.field_E    = 3;
+    func_8002E53C(&req7, Text_ItoaUnsigned(buf, cfg->exp));
+
+    req8.x          = arg0->field_20.u + xOff + 0x72;
+    req8.y          = arg0->field_22.u + y2;
+    req8.otIndex    = (s16)arg0->field_14.u + 1;
+    req8.field_8    = color;
+    req8.glyphTable = 0;
+    req8.centerMode = 0;
+    req8.field_E    = 3;
+    func_8002E53C(&req8, Text_ItoaUnsigned(buf, cfg->bp));
+
+    req8.x          = arg0->field_1C.u + (arg0->field_20.u + 2);
+    req8.y          = arg0->field_22.u + (y - 2);
+    req8.otIndex    = (s16)arg0->field_14.u + 1;
+    req8.field_8    = color;
+    req8.glyphTable = 5;
+    req8.centerMode = 0;
+    req8.field_E    = 1;
+    func_8002E53C(&req8, Gp_StrHp);
+
+    req9.x          = arg0->field_1C.u + (arg0->field_20.u + 2);
+    req9.y          = arg0->field_22.u + 0x10 + y;
+    req9.otIndex    = (s16)arg0->field_14.u + 1;
+    req9.field_8    = color;
+    req9.glyphTable = 5;
+    req9.centerMode = 0;
+    req9.field_E    = 1;
+    func_8002E53C(&req9, Gp_StrMp);
+
+    req10.x          = arg0->field_1C.u + (arg0->field_20.u + 2);
+    req10.y          = arg0->field_22.u + 0x22 + y;
+    req10.otIndex    = (s16)arg0->field_14.u + 1;
+    req10.field_8    = color;
+    req10.glyphTable = 5;
+    req10.centerMode = 0;
+    req10.field_E    = 1;
+    func_8002E53C(&req10, Gp_StrExp);
+
+    req11.x          = arg0->field_1C.u + (arg0->field_20.u + 0x57);
+    req11.y          = arg0->field_22.u + 0x22 + y;
+    req11.otIndex    = (s16)arg0->field_14.u + 1;
+    req11.field_8    = color;
+    req11.glyphTable = 5;
+    req11.centerMode = 0;
+    req11.field_E    = 1;
+    func_8002E53C(&req11, Gp_StrBp);
+}
+
+void Gp_HpMpBarTask(Task* arg0)
+{
+    UiObject*     obj;
+    PlayerStatus* cfg;
+    SPRT*         p;
+    POLY_FT4*     poly;
+    s32           color;
+    s32           x;
+    s32           right;
+    s32           y;
+
+    obj = arg0->spawnArg2;
+    if (arg0->state == 0) {
+        Ui_SpawnFromDesc(&D_8010EB24, 0, 0, 0, obj);
+        cfg                 = &Player_Status;
+        Gp_HpMpWork.field_0 = cfg->hp;
+        Gp_HpMpWork.field_4 = cfg->mp;
+        arg0->state         = arg0->state + 1;
+    }
+    color          = 0x606060;
+    p              = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
+    p->x0          = obj->panel.field_20.u + obj->panel.field_1E.u - 0x72;
+    {
+        s32 y;
+        y       = obj->panel.bounds.unsignedRect.y;
+        p->u0   = 0x38;
+        p->v0   = 0x60;
+        p->w    = 0x40;
+        p->h    = 8;
+        p->clut = 0x3C02;
+        setlen(p, 4);
+        PRIM_COLOR_WORD(p, 0) = color;
+        setcode(p, 0x64);
+        p->y0 = y + 3;
+        addPrim(gGpuCurrentOt + obj->panel.field_14.s + 1, p);
+    }
+    Ui_InsertDrawTPage(obj->panel.field_14.s + 1, 0);
+
+    poly           = (POLY_FT4*)gGpuPrimCursor;
+    x              = obj->panel.bounds.unsignedRect.x + obj->panel.bounds.unsignedRect.w;
+    right          = x - 1;
+    x              = x - 0x32;
+    gGpuPrimCursor = poly + 1;
+    poly->x0 = poly->x2 = x;
+    poly->x1 = poly->x3 = right;
+    y                   = obj->panel.bounds.unsignedRect.y;
+    poly->y0 = poly->y1 = y + 2;
+    poly->y2 = poly->y3 = y + 0x40;
+    setUVWH(poly, 0, 0x80, 0x31, 0x3E);
+    poly->clut  = 0x3C40;
+    poly->tpage = 0x9E;
+    setlen(poly, 9);
+    setcode(poly, 0x2D);
+    addPrim(gGpuCurrentOt + obj->panel.field_14.s + 1, poly);
+    Ui_DrawVBar(&(obj)->panel, (s16)obj->panel.field_18.u - 3, (s16)obj->panel.field_1A.u + 2, (s16)obj->panel.field_1E.u - 0x32);
+    Ui_DrawHBar(&(obj)->panel, (s16)obj->panel.field_1C.s - 2, (s16)obj->panel.field_1E.u - 0x32, (s16)obj->panel.field_18.u + 8);
+    Gp_DrawHpMpStats(&(obj)->panel, 0xB);
+}
+
+void Gp_ArmorStatsPanelTask(Task* arg0)
+{
+    u8            buf[0x20];
+    TextDrawReq   req1;
+    TextDrawReq   req2;
+    TextDrawReq   req3;
+    TextDrawReq   req4;
+    TextDrawReq   req5;
+    s32           savedX;
+    s32           mid;
+    UiObject*     obj;
+    PlayerStatus* cfg;
+    s32           item;
+    s32           color;
+    s32           x;
+    s32           y;
+    s32           base;
+    s32           i;
+    GpItemAttr*   attr;
+
+    obj           = arg0->spawnArg2;
+    cfg           = &Player_Status;
+    obj->field_2E = 0;
+    Ui_DrawHBar(&(obj)->panel, (s16)obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, (s16)obj->panel.field_18.u + 0x11);
+
+    savedX = (s16)obj->panel.field_1C.s;
+    x      = savedX + 2;
+    item   = cfg->armor;
+    base   = (s16)obj->panel.field_18.u;
+    y      = base + 0xF;
+    mid    = ((s16)obj->panel.field_1E.u - x) / 2;
+    Ui_DrawTitle(&(obj)->panel, Gp_StrArmor);
+
+    if (item > 0) {
+        item += 0x5F;
+        color = 0x606060;
+        attr  = &Gp_ModStatAttrs[(item)-0x60];
+        Gp_DrawItemLabel(obj, x, y, item, color, 0);
+
+        y               = base + 0x1D;
+        req1.x          = obj->panel.field_20.u + 0x20 + x;
+        req1.y          = obj->panel.field_22.u + y;
+        req1.otIndex    = obj->panel.field_14.s + 1;
+        req1.field_8    = color;
+        req1.glyphTable = 0;
+        req1.centerMode = 0;
+        req1.field_E    = 3;
+        func_8002E53C(&req1, Text_ItoaSignedPlus(buf, attr->field_4));
+
+        req2.x          = obj->panel.field_20.u + (x + (mid + 0x1E));
+        req2.y          = obj->panel.field_22.u + y;
+        req2.otIndex    = obj->panel.field_14.s + 1;
+        req2.field_8    = color;
+        req2.glyphTable = 0;
+        req2.centerMode = 0;
+        req2.field_E    = 3;
+        func_8002E53C(&req2, Text_ItoaSignedPlus(buf, attr->field_6));
+
+        req3.x          = obj->panel.field_20.u + 2 + x;
+        req3.y          = obj->panel.field_22.u + (y - 2);
+        req3.otIndex    = obj->panel.field_14.s + 1;
+        req3.field_8    = color;
+        req3.glyphTable = 5;
+        req3.centerMode = 0;
+        req3.field_E    = 1;
+        func_8002E53C(&req3, Gp_StrHp);
+
+        req4.x          = obj->panel.field_20.u + (x + mid);
+        req4.y          = obj->panel.field_22.u + (y - 2);
+        x               = savedX + 4;
+        req4.otIndex    = obj->panel.field_14.s + 1;
+        req4.field_8    = color;
+        req4.glyphTable = 5;
+        req4.centerMode = 0;
+        req4.field_E    = 1;
+        func_8002E53C(&req4, Gp_StrMp);
+
+        y               = base + 0x3D;
+        req5.x          = obj->panel.field_20.u + x;
+        req5.y          = obj->panel.field_22.u + base + 0x2C;
+        req5.otIndex    = obj->panel.field_14.s + 1;
+        req5.field_8    = color;
+        req5.glyphTable = 5;
+        req5.centerMode = 0;
+        req5.field_E    = 1;
+        func_8002E53C(&req5, Gp_StrAttachments);
+
+        for (i = 0; i < Gp_GetModLevel(item); i++) {
+            McItemScan* scan;
+            McItemRec*  rec;
+            McItemRec*  found;
+            s32         col;
+            s32         row;
+            s32         j;
+            s32         id;
+
+            col   = i % 5;
+            row   = i / 5;
+            scan  = &Mc_SaveData[0].carriedItems;
+            rec   = Gp_GetItemTable(scan);
+            found = NULL;
+            rec   = &rec[scan->firstRow];
+            for (j = 0; j < scan->rowCount; j++, rec++) {
+                if (rec->attachSlot == i + 1) {
+                    found = rec;
+                    break;
+                }
+            }
+            id = 0;
+            if (found != NULL) {
+                id = found->itemId;
+            }
+            if (id != 0) {
+                Gp_DrawItemIcon(obj, x + col * 16, y + row * 16, id, 0);
+            }
+            Ui_LayoutWithMode0(obj, x + col * 16, y + row * 16 - 0xE, 0xE, 0xE, 0x102010);
+        }
+    }
+}
+
+void Gp_PeGridPanelTask(Task* arg0)
+{
+    u8          buf[8];
+    TextDrawReq req;
+    UiObject*   obj;
+    SPRT*       p;
+    u8*         levels;
+    s32         startX;
+    s32         colStep;
+    s32         row;
+    s32         col;
+    s32         slot;
+    s32         x;
+    s32         y;
+    s32         rowOff;
+    s32         show;
+    s32         panelY;
+    s32         level;
+    s32         three;
+    s32         capY;
+    u8*         colLevels;
+    s32         iconCol;
+    s32         iconSlot;
+    s32         baseSlot;
+    s32         markOff;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    startX        = obj->panel.field_1C.s + 3;
+    colStep       = ((s16)obj->panel.field_1E.u - obj->panel.field_1C.s) / 4;
+    Ui_DrawTitle(&(obj)->panel, Gp_StrPEnergy);
+
+    row    = 0;
+    three  = 3;
+    rowOff = 2;
+    panelY = (s16)obj->panel.field_1A.u;
+    for (; row < 3; row++) {
+        for (col = 0, y = panelY - rowOff, x = startX, slot = 2; col < 4; col++) {
+            levels = Gp_GetAttachLevels() + (slot - row);
+            show   = 0;
+            if (row == 0) {
+                level = levels[0];
+                if ((level > 0) || ((levels[-1] == three) && (levels[-2] == three))) {
+                    show = 1;
+                }
+            }
+            if ((row != 0) || (show != 0)) {
+                req.x          = obj->panel.field_20.u + 0xC + x;
+                req.y          = obj->panel.field_22.u + y;
+                req.otIndex    = obj->panel.field_14.s + 1;
+                req.field_8    = 0x606060;
+                req.glyphTable = 0;
+                req.centerMode = 0;
+                req.field_E    = three;
+                func_8002E53C(&req, Text_ItoaSigned(buf, levels[0]));
+            }
+            x    += colStep;
+            slot += 3;
+        }
+        rowOff += 9;
+    }
+
+    for (iconCol = 0; iconCol < 4; iconCol++) {
+        p              = (SPRT*)gGpuPrimCursor;
+        gGpuPrimCursor = p + 1;
+        setlen(p, 4);
+        PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
+        setcode(p, 0x64);
+        addPrim(gGpuCurrentOt + obj->panel.field_14.s + 1, p);
+        p->x0   = D_8010E844[iconCol].xOffset + (obj->panel.field_20.u + startX + iconCol * colStep);
+        p->y0   = obj->panel.field_22.u + panelY - 0x23;
+        p->w    = (iconCol == 0) ? 0x18 : 0x20;
+        p->h    = 8;
+        p->u0   = D_8010E844[iconCol].u;
+        p->v0   = D_8010E844[iconCol].v;
+        p->clut = ((iconCol == 0) || (iconCol == 3)) ? 0x3C85 : 0x3C86;
+
+        iconSlot = (iconCol + 1) * 3 - 1;
+        for (row = 0, baseSlot = iconSlot, markOff = 6; row < 3; row++) {
+            colLevels = Gp_GetAttachLevels();
+            show      = 0;
+            if (row == 0) {
+                colLevels += baseSlot;
+                if ((colLevels[0] != 0) ||
+                    ((colLevels[-1] == 3) && (colLevels[-2] == 3))) {
+                    show = 1;
+                }
+            }
+            if ((row != 0) || (show != 0)) {
+                p              = (SPRT*)gGpuPrimCursor;
+                gGpuPrimCursor = p + 1;
+                p->x0          = obj->panel.field_20.u + startX + iconCol * colStep;
+                capY           = obj->panel.field_22.u + panelY - markOff;
+                p->w           = 8;
+                p->h           = 8;
+                p->u0          = 0xA8;
+                p->v0          = 0x88;
+                p->clut        = 0x3C02;
+                setlen(p, 4);
+                PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
+                setcode(p, 0x64);
+                p->y0 = capY;
+                addPrim(gGpuCurrentOt + obj->panel.field_14.s + 1, p);
+            }
+            markOff += 9;
+        }
+    }
+    Ui_InsertDrawTPage(obj->panel.field_14.s + 1, 0);
+}
+
+void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    TextDrawReq req;
+    s32         item;
+    s32         color;
+    s32         attach;
+    s32         count;
+
+    item = Player_Status.weapon;
+    if (item > 0) {
+        item += 0x7F;
+    }
+    color = 0x606060;
+    Gp_DrawItemLabel(PARENT_OF(arg0, UiObject, panel), arg1, arg2, item, color, 0);
+    Ui_DrawHBar(arg0, (s16)arg0->field_1C.u, (s16)arg0->field_1E.u, (s16)arg0->field_18.u + 0x11);
+    arg2          += 7;
+    req.x          = arg0->field_20.u + arg1;
+    req.y          = arg0->field_22.u + 2 + arg2;
+    req.otIndex    = (s16)arg0->field_14.u + 1;
+    req.field_8    = color;
+    req.glyphTable = 5;
+    req.centerMode = 0;
+    req.field_E    = 1;
+    func_8002E53C(&req, Gp_StrAmmoCaps);
+    arg2 += 0x13;
+    if (item > 0) {
+        if (item != 0x92) {
+            item   = (s32)Gp_GetItemSlot(item);
+            attach = ((McItemSlot*)item)->ammoId;
+            count  = ((McItemSlot*)item)->ammoQty;
+            if (attach != 0) {
+                Gp_DrawQty(PARENT_OF(arg0, UiObject, panel), arg1, arg2, count, color);
+            }
+            Gp_DrawItemNameRow(PARENT_OF(arg0, UiObject, panel), arg1, arg2, attach, color, 0);
+            if (((McItemSlot*)item)->attachId != 0xFF) {
+                attach = ((McItemSlot*)item)->attachId;
+                count  = ((McItemSlot*)item)->attachQty;
+                arg2  += 0x10;
+                if (attach != 0) {
+                    Gp_DrawQty(PARENT_OF(arg0, UiObject, panel), arg1, arg2, count, color);
+                }
+                Gp_DrawItemNameRow(PARENT_OF(arg0, UiObject, panel), arg1, arg2, attach, color, 0);
+            }
+        }
+    }
+}
+
+void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+{
+    u8            buf[2];
+    TextDrawReq   req;
+    s32           equipped;
+    s32           hasMod;
+    PlayerStatus* cfg;
+    McItemSlot*   slot;
+    s32           color;
+    s32           x;
+    s32           y;
+
+    equipped = 0;
+    cfg      = &Player_Status;
+    buf[0]   = 0;
+    buf[1]   = 0;
+    if ((((u32)(arg3 - 0x80) < 0x20U) && (cfg->weapon == (arg3 - 0x7F))) ||
+        (((u32)(arg3 - 0x60) < 0x20U) && (cfg->armor == (arg3 - 0x5F))) ||
+        (((u32)(arg3 - 0xA0) < 0x20U) && (cfg->weapon != 0) &&
+         ((Gp_GetItemSlot(cfg->weapon + 0x7F)->ammoId == arg3) ||
+          (Gp_GetItemSlot(cfg->weapon + 0x7F)->attachId == arg3)))) {
+        equipped = 1;
+    }
+    if (equipped != 0) {
+        buf[0]         = 0x45;
+        color          = 0x606060;
+        x              = arg0->panel.field_20.u - 1;
+        req.x          = x + arg1;
+        y              = arg0->panel.field_22.u - 2;
+        req.y          = y + arg2;
+        req.otIndex    = arg0->panel.field_14.s + 1;
+        req.field_8    = color;
+        req.glyphTable = 5;
+        req.centerMode = 0;
+        req.field_E    = 2;
+        func_8002E53C(&req, Gp_StrE);
+    } else {
+        hasMod = 0;
+        if ((u32)(arg3 - 0x80) < 0x20U) {
+            slot = Gp_GetItemSlot(arg3);
+            if (((slot->ammoQty != 0) && (Gp_FindItemById(slot->ammoId) != NULL)) ||
+                ((slot->attachQty != 0) && (Gp_FindItemById(slot->attachId) != NULL))) {
+                hasMod = 1;
+            }
+        }
+        if (hasMod != 0) {
+            buf[0] = 0x4C;
+        } else if (arg4 == 2) {
+            buf[0] = 0x41;
+        }
+    }
+    if (buf[0] != 0) {
+        color          = 0x606060;
+        x              = arg0->panel.field_20.u - 1;
+        req.x          = x + arg1;
+        y              = arg0->panel.field_22.u - 2;
+        req.y          = y + arg2;
+        req.otIndex    = arg0->panel.field_14.s + 1;
+        req.field_8    = color;
+        req.glyphTable = 5;
+        req.centerMode = 0;
+        req.field_E    = 2;
+        func_8002E53C(&req, buf);
+    }
+}
+
+void func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+{
+    u8          buf[0x20];
+    TextDrawReq req;
+    SPRT*       p;
+    s32         y;
+    s32         textY;
+    s32         color;
+
+    p              = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
+    p->x0          = arg0->panel.field_20.u + arg1 + 0x6C;
+    y              = arg0->panel.field_22.u;
+    color          = arg4;
+    p->w           = 8;
+    p->h           = 8;
+    p->u0          = 0xA8;
+    p->v0          = 0x88;
+    p->clut        = 0x3C02;
+    setlen(p, 4);
+    PRIM_COLOR_WORD(p, 0) = color;
+    setcode(p, 0x64);
+    p->y0 = y + arg2 - 7;
+    addPrim(gGpuCurrentOt + arg0->panel.field_14.s + 1, p);
+    Ui_InsertDrawTPage(arg0->panel.field_14.s + 1, 0);
+
+    req.x          = arg0->panel.field_20.u + arg1 + 0x7C;
+    textY          = arg0->panel.field_22.u - 3;
+    req.y          = textY + arg2;
+    req.otIndex    = arg0->panel.field_14.s + 1;
+    req.field_8    = color;
+    req.glyphTable = 0;
+    req.centerMode = 2;
+    req.field_E    = 3;
+    func_8002E53C(&req, Text_ItoaSigned(buf, arg3));
+}
+
+/// Draws `item`'s name, its `func_800C22D8` marker in `mode`, the variant
+/// marker for items 0x0F-0x32 and its icon at (`x`, `y`) in `obj`. Nothing is
+/// drawn while `obj` is in mode 5.
+static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item, s32 mode)
+{
+    TextDrawReq req;
+    s32         temp;
+
+    if (obj->panel.field_8 != 5) {
+        req.x          = obj->panel.field_20.u + 0x11 + x;
+        req.y          = obj->panel.field_22.u + (y - 6);
+        req.otIndex    = obj->panel.field_14.s + 1;
+        req.field_8    = color;
+        req.glyphTable = 0;
+        req.centerMode = 0;
+        req.field_E    = 1;
+        func_8002E53C(&req, Gp_GetItemText(item, 0, 0));
+        func_800C22D8(obj, x, y, item, mode);
+        temp = item - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(obj, x, y, temp % 3 + 1, color);
+        }
+        Gp_DrawItemIcon(obj, x, y, item, 0);
+    }
+}
+
+/// Draws `item` as `_gpDrawItemNameAt` does, at the prompt row's position and
+/// in its colour.
+static inline void _gpDrawItemName(UiList* prompt, UiObject* obj, s32 item, s32 mode)
+{
+    _gpDrawItemNameAt(obj, prompt->field_18, prompt->field_1A, prompt->field_1C, item, mode);
+}
+
+/// Returns the `index`-th row (from 0) of `scan` that is free to reorder -
+/// not attached to a weapon and not the equipped armour or weapon - or NULL
+/// when there are fewer. The out-of-line copy is `func_800CECC0`.
+static inline McItemRec* _gpNthLooseRec(McItemScan* scan, s32 index)
+{
+    PlayerStatus* p;
+    McItemRec*    table;
+    McItemRec*    found;
+    s32           i;
+    s32           ok;
+    s32           id;
+    s32           one;
+    s32           count;
+    s32           n;
+
+    table = Gp_GetItemTable(scan);
+    found = NULL;
+    i     = 0;
+    count = scan->rowCount;
+    table = &table[scan->firstRow];
+    if (count != 0) {
+        p   = &Player_Status;
+        one = 1;
+        n   = count;
+        do {
+            id = table->itemId;
+            ok = 1;
+            if ((table->attachSlot != 0) ||
+                (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
+                (((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F))) {
+                ok = 0;
+            }
+            if (ok == one) {
+                index--;
+            }
+            if (index < 0) {
+                found = table;
+                break;
+            }
+            i++;
+            table++;
+        } while (i < n);
+    }
+    return found;
+}
+
+/// Shows `item`'s name in the holder (the empty-slot text for item 0) and
+/// makes it the preview in slot 0.
+#define GP_SHOW_ITEM_IN_HOLDER(item)                               \
+    do {                                                           \
+        if ((item) == 0) {                                         \
+            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);                  \
+        } else {                                                   \
+            Ui_SetHolderParam(Gp_GetItemText((item), 1, 0), 0, 0); \
+        }                                                          \
+        Gp_SetPreviewItem((item), 0);                              \
+    } while (0)
+
+void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
+{
+    McItemRec* sel;
+    s32        item;
+    s32        status;
+    s32        idx1;
+    s32        idx2;
+    UiObject*  obj;
+
+    sel = _gpNthLooseRec(&Mc_SaveData[0].carriedItems, arg0->field_8);
+    if (sel == NULL) {
+        Gp_DrawSortCmd(arg0, arg1);
+        return;
+    }
+
+    item   = sel->itemId;
+    status = arg1->panel.field_0.w;
+    if (((status >> 16) == 1) || (status == 1)) {
+        if (arg0->field_10 == arg0->field_8) {
+            if (Gp_ItemOrderMode == 0) {
+                GP_SHOW_ITEM_IN_HOLDER(item);
+            } else {
+                Ui_SetHolderParam(Gp_StrSelectDest, 0, 0);
+            }
+        }
+    }
+
+    if (Gp_ItemOrderMode == 1) {
+        if (arg0->field_C != 1) {
+            if (sel == Gp_SelItemRec) {
+                arg0->field_1C = 0x37A78;
+            }
+        }
+    }
+
+    {
+        s32         x;
+        s32         y;
+        s32         color;
+        u8          buf[0x20];
+        TextDrawReq req;
+        s32         qty;
+        s32         baseY;
+
+        x     = arg0->field_18;
+        y     = arg0->field_1A;
+        color = arg0->field_1C;
+        if (sel != NULL) {
+            if ((u32)(sel->itemId - 0xA0) < 0x20U) {
+                qty            = sel->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].carriedItems, sel->itemId);
+                req.x          = arg1->panel.field_20.u + 0x84 + x;
+                baseY          = arg1->panel.field_22.u - 3;
+                req.y          = baseY + y;
+                req.otIndex    = arg1->panel.field_14.s + 1;
+                req.field_8    = color;
+                req.glyphTable = 5;
+                req.centerMode = 2;
+                req.field_E    = 0;
+                func_8002E53C(&req, Text_ItoaSigned(buf, qty));
+                Ui_LayoutWithMode0(arg1, (x + 0x69), (y - 8), 0x1B, 7,
+                                   0x102010);
+            }
+        }
+    }
+
+    _gpDrawItemName(arg0, arg1, item, 1);
+
+    if (arg0->field_C == 1) {
+        if (Gp_ItemOrderMode == 0) {
+            Gp_SelItemRec = sel;
+            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                SndEvt_EnqueueType6(3, 0, 0);
+                obj = Ui_SpawnFromDesc(&D_8010EE6C, 0, 1, 1, arg1);
+                if (obj != NULL) {
+                    Ui_ClampDialogRect(&(obj)->panel, arg0, &(arg1)->panel);
+                    arg1->panel.field_0.w = 0;
+                }
+            } else {
+                Gp_CheckItemInfoButton(arg1);
+            }
+        } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+            McItemScan* scan2;
+            scan2 = &Mc_SaveData[0].carriedItems;
+            idx1  = Gp_ScanIndexOf(scan2, Gp_SelItemRec);
+            idx2  = Gp_ScanIndexOf(scan2, sel);
+            SndEvt_EnqueueType6(3, 0, 0);
+            if (idx1 >= 0) {
+                if (idx2 >= 0) {
+                    Gp_MoveItemSlot(scan2, idx1, idx2);
+                }
+            }
+            Gp_ItemOrderMode = 0;
+        }
+    }
+}
+
+void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
+{
+    register s32        count asm("t0");
+    s32                 i;
+    register McItemRec* rec asm("a3");
+    register s32        item asm("v1");
+    s32                 j;
+    s32                 off;
+    s32                 temp;
+    s32                 limit;
+    u8*                 rowBytes;
+    McItemRec*          rec2;
+    McItemScan*         scan;
+    PlayerStatus*       cfg;
+    u8*                 table0;
+    u8*                 table1;
+
+    count = 0;
+    /* Byte view of the entire array; offsets below always select whole records. */
+    rowBytes = (u8*)&Mc_SaveData[0].itemRows;
+    scan     = &Mc_SaveData[0].carriedItems;
+    {
+        register s32 hi asm("v1");
+        asm volatile("lui %1, %%hi(Player_Status)\n\t"
+                     "addiu %0, %1, %%lo(Player_Status)"
+                     : "=r"(cfg), "=r"(hi));
+    }
+    limit = scan->rowCount;
+    item  = scan->firstRow;
+    i     = count;
+    if (count < limit) {
+        table0 = Gp_RelatedQty0.bytes;
+        table1 = Gp_RelatedQty1.bytes;
+        temp   = (u8)item * sizeof(McItemRec);
+        rec    = (McItemRec*)&rowBytes[temp];
+        do {
+            if ((u8)(rec->itemId + 0x80) < 0x20) {
+                rec2 = rec;
+                if (arg1 == 0) {
+                    goto increment;
+                }
+                j = 0;
+                USE_REG(j);
+                item = rec->itemId;
+                off  = (item - 0x80) * sizeof(GpItemQty);
+                item = item - 0x7F;
+                do {
+                    temp = j + off;
+                    if (table0[temp + OFFSET_OF(GpItemQty, related)] == arg1) {
+                        if (rec2->attachSlot > 0) {
+                            count++;
+                        } else if (cfg->weapon == item) {
+                            count++;
+                        }
+                        break;
+                    }
+                    j++;
+                } while (j < 3);
+
+                j    = 0;
+                item = rec->itemId;
+                rec2 = rec;
+                off  = (item - 0x80) * sizeof(GpItemQty);
+                item = item - 0x7F;
+                do {
+                    temp = j + off;
+                    if (table1[temp + OFFSET_OF(GpItemQty, related)] == arg1) {
+                        if (rec2->attachSlot > 0) {
+                            goto increment;
+                        }
+                        if (cfg->weapon != item) {
+                            goto next;
+                        }
+                    increment:
+                        count++;
+                        goto next;
+                    }
+                    j++;
+                } while (j < 3);
+            }
+        next:
+            rec++;
+            i++;
+        } while (i < scan->rowCount);
+    }
+
+    arg0->field_4   = count;
+    arg0->field_5.u = count;
+    if (arg1 == 0) {
+        arg0->field_7   = 0xF;
+        arg0->field_5.u = 4;
+    } else {
+        arg0->field_7 = 0xF;
+    }
+}
+
+static __inline__ void countItemRows(UiList* menu)
+{
+    McItemScan* scan;
+    McItemRec*  table;
+    s32         i;
+    u16         count;
+    s32         ok;
+    s32         id;
+
+    scan          = &Mc_SaveData[0].carriedItems;
+    table         = Gp_GetItemTable(scan);
+    table         = &table[scan->firstRow];
+    menu->field_4 = scan->rowCount;
+    count         = scan->rowCount;
+    for (i = 0; i < count; i++, table++) {
+        id = table->itemId;
+        ok = 1;
+        if ((table->attachSlot != 0) ||
+            (((u32)(id - 0x60) < 0x20U) && (Player_Status.armor == id - 0x5F)) ||
+            (((u32)(id - 0x80) < 0x20U) && (Player_Status.weapon == id - 0x7F))) {
+            ok = 0;
+        }
+        if (ok == 0) {
+            menu->field_4--;
+        }
+    }
+    menu->field_4   = menu->field_4 + 1;
+    menu->field_5.u = menu->field_4;
+    if ((s8)menu->field_5.u >= 0xA) {
+        menu->field_5.u = 9;
+    }
+}
+
+static void Gp_ItemListTask(Task* arg0)
+{
+    UiObject*  obj;
+    UiList*    menu;
+    UiObject*  child;
+    TaskIdMap* map;
+    s32        status;
+    Task*      owner;
+    Task*      head;
+    Task*      node;
+    Task*      next;
+    UiObject*  childObj;
+    s32        flag;
+    s32        one;
+    s32        mask;
+
+    obj           = arg0->spawnArg2;
+    menu          = &D_8010E854;
+    obj->field_2E = 0;
+    if (arg0->state == 0) {
+        Gp_ItemOrderMode = 0;
+        map              = memCalloc(4, 0);
+        if (map == NULL) {
+            Ui_TeardownTree(obj, arg0);
+            return;
+        }
+        arg0->work    = map;
+        menu->field_6 = 0;
+        countItemRows(menu);
+        menu->field_5.u = 9;
+        menu->field_4   = 9;
+        Ui_LayoutListPanel(menu, &(obj)->panel);
+        countItemRows(menu);
+        menu->field_A   = 1;
+        menu->field_10  = 0;
+        menu->field_9.u = 0;
+        child           = Ui_SpawnFromDesc(&D_8010EB40, 0, 0, 1, obj);
+        if (child != NULL) {
+            child->panel.bounds.unsignedRect.y = obj->panel.bounds.unsignedRect.y + obj->panel.bounds.unsignedRect.h;
+        }
+        arg0->state = arg0->state + 1;
+    }
+    Ui_DrawText(&(obj)->panel, Gp_StrItemHdr);
+    countItemRows(menu);
+    Ui_ComputeVisibleRows(menu, &(obj)->panel);
+    menu->field_A = 1;
+    if (menu->field_10 >= (s32)menu->field_4) {
+        menu->field_10 = menu->field_4 - 1;
+    }
+    if ((menu->field_4 - (s8)menu->field_5.u) < (s8)menu->field_9.u) {
+        menu->field_9.u = menu->field_4 - menu->field_5.u;
+    }
+    Ui_UpdateListNoAnim(menu, obj);
+    status = obj->panel.field_0.w;
+    if (status == 1) {
+        if (obj->field_2E == 0) {
+            if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+                obj->field_2E = -1;
+            } else if (Gp_ItemOrderMode == 0) {
+                if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+                    SndEvt_EnqueueType6(4, 0, 0);
+                    obj->field_2C = 1;
+                    obj->field_2E = 6;
+                } else {
+                    Pad_CheckButtons(0, 1, 3);
+                }
+            } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+                SndEvt_EnqueueType6(4, 0, 0);
+                Gp_ItemOrderMode = 0;
+            }
+        }
+    } else if (status >= 2) {
+        obj->panel.field_0.w = 1;
+    }
+    owner = obj->owner;
+    head  = owner->firstChild;
+    if (head != NULL) {
+        node = head;
+        one  = 1;
+        mask = 0xFFFEFFFF;
+        do {
+            childObj = node->spawnArg2;
+            flag     = childObj->field_2E;
+            next     = node->nextSibling;
+            switch (flag) {
+                case -1:
+                    obj->field_2E = flag;
+                    break;
+                case 6:
+                    Ui_TeardownTree(childObj, childObj->owner);
+                    obj->panel.field_0.w = one;
+                    obj->panel.field_4  &= mask;
+                    break;
+                case 0x23:
+                    Ui_TeardownTree(childObj, childObj->owner);
+                    obj->panel.field_0.w = one;
+                    Gp_ItemOrderMode     = one;
+                    obj->panel.field_4  &= mask;
+                    break;
+            }
+            head = owner->firstChild;
+            node = next;
+            if (node == head) {
+                break;
+            }
+        } while (head != NULL);
+    }
+}
+
+void Gp_ItemDestCursorTask(Task* arg0)
+{
+    UiObject*     obj;
+    UiObject*     child;
+    UiObjectDesc* desc;
+    s32           one;
+    s16           y;
+    struct {
+        s16 unk0;
+        s16 unk2;
+    } cursor;
+
+    obj = arg0->spawnArg2;
+    if (arg0->state == 0) {
+        desc             = &D_8010EFD8;
+        one              = 1;
+        Gp_ItemCountShow = 0;
+        D_80114D98[0]    = Ui_SpawnFromDesc(desc, one, one, one, obj);
+        D_80114D98[1]    = Ui_SpawnFromDesc(desc + 1, one, 0, one, obj);
+    }
+    Gp_ItemListTask(arg0);
+    if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone(obj) == 0)) {
+        Ui_SetState4(obj, obj->owner);
+    } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone(obj) == 1)) {
+        Ui_ClampAnimOrClose(&(obj)->panel, obj->owner, 0x10);
+    }
+    if (obj->panel.field_0.w == 1) {
+        if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
+            child          = D_80114D98[1];
+            *(s32*)&cursor = Ui_GetCursorFixed();
+            if (cursor.unk2 < (s16)child->panel.bounds.unsignedRect.y) {
+                child = D_80114D98[0];
+            }
+            SndEvt_EnqueueType6(2, 0, 0);
+            obj->panel.field_0.w   = 0;
+            y                      = cursor.unk2;
+            child->panel.field_0.w = 0x17;
+            child->field_2C        = y;
+        }
+    }
+}
+
+/// Replaces the layout position a spawned child copied from its descriptor
+/// with `x`, `y`.
+static inline void _gpSetSpawnOffset(UiObject* obj, s32 x, s32 y)
+{
+    obj->panel.bounds.unsignedRect.y = y;
+    obj->panel.bounds.unsignedRect.x = x;
+}
+
+void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
+{
+    TextDrawReq   req;
+    PlayerStatus* player;
+    s32           item;
+    s32           status;
+    s32           mode;
+    s32           x;
+    s32           y;
+    s32           color;
+    s32           temp;
+
+    player = &Player_Status;
+    item   = player->weapon + 0x7F;
+    if (item < 0x80) {
+        item = 0;
+    }
+
+    status = obj->panel.field_0.w;
+    if (((status >> 16) == 1 || status == 1) && prompt->field_10 == prompt->field_8) {
+        if (Gp_ItemOrderMode == 0) {
+            if (item == 0) {
+                Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+            } else {
+                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
+            }
+            Gp_SetPreviewItem(item, 0);
+        } else {
+            Ui_SetHolderParam(Gp_StrSelectDest, 0, 0);
+        }
+    }
+
+    status = prompt->field_C;
+    if (status == 1) {
+        mode = Gp_ItemOrderMode;
+        if (mode == 0) {
+            McItemScan* scan;
+            McItemRec*  table;
+            s32         i;
+            s32         count;
+
+            scan  = &Mc_SaveData[0].carriedItems;
+            table = Gp_GetItemTable(scan);
+            if (item != 0) {
+                table = &table[scan->firstRow];
+                count = scan->rowCount;
+                for (i = 0; i < count; i++, table++) {
+                    if (table->itemId == item) {
+                        break;
+                    }
+                }
+                Gp_SelItemRec = table;
+            } else {
+                Gp_SelItemRec = NULL;
+            }
+            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                Gp_CountAmmoRows(&D_8010E9A4, 0);
+                if (D_8010E9A4.field_4 >= 2U || (D_8010E9A4.field_4 == 1 && player->weapon == 0)) {
+                    UiObject* spawned;
+                    SndEvt_EnqueueType6(3, 0, 0);
+                    spawned = Ui_SpawnFromDesc(&D_8010ECE4, 0, 1, 0x10, obj);
+                    if (spawned != NULL) {
+                        _gpSetSpawnOffset(spawned, -8, -0x5C);
+                    }
+                    obj->panel.field_0.w = 0;
+                } else {
+                    Gp_SpawnItemPrompt(obj, 0x14, 0, 1);
+                    obj->panel.field_0.w = 0;
+                }
+            } else {
+                Gp_CheckItemInfoButton(obj);
+            }
+        } else if (mode == status) {
+            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                if ((u8)(Gp_SelItemRec->itemId + 0x80) < 0x20) {
+                    PlayerStatus* p;
+                    McItemRec*    rec;
+
+                    p = &Player_Status;
+                    Gp_ClearEquipSlotSel(item, 0);
+                    rec       = Gp_SelItemRec;
+                    p->weapon = rec->itemId - 0x7F;
+                    Gp_SetItemSeenBit(rec->itemId, 1);
+                    Gp_ItemOrderMode = 0;
+                    SndEvt_EnqueueType6(3, 0, 0);
+                } else {
+                    Task* parent;
+                    parent = obj->owner->parent;
+                    if (parent != NULL) {
+                        Gp_ItemOrderMode                                = 0;
+                        ((UiObject*)parent->spawnArg2)->panel.field_0.w = mode;
+                        obj->panel.field_0.w                            = 0;
+                        SndEvt_EnqueueType6(3, 0, 0);
+                    }
+                }
+            }
+        }
+    }
+
+    x     = prompt->field_18;
+    y     = prompt->field_1A;
+    color = prompt->field_1C;
+    if (obj->panel.field_8 != 5) {
+        req.x          = obj->panel.field_20.u + 0x11 + x;
+        req.y          = obj->panel.field_22.u + (y - 6);
+        req.otIndex    = obj->panel.field_14.s + 1;
+        req.field_8    = color;
+        req.glyphTable = 0;
+        req.centerMode = 0;
+        req.field_E    = 1;
+        func_8002E53C(&req, Gp_GetItemText(item, 0, 0));
+        temp = item - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(obj, x, y, temp % 3 + 1, color);
+        }
+        Gp_DrawItemIcon(obj, x, y, item, 0);
+    }
+
+    Ui_DrawHBar(&(obj)->panel, (s16)obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, (s16)obj->panel.field_18.u + 0x11);
+
+    req.x          = obj->panel.field_20.u + prompt->field_18;
+    req.y          = prompt->field_1A + (obj->panel.field_22.u + 9);
+    req.otIndex    = obj->panel.field_14.s + 1;
+    req.field_8    = 0x606060;
+    req.glyphTable = 5;
+    req.centerMode = 0;
+    req.field_E    = 1;
+    func_8002E53C(&req, Gp_StrAmmoCaps);
+    prompt->field_1A += 0xA;
+}
+
+void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
+{
+    union {
+        struct {
+            u8          buf[0x20];
+            TextDrawReq req;
+        } qty;
+        TextDrawReq name;
+    } draw;
+    s32         item;
+    s32         count;
+    s32         weapon;
+    s32         status;
+    s32         rowState;
+    s32         mode;
+    McItemSlot* slot;
+    McItemRec*  rec;
+    UiObject*   child;
+    Task*       parent;
+    UiObject*   parentObj;
+
+    item   = 0;
+    count  = 0;
+    weapon = Player_Status.weapon + 0x7F;
+    if (weapon >= 0x80) {
+        slot = Gp_GetItemSlot(weapon);
+        if (prompt->field_8 == 1) {
+            item  = slot->ammoId;
+            count = slot->ammoQty;
+        } else {
+            item  = slot->attachId;
+            count = slot->attachQty;
+        }
+    }
+    status = obj->panel.field_0.w;
+    if (((status >> 16) == 1 || status == 1) && prompt->field_10 == prompt->field_8) {
+        if (Gp_ItemOrderMode == 0) {
+            if (item != 0) {
+                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
+                Gp_SetPreviewItem(item, 0);
+            } else {
+                Ui_SetHolderParam(Gp_StrAmmoNone, 0, 0);
+            }
+        } else {
+            Ui_SetHolderParam(Gp_StrSelectDest, 0, 0);
+        }
+    }
+    if (item != 0) {
+        s32 x;
+        s32 y;
+        s32 color;
+        s32 off;
+        x                       = prompt->field_18;
+        y                       = prompt->field_1A;
+        color                   = prompt->field_1C;
+        draw.qty.req.x          = obj->panel.field_20.u + 0x84 + x;
+        off                     = obj->panel.field_22.u - 3;
+        draw.qty.req.y          = off + y;
+        draw.qty.req.otIndex    = obj->panel.field_14.s + 1;
+        draw.qty.req.field_8    = color;
+        draw.qty.req.glyphTable = 5;
+        draw.qty.req.centerMode = 2;
+        draw.qty.req.field_E    = 0;
+        func_8002E53C(&draw.qty.req, Text_ItoaSigned(draw.qty.buf, count));
+        Ui_LayoutWithMode0(obj, x + 0x69, y - 8, 0x1B, 7, 0x102010);
+    }
+    {
+        s32 x;
+        s32 y;
+        s32 color;
+        s32 off;
+        s32 temp;
+        x     = prompt->field_18;
+        y     = prompt->field_1A;
+        color = prompt->field_1C;
+        if (item == 0) {
+            Ui_LayoutWithMode0(obj, x, y - 0xE, 0xE, 0xE, 0x102010);
+        } else {
+            if (obj->panel.field_8 != 5) {
+                draw.name.x          = obj->panel.field_20.u + 0x11 + x;
+                off                  = obj->panel.field_22.u - 6;
+                draw.name.y          = off + y;
+                draw.name.otIndex    = obj->panel.field_14.s + 1;
+                draw.name.field_8    = color;
+                draw.name.glyphTable = 0;
+                draw.name.centerMode = 0;
+                draw.name.field_E    = 1;
+                func_8002E53C(&draw.name, Gp_GetItemText(item, 0, 0));
+                temp = item - 0xF;
+                if ((u32)temp < 0x24U) {
+                    func_800C2538(obj, x, y, temp % 3 + 1, color);
+                }
+                Gp_DrawItemIcon(obj, x, y, item, 0);
+            }
+            Ui_LayoutWithMode0(obj, x, y - 0xE, 0xE, 0xE, 0);
+        }
+    }
+    rowState = prompt->field_C;
+    if (rowState == 1) {
+        Gp_ReloadMode = prompt->field_8;
+        mode          = Gp_ItemOrderMode;
+        if (mode == 0) {
+            rec = NULL;
+            if (item != 0) {
+                rec = Gp_FindItemById(item);
+            }
+            Gp_SelItemRec = rec;
+            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                s32 currentWeapon;
+                s32 yOffset;
+                s32 xOffset;
+                currentWeapon = Player_Status.weapon + 0x7F;
+                SndEvt_EnqueueType6(3, 0, 0);
+                child = Ui_SpawnFromDesc(&D_8010ECC8, currentWeapon, 1, 0x10, obj);
+                if (child != NULL) {
+                    yOffset                            = -0x5C;
+                    child->panel.bounds.unsignedRect.y = yOffset;
+                    xOffset                            = -8;
+                    child->panel.bounds.unsignedRect.x = xOffset;
+                }
+                obj->panel.field_0.w = 0;
+            } else {
+                Gp_CheckItemInfoButton(obj);
+            }
+        } else if (mode == rowState) {
+            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                if (Gp_EquipRelatedItem(&Mc_SaveData[0].carriedItems, weapon, Gp_SelItemRec->itemId, -1) >= 0) {
+                    Gp_SetItemSeenBit(Gp_SelItemRec->itemId, 1);
+                    SndEvt_EnqueueType6(3, 0, 0);
+                    Gp_ItemOrderMode = 0;
+                } else {
+                    parent = obj->owner->parent;
+                    if (parent != NULL) {
+                        parentObj = parent->spawnArg2;
+                        SndEvt_EnqueueType6(3, 0, 0);
+                        Gp_ItemOrderMode           = 0;
+                        parentObj->panel.field_0.w = mode;
+                        obj->panel.field_0.w       = 0;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Sets the weapon menu's row count from the current weapon's item: one row
+/// for weapon index 0 and for item 0x92, otherwise three when the item's
+/// slot has an attachment (`attachId` != 0xFF) and two when it does not.
+static inline void _gpWeaponMenuSetRows(UiList* menu)
+{
+    s32         id;
+    McItemSlot* slot;
+
+    id   = Player_Status.weapon + 0x7F;
+    slot = Gp_GetItemSlot(id);
+    if (id < 0x80 || id == 0x92) {
+        menu->field_4 = 1;
+    } else if (slot->attachId != 0xFF) {
+        menu->field_4 = 3;
+    } else {
+        menu->field_4 = 2;
+    }
+}
+
+void Gp_WeaponMenuTask(Task* arg0)
+{
+    UiObject* obj;
+    UiList*   menu;
+    s32       status;
+    Task*     owner;
+    Task*     child;
+    Task*     next;
+    Task*     head;
+    UiObject* childObj;
+    s32       one;
+    s32       mask;
+    s32       flag;
+    struct {
+        s16 unk0;
+        u16 unk2;
+    } cursor;
+
+    obj           = arg0->spawnArg2;
+    menu          = &D_8010E884;
+    obj->field_2E = 0;
+    Ui_DrawText(&(obj)->panel, Gp_StrWeaponTitle);
+    if (arg0->state == 0) {
+        _gpWeaponMenuSetRows(menu);
+        menu->field_10 = 0;
+        Ui_InitList(menu, &(obj)->panel);
+        arg0->state = arg0->state + 1;
+    }
+    _gpWeaponMenuSetRows(menu);
+    Ui_ComputeVisibleRows(menu, &(obj)->panel);
+    Ui_UpdateListNoAnim(menu, obj);
+    if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone(obj) == 0)) {
+        Ui_SetState4(obj, obj->owner);
+    } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone(obj) == 1)) {
+        Ui_ClampAnimOrClose(&(obj)->panel, obj->owner, 0x10);
+    }
+    status = obj->panel.field_0.w;
+    if (status == 1) {
+        if (menu->field_22 == 3) {
+            SndEvt_EnqueueType6(2, 0, 0);
+            D_80114D98[1]->field_2C        = -0xA0;
+            D_80114D98[1]->panel.field_0.w = 0x17;
+            obj->panel.field_0.w           = 0;
+        } else if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
+            Task*     parent;
+            UiObject* parentObj;
+
+            parent = arg0->parent;
+            if (parent != 0) {
+                UiList* other;
+                s16     row;
+                s32     sel;
+                s32     row9;
+                s32     vis;
+
+                parentObj = parent->spawnArg2;
+                SndEvt_EnqueueType6(2, 0, 0);
+                *(s32*)&cursor  = Ui_GetCursorFixed();
+                other           = &D_8010E854;
+                row             = cursor.unk2 - (parentObj->panel.field_22.u + parentObj->panel.field_18.u);
+                row             = row / other->field_7;
+                vis             = (s8)other->field_5.u;
+                row9            = (s8)other->field_9.u;
+                sel             = row + row9;
+                other->field_10 = sel;
+                if (sel >= row9 + vis) {
+                    other->field_10 = row9 + vis - 1;
+                }
+                if (other->field_10 >= other->field_4) {
+                    other->field_10 = other->field_4 - 1;
+                }
+                parentObj->panel.field_0.w = status;
+                obj->panel.field_0.w       = 0;
+            }
+        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+            Task*     parent;
+            UiObject* parentObj;
+
+            SndEvt_EnqueueType6(4, 0, 0);
+            parent = arg0->parent;
+            if (parent != 0) {
+                parentObj = parent->spawnArg2;
+                if (Gp_ItemOrderMode == 0) {
+                    parentObj->field_2C = status;
+                    parentObj->field_2E = 6;
+                } else {
+                    parentObj->panel.field_0.w = status;
+                    obj->panel.field_0.w       = 0;
+                    Gp_ItemOrderMode           = 0;
+                }
+            }
+        } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+            obj->field_2E = -1;
+        }
+    }
+    owner = obj->owner;
+    head  = owner->firstChild;
+    if (head != NULL) {
+        child = head;
+        one   = 1;
+        mask  = 0xFFFEFFFF;
+        do {
+            childObj = child->spawnArg2;
+            flag     = childObj->field_2E;
+            next     = child->nextSibling;
+            switch (flag) {
+                case -1:
+                    obj->field_2E = flag;
+                    break;
+                case 6:
+                    Ui_TeardownTree(childObj, childObj->owner);
+                    obj->panel.field_0.w = one;
+                    obj->panel.field_4  &= mask;
+                    break;
+                case 0x23:
+                    Ui_TeardownTree(childObj, childObj->owner);
+                    obj->panel.field_0.w = one;
+                    Gp_ItemOrderMode     = one;
+                    obj->panel.field_4  &= mask;
+                    break;
+            }
+            head  = owner->firstChild;
+            child = next;
+            if (child == head) {
+                break;
+            }
+        } while (head != NULL);
+    }
+    if (obj->panel.field_0.w == 0x17) {
+        s32 t;
+
+        t  = (s16)obj->panel.field_22.u;
+        t += (s16)obj->panel.field_18.u;
+        t  = obj->field_2C - t;
+        if (t < menu->field_7) {
+            menu->field_10 = 0;
+        } else if ((menu->field_7 * 2 + 0xA) >= t) {
+            menu->field_10 = 1;
+        } else if (menu->field_4 < 2) {
+            menu->field_10 = 1;
+        } else {
+            menu->field_10 = 2;
+        }
+        obj->field_2C        = 0;
+        obj->panel.field_0.w = 1;
+    }
+}
+
+void func_800C41A4(UiList* prompt, UiObject* obj)
+{
+    union {
+        struct {
+            u8          buf[0x20];
+            TextDrawReq req;
+        } qty;
+        TextDrawReq name;
+    } draw;
+    s32        item;
+    s32        status;
+    s32        rowState;
+    s32        mode;
+    McItemRec* rec;
+    UiObject*  child;
+    UiObject*  dialog;
+    Task*      parent;
+    UiObject*  parentObj;
+    {
+        McItemScan* scan;
+        McItemRec*  table;
+        McItemRec*  found;
+        s32         row;
+        s32         i;
+        row   = prompt->field_8;
+        scan  = &Mc_SaveData[0].carriedItems;
+        table = Gp_GetItemTable(scan);
+        found = NULL;
+        i     = 0;
+        item  = 0;
+        table = &table[scan->firstRow];
+        for (; i < scan->rowCount; i++, table++) {
+            if (table->attachSlot == row + 1) {
+                found = table;
+                break;
+            }
+        }
+        rec = found;
+    }
+    if (rec != NULL) {
+        item = rec->itemId;
+    }
+    status = obj->panel.field_0.w;
+    if (((status >> 16) == 1 || status == 1) && prompt->field_10 == prompt->field_8) {
+        if (Gp_ItemOrderMode == 0) {
+            if (item != 0) {
+                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
+                Gp_SetPreviewItem(item, 0);
+            } else {
+                Ui_SetHolderParam(Gp_StrAttachNone, 0, 0);
+            }
+        } else {
+            Ui_SetHolderParam(Gp_StrSelectDest, 0, 0);
+        }
+    }
+    if (rec != NULL) {
+        s32 x;
+        s32 y;
+        s32 color;
+        s32 off;
+        s32 id;
+        s32 count;
+        id    = rec->itemId;
+        x     = prompt->field_18;
+        y     = prompt->field_1A;
+        color = prompt->field_1C;
+        if ((u32)(id - 0xA0) < 0x20U) {
+            count                   = rec->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].carriedItems, id);
+            draw.qty.req.x          = obj->panel.field_20.u + 0x84 + x;
+            off                     = obj->panel.field_22.u - 3;
+            draw.qty.req.y          = off + y;
+            draw.qty.req.otIndex    = obj->panel.field_14.s + 1;
+            draw.qty.req.field_8    = color;
+            draw.qty.req.glyphTable = 5;
+            draw.qty.req.centerMode = 2;
+            draw.qty.req.field_E    = 0;
+            func_8002E53C(&draw.qty.req, Text_ItoaSigned(draw.qty.buf, count));
+            Ui_LayoutWithMode0(obj, x + 0x69, y - 8, 0x1B, 7, 0x102010);
+        }
+    }
+    {
+        s32 x;
+        s32 y;
+        s32 color;
+        s32 off;
+        s32 temp;
+        s32 one;
+        one   = 1;
+        x     = prompt->field_18;
+        y     = prompt->field_1A;
+        color = prompt->field_1C;
+        if (item == 0) {
+            Ui_LayoutWithMode0(obj, x, y - 0xE, 0xE, 0xE, 0x102010);
+        } else {
+            if (obj->panel.field_8 != 5) {
+                draw.name.x          = obj->panel.field_20.u + 0x11 + x;
+                off                  = obj->panel.field_22.u - 6;
+                draw.name.y          = off + y;
+                draw.name.otIndex    = obj->panel.field_14.s + 1;
+                draw.name.field_8    = color;
+                draw.name.glyphTable = 0;
+                draw.name.centerMode = 0;
+                draw.name.field_E    = one;
+                func_8002E53C(&draw.name, Gp_GetItemText(item, 0, 0));
+                func_800C22D8(obj, x, y, item, one);
+                temp = item - 0xF;
+                if ((u32)temp < 0x24U) {
+                    func_800C2538(obj, x, y, temp % 3 + 1, color);
+                }
+                Gp_DrawItemIcon(obj, x, y, item, 0);
+            }
+            Ui_LayoutWithMode0(obj, x, y - 0xE, 0xE, 0xE, 0);
+        }
+    }
+    rowState = prompt->field_C;
+    if (rowState == 1) {
+        mode = Gp_ItemOrderMode;
+        if (mode == rowState) {
+            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                GpItemDesc* desc;
+                desc = &Gp_ItemDescs[Gp_SelItemRec->itemId];
+                if (!(desc->field_3 & 4)) {
+                    SndEvt_EnqueueType6(3, 0, 0);
+                    if (Gp_SelItemRec->itemId != 0) {
+                        Gp_SelItemRec->attachSlot = prompt->field_8 + 1;
+                    }
+                    if (item != 0) {
+                        Gp_RefreshItemRow(rec);
+                    }
+                    Gp_ItemOrderMode = 0;
+                } else {
+                    parent = obj->owner->parent;
+                    if (parent != NULL) {
+                        parentObj                  = parent->spawnArg2;
+                        Gp_ItemOrderMode           = 0;
+                        parentObj->panel.field_0.w = mode;
+                        obj->panel.field_0.w       = 0;
+                    }
+                }
+            }
+        } else {
+            if (rec == NULL) {
+                if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                    SndEvt_EnqueueType6(3, 0, 0);
+                    child = Ui_SpawnFromDesc(&D_8010ED00, 0, 1, 0x10, obj);
+                    if (child != NULL) {
+                        s32 yOffset;
+                        s32 xOffset;
+                        yOffset                            = -0x5C;
+                        child->panel.bounds.unsignedRect.y = yOffset;
+                        xOffset                            = -8;
+                        child->panel.bounds.unsignedRect.x = xOffset;
+                    }
+                    obj->panel.field_0.w = 0;
+                }
+                Gp_SelItemRec = rec;
+            } else {
+                Gp_SelItemRec = rec;
+                if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                    SndEvt_EnqueueType6(3, 0, 0);
+                    dialog = Ui_SpawnFromDesc(&D_8010EE6C, 4, 1, 1, obj);
+                    if (dialog != NULL) {
+                        Ui_ClampDialogRect(&(dialog)->panel, prompt, &(obj)->panel);
+                        obj->panel.field_0.w = 0;
+                    }
+                } else {
+                    Gp_CheckItemInfoButton(obj);
+                }
+            }
+        }
+    }
+}
+
+/// Keeps the armor attachment selection within the visible rows and item count.
+static inline void _gpClampArmorRow(UiList* menu, s32 end)
+{
+    if (menu->field_10 >= end) {
+        menu->field_10 = end - 1;
+    }
+    if (menu->field_10 >= menu->field_4) {
+        menu->field_10 = menu->field_4 - 1;
+    }
+}
+
+void Gp_ArmorMenuTask(Task* arg0)
+{
+    UiObject*     obj;
+    UiList*       menu;
+    s32           item;
+    s32           color;
+    PlayerStatus* cfg;
+    s32           status;
+    s32           x;
+    s32           y;
+    struct {
+        TextDrawReq req;
+        struct {
+            s16 unk0;
+            u16 unk2;
+        } cursor;
+        s32 pad0;
+        s16 x;
+        s16 y;
+        s32 pad[2];
+    } locals;
+
+    menu          = &D_8010E8AC;
+    obj           = arg0->spawnArg2;
+    cfg           = &Player_Status;
+    obj->field_2E = 0;
+    Ui_DrawText(&(obj)->panel, Gp_StrArmor);
+
+    if (arg0->state == 0) {
+        s32 id;
+        s32 temp;
+
+        id = cfg->armor + 0x5F;
+        if (id != 0) {
+            menu->field_4 = Gp_GetModLevel(id);
+        }
+        menu->field_5.u = menu->field_4;
+        if ((s8)menu->field_4 >= 4) {
+            menu->field_5.u = 3;
+        }
+        if ((menu->field_4 - (s8)menu->field_5.u) < (s8)menu->field_9.u) {
+            menu->field_9.u = 0;
+        }
+        if (menu->field_14 == 0) {
+            temp = (s8)menu->field_9.u + (s8)menu->field_5.u;
+            if (menu->field_10 >= temp) {
+                menu->field_10 = temp - 1;
+            }
+        }
+        Ui_InitList(menu, &(obj)->panel);
+        menu->field_17 = 0x1A;
+        menu->field_A  = 1;
+        arg0->state    = arg0->state + 2;
+    }
+
+    item = cfg->armor;
+    if (item > 0) {
+        item += 0x5F;
+    }
+    {
+        s32 id;
+        s32 temp;
+
+        id = Player_Status.armor + 0x5F;
+        if (id != 0) {
+            menu->field_4 = Gp_GetModLevel(id);
+        }
+        {
+            u8 n;
+            n               = menu->field_4;
+            menu->field_5.u = n;
+            if ((s8)n >= 4) {
+                menu->field_5.u = 3;
+            }
+        }
+        if ((menu->field_4 - (s8)menu->field_5.u) < (s8)menu->field_9.u) {
+            menu->field_9.u = 0;
+        }
+        if (menu->field_14 == 0) {
+            temp = (s8)menu->field_9.u + (s8)menu->field_5.u;
+            if (menu->field_10 >= temp) {
+                menu->field_10 = temp - 1;
+            }
+        }
+        Ui_ComputeVisibleRows(menu, &(obj)->panel);
+        menu->field_17 = 0x1A;
+        menu->field_A  = 1;
+    }
+
+    if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone(obj) == 0)) {
+        Ui_SetState4(obj, obj->owner);
+    } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone(obj) == 1)) {
+        Ui_ClampAnimOrClose(&(obj)->panel, obj->owner, 0x10);
+    }
+
+    color = Ui_LookupTable(obj, 1);
+
+    if (arg0->state == 2) {
+        {
+            s32 t;
+            s32 one;
+            t   = obj->panel.field_0.w;
+            one = 1;
+            if (((t >> 16) == one) || (t == one)) {
+                if (Gp_ItemOrderMode == 0) {
+                    if (item == 0) {
+                        Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+                    } else {
+                        Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
+                    }
+                    Gp_SetPreviewItem(item, 0);
+                } else {
+                    Ui_SetHolderParam(Gp_StrSelectDest, 0, 0);
+                }
+            }
+        }
+        status               = obj->panel.field_0.w;
+        obj->panel.field_0.w = 0;
+        Ui_UpdateListNoAnim(menu, obj);
+        obj->panel.field_0.w = status;
+        if (status == 1) {
+            Ui_SmoothCursor(&(obj)->panel, (s32)(s16)obj->panel.field_1C.s, (s16)obj->panel.field_18.u + 7);
+            if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
+                SndEvt_EnqueueType6(2, 0, 0);
+                arg0->state    = status;
+                menu->field_10 = (s8)menu->field_9.u;
+            } else if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
+                SndEvt_EnqueueType6(2, 0, 0);
+                D_80114D98[0]->panel.field_0.w = status;
+                D_8010E884.field_10            = D_8010E884.field_4 - 1;
+                obj->panel.field_0.w           = 0;
+            } else {
+                s32 flag;
+                flag = Gp_ItemOrderMode;
+                if (flag == 0) {
+                    McItemScan* scan;
+                    McItemRec*  table;
+                    s32         i;
+
+                    scan  = &Mc_SaveData[0].carriedItems;
+                    table = Gp_GetItemTable(scan);
+                    table = &table[scan->firstRow];
+                    for (i = 0; i < scan->rowCount; i++, table++) {
+                        if (table->itemId == item) {
+                            locals.x      = obj->panel.field_1C.s + 2;
+                            Gp_SelItemRec = table;
+                            locals.y      = obj->panel.field_18.u + 0xF;
+                            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                                SndEvt_EnqueueType6(3, 0, 0);
+                                func_800CF090(&D_8010E9F4, obj);
+                                if (D_8010E9F4.field_4 != 0) {
+                                    UiObject* spawned;
+                                    SndEvt_EnqueueType6(3, 0, 0);
+                                    spawned = Ui_SpawnFromDesc(&D_8010ECAC, 0, 1, 0x10, obj);
+                                    if (spawned != NULL) {
+                                        s32 yOffset;
+                                        s32 xOffset;
+                                        yOffset                              = -0x5C;
+                                        spawned->panel.bounds.unsignedRect.y = yOffset;
+                                        xOffset                              = -8;
+                                        spawned->panel.bounds.unsignedRect.x = xOffset;
+                                    }
+                                    obj->panel.field_0.w = 0;
+                                } else {
+                                    Gp_SpawnItemPrompt(obj, 0x15, 0, 1);
+                                    obj->panel.field_0.w = 0;
+                                }
+                            } else {
+                                Gp_CheckItemInfoButton(obj);
+                            }
+                            break;
+                        }
+                    }
+                } else if ((flag == status) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
+                    if ((u32)(Gp_SelItemRec->itemId - 0x60) < 0x20U) {
+                        SndEvt_EnqueueType6(3, 0, 0);
+                        Gp_EquipMod((s32)Gp_SelItemRec->itemId);
+                        Gp_SetItemSeenBit((s32)Gp_SelItemRec->itemId, 1);
+                        Gp_ItemOrderMode = 0;
+                    } else {
+                        Task* parent;
+                        parent = arg0->parent;
+                        if (parent != 0) {
+                            UiObject* po;
+                            po                   = parent->spawnArg2;
+                            Gp_ItemOrderMode     = 0;
+                            po->panel.field_0.w  = flag;
+                            obj->panel.field_0.w = 0;
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        s32 val;
+        Ui_UpdateListNoAnim(menu, obj);
+        val = menu->field_22;
+        if (val == 2) {
+            SndEvt_EnqueueType6(2, 0, 0);
+            arg0->state = val;
+        }
+    }
+
+    x = (s16)obj->panel.field_1C.s + 2;
+    y = (s16)obj->panel.field_18.u + 0xF;
+    if (obj->panel.field_8 != 5) {
+        s32 off;
+        s32 temp;
+        locals.req.x          = obj->panel.field_20.u + 0x11 + x;
+        off                   = obj->panel.field_22.u - 6;
+        locals.req.y          = off + y;
+        locals.req.otIndex    = obj->panel.field_14.s + 1;
+        locals.req.field_8    = color;
+        locals.req.glyphTable = 0;
+        locals.req.centerMode = 0;
+        locals.req.field_E    = 1;
+        func_8002E53C(&locals.req, Gp_GetItemText(item, 0, 0));
+        temp = item - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(obj, x, y, temp % 3 + 1, color);
+        }
+        Gp_DrawItemIcon(obj, x, y, item, 0);
+    }
+
+    if ((obj->panel.field_0.w == 1) && (arg0->state == 2)) {
+        obj->panel.field_14.s += 1;
+        Ui_AllocTile(&(obj)->panel, (s32)(s16)obj->panel.field_1C.s, (s32)(s16)obj->panel.field_18.u,
+                     ((s16)obj->panel.field_1E.u - (s16)obj->panel.field_1C.s) - 1, 0x10, 0x1741FU);
+        obj->panel.field_14.s -= 1;
+    }
+
+    Ui_DrawHBar(&(obj)->panel, (s32)(s16)obj->panel.field_1C.s, (s32)(s16)obj->panel.field_1E.u, (s16)obj->panel.field_18.u + 0x11);
+
+    {
+        s32 grey;
+        grey                  = 0x606060;
+        locals.req.x          = obj->panel.field_20.u + 2 + obj->panel.field_1C.s;
+        locals.req.y          = obj->panel.field_22.u + 0x18 + obj->panel.field_18.u;
+        locals.req.otIndex    = obj->panel.field_14.s + 1;
+        locals.req.field_8    = grey;
+        locals.req.glyphTable = 5;
+        locals.req.centerMode = 0;
+        locals.req.field_E    = 1;
+        func_8002E53C(&locals.req, Gp_StrAttachments2);
+    }
+
+    {
+        s32 st;
+        st = obj->panel.field_0.w;
+        if (st == 1) {
+            if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+                obj->field_2E = -1;
+            } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+                Task*     parent;
+                UiObject* parentObj;
+                SndEvt_EnqueueType6(4, 0, 0);
+                parent = arg0->parent;
+                if (parent != 0) {
+                    parentObj = parent->spawnArg2;
+                    if (Gp_ItemOrderMode == 0) {
+                        parentObj->field_2C = st;
+                        parentObj->field_2E = 6;
+                    } else {
+                        parentObj->panel.field_0.w = st;
+                        obj->panel.field_0.w       = 0;
+                        Gp_ItemOrderMode           = 0;
+                    }
+                }
+            } else if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
+                Task*     parent;
+                UiObject* parentObj;
+                parent = arg0->parent;
+                if (parent != 0) {
+                    UiList* other;
+                    s16     row;
+                    s32     sel;
+                    s32     row9;
+                    s32     vis;
+
+                    parentObj             = parent->spawnArg2;
+                    *(s32*)&locals.cursor = Ui_GetCursorFixed();
+                    SndEvt_EnqueueType6(2, 0, 0);
+                    other           = &D_8010E854;
+                    row             = locals.cursor.unk2 - (parentObj->panel.field_22.u + parentObj->panel.field_18.u);
+                    row             = row / other->field_7;
+                    vis             = (s8)other->field_5.u;
+                    row9            = (s8)other->field_9.u;
+                    sel             = row + row9;
+                    other->field_10 = sel;
+                    if (sel >= row9 + vis) {
+                        other->field_10 = row9 + vis - 1;
+                    }
+                    if (other->field_10 >= other->field_4) {
+                        other->field_10 = other->field_4 - 1;
+                    }
+                    parentObj->panel.field_0.w = st;
+                    obj->panel.field_0.w       = 0;
+                }
+            }
+        }
+    }
+
+    if (obj->panel.field_0.w == 0x17) {
+        s32 t;
+
+        t = obj->field_2C - ((s16)obj->panel.field_22.u + (s16)obj->panel.field_18.u);
+        if (t < 0xF) {
+            arg0->state = 2;
+        } else {
+            s32 h;
+
+            arg0->state = 1;
+            h           = menu->field_7;
+            t          -= h * 2 + 0xA;
+            if (t < 0) {
+                menu->field_10 = (s8)menu->field_9.u;
+            } else {
+                s32          row9;
+                s32          f5;
+                register s32 vis asm("a0");
+                t    = t / h;
+                row9 = (s8)menu->field_9.u;
+                f5   = (s8)menu->field_5.u;
+                vis  = row9;
+                TOUCH_REG(vis);
+                vis            = vis + f5;
+                t              = t + 1;
+                menu->field_10 = t + row9;
+                _gpClampArmorRow(menu, vis);
+            }
+        }
+        obj->field_2C        = 0;
+        obj->panel.field_0.w = 1;
+    }
+
+    {
+        Task*     owner;
+        Task*     head;
+        Task*     child;
+        Task*     next;
+        UiObject* childObj;
+        s32       one;
+        s32       mask;
+        s32       flag;
+
+        owner = obj->owner;
+        head  = owner->firstChild;
+        if (head != NULL) {
+            child = head;
+            one   = 1;
+            mask  = 0xFFFEFFFF;
+            do {
+                childObj = child->spawnArg2;
+                flag     = childObj->field_2E;
+                next     = child->nextSibling;
+                switch (flag) {
+                    case -1:
+                        obj->field_2E = flag;
+                        break;
+                    case 6:
+                        Ui_TeardownTree(childObj, childObj->owner);
+                        obj->panel.field_0.w = one;
+                        obj->panel.field_4  &= mask;
+                        break;
+                    case 0x23:
+                        Ui_TeardownTree(childObj, childObj->owner);
+                        obj->panel.field_0.w = one;
+                        Gp_ItemOrderMode     = one;
+                        obj->panel.field_4  &= mask;
+                        break;
+                }
+                head  = owner->firstChild;
+                child = next;
+                if (child == head) {
+                    break;
+                }
+            } while (head != NULL);
+        }
+    }
+}
+
+/// Whether item `id` is the equipped weapon, the equipped armour, or the ammo
+/// or attachment loaded in the equipped weapon.
+static inline s32 _gpIsEquippedItem(s32 id)
+{
+    s32           ret;
+    PlayerStatus* p;
+
+    ret = 0;
+    p   = &Player_Status;
+    if ((((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F)) ||
+        (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
+        (((u32)(id - 0xA0) < 0x20U) && (p->weapon != 0) &&
+         ((Gp_GetItemSlot(p->weapon + 0x7F)->ammoId == id) ||
+          (Gp_GetItemSlot(p->weapon + 0x7F)->attachId == id)))) {
+        ret = 1;
+    }
+    return ret;
+}
+
+McItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2)
+{
+    McItemRec* table;
+    s32        i;
+    McItemRec* rec;
+
+    table = Gp_GetItemTable(arg0);
+    rec   = NULL;
+    table = &table[arg0->firstRow];
+    for (i = 0; i < arg0->rowCount; i++, table++) {
+        if ((Gp_ItemDescs[table->itemId].field_3 & 4) || (table->itemId == 0)) {
+            continue;
+        }
+        if ((u8)(table->itemId + 0x80) < 0x20 && _gpIsEquippedItem(table->itemId)) {
+            continue;
+        }
+        arg1--;
+        if (arg1 < 0) {
+            rec = table;
+            break;
+        }
+    }
+    return rec;
+}
+
+/// Sets bit 0x100 in `flags`, which makes `func_800C7AE8` skip drawing the
+/// item preview, while the CD queue is still busy loading it.
+#define GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags) \
+    do {                                     \
+        if (CdCmd_IsIdle() == 0) {           \
+            (flags) |= 0x100;                \
+        }                                    \
+    } while (0)

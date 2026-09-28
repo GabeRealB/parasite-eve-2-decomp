@@ -5,16 +5,17 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/room_effects.h"
+#include "main/gamemain.h"
 
 /// Scratch block the room's spinning-sprite draw takes from `G_SCRATCH_HEAD`
 /// and zeroes before use. `vec` is the coordinate's translation, projected
@@ -33,7 +34,6 @@ typedef struct ShelterB1PodServiceGantrySpinScratch {
 } ShelterB1PodServiceGantrySpinScratch;
 STATIC_ASSERT_SIZEOF(ShelterB1PodServiceGantrySpinScratch, 0x1C);
 
-extern s32 D_80115738;
 extern s32 D_801752EC;
 extern s8  D_shelter_b1_pod_service_gantry_8018256C[];
 

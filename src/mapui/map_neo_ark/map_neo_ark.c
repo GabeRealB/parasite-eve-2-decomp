@@ -5,9 +5,18 @@
  */
 #include "common.h"
 
-extern s32 D_800820E0;
+#include "gameplay/area_flags.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/item_pickup.h"
+#include "gameplay/map.h"
+#include "gameplay/room.h"
+#include "gameplay/scene_tasks.h"
+#include "gameplay/sprites.h"
 
-#include "gameplay/4CC.h"
+extern s32 D_800820E0;
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"

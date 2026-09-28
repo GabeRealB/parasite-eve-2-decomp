@@ -4,15 +4,16 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "rooms/neo_ark_eve_access_tunnel.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/display.h"
+#include "gameplay/loading.h"
+#include "gameplay/room_effects.h"
 
 static void func_neo_ark_eve_access_tunnel_8017E244(SVECTOR* arg0, s32 arg1, s32 arg2);
 

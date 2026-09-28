@@ -11,8 +11,9 @@ lines point at. That is why a room does nothing more than
 forever".
 
 Everything below is read off the matched interpreter in
-`src/gameplay/3CD8.c` and `src/gameplay/3CD8_34D8.c`, and the types in
-`include/gameplay/3CD8.h`.
+`src/gameplay/cap_commands.c`, `src/gameplay/cap_reloc.c`,
+`src/gameplay/captions.c`, and the types in
+`include/gameplay/cap.h`.
 
 ---
 
@@ -210,7 +211,7 @@ and are presumably control codes; `0xFFFE` / `0xFFFF` appear as terminators.
   = 786497, which would walk far past the file. Read as `{u16 count = 0x41;
   u16 stride = 0x0C}` it is sensible: 65 records of 12 bytes. The interpreter
   is matched, so the ROM really does load a word there. **Unresolved** - either
-  `GpCapEvtTable` is mistyped in `include/gameplay/3CD8.h`, or the relocation
+  `GpCapEvtTable` is mistyped in `include/gameplay/cap.h`, or the relocation
   path is not reached for these files, or the base used here is not the base
   the loader uses. Do not build a packer on the current struct until this is
   settled.

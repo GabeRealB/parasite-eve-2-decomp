@@ -7,17 +7,6 @@
 #include "gte.h"
 #include <psyq/abs.h>
 #include <psyq/stdio.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/4CC.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -34,6 +23,23 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/inventory.h"
+#include "gameplay/items.h"
+#include "gameplay/loading.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_input.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 /// 0xA work block of the security-monitor task, hung off the `Task::work`
 /// slot (0x1C) -- that slot is *not* a `TaskIdMap` here, it is the
@@ -132,8 +138,6 @@ typedef struct AsrQuadCorner {
     /* 0x02 */ s16 z;
 } AsrQuadCorner;
 STATIC_ASSERT_SIZEOF(AsrQuadCorner, 0x4);
-
-extern s16 D_80114D08;
 
 /// The tasks `func_acropolis_security_room_8017D77C` and
 /// `func_acropolis_security_room_8017D834` spawn and poll until they end;
@@ -451,7 +455,7 @@ static void func_acropolis_security_room_8017DB30(Task* task)
     RoomActionPrompt* prompt;
 
     hs     = D_acropolis_security_room_80182648;
-    prompt = &D_80114D28;
+    prompt = D_80114D28;
     work   = (AsrMonitorWork*)task->work;
     func_acropolis_security_room_8017E0C4(work->cameraId - 0x7F);
     func_acropolis_security_room_8017E37C(task);
@@ -465,7 +469,7 @@ static void func_acropolis_security_room_8017DB30(Task* task)
     prompt->targetId = 0x80;
     if (func_acropolis_security_room_8017ECB4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
-        if ((prompt->buttons[0].state == 2) && (hs->id != -1)) {
+        if ((prompt->buttons.slots[0].state == 2) && (hs->id != -1)) {
             do {
                 if (hs->hit != 0) {
                     prompt->mode     = 0;
@@ -481,7 +485,7 @@ static void func_acropolis_security_room_8017DB30(Task* task)
     } else {
         prompt->mode = 1;
     }
-    if (prompt->buttons[1].state == 2) {
+    if (prompt->buttons.slots[1].state == 2) {
         task->state = 5;
     }
 }
@@ -499,9 +503,9 @@ static void func_acropolis_security_room_8017DC7C(Task* task)
     s16             sel;
     u16             usel;
 
-    work                = (AsrMonitorWork*)task->work;
-    D_80114D28.mode     = 0;
-    D_80114D28.targetId = 0;
+    work                   = (AsrMonitorWork*)task->work;
+    D_80114D28[0].mode     = 0;
+    D_80114D28[0].targetId = 0;
     if (func_800D4EC0() != 0) {
         sel = work->selection;
         if (sel >= 0) {
@@ -778,7 +782,7 @@ static void func_acropolis_security_room_8017E490(Task* task)
     }
 
     for (port = first; port < count; port++) {
-        prompt = &D_80114D28 + port;
+        prompt = &D_80114D28[port];
         pad    = &Pad_States[port];
         status = pad->status;
         if (status == 0x12) {
@@ -848,20 +852,20 @@ static void func_acropolis_security_room_8017E490(Task* task)
             prompt->field_4 = 0xDC00;
         }
 
-        statep = &prompt->buttons[0].state;
-        heldp  = &prompt->buttons[0].heldFrames;
+        statep = &prompt->buttons.halfwords[0];
+        heldp  = &prompt->buttons.halfwords[1];
         idx    = 0;
         for (i = 0; i < 2; i++, statep += 4, idx += 4) {
             mask = (i == 0) ? 0x40 : 0xA0;
             if (Pad_CheckButtons(port, 1, mask) != 0) {
                 if (heldp[idx] < prompt->field_E &&
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed == prompt->screen.packed) {
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
                     *statep    = 4;
                     heldp[idx] = prompt->field_E;
                 } else {
-                    heldp[idx]                                           = 0;
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed = prompt->screen.packed;
-                    *statep                                              = 2;
+                    heldp[idx]                                                          = 0;
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
+                    *statep                                                             = 2;
                 }
             } else if (Pad_CheckButtons(port, 3, mask) != 0) {
                 *statep = 3;
@@ -943,7 +947,7 @@ void func_acropolis_security_room_8017E9D8(Task* task)
 /// `func_acropolis_security_room_8017FB20`.
 static void func_acropolis_security_room_8017EA28(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
 
     prompt->targetId    = 0x80;
     prompt->mode        = 1;
@@ -957,7 +961,7 @@ static void func_acropolis_security_room_8017EA28(Task* task)
 /// overlay, spawns the prompt at the panel's coordinates and advances the task.
 static void func_acropolis_security_room_8017EA5C(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     AsrMonitorWork*   work   = (AsrMonitorWork*)task->work;
 
     prompt->mode     = 0;
@@ -1012,7 +1016,7 @@ done:
 /// monitor by advancing to state 5.
 static void func_acropolis_security_room_8017EB9C(Task* task)
 {
-    RoomActionPrompt* prompt  = &D_80114D28;
+    RoomActionPrompt* prompt  = D_80114D28;
     OverlayHotspot*   hotspot = D_acropolis_security_room_80182648;
 
     gGameSession->hideHud    = 1;
@@ -1025,7 +1029,7 @@ static void func_acropolis_security_room_8017EB9C(Task* task)
     prompt->targetId = 0x80;
     if (func_acropolis_security_room_8017ECB4(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
-        if (prompt->buttons[0].state == 2) {
+        if (prompt->buttons.slots[0].state == 2) {
             for (; hotspot->id != -1; hotspot++) {
                 if (hotspot->hit != 0) {
                     prompt->mode     = 0;
@@ -1038,7 +1042,7 @@ static void func_acropolis_security_room_8017EB9C(Task* task)
     } else {
         prompt->mode = 1;
     }
-    if (prompt->buttons[1].state == 2) {
+    if (prompt->buttons.slots[1].state == 2) {
         task->state = 5;
     }
 }
@@ -1104,17 +1108,17 @@ void func_acropolis_security_room_8017ED68(Task* task)
 /// this body at `func_acropolis_security_room_80180308`.
 static void func_acropolis_security_room_8017EDE4(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     s32               i;
 
     for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0               = 0;
-        prompt->field_4               = 0;
-        prompt->targetId              = 0x100;
-        prompt->field_E               = 0xF;
-        prompt->buttons[0].heldFrames = 0;
-        prompt->buttons[1].heldFrames = 0;
-        prompt->mode                  = 1;
+        prompt->field_0                     = 0;
+        prompt->field_4                     = 0;
+        prompt->targetId                    = 0x100;
+        prompt->field_E                     = 0xF;
+        prompt->buttons.slots[0].heldFrames = 0;
+        prompt->buttons.slots[1].heldFrames = 0;
+        prompt->mode                        = 1;
     }
     task->state = task->state + 1;
 }
@@ -1129,7 +1133,7 @@ static void func_acropolis_security_room_8017EDE4(Task* task)
 /// `buttons[1].state == 2` leaves the scan by advancing to state 5.
 static void func_acropolis_security_room_8017EE44(Task* task)
 {
-    RoomActionPrompt*           prompt = &D_80114D28;
+    RoomActionPrompt*           prompt = D_80114D28;
     OverlayHotspot*             hs     = D_acropolis_security_room_801826DC;
     AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->work;
 
@@ -1143,7 +1147,7 @@ static void func_acropolis_security_room_8017EE44(Task* task)
     prompt->targetId = 0x80;
     if (func_acropolis_security_room_8017FCB0(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
-        if (prompt->buttons[0].state == 2) {
+        if (prompt->buttons.slots[0].state == 2) {
             for (; hs->id != -1; hs++) {
                 if (hs->hit != 0) {
                     prompt->mode     = 0;
@@ -1159,7 +1163,7 @@ static void func_acropolis_security_room_8017EE44(Task* task)
         st->field_0  = 0;
         prompt->mode = 1;
     }
-    if (prompt->buttons[1].state == 2) {
+    if (prompt->buttons.slots[1].state == 2) {
         task->state = 5;
     }
 }
@@ -1354,7 +1358,7 @@ static void func_acropolis_security_room_8017F480(Task* task)
     }
 
     for (port = first; port < count; port++) {
-        prompt = &D_80114D28 + port;
+        prompt = &D_80114D28[port];
         pad    = &Pad_States[port];
         status = pad->status;
         if (status == 0x12) {
@@ -1424,20 +1428,20 @@ static void func_acropolis_security_room_8017F480(Task* task)
             prompt->field_4 = 0xDC00;
         }
 
-        statep = &prompt->buttons[0].state;
-        heldp  = &prompt->buttons[0].heldFrames;
+        statep = &prompt->buttons.halfwords[0];
+        heldp  = &prompt->buttons.halfwords[1];
         idx    = 0;
         for (i = 0; i < 2; i++, statep += 4, idx += 4) {
             mask = (i == 0) ? 0x40 : 0xA0;
             if (Pad_CheckButtons(port, 1, mask) != 0) {
                 if (heldp[idx] < prompt->field_E &&
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed == prompt->screen.packed) {
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
                     *statep    = 4;
                     heldp[idx] = prompt->field_E;
                 } else {
-                    heldp[idx]                                           = 0;
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed = prompt->screen.packed;
-                    *statep                                              = 2;
+                    heldp[idx]                                                          = 0;
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
+                    *statep                                                             = 2;
                 }
             } else if (Pad_CheckButtons(port, 3, mask) != 0) {
                 *statep = 3;
@@ -1552,7 +1556,7 @@ static void func_acropolis_security_room_8017FA18(Task* task)
 /// `func_acropolis_security_room_8017EA28`.
 static void func_acropolis_security_room_8017FB20(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
 
     prompt->targetId    = 0x80;
     prompt->mode        = 1;
@@ -1566,7 +1570,7 @@ static void func_acropolis_security_room_8017FB20(Task* task)
 /// in `D_80114D28` with the display mode this state picked.
 static void func_acropolis_security_room_8017FB54(Task* task)
 {
-    RoomActionPrompt*           prompt = &D_80114D28;
+    RoomActionPrompt*           prompt = D_80114D28;
     AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->work;
 
     prompt->mode     = 0;
@@ -1585,7 +1589,7 @@ static void func_acropolis_security_room_8017FB54(Task* task)
 /// arm is the one this room actually takes.
 static void func_acropolis_security_room_8017FBA4(Task* task)
 {
-    RoomActionPrompt*           prompt = &D_80114D28;
+    RoomActionPrompt*           prompt = D_80114D28;
     AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->work;
 
     prompt->mode     = 0;
@@ -1844,17 +1848,17 @@ void func_acropolis_security_room_80180294(Task* task)
 /// this body at `func_acropolis_security_room_8017EDE4`.
 static void func_acropolis_security_room_80180308(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     s32               i;
 
     for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0               = 0;
-        prompt->field_4               = 0;
-        prompt->targetId              = 0x100;
-        prompt->field_E               = 0xF;
-        prompt->buttons[0].heldFrames = 0;
-        prompt->buttons[1].heldFrames = 0;
-        prompt->mode                  = 1;
+        prompt->field_0                     = 0;
+        prompt->field_4                     = 0;
+        prompt->targetId                    = 0x100;
+        prompt->field_E                     = 0xF;
+        prompt->buttons.slots[0].heldFrames = 0;
+        prompt->buttons.slots[1].heldFrames = 0;
+        prompt->mode                        = 1;
     }
     task->state = task->state + 1;
 }

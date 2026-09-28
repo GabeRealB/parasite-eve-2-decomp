@@ -5,13 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -61,12 +54,19 @@
         }                                                               \
     }
 
-extern u8  D_80115598;
-extern u8  D_80115690;
-extern s32 D_80115720;
-extern s32 D_80115728;
-extern s32 D_8011573C;
-extern s32 D_80115744;
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/items.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/object_task.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// Descriptor of the room's own event task, which the message handler spawns.
 extern TaskDesc D_dryfield_night_main_street_8018208C;

@@ -11,20 +11,27 @@
 #include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
 #include "actors/actors_shared_80135a60.h"
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
 /// 0x2C-byte scratch frame `func_actor_110600_80133778` opens on
 /// `G_SCRATCH_HEAD` to lay one patrol node out: `m` receives a copy of the
@@ -1410,8 +1417,6 @@ static s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
 /// stride is the row's own length, so the load is a signed byte.
 extern s8 D_actor_110600_80147D20[][0x2D];
 
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
 /// Per-tick animation stage machine driven off the task's work block.
 ///
 /// Stages 1, 2 and 6 arm every slot 1..0x12 and then park the stage at 3 with
@@ -2684,7 +2689,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
 
         effect1 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[6], 0x200, NULL);
         if (effect1 != NULL) {
-            sessionKey1 = (GpAreaKey*)&gGameSession->at4.loc;
+            sessionKey1 = &gGameSession->at4.loc;
             raw1        = enemy->placeKey;
             model1      = effect1->task->extra.tmd;
             key.stage   = sessionKey1->stage;
@@ -2694,7 +2699,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             index1      = raw1 >> 12;
             key.view    = areaByte0;
             Gp_SyncAreaKeyIndex(&key);
-            entry1        = (GpAreaPlace*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+            entry1        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
             model1->tpage = entry1->tpage;
             model1->clut  = entry1->clut;
             if (model1->buffer != NULL) {
@@ -2705,7 +2710,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
 
         effect2 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[8], 0x200, NULL);
         if (effect2 != NULL) {
-            sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
+            sessionKey2 = &gGameSession->at4.loc;
             raw2        = enemy->placeKey;
             model2      = effect2->task->extra.tmd;
             key.stage   = sessionKey2->stage;
@@ -2715,7 +2720,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             index2      = raw2 >> 12;
             key.view    = areaByte0;
             Gp_SyncAreaKeyIndex(&key);
-            entry2        = (GpAreaPlace*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+            entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
             model2->tpage = entry2->tpage;
             model2->clut  = entry2->clut;
             if (model2->buffer != NULL) {
@@ -2726,7 +2731,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
 
         effect3 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[10], 0x200, NULL);
         if (effect3 != NULL) {
-            sessionKey3 = (GpAreaKey*)&gGameSession->at4.loc;
+            sessionKey3 = &gGameSession->at4.loc;
             raw3        = enemy->placeKey;
             model3      = effect3->task->extra.tmd;
             key.stage   = sessionKey3->stage;
@@ -2736,7 +2741,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             index3      = raw3 >> 12;
             key.view    = areaByte0;
             Gp_SyncAreaKeyIndex(&key);
-            entry3        = (GpAreaPlace*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+            entry3        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
             model3->tpage = entry3->tpage;
             model3->clut  = entry3->clut;
             if (model3->buffer != NULL) {
@@ -2747,7 +2752,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
 
         effect4 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[11], 0x300, NULL);
         if (effect4 != NULL) {
-            sessionKey4 = (GpAreaKey*)&gGameSession->at4.loc;
+            sessionKey4 = &gGameSession->at4.loc;
             raw4        = enemy->placeKey;
             model4      = effect4->task->extra.tmd;
             key.stage   = sessionKey4->stage;
@@ -2757,7 +2762,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             index4      = raw4 >> 12;
             key.view    = areaByte0;
             Gp_SyncAreaKeyIndex(&key);
-            entry4        = (GpAreaPlace*)((index4 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+            entry4        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index4);
             model4->tpage = entry4->tpage;
             model4->clut  = entry4->clut;
             if (model4->buffer != NULL) {
@@ -2768,7 +2773,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
 
         effect5 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[15], 0x300, NULL);
         if (effect5 != NULL) {
-            sessionKey5 = (GpAreaKey*)&gGameSession->at4.loc;
+            sessionKey5 = &gGameSession->at4.loc;
             raw5        = enemy->placeKey;
             model5      = effect5->task->extra.tmd;
             key.stage   = sessionKey5->stage;
@@ -2778,7 +2783,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             index5      = raw5 >> 12;
             key.view    = areaByte0;
             Gp_SyncAreaKeyIndex(&key);
-            entry5        = (GpAreaPlace*)((index5 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+            entry5        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index5);
             model5->tpage = entry5->tpage;
             model5->clut  = entry5->clut;
             if (model5->buffer != NULL) {

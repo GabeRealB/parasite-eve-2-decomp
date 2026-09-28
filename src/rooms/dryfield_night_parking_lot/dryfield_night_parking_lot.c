@@ -1,10 +1,4 @@
 #include "common.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -12,6 +6,16 @@
 #include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
+#include "main/fs.h"
 
 /// Descriptor of the event task the event gate spawns.
 extern TaskDesc D_dryfield_night_parking_lot_8017EC54;

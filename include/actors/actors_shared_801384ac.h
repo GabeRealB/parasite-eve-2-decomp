@@ -5,8 +5,6 @@
 
 #include "main/task.h"
 
-#include "gameplay/3A34.h"
-
 void ActorsShared801384ac(Task* task);
 
 #endif

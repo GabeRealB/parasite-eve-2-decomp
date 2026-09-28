@@ -13,11 +13,16 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/mc.h"
+#include "main/wipsys.h"
 
 /// Work block of the overlay's sequence/event task -- the one
 /// `D_actor_341900_80164208` points at.
@@ -165,9 +170,6 @@ STATIC_ASSERT_SIZEOF(Actor341900AnimCmd, 0x14);
 extern void func_80143490(s32 arg0);
 extern s32  D_80144A74;
 extern s32  D_80144A7C;
-
-/// `func_800B4114` is declared locally with a signed `arg2`; see `gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Parameter record `func_actor_341900_801628B8` sends with message 0x3F4.
 extern s32 D_actor_341900_801639A4;
@@ -346,7 +348,7 @@ static void func_actor_341900_80162330(Task* arg0)
     extra->lightMtx = &w->light;
     extra->colorMtx = &w->color;
     arg0->msgTable  = D_actor_341900_80163A78;
-    rec             = ((GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc))->field_0;
+    rec             = (Gp_GetNestedAreaRec(&gGameSession->at4.loc))->field_0;
     for (; rec->entryId != 0xFF; rec++) {
         if (rec->entryId == 0x20) {
             break;
@@ -447,13 +449,13 @@ void func_actor_341900_80162708(Task* arg0)
                 frame = work->field_66 & 0x3FF;
                 if ((frame == 0x12) && (work->field_230 != frame)) {
                     Task_Reparent(arg0,
-                                  Gp_SpawnScript18((s32)&D_80144A74, (s32)&D_80144A7C));
+                                  Gp_SpawnScript18(&D_80144A74, &D_80144A7C));
                     func_80143490(3);
                 }
                 frame = work->field_66 & 0x3FF;
                 if ((frame == 0x18) && (work->field_230 != frame)) {
                     Task_Reparent(arg0,
-                                  Gp_SpawnScript18((s32)&D_80144A74, (s32)&D_80144A7C));
+                                  Gp_SpawnScript18(&D_80144A74, &D_80144A7C));
                     func_80143490(3);
                 }
                 work->field_230 = work->field_66 & 0x3FF;
@@ -492,7 +494,7 @@ static void func_actor_341900_801628B8(Task* arg0)
         case 0:
             break;
         case 1:
-            Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_actor_341900_80163AC8, 0);
+            Gp_DispatchMsgPtr(work->field_0, 0x3E9, &D_actor_341900_80163AC8, 0);
             {
                 s32 weaponId;
                 s32 anim;
@@ -504,14 +506,14 @@ static void func_actor_341900_801628B8(Task* arg0)
                 msg.field_8         = 0;
                 msg.field_C         = 0;
                 msg.field_10        = 0;
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &msg, 0);
             }
             break;
         case 2:
-            Gp_DispatchMsg(work->field_0, 0x3F2, (s32)&D_actor_341900_80163AE0, 0);
+            Gp_DispatchMsgPtr(work->field_0, 0x3F2, &D_actor_341900_80163AE0, 0);
             break;
         case 3:
-            Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_actor_341900_80163AF8, 0);
+            Gp_DispatchMsgPtr(work->field_0, 0x3E9, &D_actor_341900_80163AF8, 0);
             w = (Actor341900Work*)arg0->work;
             if (w->field_0 != NULL) {
                 msg.animBlock.ptr = &D_actor_341900_801639A4;
@@ -519,7 +521,7 @@ static void func_actor_341900_801628B8(Task* arg0)
                 msg.field_8       = 0;
                 msg.field_C       = 0;
                 msg.field_10      = 0;
-                Gp_DispatchMsg(w->field_0, 0x3F4, (s32)&msg, 0);
+                Gp_DispatchMsgPtr(w->field_0, 0x3F4, &msg, 0);
             }
             break;
         case 4:
@@ -530,7 +532,7 @@ static void func_actor_341900_801628B8(Task* arg0)
                 msg.field_8       = 1;
                 msg.field_C       = 10;
                 msg.field_10      = 0;
-                Gp_DispatchMsg(w->field_0, 0x3F4, (s32)&msg, 0);
+                Gp_DispatchMsgPtr(w->field_0, 0x3F4, &msg, 0);
             }
             break;
         case 5: {
@@ -544,12 +546,12 @@ static void func_actor_341900_801628B8(Task* arg0)
             msg.field_8         = 0;
             msg.field_C         = 0;
             msg.field_10        = 0;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &msg, 0);
         }
-            Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_actor_341900_80163B10, 0);
+            Gp_DispatchMsgPtr(work->field_0, 0x3E9, &D_actor_341900_80163B10, 0);
             break;
         case 6:
-            Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_actor_341900_80163B28, 0);
+            Gp_DispatchMsgPtr(work->field_0, 0x3E9, &D_actor_341900_80163B28, 0);
             break;
     }
     work->field_5C = 0;
@@ -577,21 +579,21 @@ static void func_actor_341900_80162AD4(Task* arg0)
                     msg.field_8         = 1;
                     msg.animBlock.index = 0;
                     msg.field_C         = 10;
-                    Gp_DispatchMsg(work->field_8, 0x7D3, (s32)&msg, 0);
+                    Gp_DispatchMsgPtr(work->field_8, 0x7D3, &msg, 0);
                     work->field_14.pos.vx = D_actor_341900_80163A48.pos.vx;
                     work->field_14.pos.vy = D_actor_341900_80163A48.pos.vy;
                     work->field_14.pos.vz = D_actor_341900_80163A48.pos.vz;
                     work->field_14.rot.vx = D_actor_341900_80163A48.rot.vx;
                     work->field_14.rot.vy = D_actor_341900_80163A48.rot.vy;
                     work->field_14.rot.vz = D_actor_341900_80163A48.rot.vz;
-                    Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&work->field_14, 0);
+                    Gp_DispatchMsgPtr(work->field_8, 0x7D4, &work->field_14, 0);
                     work->field_68 = 0;
                     work->field_66++;
                     break;
                 case 1:
                     if ((u16)work->field_68 >= 0x10) {
                         work->field_14.pos.vx += 0x1E;
-                        Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&work->field_14, 0);
+                        Gp_DispatchMsgPtr(work->field_8, 0x7D4, &work->field_14, 0);
                     } else {
                         work->field_68++;
                     }
@@ -605,8 +607,8 @@ static void func_actor_341900_80162AD4(Task* arg0)
                     msg2.field_8         = 1;
                     msg2.animBlock.index = 0;
                     msg2.field_C         = 10;
-                    Gp_DispatchMsg(work->field_8, 0x7D3, (s32)&msg2, 0);
-                    Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_actor_341900_80163A60, 0);
+                    Gp_DispatchMsgPtr(work->field_8, 0x7D3, &msg2, 0);
+                    Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_actor_341900_80163A60, 0);
                     work->field_68 = 0;
                     work->field_66++;
                     break;
@@ -635,8 +637,8 @@ static void func_actor_341900_80162AD4(Task* arg0)
             }
             break;
         case 3:
-            Gp_DispatchMsg(work->field_C, 0x7D4, (s32)&D_actor_341900_801639D8[0], 0);
-            Gp_DispatchMsg(work->field_10, 0x7D4, (s32)&D_actor_341900_801639D8[1], 0);
+            Gp_DispatchMsgPtr(work->field_C, 0x7D4, &D_actor_341900_801639D8[0], 0);
+            Gp_DispatchMsgPtr(work->field_10, 0x7D4, &D_actor_341900_801639D8[1], 0);
             Gp_DispatchMsg(work->field_4, 0x7D5, 2, 0);
             work->field_64 = 0;
             break;
@@ -659,8 +661,8 @@ static void func_actor_341900_80162AD4(Task* arg0)
                 case 1:
                     work->field_2C.pos.vz -= 0x14;
                     work->field_44.pos.vz += 0x14;
-                    Gp_DispatchMsg(work->field_C, 0x7D4, (s32)&work->field_2C, 0);
-                    Gp_DispatchMsg(work->field_10, 0x7D4, (s32)&work->field_44, 0);
+                    Gp_DispatchMsgPtr(work->field_C, 0x7D4, &work->field_2C, 0);
+                    Gp_DispatchMsgPtr(work->field_10, 0x7D4, &work->field_44, 0);
                     break;
             }
             break;
@@ -709,7 +711,7 @@ void func_actor_341900_80162EFC(Task* arg0)
             sessionIdLo         = gGameSession->at4.loc.area;
             sp10.command        = 0;
             sp10.from.loc.area  = sessionIdLo;
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&sp10, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &sp10, 0x7DB);
             seqWork          = (Actor341900Work*)arg0->work;
             seqWork->field_8 = Task_SpawnFromTable(&D_actor_341900_80164190, 2, 0, (s32)arg0);
             for (var_s0 = 0; (u32)(var_s0 & 0xFFFF) < 5U; var_s0++) {
@@ -723,7 +725,7 @@ void func_actor_341900_80162EFC(Task* arg0)
         case 1:
             gStageSceneMusicEntry     = 4;
             Mc_SaveData[0].sceneEvent = 0xC;
-            func_800E8634((s32)D_actor_341900_80163B48, 0, (s32)D_actor_341900_80163FB0);
+            func_800E8634(D_actor_341900_80163B48, 0, D_actor_341900_80163FB0);
         next:
             arg0->state += 1;
             return;
@@ -831,7 +833,7 @@ void func_actor_341900_80163334(s16 arg0)
     msg.from.loc.stage = gGameSession->at4.loc.stage;
     msg.from.loc.area  = gGameSession->at4.loc.area;
     msg.command        = arg0;
-    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
 }
 
 void func_actor_341900_80163388(s32 arg0)
@@ -934,8 +936,8 @@ void func_actor_341900_801635A4(void)
     msg.field_8         = 0;
     msg.field_C         = 0;
     msg.field_10        = 0;
-    Gp_DispatchMsg(work->field_0, 0x3E8, (s32)&msg, 0);
-    Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_actor_341900_80163B28, 0);
+    Gp_DispatchMsgPtr(work->field_0, 0x3E8, &msg, 0);
+    Gp_DispatchMsgPtr(work->field_0, 0x3E9, &D_actor_341900_80163B28, 0);
     CdCmd_CancelReplaceAndActivate();
 }
 

@@ -4,9 +4,6 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-
-#include "gameplay/3A34.h"
-#include "gameplay/3FB8.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "weapons/weapon.h"

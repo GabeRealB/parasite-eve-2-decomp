@@ -17,7 +17,7 @@ Naming: [`NAMING.md`](../NAMING.md) (`Task_` / `TaskDesc`).
 | Bank tables | `asm/USA/main/data/task.data.s` (`gTaskDescBanks`), plus `52E8C` / `578D0` / `57EA8` / `57F34` / `58028` / `59184.data.s` |
 | Gameplay banks 6, 10 | `asm/USA/gameplay/data/data.data.s` (`D_8010FC2C`, `0x80114B34`) |
 | Title extras | `src/title/title.c`, `Title_TaskDescs` |
-| Enemies | `src/gameplay/1BC.c` (`Gp_SpawnEnemy`, `Gp_SpawnEnemyFromTable`) |
+| Enemies | `src/gameplay/scene_runtime.c` (`Gp_SpawnEnemy`, `Gp_SpawnEnemyFromTable`) |
 | UI stack descs | `src/main/ui.c` (`Ui_SpawnFromDesc`) |
 
 **Coverage.** The scheduler is fully described. Bank 0 (system) and bank 9 (FX)
@@ -238,7 +238,9 @@ Several `func_*` rows are already matched C and only lack a role name.
 | `11` | `20` | `func_800E4028` | Unnamed |
 | `12` | `20` | NULL, `flags = 0xFFFF` | Sentinel |
 
-Payload structs: `include/gameplay/3CD8.h`.
+Payload structs live with their sole consumers: `GpEndWait` in
+`src/gameplay/cap_script.c`, and `GpVolFade` / `GpSndFade` in
+`src/gameplay/evs_scripts.c`.
 
 ---
 
@@ -282,7 +284,7 @@ decompiling the overlay it points at.
 usually `func_8010B610` (gameplay-resident), `arg.model` a `TmdSource*` in
 weapon / actor overlay RAM (`0x8011xxxx`, `0x8016xxxx`, `0x8018xxxx`).
 
-`src/gameplay/3FB8.c` spawns these as `Task_Spawn(7, type, …)` when attaching
+`src/gameplay/player_actor.c` spawns these as `Task_Spawn(7, type, …)` when attaching
 gear to an actor, then rewrites `parent` and TMD coord links.
 
 ### Banks 3, 4, 5, 8, 10, 14

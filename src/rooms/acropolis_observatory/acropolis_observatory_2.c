@@ -2,11 +2,6 @@
 
 #include <psyq/libgte.h>
 
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
-
 #include "main/fs.h"
 #include "main/gameflow.h"
 #include "main/mc.h"
@@ -17,6 +12,13 @@
 
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "gameplay/pad_input.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_targets.h"
 
 /// The room's task table: the two streamed-scene rides, then the fade-out and
 /// fade-in tasks they spawn.
@@ -75,7 +77,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
             rec.field_8                           = 0;
             rec.field_C                           = 0;
             rec.field_10                          = 0;
-            Gp_DispatchMsg(((RoomStreamWork*)task->work)->target, 0x3E8, (s32)&rec, 0);
+            Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, 0x3E8, &rec, 0);
             func_800E9BDC(3, 0x9FF);
             Gp_StateF0.field_4 = 1;
             task->state        = task->state + 1;
@@ -83,8 +85,8 @@ void func_acropolis_observatory_8017D9A8(Task* task)
 
         case 1:
             if (queue->field_1FA != 0) {
-                work->script                  = Gp_SpawnScript18((s32)&D_acropolis_observatory_80183480,
-                                                                 (s32)&D_acropolis_observatory_80183498);
+                work->script                  = Gp_SpawnScript18(&D_acropolis_observatory_80183480,
+                                                                 &D_acropolis_observatory_80183498);
                 gGameSession->padScriptFlags |= 0x80;
                 Task_Reparent(task, work->script);
                 task->state = task->state + 1;
@@ -104,7 +106,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
                     place.rot.vx = 0;
                     place.rot.vy = 0x400;
                     dest         = (RoomStreamWork*)task->work;
-                    Gp_DispatchMsg(dest->target, 0x3E9, (s32)&place, 0);
+                    Gp_DispatchMsgPtr(dest->target, 0x3E9, &place, 0);
                     Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 3, 0, 0);
                     task->state = task->state + 1;
                     break;
@@ -118,7 +120,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
                 place.pos.vy = -0xBAD;
                 place.pos.vz = -0x6D4;
                 dest         = (RoomStreamWork*)task->work;
-                Gp_DispatchMsg(dest->target, 0x3F2, (s32)&place, 0);
+                Gp_DispatchMsgPtr(dest->target, 0x3F2, &place, 0);
                 task->state = task->state + 1;
             }
             break;
@@ -185,7 +187,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
             rec.field_8                           = 0;
             rec.field_C                           = 0;
             rec.field_10                          = 0;
-            Gp_DispatchMsg(((RoomStreamWork*)task->work)->target, 0x3E8, (s32)&rec, 0);
+            Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, 0x3E8, &rec, 0);
             func_800E9BDC(3, 0x9FF);
             Gp_StateF0.field_4 = 1;
             task->state        = task->state + 1;
@@ -193,8 +195,8 @@ void func_acropolis_observatory_8017DD3C(Task* task)
 
         case 1:
             if (queue->field_1FA != 0) {
-                work->script                  = Gp_SpawnScript18((s32)&D_acropolis_observatory_801834A0,
-                                                                 (s32)&D_acropolis_observatory_801834B8);
+                work->script                  = Gp_SpawnScript18(&D_acropolis_observatory_801834A0,
+                                                                 &D_acropolis_observatory_801834B8);
                 gGameSession->padScriptFlags |= 0x80;
                 Task_Reparent(task, work->script);
                 task->state = task->state + 1;
@@ -214,7 +216,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
                     place.rot.vx = 0;
                     place.rot.vy = 0x400;
                     dest         = (RoomStreamWork*)task->work;
-                    Gp_DispatchMsg(dest->target, 0x3E9, (s32)&place, 0);
+                    Gp_DispatchMsgPtr(dest->target, 0x3E9, &place, 0);
                     Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 3, 0, 0);
                     task->state = task->state + 1;
                     break;
@@ -228,7 +230,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
                 place.pos.vy = -0xBAD;
                 place.pos.vz = -0x2936;
                 dest         = (RoomStreamWork*)task->work;
-                Gp_DispatchMsg(dest->target, 0x3F2, (s32)&place, 0);
+                Gp_DispatchMsgPtr(dest->target, 0x3F2, &place, 0);
                 task->state = task->state + 1;
             }
             break;

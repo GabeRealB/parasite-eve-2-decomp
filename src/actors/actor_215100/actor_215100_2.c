@@ -6,13 +6,6 @@
 #include "actors/actor.h"
 #include "actors/actors_shared_80132614.h"
 #include "actors/actors_shared_801326ac.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -25,6 +18,21 @@
 #include "main/stage.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/wipsys.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -92,7 +100,7 @@ extern GpMsgEntry D_actor_215100_8015E5A0[];
 /// stores it and `func_actor_215100_8014C360` indexes it with a text stream's
 /// `code & 0x3FF`.
 extern GlyphUvwh* D_actor_215100_8015E654;
-extern GlyphUvwh  D_8010FB70[];
+
 /// Caption script table, and the script currently being played back with the
 /// entry it is up to.
 extern GpCapEntry* D_actor_215100_8015E650;
@@ -118,19 +126,15 @@ extern Actor215100CharRec D_actor_215100_8015E678;
 /// Caption schedule `func_actor_215100_8014AFAC` scans, terminated by a -1
 /// `field_0`.
 extern OverlayCapWindow D_actor_215100_80154514[];
-extern u8               D_80115690;
-static void             func_actor_215100_8014B0D4(void);
-static s32              func_actor_215100_8014B1B0(GpCapFileAddress base);
-static s32              func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
-static s16              func_actor_215100_8014BDFC(u16* arg0);
-static s16              func_actor_215100_8014C06C(u16* arg0);
-static s16              func_actor_215100_8014C298(u16* arg0);
-static s32              func_actor_215100_8014C418(s32 arg0);
-static void             func_actor_215100_8014BEE8(void);
 
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+static void func_actor_215100_8014B0D4(void);
+static s32  func_actor_215100_8014B1B0(GpCapFileAddress base);
+static s32  func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
+static s16  func_actor_215100_8014BDFC(u16* arg0);
+static s16  func_actor_215100_8014C06C(u16* arg0);
+static s16  func_actor_215100_8014C298(u16* arg0);
+static s32  func_actor_215100_8014C418(s32 arg0);
+static void func_actor_215100_8014BEE8(void);
 
 /// Arms the weapon pickup at this actor's spot while the event flag
 /// `D_actor_215100_8014D038` is up and the story step has reached 3. A session
@@ -407,7 +411,7 @@ void func_actor_215100_8014ABAC(Task* arg0)
             if (GameFlag_GetNibble(0x121) == 0) {
                 GameFlag_SetNibble(0x121, 1);
                 func_800E3FAC(0xA2, 0x3A);
-                func_800E8634((s32)&D_actor_215100_8014E370, 1, (s32)&D_actor_215100_8014E8F8);
+                func_800E8634(&D_actor_215100_8014E370, 1, &D_actor_215100_8014E8F8);
                 arg0->state++;
             } else {
                 Task_SpawnFromTable(&D_actor_215100_8014E13C, 1, 0, 0);
@@ -568,8 +572,8 @@ static void func_actor_215100_8014B0D4(void)
         (D_actor_215100_8015E658[D_actor_215100_8015E662].field_8.offset != -1) &&
         (Gp_CapBusy() == 0)) {
         func_actor_215100_8014B3C8(D_actor_215100_8015E658[D_actor_215100_8015E662].field_8.text, 0x80, 1,
-                                   D_actor_215100_8015E658[D_actor_215100_8015E662].field_0 |
-                                       ((D_actor_215100_8015E658[D_actor_215100_8015E662].field_1 & 0x10) * 0x10));
+                                   D_actor_215100_8015E658[D_actor_215100_8015E662].prefix.bytes.field_0 |
+                                       ((D_actor_215100_8015E658[D_actor_215100_8015E662].prefix.bytes.field_1 & 0x10) * 0x10));
         if (!(D_actor_215100_8015E658[D_actor_215100_8015E662].field_4 & 1)) {
             func_actor_215100_8014BEE8();
         }

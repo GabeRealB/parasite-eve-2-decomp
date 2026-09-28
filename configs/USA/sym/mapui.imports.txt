@@ -76,4 +76,5 @@ D_8006AC5C = 0x8006AC5C; // absolute:True
 D_8006AC60 = 0x8006AC60; // absolute:True
 D_8006AC6C = 0x8006AC6C; // absolute:True
 D_800820E0 = 0x800820E0; // absolute:True
-D_8010EFA0 = 0x8010EFA0; // absolute:True
+
+D_8010EAB4 = 0x8010EAB4; // absolute:True size:0x578

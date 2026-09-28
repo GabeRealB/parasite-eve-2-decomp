@@ -7,12 +7,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_80135990.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -21,6 +15,22 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "psyq/abs.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
 /// Work block this overlay parks in `Task::work`. `field_0` is the
 /// substate the message handler below switches on; the three bytes at 0x194
@@ -698,7 +708,7 @@ static void Actor01200_Fn017DC(GpEnemy* arg0, Task* arg1)
             work->eff1A8.spawnArgLo = 0x120;
             work->eff1A8.spawnArgHi = 2;
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->extra.tmd->coords[4], NULL, &work->eff1A8);
-            Gp_SpawnScript18Ex((s32)&Actor01200_D04044, (s32)&Actor01200_D04050, (s16)gpGetObjDepth(arg1->extra.tmd->coords));
+            Gp_SpawnScript18Ex(&Actor01200_D04044, &Actor01200_D04050, (s16)gpGetObjDepth(arg1->extra.tmd->coords));
             work->obj300.radius = 0x320;
             work->obj338.radius = 0xC8;
             work->obj300.flags |= 0x8000;
@@ -831,7 +841,7 @@ static void Actor01200_Fn01FDC(GpEnemy* arg0, Task* arg1)
             work->obj300.radius = 0x320;
             work->obj300.flags |= 0x8000;
             Gp_SpawnEff(0x6009C, &arg1->extra.tmd->coords[2], 1, NULL);
-            Gp_SpawnScript18((s32)&Actor01200_D04044, (s32)&Actor01200_D04050);
+            Gp_SpawnScript18(&Actor01200_D04044, &Actor01200_D04050);
             work->eff1A8.coord      = &arg1->extra.tmd->coords[4];
             work->eff1A8.spawnArgLo = 0x120;
             work->eff1A8.spawnArgHi = 2;

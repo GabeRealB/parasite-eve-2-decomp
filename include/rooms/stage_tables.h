@@ -11,10 +11,11 @@
 
 #include "common.h"
 
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 // dryfield_gas_station
 extern GpRoomObjRec    D_dryfield_gas_station_8018314C[];

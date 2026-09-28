@@ -2,18 +2,26 @@
 #include "main/gfx.h"
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -23,48 +31,48 @@
 /// `Actor01500_Fn02958` re-seeds the slots from the per-state id table
 /// when they differ and ticks them while they match.
 typedef struct Actor101500Work {
-    /* 0x000 */ byte     pad_0[0x14];
-    /* 0x014 */ byte     field_14[0x118]; // animation slots, handed to `func_800B3F84`
-    /* 0x12C */ byte     field_12C[0x70]; // pose buffer, handed to `func_800B3F84`
-    /* 0x19C */ MATRIX   field_19C;       // model colour matrix
-    /* 0x1BC */ MATRIX   field_1BC;       // model light matrix
-    /* 0x1DC */ GpObj    field_1DC;
-    /* 0x1FC */ GpRec18  field_1FC[3];
-    /* 0x244 */ GpObj    field_244;
-    /* 0x264 */ GpRec18  field_264[5];
-    /* 0x2DC */ GpObj    field_2DC;
-    /* 0x2FC */ GpRec18  field_2FC[1];
-    /* 0x314 */ GpEffArg field_314; // record the hit's effect is spawned with
-    /* 0x31C */ VECTOR3  field_31C; // position before this frame's step
-    /* 0x328 */ byte     pad_328[4];
-    /* 0x32C */ MATRIX   field_32C;
-    /* 0x34C */ s32      field_34C;
-    /* 0x350 */ s16      field_350; // hit cooldown, reloaded from `Gp_GetIdParam2`
-    /* 0x352 */ u16      field_352;
-    /* 0x354 */ s16      field_354;
-    /* 0x356 */ u16      field_356;
-    /* 0x358 */ s16      field_358;
-    /* 0x35A */ s16      field_35A;
-    /* 0x35C */ s16      field_35C;
-    /* 0x35E */ u16      field_35E;
-    /* 0x360 */ s16      field_360;
-    /* 0x362 */ s16      field_362;
-    /* 0x364 */ s16      field_364;
-    /* 0x366 */ s16      field_366;
-    /* 0x368 */ s16      field_368;
-    /* 0x36A */ s16      field_36A;
-    /* 0x36C */ s16      field_36C;
-    /* 0x36E */ s16      field_36E;
-    /* 0x370 */ s16      field_370;
-    /* 0x372 */ u16      field_372;
-    /* 0x374 */ s16      field_374;
-    /* 0x376 */ s16      field_376;
-    /* 0x378 */ s16      field_378;
-    /* 0x37A */ s16      field_37A;
-    /* 0x37C */ s16      field_37C;
-    /* 0x37E */ s16      field_37E;
-    /* 0x380 */ s16      field_380;
-    /* 0x382 */ s16      field_382; // spawn variant, `GpAreaPlace.variant`
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[7];
+    /* 0x12C */ byte       field_12C[0x70]; // pose buffer, handed to `func_800B3F84`
+    /* 0x19C */ MATRIX     field_19C;       // model colour matrix
+    /* 0x1BC */ MATRIX     field_1BC;       // model light matrix
+    /* 0x1DC */ GpObj      field_1DC;
+    /* 0x1FC */ GpRec18    field_1FC[3];
+    /* 0x244 */ GpObj      field_244;
+    /* 0x264 */ GpRec18    field_264[5];
+    /* 0x2DC */ GpObj      field_2DC;
+    /* 0x2FC */ GpRec18    field_2FC[1];
+    /* 0x314 */ GpEffArg   field_314; // record the hit's effect is spawned with
+    /* 0x31C */ VECTOR3    field_31C; // position before this frame's step
+    /* 0x328 */ byte       pad_328[4];
+    /* 0x32C */ MATRIX     field_32C;
+    /* 0x34C */ s32        field_34C;
+    /* 0x350 */ s16        field_350; // hit cooldown, reloaded from `Gp_GetIdParam2`
+    /* 0x352 */ u16        field_352;
+    /* 0x354 */ s16        field_354;
+    /* 0x356 */ u16        field_356;
+    /* 0x358 */ s16        field_358;
+    /* 0x35A */ s16        field_35A;
+    /* 0x35C */ s16        field_35C;
+    /* 0x35E */ u16        field_35E;
+    /* 0x360 */ s16        field_360;
+    /* 0x362 */ s16        field_362;
+    /* 0x364 */ s16        field_364;
+    /* 0x366 */ s16        field_366;
+    /* 0x368 */ s16        field_368;
+    /* 0x36A */ s16        field_36A;
+    /* 0x36C */ s16        field_36C;
+    /* 0x36E */ s16        field_36E;
+    /* 0x370 */ s16        field_370;
+    /* 0x372 */ u16        field_372;
+    /* 0x374 */ s16        field_374;
+    /* 0x376 */ s16        field_376;
+    /* 0x378 */ s16        field_378;
+    /* 0x37A */ s16        field_37A;
+    /* 0x37C */ s16        field_37C;
+    /* 0x37E */ s16        field_37E;
+    /* 0x380 */ s16        field_380;
+    /* 0x382 */ s16        field_382; // spawn variant, `GpAreaPlace.variant`
 } Actor101500Work;
 
 /// Per-state animation id handed to `func_800B4114`, indexed by `field_352`.
@@ -85,7 +93,6 @@ extern u16 Actor01500_D09FE8[];
  * `TmdObject` from. */
 extern void* D_80067704[1];
 
-void    func_800B4114(Actor101500Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
@@ -222,16 +229,16 @@ static void Actor01500_Fn00094(GpEnemy* arg0, Task* arg1)
             break;
     }
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    func_800B3F84((GpAnimCtx*)work, Actor01500_D0A014, obj, work->field_12C,
-                  (GpAnimSlot*)work->field_14);
+    func_800B3F84(&work->anim, Actor01500_D0A014, obj, work->field_12C,
+                  work->slots);
     for (i = 1; i < 7; i++) {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, (s16)work->field_352);
+        Gp_AnimResetSlot(&work->anim, i, (s16)work->field_352);
     }
     if (work->field_382 == 0) {
         draw = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         r                  = (draw >> 16) & 0x3F;
         for (i = 1; i < 7; i++) {
-            func_800B4114(work, i, work->field_352, 0, r);
+            func_800B4114(&work->anim, i, (s16)(work->field_352), 0, r);
         }
     }
     work->field_1DC.coord    = &arg1->extra.tmd->coords[2];
@@ -501,7 +508,7 @@ static void Actor01500_Fn00AFC(Task* actor, s32 damage)
 
 /// Idle hover: waits for the player to come within 2500 units (then switches
 /// to pose 3, or 4 when `field_36E` is set) or for a disturbance - a random
-/// timeout, a `Gp_StateF0.field_2` trigger or lost hit points - that sends it into
+/// timeout, a `Gp_StateF0.prefix.bytes.field_2` trigger or lost hit points - that sends it into
 /// pose 7/8 with a fresh `Actor01500_D09FC8` countdown.
 static void Actor01500_Fn00CA4(Task* actor)
 {
@@ -545,7 +552,7 @@ static void Actor01500_Fn00CA4(Task* actor)
         work->field_364 = 0;
         Gp_ArmStateF0(1);
     } else {
-        if (Gp_StateF0.field_2 & 1) {
+        if (Gp_StateF0.prefix.bytes.field_2 & 1) {
             if (work->field_362 == 0) {
                 Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
                 work->field_362 = ((Gp_LcgState >> 16) & 0x1F) + 1;
@@ -559,7 +566,7 @@ static void Actor01500_Fn00CA4(Task* actor)
         }
         work->field_364--;
         if (work->field_364 == 0) {
-            if (Gp_StateF0.field_3 != 0) {
+            if (Gp_StateF0.prefix.bytes.field_3 != 0) {
                 flag = 1;
             }
             Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
@@ -964,7 +971,7 @@ static void Actor01500_Fn01AB0(Task* arg0)
     D_80067704[0] = Actor01500_D0458C;
     effect1       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect1 != NULL) {
-        sessionKey1 = (GpAreaKey*)&gGameSession->at4.loc;
+        sessionKey1 = &gGameSession->at4.loc;
         raw1        = ((GpEnemy*)arg0->spawnArg2)->placeKey;
         model1      = effect1->task->extra.tmd;
         key.stage   = sessionKey1->stage;
@@ -974,7 +981,7 @@ static void Actor01500_Fn01AB0(Task* arg0)
         index1      = raw1 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry1        = (GpAreaPlace*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        entry1        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
         model1->tpage = entry1->tpage;
         model1->clut  = entry1->clut;
         if (model1->buffer != NULL) {
@@ -986,7 +993,7 @@ static void Actor01500_Fn01AB0(Task* arg0)
     D_80067704[0] = Actor01500_D046D0;
     effect2       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect2 != NULL) {
-        sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
+        sessionKey2 = &gGameSession->at4.loc;
         raw2        = ((GpEnemy*)arg0->spawnArg2)->placeKey;
         model2      = effect2->task->extra.tmd;
         key.stage   = sessionKey2->stage;
@@ -996,7 +1003,7 @@ static void Actor01500_Fn01AB0(Task* arg0)
         index2      = raw2 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry2        = (GpAreaPlace*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
         model2->tpage = entry2->tpage;
         model2->clut  = entry2->clut;
         if (model2->buffer != NULL) {
@@ -1008,7 +1015,7 @@ static void Actor01500_Fn01AB0(Task* arg0)
     D_80067704[0] = Actor01500_D048BC;
     effect3       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect3 != NULL) {
-        sessionKey3 = (GpAreaKey*)&gGameSession->at4.loc;
+        sessionKey3 = &gGameSession->at4.loc;
         raw3        = ((GpEnemy*)arg0->spawnArg2)->placeKey;
         model3      = effect3->task->extra.tmd;
         key.stage   = sessionKey3->stage;
@@ -1018,7 +1025,7 @@ static void Actor01500_Fn01AB0(Task* arg0)
         index3      = raw3 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry3        = (GpAreaPlace*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        entry3        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
         model3->tpage = entry3->tpage;
         model3->clut  = entry3->clut;
         if (model3->buffer != NULL) {
@@ -1030,7 +1037,7 @@ static void Actor01500_Fn01AB0(Task* arg0)
     D_80067704[0] = Actor01500_D04A94;
     effect4       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect4 != NULL) {
-        sessionKey4 = (GpAreaKey*)&gGameSession->at4.loc;
+        sessionKey4 = &gGameSession->at4.loc;
         raw4        = ((GpEnemy*)arg0->spawnArg2)->placeKey;
         model4      = effect4->task->extra.tmd;
         key.stage   = sessionKey4->stage;
@@ -1040,7 +1047,7 @@ static void Actor01500_Fn01AB0(Task* arg0)
         index4      = raw4 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry4        = (GpAreaPlace*)((index4 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        entry4        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index4);
         model4->tpage = entry4->tpage;
         model4->clut  = entry4->clut;
         if (model4->buffer != NULL) {
@@ -1481,12 +1488,12 @@ static void Actor01500_Fn02958(Task* arg0)
         work->field_356 = 0;
         value           = Actor01500_D0A050[(s16)work->field_352];
         for (i = 1; i < 7; i++) {
-            func_800B4114(work, i, (s16)work->field_352, 0, value);
+            func_800B4114(&work->anim, i, (s16)work->field_352, 0, value);
         }
     } else {
         work->field_356++;
         for (i = 1; i < 7; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->anim, i);
         }
     }
 }

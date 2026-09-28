@@ -1,3 +1,5 @@
+// C-owned subword globals use defined:True where splat's word scan would
+// otherwise replace their definitions with absolute linker fallbacks.
 // Symbols for the resident gameplay overlay.
 // Load address 0x80093800. Retail asset: assets/USA/pe2pkg/gameplay.pe2pkg.
 //
@@ -10,7 +12,7 @@
 // match configs/USA/gameplay.yaml text TUs.
 
 // ---------------------------------------------------------------------------
-// Code (src/gameplay/gameplay.c) — 0x42C0 / first addiu $sp after header/rodata
+// Code (src/gameplay/actor_render.c) — 0x42C0 / first addiu $sp after header/rodata
 // ---------------------------------------------------------------------------
 Gp_DrawActorTmdFlagged = 0x80097AC0; // type:func
 Gp_DrawActorTmdActive = 0x8009850C; // type:func
@@ -162,7 +164,7 @@ Gp_ViewBeginLoad = 0x800A9010; // type:func
 Gp_ViewLoadImage = 0x800A91CC; // type:func
 
 // ---------------------------------------------------------------------------
-// Code (src/gameplay/D4.c) — file-split 0x15B10
+// Code (src/gameplay/cd_loading.c) — file-split 0x15B10
 // ---------------------------------------------------------------------------
 Gp_EnqueueWeaponCd = 0x800A9310; // type:func
 Gp_EnqueueViewCd = 0x800A954C; // type:func
@@ -241,7 +243,7 @@ Gp_ApplyNewGameAreaFlags = 0x800AE7AC; // type:func
 Gp_RebuildAreaIdBits = 0x800AE9B0; // type:func
 
 // ---------------------------------------------------------------------------
-// Code (src/gameplay/1A8.c) — file-split 0x1B3A4
+// Code (src/gameplay/area_transitions.c) — file-split 0x1B3A4
 // ---------------------------------------------------------------------------
 Gp_LookupStageFlag = 0x800AEBA4; // type:func
 Gp_ClearAreaFlag4 = 0x800AED24; // type:func
@@ -264,7 +266,7 @@ Gp_SetCurAreaFlag4 = 0x800AF498; // type:func
 Gp_ApplyAreaFlag4List = 0x800AF500; // type:func
 
 // ---------------------------------------------------------------------------
-// Code (src/gameplay/1BC.c) — file-split 0x1BD90
+// Code (src/gameplay/scene_runtime.c) — file-split 0x1BD90
 // ---------------------------------------------------------------------------
 func_800AF590 = 0x800AF590; // type:func
 Gp_FindStreamSlot = 0x800AF89C; // type:func
@@ -374,7 +376,7 @@ Gp_EquipRelatedBank = 0x800B6EE0; // type:func
 Gp_EquipRelatedItem = 0x800B715C; // type:func
 
 // ---------------------------------------------------------------------------
-// Code (src/gameplay/268.c) — file-split 0x23C20
+// Code (src/gameplay/equipment.c) — file-split 0x23C20
 // ---------------------------------------------------------------------------
 func_800B7420 = 0x800B7420; // type:func
 Gp_RecalcMaxMp = 0x800B7930; // type:func
@@ -461,7 +463,7 @@ func_800BC4E4 = 0x800BC4E4; // type:func
 Gp_CanMoveItems = 0x800BC50C; // type:func
 
 // ---------------------------------------------------------------------------
-// Code (src/gameplay/4CC.c) — file-split 0x28E34
+// Code (src/gameplay/item_menu.c) — file-split 0x28E34
 // ---------------------------------------------------------------------------
 Gp_ItemMoveChild = 0x800BC634; // type:func
 Gp_ItemMoveTask = 0x800BCC44; // type:func
@@ -484,7 +486,7 @@ Gp_PublishItemObj = 0x800BF624; // type:func
 Gp_FadeTileTask = 0x800BF738; // type:func
 
 // ---------------------------------------------------------------------------
-// Code (src/gameplay/3688.c) — file-split 0x2C1FC
+// Code (src/gameplay/menu_root.c) — file-split 0x2C1FC
 // ---------------------------------------------------------------------------
 Gp_MenuRootTask = 0x800BF9FC; // type:func
 Gp_UiPromptUpdate = 0x800C010C; // type:func
@@ -663,7 +665,7 @@ Gp_DrawItemCmd = 0x800D5968; // type:func
 func_800D5A48 = 0x800D5A48; // type:func
 
 // ---------------------------------------------------------------------------
-// Code (src/gameplay/3A34.c) — file-split 0x42314
+// Code (src/gameplay/item_use.c) — file-split 0x42314
 // ---------------------------------------------------------------------------
 Gp_ApplyItemUse = 0x800D5B14; // type:func
 Gp_ItemIsUnusable = 0x800D6170; // type:func
@@ -807,7 +809,7 @@ func_800E31E8 = 0x800E31E8; // type:func
 Gp_EvtCapTask = 0x800E337C; // type:func
 
 // ---------------------------------------------------------------------------
-// Code (src/gameplay/3CD8.c) — file-split 0x4FCD8
+// Code (src/gameplay/cap_commands.c) — file-split 0x4FCD8
 // ---------------------------------------------------------------------------
 Gp_RunCapCmd = 0x800E34D8; // type:func
 Gp_EvtCapWeaponTask = 0x800E375C; // type:func
@@ -938,7 +940,7 @@ Gp_SetState1CPe = 0x800ECA10; // type:func
 func_800ECA54 = 0x800ECA54; // type:func
 
 // ---------------------------------------------------------------------------
-// Code (src/gameplay/3E9C.c) — file-split 0x592A8
+// Code (src/gameplay/effect_tasks.c) — file-split 0x592A8
 // ---------------------------------------------------------------------------
 Gp_EffCtlTask2B = 0x800ECAA8; // type:func
 Gp_EffCtlTask6A = 0x800ECEC0; // type:func
@@ -973,7 +975,7 @@ Gp_EffSprTask53 = 0x800F6C2C; // type:func
 Gp_EffAttachTask37 = 0x800F6D18; // type:func
 
 // ---------------------------------------------------------------------------
-// Code (src/gameplay/3FB8.c) — file-split 0x63DBC / 0x63FF8
+// Code (src/gameplay/player_actor.c) — file-split 0x63DBC / 0x63FF8
 // ---------------------------------------------------------------------------
 Gp_EffSprTask46 = 0x800F75BC; // type:func
 Gp_DrawEffSprite81 = 0x800F77F8; // type:func
@@ -1228,241 +1230,237 @@ Gp_StrEXP                   = 0x8009386C;
 Gp_StrItem                  = 0x80093870;
 Gp_StrNewEnemyNull          = 0x800939F8;
 Gp_EnemyWaitFuncs           = 0x80093A10; // size:0xC
-Gp_ViewTables               = 0x8010CB2C;
-Gp_ViewIndexTables          = 0x8010CB54;
-Gp_SndMaskTable             = 0x8010D1C4;
-Gp_TmdListStash             = 0x80114B80; // size:0x8
-Gp_TmdListAltStash          = 0x80114B88; // size:0x8
-Gp_TmdStashTask             = 0x80114B90; // size:0x4
-_gGpCurCoord                 = 0x80114B9C; // size:0x4
-Gp_ReplayButtons            = 0x80114C02; // size:0x2
-Gp_ReplayFramesLeft         = 0x80114C04; // size:0x2
-Gp_ReplayCursor             = 0x80114C38; // size:0x4
+Gp_ViewTables = 0x8010CB2C; // size:0x14 defined:True
+Gp_ViewIndexTables = 0x8010CB54; // size:0x14 defined:True
+Gp_SndMaskTable = 0x8010D1C4; // size:0x38 defined:True
+Gp_TmdListStash = 0x80114B80; // size:0x8 defined:True
+Gp_TmdListAltStash = 0x80114B88; // size:0x8 defined:True
+Gp_TmdStashTask = 0x80114B90; // size:0x4 defined:True
+_gGpCurCoord = 0x80114B9C; // size:0x4 defined:True
+Gp_ReplayButtons = 0x80114C02; // size:0x2 defined:True
+Gp_ReplayFramesLeft = 0x80114C04; // size:0x2 defined:True
+Gp_ReplayCursor = 0x80114C38; // size:0x4 defined:True
 
 // Gameplay naming pass 2 (SPRT/HUD, area, anim, flags/msg)
-Gp_SprtLists                = 0x8010CAE8;
-Gp_SprtTables               = 0x8010CB68;
-Gp_RoomObjTables            = 0x8010CB7C;
-Gp_AreaTables               = 0x8010CBCC;
-Gp_Slot4MsgTable            = 0x8010D208;
-Gp_SprtCursor               = 0x80114CC8; // size:0x4
+Gp_SprtLists = 0x8010CAE8; // size:0x8 defined:True
+Gp_SprtTables = 0x8010CB68; // size:0x14 defined:True
+Gp_RoomObjTables = 0x8010CB7C; // size:0x14 defined:True
+Gp_AreaTables = 0x8010CBCC; // size:0x18 defined:True
+Gp_Slot4MsgTable = 0x8010D208; // size:0x28 defined:True
+Gp_SprtCursor = 0x80114CC8; // size:0x4 defined:True
 
 // Gameplay naming pass 3 (link nodes, items, room coords, area flags)
 Gp_StrWeapon                = 0x80097454;
 Gp_StrGetLockPosNull        = 0x80097460;
-Gp_StrItemObtained          = 0x8010CA08;
-Gp_StrBonusItem             = 0x8010CA18;
-Gp_RoomCoordTables          = 0x8010CBA4;
-Gp_AreaTableStg1            = 0x8010CBD0; // size:0x4
-Gp_AreaTableStg2            = 0x8010CBD4; // size:0x4
-Gp_AreaTableStg4            = 0x8010CBDC; // size:0x4
-Gp_AreaTableStg5            = 0x8010CBE0; // size:0x4
-Gp_PendingRelatedId         = 0x8010F88C; // size:0x4
-Gp_RoomBoundDefault         = 0x8010F9E4; // size:0x8
-Gp_NewGameFlagsStg1         = 0x80114098;
-Gp_NewGameFlagsStg2         = 0x801140C0;
-Gp_NewGameFlagsStg4         = 0x801140F8;
-Gp_NewGameFlagsStg5         = 0x80114154;
-Gp_AreaIdBits               = 0x80114D00; // size:0x8
-Gp_LinkList                 = 0x80115268; // size:0x4
-Gp_ActorSlots               = 0x80115760; // size:0x8
+Gp_StrItemObtained          = 0x8010CA08; // defined:True
+Gp_StrBonusItem             = 0x8010CA18; // defined:True
+Gp_RoomCoordTables = 0x8010CBA4; // size:0x14 defined:True
+Gp_PendingRelatedId = 0x8010F88C; // size:0x4 defined:True
+Gp_RoomBoundDefault         = 0x8010F9E4; // size:0x8 defined:True
+Gp_NewGameFlagsStg1 = 0x80114098; // size:0x28 defined:True
+Gp_NewGameFlagsStg2 = 0x801140C0; // size:0x38 defined:True
+Gp_NewGameFlagsStg4 = 0x801140F8; // size:0x5C defined:True
+Gp_NewGameFlagsStg5 = 0x80114154; // size:0x44 defined:True
+Gp_AreaIdBits               = 0x80114D00; // size:0x8 defined:True
+Gp_LinkList = 0x80115268; // size:0x4 defined:True
+Gp_ActorSlots               = 0x80115760; // size:0x8 defined:True
 
 // Gameplay naming pass 4 (inventory, obj lists, view-count)
-Gp_ViewCountTables          = 0x8010CB40;
-Gp_Bit2Banks                = 0x8010D230;
+Gp_ViewCountTables = 0x8010CB40; // size:0x14 defined:True
+Gp_Bit2Banks = 0x8010D230; // size:0x30 defined:True
 // The per-room lists the Dryfield stage's GpBit2List table (map_dryfield)
 // points at.
-D_80114588                  = 0x80114588;
-D_801145F8                  = 0x801145F8;
-D_80114628                  = 0x80114628;
-D_80114658                  = 0x80114658;
-D_80114678                  = 0x80114678;
-D_80114698                  = 0x80114698;
-D_801146A8                  = 0x801146A8;
-D_801146D8                  = 0x801146D8;
-D_801146F8                  = 0x801146F8;
-D_80114718                  = 0x80114718;
-D_80114748                  = 0x80114748;
-D_80114768                  = 0x80114768;
-D_80114798                  = 0x80114798;
-D_80114808                  = 0x80114808;
-D_80114828                  = 0x80114828;
-D_80114848                  = 0x80114848;
-D_80114888                  = 0x80114888;
-D_801148A8                  = 0x801148A8;
-D_801148D8                  = 0x801148D8;
-D_80114918                  = 0x80114918;
-D_80114938                  = 0x80114938;
-D_80114968                  = 0x80114968;
-D_80114998                  = 0x80114998;
-D_801149B8                  = 0x801149B8;
-Gp_ObjLists                 = 0x8010FA8C;
-Gp_Obj4ALists               = 0x8010FAB0;
-Gp_Obj3ALists               = 0x8010FAB8;
-Gp_CollectedIds             = 0x80114AE0;
-Gp_DebugAttachLevels        = 0x80114BF0;
-Gp_LockSlots                = 0x80115270; // size:0x180
+D_80114588                  = 0x80114588; // defined:True
+D_801145F8                  = 0x801145F8; // defined:True
+D_80114628                  = 0x80114628; // defined:True
+D_80114658                  = 0x80114658; // defined:True
+D_80114678                  = 0x80114678; // defined:True
+D_80114698                  = 0x80114698; // defined:True
+D_801146A8                  = 0x801146A8; // defined:True
+D_801146D8                  = 0x801146D8; // defined:True
+D_801146F8                  = 0x801146F8; // defined:True
+D_80114718                  = 0x80114718; // defined:True
+D_80114748                  = 0x80114748; // defined:True
+D_80114768                  = 0x80114768; // defined:True
+D_80114798                  = 0x80114798; // defined:True
+D_80114808                  = 0x80114808; // defined:True
+D_80114828                  = 0x80114828; // defined:True
+D_80114848                  = 0x80114848; // defined:True
+D_80114888                  = 0x80114888; // defined:True
+D_801148A8                  = 0x801148A8; // defined:True
+D_801148D8                  = 0x801148D8; // defined:True
+D_80114918                  = 0x80114918; // defined:True
+D_80114938                  = 0x80114938; // defined:True
+D_80114968                  = 0x80114968; // defined:True
+D_80114998                  = 0x80114998; // defined:True
+D_801149B8                  = 0x801149B8; // defined:True
+Gp_ObjLists = 0x8010FA8C; // size:0x24 defined:True
+Gp_Obj4ALists = 0x8010FAB0; // size:0x8 defined:True
+Gp_Obj3ALists = 0x8010FAB8; // size:0x4 defined:True
+Gp_CollectedIds = 0x80114AE0; // size:0x52 defined:True
+Gp_DebugAttachLevels = 0x80114BF0; // size:0x12 defined:True
+Gp_LockSlots = 0x80115270; // size:0x180 defined:True
 
 // Gameplay naming pass 5 (item UI, load-wait, remaining getters)
 Gp_ConfigCdTable            = 0x800938CC; // size:0x5
 Gp_StrBattleField           = 0x80093D70;
 Gp_StrItemBox               = 0x80093D80;
 Gp_StrPlayerItem            = 0x80093D8C;
-Gp_MoveScanSrc              = 0x8010D628; // size:0x4
-Gp_MoveScanDst              = 0x8010D62C; // size:0x4
-Gp_InvLists                 = 0x8010D634;
+Gp_MoveScanSrc              = 0x8010D628; // size:0x4 defined:True
+Gp_MoveScanDst              = 0x8010D62C; // size:0x4 defined:True
+Gp_InvLists                 = 0x8010D634; // defined:True
 Gp_ItemDescsHi              = 0x8010D638;
-Gp_ItemDescs                = 0x8010D838;
-Gp_PlayerMsgTable           = 0x80112C88;
-Gp_AreaCdPhase              = 0x80114C60; // size:0x2
-Gp_FadeTiles                = 0x80114C80; // size:0x20
-Gp_FadeTpages               = 0x80114CA0; // size:0x10
-Gp_ItemMoveWork             = 0x80114D78; // size:0x4
-Gp_PubItemReady             = 0x80114DC8; // size:0x2
-Gp_PubItemQty               = 0x80114DD0; // size:0x2
-Gp_PubItemLoc               = 0x80114DDC; // size:0x2
-Gp_PubItemId                = 0x80114DEC; // size:0x2
+Gp_ItemDescs = 0x8010D838; // size:0x600 defined:True
+Gp_PlayerMsgTable = 0x80112C88; // size:0xE0 defined:True
+Gp_AreaCdPhase = 0x80114C60; // size:0x2 defined:True
+Gp_FadeTiles = 0x80114C80; // size:0x20 defined:True
+Gp_FadeTpages = 0x80114CA0; // size:0x10 defined:True
+Gp_ItemMoveWork             = 0x80114D78; // size:0x4 defined:True
+Gp_PubItemReady = 0x80114DC8; // size:0x2 defined:True
+Gp_PubItemQty = 0x80114DD0; // size:0x2 defined:True
+Gp_PubItemLoc = 0x80114DDC; // size:0x2 defined:True
+Gp_PubItemId = 0x80114DEC; // size:0x2 defined:True
 
 // Gameplay naming pass 6 (player/ally, CAP, map, pair ids)
 Gp_ItemPromptTexts          = 0x80093DA0; // size:0x10
 Gp_StrCapMagic              = 0x80097514;
 Gp_StrEvsFmt                = 0x8009751C;
-Gp_MapNameTables            = 0x8010F0B8;
-Gp_MapRecTables             = 0x8010F0F4;
-Gp_MapFlagIds               = 0x8010F108;
-Gp_MapMarkTables            = 0x8010F11C;
-Gp_MapMarkCounts            = 0x8010F138;
-Gp_MoveItemKey              = 0x80114D7C; // size:0x2
-Gp_MapRoomId                = 0x80114DF0; // size:0x1
-Gp_MapRoomOff               = 0x80114DF1; // size:0x1
-Gp_CapTable                 = 0x801155A8; // size:0x4
-Gp_CapEventKey              = 0x80115668; // size:0x2
-Gp_CapTask                  = 0x80115674; // size:0x4
-Gp_CapGlyphs                = 0x8011567C; // size:0x4
-Gp_CapCmds                  = 0x801156A0; // size:0x4
+Gp_MapNameTables            = 0x8010F0B8; // defined:True
+Gp_MapRecTables             = 0x8010F0F4; // defined:True
+Gp_MapFlagIds               = 0x8010F108; // defined:True
+Gp_MapMarkTables            = 0x8010F11C; // defined:True
+Gp_MapMarkCounts            = 0x8010F138; // defined:True
+Gp_MoveItemKey              = 0x80114D7C; // size:0x2 defined:True
+Gp_MapRoomId                = 0x80114DF0; // size:0x1 defined:True
+Gp_MapRoomOff               = 0x80114DF1; // size:0x1 defined:True
+Gp_CapTable                 = 0x801155A8; // size:0x4 defined:True
+Gp_CapEventKey = 0x80115668; // size:0x2 defined:True
+Gp_CapTask = 0x80115674; // size:0x4 defined:True
+Gp_CapGlyphs = 0x8011567C; // size:0x4 defined:True
+Gp_CapCmds = 0x801156A0; // size:0x4 defined:True
 
 // Gameplay naming pass 7 (cap measure, player/ally msgs, warp/room)
-Gp_WarpTables               = 0x8010CB90;
-Gp_RoomParamTables          = 0x8010CBB8;
-Gp_WeaponMsgRec             = 0x8010FB38; // size:0x14
-Gp_WeaponIdBase             = 0x80112D68;
-Gp_AllyIdBase               = 0x80113360;
-Gp_WarpLoc                  = 0x80114CE8; // size:0x8
-Gp_RoomParams               = 0x80115428; // size:0x8
+Gp_WarpTables = 0x8010CB90; // size:0x14 defined:True
+Gp_RoomParamTables = 0x8010CBB8; // size:0x14 defined:True
+Gp_WeaponMsgRec             = 0x8010FB38; // size:0x14 defined:True
+Gp_WeaponIdBase = 0x80112D68; // size:0x4 defined:True
+Gp_AllyIdBase = 0x80113360; // size:0x8 defined:True
+Gp_WarpLoc                  = 0x80114CE8; // size:0x8 defined:True
+Gp_RoomParams = 0x80115428; // size:0x20 defined:True
 
 // Gameplay naming pass 8 (collected bits, item map, load CD, Obj4C)
-Gp_ItemMaps                 = 0x8010D2F8; // size:0x20
-Gp_AreaIdCounts             = 0x8010CAF0;
-D_8010CAF8                  = 0x8010CAF8; // view order the room tables share
-Gp_DefaultScan              = 0x8010D520; // size:0x4
-Gp_ScanPtrs                 = 0x8010D550;
-Gp_ItemTable2               = 0x80114C20;
-Gp_ItemTable1               = 0x80114D70;
-Gp_ItemSortKey0             = 0x80114A40;
-Gp_ItemSortKey60            = 0x80114A88;
-Gp_ItemSortKey80            = 0x80114A98;
-Gp_ItemSortKeyA0            = 0x80114ABC;
-Gp_RelatedQty0              = 0x8010E238; // size:0x80
-Gp_RelatedQty1              = 0x8010D278; // size:0x80
-Gp_Obj4CList                = 0x80115554; // size:0x4
-Gp_PendingObj4C             = 0x8011556C; // size:0x4
-Gp_PendingObj4CFlag         = 0x80115424; // size:0x4
-Gp_GridParams               = 0x80115448; // size:0x4
-Gp_OverrideVecFlag          = 0x80114F18; // size:0x1
-Gp_OverrideVec              = 0x80114F20; // size:0x8
-Gp_OverrideVec2Flag         = 0x80115250; // size:0x1
-Gp_OverrideVec2             = 0x80115258; // size:0x8
-Gp_DefaultMtx               = 0x80114E98; // size:0x20
-Gp_DefaultMtx2              = 0x80114EB8; // size:0x20
+Gp_ItemMaps = 0x8010D2F8; // size:0x20 defined:True
+Gp_AreaIdCounts = 0x8010CAF0; // size:0x8 defined:True
+D_8010CAF8 = 0x8010CAF8; // size:0x32 defined:True
+Gp_DefaultScan = 0x8010D520; // size:0x4 defined:True
+Gp_ScanPtrs = 0x8010D550; // size:0x30 defined:True
+Gp_ItemTable2 = 0x80114C20; // size:0x14 defined:True
+Gp_ItemTable1 = 0x80114D70; // size:0x4 defined:True
+Gp_ItemSortKey0 = 0x80114A40; // size:0x48 defined:True
+Gp_ItemSortKey60 = 0x80114A88; // size:0xF defined:True
+Gp_ItemSortKey80 = 0x80114A98; // size:0x21 defined:True
+Gp_ItemSortKeyA0 = 0x80114ABC; // size:0x21 defined:True
+Gp_RelatedQty0 = 0x8010E238; // size:0x80 defined:True
+Gp_RelatedQty1 = 0x8010D278; // size:0x80 defined:True
+Gp_Obj4CList = 0x80115554; // size:0x4 defined:True
+Gp_PendingObj4C = 0x8011556C; // size:0x4 defined:True
+Gp_PendingObj4CFlag = 0x80115424; // size:0x4 defined:True
+Gp_GridParams = 0x80115448; // size:0x4 defined:True
+Gp_OverrideVecFlag          = 0x80114F18; // size:0x1 defined:True
+Gp_OverrideVec              = 0x80114F20; // size:0x8 defined:True
+Gp_OverrideVec2Flag = 0x80115250; // size:0x1 defined:True
+Gp_OverrideVec2 = 0x80115258; // size:0x8 defined:True
+Gp_DefaultMtx               = 0x80114E98; // size:0x20 defined:True
+Gp_DefaultMtx2              = 0x80114EB8; // size:0x20 defined:True
 
 // Gameplay naming pass 9 (item-seen, room coords, btn remap)
-Gp_BtnMap0                  = 0x8010FBEC; // size:0x10
-Gp_BtnMap1                  = 0x8010FBFC; // size:0x10
-Gp_BtnMap2                  = 0x8010FC0C; // size:0x10
-Gp_BtnMap2Alt               = 0x8010FC1C; // size:0x10
-Gp_RoomCoords               = 0x80114F30; // size:0x320
-Gp_StatRows                 = 0x8010D328; // size:0x20
-Gp_StackLimits              = 0x8010E3B8;
+Gp_BtnMap0                  = 0x8010FBEC; // size:0x10 defined:True
+Gp_BtnMap1                  = 0x8010FBFC; // size:0x10 defined:True
+Gp_BtnMap2                  = 0x8010FC0C; // size:0x10 defined:True
+Gp_BtnMap2Alt               = 0x8010FC1C; // size:0x10 defined:True
+Gp_RoomCoords = 0x80114F30; // size:0x320 defined:True
+Gp_StatRows                 = 0x8010D328; // size:0x20 defined:True
+Gp_StackLimits = 0x8010E3B8; // size:0x80 defined:True
 
 // Gameplay naming pass 10 (held equip, cap evt, light, id tables)
 // Gp_ItemTextHi lives in another overlay (0x801D6484); import is in
 // configs/USA/sym.gameplay.imports.txt (absolute:True).
-Gp_ModStatAttrs             = 0x8010E2B8;
+Gp_ModStatAttrs = 0x8010E2B8; // size:0x100 defined:True
 Gp_ItemAttrs                = 0x8010DFB8;
-Gp_IdParamLo                = 0x80113390;
-Gp_IdParamHi                = 0x8011398C;
-Gp_IdField0                 = 0x80114028;
-Gp_IdField1                 = 0x80114054;
-Gp_DmgRows                  = 0x80113EF0;
+Gp_IdParamLo = 0x80113390; // size:0x1D6 defined:True
+Gp_IdParamHi = 0x8011398C; // size:0x370 defined:True
+Gp_IdField0 = 0x80114028; // size:0x2C defined:True
+Gp_IdField1 = 0x80114054; // size:0x42 defined:True
+Gp_DmgRows = 0x80113EF0; // size:0x64 defined:True
 
 // Gameplay naming pass 11 (item UI strings, lights, slot0)
-Gp_StrUse                   = 0x8010E500;
-Gp_StrMove                  = 0x8010E504;
-Gp_StrSwitch                = 0x8010D588;
-Gp_StrDot                   = 0x8010E59C;
+Gp_StrUse                   = 0x8010E500; // defined:True
+Gp_StrMove                  = 0x8010E504; // defined:True
+Gp_StrSwitch                = 0x8010D588; // defined:True
+Gp_StrDot                   = 0x8010E59C; // defined:True
 Gp_StrWeaponTitle           = 0x8009701C;
-Gp_ItemMenuList             = 0x8010D6B4;
-Gp_ItemActionFns            = 0x8010D67C;
-Gp_ItemActionList           = 0x8010D68C;
+Gp_ItemMenuList = 0x8010D6B4; // size:0x24 defined:True
+Gp_ItemActionFns            = 0x8010D67C; // defined:True
+Gp_ItemActionList = 0x8010D68C; // size:0x24 defined:True
 
 // Gameplay naming pass 12 (UI strings, spend MP, stream/snd CD)
-Gp_EvtSpawnTable            = 0x8010FAEC;
-Gp_DirByte                  = 0x80114CD8; // size:0x1
-Gp_DirNibble                = 0x80114CD9; // size:0x1
-Gp_DirFlags                 = 0x80114CD2; // size:0x2
-Gp_DirPhase                 = 0x80114CD6; // size:0x2
-Gp_DirAlt                   = 0x80114CDA; // size:0x1
-Gp_DirAltNibble             = 0x80114CDB; // size:0x1
-Gp_StrUsedDot               = 0x8010E44C;
-Gp_StrCreatedDot            = 0x8010E454;
-Gp_StrNoUseNow              = 0x8010E460;
-Gp_StrUsed                  = 0x8010E478;
-Gp_StrSelectDest            = 0x8010E480;
-Gp_StrEquipped              = 0x8010E494;
-Gp_StrObtained              = 0x8010E4A0;
-Gp_StrLoaded                = 0x8010E4AC;
-Gp_StrRemoved               = 0x8010E4B4;
-Gp_StrRemovedAmmo           = 0x8010E4BC;
-Gp_StrInvoked               = 0x8010E4D0;
-Gp_StrAmmoNone              = 0x8010E4D8;
-Gp_StrAttachNone            = 0x8010E4EC;
-Gp_StrRemoveAmmo            = 0x8010E50C;
-Gp_StrLoad                  = 0x8010E520;
-Gp_StrExchange              = 0x8010E528;
-Gp_StrYes                   = 0x8010E550;
-Gp_StrNo                    = 0x8010E554;
-Gp_StrOk                    = 0x8010E558;
-Gp_StrCancel                = 0x8010E55C;
-Gp_StrPickupAsk             = 0x8010E564;
-Gp_StrInvFull               = 0x8010E578;
-Gp_StrSort                  = 0x8010E58C;
-Gp_StrAmmoCaps              = 0x8010E594;
-Gp_StrMore                  = 0x8010D364;
-Gp_StrAttachAvail           = 0x8010D36C;
-Gp_StrMove2                 = 0x8010D580;
-Gp_StrSetAmmoHelp           = 0x8010D590;
-Gp_StrAmmoLocked            = 0x8010D5D0;
-Gp_StrMaxCapacity           = 0x8010D5FC;
-Gp_StrAll                   = 0x8010D610;
-Gp_StrSelect                = 0x8010D614;
-Gp_StrEnd                   = 0x8010D61C;
-Gp_StrDiscard               = 0x8010D620;
-Gp_StrDiscard2              = 0x8010F19C;
-Gp_StrItem2                 = 0x8010F1A4;
-Gp_StrExamine               = 0x8010F1AC;
-Gp_StrPush                  = 0x8010F1B4;
-Gp_StrRevive                = 0x8010F1BC;
-Gp_StrStrengthen            = 0x8010F1C4;
-Gp_StrWrongAmmo             = 0x8010F1DC;
-Gp_StrCannotDiscard         = 0x8010F200;
-Gp_StrCannotDiscardEq       = 0x8010F220;
-Gp_StrCannotDiscardAmmo     = 0x8010F244;
-Gp_StrNoWeaponEq            = 0x8010F264;
-Gp_StrCannotMoveHere        = 0x8010F284;
-Gp_StrDestFull              = 0x8010F2A0;
-Gp_StrCannotMoveEq          = 0x8010F2B4;
-Gp_StrCannotSwitchAmmo      = 0x8010F2D0;
-Gp_StrCannotSwitchEq        = 0x8010F2F0;
+Gp_EvtSpawnTable            = 0x8010FAEC; // defined:True
+Gp_DirByte                  = 0x80114CD8; // size:0x1 defined:True
+Gp_DirNibble                = 0x80114CD9; // size:0x1 defined:True
+Gp_DirFlags                 = 0x80114CD2; // size:0x2 defined:True
+Gp_DirPhase                 = 0x80114CD6; // size:0x2 defined:True
+Gp_DirAlt                   = 0x80114CDA; // size:0x1 defined:True
+Gp_DirAltNibble             = 0x80114CDB; // size:0x1 defined:True
+Gp_StrUsedDot               = 0x8010E44C; // defined:True
+Gp_StrCreatedDot            = 0x8010E454; // defined:True
+Gp_StrNoUseNow              = 0x8010E460; // defined:True
+Gp_StrUsed                  = 0x8010E478; // defined:True
+Gp_StrSelectDest            = 0x8010E480; // defined:True
+Gp_StrEquipped              = 0x8010E494; // defined:True
+Gp_StrObtained              = 0x8010E4A0; // defined:True
+Gp_StrLoaded                = 0x8010E4AC; // defined:True
+Gp_StrRemoved               = 0x8010E4B4; // defined:True
+Gp_StrRemovedAmmo           = 0x8010E4BC; // defined:True
+Gp_StrInvoked               = 0x8010E4D0; // defined:True
+Gp_StrAmmoNone              = 0x8010E4D8; // defined:True
+Gp_StrAttachNone            = 0x8010E4EC; // defined:True
+Gp_StrRemoveAmmo            = 0x8010E50C; // defined:True
+Gp_StrLoad                  = 0x8010E520; // defined:True
+Gp_StrExchange              = 0x8010E528; // defined:True
+Gp_StrYes                   = 0x8010E550; // defined:True
+Gp_StrNo                    = 0x8010E554; // defined:True
+Gp_StrOk                    = 0x8010E558; // defined:True
+Gp_StrCancel                = 0x8010E55C; // defined:True
+Gp_StrPickupAsk             = 0x8010E564; // defined:True
+Gp_StrInvFull               = 0x8010E578; // defined:True
+Gp_StrSort                  = 0x8010E58C; // defined:True
+Gp_StrAmmoCaps              = 0x8010E594; // defined:True
+Gp_StrMore = 0x8010D364; // size:0x6 defined:True
+Gp_StrAttachAvail = 0x8010D36C; // size:0x17 defined:True
+Gp_StrMove2                 = 0x8010D580; // defined:True
+Gp_StrSetAmmoHelp           = 0x8010D590; // defined:True
+Gp_StrAmmoLocked            = 0x8010D5D0; // defined:True
+Gp_StrMaxCapacity           = 0x8010D5FC; // defined:True
+Gp_StrAll                   = 0x8010D610; // defined:True
+Gp_StrSelect                = 0x8010D614; // defined:True
+Gp_StrEnd                   = 0x8010D61C; // defined:True
+Gp_StrDiscard               = 0x8010D620; // defined:True
+Gp_StrDiscard2              = 0x8010F19C; // defined:True
+Gp_StrItem2                 = 0x8010F1A4; // defined:True
+Gp_StrExamine               = 0x8010F1AC; // defined:True
+Gp_StrPush                  = 0x8010F1B4; // defined:True
+Gp_StrRevive                = 0x8010F1BC; // defined:True
+Gp_StrStrengthen            = 0x8010F1C4; // defined:True
+Gp_StrWrongAmmo             = 0x8010F1DC; // defined:True
+Gp_StrCannotDiscard         = 0x8010F200; // defined:True
+Gp_StrCannotDiscardEq       = 0x8010F220; // defined:True
+Gp_StrCannotDiscardAmmo     = 0x8010F244; // defined:True
+Gp_StrNoWeaponEq            = 0x8010F264; // defined:True
+Gp_StrCannotMoveHere        = 0x8010F284; // defined:True
+Gp_StrDestFull              = 0x8010F2A0; // defined:True
+Gp_StrCannotMoveEq          = 0x8010F2B4; // defined:True
+Gp_StrCannotSwitchAmmo      = 0x8010F2D0; // defined:True
+Gp_StrCannotSwitchEq        = 0x8010F2F0; // defined:True
 Gp_StrPEnergy               = 0x80096FD8;
 Gp_StrOption                = 0x80096FE4;
 Gp_StrExit                  = 0x80096FEC;
@@ -1502,64 +1500,64 @@ Gp_StrReload                = 0x80097154;
 Gp_StrAttach                = 0x8009715C;
 
 // Gameplay naming pass 13 (feat/caliber strings, ally hurt)
-Gp_AnimBlkTbl               = 0x80113368;
-Gp_FeatNameTbl              = 0x8010E660;
-Gp_CaliberNameTbl           = 0x8010E744;
-Gp_StrResSilence            = 0x8010E5A4;
-Gp_StrResParalysis          = 0x8010E5B8;
-Gp_StrResPoison             = 0x8010E5CC;
-Gp_StrResConfusion          = 0x8010E5E0;
-Gp_StrResImpact             = 0x8010E5F4;
-Gp_StrMotionDet             = 0x8010E608;
-Gp_StrMpGen                 = 0x8010E618;
-Gp_StrHpRecov               = 0x8010E628;
-Gp_StrQuickFire             = 0x8010E634;
-Gp_StrMedInspect            = 0x8010E640;
-Gp_StrMpRecov               = 0x8010E654;
-Gp_StrCal9mm                = 0x8010E694;
-Gp_StrCal40Mag              = 0x8010E6B0;
-Gp_StrCal44Mag              = 0x8010E6D0;
-Gp_StrCal40mm               = 0x8010E6F0;
-Gp_StrGauge12               = 0x8010E70C;
-Gp_StrCal556                = 0x8010E728;
-Gp_StrPoison                = 0x8010E784;
-Gp_StrIncendiary            = 0x8010E78C;
-Gp_StrPiercing              = 0x8010E798;
-Gp_StrBurst                 = 0x8010E7A4;
-Gp_StrFlash                 = 0x8010E7AC;
-Gp_StrExplosion             = 0x8010E7B4;
-Gp_StrCannotSwitchEq2       = 0x8010F310;
-Gp_StrCannotMoveAmmo        = 0x8010F334;
-Gp_StrNeedExp               = 0x8010F354;
-Gp_StrMaxLevel              = 0x8010F368;
-Gp_StrNeedMp                = 0x8010F374;
-Gp_StrSaveCancel            = 0x8010F388;
-Gp_StrReallyDiscard         = 0x8010F398;
-Gp_StrSaveDone              = 0x8010F3A8;
-Gp_StrNoUseNow2             = 0x8010F3B8;
-Gp_StrDontKnowUse           = 0x8010F3D0;
-Gp_StrNoOtherWpn            = 0x8010F3EC;
-Gp_StrNoOtherArmor          = 0x8010F408;
-Gp_StrNeedMp5               = 0x8010F420;
-Gp_StrNeedM4                = 0x8010F430;
-Gp_StrNeedAs12              = 0x8010F440;
-Gp_StrNeedP08               = 0x8010F450;
-Gp_StrNoMoreMods            = 0x8010F460;
-Gp_StrNeedEmptySlot         = 0x8010F47C;
-Gp_StrMaxHpUp               = 0x8010F494;
-Gp_StrMaxMpUp               = 0x8010F4AC;
-Gp_StrCannotMoveItem        = 0x8010F4C4;
-Gp_StrCannotSwitchItem      = 0x8010F4DC;
-Gp_StrCannotSwitchWith      = 0x8010F4F8;
-Gp_StrAreaEffect            = 0x8010F518;
-Gp_StrCastCost              = 0x8010F528;
-Gp_StrAtpLoss               = 0x8010F538;
-Gp_StrFire                  = 0x8010F624;
-Gp_StrWind                  = 0x8010F62C;
-Gp_StrWater                 = 0x8010F634;
-Gp_StrEarth                 = 0x8010F63C;
-Gp_StrReleasePe             = 0x8010F8D4;
-Gp_StrReturnGame            = 0x8010F908;
+Gp_AnimBlkTbl = 0x80113368; // size:0x20 defined:True
+Gp_FeatNameTbl              = 0x8010E660; // defined:True
+Gp_CaliberNameTbl           = 0x8010E744; // defined:True
+Gp_StrResSilence            = 0x8010E5A4; // defined:True
+Gp_StrResParalysis          = 0x8010E5B8; // defined:True
+Gp_StrResPoison             = 0x8010E5CC; // defined:True
+Gp_StrResConfusion          = 0x8010E5E0; // defined:True
+Gp_StrResImpact             = 0x8010E5F4; // defined:True
+Gp_StrMotionDet             = 0x8010E608; // defined:True
+Gp_StrMpGen                 = 0x8010E618; // defined:True
+Gp_StrHpRecov               = 0x8010E628; // defined:True
+Gp_StrQuickFire             = 0x8010E634; // defined:True
+Gp_StrMedInspect            = 0x8010E640; // defined:True
+Gp_StrMpRecov               = 0x8010E654; // defined:True
+Gp_StrCal9mm                = 0x8010E694; // defined:True
+Gp_StrCal40Mag              = 0x8010E6B0; // defined:True
+Gp_StrCal44Mag              = 0x8010E6D0; // defined:True
+Gp_StrCal40mm               = 0x8010E6F0; // defined:True
+Gp_StrGauge12               = 0x8010E70C; // defined:True
+Gp_StrCal556                = 0x8010E728; // defined:True
+Gp_StrPoison                = 0x8010E784; // defined:True
+Gp_StrIncendiary            = 0x8010E78C; // defined:True
+Gp_StrPiercing              = 0x8010E798; // defined:True
+Gp_StrBurst                 = 0x8010E7A4; // defined:True
+Gp_StrFlash                 = 0x8010E7AC; // defined:True
+Gp_StrExplosion             = 0x8010E7B4; // defined:True
+Gp_StrCannotSwitchEq2       = 0x8010F310; // defined:True
+Gp_StrCannotMoveAmmo        = 0x8010F334; // defined:True
+Gp_StrNeedExp               = 0x8010F354; // defined:True
+Gp_StrMaxLevel              = 0x8010F368; // defined:True
+Gp_StrNeedMp                = 0x8010F374; // defined:True
+Gp_StrSaveCancel            = 0x8010F388; // defined:True
+Gp_StrReallyDiscard         = 0x8010F398; // defined:True
+Gp_StrSaveDone              = 0x8010F3A8; // defined:True
+Gp_StrNoUseNow2             = 0x8010F3B8; // defined:True
+Gp_StrDontKnowUse           = 0x8010F3D0; // defined:True
+Gp_StrNoOtherWpn            = 0x8010F3EC; // defined:True
+Gp_StrNoOtherArmor          = 0x8010F408; // defined:True
+Gp_StrNeedMp5               = 0x8010F420; // defined:True
+Gp_StrNeedM4                = 0x8010F430; // defined:True
+Gp_StrNeedAs12              = 0x8010F440; // defined:True
+Gp_StrNeedP08               = 0x8010F450; // defined:True
+Gp_StrNoMoreMods            = 0x8010F460; // defined:True
+Gp_StrNeedEmptySlot         = 0x8010F47C; // defined:True
+Gp_StrMaxHpUp               = 0x8010F494; // defined:True
+Gp_StrMaxMpUp               = 0x8010F4AC; // defined:True
+Gp_StrCannotMoveItem        = 0x8010F4C4; // defined:True
+Gp_StrCannotSwitchItem      = 0x8010F4DC; // defined:True
+Gp_StrCannotSwitchWith      = 0x8010F4F8; // defined:True
+Gp_StrAreaEffect            = 0x8010F518; // defined:True
+Gp_StrCastCost              = 0x8010F528; // defined:True
+Gp_StrAtpLoss               = 0x8010F538; // defined:True
+Gp_StrFire                  = 0x8010F624; // defined:True
+Gp_StrWind                  = 0x8010F62C; // defined:True
+Gp_StrWater                 = 0x8010F634; // defined:True
+Gp_StrEarth                 = 0x8010F63C; // defined:True
+Gp_StrReleasePe = 0x8010F8D4; // size:0x19 defined:True
+Gp_StrReturnGame = 0x8010F908; // size:0x14 defined:True
 Gp_StrBullet                = 0x80093D98;
 
 // Gameplay naming pass 14 (status/PE/demo/help strings)
@@ -1574,44 +1572,44 @@ Gp_StrCost                  = 0x80097210;
 Gp_StrBonus                 = 0x80097218;
 Gp_StrDemoWait              = 0x80097544;
 Gp_StrDemoPause             = 0x80097550;
-Gp_StrUseAttachHelp         = 0x8010F930;
-Gp_StrUseKeyHelp            = 0x8010F948;
-Gp_StrCheckMap              = 0x8010F958;
-Gp_StrCustomizeHelp         = 0x8010F96C;
-Gp_StrRemoveAmmoHelp        = 0x8010F988;
-Gp_StrDetachArmorHelp       = 0x8010F9A4;
+Gp_StrUseAttachHelp = 0x8010F930; // size:0x16 defined:True
+Gp_StrUseKeyHelp = 0x8010F948; // size:0xF defined:True
+Gp_StrCheckMap = 0x8010F958; // size:0xF defined:True
+Gp_StrCustomizeHelp = 0x8010F96C; // size:0x19 defined:True
+Gp_StrRemoveAmmoHelp = 0x8010F988; // size:0x1A defined:True
+Gp_StrDetachArmorHelp = 0x8010F9A4; // size:0x19 defined:True
 
 // Gameplay naming pass 15 (StateF0, play clock, load-wait, lock)
-Gp_StateF0                  = 0x801153F0; // size:0x2C
-Gp_StateC08                 = 0x80114C08; // size:0x18
-Gp_HpMpWork                 = 0x80114BE8; // size:0x8
-Gp_State1C                  = 0x80115740; // size:0x4
-Gp_PreviewItems             = 0x8010E8F8; // size:0x14
-Gp_SelItemRec               = 0x80114DD4; // size:0x4
-Gp_BoostPanelDesc           = 0x8010D384;
+Gp_StateF0 = 0x801153F0; // size:0x2C defined:True
+Gp_StateC08 = 0x80114C08; // size:0x18 defined:True
+Gp_HpMpWork = 0x80114BE8; // size:0x8 defined:True
+Gp_State1C                  = 0x80115740; // size:0x4 defined:True
+Gp_PreviewItems             = 0x8010E8F8; // size:0x14 defined:True
+Gp_SelItemRec = 0x80114DD4; // size:0x4 defined:True
+Gp_BoostPanelDesc = 0x8010D384; // size:0x1C defined:True
 Gp_QtyById0                 = 0x8010E038;
 Gp_QtyById1                 = 0x8010D078;
 
 // Gameplay naming pass 16 (cap load, child anim, HP band)
-Gp_CapFile                  = 0x8011568C; // size:0x4
-Gp_PlayerAnimBlkTbl         = 0x80112D6C;
+Gp_CapFile = 0x8011568C; // size:0x4 defined:True
+Gp_PlayerAnimBlkTbl = 0x80112D6C; // size:0x88 defined:True
 
 // Gameplay naming pass 18 (pad scripts, caret, State1C)
-Gp_PadScriptHalt            = 0x80115700; // size:0x1
-Gp_PadHoldHalt              = 0x80115701; // size:0x1
-Gp_PadLerpHalt              = 0x80115702; // size:0x1
-Gp_CapCaretX                = 0x8011564C; // size:0x2
-Gp_CapCaretY                = 0x8011564E; // size:0x2
-Gp_CapCaretDelay            = 0x80115658; // size:0x1
-Gp_CapCaretGrey             = 0x8010FB88; // size:0x4
-Gp_CapCaretDir              = 0x8010FB8C; // size:0x4
-Gp_State1CTask              = 0x80115748; // size:0x4
-Gp_QuadClutX                = 0x80111EA8;
-Gp_FadeQuadColors           = 0x80111EC0;
+Gp_PadScriptHalt            = 0x80115700; // size:0x1 defined:True
+Gp_PadHoldHalt              = 0x80115701; // size:0x1 defined:True
+Gp_PadLerpHalt              = 0x80115702; // size:0x1 defined:True
+Gp_CapCaretX = 0x8011564C; // size:0x2 defined:True
+Gp_CapCaretY = 0x8011564E; // size:0x2 defined:True
+Gp_CapCaretDelay = 0x80115658; // size:0x1 defined:True
+Gp_CapCaretGrey             = 0x8010FB88; // size:0x4 defined:True
+Gp_CapCaretDir              = 0x8010FB8C; // size:0x4 defined:True
+Gp_State1CTask              = 0x80115748; // size:0x4 defined:True
+Gp_QuadClutX = 0x80111EA8; // size:0xC defined:True
+Gp_FadeQuadColors = 0x80111EC0; // size:0x10 defined:True
 
 // Gameplay naming pass 19 (strings, anim slot, script ticks)
 Gp_StrTotal2                = 0x800971A8;
-Gp_StrWrongAmmo2            = 0x80096E4C;
+Gp_StrWrongAmmo2 = 0x80096E4C; // size:0x21 defined:True
 Gp_StrSlash                 = 0x80096FF4;
 Gp_StrE                     = 0x80097024;
 Gp_StrHelp                  = 0x800971D0;
@@ -1621,45 +1619,45 @@ Gp_StrAttention2            = 0x800971EC;
 Gp_StrNotice3               = 0x800971F8;
 Gp_StrSpecs2                = 0x80097224;
 Gp_StrNotice2               = 0x80093CC4;
-Gp_StrRemoveArmor           = 0x8010E534;
-Gp_StrChangeOrderHelp       = 0x8010F9C0;
-Gp_StrCancel2               = 0x8010F1D0;
+Gp_StrRemoveArmor           = 0x8010E534; // defined:True
+Gp_StrChangeOrderHelp = 0x8010F9C0; // size:0x24 defined:True
+Gp_StrCancel2               = 0x8010F1D0; // defined:True
 
 // Globals naming pass 1
-Gp_ItemGrantCooldown        = 0x8010CA28;
-Gp_ItemCmdFns               = 0x8010EA18;
-Gp_FaceEdgePairs            = 0x8010FA24;
-Gp_EffSprRecs               = 0x80112934;
-Gp_CdRecCur                 = 0x80114C6C;
-Gp_DirFadeLevel             = 0x80114CF6;
-Gp_ItemCountShow            = 0x80114D84;
-Gp_ItemOrderMode            = 0x80114D8C;
-Gp_ReloadMode               = 0x80114D90;
-Gp_AttachListIds            = 0x80114DA0;
-Gp_MenuLockNow              = 0x80115708;
-Gp_MenuLockPrev             = 0x80115709;
-Gp_PadSuppressMask          = 0x8011570A;
-Gp_PadSuppressPrev          = 0x8011570C;
-Gp_PadSuppressRise          = 0x8011570E;
-Gp_PadSuppressFall          = 0x80115710;
-Gp_PadSuppressRefs          = 0x80115712;
-Gp_MenuLockHold             = 0x80115714;
-Gp_MenuLockDelay            = 0x80115716;
+Gp_ItemGrantCooldown        = 0x8010CA28; // defined:True
+Gp_ItemCmdFns               = 0x8010EA18; // defined:True
+Gp_FaceEdgePairs            = 0x8010FA24; // defined:True
+Gp_EffSprRecs = 0x80112934; // size:0x30 defined:True
+Gp_CdRecCur = 0x80114C6C; // size:0x4 defined:True
+Gp_DirFadeLevel             = 0x80114CF6; // size:0x2 defined:True
+Gp_ItemCountShow            = 0x80114D84; // defined:True
+Gp_ItemOrderMode            = 0x80114D8C; // defined:True
+Gp_ReloadMode               = 0x80114D90; // defined:True
+Gp_AttachListIds = 0x80114DA0; // size:0x18 defined:True
+Gp_MenuLockNow              = 0x80115708; // defined:True
+Gp_MenuLockPrev             = 0x80115709; // defined:True
+Gp_PadSuppressMask          = 0x8011570A; // defined:True
+Gp_PadSuppressPrev          = 0x8011570C; // defined:True
+Gp_PadSuppressRise          = 0x8011570E; // defined:True
+Gp_PadSuppressFall          = 0x80115710; // defined:True
+Gp_PadSuppressRefs          = 0x80115712; // defined:True
+Gp_MenuLockHold = 0x80115714; // size:0x1 defined:True
+Gp_MenuLockDelay = 0x80115716; // size:0x2 defined:True
 
 // Globals naming pass 2
-Gp_ObjList0                 = 0x80115570;
-Gp_ObjList1                 = 0x80115574;
-Gp_ObjList2                 = 0x80115578;
-Gp_ObjList3                 = 0x8011557C;
-Gp_ObjList4                 = 0x80115580;
-Gp_ObjList5                 = 0x80115584;
-Gp_ObjList6                 = 0x80115588;
-Gp_ObjList7                 = 0x8011558C;
-Gp_ObjList8                 = 0x80115590;
-Gp_StrEmpty                 = 0x8010F8D0;
-Gp_HealPending              = 0x8010F888;
-Gp_RelatedPending           = 0x8010F890;
-Gp_UsedItemId               = 0x8010F894;
+Gp_ObjList0 = 0x80115570; // size:0x4 defined:True
+Gp_ObjList1 = 0x80115574; // size:0x4 defined:True
+Gp_ObjList2 = 0x80115578; // size:0x4 defined:True
+Gp_ObjList3 = 0x8011557C; // size:0x4 defined:True
+Gp_ObjList4 = 0x80115580; // size:0x4 defined:True
+Gp_ObjList5 = 0x80115584; // size:0x4 defined:True
+Gp_ObjList6 = 0x80115588; // size:0x4 defined:True
+Gp_ObjList7 = 0x8011558C; // size:0x4 defined:True
+Gp_ObjList8 = 0x80115590; // size:0x4 defined:True
+Gp_StrEmpty = 0x8010F8D0; // size:0x1 defined:True
+Gp_HealPending = 0x8010F888; // size:0x4 defined:True
+Gp_RelatedPending = 0x8010F890; // size:0x4 defined:True
+Gp_UsedItemId = 0x8010F894; // size:0x4 defined:True
 
 // Rodata dispatch tables
 Gp_ItemMenuStates           = 0x80096F7C;
@@ -1668,17 +1666,17 @@ Gp_PlayerWorkStates         = 0x80097848;
 Gp_PlayerModeFns            = 0x80097940;
 Gp_PlayerMode1States        = 0x800979F8;
 Gp_PlayerMode2States        = 0x80097A08;
-Gp_MainMenuCmds             = 0x8010E808;
-Gp_WeaponSlotRows           = 0x8010E878;
-Gp_DialogCmdFns             = 0x8010EA6C;
-Gp_NoticeTexts              = 0x8010F544;
-Gp_PromptTexts              = 0x8010F584;
-Gp_PeCmdFns                 = 0x8010F5F4;
-D_8010F620                  = 0x8010F620; // size:0x4
-D_8010F644                  = 0x8010F644; // size:0x10
-D_80114DF8                  = 0x80114DF8; // size:0x90
-Gp_ItemCmdRows              = 0x8010F814;
-Gp_PairHandlers             = 0x8010FA38;
+Gp_MainMenuCmds             = 0x8010E808; // defined:True
+Gp_WeaponSlotRows           = 0x8010E878; // defined:True
+Gp_DialogCmdFns             = 0x8010EA6C; // defined:True
+Gp_NoticeTexts              = 0x8010F544; // defined:True
+Gp_PromptTexts              = 0x8010F584; // size:0x44 defined:True
+Gp_PeCmdFns                 = 0x8010F5F4; // defined:True
+D_8010F620                  = 0x8010F620; // size:0x4 defined:True
+D_8010F644                  = 0x8010F644; // size:0x10 defined:True
+D_80114DF8                  = 0x80114DF8; // size:0x90 defined:True
+Gp_ItemCmdRows = 0x8010F814; // size:0x8 defined:True
+Gp_PairHandlers = 0x8010FA38; // size:0x14 defined:True
 Gp_PlayClockStates          = 0x80093830;
 Gp_LoadWaitFns              = 0x800938B4;
 Gp_StageLoadStates          = 0x80093A1C;
@@ -1696,45 +1694,615 @@ Gp_DirActionFns             = 0x8009395C;
 Gp_WarpPhaseFns             = 0x80093978;
 
 // Dispatch-table follow-up
-Gp_PadSuppressTimer         = 0x80115718;
+Gp_PadSuppressTimer = 0x80115718; // size:0x2 defined:True
 
 // Data the code references, declared so the split need not invent it
-D_8010F13D                  = 0x8010F13D; // type:u8 size:0x1
-D_80114BDE                  = 0x80114BDE; // type:s16 size:0x2
-D_80114BE2                  = 0x80114BE2; // type:s16 size:0x2
-D_80114CDD                  = 0x80114CDD; // type:u8 size:0x1
-D_80114CDE                  = 0x80114CDE; // type:u8 size:0x1
-D_80114D1A                  = 0x80114D1A; // type:s16 size:0x2
-D_80114DDE                  = 0x80114DDE; // type:u16 size:0x2
-D_801155AE                  = 0x801155AE; // type:u16 size:0x2
-D_801155B2                  = 0x801155B2; // type:s16 size:0x2
-D_801155B6                  = 0x801155B6; // type:s16 size:0x2
-D_801155B9                  = 0x801155B9; // type:s8 size:0x1
-D_801155BA                  = 0x801155BA; // type:u8 size:0x1
-D_801155BB                  = 0x801155BB; // type:u8 size:0x1
-D_801155BE                  = 0x801155BE; // type:s16 size:0x2
-D_8011564A                  = 0x8011564A; // type:s16 size:0x2
-D_80115652                  = 0x80115652; // type:s16 size:0x2
-D_80115656                  = 0x80115656; // type:s16 size:0x2
-D_80115659                  = 0x80115659; // type:u8 size:0x1
-D_8011565A                  = 0x8011565A; // type:u8 size:0x1
-D_80115666                  = 0x80115666; // type:s16 size:0x2
-D_8011566A                  = 0x8011566A; // type:s16 size:0x2
-D_8011566D                  = 0x8011566D; // type:u8 size:0x1
-D_8011566E                  = 0x8011566E; // type:u8 size:0x1
-D_8011566F                  = 0x8011566F; // type:u8 size:0x1
-D_8011567A                  = 0x8011567A; // type:s16 size:0x2
-D_8011569A                  = 0x8011569A; // type:s16 size:0x2
-D_801156B1                  = 0x801156B1; // type:s8 size:0x1
-D_801156C2                  = 0x801156C2; // type:u16 size:0x2
-D_801156C6                  = 0x801156C6; // type:u16 size:0x2
-D_801156C9                  = 0x801156C9; // type:u8 size:0x1
-D_801156CA                  = 0x801156CA; // type:u8 size:0x1
-D_801156CB                  = 0x801156CB; // type:u8 size:0x1
-D_801156CD                  = 0x801156CD; // type:u8 size:0x1
-D_801156CE                  = 0x801156CE; // type:u8 size:0x1
-D_801156F9                  = 0x801156F9; // type:u8 size:0x1
-D_80115768                  = 0x80115768; // type:u8 size:0x1
+D_8010F13D                  = 0x8010F13D; // type:u8 size:0x1 defined:True
+D_80114BDE                  = 0x80114BDE; // type:s16 size:0x2 defined:True
+D_80114BE2                  = 0x80114BE2; // type:s16 size:0x2 defined:True
+D_80114CDD                  = 0x80114CDD; // type:u8 size:0x1 defined:True
+D_80114CDE                  = 0x80114CDE; // type:u8 size:0x1 defined:True
+D_80114D1A                  = 0x80114D1A; // type:s16 size:0x2 defined:True
+D_80114DDE = 0x80114DDE; // size:0x2 defined:True
+D_801155AE                  = 0x801155AE; // type:u16 size:0x2 defined:True
+D_801155B2                  = 0x801155B2; // type:s16 size:0x2 defined:True
+D_801155B6                  = 0x801155B6; // type:s16 size:0x2 defined:True
+D_801155B9                  = 0x801155B9; // type:s8 size:0x1 defined:True
+D_801155BA                  = 0x801155BA; // type:u8 size:0x1 defined:True
+D_801155BB                  = 0x801155BB; // type:u8 size:0x1 defined:True
+D_801155BE                  = 0x801155BE; // type:s16 size:0x2 defined:True
+D_8011564A = 0x8011564A; // size:0x2 defined:True
+D_80115652 = 0x80115652; // size:0x2 defined:True
+D_80115656 = 0x80115656; // size:0x2 defined:True
+D_80115659 = 0x80115659; // size:0x1 defined:True
+D_8011565A = 0x8011565A; // size:0x1 defined:True
+D_80115666 = 0x80115666; // size:0x2 defined:True
+D_8011566A = 0x8011566A; // size:0x2 defined:True
+D_8011566D = 0x8011566D; // size:0x1 defined:True
+D_8011566E = 0x8011566E; // size:0x1 defined:True
+D_8011566F = 0x8011566F; // size:0x1 defined:True
+D_8011567A = 0x8011567A; // size:0x2 defined:True
+D_8011569A = 0x8011569A; // size:0x2 defined:True
+D_801156B1 = 0x801156B1; // size:0x1 defined:True
+D_801156C2                  = 0x801156C2; // type:u16 size:0x2 defined:True
+D_801156C6                  = 0x801156C6; // type:u16 size:0x2 defined:True
+D_801156C9                  = 0x801156C9; // type:u8 size:0x1 defined:True
+D_801156CA                  = 0x801156CA; // type:u8 size:0x1 defined:True
+D_801156CB                  = 0x801156CB; // type:u8 size:0x1 defined:True
+D_801156CD                  = 0x801156CD; // type:u8 size:0x1 defined:True
+D_801156CE                  = 0x801156CE; // type:u8 size:0x1 defined:True
+D_801156F9 = 0x801156F9; // size:0x1 defined:True
+D_80115768 = 0x80115768; // type:u8 size:0x1 defined:True
 
 // Objects whose members the code reaches
-D_801156D4                  = 0x801156D4; // type:GpStateBD8 size:0x4
+D_801156D4                  = 0x801156D4; // type:GpStateBD8 size:0x4 defined:True
+
+D_80093E68 = 0x80093E68; // size:0x7 defined:True
+D_80093E70 = 0x80093E70; // size:0x42 defined:True
+D_80093EB4 = 0x80093EB4; // size:0x2B defined:True
+D_80093EE0 = 0x80093EE0; // size:0x49 defined:True
+D_80093F2C = 0x80093F2C; // size:0x63 defined:True
+D_80093F90 = 0x80093F90; // size:0x47 defined:True
+D_80093FD8 = 0x80093FD8; // size:0x57 defined:True
+D_80094030 = 0x80094030; // size:0x5E defined:True
+D_80094090 = 0x80094090; // size:0x66 defined:True
+D_800940F8 = 0x800940F8; // size:0x4F defined:True
+D_80094148 = 0x80094148; // size:0x50 defined:True
+D_80094198 = 0x80094198; // size:0x61 defined:True
+D_800941FC = 0x800941FC; // size:0x6B defined:True
+D_80094268 = 0x80094268; // size:0x59 defined:True
+D_800942C4 = 0x800942C4; // size:0x71 defined:True
+D_80094338 = 0x80094338; // size:0x30 defined:True
+D_80094368 = 0x80094368; // size:0x38 defined:True
+D_800943A0 = 0x800943A0; // size:0x3B defined:True
+D_800943DC = 0x800943DC; // size:0x21 defined:True
+D_80094400 = 0x80094400; // size:0x36 defined:True
+D_80094438 = 0x80094438; // size:0x34 defined:True
+D_8009446C = 0x8009446C; // size:0x34 defined:True
+D_800944A0 = 0x800944A0; // size:0x35 defined:True
+D_800944D8 = 0x800944D8; // size:0x35 defined:True
+D_80094510 = 0x80094510; // size:0x26 defined:True
+D_80094538 = 0x80094538; // size:0x3B defined:True
+D_80094574 = 0x80094574; // size:0x39 defined:True
+D_800945B0 = 0x800945B0; // size:0x36 defined:True
+D_800945E8 = 0x800945E8; // size:0x37 defined:True
+D_80094620 = 0x80094620; // size:0x39 defined:True
+D_8009465C = 0x8009465C; // size:0x36 defined:True
+D_80094694 = 0x80094694; // size:0x3C defined:True
+D_800946D0 = 0x800946D0; // size:0x3D defined:True
+D_80094710 = 0x80094710; // size:0x31 defined:True
+D_80094744 = 0x80094744; // size:0x2F defined:True
+D_80094774 = 0x80094774; // size:0x31 defined:True
+D_800947A8 = 0x800947A8; // size:0x20 defined:True
+D_800947C8 = 0x800947C8; // size:0x1C defined:True
+D_800947E4 = 0x800947E4; // size:0x20 defined:True
+D_80094804 = 0x80094804; // size:0x2F defined:True
+D_80094834 = 0x80094834; // size:0x2D defined:True
+D_80094864 = 0x80094864; // size:0x36 defined:True
+D_8009489C = 0x8009489C; // size:0x26 defined:True
+D_800948C4 = 0x800948C4; // size:0x28 defined:True
+D_800948EC = 0x800948EC; // size:0x2E defined:True
+D_8009491C = 0x8009491C; // size:0x3D defined:True
+D_8009495C = 0x8009495C; // size:0x38 defined:True
+D_80094994 = 0x80094994; // size:0x3F defined:True
+D_800949D4 = 0x800949D4; // size:0x3B defined:True
+D_80094A10 = 0x80094A10; // size:0x3B defined:True
+D_80094A4C = 0x80094A4C; // size:0x3B defined:True
+D_80094A88 = 0x80094A88; // size:0x6E defined:True
+D_80094AF8 = 0x80094AF8; // size:0x78 defined:True
+D_80094B70 = 0x80094B70; // size:0x7C defined:True
+D_80094BEC = 0x80094BEC; // size:0x6E defined:True
+D_80094C5C = 0x80094C5C; // size:0x67 defined:True
+D_80094CC4 = 0x80094CC4; // size:0x6D defined:True
+D_80094D34 = 0x80094D34; // size:0x71 defined:True
+D_80094DA8 = 0x80094DA8; // size:0x6D defined:True
+D_80094E18 = 0x80094E18; // size:0x69 defined:True
+D_80094E84 = 0x80094E84; // size:0x6B defined:True
+D_80094EF0 = 0x80094EF0; // size:0x48 defined:True
+D_80094F38 = 0x80094F38; // size:0x74 defined:True
+D_80094FAC = 0x80094FAC; // size:0x53 defined:True
+D_80095000 = 0x80095000; // size:0x6A defined:True
+D_8009506C = 0x8009506C; // size:0x64 defined:True
+D_800950D0 = 0x800950D0; // size:0x66 defined:True
+D_80095138 = 0x80095138; // size:0x35 defined:True
+D_80095170 = 0x80095170; // size:0x54 defined:True
+D_800951C4 = 0x800951C4; // size:0x57 defined:True
+D_8009521C = 0x8009521C; // size:0x4D defined:True
+D_8009526C = 0x8009526C; // size:0x4B defined:True
+D_800952B8 = 0x800952B8; // size:0x58 defined:True
+D_80095310 = 0x80095310; // size:0x70 defined:True
+D_80095380 = 0x80095380; // size:0x47 defined:True
+D_800953C8 = 0x800953C8; // size:0x50 defined:True
+D_80095418 = 0x80095418; // size:0x58 defined:True
+D_80095470 = 0x80095470; // size:0x4D defined:True
+D_800954C0 = 0x800954C0; // size:0x45 defined:True
+D_80095508 = 0x80095508; // size:0x53 defined:True
+D_8009555C = 0x8009555C; // size:0x33 defined:True
+D_80095590 = 0x80095590; // size:0x4B defined:True
+D_800955DC = 0x800955DC; // size:0x50 defined:True
+D_8009562C = 0x8009562C; // size:0x2E defined:True
+D_8009565C = 0x8009565C; // size:0x4F defined:True
+D_800956AC = 0x800956AC; // size:0x44 defined:True
+D_800956F0 = 0x800956F0; // size:0x56 defined:True
+D_80095748 = 0x80095748; // size:0x60 defined:True
+D_800957A8 = 0x800957A8; // size:0x5A defined:True
+D_80095804 = 0x80095804; // size:0x2D defined:True
+D_80095834 = 0x80095834; // size:0x26 defined:True
+D_8009585C = 0x8009585C; // size:0x53 defined:True
+D_800958B0 = 0x800958B0; // size:0x2D defined:True
+D_800958E0 = 0x800958E0; // size:0x44 defined:True
+D_80095924 = 0x80095924; // size:0x6C defined:True
+D_80095990 = 0x80095990; // size:0x54 defined:True
+D_800959E4 = 0x800959E4; // size:0x41 defined:True
+D_80095A28 = 0x80095A28; // size:0x41 defined:True
+D_80095A6C = 0x80095A6C; // size:0x3D defined:True
+D_80095AAC = 0x80095AAC; // size:0x75 defined:True
+D_80095B24 = 0x80095B24; // size:0x32 defined:True
+D_80095B58 = 0x80095B58; // size:0x2C defined:True
+D_80095B84 = 0x80095B84; // size:0x39 defined:True
+D_80095BC0 = 0x80095BC0; // size:0x2E defined:True
+D_80095BF0 = 0x80095BF0; // size:0x2F defined:True
+D_80095C20 = 0x80095C20; // size:0x52 defined:True
+D_80095C74 = 0x80095C74; // size:0x44 defined:True
+D_80095CB8 = 0x80095CB8; // size:0x44 defined:True
+D_80095CFC = 0x80095CFC; // size:0x54 defined:True
+D_80095D50 = 0x80095D50; // size:0x5E defined:True
+D_80095DB0 = 0x80095DB0; // size:0x5F defined:True
+D_80095E10 = 0x80095E10; // size:0x64 defined:True
+D_80095E74 = 0x80095E74; // size:0x66 defined:True
+D_80095EDC = 0x80095EDC; // size:0x10 defined:True
+D_80095EEC = 0x80095EEC; // size:0x74 defined:True
+D_80095F60 = 0x80095F60; // size:0x6F defined:True
+D_80095FD0 = 0x80095FD0; // size:0x75 defined:True
+D_80096048 = 0x80096048; // size:0x6D defined:True
+D_800960B8 = 0x800960B8; // size:0x68 defined:True
+D_80096120 = 0x80096120; // size:0x6B defined:True
+D_8009618C = 0x8009618C; // size:0x6E defined:True
+D_800961FC = 0x800961FC; // size:0x10 defined:True
+D_8009620C = 0x8009620C; // size:0x10 defined:True
+D_8009621C = 0x8009621C; // size:0xE defined:True
+D_8009622C = 0x8009622C; // size:0xE defined:True
+D_8009623C = 0x8009623C; // size:0xE defined:True
+D_8009624C = 0x8009624C; // size:0xB defined:True
+D_80096258 = 0x80096258; // size:0xE defined:True
+D_80096268 = 0x80096268; // size:0x5B defined:True
+D_800962C4 = 0x800962C4; // size:0x83 defined:True
+D_80096348 = 0x80096348; // size:0x2E defined:True
+D_80096378 = 0x80096378; // size:0x2A defined:True
+D_800963A4 = 0x800963A4; // size:0x78 defined:True
+D_8009641C = 0x8009641C; // size:0x3C defined:True
+D_80096458 = 0x80096458; // size:0x8C defined:True
+D_800964E4 = 0x800964E4; // size:0x32 defined:True
+D_80096518 = 0x80096518; // size:0x5F defined:True
+D_80096578 = 0x80096578; // size:0x60 defined:True
+D_800965D8 = 0x800965D8; // size:0x31 defined:True
+D_8009660C = 0x8009660C; // size:0x69 defined:True
+D_80096678 = 0x80096678; // size:0x46 defined:True
+D_800966C0 = 0x800966C0; // size:0x58 defined:True
+D_80096718 = 0x80096718; // size:0x26 defined:True
+D_80096740 = 0x80096740; // size:0x2B defined:True
+D_8009676C = 0x8009676C; // size:0x63 defined:True
+D_800967D0 = 0x800967D0; // size:0x55 defined:True
+D_80096828 = 0x80096828; // size:0x49 defined:True
+D_80096874 = 0x80096874; // size:0x4C defined:True
+D_800968C0 = 0x800968C0; // size:0x1B defined:True
+D_800968DC = 0x800968DC; // size:0x4B defined:True
+D_80096928 = 0x80096928; // size:0x22 defined:True
+D_8009694C = 0x8009694C; // size:0x3E defined:True
+D_8009698C = 0x8009698C; // size:0x74 defined:True
+D_80096A00 = 0x80096A00; // size:0x3B defined:True
+D_80096A3C = 0x80096A3C; // size:0x47 defined:True
+D_80096A84 = 0x80096A84; // size:0x55 defined:True
+D_80096ADC = 0x80096ADC; // size:0x45 defined:True
+D_80096B24 = 0x80096B24; // size:0x46 defined:True
+D_80096B6C = 0x80096B6C; // size:0x55 defined:True
+D_80096BC4 = 0x80096BC4; // size:0x48 defined:True
+D_80096C0C = 0x80096C0C; // size:0x54 defined:True
+D_80096C60 = 0x80096C60; // size:0x86 defined:True
+D_80096CE8 = 0x80096CE8; // size:0x5A defined:True
+D_80096D44 = 0x80096D44; // size:0x55 defined:True
+D_80096D9C = 0x80096D9C; // size:0x53 defined:True
+D_80096DF0 = 0x80096DF0; // size:0x1A defined:True
+D_80096E0C = 0x80096E0C; // size:0x1C defined:True
+D_80096E28 = 0x80096E28; // size:0x10 defined:True
+D_80096E38 = 0x80096E38; // size:0x12 defined:True
+
+D_8010E548 = 0x8010E548; // size:0x6 defined:True
+D_8010E588 = 0x8010E588; // size:0x1 defined:True
+D_8010E5A0 = 0x8010E5A0; // size:0x1 defined:True
+D_8010E7C0 = 0x8010E7C0; // size:0x28 defined:True
+D_80114CD0 = 0x80114CD0; // size:0x2 defined:True
+D_80114CD4 = 0x80114CD4; // size:0x2 defined:True
+D_80114CDC = 0x80114CDC; // size:0x1 defined:True
+D_80114CE0 = 0x80114CE0; // size:0x2 defined:True
+D_80114CF0 = 0x80114CF0; // size:0x4 defined:True
+D_80114CF4 = 0x80114CF4; // size:0x2 defined:True
+D_80114CF8 = 0x80114CF8; // size:0x1 defined:True
+D_80114E88 = 0x80114E88; // size:0x4 defined:True
+D_80114E8C = 0x80114E8C; // size:0x4 defined:True
+D_80114E90 = 0x80114E90; // size:0x4 defined:True
+D_80114E94 = 0x80114E94; // size:0x4 defined:True
+D_801156C0 = 0x801156C0; // size:0x2 defined:True
+D_801156C4 = 0x801156C4; // size:0x2 defined:True
+D_801156C8 = 0x801156C8; // size:0x1 defined:True
+D_801156CC = 0x801156CC; // size:0x1 defined:True
+D_801156D0 = 0x801156D0; // size:0x4 defined:True
+D_801156D8 = 0x801156D8; // size:0x4 defined:True
+D_801156DC = 0x801156DC; // size:0x4 defined:True
+D_801156E0 = 0x801156E0; // size:0xC defined:True
+D_801156EC = 0x801156EC; // size:0x4 defined:True
+D_801156F0 = 0x801156F0; // size:0x1 defined:True
+D_80115728 = 0x80115728; // size:0x4 defined:True
+D_8011572C = 0x8011572C; // size:0x4 defined:True
+D_80115730 = 0x80115730; // size:0x4 defined:True
+D_80115734 = 0x80115734; // size:0x4 defined:True
+D_80115738 = 0x80115738; // size:0x4 defined:True
+D_8011573C = 0x8011573C; // size:0x4 defined:True
+D_80115744 = 0x80115744; // size:0x4 defined:True
+D_8011574C = 0x8011574C; // size:0x4 defined:True
+D_80115750 = 0x80115750; // size:0x4 defined:True
+D_80115754 = 0x80115754; // size:0x4 defined:True
+D_80115758 = 0x80115758; // size:0x4 defined:True
+D_8010CA2C = 0x8010CA2C; // size:0x4 defined:True
+D_8010CA30 = 0x8010CA30; // size:0x10 defined:True
+D_8010CA40 = 0x8010CA40; // size:0x38 defined:True
+D_8010CA78 = 0x8010CA78; // size:0x38 defined:True
+D_8010CAB0 = 0x8010CAB0; // size:0xC defined:True
+D_8010CABC = 0x8010CABC; // size:0xC defined:True
+D_8010E7E8 = 0x8010E7E8; // size:0xC defined:True
+D_8010E7F4 = 0x8010E7F4; // size:0x14 defined:True
+D_8010E820 = 0x8010E820; // size:0x24 defined:True
+D_8010E844 = 0x8010E844; // size:0xC defined:True
+D_8010E850 = 0x8010E850; // size:0x4 defined:True
+D_8010E854 = 0x8010E854; // size:0x24 defined:True
+D_8010E884 = 0x8010E884; // size:0x24 defined:True
+D_8010E8A8 = 0x8010E8A8; // size:0x4 defined:True
+D_8010E8AC = 0x8010E8AC; // size:0x24 defined:True
+D_8010E8D0 = 0x8010E8D0; // size:0x4 defined:True
+D_8010E8D4 = 0x8010E8D4; // size:0x24 defined:True
+D_8010E90C = 0x8010E90C; // size:0x4 defined:True
+D_8010E910 = 0x8010E910; // size:0x24 defined:True
+D_8010E934 = 0x8010E934; // size:0x4 defined:True
+D_8010E938 = 0x8010E938; // size:0x24 defined:True
+D_8010E95C = 0x8010E95C; // size:0x4 defined:True
+D_8010E960 = 0x8010E960; // size:0x24 defined:True
+D_8010E984 = 0x8010E984; // size:0xC defined:True
+D_8010E990 = 0x8010E990; // size:0x4 defined:True
+D_8010E994 = 0x8010E994; // size:0xC defined:True
+D_8010E9A0 = 0x8010E9A0; // size:0x4 defined:True
+D_8010E9A4 = 0x8010E9A4; // size:0x24 defined:True
+D_8010E9C8 = 0x8010E9C8; // size:0x4 defined:True
+D_8010E9CC = 0x8010E9CC; // size:0x24 defined:True
+D_8010E9F0 = 0x8010E9F0; // size:0x4 defined:True
+D_8010E9F4 = 0x8010E9F4; // size:0x24 defined:True
+D_8010EA30 = 0x8010EA30; // size:0x24 defined:True
+D_8010EA54 = 0x8010EA54; // size:0x18 defined:True
+D_8010EA74 = 0x8010EA74; // size:0x24 defined:True
+D_8010EA98 = 0x8010EA98; // size:0x1C defined:True
+D_8010EAB4 = 0x8010EAB4; // size:0x578 defined:True
+D_8010F02C = 0x8010F02C; // size:0x54 defined:True
+D_8010F080 = 0x8010F080; // size:0x1C defined:True
+D_8010F09C = 0x8010F09C; // size:0x1C defined:True
+D_8010F0CC = 0x8010F0CC; // size:0x14 defined:True
+D_8010F0E0 = 0x8010F0E0; // size:0x14 defined:True
+D_8010F130 = 0x8010F130; // size:0x8 defined:True
+D_8010F140 = 0x8010F140; // size:0x1C defined:True
+D_8010F15C = 0x8010F15C; // size:0x1C defined:True
+D_8010F178 = 0x8010F178; // size:0x1C defined:True
+D_8010F194 = 0x8010F194; // size:0x8 defined:True
+D_8010F5C8 = 0x8010F5C8; // size:0x8 defined:True
+D_8010F5D0 = 0x8010F5D0; // size:0x24 defined:True
+D_8010F5FC = 0x8010F5FC; // size:0x24 defined:True
+D_8010F654 = 0x8010F654; // size:0x1C defined:True
+D_8010F670 = 0x8010F670; // size:0x1C defined:True
+D_80114D10 = 0x80114D10; // size:0x4 defined:True
+D_80114D14 = 0x80114D14; // size:0x4 defined:True
+D_80114D18 = 0x80114D18; // size:0x2 defined:True
+D_80114D1C = 0x80114D1C; // size:0x2 defined:True
+D_80114D20 = 0x80114D20; // size:0x4 defined:True
+D_80114D80 = 0x80114D80; // size:0x4 defined:True
+D_80114D88 = 0x80114D88; // size:0x4 defined:True
+D_80114D98 = 0x80114D98; // size:0x8 defined:True
+D_80114D08 = 0x80114D08; // size:0x2 defined:True
+
+D_8010F9EC = 0x8010F9EC; // size:0x4 defined:True
+D_8010F9F0 = 0x8010F9F0; // size:0x4 defined:True
+D_8010F9F4 = 0x8010F9F4; // size:0x18 defined:True
+D_8010FA0C = 0x8010FA0C; // size:0x18 defined:True
+D_8010FB10 = 0x8010FB10; // size:0x14 defined:True
+D_8010FB24 = 0x8010FB24; // size:0x14 defined:True
+D_8010FB4C = 0x8010FB4C; // size:0x24 defined:True
+D_8010FB70 = 0x8010FB70; // size:0x10 defined:True
+D_8010FB80 = 0x8010FB80; // size:0x4 defined:True
+D_8010FB84 = 0x8010FB84; // size:0x4 defined:True
+D_8010FBE0 = 0x8010FBE0; // size:0x4 defined:True
+D_8010FBE4 = 0x8010FBE4; // size:0x4 defined:True
+D_8010FBE8 = 0x8010FBE8; // size:0x4 defined:True
+D_80114ED8 = 0x80114ED8; // size:0x20 defined:True
+D_80114EF8 = 0x80114EF8; // size:0x20 defined:True
+
+D_8010D318 = 0x8010D318; // size:0x8 defined:True
+D_8010D320 = 0x8010D320; // size:0x2 defined:True
+D_8010D324 = 0x8010D324; // size:0x3 defined:True
+D_80114BDC = 0x80114BDC; // size:0x2 defined:True
+D_80114BE0 = 0x80114BE0; // size:0x2 defined:True
+D_80114BE4 = 0x80114BE4; // size:0x2 defined:True
+D_801155AC = 0x801155AC; // size:0x2 defined:True
+D_801155B0 = 0x801155B0; // size:0x2 defined:True
+D_801155B4 = 0x801155B4; // size:0x2 defined:True
+D_801155B8 = 0x801155B8; // size:0x1 defined:True
+D_801155BC = 0x801155BC; // size:0x2 defined:True
+D_801155C0 = 0x801155C0; // size:0x2 defined:True
+
+Gp_KeyItemDescs = 0x8010DE38; // size:0x400 defined:True
+
+D_8010D630 = 0x8010D630; // size:0x4 defined:True
+
+D_80096E70 = 0x80096E70; // size:0x14 defined:True
+
+D_8010D348 = 0x8010D348; // size:0x1C defined:True
+
+D_801155A0 = 0x801155A0; // size:0x4 defined:True
+
+D_801155D0 = 0x801155D0; // size:0x78 defined:True
+D_80115648 = 0x80115648; // size:0x1 defined:True
+D_80115650 = 0x80115650; // size:0x2 defined:True
+D_80115654 = 0x80115654; // size:0x2 defined:True
+D_8011565C = 0x8011565C; // size:0x2 defined:True
+D_80115660 = 0x80115660; // size:0x4 defined:True
+D_80115664 = 0x80115664; // size:0x2 defined:True
+D_8011566C = 0x8011566C; // size:0x1 defined:True
+D_80115670 = 0x80115670; // size:0x1 defined:True
+D_80115678 = 0x80115678; // size:0x2 defined:True
+D_80115680 = 0x80115680; // size:0x1 defined:True
+
+D_80115688 = 0x80115688; // size:0x1 defined:True
+D_80115690 = 0x80115690; // size:0x1 defined:True
+
+D_80115694 = 0x80115694; // type:s32 size:0x4 defined:True
+
+D_80115698 = 0x80115698; // size:0x2 defined:True
+D_8011569C = 0x8011569C; // size:0x1 defined:True
+D_801156A4 = 0x801156A4; // size:0x1 defined:True
+D_801156A8 = 0x801156A8; // size:0x4 defined:True
+
+D_801156B0 = 0x801156B0; // size:0x1 defined:True
+D_801156B4 = 0x801156B4; // size:0x4 defined:True
+D_801156B8 = 0x801156B8; // size:0x4 defined:True
+D_801156BC = 0x801156BC; // size:0x2 defined:True
+
+D_801156F4 = 0x801156F4; // size:0x4 defined:True
+D_801156F8 = 0x801156F8; // size:0x1 defined:True
+
+D_80114BB0 = 0x80114BB0; // size:0x20 defined:True
+D_80114BD0 = 0x80114BD0; // size:0x8 defined:True
+D_80114BD8 = 0x80114BD8; // size:0x4 defined:True
+
+D_80114C34 = 0x80114C34; // size:0x4 defined:True
+
+D_80114C40 = 0x80114C40; // size:0x2 defined:True
+
+D_80114C50 = 0x80114C50; // size:0xC defined:True
+
+D_80114F28 = 0x80114F28; // size:0x4 defined:True
+
+D_80115260 = 0x80115260; // size:0x4 defined:True
+D_80115264 = 0x80115264; // size:0x4 defined:True
+
+D_80115450 = 0x80115450; // size:0x100 defined:True
+D_80115550 = 0x80115550; // size:0x4 defined:True
+
+D_80115598 = 0x80115598; // size:0x1 defined:True
+
+D_80114C64 = 0x80114C64; // size:0x4 defined:True
+D_80114C68 = 0x80114C68; // size:0x4 defined:True
+D_80114C70 = 0x80114C70; // size:0x2 defined:True
+D_80114C74 = 0x80114C74; // size:0x2 defined:True
+
+D_80114C72 = 0x80114C72; // size:0x2 defined:True
+
+D_80114CB0 = 0x80114CB0; // size:0x10 defined:True
+
+D_80114DCC = 0x80114DCC; // size:0x4 defined:True
+D_80114DD8 = 0x80114DD8; // size:0x4 defined:True
+D_80114DE0 = 0x80114DE0; // size:0x4 defined:True
+D_80114DE4 = 0x80114DE4; // size:0x4 defined:True
+D_80114DE8 = 0x80114DE8; // size:0x4 defined:True
+
+D_80115720 = 0x80115720; // size:0x4 defined:True
+D_80115724 = 0x80115724; // size:0x4 defined:True
+
+D_8010FC2C = 0x8010FC2C; // size:0x1F44 defined:True
+
+D_8010D6B0 = 0x8010D6B0; // size:0x4 defined:True
+D_8010D6D8 = 0x8010D6D8; // size:0x1C defined:True
+D_8010D6F4 = 0x8010D6F4; // size:0x134 defined:True
+D_8010D828 = 0x8010D828; // size:0x10 defined:True
+
+D_8010FA4C = 0x8010FA4C; // size:0x40 defined:True
+
+D_8010FABC = 0x8010FABC; // size:0x18 defined:True
+D_8010FAD4 = 0x8010FAD4; // size:0x18 defined:True
+
+D_8010FB90 = 0x8010FB90; // size:0x50 defined:True
+
+D_80111B70 = 0x80111B70; // size:0x50 defined:True
+D_80111BC0 = 0x80111BC0; // size:0x98 defined:True
+D_80111C58 = 0x80111C58; // size:0x98 defined:True
+D_80111CF0 = 0x80111CF0; // size:0xC4 defined:True
+D_80111DB4 = 0x80111DB4; // size:0x84 defined:True
+
+D_80111E38 = 0x80111E38; // size:0x10 defined:True
+D_80111E48 = 0x80111E48; // size:0x60 defined:True
+D_80111EB4 = 0x80111EB4; // size:0xC defined:True
+
+D_8010CAC8 = 0x8010CAC8; // size:0x8 defined:True
+D_8010CAD0 = 0x8010CAD0; // size:0x12 defined:True
+
+D_8010CBE4 = 0x8010CBE4; // size:0xA8 defined:True
+D_8010CC8C = 0x8010CC8C; // size:0x8 defined:True
+D_8010CC94 = 0x8010CC94; // size:0x138 defined:True
+D_8010CDCC = 0x8010CDCC; // size:0x8 defined:True
+D_8010CDD4 = 0x8010CDD4; // size:0x138 defined:True
+D_8010CF0C = 0x8010CF0C; // size:0x8 defined:True
+D_8010CF14 = 0x8010CF14; // size:0x190 defined:True
+D_8010D0A4 = 0x8010D0A4; // size:0x8 defined:True
+D_8010D0AC = 0x8010D0AC; // size:0x110 defined:True
+D_8010D1BC = 0x8010D1BC; // size:0x8 defined:True
+
+D_8010D1FC = 0x8010D1FC; // size:0xC defined:True
+
+D_8010D3A0 = 0x8010D3A0; // size:0x180 defined:True
+
+D_8010D524 = 0x8010D524; // size:0x4 defined:True
+D_8010D528 = 0x8010D528; // size:0x4 defined:True
+D_8010D52C = 0x8010D52C; // size:0x4 defined:True
+D_8010D530 = 0x8010D530; // size:0x4 defined:True
+D_8010D534 = 0x8010D534; // size:0x4 defined:True
+D_8010D538 = 0x8010D538; // size:0x4 defined:True
+D_8010D53C = 0x8010D53C; // size:0x4 defined:True
+D_8010D540 = 0x8010D540; // size:0x4 defined:True
+D_8010D544 = 0x8010D544; // size:0x4 defined:True
+D_8010D548 = 0x8010D548; // size:0x4 defined:True
+D_8010D54C = 0x8010D54C; // size:0x4 defined:True
+
+D_8010F6FC = 0x8010F6FC; // size:0x1C defined:True
+D_8010F718 = 0x8010F718; // size:0x70 defined:True
+D_8010F788 = 0x8010F788; // size:0x1C defined:True
+D_8010F7A4 = 0x8010F7A4; // size:0x1C defined:True
+D_8010F7C0 = 0x8010F7C0; // size:0x38 defined:True
+D_8010F7F8 = 0x8010F7F8; // size:0x1C defined:True
+D_8010F81C = 0x8010F81C; // size:0x24 defined:True
+D_8010F840 = 0x8010F840; // size:0x1C defined:True
+D_8010F85C = 0x8010F85C; // size:0xC defined:True
+D_8010F868 = 0x8010F868; // size:0x1C defined:True
+D_8010F884 = 0x8010F884; // size:0x4 defined:True
+D_8010F898 = 0x8010F898; // size:0x1C defined:True
+D_8010F8B4 = 0x8010F8B4; // size:0x1C defined:True
+
+D_8010F8F0 = 0x8010F8F0; // size:0x15 defined:True
+D_8010F91C = 0x8010F91C; // size:0x12 defined:True
+
+D_80111ED0 = 0x80111ED0; // size:0x24 defined:True
+D_80111EF4 = 0x80111EF4; // size:0x4 defined:True
+D_80111EF8 = 0x80111EF8; // size:0x30 defined:True
+D_80111F28 = 0x80111F28; // size:0x20 defined:True
+D_80111F48 = 0x80111F48; // size:0x80 defined:True
+D_80111FC8 = 0x80111FC8; // size:0x24 defined:True
+D_80111FEC = 0x80111FEC; // size:0x24 defined:True
+D_80112010 = 0x80112010; // size:0x4 defined:True
+D_80112014 = 0x80112014; // size:0x30 defined:True
+D_80112044 = 0x80112044; // size:0x20 defined:True
+D_80112064 = 0x80112064; // size:0x80 defined:True
+D_801120E4 = 0x801120E4; // size:0x24 defined:True
+D_80112108 = 0x80112108; // size:0x24 defined:True
+D_8011212C = 0x8011212C; // size:0x4 defined:True
+D_80112130 = 0x80112130; // size:0x30 defined:True
+D_80112160 = 0x80112160; // size:0x20 defined:True
+D_80112180 = 0x80112180; // size:0x80 defined:True
+D_80112200 = 0x80112200; // size:0x24 defined:True
+D_80112224 = 0x80112224; // size:0x24 defined:True
+D_80112248 = 0x80112248; // size:0x4 defined:True
+D_8011224C = 0x8011224C; // size:0x30 defined:True
+D_8011227C = 0x8011227C; // size:0x20 defined:True
+D_8011229C = 0x8011229C; // size:0x80 defined:True
+D_8011231C = 0x8011231C; // size:0x24 defined:True
+D_80112340 = 0x80112340; // size:0x24 defined:True
+D_80112364 = 0x80112364; // size:0x4 defined:True
+D_80112368 = 0x80112368; // size:0x40 defined:True
+D_801123A8 = 0x801123A8; // size:0x50 defined:True
+D_801123F8 = 0x801123F8; // size:0xC0 defined:True
+D_801124B8 = 0x801124B8; // size:0x24 defined:True
+D_801124DC = 0x801124DC; // size:0x110 defined:True
+D_801125EC = 0x801125EC; // size:0x110 defined:True
+D_801126FC = 0x801126FC; // size:0x110 defined:True
+D_8011280C = 0x8011280C; // size:0x110 defined:True
+D_8011291C = 0x8011291C; // size:0x18 defined:True
+
+D_80112964 = 0x80112964; // size:0x14 defined:True
+D_80112978 = 0x80112978; // size:0xD8 defined:True
+D_80112A50 = 0x80112A50; // size:0xD8 defined:True
+D_80112B28 = 0x80112B28; // size:0x6C defined:True
+D_80112B94 = 0x80112B94; // size:0xD8 defined:True
+D_80112C6C = 0x80112C6C; // size:0x8 defined:True
+D_80112C74 = 0x80112C74; // size:0x8 defined:True
+D_80112C7C = 0x80112C7C; // size:0xC defined:True
+D_80112DF4 = 0x80112DF4; // size:0x8 defined:True
+D_80112DFC = 0x80112DFC; // size:0x8 defined:True
+D_80112E04 = 0x80112E04; // size:0xC defined:True
+D_80112E10 = 0x80112E10; // size:0x10 defined:True
+D_80112E20 = 0x80112E20; // size:0x8 defined:True
+D_80112E28 = 0x80112E28; // size:0x4 defined:True
+D_80112E2C = 0x80112E2C; // size:0x4 defined:True
+D_80112E30 = 0x80112E30; // size:0x42 defined:True
+D_80112E74 = 0x80112E74; // size:0x40 defined:True
+D_80112EB4 = 0x80112EB4; // size:0x20 defined:True
+D_80112EF8 = 0x80112EF8; // size:0x21 defined:True
+D_80112F1C = 0x80112F1C; // size:0x42 defined:True
+D_80112F60 = 0x80112F60; // size:0x42 defined:True
+D_80112FA4 = 0x80112FA4; // size:0x210 defined:True
+D_801131B4 = 0x801131B4; // size:0x108 defined:True
+D_801132BC = 0x801132BC; // size:0x84 defined:True
+D_80113340 = 0x80113340; // size:0x18 defined:True
+D_80113358 = 0x80113358; // size:0x8 defined:True
+D_80113388 = 0x80113388; // size:0x8 defined:True
+
+D_80113568 = 0x80113568; // size:0x2F0 defined:True
+D_80113858 = 0x80113858; // size:0xC defined:True
+D_80113864 = 0x80113864; // size:0x20 defined:True
+
+Gp_WeaponStats = 0x80113884; // size:0x108 defined:True
+
+D_80113CFC = 0x80113CFC; // size:0x10 defined:True
+D_80113D0C = 0x80113D0C; // size:0x1C defined:True
+D_80113D28 = 0x80113D28; // size:0x8 defined:True
+D_80113D30 = 0x80113D30; // size:0x8 defined:True
+Gp_AttachParams = 0x80113D38; // size:0x1B8 defined:True
+D_80113F54 = 0x80113F54; // size:0x3C defined:True
+D_80113F90 = 0x80113F90; // size:0xC defined:True
+
+D_80113F9C = 0x80113F9C; // size:0x8C defined:True
+
+D_80114096 = 0x80114096; // size:0x2 defined:True
+
+D_80114198 = 0x80114198; // size:0x58 defined:True
+D_801141F0 = 0x801141F0; // size:0x58 defined:True
+D_80114248 = 0x80114248; // size:0x10 defined:True
+D_80114258 = 0x80114258; // size:0x26 defined:True
+D_80114280 = 0x80114280; // size:0x26 defined:True
+D_801142A8 = 0x801142A8; // size:0x26 defined:True
+D_801142D0 = 0x801142D0; // size:0x31 defined:True
+D_80114304 = 0x80114304; // size:0x31 defined:True
+D_80114338 = 0x80114338; // size:0x26 defined:True
+D_80114360 = 0x80114360; // size:0x26 defined:True
+D_80114388 = 0x80114388; // size:0x26 defined:True
+D_801143B0 = 0x801143B0; // size:0x26 defined:True
+D_801143D8 = 0x801143D8; // size:0x26 defined:True
+D_80114400 = 0x80114400; // size:0x26 defined:True
+D_80114428 = 0x80114428; // size:0x21 defined:True
+D_8011444C = 0x8011444C; // size:0x21 defined:True
+D_80114470 = 0x80114470; // size:0x31 defined:True
+D_801144A4 = 0x801144A4; // size:0x31 defined:True
+D_801144D8 = 0x801144D8; // size:0x31 defined:True
+D_8011450C = 0x8011450C; // size:0x21 defined:True
+D_80114530 = 0x80114530; // size:0x31 defined:True
+D_80114564 = 0x80114564; // size:0x24 defined:True
+
+D_801149E8 = 0x801149E8; // size:0xA defined:True
+D_801149F4 = 0x801149F4; // size:0x8 defined:True
+D_801149FC = 0x801149FC; // size:0x28 defined:True
+
+D_80114A24 = 0x80114A24; // size:0x10 defined:True
+D_80114A34 = 0x80114A34; // size:0xC defined:True
+
+D_80114B32 = 0x80114B32; // size:0x2 defined:True
+D_80114B34 = 0x80114B34; // size:0x48 defined:True
+D_80114B7C = 0x80114B7C; // size:0x4 defined:True
+
+D_80114BA4 = 0x80114BA4; // size:0x4 defined:True
+D_80114BA8 = 0x80114BA8; // size:0x4 defined:True
+D_80114BAC = 0x80114BAC; // size:0x4 defined:True
+
+D_80112ED4 = 0x80112ED4; // size:0x21 defined:True
+
+D_80114D28 = 0x80114D28; // size:0x48 defined:True

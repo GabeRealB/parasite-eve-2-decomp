@@ -2,11 +2,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
@@ -16,6 +11,15 @@
 #include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
+#include "main/mem.h"
 
 /// Per-task state of an elevator car: its travel, kept within 0..500.
 typedef struct {
@@ -52,7 +56,7 @@ static void func_shelter_b2_elevator_8017D5E8(Task* task)
     if (Mc_SaveData[0].demoScene != 9) {
         if (GameFlag_GetNibble(0xCF) == 0) {
             GameFlag_SetNibble(0xCF, 1);
-            func_800E8634((s32)&D_801378D0, 0, (s32)&D_801380F8);
+            func_800E8634(&D_801378D0, 0, &D_801380F8);
             func_800E3FAC(0xA2, 0x24);
         } else {
             gGameSession->hideHud    = 1;

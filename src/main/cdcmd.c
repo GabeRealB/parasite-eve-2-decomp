@@ -8,6 +8,13 @@
 
 #include "psyq/libpress.h"
 
+#include "gameplay/display.h"
+#include "gameplay/scene_runtime.h"
+#include "main/display.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/sound.h"
+
 static void* D_8006AC00;
 static u16   CdCmd_EntryIter;
 

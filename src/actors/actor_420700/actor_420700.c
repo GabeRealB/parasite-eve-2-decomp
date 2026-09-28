@@ -1,14 +1,20 @@
 #include "common.h"
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
 
 /// Work block of the overlay's actor, allocated zeroed by its state-0 handler
 /// and kept both in `D_actor_420700_8013EFE0` and at `Task::work`; the task
@@ -50,10 +56,6 @@ static void func_actor_420700_80132478(Task* task);
 static void func_actor_420700_801324EC(void);
 static void func_actor_420700_80132538(void);
 static void func_actor_420700_801325C8(void);
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern u8       D_actor_420700_8013EF48[];
 extern TaskDesc D_actor_420700_8013EF68[];

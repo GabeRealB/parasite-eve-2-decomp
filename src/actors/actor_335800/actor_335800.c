@@ -6,13 +6,6 @@
 #include <psyq/abs.h>
 
 #include "actors/actor.h"
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -22,6 +15,22 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/unknown_syms.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/geometry.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/mc.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a nineteen-part rig, the walk state, and
@@ -75,8 +84,6 @@ extern Actor335800Pose D_actor_335800_80164F80;
 /// Second label on `D_actor_335800_80164F80.z`: the height the rising part
 /// starts decelerating past.
 extern s32 D_actor_335800_80164F88;
-
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern TaskDesc D_80182834;
 
@@ -284,10 +291,10 @@ void func_actor_335800_80162114(void)
         extra = slot->extra.tmd;
         coord = extra->coords;
         if ((u32)(coord->coord.t[2] - 0xC53) < 0x96F) {
-            Gp_DispatchMsg(slot, 0x3E9, (s32)&D_actor_335800_80164ED4, 0);
+            Gp_DispatchMsgPtr(slot, 0x3E9, &D_actor_335800_80164ED4, 0);
         }
         if ((u32)(coord->coord.t[2] - 0x3E9) < 0x86A) {
-            Gp_DispatchMsg(slot, 0x3E9, (s32)&D_actor_335800_80164EBC, 0);
+            Gp_DispatchMsgPtr(slot, 0x3E9, &D_actor_335800_80164EBC, 0);
         }
     }
 }
@@ -310,9 +317,9 @@ void func_actor_335800_801621B4(s32 arg0)
             highIdx = 4;
         }
         if (coord->coord.t[2] >= 0xC53) {
-            Gp_DispatchMsg(slot, 0x3E9, (s32)&D_actor_335800_80164EA4[highIdx], 0);
+            Gp_DispatchMsgPtr(slot, 0x3E9, &D_actor_335800_80164EA4[highIdx], 0);
         } else {
-            Gp_DispatchMsg(slot, 0x3E9, (s32)&D_actor_335800_80164EA4[lowIdx], 0);
+            Gp_DispatchMsgPtr(slot, 0x3E9, &D_actor_335800_80164EA4[lowIdx], 0);
         }
     }
 }
@@ -427,7 +434,7 @@ void func_actor_335800_801624DC(Task* arg0)
     if (gGameSession->field_126 != 0) {
         slot = gameGetPtrSlot(3);
         Gp_PlayerWeaponId(&D_actor_335800_80164E7C.animBlock.index);
-        Gp_DispatchMsg(slot, 0x3E8, (s32)&D_actor_335800_80164E7C, 0);
+        Gp_DispatchMsgPtr(slot, 0x3E8, &D_actor_335800_80164E7C, 0);
         taskKill(arg0);
     }
 }
@@ -483,22 +490,22 @@ static void func_actor_335800_80162640(Task* arg0)
     work->walk.acc[2].w = 0;
     spawned             = Task_SpawnFromTable(&D_actor_335800_8016EADC, 1, 4, (s32)arg0);
     if (spawned != NULL) {
-        TmdObject*   model;
-        GpAreaRec*   rec;
-        GpAreaPlace* place;
-        s32          idx;
+        TmdObject*     model;
+        GpAreaVariant* rec;
+        GpAreaPlace*   place;
+        s32            idx;
 
         work->child0 = spawned;
         model        = spawned->extra.tmd;
         idx          = ((GpEnemy*)arg0->spawnArg2)->placeKey >> 12;
-        sessionKey   = (GpAreaKey*)&gGameSession->at4.loc;
+        sessionKey   = &gGameSession->at4.loc;
         key.stage    = sessionKey->stage;
         key.area     = sessionKey->area;
         key.room     = sessionKey->room;
         key.view     = sessionKey->view;
         Gp_SyncAreaKeyIndex(&key);
         rec          = Gp_GetNestedAreaRec(&key);
-        place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        place        = gpAreaPlaceAt(rec->field_0, idx);
         model->tpage = place->tpage;
         model->clut  = place->clut;
         if (model->buffer != NULL) {
@@ -508,10 +515,10 @@ static void func_actor_335800_80162640(Task* arg0)
     }
     spawned = Task_SpawnFromTable(&D_actor_335800_8016EADC, 2, 8, (s32)arg0);
     if (spawned != NULL) {
-        TmdObject*   model;
-        GpAreaRec*   rec;
-        GpAreaPlace* place;
-        s32          idx;
+        TmdObject*     model;
+        GpAreaVariant* rec;
+        GpAreaPlace*   place;
+        s32            idx;
 
         work->child1 = spawned;
         model        = spawned->extra.tmd;
@@ -523,7 +530,7 @@ static void func_actor_335800_80162640(Task* arg0)
         key.view     = ((GpAreaKey*)(&gGameSession->at4.loc.view))->view;
         Gp_SyncAreaKeyIndex(&key);
         rec          = Gp_GetNestedAreaRec(&key);
-        place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        place        = gpAreaPlaceAt(rec->field_0, idx);
         model->tpage = place->tpage;
         model->clut  = place->clut;
         if (model->buffer != NULL) {

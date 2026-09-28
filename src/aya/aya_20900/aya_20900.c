@@ -9,6 +9,8 @@
 #include "main/sound.h"
 #include "main/task.h"
 
+#include "gameplay/display.h"
+
 void func_aya_20900_8011578C(Task* arg0)
 {
     TILE*     p;

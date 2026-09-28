@@ -1,16 +1,8 @@
 #include "common.h"
-#include "gameplay/gameplay.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -22,6 +14,14 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/acropolis_helicopter_landing_pad.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "main/mem.h"
 
 /// 0x54 work block of the helipad enemy task, hung off the `Task::work`
 /// slot -- it is the `memCalloc(0x54)` block that
@@ -216,8 +216,8 @@ void func_acropolis_helicopter_landing_pad_8017D9BC(Task* task)
         if (Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0) {
             if ((Gp_StateC08.field_A != phase) && (gDisplayState.pendingMode == 0)) {
                 D_acropolis_helicopter_landing_pad_80184D9C = 2;
-                func_800E8634((s32)&D_acropolis_helicopter_landing_pad_80184124, 0,
-                              (s32)&D_acropolis_helicopter_landing_pad_801844B4);
+                func_800E8634(&D_acropolis_helicopter_landing_pad_80184124, 0,
+                              &D_acropolis_helicopter_landing_pad_801844B4);
                 func_800E3FAC(0xA2, 8);
             }
         }

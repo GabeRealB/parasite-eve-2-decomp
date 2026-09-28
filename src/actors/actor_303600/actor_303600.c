@@ -5,11 +5,6 @@
 #include <psyq/libgs.h>
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
@@ -19,6 +14,14 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/geometry.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_targets.h"
 
 /// Work block for the `actor_303600` overlay's cutscene controller.
 ///
@@ -159,7 +162,7 @@ static void func_actor_303600_80161F40(Task* arg0)
             msg.from.loc.stage = gGameSession->at4.loc.stage;
             msg.from.loc.area  = gGameSession->at4.loc.area;
             msg.command        = 1;
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
             w->field_C = 1;
             break;
         case 2:
@@ -167,7 +170,7 @@ static void func_actor_303600_80161F40(Task* arg0)
             msg.from.loc.stage = gGameSession->at4.loc.stage;
             msg.from.loc.area  = gGameSession->at4.loc.area;
             msg.command        = 2;
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
             w->field_C = 2;
             break;
         case 3:
@@ -175,7 +178,7 @@ static void func_actor_303600_80161F40(Task* arg0)
             msg.from.loc.stage = gGameSession->at4.loc.stage;
             msg.from.loc.area  = gGameSession->at4.loc.area;
             msg.command        = 3;
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
             w->field_C = 3;
             break;
         case 4:
@@ -183,7 +186,7 @@ static void func_actor_303600_80161F40(Task* arg0)
             msg.from.loc.stage = gGameSession->at4.loc.stage;
             msg.from.loc.area  = gGameSession->at4.loc.area;
             msg.command        = 4;
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
             w->field_C = 4;
             if (D_actor_303600_8016E4C4 != NULL) {
                 taskKill(D_actor_303600_8016E4C4);
@@ -196,7 +199,7 @@ static void func_actor_303600_80161F40(Task* arg0)
             msg.from.loc.stage = gGameSession->at4.loc.stage;
             msg.from.loc.area  = gGameSession->at4.loc.area;
             msg.command        = 5;
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
             w->field_C = 5;
             break;
         case 6:
@@ -251,7 +254,7 @@ void func_actor_303600_8016216C(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 1:
-            func_800E8634((s32)D_actor_303600_80162AF0, 0, (s32)D_actor_303600_80162DD8);
+            func_800E8634(D_actor_303600_80162AF0, 0, D_actor_303600_80162DD8);
             arg0->state += 1;
             break;
         case 2:
@@ -362,7 +365,7 @@ void func_actor_303600_801624B0(void)
         msg.from.loc.stage = gGameSession->at4.loc.stage;
         msg.from.loc.area  = gGameSession->at4.loc.area;
         msg.command        = 9;
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
         work->field_C = 9;
         work->field_E = 1;
     }
@@ -389,7 +392,7 @@ void func_actor_303600_8016253C(void)
         msg.from.loc.stage = gGameSession->at4.loc.stage;
         msg.from.loc.area  = gGameSession->at4.loc.area;
         msg.command        = 9;
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
         work->field_C = 9;
         work->field_E = 1;
     }

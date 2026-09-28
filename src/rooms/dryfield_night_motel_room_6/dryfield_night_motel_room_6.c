@@ -6,14 +6,6 @@
 #include "gte.h"
 #include "main/gfxgte.h"
 #include <psyq/gtemac.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -32,16 +24,27 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181228.h"
 
+#include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/captions.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/message.h"
+#include "gameplay/model_objects.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_targets.h"
+
 extern UiObject*    D_80067634;
 extern UiObjectDesc D_800611E4;
-extern UiObjectDesc D_8010EFA0;
-extern s16          D_80114D08;
 
 /// `Mc_SaveData[0].companionType` (ally present), read through its own symbol.
 
 /// `Mc_SaveData[0].at4.loc.view` as it was when the cutscene started, restored
 /// when it ends.
-extern s32 D_80115694;
 
 /// Area-record patch list applied when the cutscene advances the story flags.
 extern GpAreaApplyRec D_80188888[];

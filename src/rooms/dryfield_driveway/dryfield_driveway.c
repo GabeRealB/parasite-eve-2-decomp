@@ -2,15 +2,6 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -19,7 +10,18 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern u8 D_80115690;
+#include "gameplay/area_transitions.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
+#include "main/fs.h"
 
 extern s32 D_dryfield_driveway_8017E384;
 extern s32 D_dryfield_driveway_8017E4FC;
@@ -128,7 +130,7 @@ s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg* in, Roo
                         }
                     }
                 }
-                if (gGameSession->at4.loc.place == 1 && Gp_StateF0.field_0 == gGameSession->at4.loc.place) {
+                if (gGameSession->at4.loc.place == 1 && Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.place) {
                     return 0;
                 }
                 Gp_RunCapCmd1(1);
@@ -182,7 +184,7 @@ void func_dryfield_driveway_8017DAD0(Task* arg0)
         D_80115768            = 1;
         SetDispMask(0);
         func_800E3FAC(0xA2, 0x10);
-        func_800E8634((s32)&D_dryfield_driveway_8017E4FC, 0, (s32)&D_dryfield_driveway_8017E67C);
+        func_800E8634(&D_dryfield_driveway_8017E4FC, 0, &D_dryfield_driveway_8017E67C);
     } else {
         taskKill(arg0);
         Gp_ClearCollectedBit(0x114);

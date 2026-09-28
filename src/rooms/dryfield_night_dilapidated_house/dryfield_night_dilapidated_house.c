@@ -1,10 +1,4 @@
 #include "common.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -14,6 +8,15 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/dryfield_night_dilapidated_house.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
 
 /// Cutscene script blob arguments of `func_800E8634`.
 extern s32 D_dryfield_night_dilapidated_house_801868F4;
@@ -192,8 +195,8 @@ static void func_dryfield_night_dilapidated_house_8017D970(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
     if (GameFlag_GetNibble(0x92) == 0) {
         if (gameGetPtrSlot(0xA) != 0) {
-            func_800E8634((s32)&D_dryfield_night_dilapidated_house_801868F4, 0,
-                          (s32)&D_dryfield_night_dilapidated_house_80187134);
+            func_800E8634(&D_dryfield_night_dilapidated_house_801868F4, 0,
+                          &D_dryfield_night_dilapidated_house_80187134);
         }
         GameFlag_SetNibble(0x92, 1);
         GameFlag_SetNibble(0x7A, 3);

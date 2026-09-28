@@ -5,14 +5,6 @@
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gfx.h"
@@ -28,6 +20,20 @@
 #include "main/wipsys.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/loading.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_input.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/gamemain.h"
 
 /// Scratch block for the plaza's eight-quad glow. `vec` holds the coordinate
 /// origin, `sx` / `sy` its projected screen position, and `half` the radius
@@ -969,7 +975,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
             place.pos.vx                                 = 0x3804;
             place.pos.vy                                 = 0;
             place.pos.vz                                 = 0xFC8;
-            Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3F2, (s32)&place, 0);
+            Gp_DispatchMsgPtr(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3F2, &place, 0);
             task->state = task->state + 1;
             return;
         case 1:
@@ -977,7 +983,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
                 return;
             }
             warp.rot.vy = 0xD55;
-            Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3EE, (s32)&warp, 0);
+            Gp_DispatchMsgPtr(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3EE, &warp, 0);
             task->state = task->state + 1;
             return;
         case 2:
@@ -992,7 +998,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
             }
             ((AcropolisPlazaCutWork*)task->spawnArg2)->field_1A = q->field_1EE;
             taskKill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
-            func_800E8634((s32)D_acropolis_plaza_80182734, 1, (s32)D_acropolis_plaza_80182A34);
+            func_800E8634(D_acropolis_plaza_80182734, 1, D_acropolis_plaza_80182A34);
             task->state = task->state + 1;
             return;
         case 4:
@@ -1044,7 +1050,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             place.pos.vx                                 = 0xF6E;
             place.pos.vy                                 = 0;
             place.pos.vz                                 = 0x2328;
-            Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3F2, (s32)&place, 0);
+            Gp_DispatchMsgPtr(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3F2, &place, 0);
             task->state = task->state + 1;
             return;
         case 1:
@@ -1052,7 +1058,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
                 return;
             }
             warp.rot.vy = 0xD55;
-            Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3EE, (s32)&warp, 0);
+            Gp_DispatchMsgPtr(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3EE, &warp, 0);
             task->state = task->state + 1;
             return;
         case 2:
@@ -1064,7 +1070,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             script.field_8       = 0;
             script.field_C       = 0;
             script.field_10      = 1;
-            Gp_DispatchMsg(work->slot3, 0x3F4, (s32)&script, 0);
+            Gp_DispatchMsgPtr(work->slot3, 0x3F4, &script, 0);
             task->state = task->state + 1;
             return;
         case 3:
@@ -1100,7 +1106,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
                 buf.weapon.rec.field_8         = 0;
                 rec->field_C                   = 0xA;
                 buf.weapon.rec.field_10        = 0;
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf.weapon.rec, 0);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf.weapon.rec, 0);
 
                 coord            = ((AcropolisPlazaWarpWork*)task->work)->slot3->extra.tmd->coords;
                 buf.place.pos.vx = coord->coord.t[0];
@@ -1109,7 +1115,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
                 buf.place.rot.vz = 0;
                 buf.place.rot.vx = 0;
                 buf.place.rot.vy = 0xEAA;
-                Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3E9, (s32)&buf.place, 0);
+                Gp_DispatchMsgPtr(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3E9, &buf.place, 0);
                 task->state = task->state + 1;
             }
             break;
@@ -1180,7 +1186,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             place.pos.vx                                    = 0x3DE;
             place.pos.vy                                    = 0;
             place.pos.vz                                    = 0x33FE;
-            Gp_DispatchMsg(((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3F2, (s32)&place, 0);
+            Gp_DispatchMsgPtr(((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3F2, &place, 0);
             task->state = task->state + 1;
             return;
         case 1:
@@ -1188,7 +1194,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 return;
             }
             warp.rot.vy = 0x1000;
-            Gp_DispatchMsg(((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3EE, (s32)&warp, 0);
+            Gp_DispatchMsgPtr(((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3EE, &warp, 0);
             task->state = task->state + 1;
             return;
         case 2:
@@ -1214,7 +1220,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             return;
         case 4:
             if (CdCmd_IsIdle() != 0) {
-                func_800E8634((s32)D_acropolis_plaza_80182C90, 1, (s32)D_acropolis_plaza_80182F18);
+                func_800E8634(D_acropolis_plaza_80182C90, 1, D_acropolis_plaza_80182F18);
                 task->state = task->state + 1;
                 return;
             }
@@ -1247,8 +1253,8 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             placeBack.pos.vx = 0x3DE;
             placeBack.pos.vy = 0;
             placeBack.pos.vz = 0x439E;
-            Gp_DispatchMsg(
-                ((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3F2, (s32)&placeBack, 0);
+            Gp_DispatchMsgPtr(
+                ((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3F2, &placeBack, 0);
             roomRec.animBlock.index = 1;
             roomRec.field_4         = 8;
             roomRec.field_8         = 0;
@@ -1278,11 +1284,11 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 }
             }
         found6:
-            Gp_DispatchMsg(
+            Gp_DispatchMsgPtr(
                 (Task*)Gp_FindWorkById((idx << 12) | (sessionKey->stage << 8) |
                                        sessionKey->area)
                     ->field_0,
-                0x7D3, (s32)&roomRec, 0);
+                0x7D3, &roomRec, 0);
             task->state = task->state + 1;
             work->timer = 0;
             return;
@@ -1433,7 +1439,7 @@ void func_acropolis_plaza_8017F48C(Task* task)
             rec.field_8         = 0;
             rec.field_C         = 0xA;
             rec.field_10        = 0;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &rec, 0);
             task->state = task->state + 1;
             break;
         case 1:
@@ -1483,7 +1489,7 @@ void func_acropolis_plaza_8017F620(Task* task)
             rec.field_8         = 0;
             rec.field_C         = 0xA;
             rec.field_10        = 0;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &rec, 0);
             task->state = task->state + 1;
             break;
         case 1:

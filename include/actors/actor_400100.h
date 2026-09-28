@@ -6,11 +6,13 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3FB8.h"
 #include "main/tmd.h"
 #include "main/task.h"
 #include "main/session.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/effects.h"
+#include "gameplay/pairsrc.h"
 
 /// 0x98-byte object embedded four times in `Actor00100Work` at 0x908. The
 /// leading 0x20 bytes are the `GpObj` list node unlinked by `Gp_UnlinkObj`;
@@ -233,11 +235,10 @@ extern s8         Actor00100_D1BA54;
 extern GpPairSrcE Actor00100_D0BDA4;
 extern char       Actor00100_D1B944;
 
-extern char  Actor00100_D10D60;
-extern char  Actor00100_D11234;
-extern char  Actor00100_D11F90;
-extern char  Actor00100_D12470;
-extern void* D_80114B78[1];
+extern char Actor00100_D10D60;
+extern char Actor00100_D11234;
+extern char Actor00100_D11F90;
+extern char Actor00100_D12470;
 
 s32 Actor00100_Fn0B264(Task* task);
 s32 Actor00100_Fn0B1A4(Task* arg0, s32 arg1, s32 arg2);

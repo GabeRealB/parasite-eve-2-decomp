@@ -5,11 +5,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3688.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gfx.h"
@@ -21,7 +16,13 @@
 #include "rooms/dryfield_night_motel_lobby.h"
 #include "rooms/room_common.h"
 
-extern s16 D_80114D08;
+#include "gameplay/captions.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/room_effects.h"
+#include "main/mc.h"
 
 /// Task descriptor of the examine child task `func_dryfield_night_motel_lobby_80180E98`
 /// spawns.
@@ -297,7 +298,7 @@ static void func_dryfield_night_motel_lobby_801807C0(Task* task)
     }
 
     for (port = first; port < count; port++) {
-        prompt = &D_80114D28 + port;
+        prompt = &D_80114D28[port];
         pad    = &Pad_States[port];
         status = pad->status;
         if (status == 0x12) {
@@ -367,20 +368,20 @@ static void func_dryfield_night_motel_lobby_801807C0(Task* task)
             prompt->field_4 = 0xDC00;
         }
 
-        statep = &prompt->buttons[0].state;
-        heldp  = &prompt->buttons[0].heldFrames;
+        statep = &prompt->buttons.halfwords[0];
+        heldp  = &prompt->buttons.halfwords[1];
         idx    = 0;
         for (i = 0; i < 2; i++, statep += 4, idx += 4) {
             mask = (i == 0) ? 0x40 : 0xA0;
             if (Pad_CheckButtons(port, 1, mask) != 0) {
                 if (heldp[idx] < prompt->field_E &&
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed == prompt->screen.packed) {
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
                     *statep    = 4;
                     heldp[idx] = prompt->field_E;
                 } else {
-                    heldp[idx]                                           = 0;
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed = prompt->screen.packed;
-                    *statep                                              = 2;
+                    heldp[idx]                                                          = 0;
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
+                    *statep                                                             = 2;
                 }
             } else if (Pad_CheckButtons(port, 3, mask) != 0) {
                 *statep = 3;
@@ -521,7 +522,7 @@ static void func_dryfield_night_motel_lobby_80180E98(Task* task)
 /// screen position, and steps the task on one state.
 static void func_dryfield_night_motel_lobby_80180FA4(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
 
     prompt->targetId    = 0x80;
     prompt->mode        = 1;
@@ -536,7 +537,7 @@ static void func_dryfield_night_motel_lobby_80180FA4(Task* task)
 /// gameplay-side globals the prompt's display task reads.
 static void func_dryfield_night_motel_lobby_80180FD8(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     DnmlExamineWork*  work   = (DnmlExamineWork*)task->work;
 
     func_dryfield_night_motel_lobby_801802A8(task);
@@ -553,7 +554,7 @@ static void func_dryfield_night_motel_lobby_80180FD8(Task* task)
 /// cap slot 9. Advances the task to state 2 either way.
 static void func_dryfield_night_motel_lobby_8018103C(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     DnmlExamineWork*  work   = (DnmlExamineWork*)task->work;
 
     func_dryfield_night_motel_lobby_801802A8(task);
@@ -624,17 +625,17 @@ static void func_dryfield_night_motel_lobby_8018122C(Task* arg0)
 /// task on one state.
 static void func_dryfield_night_motel_lobby_80181298(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     s32               i;
 
     for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0               = 0;
-        prompt->field_4               = 0;
-        prompt->targetId              = 0x100;
-        prompt->field_E               = 0xF;
-        prompt->buttons[0].heldFrames = 0;
-        prompt->buttons[1].heldFrames = 0;
-        prompt->mode                  = 1;
+        prompt->field_0                     = 0;
+        prompt->field_4                     = 0;
+        prompt->targetId                    = 0x100;
+        prompt->field_E                     = 0xF;
+        prompt->buttons.slots[0].heldFrames = 0;
+        prompt->buttons.slots[1].heldFrames = 0;
+        prompt->mode                        = 1;
     }
     task->state = task->state + 1;
 }

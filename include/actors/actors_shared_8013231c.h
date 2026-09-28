@@ -4,9 +4,9 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
+#include "main/task.h"
 
 #include "gameplay/message.h"
-#include "main/task.h"
 
 /// Places the actor at `args`: drops the opcode's translation straight into the
 /// root part's local matrix, stores its Euler angles in the coordinate's own

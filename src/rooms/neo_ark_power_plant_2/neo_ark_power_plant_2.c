@@ -5,14 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/light.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -23,11 +15,24 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
-extern s32 D_8011572C;
-extern s32 D_80115750;
-extern s32 D_80115758;
+extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 extern GpMsgEntry     D_neo_ark_power_plant_2_801801F8[];
 extern s32            D_neo_ark_power_plant_2_801802A8;
@@ -88,7 +93,7 @@ s32 func_neo_ark_power_plant_2_8017D61C(s32 arg0, s32 arg1, s32 arg2)
             break;
         case 3:
             cmd = 7;
-            if (Gp_StateF0.field_0 != 2) {
+            if (Gp_StateF0.prefix.bytes.field_0 != 2) {
                 cmd = GameFlag_GetNibble(0x147) != 0 ? 6 : 3;
             }
             break;
@@ -148,7 +153,7 @@ static void func_neo_ark_power_plant_2_8017D758(Task* task)
             func_800E3FAC(0xA2, 0x2E);
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 7);
-            func_800E8634((s32)&D_neo_ark_power_plant_2_801802A8, 0, (s32)&D_neo_ark_power_plant_2_80180560);
+            func_800E8634(&D_neo_ark_power_plant_2_801802A8, 0, &D_neo_ark_power_plant_2_80180560);
         }
     }
 }

@@ -7,13 +7,6 @@
 #include "gte.h"
 #include "main/gfxgte.h"
 #include <psyq/gtemac.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -26,6 +19,19 @@
 #include "main/wipsys.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/model_objects.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "main/fs.h"
 
 /// Record the destination resolver `func_neo_ark_observatory_8017F44C` reads:
 /// `field_0` is the destination area and `field_5` must be 0 for it to act.
@@ -906,7 +912,7 @@ void func_neo_ark_observatory_8017F588(Task* arg0)
                 arg0->state = 2;
                 break;
             }
-            Gp_DispatchMsg(slot, 0x3EE, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(slot, 0x3EE, &msg, 0);
             arg0->state = (s32)(arg0->state + 1);
             break;
         case 1:
@@ -1004,11 +1010,11 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32
         GameFlag_SetNibble(0xD7, 1);
         if (GameFlag_GetNibble(0x83) != 0) {
             func_800E3FAC(0xA2, 0x2C);
-            func_800E8634((s32)&D_8013C72C, 0, (s32)&D_8013CAEC);
+            func_800E8634(&D_8013C72C, 0, &D_8013CAEC);
         } else {
             func_800E3FAC(0xA2, 0x2D);
             GameFlag_SetNibble(0xD1, 3);
-            func_800E8634((s32)&D_80137EE4, 0, (s32)&D_80138694);
+            func_800E8634(&D_80137EE4, 0, &D_80138694);
         }
     }
     if (arg2->field_2 == 2) {
@@ -1017,7 +1023,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32
             GameFlag_SetNibble(0x155, 6);
             GameFlag_SetNibble(0xE1, 1);
             Mc_SaveData[0].sceneEvent = 0x15;
-            func_800E8634((s32)&D_8013FC58, 0, (s32)&D_80140078);
+            func_800E8634(&D_8013FC58, 0, &D_80140078);
         }
     }
     if (arg2->field_2 == 3 && gameGetPtrSlot(0xA) != NULL && gGameSession->at4.loc.view == 2) {
@@ -1025,7 +1031,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32
     }
     if (arg2->field_2 == 4 && GameFlag_GetNibble(0xDE) != 0 && GameFlag_GetNibble(0x16E) == 0) {
         GameFlag_SetNibble(0x16E, 1);
-        func_800E8634((s32)&D_neo_ark_observatory_80181200, 0, (s32)&D_neo_ark_observatory_801812C0);
+        func_800E8634(&D_neo_ark_observatory_80181200, 0, &D_neo_ark_observatory_801812C0);
     }
     return 0;
 }

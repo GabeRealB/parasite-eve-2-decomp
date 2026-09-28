@@ -19,6 +19,8 @@
 #include "main/title.h"
 #include "main/wipsys.h"
 
+#include "gameplay/display.h"
+
 // Build stamp (must stay in .rodata ahead of Boot_LoadInitialFile jtbl).
 /// Early-image build stamp string @ VA 0x80012750 ("2000/05/01 19:24 ver2.49").
 static const char Boot_BuildStamp[] = "2000/05/01 19:24 ver2.49";

@@ -4,8 +4,6 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-
-#include "gameplay/message.h"
 #include "main/task.h"
 #include "overlay.h"
 

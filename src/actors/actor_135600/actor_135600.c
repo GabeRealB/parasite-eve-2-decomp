@@ -8,18 +8,24 @@
 #include "decomp/common.h"
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/geometry.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 /// Optional start animation for `func_actor_135600_8013282C`: the preset's
 /// `field_4` and the `model.nextAnimId` byte. Absent, the defaults are anim 0xD and 1.
@@ -30,9 +36,6 @@ typedef struct Actor135600SpawnAnim {
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
-
-/// Declared locally with a signed animation id, as every caller passes one.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// The marker quad's two vertex pairs, in the actor's local frame: `-4/+4`
 /// and `-3/+3` along X, all coplanar in Z.

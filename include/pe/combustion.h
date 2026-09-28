@@ -6,7 +6,6 @@
 #include <psyq/libgs.h>
 #include "main/coord.h"
 #include <psyq/libgte.h>
-#include "gameplay/3CD8.h"
 
 /// One 8-byte row of `D_combustion_80130980`, indexed by `GpEffWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`, so the burn scales with the combo counter).

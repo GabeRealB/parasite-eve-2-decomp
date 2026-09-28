@@ -5,13 +5,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
-
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -25,10 +18,16 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern u8  D_80115690;
-extern s32 D_8011572C;
-extern s32 D_80115750;
-extern s32 D_80115758;
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -201,7 +200,7 @@ void func_shelter_1f_parking_garage_8017D7E8(Task* arg0)
                 arg0->state = 2;
                 break;
             }
-            Gp_DispatchMsg(slot, 0x3EE, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(slot, 0x3EE, &msg, 0);
             arg0->state = (s32)(arg0->state + 1);
             break;
         case 1:

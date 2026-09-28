@@ -4,12 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/rand.h>
 
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
-
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gfx.h"
@@ -24,6 +18,17 @@
 #include "rooms/dryfield_water_tank.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_coords.h"
+#include "main/mc.h"
+#include "main/wipsys.h"
 
 /// Work block for the water-tank cutscene task, allocated as 0xC zeroed bytes
 /// by `func_dryfield_water_tank_8017E9F8` and hung off `Task::work` (0x1C): only
@@ -268,7 +273,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                         msg.rec.field_8       = 0;
                         msg.rec.field_C       = 0;
                         msg.rec.field_10      = 0;
-                        Gp_DispatchMsg((Task*)cur->owner, 0x3F4, (s32)&msg.rec, 0);
+                        Gp_DispatchMsgPtr((Task*)cur->owner, 0x3F4, &msg.rec, 0);
                     }
                     work->field_6++;
                     return;
@@ -280,7 +285,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                         msg.rec.field_8       = step;
                         msg.rec.field_C       = 0xF;
                         msg.rec.field_10      = 0;
-                        Gp_DispatchMsg((Task*)cur->owner, 0x3F4, (s32)&msg.rec, 0);
+                        Gp_DispatchMsgPtr((Task*)cur->owner, 0x3F4, &msg.rec, 0);
                     }
                     Gp_DispatchMsg((Task*)work->owner, 0x3FD, 8, 0);
                     break;
@@ -291,7 +296,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
             break;
         case 4:
             msg.warp.rot.vy = 0x800;
-            Gp_DispatchMsg((Task*)work->owner, 0x3EE, (s32)&msg.warp, 0);
+            Gp_DispatchMsgPtr((Task*)work->owner, 0x3EE, &msg.warp, 0);
             break;
         case 5:
             idx = (u16)work->field_6;
@@ -307,7 +312,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                     work->field_6 = idx + 1;
                     return;
                 case 3:
-                    Gp_DispatchMsg((Task*)work->owner, 0x3E9, (s32)&D_dryfield_water_tank_801804F4, 0);
+                    Gp_DispatchMsgPtr((Task*)work->owner, 0x3E9, &D_dryfield_water_tank_801804F4, 0);
                     // Taken before the record is filled, the address sits in
                     // $a1 and `field_4` is stored through it.
                     rec                    = &script;
@@ -317,7 +322,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                     script.field_8         = 0;
                     script.field_C         = 0;
                     script.field_10        = 0;
-                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&script, 0);
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &script, 0);
                     gGameSession->viewDirty = 1;
                     break;
                 default:
@@ -380,9 +385,9 @@ L_case0:
         script.field_8         = 1;
         script.field_C         = 0xA;
         script.field_10        = 0;
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&script, 0);
-        func_800E8634((s32)&D_dryfield_water_tank_8018050C, 0,
-                      (s32)&D_dryfield_water_tank_8018068C);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &script, 0);
+        func_800E8634(&D_dryfield_water_tank_8018050C, 0,
+                      &D_dryfield_water_tank_8018068C);
         goto advance;
     }
     return;
@@ -420,8 +425,8 @@ void func_dryfield_water_tank_8017EBA0(void)
     s32       weaponId;
     s32       anim;
 
-    Gp_DispatchMsg(((DwtWork*)D_dryfield_water_tank_80188D50->work)->owner, 0x3E9,
-                   (s32)&D_dryfield_water_tank_801804F4, 0);
+    Gp_DispatchMsgPtr(((DwtWork*)D_dryfield_water_tank_80188D50->work)->owner, 0x3E9,
+                      &D_dryfield_water_tank_801804F4, 0);
     weaponId            = Player_Status.weapon;
     anim                = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = anim;
@@ -429,7 +434,7 @@ void func_dryfield_water_tank_8017EBA0(void)
     rec.field_8         = 0;
     rec.field_C         = 0;
     rec.field_10        = 0;
-    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &rec, 0);
     SetDispMask(1);
 }
 
@@ -457,7 +462,7 @@ void func_dryfield_water_tank_8017EC6C(Task* arg0)
     rec.rot.vy = -0x7FF;
     rec.rot.vz = 0;
     arg0->killCountdown++;
-    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&rec, 0);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &rec, 0);
 }
 
 /// The tank's second run leg, the continuation of `func_dryfield_water_tank_8017EC6C`:
@@ -480,7 +485,7 @@ void func_dryfield_water_tank_8017ED30(Task* arg0)
     rec.rot.vy = 0x400;
     rec.rot.vz = 0;
     arg0->killCountdown++;
-    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&rec, 0);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &rec, 0);
 }
 
 /// Per-frame model update for the tank: the callback word at 0x801868A8 in the

@@ -15,12 +15,16 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a twenty-part rig and the model state, the
@@ -77,10 +81,6 @@ extern void* D_actor_113100_801442E0[];
 /// Per-animation byte the same handler copies into
 /// `Actor113100Work::field_53C` from `GpAnimArg::field_4`.
 extern u8 D_actor_113100_801442E4[];
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Main-executable routine the turn handler `func_actor_113100_801324DC` calls
 /// with a yaw angle and the root coordinate's matrix, after resetting its 3x3
@@ -190,7 +190,7 @@ static void func_actor_113100_80131E58(Task* task)
 
     child2 = Task_SpawnFromTable(&D_actor_113100_80144308, 2, 4, (s32)task);
     if (child2 != NULL) {
-        sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
+        sessionKey2 = &gGameSession->at4.loc;
         raw2        = ((GpEnemy*)task->spawnArg2)->placeKey;
         model2      = child2->extra.tmd;
         key.stage   = sessionKey2->stage;
@@ -200,7 +200,7 @@ static void func_actor_113100_80131E58(Task* task)
         index2      = raw2 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry2        = (GpAreaPlace*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
         model2->tpage = entry2->tpage;
         model2->clut  = entry2->clut;
         if (model2->buffer != NULL) {
@@ -211,7 +211,7 @@ static void func_actor_113100_80131E58(Task* task)
 
     child3 = Task_SpawnFromTable(&D_actor_113100_80144308, 3, 2, (s32)task);
     if (child3 != NULL) {
-        sessionKey3 = (GpAreaKey*)&gGameSession->at4.loc;
+        sessionKey3 = &gGameSession->at4.loc;
         raw3        = ((GpEnemy*)task->spawnArg2)->placeKey;
         model3      = child3->extra.tmd;
         key.stage   = sessionKey3->stage;
@@ -221,7 +221,7 @@ static void func_actor_113100_80131E58(Task* task)
         index3      = raw3 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry3        = (GpAreaPlace*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        entry3        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
         model3->tpage = entry3->tpage;
         model3->clut  = entry3->clut;
         if (model3->buffer != NULL) {

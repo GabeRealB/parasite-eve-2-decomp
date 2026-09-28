@@ -18,14 +18,20 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/wipsys.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "actors/actor.h"
 #include "actors/actor_403600.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/loading.h"
+#include "gameplay/sprites.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
 
 /// A quad of the screen distortion grid. Its texture is the copy of the frame
 /// the grid is drawn over, which is wider than one texture page reaches, so a

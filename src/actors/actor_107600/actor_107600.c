@@ -6,12 +6,6 @@
 #include "main/session.h"
 #include "main/sound.h"
 
-#include "gameplay/gameplay.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3FB8.h"
-
 /* The controller task this actor is reparented to is the Mist shooting
  * gallery's, so the counter at +0xE of its work block is that room's. */
 #include "rooms/mist_shooting_gallery.h"
@@ -19,6 +13,23 @@
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/lighting_work.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/player_state.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/wipsys.h"
 
 /// Work block this overlay hangs off `Task::work`. The display node at
 /// +0x60 is the one the exit callback `func_actor_107600_80134920` hands back

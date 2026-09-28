@@ -5,11 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
@@ -21,6 +16,15 @@
 #include "rooms/dryfield_gas_station.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "main/fs.h"
 
 /// Work block for the gas-station cutscene task, allocated as 0x10 zeroed bytes
 /// by `func_dryfield_gas_station_801807E0` and hung off `Task::work` (0x1C).
@@ -84,7 +88,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
         case 0:
             break;
         case 1:
-            Gp_DispatchMsg((Task*)work->owner, 0x3E9, (s32)&D_dryfield_gas_station_80182E44[0], 0);
+            Gp_DispatchMsgPtr((Task*)work->owner, 0x3E9, &D_dryfield_gas_station_80182E44[0], 0);
             SndEvt_EnqueueType6(0x52010011, 0, 0);
             SndEvt_EnqueueType6(0x52010012, 0, 0);
             break;
@@ -96,13 +100,13 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                 msg.rec.field_8       = 0;
                 msg.rec.field_C       = 0;
                 msg.rec.field_10      = 0;
-                Gp_DispatchMsg((Task*)cur->owner, 0x3F4, (s32)&msg.rec, 0);
+                Gp_DispatchMsgPtr((Task*)cur->owner, 0x3F4, &msg.rec, 0);
             }
             Gp_DispatchMsg((Task*)work->owner, 0x3FD, 8, 0);
             break;
         case 3:
             SndEvt_EnqueueType6(0x52010013, 0, 0);
-            Gp_DispatchMsg((Task*)work->owner, 0x3E9, (s32)&D_dryfield_gas_station_80182E5C, 0);
+            Gp_DispatchMsgPtr((Task*)work->owner, 0x3E9, &D_dryfield_gas_station_80182E5C, 0);
             cur = (DgsWork*)task->work;
             if (cur->owner != NULL) {
                 msg.rec.animBlock.ptr = &D_dryfield_gas_station_80182E30;
@@ -110,7 +114,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                 msg.rec.field_8       = 1;
                 msg.rec.field_C       = 0x1E;
                 msg.rec.field_10      = 0;
-                Gp_DispatchMsg((Task*)cur->owner, 0x3F4, (s32)&msg.rec, 0);
+                Gp_DispatchMsgPtr((Task*)cur->owner, 0x3F4, &msg.rec, 0);
             }
             break;
         case 4:
@@ -124,7 +128,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                         msg.rec.field_8       = 0;
                         msg.rec.field_C       = 0;
                         msg.rec.field_10      = 0;
-                        Gp_DispatchMsg((Task*)cur->owner, 0x3F4, (s32)&msg.rec, 0);
+                        Gp_DispatchMsgPtr((Task*)cur->owner, 0x3F4, &msg.rec, 0);
                     }
                     Gp_DispatchMsg((Task*)work->owner, 0x3FD, 8, 0);
                     Gp_DispatchMsg((Task*)work->owner, 0x3FC, 0, 0);
@@ -136,7 +140,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                     msg.move.y        = 0;
                     msg.move.z        = (D_dryfield_gas_station_80182E44[2].pos.vz - D_dryfield_gas_station_80182E44[0].pos.vz) / 30;
                     msg.move.field_10 = 0;
-                    Gp_DispatchMsg((Task*)work->owner, 0x3FE, (s32)&msg.move, 0);
+                    Gp_DispatchMsgPtr((Task*)work->owner, 0x3FE, &msg.move, 0);
                     work->field_8++;
                     if (work->field_8 < 31) {
                         return;
@@ -152,7 +156,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                         rec->field_8         = step;
                         rec->field_C         = 0xF;
                         script.field_10      = 0;
-                        Gp_DispatchMsg((Task*)cur->owner, 0x3F4, (s32)rec, 0);
+                        Gp_DispatchMsgPtr((Task*)cur->owner, 0x3F4, rec, 0);
                     }
                     break;
                 default:
@@ -167,7 +171,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                 eff->playerEffActive = 0;
                 Gp_MsgPlayerWeapon(0);
             }
-            Gp_DispatchMsg((Task*)eff->owner, 0x3E9, (s32)&D_dryfield_gas_station_80182E74, 0);
+            Gp_DispatchMsgPtr((Task*)eff->owner, 0x3E9, &D_dryfield_gas_station_80182E74, 0);
             cur = (DgsWork*)shared->work;
             if (cur->owner != NULL) {
                 msg.rec.animBlock.ptr = &D_dryfield_gas_station_80182E30;
@@ -175,7 +179,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                 msg.rec.field_8       = 0;
                 msg.rec.field_C       = 0;
                 msg.rec.field_10      = 0;
-                Gp_DispatchMsg((Task*)cur->owner, 0x3F4, (s32)&msg.rec, 0);
+                Gp_DispatchMsgPtr((Task*)cur->owner, 0x3F4, &msg.rec, 0);
             }
             SndEvt_EnqueueType7(0x52010011, 0x3C);
             SetDispMask(1);
@@ -231,11 +235,11 @@ void func_dryfield_gas_station_801807E0(Task* task)
                     script.field_8       = 0;
                     script.field_C       = 0;
                     script.field_10      = 0;
-                    Gp_DispatchMsg((Task*)work2->owner, 0x3F4, (s32)&script, 0);
+                    Gp_DispatchMsgPtr((Task*)work2->owner, 0x3F4, &script, 0);
                 }
                 func_800E3FAC(0xA2, 9);
-                func_800E8634((s32)&D_dryfield_gas_station_80182E8C, 0,
-                              (s32)&D_dryfield_gas_station_8018303C);
+                func_800E8634(&D_dryfield_gas_station_80182E8C, 0,
+                              &D_dryfield_gas_station_8018303C);
                 task->state = task->state + 1;
                 return;
             }
@@ -319,7 +323,7 @@ void func_dryfield_gas_station_80180A60(void)
         work->playerEffActive = 0;
         Gp_MsgPlayerWeapon(0);
     }
-    Gp_DispatchMsg((Task*)work->owner, 0x3E9, (s32)&D_dryfield_gas_station_80182E74, 0);
+    Gp_DispatchMsgPtr((Task*)work->owner, 0x3E9, &D_dryfield_gas_station_80182E74, 0);
     work2 = (DgsWork*)task->work;
     if (work2->owner != 0) {
         script.animBlock.ptr = &D_dryfield_gas_station_80182E30;
@@ -327,7 +331,7 @@ void func_dryfield_gas_station_80180A60(void)
         script.field_8       = 0;
         script.field_C       = 0;
         script.field_10      = 0;
-        Gp_DispatchMsg((Task*)work2->owner, 0x3F4, (s32)&script, 0);
+        Gp_DispatchMsgPtr((Task*)work2->owner, 0x3F4, &script, 0);
     }
     SndEvt_EnqueueType7(0x52010011, 0x3C);
     SetDispMask(1);

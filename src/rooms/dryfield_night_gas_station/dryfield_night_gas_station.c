@@ -1,14 +1,4 @@
 #include "common.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -33,14 +23,26 @@
 #include <psyq/libgte.h>
 #include <psyq/rand.h>
 
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/object_task.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
+
 extern UiObjectDesc D_800611E4;
 extern UiObject*    D_80067634;
-extern UiObjectDesc D_8010EFA0;
-extern u8           D_80115598;
-extern s32          D_8011572C;
-extern s32          D_80115750;
-extern s32          D_80115758;
-extern u8           D_801156F9;
 
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 
@@ -1114,9 +1116,9 @@ static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
     arg0->msgTable = &D_dryfield_night_gas_station_80184034;
     Game_SetPtrSlot(arg0, 7);
     if ((GameFlag_GetNibble(0x63) >= 2) && (gameGetPtrSlot(0xA) != 0)) {
-        Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3E9, (s32)&D_dryfield_night_gas_station_80188B0C, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E9, &D_dryfield_night_gas_station_80188B0C, 0);
         Gp_AllyAnimId(&D_dryfield_night_gas_station_80184098);
-        Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3E8, (s32)&D_dryfield_night_gas_station_80184098, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E8, &D_dryfield_night_gas_station_80184098, 0);
         func_dryfield_night_gas_station_8017FBD4(0);
     }
     if (GameFlag_GetNibble(0xA0) == 0) {
@@ -1125,7 +1127,7 @@ static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
         GameFlag_SetNibble(0x4C, 2);
         func_dryfield_night_gas_station_80180C20();
         if (gameGetPtrSlot(0xA) != 0) {
-            func_800E8634((s32)&D_dryfield_night_gas_station_801892E4, 0, (s32)&D_dryfield_night_gas_station_80189A7C);
+            func_800E8634(&D_dryfield_night_gas_station_801892E4, 0, &D_dryfield_night_gas_station_80189A7C);
         }
     }
     arg0->state = (s32)(arg0->state + 1);
@@ -1156,7 +1158,7 @@ s32 func_dryfield_night_gas_station_8017F544(s32 arg0, s32 arg1, RoomEventMsg* i
     }
     if (in->msgId == 3) {
         if ((gGameSession->at4.loc.stage == in->msgId) && (gGameSession->at4.loc.place == 1) &&
-            (Gp_StateF0.field_0 == gGameSession->at4.loc.place)) {
+            (Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.place)) {
             if (in->field_5 == 0) {
                 Gp_RunCapCmd1(0x15);
             }
@@ -1327,7 +1329,7 @@ void func_dryfield_night_gas_station_8017FA6C(Task* arg0)
     D_80115768            = 1;
     SetDispMask(0);
     Gp_ClearCollectedBit(0x117);
-    func_800E8634((s32)&D_dryfield_night_gas_station_801840AC, 0, (s32)&D_dryfield_night_gas_station_801841FC);
+    func_800E8634(&D_dryfield_night_gas_station_801840AC, 0, &D_dryfield_night_gas_station_801841FC);
     func_800E3FAC(0xA2, 0x16);
     Mc_SaveData[0].sceneEvent = 4;
     taskKill(arg0);
@@ -1345,7 +1347,7 @@ static void func_dryfield_night_gas_station_8017FAEC(Task* task)
         temp_v0 = GameFlag_GetNibble(0x63);
         if ((temp_v0 == 1) && (Gp_StateC08.field_A != temp_v0)) {
             GameFlag_SetNibble(0x63, 2);
-            func_800E8634((s32)&D_dryfield_night_gas_station_80188BF4, 0, (s32)&D_dryfield_night_gas_station_80189014);
+            func_800E8634(&D_dryfield_night_gas_station_80188BF4, 0, &D_dryfield_night_gas_station_80189014);
         }
     }
 }

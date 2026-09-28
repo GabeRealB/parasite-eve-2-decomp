@@ -1,9 +1,4 @@
 #include "common.h"
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -14,6 +9,14 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// Per-level tuning for the energy shot: rows are PE levels 1-3.
 static EnergyShotScale D_energyshot_801300E4[] = {

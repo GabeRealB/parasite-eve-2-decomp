@@ -3,17 +3,28 @@
 #include "actors/actor_300700.h"
 #include "actors/actor_300700_spawn2.h"
 #include "actors/actor.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/gameplay.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "psyq/inline_c.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
 
 /// Per-state animation id handed to `func_800B4114`, indexed by `field_37E`.
 extern s16 D_actor_300700_801693E4[];
@@ -33,7 +44,6 @@ static void func_actor_300700_80165230(Task* arg0);
 static void func_actor_300700_801652F4(Task* arg0);
 static void func_actor_300700_8016534C(Task* arg0);
 static void func_actor_300700_8016539C(Task* arg0);
-void        func_800B4114(Actor300700Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 void func_actor_300700_801622B4(Task* arg0);
 void func_actor_300700_8016252C(Task* arg0);
@@ -772,12 +782,12 @@ death:
         work2->field_382 = 0;
         val              = D_actor_300700_801693E4[(s16)work2->field_37E];
         for (i = 1; i < 7; i++) {
-            func_800B4114(work2, i, (s16)work2->field_37E, 0, val);
+            func_800B4114(&work2->anim, i, (s16)work2->field_37E, 0, val);
         }
     } else {
         work2->field_382++;
         for (i = 1; i < 7; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work2, i);
+            Gp_AnimTickIndex(&work2->anim, i);
         }
     }
     c      = arg1->extra.tmd->coords;
@@ -808,12 +818,12 @@ dying:
         work2->field_382 = 0;
         val              = D_actor_300700_801693E4[(s16)work2->field_37E];
         for (i = 1; i < 7; i++) {
-            func_800B4114(work2, i, (s16)work2->field_37E, 0, val);
+            func_800B4114(&work2->anim, i, (s16)work2->field_37E, 0, val);
         }
     } else {
         work2->field_382++;
         for (i = 1; i < 7; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work2, i);
+            Gp_AnimTickIndex(&work2->anim, i);
         }
     }
     c      = arg1->extra.tmd->coords;
@@ -1042,12 +1052,12 @@ static void func_actor_300700_80165230(Task* arg0)
         work->field_382 = 0;
         value           = D_actor_300700_801693E4[(s16)work->field_37E];
         for (i = 1; i < 7; i++) {
-            func_800B4114(work, i, (s16)work->field_37E, 0, value);
+            func_800B4114(&work->anim, i, (s16)work->field_37E, 0, value);
         }
     } else {
         work->field_382++;
         for (i = 1; i < 7; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->anim, i);
         }
     }
 }

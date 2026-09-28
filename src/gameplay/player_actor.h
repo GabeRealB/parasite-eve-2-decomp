@@ -1,0 +1,110 @@
+#ifndef GAMEPLAY_PRIVATE_PLAYER_ACTOR_H
+#define GAMEPLAY_PRIVATE_PLAYER_ACTOR_H
+
+#include "types.h"
+
+#include "actor.h"
+#include "gameplay/animation.h"
+#include "gameplay/effects.h"
+#include "gameplay/message.h"
+
+#include "main/session.h"
+#include "main/task.h"
+
+/// u8 table indexed by `Mc_SaveData[0].companionVariant`. Non-zero selects
+/// `Gp_AimPitchToLock`; zero uses `D_80167218` with `Gp_AimPitchRec`.
+extern u8 D_80113388[];
+
+extern TaskDesc D_80113340[2];
+
+extern GpEffArg D_80113358;
+
+extern u16 Gp_AllyIdBase[4];
+
+extern GpAnimBlk* Gp_AnimBlkTbl[8];
+
+void Gp_UpdatePlayerMove(void);
+
+void Gp_EffSprTask46(Task* arg0);
+
+void Gp_EffSprTask81(Task* arg0);
+
+void Gp_EffSprTask55(Task* arg0);
+
+void Gp_EffSprTask42(Task* arg0);
+
+void func_800F91AC(Task* arg0);
+
+void Gp_EffCtlTask9B(Task* arg0);
+
+void Gp_EffSprTask30(Task* arg0);
+
+void Gp_EffCtlTaskC1(Task* arg0);
+
+void Gp_EffCtlTaskF3(Task* arg0);
+
+void Gp_EffCtlTaskF4(Task* arg0);
+
+void Gp_EffCtlTaskAC(Task* arg0);
+
+void Gp_EffCtlTask0E(Task* arg0);
+
+void Gp_EffCtlTaskA5(Task* arg0);
+
+void Gp_EffCtlTaskA6(Task* arg0);
+
+void Gp_EffCtlTaskE3(Task* arg0);
+
+void func_800FF710(Task* arg0);
+
+void Gp_EffSprTaskE0(Task* arg0);
+
+void Gp_EffSprTaskE2(Task* arg0);
+
+void func_801088D4(Task* arg0, s32 arg1, s32 arg2);
+
+s32 Gp_SetActorDest(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
+
+s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2);
+
+Task* Gp_SpawnPlayer(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3);
+
+void func_801061F0(void);
+
+s32 func_80104B54(Task* arg0, s32 arg1, GpAnimArg* arg2);
+
+void func_8010870C(Task* arg0, s32 arg1);
+
+void func_80108874(Task* arg0);
+
+void func_800FAA14(Task* arg0);
+
+void Gp_EffCtlTask32(Task* arg0);
+
+void Gp_EffCtlTaskAE(Task* arg0);
+
+void Gp_EffCtlTask07(Task* arg0);
+
+void Gp_EffSprTaskA7(Task* arg0);
+
+void Gp_EffCtlTask7F(Task* arg0);
+
+void Gp_EffSprTask80(Task* arg0);
+
+void Gp_EffSprTask8D(Task* arg0);
+
+void Gp_EffSprTask3F(Task* arg0);
+
+void Gp_EffSprTaskE1(Task* arg0);
+
+void Gp_AimYawToLock(Task* arg0, s32 arg1);
+
+void Gp_AimPitchToLock(Task* arg0);
+
+void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2);
+
+void Gp_DetachLinkNode(Task* arg0);
+
+void func_80108E0C(Task* arg0, GpLinkNode* arg1);
+
+#endif // GAMEPLAY_PRIVATE_PLAYER_ACTOR_H

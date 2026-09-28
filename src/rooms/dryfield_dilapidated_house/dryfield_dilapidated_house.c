@@ -7,13 +7,6 @@
 #include "gte.h"
 #include <psyq/abs.h>
 #include <psyq/rand.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -25,6 +18,23 @@
 #include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/ending.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
 /// Work block of the task family whose state-0 init is
 /// `func_dryfield_dilapidated_house_80180B84`, which allocates it with
@@ -117,13 +127,6 @@ typedef struct DdhScreenPoint {
 } DdhScreenPoint;
 
 extern void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
-
-extern u8 D_801156F9;
-
-/// Script pair handed to `Gp_SpawnScript18`. Both live in gameplay's image, so
-/// the room overlay imports them by absolute address and passes them as `s32`.
-extern s32 D_80114A24;
-extern s32 D_80114A34;
 
 /// Current displacement of the screen wave, recomputed every frame from the
 /// context's ramp.
@@ -550,13 +553,13 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
 {
     switch (task->state) {
         case 0:
-            func_800E8634((s32)&D_dryfield_dilapidated_house_80184EA0, 0, (s32)&D_dryfield_dilapidated_house_801855F0);
+            func_800E8634(&D_dryfield_dilapidated_house_80184EA0, 0, &D_dryfield_dilapidated_house_801855F0);
             task->state += 1;
             return;
         case 1:
             if (gGameSession->eventState == 2) {
                 Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1B);
-                Gp_StateF0.field_1 = 3;
+                Gp_StateF0.prefix.bytes.field_1 = 3;
                 goto advance;
             }
             return;
@@ -667,7 +670,7 @@ s32 func_dryfield_dilapidated_house_8017E56C(void)
 /// The copy is the `RoomEventMsg` assignment; the rest is two independent id
 /// checks. While the session is in the room (`gGameSession->at4.loc.stage` is 2), a
 /// type-7 record with no sub-id answers 1, or the session's own value when flag
-/// nibble 0x3C is set. A type-7 record in play (`Gp_StateF0.field_0` is 1) runs
+/// nibble 0x3C is set. A type-7 record in play (`Gp_StateF0.prefix.bytes.field_0` is 1) runs
 /// CAP command 0x14 and a type-5 record runs 0x13, each only when the sub-id is
 /// clear; everything else is left to the caller and answers 1.
 s32 func_dryfield_dilapidated_house_8017E574(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -687,7 +690,7 @@ s32 func_dryfield_dilapidated_house_8017E574(s32 arg0, s32 arg1, RoomEventMsg* i
             }
         }
     }
-    if ((in->msgId == 7) && (Gp_StateF0.field_0 == 1)) {
+    if ((in->msgId == 7) && (Gp_StateF0.prefix.bytes.field_0 == 1)) {
         if (in->field_5 == 0) {
             Gp_SpawnIfCapIdle(0x14, 0);
         }
@@ -714,7 +717,7 @@ s32 func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, GpMsg13EF* a
     temp_v1 = arg2->field_2;
     if ((temp_v1 == 1) && (D_dryfield_dilapidated_house_80183EFC == 0)) {
         D_dryfield_dilapidated_house_80183EFC = (s32)temp_v1;
-        func_800E8634((s32)&D_dryfield_dilapidated_house_80184408, 0, (s32)&D_dryfield_dilapidated_house_80184C60);
+        func_800E8634(&D_dryfield_dilapidated_house_80184408, 0, &D_dryfield_dilapidated_house_80184C60);
     }
     return 0;
 }
@@ -867,7 +870,7 @@ void func_dryfield_dilapidated_house_8017E970(s32 arg0)
 static void func_dryfield_dilapidated_house_8017E9A4(s32 arg0)
 {
     if (arg0 != 0) {
-        Gp_SpawnScript18((s32)&D_80114A24, (s32)&D_80114A34);
+        Gp_SpawnScript18(&D_80114A24, &D_80114A34);
         D_dryfield_dilapidated_house_80189B80 = arg0;
         Task_SpawnFromTable(&D_dryfield_dilapidated_house_80183E64, 0, 0,
                             (s32)&D_dryfield_dilapidated_house_80189B80);

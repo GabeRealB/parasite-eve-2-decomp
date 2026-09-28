@@ -1,9 +1,4 @@
 #include "common.h"
-#include "gameplay/D4.h"
-
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/sound.h"
@@ -13,9 +8,13 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-/// `GpMsgEntry` (`gameplay/D4.h`), forward-declared because that header's
-/// four-argument `Gp_DispatchMsg` prototype cannot be in scope here.
-struct _GpMsgEntry;
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
+#include "main/fs.h"
 
 /* The room calls the dispatcher with only the task, leaving a1-a3 holding
    whatever the caller had, so the declaration must stay unprototyped. */
@@ -219,7 +218,7 @@ s32 func_dryfield_breezeway_8017DA48(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 1:
-            if (Gp_StateF0.field_0 == 1) {
+            if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                 Gp_RunCapCmd1(5);
             } else {
                 if (GameFlag_GetNibble(0x56) != 4) {
@@ -241,7 +240,7 @@ s32 func_dryfield_breezeway_8017DA48(Task* task, s32 msgId, s32 arg2, s32 arg3)
             break;
         case 3:
             if (GameFlag_GetNibble(0x56) >= 2) {
-                if (Gp_StateF0.field_0 != 1) {
+                if (Gp_StateF0.prefix.bytes.field_0 != 1) {
                     if (Gp_GetCurBit2Flag(6) == 1) {
                         Task_SpawnFromTable(D_dryfield_breezeway_80181E10, 0, 0, 0);
                         GameFlag_SetNibble(0xFE, 1);
@@ -337,7 +336,7 @@ static void func_dryfield_breezeway_8017DDB0(Task* task)
         msg.from.loc.stage = gGameSession->at4.loc.stage;
         msg.from.loc.area  = gGameSession->at4.loc.area;
         msg.command        = 0;
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
         Task_SpawnFromTable(D_dryfield_breezeway_801820B0, 0, 0, 0);
     }
     task->state++;

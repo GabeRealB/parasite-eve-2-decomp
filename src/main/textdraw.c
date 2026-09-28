@@ -11,9 +11,15 @@
 #include "main/stage.h"
 #include "main/task.h"
 #include "main/devkit.h"
-#include "gameplay/gameplay.h"
-#include "gameplay/1A8.h"
-#include "gameplay/D4.h"
+
+#include "gameplay/area_transitions.h"
+#include "gameplay/loading.h"
+#include "gameplay/companion_load.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/model_objects.h"
+#include "gameplay/room_effects.h"
+#include "main/display.h"
 
 static const char D_800138BC[];
 static const char D_800138C8[];
@@ -79,7 +85,7 @@ TaskDesc* gTaskDescBanks[15] = {
     D_800678F4,
     D_800626EC,
     D_80067734,
-    (TaskDesc*)0x80114B34,
+    D_80114B34,
     D_80067828,
     D_80067828,
     D_80067828,

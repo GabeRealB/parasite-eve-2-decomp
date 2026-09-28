@@ -15,6 +15,14 @@
 #include "psyq/libpress.h"
 #include "main/devkit.h"
 
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/loading.h"
+#include "main/mc.h"
+
 static void Display_FlipOtAndDispatch(s32 arg0);
 static void Display_InvertFramebufferGray(void);
 static void Display_TaskLoadStep(Task* arg0);

@@ -19,6 +19,8 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
+#include "gameplay/display.h"
+
 extern s32 Pad_MaskConfirm;
 
 void func_807246B4(void);

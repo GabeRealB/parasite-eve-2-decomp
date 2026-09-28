@@ -5,13 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -24,6 +17,20 @@
 #include "main/tmd.h"
 #include "rooms/neo_ark_shrine.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// Scratch state of the two falling-prop tasks, stored at `Task::work`
 /// (`memCalloc(0x48)` in `func_neo_ark_shrine_8017F4C8` / `_8017F688`).
@@ -47,11 +54,6 @@ static void func_neo_ark_shrine_80180144(GpCoord* arg0, s32 arg1, s32 arg2, u8* 
 static void func_neo_ark_shrine_80180570(GpCoord* arg0, s16 arg1, u8* rgb);
 static void func_neo_ark_shrine_80180DF4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_neo_ark_shrine_80181474(GpCoord* arg0, s16 arg1, u8* arg2);
-
-extern s16 D_80114D08;
-extern s32 D_8011572C;
-extern s32 D_80115750;
-extern s32 D_80115758;
 
 extern TaskDesc         D_neo_ark_shrine_80182404[];
 extern u16              D_neo_ark_shrine_80182410[16];
@@ -159,7 +161,7 @@ static void func_neo_ark_shrine_8017E528(Task* task)
     }
 
     for (port = first; port < count; port++) {
-        prompt = &D_80114D28 + port;
+        prompt = &D_80114D28[port];
         pad    = &Pad_States[port];
         status = pad->status;
         if (status == 0x12) {
@@ -229,20 +231,20 @@ static void func_neo_ark_shrine_8017E528(Task* task)
             prompt->field_4 = 0xDC00;
         }
 
-        statep = &prompt->buttons[0].state;
-        heldp  = &prompt->buttons[0].heldFrames;
+        statep = &prompt->buttons.halfwords[0];
+        heldp  = &prompt->buttons.halfwords[1];
         idx    = 0;
         for (i = 0; i < 2; i++, statep += 4, idx += 4) {
             mask = (i == 0) ? 0x40 : 0xA0;
             if (Pad_CheckButtons(port, 1, mask) != 0) {
                 if (heldp[idx] < prompt->field_E &&
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed == prompt->screen.packed) {
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
                     *statep    = 4;
                     heldp[idx] = prompt->field_E;
                 } else {
-                    heldp[idx]                                           = 0;
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed = prompt->screen.packed;
-                    *statep                                              = 2;
+                    heldp[idx]                                                          = 0;
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
+                    *statep                                                             = 2;
                 }
             } else if (Pad_CheckButtons(port, 3, mask) != 0) {
                 *statep = 3;
@@ -404,7 +406,7 @@ static void func_neo_ark_shrine_8017ECC4(Task* task)
 /// `mode` to 1, zeroes its on-screen position, and steps the script on.
 static void func_neo_ark_shrine_8017EDAC(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
 
     prompt->targetId    = 0x80;
     prompt->mode        = 1;
@@ -419,7 +421,7 @@ static void func_neo_ark_shrine_8017EDAC(Task* task)
 /// display mode this step picked, and advances the task to state 4.
 static void func_neo_ark_shrine_8017EDE0(Task* task)
 {
-    RoomActionPrompt*   prompt = &D_80114D28;
+    RoomActionPrompt*   prompt = D_80114D28;
     NeoArkShrineScript* work   = (NeoArkShrineScript*)task->work;
 
     func_neo_ark_shrine_8017EAC0(task);
@@ -435,7 +437,7 @@ static void func_neo_ark_shrine_8017EDE0(Task* task)
 /// slot 1. The task advances to state 2 on every path.
 static void func_neo_ark_shrine_8017EE44(Task* task)
 {
-    RoomActionPrompt*   prompt = &D_80114D28;
+    RoomActionPrompt*   prompt = D_80114D28;
     NeoArkShrineScript* work   = (NeoArkShrineScript*)task->work;
 
     prompt->mode     = 0;
@@ -475,7 +477,7 @@ static void func_neo_ark_shrine_8017EED4(Task* task)
 /// mode on rather than off.
 static void func_neo_ark_shrine_8017EF68(Task* task)
 {
-    RoomActionPrompt*   prompt = &D_80114D28;
+    RoomActionPrompt*   prompt = D_80114D28;
     NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
 
     Gp_SpawnPadLerp(0x12, 0x30, 0x90);
@@ -500,7 +502,7 @@ static void func_neo_ark_shrine_8017EF68(Task* task)
 /// four insns short.
 static void func_neo_ark_shrine_8017EFE4(Task* task)
 {
-    RoomActionPrompt*   prompt = &D_80114D28;
+    RoomActionPrompt*   prompt = D_80114D28;
     NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
 
     prompt->mode     = 0;
@@ -611,7 +613,7 @@ static void func_neo_ark_shrine_8017F274(Task* task)
 /// task to the next state.
 static void func_neo_ark_shrine_8017F320(Task* task)
 {
-    RoomActionPrompt*   prompt = &D_80114D28;
+    RoomActionPrompt*   prompt = D_80114D28;
     NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
 
     Gp_SpawnPadLerp(0x12, 0x30, 0x90);
@@ -627,7 +629,7 @@ static void func_neo_ark_shrine_8017F320(Task* task)
 /// when flag 0xE9 is set.
 static void func_neo_ark_shrine_8017F398(Task* task)
 {
-    RoomActionPrompt*   prompt = &D_80114D28;
+    RoomActionPrompt*   prompt = D_80114D28;
     NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
 
     prompt->mode     = 0;
@@ -818,17 +820,17 @@ static void func_neo_ark_shrine_8017F738(Task* task)
 /// `targetId` to 0x100, `field_E` to 0xF and `mode` to 1.
 static void func_neo_ark_shrine_8017F80C(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     s32               i;
 
     for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0               = 0;
-        prompt->field_4               = 0;
-        prompt->targetId              = 0x100;
-        prompt->field_E               = 0xF;
-        prompt->buttons[0].heldFrames = 0;
-        prompt->buttons[1].heldFrames = 0;
-        prompt->mode                  = 1;
+        prompt->field_0                     = 0;
+        prompt->field_4                     = 0;
+        prompt->targetId                    = 0x100;
+        prompt->field_E                     = 0xF;
+        prompt->buttons.slots[0].heldFrames = 0;
+        prompt->buttons.slots[1].heldFrames = 0;
+        prompt->mode                        = 1;
     }
     task->state = task->state + 1;
 }

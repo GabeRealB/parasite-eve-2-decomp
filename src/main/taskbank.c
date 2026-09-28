@@ -6,9 +6,11 @@
 #include "common.h"
 
 #include "main/task.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3E9C.h"
 #include "main/devkit.h"
+
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/world_collision.h"
 
 TaskDesc D_800676A8[] = {
     { 0x0, 0xC0, taskKill },

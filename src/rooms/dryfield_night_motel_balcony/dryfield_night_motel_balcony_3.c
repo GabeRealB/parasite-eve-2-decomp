@@ -2,9 +2,6 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -16,6 +13,10 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 #include "rooms/dryfield_night_motel_balcony.h"
+
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
 
 extern TaskDesc D_dryfield_night_motel_balcony_80182834;
 

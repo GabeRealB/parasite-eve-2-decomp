@@ -1,15 +1,17 @@
 #include "common.h"
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
+#include "main/fs.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -20,7 +22,6 @@ extern GpFadeWork       D_shelter_b2_pod_access_tunnel_801856F8;
 extern RoomEventMsg     D_shelter_b2_pod_access_tunnel_80185700;
 extern u8               D_shelter_b2_pod_access_tunnel_80185708;
 extern RoomLatchedEvent D_shelter_b2_pod_access_tunnel_8018570C;
-extern u8               D_80115690;
 
 /// Runs the room's pending event once its request has been accepted. State 0
 /// runs the event's CAP command; state 1 waits for it and, when the event asks

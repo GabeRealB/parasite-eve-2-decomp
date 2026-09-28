@@ -7,13 +7,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_80169f74.h"
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -23,9 +16,23 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
+#include "gameplay/actor_render.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// One XZ pair of `Actor356100Work::field_C`; same shape as
 /// `Actor01900Waypoint`.
@@ -2853,7 +2860,7 @@ static void func_actor_356100_80169854(GpEnemy* arg0, Task* arg1)
     }
     work->field_2 = work->field_0;
     tbl.f[work->field_0](arg1);
-    if (Gp_StateF0.field_3 == 1) {
+    if (Gp_StateF0.prefix.bytes.field_3 == 1) {
         if (work->field_0 == 0x18) {
             work->field_0 = 6;
         }

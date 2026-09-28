@@ -5,13 +5,18 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/loading.h"
+#include "main/fs.h"
+#include "main/mc.h"
 
 /// Work block allocated by the spawn state `func_actor_311900_8016228C`
 /// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot -- that
@@ -55,10 +60,6 @@ extern u8 D_actor_311900_8016EBF4[];
 
 /// The palette rows `func_actor_311900_80161E3C` reads back, greys and uploads.
 extern u16 D_actor_311900_8016EC18[][0x100];
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_311900_8016228C(GpEnemy* enemy, Task* task);
 static void func_actor_311900_801623B0(GpEnemy* enemy, Task* task);

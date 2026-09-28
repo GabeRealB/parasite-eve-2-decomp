@@ -5,8 +5,8 @@
 
 #include <psyq/libgte.h>
 
-#include "gameplay/3A34.h"
-#include "gameplay/3FB8.h"
+#include "gameplay/actor.h"
+#include "gameplay/geometry.h"
 
 /// The item a weapon's rounds are taken from, given the weapon's index. Weapon
 /// items follow item 0x7F in weapon order, so every weapon consumes item

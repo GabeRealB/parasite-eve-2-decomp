@@ -10,12 +10,12 @@
 #include "main/gfx.h"
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3FB8.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/wipsys.h"
+
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
 
 /*
  * Types that more than one overlay family carries.

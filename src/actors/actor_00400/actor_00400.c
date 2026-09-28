@@ -15,13 +15,21 @@
 #include "main/task.h"
 
 #include "actors/actor.h"
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/gameplay.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/pairsrc.h"
-#include "gameplay/3FB8.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 typedef struct Actor100400QuadWork {
     /* 0x00 */ GpEnemy* field_0;
@@ -216,11 +224,6 @@ typedef struct Actor100400AreaConfig {
 STATIC_ASSERT_SIZEOF(Actor100400AreaConfig, 0x14);
 
 static void Actor00400_Fn005DC(GpCoord* arg0, u16 arg1, u16 arg2, s32 arg3);
-extern s32  D_80115738;
-
-/* This overlay calls the gameplay helpers through its own (wider) prototypes:
-   the extra trailing arguments are set up at every call site but ignored by
-   the definitions in src/gameplay/3A34.c. */
 
 static void Actor00400_Fn0875C(Task* arg0, Actor100400Entry8* arg1, s32 arg2, s32 arg3);
 static void Actor00400_Fn088EC(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
@@ -270,8 +273,7 @@ static void Actor00400_Fn0814C(Task* arg0, s16 arg1, SVECTOR* arg2, s16 arg3);
 static void Actor00400_Fn08A1C(MATRIX* src, MATRIX* dst);
 static void Actor00400_Fn03570(GpCoord* arg0, s16 arg1);
 void        func_8004BFF8(s32 angle, MATRIX* matrix);
-/* Declared here with a signed id: see the note in gameplay/1BC.h. */
-void        func_800B4114(Actor100400Work* anim, s32 slot, s32 active, s32 arg3, s32 arg4);
+
 static s32  Actor00400_Fn02208(Task* arg0);
 static void Actor00400_Fn0A680(Task* arg0);
 static void Actor00400_Fn0A6B0(Task* arg0);
@@ -1252,7 +1254,7 @@ static s16 Actor00400_Fn02154(Task* arg0)
     goto ok;
 other:
     if (req == 5) {
-        Gp_StateF0.field_3 = 1;
+        Gp_StateF0.prefix.bytes.field_3 = 1;
         Gp_ArmStateF0(1);
         work->field_650 = 10;
         work->field_644 = 0;
@@ -2862,7 +2864,7 @@ static void Actor00400_Fn05320(Task* arg0)
         w1    = arg0->work;
         armed = 0;
         if (w1->field_640 < 0xDAC && (u32)(w1->field_634 - 0x600) >= 0x400U) {
-            Gp_StateF0.field_3 = 1;
+            Gp_StateF0.prefix.bytes.field_3 = 1;
             Gp_ArmStateF0(1);
             armed         = 1;
             w2            = arg0->work;
@@ -3796,9 +3798,9 @@ static void Actor00400_Fn077F4(Task* arg0)
     work = arg0->work;
     fns  = Actor00400_D00134;
     if ((Actor00400_Fn02154(arg0) << 0x10) != 0) {
-        Gp_StateF0.field_3 = 1;
+        Gp_StateF0.prefix.bytes.field_3 = 1;
         Gp_ArmStateF0(1);
-    } else if (Gp_StateF0.field_3 != 0) {
+    } else if (Gp_StateF0.prefix.bytes.field_3 != 0) {
         work2            = arg0->work;
         work2->field_638 = 4;
         work2->field_63A = 0;
@@ -4312,14 +4314,14 @@ static void Actor00400_Fn08624(Task* arg0)
         i = 1;
         do {
             work->slots[i].rate = (u8)work->field_632;
-            func_800B4114(work, i, work->field_628, 0, work->field_63C);
+            func_800B4114(&work->anim, i, work->field_628, 0, work->field_63C);
             i++;
         } while (i < 0xF);
     } else {
         i = 1;
         do {
             work->slots[i].rate = (u8)work->field_632;
-            func_800B4114(work, i, work->field_628, 0, work->field_63C);
+            func_800B4114(&work->anim, i, work->field_628, 0, work->field_63C);
             i++;
         } while (i < 0xF);
         work->field_63C = 0;
@@ -4718,7 +4720,7 @@ static void Actor00400_Fn09124(Task* arg0)
     }
     done = 0;
     if ((u32)(work->field_634 - 0x600) >= 0x400U) {
-        Gp_StateF0.field_3 = 1;
+        Gp_StateF0.prefix.bytes.field_3 = 1;
         Gp_ArmStateF0(1);
         active           = 1;
         state            = arg0->work;

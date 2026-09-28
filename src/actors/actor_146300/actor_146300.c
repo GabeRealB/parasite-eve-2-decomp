@@ -2,18 +2,25 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
 
 /// Work block of the overlay's actor, allocated zeroed by its spawn routine
 /// and kept both in `D_actor_146300_80142828` and at `Task::work`; every other
@@ -71,10 +78,6 @@ extern s32 D_actor_146300_801388D0;
 extern s32 D_actor_146300_80138A38;
 extern s32 D_actor_146300_80138AC8;
 extern s32 D_actor_146300_80142824;
-
-/// `func_800B4114` is declared locally with a signed `arg2`; see the note in
-/// `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_146300_80132728(GpEnemy* enemy, Task* task);
 static void func_actor_146300_801327A4(Task* task);
@@ -193,32 +196,32 @@ static void func_actor_146300_8013224C(void)
 {
     switch (GameFlag_GetNibble(0x7B)) {
         case 2:
-            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D3, (s32)&D_actor_146300_80137B38, 0);
+            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
             break;
         case 3:
             if (Gp_HasCollectedBit(0x119) == 0) {
                 if (Gp_GetCurBit2Flag(0x1F) == 1) {
-                    Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D3, (s32)&D_actor_146300_80137AAC, 0);
+                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137AAC, 0);
                 } else {
-                    Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D3, (s32)&D_actor_146300_80137B38, 0);
+                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
                 }
             } else {
-                Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D3, (s32)&D_actor_146300_80137B38, 0);
+                Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
             }
             break;
         case 4:
             if (Gp_HasCollectedBit(0x119) == 0) {
                 if (Gp_GetCurBit2Flag(0x20) == 1) {
-                    Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D3, (s32)&D_actor_146300_80137AAC, 0);
+                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137AAC, 0);
                 } else {
-                    Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D3, (s32)&D_actor_146300_80137B38, 0);
+                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
                 }
                 break;
             }
             /* fallthrough */
         case 5:
-            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D4, (s32)&D_actor_146300_80137C10, 0);
-            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D3, (s32)&D_actor_146300_80137B60, 0);
+            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D4, &D_actor_146300_80137C10, 0);
+            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B60, 0);
             break;
     }
 }
@@ -234,12 +237,12 @@ void func_actor_146300_80132418(s32 arg0)
     switch (arg0) {
         case 0:
             if (Gp_GetCapEventKey() == 1) {
-                Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D3, (s32)&D_actor_146300_80137B10, 0);
+                Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B10, 0);
             }
             break;
         case 1:
             if (Gp_GetCapEventKey() == 2) {
-                Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D3, (s32)&D_actor_146300_80137AAC, 0);
+                Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137AAC, 0);
             }
             break;
     }

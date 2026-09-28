@@ -7,12 +7,12 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include "main/coord.h"
-
-#include "gameplay/D4.h"
 #include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017e4f8.h"
+
+#include "gameplay/message.h"
 
 /// Task descriptor `func_shelter_b2_elevator_hall_8017D610` spawns when a
 /// gated event fires.

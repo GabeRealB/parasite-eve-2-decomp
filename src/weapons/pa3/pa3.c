@@ -3,17 +3,20 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "weapons/weapon.h"
+
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "main/fs.h"
 
 /// The PA3 and SP12 shotguns are this source built once each, and each declares
 /// these values in the manifest. `WEAPON_ID` is the weapon's index (0xD and

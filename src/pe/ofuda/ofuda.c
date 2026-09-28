@@ -1,12 +1,13 @@
 #include "common.h"
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
 
 /// This overlay's id, the `u16` every package opens with.
 

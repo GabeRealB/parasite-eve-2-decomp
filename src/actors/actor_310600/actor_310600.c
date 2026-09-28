@@ -4,16 +4,21 @@
 #include <psyq/libgte.h>
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
 
 /// 0x538-byte work block `func_actor_310600_80161E64` allocates with
 /// `memCalloc` and hangs off `Task::work`. The display node at `obj` is
@@ -81,8 +86,6 @@ extern s8    D_actor_310600_80179644[]; // extra ticks owed to the animation id 
 
 /// Spawn table of the follow-up task queued once the cue has fired five times.
 extern TaskDesc D_80182AD8[];
-
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_310600_80161E64(Task* task);
 static void func_actor_310600_80161FA0(Task* task);
@@ -236,9 +239,9 @@ static void func_actor_310600_80161FA0(Task* task)
                             case 2:
                                 if ((s16)work->field_47A++ < 5) {
                                     Gp_SpawnEff(0x6006A, coord, 9, NULL);
-                                    Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7DB, (s32)&D_actor_310600_8017969C, 0);
+                                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_actor_310600_8017969C, 0);
                                 } else {
-                                    Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7DB, (s32)&D_actor_310600_801796A0, 0);
+                                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_actor_310600_801796A0, 0);
                                     Task_SpawnFromTable(D_80182AD8, 2, 0, 0);
                                 }
                                 break;

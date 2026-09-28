@@ -3,13 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
 #include <psyq/rand.h>
-
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -17,6 +10,23 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/items.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/player_state.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// 8-byte fixed-point X/Z entry of a path table (`D_actor_800200_8016A128`
 /// and its neighbours). `GpActorD4.pathStep` selects the entry; the Y
@@ -59,16 +69,6 @@ extern GpActorPathStep D_actor_800200_8016A0E0[];
 extern GpActorPathStep D_actor_800200_8016A108[];
 extern GpActorPathStep D_actor_800200_8016A128[];
 extern GpActorPathStep D_actor_800200_8016A130[];
-
-extern s32  func_80103DD4(VECTOR3*, VECTOR3*);
-extern void func_80105ED4(Task*);
-extern void func_8010ABD4();
-extern s32  func_8010BC70(GpCoord*);
-extern s32  func_8010BCF4(Task*, VECTOR3*);
-extern void func_8010BD88(Task*, VECTOR3*);
-extern void func_8010BE5C(Task*, VECTOR3*);
-void        Gp_PlayerMode2State0(Task* arg0);
-void        Gp_PlayerMode2State1(Task* arg0);
 
 static void func_actor_800200_801626A0(Task* task);
 static void func_actor_800200_801652EC(Task* arg0);
@@ -345,7 +345,7 @@ static void func_actor_800200_80162750(Task* arg0)
     actor             = arg0->work;
     actor->field_93E += 1;
     d4                = actor->field_910;
-    if (Gp_StateF0.field_0 == 1) {
+    if (Gp_StateF0.prefix.bytes.field_0 == 1) {
         state            = 0;
         lock             = Gp_FindLockNode(arg0);
         actor->field_90C = lock;
@@ -1435,7 +1435,7 @@ static void func_actor_800200_801647A8(Task* arg0)
         case 0:
             initialState     = 1;
             actor->field_95E = initialState;
-            if (Gp_StateF0.field_0 == 1) {
+            if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                 node             = Gp_FindLockNode(arg0);
                 actor->field_90C = node;
                 if ((node != NULL) && !(node->state.b.flags & 1)) {
@@ -1468,7 +1468,7 @@ static void func_actor_800200_801647A8(Task* arg0)
                 actor2                         = arg0->work;
                 next                           = 1;
                 actor2->field_910->repeatCount = next;
-                if (Gp_StateF0.field_0 == next) {
+                if (Gp_StateF0.prefix.bytes.field_0 == next) {
                     actor2->field_90C = Gp_FindLockNode(arg0);
                 } else {
                     actor2->field_90C = NULL;
@@ -1548,7 +1548,7 @@ static void func_actor_800200_801649D8(Task* arg0)
                 actor->field_95E += 1;
                 actor->field_52   = (u16)d4->targetHeading;
                 actor->field_975  = 0;
-                if (Gp_StateF0.field_0 == 1) {
+                if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                     idleAnim         = 4;
                     actor->field_958 = 6;
                     random           = (Gp_LcgState * 5) + 0x71357911;
@@ -1922,7 +1922,7 @@ static void func_actor_800200_8016545C(Task* arg0, s8 arg1)
     u16        flag;
 
     actor->field_910->repeatCount = arg1;
-    if (Gp_StateF0.field_0 == 1) {
+    if (Gp_StateF0.prefix.bytes.field_0 == 1) {
         actor->field_90C = Gp_FindLockNode(arg0);
     } else {
         actor->field_90C = 0;
@@ -2216,7 +2216,7 @@ static void func_actor_800200_80165D44(Task* arg0)
             actor->field_95E += 1;
             Gp_AnimResetChildSlots(arg0, 9);
         case 2:
-            if ((func_8010BC70(coord) >= 0x500) || (Gp_StateF0.field_0 == 1)) {
+            if ((func_8010BC70(coord) >= 0x500) || (Gp_StateF0.prefix.bytes.field_0 == 1)) {
                 actor->field_95C  = 7;
                 actor->field_95E += 1;
                 Gp_AnimPlayChildSlotsEx(arg0, 8, 0, 3);
@@ -2260,7 +2260,7 @@ static void func_actor_800200_80165E90(Task* arg0)
 
 static void func_actor_800200_80165F28(Task* arg0)
 {
-    func_8010ABD4();
+    func_8010ABD4(arg0);
 }
 
 static void func_actor_800200_80165F48(Task* arg0)

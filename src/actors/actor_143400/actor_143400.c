@@ -1,7 +1,8 @@
 #include "common.h"
 #include "main/mc.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/area_transitions.h"
 
 extern GpAreaApplyRec D_8018A638;
 

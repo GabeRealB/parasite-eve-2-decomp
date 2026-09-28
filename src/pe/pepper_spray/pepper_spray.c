@@ -5,17 +5,19 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "pe/pepper_spray.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 static void func_pepper_spray_8012F21C(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_pepper_spray_8012F634(GpCoord* arg0, s16 arg1, s16 arg2);

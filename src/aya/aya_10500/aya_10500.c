@@ -1,7 +1,9 @@
 #include "common.h"
 
 #include "aya/aya.h"
-#include "gameplay/3A34.h"
+
+#include "gameplay/collision.h"
+#include "gameplay/item_pickup.h"
 
 /* The costume's texture animation: five images, each with the one-image upload
  * list that places it, and the frame lists that sequence those uploads. The

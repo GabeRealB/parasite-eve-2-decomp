@@ -1,16 +1,18 @@
 #include "common.h"
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
 
 /// The block above, published by `func_actor_110800_801322A0` from the task's
 /// `Task::work`.
@@ -36,10 +38,6 @@ extern u8 D_actor_110800_80139EF4[];
 /// Message table published as `Task::msgTable`: the 0x7D3 and 0x7D5 handlers
 /// below and a terminator.
 extern GpMsgEntry D_actor_110800_80139EC4[];
-
-/// `func_800B4114` is declared locally with a signed `arg2`; see the note in
-/// `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_110800_8013232C(Task* task);
 static void func_actor_110800_80132368(Task* task);

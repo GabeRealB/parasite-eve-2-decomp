@@ -14,17 +14,25 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
-#include "gameplay/pairsrc.h"
-
 #include "actors/actors_shared_80133cd0.h"
 #include "actors/actors_shared_80134810.h"
 #include "actors/actors_shared_801673f8.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
 
 /// The 0x2E4-byte work block of the package's first enemy, which both of its
 /// spawn handlers allocate with `memCalloc` and park in `Task::work`. After the
@@ -156,10 +164,6 @@ extern u8 Actor04600_D064A8[];
 /// Offsets of the spark and hit effects the second enemy's hit handler spawns.
 extern SVECTOR Actor04600_D064B4;
 extern SVECTOR Actor04600_D064BC;
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -913,7 +917,7 @@ static void Actor04600_Fn01604(Task* arg0, u8 arg1)
         work->obj1EC.flags |= 0x8000;
         Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords, 1, NULL);
         Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x300, &Actor04600_D058A0);
-        Gp_SpawnScript18((s32)&Actor04600_D04170, (s32)&Actor04600_D0417C);
+        Gp_SpawnScript18(&Actor04600_D04170, &Actor04600_D0417C);
         work->field_2DA = 1;
     } else {
         if (work->field_2D6 != 0) {
@@ -1683,7 +1687,7 @@ static void Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1)
 }
 
 /// Idle tick of the second enemy. A 0x10000-class hit on either of its two
-/// single-record tables sets `Gp_StateF0.field_3`, latches `field_2AA` and selects
+/// single-record tables sets `Gp_StateF0.prefix.bytes.field_3`, latches `field_2AA` and selects
 /// animation 2; if the light blend is fully up, one sound plays, the blend is
 /// turned to fall and a new 0x12..0x31 frame wait is rolled. A latched hit
 /// plays a second sound, clears the 0x8000 bit of the first two bodies and arms
@@ -1705,9 +1709,9 @@ static void Actor04600_Fn030A8(Task* arg0)
     SCRATCH_PUSH_BYTES(8);
     obj = arg0->extra.tmd->coords;
     if (Gp_CountRec18Hi(work->field_16C, 0x10000) != 0 || Gp_CountRec18Hi(work->field_134, 0x10000) != 0) {
-        Gp_StateF0.field_3 = 1;
-        work->field_2AA    = 1;
-        work->field_28C    = 2;
+        Gp_StateF0.prefix.bytes.field_3 = 1;
+        work->field_2AA                 = 1;
+        work->field_28C                 = 2;
         if (work->field_2A6 != 0 && work->field_2A4 == 0x12) {
             if (work->field_2AC != 0) {
                 ctx = arg0->spawnArg2;

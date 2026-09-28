@@ -6,14 +6,6 @@
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -31,10 +23,25 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-/// Table of 0x80-byte actor config blocks; `Player_Status` is entry 1.
-extern s16 D_80114D08;
-extern s32 D_80115738;
-extern s32 D_8011574C;
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/damage.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/loading.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 extern GpMsgEntry D_acropolis_bridge_80188E4C[];
 extern TaskDesc   D_acropolis_bridge_80188E7C[];
@@ -77,9 +84,6 @@ extern Task* D_acropolis_bridge_80191798;
 extern Task* D_acropolis_bridge_8019179C;
 extern s32   D_acropolis_bridge_801917A0;
 extern u16   D_acropolis_bridge_801917A4;
-
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void func_800FDB18(s32 arg0, GpCoord* arg1, SVECTOR* arg2, GpEffArg* arg3);
 
 static void func_acropolis_bridge_8017D98C(Task* task);
 static void func_acropolis_bridge_8017D9FC(Task* task);
@@ -206,7 +210,7 @@ s32 func_acropolis_bridge_8017D6F4(Task* task, s32 msgId, RoomEventMsg* in, Room
         if (GameFlag_GetNibble(0x10) == 0) {
             if (in->field_5 == 0) {
                 GameFlag_SetNibble(0x10, 1);
-                func_800E8634((s32)&D_acropolis_bridge_80188EBC, 0, (s32)&D_acropolis_bridge_8018912C);
+                func_800E8634(&D_acropolis_bridge_80188EBC, 0, &D_acropolis_bridge_8018912C);
                 GameFlag_SetNibble(6, 1);
                 key.stage = 1;
                 key.area  = 0xC;
@@ -410,7 +414,7 @@ static void func_acropolis_bridge_8017DC68(Task* arg0)
             arg0->state                 = (s32)(arg0->state + 1);
         } else {
             Mc_SaveData[0].at4.loc.view = 9;
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
             arg0->state = (s32)(arg0->state + 1);
         }
     }
@@ -497,7 +501,7 @@ L_case1:
     if (queue->field_1FA == 0) {
         goto tail;
     }
-    Task_Reparent(task, Gp_SpawnScript18((s32)&D_acropolis_bridge_80190B8C, (s32)&D_acropolis_bridge_80190BA4));
+    Task_Reparent(task, Gp_SpawnScript18(&D_acropolis_bridge_80190B8C, &D_acropolis_bridge_80190BA4));
     goto advance;
 
 L_case2:
@@ -574,7 +578,7 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
 {
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
     OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
-    RoomActionPrompt*          prompt = &D_80114D28;
+    RoomActionPrompt*          prompt = D_80114D28;
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -585,7 +589,7 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
         prompt->targetId = 0x80;
         if (func_acropolis_bridge_8017F6D4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
             prompt->mode = 2;
-            if (prompt->buttons[0].state == 2) {
+            if (prompt->buttons.slots[0].state == 2) {
                 while (hs->id != -1) {
                     if (hs->hit != 0) {
                         if (work->promptBusy == 0) {
@@ -617,7 +621,7 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
             task->state   = 5;
             work->field_A = 0;
         }
-        if (prompt->buttons[1].state == 2) {
+        if (prompt->buttons.slots[1].state == 2) {
             task->state                 = 8;
             D_acropolis_bridge_801917A8 = 0;
         }
@@ -636,7 +640,7 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
 /// in state 8 with `D_acropolis_bridge_801917A8` raised.
 static void func_acropolis_bridge_8017E3A0(Task* task)
 {
-    RoomActionPrompt*          prompt = &D_80114D28;
+    RoomActionPrompt*          prompt = D_80114D28;
     OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
     GpAreaKey*                 sess   = &gGameSession->at4.loc;
@@ -687,7 +691,7 @@ after:
 /// attempts have been spent it gives up into state 8.
 static void func_acropolis_bridge_8017E4FC(Task* task)
 {
-    RoomActionPrompt*          prompt = &D_80114D28;
+    RoomActionPrompt*          prompt = D_80114D28;
     OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
     s16                        tick;
@@ -988,7 +992,7 @@ static void func_acropolis_bridge_8017ED38(Task* task)
     }
 
     for (port = first; port < count; port++) {
-        prompt = &D_80114D28 + port;
+        prompt = &D_80114D28[port];
         pad    = &Pad_States[port];
         status = pad->status;
         if (status == 0x12) {
@@ -1058,20 +1062,20 @@ static void func_acropolis_bridge_8017ED38(Task* task)
             prompt->field_4 = 0xDC00;
         }
 
-        statep = &prompt->buttons[0].state;
-        heldp  = &prompt->buttons[0].heldFrames;
+        statep = &prompt->buttons.halfwords[0];
+        heldp  = &prompt->buttons.halfwords[1];
         idx    = 0;
         for (i = 0; i < 2; i++, statep += 4, idx += 4) {
             mask = (i == 0) ? 0x40 : 0xA0;
             if (Pad_CheckButtons(port, 1, mask) != 0) {
                 if (heldp[idx] < prompt->field_E &&
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed == prompt->screen.packed) {
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
                     *statep    = 4;
                     heldp[idx] = prompt->field_E;
                 } else {
-                    heldp[idx]                                           = 0;
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed = prompt->screen.packed;
-                    *statep                                              = 2;
+                    heldp[idx]                                                          = 0;
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
+                    *statep                                                             = 2;
                 }
             } else if (Pad_CheckButtons(port, 3, mask) != 0) {
                 *statep = 3;
@@ -1209,7 +1213,7 @@ void func_acropolis_bridge_8017F358(s32 state)
 /// prompt still up, then advances the task to its next state.
 static void func_acropolis_bridge_8017F404(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
 
     prompt->targetId    = 0x80;
     prompt->mode        = 1;
@@ -1225,7 +1229,7 @@ static void func_acropolis_bridge_8017F404(Task* task)
 /// mode, and advances the task to state 4.
 static void func_acropolis_bridge_8017F460(Task* task)
 {
-    RoomActionPrompt*          prompt = &D_80114D28;
+    RoomActionPrompt*          prompt = D_80114D28;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
 
     func_acropolis_bridge_8017E60C(work->field_4, 0);
@@ -1242,7 +1246,7 @@ static void func_acropolis_bridge_8017F460(Task* task)
 /// started.
 static void func_acropolis_bridge_8017F4CC(Task* task)
 {
-    RoomActionPrompt*          prompt = &D_80114D28;
+    RoomActionPrompt*          prompt = D_80114D28;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
 
     func_acropolis_bridge_8017E60C(work->field_4, 0);
@@ -1263,7 +1267,7 @@ static void func_acropolis_bridge_8017F4CC(Task* task)
 /// table, so `mode` reports whether it ended up over one.
 static void func_acropolis_bridge_8017F544(Task* task)
 {
-    RoomActionPrompt*          prompt = &D_80114D28;
+    RoomActionPrompt*          prompt = D_80114D28;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
     OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
 
@@ -1280,7 +1284,7 @@ static void func_acropolis_bridge_8017F544(Task* task)
     } else {
         GpCmdArg msg = { { { 1, 0xE } }, 2 };
 
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
         SndEvt_EnqueueType6(0x510E0009, 0, 0);
         task->state = 6;
     }
@@ -1340,17 +1344,17 @@ void func_acropolis_bridge_8017F788(Task* task)
 /// task on one state.
 static void func_acropolis_bridge_8017F808(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     s32               i;
 
     for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0               = 0;
-        prompt->field_4               = 0;
-        prompt->targetId              = 0x100;
-        prompt->field_E               = 0xF;
-        prompt->buttons[0].heldFrames = 0;
-        prompt->buttons[1].heldFrames = 0;
-        prompt->mode                  = 1;
+        prompt->field_0                     = 0;
+        prompt->field_4                     = 0;
+        prompt->targetId                    = 0x100;
+        prompt->field_E                     = 0xF;
+        prompt->buttons.slots[0].heldFrames = 0;
+        prompt->buttons.slots[1].heldFrames = 0;
+        prompt->mode                        = 1;
     }
     task->state = task->state + 1;
 }
@@ -4430,7 +4434,7 @@ void func_acropolis_bridge_80187310(Task* task)
         Gfx_RotMatrixY(&task->extra.tmd->coords->coord, (u32)Gp_LcgState >> 16, 1);
         task->extra.tmd->coords->flg = 0;
         Gp_ClearNodeSlots(&enemy->node);
-        if (Gp_StateF0.field_0 == 0 && Gp_StateF0.field_6 != 0) {
+        if (Gp_StateF0.prefix.bytes.field_0 == 0 && Gp_StateF0.field_6 != 0) {
             Gp_ArmStateF0(1);
         }
         work->field_290 = 0;
@@ -4476,7 +4480,7 @@ void func_acropolis_bridge_801874DC(Task* task)
         work->body.flags         &= 0x7FFF;
         enemy->node.state.b.flags = 1;
         Gp_ClearNodeSlots(&enemy->node);
-        if (Gp_StateF0.field_0 == 0 && Gp_StateF0.field_6 != 0) {
+        if (Gp_StateF0.prefix.bytes.field_0 == 0 && Gp_StateF0.field_6 != 0) {
             Gp_ArmStateF0(1);
         }
         if (enemy->hp > 0) {

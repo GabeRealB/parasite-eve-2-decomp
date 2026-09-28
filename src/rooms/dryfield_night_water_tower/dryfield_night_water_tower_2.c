@@ -4,13 +4,14 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/display.h"
+#include "gameplay/room_effects.h"
 
 /// The world points the room's effect draw places its glow sprites and light
 /// shaft at, `SVECTOR`s laid out back to back; the first two are the ends of

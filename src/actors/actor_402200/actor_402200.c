@@ -17,15 +17,25 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-#include "gameplay/3E9C.h"
-#include "gameplay/gameplay.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-
 #include "actors/actors_shared_80131fc8.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/model_lighting.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/loading.h"
+#include "gameplay/sprites.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 /// Per-animation-id value `func_actor_402200_80137EEC` hands `func_800B4114`
 /// as its fifth argument when it reseeds animation slots 1..0x12.
@@ -121,7 +131,6 @@ extern s16 D_actor_402200_80154178[2][4];
 /// Main-executable global with no module header yet: the remaining-enemy
 /// count. A grab only starts while it is positive.
 
-void    func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
@@ -710,7 +719,7 @@ static void func_actor_402200_8013314C(Task* arg0)
         case 0:
             if (((GameActor*)player->work)->field_954 != 2 && Player_Status.hp > 0) {
                 sc->query.field_14 = 0x19;
-                if (Gp_DispatchMsg(player, 0x3F8, (s32)sc, 0) == 0) {
+                if (Gp_DispatchMsgPtr(player, 0x3F8, sc, 0) == 0) {
                     work->field_6C0 = 1;
                     work->field_6CE = 1;
                     work->field_6F4 = 0;
@@ -736,7 +745,7 @@ static void func_actor_402200_8013314C(Task* arg0)
                     sc->place.rot.vx = 0;
                     sc->place.rot.vy = work->field_6E6;
                     sc->place.rot.vz = 0;
-                    Gp_DispatchMsg(player, 0x3E9, (s32)&sc->place, 0);
+                    Gp_DispatchMsgPtr(player, 0x3E9, &sc->place, 0);
                     Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
                     snd = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 6;
                     SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(pcoord), (s8)gpGetObjDepth(pcoord));
@@ -752,7 +761,7 @@ static void func_actor_402200_8013314C(Task* arg0)
             sc->anim.field_8       = 0;
             sc->anim.field_C       = 0;
             sc->anim.field_10      = 1;
-            Gp_DispatchMsg(player, 0x3FF, (s32)&sc->anim, 0);
+            Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
             work->field_6CE = 2;
             work->field_6DC = 0x3C;
             work->field_6DA = 1;
@@ -772,7 +781,7 @@ static void func_actor_402200_8013314C(Task* arg0)
                 sc->anim.field_8       = 0;
                 sc->anim.field_C       = 0;
                 sc->anim.field_10      = 1;
-                Gp_DispatchMsg(player, 0x3FF, (s32)&sc->anim, 0);
+                Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
                 Gp_ArmStateF0(1);
                 work->field_70A = 0;
                 if (work->field_6C6 == 0) {
@@ -815,7 +824,7 @@ static void func_actor_402200_8013314C(Task* arg0)
                         sc->anim.field_8       = 0;
                         sc->anim.field_C       = 0;
                         sc->anim.field_10      = 1;
-                        Gp_DispatchMsg(player, 0x3FF, (s32)&sc->anim, 0);
+                        Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
                     } else {
                         work->field_6D4 = 0x1E;
                         Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_actor_402200_80153BEC, 0), 0);
@@ -856,7 +865,7 @@ static void func_actor_402200_8013314C(Task* arg0)
                 sc->anim.field_8       = 0;
                 sc->anim.field_C       = 0;
                 sc->anim.field_10      = 1;
-                Gp_DispatchMsg(player, 0x3FF, (s32)&sc->anim, 0);
+                Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
             }
             break;
         case 4:
@@ -883,7 +892,7 @@ static void func_actor_402200_8013314C(Task* arg0)
                     sc->anim.field_8       = 0;
                     sc->anim.field_C       = 0;
                     sc->anim.field_10      = 1;
-                    Gp_DispatchMsg(player, 0x3FF, (s32)&sc->anim, 0);
+                    Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
                     work->field_6D4 = 0x69;
                     work->field_6DA = 3;
                     work->field_6DC = 0x4B;
@@ -1941,7 +1950,7 @@ static void func_actor_402200_80135BE0(Task* arg0)
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     if (work->field_712 != 0) {
-        rec = Gp_AnimGetRec((GpAnimCtx*)work, (GpAnimSlot*)&work->field_3C);
+        rec = Gp_AnimGetRec(&work->anim, &work->slots[1]);
         if (rec != NULL) {
             if (!(rec->flags & 0x20) && (work->field_6CA & 0x20)) {
                 snd = D_actor_402200_80138420[work->field_712 * 2 - 1] | (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8);
@@ -2141,12 +2150,12 @@ static inline void Actor402200_ReseedAnim(Task* arg0)
         work->field_6C4 = 0;
         value           = D_actor_402200_801383AC[work->field_6C0];
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(work, i, work->field_6C0, 0, value);
+            func_800B4114(&work->anim, i, work->field_6C0, 0, value);
         }
     } else {
         work->field_6C4++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->anim, i);
         }
     }
 }
@@ -2412,11 +2421,11 @@ static void func_actor_402200_80137444(GpEnemy* arg0, Task* arg1)
     work->field_65C.coord      = &arg1->extra.tmd->coords[3];
     work->field_65C.spawnArgLo = 0x500;
     work->field_65C.spawnArgHi = 2;
-    func_800B3F84((GpAnimCtx*)work, D_actor_402200_80154194, obj, work->field_30C, &work->field_14);
+    func_800B3F84(&work->anim, D_actor_402200_80154194, obj, work->field_30C, work->slots);
     work->field_6C0 = 0xB;
     work->field_6C2 = 0xB;
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, work->field_6C0);
+        Gp_AnimResetSlot(&work->anim, i, work->field_6C0);
     }
     kind = arg0->spawnState;
     switch (kind) {
@@ -2433,7 +2442,7 @@ static void func_actor_402200_80137444(GpEnemy* arg0, Task* arg1)
             arg0->bodyPos.vy = 0;
             arg0->bodyPos.vz = 0;
             arg0->param      = &D_actor_402200_80153BFC;
-            arg0->recs       = (s32)work->field_49C;
+            arg0->recs       = work->field_49C;
             arg0->hp         = D_actor_402200_80153BFC.hpMax;
             for (i = 0; D_actor_402200_80153C78[i].field_0 != 0; i++) {
                 if (gGameSession->at4.loc.stage == D_actor_402200_80153C78[i].field_2 && gGameSession->at4.loc.area == D_actor_402200_80153C78[i].field_4) {

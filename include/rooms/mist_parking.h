@@ -5,8 +5,6 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-
-#include "gameplay/3CD8.h"
 #include "main/task.h"
 #include "main/ui.h"
 #include "rooms/room_common.h"

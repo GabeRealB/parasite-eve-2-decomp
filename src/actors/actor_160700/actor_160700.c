@@ -6,18 +6,22 @@
 #include "actors/actor.h"
 #include "actors/actors_shared_80132614.h"
 #include "actors/actors_shared_801326ac.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -31,10 +35,6 @@ extern s32 D_actor_160700_80135ACC;
 extern s32 D_actor_160700_80135BD4;
 extern s32 D_actor_160700_801362F4;
 extern s32 D_actor_160700_80136414;
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_160700_80132184(Task* task);
 static void func_actor_160700_80132390(GpEnemy* enemy, Task* task);
@@ -51,7 +51,7 @@ static void func_actor_160700_80131E24(void)
     if (GameFlag_GetNibble(0x113) != 0) {
         slot = Gp_LookupSlot4(0);
         if (slot != 0) {
-            Gp_DispatchMsg(slot, 0x7D3, (s32)&D_actor_160700_801354CC, 0);
+            Gp_DispatchMsgPtr(slot, 0x7D3, &D_actor_160700_801354CC, 0);
         }
     }
 }
@@ -60,13 +60,13 @@ static void func_actor_160700_80131E70(void)
 {
     switch (GameFlag_GetNibble(0x113)) {
         case 0:
-            func_800E8634((s32)&D_actor_160700_80135664, 0, (s32)&D_actor_160700_80135ACC);
+            func_800E8634(&D_actor_160700_80135664, 0, &D_actor_160700_80135ACC);
             GameFlag_SetNibble(0x113, 1);
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 0xC);
             break;
         case 1:
-            func_800E8634((s32)&D_actor_160700_80135BD4, 0, (s32)&D_actor_160700_80135ACC);
+            func_800E8634(&D_actor_160700_80135BD4, 0, &D_actor_160700_80135ACC);
             GameFlag_SetNibble(0x113, 2);
             break;
         case 2:

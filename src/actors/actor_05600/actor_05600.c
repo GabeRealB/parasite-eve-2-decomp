@@ -7,12 +7,6 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/fs.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -21,6 +15,23 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 /// Placement descriptor for this actor.
 extern Actor105600PlaceSrc Actor05600_D161BC;
@@ -56,8 +67,6 @@ extern s32 Actor05600_D162AC[];
 
 /// The approach cycle's per-state handlers, indexed by `Actor105600Work.field_6A6`.
 extern TaskFunc Actor05600_D16540[];
-
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 static void Actor05600_Fn00CFC(Task* arg0);
 static void Actor05600_Fn02548(Task* arg0);
@@ -465,7 +474,7 @@ void Actor05600_Fn00B18(Task* arg0)
 
 /// Proximity check: measures the player's horizontal distance from the root
 /// coordinate in a 0x10-byte block carved off the scratch head. Under 0x5DC,
-/// one group of `Gp_StateF0.field_2` bits raises `field_6B2`; past it the other two
+/// one group of `Gp_StateF0.prefix.bytes.field_2` bits raises `field_6B2`; past it the other two
 /// groups (the second only within 0xBB8) switch to animation 4 and state 1.
 static void Actor05600_Fn00CFC(Task* arg0)
 {
@@ -491,14 +500,14 @@ static void Actor05600_Fn00CFC(Task* arg0)
     SCRATCH_HEAD(VECTOR) = delta;
     distance             = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x5DC) {
-        if (Gp_StateF0.field_2 & 0x17) {
+        if (Gp_StateF0.prefix.bytes.field_2 & 0x17) {
             work->field_6B2 = 1;
         }
     } else {
-        if (Gp_StateF0.field_2 & 5) {
+        if (Gp_StateF0.prefix.bytes.field_2 & 5) {
             trigger = 1;
         }
-        if ((Gp_StateF0.field_2 & 0x12) && (distance < 0xBB8)) {
+        if ((Gp_StateF0.prefix.bytes.field_2 & 0x12) && (distance < 0xBB8)) {
             trigger = 1;
         }
         if (trigger != 0) {
@@ -1608,9 +1617,6 @@ static void Actor05600_Fn031B0(GpEnemy* arg0, Task* arg1)
 
     SCRATCH_POP_BYTES(0x38);
 }
-
-/// Effect id the burst at the end of the child's flight is spawned with.
-extern s32 D_80115750;
 
 /// Sound id of the burst cue, with the spawn context's room/channel bits
 /// packed in.

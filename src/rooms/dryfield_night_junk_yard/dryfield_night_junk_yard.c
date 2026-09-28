@@ -1,13 +1,17 @@
 #include "common.h"
-
-#include "gameplay/268.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "main/fs.h"
 
 /// The room's message table, published in `Task::msgTable` for
 /// `Gp_DispatchMsg` to walk.
@@ -149,7 +153,7 @@ static void func_dryfield_night_junk_yard_8017D8B0(Task* task)
     Game_SetPtrSlot(task, 7);
     subId = gGameSession->at4.loc.place;
     if (subId == 1 && GameFlag_GetNibble(0x9F) == subId) {
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_dryfield_night_junk_yard_801805A0, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_dryfield_night_junk_yard_801805A0, 0x7DB);
     }
     func_dryfield_night_junk_yard_8017D9B8(GameFlag_GetNibble(0x9F));
     task->state = task->state + 1;

@@ -1,15 +1,22 @@
 #include "common.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/mc.h"
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
@@ -48,7 +55,7 @@ static const TaskFuncTable3 D_neo_ark_power_plant_1_8017D5C4 = {
 /// clears 0x1B2, applies `D_neo_ark_power_plant_1_80181C00`, sets
 /// `Mc_SaveData[0].sceneEvent` to 0x16 and starts the event script at
 /// `D_neo_ark_power_plant_1_8017EB7C`. When `Mc_SaveData[0].at4.loc.view` is 3 and nibble 0xFB
-/// is clear, it sets 0xFB, clears `field_126` and `Gp_StateF0.field_0` and
+/// is clear, it sets 0xFB, clears `field_126` and `Gp_StateF0.prefix.bytes.field_0` and
 /// starts the script at `D_neo_ark_power_plant_1_8017EEE4`. It re-arms the
 /// countdown to 4 while `Mc_SaveData[0].at4.loc.view` differs from the current view with 0xDE
 /// set and 0xDF clear; otherwise it ticks the countdown down and, on reaching
@@ -68,7 +75,7 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
                         GameFlag_SetNibble(0x1B2, 0);
                         Gp_ApplyAreaRecs(D_neo_ark_power_plant_1_80181C00);
                         Mc_SaveData[0].sceneEvent = 0x16;
-                        func_800E8634((s32)&D_neo_ark_power_plant_1_8017EB7C, 0, (s32)&D_neo_ark_power_plant_1_8017EDBC);
+                        func_800E8634(&D_neo_ark_power_plant_1_8017EB7C, 0, &D_neo_ark_power_plant_1_8017EDBC);
                     }
                 }
             }
@@ -76,8 +83,8 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
     }
     if ((Mc_SaveData[0].at4.loc.view == 3) && (GameFlag_GetNibble(0xFB) == 0)) {
         GameFlag_SetNibble(0xFB, 1);
-        gGameSession->field_126 = 0;
-        Gp_StateF0.field_0      = 0;
+        gGameSession->field_126         = 0;
+        Gp_StateF0.prefix.bytes.field_0 = 0;
         func_800E8614((s32)&D_neo_ark_power_plant_1_8017EEE4, 0);
     }
     if ((Mc_SaveData[0].at4.loc.view != gGameSession->at4.loc.view) && (GameFlag_GetNibble(0xDE) != 0) && (GameFlag_GetNibble(0xDF) == 0)) {
@@ -129,7 +136,7 @@ s32 func_neo_ark_power_plant_1_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg
             Gp_RunCapCmd1(cmd);
             break;
         case 3:
-            if (Gp_StateF0.field_0 == 2) {
+            if (Gp_StateF0.prefix.bytes.field_0 == 2) {
                 cmd = 7;
             } else if (GameFlag_GetNibble(0x148) != 0) {
                 cmd = 6;
@@ -182,7 +189,7 @@ void func_neo_ark_power_plant_1_8017D908(void)
 /// First state of the room task: installs the room's message table, registers
 /// the task as pointer slot 7, sets `flowFlags` to 1 when the session's place
 /// is 1 and, while nibble 0xFB is clear, sets `field_126` to 1 and
-/// `Gp_StateF0.field_0` to 2. Then advances to the next state.
+/// `Gp_StateF0.prefix.bytes.field_0` to 2. Then advances to the next state.
 static void func_neo_ark_power_plant_1_8017D928(Task* task)
 {
     task->msgTable = D_neo_ark_power_plant_1_8017EB18;
@@ -191,8 +198,8 @@ static void func_neo_ark_power_plant_1_8017D928(Task* task)
         gGameSession->flowFlags = 1;
     }
     if (GameFlag_GetNibble(0xFB) == 0) {
-        gGameSession->field_126 = 1;
-        Gp_StateF0.field_0      = 2;
+        gGameSession->field_126         = 1;
+        Gp_StateF0.prefix.bytes.field_0 = 2;
     }
     task->state = (s32)(task->state + 1);
 }

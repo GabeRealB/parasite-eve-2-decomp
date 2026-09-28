@@ -2,16 +2,23 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/tmd.h"
 #include "weapons/m4a1_grenade.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "main/fs.h"
+#include "main/wipsys.h"
 
 /// Equipped-weapon index; `Gp_GetItemSlot(Player_Status.weapon + 0x7F)` is the slot the
 /// player is holding, and its `attachId` is the attachment id the sound bank is

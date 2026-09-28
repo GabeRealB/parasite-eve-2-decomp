@@ -1,6 +1,4 @@
 #include "common.h"
-
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mem.h"
@@ -8,6 +6,9 @@
 #include "main/session.h"
 #include "main/stream.h"
 #include "main/task.h"
+
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
 
 /// The stream playback descriptors: the one-shot launcher, then the player.
 extern TaskDesc D_shelter_b6_training_room_8018431C[];

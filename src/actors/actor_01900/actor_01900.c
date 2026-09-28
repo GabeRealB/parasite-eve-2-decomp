@@ -7,20 +7,29 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_80169f74.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
-#include "gameplay/3A34.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
 /// Private work block of the actor 01900 task, hanging off `Task::work`.
 ///
@@ -156,7 +165,6 @@ extern ActorHeightClamp   Actor01900_D172CC[];
 extern SVECTOR Actor01900_D1722C[];
 extern char    Actor01900_D10B68;
 extern s16     Actor01900_D172FC;
-extern void*   D_80114B78[1];
 
 static s32  Actor01900_Fn00E00(GpCoord* coord, GpRec18* rec, s16 arg2);
 static void Actor01900_Fn02A50(Task* arg0);
@@ -293,7 +301,6 @@ static __inline__ void Actor01900_ResetYaw(GpCoord* coord)
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Cross-fade lengths in frames, indexed by the clip being left and the clip
 /// being entered. `Actor01900_Fn01C94` reads one entry per animation change.
@@ -2431,7 +2438,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
             work->field_0 = 6;
         }
     }
-    if (*(u32*)&Gp_StateF0 & 0x50000) {
+    if (Gp_StateF0.prefix.packed & 0x50000) {
         work->field_0 = 6;
     }
 }
@@ -2530,7 +2537,7 @@ static void Actor01900_Fn06F40(Task* arg0)
             }
         }
     }
-    if (*(u32*)&Gp_StateF0 & 0xD0000) {
+    if (Gp_StateF0.prefix.packed & 0xD0000) {
         work->field_0 = 6;
     }
     SCRATCH_POP(ActorTurnScratch);
@@ -2783,17 +2790,17 @@ static void Actor01900_Fn08724(Task* arg0)
     work->field_6++;
     switch (work->field_6) {
         case 3:
-            D_80114B78[0] = &Actor01900_D10B68;
-            vec.vz        = 0x64;
-            vec.vy        = 0;
-            vec.vx        = 0;
-            eff           = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec);
+            D_80114B34[5].arg.model = &Actor01900_D10B68;
+            vec.vz                  = 0x64;
+            vec.vy                  = 0;
+            vec.vx                  = 0;
+            eff                     = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec);
             goto body;
         case 4:
-            D_80114B78[0] = &Actor01900_D10B68;
-            vec.vy        = 0;
-            vec.vx        = 0;
-            eff           = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec);
+            D_80114B34[5].arg.model = &Actor01900_D10B68;
+            vec.vy                  = 0;
+            vec.vx                  = 0;
+            eff                     = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec);
         body:
             if (eff != NULL) {
                 actorTintTask(eff->task, enemy);
@@ -2842,16 +2849,16 @@ static void Actor01900_Fn0892C(Task* arg0)
             Actor01900_StepForwardHead(arg0->extra.tmd->coords, 0xA);
             Actor01900_Fn00E00(arg0->extra.tmd->coords, &work->field_A28, 0xC);
             if (work->field_6 == 3) {
-                D_80114B78[0] = &Actor01900_D10B68;
-                vec.vz        = 0x64;
-                vec.vy        = 0;
-                vec.vx        = 0;
-                eff           = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec);
+                D_80114B34[5].arg.model = &Actor01900_D10B68;
+                vec.vz                  = 0x64;
+                vec.vy                  = 0;
+                vec.vx                  = 0;
+                eff                     = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec);
                 actorTintEffect(eff, enemy);
             }
             if (work->field_6 == 5) {
-                D_80114B78[0] = &Actor01900_D10B68;
-                eff           = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL);
+                D_80114B34[5].arg.model = &Actor01900_D10B68;
+                eff                     = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL);
                 actorTintEffect(eff, enemy);
             }
             break;
@@ -3108,7 +3115,7 @@ static void Actor01900_Fn09D3C(GpEnemy* enemy, Task* actor)
     Gp_ClearRec18Occupied(&work->field_A28);
     Gp_ClearRec18Occupied(&work->field_8E8);
     Gp_ClearRec18Occupied(&work->field_B68);
-    if ((Gp_StateF0.field_3 == 1) && (work->field_0 == 0x18)) {
+    if ((Gp_StateF0.prefix.bytes.field_3 == 1) && (work->field_0 == 0x18)) {
         work->field_0 = 6;
     }
 

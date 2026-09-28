@@ -5,13 +5,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -26,6 +19,18 @@
 #include "main/ui.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/object_task.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_targets.h"
 
 /// Scratch block `func_mine_refuge_80180710` takes from `G_SCRATCH_HEAD`.
 /// `otz`, `flag` and `sx`/`sy` receive the projection of the glow's centre;
@@ -45,11 +50,9 @@ STATIC_ASSERT_SIZEOF(MineRefugeGlowScratch, 0x1C);
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
-extern UiObjectDesc   D_800611E4;
-extern UiObject*      D_80067634;
-extern UiObjectDesc   D_8010EFA0;
-extern s16            D_80114D08;
-extern u8             D_80115598;
+extern UiObjectDesc D_800611E4;
+extern UiObject*    D_80067634;
+
 extern TaskDesc       D_801358D8;
 extern GpAreaApplyRec D_80188888[];
 
@@ -57,7 +60,6 @@ extern GpAreaApplyRec D_80188888[];
 /// end reads it through this name rather than through `Mc_SaveData`.
 
 /// View saved when the cutscene starts and restored when it ends.
-extern s32 D_80115694;
 
 /// Title of the telephone menu. The bytes after its terminator are not zero,
 /// so it stays assembly.

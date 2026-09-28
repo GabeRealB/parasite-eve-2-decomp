@@ -1,8 +1,5 @@
 #include "common.h"
 
-#include "gameplay/1A8.h"
-#include "gameplay/D4.h"
-
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -10,6 +7,10 @@
 #include "rooms/dryfield_motel_room_1.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "main/fs.h"
 
 extern GpMsgEntry D_dryfield_motel_room_1_8017E0A8[];
 extern TaskDesc   D_dryfield_motel_room_1_8017E478;
@@ -66,7 +67,7 @@ static void func_dryfield_motel_room_1_8017D69C(Task* arg0)
         msg.from.loc.stage = gGameSession->at4.loc.stage;
         msg.from.loc.area  = gGameSession->at4.loc.area;
         msg.command        = 0;
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
     }
     arg0->state = arg0->state + 1;
 }

@@ -4,11 +4,6 @@
 #include <psyq/rand.h>
 
 #include "actors/actor_143000.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/3A34.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -18,6 +13,14 @@
 #include "main/task.h"
 #include "psyq/strings.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/world_targets.h"
+#include "main/mc.h"
+#include "main/mem.h"
 
 /// Work block of the actor's callback task. `promptKind` is the picked hotspot's
 /// prompt display mode, copied from its `Actor143000Rect::field_A` by
@@ -70,7 +73,6 @@ typedef struct Actor143000CaptureArgs {
 } Actor143000CaptureArgs;
 STATIC_ASSERT_SIZEOF(Actor143000CaptureArgs, 0x10);
 
-extern s16             D_80114D08;
 extern TaskDesc        D_actor_143000_80134558;
 extern u8              D_actor_143000_80134570[];
 extern Actor143000Rect D_actor_143000_80134580[];
@@ -146,7 +148,7 @@ static void func_actor_143000_80131F80(Task* task)
     }
 
     for (port = first; port < count; port++) {
-        prompt = &D_80114D28 + port;
+        prompt = &D_80114D28[port];
         pad    = &Pad_States[port];
         status = pad->status;
         if (status == 0x12) {
@@ -216,20 +218,20 @@ static void func_actor_143000_80131F80(Task* task)
             prompt->field_4 = 0xDC00;
         }
 
-        statep = &prompt->buttons[0].state;
-        heldp  = &prompt->buttons[0].heldFrames;
+        statep = &prompt->buttons.halfwords[0];
+        heldp  = &prompt->buttons.halfwords[1];
         idx    = 0;
         for (i = 0; i < 2; i++, statep += 4, idx += 4) {
             mask = (i == 0) ? 0x40 : 0xA0;
             if (Pad_CheckButtons(port, 1, mask) != 0) {
                 if (heldp[idx] < prompt->field_E &&
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed == prompt->screen.packed) {
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
                     *statep    = 4;
                     heldp[idx] = prompt->field_E;
                 } else {
-                    heldp[idx]                                           = 0;
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed = prompt->screen.packed;
-                    *statep                                              = 2;
+                    heldp[idx]                                                          = 0;
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
+                    *statep                                                             = 2;
                 }
             } else if (Pad_CheckButtons(port, 3, mask) != 0) {
                 *statep = 3;
@@ -353,7 +355,7 @@ static void func_actor_143000_801325F0(Task* arg0)
     gGameSession->eventState = 1;
     p                        = D_actor_143000_80134580;
     Gp_StateF0.field_4       = 2;
-    prompt                   = &D_80114D28;
+    prompt                   = D_80114D28;
     if (Gp_CapBusy() != 0) {
         prompt->mode     = 0;
         prompt->targetId = 0;
@@ -366,7 +368,7 @@ static void func_actor_143000_801325F0(Task* arg0)
     work->field_2 = 0;
     if (func_actor_143000_80133AE8(p, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
-        if (prompt->buttons[0].state == 2) {
+        if (prompt->buttons.slots[0].state == 2) {
             for (; p->field_8 != -1; p++) {
                 if (p->field_B != 0) {
                     if (work->field_7 != 0 && p->field_8 == 5) {
@@ -432,7 +434,7 @@ static void func_actor_143000_801325F0(Task* arg0)
     } else {
         prompt->mode = 1;
     }
-    if (prompt->buttons[1].state == 2) {
+    if (prompt->buttons.slots[1].state == 2) {
         arg0->state = 5;
     }
 }
@@ -777,7 +779,7 @@ void func_actor_143000_801335C8(Task* arg0)
 /// and steps the task on to state 2.
 static void func_actor_143000_80133664(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
 
     prompt->targetId    = 0x80;
     prompt->mode        = 1;
@@ -792,7 +794,7 @@ static void func_actor_143000_80133664(Task* task)
 /// to state 4.
 static void func_actor_143000_80133698(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     Actor143000Work*  work   = (Actor143000Work*)task->work;
 
     prompt->mode     = 0;
@@ -804,7 +806,7 @@ static void func_actor_143000_80133698(Task* task)
 static void func_actor_143000_801336E8(Task* arg0)
 {
     Actor143000Work*  work   = arg0->work;
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     s32               cmd;
 
     prompt->mode     = 0;
@@ -979,17 +981,17 @@ static void func_actor_143000_80133C2C(void)
 /// highlighted -- and steps the task on one state.
 static void func_actor_143000_80133C90(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     s32               i;
 
     for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0               = 0;
-        prompt->field_4               = 0;
-        prompt->targetId              = 0x100;
-        prompt->field_E               = 0xF;
-        prompt->buttons[0].heldFrames = 0;
-        prompt->buttons[1].heldFrames = 0;
-        prompt->mode                  = 1;
+        prompt->field_0                     = 0;
+        prompt->field_4                     = 0;
+        prompt->targetId                    = 0x100;
+        prompt->field_E                     = 0xF;
+        prompt->buttons.slots[0].heldFrames = 0;
+        prompt->buttons.slots[1].heldFrames = 0;
+        prompt->mode                        = 1;
     }
     task->state = task->state + 1;
 }

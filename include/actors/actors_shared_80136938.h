@@ -2,9 +2,10 @@
 #define ACTORS_SHARED_80136938_H
 
 #include "common.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3FB8.h"
 #include "main/task.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/collision.h"
 
 /// Ground-burst work allocated by the specimen's setup handler and advanced
 /// by ActorsShared80136c80. The collision node points at the capsule, whose

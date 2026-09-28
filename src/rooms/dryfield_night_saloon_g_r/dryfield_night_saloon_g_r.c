@@ -4,13 +4,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
@@ -31,11 +24,21 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8018055c.h"
 
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/items.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_targets.h"
+
 extern void func_8002E53C(TextDrawReq* req, u8* text);
-extern void func_800E8614(s32 arg0, s32 arg1);
 
 extern s16 D_8007A396;
-extern s16 D_80114D08;
 
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.
@@ -407,7 +410,7 @@ s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF* ar
     u8       temp_s0;
 
     if (arg2->field_2 == 7 && GameFlag_GetNibble(0x59) == 0) {
-        func_800E8634((s32)&D_dryfield_night_saloon_g_r_80183C94, 0, (s32)&D_dryfield_night_saloon_g_r_801847A4);
+        func_800E8634(&D_dryfield_night_saloon_g_r_80183C94, 0, &D_dryfield_night_saloon_g_r_801847A4);
         GameFlag_SetNibble(0x59, 1);
     }
     temp_s0 = gGameSession->at4.loc.place;
@@ -419,7 +422,7 @@ s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF* ar
             msg.from.loc.stage = gGameSession->at4.loc.stage;
             msg.from.loc.area  = gGameSession->at4.loc.area;
             msg.command        = 1;
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
             GameFlag_SetNibble(0xB0, 1);
         }
     }
@@ -441,7 +444,7 @@ static void func_dryfield_night_saloon_g_r_8017DF90(Task* task)
         msg.from.loc.stage = gGameSession->at4.loc.stage;
         msg.from.loc.area  = gGameSession->at4.loc.area;
         msg.command        = 0;
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
     }
     task->state = task->state + 1;
 }

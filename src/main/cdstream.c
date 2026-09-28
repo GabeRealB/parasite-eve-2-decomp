@@ -9,6 +9,11 @@
 #include "main/cdstream.h"
 #include "main/devkit.h"
 
+#include "gameplay/display.h"
+#include "gameplay/scene_runtime.h"
+#include "main/display.h"
+#include "main/sound.h"
+
 static s32 D_800827E8;
 /// Unreferenced.
 static u8     D_800827F0[8];

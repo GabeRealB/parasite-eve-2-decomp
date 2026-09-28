@@ -5,13 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -24,12 +17,19 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
-extern u8  D_80115690;
-extern s32 D_8011572C;
-extern s32 D_80115750;
-extern s32 D_80115758;
+extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 /// The room's message table, which the room setup task installs.
 extern GpMsgEntry D_neo_ark_forest_zone_80181DC8[];
@@ -104,7 +104,7 @@ void func_neo_ark_forest_zone_8017D644(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_neo_ark_forest_zone_80182E38.field_0;
+            Mc_SaveData[0].at4.loc.area = D_neo_ark_forest_zone_80182E38.prefix.bytes.field_0;
             Mc_SaveData[0].at4.loc.warp = D_neo_ark_forest_zone_80182E38.field_2;
             Mc_SaveData[0].at4.loc.room = D_neo_ark_forest_zone_80182E38.field_3;
             Task_Spawn(0, 0x11, 0, 0);
@@ -190,7 +190,7 @@ s32 func_neo_ark_forest_zone_8017D958(s32 arg0, s32 arg1, RoomEventMsg* in, Room
         }
     }
     if (D_neo_ark_forest_zone_80181E68 != NULL) {
-        return Gp_DispatchMsg(D_neo_ark_forest_zone_80181E68, arg1, (s32)in, (s32)out);
+        return Gp_DispatchMsgPtrs(D_neo_ark_forest_zone_80181E68, arg1, in, out);
     }
     return -1;
 }
@@ -214,7 +214,7 @@ s32 func_neo_ark_forest_zone_8017DA14(Task* task, s32 msgId, s32 arg2, s32 arg3)
 void func_neo_ark_forest_zone_8017DA48(void)
 {
     if (D_neo_ark_forest_zone_80181E68 != 0) {
-        Gp_DispatchMsg(D_neo_ark_forest_zone_80181E68, 0x7DB, (s32)&D_neo_ark_forest_zone_80181E38, 0);
+        Gp_DispatchMsgPtr(D_neo_ark_forest_zone_80181E68, 0x7DB, &D_neo_ark_forest_zone_80181E38, 0);
     }
 }
 
@@ -230,7 +230,7 @@ static void func_neo_ark_forest_zone_8017DA80(Task* arg0)
     SndEvt_EnqueueType6(0x550B0006, 0, 0);
     D_neo_ark_forest_zone_80181E68 = Task_SpawnFromTable(&D_neo_ark_forest_zone_80182E18, 0, 0, 0);
     if (gGameSession->at4.loc.place == 1 && GameFlag_GetNibble(0xBD) == 0) {
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_neo_ark_forest_zone_80181E30, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_neo_ark_forest_zone_80181E30, 0x7DB);
     }
     arg0->state = arg0->state + 1;
 }
@@ -242,7 +242,7 @@ static void func_neo_ark_forest_zone_8017DA80(Task* arg0)
 static void func_neo_ark_forest_zone_8017DB40(Task* arg0)
 {
     if (gGameSession->at4.loc.place == 1 && GameFlag_GetNibble(0xBD) == 0) {
-        Gp_DispatchMsg(D_neo_ark_forest_zone_80181E68, 0x7DB, (s32)&D_neo_ark_forest_zone_80181E30, 0);
+        Gp_DispatchMsgPtr(D_neo_ark_forest_zone_80181E68, 0x7DB, &D_neo_ark_forest_zone_80181E30, 0);
     }
     arg0->state = arg0->state + 1;
 }

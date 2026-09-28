@@ -1,10 +1,14 @@
 #include "common.h"
 
 #define TASK_C
-
-#include "gameplay/gameplay.h"
 #include "main/unknown_syms.h"
 #include "main/text.h"
+
+#include "gameplay/model_objects.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/mem.h"
+#include "main/session.h"
 
 static void Task_Free(Task* state);
 static void Task_Unlink(Task* state);

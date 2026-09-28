@@ -4,11 +4,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -19,6 +14,14 @@
 #include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.

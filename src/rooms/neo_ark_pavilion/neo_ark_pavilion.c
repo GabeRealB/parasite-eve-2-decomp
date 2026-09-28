@@ -6,13 +6,6 @@
 #include "gte.h"
 #include "main/gfxgte.h"
 #include <psyq/rand.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -27,21 +20,22 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017e4f8.h"
 
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
+
 s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
-
-extern u8  D_80115690;
-extern s32 D_8011572C;
-extern s32 D_80115730;
-extern s32 D_80115734;
-extern s32 D_80115738;
-extern s32 D_8011574C;
-extern s32 D_80115750;
-extern s32 D_80115754;
-extern s32 D_80115758;
 
 /// The room's event task, spawned when its message handler latches an event.
 extern TaskDesc D_neo_ark_pavilion_80183864;
@@ -831,7 +825,7 @@ void func_neo_ark_pavilion_8017E854(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_neo_ark_pavilion_80187A14.field_0;
+            Mc_SaveData[0].at4.loc.area = D_neo_ark_pavilion_80187A14.prefix.bytes.field_0;
             Mc_SaveData[0].at4.loc.warp = D_neo_ark_pavilion_80187A14.field_2;
             Mc_SaveData[0].at4.loc.room = D_neo_ark_pavilion_80187A14.field_3;
             Task_Spawn(0, 0x11, 0, 0);

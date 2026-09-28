@@ -4,11 +4,11 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-
-#include "gameplay/3A34.h"
-#include "gameplay/D4.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/collision.h"
+#include "gameplay/message.h"
 
 /// Cutscene work block the room's cutscene task allocates as 0xC zeroed bytes
 /// in its state 0 and parks at `Task::work` -- that slot is *not* a `TaskIdMap`

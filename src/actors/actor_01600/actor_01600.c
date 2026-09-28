@@ -7,14 +7,6 @@
 
 #include "actors/actor.h"
 #include "actors/actor_01600.h"
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/pairsrc.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/mem.h"
@@ -25,8 +17,23 @@
 #include "main/wipsys.h"
 #include <psyq/abs.h>
 
-/* Declared here with a signed id: see the note in gameplay/1BC.h. */
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/attachments.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
 typedef union Actor01600HitVector {
     VECTOR v;
@@ -82,7 +89,6 @@ STATIC_ASSERT_SIZEOF(Actor01600YawScratch, 0x30);
 /// difference is computed into the scratch vector but never enters the sum.
 static s32 Actor01600_Fn052C4(Task* arg0);
 
-extern Task*      Gp_ActorSlots[];
 extern GpDelayArg Actor01600_D12878;
 extern GpXformArg Actor01600_D12890;
 
@@ -967,7 +973,7 @@ static void Actor01600_Fn017BC(Task* actor)
                 work->field_50A = 0;
             }
             if (ctx->place->mode == 0) {
-                if ((Gp_StateF0.field_2 & 1) || (*(u32*)&Gp_StateF0 & 0xFF140000)) {
+                if ((Gp_StateF0.prefix.bytes.field_2 & 1) || (Gp_StateF0.prefix.packed & 0xFF140000)) {
                     work->field_53A = 1;
                 }
             }
@@ -1709,13 +1715,13 @@ static void Actor01600_Fn020F8(Task* actor)
                             SndEvt_EnqueueType6(id, (s32)pan23, (s8)gpGetObjDepth(coord));
                             if (work->field_53E != 0) {
                                 Actor01600_D127D8.field_4 = 1;
-                                Gp_DispatchMsg(work->field_4D4, 0x3F4, (s32)&Actor01600_D127D8, 0);
+                                Gp_DispatchMsgPtr(work->field_4D4, 0x3F4, &Actor01600_D127D8, 0);
                                 id    = (((u16)((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x4065000A;
                                 pan24 = (s8)Gp_GetObjPan(coord);
                                 SndEvt_EnqueueType6(id, (s32)pan24, (s8)gpGetObjDepth(coord));
                             } else {
                                 Actor01600_D127D8.field_4 = 2;
-                                Gp_DispatchMsg(work->field_4D4, 0x3FF, (s32)&Actor01600_D127D8, 0);
+                                Gp_DispatchMsgPtr(work->field_4D4, 0x3FF, &Actor01600_D127D8, 0);
                                 id           = (((u16)((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 6;
                                 pan_msg_zero = (s8)Gp_GetObjPan(coord);
                                 SndEvt_EnqueueType6(id, (s32)pan_msg_zero, (s8)gpGetObjDepth(coord));
@@ -1778,7 +1784,7 @@ static void Actor01600_Fn020F8(Task* actor)
                                 Actor01600_D127D8.field_4 = 3;
                                 Actor01600_D127D8.field_8 = 1;
                                 Actor01600_D127D8.field_C = 1;
-                                Gp_DispatchMsg(work->field_4D4, 0x3FF, (s32)&Actor01600_D127D8, 0);
+                                Gp_DispatchMsgPtr(work->field_4D4, 0x3FF, &Actor01600_D127D8, 0);
                                 work->field_508 = 0;
                                 work->field_50A = 0;
                                 work->field_506 = 0x1E;
@@ -2303,7 +2309,7 @@ static void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
                     }
                     pad->field_6 |= 1;
                     Gp_PulseState1C();
-                    Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, (s32)arg1, 0);
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(7), 0x13F4, arg1, 0);
                     work->field_502         = 0xFF;
                     arg1->extra.tmd->flags |= 0x80;
                     arg1->extra.tmd->flags |= 4;
@@ -2408,7 +2414,7 @@ static s32 Actor01600_Fn047A0(Task* arg0)
                     } else {
                         Actor01600_D12878.field_4 = 2;
                     }
-                    if (Gp_DispatchMsg(task, 0x3F8, (s32)&Actor01600_D12878, 0) == 0) {
+                    if (Gp_DispatchMsgPtr(task, 0x3F8, &Actor01600_D12878, 0) == 0) {
                         other->flg = 0;
                         delta.vx   = coord->coord.t[0] - other->coord.t[0];
                         delta.vy   = 0;
@@ -2426,7 +2432,7 @@ static s32 Actor01600_Fn047A0(Task* arg0)
                         Actor01600_D12890.pos.vx = (s32)other->coord.t[0];
                         Actor01600_D12890.pos.vy = (s32)other->coord.t[1];
                         Actor01600_D12890.pos.vz = (s32)other->coord.t[2];
-                        Gp_DispatchMsg(task, 0x3E9, (s32)&Actor01600_D12890, 0);
+                        Gp_DispatchMsgPtr(task, 0x3E9, &Actor01600_D12890, 0);
                         Actor01600_D12870 = 1;
                         return 1;
                     }

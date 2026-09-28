@@ -16,12 +16,17 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
 
 /// Work block allocated by `func_actor_361100_80162D28` and
 /// `func_actor_361100_80163410` (`memCalloc(0x4A4)`)
@@ -63,7 +68,6 @@ typedef struct Actor361100Work {
 } Actor361100Work;
 STATIC_ASSERT_SIZEOF(Actor361100Work, 0x4A4);
 
-extern u8  D_801156F9;
 extern s32 D_8016069C;
 
 extern Task* D_actor_361100_80171BE0;
@@ -81,10 +85,6 @@ extern u8         D_actor_361100_80171BB8[];
 
 void func_80138C9C(ActorEffectState* state);
 void func_801353D0(ActorEffectState* state, GpCoord* coord);
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_361100_80161FF8(Task* arg0);
 static void func_actor_361100_80162B18(Task* task);
@@ -637,7 +637,7 @@ void func_actor_361100_80162A54(Task* arg0)
     arg0->spawnArg1 = countdown;
     if (countdown > 0) {
         Display_ClampField126((countdown & 1) ? 0 : -1);
-        Gp_SpawnScript18((s32)&D_actor_361100_80166AD0, (s32)&D_actor_361100_80166AD8);
+        Gp_SpawnScript18(&D_actor_361100_80166AD0, &D_actor_361100_80166AD8);
     }
     if ((arg0->spawnArg1 <= 0) || (gGameSession->evtSkipped != 0)) {
         Display_ClampField126(0);

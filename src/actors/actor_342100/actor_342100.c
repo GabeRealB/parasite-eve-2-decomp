@@ -5,11 +5,6 @@
 
 #include "actors/actor_342100.h"
 #include "actors/actor.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -18,6 +13,20 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
@@ -78,7 +87,6 @@ extern u16 D_actor_342100_801649A8[];
 /// gated on: it aims the effect only on the frames where the low nibble (or,
 /// for the other arm, the low three bits) of this global is clear.
 
-extern u8       D_80114CF8;
 extern TaskDesc D_8018B57C;
 extern TaskDesc D_8018B83C;
 
@@ -426,7 +434,7 @@ static s32 func_actor_342100_801629B8(Task* arg0)
     msg.field_8         = 1;
     msg.field_C         = 0xA;
     msg.field_10        = 0;
-    Gp_DispatchMsg(w->field_2C, 0x3E8, (s32)&msg, 0);
+    Gp_DispatchMsgPtr(w->field_2C, 0x3E8, &msg, 0);
     goto ret1;
 }
 
@@ -652,7 +660,7 @@ static s32 func_actor_342100_80162F54(Task* arg0)
             }
             msg.words = &D_actor_342100_80164900[0];
             msg.count = n & 0xFFFF;
-            Gp_DispatchMsg(msgWork->field_2C, 0x3F7, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(msgWork->field_2C, 0x3F7, &msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;
             func_800E8614((s32)&D_actor_342100_801649C8, 0);
@@ -787,7 +795,7 @@ void func_actor_342100_8016334C(s32 arg0)
     msg.field_8         = 1;
     msg.field_C         = 0xF;
     msg.field_10        = 0;
-    Gp_DispatchMsg(work->field_2C, 0x3E8, (s32)&msg, 0);
+    Gp_DispatchMsgPtr(work->field_2C, 0x3E8, &msg, 0);
 }
 
 void func_actor_342100_801633D0(s32 arg0)
@@ -824,9 +832,10 @@ void func_actor_342100_80163454(s32 arg0)
         msg.from.loc.area  = 0x2C;
         msg.from.loc.stage = 0;
         msg.command        = 4;
+        /* The message ABI carries this object address in one 32-bit word. */
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         if (work->field_30 != NULL) {
-            Gp_DispatchMsg(work->field_30, 0x7DB, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(work->field_30, 0x7DB, &msg, 0);
         }
         work->field_38 = Task_SpawnFromTable(&D_actor_342100_80164B78, 3, 0, 0);
         return;

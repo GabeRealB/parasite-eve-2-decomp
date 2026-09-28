@@ -3,19 +3,27 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/gameplay.h"
-#include "gameplay/pairsrc.h"
-#include "gameplay/3FB8.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// 0x348-byte work block `Actor02500_Fn00078` allocates and hangs off
 /// `Task::work`. It opens with the animation context (`func_800B3F84`
@@ -114,9 +122,6 @@ extern char                 Actor02500_D04448;
 extern char                 Actor02500_D0478C;
 extern char                 Actor02500_D04AD0;
 extern void*                D_80067704[1];
-
-/* Declared here with a signed id: see the note in gameplay/1BC.h. */
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void Actor02500_Fn00078(GpEnemy* ctx, Task* actor);
 static void Actor02500_Fn01AC8(GpEnemy* ctx, Task* actor);
@@ -888,7 +893,7 @@ static void Actor02500_Fn0184C(Task* arg0)
         index1      = raw1 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry1        = (GpAreaPlace*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        entry1        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
         model1->tpage = entry1->tpage;
         model1->clut  = entry1->clut;
         if (model1->buffer != NULL) {
@@ -909,7 +914,7 @@ static void Actor02500_Fn0184C(Task* arg0)
         index2      = raw2 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry2        = (GpAreaPlace*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
         model2->tpage = entry2->tpage;
         model2->clut  = entry2->clut;
         if (model2->buffer != NULL) {
@@ -930,7 +935,7 @@ static void Actor02500_Fn0184C(Task* arg0)
         index3      = raw3 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry3        = (GpAreaPlace*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        entry3        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
         model3->tpage = entry3->tpage;
         model3->clut  = entry3->clut;
         if (model3->buffer != NULL) {

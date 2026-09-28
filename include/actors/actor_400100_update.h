@@ -2,7 +2,6 @@
 #define ACTOR_400100_UPDATE_H
 
 #include "actors/actor_400100.h"
-#include "gameplay/3A34.h"
 #include "main/gfx.h"
 #include <psyq/inline_c.h>
 #include "gte.h"
@@ -17,9 +16,8 @@ typedef struct Actor00100AnimWord {
 } Actor00100AnimWord;
 
 extern Actor00100AnimCommand Actor00100_D1B9D0;
-extern GpAnimBlk*            Gp_PlayerAnimBlkTbl[];
-extern u16                   Gp_WeaponIdBase[];
-extern Actor00100AnimWord    Actor00100_D1B9BC, Actor00100_D1B9C0;
+
+extern Actor00100AnimWord Actor00100_D1B9BC, Actor00100_D1B9C0;
 
 static __inline__ s16 Actor00100_InRegion(Task* actor)
 {

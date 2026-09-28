@@ -7,14 +7,6 @@
 #include "gte.h"
 #include "main/gfxgte.h"
 #include <psyq/gtemac.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -27,6 +19,19 @@
 
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/model_objects.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// Scratch state of an elevator-car task, stored at `Task::work`.
 /// `func_acropolis_west_elevator_hall_8017F64C` allocates it with
@@ -792,7 +797,7 @@ static void func_acropolis_west_elevator_hall_8017F354(Task* task)
         sessionState = gGameSession->at4.loc.warp;
         if (sessionState == 1) {
             D_acropolis_west_elevator_hall_801849C8 = sessionState;
-            func_800E8634((s32)&D_acropolis_west_elevator_hall_80184620, 0, (s32)&D_acropolis_west_elevator_hall_80184890);
+            func_800E8634(&D_acropolis_west_elevator_hall_80184620, 0, &D_acropolis_west_elevator_hall_80184890);
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 1);
             GameFlag_SetNibble(0x7A, 1);

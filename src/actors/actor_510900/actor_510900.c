@@ -12,12 +12,20 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
-
-#include "gameplay/D4.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "actors/actor_510900.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mem.h"
 
 /// 0x24-byte scratch `func_actor_510900_80134284` takes from `G_SCRATCH_HEAD`
 /// to draw one frame of the debris trail. `vec0` is the effect coordinate's
@@ -44,8 +52,6 @@ typedef struct Actor510900SprClut {
     /* 0x2 */ u16 clutY;
 } Actor510900SprClut;
 STATIC_ASSERT_SIZEOF(Actor510900SprClut, 4);
-
-void Gp_DrawEffSprite7C(GpCoord* arg0, s32 arg1, u32 arg2);
 
 static void func_actor_510900_80134C90(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 
@@ -1193,7 +1199,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     spawned     = Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 2, 0, arg0);
     raw1        = arg0->placeKey;
     model1      = spawned->task->extra.tmd;
-    sessionKey1 = (GpAreaKey*)&gGameSession->at4.loc;
+    sessionKey1 = &gGameSession->at4.loc;
     key.stage   = sessionKey1->stage;
     key.area    = sessionKey1->area;
     index1      = raw1 >> 12;
@@ -1201,7 +1207,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     areaByte0   = gGameSession->at4.loc.view;
     key.view    = areaByte0;
     Gp_SyncAreaKeyIndex(&key);
-    entry1        = (GpAreaPlace*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+    entry1        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
     model1->tpage = entry1->tpage;
     model1->clut  = entry1->clut;
     if (model1->buffer != NULL) {
@@ -1220,7 +1226,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     spawned     = Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 3, 0, arg0);
     raw2        = arg0->placeKey;
     model2      = spawned->task->extra.tmd;
-    sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
+    sessionKey2 = &gGameSession->at4.loc;
     key.stage   = sessionKey2->stage;
     key.area    = sessionKey2->area;
     index2      = raw2 >> 12;
@@ -1228,7 +1234,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     areaByte0   = gGameSession->at4.loc.view;
     key.view    = areaByte0;
     Gp_SyncAreaKeyIndex(&key);
-    entry2        = (GpAreaPlace*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+    entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
     model2->tpage = entry2->tpage;
     model2->clut  = entry2->clut;
     if (model2->buffer != NULL) {

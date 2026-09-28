@@ -21,12 +21,6 @@
 #include "actors/actors_shared_80138640.h"
 #include "actors/actors_shared_801511c8.h"
 #include "actors/actors_shared_801673f8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/gfxgte.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -35,10 +29,21 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`. It precedes the animation helpers
-/// below, which call it.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+#include "gameplay/actor_render.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
 
 /// Animation work reached through `Task::work`. `field_2B8`/`field_2BA`/
 /// `field_2BC` are the same (id, id the three helper slots last saw, frames
@@ -1131,7 +1136,7 @@ static void Actor07000_Fn016A8(Task* arg0, u8 arg1)
         work->field_20A |= 0x8000;
         Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords, 1, NULL);
         Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x300, &Actor07000_D08068);
-        Gp_SpawnScript18((s32)&Actor07000_D06938, (s32)&Actor07000_D06944);
+        Gp_SpawnScript18(&Actor07000_D06938, &Actor07000_D06944);
         work->field_2DA = 1;
     } else {
         if (work->field_2D6 != 0) {

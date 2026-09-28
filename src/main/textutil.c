@@ -7,7 +7,10 @@
 #include "main/sound.h"
 #include "main/text.h"
 #include "main/wipsys.h"
-#include "gameplay/D4.h"
+
+#include "gameplay/display.h"
+#include "main/gameflag.h"
+#include "main/ui.h"
 
 /// A CLUT upload record: the rectangle a CLUT belongs at and the CLUT itself.
 /// Each CLUT is followed by one, but nothing reads them.

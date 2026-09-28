@@ -6,10 +6,11 @@
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "rooms/room_common.h"
 #include "rooms/mist_parking.h"
+
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
 
 /// World-space points the room's glow markers are drawn at. Every view draws
 /// its markers from this one table, by index.

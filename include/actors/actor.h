@@ -7,10 +7,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
@@ -19,6 +15,20 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "overlay.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
 
 /*
  * Types and helpers that the actor overlays each carry a copy of.
@@ -622,73 +632,63 @@ typedef struct Actor341700Work {
 STATIC_ASSERT_SIZEOF(Actor341700Work, 0x454);
 
 /// Work block of the enemy whose code both actor_05500 and actor_02600 carry,
-/// kept at `Task::work`. Most of it is still unnamed.
+/// kept at `Task::work`. Animation setup fills the context and eight slots;
+/// the projectile task has its own smaller collision-work allocation.
 typedef struct Actor105500Work {
-    GpObj     obj;
-    GpRec18   rec;
-    s16       field_38;
-    s16       field_3A;
-    byte      pad_3C[0x118];
-    byte      field_154[0x80];
-    MATRIX    field_1D4;
-    MATRIX    field_1F4;
-    GpObj     field_214;
-    GpRec18   field_234[4];
-    GpObj     field_294;
-    GpRec18   field_2B4[2];
-    GpObj     field_2E4;
-    GpRec18   field_304[1];
-    GpObj     field_31C;
-    GpRec18   field_33C[1];
-    GpEffArg  field_354;
-    VECTOR3   field_35C;
-    byte      pad_368[4];
-    TaskDesc* field_36C;
-    MATRIX    field_370;
-    s16       field_390;
-    s16       field_392;
-    s16       field_394;
-    u16       field_396;
-    s16       field_398;
-    s16       field_39A;
-    s16       field_39C;
-    s16       field_39E;
-    s16       field_3A0;
-    s16       field_3A2;
-    s16       field_3A4;
-    s16       field_3A6;
-    s16       field_3A8;
-    s16       field_3AA;
-    u16       field_3AC;
-    byte      pad_3AE[2];
-    s16       field_3B0;
-    s16       field_3B2;
-    s16       field_3B4;
-    s16       field_3B6;
-    byte      pad_3B8[2];
-    s16       field_3BA;
-    s16       field_3BC;
-    s16       field_3BE;
-    s16       field_3C0;
-    s16       field_3C2;
-    s16       field_3C4;
-    s16       field_3C6;
-    s16       field_3C8;
-    s16       field_3CA;
-    s16       field_3CC;
-    s16       field_3CE;
-    s16       field_3D0;
-    s16       field_3D2;
+    GpAnimCtx  anim;
+    GpAnimSlot slots[8];
+    byte       field_154[0x80];
+    MATRIX     field_1D4;
+    MATRIX     field_1F4;
+    GpObj      field_214;
+    GpRec18    field_234[4];
+    GpObj      field_294;
+    GpRec18    field_2B4[2];
+    GpObj      field_2E4;
+    GpRec18    field_304[1];
+    GpObj      field_31C;
+    GpRec18    field_33C[1];
+    GpEffArg   field_354;
+    VECTOR3    field_35C;
+    byte       pad_368[4];
+    TaskDesc*  field_36C;
+    MATRIX     field_370;
+    s16        field_390;
+    s16        field_392;
+    s16        field_394;
+    u16        field_396;
+    s16        field_398;
+    s16        field_39A;
+    s16        field_39C;
+    s16        field_39E;
+    s16        field_3A0;
+    s16        field_3A2;
+    s16        field_3A4;
+    s16        field_3A6;
+    s16        field_3A8;
+    s16        field_3AA;
+    u16        field_3AC;
+    byte       pad_3AE[2];
+    s16        field_3B0;
+    s16        field_3B2;
+    s16        field_3B4;
+    s16        field_3B6;
+    byte       pad_3B8[2];
+    s16        field_3BA;
+    s16        field_3BC;
+    s16        field_3BE;
+    s16        field_3C0;
+    s16        field_3C2;
+    s16        field_3C4;
+    s16        field_3C6;
+    s16        field_3C8;
+    s16        field_3CA;
+    s16        field_3CC;
+    s16        field_3CE;
+    s16        field_3D0;
+    s16        field_3D2;
 } Actor105500Work;
 STATIC_ASSERT_SIZEOF(Actor105500Work, 0x3D4);
-
-/// The animation context and eight slots at the front of the same work block,
-/// the view the animation setup is handed.
-typedef struct Actor105500Anim {
-    GpAnimCtx  context;
-    GpAnimSlot slots[8];
-} Actor105500Anim;
-STATIC_ASSERT_SIZEOF(Actor105500Anim, 0x154);
 
 /// One entry of a sprite frame table: the texture-page coordinates of the
 /// frame, each in the low byte of its halfword.
@@ -974,7 +974,7 @@ STATIC_ASSERT_SIZEOF(Actor402200Spot, 0x8);
 /// runs up, plays the actor's cue at 0x14, and at 0x5F asks the scene for
 /// message 0x3ED - clearing the flag and sending 0x3F1 instead if the scene
 /// refuses it.
-/// `field_3C` is the animation slot the cue body `func_actor_402200_80135BE0`
+/// `slots[1]` is the animation slot the cue body `func_actor_402200_80135BE0`
 /// hands to `Gp_AnimGetRec`: the second of the 0x28-byte slots the actor work
 /// blocks lay out from 0x14, the same one the other actor overlays' cue bodies
 /// play from. `field_6CA` latches the record's two cue bits (`0x30`) for the
@@ -983,10 +983,8 @@ STATIC_ASSERT_SIZEOF(Actor402200Spot, 0x8);
 /// is set the two adjacent words `[field_712 * 2 - 1]` and `[field_712 * 2]`
 /// are the cue ids it plays.
 typedef struct Actor402200Work {
-    byte       pad_0[0x14];
-    GpAnimSlot field_14;
-    GpAnimSlot field_3C;
-    byte       pad_64[0x2A8];
+    GpAnimCtx  anim;
+    GpAnimSlot slots[19];
     byte       field_30C[0x130];
     MATRIX     field_43C;
     MATRIX     field_45C;
@@ -2532,7 +2530,7 @@ static __inline__ s32 actorFindHit(SVECTOR* pos, GpRec18* records)
 }
 
 /// Looks up the current area's placement record from the session location.
-static __inline__ GpAreaRec* actorGetCurrentAreaRec(void)
+static __inline__ GpAreaVariant* actorGetCurrentAreaRec(void)
 {
     GpAreaKey  key;
     GpAreaKey* sessionKey;
@@ -2550,13 +2548,13 @@ static __inline__ GpAreaRec* actorGetCurrentAreaRec(void)
 /// current area, and reprocesses its stream when it already has one.
 static __inline__ void actorTintModel(TmdObject* model, GpEnemy* enemy)
 {
-    GpAreaRec*   rec;
-    GpAreaPlace* place;
-    s32          idx;
+    GpAreaVariant* rec;
+    GpAreaPlace*   place;
+    s32            idx;
 
     idx          = enemy->placeKey >> 12;
     rec          = actorGetCurrentAreaRec();
-    place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    place        = gpAreaPlaceAt(rec->field_0, idx);
     model->tpage = place->tpage;
     model->clut  = place->clut;
     if (model->buffer != NULL) {
@@ -2568,12 +2566,12 @@ static __inline__ void actorTintModel(TmdObject* model, GpEnemy* enemy)
 /// `actorTintModel` for the model carried by the spawned task `spawned`.
 static __inline__ void actorTintTask(Task* spawned, GpEnemy* enemy)
 {
-    GpAreaKey    key;
-    GpAreaKey*   sessionKey;
-    GpAreaRec*   rec;
-    GpAreaPlace* place;
-    TmdObject*   model;
-    s32          idx;
+    GpAreaKey      key;
+    GpAreaKey*     sessionKey;
+    GpAreaVariant* rec;
+    GpAreaPlace*   place;
+    TmdObject*     model;
+    s32            idx;
 
     sessionKey = &gGameSession->at4.loc;
     idx        = enemy->placeKey >> 12;
@@ -2584,7 +2582,7 @@ static __inline__ void actorTintTask(Task* spawned, GpEnemy* enemy)
     key.view   = sessionKey->view;
     Gp_SyncAreaKeyIndex(&key);
     rec          = Gp_GetNestedAreaRec(&key);
-    place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    place        = gpAreaPlaceAt(rec->field_0, idx);
     model->tpage = place->tpage;
     model->clut  = place->clut;
     if (model->buffer != NULL) {

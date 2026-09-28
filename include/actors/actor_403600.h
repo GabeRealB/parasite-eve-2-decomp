@@ -8,9 +8,10 @@
 #include "main/coord.h"
 
 #include "main/task.h"
-
-#include "gameplay/3A34.h"
 #include "actors/actor.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/effects.h"
 
 /// Work block of the `actor_403600` task, parked in the task's `Task::work`
 /// slot (that slot is not a `TaskIdMap` here).

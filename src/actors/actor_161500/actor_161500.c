@@ -7,20 +7,26 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
 
 extern TaskDesc D_actor_161500_801401B0[];
 extern u8       D_actor_161500_801401C8[];
@@ -44,10 +50,6 @@ extern s32 D_actor_161500_801378D8;
 extern s32 D_actor_161500_80137AB8;
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_161500_8013252C(Task* task);
 static void func_actor_161500_8013273C(GpEnemy* enemy, Task* task);
@@ -217,7 +219,7 @@ static void func_actor_161500_8013230C(void)
         temp_v0 = GameFlag_GetNibble(0xE4);
         switch (temp_v0) {
             case 0:
-                func_800E8634((s32)&D_actor_161500_80137080, 0, (s32)&D_actor_161500_80136E88);
+                func_800E8634(&D_actor_161500_80137080, 0, &D_actor_161500_80136E88);
                 GameFlag_SetNibble(0xE4, 1);
                 break;
             case 1:

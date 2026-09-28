@@ -13,10 +13,10 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
+#include "gameplay/actor.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
 
 /// Bytes 0x40..0x60 of an `actor_503500` work block, which the two enemies
 /// that reach them disagree about. The 0x160 block parks its display node

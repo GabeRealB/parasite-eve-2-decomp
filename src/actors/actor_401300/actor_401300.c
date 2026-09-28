@@ -6,14 +6,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_80169f74.h"
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -22,6 +14,21 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// XZ patrol point in `Actor401300Work::field_C`. Same shape as
 /// `Actor01900Waypoint`.
@@ -256,10 +263,9 @@ STATIC_ASSERT_SIZEOF(Actor401300LungeScratch, 0x24);
 
 /// Gameplay slot `Gp_SpawnEff` effects read their model data from; set before
 /// each spawn in `func_actor_401300_8013B6E8`.
-extern void* D_80114B78[1];
 
 /// The records closing three of the overlay's model streams, which
-/// `func_actor_401300_8013B6E8` points `D_80114B78` at before spawning.
+/// `func_actor_401300_8013B6E8` points `D_80114B34[5].arg.model` at before spawning.
 extern TmdSource D_actor_401300_80147894;
 extern TmdSource D_actor_401300_80148808;
 extern TmdSource D_actor_401300_80148A14;
@@ -280,9 +286,6 @@ static void func_actor_401300_80141C88(Task* arg0);
 static void func_actor_401300_80141D50(Task* arg0);
 static void func_actor_401300_80141DF4(Task* arg0);
 static void func_actor_401300_80141EF8(Task* task);
-
-/// Declared locally with a signed `arg2`; see the note in `gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 extern SVECTOR D_actor_401300_80158A24;
 
@@ -950,9 +953,6 @@ static void func_actor_401300_80133834(Task* arg0, s16 arg1)
     SCRATCH_POP_BYTES(8);
     arg0->extra.tmd->coords[8].flg = 0;
 }
-
-extern s32 D_80115738;
-extern s32 D_8011574C;
 
 /// Spawns effect `id` on `coord` at the offset (`x`, `y`, `z`).
 static __inline__ void Actor401300_SpawnEff(s32 id, GpCoord* coord, s32 flags, s16 x, s16 y, s16 z)
@@ -2524,11 +2524,11 @@ static void func_actor_401300_80138160(Task* arg0)
         if (abs(angle) < 0x10 && !overlayOutOfRange(&pos, 0x44C)) {
             work->field_CAC.animBlock.ptr = &D_actor_401300_801588F0;
             work->field_D00               = 8;
-            if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&work->field_CEC, 0) == 0) {
+            if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &work->field_CEC, 0) == 0) {
                 work->field_0           = 0xC;
                 work->field_D20         = 1;
                 work->field_CAC.field_4 = 1;
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_CAC, 0);
                 work->field_CC0[2] = 0;
                 work->field_CC0[1] = 0;
                 work->field_CC0[0] = 0;
@@ -2598,7 +2598,7 @@ static void func_actor_401300_80138800(Task* arg0)
         work->field_CE4.vx                  = 0;
         work->field_CE4.vy                  = ratan2(dir.vx, dir.vz);
         work->field_CE4.vz                  = 0;
-        Gp_DispatchMsg(player, 0x3E9, (s32)&work->field_CD4, 0);
+        Gp_DispatchMsgPtr(player, 0x3E9, &work->field_CD4, 0);
     }
     func_actor_401300_80133A3C(arg0);
     Gfx_RotMatrixX(&arg0->extra.tmd->coords[2].coord, -0x80, 0);
@@ -2630,7 +2630,7 @@ static void func_actor_401300_80138B24(Task* arg0)
             ((GameActor*)player->work)->field_956 = 0xA;
         }
         work->field_CAC.field_4 = 2;
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_CAC, 0);
         work->field_D22 = 0;
     }
     if (work->field_6C & 2) {
@@ -2887,7 +2887,7 @@ static void func_actor_401300_80139520(Task* arg0)
     if (!overlayOutOfRange(d, 3000)) {
         work->field_0 = 6;
     }
-    if (Gp_StateF0.field_2 & 1) {
+    if (Gp_StateF0.prefix.bytes.field_2 & 1) {
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
@@ -2959,7 +2959,7 @@ static void func_actor_401300_801397F8(Task* arg0)
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
-    if (Gp_StateF0.field_2 & 1) {
+    if (Gp_StateF0.prefix.bytes.field_2 & 1) {
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
@@ -3043,7 +3043,7 @@ static void func_actor_401300_80139AB0(Task* arg0)
             work->field_0 = 6;
         }
     }
-    if (*(u32*)&Gp_StateF0 & 0xD0000) {
+    if (Gp_StateF0.prefix.packed & 0xD0000) {
         work->field_0 = 6;
     }
     SCRATCH_POP(ActorTurnScratch);
@@ -3343,24 +3343,24 @@ static void func_actor_401300_8013B6E8(Task* arg0)
     next          = work->field_6 + 1;
     work->field_6 = next;
     if ((s16)next == 3) {
-        D_80114B78[0] = &D_actor_401300_80147894;
-        vec.vz        = 0x64;
-        vec.vy        = 0;
-        vec.vx        = 0;
+        D_80114B34[5].arg.model = &D_actor_401300_80147894;
+        vec.vz                  = 0x64;
+        vec.vy                  = 0;
+        vec.vx                  = 0;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
     }
     if (work->field_6 == 5) {
-        D_80114B78[0] = &D_actor_401300_80147894;
-        vec.vy        = 0;
-        vec.vx        = 0;
+        D_80114B34[5].arg.model = &D_actor_401300_80147894;
+        vec.vy                  = 0;
+        vec.vx                  = 0;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec), enemy);
     }
     if (work->field_6 == 7) {
-        D_80114B78[0] = &D_actor_401300_80148A14;
+        D_80114B34[5].arg.model = &D_actor_401300_80148A14;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
     }
     if (work->field_6 == 8) {
-        D_80114B78[0] = &D_actor_401300_80148808;
+        D_80114B34[5].arg.model = &D_actor_401300_80148808;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
     }
     if (work->field_6 >= 0x3D && work->field_D20 == 0) {
@@ -3409,14 +3409,14 @@ static void func_actor_401300_8013BB30(Task* arg0)
             }
             func_actor_401300_801323B0(arg0->extra.tmd->coords, work->field_AD0, 0xC);
             if (work->field_6 == 3) {
-                D_80114B78[0] = &D_actor_401300_80148808;
-                vec.vz        = 0x64;
-                vec.vy        = 0;
-                vec.vx        = 0;
+                D_80114B34[5].arg.model = &D_actor_401300_80148808;
+                vec.vz                  = 0x64;
+                vec.vy                  = 0;
+                vec.vx                  = 0;
                 actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
             }
             if (work->field_6 == 5) {
-                D_80114B78[0] = &D_actor_401300_80148A14;
+                D_80114B34[5].arg.model = &D_actor_401300_80148A14;
                 actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
             }
             break;
@@ -3902,7 +3902,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
             if (func_actor_401300_80132910(arg0, work->field_990, 0xC) != 0 && player->field_954 != 2 && abs(aim->turn) < 0x100 &&
                 enemy->hp > 0) {
                 work->field_D00 = 0x7F;
-                if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&work->field_CEC, 0) == 0) {
+                if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &work->field_CEC, 0) == 0) {
                     Gp_SpawnPadLerp(0x10, 8, 0xFF);
                     work->field_D20               = 1;
                     work->field_CAC.animBlock.ptr = &D_actor_401300_801588F0;
@@ -3934,8 +3934,8 @@ static void func_actor_401300_8013DADC(Task* arg0)
                     work->field_CD4.vz = task->extra.tmd->coords->coord.t[2];
                     work->field_CE4.vx = 0;
                     work->field_CE4.vz = 0;
-                    Gp_DispatchMsg(task, 0x3E9, (s32)&work->field_CD4, 0);
-                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
+                    Gp_DispatchMsgPtr(task, 0x3E9, &work->field_CD4, 0);
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_CAC, 0);
                     work->field_D22 = 0;
                     Gfx_MatrixCol2(&task->extra.tmd->coords->coord, &aim->delta);
                     aim->delta.vy = 0;
@@ -4124,7 +4124,7 @@ static void func_actor_401300_8013E930(Task* arg0)
             if (func_actor_401300_80132910(arg0, work->field_990, 0xC) != 0 && player->field_954 != 2 && work->field_6 >= 8 &&
                 enemy->hp > 0) {
                 work->field_D00 = 0x7F;
-                if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&work->field_CEC, 0) == 0) {
+                if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &work->field_CEC, 0) == 0) {
                     Gp_SpawnPadLerp(0x10, 8, 0xFF);
                     SndEvt_EnqueueType6(6, (s8)Gp_GetObjPan(task->extra.tmd->coords),
                                         (s8)gpGetObjDepth(task->extra.tmd->coords));
@@ -4153,8 +4153,8 @@ static void func_actor_401300_8013E930(Task* arg0)
                     work->field_CD4.vz = task->extra.tmd->coords->coord.t[2];
                     work->field_CE4.vx = 0;
                     work->field_CE4.vz = 0;
-                    Gp_DispatchMsg(task, 0x3E9, (s32)&work->field_CD4, 0);
-                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
+                    Gp_DispatchMsgPtr(task, 0x3E9, &work->field_CD4, 0);
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_CAC, 0);
                     work->field_D22 = 0;
                     vec             = &blk->delta;
                     Gfx_MatrixCol2(&task->extra.tmd->coords->coord, vec);
@@ -4725,7 +4725,7 @@ static void func_actor_401300_801405DC(GpEnemy* enemy, Task* actor)
                         Gp_SpawnEff(0x60054, &player->extra.tmd->coords[1], 0x80003A00, NULL);
                     }
                 }
-                if (Gp_DispatchMsg(player, 0x3FE, (s32)work->field_CC0, 0) == 1) {
+                if (Gp_DispatchMsgPtr(player, 0x3FE, work->field_CC0, 0) == 1) {
                     work->field_CC0[0] = 0;
                     work->field_CC0[1] = 0;
                     work->field_CC0[2] = 0;
@@ -4749,7 +4749,7 @@ static void func_actor_401300_801405DC(GpEnemy* enemy, Task* actor)
                         Gp_SpawnEff(0x60054, &player->extra.tmd->coords[1], 0x80003A00, NULL);
                     }
                 }
-                if (Gp_DispatchMsg(player, 0x3FE, (s32)work->field_CC0, 0) == 1) {
+                if (Gp_DispatchMsgPtr(player, 0x3FE, work->field_CC0, 0) == 1) {
                     work->field_CC0[0] = 0;
                     work->field_CC0[1] = 0;
                     work->field_CC0[2] = 0;
@@ -4771,28 +4771,28 @@ static void func_actor_401300_801405DC(GpEnemy* enemy, Task* actor)
                 case 1:
                     if (config->hp > 0) {
                         work->field_CAC.field_4 = 2;
-                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_CAC, 0);
                         work->field_D22 = 0;
                     }
                     break;
                 case 2:
                     if (config->hp > 0) {
                         work->field_CAC.field_4 = 3;
-                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_CAC, 0);
                         work->field_D22 = 0;
                     }
                     break;
                 case 4:
                     if (config->hp > 0) {
                         work->field_CAC.field_4 = 6;
-                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_CAC, 0);
                         work->field_D22 = 0;
                     }
                     break;
                 case 5:
                     if (config->hp > 0) {
                         work->field_CAC.field_4 = 7;
-                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &work->field_CAC, 0);
                         work->field_D22 = 0;
                     }
                     break;
@@ -4809,7 +4809,7 @@ static void func_actor_401300_801405DC(GpEnemy* enemy, Task* actor)
         Gp_ReleaseStateF0Add(actor, 0xD);
         work->field_C8A = 0;
     }
-    if ((Gp_StateF0.field_3 == 1) && (work->field_0 == 0x18)) {
+    if ((Gp_StateF0.prefix.bytes.field_3 == 1) && (work->field_0 == 0x18)) {
         work->field_0 = 6;
     }
 

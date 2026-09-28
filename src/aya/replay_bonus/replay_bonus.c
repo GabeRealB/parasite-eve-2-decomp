@@ -1,10 +1,6 @@
 #include "common.h"
 
 #include "aya/replay_bonus.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/4CC.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mc.h"
@@ -15,6 +11,12 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 #include "psyq/libpress.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+
 static const char   D_replay_bonus_801157C8[];
 extern u8           D_replay_bonus_80119014[];
 extern u8           D_replay_bonus_8011906C[];
@@ -144,7 +146,7 @@ u16* func_replay_bonus_80115C68(void)
 /// Field 0 of the `Gp_IdParamHi` row for attachment `slot` one level above `from`.
 static inline u16 _replayBonusUpgradeCost(s32 slot, s32 from)
 {
-    return Gp_IdParamHi[slot * 3 + from + 1].field[0];
+    return Gp_IdParamHi.rows[slot * 3 + from + 1].field[0];
 }
 
 s32 func_replay_bonus_80115CA4(void)

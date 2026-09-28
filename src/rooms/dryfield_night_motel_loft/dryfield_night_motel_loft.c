@@ -1,10 +1,5 @@
 #include "common.h"
 
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -13,7 +8,14 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern u8 D_80115680;
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_night_motel_loft_8017EB1C[];
@@ -131,7 +133,7 @@ static void func_dryfield_night_motel_loft_8017D808(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     if (Gp_LookupSlot4(0) != 0 && GameFlag_GetNibble(0x96) != 0) {
         D_dryfield_night_motel_loft_8018092C.command = 1;
-        Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7DB, (s32)&D_dryfield_night_motel_loft_8018092C, 0);
+        Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_dryfield_night_motel_loft_8018092C, 0);
     }
     func_dryfield_night_motel_loft_8017D9BC(Gp_GetCurBit2Flag(0xA) == 2);
     arg0->state = (s32)(arg0->state + 1);

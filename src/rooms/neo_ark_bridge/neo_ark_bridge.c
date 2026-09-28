@@ -6,11 +6,6 @@
 #include "gte.h"
 #include "main/gfxgte.h"
 #include <psyq/rand.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gfx.h"
@@ -20,6 +15,10 @@
 #include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/world_targets.h"
 
 s32     rcos(s32);
 s32     rsin(s32);

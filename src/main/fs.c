@@ -16,6 +16,8 @@
 #include "main/stream.h"
 #include "main/wipsys.h"
 
+#include "gameplay/display.h"
+
 static void Fs_ContinueDrawing(u_long* ot);
 static void Fs_OnCdError(u8 arg0);
 static u8   Fs_ProcessChunkData(void);

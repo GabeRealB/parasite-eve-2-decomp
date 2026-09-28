@@ -7,10 +7,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
@@ -20,6 +16,16 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/gamemain.h"
+#include "main/wipsys.h"
 
 /// The overlay's spawn table: entries 1 and 2 are spawned by the one-line
 /// spawners the scene script calls, 3 by the waypoint walker for each new
@@ -149,9 +155,6 @@ STATIC_ASSERT_SIZEOF(Actor121300DebrisWork, 0x5C);
 extern void func_8017F334(s32 arg0);
 extern void func_8017F340(u8 arg0, u8 arg1);
 extern void func_8017F438(s32 arg0);
-
-/// `func_800B4114` is declared locally with a signed `arg2`; see `gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Distortion amplitude of the screen wave, `frame * scale / span` of the
 /// running ramp, recomputed every frame.
@@ -875,7 +878,7 @@ static void func_actor_121300_80133854(Task* arg0)
     switch ((u16)work->field_498) {
         case 1:
             Gp_DispatchMsg(work->field_488, 0x3F3, 2, 0);
-            Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_121300_8013CCA0, 0);
+            Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_121300_8013CCA0, 0);
             gGameSession->viewDirty = 1;
             {
                 Actor121300Work* slotsWork;
@@ -917,7 +920,7 @@ static void func_actor_121300_80133854(Task* arg0)
             break;
         case 6:
             if ((u16)work->field_49A == 0) {
-                Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_121300_8013CCA0, 0);
+                Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_121300_8013CCA0, 0);
                 {
                     Actor121300Work* slotsWork;
                     s32              i;
@@ -1015,7 +1018,7 @@ static void func_actor_121300_80133BFC(Task* arg0)
     tmd->lightMtx           = &work->field_43C;
     tmd->flags              = 0;
     tmd->colorMtx           = &work->field_45C;
-    place                   = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
+    place                   = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
     id                      = place->entryId;
     while (id != 0xFF) {
         if (id == 0x84) {
@@ -1074,14 +1077,14 @@ void func_actor_121300_80133D98(Task* arg0)
                 scratch.msg.field_8         = 0;
                 scratch.msg.field_C         = 0;
                 scratch.msg.field_10        = 0;
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&scratch.msg, 0);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &scratch.msg, 0);
                 func_actor_121300_80133BFC(arg0);
                 arg0->state += 1;
                 break;
             }
             return;
         case 1:
-            func_800E8634((s32)&D_actor_121300_8013CE08, 0, (s32)&D_actor_121300_8013D2E8);
+            func_800E8634(&D_actor_121300_8013CE08, 0, &D_actor_121300_8013D2E8);
             arg0->state += 1;
             break;
         case 2:

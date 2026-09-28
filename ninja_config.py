@@ -721,56 +721,6 @@ def ninja_setup_list_add_source(
         return f"{expected_path}.s.o"
 
 
-def fix_gameplay_linker_rodata_order() -> None:
-    """Keep C-generated overlay jtbls between the surrounding asm rodata pieces.
-
-    The `.rodata, 3FB8` sibling can land at the front of the C .rodata group.
-    Linked order must stay 3FB8_75BC.c, 3FB8_7E28.c, 3FB8.c, rodata_3FB8_2.
-    Same for `.rodata, gameplay` (Gp_ApplyAttachStats jtbl @ 0x78, between header
-    and header_2).
-    """
-    dest = Path("linkers/USA/gameplay.ld")
-    if not dest.is_file():
-        return
-    text = dest.read_text(encoding="utf-8")
-    replacements = (
-        (
-            "        build/USA/src/gameplay/3FB8_75BC.c.o(.rodata);\n"
-            "        build/USA/src/gameplay/3FB8_7E28.c.o(.rodata);\n"
-            "        build/USA/src/gameplay/3FB8.c.o(.rodata);\n"
-            "        build/USA/asm/USA/gameplay/data/rodata_3FB8_2.rodata.s.o(.rodata);\n",
-            "        build/USA/src/gameplay/3FB8.c.o(.rodata);\n"
-            "        build/USA/src/gameplay/3FB8_75BC.c.o(.rodata);\n"
-            "        build/USA/src/gameplay/3FB8_7E28.c.o(.rodata);\n"
-            "        build/USA/asm/USA/gameplay/data/rodata_3FB8_2.rodata.s.o(.rodata);\n",
-        ),
-        (
-            "        build/USA/src/gameplay/3FB8_75BC.c.o(.rodata);\n"
-            "        build/USA/src/gameplay/3FB8_7E28.c.o(.rodata);\n"
-            "        build/USA/src/gameplay/3FB8.c.o(.rodata);\n"
-            "        build/USA/asm/USA/gameplay/data/rodata_3FB8_2.rodata.s.o(.rodata);\n",
-            "        build/USA/src/gameplay/3FB8_75BC.c.o(.rodata);\n"
-            "        build/USA/src/gameplay/3FB8.c.o(.rodata);\n"
-            "        build/USA/src/gameplay/3FB8_7E28.c.o(.rodata);\n"
-            "        build/USA/asm/USA/gameplay/data/rodata_3FB8_2.rodata.s.o(.rodata);\n",
-        ),
-        (
-            "        build/USA/asm/USA/gameplay/data/header.rodata.s.o(.rodata);\n"
-            "        build/USA/src/gameplay/gameplay.c.o(.rodata);\n"
-            "        build/USA/asm/USA/gameplay/data/header_2.rodata.s.o(.rodata);\n",
-            "        build/USA/src/gameplay/gameplay.c.o(.rodata);\n"
-            "        build/USA/asm/USA/gameplay/data/header.rodata.s.o(.rodata);\n"
-            "        build/USA/asm/USA/gameplay/data/header_2.rodata.s.o(.rodata);\n",
-        ),
-    )
-    original = text
-    for right, wrong in replacements:
-        if right not in text and wrong in text:
-            text = text.replace(wrong, right, 1)
-    if text != original:
-        dest.write_text(text, encoding="utf-8")
-
-
 def align_main_bss() -> None:
     """Start every object's .bss in main on an 8-byte boundary.
 
@@ -1516,7 +1466,6 @@ def split_one(job: tuple) -> YamlInfo:
         fix_title_linker_rodata_order()
         append_overlay_absolute_imports("title")
     elif yaml == "gameplay.yaml":
-        fix_gameplay_linker_rodata_order()
         append_overlay_absolute_imports("gameplay")
         fix_overlay_include_asm_paths("gameplay")
     elif yaml in overlay_family and overlay_family[yaml] != core_family:

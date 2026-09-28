@@ -13,6 +13,8 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
+#include "gameplay/display.h"
+
 /// The balcony movie task. It blanks the display, allocates the movie
 /// buffers and plays two streams keyed on the current location - view 0x65
 /// then 0x64, or 0x67 then 0x66 when `Wip_SysFlags.field_0` is 2 - either of

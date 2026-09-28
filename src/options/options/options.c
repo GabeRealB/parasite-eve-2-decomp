@@ -10,6 +10,9 @@
 #include "main/text.h"
 #include "main/ui.h"
 
+#include "gameplay/display.h"
+#include "main/task.h"
+
 /// Menu labels and help text for the options screen.
 static u8 D_options_801D5B2C[32] = "Restore default configuration";
 static u8 D_options_801D5B4C[12] = "Vibration";

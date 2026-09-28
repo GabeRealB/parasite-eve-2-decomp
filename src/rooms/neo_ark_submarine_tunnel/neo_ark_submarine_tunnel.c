@@ -8,12 +8,6 @@
 #include "main/gfxgte.h"
 #include <psyq/abs.h>
 #include <psyq/rand.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -24,6 +18,13 @@
 #include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/world_targets.h"
+#include "main/mc.h"
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -950,7 +951,7 @@ s32 func_neo_ark_submarine_tunnel_8017F064(s32 arg0, s32 arg1, RoomEventMsg* arg
         GameFlag_SetNibble(0xFF, 2);
         GameFlag_SetNibble(0x11F, 1);
         Mc_SaveData[0].sceneEvent = 0x1A;
-        func_800E8634((s32)&D_80135220, 0, (s32)&D_80135FD0);
+        func_800E8634(&D_80135220, 0, &D_80135FD0);
     }
     if ((arg2->field_2 == 2) && (GameFlag_GetNibble(0xBC) == 0)) {
         temp_s0_2 = gGameSession->at4.loc.place;

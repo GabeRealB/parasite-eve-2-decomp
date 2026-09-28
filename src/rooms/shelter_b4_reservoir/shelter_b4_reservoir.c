@@ -7,13 +7,6 @@
 #include "gte.h"
 #include <psyq/abs.h>
 #include <psyq/rand.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -28,6 +21,21 @@
 #include "rooms/room_common.h"
 
 #define RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 /// Working copy of one surface's extents, carved off the scratchpad stack.
 typedef struct {
@@ -60,17 +68,7 @@ typedef struct {
     s16  field_26; // The angle of that point, then the splash chance for the frame's movement
 } _ShelterB4ReservoirWork;
 
-extern s32 Gp_GetViewIndex(void);
 extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
-
-extern s16 D_80114D08;
-extern u8  D_80115680;
-extern u8  D_80115690;
-extern s32 D_80115730;
-extern s32 D_80115734;
-extern s32 D_80115738;
-extern s32 D_8011574C;
-extern s32 D_80115754;
 
 /// Spawn table of the screen-wave task, and the context it is spawned with.
 /// The context's mode word is written through its own symbol, which is how the
@@ -345,7 +343,7 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
                 break;
             }
             Gp_MsgSlot4Chain(0, 0);
-            func_800E8634((s32)&D_shelter_b4_reservoir_80184948, 0, (s32)&D_shelter_b4_reservoir_80184DC8);
+            func_800E8634(&D_shelter_b4_reservoir_80184948, 0, &D_shelter_b4_reservoir_80184DC8);
             task->state++;
             break;
         case 4:
@@ -416,7 +414,7 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
             gDisplayState.roomVariant   = 1;
             Mc_SaveData[0].at4.loc.area = D_shelter_b4_reservoir_80187508.field_2;
             Mc_SaveData[0].at4.loc.warp = D_shelter_b4_reservoir_80187508.field_4;
-            Mc_SaveData[0].at4.loc.room = D_shelter_b4_reservoir_80187508.field_1;
+            Mc_SaveData[0].at4.loc.room = D_shelter_b4_reservoir_80187508.prefix.bytes.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -440,9 +438,9 @@ s32 func_shelter_b4_reservoir_8017E264(Task* task, s32 msgId, GpSaveLoc* src, Gp
             }
         } else {
             if (src->field_5 == 0) {
-                D_shelter_b4_reservoir_80187508.field_2 = dst->field_0;
-                D_shelter_b4_reservoir_80187508.field_4 = dst->field_2;
-                D_shelter_b4_reservoir_80187508.field_1 = dst->field_3;
+                D_shelter_b4_reservoir_80187508.field_2              = dst->prefix.bytes.field_0;
+                D_shelter_b4_reservoir_80187508.field_4              = dst->field_2;
+                D_shelter_b4_reservoir_80187508.prefix.bytes.field_1 = dst->field_3;
                 Task_SpawnFromTable(&D_shelter_b4_reservoir_801848EC, 3, 0xB, 0);
             }
         }

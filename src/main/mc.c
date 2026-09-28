@@ -20,6 +20,10 @@
 #include "psyq/libmcrd.h"
 #include "psyq/strings.h"
 
+#include "gameplay/display.h"
+#include "main/session.h"
+#include "main/task.h"
+
 static const char D_800139A8[];
 
 static void Mc_BuildFileName(u8* arg0, s32 arg1);

@@ -1,5 +1,4 @@
 #include "common.h"
-#include "gameplay/gameplay.h"
 #include "main/wipsys.h"
 
 #include <psyq/libgte.h>
@@ -8,15 +7,21 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-
 #include "main/display.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/mc.h"
 
 /// 8-byte work block the observatory's scene task keeps at `Task::work`
 /// (`memCalloc(8, 0)` in state 0 of `func_acropolis_observatory_8017E19C`).
@@ -119,7 +124,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
                 rec.field_8       = 0;
                 rec.field_C       = 0;
                 rec.field_10      = 1;
-                Gp_DispatchMsg(work->target, 0x3F4, (s32)&rec, 0);
+                Gp_DispatchMsgPtr(work->target, 0x3F4, &rec, 0);
             }
             Gp_StateF0.field_1A = 0;
             /* fallthrough */
@@ -142,7 +147,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
             rec.field_8         = 0;
             rec.field_C         = 0;
             rec.field_10        = 0;
-            Gp_DispatchMsg(work->target, 0x3E8, (s32)&rec, 0);
+            Gp_DispatchMsgPtr(work->target, 0x3E8, &rec, 0);
             Mc_SaveData[0].at4.loc.room = 1;
             gGameSession->at4.loc.room  = 1;
             gGameSession->roomObjsDirty = 1;
@@ -169,7 +174,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
                 msg->field_8      = 1;
                 msg->field_C      = 0xA;
                 msg->field_10     = 1;
-                Gp_DispatchMsg(dest->target, 0x3F4, (s32)msg, 0);
+                Gp_DispatchMsgPtr(dest->target, 0x3F4, msg, 0);
             }
         }
     }

@@ -2,13 +2,6 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -24,14 +17,19 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/world_targets.h"
+
 extern UiObject*    D_80067634;
 extern UiObjectDesc D_800611E4;
-extern UiObjectDesc D_8010EFA0;
-
-extern s16 D_80114D08;
 
 /// Saved `Mc_SaveData[0].at4.loc.view` (area id), restored when the cutscene ends.
-extern s32 D_80115694;
 
 /// `Mc_SaveData[0].companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `Mc_SaveData` address with case 0.
@@ -1423,7 +1421,7 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
 {
     DnmlExamineWork*  work   = (DnmlExamineWork*)task->work;
     OverlayHotspot*   hs     = D_dryfield_night_motel_lobby_80182820;
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
 
     work->field_7            = 0;
     gGameSession->hideHud    = 1;
@@ -1435,7 +1433,7 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
         prompt->targetId = 0x80;
         if (func_dryfield_night_motel_lobby_80180DE4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
             prompt->mode = 2;
-            if (prompt->buttons[0].state == 2) {
+            if (prompt->buttons.slots[0].state == 2) {
                 while (hs->id != -1) {
                     if (hs->hit != 0) {
                         if (work->promptBusy == 0) {
@@ -1470,7 +1468,7 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
         } else {
             prompt->mode = 1;
         }
-        if (prompt->buttons[1].state == 2) {
+        if (prompt->buttons.slots[1].state == 2) {
             task->state = 5;
         }
     }

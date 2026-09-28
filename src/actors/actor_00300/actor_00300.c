@@ -8,24 +8,29 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_80132074.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
 
-/// Main-executable counter whose lowest bit the flicker alternates on.
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
-/* Byte access view; preserves struct-store ordering in GCC 2.8.1. */
-typedef struct Actor00300ByteView {
-    s8 value;
-} Actor00300ByteView;
+/// Main-executable counter whose lowest bit the flicker alternates on.
 
 typedef struct Actor00300InitWork {
     /* 0x00 */ GpObj        obj0;
@@ -147,12 +152,6 @@ typedef struct Actor100300Work {
 
 s32 SndEvt_EnqueueType6(s32 sound, s32 pan, s32 depth);
 
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
-extern s32       D_80115720;
-extern s32       D_80115728;
-extern s32       D_80115744;
-extern s32       D_8011573C;
 extern GpU16Pair Actor00300_D15FD8;
 
 extern s16 Actor00300_D16394[];
@@ -481,7 +480,7 @@ static void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
     child           = Gp_SpawnEnemyFromTable(&Actor00300_D162F0, 1, 0, enemy);
     rawId           = enemy->placeKey;
     model           = child->task->extra.tmd;
-    sessionKey      = (GpAreaKey*)&gGameSession->at4.loc;
+    sessionKey      = &gGameSession->at4.loc;
     key.stage       = sessionKey->stage;
     key.area        = sessionKey->area;
     key.room        = sessionKey->room;
@@ -490,7 +489,7 @@ static void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
     key.view        = areaByte0;
     Gp_SyncAreaKeyIndex(&key);
     entry =
-        (GpAreaPlace*)((index * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index);
     model->tpage = entry->tpage;
     model->clut  = entry->clut;
     if (model->buffer != NULL) {
@@ -998,11 +997,11 @@ static void Actor00300_Fn019C0(Task* arg0)
             break;
     }
     if (work->field_6A0 == 0) {
-        work->field_684                                    = 0;
-        work->field_686                                    = 0;
-        work->field_690                                    = 0;
-        ((Actor00300ByteView*)&Gp_StateF0.field_28)->value = 0;
-        work->field_688                                    = 10;
+        work->field_684     = 0;
+        work->field_686     = 0;
+        work->field_690     = 0;
+        Gp_StateF0.field_28 = 0;
+        work->field_688     = 10;
     } else {
         timer           = (u16)work->field_68A - 1;
         work->field_68A = timer;
@@ -1118,9 +1117,9 @@ static void Actor00300_Fn01F9C(Task* arg0)
             angle           = magnitude >= 0x800 ? (delta > 0 ? 0x1000 - delta : delta + 0x1000)
                                                  : magnitude;
             if (angle < 0x100) {
-                work->field_686                                    = 1;
-                work->field_66E                                    = 4;
-                ((Actor00300ByteView*)&Gp_StateF0.field_28)->value = 1;
+                work->field_686     = 1;
+                work->field_66E     = 4;
+                Gp_StateF0.field_28 = 1;
             } else {
                 turnTimer       = (u16)work->field_688 - 1;
                 work->field_688 = turnTimer;
@@ -1135,8 +1134,8 @@ static void Actor00300_Fn01F9C(Task* arg0)
             }
             break;
         case 1:
-            ((Actor00300ByteView*)&Gp_StateF0.field_28)->value = 0;
-            work->field_67C                                    = 0xF;
+            Gp_StateF0.field_28 = 0;
+            work->field_67C     = 0xF;
             scratchEnd[-1].delta.vx =
                 (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
             scratch->delta.vy = 0;
@@ -1810,7 +1809,7 @@ static void Actor00300_Fn03618(Task* arg0)
     D_80067704[0] = Actor00300_D0AA18;
     effect1       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x200, NULL);
     if (effect1 != NULL) {
-        sessionKey1 = (GpAreaKey*)&gGameSession->at4.loc;
+        sessionKey1 = &gGameSession->at4.loc;
         raw1        = ((GpEnemy*)arg0->spawnArg2)->placeKey;
         model1      = effect1->task->extra.tmd;
         key.stage   = sessionKey1->stage;
@@ -1820,7 +1819,7 @@ static void Actor00300_Fn03618(Task* arg0)
         index1      = raw1 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry1        = (GpAreaPlace*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        entry1        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
         model1->tpage = entry1->tpage;
         model1->clut  = entry1->clut;
         if (model1->buffer != NULL) {
@@ -1832,7 +1831,7 @@ static void Actor00300_Fn03618(Task* arg0)
     D_80067704[0] = Actor00300_D0AECC;
     effect2       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x200, NULL);
     if (effect2 != NULL) {
-        sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
+        sessionKey2 = &gGameSession->at4.loc;
         raw2        = ((GpEnemy*)arg0->spawnArg2)->placeKey;
         model2      = effect2->task->extra.tmd;
         key.stage   = sessionKey2->stage;
@@ -1842,7 +1841,7 @@ static void Actor00300_Fn03618(Task* arg0)
         index2      = raw2 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry2        = (GpAreaPlace*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
         model2->tpage = entry2->tpage;
         model2->clut  = entry2->clut;
         if (model2->buffer != NULL) {
@@ -1854,7 +1853,7 @@ static void Actor00300_Fn03618(Task* arg0)
     D_80067704[0] = Actor00300_D0B640;
     effect3       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x200, NULL);
     if (effect3 != NULL) {
-        sessionKey3 = (GpAreaKey*)&gGameSession->at4.loc;
+        sessionKey3 = &gGameSession->at4.loc;
         raw3        = ((GpEnemy*)arg0->spawnArg2)->placeKey;
         model3      = effect3->task->extra.tmd;
         key.stage   = sessionKey3->stage;
@@ -1864,7 +1863,7 @@ static void Actor00300_Fn03618(Task* arg0)
         index3      = raw3 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry3        = (GpAreaPlace*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        entry3        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
         model3->tpage = entry3->tpage;
         model3->clut  = entry3->clut;
         if (model3->buffer != NULL) {
@@ -1876,7 +1875,7 @@ static void Actor00300_Fn03618(Task* arg0)
     D_80067704[0] = Actor00300_D0BE44;
     effect4       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x200, NULL);
     if (effect4 != NULL) {
-        sessionKey4 = (GpAreaKey*)&gGameSession->at4.loc;
+        sessionKey4 = &gGameSession->at4.loc;
         raw4        = ((GpEnemy*)arg0->spawnArg2)->placeKey;
         model4      = effect4->task->extra.tmd;
         key.stage   = sessionKey4->stage;
@@ -1886,7 +1885,7 @@ static void Actor00300_Fn03618(Task* arg0)
         index4      = raw4 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry4        = (GpAreaPlace*)((index4 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        entry4        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index4);
         model4->tpage = entry4->tpage;
         model4->clut  = entry4->clut;
         if (model4->buffer != NULL) {
@@ -1898,7 +1897,7 @@ static void Actor00300_Fn03618(Task* arg0)
     D_80067704[0] = Actor00300_D0C2C4;
     effect5       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x200, NULL);
     if (effect5 != NULL) {
-        sessionKey5 = (GpAreaKey*)&gGameSession->at4.loc;
+        sessionKey5 = &gGameSession->at4.loc;
         raw5        = ((GpEnemy*)arg0->spawnArg2)->placeKey;
         model5      = effect5->task->extra.tmd;
         key.stage   = sessionKey5->stage;
@@ -1908,7 +1907,7 @@ static void Actor00300_Fn03618(Task* arg0)
         index5      = raw5 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry5        = (GpAreaPlace*)((index5 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        entry5        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index5);
         model5->tpage = entry5->tpage;
         model5->clut  = entry5->clut;
         if (model5->buffer != NULL) {

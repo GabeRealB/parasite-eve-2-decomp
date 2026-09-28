@@ -7,13 +7,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_80164954.h"
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -21,6 +14,25 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
 /// The actor id word at 0xE90, read two ways: `func_actor_421600_8013848C`
 /// and `func_actor_421600_8013E9D8` mask the whole word to 24 bits and compare
@@ -350,7 +362,7 @@ extern s8 D_actor_421600_801511D0[];
 extern s32 D_actor_421600_801511D4[][8];
 
 /// The records closing four of the overlay's model streams, which the
-/// death-tick frames point `D_80114B78` at before each `Gp_SpawnEff`.
+/// death-tick frames point `D_80114B34[5].arg.model` at before each `Gp_SpawnEff`.
 extern TmdSource D_actor_421600_80143EF4;
 extern TmdSource D_actor_421600_801443C8;
 extern TmdSource D_actor_421600_80145124;
@@ -359,7 +371,6 @@ extern TmdSource D_actor_421600_80145604;
 /// Global effect-model callback slot the spawn helpers read; a one-element
 /// array so the store is absolute (see actor 401300's header for the same
 /// declaration).
-extern void* D_80114B78[1];
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
@@ -384,8 +395,6 @@ extern s16 D_actor_421600_80151268;
 
 /// Signed transition durations, indexed by old animation * 25 + new animation.
 extern s8 D_actor_421600_80150DB4[];
-
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Per-frame scratch: the view-space body position and its arena zone.
 typedef struct Actor421600UpdateScratch {
@@ -412,8 +421,6 @@ typedef struct Actor421600AnimWord {
     s32 value;
 } Actor421600AnimWord;
 
-extern GpAnimBlk*          Gp_PlayerAnimBlkTbl[];
-extern u16                 Gp_WeaponIdBase[];
 extern u16                 D_801876A8, D_801876AA;
 extern Actor421600AnimWord D_actor_421600_801510A0;
 
@@ -2090,7 +2097,7 @@ static void func_actor_421600_801354D8(Task* arg0)
                 work->field_8E8 = 9;
                 work->field_8E9 = 1;
                 work->field_8EA = 3;
-                Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&work->field_8E8, 0x7DB);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &work->field_8E8, 0x7DB);
             } else {
                 if ((s16)totalDamage >= 0x47) {
                     hurtState = work->field_0;
@@ -3996,7 +4003,7 @@ static void func_actor_421600_8013A554(Task* arg0)
     }
     if ((func_actor_421600_80132310(arg0->extra.tmd->coords, &work->field_90C, 0xC, &scratch->vec) << 0x10) != 0 && work->field_82E == 3) {
         work->field_8E4 = 8;
-        if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&work->field_8D0, 0) == 0) {
+        if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &work->field_8D0, 0) == 0) {
             playerX            = -gameGetPtrSlot(3)->extra.tmd->coords->coord.m[2][0];
             scratch->playerYaw = ratan2(playerX, gameGetPtrSlot(3)->extra.tmd->coords->coord.m[2][2]);
             targetCoord        = arg0->extra.tmd->coords;
@@ -4025,7 +4032,7 @@ static void func_actor_421600_8013A554(Task* arg0)
             work->field_8B8.vx = (s32)player->extra.tmd->coords->coord.t[0];
             work->field_8B8.vy = (s32)player->extra.tmd->coords->coord.t[1];
             work->field_8B8.vz = (s32)player->extra.tmd->coords->coord.t[2];
-            Gp_DispatchMsg(player, 0x3E9, (s32)&work->field_8B8, 0);
+            Gp_DispatchMsgPtr(player, 0x3E9, &work->field_8B8, 0);
             if (work->field_E9E < 0x3E8) {
                 if (enemy->hp > 0) {
                     closeDistance = scratch->yaw - scratch->playerYaw;
@@ -4047,7 +4054,7 @@ static void func_actor_421600_8013A554(Task* arg0)
                     work->field_8B6          = 1;
                     work->field_E9C          = 1;
                     work->field_E90.bytes[3] = 0;
-                    Gp_DispatchMsg(player, 0x3FF, (s32)&work->field_E7C, 0);
+                    Gp_DispatchMsgPtr(player, 0x3FF, &work->field_E7C, 0);
                 }
                 nextState = 0x25;
             } else {
@@ -4073,7 +4080,7 @@ static void func_actor_421600_8013A554(Task* arg0)
                 work->field_8B6          = 1;
                 work->field_E9C          = 1;
                 work->field_E90.bytes[3] = 0;
-                Gp_DispatchMsg(player, 0x3FF, (s32)&work->field_E7C, 0);
+                Gp_DispatchMsgPtr(player, 0x3FF, &work->field_E7C, 0);
                 nextState = 0x1E;
             }
             work->field_0 = nextState;
@@ -4856,24 +4863,24 @@ static void func_actor_421600_8013C8E0(Task* arg0)
         Tmd_FreeBuffers(obj);
     }
     if ((s16)work->field_6 == 3) {
-        D_80114B78[0] = &D_actor_421600_80143EF4;
-        vec.vz        = 0x64;
-        vec.vy        = 0;
-        vec.vx        = 0;
+        D_80114B34[5].arg.model = &D_actor_421600_80143EF4;
+        vec.vz                  = 0x64;
+        vec.vy                  = 0;
+        vec.vx                  = 0;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec), ctx);
     }
     if ((s16)work->field_6 == 5) {
-        D_80114B78[0] = &D_actor_421600_801443C8;
-        vec.vy        = 0;
-        vec.vx        = 0;
+        D_80114B34[5].arg.model = &D_actor_421600_801443C8;
+        vec.vy                  = 0;
+        vec.vx                  = 0;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec), ctx);
     }
     if ((s16)work->field_6 == 7) {
-        D_80114B78[0] = &D_actor_421600_80145604;
+        D_80114B34[5].arg.model = &D_actor_421600_80145604;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), ctx);
     }
     if ((s16)work->field_6 == 8) {
-        D_80114B78[0] = &D_actor_421600_80145124;
+        D_80114B34[5].arg.model = &D_actor_421600_80145124;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL), ctx);
     }
     if ((s16)work->field_6 == 0xA) {
@@ -5287,7 +5294,7 @@ static void                        func_actor_421600_8013D658(GpEnemy* enemy, Ta
                 if (command == &D_actor_421600_801510A4) {
                     if ((config->hp > 0) && ((u8)work->field_E90.bytes[3] >= 0x17U)) {
                         message           = &work->field_E7C;
-                        command->field_10 = (s32)(Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->field_1C;
+                        command->field_10 = (s32)(Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->prefix.addresses[7];
                         work->field_E80   = 4;
                         work->field_E84   = 1;
                         work->field_E88   = 3;
@@ -5296,7 +5303,7 @@ static void                        func_actor_421600_8013D658(GpEnemy* enemy, Ta
                     }
                 } else if ((config->hp > 0) && ((u8)work->field_E90.bytes[3] >= 0x22U)) {
                     message                       = &work->field_E7C;
-                    D_actor_421600_801510A0.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->field_1C;
+                    D_actor_421600_801510A0.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->prefix.addresses[7];
 
                     work->field_E80 = 4;
                     work->field_E84 = 1;
@@ -5344,9 +5351,9 @@ static void                        func_actor_421600_8013D658(GpEnemy* enemy, Ta
                         work->field_E80 = 5;
                         nextCommand     = (Actor421600AnimCommand*)work->field_E7C;
                         if (nextCommand == &D_actor_421600_801510A4) {
-                            nextCommand->field_14 = (s32)(Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->field_24;
+                            nextCommand->field_14 = (s32)(Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->prefix.addresses[9];
                         } else {
-                            Actor421600FallbackEnd.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->field_24;
+                            Actor421600FallbackEnd.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->prefix.addresses[9];
                         }
                         nextMessage = &work->field_E7C;
                         Gp_DispatchMsg(player, 0x3FF, nextMessage, 0);

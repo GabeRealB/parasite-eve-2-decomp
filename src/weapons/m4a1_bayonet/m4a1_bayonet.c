@@ -5,16 +5,18 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/gfx.h"
 #include "weapons/m4a1_bayonet.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "main/fs.h"
 
 static void func_m4a1_bayonet_8011D69C(s16 slot, s16 flags);
 

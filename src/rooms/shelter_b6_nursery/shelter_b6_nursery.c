@@ -5,15 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -29,6 +20,23 @@
 #include "main/ui.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/loading.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 /// Settings of the room's effect task `func_shelter_b6_nursery_801800A0`,
 /// written together by `func_shelter_b6_nursery_80182D14`. A non-zero
@@ -59,23 +67,18 @@ extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 extern UiObjectDesc D_800611E4;
 extern UiObject*    D_80067634;
-extern UiObjectDesc D_8010EFA0;
-extern s16          D_80114D08;
-extern s32          D_8011572C;
-extern s32          D_80115750;
-extern s32          D_80115758;
-extern s32          D_80139964;
-extern s32          D_8013A33C;
-extern s32          D_8013A84C;
-extern s32          D_8013A8DC;
-extern s32          D_8013AF8C;
-extern s32          D_8013BA84;
+
+extern s32 D_80139964;
+extern s32 D_8013A33C;
+extern s32 D_8013A84C;
+extern s32 D_8013A8DC;
+extern s32 D_8013AF8C;
+extern s32 D_8013BA84;
 
 /// `Mc_SaveData[0].companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `Mc_SaveData` address with case 0.
 
 /// View saved when the cutscene starts and restored when it ends.
-extern s32 D_80115694;
 
 extern GpAreaApplyRec D_80188888[];
 
@@ -1485,7 +1488,7 @@ s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, GpMsg13EF* msg, s32 
         func_80132000();
     }
     if (msg->field_2 == 3 && GameFlag_GetNibble(0xC8) != 0) {
-        func_800E8634((s32)&D_8013AF8C, 0, (s32)&D_8013BA84);
+        func_800E8634(&D_8013AF8C, 0, &D_8013BA84);
     }
     return 0;
 }
@@ -1497,7 +1500,7 @@ static void func_shelter_b6_nursery_8017FEC4(Task* arg0)
     Gp_FillAllyHp();
     if (GameFlag_GetNibble(0xC7) == 0) {
         GameFlag_SetNibble(0xC7, 1);
-        func_800E8634((s32)&D_80139964, 0, (s32)&D_8013A33C);
+        func_800E8634(&D_80139964, 0, &D_8013A33C);
         GameFlag_SetNibble(3, 0);
         func_800E3FAC(0xA2, 0x30);
     } else if (GameFlag_GetNibble(0xC7) == 1) {

@@ -1,0 +1,60 @@
+#ifndef GAMEPLAY_LOADING_H
+#define GAMEPLAY_LOADING_H
+
+#include "types.h"
+
+#include "gameplay/area.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+
+#include "main/task.h"
+
+// Room-resource loading, view setup and sprite-list construction.
+
+/// Per-area pointer table. Index is `GpAreaKey.stage`.
+extern GpAreaRec* Gp_AreaTables[];
+
+void func_800A99B4(void);
+
+void Gp_EnqueueHeldWeaponCd(void);
+
+void Gp_EnqueueConfigCd(s32 arg0);
+
+void Gp_CommitSpawnLoc(Task* task);
+
+void Gp_LoadWaitDispatch(Task* task);
+
+void Gp_SetupSprtDisplay(Task* task);
+
+/// Per-stage pointer table. Index is `GameSession.at4.loc.stage - 1`.
+/// Each entry is an array of `GpRoomParamRec**`, indexed by `field_6 - 1`.
+/// Each of those is an 8-entry array of `GpRoomParamRec*` copied into
+/// `Gp_RoomParams` by `Gp_LoadRoomParams`.
+extern GpRoomParamRec*** Gp_RoomParamTables[];
+
+/// Per-stage pointer table. Index is `GameSession.at4.loc.stage - 1`.
+extern GpSprtTbl* Gp_SprtTables[];
+
+void Gp_LinkViewSprts(void);
+
+/// Alloc dual-buffer merged `DR_TPAGE`+`SPRT` lists into `Gp_SprtLists`
+/// from the current view's `GpSprtRec` records. Byte size is the sum of
+/// each record's `field_2`, times two 0x1C slots. Records with
+/// `field_5` set are skipped. RGB is `0x8000`; SPRT code is `0x65`.
+void Gp_AllocSprtLists(void);
+
+/// 1-based index of `(u8)arg0` in the current room's `Gp_ViewIndexTables` byte
+/// list. Length is the `Gp_ViewCountTables` cell as an s16. Returns 0 if absent.
+s8 Gp_FindViewIndex(s32 arg0);
+
+s32 Gp_GetViewIndex(void);
+
+void* Gp_GetViewSprtExtra(void);
+
+void Gp_AllocSprtListsTask(Task* task);
+
+void func_800AD50C(Task* task);
+
+void func_800AD5B8(Task* task);
+
+#endif // GAMEPLAY_LOADING_H

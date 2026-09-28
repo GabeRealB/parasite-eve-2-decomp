@@ -3,10 +3,6 @@
 #include "actors/actor.h"
 #include "actors/actor_300700.h"
 #include "actors/actor_300700_spawn2.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/gameplay.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -15,35 +11,49 @@
 #include "psyq/inline_c.h"
 #include "gte.h"
 
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
+
 /// The 0x2F4-byte allocation `func_actor_300700_80161E80` makes with
 /// `memCalloc` and stores in the task's work slot, then fills with the three
 /// `GpObj` render nodes (`Gp_LinkObj`, shapes 2/2/3) and their `GpRec18`
 /// tables. `Actor300700Work` is the wider view the tick handlers use of the
 /// same object.
 typedef struct Actor300700SpawnWork {
-    /* 0x000 */ byte    field_0[0x14];
-    /* 0x014 */ byte    field_14[0xA0]; // four GpAnimSlots, `func_800B3F84` arg4
-    /* 0x0B4 */ byte    field_B4[0x40]; // pose buffer, `func_800B3F84` arg3
-    /* 0x0F4 */ MATRIX  field_F4;       // color matrix handed to the stream
-    /* 0x114 */ MATRIX  field_114;      // light matrix handed to the stream
-    /* 0x134 */ GpObj   obj134;
-    /* 0x154 */ GpRec18 rec154;
-    /* 0x16C */ GpObj   obj16C;
-    /* 0x18C */ GpRec18 rec18C[4];
-    /* 0x1EC */ GpObj   obj1EC;
-    /* 0x20C */ GpRec18 rec20C;
-    /* 0x224 */ void*   field_224;
-    /* 0x228 */ u16     field_228;
-    /* 0x22A */ u16     field_22A;
-    /* 0x22C */ byte    pad_22C[0x80];
-    /* 0x2AC */ s32     field_2AC;
-    /* 0x2B0 */ s32     field_2B0;
-    /* 0x2B4 */ s32     field_2B4;
-    /* 0x2B8 */ byte    pad_2B8[0x1E];
-    /* 0x2D6 */ u16     field_2D6;
-    /* 0x2D8 */ byte    pad_2D8[4];
-    /* 0x2DC */ u16     field_2DC;
-    /* 0x2DE */ byte    pad_2DE[0x16];
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[4];
+    /* 0x0B4 */ byte       field_B4[0x40]; // pose buffer, `func_800B3F84` arg3
+    /* 0x0F4 */ MATRIX     field_F4;       // color matrix handed to the stream
+    /* 0x114 */ MATRIX     field_114;      // light matrix handed to the stream
+    /* 0x134 */ GpObj      obj134;
+    /* 0x154 */ GpRec18    rec154;
+    /* 0x16C */ GpObj      obj16C;
+    /* 0x18C */ GpRec18    rec18C[4];
+    /* 0x1EC */ GpObj      obj1EC;
+    /* 0x20C */ GpRec18    rec20C;
+    /* 0x224 */ void*      field_224;
+    /* 0x228 */ u16        field_228;
+    /* 0x22A */ u16        field_22A;
+    /* 0x22C */ byte       pad_22C[0x80];
+    /* 0x2AC */ s32        field_2AC;
+    /* 0x2B0 */ s32        field_2B0;
+    /* 0x2B4 */ s32        field_2B4;
+    /* 0x2B8 */ byte       pad_2B8[0x1E];
+    /* 0x2D6 */ u16        field_2D6;
+    /* 0x2D8 */ byte       pad_2D8[4];
+    /* 0x2DC */ u16        field_2DC;
+    /* 0x2DE */ byte       pad_2DE[0x16];
 } Actor300700SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor300700SpawnWork, 0x2F4);
 
@@ -65,7 +75,6 @@ void        func_actor_300700_80165230(Task* arg0);
 void        func_actor_300700_801652F4(Task* arg0);
 void        func_actor_300700_8016534C(Task* arg0);
 void        func_actor_300700_8016539C(Task* arg0);
-void        func_800B4114(Actor300700Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_300700_801622B4(Task* arg0);
 static void func_actor_300700_8016252C(Task* arg0);
@@ -134,10 +143,10 @@ static void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
     work->field_228          = 0x100;
     work->field_22A          = 1;
     work->field_224          = coord;
-    func_800B3F84((GpAnimCtx*)work, &D_actor_300700_80165B94, obj,
-                  work->field_B4, (GpAnimSlot*)work->field_14);
+    func_800B3F84(&work->anim, &D_actor_300700_80165B94, obj,
+                  work->field_B4, work->slots);
     for (i = 1; i < 4; i++) {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+        Gp_AnimResetSlot(&work->anim, i, 1);
     }
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     work->field_2D6       = 1;
@@ -802,10 +811,10 @@ void func_actor_300700_80163510(GpEnemy* arg0, Task* arg1)
     work->field_338          = 0x100;
     work->field_33A          = 1;
     work->field_334          = coord;
-    func_800B3F84((GpAnimCtx*)work, &D_actor_300700_801693B8, obj,
-                  work->field_12C, (GpAnimSlot*)work->field_14);
+    func_800B3F84(&work->anim, &D_actor_300700_801693B8, obj,
+                  work->field_12C, work->slots);
     for (i = 1; i < 7; i++) {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+        Gp_AnimResetSlot(&work->anim, i, 1);
     }
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
 

@@ -1,8 +1,5 @@
 #include "common.h"
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/gameplay.h"
-#include "gameplay/D4.h"
 
 #include "main/display.h"
 #include "main/fs.h"
@@ -14,6 +11,14 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include "actors/actors_shared_8013411c.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/mem.h"
 
 /// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. `func_actor_310100_801625E4` allocates it
@@ -113,8 +118,6 @@ extern u32      D_actor_310100_80179794;
 extern u32      D_actor_310100_801798B4;
 extern u32      D_actor_310100_801797FC;
 extern s16*     D_actor_310100_8017989C[];
-
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static s32 func_actor_310100_80161E24(Task* task)
 {
@@ -248,7 +251,7 @@ void func_actor_310100_801620FC(Task* task)
             }
         skip:
             modelTask = work->field_4E4;
-            place     = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
+            place     = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
             while (place->entryId != 0xFF && place->entryId != mode) {
                 place++;
             }
@@ -312,7 +315,7 @@ void func_actor_310100_80162284(Task* task)
             }
         skip:
             modelTask = work->field_4E4;
-            place     = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
+            place     = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
             while (place->entryId != 0xFF && place->entryId != mode) {
                 place++;
             }
@@ -384,7 +387,7 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
     func_actor_310100_80161F80(task);
     task->msgTable = &D_actor_310100_801798B4;
     id             = mode;
-    place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
+    place          = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
     while (place->entryId != 0xFF && place->entryId != id) {
         place++;
     }
@@ -445,7 +448,7 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
     func_actor_310100_80161F80(task);
     task->msgTable = &D_actor_310100_801798B4;
     id             = mode;
-    place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
+    place          = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
     while (place->entryId != 0xFF && place->entryId != id) {
         place++;
     }
@@ -493,7 +496,7 @@ void func_actor_310100_801627BC(Task* task)
             }
             if (on) {
                 work  = (Actor310100Work*)task->work;
-                place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
+                place = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
                 while (place->entryId != 0xFF && place->entryId != 0x6C) {
                     place++;
                 }
@@ -571,7 +574,7 @@ void func_actor_310100_801629FC(Task* task)
                 on = 0;
             }
             if (on) {
-                place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
+                place = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
                 while (place->entryId != 0xFF && place->entryId != 0x6D) {
                     place++;
                 }

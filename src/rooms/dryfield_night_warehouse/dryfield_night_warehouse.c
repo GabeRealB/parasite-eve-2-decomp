@@ -6,11 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "gameplay/1A8.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
-
 #include "main/display.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -18,6 +13,12 @@
 #include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/room_effects.h"
+#include "main/fs.h"
 
 static void func_dryfield_night_warehouse_8017D610(Task* task);
 static void func_dryfield_night_warehouse_8017D654(Task* task);

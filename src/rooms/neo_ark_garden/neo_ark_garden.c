@@ -6,12 +6,6 @@
 #include "gte.h"
 #include "main/gfxgte.h"
 #include <psyq/rand.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -22,6 +16,13 @@
 #include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/world_targets.h"
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -796,7 +797,7 @@ static void func_neo_ark_garden_8017E9B4(Task* arg0)
     arg0->msgTable = D_neo_ark_garden_801813B0;
     Game_SetPtrSlot(arg0, 7);
     if (*(u16*)&gGameSession->at4.loc.warp == 0x203) {
-        func_800E8634((s32)&D_801334EC, 0, (s32)&D_80133954);
+        func_800E8634(&D_801334EC, 0, &D_80133954);
         func_800E3FAC(0xA2, 0x34);
     }
     arg0->state = (s32)(arg0->state + 1);

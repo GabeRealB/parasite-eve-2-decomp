@@ -1,8 +1,4 @@
 #include "common.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -10,6 +6,15 @@
 #include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
+#include "main/fs.h"
 
 extern TaskDesc D_80141B6C[];
 
@@ -266,7 +271,7 @@ static void func_dryfield_garage_8017DB18(Task* arg0)
     arg0->msgTable = D_dryfield_garage_8017DC7C;
     Game_SetPtrSlot(arg0, 7);
     if ((gameGetPtrSlot(0xA) != NULL) && (gGameSession->at4.loc.warp == 2)) {
-        Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3E9, (s32)&D_dryfield_garage_8017DCC4, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E9, &D_dryfield_garage_8017DCC4, 0);
     }
     if (GameFlag_GetNibble(0x155) == 1) {
         GameFlag_SetNibble(3, 0);

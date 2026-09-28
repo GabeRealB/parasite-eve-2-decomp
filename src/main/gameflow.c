@@ -16,6 +16,13 @@
 #include "main/wipsys.h"
 #include "main/mc.h"
 
+#include "gameplay/display.h"
+#include "gameplay/model_lighting.h"
+#include "main/display.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+
 static void Game_ResetSessionAndBuffers(Task* arg0);
 
 static void GameFlow_CopySaveIds(Task* arg0);

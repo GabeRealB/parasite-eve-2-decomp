@@ -8,15 +8,22 @@
 #include "main/cdaudio.h"
 #include "main/fs.h"
 #include "main/task.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
 #include "main/devkit.h"
 #include "weapons/weapon.h"
 #include "actors/actor.h"
 #include "kyle/kyle.h"
 #include "aya/aya.h"
 #include "rooms/room.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/player_state.h"
+#include "main/display.h"
+#include "main/mem.h"
+#include "main/sound.h"
 
 static void           AudioTick_Process(void);
 static AudioTickNode* AudioTick_Remove(AudioTickNode* arg0);

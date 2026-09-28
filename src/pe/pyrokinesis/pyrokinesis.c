@@ -2,11 +2,6 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -14,6 +9,17 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "pe/pyrokinesis.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 static void func_pyrokinesis_80130130(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_pyrokinesis_801304C4(GpCoord* arg0, s32 arg1);
@@ -255,7 +261,7 @@ static void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             tick = mem->age;
-            if (tick * 6 > D_80113D40[mem->index].field_4) {
+            if (tick * 6 > (Gp_AttachParams + 1)[mem->index].dispatch.field_4) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_UnlinkObj(&work->obj2);
                 arg0->state = 2;

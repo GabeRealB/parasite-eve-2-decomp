@@ -1,14 +1,17 @@
 #include "common.h"
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
 
 /// The block above, published by `func_actor_110300_80131F9C` from the task's
 /// `Task::work`.
@@ -42,10 +45,6 @@ static void func_actor_110300_801320C4(Task* arg0);
 static void func_actor_110300_80132138(void);
 static void func_actor_110300_80132180(void);
 static void func_actor_110300_80132208(void);
-
-/// `func_800B4114` is declared locally with a signed `arg2`; see the note in
-/// `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Step 0 of the `func_actor_110300_80131F9C` dispatcher: allocate the work
 /// block, publish it, and hand the model's animation context its slot array.

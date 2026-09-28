@@ -2,10 +2,6 @@
 #include "main/gamemain.h"
 
 #include "aya/replay_bonus.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/4CC.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mc.h"
@@ -16,6 +12,12 @@
 #include "main/wipsys.h"
 #include "psyq/libpress.h"
 #include "psyq/strings.h"
+
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/scene_runtime.h"
+
 extern u8           D_replay_bonus_801157A8[];
 extern u8           D_replay_bonus_801157B0[];
 extern u8           D_replay_bonus_801157C4[];

@@ -7,13 +7,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_80135990.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -22,6 +15,25 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/player_state.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
 typedef struct Actor403200Obj Actor403200Obj;
 
@@ -95,20 +107,8 @@ static void func_actor_403200_80141018(Task* arg0);
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 
-/// Player HP the per-frame tick reads before it latches the death cinematic.
-/// Equipped character, read as an in-struct byte so the weapon-anim load stays
-/// ordered against the message-argument store.
-/// Equipped weapon variant added to `Gp_WeaponIdBase[Mc_SaveData[0].characterId[0] - 1]`.
-extern GpAnimBlk* Gp_PlayerAnimBlkTbl[];
-extern u16        Gp_WeaponIdBase[];
-
 /// Gameplay's escort `TaskDesc` table; entry 3 is the pair this boss spawns.
 extern TaskDesc D_80174D58;
-
-/// Declared here with a signed `arg2`; see the note in `gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
-void func_8010C980(GpCoord* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3, s32 arg4, s32 arg5);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
@@ -392,11 +392,6 @@ typedef struct Actor403200StateTable {
     TaskFunc fn[0x19];
 } Actor403200StateTable;
 STATIC_ASSERT_SIZEOF(Actor403200StateTable, 0x64);
-
-typedef struct Actor403200PendingPos {
-    byte    pad_0[0x2B8];
-    SVECTOR pos;
-} Actor403200PendingPos;
 
 static void func_actor_403200_8013FB54(GpEnemy* arg0, Task* arg1);
 
@@ -1722,7 +1717,7 @@ static void func_actor_403200_80134D40(Task* arg0)
         s32 pan;
 
         work->field_EAC = 3;
-        Gp_SpawnScript18((s32)&D_actor_403200_80141C5C, (s32)&D_actor_403200_80141C64);
+        Gp_SpawnScript18(&D_actor_403200_80141C5C, &D_actor_403200_80141C64);
         id  = (((u16)enemy->placeKey >> 12) << 8) | 0x40200001;
         pan = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(id, pan,
@@ -1735,7 +1730,7 @@ static void func_actor_403200_80134D40(Task* arg0)
         s32 pan;
 
         work->field_EAC = 3;
-        Gp_SpawnScript18((s32)&D_actor_403200_80141C5C, (s32)&D_actor_403200_80141C64);
+        Gp_SpawnScript18(&D_actor_403200_80141C5C, &D_actor_403200_80141C64);
         id  = (((u16)enemy->placeKey >> 12) << 8) | 0x40200001;
         pan = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(id, pan,
@@ -2142,13 +2137,13 @@ static void func_actor_403200_80135F98(GpEnemy* enemy, Task* task)
         if (actorOutOfReach(&gap) == 0 && actor->field_954 != 2 &&
             cfg->hp > 0) {
             D_actor_403200_8015F900.field_14 = 0x28;
-            if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_403200_8015F900, 0) == 0) {
+            if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &D_actor_403200_8015F900, 0) == 0) {
                 D_actor_403200_80141C54  = 1;
                 work->anim.animBlock.ptr = D_actor_403200_8015E710;
                 work->anim.field_4       = 1;
                 work->anim.field_8       = 0;
                 work->anim.field_C       = 3;
-                Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
+                Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
                 work->field_1B2 = 1;
             }
         }
@@ -2205,12 +2200,12 @@ static void func_actor_403200_801364F4(GpEnemy* enemy, Task* task)
             return;
         }
         D_actor_403200_8015E710[2] =
-            ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->sets[9];
+            (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->prefix.sets[9];
         work->anim.animBlock.ptr = D_actor_403200_8015E710;
         work->anim.field_4       = 2;
         work->anim.field_8       = armed;
         work->anim.field_C       = 9;
-        Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
+        Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
         task->extra.tmd->flags = 0x80;
     }
 
@@ -3529,7 +3524,7 @@ static void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
     D_actor_403200_8015F8F4.from.loc.stage = 0;
     D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
     D_actor_403200_8015F8F4.command        = 0;
-    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_actor_403200_8015F8F4, 0x7DB);
 
     work->field_E94 = work->field_E96 = 0x9C4;
     work->field_E98                   = 0x190;
@@ -4614,7 +4609,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         D_actor_403200_8015F8F4.from.loc.stage = 0;
         D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
         D_actor_403200_8015F8F4.command        = 2;
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_actor_403200_8015F8F4, 0x7DB);
         {
             s16 armed               = 1;
             work->field_E96         = 0xC80;
@@ -4652,7 +4647,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
             break;
     }
     if (((u32)((work->slots0[1].curRec & 0x3FF) - 0xA) < 9U) && ((work->field_6 % sc->period) == 0)) {
-        Gp_SpawnScript18((s32)&D_actor_403200_80141C7C, (s32)&D_actor_403200_80141C88);
+        Gp_SpawnScript18(&D_actor_403200_80141C7C, &D_actor_403200_80141C88);
     }
 
     switch (work->field_F08) {
@@ -4753,7 +4748,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
     }
 
     if (((u32)((work->slots0[1].curRec & 0x3FF) - 0xB) < 5U) && (sc->dist < 0x4B0) && (enemy->hp > 0) &&
-        (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_403200_8015FA00, 0) == 0)) {
+        (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &D_actor_403200_8015FA00, 0) == 0)) {
         SVECTOR* dirp;
         s16      ang;
 
@@ -4808,13 +4803,13 @@ static void func_actor_403200_8013B8C4(Task* arg0)
             }
         }
         if (cfg->hp > 0) {
-            Gp_DispatchMsg(task, 0x3E9, (s32)&D_actor_403200_8015F9C0, 0);
+            Gp_DispatchMsgPtr(task, 0x3E9, &D_actor_403200_8015F9C0, 0);
         }
         work->anim.field_4 = 1;
         work->anim.field_8 = 0;
         work->anim.field_C = 0;
         work->field_F02    = 1;
-        Gp_DispatchMsg(task, 0x3F4, (s32)&work->anim, 0);
+        Gp_DispatchMsgPtr(task, 0x3F4, &work->anim, 0);
         work->field_7CA = 0;
     }
 
@@ -4829,7 +4824,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         D_actor_403200_8015F8F4.from.loc.stage = 0;
         D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
         D_actor_403200_8015F8F4.command        = 3;
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_actor_403200_8015F8F4, 0x7DB);
         D_actor_403200_80141C5A = 0;
         work->field_7F2         = 0;
         work->field_0           = 0xA;
@@ -4903,7 +4898,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
         D_actor_403200_8015F8F4.from.loc.stage = 0;
         D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
         D_actor_403200_8015F8F4.command        = 3;
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_actor_403200_8015F8F4, 0x7DB);
         D_actor_403200_80141C5A = 0;
         SndEvt_EnqueueType7((((u16)enemy->placeKey >> 12) << 8) | 0x4020000A, 1);
         work->field_7B3        = 0xF;
@@ -4958,7 +4953,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
         D_actor_403200_8015F8F4.from.loc.stage = 0;
         D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
         D_actor_403200_8015F8F4.command        = 3;
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_actor_403200_8015F8F4, 0x7DB);
         work->field_E96         = 0x9C4;
         D_actor_403200_80141C5A = 0;
         Gp_StateC08.field_6    |= 1;
@@ -5028,12 +5023,12 @@ static void func_actor_403200_8013C84C(Task* arg0)
         D_actor_403200_8015F9C0.pos.vx = arg0->extra.tmd->coords[0].coord.t[0];
         D_actor_403200_8015F9C0.pos.vy = arg0->extra.tmd->coords[0].coord.t[1];
         D_actor_403200_8015F9C0.pos.vz = arg0->extra.tmd->coords[0].coord.t[2];
-        Gp_DispatchMsg(task, 0x3E9, (s32)&D_actor_403200_8015F9C0, 0);
+        Gp_DispatchMsgPtr(task, 0x3E9, &D_actor_403200_8015F9C0, 0);
         D_actor_403200_8015F8E0 = 1;
     }
     if (work->field_6 < 0x18) {
         SndEvt_EnqueueType7((((u16)enemy->placeKey >> 12) << 8) | 0x4020000A, 1);
-        Gp_DispatchMsg(task, 0x3FF, (s32)&work->anim, 0);
+        Gp_DispatchMsgPtr(task, 0x3FF, &work->anim, 0);
         work->field_7CA = 0;
     }
     SCRATCH_POP_BYTES(0x3C);
@@ -5240,7 +5235,7 @@ missed:
     found = 0;
 scanned:
     if (found != 0 && enemy->hp > 0 &&
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_403200_8015FA00, 0) == 0) {
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &D_actor_403200_8015FA00, 0) == 0) {
         target          = gameGetPtrSlot(3);
         reply           = Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair(enemy, 4), 0);
         work->field_ECA = reply;
@@ -5252,7 +5247,7 @@ scanned:
         work->anim.field_4       = 2;
         work->anim.field_8       = 0;
         work->anim.field_C       = 0;
-        Gp_DispatchMsg(task, 0x3FF, (s32)&work->anim, 0);
+        Gp_DispatchMsgPtr(task, 0x3FF, &work->anim, 0);
         work->field_7CA = 0;
     }
 
@@ -5613,7 +5608,7 @@ static void func_actor_403200_8013E2FC(Task* arg0)
         frame = work->slots0[2].curRec & 0x3FF;
         if (frame == 0x15 && work->field_7D8 != frame) {
             work->field_EAC = 3;
-            Gp_SpawnScript18((s32)&D_actor_403200_80141C6C, (s32)&D_actor_403200_80141C74);
+            Gp_SpawnScript18(&D_actor_403200_80141C6C, &D_actor_403200_80141C74);
         }
         work->field_7D8 = work->slots0[2].curRec & 0x3FF;
     }
@@ -5727,7 +5722,7 @@ static void func_actor_403200_8013E5A8(Task* arg0)
     state                        = work->slots0[2].curRec & 0x3FF;
     if (state == 0x1C && work->field_7D8 != state) {
         work->field_EAC = 3;
-        Gp_SpawnScript18((s32)&D_actor_403200_80141C5C, (s32)&D_actor_403200_80141C64);
+        Gp_SpawnScript18(&D_actor_403200_80141C5C, &D_actor_403200_80141C64);
     }
     work->field_7D8 = work->slots0[2].curRec & 0x3FF;
     if (work->field_7B3 == 0x12) {
@@ -6039,13 +6034,13 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                     if (work->field_EE8[sc->i] != NULL) {
                         work->field_F1B++;
                         model      = work->field_EE8[sc->i]->task->extra.tmd;
-                        sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+                        sessionKey = &gGameSession->at4.loc;
                         key.stage  = sessionKey->stage;
                         key.area   = sessionKey->area;
                         key.room   = sessionKey->room;
                         key.view   = sessionKey->view;
                         Gp_SyncAreaKeyIndex(&key);
-                        entry        = (GpAreaPlace*)((s32)Gp_GetNestedAreaRec(&key)->field_0 + 0x30);
+                        entry        = &Gp_GetNestedAreaRec(&key)->field_0[3];
                         model->tpage = entry->tpage;
                         model->clut  = entry->clut;
                         if (model->buffer != NULL) {
@@ -6110,7 +6105,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
             blastPan = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
             SndEvt_EnqueueType6(blastId, blastPan, (s8)(gpGetObjDepth(arg0->extra.tmd->coords) / 2));
             work->field_EAC = 3;
-            Gp_SpawnScript18((s32)&D_actor_403200_80141C5C, (s32)&D_actor_403200_80141C64);
+            Gp_SpawnScript18(&D_actor_403200_80141C5C, &D_actor_403200_80141C64);
         }
         if (work->field_6 == 0x23) {
             work->field_F06 = 0;
@@ -6179,7 +6174,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                 rnd                               = (Gp_LcgState * 5) + 0x71357911;
                 D_actor_403200_8015F8F4.command  |= (s16)(((((u32)rnd >> 16) % 3) * 0x10) | 1);
                 Gp_LcgState                       = rnd;
-                Gp_DispatchMsg(work->field_EE8[sc->i]->task, 0x7DB, (s32)&D_actor_403200_8015F8F4, 0);
+                Gp_DispatchMsgPtr(work->field_EE8[sc->i]->task, 0x7DB, &D_actor_403200_8015F8F4, 0);
             }
         }
     out:
@@ -6364,7 +6359,7 @@ static void func_actor_403200_8013FB54(GpEnemy* arg0, Task* arg1)
     Actor403200Work*        dying;
     Actor403200Work*        vis;
     Actor403200TickScratch* scratch;
-    Actor403200PendingPos*  pending;
+    GpObj4C*                pending;
     TmdObject*              tmd;
     TmdObject*              escortTmd;
     Task*                   player;
@@ -6534,7 +6529,7 @@ after_mode:
             D_actor_403200_8015F8F4.from.loc.stage = 0;
             D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
             D_actor_403200_8015F8F4.command        = 3;
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_actor_403200_8015F8F4, 0x7DB);
             D_actor_403200_80141C5A = 0;
         }
     }
@@ -6547,17 +6542,18 @@ after_mode:
     if (work->field_F12 == 8) {
         work->field_0      = 0x12;
         Gp_StateF0.field_6 = 1;
-        pending            = (Actor403200PendingPos*)Gp_PendingObj4C;
-        pending->pos.vx    = arg1->extra.tmd->coords->coord.t[0] + 0xFA0;
-        pendingPos         = &pending->pos;
-        pendingPos->vy     = arg1->extra.tmd->coords->coord.t[1] - 0x64;
-        pendingPos->vz     = arg1->extra.tmd->coords->coord.t[2];
+        // Dumping Hole room variant 1 installs ten contiguous pending quads.
+        pending               = Gp_PendingObj4C;
+        pending[9].field_C.vx = arg1->extra.tmd->coords->coord.t[0] + 0xFA0;
+        pendingPos            = &pending[9].field_C;
+        pendingPos->vy        = arg1->extra.tmd->coords->coord.t[1] - 0x64;
+        pendingPos->vz        = arg1->extra.tmd->coords->coord.t[2];
         SndEvt_EnqueueType7((((u16)arg0->placeKey >> 12) << 8) | 0x4020000A, 1);
         SndEvt_EnqueueType7((((u16)arg0->placeKey >> 12) << 8) | 0x4020000D, 1);
     }
 
     if (arg0->hp <= 0) {
-        stateF0 = Gp_StateF0.field_0;
+        stateF0 = Gp_StateF0.prefix.bytes.field_0;
         if (stateF0 == 2) {
             work->field_F06 = stateF0;
             work->field_F08 = 3;
@@ -6672,14 +6668,14 @@ after_mode:
                 work->anim.animBlock.ptr = D_actor_403200_8015E6AC;
                 work->anim.field_8       = 0;
                 work->anim.field_C       = 0;
-                Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
+                Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
                 work->field_7CA = 0;
             }
         } else if (work->anim.field_4 == 2 && (s16)count < 0x28) {
             work->anim.animBlock.ptr = D_actor_403200_8015E6AC;
             work->anim.field_8       = 0;
             work->anim.field_C       = 0;
-            Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
+            Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
         }
 
         if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
@@ -6688,13 +6684,13 @@ after_mode:
                     if (work->field_ECA != 1 && (s16)work->field_7CA >= 0x17) {
                         work->anim.animBlock.ptr = D_actor_403200_8015E6AC;
                         D_actor_403200_8015E6AC[4] =
-                            ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl
+                            (Gp_PlayerAnimBlkTbl
                                  [Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])
-                                ->sets[7];
+                                ->prefix.sets[7];
                         work->anim.field_4 = 4;
                         work->anim.field_8 = 1;
                         work->anim.field_C = 3;
-                        Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
+                        Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
                         work->field_7CA = 0;
                     }
                     break;
@@ -7005,16 +7001,16 @@ static void func_actor_403200_8014123C(Task* arg0)
 /// CLUT, run its stream twice when it has one, and step the task on.
 static void func_actor_403200_801412D0(GpEnemy* enemy, Task* task)
 {
-    GpAreaKey    key;
-    GpAreaKey*   sessionKey;
-    u8           areaByte0;
-    GpAreaRec*   rec;
-    GpAreaPlace* entry;
-    TmdObject*   model;
-    s32          idx;
-    u32          raw;
+    GpAreaKey      key;
+    GpAreaKey*     sessionKey;
+    u8             areaByte0;
+    GpAreaVariant* rec;
+    GpAreaPlace*   entry;
+    TmdObject*     model;
+    s32            idx;
+    u32            raw;
 
-    sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+    sessionKey = &gGameSession->at4.loc;
     raw        = ((GpWorkObj*)task->parent->spawnArg2)->field_8.as_u16;
     model      = task->extra.tmd;
     key.stage  = sessionKey->stage;
@@ -7027,7 +7023,7 @@ static void func_actor_403200_801412D0(GpEnemy* enemy, Task* task)
     rec = Gp_GetNestedAreaRec(&key);
     /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
        onto the table (`addu s0, s0, v0`). */
-    entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    entry        = gpAreaPlaceAt(rec->field_0, idx);
     model->tpage = entry->tpage;
     model->clut  = entry->clut;
     if (model->buffer != NULL) {

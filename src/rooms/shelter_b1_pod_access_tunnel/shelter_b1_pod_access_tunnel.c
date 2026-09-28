@@ -5,13 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -26,6 +19,20 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
+#include "main/wipsys.h"
+
 /// Work block of the task that scrolls one full-screen image vertically into
 /// another. Its first state allocates it zeroed and sets `speed`; the drawing
 /// state advances `offset` and places the seam between the images from it.
@@ -38,10 +45,6 @@ STATIC_ASSERT_SIZEOF(_ShelterB1PodAccessTunnelWork, 0xC);
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
-extern u8       D_80115690;
-extern s32      D_8011572C;
-extern s32      D_80115750;
-extern s32      D_80115758;
 extern TaskDesc D_801348D8;
 
 /// Descriptor of the event task the message handler spawns.
@@ -348,7 +351,7 @@ static void func_shelter_b1_pod_access_tunnel_8017DE10(Task* arg0)
         GameFlag_SetNibble(0x118, 2);
         func_800E3FAC(0xA2, 0x37);
     } else if (GameFlag_GetNibble(0x7E) == 0) {
-        func_800E8634((s32)&D_shelter_b1_pod_access_tunnel_80182FFC, 0, (s32)&D_shelter_b1_pod_access_tunnel_8018380C);
+        func_800E8634(&D_shelter_b1_pod_access_tunnel_80182FFC, 0, &D_shelter_b1_pod_access_tunnel_8018380C);
         func_800E3FAC(0xA2, 0x1E);
         GameFlag_SetNibble(0x7E, 1);
     }
@@ -393,7 +396,7 @@ void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
                 rec.field_8         = 0;
                 rec.field_C         = 0;
                 rec.field_10        = 0;
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &rec, 0);
                 func_800E8614((s32)D_shelter_b1_pod_access_tunnel_80181120, 0);
                 task->state = task->state + 1;
             }

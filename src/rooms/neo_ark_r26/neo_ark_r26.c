@@ -1,13 +1,14 @@
 #include "common.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/fs.h"
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/room.h"
+
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "main/display.h"
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
@@ -68,7 +69,7 @@ static void func_neo_ark_r26_8017D6A4(Task* arg0)
     arg0->msgTable = D_neo_ark_r26_8017E0A4;
     Game_SetPtrSlot(arg0, 7);
     if (Mc_SaveData[0].demoScene != 9) {
-        func_800E8634((s32)&D_neo_ark_r26_8017DA74, 0, (s32)&D_neo_ark_r26_8017DFCC);
+        func_800E8634(&D_neo_ark_r26_8017DA74, 0, &D_neo_ark_r26_8017DFCC);
     }
     arg0->state = arg0->state + 1;
 }

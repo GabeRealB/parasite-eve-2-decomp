@@ -14,10 +14,13 @@
 #include "main/text.h"
 #include "main/tmd.h"
 #include "main/ui.h"
-#include "gameplay/268.h"
-#include "gameplay/3CD8.h"
 #include "rooms/room_common.h"
 #include "rooms/mist_parking.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/evs_scripts.h"
 
 extern s32 D_mist_parking_8018F374;
 extern s32 D_mist_parking_8018F4AC;

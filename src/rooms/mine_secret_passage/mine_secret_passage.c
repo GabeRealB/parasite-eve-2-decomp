@@ -1,17 +1,19 @@
 #include "common.h"
 #include "main/stage.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
+#include "main/fs.h"
 
 extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
 
@@ -100,7 +102,7 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
             gDisplayState.roomVariant   = 1;
             Mc_SaveData[0].at4.loc.area = (u8)D_mine_secret_passage_80183448.field_2;
             Mc_SaveData[0].at4.loc.warp = (u8)D_mine_secret_passage_80183448.field_4;
-            Mc_SaveData[0].at4.loc.room = (u8)D_mine_secret_passage_80183448.field_1;
+            Mc_SaveData[0].at4.loc.room = (u8)D_mine_secret_passage_80183448.prefix.bytes.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -125,9 +127,9 @@ s32 func_mine_secret_passage_8017D7CC(Task* task, s32 msgId, GpSaveLoc* src, GpS
     func_80179A04(src, dst);
     if (*(u16*)src == 9) {
         if (src->field_5 == 0) {
-            D_mine_secret_passage_80183448.field_2 = dst->field_0;
-            D_mine_secret_passage_80183448.field_4 = dst->field_2;
-            D_mine_secret_passage_80183448.field_1 = dst->field_3;
+            D_mine_secret_passage_80183448.field_2              = dst->prefix.bytes.field_0;
+            D_mine_secret_passage_80183448.field_4              = dst->field_2;
+            D_mine_secret_passage_80183448.prefix.bytes.field_1 = dst->field_3;
             Gp_MsgPlayerWeapon(0);
             Task_SpawnFromTable(&D_mine_secret_passage_80180EBC, 0, 0, 0);
         }

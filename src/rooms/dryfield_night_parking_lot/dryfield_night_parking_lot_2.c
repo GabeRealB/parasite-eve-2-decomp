@@ -4,14 +4,15 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/display.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
 
 /// The room's per-view table: `Gp_State1C->roomEffectMode` latches the entry the
 /// current camera index selects, and the room's effect tasks read it back.

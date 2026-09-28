@@ -12,6 +12,13 @@
 #include "main/task.h"
 #include "main/devkit.h"
 
+#include "gameplay/display.h"
+#include "main/display.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+
 static void Task_AllocIdMap(Task* arg0);
 static void Stage_LoadOrCountdownTask(Task* arg0);
 static void Stage_ApplyTableEntryWhenIdle(Task* arg0);

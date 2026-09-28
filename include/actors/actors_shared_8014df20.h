@@ -5,9 +5,8 @@
 
 #include "main/task.h"
 
-#include "gameplay/3A34.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/1BC.h"
+#include "gameplay/actor.h"
+#include "gameplay/animation.h"
 
 /// 0x2B0-byte work block the enemy's spawn function allocates with `memCalloc`
 /// and parks in the task's `Task::work` slot (that slot is not a `TaskIdMap`

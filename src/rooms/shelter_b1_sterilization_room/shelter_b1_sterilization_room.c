@@ -7,14 +7,6 @@
 #include "gte.h"
 
 #include "decomp/common.h"
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -32,6 +24,21 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181228.h"
 #include "rooms/shelter_b1_sterilization_room.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/damage.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/wipsys.h"
 
 /// A 0x18-byte message argument block passed to `Gp_DispatchMsg`; only its
 /// stride is known.
@@ -122,15 +129,12 @@ extern RoomCutsceneRec D_shelter_b1_sterilization_room_8018C344;
 
 extern UiObjectDesc D_800611E4;
 extern UiObject*    D_80067634;
-extern UiObjectDesc D_8010EFA0;
-extern s16          D_80114D08;
-extern u32          D_80115694;
-extern s32          D_80135AC0;
-extern s32          D_80135D78;
-extern s32          D_80136258;
 
-extern void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
-extern s32  func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+extern s32 D_80135AC0;
+extern s32 D_80135D78;
+extern s32 D_80136258;
+
+extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 static void func_shelter_b1_sterilization_room_8017E35C(UiList* list, UiObject* obj);
 static void func_shelter_b1_sterilization_room_8017E658(UiList* list, UiObject* obj);
@@ -1300,19 +1304,19 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
             GameFlag_SetNibble(0x116, 1);
             GameFlag_SetNibble(0xEA, 2);
             GameFlag_SetNibble(0x4B, 8);
-            func_800E8634((s32)&D_80135D78, 0, (s32)&D_80136258);
+            func_800E8634(&D_80135D78, 0, &D_80136258);
             Gp_SetAreaObjId((GpAreaKey*)&gGameSession->at4.loc, 6, 1);
         } else {
             GameFlag_SetNibble(0x116, 2);
             GameFlag_SetNibble(0xEA, 1);
-            func_800E8634((s32)&D_80135AC0, 0, (s32)&D_80136258);
+            func_800E8634(&D_80135AC0, 0, &D_80136258);
         }
     }
     func_shelter_b1_sterilization_room_80180340(0);
     if (gGameSession->at4.loc.place == 5) {
         target = Gp_LookupSlot4(0);
         if (target != NULL) {
-            Gp_DispatchMsg(target, 0x7DB, (s32)&D_shelter_b1_sterilization_room_80184E7C, 0);
+            Gp_DispatchMsgPtr(target, 0x7DB, &D_shelter_b1_sterilization_room_80184E7C, 0);
         }
     }
     if (GameFlag_GetNibble(0xEA) != 1) {
@@ -1334,8 +1338,8 @@ s32 func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, GpMsg13EF
         case 1:
             if (GameFlag_GetNibble(0x76) == 0) {
                 if (GameFlag_GetNibble(0x84) != 0) {
-                    func_800E8634((s32)&D_shelter_b1_sterilization_room_8018873C, 0,
-                                  (s32)&D_shelter_b1_sterilization_room_80188AB4);
+                    func_800E8634(&D_shelter_b1_sterilization_room_8018873C, 0,
+                                  &D_shelter_b1_sterilization_room_80188AB4);
                     GameFlag_SetNibble(0x76, 1);
                 }
             }
@@ -1452,7 +1456,7 @@ s32 func_shelter_b1_sterilization_room_8017FF80(s32 arg0, s32 arg1, s32 arg2)
         if (GameFlag_GetNibble(0x76) == 1 && GameFlag_GetNibble(0x77) == 0) {
             if (GameFlag_GetNibble(0x14F) == 0) {
                 Gp_MsgPlayerWeapon(0);
-                func_800E8634((s32)&D_shelter_b1_sterilization_room_80188ED4, 0, (s32)&D_shelter_b1_sterilization_room_80188FDC);
+                func_800E8634(&D_shelter_b1_sterilization_room_80188ED4, 0, &D_shelter_b1_sterilization_room_80188FDC);
                 GameFlag_SetNibble(0x14F, 1);
             } else {
                 Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 8, 0xB, 0);
@@ -1832,9 +1836,9 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
             Mc_SaveData[0].at4.loc.view = D_shelter_b1_sterilization_room_80188728[task->spawnArg1].view;
             gGameSession->at4.loc.view  = D_shelter_b1_sterilization_room_80188728[task->spawnArg1].view;
             gGameSession->viewDirty     = 1;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9,
-                           (s32)&D_shelter_b1_sterilization_room_80188668[D_shelter_b1_sterilization_room_80188728[task->spawnArg1].msg],
-                           0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9,
+                              &D_shelter_b1_sterilization_room_80188668[D_shelter_b1_sterilization_room_80188728[task->spawnArg1].msg],
+                              0);
             SndEvt_EnqueueType6(0x5410000B, 0, 0);
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             task->state++;
@@ -1875,9 +1879,9 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
                     } else if (task->killCountdown >= 0x79) {
                         if (Player_Status.hp > 0) {
                             coord = player->extra.tmd->coords;
-                            Gp_DispatchMsg(player, 0x3F7, (s32)&D_shelter_b1_sterilization_room_80188590, 0);
+                            Gp_DispatchMsgPtr(player, 0x3F7, &D_shelter_b1_sterilization_room_80188590, 0);
                             Gp_PlayerWeaponId(&D_shelter_b1_sterilization_room_80188624);
-                            Gp_DispatchMsg(player, 0x3E8, (s32)&D_shelter_b1_sterilization_room_80188624, 0);
+                            Gp_DispatchMsgPtr(player, 0x3E8, &D_shelter_b1_sterilization_room_80188624, 0);
                             pan = (s8)Gp_GetObjPan(coord);
                             SndEvt_EnqueueType6(0x54100011, pan, (s8)gpGetObjDepth(coord));
                             task->killCountdown = 0;

@@ -5,15 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/4CC.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -31,6 +22,15 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_targets.h"
+#include "main/mem.h"
+
 extern void func_80131FBC(void);
 extern void func_80132038(void);
 extern void func_80132110(void);
@@ -42,13 +42,9 @@ extern void func_80149EBC(void);
 extern void func_80149FA4(void);
 extern void func_80179B14(RoomEventMsg* src, RoomEventMsg* dst);
 
-extern char          Gp_StrEmpty[];
-extern UiObject*     D_80067634;
-extern UiObjectDesc  D_8010D80C;
-extern RoomShopStock D_8010E138[];
-extern UiObjectDesc  D_8010EFA0;
-extern u8            D_80115690;
-extern TaskDesc      D_80136CDC;
+extern UiObject* D_80067634;
+
+extern TaskDesc D_80136CDC;
 
 /// The 0xFFFF-terminated item id lists `func_shelter_1f_heliport_8017D730`
 /// chooses from, and the one it returns when no case matches.
@@ -507,7 +503,7 @@ void func_shelter_1f_heliport_8017DDA0(UiList* prompt, UiObject* obj)
         /* Dead: emits the scaled index before the table base so the
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
-        Gp_DrawQty(obj, prompt->field_18, prompt->field_1A, D_8010E138[itemId].perBuy, prompt->field_1C);
+        Gp_DrawQty(obj, prompt->field_18, prompt->field_1A, gpItemStock(itemId)->perBuy, prompt->field_1C);
     }
     Text_ItoaUnsigned(buf, price);
     Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, buf, prompt->field_1C, 3, 2);
@@ -1235,14 +1231,14 @@ void func_shelter_1f_heliport_8017F770(Task* task)
         /* Dead: emits the scaled index before the table base so the
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
-        if (D_8010E138[itemId].perBuy != 0) {
+        if (gpItemStock(itemId)->perBuy != 0) {
             held    = Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, itemId);
-            maxHeld = D_8010E138[itemId].maxHeld;
+            maxHeld = gpItemStock(itemId)->maxHeld;
             maxQty  = maxHeld - held;
             if (maxQty <= 0) {
                 maxQty = 1;
             } else {
-                maxQty = (maxQty - 1) / D_8010E138[itemId].perBuy;
+                maxQty = (maxQty - 1) / gpItemStock(itemId)->perBuy;
                 maxQty = maxQty + 1;
             }
         }
@@ -1263,7 +1259,7 @@ void func_shelter_1f_heliport_8017F770(Task* task)
     if ((u32)(itemId - 0xA0) < 0x20) {
         /* Dead: same index-first ordering as above. */
         scaled = itemId * 4;
-        Gp_DrawQty(obj, x, y, D_8010E138[itemId].perBuy, 0x606060);
+        Gp_DrawQty(obj, x, y, gpItemStock(itemId)->perBuy, 0x606060);
     }
 
     count = task->extraState;

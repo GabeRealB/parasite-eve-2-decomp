@@ -6,15 +6,6 @@
 #include "gte.h"
 
 #include "decomp/common.h"
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/4CC.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -36,17 +27,26 @@
 #include "rooms/room_common.h"
 #include "rooms/shelter_b1_underground_parking.h"
 
+#include "gameplay/animation.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_targets.h"
+
 extern s32  func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 extern void func_80131E38(void);
 
-extern UiObjectDesc  D_800611E4;
-extern UiObject*     D_80067634;
-extern UiObjectDesc  D_8010D80C;
-extern RoomShopStock D_8010E138[];
-extern UiObjectDesc  D_8010EFA0;
-extern s16           D_80114D08;
-extern u32           D_80115694;
-extern char          Gp_StrEmpty[];
+extern UiObjectDesc D_800611E4;
+extern UiObject*    D_80067634;
 
 /// Labels of the nine play-data rows, and the help line each row shows while
 /// it is selected.
@@ -1549,7 +1549,7 @@ void func_shelter_b1_underground_parking_8017FE7C(UiList* prompt, UiObject* obj)
         /* Dead: emits the scaled index before the table base so the
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
-        Gp_DrawQty(obj, prompt->field_18, prompt->field_1A, D_8010E138[itemId].perBuy, prompt->field_1C);
+        Gp_DrawQty(obj, prompt->field_18, prompt->field_1A, gpItemStock(itemId)->perBuy, prompt->field_1C);
     }
     Text_ItoaUnsigned(buf, price);
     Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, buf, prompt->field_1C, 3, 2);
@@ -2255,14 +2255,14 @@ void func_shelter_b1_underground_parking_8018184C(Task* task)
         /* Dead: emits the scaled index before the table base so the
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
-        if (D_8010E138[itemId].perBuy != 0) {
+        if (gpItemStock(itemId)->perBuy != 0) {
             held    = Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, itemId);
-            maxHeld = D_8010E138[itemId].maxHeld;
+            maxHeld = gpItemStock(itemId)->maxHeld;
             maxQty  = maxHeld - held;
             if (maxQty <= 0) {
                 maxQty = 1;
             } else {
-                maxQty = (maxQty - 1) / D_8010E138[itemId].perBuy;
+                maxQty = (maxQty - 1) / gpItemStock(itemId)->perBuy;
                 maxQty = maxQty + 1;
             }
         }
@@ -2283,7 +2283,7 @@ void func_shelter_b1_underground_parking_8018184C(Task* task)
     if ((u32)(itemId - 0xA0) < 0x20) {
         /* Dead: same index-first ordering as above. */
         scaled = itemId * 4;
-        Gp_DrawQty(obj, x, y, D_8010E138[itemId].perBuy, 0x606060);
+        Gp_DrawQty(obj, x, y, gpItemStock(itemId)->perBuy, 0x606060);
     }
 
     count = task->extraState;
@@ -2450,7 +2450,7 @@ void func_shelter_b1_underground_parking_80181FE4(Task* arg0)
                 arg0->state = 2;
                 break;
             }
-            Gp_DispatchMsg(slot, 0x3EE, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(slot, 0x3EE, &msg, 0);
             arg0->state = (s32)(arg0->state + 1);
             break;
         case 1:
@@ -3239,7 +3239,7 @@ void func_shelter_b1_underground_parking_8018363C(Task* arg0)
         SetDispMask(0);
         D_80115768            = 1;
         gGameSession->hideHud = 1;
-        func_800E8634((s32)&D_shelter_b1_underground_parking_801873DC, 0, (s32)&D_shelter_b1_underground_parking_80187544);
+        func_800E8634(&D_shelter_b1_underground_parking_801873DC, 0, &D_shelter_b1_underground_parking_80187544);
         GameFlag_SetNibble(0xF4, 2);
         GameFlag_SetNibble(0x1B4, 0);
         arg0->state += 1;
@@ -3441,7 +3441,7 @@ static void func_shelter_b1_underground_parking_80183CEC(Task* task)
     }
 
     for (port = first; port < count; port++) {
-        prompt = &D_80114D28 + port;
+        prompt = &D_80114D28[port];
         pad    = &Pad_States[port];
         status = pad->status;
         if (status == 0x12) {
@@ -3511,20 +3511,20 @@ static void func_shelter_b1_underground_parking_80183CEC(Task* task)
             prompt->field_4 = 0xDC00;
         }
 
-        statep = &prompt->buttons[0].state;
-        heldp  = &prompt->buttons[0].heldFrames;
+        statep = &prompt->buttons.halfwords[0];
+        heldp  = &prompt->buttons.halfwords[1];
         idx    = 0;
         for (i = 0; i < 2; i++, statep += 4, idx += 4) {
             mask = (i == 0) ? 0x40 : 0xA0;
             if (Pad_CheckButtons(port, 1, mask) != 0) {
                 if (heldp[idx] < prompt->field_E &&
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed == prompt->screen.packed) {
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
                     *statep    = 4;
                     heldp[idx] = prompt->field_E;
                 } else {
-                    heldp[idx]                                           = 0;
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed = prompt->screen.packed;
-                    *statep                                              = 2;
+                    heldp[idx]                                                          = 0;
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
+                    *statep                                                             = 2;
                 }
             } else if (Pad_CheckButtons(port, 3, mask) != 0) {
                 *statep = 3;
@@ -3638,7 +3638,7 @@ static void func_shelter_b1_underground_parking_80184304(Task* task)
 
 static void func_shelter_b1_underground_parking_801843F0(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
 
     func_shelter_b1_underground_parking_80183B9C();
     prompt->targetId    = 0x80;
@@ -3651,7 +3651,7 @@ static void func_shelter_b1_underground_parking_801843F0(Task* task)
 
 static void func_shelter_b1_underground_parking_80184468(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     OverlayHotspot*   hs     = D_shelter_b1_underground_parking_8018767C;
     SbupExamineWork*  work   = (SbupExamineWork*)task->work;
 
@@ -3665,7 +3665,7 @@ static void func_shelter_b1_underground_parking_80184468(Task* task)
     prompt->targetId = 0x80;
     if (func_shelter_b1_underground_parking_80184964(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
-        if (prompt->buttons[0].state == 2) {
+        if (prompt->buttons.slots[0].state == 2) {
             for (; hs->id != -1; hs++) {
                 if (hs->hit != 0) {
                     prompt->mode     = 0;
@@ -3680,14 +3680,14 @@ static void func_shelter_b1_underground_parking_80184468(Task* task)
     } else {
         prompt->mode = 1;
     }
-    if (prompt->buttons[1].state == 2) {
+    if (prompt->buttons.slots[1].state == 2) {
         task->state = 5;
     }
 }
 
 static void func_shelter_b1_underground_parking_80184594(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     SbupExamineWork*  work   = (SbupExamineWork*)task->work;
 
     func_shelter_b1_underground_parking_80183B9C();
@@ -3699,7 +3699,7 @@ static void func_shelter_b1_underground_parking_80184594(Task* task)
 
 static void func_shelter_b1_underground_parking_801845F8(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     SbupExamineWork*  work   = (SbupExamineWork*)task->work;
 
     func_shelter_b1_underground_parking_80183B9C();
@@ -3791,17 +3791,17 @@ static void func_shelter_b1_underground_parking_801848A4(void)
 /// marks the slot as highlighted (`mode` 1).
 static void func_shelter_b1_underground_parking_801848BC(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     s32               i;
 
     for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0               = 0;
-        prompt->field_4               = 0;
-        prompt->targetId              = 0x100;
-        prompt->field_E               = 0xF;
-        prompt->buttons[0].heldFrames = 0;
-        prompt->buttons[1].heldFrames = 0;
-        prompt->mode                  = 1;
+        prompt->field_0                     = 0;
+        prompt->field_4                     = 0;
+        prompt->targetId                    = 0x100;
+        prompt->field_E                     = 0xF;
+        prompt->buttons.slots[0].heldFrames = 0;
+        prompt->buttons.slots[1].heldFrames = 0;
+        prompt->mode                        = 1;
     }
     task->state = task->state + 1;
 }

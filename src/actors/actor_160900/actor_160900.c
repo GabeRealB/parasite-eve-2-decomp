@@ -13,13 +13,20 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "actors/actors_shared_8013411c.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
+#include "main/wipsys.h"
 
 /// 0x20-byte block `func_actor_160900_80133F90` allocates with
 /// `memCalloc(0x20, 0)` for each of the two child tasks it spawns from index 7
@@ -93,8 +100,6 @@ typedef struct Actor160900Child3Work {
     /* 0x4BA */ s16            field_4BA;
 } Actor160900Child3Work;
 STATIC_ASSERT_SIZEOF(Actor160900Child3Work, 0x4BC);
-
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern Task* D_actor_160900_8013FBB4;
 
@@ -319,7 +324,7 @@ static s32 func_actor_160900_801326EC(Task* arg0)
             msg.field_8       = 1;
             msg.field_C       = 0xA;
             msg.field_10      = 1;
-            Gp_DispatchMsg(work->field_34, 0x3F4, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(work->field_34, 0x3F4, &msg, 0);
             work->field_66 = 0;
         } else {
             work->field_66 += 1;
@@ -341,7 +346,7 @@ static s32 func_actor_160900_801326EC(Task* arg0)
             msg.field_8       = 1;
             msg.field_C       = 0xA;
             msg.field_10      = 1;
-            Gp_DispatchMsg(work->field_34, 0x3F4, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(work->field_34, 0x3F4, &msg, 0);
             work->field_66 = 0;
         }
     }
@@ -447,7 +452,7 @@ void func_actor_160900_80132A14(Task* arg0)
         tmd->lightMtx = &work->light;
         tmd->colorMtx = &work->color;
         if (arg0->spawnArg1 < 2) {
-            place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
+            place = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
             id    = place->entryId;
             while (id != 0xFF) {
                 if (id == 0x65) {
@@ -519,7 +524,7 @@ void func_actor_160900_80132C08(Task* task)
             obj->colorMtx  = &work->color;
             obj->flags    |= 0x84;
             task->msgTable = D_actor_160900_8013F200;
-            place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
+            place          = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
             while (place->entryId != 0xFF && place->entryId != 0x65) {
                 place++;
             }
@@ -707,7 +712,7 @@ static inline void func_actor_160900_SetAnim(Task* task, u16 anim)
         p->field_8       = 1;
         p->field_C       = 10;
         p->field_10      = 1;
-        Gp_DispatchMsg(work->field_34, 0x3F4, (s32)p, 0);
+        Gp_DispatchMsgPtr(work->field_34, 0x3F4, p, 0);
         work->field_66 = 0;
     }
 }
@@ -727,7 +732,7 @@ static inline void func_actor_160900_SetAnimZ(Task* task, u16 anim)
         p->field_8       = 0;
         p->field_C       = 0;
         p->field_10      = 1;
-        Gp_DispatchMsg(work->field_34, 0x3F4, (s32)p, 0);
+        Gp_DispatchMsgPtr(work->field_34, 0x3F4, p, 0);
         work->field_66 = 0;
     }
 }
@@ -748,7 +753,7 @@ static void func_actor_160900_80133238(Task* arg0)
         case 0:
             break;
         case 1:
-            Gp_DispatchMsg(work->field_34, 0x3E9, (s32)D_actor_160900_8013F210, 0);
+            Gp_DispatchMsgPtr(work->field_34, 0x3E9, D_actor_160900_8013F210, 0);
             w = (Actor160900Work*)arg0->work;
             if (w->field_34 != NULL) {
                 msg.animBlock.ptr = D_actor_160900_8013F198;
@@ -757,7 +762,7 @@ static void func_actor_160900_80133238(Task* arg0)
                 msg.field_8       = 0;
                 msg.field_C       = 0;
                 msg.field_10      = 1;
-                Gp_DispatchMsg(w->field_34, 0x3F4, (s32)&msg, 0);
+                Gp_DispatchMsgPtr(w->field_34, 0x3F4, &msg, 0);
                 w->field_66 = 0;
             }
             break;
@@ -770,7 +775,7 @@ static void func_actor_160900_80133238(Task* arg0)
                 msg.field_8       = 0;
                 msg.field_C       = 0;
                 msg.field_10      = 1;
-                Gp_DispatchMsg(w->field_34, 0x3F4, (s32)&msg, 0);
+                Gp_DispatchMsgPtr(w->field_34, 0x3F4, &msg, 0);
                 w->field_66 = 0;
             }
             break;
@@ -787,12 +792,13 @@ static void func_actor_160900_80133238(Task* arg0)
                 msg.field_8         = 0;
                 msg.field_C         = 0;
                 msg.field_10        = 0;
+                /* The message ABI carries this object address in one 32-bit word. */
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
-                Gp_DispatchMsg(work->field_34, 0x3E9, (s32)D_actor_160900_8013F228, 0);
+                Gp_DispatchMsgPtr(work->field_34, 0x3E9, D_actor_160900_8013F228, 0);
                 msg.animBlock.index = -0x7D0;
                 msg.field_4         = 0;
                 msg.field_8         = 0xC80;
-                Gp_DispatchMsg(work->field_34, 0x3FB, (s32)&msg, 0);
+                Gp_DispatchMsgPtr(work->field_34, 0x3FB, &msg, 0);
                 work->field_4E++;
             }
             return;
@@ -838,7 +844,7 @@ static void func_actor_160900_8013358C(Task* arg0)
             break;
         case 1:
             Gp_DispatchMsg(work->field_38, 0x7D5, 2, 0);
-            Gp_DispatchMsg(work->field_38, 0x7D4, (s32)D_actor_160900_8013F240, 0);
+            Gp_DispatchMsgPtr(work->field_38, 0x7D4, D_actor_160900_8013F240, 0);
             break;
         case 2:
             Gp_DispatchMsg(work->field_3C, 0x7D5, 1, 0);
@@ -1243,7 +1249,7 @@ void func_actor_160900_8013418C(Task* arg0)
             arg0->state += 1;
             return;
         case 1:
-            func_800E8634((s32)D_actor_160900_8013F538, 0, (s32)D_actor_160900_8013FAA8);
+            func_800E8634(D_actor_160900_8013F538, 0, D_actor_160900_8013FAA8);
             arg0->state += 1;
             break;
         case 2:

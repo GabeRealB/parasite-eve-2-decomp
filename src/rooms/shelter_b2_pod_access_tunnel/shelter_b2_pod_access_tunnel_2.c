@@ -5,12 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -21,13 +15,15 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017e4f8.h"
 
-extern s32 D_80115720;
-extern s32 D_80115728;
-extern s32 D_8011572C;
-extern s32 D_8011573C;
-extern s32 D_80115744;
-extern s32 D_80115750;
-extern s32 D_80115758;
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// The beam placements the view-dependent beam task draws for camera views 2,
 /// 3/6 and 4/7: pairs of end points, of which each view draws a subset.

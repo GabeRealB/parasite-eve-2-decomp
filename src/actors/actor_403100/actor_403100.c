@@ -15,12 +15,28 @@
 #include "main/session.h"
 #include "main/gameflag.h"
 
-#include "gameplay/D4.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/damage.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/player_state.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mem.h"
 
 static void func_actor_403100_80132064(Task* arg0, SVECTOR* first, SVECTOR* second, s32 arg3);
 static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1);
@@ -405,8 +421,6 @@ static __inline__ s32 Actor403100_LocalizeRotation(GpCoord* arg0, MATRIX* arg1, 
 extern Actor403100Work* D_actor_403100_80155808;
 extern GpEnemy*         D_actor_403100_8015580C;
 
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
 void                        func_8017E3C8(void);
 void                        func_8017E4B8(void);
 extern u16                  D_actor_403100_80147630;
@@ -416,8 +430,6 @@ extern u32                  D_actor_403100_8015572C[];
 extern Actor403100QuadEntry D_actor_403100_801557E0[2];
 
 extern Actor403100AnimTable D_actor_403100_8015570C;
-extern GpAnimBlk*           Gp_PlayerAnimBlkTbl[];
-extern u16                  Gp_WeaponIdBase[];
 
 extern u8 D_80165FC0;
 
@@ -3309,7 +3321,7 @@ static void func_actor_403100_80138F88(Task* arg0)
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
         func_actor_403100_8013D1B8(1, 0x3FF);
         message[5] = 0x28;
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)message, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, message, 0);
         D_actor_403100_80155808->field_656 = (u16)D_actor_403100_8015580C->hp;
     }
 }
@@ -3377,7 +3389,7 @@ static void func_actor_403100_8013922C(Task* arg0)
         D_actor_403100_80155808->pad_660[0] = 0;
         func_actor_403100_8013D1B8(1, 0x3FF);
         message[5] = 0x28;
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)message, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, message, 0);
         D_actor_403100_80155808->pad_65E[0] = (u8)D_actor_403100_80155808->pad_65E[0] + 1;
     }
     if (((u8)D_actor_403100_80155808->pad_65E[0] != 0) ||
@@ -4984,7 +4996,7 @@ static void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
     msg.rot.vx = 0;
     msg.rot.vy = arg3;
     msg.rot.vz = 0;
-    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&msg, 0);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &msg, 0);
 }
 static void func_actor_403100_8013D11C(Task* arg0)
 {
@@ -5023,9 +5035,9 @@ static void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)
     msg.field_10                       = 0;
     D_actor_403100_80155808->field_65D = (s8)arg0;
     if (arg1 == 0x3FF) {
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&msg, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &msg, 0);
     } else if (arg1 == 0x3F4) {
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F4, &msg, 0);
     }
 }
 static void func_actor_403100_8013D24C(void)
@@ -5387,13 +5399,13 @@ static void func_actor_403100_8013E1E4(void)
     GpAnimArg sp;
 
     if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
-        D_actor_403100_8015570C.sets[4] = ((Actor403100AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->sets[7];
+        D_actor_403100_8015570C.sets[4] = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon])->prefix.sets[7];
         sp.animBlock.ptr                = &D_actor_403100_8015570C;
         sp.field_8                      = 1;
         sp.field_C                      = 3;
         sp.field_10                     = 0;
         sp.field_4                      = 4;
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&sp, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &sp, 0);
         D_actor_403100_80155808->field_5F2 = 3;
     }
 }

@@ -5,11 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -28,6 +23,20 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181d28.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/object_task.h"
+#include "gameplay/pad_input.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 /// Sign pair for one corner of the promenade's ground-glow quad
 /// (`func_acropolis_promenade_8017ED44`). The four entries of
@@ -86,7 +95,7 @@ static void func_acropolis_promenade_8017F434(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// Per-frame state of the room task. The first frame the session's warp is 4
 /// it spawns the streamed-scene task (entry 2 of the task table), once. While
 /// the location's place is 1 it keeps `flowFlags` at 0xA and runs a latch on
-/// `Gp_StateF0.field_0`: when that flag drops after having been 1, a sound
+/// `Gp_StateF0.prefix.bytes.field_0`: when that flag drops after having been 1, a sound
 /// event is queued, and once the session's `field_126` is then non-zero,
 /// `func_800E8634` is called with the room's two data blocks.
 static void func_acropolis_promenade_8017D5E4(Task* task)
@@ -106,7 +115,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
     temp = gGameSession->at4.loc.place;
     if (temp == 1) {
         gGameSession->flowFlags = 0xA;
-        f0                      = Gp_StateF0.field_0;
+        f0                      = Gp_StateF0.prefix.bytes.field_0;
         if (f0 == temp) {
             D_acropolis_promenade_80181144 = f0;
         }
@@ -116,7 +125,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
         }
         if ((D_acropolis_promenade_80181144 == 2) && (gGameSession->field_126 != 0)) {
             D_acropolis_promenade_80181144 = 0;
-            func_800E8634((s32)&D_acropolis_promenade_80180F00, 0, (s32)&D_acropolis_promenade_80181068);
+            func_800E8634(&D_acropolis_promenade_80180F00, 0, &D_acropolis_promenade_80181068);
         }
     }
 }
@@ -344,7 +353,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             rec.field_8                           = 0;
             rec.field_C                           = 0;
             rec.field_10                          = 0;
-            Gp_DispatchMsg(((RoomStreamWork*)task->work)->target, 0x3E8, (s32)&rec, 0);
+            Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, 0x3E8, &rec, 0);
             func_800E9BDC(3, 0x9FF);
             Gp_StateF0.field_4 = 1;
             task->state        = task->state + 1;
@@ -352,8 +361,8 @@ void func_acropolis_promenade_8017DB9C(Task* task)
 
         case 1:
             if (queue->field_1FA != 0) {
-                work->script                  = Gp_SpawnScript18((s32)&D_acropolis_promenade_80186224,
-                                                                 (s32)&D_acropolis_promenade_8018623C);
+                work->script                  = Gp_SpawnScript18(&D_acropolis_promenade_80186224,
+                                                                 &D_acropolis_promenade_8018623C);
                 gGameSession->padScriptFlags |= 0x80;
                 Task_Reparent(task, work->script);
                 task->state = task->state + 1;
@@ -373,7 +382,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                     place.rot.vx = 0;
                     place.rot.vy = 0xC00;
                     dest         = (RoomStreamWork*)task->work;
-                    Gp_DispatchMsg(dest->target, 0x3E9, (s32)&place, 0);
+                    Gp_DispatchMsgPtr(dest->target, 0x3E9, &place, 0);
                     Task_SpawnFromTable(D_acropolis_promenade_80181148, 4, 0, 0);
                     task->state = task->state + 1;
                     break;
@@ -387,7 +396,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                 place.pos.vy = 0x29;
                 place.pos.vz = D_acropolis_promenade_80181184[0x45 - queue->field_1EA].vz - 0xC8;
                 dest         = (RoomStreamWork*)task->work;
-                Gp_DispatchMsg(dest->target, 0x3F2, (s32)&place, 0);
+                Gp_DispatchMsgPtr(dest->target, 0x3F2, &place, 0);
                 task->state = task->state + 1;
             }
             break;

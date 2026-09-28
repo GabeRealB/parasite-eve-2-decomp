@@ -6,13 +6,6 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -20,6 +13,23 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// Main-executable counter whose lowest bit the flicker alternates on.
 
@@ -105,10 +115,6 @@ typedef struct Actor02400ScaleScratch {
     /* 0x30 */ VECTOR     t;
 } Actor02400ScaleScratch;
 STATIC_ASSERT_SIZEOF(Actor02400ScaleScratch, 0x40);
-
-extern s32 D_80115728;
-extern s32 D_80115734;
-extern s32 D_80115754;
 
 extern GpU16Pair  Actor02400_BodyPairs;
 extern GpPairSrcE Actor02400_Params0;
@@ -668,7 +674,7 @@ static void Actor02400_Fn01420(Task* task)
         random          = (Gp_LcgState * 5) + 0x71357911;
         work->field_140 = (random >> 0x10) & 0xF;
         Gp_LcgState     = random;
-        if (Gp_StateF0.field_2 & 2) {
+        if (Gp_StateF0.prefix.bytes.field_2 & 2) {
             flag = 1;
         }
     }

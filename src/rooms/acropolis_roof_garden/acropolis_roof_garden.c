@@ -8,14 +8,6 @@
 #include <psyq/abs.h>
 
 #include "decomp/common.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/4CC.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -28,13 +20,27 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
 
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/inventory.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+
 /// Grey level of each of the three variants the ambient sprite task can be
 /// spawned as, picked by bits 8..9 of `Task::spawnArg1`.
 typedef struct RgSpriteLevels {
     /* 0x0 */ u8 v[3];
 } RgSpriteLevels;
-
-extern GpQuadCorner D_80111E38[];
 
 /// Messages the room task answers, terminated by id 0x7FFFFFFF.
 extern GpMsgEntry D_acropolis_roof_garden_80183BDC[];
@@ -275,7 +281,7 @@ static void func_acropolis_roof_garden_8017DBEC(Task* task)
 
     if ((gGameSession->at4.loc.warp == 2) && (D_acropolis_roof_garden_8018432C == 0)) {
         D_acropolis_roof_garden_8018432C = 1;
-        func_800E8634((s32)&D_acropolis_roof_garden_80183D74, 0, (s32)&D_acropolis_roof_garden_80184194);
+        func_800E8634(&D_acropolis_roof_garden_80183D74, 0, &D_acropolis_roof_garden_80184194);
         GameFlag_SetNibble(6, 1);
         key.stage = 1;
         key.area  = 0xC;

@@ -2,14 +2,18 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3CD8.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/tmd.h"
 #include "weapons/gunblade.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 static void func_gunblade_8011D70C(s16 slot, s16 flags);
 

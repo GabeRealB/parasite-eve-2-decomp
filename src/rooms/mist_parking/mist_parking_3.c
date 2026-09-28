@@ -11,12 +11,13 @@
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/tmd.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/gameplay.h"
 #include "rooms/room_common.h"
 #include "rooms/mist_parking.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/world_targets.h"
 
 extern GpXformArg D_mist_parking_8018FC3C;
 

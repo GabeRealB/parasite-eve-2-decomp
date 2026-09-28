@@ -3,11 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -20,6 +15,18 @@
 #include "rooms/dryfield_water_tank.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/mc.h"
 
 /// Work block of the water-tank room's script-driver task, a
 /// `Mem_Malloc(0x58, 0)` the driver `func_dryfield_water_tank_8017DEA4` hangs
@@ -186,7 +193,7 @@ s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, GpMsg13EF* arg2)
         GameFlag_SetNibble(0x155, 3);
         Gp_ApplyAreaRecs(D_dryfield_water_tank_80188D1C);
         Gp_MsgPlayerWeapon(0);
-        func_800E8634((s32)&D_dryfield_water_tank_80184E0C, 0, (s32)&D_dryfield_water_tank_801859DC);
+        func_800E8634(&D_dryfield_water_tank_80184E0C, 0, &D_dryfield_water_tank_801859DC);
     }
     if (arg2->field_2 == 3) {
         func_800E8614((s32)&D_dryfield_water_tank_8017F114, 0);
@@ -442,7 +449,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             break;
         case 1:
             Gp_DispatchMsg(work->child, 0x7D4, (s32)&D_dryfield_water_tank_8017FD60, 0);
-            func_800E8634((s32)&D_dryfield_water_tank_8017FDC0, 0, (s32)&D_dryfield_water_tank_8017FEC8);
+            func_800E8634(&D_dryfield_water_tank_8017FDC0, 0, &D_dryfield_water_tank_8017FEC8);
             arg0->state = arg0->state + 1;
             break;
         case 2:

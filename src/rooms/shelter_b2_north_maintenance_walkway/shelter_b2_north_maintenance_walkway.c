@@ -1,10 +1,4 @@
 #include "common.h"
-
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -13,7 +7,15 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern u8 D_80115690;
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
+#include "main/fs.h"
 
 /// The pair of cutscene blocks the walkway's scene hands to `func_800E8634`.
 extern s32 D_80165354;
@@ -289,7 +291,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DC54(s32 arg0, s32 arg1, RoomE
     u8 subId = in->field_2;
 
     if (subId == 1 && GameFlag_GetNibble(0x84) == 0 && gGameSession->at4.loc.place == subId) {
-        func_800E8634((s32)&D_80165354, 0, (s32)&D_80165834);
+        func_800E8634(&D_80165354, 0, &D_80165834);
         func_800E3FAC(0xA2, 0x20);
         GameFlag_SetNibble(0x84, 1);
         Gp_ApplyAreaRecs(D_shelter_b2_north_maintenance_walkway_80186380);

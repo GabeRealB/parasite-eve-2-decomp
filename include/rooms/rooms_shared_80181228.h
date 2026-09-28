@@ -2,9 +2,9 @@
 #define ROOMS_SHARED_80181228_H
 
 #include "common.h"
-
-#include "gameplay/3CD8.h"
 #include "main/task.h"
+
+#include "gameplay/area_flags.h"
 
 /// The sub-task the runner spawns for the scene, and the descriptor it spawns
 /// it from; `AreaRecs` is the area-record table the Dryfield hand-off applies.

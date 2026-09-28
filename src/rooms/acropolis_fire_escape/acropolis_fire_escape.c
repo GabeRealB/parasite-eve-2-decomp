@@ -5,14 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -28,6 +20,22 @@
 #include "main/unknown_syms.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/sound_params.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 /// Block the room's glow and flare tasks carve off `G_SCRATCH_HEAD` for one
 /// frame. `vec` is the task coordinate's world translation, projected through
@@ -45,17 +53,15 @@ typedef struct {
 
 STATIC_ASSERT_SIZEOF(AcropolisFireEscapeGlowScratch, 0x18);
 
-extern UiObjectDesc   D_800611E4;
-extern UiObject*      D_80067634;
-extern UiObjectDesc   D_8010EFA0;
-extern s16            D_80114D08;
+extern UiObjectDesc D_800611E4;
+extern UiObject*    D_80067634;
+
 extern GpAreaApplyRec D_80188888[];
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
 /// end reads it through this name rather than through `Mc_SaveData`.
 
 /// View saved when the cutscene starts and restored when it ends.
-extern s32 D_80115694;
 
 /// Title of the telephone menu. The bytes after its terminator are not zero,
 /// so it stays assembly.

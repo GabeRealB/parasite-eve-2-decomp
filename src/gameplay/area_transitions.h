@@ -1,0 +1,30 @@
+#ifndef GAMEPLAY_PRIVATE_AREA_TRANSITIONS_H
+#define GAMEPLAY_PRIVATE_AREA_TRANSITIONS_H
+
+#include "types.h"
+
+#include "direction.h"
+#include "geometry.h"
+
+#include "main/task.h"
+
+extern const GpDirActionTable Gp_DirActionFns;
+
+/// Per-stage flag-nibble lookup. `idx` indexes a u16 table selected by
+/// `gGameSession->at4.loc.stage` (1..5). Low 11 bits are the `GameFlag_GetNibble`
+/// index; bit `0x800` is added onto the result. Unknown stage or out-of-range
+/// index returns -1.
+s16 Gp_LookupStageFlag(s16 idx);
+
+s32 Gp_YawToPosXZ(Task* arg0, GpPosXZ* arg1);
+
+void Gp_SetCurAreaFlag4(void);
+
+/// For each area id `1..Gp_AreaIdCounts[stage-1]`, set or clear the matching
+/// bit in `Gp_AreaIdBits`. The bit is set only when that area object's
+/// `field_1` bit 2 is set and `Gp_GetAreaFlag2` returns 0.
+void Gp_RebuildAreaIdBits(void);
+
+void Gp_ApplyNewGameAreaFlags(void);
+
+#endif // GAMEPLAY_PRIVATE_AREA_TRANSITIONS_H

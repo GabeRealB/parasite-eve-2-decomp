@@ -5,11 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -18,6 +13,12 @@
 #include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/display.h"
+#include "gameplay/loading.h"
+#include "gameplay/room_effects.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 extern SVECTOR D_dryfield_r08_8017F464[];
 extern SVECTOR D_dryfield_r08_8017F4C4[];

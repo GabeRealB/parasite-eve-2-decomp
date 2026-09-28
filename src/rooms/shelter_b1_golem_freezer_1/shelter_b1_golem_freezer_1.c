@@ -4,11 +4,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -20,6 +15,15 @@
 #include "rooms/stage_tables.h"
 
 #define GOLEM_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 extern void func_80131E70(void);
 extern void func_80131E24(void);

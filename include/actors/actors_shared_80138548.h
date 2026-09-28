@@ -2,9 +2,9 @@
 #define ACTORS_SHARED_80138548_H
 
 #include "common.h"
+#include "main/task.h"
 
 #include "gameplay/message.h"
-#include "main/task.h"
 
 /// Head of the enemy work block `actor_104000`, `actor_204000` and
 /// `actor_304000` park in `Task::work` -- that slot is not a `TaskIdMap` here.

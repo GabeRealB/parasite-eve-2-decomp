@@ -6,15 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/abs.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -30,12 +21,21 @@
 /// Advances the gameplay LCG and yields the high half of the new state.
 #define DRYFIELD_MAIN_STREET_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 
-extern u8  D_80115598;
-extern u8  D_80115690;
-extern u8  D_801156F9;
-extern s32 D_8011572C;
-extern s32 D_80115750;
-extern s32 D_80115758;
+#include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/items.h"
+#include "gameplay/object_task.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// Descriptor of the room's own event task, which the message handler spawns.
 extern TaskDesc D_dryfield_main_street_80180E7C;
@@ -478,7 +478,7 @@ s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, GpMsg13EF* msg, s3
 {
     if ((msg->field_2 == 1) && (GameFlag_GetNibble(0x5F) == 0)) {
         func_dryfield_main_street_8017E4A4(0);
-        func_800E8634((s32)&D_dryfield_main_street_80181624, 0, (s32)&D_dryfield_main_street_80181A14);
+        func_800E8634(&D_dryfield_main_street_80181624, 0, &D_dryfield_main_street_80181A14);
         GameFlag_SetNibble(0x5F, 1);
         GameFlag_SetNibble(3, 0);
         GameFlag_SetNibble(0x155, 1);
@@ -495,7 +495,7 @@ static void func_dryfield_main_street_8017E0D8(Task* task)
     Game_SetPtrSlot(task, 7);
     D_80115598 = 1;
     if (GameFlag_GetNibble(0x5F) == 0) {
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_dryfield_main_street_80180ED0, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_dryfield_main_street_80180ED0, 0x7DB);
     }
     task->state++;
 }

@@ -9,12 +9,6 @@
 #include "actors/actor_400100_motion.h"
 #include "actors/actor_400100_update.h"
 #include "actors/actors_shared_80169f74.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/fs.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -23,6 +17,24 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 #include "psyq/abs.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
 /// Twelve `SVECTOR` hit positions `Actor00100_Fn03340` picks from by damage
 /// magnitude. The fourth halfword (`pad`, unused by the effect) is the model
@@ -124,9 +136,6 @@ typedef struct Actor00100MoveWork {
 } Actor00100MoveWork;
 
 void func_8004BFF8(s16 angle, MATRIX* matrix);
-
-/// Declared locally with a signed `arg2`; see the note in `gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 extern s8 Actor00100_D1B6D0;
 
@@ -1089,7 +1098,7 @@ static void Actor00100_Fn02788(Task* arg0)
                 animation      = (s16)seekWork->field_82E;
                 seekSlot      += 0x28;
                 index          = seekWork->field_82C * 0x19;
-                func_800B4114(&seekWork->anim0, seekSlotIndex, animation, 0, (s32) * (s8*)((animation + index) + table));
+                func_800B4114(&seekWork->anim0, seekSlotIndex, (s16)(animation), 0, (s32) * (s8*)((animation + index) + table));
                 seekIndex += 1;
             } while (seekIndex < 0x12);
             seekWork->field_82C = (s16)seekWork->field_82E;
@@ -1712,7 +1721,7 @@ static void Actor00100_Fn0375C(Task* arg0)
                 work->field_904 = 9;
                 work->field_905 = 1;
                 work->field_906 = 4;
-                Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&work->field_904, 0x7DB);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &work->field_904, 0x7DB);
                 if ((Gp_GetIdParam0(scratch->field_20) & 0xFFFF) == 4) {
                     work->field_0 = 3;
                 } else {
@@ -1959,7 +1968,7 @@ static void Actor00100_Fn04864(Task* arg0)
                 }
             }
         }
-        if (Gp_StateF0.field_2 & 1)
+        if (Gp_StateF0.prefix.bytes.field_2 & 1)
             work->field_0 = 0x26;
     }
     SCRATCH_POP(ActorTurnScratch);
@@ -2087,7 +2096,7 @@ static void Actor00100_Fn0503C(Task* arg0)
         work->pad_8EB[0x19]                      = 9;
         work->pad_8EB[0x1A]                      = 1;
         ((Actor00100FacingWork*)work)->field_906 = 1;
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)(&work->pad_8EB[0x19]), 0x7DB);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, (&work->pad_8EB[0x19]), 0x7DB);
 
         return;
     }
@@ -2145,7 +2154,7 @@ static void Actor00100_Fn0503C(Task* arg0)
             var_v0_13           = abs(var_v0_13);
             if (var_v0_13 < 0x180) {
                 printf("EM01 PLAYER WORK %d, %d\n", playerWork->field_954, playerWork->field_956);
-                if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)(&work->pad_8EB[1]), 0) == 0) {
+                if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, (&work->pad_8EB[1]), 0) == 0) {
                     Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, (SVECTOR*)scratch);
                     temp_v0_6           = ratan2((s32)scratch->vx, (s32)scratch->vz) + 0x800;
                     var_v1_3            = temp_v0_6;
@@ -2184,7 +2193,7 @@ static void Actor00100_Fn0503C(Task* arg0)
                     ((Actor00100FacingWork*)work)->field_8C0 = (s32)player->extra.tmd->coords->coord.t[0];
                     ((Actor00100FacingWork*)work)->field_8C4 = (s32)player->extra.tmd->coords->coord.t[1];
                     ((Actor00100FacingWork*)work)->field_8C8 = (s32)player->extra.tmd->coords->coord.t[2];
-                    Gp_DispatchMsg(player, 0x3E9, (s32)(&work->pad_8B8[8]), 0);
+                    Gp_DispatchMsgPtr(player, 0x3E9, (&work->pad_8B8[8]), 0);
                     if (work->field_C1A < 0x3E8) {
                         var_v0_19 = scratch->playerYaw;
                         if (var_v0_19 < 0) {
@@ -2205,7 +2214,7 @@ static void Actor00100_Fn0503C(Task* arg0)
                             work->field_8E8 = 7;
                             work->field_8EA = 1;
                             work->field_C18 = 1;
-                            Gp_DispatchMsg(player, 0x3FF, (s32)(&work->field_BF8), 0);
+                            Gp_DispatchMsgPtr(player, 0x3FF, (&work->field_BF8), 0);
                         }
                         var_v0_21 = 0x25;
                     } else {
@@ -2230,7 +2239,7 @@ static void Actor00100_Fn0503C(Task* arg0)
                         work->field_8E8 = 7;
                         work->field_8EA = 1;
                         work->field_C18 = 1;
-                        Gp_DispatchMsg(player, 0x3FF, (s32)(&work->field_BF8), 0);
+                        Gp_DispatchMsgPtr(player, 0x3FF, (&work->field_BF8), 0);
                         var_v0_21 = 0x1E;
                     }
                     work->field_0 = var_v0_21;
@@ -2319,7 +2328,7 @@ static void Actor00100_Fn0503C(Task* arg0)
                 work->pad_8EB[0x19]                      = 9;
                 work->pad_8EB[0x1A]                      = 1;
                 ((Actor00100FacingWork*)work)->field_906 = 4;
-                Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&work->pad_8EB[0x19], 0x7DB);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &work->pad_8EB[0x19], 0x7DB);
             }
         }
     }
@@ -3153,7 +3162,7 @@ static void Actor00100_Fn0782C(Task* arg0)
         }
     } else {
     checkFlag:
-        if ((work->field_C26 <= 0) && (Gp_StateF0.field_2 & 2)) {
+        if ((work->field_C26 <= 0) && (Gp_StateF0.prefix.bytes.field_2 & 2)) {
             work->field_0 = 0x1C;
         }
     }
@@ -3538,11 +3547,11 @@ static void Actor00100_Fn09310(Task* arg0)
     if ((s16)next == 2) {
         obj->flags |= 4;
         Tmd_FreeBuffers(obj);
-        D_80114B78[0] = &Actor00100_D10D60;
-        vector.vz     = 0x64;
-        vector.vy     = 0;
-        vector.vx     = 0;
-        effect        = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[9], 0x200, &vector);
+        D_80114B34[5].arg.model = &Actor00100_D10D60;
+        vector.vz               = 0x64;
+        vector.vy               = 0;
+        vector.vx               = 0;
+        effect                  = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[9], 0x200, &vector);
         if (effect != NULL) {
             task                   = effect->task;
             task->extra.tmd->tpage = (u8)arg0->extra.tmd->tpage;
@@ -3554,10 +3563,10 @@ static void Actor00100_Fn09310(Task* arg0)
             }
         }
         if ((s16)work->field_6 == 2) {
-            D_80114B78[0] = &Actor00100_D11234;
-            vector.vy     = 0;
-            vector.vx     = 0;
-            effect2       = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[12], 0x200, &vector);
+            D_80114B34[5].arg.model = &Actor00100_D11234;
+            vector.vy               = 0;
+            vector.vx               = 0;
+            effect2                 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[12], 0x200, &vector);
             if (effect2 != NULL) {
                 task2                   = effect2->task;
                 task2->extra.tmd->tpage = (u8)arg0->extra.tmd->tpage;
@@ -3571,8 +3580,8 @@ static void Actor00100_Fn09310(Task* arg0)
         }
     }
     if ((s16)work->field_6 == 4) {
-        D_80114B78[0] = &Actor00100_D12470;
-        effect3       = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[1], 0x200, NULL);
+        D_80114B34[5].arg.model = &Actor00100_D12470;
+        effect3                 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[1], 0x200, NULL);
         if (effect3 != NULL) {
             task3                   = effect3->task;
             task3->extra.tmd->tpage = (u8)arg0->extra.tmd->tpage;
@@ -3585,8 +3594,8 @@ static void Actor00100_Fn09310(Task* arg0)
         }
     }
     if ((s16)work->field_6 == 5) {
-        D_80114B78[0] = &Actor00100_D11F90;
-        effect4       = Gp_SpawnEff(0xA0000 | 5, &arg0->extra.tmd->coords[3], 0x200, NULL);
+        D_80114B34[5].arg.model = &Actor00100_D11F90;
+        effect4                 = Gp_SpawnEff(0xA0000 | 5, &arg0->extra.tmd->coords[3], 0x200, NULL);
         if (effect4 != NULL) {
             task4                   = effect4->task;
             task4->extra.tmd->tpage = (u8)arg0->extra.tmd->tpage;
@@ -3937,7 +3946,7 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                 break;
             case 1:
                 if (work->field_8E8 == 0x38) {
-                    Gp_DispatchMsg(player, 0x3FE, (s32)(&work->field_8D8), 0);
+                    Gp_DispatchMsgPtr(player, 0x3FE, (&work->field_8D8), 0);
                     if ((s16)work->field_C28 == 0xF) {
                         if ((Gp_GetViewIndex() & 0xFF) == 8) {
                             sound = ((enemy->placeKey >> 0xC) << 8) | 0x54010004;
@@ -3977,7 +3986,7 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                     }
                 } else {
                 dispatchMotion:
-                    if ((s16)Gp_DispatchMsg(player, 0x3FE, (s32)(&work->field_8D8), 0) != 1) {
+                    if ((s16)Gp_DispatchMsgPtr(player, 0x3FE, (&work->field_8D8), 0) != 1) {
                         if ((s16)work->field_C28 >= 0xF) {
                             work->field_8D8 = (s32)((s32)work->field_8D8 >> 1);
                             work->field_8DC = (s32)((s32)work->field_8DC >> 1);
@@ -4019,26 +4028,26 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                 if (command == &Actor00100_D1B9D0) {
                     if ((config->hp > 0) && ((s16)work->field_C28 >= 0x17)) {
                         message           = &work->field_BF8;
-                        command->field_10 = (s32)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]->field_1C;
+                        command->field_10 = (s32)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]->prefix.addresses[7];
                         work->field_BFC   = 4;
                         work->field_C00   = 1;
                         work->field_C04   = 3;
-                        Gp_DispatchMsg(player, 0x3FF, (s32)message, 0);
+                        Gp_DispatchMsgPtr(player, 0x3FF, message, 0);
                         work->field_C28 = 0U;
                     }
                 } else if ((config->hp > 0) && ((s16)work->field_C28 >= 0x22)) {
                     message                 = &work->field_BF8;
-                    Actor00100_D1B9BC.value = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]->field_1C;
+                    Actor00100_D1B9BC.value = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]->prefix.addresses[7];
                     work->field_BFC         = 4;
                     work->field_C00         = 1;
                     work->field_C04         = 3;
-                    Gp_DispatchMsg(player, 0x3FF, (s32)message, 0);
+                    Gp_DispatchMsgPtr(player, 0x3FF, message, 0);
                     work->field_C28 = 0U;
                 }
                 break;
             case 3:
                 if (((s16)work->field_C28 < 6) && (config->hp > 0) && ((work->field_8D8 != 0) || (work->field_8E0 != 0))) {
-                    result = Gp_DispatchMsg(player, 0x3FE, (s32)(&work->field_8D8), 0);
+                    result = Gp_DispatchMsgPtr(player, 0x3FE, (&work->field_8D8), 0);
                     if (result == 1) {
                         work->field_8D8 = 0;
                         work->field_8DC = 0;
@@ -4063,7 +4072,7 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                         work->field_C00 = 0;
                         work->field_C04 = 0;
                         work->field_BFC = 2;
-                        Gp_DispatchMsg(player, 0x3FF, (s32)nextMessage, 0);
+                        Gp_DispatchMsgPtr(player, 0x3FF, nextMessage, 0);
                         work->field_C28 = 0U;
                     }
                     break;
@@ -4074,12 +4083,12 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                         work->field_BFC = 5;
                         command2        = work->field_BF8;
                         if (command2 == &Actor00100_D1B9D0) {
-                            command2->field_14 = (s32)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]->field_24;
+                            command2->field_14 = (s32)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]->prefix.addresses[9];
                         } else {
-                            Actor00100_D1B9C0.value = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]->field_24;
+                            Actor00100_D1B9C0.value = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]->prefix.addresses[9];
                         }
                         nextMessage = &work->field_BF8;
-                        Gp_DispatchMsg(player, 0x3FF, (s32)nextMessage, 0);
+                        Gp_DispatchMsgPtr(player, 0x3FF, nextMessage, 0);
                         work->field_C28 = 0U;
                     }
                     break;

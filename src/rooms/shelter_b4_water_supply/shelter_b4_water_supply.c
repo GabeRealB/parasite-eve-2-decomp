@@ -6,13 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/abs.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -26,6 +19,19 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017e4f8.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 /// One water surface: a rectangle at (`x`, `z`) spanning `width` along X and
 /// `depth` along Z. A list of them ends at an entry whose `end` is -1; `end`
@@ -46,13 +52,6 @@ typedef struct _ShelterB4WaterSupplySplash {
     byte pad_0[0x26];
     s16  strength;
 } _ShelterB4WaterSupplySplash;
-
-extern s16 D_80114D08;
-extern s32 D_80115730;
-extern s32 D_80115734;
-extern s32 D_80115738;
-extern s32 D_8011574C;
-extern s32 D_80115754;
 
 extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
 
@@ -147,7 +146,7 @@ void func_shelter_b4_water_supply_8017D650(Task* arg0)
                 arg0->state = 2;
                 break;
             }
-            Gp_DispatchMsg(slot, 0x3EE, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(slot, 0x3EE, &msg, 0);
             arg0->state = (s32)(arg0->state + 1);
             break;
         case 1:
@@ -240,7 +239,7 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
             gDisplayState.roomVariant   = 1;
             Mc_SaveData[0].at4.loc.area = D_shelter_b4_water_supply_80184E3C.field_2;
             Mc_SaveData[0].at4.loc.warp = D_shelter_b4_water_supply_80184E3C.field_4;
-            Mc_SaveData[0].at4.loc.room = D_shelter_b4_water_supply_80184E3C.field_1;
+            Mc_SaveData[0].at4.loc.room = D_shelter_b4_water_supply_80184E3C.prefix.bytes.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -262,9 +261,9 @@ s32 func_shelter_b4_water_supply_8017D978(Task* task, s32 msgId, GpSaveLoc* src,
     func_80179A04(src, dst);
     if (*(u16*)src == 0x2C) {
         if (src->field_5 == 0) {
-            D_shelter_b4_water_supply_80184E3C.field_2 = dst->field_0;
-            D_shelter_b4_water_supply_80184E3C.field_4 = dst->field_2;
-            D_shelter_b4_water_supply_80184E3C.field_1 = dst->field_3;
+            D_shelter_b4_water_supply_80184E3C.field_2              = dst->prefix.bytes.field_0;
+            D_shelter_b4_water_supply_80184E3C.field_4              = dst->field_2;
+            D_shelter_b4_water_supply_80184E3C.prefix.bytes.field_1 = dst->field_3;
             Task_SpawnFromTable(D_shelter_b4_water_supply_80182620, 1, 4, 0);
         }
         return 0;

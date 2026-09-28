@@ -2,12 +2,6 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -24,6 +18,15 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
+#include "gameplay/captions.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/object_task.h"
+#include "gameplay/world_targets.h"
+
 /// The cutscene script `func_dryfield_gas_station_8017FD54` fills in before
 /// spawning the cutscene task with it.
 extern RoomCutsceneRec D_dryfield_gas_station_80184BD8;
@@ -32,12 +35,8 @@ extern void Stage_RequestFromAreaTable(s32 arg0);
 
 extern UiObjectDesc D_800611E4;
 extern UiObject*    D_80067634;
-extern UiObjectDesc D_8010EFA0;
-extern s16          D_80114D08;
-extern u8           D_80115598;
 
 /// Saved `Mc_SaveData[0].at4.loc.view` (area id), restored when the cutscene ends.
-extern s32 D_80115694;
 
 /// `Mc_SaveData[0].companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `Mc_SaveData` address with case 0.
@@ -1298,7 +1297,7 @@ s32 func_dryfield_gas_station_8017FA20(s32 arg0, s32 arg1, RoomEventMsg* in, Roo
     }
     if (in->msgId == 3) {
         if ((gGameSession->at4.loc.stage == in->msgId) && (gGameSession->at4.loc.place == 1) &&
-            (Gp_StateF0.field_0 == gGameSession->at4.loc.place)) {
+            (Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.place)) {
             if (in->field_5 == 0) {
                 Gp_RunCapCmd1(0x15);
             }

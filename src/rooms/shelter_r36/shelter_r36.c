@@ -1,7 +1,4 @@
 #include "common.h"
-
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -9,6 +6,12 @@
 #include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "main/display.h"
 
 extern s32 D_shelter_r36_8017DF2C;
 extern s32 D_shelter_r36_8017E5A4;
@@ -50,7 +53,7 @@ void func_shelter_r36_8017D5E8(Task* task)
                 slot = 2;
             }
             Gp_StartCapSlot(slot, 0, 0);
-            func_800E8634((s32)&D_shelter_r36_8017DF2C, 0, (s32)&D_shelter_r36_8017E5A4);
+            func_800E8634(&D_shelter_r36_8017DF2C, 0, &D_shelter_r36_8017E5A4);
             task->state++;
             break;
         case 1:
@@ -66,7 +69,7 @@ void func_shelter_r36_8017D5E8(Task* task)
             }
             break;
         case 2:
-            func_800E8634((s32)&D_shelter_r36_8017E664, 0, (s32)&D_shelter_r36_8017E8BC);
+            func_800E8634(&D_shelter_r36_8017E664, 0, &D_shelter_r36_8017E8BC);
             taskKill(task);
             break;
     }

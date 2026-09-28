@@ -8,11 +8,6 @@
 #include <psyq/abs.h>
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -20,12 +15,22 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
+#include "gameplay/actor_render.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
+
 /// Psy-Q `RotMatrixY`.
 void func_8004BFF8(s16 angle, MATRIX* matrix);
-
-/// `func_800B4114` is declared locally with a signed `arg2`; see the note in
-/// `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 typedef struct Actor311500Work {
     /// Animation context the block itself begins with: `func_actor_311500_80162F28`
@@ -315,7 +320,7 @@ static void func_actor_311500_801629D8(Task* arg0)
     enemy->recs      = &work2->rec18[0];
     arg0->msgTable   = &D_actor_311500_80169330;
     work2->field_4D4 = 1;
-    place            = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
+    place            = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
     while (place->entryId != 0xFF && place->entryId != 0xA) {
         place++;
     }

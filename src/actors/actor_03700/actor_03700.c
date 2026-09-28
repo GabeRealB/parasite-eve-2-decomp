@@ -1,18 +1,27 @@
 #include "common.h"
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -135,11 +144,6 @@ extern void* D_80067704[1];
 /* The two model streams the death effect picks between, in this overlay's data. */
 extern u8 Actor03700_D043FC[];
 extern u8 Actor03700_D04600[];
-
-/// `func_800B4114` is deliberately not declared by `gameplay/1BC.h`; its
-/// definition takes `arg2` as `u16`, which would add a zero-extension no
-/// caller has. See the note in that header.
-void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void Actor03700_Fn000A4(GpEnemy* arg0, Task* task);
 static void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2);
@@ -920,7 +924,7 @@ static void Actor03700_Fn01550(Task* task)
             arg->field_8       = 0;
             arg->field_C       = 0;
             arg->field_10      = 1;
-            Gp_DispatchMsg(player, 0x3F4, (s32)arg, 0);
+            Gp_DispatchMsgPtr(player, 0x3F4, arg, 0);
             sound = ((((GpEnemy*)task->spawnArg2)->placeKey >> 12) << 8) | 6;
             SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
             work->field_250 = 4;
@@ -1045,7 +1049,7 @@ static void Actor03700_Fn01C94(Task* task)
             arg->field_8       = 0;
             arg->field_C       = 0;
             arg->field_10      = 1;
-            Gp_DispatchMsg(player, 0x3F4, (s32)arg, 0);
+            Gp_DispatchMsgPtr(player, 0x3F4, arg, 0);
             sound = ((((GpEnemy*)task->spawnArg2)->placeKey >> 12) << 8) | 6;
             pan   = (s8)Gp_GetObjPan(obj);
             SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(obj));
@@ -1065,7 +1069,7 @@ static void Actor03700_Fn01C94(Task* task)
 
 /// Tests whether the actor has noticed the player: true when the player is
 /// under 0x708 units away on the XZ plane (the offset is staged on the
-/// scratchpad stack), mid-action (`Gp_StateF0.field_2` low nibble) or holding
+/// scratchpad stack), mid-action (`Gp_StateF0.prefix.bytes.field_2` low nibble) or holding
 /// the aim button (`field_19` bit 0). On noticing, it arms `Gp_StateF0` and
 /// plays the alert cue from the placement's sound bank. Returns 1 when noticed.
 static s32 Actor03700_Fn01DFC(Task* task)
@@ -1090,7 +1094,7 @@ static s32 Actor03700_Fn01DFC(Task* task)
     vec->vz                        = dz;
     dx                             = ((SVECTOR*)(head - 8))->vx;
     ret                            = 0;
-    if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x708) || (Gp_StateF0.field_2 & 0xF) || (Gp_StateF0.field_19 & 1)) {
+    if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x708) || (Gp_StateF0.prefix.bytes.field_2 & 0xF) || (Gp_StateF0.field_19 & 1)) {
         ret = 1;
         Gp_ArmStateF0(ret);
         soundId   = ((GpEnemy*)task->spawnArg2)->placeKey;
@@ -1202,15 +1206,15 @@ static inline void _actor03700UpdateColor(Task* task)
 /// CLUT of the actor's placement in the current area.
 static inline void _actor03700SpawnRemains(Task* task)
 {
-    GpAreaKey    key;
-    GpAreaKey*   sessionKey;
-    u8           view;
-    GpAreaRec*   rec;
-    GpAreaPlace* entry;
-    GpEffWork*   eff;
-    TmdObject*   model;
-    s32          idx;
-    u32          raw;
+    GpAreaKey      key;
+    GpAreaKey*     sessionKey;
+    u8             view;
+    GpAreaVariant* rec;
+    GpAreaPlace*   entry;
+    GpEffWork*     eff;
+    TmdObject*     model;
+    s32            idx;
+    u32            raw;
 
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     if ((Gp_LcgState >> 16) & 1) {
@@ -1222,7 +1226,7 @@ static inline void _actor03700SpawnRemains(Task* task)
     if (eff == NULL) {
         return;
     }
-    sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+    sessionKey = &gGameSession->at4.loc;
     raw        = ((GpEnemy*)task->spawnArg2)->placeKey;
     model      = eff->task->extra.tmd;
     key.stage  = sessionKey->stage;
@@ -1233,7 +1237,7 @@ static inline void _actor03700SpawnRemains(Task* task)
     key.view   = view;
     Gp_SyncAreaKeyIndex(&key);
     rec          = Gp_GetNestedAreaRec(&key);
-    entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    entry        = gpAreaPlaceAt(rec->field_0, idx);
     model->tpage = entry->tpage;
     model->clut  = entry->clut;
     if (model->buffer != NULL) {
@@ -1289,7 +1293,7 @@ static void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
                         arg.field_8       = 0;
                         arg.field_C       = 0;
                         arg.field_10      = 1;
-                        Gp_DispatchMsg(player, 0x3F4, (s32)&arg, 0);
+                        Gp_DispatchMsgPtr(player, 0x3F4, &arg, 0);
                         sound2 = ((((GpEnemy*)task->spawnArg2)->placeKey >> 12) << 8) | 6;
                         SndEvt_EnqueueType6(sound2, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
                     }
@@ -1630,13 +1634,13 @@ static s32 Actor03700_Fn03130(Task* task)
     ret = 0;
     if (((GameActor*)player->work)->field_954 != 2) {
         scratch->query.field_14 = 8;
-        if (Gp_DispatchMsg(player, 0x3F8, (s32)scratch, 0) == 0) {
+        if (Gp_DispatchMsgPtr(player, 0x3F8, scratch, 0) == 0) {
             scratch->anim.animBlock.ptr = Actor03700_D080FC;
             scratch->anim.field_4       = 1;
             scratch->anim.field_8       = 0;
             scratch->anim.field_C       = 0;
             scratch->anim.field_10      = 1;
-            Gp_DispatchMsg(player, 0x3FF, (s32)&scratch->anim, 0);
+            Gp_DispatchMsgPtr(player, 0x3FF, &scratch->anim, 0);
             work->field_262 = 1;
             ret             = 1;
         }
@@ -1720,7 +1724,7 @@ static void Actor03700_Fn033F0(Task* task)
         work->field_24A = work->field_248;
         work->field_24C = 0;
         for (i = 1; i < 6; i++) {
-            func_800B4114(work, i, work->field_248, 0, 4);
+            func_800B4114(&work->anim, i, work->field_248, 0, 4);
         }
     } else {
         work->field_24C++;

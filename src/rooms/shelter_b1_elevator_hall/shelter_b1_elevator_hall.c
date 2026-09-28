@@ -1,11 +1,5 @@
 #include "common.h"
 
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
-
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/sound.h"
@@ -13,6 +7,14 @@
 
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
+#include "main/fs.h"
 
 extern GpMsgEntry D_shelter_b1_elevator_hall_80182CB8[];
 extern TaskDesc   D_shelter_b1_elevator_hall_80182CAC;
@@ -114,9 +116,9 @@ s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, GpSaveLoc* src
     }
     if (*(u16*)src == 8) {
         if (src->field_5 == 0) {
-            D_shelter_b1_elevator_hall_801849F8.field_2 = dst->field_0;
-            D_shelter_b1_elevator_hall_801849F8.field_4 = dst->field_2;
-            D_shelter_b1_elevator_hall_801849F8.field_1 = dst->field_3;
+            D_shelter_b1_elevator_hall_801849F8.field_2              = dst->prefix.bytes.field_0;
+            D_shelter_b1_elevator_hall_801849F8.field_4              = dst->field_2;
+            D_shelter_b1_elevator_hall_801849F8.prefix.bytes.field_1 = dst->field_3;
             Gp_MsgPlayerWeapon(0);
             Task_SpawnFromTable(&D_shelter_b1_elevator_hall_80182CE8, 0, 0, 0);
         }
@@ -187,7 +189,7 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
             gDisplayState.roomVariant   = 1;
             Mc_SaveData[0].at4.loc.area = (u8)D_shelter_b1_elevator_hall_801849F8.field_2;
             Mc_SaveData[0].at4.loc.warp = (u8)D_shelter_b1_elevator_hall_801849F8.field_4;
-            Mc_SaveData[0].at4.loc.room = (u8)D_shelter_b1_elevator_hall_801849F8.field_1;
+            Mc_SaveData[0].at4.loc.room = (u8)D_shelter_b1_elevator_hall_801849F8.prefix.bytes.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;

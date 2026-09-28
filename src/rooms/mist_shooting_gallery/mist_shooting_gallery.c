@@ -4,15 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -34,6 +25,20 @@
 #include "rooms/rooms_shared_8018055c.h"
 
 #include "rooms/mist_shooting_gallery.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/room.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
 
 /// The four bonusGpGridParamsmode blurbs shown by the gallery's help panel, indexed by
 /// `Mc_SaveData[0].gameMode`. `func_mist_shooting_gallery_8017FAE8` copies the whole thing
@@ -116,14 +121,14 @@ static const char                       D_mist_shooting_gallery_8017D838[];
 static const char                       D_mist_shooting_gallery_8017D844[];
 static const char                       D_mist_shooting_gallery_8017D850[];
 
-extern void     func_8002E53C(TextDrawReq* req, u8* text);
-extern void     func_8014A398(void);
-extern s32      func_8014AA54(GpSaveLoc* loc);
-extern void     func_8014AB6C(void);
-extern void     func_8014AF0C(void);
-extern void     func_8014C5E0(s32, s32, s32);
-extern s16      D_8007A396;
-extern s16      D_80114D08;
+extern void func_8002E53C(TextDrawReq* req, u8* text);
+extern void func_8014A398(void);
+extern s32  func_8014AA54(GpSaveLoc* loc);
+extern void func_8014AB6C(void);
+extern void func_8014AF0C(void);
+extern void func_8014C5E0(s32, s32, s32);
+extern s16  D_8007A396;
+
 extern s32      D_8014D038;
 extern TaskDesc D_8014E13C;
 extern s32      D_80153274;
@@ -135,10 +140,6 @@ extern s32      D_80153D6C;
 /// load, so a plain `extern s8` here lets the scheduler hoist the following
 /// `arg0->state` load above the store. Indexing an array makes the store a
 /// struct reference and keeps the two in order.
-
-extern u8 Gp_DebugAttachLevels[];
-
-extern UiObjectDesc D_8010EFA0;
 
 /// The ten weapons the gallery's weapon picker offers, in row order. Rows whose
 /// item is not unlocked yet (`func_800B7420` returns 0) are skipped, so
@@ -295,7 +296,7 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             scan       = &Mc_SaveData[0].carriedItems;
             weaponIdx  = &Player_Status.weapon;
-            row        = &Gp_QtyById0[item];
+            row        = &Gp_RelatedQty0.rows[(item)-0x80];
             ammo       = row->related[0];
             *weaponIdx = item - 0x7F;
             Gp_ResetScanDefault();
@@ -1279,7 +1280,7 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, GpMsg13EF* arg2)
     if ((arg2->field_2 == 4) && (GameFlag_GetNibble(0x106) == 0)) {
         func_800E3FAC(0xA2, 0x3B);
         GameFlag_SetNibble(0x106, 1);
-        func_800E8634((s32)&D_80153274, 0, (s32)&D_80153D6C);
+        func_800E8634(&D_80153274, 0, &D_80153D6C);
     }
     return 0;
 }

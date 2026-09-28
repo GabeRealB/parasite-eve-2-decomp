@@ -1,11 +1,5 @@
 #include "common.h"
 #include "main/stage.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -13,6 +7,17 @@
 #include "rooms/mine_cavern.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/mc.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -42,7 +47,7 @@ s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
                 return 0;
             }
             Gp_SetNibbleIf(in->field_6, 2);
-            if (Gp_StateF0.field_0 == 1 && gGameSession->at4.loc.place == Gp_StateF0.field_0) {
+            if (Gp_StateF0.prefix.bytes.field_0 == 1 && gGameSession->at4.loc.place == Gp_StateF0.prefix.bytes.field_0) {
                 Gp_RunCapCmd1(9);
                 return 0;
             }
@@ -62,7 +67,7 @@ s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
 
     if (in->msgId == 5) {
         if (gGameSession->at4.loc.place == 1 || gGameSession->at4.loc.place == 4) {
-            if (Gp_StateF0.field_0 == 1) {
+            if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                 if (in->field_5 == 0) {
                     Gp_RunCapCmd1(0xB);
                 }
@@ -83,7 +88,7 @@ s32 func_mine_cavern_8017DAA0(Task* task, s32 msgId, s32 arg2, s32 arg3)
         if (GameFlag_GetNibble(0xC7) != 0) {
             return 0;
         }
-        if (Gp_StateF0.field_0 == arg2) {
+        if (Gp_StateF0.prefix.bytes.field_0 == arg2) {
             temp = gGameSession->at4.loc.place;
             if (temp == arg2 || temp == 4) {
                 cmd = 0xA;
@@ -159,7 +164,7 @@ s32 func_mine_cavern_8017DC9C(void)
         D_mine_cavern_8018EB50 = 1;
     } else if (GameFlag_GetNibble(0xE6) == 1) {
         func_800E3FAC(0xA2, 0x3D);
-        func_800E8634((s32)&D_mine_cavern_80188A3C, 0, (s32)&D_mine_cavern_80188D24);
+        func_800E8634(&D_mine_cavern_80188A3C, 0, &D_mine_cavern_80188D24);
         GameFlag_SetNibble(0xE6, 2);
     }
     return 0;
@@ -194,7 +199,7 @@ static void func_mine_cavern_8017DDFC(Task* arg0)
     arg0->msgTable = &D_mine_cavern_80183C6C;
     Game_SetPtrSlot(arg0, 7);
     if ((gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0x10F) == 0)) {
-        func_800E8634((s32)&D_mine_cavern_80187C74, 0, (s32)&D_mine_cavern_8018804C);
+        func_800E8634(&D_mine_cavern_80187C74, 0, &D_mine_cavern_8018804C);
         func_mine_cavern_8017E394();
         GameFlag_SetNibble(0x10F, 1);
     } else {
@@ -216,7 +221,7 @@ static void func_mine_cavern_8017DEE4(Task* task)
 
     flag = GameFlag_GetNibble(0xE6);
     if ((flag == 1) && (D_mine_cavern_8018EB50 == flag) && (Gp_StateC08.field_A != D_mine_cavern_8018EB50)) {
-        func_800E8634((s32)&D_mine_cavern_80188214, 0, (s32)&D_mine_cavern_801887B4);
+        func_800E8634(&D_mine_cavern_80188214, 0, &D_mine_cavern_801887B4);
         D_mine_cavern_8018EB50 = 2;
     }
 }
@@ -241,13 +246,13 @@ void func_mine_cavern_8017DFAC(s32 arg0)
     if ((GameFlag_GetNibble(0xE6) == 1 && D_mine_cavern_8018EB54 == 0) ||
         (GameFlag_GetNibble(0xE6) == 2 && D_mine_cavern_8018EB54 == 1)) {
         Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1E);
-        Gp_StateF0.field_1       = arg0;
-        gGameSession->flowFlags |= 0x80;
-        D_mine_cavern_8018EB54  += 1;
+        Gp_StateF0.prefix.bytes.field_1 = arg0;
+        gGameSession->flowFlags        |= 0x80;
+        D_mine_cavern_8018EB54         += 1;
         return;
     }
-    if (arg0 < Gp_StateF0.field_1) {
-        Gp_StateF0.field_1 = arg0;
+    if (arg0 < Gp_StateF0.prefix.bytes.field_1) {
+        Gp_StateF0.prefix.bytes.field_1 = arg0;
     }
 }
 
@@ -258,7 +263,7 @@ void func_mine_cavern_8017E088(s16 arg0)
 
 void func_mine_cavern_8017E0B4(void)
 {
-    Gp_StateF0.field_0 = 0;
+    Gp_StateF0.prefix.bytes.field_0 = 0;
     if (Gp_StateF0.field_6 == 0) {
         ((void (*)(s32))Gp_IncStateF0Ref)(0);
     }

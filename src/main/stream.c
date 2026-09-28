@@ -10,6 +10,11 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
+#include "gameplay/display.h"
+#include "main/display.h"
+#include "main/mem.h"
+#include "main/session.h"
+
 static s32      D_8006AC08;
 static u16      D_8006AC0C;
 static u16      D_8006AC0E;

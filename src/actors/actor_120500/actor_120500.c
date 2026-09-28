@@ -2,12 +2,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
@@ -19,6 +13,16 @@
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/mc.h"
+#include "main/wipsys.h"
 
 /// The actor's work block, hung off `Task::work`. `func_actor_120500_801322A0`
 /// allocates it with `Mem_Malloc(0x4CC, 0)` and zeroes it with `Mem_Set`.
@@ -205,13 +209,13 @@ static void func_actor_120500_80132028(Task* arg0)
                         msg.field_8       = 0;
                         msg.field_C       = 0;
                         p->field_10       = 1;
-                        Gp_DispatchMsg(w3->field_4B4, 0x3F4, (s32)p, 0);
+                        Gp_DispatchMsgPtr(w3->field_4B4, 0x3F4, p, 0);
                     }
                     work->field_4BA = work->field_4BA + 1;
                     /* fallthrough */
                 case 1:
-                    Gp_DispatchMsg(((Actor120500Work*)arg0->work)->field_4B4, 0x3E9,
-                                   (s32)&D_actor_120500_80138090, 0);
+                    Gp_DispatchMsgPtr(((Actor120500Work*)arg0->work)->field_4B4, 0x3E9,
+                                      &D_actor_120500_80138090, 0);
                     return;
             }
             return;
@@ -220,7 +224,7 @@ static void func_actor_120500_80132028(Task* arg0)
             w = (Actor120500Work*)arg0->work;
             Gp_SetOverrideVec(NULL);
             Gp_DispatchMsg(w->field_4B4, 0x3F3, 1, 0);
-            Gp_DispatchMsg(w->field_4B4, 0x3E9, (s32)&D_actor_120500_801380A8, 0);
+            Gp_DispatchMsgPtr(w->field_4B4, 0x3E9, &D_actor_120500_801380A8, 0);
             w2 = (Actor120500Work*)arg0->work;
             p  = &msg;
             if (w2->field_4B4 != NULL) {
@@ -229,7 +233,7 @@ static void func_actor_120500_80132028(Task* arg0)
                 msg.field_8       = 0;
                 msg.field_C       = 0;
                 p->field_10       = 1;
-                Gp_DispatchMsg(w2->field_4B4, 0x3F4, (s32)p, 0);
+                Gp_DispatchMsgPtr(w2->field_4B4, 0x3F4, p, 0);
             }
             break;
         case 4:
@@ -241,7 +245,7 @@ static void func_actor_120500_80132028(Task* arg0)
                 p->field_8        = 1;
                 p->field_C        = 8;
                 p->field_10       = 1;
-                Gp_DispatchMsg(w2->field_4B4, 0x3F4, (s32)p, 0);
+                Gp_DispatchMsgPtr(w2->field_4B4, 0x3F4, p, 0);
             }
             break;
         case 5:
@@ -259,7 +263,7 @@ static void func_actor_120500_80132028(Task* arg0)
             msg.field_8         = 0;
             msg.field_C         = 0;
             msg.field_10        = 0;
-            Gp_DispatchMsg(work->field_4B4, 0x3E8, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(work->field_4B4, 0x3E8, &msg, 0);
             break;
     }
     work->field_4B8 = 0;
@@ -302,7 +306,7 @@ static void func_actor_120500_801322A0(Task* arg0)
     tmd->lightMtx           = &work->field_474;
     tmd->flags              = 0;
     tmd->colorMtx           = &work->field_494;
-    place                   = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
+    place                   = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
     id                      = place->entryId;
     while (id != 0xFF) {
         if (id == 0x65) {
@@ -367,9 +371,9 @@ void func_actor_120500_8013241C(Task* arg0)
                 args.msg.field_8         = 1;
                 args.msg.field_C         = 10;
                 args.msg.field_10        = 0;
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&args.msg, 0);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &args.msg, 0);
                 func_800E3FAC(0xA2, 0xD);
-                func_800E8634((s32)D_actor_120500_801380D8, 0, (s32)D_actor_120500_80138318);
+                func_800E8634(D_actor_120500_801380D8, 0, D_actor_120500_80138318);
                 arg0->state += 1;
                 break;
             }
@@ -405,7 +409,7 @@ loop_slots:
         if (work->field_4C0 == 1) {
             Tmd_AllocBuffers(arg0->extra.tmd);
             Task_SpawnFromTable(D_actor_120500_80138418, 1, 8, 0);
-            Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_120500_801380C0, 0);
+            Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_120500_801380C0, 0);
         }
     }
     work->field_4C0 = 0;
@@ -580,12 +584,12 @@ void func_actor_120500_80132920(void)
         msg.field_8       = 0;
         msg.field_C       = 0;
         msg.field_10      = 1;
-        Gp_DispatchMsg(animWork->field_4B4, 0x3F4, (s32)&msg, 0);
+        Gp_DispatchMsgPtr(animWork->field_4B4, 0x3F4, &msg, 0);
     }
     work = actor->work;
     Gp_SetOverrideVec(NULL);
     Gp_DispatchMsg(work->field_4B4, 0x3F3, 1, 0);
-    Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)&D_actor_120500_801380A8, 0);
+    Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, &D_actor_120500_801380A8, 0);
 }
 
 /// Message 0x7D5 handler: shows or hides the task's model. Payload 0 hides it

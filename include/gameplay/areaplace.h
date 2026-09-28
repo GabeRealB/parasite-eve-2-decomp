@@ -27,10 +27,6 @@
 /// not a second kind of record, so the fields keep the names the spawn gives
 /// them and the loader is what passes three of them along.
 ///
-/// The overlays that hold a placement share this type only, so it sits in a
-/// header of its own: including the area machinery's header instead would drag
-/// the gameplay prototypes into translation units that redeclare them locally
-/// against their own view of a shared object.
 typedef struct {
     /* 0x00 */ u8  entryId;
     /* 0x01 */ u8  variant;
@@ -46,4 +42,4 @@ typedef struct {
 } GpAreaPlace;
 STATIC_ASSERT_SIZEOF(GpAreaPlace, 0x10);
 
-#endif
+#endif // GAMEPLAY_AREAPLACE_H

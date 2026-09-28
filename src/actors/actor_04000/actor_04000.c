@@ -7,13 +7,6 @@
 #include "actors/actor.h"
 #include "actors/actors_shared_80135990.h"
 #include "actors/actors_shared_80138548.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -22,6 +15,23 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "psyq/abs.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
 /// Event packet handed to the message handlers: the same four bytes read as
 /// two `u16` words, a command word (0x1003, 0x1203, 0x302) and a sub-command.
@@ -733,7 +743,7 @@ static void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
         if (mag < 0x200) {
             if (actor->field_954 != 2) {
                 work->field_490 = 0xC;
-                if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)work->field_47C, 0) == 0) {
+                if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, work->field_47C, 0) == 0) {
                     coord     = player->extra.tmd->coords;
                     angle     = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
                     sc->angle = actorWrapAngle(angle);
@@ -743,7 +753,7 @@ static void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
                         Actor04000_D0C530.animBlock.ptr = Actor04000_D0C520;
                     }
                     Actor04000_D0C530.field_4 = 1;
-                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&Actor04000_D0C530, 0);
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &Actor04000_D0C530, 0);
                     work->field_0   = 0xB;
                     work->field_496 = 1;
                     Gfx_MatrixCol0(&player->extra.tmd->coords->coord, &sc->d);
@@ -849,7 +859,7 @@ static void Actor04000_Fn01E1C(GpEnemy* arg0, Task* arg1)
         work->obj388.pos.vy       = arg1->extra.tmd->coords->coord.t[1];
         work->obj388.pos.vz       = arg1->extra.tmd->coords->coord.t[2];
         Actor04000_D0C530.field_4 = 2;
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&Actor04000_D0C530, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &Actor04000_D0C530, 0);
         work->field_6 = 0;
     }
     if ((s16)work->field_6 < 0x13) {
@@ -877,7 +887,7 @@ static void Actor04000_Fn01E1C(GpEnemy* arg0, Task* arg1)
             arg1->extra.tmd->flags = 2;
             break;
         case 1:
-            Gp_SpawnScript18Ex((s32)&Actor04000_D07094, (s32)&Actor04000_D070A0,
+            Gp_SpawnScript18Ex(&Actor04000_D07094, &Actor04000_D070A0,
                                (s16)gpGetObjDepth(arg1->extra.tmd->coords));
             work->obj388.radius = 0x3E8;
             work->obj3C0.radius = 0xFA;
@@ -1125,7 +1135,7 @@ static void Actor04000_Fn02F48(GpEnemy* arg0, Task* arg1)
             arg1->extra.tmd->flags = 2;
             break;
         case 2:
-            Gp_SpawnScript18Ex((s32)&Actor04000_D07094, (s32)&Actor04000_D070A0,
+            Gp_SpawnScript18Ex(&Actor04000_D07094, &Actor04000_D070A0,
                                (s16)gpGetObjDepth(arg1->extra.tmd->coords));
             work->obj388.radius = 0x3E8;
             work->obj3C0.radius = 0xFA;
@@ -1253,7 +1263,7 @@ static void Actor04000_Fn03798(GpEnemy* arg0, Task* arg1)
             work->obj388.radius = 0x3E8;
             work->obj388.flags |= 0x8000;
             Gp_SpawnEff(0x6009C, &arg1->extra.tmd->coords[2], 1, NULL);
-            Gp_SpawnScript18((s32)&Actor04000_D07094, (s32)&Actor04000_D070A0);
+            Gp_SpawnScript18(&Actor04000_D07094, &Actor04000_D070A0);
             break;
         case 2:
             Gp_ReleaseStateF0Add(arg1, 0xC);
@@ -2230,7 +2240,7 @@ static void Actor04000_Fn06878(GpEnemy* arg0, Task* arg1)
     work->field_6++;
     if ((s16)work->field_6 > 0x28) {
         work->field_490 = 0x270F;
-        if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)work->field_47C, 0) == 0) {
+        if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, work->field_47C, 0) == 0) {
             work->field_0 = 5;
         } else {
             work->field_0 = 0xD;
@@ -2320,7 +2330,7 @@ static void Actor04000_Fn06AC4(GpEnemy* arg0, Task* arg1)
             obj->flags               = 0x80;
             break;
     }
-    if (Gp_StateF0.field_0 == 1) {
+    if (Gp_StateF0.prefix.bytes.field_0 == 1) {
         work->field_0 = 7;
     }
 }
@@ -2437,7 +2447,7 @@ void Actor04000_Fn06EA8(Task* arg0)
     msg.from.loc.area    = 0x10;
     Actor04000_D0C710[0] = NULL;
     msg.command          = 1;
-    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
     arg0->state++;
 }
 
@@ -2445,7 +2455,7 @@ void Actor04000_Fn06F54(Task* arg0)
 {
     s16 i;
 
-    if (Gp_StateF0.field_0 == 1) {
+    if (Gp_StateF0.prefix.bytes.field_0 == 1) {
         for (i = 0; i < 6; i++) {
             if (Actor04000_D0C718[i] != NULL) {
                 ((GpEnemy*)Actor04000_D0C718[i]->spawnArg2)->node.state.b.flags = 0;

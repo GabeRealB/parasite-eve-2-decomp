@@ -3,7 +3,6 @@
 
 #include "common.h"
 #include <psyq/libgte.h>
-#include "gameplay/3CD8.h"
 #include "overlay.h"
 
 /// Low halves of a `VECTOR3` (typically `GpCoord.workm.t`).

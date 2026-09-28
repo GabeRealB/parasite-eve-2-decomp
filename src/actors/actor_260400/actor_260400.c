@@ -8,20 +8,24 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/items.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
 
 /// Work block of the overlay's actor, allocated zeroed by its spawn routine
 /// and kept both at `Task::work` and in `D_actor_260400_80154C70`: the light
@@ -43,10 +47,6 @@ typedef struct Actor260400Work {
 STATIC_ASSERT_SIZEOF(Actor260400Work, 0x4F8);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
-/// `func_800B4114` is declared locally with a signed `arg2`; see the note in
-/// `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern s32      D_actor_260400_8014C6C0;
 extern s32      D_actor_260400_8014C788;
@@ -92,7 +92,7 @@ static void func_actor_260400_80149E38(void)
 {
     switch (GameFlag_GetNibble(0xE3)) {
         case 0:
-            func_800E8634((s32)&D_actor_260400_8014C788, 0, (s32)&D_actor_260400_8014CF38);
+            func_800E8634(&D_actor_260400_8014C788, 0, &D_actor_260400_8014CF38);
             GameFlag_SetNibble(0xE3, 1);
             break;
         case 1:
@@ -134,7 +134,7 @@ static void func_actor_260400_80149FA4(void)
 
     slot = Gp_LookupSlot4(0);
     if (slot != 0) {
-        Gp_DispatchMsg(slot, 0x7D4, (s32)&D_actor_260400_8014C6C0, 0);
+        Gp_DispatchMsgPtr(slot, 0x7D4, &D_actor_260400_8014C6C0, 0);
     }
 }
 

@@ -4,10 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3688.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
@@ -19,7 +15,13 @@
 #include "rooms/room_common.h"
 #include "rooms/shelter_r47.h"
 
-extern s16 D_80114D08;
+#include "gameplay/captions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "main/fs.h"
 
 /// Hotspot tables of the second cap script; `spawnArg1` 2 selects the second.
 extern OverlayHotspot D_shelter_r47_8018739C[];
@@ -149,7 +151,7 @@ static void func_shelter_r47_8018431C(Task* task)
 /// of 3 moves straight to state 9.
 static void func_shelter_r47_801844A0(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     ShelterR47State2* st     = (ShelterR47State2*)task->work;
     OverlayHotspot*   hs     = st->hotspots;
 
@@ -173,7 +175,7 @@ static void func_shelter_r47_801844A0(Task* task)
     prompt->targetId = 0x80;
     if (func_shelter_r47_801852A0(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
-        if (prompt->buttons[0].state == 2) {
+        if (prompt->buttons.slots[0].state == 2) {
             for (; hs->id != -1; hs++) {
                 if (hs->hit != 0) {
                     prompt->mode     = 0;
@@ -188,7 +190,7 @@ static void func_shelter_r47_801844A0(Task* task)
     } else {
         prompt->mode = 1;
     }
-    if (prompt->buttons[1].state == 2) {
+    if (prompt->buttons.slots[1].state == 2) {
         if (st->field_2A == 0) {
             task->state = 5;
             return;
@@ -207,7 +209,7 @@ static void func_shelter_r47_801844A0(Task* task)
 /// hotspot id, which leaves the state unchanged.
 static void func_shelter_r47_80184658(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     ShelterR47State2* st     = (ShelterR47State2*)task->work;
 
     func_shelter_r47_801851B8(task);
@@ -391,7 +393,7 @@ static void func_shelter_r47_80184AE0(Task* task)
     }
 
     for (port = first; port < count; port++) {
-        prompt = &D_80114D28 + port;
+        prompt = &D_80114D28[port];
         pad    = &Pad_States[port];
         status = pad->status;
         if (status == 0x12) {
@@ -461,20 +463,20 @@ static void func_shelter_r47_80184AE0(Task* task)
             prompt->field_4 = 0xDC00;
         }
 
-        statep = &prompt->buttons[0].state;
-        heldp  = &prompt->buttons[0].heldFrames;
+        statep = &prompt->buttons.halfwords[0];
+        heldp  = &prompt->buttons.halfwords[1];
         idx    = 0;
         for (i = 0; i < 2; i++, statep += 4, idx += 4) {
             mask = (i == 0) ? 0x40 : 0xA0;
             if (Pad_CheckButtons(port, 1, mask) != 0) {
                 if (heldp[idx] < prompt->field_E &&
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed == prompt->screen.packed) {
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
                     *statep    = 4;
                     heldp[idx] = prompt->field_E;
                 } else {
-                    heldp[idx]                                           = 0;
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed = prompt->screen.packed;
-                    *statep                                              = 2;
+                    heldp[idx]                                                          = 0;
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
+                    *statep                                                             = 2;
                 }
             } else if (Pad_CheckButtons(port, 3, mask) != 0) {
                 *statep = 3;
@@ -625,7 +627,7 @@ static s32 func_shelter_r47_801852A0(OverlayHotspot* table, s16 x, s16 y)
 static void func_shelter_r47_80185354(Task* task)
 {
     ShelterR47State2* state;
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     u8                level;
 
     state = (ShelterR47State2*)task->work;
@@ -662,7 +664,7 @@ static void func_shelter_r47_80185354(Task* task)
 static void func_shelter_r47_80185450(Task* task)
 {
     ShelterR47State2* state;
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
 
     state = (ShelterR47State2*)task->work;
     func_shelter_r47_801851B8(task);
@@ -745,7 +747,7 @@ static void func_shelter_r47_801856AC(Task* task)
 static void func_shelter_r47_8018571C(Task* task)
 {
     ShelterR47State2* state;
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     u8                level;
 
     state = (ShelterR47State2*)task->work;
@@ -789,17 +791,17 @@ void func_shelter_r47_8018580C(Task* task)
 /// 0x100, double-press window 0xF, `mode` 1) and advances the task's state.
 static void func_shelter_r47_8018585C(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     s32               i;
 
     for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0               = 0;
-        prompt->field_4               = 0;
-        prompt->targetId              = 0x100;
-        prompt->field_E               = 0xF;
-        prompt->buttons[0].heldFrames = 0;
-        prompt->buttons[1].heldFrames = 0;
-        prompt->mode                  = 1;
+        prompt->field_0                     = 0;
+        prompt->field_4                     = 0;
+        prompt->targetId                    = 0x100;
+        prompt->field_E                     = 0xF;
+        prompt->buttons.slots[0].heldFrames = 0;
+        prompt->buttons.slots[1].heldFrames = 0;
+        prompt->mode                        = 1;
     }
     task->state = task->state + 1;
 }

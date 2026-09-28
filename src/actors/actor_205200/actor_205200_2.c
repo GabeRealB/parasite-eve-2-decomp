@@ -5,17 +5,27 @@
 
 #include "actors/actor.h"
 #include "actors/actor_205200.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/wipsys.h"
 
 /// Work block of the actor's own task, allocated by its spawn handler
 /// `func_actor_205200_8014BAE8`. It opens with the model's animation context
@@ -58,9 +68,6 @@ extern s16     D_actor_205200_801567B0[];
 extern SVECTOR D_actor_205200_801567B4[];
 extern u32     D_actor_205200_801567D0;
 
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_8017EBA4(Task* arg0);
 void func_80181930(Task* arg0);
 
@@ -306,7 +313,7 @@ static void func_actor_205200_8014C0C0(Task* arg0)
                 scratch->anim.field_8       = 0;
                 scratch->anim.field_C       = 0;
                 scratch->anim.field_10      = 1;
-                Gp_DispatchMsg(player, 0x3F4, (s32)scratch, 0);
+                Gp_DispatchMsgPtr(player, 0x3F4, scratch, 0);
                 work->field_58A = 1;
                 work->field_58C = 0;
                 Gp_SpawnPadLerp(0xF, 0xFF, 0x80);
@@ -340,7 +347,7 @@ static void func_actor_205200_8014C0C0(Task* arg0)
                     scratch->place.rot.vy = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & 0xFFF;
                 }
                 scratch->place.rot.vz = 0;
-                Gp_DispatchMsg(player, 0x3E9, (s32)&scratch->place, 0);
+                Gp_DispatchMsgPtr(player, 0x3E9, &scratch->place, 0);
             }
             if ((s16)work->field_58C == 0x10) {
                 if (work->field_596 == 0) {
@@ -358,7 +365,7 @@ static void func_actor_205200_8014C0C0(Task* arg0)
                 scratch->anim.field_8       = 0;
                 scratch->anim.field_C       = 0;
                 scratch->anim.field_10      = 1;
-                Gp_DispatchMsg(player, 0x3F4, (s32)scratch, 0);
+                Gp_DispatchMsgPtr(player, 0x3F4, scratch, 0);
                 work->field_58A = 2;
                 work->field_58C = 0;
             }

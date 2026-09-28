@@ -3,12 +3,12 @@
 What the 448 unique room packages actually are: RAM slots, stage-0 file-id
 encoding, room vs actor vs weapon vs menu, and where meshes / clips live.
 Derived from USA `stages.json` + inflated `pe2pkg/` / `pe2img/`, the matching
-decomp (`fs.c`, `loadui.c`, `stage.c`, `tmd.c`, gameplay `1BC.c`), and scans
+decomp (`fs.c`, `loadui.c`, `stage.c`, `tmd.c`, gameplay `scene_runtime.c`), and scans
 of the binaries (MIPS prologues, TMD-like streams, sibling textures, strings).
 
 Related: on-disc chunk packing in [`ASSET_FORMATS.md`](ASSET_FORMATS.md);
 TMD playback in `src/main/tmd.c` / `include/main/tmd.h`; animation player in
-`src/gameplay/1BC.c` / `include/gameplay/1BC.h`; the cooperative actor list in
+`src/gameplay/scene_runtime.c` / `include/gameplay/animation.h`; the cooperative actor list in
 [`TASKS.md`](TASKS.md) (bank 6 callbacks live in the room overlay slot).
 
 | Area | Code / data |
@@ -19,7 +19,7 @@ TMD playback in `src/main/tmd.c` / `include/main/tmd.h`; animation player in
 | Room enter | `src/main/stage.c` (`Display_TaskLoadStep`), `src/main/loadui.c` (`CdCmd_EnqueueLoadFile`) |
 | Inflated bodies | `assets/USA/pe2pkg/` (LZSS-decoded); on-disc in `raw/pe2pkg/` |
 | Model stream | `Tmd_InitSourceStream` / `tmdProcessStream` |
-| Anim player | `GpAnimCtx` / `GpAnimSlot` / `GpAnimSet` (`1BC.c`) |
+| Anim player | `GpAnimCtx` / `GpAnimSlot` / `GpAnimSet` (`scene_runtime.c`) |
 
 The formats themselves are documented in
 [`TMD_FORMAT.md`](TMD_FORMAT.md) (the model packet stream and its opcodes) and
@@ -319,7 +319,7 @@ into the same overlay, e.g. `10301` at `+0x774`) and keyframe-like
 halfwords. Fire / reload / inspect are per-gun.
 
 **Which package is which gun.** `Gp_EnqueueItemPreviewCd`
-(`src/gameplay/3688.c`) maps an equipped item to its overlay:
+(`src/gameplay/menu_armor.c`) maps an equipped item to its overlay:
 
 ```c
 if ((u32)(arg0 - 0x80) < 0x20U) {   // the 32 weapon item ids

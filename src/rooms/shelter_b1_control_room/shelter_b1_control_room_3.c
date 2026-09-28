@@ -5,11 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -18,7 +13,14 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-extern s32 D_80115730;
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+
 extern s16 D_shelter_b1_control_room_80181C64[][3];
 
 static void func_shelter_b1_control_room_801806FC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);

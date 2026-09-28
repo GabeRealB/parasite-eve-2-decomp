@@ -4,8 +4,6 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-
-#include "gameplay/3A34.h"
 #include "main/task.h"
 
 /// Movement work the tick reaches through `Task::work`. This is the head of the

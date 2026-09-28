@@ -22,30 +22,19 @@
 extern u16 func_8001D82C(void);
 
 // Overlay / dynamically loaded
-extern void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1);
+
 extern void func_8002C1D8(void);
-extern void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0);
-extern void Gp_DrawActorTmdActive(GpuOtBuf* arg0);
-extern void Gp_SpawnCurView(s32 arg0);
-extern void Gp_ClearRec18Occupied(GpRec18* arg0);
-extern s32  func_801011D0(GpCoord* arg0, GpRec18* arg1, s32 arg2, s32* arg3);
-extern void Gp_LinkViewSprts(void);
-extern void Gp_AllocSprtLists(void);
-extern s32  Gp_GetViewIndex(void);
+
 extern void func_80179954(void* arg0);
 extern void func_80179988(void* arg0);
 extern void func_801799BC(void* arg0);
 extern s32  func_80179BE4(u16 arg0, u8 arg1, LinInterp* arg2);
-extern s16  Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3);
-extern void Gp_StepCdAudioCmd(void);
-extern void Gp_ApplySndBankMasks(u16 arg0);
-extern void Gp_RestoreStreamRng(void);
+
 extern void func_8017D6D4(void);
 extern void func_801D4B64(Task* arg0);
 extern s32  func_80042500(void);
 extern void func_8004E200(void);
 extern s32  func_8001FAE0(u16 arg0, s32 arg1);
-extern s32  func_800B0118(s32 arg0, s32 arg1);
 
 extern u16 D_8005ED8A;
 

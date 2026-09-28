@@ -5,16 +5,21 @@
 #include <psyq/abs.h>
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/geometry.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
+#include "main/gfx.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a nineteen-part rig and the model state, whose
@@ -45,10 +50,6 @@ typedef struct Actor317000SpawnAnim {
 /// ever read; the words after it (among them the address of
 /// `func_actor_317000_80162624`) suggest a larger record, not a bank array.
 extern void* D_actor_317000_8016CF40[];
-
-/// `func_800B4114` is not declared in `gameplay/1BC.h`; its callers here pass
-/// the animation id as a signed value.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_317000_8016267C`; terminator id 0x7FFFFFFF.

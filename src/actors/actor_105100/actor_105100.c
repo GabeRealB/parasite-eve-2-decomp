@@ -8,13 +8,6 @@
 #include <psyq/abs.h>
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 
 #include "main/display.h"
 #include "main/gfx.h"
@@ -22,6 +15,22 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// Main-executable counter whose lowest bit the flicker alternates on.
 
@@ -40,10 +49,8 @@ STATIC_ASSERT_SIZEOF(Actor105100HitScratch, 0x30);
 /// enemy task, the 0x80 bytes its spawn handler asks `memCalloc` for. `obj0`
 /// is the body the collision lists carry and `rec20` the contact record whose
 /// key ends the flight; `obj38` is the second body, unlinked beside the first
-/// when the task is destroyed. The teardown handler reaches both of them
-/// through `Actor105100Work`, whose two bodies sit at the same offsets --
-/// whether the two blocks are really one type is unsettled, since nothing
-/// else in this overlay reads the bytes they have in common.
+/// when the task is destroyed. This child allocation is distinct from the
+/// parent's animation work block and the smaller reaction task's work.
 ///
 /// `field_70` accumulates the per-axis jitter the hover step applies to the
 /// coordinate, and the step holds that accumulation inside a fixed bound.
@@ -90,12 +97,8 @@ STATIC_ASSERT_SIZEOF(Actor105100ProjScratch, 0x38);
 /// off `&coord[3]`, the second off the model's own coordinate and the third
 /// off the third-party model's.
 typedef struct Actor105100Work {
-    /* 0x000 */ GpObj      obj0;
-    /* 0x020 */ byte       pad_20[4];
-    /* 0x024 */ s32        field_24;
-    /* 0x028 */ byte       pad_28[0x10];
-    /* 0x038 */ GpObj      obj38;
-    /* 0x058 */ byte       pad_58[0x2B4];
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[19];
     /* 0x30C */ byte       field_30C[0x130];
     /* 0x43C */ MATRIX     field_43C;
     /* 0x45C */ MATRIX     field_45C;
@@ -139,35 +142,28 @@ typedef struct Actor105100Work {
     /* 0x5BE */ u16        field_5BE; // accumulated damage toward the 0x1A4 stagger threshold
     /* 0x5C0 */ u16        field_5C0; // frames the stagger window stays open; loaded 0xBC on a hit
     /* 0x5C2 */ s16        field_5C2;
-    /* 0x5C4 */ byte       pad_5C4[4];
 } Actor105100Work;
+STATIC_ASSERT_SIZEOF(Actor105100Work, 0x5C4);
 
 /// The child spawner allocates this 0x50-byte collision and reaction block:
 /// a GpObj, one contact record, and the state the reaction handlers drive.
-/// It is also a second view of the work area's 0x38 record, held by the per-frame handler
-/// `func_actor_105100_801354E8`: `field_40` is the reaction it dispatches on,
-/// `field_48` the countdown that reaction runs for and `field_4E` the pose the
-/// schedule is stepped through. Those bytes are `obj38`, a `GpObj`, to the
-/// object-list code, so the handler casts the work pointer to this view rather than
-/// reaching them through `Actor105100Work`.
-///
-/// The reaction sub-handlers keep their own state in the same record:
-/// `field_44` is the approach point `Actor105100Work`'s `obj38` vector is
-/// aimed at and `field_46` the pass they are on -- 0 builds that aim, 1 walks
-/// the coordinate along it. A `GpObj` cannot carry either, `field_44` sitting
-/// over its `ctx.recs` collision pointer, which is why
-/// `func_actor_105100_801359B4` reads them here and takes the aim vector
-/// itself from `Actor105100Work::obj38`.
+/// `func_actor_105100_801354E8` dispatches on `field_40`, decrements the
+/// `field_48` countdown and chooses the displayed pose in `field_4E`.
+/// The movement handlers aim `direction` at approach point `field_44`;
+/// `field_46` selects their phase, `travelTicks` counts down the first leg,
+/// and `step` is the distance advanced per frame. Only the leading `obj`
+/// participates in collision; the tail is movement state, not another body.
 typedef struct Actor105100Rec {
     /* 0x00 */ GpObj   obj;
     /* 0x20 */ GpRec18 rec[1];
-    /* 0x38 */ byte    pad_38[8];
+    /* 0x38 */ SVECTOR direction;
     /* 0x40 */ s16     field_40;
     /* 0x42 */ s16     field_42;
     /* 0x44 */ s16     field_44;
     /* 0x46 */ s16     field_46;
     /* 0x48 */ s16     field_48;
-    /* 0x4A */ byte    pad_4A[4];
+    /* 0x4A */ s16     travelTicks;
+    /* 0x4C */ s16     step;
     /* 0x4E */ u16     field_4E;
 } Actor105100Rec;
 STATIC_ASSERT_SIZEOF(Actor105100Rec, 0x50);
@@ -216,13 +212,11 @@ static void func_actor_105100_80136574(Task* arg0, MATRIX* arg1, s16 arg2, s32 a
 static void func_actor_105100_801366D8(GpEnemy* arg0, Task* arg1);
 static void func_actor_105100_80136788(GpEnemy* arg0, Task* arg1);
 
-void    func_8017FC40(GpCoord* arg0, s32 arg1, u16 arg2);
-void    func_8018294C(Task* arg0);
-void    func_800B4114(Actor105100Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
+void func_8017FC40(GpCoord* arg0, s32 arg1, u16 arg2);
+void func_8018294C(Task* arg0);
+
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
-
-extern s32 D_80115728;
 
 /// Main-executable globals with no module header yet: a `Gp_StateC08.field_A` of 1 or a
 /// live `gDisplayState.pendingMode` means a cutscene is already up, so the death handler skips
@@ -531,10 +525,10 @@ static void func_actor_105100_801327B4(GpEnemy* arg0, Task* arg1)
     work->field_554.coord      = &arg1->extra.tmd->coords[3];
     work->field_554.spawnArgLo = 0x500;
     work->field_554.spawnArgHi = 3;
-    func_800B3F84((GpAnimCtx*)work, D_actor_105100_80141488, (TmdObject*)obj, work->field_30C,
-                  ((ActorAnimRig19*)work)->slots);
+    func_800B3F84(&work->anim, D_actor_105100_80141488, (TmdObject*)obj, work->field_30C,
+                  work->slots);
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+        Gp_AnimResetSlot(&work->anim, i, 1);
     }
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     work->field_560       = coord->coord;
@@ -879,7 +873,7 @@ static void func_actor_105100_8013329C(Task* arg0, GpEnemy* arg1)
     u16              count;
 
     work = arg0->work;
-    if (Gp_StateF0.field_0 == 0) {
+    if (Gp_StateF0.prefix.bytes.field_0 == 0) {
         timer           = work->field_59E - 1;
         work->field_59E = timer;
         if ((timer << 16) <= 0) {
@@ -1294,7 +1288,7 @@ static void func_actor_105100_80133CE4(Task* arg0)
                 scratch->anim.field_8       = 0;
                 scratch->anim.field_C       = 0;
                 scratch->anim.field_10      = 1;
-                Gp_DispatchMsg(player, 0x3F4, (s32)scratch, 0);
+                Gp_DispatchMsgPtr(player, 0x3F4, scratch, 0);
                 work->field_5A4 = 1;
                 work->field_5A6 = 0;
                 Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
@@ -1324,7 +1318,7 @@ static void func_actor_105100_80133CE4(Task* arg0)
                     scratch->place.rot.vy = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & 0xFFF;
                 }
                 scratch->place.rot.vz = 0;
-                Gp_DispatchMsg(player, 0x3E9, (s32)&scratch->place, 0);
+                Gp_DispatchMsgPtr(player, 0x3E9, &scratch->place, 0);
             }
             if ((s16)work->field_5A6 == 0x10) {
                 sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x55190003;
@@ -1337,7 +1331,7 @@ static void func_actor_105100_80133CE4(Task* arg0)
                 scratch->anim.field_8       = 0;
                 scratch->anim.field_C       = 0;
                 scratch->anim.field_10      = 1;
-                Gp_DispatchMsg(player, 0x3F4, (s32)scratch, 0);
+                Gp_DispatchMsgPtr(player, 0x3F4, scratch, 0);
                 work->field_5A4 = 2;
                 work->field_5A6 = 0;
             }
@@ -1367,7 +1361,7 @@ static void func_actor_105100_80134130(Task* arg0)
 
     work = arg0->work;
     self = arg0->extra.tmd->coords;
-    rec  = Gp_AnimGetRec((GpAnimCtx*)work, (GpAnimSlot*)&work->obj38.prev);
+    rec  = Gp_AnimGetRec(&work->anim, &work->slots[1]);
     if (rec != NULL) {
         if (!(rec->flags & 0x20) && (work->field_5B8 & 0x20)) {
             snd = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x40330001;
@@ -1399,12 +1393,12 @@ static inline void _actor105100AnimUpdate(Task* task)
         work->field_592 = 0;
         val             = D_actor_105100_801414C8[(s16)work->field_58E];
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(work, i, (s16)work->field_58E, 0, val);
+            func_800B4114(&work->anim, i, (s16)work->field_58E, 0, val);
         }
     } else {
         work->field_592++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->anim, i);
         }
     }
 }
@@ -1684,7 +1678,7 @@ static void func_actor_105100_80134B00(GpEnemy* arg0, Task* arg1)
     s32                     snd;
     s32                     n;
 
-    work       = (Actor105100ProjWork*)((Actor105100Work*)arg1->work);
+    work       = arg1->work;
     coord      = arg1->extra.tmd->coords;
     parentWork = (arg1->parent)->work;
     state      = Gp_StateF0.field_4;
@@ -1913,7 +1907,7 @@ static void func_actor_105100_801354E8(GpEnemy* arg0, Task* arg1)
     s16              timer;
     u16              count;
 
-    rec        = (Actor105100Rec*)((Actor105100Work*)arg1->work);
+    rec        = arg1->work;
     parentWork = (arg1->parent)->work;
     state      = Gp_StateF0.field_4;
     coord      = arg1->extra.tmd->coords;
@@ -1967,7 +1961,7 @@ join:
     func_8017FC40(coord, 0x80, rec->field_4E);
     count         = (u16)rec->field_48 - 1;
     rec->field_48 = count;
-    if ((count << 16) <= 0 || ((Actor105100Work*)rec)->field_24 != 0 ||
+    if ((count << 16) <= 0 || rec->rec[0].key != 0 ||
         parentWork->field_5AC == 0) {
         parentWork->field_5AE = parentWork->field_5AE - 1;
         arg1->state           = 2;
@@ -1979,30 +1973,28 @@ done:
 /// Reaction 0's handler (`field_40 == 0`), which walks the model along a
 /// two-leg path through `D_actor_105100_80141418`: `field_44`, then
 /// `field_44 + 3`. Pass 0 builds the first-leg aim, measures both legs and
-/// stores the per-frame step (total length over `obj38.pos.vx`) plus how many
+/// stores the per-frame step (total length over `field_48`) plus how many
 /// frames the first leg takes; pass 1 walks that step and re-aims at the
 /// second point when the countdown hits 0; pass 2 keeps walking.
 static void func_actor_105100_80135674(Task* arg0)
 {
-    Actor105100Work* work;
-    Actor105100Rec*  rec;
-    GpCoord*         coord;
-    VECTOR*          head;
-    VECTOR*          vec;
-    s16              state;
-    s32              dx;
-    s32              dz;
-    s32              dx2;
-    s32              dz2;
-    s32              dist;
-    s32              speed;
-    s16              timer;
+    Actor105100Rec* rec;
+    GpCoord*        coord;
+    VECTOR*         head;
+    VECTOR*         vec;
+    s16             state;
+    s32             dx;
+    s32             dz;
+    s32             dx2;
+    s32             dz2;
+    s32             dist;
+    s32             speed;
+    s16             timer;
 
     head                 = SCRATCH_HEAD(VECTOR);
     vec                  = head - 1;
     SCRATCH_HEAD(VECTOR) = vec;
-    work                 = arg0->work;
-    rec                  = (Actor105100Rec*)work;
+    rec                  = arg0->work;
     state                = rec->field_46;
     coord                = arg0->extra.tmd->coords;
     switch (state) {
@@ -2010,7 +2002,7 @@ static void func_actor_105100_80135674(Task* arg0)
             vec->vx = D_actor_105100_80141418[rec->field_44].vx - coord->coord.t[0];
             vec->vy = 0;
             vec->vz = D_actor_105100_80141418[rec->field_44].vz - coord->coord.t[2];
-            VectorNormalS(vec, (SVECTOR*)&work->obj38);
+            VectorNormalS(vec, &rec->direction);
             dx      = vec->vx;
             dz      = vec->vz;
             dist    = SquareRoot0(dx * dx + dz * dz);
@@ -2019,29 +2011,29 @@ static void func_actor_105100_80135674(Task* arg0)
             vec->vy = 0;
             dz2     = D_actor_105100_80141418[rec->field_44 + 3].vz -
                   D_actor_105100_80141418[rec->field_44].vz;
-            vec->vz            = dz2;
-            dx2                = vec->vx;
-            speed              = (dist + SquareRoot0(dx2 * dx2 + dz2 * dz2)) / work->obj38.pos.vx;
-            rec->field_46      = 1;
-            work->obj38.pos.vz = speed;
-            work->obj38.pos.vy = dist / (s16)speed;
+            vec->vz          = dz2;
+            dx2              = vec->vx;
+            speed            = (dist + SquareRoot0(dx2 * dx2 + dz2 * dz2)) / rec->field_48;
+            rec->field_46    = 1;
+            rec->step        = speed;
+            rec->travelTicks = dist / (s16)speed;
             break;
         case 1:
-            coord->coord.t[0] += (((SVECTOR*)&work->obj38)->vx * work->obj38.pos.vz) >> 12;
-            coord->coord.t[2] += (((SVECTOR*)&work->obj38)->vz * work->obj38.pos.vz) >> 12;
-            timer              = (u16)work->obj38.pos.vy - 1;
-            work->obj38.pos.vy = timer;
+            coord->coord.t[0] += (rec->direction.vx * rec->step) >> 12;
+            coord->coord.t[2] += (rec->direction.vz * rec->step) >> 12;
+            timer              = (u16)rec->travelTicks - 1;
+            rec->travelTicks   = timer;
             if ((timer << 16) <= 0) {
                 vec->vx = D_actor_105100_80141418[rec->field_44 + 3].vx - coord->coord.t[0];
                 vec->vy = 0;
                 vec->vz = D_actor_105100_80141418[rec->field_44 + 3].vz - coord->coord.t[2];
-                VectorNormalS(vec, (SVECTOR*)&work->obj38);
+                VectorNormalS(vec, &rec->direction);
                 rec->field_46 = 2;
             }
             break;
         case 2:
-            coord->coord.t[0] += (((SVECTOR*)&work->obj38)->vx * work->obj38.pos.vz) >> 12;
-            coord->coord.t[2] += (((SVECTOR*)&work->obj38)->vz * work->obj38.pos.vz) >> 12;
+            coord->coord.t[0] += (rec->direction.vx * rec->step) >> 12;
+            coord->coord.t[2] += (rec->direction.vz * rec->step) >> 12;
             break;
     }
     SCRATCH_POP(VECTOR);
@@ -2051,25 +2043,23 @@ static void func_actor_105100_80135674(Task* arg0)
 /// approach point `field_44` selects from `D_actor_105100_80141418`. The first
 /// pass (`field_46 == 0`) builds the planar delta in 16 bytes of scratch,
 /// normalises it into the record's own 0x38 vector and stores the step it then
-/// travels per frame -- the delta's length over `obj38.field_10`; the second
+/// travels per frame -- the delta's length over `field_48`; the second
 /// (`field_46 == 1`) applies that step to the coordinate every frame.
 static void func_actor_105100_801359B4(Task* arg0)
 {
-    Actor105100Work* work;
-    Actor105100Rec*  rec;
-    GpCoord*         coord;
-    VECTOR*          head;
-    VECTOR*          vec;
-    s16              state;
-    s32              dx;
-    s32              dz;
-    s32              speed;
+    Actor105100Rec* rec;
+    GpCoord*        coord;
+    VECTOR*         head;
+    VECTOR*         vec;
+    s16             state;
+    s32             dx;
+    s32             dz;
+    s32             speed;
 
     head                 = SCRATCH_HEAD(VECTOR);
     vec                  = head - 1;
     SCRATCH_HEAD(VECTOR) = vec;
-    work                 = arg0->work;
-    rec                  = (Actor105100Rec*)work;
+    rec                  = arg0->work;
     state                = rec->field_46;
     coord                = arg0->extra.tmd->coords;
     switch (state) {
@@ -2077,16 +2067,16 @@ static void func_actor_105100_801359B4(Task* arg0)
             vec->vx = D_actor_105100_80141418[rec->field_44].vx - coord->coord.t[0];
             vec->vy = 0;
             vec->vz = D_actor_105100_80141418[rec->field_44].vz - coord->coord.t[2];
-            VectorNormalS(vec, (SVECTOR*)&work->obj38);
-            dx                 = vec->vx;
-            dz                 = vec->vz;
-            speed              = SquareRoot0(dx * dx + dz * dz) / work->obj38.pos.vx;
-            rec->field_46      = 1;
-            work->obj38.pos.vz = speed;
+            VectorNormalS(vec, &rec->direction);
+            dx            = vec->vx;
+            dz            = vec->vz;
+            speed         = SquareRoot0(dx * dx + dz * dz) / rec->field_48;
+            rec->field_46 = 1;
+            rec->step     = speed;
             break;
         case 1:
-            coord->coord.t[0] += (((SVECTOR*)&work->obj38)->vx * work->obj38.pos.vz) >> 12;
-            coord->coord.t[2] += (((SVECTOR*)&work->obj38)->vz * work->obj38.pos.vz) >> 12;
+            coord->coord.t[0] += (rec->direction.vx * rec->step) >> 12;
+            coord->coord.t[2] += (rec->direction.vz * rec->step) >> 12;
             break;
     }
     SCRATCH_POP(VECTOR);
@@ -2561,9 +2551,9 @@ void func_actor_105100_8013667C(Task* arg0)
 
 static void func_actor_105100_801366D8(GpEnemy* arg0, Task* arg1)
 {
-    Actor105100Work* work;
+    Actor105100ProjWork* work;
 
-    work = (Actor105100Work*)arg1->work;
+    work = arg1->work;
     Gp_UnlinkObj(&work->obj0);
     Gp_UnlinkObj(&work->obj38);
     Gp_DestroyEnemy(arg0, arg1);

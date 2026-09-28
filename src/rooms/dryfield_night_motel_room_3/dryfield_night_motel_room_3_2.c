@@ -12,6 +12,8 @@
 
 #include "rooms/room_common.h"
 
+#include "gameplay/display.h"
+
 /// The night motel room's drawable points, one 8-byte `SVECTOR` per disc. Each
 /// is reached by its own address, so the compiler materialises it whole into
 /// `$a0` rather than indexing one base.

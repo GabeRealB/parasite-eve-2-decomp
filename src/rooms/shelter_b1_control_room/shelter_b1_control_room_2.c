@@ -4,10 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gfx.h"
@@ -18,9 +14,11 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-extern s32      D_80115730;
-extern s32      D_80115734;
-extern s32      D_80115754;
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+
 extern TaskDesc D_shelter_b1_control_room_80181BBC;
 extern SVECTOR  D_shelter_b1_control_room_80181BD4[];
 extern SVECTOR  D_shelter_b1_control_room_80181C3C[];

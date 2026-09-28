@@ -18,12 +18,23 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/captions.h"
+#include "gameplay/damage.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
 /// Shared stack storage for posing the actor, spawning its beam, and walking
 /// the parent coordinates to determine whether the actor can be locked onto.
@@ -611,8 +622,6 @@ static void func_actor_206100_8014F490(Task* task);
 /// Copies the 3x3 rotation of `src` into `dst`, leaving `dst`'s translation
 /// alone.
 static void func_actor_206100_8014F4B8(MATRIX* src, MATRIX* dst);
-
-extern s32 D_80115738;
 
 extern s16 D_801818B8;
 
@@ -2033,7 +2042,7 @@ static void func_actor_206100_8014CB68(Task* task)
         msg.rot.vx           = 0;
         msg.rot.vy           = 0x200;
         msg.rot.vz           = 0;
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&msg, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &msg, 0);
         work2                         = (Actor206100Work*)task->work;
         work2->field_51A              = 0x10;
         work2->field_510              = 3;
@@ -2090,7 +2099,7 @@ static void func_actor_206100_8014CD08(Task* task)
         msg.rot.vx = 0;
         msg.rot.vy = 0xA00;
         msg.rot.vz = 0;
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&msg, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &msg, 0);
         work2            = (Actor206100Work*)task->work;
         work2->field_51A = 0x10;
         work2->field_510 = 1;
@@ -3432,10 +3441,6 @@ static void func_actor_206100_8014F284(Task* task)
     } while (i < 0xF);
     work->field_50E = (u16)work->field_510;
 }
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Re-arms every animation slot for the pending request: writes the request's
 /// step scale (`field_51A`) into each slot's `rate` and re-seeks the slot to

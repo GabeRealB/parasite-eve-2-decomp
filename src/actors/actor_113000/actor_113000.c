@@ -8,16 +8,20 @@
 #include "actors/actor.h"
 #include "actors/actors_shared_8013231c.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
-
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 /// Animation source table `func_actor_113000_80132208` indexes by the preset's
 /// bank index and hands `func_800B3F84` as its data argument.
@@ -59,10 +63,6 @@ extern GpImgRec D_actor_113000_8013AB6C;
 /// Message dispatch table the spawn handler parks in `Task::msgTable`:
 /// message id / handler pairs, terminated by 0x7FFFFFFF and a null word.
 extern u8 D_actor_113000_8013ABC0[];
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_113000_80131F90(Task* task);
 static void func_actor_113000_80132070(Task* task);

@@ -3,10 +3,6 @@
 #include <psyq/abs.h>
 
 #include "actors/actor_503500.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -15,6 +11,19 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
+#include "main/mc.h"
+#include "main/wipsys.h"
 
 /// Work block `func_actor_503500_80132778` allocates (`memCalloc(0xC)`) and
 /// parks in `Task::work`. Each spawn packs `field_0 & 0xFFF` and
@@ -226,7 +235,7 @@ void func_actor_503500_80132CA4(void)
 void func_actor_503500_80132CC4(s8 arg0)
 {
     Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x23);
-    Gp_StateF0.field_1 = arg0;
+    Gp_StateF0.prefix.bytes.field_1 = arg0;
 }
 
 /// Record handler (opcode 0x0D) of the actor's script data, taking the
@@ -239,7 +248,7 @@ void func_actor_503500_80132D00(s32 bits)
 
 void func_actor_503500_80132D20(Task* arg0)
 {
-    func_800E8634((s32)D_actor_503500_8014CD98, 0, (s32)D_actor_503500_8014D098);
+    func_800E8634(D_actor_503500_8014CD98, 0, D_actor_503500_8014D098);
     taskKill(arg0);
 }
 
@@ -300,7 +309,7 @@ void func_actor_503500_80132E7C(void)
     slot3 = gameGetPtrSlot(3);
     if ((D_actor_503500_8017655C.pos.vx != 0) || (D_actor_503500_8017655C.pos.vy != 0) ||
         (D_actor_503500_8017655C.pos.vz != 0)) {
-        Gp_DispatchMsg(slot3, 0x3E9, (s32)&D_actor_503500_8017655C, 0);
+        Gp_DispatchMsgPtr(slot3, 0x3E9, &D_actor_503500_8017655C, 0);
     }
 }
 

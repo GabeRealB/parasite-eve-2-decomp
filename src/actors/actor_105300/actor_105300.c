@@ -5,13 +5,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013391c.h"
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -19,6 +12,20 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 extern GpPairSrcE         D_actor_105300_8013D3A0;
 extern Actor05300SpawnPos D_actor_105300_80133A20[2];
@@ -38,8 +45,6 @@ extern TaskDesc           D_actor_105300_8013D3FC[2];
 
 void func_8017E524(s32 arg0);
 void func_8017FD88(s32 arg0);
-
-void func_800B4114(Actor05300Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -236,7 +241,7 @@ static inline void _actor105300TickPose(Task* task)
         work->field_324 = 0;
         value           = D_actor_105300_80133A18[(s16)work->field_320];
         for (i = 1; i < 10; i++) {
-            func_800B4114(work, i, (s16)work->field_320, 0, value);
+            func_800B4114(&work->anim, i, (s16)work->field_320, 0, value);
         }
     } else {
         work->field_324++;
@@ -602,7 +607,7 @@ static void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1)
     TmdObject*      obj;
     GpCoord*        coord;
     GpAreaKey*      sessionKey;
-    GpAreaRec*      rec;
+    GpAreaVariant*  rec;
     GpAreaPlace*    place;
     TmdObject*      model;
     GpEnemy*        spawned;
@@ -678,7 +683,7 @@ static void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1)
     key.view           = sessionKey->view;
     Gp_SyncAreaKeyIndex(&key);
     rec          = Gp_GetNestedAreaRec(&key);
-    place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    place        = gpAreaPlaceAt(rec->field_0, idx);
     model->tpage = place->tpage;
     model->clut  = place->clut;
     if (model->buffer != NULL) {
@@ -801,7 +806,7 @@ static void func_actor_105300_80133610(Task* arg0)
         work->field_324 = 0;
         value           = D_actor_105300_80133A18[(s16)work->field_320];
         for (i = 1; i < 10; i++) {
-            func_800B4114(work, i, (s16)work->field_320, 0, value);
+            func_800B4114(&work->anim, i, (s16)work->field_320, 0, value);
         }
     } else {
         work->field_324++;

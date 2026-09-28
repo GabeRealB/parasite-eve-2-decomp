@@ -7,10 +7,6 @@
 #include <psyq/abs.h>
 
 #include "actors/actor_503500.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -18,6 +14,21 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/attachments.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 
@@ -125,9 +136,7 @@ extern GpAnimArg D_actor_503500_8016EAC0[];
 /// are passed by every caller but the body ignores them. Always returns 0.
 s32 func_actor_503500_80135950(Task* arg0, s32 arg1,
                                GpAnimArg* arg2, s32 arg3);
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 /// Animation-bank table indexed by `GpAnimArg::animBlock.index`.
 extern void* D_actor_503500_8016EAB8[];
 static void  func_actor_503500_80136450(Task* arg0);
@@ -169,7 +178,7 @@ extern GpMsgEntry D_actor_503500_8016EA2C[];
 /// in `GpEnemy::param` and seed the enemy's HP from its `hpMax`.
 extern GpPairSrcE D_actor_503500_8016E7EC[];
 static void       func_actor_503500_80136228(Task* arg0);
-extern u32        Gp_LcgState;
+
 /// Attack lists for `func_actor_503500_801338E8`, indexed by the phase bit
 /// (`field_774` bit 3), the height band `field_7DC` and the yaw bucket
 /// `field_7DE`; each entry points at a NULL-terminated `Actor503500Step` run.
@@ -271,21 +280,21 @@ static const TaskFuncTable3 D_actor_503500_80131E44 = {
 /// `func_actor_503500_80135D00` does) and applies preset 0x7D3.
 static void func_actor_503500_80132F64(Task* arg0)
 {
-    GpAreaKey    key;
-    GpAreaKey*   sessionKey;
-    u8           areaByte0;
-    GpAreaRec*   rec;
-    GpAreaPlace* entry;
-    GpEnemy*     child;
-    TmdObject*   model;
-    u32          raw;
-    s32          idx;
-    s32          i;
-    TmdObject*   tmd;
-    GpEnemy*     enemy;
-    GpCoord*     coord;
-    GpCoord*     part;
-    GpRec18*     recs;
+    GpAreaKey      key;
+    GpAreaKey*     sessionKey;
+    u8             areaByte0;
+    GpAreaVariant* rec;
+    GpAreaPlace*   entry;
+    GpEnemy*       child;
+    TmdObject*     model;
+    u32            raw;
+    s32            idx;
+    s32            i;
+    TmdObject*     tmd;
+    GpEnemy*       enemy;
+    GpCoord*       coord;
+    GpCoord*       part;
+    GpRec18*       recs;
     /* Kept in a register across the spawn loop: the ROM stores enemies[0]
        through the same base rather than rebuilding the address. */
     Actor503500Work* work = &D_actor_503500_80176574;
@@ -340,7 +349,7 @@ static void func_actor_503500_80132F64(Task* arg0)
     for (i = 1; i < 12; i++) {
         child = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, i, i, enemy);
         if (child != NULL) {
-            sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+            sessionKey = &gGameSession->at4.loc;
             raw        = ((GpEnemy*)arg0->spawnArg2)->placeKey;
             model      = child->task->extra.tmd;
             key.stage  = sessionKey->stage;
@@ -351,7 +360,7 @@ static void func_actor_503500_80132F64(Task* arg0)
             key.view   = areaByte0;
             Gp_SyncAreaKeyIndex(&key);
             rec          = Gp_GetNestedAreaRec(&key);
-            entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+            entry        = gpAreaPlaceAt(rec->field_0, idx);
             model->tpage = entry->tpage;
             model->clut  = entry->clut;
             if (model->buffer != NULL) {
@@ -1732,22 +1741,22 @@ void func_actor_503500_80135CE8(Task* arg0, s32 arg1)
 /// work block's `enemies` array. Returns the new enemy, or NULL.
 GpEnemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
 {
-    GpAreaKey    key;
-    GpAreaKey*   sessionKey;
-    u8           areaByte0;
-    GpAreaRec*   rec;
-    GpAreaPlace* entry;
-    GpEnemy*     enemy;
-    TmdObject*   model;
-    s32          idx;
-    u32          raw;
+    GpAreaKey      key;
+    GpAreaKey*     sessionKey;
+    u8             areaByte0;
+    GpAreaVariant* rec;
+    GpAreaPlace*   entry;
+    GpEnemy*       enemy;
+    TmdObject*     model;
+    s32            idx;
+    u32            raw;
     /* Taken before the spawn call: the ROM keeps the address in s4 across
        every call rather than rebuilding it at the store. */
     Actor503500Work* work = &D_actor_503500_80176574;
 
     enemy = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, arg1, arg1, arg0->spawnArg2);
     if (enemy != NULL) {
-        sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+        sessionKey = &gGameSession->at4.loc;
         raw        = ((GpEnemy*)arg0->spawnArg2)->placeKey;
         model      = enemy->task->extra.tmd;
         key.stage  = sessionKey->stage;
@@ -1758,7 +1767,7 @@ GpEnemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
         key.view   = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
         rec          = Gp_GetNestedAreaRec(&key);
-        entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        entry        = gpAreaPlaceAt(rec->field_0, idx);
         model->tpage = entry->tpage;
         model->clut  = entry->clut;
         if (model->buffer != NULL) {

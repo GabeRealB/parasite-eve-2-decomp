@@ -1,7 +1,5 @@
 #include "common.h"
 
-#include "gameplay/gameplay.h"
-
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mc.h"
@@ -10,6 +8,9 @@
 #include "main/session.h"
 #include "main/stream.h"
 #include "main/task.h"
+
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
 
 extern TaskDesc D_shelter_r49_8017DA00;
 

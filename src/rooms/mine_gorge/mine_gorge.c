@@ -1,18 +1,21 @@
 #include "common.h"
 #include "main/stage.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -129,7 +132,7 @@ void func_mine_gorge_8017D828(Task* arg0)
         D_80115768 = 1;
         SetDispMask(0);
         gGameSession->hideHud = 1;
-        func_800E8634((s32)&D_mine_gorge_8017E2F0, 0, (s32)&D_mine_gorge_8017E500);
+        func_800E8634(&D_mine_gorge_8017E2F0, 0, &D_mine_gorge_8017E500);
     } else {
         taskKill(arg0);
         Gp_ClearCollectedBit(0x11F);

@@ -16,27 +16,24 @@
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/4CC.h"
-#include "gameplay/D4.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/mist_parking.h"
 
-extern UiObjectDesc  D_800611E4;
-extern UiObject*     D_80067634;
-extern UiObjectDesc  D_8010D80C;
-extern RoomShopStock D_8010E138[];
-extern UiObjectDesc  D_8010EFA0;
-extern s16           D_80114D08;
-extern u32           D_80115694;
-extern u8            D_801156F9;
-extern char          Gp_StrEmpty[];
+#include "gameplay/actor.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_targets.h"
+
+extern UiObjectDesc D_800611E4;
+extern UiObject*    D_80067634;
 
 /// The 0xFFFF-terminated item id lists `func_mist_parking_8017D8F8` chooses
 /// from.
@@ -430,7 +427,7 @@ void func_mist_parking_8017DF68(UiList* prompt, UiObject* obj)
         /* Dead: emits the scaled index before the table base so the
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
-        Gp_DrawQty(obj, prompt->field_18, prompt->field_1A, D_8010E138[itemId].perBuy, prompt->field_1C);
+        Gp_DrawQty(obj, prompt->field_18, prompt->field_1A, gpItemStock(itemId)->perBuy, prompt->field_1C);
     }
     Text_ItoaUnsigned(buf, price);
     Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, buf, prompt->field_1C, 3, 2);
@@ -1159,14 +1156,14 @@ void func_mist_parking_8017F938(Task* task)
         /* Dead: emits the scaled index before the table base so the
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
-        if (D_8010E138[itemId].perBuy != 0) {
+        if (gpItemStock(itemId)->perBuy != 0) {
             held    = Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, itemId);
-            maxHeld = D_8010E138[itemId].maxHeld;
+            maxHeld = gpItemStock(itemId)->maxHeld;
             maxQty  = maxHeld - held;
             if (maxQty <= 0) {
                 maxQty = 1;
             } else {
-                maxQty = (maxQty - 1) / D_8010E138[itemId].perBuy;
+                maxQty = (maxQty - 1) / gpItemStock(itemId)->perBuy;
                 maxQty = maxQty + 1;
             }
         }
@@ -1187,7 +1184,7 @@ void func_mist_parking_8017F938(Task* task)
     if ((u32)(itemId - 0xA0) < 0x20) {
         /* Dead: same index-first ordering as above. */
         scaled = itemId * 4;
-        Gp_DrawQty(obj, x, y, D_8010E138[itemId].perBuy, 0x606060);
+        Gp_DrawQty(obj, x, y, gpItemStock(itemId)->perBuy, 0x606060);
     }
 
     count = task->extraState;
@@ -2698,7 +2695,7 @@ static void func_mist_parking_801827C0(Task* arg0)
         if (Mc_SaveData[0].at4.loc.warp == 3) {
             func_800E3FAC(0xA2, 0x3C);
             func_mist_parking_801837A4(0);
-            func_800E8634((s32)&D_mist_parking_8018DF34, 0, (s32)&D_mist_parking_8018EDBC);
+            func_800E8634(&D_mist_parking_8018DF34, 0, &D_mist_parking_8018EDBC);
         } else {
             func_mist_parking_8018471C(0);
             func_800E8614((s32)&D_mist_parking_8018EFE4, 1);

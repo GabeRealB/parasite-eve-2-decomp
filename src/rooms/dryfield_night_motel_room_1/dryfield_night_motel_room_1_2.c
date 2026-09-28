@@ -2,10 +2,10 @@
 
 #include <psyq/libgte.h>
 
-#include "gameplay/D4.h"
-
 #include "rooms/dryfield_night_motel_room_1.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/loading.h"
 
 /// The night motel room's drawable points, one 8-byte `SVECTOR` per disc.
 extern SVECTOR D_dryfield_night_motel_room_1_8017DA54[];

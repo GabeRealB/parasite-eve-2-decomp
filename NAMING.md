@@ -85,10 +85,30 @@ the spelling; tags live in their own namespace, so no third name is invented.
 
 ### Public and private
 
-A symbol is public only if something outside its translation unit reaches it.
-Public symbols are declared in the owning module's header; private ones are
-declared in the `.c` that defines them, are marked `_`, and are `static` where
-the build still matches.
+Place each function, global and type according to its actual consumers:
+
+- **One translation unit:** keep its declarations and type definitions in that
+  `.c` file's prologue. It does not belong in any header.
+- **Several translation units within one overlay:** use a private module header
+  beside the source, such as `src/gameplay/attachments.h`.
+- **Several overlays, or the resident executable and an overlay:** use the
+  owning module's public header under `include/`, such as
+  `include/gameplay/attachments.h`. Public headers must not include private
+  source-directory headers.
+
+Count definitions and actual uses, including callbacks, inline helpers and
+types required by shared signatures. Merely including an old umbrella header
+does not make a TU a consumer of everything it declares. Cross-image import
+aliases count as shared even when just one TU uses the import spelling.
+Consumers include the canonical header instead of copying its declarations.
+
+Group shared declarations by subsystem. Related translation units may share
+one header; a header does not need to mirror each source filename. Keep public
+and private interfaces separate, and retain separate type headers where the
+BSS declaration order described below requires them.
+
+TU-local symbols are marked `_` and are `static` where the build still matches.
+An overlay-private symbol shared between TUs still needs external C linkage.
 
 Two things decide this, and only one of them is visible from C:
 
@@ -107,12 +127,35 @@ Two things decide this, and only one of them is visible from C:
 
 ### File layout
 
+Include only headers whose declarations, types or macros the file uses, plus
+any prerequisites required by the SDK. A source file starts with the public
+or private header declaring the interface it implements. Follow that with a
+blank line, a Psy-Q include block, another blank line, and the overlay include
+blocks. Group each overlay separately, with the current overlay first. Shared
+decompilation helpers such as `common.h`, `types.h` and `gte.h`, when needed,
+have their own block between Psy-Q and the overlays. Headers use the same
+grouping without the initial implementation-header include. Keep SDK
+prerequisites before the SDK headers that need them.
+
+Do not retain `common.h` merely as a standard preamble. Include it for its
+macros; use `types.h` when only the primitive typedefs are needed. Headers must
+compile independently, including the dependencies used by their public macros.
+
 A translation unit has two halves. The first holds the includes, type
 definitions, forward declarations and whatever globals may safely live there.
 The second holds the function definitions and nothing else.
 
 The split is presentational for types and declarations, which the compiler may
 see in any order. It is **not** free for definitions:
+
+- **BSS follows first-declaration order in this compiler.** Where including an
+  API header first changes BSS order, keep the existing BSS definitions in
+  address order in the prologue, after the needed type declarations and before
+  the affected API headers. This is an exception to the include layout above;
+  choose a safe implementation header first when one is available. Type
+  headers and API headers remain separate where this ordering requires it.
+  Do not change object sizes, add padding, or change build alignment to repair
+  a header-order mismatch.
 
 - **Function order is address order.** `.text` is emitted in definition order,
   so functions keep the sequence they already have. The second half is a place

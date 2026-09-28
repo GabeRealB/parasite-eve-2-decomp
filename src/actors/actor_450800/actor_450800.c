@@ -12,14 +12,19 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
-
 #include "actors/actor.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
 
 /// Work block of the overlay's own actor, allocated zeroed by its spawn
 /// routine and kept at `Task::work`; the overlay's enemy uses
@@ -79,10 +84,6 @@ extern void func_80180038(s32);
 extern void func_80182D14(s32, s32);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_450800_80132448(Task* task);
 static void func_actor_450800_801327E4(GpEnemy* enemy, Task* task);
@@ -185,8 +186,8 @@ static void func_actor_450800_80132000(void)
 
 static void func_actor_450800_80132028(void)
 {
-    Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D3, (s32)&D_actor_450800_801397A4, 0);
-    Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D4, (s32)&D_actor_450800_801398EC, 0);
+    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_450800_801397A4, 0);
+    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D4, &D_actor_450800_801398EC, 0);
 }
 
 void func_actor_450800_80132080(void)
@@ -224,7 +225,7 @@ static inline void _actor450800TintModel(Task* spawned, Task* actor)
     TmdObject*   model;
     u32          idx;
 
-    sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+    sessionKey = &gGameSession->at4.loc;
     idx        = ((GpEnemy*)actor->spawnArg2)->placeKey >> 12;
     model      = spawned->extra.tmd;
     key.stage  = sessionKey->stage;
@@ -232,7 +233,7 @@ static inline void _actor450800TintModel(Task* spawned, Task* actor)
     key.room   = sessionKey->room;
     key.view   = gGameSession->at4.loc.view;
     Gp_SyncAreaKeyIndex(&key);
-    entry        = (GpAreaPlace*)((idx << 4) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+    entry        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, idx);
     model->tpage = entry->tpage;
     model->clut  = entry->clut;
     if (model->buffer != NULL) {

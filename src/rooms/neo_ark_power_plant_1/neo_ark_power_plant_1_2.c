@@ -4,11 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -17,6 +12,11 @@
 #include "main/task.h"
 #include "rooms/neo_ark_power_plant_1.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/display.h"
+#include "gameplay/loading.h"
+#include "gameplay/room_effects.h"
+#include "main/gamemain.h"
 
 /// World positions `func_neo_ark_power_plant_1_8017DA18` draws its glows at;
 /// the second name is the one emitter it may spawn an effect at instead.

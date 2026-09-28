@@ -5,12 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gfx.h"
@@ -20,6 +14,15 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b3_garbage_incinerator.h"
+
+#include "gameplay/world_collision.h"
+#include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
+#include "main/wipsys.h"
 
 typedef struct {
     /* 0x00 */ byte pad_0[0x24];
@@ -1141,7 +1144,7 @@ void func_shelter_b3_garbage_incinerator_80184D84(Task* arg0)
             buf.msg[2] = 0;
             buf.msg[3] = 0;
             buf.msg[4] = 0;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)buf.msg, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, buf.msg, 0);
             arg0->spawnArg2 = Task_SpawnFromTable(&D_80164190, 0, 0, 0);
             arg0->state++;
             return;

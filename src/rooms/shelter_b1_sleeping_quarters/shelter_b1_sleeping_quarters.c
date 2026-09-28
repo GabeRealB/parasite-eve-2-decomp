@@ -1,14 +1,16 @@
 #include "common.h"
-
-#include "gameplay/268.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "main/fs.h"
 
 extern s32      func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 extern TaskDesc D_shelter_b1_sleeping_quarters_80180540;

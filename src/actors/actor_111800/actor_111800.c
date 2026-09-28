@@ -7,15 +7,19 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
 
 /// Work block `func_actor_111800_80132390` allocates with `memCalloc(0x498)`
 /// and parks in `Task::work` (0x1C). The prefix is the shared actor anim
@@ -46,9 +50,6 @@ extern u8 D_actor_111800_8013A448[];
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
-
-/// Declared locally with a signed `arg2`; see the note in `gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Main-executable globals with no module header yet: `Gp_StateC08.field_A` is the
 /// cutscene-mode flag and `gDisplayState.pendingMode` is a live cutscene. `func_80182360` is
@@ -227,7 +228,7 @@ static void func_actor_111800_80132390(Task* task)
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     work->field_494 = 0x155;
-    place           = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
+    place           = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
     while (place->entryId != 0xFF && place->entryId != 0x13) {
         place++;
     }

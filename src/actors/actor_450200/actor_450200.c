@@ -1,8 +1,4 @@
 #include "common.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/mem.h"
@@ -11,6 +7,15 @@
 #include "main/tmd.h"
 
 #include <psyq/rand.h>
+
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "main/fs.h"
+#include "main/mc.h"
 
 extern void func_8017FA98(s32);
 extern void func_80180DAC(s32);

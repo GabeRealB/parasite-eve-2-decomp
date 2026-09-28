@@ -3,7 +3,8 @@
 
 #include "common.h"
 #include "main/task.h"
-#include "gameplay/3A34.h"
+
+#include "gameplay/actor.h"
 
 /// Work block of the task served by this shared body. Only the `GpObj` display
 /// node at 0x8 is reached from here -- `ActorsShared801511c8` is the exit

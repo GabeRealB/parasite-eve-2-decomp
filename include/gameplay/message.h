@@ -1,14 +1,44 @@
 #ifndef GAMEPLAY_MESSAGE_H
 #define GAMEPLAY_MESSAGE_H
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-// The records carried as the payload of task messages. A sender passes a
-// pointer to one alongside the message id, and every task that answers the
-// message reads the same layout, whichever overlay it lives in. Event scripts
-// keep these records as data and send them as they run.
+#include "common.h"
+
+#include "main/task.h"
+
+/// 8-byte id/handler record. `Task::msgTable` points at a table of these
+/// (`Gp_Slot4MsgTable`, `D_8010FB90`, …). `Gp_DispatchMsg` walks it and calls the
+/// matching handler with the same four arguments. Terminator id is
+/// `0x7FFFFFFF`.
+typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, s32 arg2, s32 arg3);
+
+typedef struct _GpMsgEntry {
+    /* 0x0 */ s32          id;
+    /* 0x4 */ GpMsgHandler handler;
+} GpMsgEntry;
+STATIC_ASSERT_SIZEOF(GpMsgEntry, 8);
+
+/// 0x10-byte spawn argument for `Gp_SpawnAlly` / `Gp_SpawnPlayer`. `field_0`
+/// is copied to `GameActor.field_52`; `field_4` / `field_8` / `field_C` are
+/// copied to the extra coordinate translation.
+typedef struct _GpActorArg {
+    /* 0x0 */ u16  field_0;
+    /* 0x2 */ byte pad_2[2];
+    /* 0x4 */ s32  field_4;
+    /* 0x8 */ s32  field_8;
+    /* 0xC */ s32  field_C;
+} GpActorArg;
+STATIC_ASSERT_SIZEOF(GpActorArg, 0x10);
+
+/// One payload word in the PS1 message ABI. A message id determines whether
+/// the recipient interprets the word as an integer or as an object address.
+typedef union GpMessageArg {
+    s32         value;
+    const void* pointer;
+} GpMessageArg;
+STATIC_ASSERT_SIZEOF(GpMessageArg, 4);
 
 /// A position and a set of Euler angles, the payload of the messages that put
 /// a task somewhere. The player takes it to be placed or warped, and as the
@@ -80,22 +110,6 @@ typedef struct GpCmdArg {
 } GpCmdArg;
 STATIC_ASSERT_SIZEOF(GpCmdArg, 4);
 
-/// The same 0x7DB record as `GpCmdArg`, as the event script runner sends it
-/// and a receiver that answers it sees it: `key` is the id the runner looked
-/// its target up by, and the halfword `GpCmdArg` reads as `command` is two
-/// bytes here. The receiver sets `done` once it has carried the request out,
-/// which the runner waits for; the runner sets `field_3` with each request.
-///
-/// It stays a type of its own rather than a union inside `GpCmdArg` because a
-/// union at `command` changes how the code that builds a `GpCmdArg` in place
-/// schedule its stores.
-typedef struct GpCmdReply {
-    u16 key;
-    s8  done;
-    s8  field_3;
-} GpCmdReply;
-STATIC_ASSERT_SIZEOF(GpCmdReply, 4);
-
 /// The payload of message 0x3FE, which moves the receiver by a displacement:
 /// `x`, `y` and `z` are added onto its coordinate. With `field_10` 7 the move
 /// also decides whether the receiver faces along it or away from it, from
@@ -131,4 +145,32 @@ typedef struct GpOverrideArg {
 } GpOverrideArg;
 STATIC_ASSERT_SIZEOF(GpOverrideArg, 8);
 
-#endif
+s32 Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+
+/// Send an object address in arg2; the recipient's message id defines its type.
+static __inline__ s32 Gp_DispatchMsgPtr(Task* task, s32 id, const void* data, s32 arg3)
+{
+    GpMessageArg payload;
+    payload.pointer = data;
+    return Gp_DispatchMsg(task, id, payload.value, arg3);
+}
+
+/// Send an object address in arg3, commonly an output/reply destination.
+static __inline__ s32 Gp_DispatchMsgReply(Task* task, s32 id, s32 arg2, const void* reply)
+{
+    GpMessageArg payload;
+    payload.pointer = reply;
+    return Gp_DispatchMsg(task, id, arg2, payload.value);
+}
+
+/// Send two object addresses through the same word-based message interface.
+static __inline__ s32 Gp_DispatchMsgPtrs(Task* task, s32 id, const void* data, const void* reply)
+{
+    GpMessageArg payload;
+    GpMessageArg response;
+    payload.pointer  = data;
+    response.pointer = reply;
+    return Gp_DispatchMsg(task, id, payload.value, response.value);
+}
+
+#endif // GAMEPLAY_MESSAGE_H

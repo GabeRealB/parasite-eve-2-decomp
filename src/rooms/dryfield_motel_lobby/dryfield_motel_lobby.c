@@ -2,11 +2,6 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -21,9 +16,13 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+
 extern UiObject*    D_80067634;
 extern UiObjectDesc D_800611E4;
-extern UiObjectDesc D_8010EFA0;
 
 /// Labels the four menu-entry handlers `func_dryfield_motel_lobby_8017F094` to
 /// `func_dryfield_motel_lobby_8017F308` draw: "Save", "Play Data", "Weapon

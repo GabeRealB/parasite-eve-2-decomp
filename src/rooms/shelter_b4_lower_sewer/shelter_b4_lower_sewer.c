@@ -4,9 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
-
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -15,6 +12,11 @@
 #include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "main/mc.h"
 
 /// One water surface: its near edge starts at (`x`, `z`) and runs `step` along
 /// X; its far edge sits `dz` further along Z. A surface whose `end` is -1

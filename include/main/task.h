@@ -190,6 +190,21 @@ STATIC_ASSERT_SIZEOF(TaskDesc, 0xc);
 
 Task* Task_SpawnFromTable(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
 Task* Task_Spawn(s32 bank, s32 type, s32 arg2, s32 arg3);
+
+/// Spawn arguments occupy one PS1 word; spawnArg2 stores an object address.
+typedef union TaskSpawnArg {
+    s32         value;
+    const void* pointer;
+} TaskSpawnArg;
+STATIC_ASSERT_SIZEOF(TaskSpawnArg, 4);
+
+static __inline__ Task* Task_SpawnPtr(s32 bank, s32 type, s32 arg2, const void* data)
+{
+    TaskSpawnArg arg;
+    arg.pointer = data;
+    return Task_Spawn(bank, type, arg2, arg.value);
+}
+
 Task* Task_SpawnOnDefaultList(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
 Task* Task_SpawnOnDefaultListA(s32 bank, s32 type, s32 arg2, s32 arg3);
 /// Kills a task and frees it: hands each child its own `exitCallback` with the

@@ -5,17 +5,19 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 static void func_shelter_b6_growth_room_8017E0A8(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1);

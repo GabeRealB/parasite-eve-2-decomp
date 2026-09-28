@@ -3,13 +3,15 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "main/fs.h"
 
 void       func_80162B0C(s32);
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
@@ -64,12 +66,12 @@ static void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     if (gGameSession->at4.loc.place == 1) {
         func_80162B0C(0);
-        func_800E8634((s32)&D_80165F48, 0, (s32)&D_80166848);
+        func_800E8634(&D_80165F48, 0, &D_80166848);
     } else {
         msg.from.loc.stage = 0;
         msg.from.loc.area  = 0;
         msg.command        = 7;
-        Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7DB, (s32)&msg, 0);
+        Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &msg, 0);
     }
     arg0->state++;
 }

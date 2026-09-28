@@ -4,10 +4,6 @@
  * map pictures' marker models.
  */
 #include "common.h"
-
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/4CC.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
@@ -25,6 +21,19 @@
 #include "mapui/stage_tables.h"
 #include "rooms/room.h"
 #include "rooms/stage_tables.h"
+
+#include "gameplay/area_flags.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/item_pickup.h"
+#include "gameplay/map.h"
+#include "gameplay/room.h"
+#include "gameplay/scene_tasks.h"
+#include "gameplay/sprites.h"
 
 static void func_map_akropolis_80179C50(UiList* arg0, UiObject* arg1);
 static void func_map_akropolis_80179D78(Task* task);
@@ -50,8 +59,6 @@ static GpBit2Rec    D_map_akropolis_8017BFEC[2];
 static GpBit2Rec    D_map_akropolis_8017C00C[2];
 static GpBit2Rec    D_map_akropolis_8017C02C[1];
 static GpBit2Rec    D_map_akropolis_8017C03C[10];
-
-extern UiObjectDesc D_8010EFA0;
 
 /// MDEC buffer layout hook for the Akropolis map, reached from
 /// `Mdec_SetupBuffers` (main) for the stream kinds this overlay plays. Every

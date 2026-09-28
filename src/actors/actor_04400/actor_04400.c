@@ -12,15 +12,23 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
-
 #include "actors/actors_shared_80163354.h"
 #include "actors/actors_shared_801673f8.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 /// Status flags at `Actor104400Work` + 0xEC, read through two widths.
 ///
@@ -262,10 +270,6 @@ static void Actor04400_Fn08C08(Task* arg0);
 static void Actor04400_Fn08C64(Task* arg0);
 static void Actor04400_Fn08DA4(Task* arg0);
 static s32  Actor04400_Fn08DBC(Task* arg0);
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /* `D_800678F0` selects the model stream the next `Gp_SpawnEff` copies into
  * its effect's `TmdObject`. Declared as a one-element array so GCC 2.8.1

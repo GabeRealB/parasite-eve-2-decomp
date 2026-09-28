@@ -1,12 +1,16 @@
 #include "common.h"
-
-#include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b3_dumping_hole.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "main/fs.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -70,8 +74,8 @@ static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
     if (GameFlag_GetNibble(0x78) == 0) {
         if (gGameSession->at4.loc.place == 1) {
             if (gGameSession->at4.loc.warp == 3) {
-                func_800E8634((s32)D_shelter_b3_dumping_hole_8018B080, 0,
-                              (s32)D_shelter_b3_dumping_hole_8018B428);
+                func_800E8634(D_shelter_b3_dumping_hole_8018B080, 0,
+                              D_shelter_b3_dumping_hole_8018B428);
             }
             func_800E3FAC(0xA2, 0x21);
             GameFlag_SetNibble(0x78, 1);

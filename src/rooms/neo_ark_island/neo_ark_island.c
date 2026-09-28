@@ -6,12 +6,6 @@
 #include "gte.h"
 #include "main/gfxgte.h"
 #include <psyq/rand.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gfx.h"
@@ -23,11 +17,16 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/object_task.h"
+#include "gameplay/world_targets.h"
+
 s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
-extern u8         D_80115598;
 extern GpMsgEntry D_neo_ark_island_80181B48[];
 
 /// Staging save location the island commits: `field_2` / `field_4` / `field_1`
@@ -790,7 +789,7 @@ void func_neo_ark_island_8017E844(Task* arg0)
             gDisplayState.roomVariant   = 1;
             Mc_SaveData[0].at4.loc.area = D_neo_ark_island_80184008.field_2;
             Mc_SaveData[0].at4.loc.warp = D_neo_ark_island_80184008.field_4;
-            Mc_SaveData[0].at4.loc.room = D_neo_ark_island_80184008.field_1;
+            Mc_SaveData[0].at4.loc.room = D_neo_ark_island_80184008.prefix.bytes.field_1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -812,9 +811,9 @@ s32 func_neo_ark_island_8017E968(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLo
     func_80179B14(src, dst);
     if (*(u16*)src == 0x1E) {
         if (src->field_5 == 0) {
-            D_neo_ark_island_80184008.field_2 = dst->field_0;
-            D_neo_ark_island_80184008.field_4 = dst->field_2;
-            D_neo_ark_island_80184008.field_1 = dst->field_3;
+            D_neo_ark_island_80184008.field_2              = dst->prefix.bytes.field_0;
+            D_neo_ark_island_80184008.field_4              = dst->field_2;
+            D_neo_ark_island_80184008.prefix.bytes.field_1 = dst->field_3;
             Gp_MsgPlayerWeapon(0);
             Task_SpawnFromTable(&D_neo_ark_island_80181B78, 0, 0, 0);
         }

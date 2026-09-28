@@ -5,12 +5,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_80133c6c.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
@@ -18,6 +12,19 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
+#include "main/mc.h"
+#include "main/wipsys.h"
 
 /// Work block for the `actor_136100` overlay's cutscene actor.
 ///
@@ -123,7 +130,6 @@ extern Task*   D_actor_136100_8014078C;
 static void func_actor_136100_80132748(Task* arg0);
 static void func_actor_136100_80133238(Task* arg0);
 static void func_actor_136100_80134A18(Task* task);
-void        func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static s32 func_actor_136100_80131EC4(Task* arg0)
 {
@@ -165,7 +171,7 @@ static s32 func_actor_136100_80131EC4(Task* arg0)
     rec.field_8         = 1;
     rec.field_C         = 0xA;
     rec.field_10        = 0;
-    Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32)&rec, 0);
+    Gp_DispatchMsgPtr(msgWork->field_4B4, 0x3E8, &rec, 0);
     goto ret1;
 }
 
@@ -246,7 +252,7 @@ void func_actor_136100_801320E0(Task* arg0)
             arg0->msgTable = &D_actor_136100_8013F2F4;
             Task_Reparent(D_actor_136100_8014078C, arg0);
         }
-        place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
+        place = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
         id    = place->entryId;
         while (id != 0xFF) {
             if (id == 0x6A) {
@@ -355,8 +361,8 @@ static void func_actor_136100_801323F8(Task* arg0)
         case 1:
             switch ((u16)work->field_4C6) {
                 case 0:
-                    Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)&D_actor_136100_8013F304[0], 0);
-                    Gp_DispatchMsg(work->field_4B4, 0x3F2, (s32)&D_actor_136100_8013F304[6], 0);
+                    Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, &D_actor_136100_8013F304[0], 0);
+                    Gp_DispatchMsgPtr(work->field_4B4, 0x3F2, &D_actor_136100_8013F304[6], 0);
                     work->field_4C8 = 0;
                     work->field_4C6++;
                     return;
@@ -382,7 +388,7 @@ static void func_actor_136100_801323F8(Task* arg0)
             func_actor_136100_SendWeaponRec(arg0, 0x34, 1, 0xA);
             break;
         case 4:
-            Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)&D_actor_136100_8013F37C, 0);
+            Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, &D_actor_136100_8013F37C, 0);
             func_actor_136100_SendWeaponRec(arg0, 0x2F, 0, 0);
             break;
         case 5:
@@ -542,7 +548,7 @@ static inline void func_actor_136100_PlayAnim(Task* task, u16 anim, s32 blend, s
         msg.field_8       = blend;
         msg.field_C       = speed;
         msg.field_10      = 0;
-        Gp_DispatchMsg(work->field_4C0, 0x3F4, (s32)&msg, 0);
+        Gp_DispatchMsgPtr(work->field_4C0, 0x3F4, &msg, 0);
     }
 }
 
@@ -594,7 +600,7 @@ static void func_actor_136100_80132BC0(Task* arg0)
             }
             break;
         case 3:
-            Gp_DispatchMsg(work->field_4C0, 0x3E9, (s32)&D_actor_136100_8013F3F4, 0);
+            Gp_DispatchMsgPtr(work->field_4C0, 0x3E9, &D_actor_136100_8013F3F4, 0);
             func_actor_136100_PlayAnim(arg0, 0, 0, 0);
             break;
     }
@@ -625,8 +631,8 @@ static void func_actor_136100_80132E78(Task* arg0)
             switch ((u16)work->field_4C6) {
                 case 0:
                     Gp_DispatchMsg(work->field_4B4, 0x3F3, 1, 0);
-                    Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)&D_actor_136100_8013F334[0], 0);
-                    Gp_DispatchMsg(work->field_4B4, 0x3F2, (s32)&D_actor_136100_8013F334[6], 0);
+                    Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, &D_actor_136100_8013F334[0], 0);
+                    Gp_DispatchMsgPtr(work->field_4B4, 0x3F2, &D_actor_136100_8013F334[6], 0);
                     work->field_4C8 = 0;
                     work->field_4C6++;
                     return;
@@ -652,7 +658,7 @@ static void func_actor_136100_80132E78(Task* arg0)
             func_actor_136100_SendWeaponRec(arg0, 0x35, 1, 0xA);
             break;
         case 5:
-            Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)&D_actor_136100_8013F364, 0);
+            Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, &D_actor_136100_8013F364, 0);
             func_actor_136100_SendWeaponRec(arg0, 1, 0, 0);
             break;
         case 6:
@@ -676,17 +682,17 @@ static void func_actor_136100_80133238(Task* arg0)
         case 0:
             break;
         case 1:
-            Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_136100_8013F3C4, 0);
+            Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_136100_8013F3C4, 0);
             break;
         case 2:
-            Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_136100_8013F3DC, 0);
+            Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_136100_8013F3DC, 0);
             break;
         case 3:
             func_actor_136100_SetAnim(arg0, 4);
             break;
         case 4:
             func_actor_136100_ResetSlots(arg0, 3);
-            Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_136100_8013F3AC, 0);
+            Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_136100_8013F3AC, 0);
             break;
         case 5:
             switch ((u16)work->field_4CE) {
@@ -706,7 +712,7 @@ static void func_actor_136100_80133238(Task* arg0)
         case 6:
             switch ((u16)work->field_4C6) {
                 case 0:
-                    Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_136100_8013F3DC, 0);
+                    Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_136100_8013F3DC, 0);
                     work->field_4EA = 0x1000;
                     work->field_4C6++;
                     return;
@@ -758,7 +764,7 @@ static void func_actor_136100_80133558(Task* arg0)
                 msg.field_8        = 1;
                 msg.field_C        = 0xA;
                 msg.field_10       = 0;
-                Gp_DispatchMsg(msgWork->field_4C0, 0x3F4, (s32)&msg, 0);
+                Gp_DispatchMsgPtr(msgWork->field_4C0, 0x3F4, &msg, 0);
             }
         }
     }
@@ -766,13 +772,13 @@ static void func_actor_136100_80133558(Task* arg0)
         case 0:
             break;
         case 1:
-            Gp_DispatchMsg(work->field_4C0, 0x3E9, (s32)&D_actor_136100_8013F424, 0);
+            Gp_DispatchMsgPtr(work->field_4C0, 0x3E9, &D_actor_136100_8013F424, 0);
             break;
         case 2:
-            Gp_DispatchMsg(work->field_4C0, 0x3E9, (s32)&D_actor_136100_8013F43C, 0);
+            Gp_DispatchMsgPtr(work->field_4C0, 0x3E9, &D_actor_136100_8013F43C, 0);
             break;
         case 3:
-            Gp_DispatchMsg(work->field_4C0, 0x3E9, (s32)&D_actor_136100_8013F40C, 0);
+            Gp_DispatchMsgPtr(work->field_4C0, 0x3E9, &D_actor_136100_8013F40C, 0);
             break;
     }
     work->field_4D4 = 0;
@@ -818,7 +824,7 @@ void func_actor_136100_80133690(void)
         i++;
     } while ((u16)i < 0x14U);
 
-    Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)&D_actor_136100_8013F31C, 0);
+    Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, &D_actor_136100_8013F31C, 0);
 
     msgWork             = (Actor136100Work*)task->work;
     weaponId            = Player_Status.weapon;
@@ -829,7 +835,7 @@ void func_actor_136100_80133690(void)
     rec.field_8         = 0;
     rec.field_C         = 0;
     rec.field_10        = 0;
-    Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32)&rec, 0);
+    Gp_DispatchMsgPtr(msgWork->field_4B4, 0x3E8, &rec, 0);
 }
 
 /// Second half of the cutscene actor's re-arm: clears the first two
@@ -861,7 +867,7 @@ void func_actor_136100_8013379C(s32 arg0)
     work->field_4C4 = 0;
     work->field_4CC = 0;
 
-    Gp_DispatchMsg(task, 0x7D4, (s32)&D_actor_136100_8013F3AC, 0);
+    Gp_DispatchMsgPtr(task, 0x7D4, &D_actor_136100_8013F3AC, 0);
 
     animWork            = (Actor136100Work*)task->work;
     animWork->field_4E0 = 3;
@@ -872,7 +878,7 @@ void func_actor_136100_8013379C(s32 arg0)
         i++;
     } while ((u16)i < 0x14U);
 
-    Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)D_actor_136100_8013F334, 0);
+    Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, D_actor_136100_8013F334, 0);
 
     msgWork             = (Actor136100Work*)task->work;
     weaponId            = Player_Status.weapon;
@@ -883,9 +889,9 @@ void func_actor_136100_8013379C(s32 arg0)
     rec.field_8         = 0;
     rec.field_C         = 0;
     rec.field_10        = 0;
-    Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32)&rec, 0);
+    Gp_DispatchMsgPtr(msgWork->field_4B4, 0x3E8, &rec, 0);
 
-    Gp_DispatchMsg(work->field_4C0, 0x3E9, (s32)&D_actor_136100_8013F40C, 0);
+    Gp_DispatchMsgPtr(work->field_4C0, 0x3E9, &D_actor_136100_8013F40C, 0);
 
     if (arg0 == 1) {
         Gfx_RotMatrixY(&task->extra.tmd->coords[4].coord, 0, 1);
@@ -923,7 +929,7 @@ static s32 func_actor_136100_80133904(Task* task)
     if ((s8)evtKind == 0x12 && work->field_4E4 == 0) {
         func_actor_136100_80134A18(task);
         if (work->field_4DC == 0) {
-            func_800E8634((s32)&D_actor_136100_8013F94C, 0, (s32)&D_actor_136100_8013FAE4);
+            func_800E8634(&D_actor_136100_8013F94C, 0, &D_actor_136100_8013FAE4);
             work->field_4DC++;
         } else {
             func_800E8614((s32)&D_actor_136100_8013FC64, 0);
@@ -933,7 +939,7 @@ static s32 func_actor_136100_80133904(Task* task)
     if ((s8)evtKind == 0x13 && work->field_4E4 == 1) {
         func_actor_136100_80134A18(task);
         if (work->field_4DC == 0) {
-            func_800E8634((s32)&D_actor_136100_801402C4, 0, (s32)&D_actor_136100_801404EC);
+            func_800E8634(&D_actor_136100_801402C4, 0, &D_actor_136100_801404EC);
             work->field_4DC++;
         } else {
             func_800E8614((s32)&D_actor_136100_8014063C, 0);
@@ -977,7 +983,7 @@ static void func_actor_136100_80133A88(Task* arg0)
     tmd->lightMtx = &work->field_474;
     tmd->colorMtx = &work->field_494;
     tmd->flags   &= 0xFFFB;
-    place         = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
+    place         = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
     id            = place->entryId;
     while (id != 0xFF) {
         if (id == 0x6A) {
@@ -1112,11 +1118,11 @@ void func_actor_136100_80133BC8(Task* arg0)
                 Gp_DispatchMsg(arg0, 0x7D5, 1, 0);
                 Gp_DispatchMsg(work->field_4B8, 0x7D5, 1, 0);
                 Gp_DispatchMsg(work->field_4BC, 0x7D5, 1, 0);
-                Gp_DispatchMsg(work->field_4BC, 0x7D4, (s32)&D_actor_136100_8013F454, 0);
+                Gp_DispatchMsgPtr(work->field_4BC, 0x7D4, &D_actor_136100_8013F454, 0);
                 if (work->field_4C0 != NULL) {
-                    Gp_DispatchMsg(work->field_4C0, 0x3E9, (s32)&D_actor_136100_8013F3F4, 0);
+                    Gp_DispatchMsgPtr(work->field_4C0, 0x3E9, &D_actor_136100_8013F3F4, 0);
                 }
-                Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_136100_8013F394, 0);
+                Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_136100_8013F394, 0);
                 func_actor_136100_ResetSlots(arg0, 1);
                 func_actor_136100_SendAnimRec(arg0, 1);
             } else {
@@ -1125,9 +1131,9 @@ void func_actor_136100_80133BC8(Task* arg0)
                 Gp_DispatchMsg(work->field_4B8, 0x7D5, 1, 0);
                 Gp_DispatchMsg(work->field_4BC, 0x7D5, 1, 0);
                 if (work->field_4C0 != NULL) {
-                    Gp_DispatchMsg(work->field_4C0, 0x3E9, (s32)&D_actor_136100_8013F40C, 0);
+                    Gp_DispatchMsgPtr(work->field_4C0, 0x3E9, &D_actor_136100_8013F40C, 0);
                 }
-                Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_136100_8013F3AC, 0);
+                Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_136100_8013F3AC, 0);
                 func_actor_136100_ResetSlots(arg0, 3);
                 func_actor_136100_SendAnimRec(arg0, 5);
             }
@@ -1143,7 +1149,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                     return;
                 }
                 func_actor_136100_SendWeaponRec(arg0, 1, 1, 0xA);
-                func_800E8634((s32)&D_actor_136100_8013F46C, 0, (s32)&D_actor_136100_8013F784);
+                func_800E8634(&D_actor_136100_8013F46C, 0, &D_actor_136100_8013F784);
                 Gp_UnlinkObj4A(0, &D_801884AC);
                 func_actor_136100_SendTable(arg0);
                 GameFlag_SetNibble(0x7C, 1);
@@ -1158,7 +1164,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                     return;
                 }
                 func_actor_136100_SendWeaponRec(arg0, 1, 1, 0xA);
-                func_800E8634((s32)&D_actor_136100_8013FD84, 0, (s32)&D_actor_136100_80140114);
+                func_800E8634(&D_actor_136100_8013FD84, 0, &D_actor_136100_80140114);
                 Gp_UnlinkObj4A(0, &D_801884F8);
                 func_actor_136100_SendTable(arg0);
                 GameFlag_SetNibble(0x7C, 1);
@@ -1290,7 +1296,7 @@ void func_actor_136100_8013467C(void)
     rec.field_8         = 0;
     rec.field_C         = 0;
     rec.field_10        = 0;
-    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &rec, 0);
 }
 
 /// Shows the task's model when `arg2` is non-zero and hides it (bit 0x80 of
@@ -1431,5 +1437,5 @@ static void func_actor_136100_80134A18(Task* arg0)
     }
     msg.words = &D_actor_136100_8013F180[0];
     msg.count = n & 0xFFFF;
-    Gp_DispatchMsg(work->field_4B4, 0x3F7, (s32)&msg, 0);
+    Gp_DispatchMsgPtr(work->field_4B4, 0x3F7, &msg, 0);
 }

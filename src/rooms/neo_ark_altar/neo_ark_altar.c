@@ -2,11 +2,6 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -14,6 +9,14 @@
 #include "rooms/neo_ark_altar.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/mc.h"
 
 /// 0xFF-terminated area-record list applied the first time the altar fires.
 extern GpAreaApplyRec D_neo_ark_altar_801800A0;

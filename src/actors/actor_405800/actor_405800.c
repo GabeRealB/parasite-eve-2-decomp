@@ -14,16 +14,29 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
-
 #include "actors/actor.h"
 #include "actors/actors_shared_80131fc8.h"
 #include "actors/actors_shared_8013a0b0.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/attachments.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/model_lighting.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/loading.h"
+#include "gameplay/sprites.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 void func_8004BFF8(s32 angle, MATRIX* matrix);
@@ -1275,7 +1288,7 @@ static void func_actor_405800_801340E0(Task* arg0)
         return;
     }
     query.field_14 = 0x18;
-    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&query, 0) != 0) {
+    if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &query, 0) != 0) {
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
         if (work->field_890 == 0) {
             work3            = (Actor405800Work*)arg0->work;
@@ -1299,7 +1312,7 @@ static void func_actor_405800_801340E0(Task* arg0)
     msg.field_C          = 0;
     msg.field_10         = 0;
     msg.field_4          = 4;
-    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&msg, 0);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &msg, 0);
     work->obj_4B4.flags &= 0x7FFF;
     work->obj_594.flags &= 0xBFFF;
     work2                = (Actor405800Work*)arg0->work;
@@ -1360,7 +1373,7 @@ static void func_actor_405800_80134314(Task* arg0)
             msg.field_C       = 8;
             msg.field_10      = 0;
             msg.field_4       = 5;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F4, &msg, 0);
         }
         work2            = (Actor405800Work*)arg0->work;
         work2->field_84A = 8;
@@ -2034,7 +2047,7 @@ static void func_actor_405800_801361F8(Task* arg0)
     }
     player = arg0->extra.tmd->coords;
     actor  = arg0->work;
-    if (player->coord.t[0] < 0x3A98 || Gp_StateF0.field_0 == 0) {
+    if (player->coord.t[0] < 0x3A98 || Gp_StateF0.prefix.bytes.field_0 == 0) {
         work->field_A8.vx = (u16)player->coord.t[0];
         work->field_A8.vy = (u16)player->coord.t[1];
         work->field_A8.vz = (u16)player->coord.t[2];
@@ -3105,10 +3118,6 @@ static void func_actor_405800_80138224(Task* task)
     } while (i < 0x12);
     work->field_870 = work->field_872;
 }
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_405800_80138294(Task* arg0)
 {

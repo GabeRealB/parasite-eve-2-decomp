@@ -1,11 +1,6 @@
 #include "common.h"
-#include "gameplay/D4.h"
 
 #include <psyq/libgte.h>
-
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -15,6 +10,14 @@
 #include "rooms/dryfield_water_tower.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
+#include "main/fs.h"
 
 /* The room calls the dispatcher with only the task, leaving a1-a3 holding
    whatever the caller had, so the declaration must stay unprototyped. */

@@ -3,13 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/rand.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/session.h"
@@ -17,6 +10,18 @@
 #include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 extern GpGridParams D_dryfield_night_water_tank_8017E08C;
 extern GpGridParams D_dryfield_night_water_tank_8017F4B0;
@@ -80,7 +85,7 @@ void func_dryfield_night_water_tank_8017D5D0(Task* task)
 
     switch (task->state) {
         case 0:
-            if (Gp_StateF0.field_0 == 1) {
+            if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                 gGameSession->flowFlags = gGameSession->flowFlags | 0x80;
                 task->state             = task->state + 1;
                 return;
@@ -97,7 +102,7 @@ void func_dryfield_night_water_tank_8017D5D0(Task* task)
                 Gp_ApplyAreaRecs(&D_dryfield_night_water_tank_801808B0);
                 GameFlag_SetNibble(0x7B, 2);
                 GameFlag_SetNibble(0x83, 1);
-                func_800E8634((s32)&D_80137C28, 0, (s32)&D_80138570);
+                func_800E8634(&D_80137C28, 0, &D_80138570);
                 GameFlag_SetNibble(3, 0);
                 GameFlag_SetNibble(0x155, 0xE);
                 taskKill(task);

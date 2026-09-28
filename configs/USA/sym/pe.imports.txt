@@ -54,8 +54,9 @@ Gp_State1C = 0x80115740; // absolute:True
 
 // --- still unnamed in their own overlay (6)
 D_80111E38 = 0x80111E38; // absolute:True
-D_80113D40 = 0x80113D40; // absolute:True
 D_80114C0B = 0x80114C0B; // absolute:True
 D_801150C0 = 0x801150C0; // absolute:True
 D_80115404 = 0x80115404; // absolute:True
 D_80115724 = 0x80115724; // absolute:True
+
+Gp_AttachParams = 0x80113D38; // absolute:True size:0x1B8

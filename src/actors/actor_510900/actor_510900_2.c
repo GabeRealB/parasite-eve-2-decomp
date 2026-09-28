@@ -14,15 +14,26 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
-
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "actors/actor_510900.h"
 #include "actors/actors_shared_80132074.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
+#include "main/mem.h"
 
 /// 0x10-byte scratch `func_actor_510900_80138F44` takes from `G_SCRATCH_HEAD`
 /// to rebuild the collision face this actor occupies. `center` starts as the
@@ -252,9 +263,6 @@ static void func_actor_510900_8013C430(Task* arg0);
 extern s32 D_80187D34;
 extern s32 D_80187D3C;
 
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_80180A64(GpCoord* arg0);
 
 /// `field_59C` reload tables, indexed by four bits of `Gp_LcgState`.
@@ -1129,7 +1137,7 @@ static void func_actor_510900_801373B8(Task* arg0)
     GpCoord*         coord;
     GpAreaKey*       sessionKey;
     TmdObject*       model;
-    GpAreaRec*       rec;
+    GpAreaVariant*   rec;
     GpAreaPlace*     entry;
     GpAreaKey        key;
     s32              idx;
@@ -1157,7 +1165,7 @@ static void func_actor_510900_801373B8(Task* arg0)
         rec = Gp_GetNestedAreaRec(&key);
         /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled
            index onto the table (`addu s0, s0, v0`). */
-        entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        entry        = gpAreaPlaceAt(rec->field_0, idx);
         model->tpage = entry->tpage;
         model->clut  = entry->clut;
         if (model->buffer != NULL) {
@@ -1353,7 +1361,7 @@ static void func_actor_510900_80137868(Task* arg0)
                 }
             }
             if (work->field_58A == 0x58) {
-                Gp_SpawnScript18((s32)&D_80187D34, (s32)&D_80187D3C);
+                Gp_SpawnScript18(&D_80187D34, &D_80187D3C);
             }
             if (work->field_58A == 0x60) {
                 work->obj4E4.flags &= 0x7FFF;
@@ -2576,7 +2584,7 @@ static void func_actor_510900_8013A310(Task* task)
         case 0:
             if (((GameActor*)player->work)->field_954 != 2) {
                 scratch->query.field_14 = 0xC;
-                if (Gp_DispatchMsg(player, 0x3F8, (s32)scratch, 0) != 0) {
+                if (Gp_DispatchMsgPtr(player, 0x3F8, scratch, 0) != 0) {
                     work->field_CA = 3;
                     break;
                 }
@@ -2586,7 +2594,7 @@ static void func_actor_510900_8013A310(Task* task)
                 scratch->anim.field_8       = 0;
                 scratch->anim.field_C       = 0;
                 scratch->anim.field_10      = 1;
-                Gp_DispatchMsg(player, 0x3FF, (s32)&scratch->anim, 0);
+                Gp_DispatchMsgPtr(player, 0x3FF, &scratch->anim, 0);
                 work->field_CC = 1;
                 work->field_CE = 0;
                 obj            = player->extra.tmd->coords;
@@ -2607,7 +2615,7 @@ static void func_actor_510900_8013A310(Task* task)
             scratch->anim.field_8       = 0;
             scratch->anim.field_C       = 0;
             scratch->anim.field_10      = 1;
-            Gp_DispatchMsg(player, 0x3FF, (s32)&scratch->anim, 0);
+            Gp_DispatchMsgPtr(player, 0x3FF, &scratch->anim, 0);
             work->field_CC = 2;
             work->field_CE = 0;
             break;
@@ -2836,7 +2844,7 @@ case0:
         work->field_330 = 2;
         goto end;
     }
-    ctx->node.state.b.flags = Gp_StateF0.field_0 != 1;
+    ctx->node.state.b.flags = Gp_StateF0.prefix.bytes.field_0 != 1;
     dmg                     = work->rec2DC.key;
     work->obj2BC.flags     |= 0x8000;
     if ((dmg & 0xFFFF8000) == 0x20000 && ctx->node.state.b.targeted == one &&
@@ -3095,7 +3103,7 @@ static void func_actor_510900_8013B0D8(Task* arg0)
             }
             break;
         case 1:
-            ctx->node.state.b.flags = Gp_StateF0.field_0 != 1;
+            ctx->node.state.b.flags = Gp_StateF0.prefix.bytes.field_0 != 1;
             hit                     = work->rec20.key;
             work->obj0.flags       |= 0x8000;
             if ((hit & ~0x7FFF) == 0x20000) {

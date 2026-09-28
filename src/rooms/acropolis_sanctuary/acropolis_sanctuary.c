@@ -6,14 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/abs.h>
-
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/4CC.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -25,6 +17,22 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/inventory.h"
+#include "gameplay/items.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/wipsys.h"
 
 /// 0xC work block of the sanctuary's cutscene task, hung off the `Task::work`
 /// slot (0x1C) -- that slot is *not* a `TaskIdMap` here, it is the
@@ -226,7 +234,7 @@ static void func_acropolis_sanctuary_8017D5E0(Task* task)
 
     if (GameFlag_GetNibble(2) == 0 && gGameSession->at4.loc.warp == 3) {
         GameFlag_SetNibble(2, 2);
-        func_800E8634((s32)&D_acropolis_sanctuary_80180B0C, 0, (s32)&D_acropolis_sanctuary_80181664);
+        func_800E8634(&D_acropolis_sanctuary_80180B0C, 0, &D_acropolis_sanctuary_80181664);
         Gp_ApplyAreaRecs(D_acropolis_sanctuary_80186418);
         Mc_SaveData[0].sceneEvent = 6;
         GameFlag_SetNibble(1, 5);
@@ -328,10 +336,10 @@ void func_acropolis_sanctuary_8017D8CC(void)
 {
     if (Player_Status.weapon == 2) {
         Gp_PlayerWeaponId(&D_acropolis_sanctuary_801809F8.animBlock.index);
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&D_acropolis_sanctuary_801809F8, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &D_acropolis_sanctuary_801809F8, 0);
     } else {
         Gp_PlayerWeaponId(&D_acropolis_sanctuary_80180A0C.animBlock.index);
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&D_acropolis_sanctuary_80180A0C, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &D_acropolis_sanctuary_80180A0C, 0);
     }
 }
 
@@ -351,8 +359,8 @@ static void func_acropolis_sanctuary_8017D930(Task* arg0)
         slot = Gp_LookupSlot4(1);
         Gp_MsgSlot4Chain(1, 1);
         if (GameFlag_GetNibble(2) != 0 && slot != NULL) {
-            Gp_DispatchMsg(slot, 0x7D3, (s32)&D_acropolis_sanctuary_80180AE8, 0);
-            Gp_DispatchMsg(slot, 0x7D4, (s32)&D_acropolis_sanctuary_801808BC, 0);
+            Gp_DispatchMsgPtr(slot, 0x7D3, &D_acropolis_sanctuary_80180AE8, 0);
+            Gp_DispatchMsgPtr(slot, 0x7D4, &D_acropolis_sanctuary_801808BC, 0);
         }
     }
     func_acropolis_sanctuary_8017DD78();
@@ -416,9 +424,9 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 weapon.rec.field_8         = 1;
                 weapon.rec.field_C         = 0xF;
                 weapon.rec.field_10        = 0;
-                Gp_DispatchMsg(slot->target, 0x3E8, (s32)&weapon, 0);
+                Gp_DispatchMsgPtr(slot->target, 0x3E8, &weapon, 0);
                 SndEvt_EnqueueType6(0x510C0007, 0, 0);
-                func_800E8634((s32)&D_acropolis_sanctuary_801820F0, 0, (s32)&D_acropolis_sanctuary_801821C8);
+                func_800E8634(&D_acropolis_sanctuary_801820F0, 0, &D_acropolis_sanctuary_801821C8);
                 arg0->state = arg0->state + 1;
             }
             break;
@@ -451,7 +459,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                             rec.rec.field_8       = 0;
                             msg->rec.field_C      = 0xF;
                             msg->rec.field_10     = 1;
-                            Gp_DispatchMsg(target->target, 0x3F4, (s32)msg, 0);
+                            Gp_DispatchMsgPtr(target->target, 0x3F4, msg, 0);
                         }
                         rec.place.pos.vx  = -0x1DB0;
                         rec.place.pos.vy  = 0;
@@ -459,7 +467,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                         rec.place.rot.vx  = 0;
                         rec.place.rot.vy  = 0;
                         rec.place.rot.vz  = 0;
-                        Gp_DispatchMsg(cutscene->target, 0x3E9, (s32)msg, 0);
+                        Gp_DispatchMsgPtr(cutscene->target, 0x3E9, msg, 0);
                         Mc_SaveData[0].at4.loc.view = 0xE;
                         cutscene->step              = cutscene->step + 1;
                     }

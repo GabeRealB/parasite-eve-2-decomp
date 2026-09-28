@@ -6,10 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/abs.h>
-
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gfx.h"
@@ -20,6 +16,14 @@
 
 /// One step of gameplay's LCG, `state = state * 5 + 0x71357911`, as its high half.
 #define ACTOR_341300_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+
+#include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
 /// 0x30 block `func_actor_341300_80162878` and `func_actor_341300_801631D4`
 /// allocate into `Task::work`: a tumbling Gouraud triangle shard with its own

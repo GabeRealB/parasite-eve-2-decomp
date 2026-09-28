@@ -8,6 +8,11 @@
 #include "main/ui.h"
 #include "main/mc.h"
 
+#include "gameplay/display.h"
+#include "main/fs.h"
+#include "main/sound.h"
+#include "main/task.h"
+
 static void McMenu_ConfirmDialog(UiList* arg0, UiObject* arg1);
 static void McMenu_ConfirmNo(UiList* arg0, UiObject* arg1);
 static void McMenu_ConfirmDialogAlt(UiList* arg0, UiObject* arg1);

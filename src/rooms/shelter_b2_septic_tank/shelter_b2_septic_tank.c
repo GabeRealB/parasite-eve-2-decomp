@@ -5,12 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -24,12 +18,18 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern s32 D_8011572C;
-extern s32 D_80115738;
-extern s32 D_8011574C;
-extern s32 D_80115750;
-extern s32 D_80115758;
-extern u8  D_80115690;
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 /// The room's message table, installed by its first task state.
 extern GpMsgEntry D_shelter_b2_septic_tank_80182F4C[];

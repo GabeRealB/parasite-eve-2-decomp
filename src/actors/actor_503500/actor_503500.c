@@ -1,16 +1,22 @@
 #include "common.h"
 
 #include "actors/actor_503500.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 /// Work block allocated by `func_actor_503500_80132430`
 /// (`memCalloc(0x48)`) and parked in that task's `Task::work` slot.
@@ -68,7 +74,7 @@ static void func_actor_503500_8013223C(Task* arg0)
             coord->coord.t[2] = p->vz;
             if (!(enemy->placeKey & 0xF)) {
                 if (work->field_40 & 1) {
-                    Gp_SpawnScript18((s32)D_actor_503500_801468A8, (s32)D_actor_503500_801468B0);
+                    Gp_SpawnScript18(D_actor_503500_801468A8, D_actor_503500_801468B0);
                     Display_ClampField126(-1);
                 } else {
                     Display_ClampField126(0);
@@ -85,7 +91,7 @@ static void func_actor_503500_8013223C(Task* arg0)
     } else if (work->field_40 > 0) {
         if (!(enemy->placeKey & 0xF)) {
             if (work->field_40 & 1) {
-                Gp_SpawnScript18((s32)D_actor_503500_801468A8, (s32)D_actor_503500_801468B0);
+                Gp_SpawnScript18(D_actor_503500_801468A8, D_actor_503500_801468B0);
                 Display_ClampField126(-1);
             } else {
                 Display_ClampField126(0);

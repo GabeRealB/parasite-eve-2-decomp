@@ -7,8 +7,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include "main/coord.h"
-
-#include "gameplay/3A34.h"
 #include "main/task.h"
 #include "main/ui.h"
 

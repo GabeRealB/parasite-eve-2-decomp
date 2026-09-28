@@ -20,8 +20,8 @@ Implementation references:
 | **CD streams (MTS audio + STR movie)** | [`STREAM_FORMATS.md`](STREAM_FORMATS.md), `mts_codec.py`, `str_codec.py` |
 | **Overlays (RAM slots, rooms, models)** | [`OVERLAYS.md`](OVERLAYS.md) |
 | **Models (TMD)** | [`TMD_FORMAT.md`](TMD_FORMAT.md), `tools/peassets/pkg_model.py`, `src/main/tmd.c` |
-| **Dialogue (CAP)** | [`CAP_FORMAT.md`](CAP_FORMAT.md), `src/gameplay/3CD8.c`, `3CD8_34D8.c` |
-| Animation in packages | `tools/peassets/pkg_anim.py`, `src/gameplay/1BC.c` |
+| **Dialogue (CAP)** | [`CAP_FORMAT.md`](CAP_FORMAT.md), `src/gameplay/cap_reloc.c`, `src/gameplay/captions.c` |
+| Animation in packages | `tools/peassets/pkg_anim.py`, `src/gameplay/scene_runtime.c` |
 | Assets embedded in the executables | `tools/peassets/exe_assets.py` |
 
 ---
@@ -630,12 +630,12 @@ meaningful while *that weapon's* package is loaded. Two consequences:
 ### 9.2 Animation blocks
 
 Layout, from `Gp_AnimInitCtx` / `Gp_AnimResetSlot` / `Gp_AnimResetSlotEx` in
-`src/gameplay/1BC.c`:
+`src/gameplay/scene_runtime.c`:
 
 ```text
 table entry ─→ GpAnimSet*[]        slot 0 unused; NULL entries are holes
 
-GpAnimSet (types in include/gameplay/1BC.h):
+GpAnimSet (types in include/gameplay/animation.h):
   0x00  GpAnimRec*     recs        base of the 4-byte clip records
   0x04  u16*           trackStart  clip index table (values are record indices)
   0x08  GpPackedSvec*  poseBanks[8] pose banks, indexed by a record's flags & 0xF

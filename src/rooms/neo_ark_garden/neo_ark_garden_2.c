@@ -4,12 +4,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -18,6 +12,15 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+
 /// The block the garden's ambience task reaches through `Task::spawnArg2`.
 /// Only `soundDelay` is read here; what precedes it belongs to whoever owns the
 /// block, and the type's true size is not known.
@@ -25,10 +28,6 @@ typedef struct NeoArkGardenAmbience {
     u8  pad_0[0x24];
     s16 soundDelay; // Frames left before the view's loops are re-enqueued; set to 4 on every view change
 } NeoArkGardenAmbience;
-
-extern s32 D_80115730;
-extern s32 D_80115734;
-extern s32 D_80115754;
 
 extern SVECTOR D_neo_ark_garden_801813D8;
 extern SVECTOR D_neo_ark_garden_801813E0[];

@@ -14,13 +14,6 @@
 #include "actors/actors_shared_8013852c.h"
 #include "actors/actors_shared_8013898c.h"
 #include "actors/actors_shared_80138efc.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
-#include "gameplay/pairsrc.h"
 #include "main/fs.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -29,6 +22,21 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/attachments.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
 /* The loops that step the display nodes, the contact tables or the animation
    slots of the work block walk a scalar byte offset from the block rather than
@@ -39,12 +47,6 @@
 extern GpPairSrcE Actor01100_D074E8;
 extern GpPairSrcE Actor01100_D07510;
 extern u8         Actor01100_D15604[];
-
-/// Effect ids `Actor01100_Fn02960` passes to `Gp_SpawnEff`: `D_8011574C`
-/// at the model root when the low four bits of `gDisplayState.animFrame` are clear, and
-/// `D_80115738` for the splash.
-extern s32 D_80115738;
-extern s32 D_8011574C;
 
 /// Word whose low bits `Actor01100_Fn02960` (bits 0-3) and
 /// `Actor01100_Fn06F38` (bit 0) test; what sets it is outside this entry.
@@ -975,7 +977,7 @@ static s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWo
 /// cleared. `Task::spawnArg1` then picks the threshold: 0 takes 0x5F5E0F
 /// outright, 0x20000 takes 0x3D08FF, and anything else 0xF423FF while the
 /// player's `GameActor::field_958` reads 3 and 0xF423F otherwise; the 0x20000
-/// case also closes in whenever the player flag at `Gp_StateF0.field_2` reads 1
+/// case also closes in whenever the player flag at `Gp_StateF0.prefix.bytes.field_2` reads 1
 /// without measuring at all. Either way the link transform is re-armed exactly
 /// as its siblings arm it - model part 3 through `TmdObject::coords[3]`, the
 /// 0xC8-box local offset through `src` - and `Actor01100_Fn00F58` runs last;
@@ -1020,7 +1022,7 @@ static void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcW
 
         if (player != NULL) {
             actor = (GameActor*)player->work;
-            if (((Gp_StateF0.field_2 ^ 1) == 0) || (((u16)actor->field_958 == 3) && dist <= 0x3D08FF)) {
+            if (((Gp_StateF0.prefix.bytes.field_2 ^ 1) == 0) || (((u16)actor->field_958 == 3) && dist <= 0x3D08FF)) {
                 flag = 1;
             }
         }

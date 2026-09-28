@@ -3,14 +3,18 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "main/fs.h"
 
 static void func_m950_8011D1DC(Task* arg0)
 {

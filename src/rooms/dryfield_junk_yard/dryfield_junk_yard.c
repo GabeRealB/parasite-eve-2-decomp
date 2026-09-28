@@ -1,18 +1,21 @@
 #include "common.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/4CC.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/inventory.h"
+#include "gameplay/items.h"
+#include "gameplay/room_effects.h"
+#include "main/fs.h"
 
 /// Block `func_dryfield_junk_yard_8017D658` carves off the scratch stack
 /// (`0x1F8003FC`, one `addiu` of `-0x18`) to hold the model's world position
@@ -120,15 +123,15 @@ static void func_dryfield_junk_yard_8017D708(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     if (gameGetPtrSlot(0xA) != 0) {
         if (GameFlag_GetNibble(0x38) == 0) {
-            Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3E9, (s32)&D_dryfield_junk_yard_8017DE00, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E9, &D_dryfield_junk_yard_8017DE00, 0);
             Gp_AllyAnimId(&D_dryfield_junk_yard_8017DD88);
-            Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3E8, (s32)&D_dryfield_junk_yard_8017DD88, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E8, &D_dryfield_junk_yard_8017DD88, 0);
         }
         if ((GameFlag_GetNibble(0x39) == 0) && (GameFlag_GetNibble(0x28) >= 2)) {
             GameFlag_SetNibble(0x39, 1);
-            func_800E8634((s32)&D_dryfield_junk_yard_8017E490, 0, (s32)&D_dryfield_junk_yard_8017E658);
+            func_800E8634(&D_dryfield_junk_yard_8017E490, 0, &D_dryfield_junk_yard_8017E658);
         } else if (gGameSession->at4.loc.warp == 2) {
-            Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3E9, (s32)&D_dryfield_junk_yard_8017DE30, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E9, &D_dryfield_junk_yard_8017DE30, 0);
         }
     }
     arg0->state = (s32)(arg0->state + 1);
@@ -148,7 +151,7 @@ void func_dryfield_junk_yard_8017D848(Task* task)
 {
     switch (task->state) {
         case 0:
-            func_800E8634((s32)&D_dryfield_junk_yard_8017DE48, 0, (s32)&D_dryfield_junk_yard_8017E028);
+            func_800E8634(&D_dryfield_junk_yard_8017DE48, 0, &D_dryfield_junk_yard_8017E028);
             task->state = task->state + 1;
             return;
         case 1:
@@ -158,7 +161,7 @@ void func_dryfield_junk_yard_8017D848(Task* task)
             task->state = task->state + 1;
             return;
         case 3:
-            Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3EE, (s32)&D_dryfield_junk_yard_8017DE18, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3EE, &D_dryfield_junk_yard_8017DE18, 0);
             task->state = task->state + 1;
             return;
         case 4:
@@ -168,7 +171,7 @@ void func_dryfield_junk_yard_8017D848(Task* task)
             task->state = task->state + 1;
             return;
         case 5:
-            Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3E8, (s32)&D_dryfield_junk_yard_8017DDD8, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E8, &D_dryfield_junk_yard_8017DDD8, 0);
             task->state = task->state + 1;
             return;
         case 6:
@@ -178,7 +181,7 @@ void func_dryfield_junk_yard_8017D848(Task* task)
             task->state = task->state + 1;
             return;
         case 7:
-            Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3E8, (s32)&D_dryfield_junk_yard_8017DDEC, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E8, &D_dryfield_junk_yard_8017DDEC, 0);
             /* fallthrough */
         case 2:
             taskKill(task);
@@ -241,7 +244,7 @@ s32 func_dryfield_junk_yard_8017DA4C(s32 arg0, s32 arg1, RoomEventMsg* in, RoomE
         if (GameFlag_GetNibble(0x38) == 1) {
             if (in->field_5 == 0) {
                 GameFlag_SetNibble(0x38, 2);
-                func_800E8634((s32)&D_dryfield_junk_yard_8017E3D0, 0, (s32)&D_dryfield_junk_yard_8017E2B0);
+                func_800E8634(&D_dryfield_junk_yard_8017E3D0, 0, &D_dryfield_junk_yard_8017E2B0);
             }
             return 2;
         }
@@ -274,7 +277,7 @@ s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, GpMsg13EF* msg)
         if ((player != NULL) && (player->extra.tmd->coords->coord.t[0] >= 0x5209) &&
             (GameFlag_GetNibble(0x38) == 1)) {
             GameFlag_SetNibble(0x38, 2);
-            func_800E8634((s32)&D_dryfield_junk_yard_8017E160, 0, (s32)&D_dryfield_junk_yard_8017E2B0);
+            func_800E8634(&D_dryfield_junk_yard_8017E160, 0, &D_dryfield_junk_yard_8017E2B0);
         }
     }
     return 0;

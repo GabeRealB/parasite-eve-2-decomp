@@ -2,9 +2,6 @@
 #define ACTORS_SHARED_8013852C_H
 
 #include "common.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3FB8.h"
 #include "main/task.h"
 #include "main/tmd.h"
 

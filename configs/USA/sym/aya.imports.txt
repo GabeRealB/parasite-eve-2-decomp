@@ -95,4 +95,4 @@ D_80072314 = 0x80072314; // absolute:True
 D_800729B8 = 0x800729B8; // absolute:True
 D_80072A9C = 0x80072A9C; // absolute:True
 D_80073B90 = 0x80073B90; // absolute:True
-D_8010DE38 = 0x8010DE38; // absolute:True
+Gp_KeyItemDescs = 0x8010DE38; // absolute:True

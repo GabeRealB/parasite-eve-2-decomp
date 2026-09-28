@@ -5,13 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -46,6 +39,20 @@
             *w = seed;                                                                                \
         }                                                                                             \
     }
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/loading.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 typedef struct {
     s32   field_0;
@@ -296,29 +303,29 @@ extern s16                    D_shelter_b3_dumping_hole_8018F4C4;
 extern s16                    D_shelter_b3_dumping_hole_8018F4C8;
 extern s16                    D_shelter_b3_dumping_hole_8018F4CA;
 extern u8                     D_shelter_b3_dumping_hole_8018F4D0;
-extern GlyphUvwh              D_8010FB70[];
-extern s16                    D_shelter_b3_dumping_hole_8018B578;
-extern s16                    D_shelter_b3_dumping_hole_8018B57A;
-extern u16                    D_shelter_b3_dumping_hole_8018F4CC;
-extern u16                    D_shelter_b3_dumping_hole_8018F4CE;
-extern s32                    D_shelter_b3_dumping_hole_8018B670;
-extern s32                    D_shelter_b3_dumping_hole_8018B674;
-extern TaskDesc               D_shelter_b3_dumping_hole_8018B588;
-extern u16                    D_shelter_b3_dumping_hole_8018F4D4;
-extern TaskDesc               D_80142604;
-extern TaskDesc               D_801575F0;
-extern TaskDesc               D_shelter_b3_dumping_hole_8018B594;
-extern TaskDesc               D_shelter_b3_dumping_hole_8018B83C;
-extern u8                     D_shelter_b3_dumping_hole_8018B7AC[];
-extern SVECTOR                D_shelter_b3_dumping_hole_8018B86C[];
-extern SVECTOR                D_shelter_b3_dumping_hole_8018B8BC[];
-extern SVECTOR                D_shelter_b3_dumping_hole_8018B92C[];
-extern SVECTOR                D_shelter_b3_dumping_hole_8018B93C[];
-extern SVECTOR                D_shelter_b3_dumping_hole_8018B94C[];
-extern SVECTOR                D_shelter_b3_dumping_hole_8018B95C[];
-extern SVECTOR                D_shelter_b3_dumping_hole_8018B96C[];
-extern SVECTOR                D_shelter_b3_dumping_hole_8018B974[];
-extern SVECTOR                D_shelter_b3_dumping_hole_8018B98C[];
+
+extern s16      D_shelter_b3_dumping_hole_8018B578;
+extern s16      D_shelter_b3_dumping_hole_8018B57A;
+extern u16      D_shelter_b3_dumping_hole_8018F4CC;
+extern u16      D_shelter_b3_dumping_hole_8018F4CE;
+extern s32      D_shelter_b3_dumping_hole_8018B670;
+extern s32      D_shelter_b3_dumping_hole_8018B674;
+extern TaskDesc D_shelter_b3_dumping_hole_8018B588;
+extern u16      D_shelter_b3_dumping_hole_8018F4D4;
+extern TaskDesc D_80142604;
+extern TaskDesc D_801575F0;
+extern TaskDesc D_shelter_b3_dumping_hole_8018B594;
+extern TaskDesc D_shelter_b3_dumping_hole_8018B83C;
+extern u8       D_shelter_b3_dumping_hole_8018B7AC[];
+extern SVECTOR  D_shelter_b3_dumping_hole_8018B86C[];
+extern SVECTOR  D_shelter_b3_dumping_hole_8018B8BC[];
+extern SVECTOR  D_shelter_b3_dumping_hole_8018B92C[];
+extern SVECTOR  D_shelter_b3_dumping_hole_8018B93C[];
+extern SVECTOR  D_shelter_b3_dumping_hole_8018B94C[];
+extern SVECTOR  D_shelter_b3_dumping_hole_8018B95C[];
+extern SVECTOR  D_shelter_b3_dumping_hole_8018B96C[];
+extern SVECTOR  D_shelter_b3_dumping_hole_8018B974[];
+extern SVECTOR  D_shelter_b3_dumping_hole_8018B98C[];
 
 static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0);
 static s32  func_shelter_b3_dumping_hole_80181E70(s16 arg0, s16 arg1, s32 arg2);
@@ -889,8 +896,8 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 1:
             switch (work->field_32) {
                 case 0:
-                    Gp_DispatchMsg(work->field_24, 0x3E9, (s32)D_shelter_b3_dumping_hole_8018819C, 0);
-                    Gp_DispatchMsg(work->field_24, 0x3F2, (s32)&D_shelter_b3_dumping_hole_8018819C[6], 0);
+                    Gp_DispatchMsgPtr(work->field_24, 0x3E9, D_shelter_b3_dumping_hole_8018819C, 0);
+                    Gp_DispatchMsgPtr(work->field_24, 0x3F2, &D_shelter_b3_dumping_hole_8018819C[6], 0);
                     work->field_32++;
                     return;
                 case 1:
@@ -911,7 +918,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                         msg.anim.field_8            = 1;
                         msg.anim.field_C            = 0xA;
                         msg.anim.field_10           = 0;
-                        Gp_DispatchMsg(w2->field_24, 0x3E8, (s32)&msg, 0);
+                        Gp_DispatchMsgPtr(w2->field_24, 0x3E8, &msg, 0);
                     }
                     break;
                 default:
@@ -926,14 +933,14 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
             msg.anim.field_8            = 0;
             msg.anim.field_C            = 0;
             msg.anim.field_10           = 0;
-            Gp_DispatchMsg(w2->field_24, 0x3E8, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(w2->field_24, 0x3E8, &msg, 0);
         } break;
         case 3:
             Gp_DispatchMsg(work->field_24, 0x3F3, 2, 0);
             break;
         case 4:
             Gp_DispatchMsg(work->field_24, 0x3F3, 1, 0);
-            Gp_DispatchMsg(work->field_24, 0x3E9, (s32)&D_shelter_b3_dumping_hole_801881CC, 0);
+            Gp_DispatchMsgPtr(work->field_24, 0x3E9, &D_shelter_b3_dumping_hole_801881CC, 0);
             {
                 DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
                 s32                weaponId = Player_Status.weapon;
@@ -942,7 +949,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                 msg.anim.field_8            = 0;
                 msg.anim.field_C            = 0;
                 msg.anim.field_10           = 0;
-                Gp_DispatchMsg(w2->field_24, 0x3E8, (s32)&msg, 0);
+                Gp_DispatchMsgPtr(w2->field_24, 0x3E8, &msg, 0);
             }
             break;
         case 5:
@@ -952,7 +959,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                     area                   = gGameSession->at4.loc.area;
                     msg.loc.command        = 1;
                     msg.loc.from.loc.area  = area;
-                    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
                     work->field_34 = 0;
                     work->field_32++;
                     return;
@@ -968,7 +975,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                         msg.anim.field_8            = 1;
                         msg.anim.field_C            = 0xA;
                         msg.anim.field_10           = 0;
-                        Gp_DispatchMsg(w2->field_24, 0x3E8, (s32)&msg, 0);
+                        Gp_DispatchMsgPtr(w2->field_24, 0x3E8, &msg, 0);
                     }
                     break;
                 default:
@@ -983,7 +990,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
             msg.anim.field_8            = 1;
             msg.anim.field_C            = 0xA;
             msg.anim.field_10           = 0;
-            Gp_DispatchMsg(w2->field_24, 0x3E8, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(w2->field_24, 0x3E8, &msg, 0);
         }
             Gp_DispatchMsg(work->field_24, 0x3FD, 0x20, 0);
             break;
@@ -995,7 +1002,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
             msg.anim.field_8            = 1;
             msg.anim.field_C            = 0xA;
             msg.anim.field_10           = 0;
-            Gp_DispatchMsg(w2->field_24, 0x3E8, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(w2->field_24, 0x3E8, &msg, 0);
         } break;
     }
     work->field_30 = 0;
@@ -1031,29 +1038,29 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
                     area               = gGameSession->at4.loc.area;
                     msg.command        = 2;
                     msg.from.loc.area  = area;
-                    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
                     break;
                 default:
                     return;
             }
             break;
         case 2:
-            Gp_DispatchMsg(work->field_28, 0x7D4, (s32)work, 0);
+            Gp_DispatchMsgPtr(work->field_28, 0x7D4, work, 0);
             msg.from.loc.stage = gGameSession->at4.loc.stage;
             area               = gGameSession->at4.loc.area;
             msg.command        = 3;
             msg.from.loc.area  = area;
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
             break;
         case 4:
             msg.from.loc.stage = gGameSession->at4.loc.stage;
             area               = gGameSession->at4.loc.area;
             msg.command        = 5;
             msg.from.loc.area  = area;
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
             break;
         case 5:
-            Gp_DispatchMsg(work->field_2C, 0x7D4, (s32)&D_shelter_b3_dumping_hole_801881E4, 0);
+            Gp_DispatchMsgPtr(work->field_2C, 0x7D4, &D_shelter_b3_dumping_hole_801881E4, 0);
             break;
         case 6:
             switch (work->field_3A) {
@@ -1165,7 +1172,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             }
             msg.words = &D_shelter_b3_dumping_hole_801880A0[0];
             msg.count = n & 0xFFFF;
-            Gp_DispatchMsg(w2->field_24, 0x3F7, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(w2->field_24, 0x3F7, &msg, 0);
             weaponId             = Player_Status.weapon;
             p                    = &anim;
             anim.animBlock.index = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
@@ -1173,11 +1180,11 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             p->field_8           = 1;
             p->field_C           = 0xA;
             anim.field_10        = 0;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&anim, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &anim, 0);
             arg0->state++;
             break;
         case 2:
-            func_800E8634((s32)&D_shelter_b3_dumping_hole_80188640, 0, (s32)&D_shelter_b3_dumping_hole_80188A78);
+            func_800E8634(&D_shelter_b3_dumping_hole_80188640, 0, &D_shelter_b3_dumping_hole_80188A78);
             arg0->state++;
             break;
         case 3:
@@ -1248,7 +1255,7 @@ void func_shelter_b3_dumping_hole_8017FCA0(s16 arg0)
     msg.from.loc.stage = gGameSession->at4.loc.stage;
     msg.from.loc.area  = gGameSession->at4.loc.area;
     msg.command        = arg0;
-    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
 }
 
 static void func_shelter_b3_dumping_hole_8017FCF4(Task* arg0, DumpingHoleSpawnArg* arg1)
@@ -1326,14 +1333,14 @@ void func_shelter_b3_dumping_hole_8017FF14(void)
 
     Gp_DispatchMsg(ent->field_2C, 0x7D5, 2, 0);
     Gp_DispatchMsg(ent->field_24, 0x3F3, 1, 0);
-    Gp_DispatchMsg(ent->field_24, 0x3E9, (s32)&D_shelter_b3_dumping_hole_801881CC, 0);
+    Gp_DispatchMsgPtr(ent->field_24, 0x3E9, &D_shelter_b3_dumping_hole_801881CC, 0);
     ent2    = st->work;
     desc[0] = Player_Status.weapon + (Mc_SaveData[0].characterId == 1 ? 1 : 0x22);
     desc[1] = 9;
     desc[2] = 0;
     desc[3] = 0;
     desc[4] = 0;
-    Gp_DispatchMsg(ent2->field_24, 0x3E8, (s32)desc, 0);
+    Gp_DispatchMsgPtr(ent2->field_24, 0x3E8, desc, 0);
     ent->field_40 = 2;
     ent->field_46 = 1;
     ent->field_42 = 1;
@@ -1541,11 +1548,12 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             buf.words[2]         = 1;
             buf.words[3]         = 0xA;
             buf.words[4]         = 0;
+            /* The message ABI carries this object address in one 32-bit word. */
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)buf.words, 0);
             buf.loc.from.loc.stage = gGameSession->at4.loc.stage;
             buf.loc.from.loc.area  = gGameSession->at4.loc.area;
             buf.loc.command        = 0xA;
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&buf.loc, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &buf.loc, 0x7DB);
             work->state = 0;
             return;
         case 2:
@@ -1564,7 +1572,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                     work->pose.rot.vx = D_shelter_b3_dumping_hole_8018966C.rot.vx;
                     work->pose.rot.vy = D_shelter_b3_dumping_hole_8018966C.rot.vy;
                     work->pose.rot.vz = D_shelter_b3_dumping_hole_8018966C.rot.vz;
-                    Gp_DispatchMsg(task, 0x7D4, (s32)&work->pose, 0);
+                    Gp_DispatchMsgPtr(task, 0x7D4, &work->pose, 0);
                     work->field_58.vx                  = 0;
                     work->field_58.vy                  = 0;
                     work->field_58.vz                  = 0;
@@ -1647,7 +1655,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                     } else {
                         work->field_98 = work->pose.rot.vx = D_shelter_b3_dumping_hole_8018966C.rot.vx - 0x10;
                     }
-                    Gp_DispatchMsg(task, 0x7D4, (s32)&work->pose, 0);
+                    Gp_DispatchMsgPtr(task, 0x7D4, &work->pose, 0);
                     break;
                 case 2:
                     if (!(gDisplayState.animFrame & 0xF)) {
@@ -1665,7 +1673,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                         Gfx_RotMatrixX(&task->extra.tmd->coords[1].coord, work->field_98, 1);
                     }
                     task->extra.tmd->coords[2].coord.t[1] += 0x190;
-                    Gp_DispatchMsg(task, 0x7D4, (s32)&work->pose, 0);
+                    Gp_DispatchMsgPtr(task, 0x7D4, &work->pose, 0);
                     break;
             }
             if (gDisplayState.animFrame & 1) {
@@ -1686,7 +1694,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             buf2.loc.from.loc.area  = gGameSession->at4.loc.area;
             loc3                    = &buf2.loc;
             loc3->command           = 0xB;
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)loc3, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, loc3, 0x7DB);
             Display_ClampField126(0);
             work->state = 0;
             return;
@@ -1703,14 +1711,14 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             buf2.loc.from.loc.area  = gGameSession->at4.loc.area;
             loc5                    = &buf2.loc;
             loc5->command           = 0xC;
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)loc5, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, loc5, 0x7DB);
             p        = words;
             words[0] = Player_Status.weapon + (Mc_SaveData[0].characterId == 1 ? 1 : 0x22);
             p[1]     = 1;
             p[2]     = 1;
             p[3]     = 0xA;
             words[4] = 0;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)words, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, words, 0);
             if (work->field_88 != NULL) {
                 Task_CallExit(work->field_88);
                 work->field_88 = NULL;
@@ -1776,7 +1784,7 @@ void func_shelter_b3_dumping_hole_80181430(void)
     desc.from.loc.stage                = gGameSession->at4.loc.stage;
     desc.from.loc.area                 = gGameSession->at4.loc.area;
     desc.command                       = 0x13;
-    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&desc, 0x7DB);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &desc, 0x7DB);
 
     Display_ClampField126(0);
     Gp_DispatchMsg(ent->field_84, 0x7D5, 1, 0);
@@ -1788,7 +1796,7 @@ void func_shelter_b3_dumping_hole_80181430(void)
     desc3[2] = 0;
     desc3[3] = 0;
     desc3[4] = 0;
-    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)desc3, 0);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, desc3, 0);
     CdCmd_CancelReplaceAndActivate();
 }
 
@@ -1828,12 +1836,12 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
             desc[2] = 1;
             desc[3] = 0xA;
             desc[4] = 0;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)desc, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, desc, 0);
             task->state++;
             break;
         case 1:
             D_shelter_b3_dumping_hole_8018809C = 0;
-            func_800E8634((s32)&D_shelter_b3_dumping_hole_8018968C, 0, (s32)&D_shelter_b3_dumping_hole_801899A4);
+            func_800E8634(&D_shelter_b3_dumping_hole_8018968C, 0, &D_shelter_b3_dumping_hole_801899A4);
             task->state++;
             break;
         case 2:
@@ -2024,8 +2032,8 @@ static void func_shelter_b3_dumping_hole_80181C8C(void)
     }
     func_shelter_b3_dumping_hole_80181F80(
         D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8.text, 0x80, 1,
-        D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_0 |
-            ((D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_1 & 0x10)
+        D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].prefix.bytes.field_0 |
+            ((D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].prefix.bytes.field_1 & 0x10)
              << 4));
     if (D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_4 & 1) {
         return;

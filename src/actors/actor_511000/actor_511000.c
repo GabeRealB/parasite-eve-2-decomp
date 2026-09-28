@@ -13,17 +13,21 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
-
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "actors/actors_shared_80132074.h"
 #include "actors/actors_shared_8013231c.h"
 #include "actors/actors_shared_801334c4.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 /// Work block of the enemy task, reached by its model-attach children through
 /// the parent task's `Task::work`. The spawn handler
@@ -88,8 +92,6 @@ typedef struct Actor511000Work2 {
     /* 0x4D2 */ s16    field_4D2; ///< frame counter of the tick state's mode-1 effect; cleared by the spawn handler
 } Actor511000Work2;
 STATIC_ASSERT_SIZEOF(Actor511000Work2, 0x4D4);
-
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_511000_80131E78(Task* arg0);
 static void func_actor_511000_80132048(Task* arg0);
@@ -1243,7 +1245,7 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     GpAreaKey*             sessionKey;
     u8                     areaByte0;
     u8                     areaByte3;
-    GpAreaRec*             rec;
+    GpAreaVariant*         rec;
     TmdObject*             model;
     GpCoord*               coord;
     Actor511000ParentWork* work;

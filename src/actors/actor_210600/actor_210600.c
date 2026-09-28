@@ -8,15 +8,22 @@
 #include <psyq/abs.h>
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/display.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/mc.h"
 
 /// Dual-width view of the animation rate in the work block. The message
 /// handler `func_actor_210600_8014B770` arms it as one halfword, while the
@@ -98,12 +105,6 @@ extern SVECTOR D_actor_210600_8015D310;
 /// Integer part of the last movement step `func_actor_210600_8014C638`
 /// applied.
 extern SVECTOR D_actor_210600_8015D318;
-
-/// Declared here with a signed `arg2`: the callee's own definition takes it
-/// as `u16`, but callers pass a sign-extended animation id, and a `u16`
-/// prototype in scope would add a zero-extension the original calls do not
-/// have.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 

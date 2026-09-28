@@ -5,13 +5,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/stdio.h>
-
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -25,11 +18,17 @@
 /// The distance between `a` and `b`, spelled as a conditional subtraction.
 #define ABS_DIFF(a, b) ((a) - (b) >= 0 ? (a) - (b) : (b) - (a))
 
-/// Gameplay's effect ids for the two effects this room scatters, set by
-/// `func_neo_ark_woodland_path_8017EA08` on its first run and passed to
-/// `Gp_SpawnEff`. Gameplay clears both when its effect state is reset.
-extern s32 D_80115738;
-extern s32 D_8011574C;
+#include "gameplay/actor_render.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// The room's frame countdown at `D_neo_ark_woodland_path_8018498E`. Signed,
 /// although the arithmetic reads compile as `lhu` (`func_...8018154C` adds to
@@ -875,15 +874,15 @@ static void func_neo_ark_woodland_path_801806D8(Task* task)
     }
     D_neo_ark_woodland_path_801849F0 = Gp_StateF0.field_6;
     if (gGameSession->field_126 == 1 && D_neo_ark_woodland_path_8018498E == 0) {
-        Gp_StateF0.field_0      = 0;
-        Gp_StateF0.field_5      = 0;
-        Gp_StateF0.field_6      = 0;
-        Gp_StateF0.field_8      = 0;
-        Gp_StateF0.field_C      = 0;
-        Gp_StateF0.field_10     = 0;
-        gGameSession->field_126 = 0;
+        Gp_StateF0.prefix.bytes.field_0 = 0;
+        Gp_StateF0.field_5              = 0;
+        Gp_StateF0.field_6              = 0;
+        Gp_StateF0.field_8              = 0;
+        Gp_StateF0.field_C              = 0;
+        Gp_StateF0.field_10             = 0;
+        gGameSession->field_126         = 0;
     }
-    if (Gp_StateF0.field_0 != 2 && D_neo_ark_woodland_path_80184992 != 0) {
+    if (Gp_StateF0.prefix.bytes.field_0 != 2 && D_neo_ark_woodland_path_80184992 != 0) {
         D_neo_ark_woodland_path_80184A5C.from.loc.stage = 5;
         D_neo_ark_woodland_path_80184A5C.from.loc.area  = 0x1D;
         D_neo_ark_woodland_path_80184A5C.command        = 0xB;
@@ -907,7 +906,7 @@ static void func_neo_ark_woodland_path_801806D8(Task* task)
                 if (obj->hp > 0) {
                     Gp_IncStateF0Ref(0);
                     D_neo_ark_woodland_path_8018498E += 0x5A;
-                    Gp_DispatchMsg(Gp_LookupSlot4(i), 0x7DB, (s32)&D_neo_ark_woodland_path_80184A5C, 0);
+                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), 0x7DB, &D_neo_ark_woodland_path_80184A5C, 0);
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_801849B8[D_neo_ark_woodland_path_80184992 - 1].x;
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_801849B8[D_neo_ark_woodland_path_80184992 - 1].z;
@@ -951,8 +950,8 @@ s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, GpCmdArg* msg)
                 D_neo_ark_woodland_path_80184A5C.command        = 0xC;
                 result                                          = 1;
                 if (Gp_LookupSlot4(0) != 0) {
-                    Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7DB,
-                                   (s32)&D_neo_ark_woodland_path_80184A5C, 0);
+                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB,
+                                      &D_neo_ark_woodland_path_80184A5C, 0);
                     obj                                              = Gp_LookupSlot4(0)->spawnArg2;
                     Gp_LookupSlot4(0)->extra.tmd->coords->coord.t[0] = 5;
                     Gp_LookupSlot4(0)->extra.tmd->coords->coord.t[1] = 0;
@@ -1064,15 +1063,15 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
     }
     D_neo_ark_woodland_path_801849F0 = Gp_StateF0.field_6;
     if (gGameSession->field_126 == 1 && D_neo_ark_woodland_path_8018498E == 0) {
-        Gp_StateF0.field_0      = 0;
-        Gp_StateF0.field_5      = 0;
-        Gp_StateF0.field_6      = 0;
-        Gp_StateF0.field_8      = 0;
-        Gp_StateF0.field_C      = 0;
-        Gp_StateF0.field_10     = 0;
-        gGameSession->field_126 = 0;
+        Gp_StateF0.prefix.bytes.field_0 = 0;
+        Gp_StateF0.field_5              = 0;
+        Gp_StateF0.field_6              = 0;
+        Gp_StateF0.field_8              = 0;
+        Gp_StateF0.field_C              = 0;
+        Gp_StateF0.field_10             = 0;
+        gGameSession->field_126         = 0;
     }
-    if (Gp_StateF0.field_0 != 2 && D_neo_ark_woodland_path_80184992 != 0) {
+    if (Gp_StateF0.prefix.bytes.field_0 != 2 && D_neo_ark_woodland_path_80184992 != 0) {
         D_neo_ark_woodland_path_80184A5C.from.loc.stage = 5;
         D_neo_ark_woodland_path_80184A5C.from.loc.area  = 0xB;
         D_neo_ark_woodland_path_80184A5C.command        = 0xB;
@@ -1096,7 +1095,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                 if (obj->hp > 0) {
                     Gp_IncStateF0Ref(0);
                     D_neo_ark_woodland_path_8018498E += 0x5A;
-                    Gp_DispatchMsg(Gp_LookupSlot4(i), 0x7DB, (s32)&D_neo_ark_woodland_path_80184A5C, 0);
+                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), 0x7DB, &D_neo_ark_woodland_path_80184A5C, 0);
                     switch ((s16)(D_neo_ark_woodland_path_80184992 - 1)) {
                         case 0:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[0].x;

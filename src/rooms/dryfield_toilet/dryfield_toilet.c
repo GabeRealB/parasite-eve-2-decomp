@@ -1,15 +1,18 @@
 #include "common.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_targets.h"
 
 /// The pair of cutscene blocks `func_800E8634` hands to `Task_Spawn` (bank 9,
 /// type 7): the one the running scene starts and the one it parks in
@@ -113,7 +116,7 @@ s32 func_dryfield_toilet_8017D8C8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEven
     u8 subId = in->field_2;
 
     if (subId == 1 && GameFlag_GetNibble(0x60) == 0 && gGameSession->at4.loc.place == subId) {
-        func_800E8634((s32)&D_dryfield_toilet_80180C58, 1, (s32)&D_dryfield_toilet_80180F40);
+        func_800E8634(&D_dryfield_toilet_80180C58, 1, &D_dryfield_toilet_80180F40);
         GameFlag_SetNibble(0x60, 1);
     }
     return 0;
@@ -129,7 +132,7 @@ static void func_dryfield_toilet_8017D940(Task* arg0)
     arg0->msgTable = &D_dryfield_toilet_801802A4;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0x60) == 0 && gGameSession->at4.loc.place == 1) {
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_dryfield_toilet_801802D4, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_dryfield_toilet_801802D4, 0x7DB);
         func_dryfield_toilet_8017D5E4();
     }
     arg0->state = arg0->state + 1;

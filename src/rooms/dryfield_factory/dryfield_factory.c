@@ -1,12 +1,5 @@
 #include "common.h"
 #include "main/gfx.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/mc.h"
@@ -24,6 +17,17 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/libgs.h>
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 /// The factory model's work block as the lighting helper sees it: `light` and
 /// `color` are the model's own matrices, republished onto
@@ -862,10 +866,10 @@ static s32 func_dryfield_factory_8017F08C(Task* task)
             if (work->field_10.value > 0x800000) {
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd6(0x52170012, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
-                    Gp_SpawnScript18((s32)D_dryfield_factory_8018A39C, (s32)D_dryfield_factory_8018A3A8);
+                    Gp_SpawnScript18(D_dryfield_factory_8018A39C, D_dryfield_factory_8018A3A8);
                 } else {
                     Gp_EnqueueStageSnd6(0x53170012, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
-                    Gp_SpawnScript18((s32)D_8018A7BC, (s32)D_8018A7C8);
+                    Gp_SpawnScript18(D_8018A7BC, D_8018A7C8);
                 }
                 work->field_16++;
             }
@@ -951,10 +955,10 @@ static s32 func_dryfield_factory_8017F4BC(Task* task)
             if (work->field_10.value < 0x3800000) {
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd6(0x52170012, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
-                    Gp_SpawnScript18((s32)D_dryfield_factory_8018A39C, (s32)D_dryfield_factory_8018A3A8);
+                    Gp_SpawnScript18(D_dryfield_factory_8018A39C, D_dryfield_factory_8018A3A8);
                 } else {
                     Gp_EnqueueStageSnd6(0x53170012, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
-                    Gp_SpawnScript18((s32)D_8018A7BC, (s32)D_8018A7C8);
+                    Gp_SpawnScript18(D_8018A7BC, D_8018A7C8);
                 }
                 work->field_16++;
             }

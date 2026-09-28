@@ -4,11 +4,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -18,14 +13,16 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+#include "gameplay/actor_render.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
-extern s32 D_8011572C;
-extern s32 D_80115730;
-extern s32 D_80115734;
-extern s32 D_80115750;
-extern s32 D_80115754;
-extern s32 D_80115758;
+extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 /// The room's message table, installed on its task by state 0.
 extern GpMsgEntry D_shelter_b1_control_room_access_tunnel_80181E74[];

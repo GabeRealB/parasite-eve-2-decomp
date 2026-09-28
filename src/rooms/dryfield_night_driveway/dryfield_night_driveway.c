@@ -4,15 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -24,7 +15,16 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern u8 D_80115690;
+#include "gameplay/area_transitions.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 /// Descriptor of the room's event task, which the event gate spawns.
 extern TaskDesc D_dryfield_night_driveway_8017E678;
@@ -163,7 +163,7 @@ s32 func_dryfield_night_driveway_8017D7A0(s32 arg0, s32 arg1, RoomEventMsg* in,
                         }
                     }
                 }
-                if (gGameSession->at4.loc.place == 1 && Gp_StateF0.field_0 == gGameSession->at4.loc.place) {
+                if (gGameSession->at4.loc.place == 1 && Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.place) {
                     return 0;
                 }
                 Gp_RunCapCmd1(1);
@@ -217,7 +217,7 @@ void func_dryfield_night_driveway_8017DAF4(Task* arg0)
         D_80115768            = 1;
         SetDispMask(0);
         func_800E3FAC(0xA2, 0x10);
-        func_800E8634((s32)&D_dryfield_night_driveway_8017F54C, 0, (s32)&D_dryfield_night_driveway_8017F6CC);
+        func_800E8634(&D_dryfield_night_driveway_8017F54C, 0, &D_dryfield_night_driveway_8017F6CC);
     } else {
         taskKill(arg0);
         Gp_ClearCollectedBit(0x114);
@@ -317,7 +317,7 @@ static void func_dryfield_night_driveway_8017DCFC(Task* arg0)
     arg0->msgTable = D_dryfield_night_driveway_8017F7A4;
     Game_SetPtrSlot(arg0, 7);
     if ((gameGetPtrSlot(0xA) != 0) && (gGameSession->at4.loc.warp == 4)) {
-        func_800E8634((s32)&D_dryfield_night_driveway_8017FB00, 0, (s32)&D_dryfield_night_driveway_8017F998);
+        func_800E8634(&D_dryfield_night_driveway_8017FB00, 0, &D_dryfield_night_driveway_8017F998);
     }
     arg0->state = (s32)(arg0->state + 1);
 }

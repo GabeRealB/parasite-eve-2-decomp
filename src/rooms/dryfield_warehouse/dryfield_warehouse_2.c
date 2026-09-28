@@ -1,15 +1,10 @@
 #include "common.h"
-#include "gameplay/gameplay.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
 
 #include "main/display.h"
 #include "main/gameflow.h"
@@ -23,6 +18,15 @@
 #include "rooms/dryfield_warehouse.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "main/fs.h"
+#include "main/wipsys.h"
 
 /// Work block of the warehouse's cutscene task, allocated as 0x10 zeroed bytes
 /// by `func_dryfield_warehouse_8017E090` and parked in `Task::work`. `owner` is
@@ -106,8 +110,8 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
             rec.field_8         = 0;
             rec.field_C         = 0;
             rec.field_10        = 1;
-            Gp_DispatchMsg((Task*)work->owner, 0x3E8, (s32)&rec, 0);
-            Gp_DispatchMsg((Task*)work->owner, 0x3E9, (s32)&D_dryfield_warehouse_8017F868, 0);
+            Gp_DispatchMsgPtr((Task*)work->owner, 0x3E8, &rec, 0);
+            Gp_DispatchMsgPtr((Task*)work->owner, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
             if (Mc_SaveData[0].at4.loc.room != 2) {
                 Mc_SaveData[0].at4.loc.room   = 2;
                 gGameSession->at4.loc.room    = 2;
@@ -162,9 +166,9 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
                         msg.rec.field_8       = 0;
                         msg.rec.field_C       = 0;
                         msg.rec.field_10      = 0;
-                        Gp_DispatchMsg((Task*)cur->owner, 0x3F4, (s32)&msg.rec, 0);
+                        Gp_DispatchMsgPtr((Task*)cur->owner, 0x3F4, &msg.rec, 0);
                     }
-                    Gp_DispatchMsg((Task*)work->owner, 0x3E9, (s32)&D_dryfield_warehouse_8017F850, 0);
+                    Gp_DispatchMsgPtr((Task*)work->owner, 0x3E9, &D_dryfield_warehouse_8017F850, 0);
                     work->field_8 = 0;
                     work->field_6++;
                     break;
@@ -193,8 +197,9 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
             msg.rec.field_8         = 0;
             msg.rec.field_C         = 0;
             msg.rec.field_10        = 1;
+            /* The message ABI carries this object address in one 32-bit word. */
             Gp_DispatchMsg((Task*)shared->owner, 0x3E8, (s32)&msg.rec, 0);
-            Gp_DispatchMsg((Task*)shared->owner, 0x3E9, (s32)&D_dryfield_warehouse_8017F868, 0);
+            Gp_DispatchMsgPtr((Task*)shared->owner, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
             switch (work->field_6) {
                 case 0:
                     Task_SpawnFromTable(D_dryfield_warehouse_8017FB08, 2, 8, 0);
@@ -317,13 +322,13 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                 rec.field_8         = 0;
                 rec.field_C         = 0;
                 rec.field_10        = 0;
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &rec, 0);
                 D_dryfield_warehouse_801821C0 = NULL;
                 D_80115768                    = 1;
                 arg0->state                   = arg0->state + 1;
                 case 1:
-                    func_800E8634((s32)&D_dryfield_warehouse_8017F880, 0,
-                                  (s32)&D_dryfield_warehouse_8017FA00);
+                    func_800E8634(&D_dryfield_warehouse_8017F880, 0,
+                                  &D_dryfield_warehouse_8017FA00);
                     arg0->state = arg0->state + 1;
                     return;
             }

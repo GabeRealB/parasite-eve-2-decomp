@@ -1,8 +1,14 @@
 #include "common.h"
-#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/task.h"
+
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/session.h"
+
 extern TaskDesc       D_actor_142900_80137600;
 extern s32            D_actor_142900_801382A8;
 extern s32            D_actor_142900_801382AC;

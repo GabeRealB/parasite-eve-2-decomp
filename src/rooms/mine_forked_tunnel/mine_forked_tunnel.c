@@ -5,15 +5,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -23,6 +14,21 @@
 #include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/loading.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 /// The enemy's position / rotation path, one `SVECTOR` per step: `pos` and
 /// `rot` are the halves `func_mine_forked_tunnel_8017D5E8` and
@@ -583,7 +589,7 @@ void func_mine_forked_tunnel_8017E2E0(Task* arg0)
         case 1:
             if (Gp_CapBusy() == 0) {
                 if (Gp_GetCapEventKey() == state) {
-                    func_800E8634((s32)&D_mine_forked_tunnel_801831AC, 0, (s32)&D_mine_forked_tunnel_801834F4);
+                    func_800E8634(&D_mine_forked_tunnel_801831AC, 0, &D_mine_forked_tunnel_801834F4);
                     GameFlag_SetNibble(0x75, 1);
                 }
                 taskKill(arg0);

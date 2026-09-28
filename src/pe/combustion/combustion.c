@@ -2,11 +2,6 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/mem.h"
 #include "main/sound.h"
@@ -17,6 +12,16 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
+
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
 
 static void func_combustion_8012F5EC(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_combustion_8012FB14(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);

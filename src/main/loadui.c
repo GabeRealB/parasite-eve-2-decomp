@@ -10,8 +10,15 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 #include "main/task.h"
-#include "gameplay/3E9C.h"
 #include "psyq/libetc.h"
+
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/loading.h"
+#include "main/display.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
 
 static const GBytes4 D_80013F18;
 

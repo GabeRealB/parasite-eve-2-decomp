@@ -1,12 +1,6 @@
 #include "common.h"
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
@@ -17,6 +11,21 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 typedef struct Actor103800Work {
     /* 0x000 */ GpAnimCtx  anim;
@@ -128,8 +137,7 @@ extern GpPairSrcE Actor03800_D05F44;
 extern u16        Actor03800_D05F48;
 extern u8         Actor03800_D05F60[];
 
-s32  SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
-void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -727,7 +735,7 @@ static void Actor03800_Fn01150(Task* arg0)
             break;
     }
 
-    if (Gp_StateF0.field_2 & 5) {
+    if (Gp_StateF0.prefix.bytes.field_2 & 5) {
         work->field_352 = 2;
         work->field_354 = 0;
         if (work->field_36A == 0) {
@@ -808,7 +816,7 @@ static void Actor03800_Fn012B4(Task* arg0)
             break;
     }
 
-    if (Gp_StateF0.field_2 & 5) {
+    if (Gp_StateF0.prefix.bytes.field_2 & 5) {
         work->field_352 = 2;
         work->field_354 = 0;
     }
@@ -1141,7 +1149,7 @@ static void Actor03800_Fn01EEC(Task* arg0)
             break;
     }
 
-    if ((Gp_StateF0.field_2 & 5) || work->field_36C != 0) {
+    if ((Gp_StateF0.prefix.bytes.field_2 & 5) || work->field_36C != 0) {
         Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
         work->field_352 = 0xA;
         work->field_354 = 0;
@@ -1156,7 +1164,7 @@ static void Actor03800_Fn01EEC(Task* arg0)
 /// Idle "look around" tick. State 0 counts `field_356` down and, on expiry,
 /// picks a new facing `field_364` within +/-0x3FF of the current one; state 1
 /// waits for the turn to finish and re-arms the countdown. Either way, an
-/// active `Gp_StateF0.field_2` bit (1 or 4) or a non-zero `field_36C` aborts
+/// active `Gp_StateF0.prefix.bytes.field_2` bit (1 or 4) or a non-zero `field_36C` aborts
 /// back to state 0 with a short delay.
 static void Actor03800_Fn02068(Task* arg0)
 {
@@ -1203,7 +1211,7 @@ static void Actor03800_Fn02068(Task* arg0)
             break;
     }
 
-    if ((Gp_StateF0.field_2 & 5) || work->field_36C != 0) {
+    if ((Gp_StateF0.prefix.bytes.field_2 & 5) || work->field_36C != 0) {
         Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
         work->field_352 = 0xA;
         work->field_354 = 0;
@@ -1472,7 +1480,7 @@ static inline void _actor03800TickAnim(Task* task)
         work->field_34C = 0;
         value           = Actor03800_D05F90[(s16)work->field_348];
         for (i = 1; i < 6; i++) {
-            func_800B4114(work, i, (s16)work->field_348, 0, value);
+            func_800B4114(&work->anim, i, (s16)work->field_348, 0, value);
         }
     } else {
         work->field_34C++;
@@ -1658,15 +1666,15 @@ static void Actor03800_Fn02E50(Task* actor)
 
 static void Actor03800_Fn03008(Task* actor, u32 variant)
 {
-    GpAreaKey    key;
-    GpAreaKey*   sessionKey;
-    u8           areaByte0;
-    GpAreaRec*   rec;
-    GpAreaPlace* entry;
-    GpEffWork*   eff;
-    TmdObject*   model;
-    s32          idx;
-    u32          raw;
+    GpAreaKey      key;
+    GpAreaKey*     sessionKey;
+    u8             areaByte0;
+    GpAreaVariant* rec;
+    GpAreaPlace*   entry;
+    GpEffWork*     eff;
+    TmdObject*     model;
+    s32            idx;
+    u32            raw;
 
     switch (variant) {
         case 0:
@@ -1689,7 +1697,7 @@ static void Actor03800_Fn03008(Task* actor, u32 variant)
     if (eff == NULL) {
         return;
     }
-    sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+    sessionKey = &gGameSession->at4.loc;
     raw        = ((GpEnemy*)actor->spawnArg2)->placeKey;
     model      = eff->task->extra.tmd;
     key.stage  = sessionKey->stage;
@@ -1701,7 +1709,7 @@ static void Actor03800_Fn03008(Task* actor, u32 variant)
     Gp_SyncAreaKeyIndex(&key);
     rec = Gp_GetNestedAreaRec(&key);
 
-    entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    entry        = gpAreaPlaceAt(rec->field_0, idx);
     model->tpage = entry->tpage;
     model->clut  = entry->clut;
     if (model->buffer != NULL) {

@@ -7,6 +7,8 @@
 #include "rooms/dryfield_night_motel_room_5.h"
 #include "rooms/room_common.h"
 
+#include "gameplay/display.h"
+
 /// The night motel room's drawable points, one 8-byte `SVECTOR` per disc.
 extern SVECTOR D_dryfield_night_motel_room_5_8017DA58[1];
 extern SVECTOR D_dryfield_night_motel_room_5_8017DA60[1];

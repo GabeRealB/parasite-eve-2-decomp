@@ -1,17 +1,21 @@
 #include "common.h"
-#include "gameplay/gameplay.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
 
 #include "rooms/dryfield_motel_room_1.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/mc.h"
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
@@ -49,18 +53,18 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
             buf.msg.from.loc.stage = gGameSession->at4.loc.stage;
             buf.msg.from.loc.area  = gGameSession->at4.loc.area;
             buf.msg.command        = 1;
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&buf.msg, 0x7DB);
-            Gp_DispatchMsg(work->field_4, 0x7D4, (s32)&D_dryfield_motel_room_1_8017E0D0[0], 0);
-            Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_dryfield_motel_room_1_8017E0D0[1], 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &buf.msg, 0x7DB);
+            Gp_DispatchMsgPtr(work->field_4, 0x7D4, &D_dryfield_motel_room_1_8017E0D0[0], 0);
+            Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_dryfield_motel_room_1_8017E0D0[1], 0);
             break;
         case 2:
             buf.msg.from.loc.stage = gGameSession->at4.loc.stage;
             buf.msg.from.loc.area  = gGameSession->at4.loc.area;
             buf.msg.command        = 2;
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&buf.msg, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &buf.msg, 0x7DB);
             Gp_DispatchMsg(work->field_0, 0x3F3, 1, 0);
-            Gp_DispatchMsg(work->field_4, 0x7D4, (s32)&D_dryfield_motel_room_1_8017E100[0], 0);
-            Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_dryfield_motel_room_1_8017E100[1], 0);
+            Gp_DispatchMsgPtr(work->field_4, 0x7D4, &D_dryfield_motel_room_1_8017E100[0], 0);
+            Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_dryfield_motel_room_1_8017E100[1], 0);
             break;
         case 3:
         case 5:
@@ -96,7 +100,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         rec->field_8                    = 1;
                         rec->field_C                    = 5;
                         buf.shifted.rec.field_10        = 0;
-                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf.shifted.rec, 0);
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf.shifted.rec, 0);
                         Gp_DispatchMsg(work->field_0, 0x3FD, 0x30, 0);
                         work->field_2E += 1;
                     } else {
@@ -111,7 +115,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         buf.rec.field_8         = 1;
                         buf.rec.field_C         = 5;
                         buf.rec.field_10        = 0;
-                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf.rec, 0);
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf.rec, 0);
                         Gp_DispatchMsg(work->field_0, 0x3FD, 0x30, 0);
                         work->field_2E += 2;
                     }
@@ -131,12 +135,12 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         buf.rec.field_8         = 1;
                         buf.rec.field_C         = 3;
                         buf.rec.field_10        = 0;
-                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf.rec, 0);
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf.rec, 0);
                         work->field_30 = 0;
                         work->field_2E = 3;
                         return;
                     }
-                    Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&work->field_14, 0);
+                    Gp_DispatchMsgPtr(work->field_0, 0x3E9, &work->field_14, 0);
                     return;
                 case 2:
                     work->field_34 -= 0x96;
@@ -153,12 +157,12 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         buf.rec.field_8         = 1;
                         buf.rec.field_C         = 3;
                         buf.rec.field_10        = 0;
-                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf.rec, 0);
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf.rec, 0);
                         work->field_30 = 0;
                         work->field_2E = 3;
                         return;
                     }
-                    Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&work->field_14, 0);
+                    Gp_DispatchMsgPtr(work->field_0, 0x3E9, &work->field_14, 0);
                     return;
                 case 3:
                     work->field_30 += 1;
@@ -174,7 +178,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         buf.rec.field_8         = 1;
                         buf.rec.field_C         = 10;
                         buf.rec.field_10        = 0;
-                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf.rec, 0);
+                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf.rec, 0);
                         work->field_2C = 0;
                     }
                     return;
@@ -235,9 +239,9 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
                 buf.rec.field_8         = 1;
                 buf.rec.field_C         = 5;
                 buf.rec.field_10        = 0;
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf.rec, 0);
-                func_800E8634((s32)&D_dryfield_motel_room_1_8017E160, 0,
-                              (s32)&D_dryfield_motel_room_1_8017E340);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf.rec, 0);
+                func_800E8634(&D_dryfield_motel_room_1_8017E160, 0,
+                              &D_dryfield_motel_room_1_8017E340);
                 arg0->state = arg0->state + 1;
                 break;
             }
@@ -247,7 +251,7 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
                 buf.msg.from.loc.stage = gGameSession->at4.loc.stage;
                 buf.msg.from.loc.area  = gGameSession->at4.loc.area;
                 buf.msg.command        = 4;
-                Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&buf.msg, 0x7DB);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &buf.msg, 0x7DB);
                 arg0->state = arg0->state + 1;
                 break;
             }
@@ -257,7 +261,7 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
                 buf.msg.from.loc.stage = gGameSession->at4.loc.stage;
                 buf.msg.from.loc.area  = gGameSession->at4.loc.area;
                 buf.msg.command        = 3;
-                Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&buf.msg, 0x7DB);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &buf.msg, 0x7DB);
                 taskKill(arg0);
                 return;
             }
@@ -275,9 +279,9 @@ void func_dryfield_motel_room_1_8017DF08(void)
     msg.from.loc.stage = gGameSession->at4.loc.stage;
     msg.from.loc.area  = gGameSession->at4.loc.area;
     msg.command        = 3;
-    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
-    Gp_DispatchMsg(work->field_C, 0x7D4, (s32)&D_dryfield_motel_room_1_8017E130[0], 0);
-    Gp_DispatchMsg(work->field_10, 0x7D4, (s32)&D_dryfield_motel_room_1_8017E130[1], 0);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
+    Gp_DispatchMsgPtr(work->field_C, 0x7D4, &D_dryfield_motel_room_1_8017E130[0], 0);
+    Gp_DispatchMsgPtr(work->field_10, 0x7D4, &D_dryfield_motel_room_1_8017E130[1], 0);
 }
 
 void func_dryfield_motel_room_1_8017DFB0(s16 arg0)
@@ -304,7 +308,7 @@ void func_dryfield_motel_room_1_8017DFD0(void)
     msg.field_8         = 0;
     msg.field_C         = 0;
     msg.field_10        = 0;
-    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &msg, 0);
     cfg            = &Player_Status;
     work->field_14 = cfg->coordMtx->t[0];
     work->field_18 = cfg->coordMtx->t[1];
@@ -312,7 +316,7 @@ void func_dryfield_motel_room_1_8017DFD0(void)
     work->field_24 = 0;
     work->field_26 = 0x500;
     work->field_28 = 0;
-    Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&work->field_14, 0);
+    Gp_DispatchMsgPtr(work->field_0, 0x3E9, &work->field_14, 0);
 }
 static void func_dryfield_motel_room_1_8017E0A0(void)
 {

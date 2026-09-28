@@ -4,7 +4,10 @@
 #include "main/mc.h"
 #include "main/pad.h"
 #include "main/task.h"
-#include "gameplay/3CD8.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
 
 TaskDesc D_80067734[] = {
     { 0x0, 0xC0, taskKill },

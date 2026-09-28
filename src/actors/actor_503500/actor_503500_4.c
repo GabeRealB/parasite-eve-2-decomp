@@ -7,10 +7,6 @@
 #include <psyq/abs.h>
 
 #include "actors/actor_503500.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
 #include "main/fs.h"
 #include "main/gfx.h"
 #include "main/mc.h"
@@ -20,6 +16,21 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/attachments.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 
@@ -291,8 +302,8 @@ extern SVECTOR D_actor_503500_8016F260;
 /// picked by frame and one by `Gp_LcgState`, and the rect it moves on frame 8.
 extern SVECTOR D_actor_503500_8016F31C[];
 extern RECT    D_actor_503500_8016F364;
-extern u32     Gp_LcgState;
-static void    func_actor_503500_8013BC54(Task* arg0);
+
+static void func_actor_503500_8013BC54(Task* arg0);
 /// Per-slot local offset of the 0xF4 enemies in `D_actor_503500_801770E8`,
 /// indexed by `spawnArg1`.
 extern SVECTOR              D_actor_503500_8016F210[];
@@ -444,28 +455,27 @@ extern GpAnimArg D_actor_503500_80171508[];
 extern GpAnimArg D_actor_503500_80171530;
 extern s32       D_actor_503500_801714DC;
 /// Script pair handed to `Gp_SpawnScript18` when the push starts.
-extern u8         D_actor_503500_8017159C[];
-extern u8         D_actor_503500_801715A4[];
-extern GpAnimBlk* Gp_PlayerAnimBlkTbl[];
-extern u16        Gp_WeaponIdBase[];
-static void       func_actor_503500_8013AD64(Task* arg0);
-static void       func_actor_503500_8013BBCC(Task* arg0);
-static void       func_actor_503500_8013BEE4(Task* arg0);
-static void       func_actor_503500_8013C878(Task* arg0);
-static void       func_actor_503500_8013CAE4(Task* arg0);
-static void       func_actor_503500_8013D7D4(Task* arg0);
-static void       func_actor_503500_8013DD10(Task* arg0);
-static void       func_actor_503500_8013E9A4(Task* arg0);
-static void       func_actor_503500_8013ECBC(Task* arg0);
-static void       func_actor_503500_8013F6F0(Task* arg0);
-static void       func_actor_503500_8013FA74(Task* arg0);
-static void       func_actor_503500_8013FF0C(Task* arg0);
-static void       func_actor_503500_801423C8(Task* arg0);
-static void       func_actor_503500_80143EB4(Task* arg0);
-static void       func_actor_503500_80144300(Task* arg0);
-static void       func_actor_503500_801446E4(Task* arg0);
-static void       func_actor_503500_801448E8(Task* arg0);
-static void       func_actor_503500_80144D50(Task* arg0);
+extern u8 D_actor_503500_8017159C[];
+extern u8 D_actor_503500_801715A4[];
+
+static void func_actor_503500_8013AD64(Task* arg0);
+static void func_actor_503500_8013BBCC(Task* arg0);
+static void func_actor_503500_8013BEE4(Task* arg0);
+static void func_actor_503500_8013C878(Task* arg0);
+static void func_actor_503500_8013CAE4(Task* arg0);
+static void func_actor_503500_8013D7D4(Task* arg0);
+static void func_actor_503500_8013DD10(Task* arg0);
+static void func_actor_503500_8013E9A4(Task* arg0);
+static void func_actor_503500_8013ECBC(Task* arg0);
+static void func_actor_503500_8013F6F0(Task* arg0);
+static void func_actor_503500_8013FA74(Task* arg0);
+static void func_actor_503500_8013FF0C(Task* arg0);
+static void func_actor_503500_801423C8(Task* arg0);
+static void func_actor_503500_80143EB4(Task* arg0);
+static void func_actor_503500_80144300(Task* arg0);
+static void func_actor_503500_801446E4(Task* arg0);
+static void func_actor_503500_801448E8(Task* arg0);
+static void func_actor_503500_80144D50(Task* arg0);
 
 static void func_actor_503500_8013BD0C(Task* arg0);
 static void func_actor_503500_8014176C(SVECTOR* pts, GpCoord* coords);
@@ -4341,7 +4351,7 @@ static void func_actor_503500_801437D0(Task* arg0, GpRec18* rec, s32 count)
             player = gameGetPtrSlot(3);
             pcoord = player->extra.tmd->coords;
             if (((GameActor*)player->work)->field_954 != 2 &&
-                Gp_DispatchMsg(player, 0x3F8, (s32)&D_actor_503500_80171544, 0) == 0) {
+                Gp_DispatchMsgPtr(player, 0x3F8, &D_actor_503500_80171544, 0) == 0) {
                 coord = arg0->parent->extra.tmd->coords;
                 src   = (s32*)&coord->coord;
                 dst   = (s32*)&work->field_40;
@@ -4364,7 +4374,7 @@ static void func_actor_503500_801437D0(Task* arg0, GpRec18* rec, s32 count)
                 gte_stsv(&vec);
                 side = vec.vz >= 0;
                 Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
-                Gp_DispatchMsg(player, 0x3FF, (s32)&D_actor_503500_801714E0[side], 0);
+                Gp_DispatchMsgPtr(player, 0x3FF, &D_actor_503500_801714E0[side], 0);
                 Task_SpawnFromTable(&D_actor_503500_8017146C, 0, side, (s32)&work->field_40);
                 Gp_StateC08.field_6 |= 1;
                 pan                  = (s8)Gp_GetObjPan(pcoord);
@@ -4419,7 +4429,7 @@ void func_actor_503500_80143AC0(Task* arg0)
                 *dst++ = *src++;
             }
             work->rot.m[2][2] = ((MATRIX*)arg0->spawnArg2)->m[2][2];
-            Gp_SpawnScript18((s32)D_actor_503500_8017159C, (s32)D_actor_503500_801715A4);
+            Gp_SpawnScript18(D_actor_503500_8017159C, D_actor_503500_801715A4);
             work->field_36 = 8;
             // An s32 temp: passed straight to the s8 parameter, the masked
             // expression is shortened into a byte load of the frame counter.
@@ -4439,7 +4449,7 @@ void func_actor_503500_80143AC0(Task* arg0)
             msg.x           = work->pos.vx.h.hi;
             msg.y           = work->pos.vy.h.hi;
             msg.z           = work->pos.vz.h.hi;
-            if (Gp_DispatchMsg(player, 0x3FE, (s32)&msg, 0) != 0) {
+            if (Gp_DispatchMsgPtr(player, 0x3FE, &msg, 0) != 0) {
                 work->speed = 0;
             }
             work->pos.vx.w = (u16)work->pos.vx.w;
@@ -4469,7 +4479,7 @@ void func_actor_503500_80143AC0(Task* arg0)
             break;
         case 2:
             if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
-                Gp_DispatchMsg(player, 0x3FF, (s32)&D_actor_503500_80171508[arg0->spawnArg1], 0);
+                Gp_DispatchMsgPtr(player, 0x3FF, &D_actor_503500_80171508[arg0->spawnArg1], 0);
                 arg0->state++;
             }
             break;
@@ -4477,8 +4487,8 @@ void func_actor_503500_80143AC0(Task* arg0)
             if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
                 D_actor_503500_801714DC =
                     Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]
-                        ->field_1C;
-                Gp_DispatchMsg(player, 0x3FF, (s32)&D_actor_503500_80171530, 0);
+                        ->prefix.addresses[7];
+                Gp_DispatchMsgPtr(player, 0x3FF, &D_actor_503500_80171530, 0);
                 arg0->state++;
             }
             break;

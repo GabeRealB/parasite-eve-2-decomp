@@ -4,12 +4,6 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/fs.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -19,7 +13,23 @@
 #include "main/wipsys.h"
 #include <psyq/libgs.h>
 
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/player_state.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 static void Actor05700_Fn00D08(Task* arg0);
 static void Actor05700_Fn02554(Task* arg0);
@@ -452,7 +462,7 @@ void Actor05700_Fn00B24(Task* arg0)
 /// (see `overlay_dup_index.py find Actor05700_Fn00D08`). Carves a
 /// 0x10-byte direction vector off the scratch head, aims it from the player
 /// at the actor's root coordinate, and takes its length through
-/// `SquareRoot0`: under 0x5DC one of `Gp_StateF0.field_2`'s bit groups raises
+/// `SquareRoot0`: under 0x5DC one of `Gp_StateF0.prefix.bytes.field_2`'s bit groups raises
 /// `field_6B2`; past it the other two (the second only within 0xBB8) put the
 /// actor into animation 4 and state 1.
 static void Actor05700_Fn00D08(Task* arg0)
@@ -479,14 +489,14 @@ static void Actor05700_Fn00D08(Task* arg0)
     SCRATCH_HEAD(VECTOR) = delta;
     distance             = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x5DC) {
-        if (Gp_StateF0.field_2 & 0x17) {
+        if (Gp_StateF0.prefix.bytes.field_2 & 0x17) {
             work->field_6B2 = 1;
         }
     } else {
-        if (Gp_StateF0.field_2 & 5) {
+        if (Gp_StateF0.prefix.bytes.field_2 & 5) {
             trigger = 1;
         }
-        if ((Gp_StateF0.field_2 & 0x12) && (distance < 0xBB8)) {
+        if ((Gp_StateF0.prefix.bytes.field_2 & 0x12) && (distance < 0xBB8)) {
             trigger = 1;
         }
         if (trigger != 0) {
@@ -1608,7 +1618,6 @@ static void Actor05700_Fn031BC(GpEnemy* arg0, Task* arg1)
     SCRATCH_POP_BYTES(0x38);
 }
 
-extern s32 D_80115750;
 /// Sound id of the burst cue, with the spawn context's room/channel bits
 /// packed in like `Actor05700_D17228`.
 extern s32 Actor05700_D1722C;
@@ -1690,7 +1699,6 @@ static void Actor05700_Fn035FC(GpEnemy* arg0, Task* arg1)
     SCRATCH_POP_BYTES(0x28);
 }
 
-extern s32 D_80115758;
 extern s32 Actor05700_D17230;
 extern s32 Actor05700_D17234;
 

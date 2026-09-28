@@ -7,12 +7,6 @@
 #include "gte.h"
 #include "main/gfxgte.h"
 #include <psyq/gtemac.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/3688.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -24,6 +18,16 @@
 #include "main/wipsys.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/model_objects.h"
+#include "gameplay/room_effects.h"
+#include "main/fs.h"
 
 extern void func_807245E4(void*);
 extern void func_80724608(void*, s32, s32, void*);
@@ -759,7 +763,7 @@ s32 func_acropolis_east_elevator_hall_8017F370(void)
 s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, GpMsg13EF* arg2, s32 arg3)
 {
     if (arg2->field_2 == 0 && GameFlag_GetNibble(0) == 0 && D_acropolis_east_elevator_hall_8018631C == 0) {
-        func_800E8634((s32)&D_acropolis_east_elevator_hall_80185D54, 0, (s32)&D_acropolis_east_elevator_hall_801860B4);
+        func_800E8634(&D_acropolis_east_elevator_hall_80185D54, 0, &D_acropolis_east_elevator_hall_801860B4);
         D_acropolis_east_elevator_hall_8018631C = 1;
         GameFlag_SetNibble(0, 1);
         GameFlag_SetNibble(3, 0);
@@ -788,7 +792,7 @@ static void func_acropolis_east_elevator_hall_8017F478(Task* task)
     task->msgTable = D_acropolis_east_elevator_hall_801862F4;
     Game_SetPtrSlot(task, 7);
     Gp_MsgSlot4Chain(0, 1);
-    Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D3, (s32)&D_acropolis_east_elevator_hall_80185C8C, 0);
+    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_acropolis_east_elevator_hall_80185C8C, 0);
     task->state++;
 }
 

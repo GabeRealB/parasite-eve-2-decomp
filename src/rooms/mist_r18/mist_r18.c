@@ -1,13 +1,8 @@
 #include "common.h"
-#include "gameplay/gameplay.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3CD8.h"
 
 #include "main/display.h"
 #include "main/fs.h"
@@ -19,6 +14,12 @@
 
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/starter_inventory.h"
 
 /// Sprite description the overlay's two primitive emitters read from.
 ///
@@ -113,8 +114,6 @@ static void func_mist_r18_8017E8B8(Task* task);
 static void func_mist_r18_8017E92C(Task* task);
 static void func_mist_r18_8017E994(s32 tpage, s16 arg1);
 static void func_mist_r18_8017ECF4(Task* arg0);
-
-extern s8 D_801156F9;
 
 /// The room's task-spawn table; its entries are started by index from the
 /// room's callbacks.
@@ -271,10 +270,10 @@ static void func_mist_r18_8017D960(Task* task)
     if ((gGameSession->eventState == 0) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
         state = D_mist_r18_80186E9C;
         if (state == 1) {
-            func_800E8634((s32)&D_mist_r18_80185EBC, 0, (s32)&D_mist_r18_80186564);
+            func_800E8634(&D_mist_r18_80185EBC, 0, &D_mist_r18_80186564);
             D_mist_r18_80186E9C = 2;
         } else if (state == 2) {
-            func_800E8634((s32)&D_mist_r18_8018576C, 0, (s32)&D_mist_r18_8018645C);
+            func_800E8634(&D_mist_r18_8018576C, 0, &D_mist_r18_8018645C);
             D_mist_r18_80186EA0 = 0;
             D_mist_r18_80186E9C = 3;
         } else if (state == 3) {
@@ -286,7 +285,7 @@ static void func_mist_r18_8017D960(Task* task)
                 D_mist_r18_80186EA0 = 1;
                 return;
             }
-            func_800E8634((s32)&D_mist_r18_80185AE4, 0, (s32)&D_mist_r18_8018651C);
+            func_800E8634(&D_mist_r18_80185AE4, 0, &D_mist_r18_8018651C);
             D_mist_r18_80186E9C = 5;
         }
     }
@@ -885,7 +884,7 @@ static void func_mist_r18_8017ECF4(Task* arg0)
     D_mist_r18_80186E94 = 0;
     D_mist_r18_80186E98 = 0;
     Game_SetPtrSlot(arg0, 7);
-    func_800E8634((s32)&D_mist_r18_8018522C, 0, (s32)&D_mist_r18_8018639C);
+    func_800E8634(&D_mist_r18_8018522C, 0, &D_mist_r18_8018639C);
     arg0->state         = (s32)(arg0->state + 1);
     D_mist_r18_80186E9C = 1;
 }

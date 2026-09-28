@@ -18,13 +18,21 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/player_state.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 /// First frame of each animation, indexed by `Actor105600Work::field_694`;
 /// the state handlers offset it to get the frames their cues fire on.
@@ -55,18 +63,12 @@ extern s32 Actor02300_D15AB4[];
 /// Sound ids of the burst state's two cues.
 extern s32 Actor02300_D15B00;
 extern s32 Actor02300_D15B04;
-/// Effect id the burst state spawns at part 4.
-extern s32 D_80115758;
 
 /// Handlers of the `Actor105600Work::field_6A6` states, one per entry.
 extern TaskFunc Actor02300_D15D38[];
 
 /// Sound id of the part-11 child's cue, ORed with the enemy's id nibble.
 extern s32 Actor02300_D15B08;
-/// Effect id the part-7 child spawns when its countdown runs out.
-extern s32 D_8011572C;
-
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 static s32  Actor02300_Fn0371C(SVECTOR* arg0, SVECTOR* arg1);
 static void Actor02300_Fn00CD0(Task* arg0);
@@ -497,7 +499,7 @@ void Actor02300_Fn00AEC(Task* arg0)
 
 /// Proximity check of the approach states. Measures the player's horizontal
 /// distance from the root coordinate through a 0x10-byte `G_SCRATCH_HEAD`
-/// block: under 0x5DC one of `Gp_StateF0.field_2`'s bit groups raises `field_6B2`;
+/// block: under 0x5DC one of `Gp_StateF0.prefix.bytes.field_2`'s bit groups raises `field_6B2`;
 /// past it the other two (the second only within 0xBB8) put the enemy into
 /// animation 4 and state 1.
 static void Actor02300_Fn00CD0(Task* arg0)
@@ -524,14 +526,14 @@ static void Actor02300_Fn00CD0(Task* arg0)
     SCRATCH_HEAD(VECTOR) = delta;
     distance             = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x5DC) {
-        if (Gp_StateF0.field_2 & 0x17) {
+        if (Gp_StateF0.prefix.bytes.field_2 & 0x17) {
             work->field_6B2 = 1;
         }
     } else {
-        if (Gp_StateF0.field_2 & 5) {
+        if (Gp_StateF0.prefix.bytes.field_2 & 5) {
             trigger = 1;
         }
-        if ((Gp_StateF0.field_2 & 0x12) && (distance < 0xBB8)) {
+        if ((Gp_StateF0.prefix.bytes.field_2 & 0x12) && (distance < 0xBB8)) {
             trigger = 1;
         }
         if (trigger != 0) {

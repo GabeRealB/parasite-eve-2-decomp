@@ -3,12 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
 #include <psyq/rand.h>
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -16,6 +10,19 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/attachments.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/player_state.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 /// 0x18-byte `G_SCRATCH_HEAD` block `func_actor_800300_80162064` takes for the
 /// ground-quad heading it copies into the three `GameActor.field_88` records.
@@ -37,16 +44,6 @@ extern s32        D_8017A99C;
 extern void       D_actor_800300_80168880;
 extern GpImgRec** D_actor_800300_80168950[];
 extern GpImgRec** D_actor_800300_80168960[];
-
-s32  func_80105ED4(Task* arg0);
-s32  func_8010BC70(GpCoord* arg0);
-s32  func_8010BCF4(Task* arg0, VECTOR3* arg1);
-void func_8010BD88(Task* arg0, VECTOR3* arg1);
-void func_8010BE5C(Task* arg0, VECTOR3* arg1);
-void Gp_PlayerMode2State0(Task* arg0);
-void Gp_PlayerMode2State1(Task* arg0);
-void Gp_PlayerMode2State2(Task* arg0);
-void Gp_PlayerMode2State6(Task* arg0);
 
 static void func_actor_800300_801623F8(Task* arg0);
 static void func_actor_800300_801625A8(Task* task);

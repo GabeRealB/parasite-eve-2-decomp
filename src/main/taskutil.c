@@ -4,6 +4,9 @@
 #include "main/stage.h"
 #include "main/unknown_syms.h"
 
+#include "gameplay/display.h"
+#include "main/task.h"
+
 void Task_KillMaybeSpawn(Task* arg0)
 {
     if (gDisplayState.field_112 != 0) {

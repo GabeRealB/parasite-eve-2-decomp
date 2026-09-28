@@ -2,12 +2,11 @@
  * empty sprite lists and the location's parameters.
  */
 #include "common.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "rooms/stage_tables.h"
+
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 GpViewRec D_dryfield_r04_8017E218[2] = {
     { { { { 0x1000, 0, 0 }, { 0, 0, -0x1000 }, { 0, 0x1000, 0 } }, { 0, 0x7530, 0 } }, 0xCF },

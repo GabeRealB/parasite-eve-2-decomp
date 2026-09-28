@@ -6,7 +6,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgs.h>
 #include "main/coord.h"
-#include "gameplay/3FB8.h"
 #include "overlay.h"
 
 #endif /* PE_PEPPER_SPRAY_H */

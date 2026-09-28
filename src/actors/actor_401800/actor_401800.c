@@ -10,14 +10,6 @@
 #include "actors/actor.h"
 #include "actors/actors_shared_80133eb8.h"
 #include "actors/actors_shared_80169f74.h"
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -25,6 +17,22 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
 /// XZ patrol point in `Actor401800Work.field_C`. Same shape as
 /// `Actor01900Waypoint`.
@@ -288,10 +296,9 @@ extern s32* D_actor_401800_80155978;
 
 /// Gameplay slot `Gp_SpawnEff` effects read their model data from; set before
 /// each spawn in `func_actor_401800_8013BB10`.
-extern void* D_80114B78[1];
 
 /// The records closing three of the overlay's model streams, which
-/// `func_actor_401800_8013BB10` points `D_80114B78` at before spawning: the
+/// `func_actor_401800_8013BB10` points `D_80114B34[5].arg.model` at before spawning: the
 /// 0x60030 debris burst, then the 0xA0005 fan the step counter trips at 3 and 5
 /// and the two 0xA0005 bursts at 7 and 9.
 extern TmdSource D_actor_401800_80143E9C;
@@ -333,8 +340,6 @@ extern SVECTOR D_actor_401800_80155AD0;
 /// requested clip) pair, rows of 0x2D, handed to `func_800B4114` as the
 /// transition argument.
 extern s8 D_actor_401800_8015514C;
-
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
@@ -991,7 +996,7 @@ static void func_actor_401800_80133EB8(Task* arg0)
                 work->rig.slots[seekIndex].rate = (u8)seekWork->field_8A2;
                 animation                       = (s16)seekWork->field_89E;
                 index                           = seekWork->field_89C * 0x2D;
-                func_800B4114(&seekWork->rig.anim, seekSlotIndex, animation, 0,
+                func_800B4114(&seekWork->rig.anim, seekSlotIndex, (s16)(animation), 0,
                               (s32) * (s8*)((animation + index) + table));
                 seekIndex += 1;
             } while (seekIndex < 0x13);
@@ -2972,7 +2977,7 @@ static void func_actor_401800_80139D60(Task* arg0)
     if (!Actor401800_OutOfRange(d, work->field_C0E)) {
         work->field_0 = 6;
     }
-    if (*(u32*)&Gp_StateF0 & 0x50000) {
+    if (Gp_StateF0.prefix.packed & 0x50000) {
         work->field_0 = 6;
     }
     func_actor_401800_80133EB8(arg0);
@@ -3056,7 +3061,7 @@ static void func_actor_401800_8013A034(Task* arg0)
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
-    if (*(u32*)&Gp_StateF0 & 0x50000) {
+    if (Gp_StateF0.prefix.packed & 0x50000) {
         work->field_0 = 6;
     }
 }
@@ -3163,7 +3168,7 @@ static void func_actor_401800_8013A2E8(Task* arg0)
             }
         }
     }
-    if (*(u32*)&Gp_StateF0 & 0xD0000) {
+    if (Gp_StateF0.prefix.packed & 0xD0000) {
         work->field_0 = 6;
     }
     SCRATCH_POP(ActorTurnScratch);
@@ -3448,24 +3453,24 @@ static void func_actor_401800_8013BB10(Task* arg0)
     next          = work->field_6 + 1;
     work->field_6 = next;
     if ((s16)next == 3) {
-        D_80114B78[0] = &D_actor_401800_80143E9C;
-        vec.vz        = 0x64;
-        vec.vy        = 0;
-        vec.vx        = 0;
+        D_80114B34[5].arg.model = &D_actor_401800_80143E9C;
+        vec.vz                  = 0x64;
+        vec.vy                  = 0;
+        vec.vx                  = 0;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
     }
     if (work->field_6 == 5) {
-        D_80114B78[0] = &D_actor_401800_80144434;
-        vec.vy        = 0;
-        vec.vx        = 0;
+        D_80114B34[5].arg.model = &D_actor_401800_80144434;
+        vec.vy                  = 0;
+        vec.vx                  = 0;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec), enemy);
     }
     if (work->field_6 == 7) {
-        D_80114B78[0] = &D_actor_401800_80143E9C;
+        D_80114B34[5].arg.model = &D_actor_401800_80143E9C;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
     }
     if (work->field_6 == 9) {
-        D_80114B78[0] = &D_actor_401800_80144F24;
+        D_80114B34[5].arg.model = &D_actor_401800_80144F24;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
     }
     if (work->field_6 >= 0x3D) {
@@ -3522,18 +3527,18 @@ static void func_actor_401800_8013BF48(Task* arg0)
             }
             func_actor_401800_80132C68(arg0->extra.tmd->coords, &work->field_A28, 0xC);
             if (work->field_6 == 3) {
-                D_80114B78[0] = &D_actor_401800_80143E9C;
-                vec.vz        = 0x64;
-                vec.vy        = 0;
-                vec.vx        = 0;
+                D_80114B34[5].arg.model = &D_actor_401800_80143E9C;
+                vec.vz                  = 0x64;
+                vec.vy                  = 0;
+                vec.vx                  = 0;
                 actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
             }
             if (work->field_6 == 5) {
-                D_80114B78[0] = &D_actor_401800_80143E9C;
+                D_80114B34[5].arg.model = &D_actor_401800_80143E9C;
                 actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
             }
             if (work->field_6 == 6) {
-                D_80114B78[0] = &D_actor_401800_80144F24;
+                D_80114B34[5].arg.model = &D_actor_401800_80144F24;
                 actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
             }
             break;
@@ -3827,7 +3832,7 @@ static void func_actor_401800_8013D64C(GpEnemy* arg0, Task* arg1)
     }
     Gp_ClearRec18Occupied(&work->field_A28);
     Gp_ClearRec18Occupied(&work->field_8E8);
-    if ((Gp_StateF0.field_3 == 1) && (work->field_0 == 0x18)) {
+    if ((Gp_StateF0.prefix.bytes.field_3 == 1) && (work->field_0 == 0x18)) {
         work->field_0 = 6;
     }
 

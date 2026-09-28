@@ -6,12 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
-
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -20,6 +14,13 @@
 
 #include "rooms/dryfield_night_motel_loft.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// Scratch block one triangle is built in: the GTE depth and flag of its
 /// projection, then its three corners in world space.

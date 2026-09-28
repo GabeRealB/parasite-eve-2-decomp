@@ -12,12 +12,17 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/loading.h"
+#include "gameplay/collision.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
 
 extern TaskDesc D_actor_150400_80132CF0;
 extern TaskDesc D_80181BBC;
@@ -31,10 +36,6 @@ extern GpMsgEntry D_actor_150400_8013C8C4[];
 extern GpAreaApplyRec D_80183BE0;
 
 /// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_150400_80132228(Task* task);
 static void func_actor_150400_80132434(GpEnemy* enemy, Task* task);

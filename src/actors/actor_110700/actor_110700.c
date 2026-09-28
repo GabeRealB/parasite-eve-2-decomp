@@ -2,12 +2,16 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_80132074.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/D4.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
 
 /// The actor's work block, allocated by the setup state and parked in
 /// `Task::work`. It holds the model's animation context and slot array and the

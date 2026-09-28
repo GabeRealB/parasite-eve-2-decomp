@@ -5,14 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/light.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -28,10 +20,18 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017ff88.h"
 
-extern s32 D_80115720;
-extern s32 D_80115728;
-extern s32 D_8011573C;
-extern s32 D_80115744;
+#include "gameplay/actor_render.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
 extern SVECTOR D_mine_cavern_80188F64[];
 extern SVECTOR D_mine_cavern_80188F7C[];
@@ -168,13 +168,13 @@ void func_mine_cavern_8017E358(void)
 
 void func_mine_cavern_8017E360(void)
 {
-    gGameSession->at4.loc.place = 4;
-    Gp_StateF0.field_0          = 0;
-    Gp_StateF0.field_5          = 0;
-    Gp_StateF0.field_6          = 0;
-    Gp_StateF0.field_8          = 0;
-    Gp_StateF0.field_C          = 0;
-    Gp_StateF0.field_10         = 0;
+    gGameSession->at4.loc.place     = 4;
+    Gp_StateF0.prefix.bytes.field_0 = 0;
+    Gp_StateF0.field_5              = 0;
+    Gp_StateF0.field_6              = 0;
+    Gp_StateF0.field_8              = 0;
+    Gp_StateF0.field_C              = 0;
+    Gp_StateF0.field_10             = 0;
 }
 
 void func_mine_cavern_8017E394(void)
@@ -1981,8 +1981,8 @@ static void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
     d->vz                               = Player_Status.coordMtx->t[2] - coords->coord.t[2];
     blk                                 = (_MineCavernHitScratch*)(head - 0x28);
 
-    if (overlayOutOfRange(d, 0x1770) || Gp_StateF0.field_0 != 1 ||
-        (gGameSession->at4.loc.place != Gp_StateF0.field_0 && gGameSession->at4.loc.place != 4)) {
+    if (overlayOutOfRange(d, 0x1770) || Gp_StateF0.prefix.bytes.field_0 != 1 ||
+        (gGameSession->at4.loc.place != Gp_StateF0.prefix.bytes.field_0 && gGameSession->at4.loc.place != 4)) {
         arg0->node.state.b.flags = 1;
     } else {
         arg0->node.state.b.flags = 0;

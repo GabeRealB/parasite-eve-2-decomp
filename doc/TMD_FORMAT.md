@@ -4,7 +4,7 @@ What we know about the **model streams** inside the `.pe2pkg` overlay packages:
 the container that ties a mesh together, the packet stream that describes its
 faces, and what each opcode means. Derived from the matching decomp
 (`src/main/tmd.c`, `src/main/hasm/Tmd_StreamHandlers_Ops.s`,
-`src/gameplay/1BC.c`) and from walking the 360 model streams the extractor
+`src/gameplay/scene_runtime.c`) and from walking the 360 model streams the extractor
 carves out of the retail USA discs.
 
 These are **not** a stage chunk type. There is no model chunk on disc; a model
@@ -18,7 +18,7 @@ and animation sit together.
 | Stream walk + opcode switches | `src/main/tmd.c` (`Tmd_InitSourceStream`, `tmdProcessStream`) |
 | Early-image handlers | `src/main/hasm/Tmd_StreamHandlers_Ops.s` |
 | Container types | `include/main/tmd.h` (`TmdSource`, `TmdObject`) |
-| Attach path | `src/gameplay/gameplay.c` (`Gp_AttachTmd`), `src/main/task.c` |
+| Attach path | `src/gameplay/model_objects.c` (`Gp_AttachTmd`), `src/main/task.c` |
 | Locate / carve streams | `tools/peassets/pkg_model.py` |
 
 **Status.** The format is understood well enough to write an exporter. An
@@ -223,8 +223,8 @@ settle it.
 Derived from both handler sets: the init handlers in
 `Tmd_StreamHandlers_Ops.s` (which element words they read, which `ws` array
 each ref is added to, where they store screen coordinates, which GTE commands
-they issue) and the draw handlers in `src/gameplay/gameplay.c` (which
-`POLY_*` type they build).
+they issue) and the draw handlers in `src/gameplay/model_objects.c` and
+`src/gameplay/model_lighting.c` (which `POLY_*` type they build).
 
 A caution learned the hard way: each handler loads *different* `ws` fields
 into the same registers, so a register name means nothing on its own.
@@ -413,7 +413,7 @@ handler that completes a pre-transformed record (`0x39`, `0x79`) runs after the
 pre-pass and writes its own code over the first corner's.
 
 `0xC4`'s handler is decompiled C (`gpXformStreamVertsUnlit` in
-`src/gameplay/gameplay.c`) and spells out what the hasm versions do:
+`src/gameplay/model_lighting.c`) and spells out what the hasm versions do:
 
 ```c
 idx = rec[0];
@@ -454,7 +454,7 @@ different jobs:
 | Switch | Handlers | What it does |
 |---|---|---|
 | `Tmd_InitSourceStream` | main, `Tmd_StreamHandler_*` at `0x80010A90` | one-shot, guarded by `TmdSource.handlersResolved`. Resolves 61 opcodes to 53 handlers and **writes the pointer into the packet's slot word**. These are the transform/light/cull routines: they read vertices, run `RTPT`/`NCLIP`/`AVSZ`, and store screen XY and lit RGB. |
-| `tmdProcessStream` | the loaded overlay, `0x8009xxxx`, decompiled in `src/gameplay/gameplay.c` | walks the stream when a model's primitives are built, and again when the model's texture page or CLUT changes: it lays the primitives out and fills their **static** fields — UV, CLUT, tpage. It picks the handler from the record's own opcode and steps over the slot word, which is the draw pass's to read. |
+| `tmdProcessStream` | the loaded overlay, `0x8009xxxx`, decompiled in `src/gameplay/model_objects.c` and `src/gameplay/model_lighting.c` | walks the stream when a model's primitives are built, and again when the model's texture page or CLUT changes: it lays the primitives out and fills their **static** fields — UV, CLUT, tpage. It picks the handler from the record's own opcode and steps over the slot word, which is the draw pass's to read. |
 
 That split is why the untextured families do nothing per pass:
 `gpStreamPrimG3` and `gpStreamPrimG4` only advance `prims` by `0x1C` and `0x24`
@@ -489,8 +489,8 @@ and `0x08` texturing, `0x04` flat vs gouraud primitive, `0x02` semi-transparent,
 Every family the per-frame switch dispatches to, with the primitive it builds
 and where its texture coordinates come from. Read out of the handlers: some of
 the bodies are the early image's own, the rest are decompiled in
-`src/gameplay/gameplay.c`, and the early image resolves those by absolute
-address through `configs/USA/sym.main.imports.txt` — which is why they are easy
+`src/gameplay/model_objects.c` and `src/gameplay/model_lighting.c`. The early
+image resolves those by absolute address through `configs/USA/sym.main.imports.txt` — which is why they are easy
 to miss.
 
 "Refs" is what precedes the UV words: the ref block — `nv` vertex offsets then

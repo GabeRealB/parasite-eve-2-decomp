@@ -3,11 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
-
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -20,6 +15,15 @@
 #include "main/stream.h"
 #include "main/task.h"
 #include "rooms/neo_ark_altar.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/captions.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
+#include "main/mc.h"
 
 /// One 12-byte altar floor tile: `x` / `z` are the tile's low corner in world
 /// units, `w` / `d` its size along X and Z, and `id` the number the tile

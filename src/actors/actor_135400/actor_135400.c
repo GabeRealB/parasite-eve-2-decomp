@@ -11,12 +11,16 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 /// Work block of the actor's second task, the one `func_actor_135400_80132B60`
 /// sets up: the `memCalloc(0x498, 0)` result it stores in `Task::work`, which
@@ -109,10 +113,6 @@ void func_8004BFF8(s32 angle, MATRIX* matrix);
 /// Main-executable helper the spawn runs on the flag-clear path, once the
 /// actor is placed. Unmatched, so declared here.
 void func_80180414(s32 arg0);
-
-/// Declared here with a signed `arg2`: every caller passes a sign-extended
-/// animation id, which the definition's `u16` prototype would re-extend.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_135400_80131EB4(Task* task);
 static void func_actor_135400_80132064(Task* arg0);

@@ -1,11 +1,4 @@
 #include "common.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/D4.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -18,6 +11,12 @@
 #include "main/stage.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
 
 /// Imports from the 0x80180000 overlay; no header names them yet.
 void            func_8017DCAC(s32 arg0);
@@ -125,8 +124,8 @@ void func_actor_215100_80149F2C(Task* task)
             break;
         case 0x1E:
             Gp_PlayerWeaponId(&D_actor_215100_8014CF84);
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&D_actor_215100_8014CF84, 0);
-            Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D3, (s32)&D_actor_215100_8014D010, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &D_actor_215100_8014CF84, 0);
+            Gp_DispatchMsgPtr(Gp_LookupSlot4(1), 0x7D3, &D_actor_215100_8014D010, 0);
             task->killCountdown = 0x1B;
             Gp_StartCapSlot(0xB, 0, 0);
             task->state++;
@@ -136,10 +135,10 @@ void func_actor_215100_80149F2C(Task* task)
                 task->killCountdown--;
             }
             if (task->killCountdown == 0) {
-                Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D3, (s32)&D_actor_215100_8014D024, 0);
+                Gp_DispatchMsgPtr(Gp_LookupSlot4(1), 0x7D3, &D_actor_215100_8014D024, 0);
             }
             if (task->killCountdown == -0x16) {
-                Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D3, (s32)&D_actor_215100_8014CFAC, 0);
+                Gp_DispatchMsgPtr(Gp_LookupSlot4(1), 0x7D3, &D_actor_215100_8014CFAC, 0);
             }
             if (Gp_CapBusy() == 0) {
                 task->state++;

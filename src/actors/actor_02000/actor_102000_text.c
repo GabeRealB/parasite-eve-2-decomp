@@ -3,10 +3,6 @@
 #include "psyq/inline_c.h"
 #include "gte.h"
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
 #include "main/fs.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -14,12 +10,23 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/gameplay.h"
-#include "gameplay/pairsrc.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 static const GpEnemyTaskFuncTable3 Actor02000_D00060;
 static const GpEnemyTaskFuncTable3 Actor02000_D0006C;
@@ -34,7 +41,6 @@ static void Actor02000_Fn00CD0(Task* arg0);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-extern s32 D_8011572C;
 extern s16 Actor02000_D03784[];
 extern s16 Actor02000_D15D20[];
 extern s16 Actor02000_D15D7C[];
@@ -463,14 +469,14 @@ static void Actor02000_Fn00CD0(Task* arg0)
     SCRATCH_HEAD(VECTOR) = delta;
     distance             = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x5DC) {
-        if (Gp_StateF0.field_2 & 0x17) {
+        if (Gp_StateF0.prefix.bytes.field_2 & 0x17) {
             work->field_6B2 = 1;
         }
     } else {
-        if (Gp_StateF0.field_2 & 5) {
+        if (Gp_StateF0.prefix.bytes.field_2 & 5) {
             trigger = 1;
         }
-        if ((Gp_StateF0.field_2 & 0x12) && (distance < 0xBB8)) {
+        if ((Gp_StateF0.prefix.bytes.field_2 & 0x12) && (distance < 0xBB8)) {
             trigger = 1;
         }
         if (trigger != 0) {
@@ -894,9 +900,6 @@ static void Actor02000_Fn018A4(Task* arg0)
         }
     }
 }
-
-/* Declared here with a signed id: see the note in gameplay/1BC.h. */
-void func_800B4114(GpAnimCtx*, s32, s32, s32, s32);
 
 static void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
 {

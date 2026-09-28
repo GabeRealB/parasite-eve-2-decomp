@@ -2,8 +2,6 @@
 #define ACTORS_SHARED_801330AC_H
 
 #include "common.h"
-
-#include "gameplay/1BC.h"
 #include "main/task.h"
 
 /// Work block the actors sharing this body hang off the task's `Task::work`

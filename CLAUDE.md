@@ -133,52 +133,85 @@ re-split harder: replay the worktree's own commits instead (`CAN_REPLAY` in
 `vacuum_overlay.sh`), which needs no correspondence between the trees and keeps
 each commit's attempt count.
 
-**The trailing data stays in assembly, with named exceptions.** It is mostly
-models and animation banks, which are assets and never move into `src/` (see
-"Assets" below); clip tables are undecided. The symbols decompiled code
-actually references are program structure, and
-the manifest's `data` key cuts them out of the blob and gives the run to a C
-unit (`weapons/p229`). splat lists an object in the linker script at its first
-subsegment, so a run at the *end* of a package - the zeroed work arrays - needs
-a unit of its own, conventionally `<name>_work`, declared after the `data`
-subsegment; a unit whose only subsegment is `.data` is compiled all the same.
+**Recover data in a TU that contains code.** Place `.rodata`, `.data` and
+`.bss` definitions as late as possible, normally in the first TU that uses them
+(including references through other tables). Do not introduce data-only C files
+to preserve a disconnected run. Existing `_work` files are provisional layout
+workarounds, not a pattern to extend. With hand-written configs,
+`auto_link_sections: []` lets explicit dotted subsegments place each source
+object's sections independently of where its code first appears. A source
+object still contributes each of its sections only once; disconnected runs
+need ownership analysis and, where supported by code/data evidence, TU splits.
 
-**`<name>_work` is for a *non-adjacent* run, not for zeroed data as such.** A
-unit appears once in the linker script, so it cannot span a hole: `p229` needs
-one because ~54KB of asm model data sits between its `0xF30` data run and its
-`0xE498` work array. Where the work array directly abuts the data run - every
-`pe` overlay - one unit covers both, with the objects declared in address order.
+**Zero bytes do not establish an object or its extent.** Check natural type
+alignment and missing TU boundaries before defining storage. Do not invent
+unreferenced zero arrays or widen an array just to consume a gap. Keep uncertain
+intervals in generated assembly until their ownership and extent are known.
+Do not change BSS alignment in `ninja_config.py` to force a proposed layout.
 
-**A second label on the same run is a second object, not `arr[1]`.** splat names
-an address the code references directly, so a two-vector run comes out as
-`D_x_A` plus `D_x_B`. Folding `D_x_B` into `D_x_A[1]` compiles and keeps the
-data bytes identical, and still fails: the original reaches that address both
-ways, and the two forms are different code. Indexing emits the array's address
+In BSS, an apparent gap may also be unrecognized trailing fields or unused
+array capacity belonging to the preceding object. Observed accesses establish
+a minimum extent; they do not prove where the original object ended. Check
+indirect accesses, aliases, array strides, and clear/copy lengths before
+choosing between a larger object, separate storage, alignment or a TU boundary.
+A `pad` subsegment preserves bytes but does not establish their purpose, and
+a matching checksum cannot distinguish these layouts when all bytes are zero.
+
+**Require global accesses to be in bounds.** Use the working assumption that
+the original code does not deliberately invoke undefined behavior. A proposed
+object definition must accommodate every reachable read and write through its
+base, aliases, derived pointers, table references and callees, across all
+overlays. Derive index ranges from callers, loop limits, masks, branches and
+sentinels; do not infer them from the array size currently written in C.
+Include the complete access width and bulk clear/copy length. Forming a
+one-past pointer is allowed where C permits it; dereferencing it is not.
+
+If an access would extend into a `pad` interval, the proposed extent or the
+base/type interpretation needs correction. Adjacent storage cannot make an
+out-of-bounds C access valid, even when the binary matches. If required extents
+overlap another proposed object, revisit the boundaries and alias/aggregate
+model rather than accepting UB. Record unproved index ranges as unresolved;
+do not declare a gap to be padding until the reference constraints allow it.
+
+**Trace symbol bases and field offsets in assembly.** Follow the full address
+loaded for an object and the displacements from that base, including copies of
+the base register, derived pointers, indexed accesses, and uses in callees.
+An access at `base + offset` can establish a field beyond the currently
+recovered extent. Record the offset and access width; do not turn it into a
+new global just because it falls in a current `pad` interval.
+
+Known fields can also be accessed with the offset folded into `%hi/%lo`
+immediates, as in `Gp_SetStateF0Byte3`. Cross-check these absolute addresses
+against uses that establish the containing base. Splat's choice of `D_x`
+versus `symbol + offset` depends on the symbol map and declared sizes, so the
+printed expression alone is not independent evidence of an object boundary.
+
+**Preserve separately addressed objects when the assembly requires it.** In
+the two-vector examples below, folding `D_x_B` into `D_x_A[1]` compiles and
+keeps the data bytes identical, but changes the address calculation and fails
+the match. Indexing emits the array's address
 plus 8 (`addiu $v0,$v0,0xe704`), naming it emits its own (`addiu $v1,$v0,
 0xe70c`). Declare `SVECTOR D_x_A[1]` followed immediately by `SVECTOR D_x_B`,
 which reproduces both. `weapons/gunblade`, `m4a1_bayonet` and `tonfa_baton` are
 the worked examples; the same shape in `pe/energyshot` needed the opposite call,
 where a `(u16)` cast at the one use site was enough.
 
-**Those zeroed runs are bss by origin but must be `.data` in C, and the
-safe-looking alternative silently breaks the game.** An overlay is a flat LZSS
-image inflated straight to its load address (`doc/OVERLAYS.md` 4.2); the loader
-writes the image and zeroes nothing beyond it. So work state the code reads
-before writing has to be stored zeros *inside* the image - which is why the
-original build materialised its bss there, and why every package ends exactly at
-its last data byte. Declare such an array the natural way, `s16 work[16];`, and
-`-fcommon` turns it into a COMMON symbol that lands in the overlay's `.bss`; that
-section is `NOLOAD`, so it vanishes from the image and the overlay comes up
-reading whatever the previous overlay left at those addresses - with the build
-still green. Always write `= { 0 }`.
+**Overlay work state must remain inside the loaded image.** An overlay is a
+flat LZSS image inflated straight to its load address (`doc/OVERLAYS.md` 4.2);
+the loader does not clear separate BSS. In configs with `ld_bss_is_noload: True`,
+keep recovered work in loaded data with explicit zero initializers. A plain
+tentative definition would otherwise disappear from the image.
 
-`ld_bss_is_noload: True` in `configs/USA/overlay.template.yaml` cannot simply be
-turned off to avoid that. Setting it `False` fails the checksum on `tonfa_baton`,
-`acropolis_patio`, `dryfield_warehouse`, `dryfield_water_hole` and `mine_cavern`
-- none of which has a non-empty `.bss` or a single COMMON symbol. A loadable
-`.bss` output section participates in the image layout even when empty, and these
-images end flush against their last data byte with no slack for the alignment it
-introduces.
+Gameplay now models its stored work as `.bss` input sections using explicit
+subsegments and `ld_bss_is_noload: False`. The linker combines those inputs with
+the code/data in the loaded `SHT_PROGBITS` output section, so the image still
+contains every zero. Verify both the linked symbol addresses and the complete
+image checksum; input `SHT_NOBITS` alone does not tell you whether zeros are
+stored in the final overlay.
+
+Do not switch `ld_bss_is_noload` globally in `overlay.template.yaml`: empty BSS
+sections can also introduce alignment and break packages that end flush against
+their last data byte. Establish the section layout separately for each image.
 
 **Several packages can be one source built with different parameters.** The
 MP5A5 and its two upgrades differ only in their weapon index; the M4A1, P08,
@@ -399,15 +432,25 @@ When you see pointer arithmetic patterns like `*(type*)((u8*)ptr + offset)`:
    - Define the element struct with correct size and field offsets
    - Define the container struct with pointer at correct offset
    - Use meaningful names or `field_[Offset]` naming convention
-   - **Define the struct in the matching module header**, not in a kitchen-sink
-     header. Nothing auto-moves types for you.
+   - **Keep types and declarations in the smallest shared scope.** A function,
+     global or type defined and used within one TU belongs in that `.c` file's
+     prologue, never a header. Sharing within gameplay uses private headers
+     beside `src/gameplay/*.c`; sharing between overlays (including the main
+     executable) uses public module headers under `include/`. Include the
+     canonical declaration instead of copying caller-local prototypes. Count
+     callback/inline uses and cross-image aliases when deciding ownership.
      - **Main executable** (`src/main/`, `include/main/`): see `NAMING.md` for
        the module → header map (e.g. sound in `include/main/sound.h`, UI in
        `ui.h`, FS/CdCmd in `fs.h`). Include the specific module header; do not
        add a kitchen-sink aggregator.
-     - **Overlays** (stage/file pe2pkg units, not yet decompiled under their own
-       trees): use that overlay’s own `include/` / header layout when it exists;
-       do not dump overlay-only types into `include/main/`.
+     - **Overlays:** public headers belong to their owning overlay under
+       `include/`; private headers live next to its source. Public headers must
+       not depend on private headers. Do not put overlay-only types in
+       `include/main/`.
+     - **Gameplay BSS:** keep the existing definitions in first-declaration
+       order in the prologue, before API headers, with their required types
+       available first. Header moves must preserve the matching storage layout;
+       they do not justify changing alignment or inventing padding.
    - Use `include/main/unknown_syms.h` only for residual main-executable symbols
      (`func_800*`, unfiled BSS/data) with no module home yet. Do **not** add new
      named types or Module_ APIs there.

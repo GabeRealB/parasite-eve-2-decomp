@@ -9,18 +9,23 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_80164954.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/mc.h"
 
 /// Psy-Q `RotMatrixY`.
 void func_8004BFF8(s16 angle, MATRIX* matrix);
@@ -46,8 +51,6 @@ extern GpEffArg D_actor_323400_80171228;
 
 /// Enemy pair source `GpEnemy::param` is pointed at by the spawn handler.
 extern GpPairSrcE D_actor_323400_80164D5C;
-
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_323400_80163FC8(GpEnemy* enemy, Task* task);
 static void func_actor_323400_801641C4(GpEnemy* enemy, Task* task);
@@ -741,7 +744,7 @@ static void func_actor_323400_80163B58(Task* task)
                 work->slots[seekIndex].rate = (u8)seekWork->field_832;
                 animation                   = seekWork->field_82E;
                 index                       = seekWork->field_82C * 0x2D;
-                func_800B4114(&seekWork->anim, seekSlotIndex, animation, 0, (s32) * (s8*)((animation + index) + table));
+                func_800B4114(&seekWork->anim, seekSlotIndex, (s16)(animation), 0, (s32) * (s8*)((animation + index) + table));
                 seekIndex += 1;
             } while (seekIndex < 0x12);
             seekWork->field_82C = seekWork->field_82E;

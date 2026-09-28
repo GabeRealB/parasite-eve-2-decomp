@@ -3,16 +3,20 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "main/fs.h"
 
 /// Per-frame firing state machine for the M4A1 bayonet. State 0 arms the shot
 /// and raises the weapon (clip 8 instead of 1 when it was already up), state 1
@@ -95,7 +99,7 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
                     actor->field_93E--;
                     actor->field_934  = 3;
                     actor->field_981  = 0;
-                    rec->end0.vz      = rec->end1.vz + D_80112F94;
+                    rec->end0.vz      = rec->end1.vz + D_80112F60[26];
                     actor->field_12A |= 0xC000;
                     Gp_ConsumeSlotQty(0x99, 1);
                     if (func_80106264(1) == 0) {

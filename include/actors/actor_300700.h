@@ -3,13 +3,13 @@
 
 #include "common.h"
 #include "actors/actor.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/1BC.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include "main/coord.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/geometry.h"
 
 /// The first collision record of the work block, viewed both as a plain
 /// `GpRec18` and as the raw id pair the tick handler reads back out of it.
@@ -36,7 +36,8 @@ typedef union Actor300700ContactStorage {
 } Actor300700ContactStorage;
 
 typedef struct Actor300700Work {
-    /* 0x000 */ byte                      pad_0[0x154];
+    /* 0x000 */ GpAnimCtx                 anim;
+    /* 0x014 */ byte                      pad_14[0x140];
     /* 0x154 */ Actor300700HitRecord      field_154;
     /* 0x16C */ byte                      pad_16C[0x20];
     /* 0x18C */ GpRec18                   field_18C;

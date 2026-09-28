@@ -8,11 +8,16 @@
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
 #include "rooms/mist_parking.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/scene_runtime.h"
+#include "main/wipsys.h"
 
 /// Scratch state of the parking-lot cap script driven by
 /// `func_mist_parking_80183EAC`, cleared with `Mem_Set` when the task starts.
@@ -32,11 +37,11 @@ extern s32                 D_mist_parking_80191214;
 extern s32                 D_mist_parking_80191304;
 extern s32                 D_mist_parking_801913C4;
 extern MistParkingCapState D_mist_parking_80195334;
-extern u8                  D_801156F9;
-extern s32                 D_mist_parking_80190874;
-extern s8                  D_mist_parking_801908C8[];
-extern GpGridParams        D_mist_parking_8018FCB8;
-extern GpGridParams        D_mist_parking_80192204;
+
+extern s32          D_mist_parking_80190874;
+extern s8           D_mist_parking_801908C8[];
+extern GpGridParams D_mist_parking_8018FCB8;
+extern GpGridParams D_mist_parking_80192204;
 
 void func_mist_parking_80183BAC(s32 arg0)
 {

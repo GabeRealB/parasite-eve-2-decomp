@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "gameplay/3A34.h"
+#include "gameplay/actor.h"
 
 /// One 4-byte row of `D_necrosis_801306BC`, indexed by `GpEffWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the `Gp_SpawnEff` draw

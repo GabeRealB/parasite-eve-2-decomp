@@ -6,13 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
-
 #include "main/display.h"
 #include "main/mem.h"
 #include "main/pad.h"
@@ -24,6 +17,19 @@
 
 #include "rooms/mist_shooting_gallery.h"
 #include "rooms/room.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/attachments.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/pad_input.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// The five round scripts of the gallery mini-game, indexed by
 /// `MistShootingGalleryWork::difficulty`. `func_mist_shooting_gallery_80184A14`
@@ -387,8 +393,8 @@ static void func_mist_shooting_gallery_80182B1C(Task* arg0)
             Display_AcquireRef();
         }
     }
-    Gp_StateF0.field_0      = 0;
-    gGameSession->field_126 = 0;
+    Gp_StateF0.prefix.bytes.field_0 = 0;
+    gGameSession->field_126         = 0;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
 }
 

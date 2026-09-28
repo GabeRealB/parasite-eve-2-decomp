@@ -1,8 +1,4 @@
 #include "common.h"
-
-#include "gameplay/268.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -11,9 +7,14 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern u8  D_80115598;
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/object_task.h"
+#include "main/fs.h"
+
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
-s32        func_800E3FCC(s32 arg0);
 
 /// Task table spawned by `func_shelter_b2_breeding_room_8017D6A4` once the
 /// breeding-room script has run.

@@ -5,10 +5,11 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-#include "gameplay/3A34.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/effects.h"
 
 /// A `GpObj` list node followed by one `GpRec18`-sized record. The large
 /// enemy keeps five and unlinks them one by one as it tears down; the record

@@ -138,6 +138,5 @@ void CdStream_Stop(void);
 void CdStream_Drive(void);
 
 // Gameplay callback imported by the resident CD stream handler.
-s32 func_800AF590(void);
 
 #endif // CDSTREAM_H

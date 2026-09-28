@@ -4,12 +4,6 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -20,6 +14,19 @@
 #include "main/tmd.h"
 #include "psyq/rand.h"
 
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
+
 static void func_actor_460200_801325FC(Task* task);
 
 s32 func_actor_460200_80132B2C(Task* task, s32 arg1, GpAnimArg* args);
@@ -27,8 +34,6 @@ s32 func_actor_460200_80132B2C(Task* task, s32 arg1, GpAnimArg* args);
 s32 func_actor_460200_80133C64(Task* task, s32 arg1, GpAnimArg* args);
 
 s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags);
-
-extern u8 D_801156F9;
 
 extern s32 D_actor_460200_8013FC50;
 extern s32 D_actor_460200_8013FC8C;
@@ -57,10 +62,6 @@ extern s32      D_actor_460200_801514FC;
 extern s32      D_actor_460200_80151538;
 
 /// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_460200_80131FB0(void);
 static void func_actor_460200_80132808(GpEnemy* enemy, Task* task);
@@ -260,8 +261,8 @@ static void func_actor_460200_80132210(void)
 
     slot = Gp_LookupSlot4(0);
     if (slot != NULL) {
-        Gp_DispatchMsg(slot, 0x7D4, (s32)&D_actor_460200_80136234, 0);
-        Gp_DispatchMsg(slot, 0x7D3, (s32)&D_actor_460200_8013607C, 0);
+        Gp_DispatchMsgPtr(slot, 0x7D4, &D_actor_460200_80136234, 0);
+        Gp_DispatchMsgPtr(slot, 0x7D3, &D_actor_460200_8013607C, 0);
     }
     if (Gp_LookupSlot4(1) != 0) {
         Gp_MsgSlot4Chain(1, 2);
@@ -269,7 +270,7 @@ static void func_actor_460200_80132210(void)
     slot = Gp_LookupSlot4(2);
     if (slot != NULL) {
         Gp_MsgSlot4Chain(2, 1);
-        Gp_DispatchMsg(slot, 0x7D3, (s32)&D_actor_460200_80135F14, 0);
+        Gp_DispatchMsgPtr(slot, 0x7D3, &D_actor_460200_80135F14, 0);
     }
 }
 

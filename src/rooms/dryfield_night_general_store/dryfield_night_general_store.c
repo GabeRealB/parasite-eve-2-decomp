@@ -1,10 +1,4 @@
 #include "common.h"
-
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -13,8 +7,14 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern u8 D_80115598;
-extern u8 D_80115690;
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/object_task.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
+#include "main/fs.h"
 
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.

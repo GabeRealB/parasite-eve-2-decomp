@@ -30039,9 +30039,9 @@ that file's later `.rodata` island and shifts everything after it.
 
 Give the function its own `c` / `.rodata` pair in the overlay yaml
 (`3FB8_75BC` at 0x3FB8 / 0x63DBC) and leave the remainder of the old
-TU starting at the next function. Update
-`fix_gameplay_linker_rodata_order` so splat cannot drop the new object
-from `rodata_3FB8` / `3FB8.c` / `rodata_3FB8_2`. `Gp_EffSprTask46` is the
+TU starting at the next function. Gameplay now uses `auto_link_sections: []`
+and explicit dotted subsegments to specify object section order; the old
+`fix_gameplay_linker_rodata_order` workaround has been removed. `Gp_EffSprTask46` is the
 example. The next 5-case switch (`Gp_EffSprTask81`) needs the same cut
 (`3FB8_7E28` at 0x3FD0 / 0x63FF8); keep the unmatched `Gp_DrawEffSprite81` /
 `Gp_DrawEffSprite46` INCLUDE_ASMs in that TU so `.text` stays contiguous.
@@ -37565,9 +37565,9 @@ object. Three edits are needed:
    following `.rodata, <unit>` segment (keep the earlier address).
 2. Delete the now-orphaned generated `asm/.../rodata_<unit>.rodata.s`; splat will
    not remove it for you and the linker script still globs it until it is gone.
-3. Drop the matching entry from `fix_gameplay_linker_rodata_order()` in
-   `ninja_config.py` — it exists only to re-order that asm piece against the C
-   `.rodata`.
+3. Check that the explicit dotted subsegments put each object's `.rodata`
+   at its original address. Gameplay no longer patches the generated linker
+   script to reorder these sections.
 
 ## Pin a constant addend to a term with an unsigned `- 1U`
 
@@ -41354,8 +41354,8 @@ For 3FB8 that meant `Gp_EffTask07States` right after `Gp_EffSprTask30` and `Gp_P
 right after `INCLUDE_ASM(…, func_800FDB18)` (whose `.s` now carries
 `jtbl_80097808`). Check the result in `build/USA/out/<ovl>.elf.map`: the unit's
 `.rodata` should start at the jtbl VMA and every named symbol should keep its
-original address. Also drop the now-dead raw-split entry from
-`fix_gameplay_linker_rodata_order` in `ninja_config.py`.
+original address. Remove the now-dead raw-split entry from the overlay config;
+gameplay's explicit dotted subsegments determine the order directly.
 
 ## Write the `if` arm that the target falls through into, not the one you'd write by hand
 
@@ -41504,11 +41504,12 @@ remainder as asm:
       - [0x4C4, rodata, rodata_268]
 ```
 
-`ninja_config.py` re-runs splat every time, so the asm file is regenerated
-without the jtbl automatically. The C TU's `.rodata` must be the *first*
+Changing the config makes `ninja_config.py` re-run splat, so the asm file is
+regenerated without the jtbl. The C TU's `.rodata` must be the *first*
 jtbl-bearing group at that offset (here the TU's text starts at
-`func_800B7420`), otherwise the generated jtbl lands in the wrong order and
-`fix_gameplay_linker_rodata_order` has to be extended.
+`func_800B7420`), otherwise the generated jtbl lands in the wrong order.
+Correct ownership and the explicit dotted subsegment order in the config;
+do not add a generated-linker-script patch.
 
 ## Shared `-1` local plus dual `s32`/`u8` loads for `lb`/`lbu` join
 

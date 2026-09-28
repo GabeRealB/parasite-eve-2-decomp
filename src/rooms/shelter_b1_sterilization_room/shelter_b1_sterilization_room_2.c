@@ -1,18 +1,11 @@
 #include "common.h"
 #include "main/sound.h"
-#include "gameplay/D4.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -24,12 +17,19 @@
 #include "rooms/room_common.h"
 #include "rooms/shelter_b1_sterilization_room.h"
 
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
+
 extern s32     D_shelter_b1_sterilization_room_80188C94;
 extern s32     D_shelter_b1_sterilization_room_80188E14;
 extern SVECTOR D_shelter_b1_sterilization_room_8018909C[];
 extern SVECTOR D_shelter_b1_sterilization_room_80189334[];
-
-extern void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 
 static void func_shelter_b1_sterilization_room_801826F0(GpCoord* coord, s16 frame, s16 arg2, s16 arg3);
 
@@ -55,7 +55,7 @@ void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
             return;
         case 2:
             if (Gp_GetCapEventKey() == 1) {
-                func_800E8634((s32)&D_shelter_b1_sterilization_room_80188C94, 0, (s32)&D_shelter_b1_sterilization_room_80188E14);
+                func_800E8634(&D_shelter_b1_sterilization_room_80188C94, 0, &D_shelter_b1_sterilization_room_80188E14);
                 GameFlag_SetNibble(0x77, 1);
                 gGameSession->restartMode = 0;
             } else {

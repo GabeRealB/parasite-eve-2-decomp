@@ -1,13 +1,14 @@
 #include "common.h"
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/D4.h"
 
 #include "main/fs.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/room.h"
+
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "main/mc.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_mist_r21_8017D770[];

@@ -4,11 +4,10 @@
 #include "common.h"
 
 #include <psyq/libgs.h>
-
-#include "gameplay/3A34.h"
 #include "main/session.h"
-#include "gameplay/3CD8.h"
 #include "overlay.h"
+
+#include "gameplay/actor.h"
 
 /// 0x18-byte scratchpad block `func_hypervelocity_8011F724` reserves for one
 /// frame of the barrel's recoil kick. `dir` receives the third column of the

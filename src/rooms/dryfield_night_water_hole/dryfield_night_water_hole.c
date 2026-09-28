@@ -5,13 +5,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/abs.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -24,6 +17,18 @@
 #include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 /// Parameter block of `func_dryfield_night_water_hole_8017D6AC`, the room-local
 /// resolver `func_dryfield_night_water_hole_8017DC28` calls with one pointer as
@@ -75,8 +80,6 @@ typedef struct _DryfieldNightWaterHoleSplash {
     s16  strength;
 } _DryfieldNightWaterHoleSplash;
 
-extern s32 D_80115738;
-extern s32 D_8011574C;
 /// Resident task table the ending task is spawned from, descriptor 1.
 extern TaskDesc D_801351FC[];
 
@@ -246,7 +249,7 @@ void func_dryfield_night_water_hole_8017D7E8(Task* arg0)
                 arg0->state = 2;
                 break;
             }
-            Gp_DispatchMsg(slot, 0x3EE, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(slot, 0x3EE, &msg, 0);
             arg0->state = (s32)(arg0->state + 1);
             break;
         case 1:
@@ -305,9 +308,9 @@ static void func_dryfield_night_water_hole_8017D958(Task* arg0)
     }
     if (gGameSession->at4.loc.place == 1 && Gp_LookupSlot4(0) != 0 && GameFlag_GetNibble(0x95) != 0) {
         if (gGameSession->at4.loc.warp == 2) {
-            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7DB, (s32)&D_dryfield_night_water_hole_80180660, 0);
+            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_dryfield_night_water_hole_80180660, 0);
         } else {
-            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7DB, (s32)&D_dryfield_night_water_hole_8018065C, 0);
+            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_dryfield_night_water_hole_8018065C, 0);
         }
     }
     if (gGameSession->at4.loc.place == 0xA && gameGetPtrSlot(0xA) != 0 && GameFlag_GetNibble(0xCF) == 0) {

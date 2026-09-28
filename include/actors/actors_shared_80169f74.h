@@ -2,9 +2,9 @@
 #define ACTORS_SHARED_80169F74_H
 
 #include "common.h"
+#include "main/task.h"
 
 #include "gameplay/message.h"
-#include "main/task.h"
 
 /// Work block hanging off `Task::work`. Only the prefix this body reaches is
 /// described: `yaw` is the heading taken from the root coordinate's Z-axis

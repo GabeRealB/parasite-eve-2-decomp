@@ -2,7 +2,10 @@
 #define ACTORS_ACTOR_01600_H
 
 #include "actors/actor.h"
-#include "gameplay/3FB8.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/animation.h"
+#include "gameplay/effects.h"
 
 typedef struct Actor01600Range {
     /* 0x0 */ s32 low;

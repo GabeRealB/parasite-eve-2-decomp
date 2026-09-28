@@ -3,15 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -27,11 +18,26 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
+#include "gameplay/actor.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/loading.h"
+#include "gameplay/collision.h"
+#include "gameplay/companion_load.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_targets.h"
+#include "main/wipsys.h"
+
 extern void Stage_RequestFromAreaTable(s32 arg0);
 extern void func_807245E4(void*);
 extern void func_80724608(void*, s32, s32, void*);
-
-extern u8 D_801156A4;
 
 extern GpMsgEntry     D_acropolis_cafeteria_80182AA8[];
 extern TaskDesc       D_acropolis_cafeteria_80182AD8[];
@@ -147,7 +153,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
     switch (task->state) {
         case 0:
             gGameSession->flowFlags = 3;
-            func_800E8634((s32)&D_acropolis_cafeteria_80182E74, 1, (s32)&D_acropolis_cafeteria_801831BC);
+            func_800E8634(&D_acropolis_cafeteria_80182E74, 1, &D_acropolis_cafeteria_801831BC);
             task->state += 1;
             break;
         case 1:
@@ -229,15 +235,15 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 19:
             Display_ClampField126(0);
-            func_800E8634((s32)&D_acropolis_cafeteria_8018330C, 0, (s32)&D_acropolis_cafeteria_801834D4);
+            func_800E8634(&D_acropolis_cafeteria_8018330C, 0, &D_acropolis_cafeteria_801834D4);
             task->state += 1;
             break;
         case 21:
             Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0xA);
-            gGameSession->flowFlags       |= 0x80;
-            Gp_StateF0.field_1             = 3;
-            D_acropolis_cafeteria_80184164 = 2;
-            task->state                   += 1;
+            gGameSession->flowFlags        |= 0x80;
+            Gp_StateF0.prefix.bytes.field_1 = 3;
+            D_acropolis_cafeteria_80184164  = 2;
+            task->state                    += 1;
             break;
         case 17:
         case 22:
@@ -310,7 +316,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             break;
 
         case 6:
-            func_800E8634((s32)&D_acropolis_cafeteria_8018363C, 0, (s32)&D_acropolis_cafeteria_80183DBC);
+            func_800E8634(&D_acropolis_cafeteria_8018363C, 0, &D_acropolis_cafeteria_80183DBC);
             task->state = task->state + 1;
             break;
 
@@ -349,8 +355,8 @@ void func_acropolis_cafeteria_8017DF68(Task* task)
     coord = Gp_LookupSlot4(0)->extra.tmd->coords;
     switch (task->state) {
         case 0:
-            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D4, (s32)&D_acropolis_cafeteria_80182D28, 0);
-            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7DB, (s32)&D_acropolis_cafeteria_80182DB8, 0);
+            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_cafeteria_80182D28, 0);
+            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_acropolis_cafeteria_80182DB8, 0);
             D_acropolis_cafeteria_8018D6A0 = 0;
             D_acropolis_cafeteria_8018D6A4 = -0x14;
             D_acropolis_cafeteria_8018D6A8 = -0x14;
@@ -461,7 +467,7 @@ static void func_acropolis_cafeteria_8017E348(Task* task)
         Gp_MsgSlot4Chain(1, 2);
         Gp_MsgSlot4Chain(2, 1);
         D_acropolis_cafeteria_80189490[0].field_4A &= 0xBF;
-        Gp_DispatchMsg(Gp_LookupSlot4(2), 0x7D4, (s32)&D_acropolis_cafeteria_80182DDC, 0);
+        Gp_DispatchMsgPtr(Gp_LookupSlot4(2), 0x7D4, &D_acropolis_cafeteria_80182DDC, 0);
     }
     task->state = task->state + 1;
 }

@@ -180,7 +180,16 @@ Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 Task* Display_SpawnWithOt(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  Display_SetDrawMode(s32 arg0);
 s32   Display_InitModeObj(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
-void  Gpu_ResetGraphAndOt(void);
+
+/// Initialize a display mode with an object payload in its first data word.
+static __inline__ s32 Display_InitModeObjPtr(TaskDesc* desc, s32 mode, const void* data, s32 arg3)
+{
+    TaskSpawnArg arg;
+    arg.pointer = data;
+    return Display_InitModeObj(desc, mode, arg.value, arg3);
+}
+
+void Gpu_ResetGraphAndOt(void);
 /// Renders a frame whose tasks own the display. Only `arg1`, the loop's frame
 /// start, is read; the caller also passes the OT buffers and the current buffer.
 s32 Display_FrameFlipDraw(GpuOtBuf* otBufs, s32 arg1, s32 arg2);

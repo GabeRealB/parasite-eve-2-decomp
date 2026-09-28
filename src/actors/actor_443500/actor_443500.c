@@ -14,11 +14,19 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/mc.h"
 
 /// Work block `func_actor_443500_80132078` `memCalloc`s (0x4C4) and parks in
 /// the task's `Task::work` slot, which holds no `TaskIdMap` here. The spawn
@@ -68,10 +76,6 @@ typedef struct {
     void*            field_10;
 } Actor443500Layout;
 STATIC_ASSERT_SIZEOF(Actor443500Layout, 0x14);
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_443500_80132078(Task* task);
 static void func_actor_443500_801321F0(Task* task);
@@ -202,7 +206,7 @@ static void func_actor_443500_80132078(Task* task)
     GpAreaKey        key;
     GpAreaKey*       sessionKey;
     u8               areaByte0;
-    GpAreaRec*       rec;
+    GpAreaVariant*   rec;
     GpAreaPlace*     entry;
     TmdObject*       model;
     Task*            spawned;
@@ -221,7 +225,7 @@ static void func_actor_443500_80132078(Task* task)
     work->field_4C0    = task->extra.tmd->flags;
     spawned            = Task_SpawnFromTable(&D_actor_443500_8015873C, 1, 4, (s32)task);
     if (spawned != NULL) {
-        sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+        sessionKey = &gGameSession->at4.loc;
         raw        = ((GpEnemy*)task->spawnArg2)->placeKey;
         model      = spawned->extra.tmd;
         key.stage  = sessionKey->stage;
@@ -234,7 +238,7 @@ static void func_actor_443500_80132078(Task* task)
         rec = Gp_GetNestedAreaRec(&key);
         /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled
            index onto the table (`addu s0, s0, v0`). */
-        entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        entry        = gpAreaPlaceAt(rec->field_0, idx);
         model->tpage = entry->tpage;
         model->clut  = entry->clut;
         if (model->buffer != NULL) {

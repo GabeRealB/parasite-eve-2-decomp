@@ -3,15 +3,19 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/tmd.h"
 #include "weapons/weapon.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "main/fs.h"
 
 /// The P08, the P08 with the snail magazine and the Mongoose are this source
 /// built once each, and each declares these values in the manifest.

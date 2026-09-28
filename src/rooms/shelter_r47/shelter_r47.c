@@ -1,15 +1,9 @@
 #include "common.h"
-#include "gameplay/gameplay.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
 #include "decomp/common.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -27,6 +21,18 @@
 #include "rooms/rooms_shared_80181228.h"
 #include "rooms/shelter_r47.h"
 
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/world_targets.h"
+
 /// One textured piece of a sprite drawn by `func_shelter_r47_80180F38`: its
 /// CLUT position, its offset from the sprite's origin, and its texture window.
 /// A piece whose `clutX` is 0xFFFF ends the list.
@@ -43,18 +49,16 @@ typedef struct {
 
 extern UiObjectDesc D_800611E4;
 extern UiObject*    D_80067634;
-extern UiObjectDesc D_8010EFA0;
-extern s16          D_80114D08;
-extern u32          D_80115694;
-extern s32          D_801350BC;
-extern s32          D_801359D4;
-extern s32          D_8014152C;
-extern s32          D_80141C1C;
-extern s32          D_80141D9C;
-extern s32          D_80142A74;
-extern s32          D_80142C24;
-extern s32          D_801432FC;
-extern s32          D_80143494;
+
+extern s32 D_801350BC;
+extern s32 D_801359D4;
+extern s32 D_8014152C;
+extern s32 D_80141C1C;
+extern s32 D_80141D9C;
+extern s32 D_80142A74;
+extern s32 D_80142C24;
+extern s32 D_801432FC;
+extern s32 D_80143494;
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -1294,7 +1298,7 @@ static void func_shelter_r47_8017FB94(Task* task)
     if (player != NULL && GameFlag_GetNibble(0x80) == 0 && GameFlag_GetNibble(0xD1) == 1) {
         Gp_DispatchMsg(player, 0x3F3, 0, 0);
         Gp_AllyAnimId(&D_shelter_r47_80186F5C);
-        Gp_DispatchMsg(player, 0x3E8, (s32)&D_shelter_r47_80186F5C, 0);
+        Gp_DispatchMsgPtr(player, 0x3E8, &D_shelter_r47_80186F5C, 0);
     }
     D_shelter_r47_8018A690 = NULL;
     func_shelter_r47_80183210();
@@ -1326,7 +1330,7 @@ static void func_shelter_r47_8017FCC0(void)
             break;
         case 2:
             if (gGameSession->cutsceneHold == 0) {
-                func_800E8634((s32)&D_80141D9C, 0, (s32)&D_80142A74);
+                func_800E8634(&D_80141D9C, 0, &D_80142A74);
                 GameFlag_SetNibble(0x82, 3);
             }
             break;
@@ -1341,7 +1345,7 @@ static void func_shelter_r47_8017FCC0(void)
             break;
         case 4:
             if (gGameSession->cutsceneHold == 0) {
-                func_800E8634((s32)&D_80142C24, 0, (s32)&D_801432FC);
+                func_800E8634(&D_80142C24, 0, &D_801432FC);
                 GameFlag_SetNibble(0x82, 5);
             }
             break;
@@ -1376,7 +1380,7 @@ s32 func_shelter_r47_8017FE84(s32 arg0, s32 arg1, RoomEventMsg* arg2)
                     func_800E3FAC(0xA2, 0x2B);
                     GameFlag_SetNibble(3, 0);
                     GameFlag_SetNibble(0x155, 5);
-                    func_800E8634((s32)&D_8014152C, 0, (s32)&D_80141C1C);
+                    func_800E8634(&D_8014152C, 0, &D_80141C1C);
                     GameFlag_SetNibble(0x82, 1);
                     if (GameFlag_GetNibble(0x165) == 0) {
                         flag_a = 0x165;
@@ -1418,7 +1422,7 @@ s32 func_shelter_r47_8017FE84(s32 arg0, s32 arg1, RoomEventMsg* arg2)
             if (kind < 4) {
                 if ((kind == 1) && (GameFlag_GetNibble(0x83) == 0) && (GameFlag_GetNibble(0x80) == 0)) {
                     if (gameGetPtrSlot(0xA) != 0) {
-                        func_800E8634((s32)&D_801350BC, 0, (s32)&D_801359D4);
+                        func_800E8634(&D_801350BC, 0, &D_801359D4);
                     }
                     func_800E3FAC(0xA2, 0x2A);
                     GameFlag_SetNibble(0x80, 1);
@@ -2021,7 +2025,7 @@ void func_shelter_r47_80181568(Task* task)
     RoomActionPrompt* prompt;
 
     hs     = D_shelter_r47_80186FB4;
-    prompt = &D_80114D28;
+    prompt = D_80114D28;
     work   = (ShelterR47State*)task->work;
     func_shelter_r47_80181914(task, 0);
     gGameSession->hideHud    = 1;
@@ -2038,7 +2042,7 @@ void func_shelter_r47_80181568(Task* task)
     prompt->targetId = 0x80;
     if (func_shelter_r47_80182B9C(task, hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
-        if ((prompt->buttons[0].state == 2) && (hs->id != -1)) {
+        if ((prompt->buttons.slots[0].state == 2) && (hs->id != -1)) {
             do {
                 if (hs->hit != 0) {
                     prompt->mode       = 0;
@@ -2054,7 +2058,7 @@ void func_shelter_r47_80181568(Task* task)
     } else {
         prompt->mode = 1;
     }
-    if (work->field_51 == 0 && prompt->buttons[1].state == 2) {
+    if (work->field_51 == 0 && prompt->buttons.slots[1].state == 2) {
         task->state = 6;
     }
 }

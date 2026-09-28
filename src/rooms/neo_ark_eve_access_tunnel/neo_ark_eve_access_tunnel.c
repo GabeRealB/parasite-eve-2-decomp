@@ -1,9 +1,4 @@
 #include "common.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -12,6 +7,13 @@
 #include "main/task.h"
 #include "rooms/neo_ark_eve_access_tunnel.h"
 #include "rooms/room.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
 
 /// Parameter block of `func_neo_ark_eve_access_tunnel_8017D6D4`, the room-local
 /// resolver `func_neo_ark_eve_access_tunnel_8017D980` calls with one pointer as
@@ -38,9 +40,6 @@ extern TaskDesc D_neo_ark_eve_access_tunnel_8017EA88;
 extern RoomDeparture D_neo_ark_eve_access_tunnel_801807A8;
 
 /// Scene id byte; the tunnel stamps 0x18 when it hands the save location off.
-
-/// CAP countdown the tunnel reloads while its sequences run.
-extern s16 D_80114D08;
 
 /// Set when the tunnel's save is written to the memory card.
 
@@ -178,7 +177,7 @@ void func_neo_ark_eve_access_tunnel_8017D810(Task* arg0)
                 arg0->state = 2;
                 break;
             }
-            Gp_DispatchMsg(slot, 0x3EE, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(slot, 0x3EE, &msg, 0);
             arg0->state = (s32)(arg0->state + 1);
             break;
         case 1:
@@ -324,7 +323,7 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             gDisplayState.roomVariant   = 1;
             Mc_SaveData[0].at4.loc.area = D_neo_ark_eve_access_tunnel_801807A0.field_2;
             Mc_SaveData[0].at4.loc.warp = D_neo_ark_eve_access_tunnel_801807A0.field_4;
-            Mc_SaveData[0].at4.loc.room = D_neo_ark_eve_access_tunnel_801807A0.field_1;
+            Mc_SaveData[0].at4.loc.room = D_neo_ark_eve_access_tunnel_801807A0.prefix.bytes.field_1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -359,10 +358,10 @@ s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, GpSaveLoc* sr
                     break;
                 default:
                     if (src->field_5 == 0) {
-                        Mc_SaveData[0].sceneEvent                    = 0x18;
-                        D_neo_ark_eve_access_tunnel_801807A0.field_2 = dst->field_0;
-                        D_neo_ark_eve_access_tunnel_801807A0.field_4 = dst->field_2;
-                        D_neo_ark_eve_access_tunnel_801807A0.field_1 = dst->field_3;
+                        Mc_SaveData[0].sceneEvent                                 = 0x18;
+                        D_neo_ark_eve_access_tunnel_801807A0.field_2              = dst->prefix.bytes.field_0;
+                        D_neo_ark_eve_access_tunnel_801807A0.field_4              = dst->field_2;
+                        D_neo_ark_eve_access_tunnel_801807A0.prefix.bytes.field_1 = dst->field_3;
                         Gp_MsgPlayerWeapon(0);
                         Task_SpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 1, 0, 0);
                     }
@@ -379,7 +378,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DD70(s32 arg0, s32 arg1, s32 arg2)
         switch (arg2) {
             case 6:
                 if (GameFlag_GetNibble(0x142) == 0) {
-                    if (Gp_StateF0.field_0 == 1) {
+                    if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                         Gp_RunCapCmd1(6);
                     }
                 } else {
@@ -388,7 +387,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DD70(s32 arg0, s32 arg1, s32 arg2)
                 break;
             case 7:
                 if (GameFlag_GetNibble(0x143) == 0) {
-                    if (Gp_StateF0.field_0 == 1) {
+                    if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                         Gp_RunCapCmd1(7);
                     }
                 } else {

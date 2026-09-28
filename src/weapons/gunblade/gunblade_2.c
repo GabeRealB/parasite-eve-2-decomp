@@ -1,9 +1,4 @@
 #include "common.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/mc.h"
@@ -12,6 +7,14 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "weapons/gunblade.h"
+
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "main/fs.h"
 
 /// `Player_Status.weaponSlotItem`, the attachment id of the held weapon, read under
 /// its own address wherever the value is wanted once rather than as one of a
@@ -94,10 +97,13 @@ static void func_gunblade_8011E040(Task* arg0)
                 actor->field_93E = 0;
                 actor->field_952 = 0x39;
                 func_80106518(0x17);
-                actor->field_124  = 0x2171B;
-                rec->end0Radius   = 0x180;
-                rec->end1Radius   = 0x180;
-                rec->end0.vz      = rec->end1.vz + D_80112F8E;
+                actor->field_124 = 0x2171B;
+                {
+                    u16 reach       = rec->end1.vz + D_80112F60[23];
+                    rec->end0Radius = 0x180;
+                    rec->end1Radius = 0x180;
+                    rec->end0.vz    = reach;
+                }
                 actor->field_12A &= 0xF7FF;
                 Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 3);
                 break;

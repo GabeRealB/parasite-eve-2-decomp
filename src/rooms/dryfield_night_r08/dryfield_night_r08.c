@@ -1,13 +1,14 @@
 #include "common.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/fs.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/room.h"
+
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/scene_runtime.h"
+#include "main/mc.h"
 
 extern s32 D_80133898;
 extern s32 D_801341E0;
@@ -54,7 +55,7 @@ static void func_dryfield_night_r08_8017D630(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     Gp_SetStreamBuf((u8*)D_8005C370 + 0x20000);
     if (Mc_SaveData[0].demoScene != 9) {
-        func_800E8634((s32)&D_80133898, 0, (s32)&D_801341E0);
+        func_800E8634(&D_80133898, 0, &D_801341E0);
     }
     arg0->state = (s32)(arg0->state + 1);
 }

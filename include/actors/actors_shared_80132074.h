@@ -4,9 +4,9 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
+#include "main/task.h"
 
 #include "gameplay/message.h"
-#include "main/task.h"
 
 /// Places the actor: builds the root part's local matrix from the opcode's
 /// Euler angles, drops the translation into it and clears `flg` so

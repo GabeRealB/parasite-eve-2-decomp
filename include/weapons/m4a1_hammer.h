@@ -8,7 +8,6 @@
 #include "main/coord.h"
 
 #include "main/task.h"
-#include "gameplay/3CD8.h"
 
 /// Parent task the hammer effect re-attaches itself to each time it restarts.
 extern Task* D_m4a1_hammer_8012D660;

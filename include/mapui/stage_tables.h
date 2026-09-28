@@ -11,13 +11,15 @@
 
 #include "common.h"
 
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/D4.h"
+#include "gameplay/area_flags.h"
 #include "gameplay/areaplace.h"
-#include "gameplay/gameplay.h"
+#include "gameplay/direction.h"
+#include "gameplay/item_pickup.h"
+#include "gameplay/map.h"
+#include "gameplay/room.h"
+#include "gameplay/scene_tasks.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 // map_dryfield
 

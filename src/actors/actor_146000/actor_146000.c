@@ -1,12 +1,15 @@
 #include "common.h"
-
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "main/display.h"
+#include "main/fs.h"
 
 extern GpAreaApplyRec D_80183618;
 extern s32            D_actor_146000_80135428;
@@ -22,11 +25,11 @@ void func_actor_146000_80131E24(Task* arg0)
     switch (state) {
         case 0:
             if (GameFlag_GetNibble(0x73) != 0) {
-                func_800E8634((s32)&D_actor_146000_80135980, 0, (s32)&D_actor_146000_80135BD8);
+                func_800E8634(&D_actor_146000_80135980, 0, &D_actor_146000_80135BD8);
                 GameFlag_SetNibble(0x4B, 7);
                 Mc_SaveData[0].at4.loc.warp = 4;
             } else {
-                func_800E8634((s32)&D_actor_146000_80135428, 1, (s32)&D_actor_146000_80135BD8);
+                func_800E8634(&D_actor_146000_80135428, 1, &D_actor_146000_80135BD8);
                 Mc_SaveData[0].at4.loc.warp = 2;
             }
             arg0->state++;

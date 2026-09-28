@@ -1,16 +1,10 @@
 #include "common.h"
-#include "gameplay/D4.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
@@ -27,6 +21,17 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/pad_input.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
+
 extern TaskDesc D_acropolis_forked_road_80180F44;
 
 /// Set to 1 by the fade-out task once the scene has finished.
@@ -42,12 +47,6 @@ extern s32 D_acropolis_forked_road_80185070;
 /// The script pair the return ride runs.
 extern s32 D_acropolis_forked_road_80185038;
 extern s32 D_acropolis_forked_road_80185050;
-
-extern s32 D_8011572C;
-extern s32 D_80115750;
-extern s32 D_80115758;
-
-extern GpQuadCorner D_80111E38[];
 
 /// The fourteen spawn offsets of the forked road's ambient effects, indexed
 /// 0..13 by the first-frame burst below.
@@ -111,7 +110,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             place.pos.vx = D_acropolis_forked_road_80180F80[0].vx - 0x654;
             place.pos.vy = D_acropolis_forked_road_80180F80[0].vy;
             place.pos.vz = D_acropolis_forked_road_80180F80[0].vz;
-            Gp_DispatchMsg(((RoomStreamWork*)task->work)->target, 0x3E9, (s32)&place, 0);
+            Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, 0x3E9, &place, 0);
             task->state = task->state + 1;
             break;
 
@@ -120,7 +119,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             place2.pos.vx = D_acropolis_forked_road_80180F80[0].vx;
             place2.pos.vy = D_acropolis_forked_road_80180F80[0].vy;
             place2.pos.vz = D_acropolis_forked_road_80180F80[0].vz;
-            Gp_DispatchMsg(((RoomStreamWork*)task->work)->target, 0x3F2, (s32)&place2, 0);
+            Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, 0x3F2, &place2, 0);
             task->state = task->state + 1;
             break;
 
@@ -134,8 +133,8 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 
         case 3:
             if (queue->field_1FA != 0) {
-                work->script                  = Gp_SpawnScript18((s32)&D_acropolis_forked_road_80185058,
-                                                                 (s32)&D_acropolis_forked_road_80185070);
+                work->script                  = Gp_SpawnScript18(&D_acropolis_forked_road_80185058,
+                                                                 &D_acropolis_forked_road_80185070);
                 gGameSession->padScriptFlags |= 0x80;
                 Task_Reparent(task, work->script);
                 task->state = task->state + 1;
@@ -213,7 +212,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             rec.field_8         = 0;
             rec.field_C         = 0;
             rec.field_10        = 0;
-            Gp_DispatchMsg(((RoomStreamWork*)task->work)->target, 0x3E8, (s32)&rec, 0);
+            Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, 0x3E8, &rec, 0);
             func_800E9BDC(3, 0x9FF);
             Gp_StateF0.field_4 = 2;
             task->state        = task->state + 1;
@@ -224,8 +223,8 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 work->mtx->t[0]               = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vx;
                 work->mtx->t[1]               = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vy;
                 work->mtx->t[2]               = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vz;
-                work->script                  = Gp_SpawnScript18((s32)&D_acropolis_forked_road_80185038,
-                                                                 (s32)&D_acropolis_forked_road_80185050);
+                work->script                  = Gp_SpawnScript18(&D_acropolis_forked_road_80185038,
+                                                                 &D_acropolis_forked_road_80185050);
                 gGameSession->padScriptFlags |= 0x80;
                 Task_Reparent(task, work->script);
                 SetDispMask(0);
@@ -250,7 +249,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                     place.rot.vz = 0;
                     place.rot.vx = 0;
                     place.rot.vy = 0xC00;
-                    Gp_DispatchMsg(((RoomStreamWork*)task->work)->target, 0x3E9, (s32)&place, 0);
+                    Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, 0x3E9, &place, 0);
                     Task_SpawnFromTable(&D_acropolis_forked_road_80180F44, 4, 0, 0);
                     task->state = task->state + 1;
                     break;
@@ -263,7 +262,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 place.pos.vx = -0x190;
                 place.pos.vy = 1;
                 place.pos.vz = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vz;
-                Gp_DispatchMsg(((RoomStreamWork*)task->work)->target, 0x3F2, (s32)&place, 0);
+                Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, 0x3F2, &place, 0);
                 task->state = task->state + 1;
             }
             break;

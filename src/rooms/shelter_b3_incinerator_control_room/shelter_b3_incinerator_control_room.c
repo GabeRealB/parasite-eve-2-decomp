@@ -2,12 +2,6 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -22,12 +16,21 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/world_targets.h"
+
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
-extern UiObjectDesc   D_800611E4;
-extern UiObject*      D_80067634;
-extern UiObjectDesc   D_8010EFA0;
-extern s16            D_80114D08;
+extern UiObjectDesc D_800611E4;
+extern UiObject*    D_80067634;
+
 extern s32            D_801360E4;
 extern s32            D_80136804;
 extern GpAreaApplyRec D_80188888[];
@@ -36,7 +39,6 @@ extern GpAreaApplyRec D_80188888[];
 /// end reads it through this name rather than through `Mc_SaveData`.
 
 /// View saved when the cutscene starts and restored when it ends.
-extern s32 D_80115694;
 
 /// Title of the telephone menu. The bytes after its terminator are not zero,
 /// so it stays assembly.
@@ -1370,7 +1372,7 @@ static void func_shelter_b3_incinerator_control_room_8017FC1C(Task* task)
         func_800E3FAC(0xA2, 0x23);
         Gp_ApplyAreaRecs(D_shelter_b3_incinerator_control_room_80182A40);
         Gp_FillAllyHp();
-        func_800E8634((s32)&D_801360E4, 0, (s32)&D_80136804);
+        func_800E8634(&D_801360E4, 0, &D_80136804);
     }
 }
 

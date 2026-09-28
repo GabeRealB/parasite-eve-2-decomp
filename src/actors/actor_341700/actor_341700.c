@@ -13,16 +13,24 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
-
 #include "actors/actor.h"
 #include "actors/actors_shared_80163354.h"
 #include "actors/actors_shared_801673f8.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 void func_8004BFF8(s32 angle, MATRIX* matrix);
@@ -32,10 +40,6 @@ extern u8         D_actor_341700_80174CEC[]; // animation bank handed to `func_8
 extern u8         D_actor_341700_80174D40[]; // stored into `Task::msgTable` by func_actor_341700_80162974
 extern u8         D_actor_341700_80174D88[]; // per animation id (1-based): value for `field_44F`
 extern u8         D_actor_341700_80174D9C[]; // per animation id (1-based): the animation to follow it
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);

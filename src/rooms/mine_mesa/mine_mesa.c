@@ -1,14 +1,5 @@
 #include "common.h"
 #include "main/stage.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -34,6 +25,21 @@
 #include <psyq/libgte.h>
 #include <psyq/stdio.h>
 
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/loading.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
+
 /// A place an enemy can be spawned at: its position and the yaw it faces.
 typedef struct {
     s16 x;
@@ -50,17 +56,9 @@ typedef struct {
     u8      unk10[8];
 } _MineMesaWall;
 
-extern u8  D_80115690;
-extern u8  D_801156F9;
-extern s32 D_8011572C;
-extern s32 D_80115750;
-extern s32 D_80115758;
-
 extern TaskDesc D_8014D8A4;
 
-extern s32  func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
-extern void func_800E8614(s32 arg0, s32 arg1);
-extern void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
+extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
 
 extern TaskDesc   D_mine_mesa_801818F8;
 extern GpMsgEntry D_mine_mesa_80181904[];
@@ -165,7 +163,7 @@ void func_mine_mesa_8017D670(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_mine_mesa_80189B40.field_0;
+            Mc_SaveData[0].at4.loc.area = D_mine_mesa_80189B40.prefix.bytes.field_0;
             Mc_SaveData[0].at4.loc.warp = D_mine_mesa_80189B40.field_2;
             Mc_SaveData[0].at4.loc.room = D_mine_mesa_80189B40.field_3;
             Task_Spawn(0, 0x11, 0, 0);
@@ -182,7 +180,7 @@ static void func_mine_mesa_8017D808(Task* task)
     if ((gGameSession->eventState == 0) && (Gp_StateC08.field_A != 1) && (field9 = gGameSession->at4.loc.place, field9 == 1)) {
         if (GameFlag_GetNibble(0x90) == 0) {
             if (gameGetPtrSlot(0xA) != NULL) {
-                func_800E8634((s32)&D_mine_mesa_8018578C, 0, (s32)&D_mine_mesa_801861DC);
+                func_800E8634(&D_mine_mesa_8018578C, 0, &D_mine_mesa_801861DC);
             }
             func_800E3FAC(0xA2, 0x1B);
             GameFlag_SetNibble(0x90, 1);
@@ -190,7 +188,7 @@ static void func_mine_mesa_8017D808(Task* task)
         }
         nibble = GameFlag_GetNibble(0xCD);
         if ((nibble == field9) && (D_mine_mesa_80189B50 == nibble)) {
-            func_800E8634((s32)&D_mine_mesa_80184664, 0, (s32)&D_mine_mesa_80184BA4);
+            func_800E8634(&D_mine_mesa_80184664, 0, &D_mine_mesa_80184BA4);
             D_mine_mesa_80189B50 = 2;
         }
     }
@@ -225,7 +223,7 @@ static __inline__ s32 MineMesa_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* even
 /// the event parameters below into the room's pending event and starts the
 /// controller task; `field_5` set only suppresses that side effect. Answers 0
 /// without side effects while the request is already in flight (`field_9` is 1
-/// and `Gp_StateF0.field_0` agrees with it), 2 for a stage-3 request and 1 for
+/// and `Gp_StateF0.prefix.bytes.field_0` agrees with it), 2 for a stage-3 request and 1 for
 /// every other one.
 s32 func_mine_mesa_8017D8F8(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
@@ -238,7 +236,7 @@ s32 func_mine_mesa_8017D8F8(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
         return 1;
     }
     field9 = gGameSession->at4.loc.place;
-    if (field9 == 1 && Gp_StateF0.field_0 == field9) {
+    if (field9 == 1 && Gp_StateF0.prefix.bytes.field_0 == field9) {
         return 0;
     }
     event.capCmd   = 0xE;
@@ -273,11 +271,11 @@ s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
             if (GameFlag_GetNibble(0x71) <= 0) {
                 if (GameFlag_GetNibble(0x91) == 0) {
                     if (gameGetPtrSlot(0xA) != NULL) {
-                        func_800E8634((s32)&D_mine_mesa_80184D9C, 1, (s32)&D_mine_mesa_80184FF4);
+                        func_800E8634(&D_mine_mesa_80184D9C, 1, &D_mine_mesa_80184FF4);
                     }
                     GameFlag_SetNibble(0x91, 1);
                 } else if (gameGetPtrSlot(0xA) != NULL) {
-                    func_800E8634((s32)&D_mine_mesa_801854BC, 1, (s32)&D_mine_mesa_801856B4);
+                    func_800E8634(&D_mine_mesa_801854BC, 1, &D_mine_mesa_801856B4);
                 }
             }
             break;
@@ -470,7 +468,7 @@ void func_mine_mesa_8017E074(Task* arg0)
     rec.rot.vy  = 0x311;
     rec.rot.vz  = 0;
     arg0->killCountdown++;
-    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&rec, 0);
+    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &rec, 0);
 }
 
 /// Head-aim state of the mesa's run task, run only while `D_801156F9` is clear:

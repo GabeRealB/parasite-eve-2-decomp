@@ -1,0 +1,1169 @@
+#include "gameplay/items.h"
+
+#include <psyq/libgpu.h>
+
+#include "types.h"
+
+#include "gameplay/area_flags.h"
+#include "area_flags.h"
+#include "gameplay/attachment_state.h"
+#include "attachment_state.h"
+#include "gameplay/attachments.h"
+#include "attachments.h"
+#include "gameplay/inventory.h"
+#include "inventory.h"
+#include "item_menu.h"
+#include "items.h"
+#include "scene_runtime.h"
+
+#include "main/mc.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
+#include "main/wipsys.h"
+
+extern u8 Gp_StrMore[];
+
+extern u8 Gp_StrAttachAvail[];
+
+extern UiObjectDesc Gp_BoostPanelDesc;
+
+static inline McItemRec* _gpScanTable(McItemScan* scan);
+
+static inline void _gpClearEquipSlot(s32 item);
+
+static inline void _gpConsumeScanQty(McItemScan* scan, s32 item, s32 n);
+
+static __inline void func_800B996C_RemoveItem(McItemScan* arg0, McItemRec* arg1, s32 arg2);
+
+static inline s32 _gpGetModLevel(s32 item);
+
+static inline void _gpDrawPromptItem(UiObject* obj, s32 x, s32 y, u8* str, s32 item, s32 color, s32 one);
+
+static __inline__ s32 Gp_HasStockedItemInline(s32 arg0);
+
+static inline void _gpClearScanItems(McItemScan* scan);
+
+static inline void _gpRecalcMaxHp(void);
+
+static inline void _gpSetPlayerScan(s32 count);
+
+static inline void _gpApplyBit2List(GpBit2List* table, u32* dest);
+
+static s32 Gp_GetScanItemId(McItemScan* arg0, s32 arg1);
+
+extern u16 Gp_PlayTimeMark;
+
+u8           Gp_StrMore[]        = "More ";
+u8           Gp_StrAttachAvail[] = "attachments available.";
+UiObjectDesc Gp_BoostPanelDesc   = { 2, 10, 20, 30, 40, 12, 0, 0, 192, Gp_TickBoostPanel, 0 };
+
+/* Total quantity of item `id` held, via a fresh scan covering every row. */
+#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = 0xFF, Gp_SumScanQty(&(scan), (id)))
+
+/* Item names and descriptions shared by the inventory tables. */
+
+/* Gives `scan` one `weapon` and loads it with `ammo`. */
+#define GP_GIVE_LOADED(scan, weapon, ammo)           \
+    do {                                             \
+        Gp_GiveItem(scan, weapon, 1);                \
+        Gp_EquipRelatedItem(scan, weapon, ammo, -1); \
+    } while (0)
+
+/* Clears the carried inventory, equips the starting armour, restores HP/MP,
+ * and gives the initial supplies and their attachment slots. */
+#define _gpInitStartingItems(scan, cfg)                \
+    do {                                               \
+        Gp_ClearScanItems(scan);                       \
+        Gp_GiveItem(scan, 0x60, 1);                    \
+        Gp_EquipMod(0x60);                             \
+        (cfg)->hp = (cfg)->hpMax;                      \
+        (cfg)->mp = (cfg)->mpMax;                      \
+        Gp_GiveItem(scan, 0x92, 1);                    \
+        Gp_GiveItem(scan, 0x40, 1)->attachSlot    = 1; \
+        Gp_GiveItem(scan, 0xA0, 0x64)->attachSlot = 2; \
+    } while (0)
+
+/* Item table a scan window lies in. */
+
+static inline McItemRec* _gpScanTable(McItemScan* scan)
+{
+    McItemRec* table;
+
+    switch (scan->table) {
+        case 2:
+            table = Gp_ItemTable2;
+            break;
+        case 1:
+            table = Gp_ItemTable1;
+            break;
+        default:
+            table = Mc_SaveData[0].itemRows;
+            break;
+    }
+    return table;
+}
+static inline void _gpClearEquipSlot(s32 item)
+{
+    McItemSlot* slot;
+    s32         found = 0;
+    s32         i;
+
+    if ((u32)(item - 0x80) >= 0x20) {
+        return;
+    }
+
+    slot = &Mc_SaveData[0].weaponItems[item - 0x80];
+    for (i = 0; i < 8; i++) {
+        if (item == Gp_ItemMaps[i].field_1) {
+            found = 1;
+            break;
+        }
+    }
+
+    if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
+        slot->ammoId  = 0;
+        slot->ammoQty = 0;
+    }
+
+    if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
+        if (slot->attachId != 0xFF) {
+            slot->attachId = 0;
+        }
+        slot->attachQty = 0;
+    }
+}
+static inline void _gpConsumeScanQty(McItemScan* scan, s32 item, s32 n)
+{
+    McItemRec* table;
+    s32        qty;
+    s32        i;
+    s32        left;
+
+    table = _gpScanTable(scan);
+    qty   = 0;
+    for (i = scan->firstRow; i < scan->firstRow + scan->rowCount; i++) {
+        if (table[i].itemId == item) {
+            qty = table[i].qty;
+            break;
+        }
+    }
+    if (i != scan->firstRow + scan->rowCount) {
+        if (n < 0) {
+            n = qty;
+        }
+        left = qty - n;
+        if (left < 0) {
+            left = 0;
+        }
+        if (left == 0) {
+            table[i].itemId     = 0;
+            table[i].qty        = 0;
+            table[i].attachSlot = 0;
+        } else {
+            table[i].qty = left;
+        }
+    }
+}
+static __inline void func_800B996C_RemoveItem(McItemScan* arg0, McItemRec* arg1, s32 arg2)
+{
+    s32 item;
+
+    item = arg1->itemId;
+    if (item < 0xA0) {
+        arg1->itemId     = 0;
+        arg1->qty        = 0;
+        arg1->attachSlot = 0;
+    } else {
+        _gpConsumeScanQty(arg0, item, arg2);
+    }
+}
+static inline s32 _gpGetModLevel(s32 item)
+{
+    s32         ret;
+    s32         idx;
+    GpItemAttr* p;
+
+    idx = item - 0x60;
+    ret = 0;
+    if ((u32)idx < 0x20) {
+        p    = &Gp_ModStatAttrs[(item)-0x60];
+        ret  = p->field_5;
+        ret += Mc_SaveData[0].itemLevelBonus[idx];
+        if (ret >= 0xB) {
+            ret = 0xA;
+        }
+    }
+    return ret;
+}
+static inline void _gpDrawPromptItem(UiObject* obj, s32 x, s32 y, u8* str, s32 item, s32 color, s32 one)
+{
+    s32 width;
+
+    Text_DrawPrompt(obj, x, y, str, color, one, 0);
+    width = Text_MeasureWidth(str) + 4;
+    Text_DrawPrompt(obj, x + width, y, Gp_GetItemText(item, 0, 0), 0x37A78, one, 0);
+}
+static __inline__ s32 Gp_HasStockedItemInline(s32 arg0)
+{
+    McItemScan* scan;
+    McItemRec*  table;
+    s32         i;
+    s32         ret;
+    s32         count;
+
+    scan = &Mc_SaveData[0].carriedItems;
+    ret  = 0;
+    switch (scan->table) {
+        case 2:
+            table = Gp_ItemTable2;
+            break;
+        case 1:
+            table = Gp_ItemTable1;
+            break;
+        default:
+            table = Mc_SaveData[0].itemRows;
+            break;
+    }
+    i      = 0;
+    table += scan->firstRow;
+    count  = scan->rowCount;
+    for (; i < count; i++) {
+        if (table->attachSlot > 0) {
+            if (table->itemId == arg0) {
+                ret = 1;
+                break;
+            }
+        }
+        table++;
+    }
+    return ret;
+}
+static inline void _gpClearScanItems(McItemScan* scan)
+{
+    McItemRec* table;
+    s32        i;
+    s32        row;
+
+    switch (scan->table) {
+        case 2:
+            table = Gp_ItemTable2;
+            break;
+        case 1:
+            table = Gp_ItemTable1;
+            break;
+        default:
+            table = Mc_SaveData[0].itemRows;
+            break;
+    }
+    for (i = 0, row = scan->firstRow; i < scan->rowCount; i++, row++) {
+        table[row].itemId     = 0;
+        table[row].attachSlot = 0;
+        table[row].qty        = 0;
+    }
+}
+static inline void _gpRecalcMaxHp(void)
+{
+    PlayerStatus* cfg;
+    McSaveData*   save;
+    GpStatRow*    table;
+    u16           val;
+
+    cfg        = &Player_Status;
+    table      = Gp_StatRows;
+    save       = &Mc_SaveData[0];
+    val        = table[save->gameMode].base.half;
+    cfg->hpMax = val;
+    val       += save->hpBonus;
+    cfg->hpMax = val;
+    if (cfg->armor != 0) {
+        val       += Gp_ModStatAttrs[cfg->armor - 1].field_4;
+        cfg->hpMax = val;
+    }
+    if (cfg->hpMax >= 0xFB) {
+        cfg->hpMax = 0xFA;
+    }
+    if (cfg->hp > cfg->hpMax) {
+        cfg->hp = cfg->hpMax;
+    }
+}
+static inline void _gpSetPlayerScan(s32 count)
+{
+    McSaveData* p;
+
+    p                        = &Mc_SaveData[0];
+    p->carriedItems.firstRow = 0;
+    p->carriedItems.rowCount = count;
+    p->carriedItems.table    = 0;
+}
+static inline void _gpApplyBit2List(GpBit2List* table, u32* dest)
+{
+    GpBit2Rec* rec;
+    u32*       p;
+    u32        mask;
+
+    if (table == NULL) {
+        return;
+    }
+    rec = table->field_0;
+    if (rec == (GpBit2Rec*)-1) {
+        return;
+    }
+    do {
+        if (rec != NULL) {
+            for (; rec->field_0 != 0xFFFF; rec++) {
+                mask = 3 << ((rec->field_0 & 0xF) * 2);
+                p    = &dest[rec->field_0 >> 4];
+                *p  &= ~mask;
+                mask = (rec->field_6 & 3) << ((rec->field_0 & 0xF) * 2);
+                *p  |= mask;
+            }
+        }
+        table++;
+        rec = table->field_0;
+    } while (rec != (GpBit2Rec*)-1);
+}
+void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
+{
+    s32          item;
+    s32          width;
+    s32          other;
+    s32          saved;
+    s32          x;
+    s32          y;
+    s32          color;
+    register s32 row asm("s1");
+    s32          one;
+
+    item = Player_Status.armor + 0x5F;
+    if (arg1->state == 0) {
+        arg1->status = 0xFF;
+        if (_gpGetModLevel(item) < 0xA) {
+            Mc_SaveData[0].itemLevelBonus[item - 0x60]++;
+        } else {
+            arg1->status = 0x1A;
+        }
+        if (arg1->status == 0xFF) {
+            width = Text_MeasureWidth(Gp_GetItemText(item, 0, 0)) + Text_MeasureWidth(Gp_StrMore) + 4;
+            other = Text_MeasureWidth(Gp_StrAttachAvail);
+            if (width < other) {
+                width = other;
+            }
+            Ui_UpdateLayoutSize(&(arg0)->panel, width + 5, Ui_Scale15(2) + 1);
+            (&(arg0)->panel)->bounds.rect.x = (-(&(arg0)->panel)->bounds.rect.w) >> 1;
+            (&(arg0)->panel)->bounds.rect.y = ((-(&(arg0)->panel)->bounds.rect.h) >> 1) - 0x14;
+            func_800B996C_RemoveItem(&Mc_SaveData[0].carriedItems, Gp_SelItemRec, 1);
+            arg1->killCountdown = 0xBC;
+            arg1->state++;
+        }
+    }
+    if (arg1->status != 0xFF) {
+        saved           = arg1->spawnArg1;
+        arg1->spawnArg1 = arg1->status;
+        Gp_NoticePanelTask(arg1);
+        arg1->spawnArg1 = saved;
+        return;
+    }
+
+    x = arg0->panel.field_1C.s + 2;
+    y = (s16)arg0->panel.field_18.u;
+    Ui_DrawText(&(arg0)->panel, Gp_StrNotice2);
+    color = 0x606060;
+    one   = 1;
+    row   = y + 0xF;
+    _gpDrawPromptItem(arg0, x, row, Gp_StrMore, item, color, one);
+    Text_DrawPrompt(arg0, x, y + 0x1E, Gp_StrAttachAvail, color, one, 0);
+
+    if (arg0->panel.field_0.w == one) {
+        arg1->killCountdown--;
+        if ((arg1->killCountdown <= 0) || (Pad_CheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+            arg0->field_2E      = 9;
+            arg1->killCountdown = 0x7FFF;
+        } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+            arg0->field_2E      = -1;
+            arg1->killCountdown = 0x7FFF;
+        }
+    }
+}
+
+void Gp_UiBoostMp(UiObject* arg0, Task* arg1)
+{
+    PlayerStatus* cfg;
+    McSaveData*   save;
+    s32           saved;
+
+    if (arg1->state == 0) {
+        cfg                 = &Player_Status;
+        Gp_HpMpWork.field_0 = cfg->hp;
+        save                = &Mc_SaveData[0];
+        Gp_HpMpWork.field_4 = cfg->mp;
+        if (save->mpBonus < 0xFA) {
+            save->mpBonus = save->mpBonus + 1;
+        }
+        Gp_RecalcMaxMp();
+        cfg->mp = cfg->mpMax;
+        func_800B996C_RemoveItem(0, Gp_SelItemRec, 1);
+        Ui_SpawnFromDesc(&Gp_BoostPanelDesc, 0, 0, 1, arg0);
+    }
+    saved           = arg1->spawnArg1;
+    arg1->spawnArg1 = 0x1D;
+    Gp_NoticePanelTask(arg1);
+    arg1->spawnArg1 = saved;
+}
+
+void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
+{
+    PlayerStatus* cfg;
+    McSaveData*   save;
+    s32           saved;
+    s32           hp;
+    u16           val;
+
+    if (arg1->state == 0) {
+        cfg                 = &Player_Status;
+        hp                  = cfg->hp;
+        Gp_HpMpWork.field_0 = hp;
+        save                = &Mc_SaveData[0];
+        Gp_HpMpWork.field_4 = cfg->mp;
+        if (save->hpBonus < 0xFA) {
+            save->hpBonus = save->hpBonus + 5;
+        }
+        val        = Gp_StatRows[save->gameMode].base.half;
+        cfg->hpMax = val;
+        val       += save->hpBonus;
+        cfg->hpMax = val;
+        if (cfg->armor != 0) {
+            val       += Gp_ModStatAttrs[cfg->armor - 1].field_4;
+            cfg->hpMax = val;
+        }
+        if (cfg->hpMax >= 0xFB) {
+            cfg->hpMax = 0xFA;
+        }
+        if (cfg->hpMax < hp) {
+            cfg->hp = cfg->hpMax;
+        }
+        cfg->hp = cfg->hpMax;
+        func_800B996C_RemoveItem(0, Gp_SelItemRec, 1);
+        Ui_SpawnFromDesc(&Gp_BoostPanelDesc, 0, 0, 1, arg0);
+    }
+    saved           = arg1->spawnArg1;
+    arg1->spawnArg1 = 0x1C;
+    Gp_NoticePanelTask(arg1);
+    arg1->spawnArg1 = saved;
+}
+
+s32 func_800B9D80(s32 arg0)
+{
+    PlayerStatus* cfg;
+    GpItemAttr*   attr;
+    s32           flags;
+    s32           ret;
+    s32           stateA;
+    s32           stateB;
+
+    ret    = 0;
+    flags  = 0;
+    stateA = 0;
+    stateB = 0;
+    cfg    = &Player_Status;
+    if (cfg->armor != 0) {
+        attr  = &Gp_ModStatAttrs[(cfg->armor + 0x5F) - 0x60];
+        flags = attr->flags;
+    }
+    if ((Gp_StateC08.field_14 > 0) || (Gp_StateC08.field_17 != 0)) {
+        stateA = 1;
+    }
+    if ((Gp_StateC08.field_14 > 0) || (Gp_StateC08.field_16 != 0)) {
+        stateB = 1;
+    }
+
+    switch (arg0) {
+        case 0x101:
+            if (Gp_HasStockedItemInline(0x3F) || stateA) {
+                ret = 1;
+            }
+            break;
+        case 0x102:
+            if (stateA || (flags & 0x1000)) {
+                ret = 1;
+            }
+            break;
+        case 0x104:
+            if (stateA || (flags & 2)) {
+                ret = 1;
+            }
+            break;
+        case 0x108:
+            ret = Gp_HasStockedItemInline(0xB);
+            if (stateB || (flags & 0x20)) {
+                ret = 1;
+            }
+            break;
+        case 0x110:
+            break;
+        case 0x120:
+            ret = Gp_HasStockedItemInline(0xE);
+            if (stateB || (flags & 0x200)) {
+                ret = 1;
+            }
+            break;
+        case 0x140:
+            if (stateB || Gp_HasStockedItemInline(0xE)) {
+                ret = 1;
+            }
+            break;
+        case 0x200:
+            if (flags & 0x10) {
+                ret = 1;
+            }
+            break;
+        case 0x400:
+            if (flags & 1) {
+                ret = 1;
+            }
+            break;
+        case 0x800:
+            if (flags & 4) {
+                ret = 1;
+            }
+            break;
+        case 0x1000:
+            if (flags & 0x100) {
+                ret = 1;
+            }
+            break;
+        case 0x2000:
+            if (flags & 8) {
+                ret = 1;
+            }
+            break;
+        case 0x4000:
+            if (flags & 0x40) {
+                ret = 1;
+            }
+            break;
+        case 0x8000:
+            if (flags & 0x80) {
+                ret = 1;
+            }
+            break;
+        case 0x10000:
+            ret = Gp_HasStockedItemInline(0x36);
+            break;
+        case 0x20000:
+            ret = Gp_HasStockedItemInline(0x39);
+            break;
+        case 0x40000:
+            ret = Gp_HasStockedItemInline(0x38);
+            break;
+        case 0x80000:
+            ret = Gp_HasStockedItemInline(0x37);
+            break;
+        case 0x100000:
+            if (Gp_HasStockedItemInline(0x40) || (flags & 1)) {
+                ret = 1;
+            }
+            break;
+    }
+    return ret;
+}
+
+void Gp_ResetInventory(void)
+{
+    PlayerStatus* status;
+    s32           i;
+    s32           j;
+
+    status = &Player_Status;
+    if (status->weapon != 0) {
+        _gpClearEquipSlot(status->weapon + 0x7F);
+        status->weapon = 0;
+    }
+
+    _gpClearScanItems(&Gp_DefaultScan);
+    Mc_SaveData[0].carriedItems = Gp_DefaultScan;
+    Gp_AddItem(&Mc_SaveData[0].carriedItems, 0x6C, 1);
+    Gp_EquipMod(0x6C);
+
+    Player_Status.hp = Player_Status.hpMax;
+    Player_Status.mp = Player_Status.mpMax;
+    Gp_ApplyItemMap();
+
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 3; j++) {
+            Gp_DebugAttachLevels[j + i * 3] = 0;
+        }
+    }
+    Gp_DebugAttachLevels[0] = 1;
+
+    Gp_StateC08.field_5 = 0;
+    Gp_StateC08.field_B = 0;
+}
+
+void Gp_ClearInventory(void)
+{
+    PlayerStatus* status;
+    McItemScan*   scan;
+    McItemRec*    rec;
+    s32           i;
+
+    status = &Player_Status;
+    if (status->weapon != 0) {
+        _gpClearEquipSlot(status->weapon + 0x7F);
+        status->weapon = 0;
+    }
+
+    _gpClearScanItems(&Gp_DefaultScan);
+    _gpSetPlayerScan(0x14);
+    scan = &Mc_SaveData[0].carriedItems;
+
+    rec = &_gpScanTable(scan)[scan->firstRow];
+    for (i = 0; i < scan->rowCount; i++, rec++) {
+        if (rec->attachSlot == -1 && (u32)(rec->itemId - 0x60) < 0x20) {
+            status->armor = rec->itemId - 0x5F;
+            _gpRecalcMaxHp();
+            Gp_RecalcMaxMp();
+            break;
+        }
+    }
+
+    Gp_StateC08.field_B = 0;
+    Gp_StateC08.field_5 = 0;
+    Player_Status.hp    = Player_Status.hpMax;
+    Player_Status.mp    = Player_Status.mpMax;
+    Gp_ApplyItemMap();
+}
+
+void Gp_InitModeEquip(void)
+{
+    PlayerStatus* cfg;
+    McItemScan*   scan;
+    McItemRec*    tmp;
+    McItemRec*    table;
+    McItemRec*    rec;
+    s32           i;
+    s32           acc;
+    s32           count;
+    s32           start;
+    s32           limit;
+
+    s32               item;
+    s32               slots;
+    GpItemSlotAddress selected;
+    u8                slotItem;
+
+    cfg = &Player_Status;
+    acc = 0;
+    if (cfg->weapon == 0) {
+        scan = &Mc_SaveData[0].carriedItems;
+        item = 0x81;
+        switch (scan->table) {
+            case 2:
+                tmp = Gp_ItemTable2;
+                break;
+            case 1:
+                tmp = Gp_ItemTable1;
+                break;
+            default:
+                tmp = Mc_SaveData[0].itemRows;
+                break;
+        }
+        table = tmp;
+        i     = 0;
+        count = scan->rowCount;
+        start = scan->firstRow;
+        if (count != 0) {
+            limit = count;
+
+            rec = gpItemRowAt(table, start);
+            do {
+                if (rec->itemId == item) {
+                    acc += rec->qty;
+                }
+                i++;
+                rec++;
+            } while (i < limit);
+        }
+        if (acc != 0) {
+            Gp_EquipHeld(0x81);
+        }
+    }
+    if (cfg->weapon == 2) {
+        /* Keep the item-id bias in an address word. Only the final slot is
+         * a pointer into weaponItems; there is no pointer before the array. */
+        slots         = (s32)Mc_SaveData[0].weaponItems - 0x80 * (s32)sizeof(McItemSlot);
+        selected.word = slots + 0x81 * (s32)sizeof(McItemSlot);
+        slotItem      = selected.slot->ammoId;
+        if ((slotItem == 0) || (slotItem == 0xA0)) {
+            Gp_EquipRelatedItem(&Mc_SaveData[0].carriedItems, 0x81, 0xA0, -1);
+        }
+    }
+}
+
+void Gp_ApplyBit2Bank(s32 arg0)
+{
+    GpBit2List* table;
+    u32*        dest;
+
+    table = Gp_Bit2Banks[arg0].field_0;
+    dest  = Gp_Bit2Banks[arg0].field_4;
+    if (arg0 == 3) {
+        return;
+    }
+    _gpApplyBit2List(table, dest);
+}
+
+void Gp_SetCurBit2Flag(s32 arg0, u8 arg1)
+{
+    s32  shift;
+    u32  mask;
+    u32* p;
+    s32  stage;
+
+    shift = (arg0 & 0xF) * 2;
+    mask  = 3 << shift;
+    stage = Mc_SaveData[0].at4.loc.stage;
+    p     = &Gp_Bit2Banks[stage].field_4[arg0 >> 4];
+    *p   &= ~mask;
+    mask  = arg1 << shift;
+    *p   |= mask;
+}
+
+void Gp_ClearScanItems(McItemScan* scan)
+{
+    _gpClearScanItems(scan);
+}
+
+McItemRec* Gp_GiveItem(McItemScan* arg0, s32 arg1, s32 arg2)
+{
+    return Gp_AddItem(arg0, arg1, arg2);
+}
+
+s32 Gp_RemoveItem(McItemScan* arg0, McItemRec* arg1, s32 arg2)
+{
+    McItemRec* table;
+    s32        item;
+    s32        qty;
+    s32        i;
+
+    item = arg1->itemId;
+    if (item < 0xA0) {
+        arg1->itemId     = 0;
+        arg1->qty        = 0;
+        arg1->attachSlot = 0;
+    } else {
+        table = _gpScanTable(arg0);
+        qty   = 0;
+        for (i = arg0->firstRow; i < arg0->firstRow + arg0->rowCount; i++) {
+            if (table[i].itemId == item) {
+                qty = table[i].qty;
+                break;
+            }
+        }
+        if (i != arg0->firstRow + arg0->rowCount) {
+            if (arg2 < 0) {
+                arg2 = qty;
+            }
+            arg2 = qty - arg2;
+            if (arg2 < 0) {
+                arg2 = 0;
+            }
+            if (arg2 == 0) {
+                table[i].itemId     = 0;
+                table[i].qty        = 0;
+                table[i].attachSlot = 0;
+            } else {
+                table[i].qty = arg2;
+            }
+        }
+    }
+    return 0;
+}
+
+void Gp_ClearCollectedBits(void)
+{
+    s32  i;
+    s32* p;
+
+    p = Mc_SaveData[0].collectedBits;
+    for (i = 3; i >= 0; i--) {
+        *p++ = 0;
+    }
+}
+
+void Gp_SetCollectedBit(s32 arg0)
+{
+    s32* p;
+    s32  bit;
+
+    p    = Mc_SaveData[0].collectedBits;
+    bit  = arg0 & 0x7F;
+    p   += bit / 32;
+    bit %= 32;
+    *p  |= 1 << bit;
+    if ((arg0 & 0x7F) == 0x19) {
+        Gp_PlayTimeMark = Mc_SaveData[0].playTime;
+    }
+}
+
+void Gp_ClearCollectedBit(s32 arg0)
+{
+    s32* p;
+
+    p     = Mc_SaveData[0].collectedBits;
+    arg0 &= 0x7F;
+    p    += arg0 / 32;
+    arg0 %= 32;
+    *p   &= ~(1 << arg0);
+}
+
+s32 Gp_CountCollectedBits(void)
+{
+    s32  count;
+    s32* p;
+    s32  i;
+    s32  bit;
+    s32  word;
+    s32  one;
+
+    p     = Mc_SaveData[0].collectedBits;
+    count = 0;
+    one   = 1;
+    for (i = 3; i >= 0; i--) {
+        bit  = 0;
+        word = *p;
+        do {
+            if (word & (one << bit)) {
+                count++;
+            }
+            bit++;
+        } while (bit < 32);
+        p++;
+    }
+    return count;
+}
+
+s32 Gp_CountScanItems(McItemScan* arg0)
+{
+    McItemRec* tmp;
+    McItemRec* table;
+    McItemRec* rec;
+    s32        i;
+    s32        ret;
+    s32        count;
+    s32        start;
+    s32        limit;
+
+    switch (arg0->table) {
+        case 2:
+            tmp = Gp_ItemTable2;
+            break;
+        case 1:
+            tmp = Gp_ItemTable1;
+            break;
+        default:
+            tmp = Mc_SaveData[0].itemRows;
+            break;
+    }
+    table = tmp;
+    i     = 0;
+    count = arg0->rowCount;
+    start = arg0->firstRow;
+    ret   = i;
+    if (count != 0) {
+        limit = count;
+
+        rec = gpItemRowAt(table, start);
+        do {
+            if (rec->itemId != 0) {
+                ret++;
+            }
+            i++;
+            rec++;
+        } while (i < limit);
+    }
+    return ret;
+}
+
+McItemSlot* Gp_GetItemSlot(s32 arg0)
+{
+    return &Mc_SaveData[0].weaponItems[arg0 - 0x80];
+}
+
+s32 Gp_CountEquippedRelated(McItemScan* arg0, s32 arg1)
+{
+    McItemRec*  table;
+    McItemSlot* slot;
+    s32         count;
+    s32         i;
+    s32         end;
+    s32         itemId;
+
+    table = Gp_GetItemTable(arg0);
+    count = 0;
+    if ((u32)(arg1 - 0xA0) < 0x20) {
+        i   = arg0->firstRow;
+        end = i + arg0->rowCount;
+        if (i < end) {
+            for (; i < arg0->firstRow + arg0->rowCount; i++) {
+                itemId = table[i].itemId;
+                if ((u32)(itemId - 0x80) < 0x20) {
+                    slot = gpItemSlot(itemId);
+                    if (slot->ammoId == arg1) {
+                        count += slot->ammoQty;
+                    }
+                    if (slot->attachId == arg1) {
+                        count += slot->attachQty;
+                    }
+                }
+            }
+            return count;
+        }
+    }
+    return count;
+}
+
+void Gp_ClearEquipSlot(s32 arg0)
+{
+    McItemSlot* slot;
+    s32         found = 0;
+    s32         i;
+
+    if ((u32)(arg0 - 0x80) >= 0x20) {
+        return;
+    }
+
+    slot = &Mc_SaveData[0].weaponItems[arg0 - 0x80];
+    for (i = 0; i < 8; i++) {
+        if (arg0 == Gp_ItemMaps[i].field_1) {
+            found = 1;
+            break;
+        }
+    }
+
+    if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
+        slot->ammoId  = 0;
+        slot->ammoQty = 0;
+    }
+
+    if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
+        if (slot->attachId != 0xFF) {
+            slot->attachId = 0;
+        }
+        slot->attachQty = 0;
+    }
+}
+
+void Gp_ClearEquipSlotSel(s32 arg0, s32 arg1)
+{
+    McItemSlot* slot;
+    s32         found = 0;
+    s32         i;
+
+    if ((u32)(arg0 - 0x80) >= 0x20) {
+        return;
+    }
+
+    slot = &Mc_SaveData[0].weaponItems[arg0 - 0x80];
+    for (i = 0; i < 8; i++) {
+        if (arg0 == Gp_ItemMaps[i].field_1) {
+            found = 1;
+            break;
+        }
+    }
+
+    if (arg1 != 2) {
+        if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
+            slot->ammoId  = 0;
+            slot->ammoQty = 0;
+        }
+    }
+
+    if (arg1 != 1) {
+        if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
+            if (slot->attachId != 0xFF) {
+                slot->attachId = 0;
+            }
+            slot->attachQty = 0;
+        }
+    }
+}
+
+s32 Gp_ScanStackQty(McItemScan* arg0, s32 arg1)
+{
+    s32        index;
+    s32        ret;
+    McItemRec* table;
+
+    index = arg0->firstRow;
+    table = Gp_GetItemTable(arg0);
+    if ((u32)(arg1 - 0xA0) < 0x20) {
+        ret = (s16)Gp_FindScanQty(table, arg0, &index, arg1);
+    } else {
+        ret = 0;
+    }
+    return ret;
+}
+
+void Gp_ConsumeScanQty(McItemScan* arg0, s32 arg1, s32 arg2)
+{
+    McItemRec* table;
+    s32        qty;
+    s32        i;
+
+    table = _gpScanTable(arg0);
+    qty   = 0;
+    for (i = arg0->firstRow; i < arg0->firstRow + arg0->rowCount; i++) {
+        if (table[i].itemId == arg1) {
+            qty = table[i].qty;
+            break;
+        }
+    }
+    if (i != arg0->firstRow + arg0->rowCount) {
+        if (arg2 < 0) {
+            arg2 = qty;
+        }
+        arg2 = qty - arg2;
+        if (arg2 < 0) {
+            arg2 = 0;
+        }
+        if (arg2 == 0) {
+            table[i].itemId     = 0;
+            table[i].qty        = 0;
+            table[i].attachSlot = 0;
+        } else {
+            table[i].qty = arg2;
+        }
+    }
+}
+
+s32 Gp_FillRelated(s32 arg0, s32 arg1)
+{
+    McItemSlot* slot;
+    McItemSlot* alt;
+    s32         ret;
+
+    slot = &Mc_SaveData[0].weaponItems[arg0 - 0x80];
+    alt  = slot;
+    if (arg1 != 0) {
+        ret = Gp_EquipRelatedItem(&Mc_SaveData[0].carriedItems, arg0, slot->attachId, -1);
+    } else {
+        ret = Gp_EquipRelatedItem(&Mc_SaveData[0].carriedItems, arg0, alt->ammoId, -1);
+    }
+    return ret;
+}
+
+s32 Gp_UnequipRelated(s32 arg0, s32 arg1)
+{
+    McItemSlot* slot;
+    McItemSlot* alt;
+    s32         ret;
+
+    slot = &Mc_SaveData[0].weaponItems[arg0 - 0x80];
+    alt  = slot;
+    if (arg1 == 0) {
+        ret = Gp_EquipRelatedItem(&Mc_SaveData[0].carriedItems, arg0, slot->ammoId, 0);
+    } else {
+        ret = Gp_EquipRelatedItem(&Mc_SaveData[0].carriedItems, arg0, alt->attachId, 0);
+    }
+    return ret == 0;
+}
+
+s32 Gp_GetCurBit2Flag(s32 arg0)
+{
+    s32  stage;
+    u32* p;
+    u32  word;
+    s32  shift;
+
+    stage = gGameSession->at4.loc.stage;
+    p     = &Gp_Bit2Banks[stage].field_4[arg0 >> 4];
+    shift = (arg0 & 0xF) * 2;
+    word  = *p;
+    word &= 3 << shift;
+    return word >> shift;
+}
+
+s32 Gp_HasCollectedBit(s32 arg0)
+{
+    s32* p;
+    s32  val;
+
+    p     = Mc_SaveData[0].collectedBits;
+    arg0 &= 0x7F;
+    p    += arg0 / 32;
+    arg0 %= 32;
+    val   = *p & (1 << arg0);
+    return val != 0;
+}
+
+McItemRec* Gp_GetItemTable(McItemScan* arg0)
+{
+    switch (arg0->table) {
+        case 2:
+            return Gp_ItemTable2;
+        case 1:
+            return Gp_ItemTable1;
+        default:
+            return Mc_SaveData[0].itemRows;
+    }
+}
+
+s32 Gp_ScanIndexOf(McItemScan* arg0, McItemRec* arg1)
+{
+    McItemRec* table;
+    s32        i;
+    s32        ret;
+
+    table  = _gpScanTable(arg0);
+    ret    = -1;
+    table += arg0->firstRow;
+    for (i = 0; i < arg0->rowCount; i++) {
+        if (table == arg1) {
+            ret = i;
+            break;
+        }
+        table++;
+    }
+    return ret;
+}
+
+McItemRec* Gp_GetScanSlot(McItemScan* arg0, s32 arg1, s32 arg2)
+{
+    McItemRec* table;
+
+    switch (arg0->table) {
+        case 2:
+            table = Gp_ItemTable2;
+            break;
+        case 1:
+            table = Gp_ItemTable1;
+            break;
+        default:
+            table = Mc_SaveData[0].itemRows;
+            break;
+    }
+    return &table[arg0->firstRow + arg1];
+}
+
+static s32 Gp_GetScanItemId(McItemScan* arg0, s32 arg1)
+{
+    McItemRec* table;
+    McItemRec* rec;
+
+    switch (arg0->table) {
+        case 2:
+            table = Gp_ItemTable2;
+            break;
+        case 1:
+            table = Gp_ItemTable1;
+            break;
+        default:
+            table = Mc_SaveData[0].itemRows;
+            break;
+    }
+    rec = &table[arg0->firstRow + arg1];
+    return rec->itemId;
+}

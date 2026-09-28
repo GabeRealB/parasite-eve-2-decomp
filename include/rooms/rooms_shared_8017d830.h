@@ -2,8 +2,6 @@
 #define ROOMS_SHARED_8017D830_H
 
 #include "common.h"
-
-#include "gameplay/3FB8.h"
 #include "main/session.h"
 #include "overlay.h"
 

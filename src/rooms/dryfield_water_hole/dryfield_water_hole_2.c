@@ -4,15 +4,17 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/room_effects.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 static void func_dryfield_water_hole_8017F5D4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_dryfield_water_hole_8017F9C0(GpCoord* arg0, s32 arg1, s32 arg2);

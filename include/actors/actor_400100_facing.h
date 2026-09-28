@@ -3,7 +3,6 @@
 
 #include "actors/actor_400100_motion.h"
 #include "actors/actor_400100_update.h"
-#include "gameplay/D4.h"
 #include "main/wipsys.h"
 #include "main/coord.h"
 

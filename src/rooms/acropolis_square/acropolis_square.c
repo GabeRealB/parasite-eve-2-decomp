@@ -9,14 +9,6 @@
 #include <psyq/gtemac.h>
 
 #include "decomp/common.h"
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -35,11 +27,23 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181228.h"
 
+#include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/model_objects.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+
 extern UiObjectDesc D_800611E4;
 extern UiObject*    D_80067634;
-extern UiObjectDesc D_8010EFA0;
-extern s16          D_80114D08;
-extern u32          D_80115694;
 
 /// Index of the mirrored player's coordinate part each held-object reflection
 /// is parented to, by `Task::spawnArg1`.
@@ -2122,7 +2126,7 @@ void func_acropolis_square_80181AEC(Task* task)
             Gp_MsgPlayerWeapon(0);
             D_acropolis_square_8018382C = 1;
             D_acropolis_square_80188898 = 0;
-            func_800E8634((s32)&D_acropolis_square_80183834, 0, (s32)&D_acropolis_square_801838DC);
+            func_800E8634(&D_acropolis_square_80183834, 0, &D_acropolis_square_801838DC);
             goto advance;
 
         case 3:
@@ -2380,7 +2384,7 @@ static void func_acropolis_square_801822A4(Task* task)
     if (Mc_SaveData[0].at4.loc.warp == 7 && D_acropolis_square_80183830 == 0) {
         D_acropolis_square_80183830 = 1;
         Mc_SaveData[0].sceneEvent   = 2;
-        func_800E8634((s32)&D_acropolis_square_8018399C, 0, (s32)&D_acropolis_square_80183A5C);
+        func_800E8634(&D_acropolis_square_8018399C, 0, &D_acropolis_square_80183A5C);
     }
 }
 

@@ -5,13 +5,6 @@
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 #include <psyq/strings.h>
-
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
@@ -28,6 +21,21 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b3_garbage_incinerator.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 
 extern TaskDesc D_80164FF8;
 
@@ -69,9 +77,9 @@ extern POLY_FT4        D_shelter_b3_garbage_incinerator_8018FEE0[][30][8];
 
 /* Shared in source with actors 342100 (the encounter's fade and spawn) and
    215100 (the caption drawing): their data here. */
-extern u8         D_shelter_b3_garbage_incinerator_80186F70[];
-extern TaskDesc   D_shelter_b3_garbage_incinerator_80185BAC;
-extern GlyphUvwh  D_8010FB70[];
+extern u8       D_shelter_b3_garbage_incinerator_80186F70[];
+extern TaskDesc D_shelter_b3_garbage_incinerator_80185BAC;
+
 extern GlyphUvwh* D_shelter_b3_garbage_incinerator_8018FC44;
 extern s16        D_shelter_b3_garbage_incinerator_8018FC4C;
 extern s16        D_shelter_b3_garbage_incinerator_8018FC4E;
@@ -152,7 +160,6 @@ extern Task* D_shelter_b3_garbage_incinerator_8018FC3C;
 
 /// Caption schedule scanned by `func_shelter_b3_garbage_incinerator_8017FA58`.
 extern OverlayCapWindow D_shelter_b3_garbage_incinerator_801871A8[];
-extern u8               D_80114CF8;
 
 /// Task table entry spawned once when the controller starts.
 extern TaskDesc D_shelter_b3_garbage_incinerator_80187184;
@@ -201,7 +208,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
                     msg[2] = 0;
                     msg[3] = 0;
                     msg[4] = 0;
-                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)msg, 0);
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, msg, 0);
                 } else {
                     p = msg;
                     w = Player_Status.weapon;
@@ -215,7 +222,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
                     p[2]   = 1;
                     p[3]   = 10;
                     msg[4] = 0;
-                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)msg, 0);
+                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, msg, 0);
                 }
                 arg0->killCountdown = 0;
                 arg0->state++;
@@ -293,7 +300,7 @@ static s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
     msg.rot.vz = 0;
     msg.rot.vx = 0;
     msg.rot.vy = 0x800;
-    Gp_DispatchMsg(work->target, 0x7D4, (s32)&msg, 0);
+    Gp_DispatchMsgPtr(work->target, 0x7D4, &msg, 0);
     return 0;
 }
 
@@ -352,13 +359,13 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             }
             switch (gGameSession->field_132) {
                 case 0:
-                    Gp_DispatchMsg(task, 0x7D4, (s32)&D_shelter_b3_garbage_incinerator_80185B88, 0);
+                    Gp_DispatchMsgPtr(task, 0x7D4, &D_shelter_b3_garbage_incinerator_80185B88, 0);
                     func_shelter_b3_garbage_incinerator_80185220();
                     task->state = 1;
                     break;
                 case 1:
                 case 2:
-                    Gp_DispatchMsg(task, 0x7D4, (s32)D_shelter_b3_garbage_incinerator_80185B58, 0);
+                    Gp_DispatchMsgPtr(task, 0x7D4, D_shelter_b3_garbage_incinerator_80185B58, 0);
                     task->state = 4;
                     break;
                 case 3:
@@ -830,7 +837,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
     msg.field_8         = 1;
     msg.field_C         = 0xA;
     msg.field_10        = 0;
-    Gp_DispatchMsg(msgWork->field_2C, 0x3E8, (s32)&msg, 0);
+    Gp_DispatchMsgPtr(msgWork->field_2C, 0x3E8, &msg, 0);
     goto ret1;
 }
 
@@ -901,7 +908,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
             }
             msg.words = &D_shelter_b3_garbage_incinerator_80186F78[0];
             msg.count = n & 0xFFFF;
-            Gp_DispatchMsg(msgWork->field_2C, 0x3F7, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(msgWork->field_2C, 0x3F7, &msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;
             func_800E8614((s32)&D_shelter_b3_garbage_incinerator_80186FB8, 0);
@@ -1008,7 +1015,7 @@ void func_shelter_b3_garbage_incinerator_8017F8AC(s32 arg0)
     msg.field_8         = 1;
     msg.field_C         = 0xF;
     msg.field_10        = 0;
-    Gp_DispatchMsg(work->field_2C, 0x3E8, (s32)&msg, 0);
+    Gp_DispatchMsgPtr(work->field_2C, 0x3E8, &msg, 0);
 }
 
 void func_shelter_b3_garbage_incinerator_8017F930(s32 arg0)
@@ -1097,8 +1104,8 @@ static void func_shelter_b3_garbage_incinerator_8017FB80(void)
         (D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_8.offset != -1) &&
         (Gp_CapBusy() == 0)) {
         func_shelter_b3_garbage_incinerator_8017FE74(D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_8.text, 0x80, 1,
-                                                     D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_0 |
-                                                         ((D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_1 & 0x10) * 0x10));
+                                                     D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].prefix.bytes.field_0 |
+                                                         ((D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].prefix.bytes.field_1 & 0x10) * 0x10));
         if (!(D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_4 & 1)) {
             func_shelter_b3_garbage_incinerator_80180994();
         }

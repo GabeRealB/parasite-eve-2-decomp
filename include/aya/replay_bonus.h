@@ -4,9 +4,9 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-
-#include "gameplay/4CC.h"
 #include "main/ui.h"
+
+#include "gameplay/items.h"
 
 /// Replay-bonus item-id table (`0x4E` ids, then a `0xFFFF` terminator).
 /// `func_replay_bonus_80117598` tests membership; `func_replay_bonus_80115D60`
@@ -177,11 +177,8 @@ extern s32 D_replay_bonus_801192B4;
 extern u8  D_replay_bonus_801192AC;
 extern u16 D_replay_bonus_801192B8;
 
-/// Item descriptors for ids from 0x100 up, indexed by `id - 0x100`.
-extern GpItemDesc D_8010DE38[];
-
 /// The BP an item is worth on the replay-bonus screen: half its descriptor
-/// price, looked up in `Gp_ItemDescs` below id 0x100 and in `D_8010DE38` above.
+/// price, looked up in `Gp_ItemDescs` below id 0x100 and in `Gp_KeyItemDescs` above.
 static inline s32 replayBonusItemBp(s32 id)
 {
     s32 price;
@@ -189,7 +186,7 @@ static inline s32 replayBonusItemBp(s32 id)
     if (id < 0x100) {
         price = Gp_ItemDescs[id].price;
     } else {
-        price = D_8010DE38[id - 0x100].price;
+        price = Gp_KeyItemDescs[id - 0x100].price;
     }
     price >>= 1;
     return price;

@@ -4,11 +4,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -17,6 +12,14 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+
 static void func_neo_ark_island_8017ECB4(GpCoord* arg0, s32 arg1, s32 arg2);
 static void func_neo_ark_island_8017F4A4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_neo_ark_island_8017F890(GpCoord* arg0, s32 arg1, s32 arg2);
@@ -24,12 +27,6 @@ static void func_neo_ark_island_8017FE40(GpCoord* arg0, s32 arg1, s32 arg2, u8* 
 static void func_neo_ark_island_8018026C(GpCoord* arg0, s16 arg1, u8* rgb);
 static void func_neo_ark_island_80180AF0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_neo_ark_island_80181170(GpCoord* arg0, s16 arg1, u8* rgb);
-
-extern s32 D_8011572C;
-extern s32 D_80115738;
-extern s32 D_8011574C;
-extern s32 D_80115750;
-extern s32 D_80115758;
 
 /// Offsets from the parent coordinate of the two points whose trails
 /// `func_neo_ark_island_80180600` records.

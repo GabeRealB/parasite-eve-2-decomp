@@ -7,16 +7,22 @@
 #include <psyq/abs.h>
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/collision.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/geometry.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 /// Work block of the parent task, allocated zeroed by its spawn routine and
 /// kept at `Task::work`: a twenty-part rig, the walk state, and
@@ -50,8 +56,6 @@ STATIC_ASSERT_SIZEOF(Actor120400SpawnAnim, 0x8);
 /// `Task::msgTable` at; both live in this overlay's trailing data.
 extern TaskDesc   D_actor_120400_8013E748;
 extern GpMsgEntry D_actor_120400_8013E76C[];
-
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_120400_80131E5C(Task* arg0);
 static void func_actor_120400_80132050(Task* arg0);
@@ -129,21 +133,21 @@ static void func_actor_120400_80131E5C(Task* arg0)
     work->walk.acc[2].w = 0;
     spawned             = Task_SpawnFromTable(&D_actor_120400_8013E748, 1, 8, (s32)arg0);
     if (spawned != NULL) {
-        TmdObject*   model;
-        GpAreaRec*   rec;
-        GpAreaPlace* place;
-        s32          idx;
+        TmdObject*     model;
+        GpAreaVariant* rec;
+        GpAreaPlace*   place;
+        s32            idx;
 
         model      = spawned->extra.tmd;
         idx        = ((GpEnemy*)arg0->spawnArg2)->placeKey >> 12;
-        sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+        sessionKey = &gGameSession->at4.loc;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
         key.room   = sessionKey->room;
         key.view   = sessionKey->view;
         Gp_SyncAreaKeyIndex(&key);
         rec          = Gp_GetNestedAreaRec(&key);
-        place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        place        = gpAreaPlaceAt(rec->field_0, idx);
         model->tpage = place->tpage;
         model->clut  = place->clut;
         if (model->buffer != NULL) {
@@ -153,10 +157,10 @@ static void func_actor_120400_80131E5C(Task* arg0)
     }
     spawned = Task_SpawnFromTable(&D_actor_120400_8013E748, 2, 0xC, (s32)arg0);
     if (spawned != NULL) {
-        TmdObject*   model;
-        GpAreaRec*   rec;
-        GpAreaPlace* place;
-        s32          idx;
+        TmdObject*     model;
+        GpAreaVariant* rec;
+        GpAreaPlace*   place;
+        s32            idx;
 
         model = spawned->extra.tmd;
         idx   = ((GpEnemy*)arg0->spawnArg2)->placeKey >> 12;
@@ -171,7 +175,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
         key.view   = ((GpAreaKey*)(&gGameSession->at4.loc.view))->view;
         Gp_SyncAreaKeyIndex(&key);
         rec          = Gp_GetNestedAreaRec(&key);
-        place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        place        = gpAreaPlaceAt(rec->field_0, idx);
         model->tpage = place->tpage;
         model->clut  = place->clut;
         if (model->buffer != NULL) {

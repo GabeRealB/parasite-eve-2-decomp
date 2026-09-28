@@ -9,11 +9,14 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/gameplay.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "main/fs.h"
 
 /// Work block the spawn state `func_actor_213100_8014A118` allocates
 /// (`memCalloc(0x488)`) and parks in `Task::work` -- that slot is not a
@@ -42,10 +45,6 @@ typedef struct Actor213100Work {
     /* 0x484 */ s32            field_484;
 } Actor213100Work;
 STATIC_ASSERT_SIZEOF(Actor213100Work, 0x488);
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// `gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Animation bank table the 0x7D3 handler indexes with the preset's
 /// `field_0`.

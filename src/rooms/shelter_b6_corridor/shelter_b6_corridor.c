@@ -9,11 +9,6 @@
 #include <psyq/rand.h>
 
 #include "rooms/room.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -23,6 +18,16 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/loading.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
 
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -278,7 +283,7 @@ s32 func_shelter_b6_corridor_8017DEB0(s32 arg0, s32 arg1, RoomEventMsg* in, Room
         return 0;
     }
     if (id == k) {
-        return Gp_StateF0.field_0 != 1;
+        return Gp_StateF0.prefix.bytes.field_0 != 1;
     }
     return 1;
 }
@@ -289,7 +294,7 @@ s32 func_shelter_b6_corridor_8017DF48(s32 arg0, s32 arg1, s32 arg2)
         case 2:
             if (GameFlag_GetNibble(0x144) != 0) {
                 Gp_RunCapCmd1(5);
-            } else if (Gp_StateF0.field_0 == 1) {
+            } else if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                 Gp_RunCapCmd1(2);
             } else {
                 Gp_RunCapCmd1(8);
@@ -298,7 +303,7 @@ s32 func_shelter_b6_corridor_8017DF48(s32 arg0, s32 arg1, s32 arg2)
         case 3:
             if (GameFlag_GetNibble(0x145) != 0) {
                 Gp_RunCapCmd1(6);
-            } else if (Gp_StateF0.field_0 == 1) {
+            } else if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                 Gp_RunCapCmd1(3);
             } else {
                 Gp_RunCapCmd1(9);
@@ -307,7 +312,7 @@ s32 func_shelter_b6_corridor_8017DF48(s32 arg0, s32 arg1, s32 arg2)
         case 4:
             if (GameFlag_GetNibble(0x146) != 0) {
                 Gp_RunCapCmd1(7);
-            } else if (Gp_StateF0.field_0 != 1) {
+            } else if (Gp_StateF0.prefix.bytes.field_0 != 1) {
                 Gp_RunCapCmd1(0xA);
             } else {
                 Gp_RunCapCmd1(4);
@@ -324,7 +329,7 @@ s32 func_shelter_b6_corridor_8017E020(void)
 
 s32 func_shelter_b6_corridor_8017E028(void)
 {
-    func_800E8634((s32)&D_shelter_b6_corridor_8017F354, 0, (s32)&D_shelter_b6_corridor_8017F684);
+    func_800E8634(&D_shelter_b6_corridor_8017F354, 0, &D_shelter_b6_corridor_8017F684);
     func_800E3FAC(0xA2, 0x2F);
     return 0;
 }
@@ -377,8 +382,8 @@ void func_shelter_b6_corridor_8017E144(Task* task)
 void func_shelter_b6_corridor_8017E19C(s32 arg0)
 {
     if (!(gGameSession->flowFlags & 0x80)) {
-        gGameSession->flowFlags |= 0x80;
-        Gp_StateF0.field_1       = arg0;
+        gGameSession->flowFlags        |= 0x80;
+        Gp_StateF0.prefix.bytes.field_1 = arg0;
         Gp_ReleaseStateF0Add(Gp_LookupSlot4(1), 0x31);
         Task_CallExit(Gp_LookupSlot4(1));
     }

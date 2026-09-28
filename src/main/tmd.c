@@ -8,6 +8,12 @@
 #include "psyq/inline_c.h"
 #include "gte.h"
 
+#include "gameplay/model_lighting.h"
+#include "gameplay/model_objects.h"
+#include "main/display.h"
+#include "main/mem.h"
+#include "main/session.h"
+
 /// A model-path stream command's handler: the function a command in a model's
 /// stream is resolved to, and the signature every handler of that stream shares.
 ///
@@ -17,20 +23,6 @@
 /// the command's data starts at, and returns the cursor the walk resumes from.
 typedef u32* (*_TmdModelStreamHandler)(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
-// Other model stream handlers (same ABI as _TmdModelStreamHandler; not yet in hasm).
-u32* func_8009AF90(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009B500(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009C414(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009D388(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009D518(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009D718(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009D900(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009DB00(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009DCB8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009DE48(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009E048(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009E274(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009E4A0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_80136224(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_80136500(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_8013685C(TmdScratchModelBlock* ws, s32 flags, u32* stream);

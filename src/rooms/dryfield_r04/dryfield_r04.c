@@ -4,12 +4,12 @@
  * location's parameters.
  */
 #include "common.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "rooms/stage_tables.h"
+
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/room.h"
 
 GpRoomObjRec D_dryfield_r04_8017D5C4[1] = {
     { &D_dryfield_r04_8017E1F4, NULL, NULL, NULL },
@@ -17,12 +17,12 @@ GpRoomObjRec D_dryfield_r04_8017D5C4[1] = {
 
 u8* D_dryfield_r04_8017D5D4[1] = { D_8010CAF8 };
 
-GpViewCountRec D_dryfield_r04_8017D5D8[1] = { { 2, 0 } };
+GpViewCountRec D_dryfield_r04_8017D5D8[1] = { { { { 2, 0 } } } };
 
 /// Nothing points at this record: the stage's room coordinate table has no
 /// entry for this room.
 static GpRoomCoordRec D_dryfield_r04_8017D5DC = { NULL, NULL };
 
 GpWarpRec D_dryfield_r04_8017D5E4[1] = {
-    { 0, { 0 }, 0, { 0 }, 0, 0, 0, 2, 0, 0 },
+    { .field_34 = 2 },
 };

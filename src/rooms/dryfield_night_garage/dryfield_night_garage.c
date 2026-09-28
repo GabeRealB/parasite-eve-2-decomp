@@ -1,16 +1,6 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/4CC.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -28,15 +18,20 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
-extern s32  func_80179954(RoomEventMsg* in, RoomEventMsg* out);
-s32         func_800D4D2C(s32 arg0);
+#include "gameplay/captions.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/player_state.h"
+#include "gameplay/scene_runtime.h"
+#include "main/mem.h"
 
-extern char          Gp_StrEmpty[];
-extern UiObject*     D_80067634;
-extern RoomShopStock D_8010E138[];
-extern UiObjectDesc  D_8010D80C;
-extern UiObjectDesc  D_8010EFA0;
+extern s32 func_80179954(RoomEventMsg* in, RoomEventMsg* out);
+
+extern UiObject* D_80067634;
 
 /// Task descriptor table and cutscene script blobs owned by the main
 /// executable.
@@ -499,7 +494,7 @@ void func_dryfield_night_garage_8017DDC4(UiList* prompt, UiObject* obj)
         /* Dead: emits the scaled index before the table base so the
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
-        Gp_DrawQty(obj, prompt->field_18, prompt->field_1A, D_8010E138[itemId].perBuy, prompt->field_1C);
+        Gp_DrawQty(obj, prompt->field_18, prompt->field_1A, gpItemStock(itemId)->perBuy, prompt->field_1C);
     }
     Text_ItoaUnsigned(buf, price);
     Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, buf, prompt->field_1C, 3, 2);
@@ -1219,7 +1214,7 @@ void func_dryfield_night_garage_8017F794(Task* task)
     }
 
     if ((u32)(itemId - 0xA0) < 0x20) {
-        RoomShopStock* stock = &D_8010E138[itemId];
+        RoomShopStock* stock = gpItemStock(itemId);
 
         if (stock->perBuy != 0) {
             held    = Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, itemId);
@@ -1247,7 +1242,7 @@ void func_dryfield_night_garage_8017F794(Task* task)
     y    = top + 0xF;
     Gp_DrawItemLabel(obj, x, y, itemId, 0x606060, 0);
     if ((u32)(itemId - 0xA0) < 0x20) {
-        RoomShopStock* stock = &D_8010E138[itemId];
+        RoomShopStock* stock = gpItemStock(itemId);
 
         Gp_DrawQty(obj, x, y, stock->perBuy, 0x606060);
     }
@@ -1415,15 +1410,15 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
     D_dryfield_night_garage_80186E60->field_4A &= 0xBF;
     player                                      = gameGetPtrSlot(0xA);
     if (gGameSession->at4.loc.place == 3 && player != NULL) {
-        Gp_DispatchMsg(player, 0x3E9, (s32)&D_8013B570, 0);
+        Gp_DispatchMsgPtr(player, 0x3E9, &D_8013B570, 0);
         Gp_AllyAnimId(&D_dryfield_night_garage_80181C68);
-        Gp_DispatchMsg(player, 0x3E8, (s32)&D_dryfield_night_garage_80181C68, 0);
+        Gp_DispatchMsgPtr(player, 0x3E8, &D_dryfield_night_garage_80181C68, 0);
         func_dryfield_night_garage_80180604(0);
         Gp_EndPlayerActorTask(player);
         if (GameFlag_GetNibble(0x8E) == 0) {
             Gp_FillAllyHp();
             GameFlag_SetNibble(0x8E, 1);
-            func_800E8634((s32)&D_8013B590, 0, (s32)&D_8013C388);
+            func_800E8634(&D_8013B590, 0, &D_8013C388);
         } else {
             func_800E8614((s32)&D_dryfield_night_garage_80181C7C, 1);
         }
@@ -1462,8 +1457,8 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, GpMsg13EF* msg, s
                     obj             = base + 2;
                     base->field_4A |= 0x40;
                     obj->field_4A  &= 0xBF;
-                    func_800E8634((s32)&D_dryfield_night_garage_80182DF8, 0,
-                                  (s32)&D_dryfield_night_garage_801831B8);
+                    func_800E8634(&D_dryfield_night_garage_80182DF8, 0,
+                                  &D_dryfield_night_garage_801831B8);
                     GameFlag_SetNibble(0x6C, 1);
                     func_800E3FAC(0xA2, 0x17);
                     Gp_ClearCollectedBit(0x118);
@@ -1645,7 +1640,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
     switch (temp_v1) {
         case 0:
             Gp_StartCapSlot((s16)arg0->spawnArg1, 0, 0);
-            Gp_DispatchMsg(func_dryfield_night_garage_80180A64(0), 0x7DB, (s32)&D_dryfield_night_garage_80182DE0, 0);
+            Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), 0x7DB, &D_dryfield_night_garage_80182DE0, 0);
             goto block_12;
         case 1:
             if (Gp_CapBusy() == 0) {
@@ -1666,7 +1661,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
                 break;
             }
             Gp_MsgPlayerWeapon(1);
-            Gp_DispatchMsg(func_dryfield_night_garage_80180A64(0), 0x7DB, (s32)&D_dryfield_night_garage_80182DE4, 0);
+            Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), 0x7DB, &D_dryfield_night_garage_80182DE4, 0);
         default:
             taskKill(arg0);
             break;

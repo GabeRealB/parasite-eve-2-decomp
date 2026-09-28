@@ -1,0 +1,1028 @@
+#include "gameplay/item_menu.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+
+#include "common.h"
+#include "gte.h"
+
+#include "attachments.h"
+#include "gameplay/inventory.h"
+#include "inventory.h"
+#include "item_menu.h"
+#include "item_pickup.h"
+#include "gameplay/items.h"
+#include "items.h"
+#include "gameplay/message.h"
+
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
+
+typedef struct {
+    u16 vx;
+    u16 vy;
+    u16 vz;
+} SizeVec;
+
+#define D_8010EF68 D_8010EAB4[43]
+
+/// Draws `item` as `_gpDrawItemNameUnmarkedAt` does, but fills the caller's
+/// `req` instead of a request of its own.
+static inline void _gpDrawItemNameUnmarkedInto(UiObject* obj, TextDrawReq* req, s32 x, s32 y, s32 color,
+                                               s32 item);
+
+extern s32 Pad_MaskConfirm;
+
+extern s32 Pad_MaskCancel;
+
+extern s32 Pad_MaskMenu;
+
+extern UiObject* D_80067634;
+
+GpRec10 Gp_IdParamLo[47] = {
+    { { 0, 0, 0, 0, 0 } },
+    { { 10, 0, 0, 1, 0 } },
+    { { 15, 0, 0, 1, 0 } },
+    { { 20, 0, 0, 1, 0 } },
+    { { 9999, 0, 0, 0, 0 } },
+    { { 9999, 0, 0, 0, 0 } },
+    { { 9999, 0, 0, 0, 0 } },
+    { { 40, 0, 0, 1, 0 } },
+    { { 70, 0, 3, 2, 0 } },
+    { { 999, 0, 3, 2, 0 } },
+    { { 270, 0, 4, 3, 10 } },
+    { { 220, 0, 6, 4, 3 } },
+    { { 60, 0, 9, 0, 10 } },
+    { { 40, 0, 6, 4, 0 } },
+    { { 70, 0, 7, 3, 0 } },
+    { { 90, 0, 5, 5, 0 } },
+    { { 22, 0, 0, 1, 0 } },
+    { { 1, 0, 2, 0, 0 } },
+    { { 1, 0, 9, 0, 0 } },
+    { { 9999, 0, 0, 0, 0 } },
+    { { 9999, 0, 0, 0, 0 } },
+    { { 10, 0, 0, 6, 11 } },
+    { { 0, 0, 8, 0, 0 } },
+    { { 10, 0, 0, 6, 8 } },
+    { { 1500, 0, 6, 4, 9 } },
+    { { 2000, 0, 7, 3, 9 } },
+    { { 2000, 0, 1, 7, 10 } },
+    { { 100, 0, 1, 8, 9 } },
+    { { 80, 0, 1, 15, 0 } },
+    { { 90, 0, 0, 8, 10 } },
+    { { 35, 0, 7, 16, 5 } },
+    { { 25, 0, 0, 10, 5 } },
+    { { 2500, 0, 5, 5, 9 } },
+    { { 60, 0, 6, 4, 2 } },
+    { { 80, 0, 6, 4, 2 } },
+    { { 100, 0, 6, 4, 2 } },
+    { { 15, 0, 7, 3, 5 } },
+    { { 30, 0, 1, 0, 1 } },
+    { { 45, 0, 1, 10, 0 } },
+    { { 80, 0, 1, 10, 0 } },
+    { { 45, 0, 2, 7, 0 } },
+    { { 45, 0, 1, 10, 0 } },
+    { { 12, 0, 0, 1, 0 } },
+    { { 40, 0, 1, 1, 1 } },
+    { { 60, 0, 1, 1, 1 } },
+    { { 60, 0, 7, 3, 1 } },
+    { { 100, 0, 7, 3, 1 } },
+};
+
+/// Shows `item`'s name in the holder (the empty-slot text for item 0) and
+/// makes it the preview in slot 0.
+#define GP_SHOW_ITEM_IN_HOLDER(item)                               \
+    do {                                                           \
+        if ((item) == 0) {                                         \
+            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);                  \
+        } else {                                                   \
+            Ui_SetHolderParam(Gp_GetItemText((item), 1, 0), 0, 0); \
+        }                                                          \
+        Gp_SetPreviewItem((item), 0);                              \
+    } while (0)
+
+/// Draws `item` as `_gpDrawItemNameUnmarkedAt` does, but fills the caller's
+/// `req` instead of a request of its own.
+static inline void _gpDrawItemNameUnmarkedInto(UiObject* obj, TextDrawReq* req, s32 x, s32 y, s32 color,
+                                               s32 item)
+{
+    s32 temp;
+
+    if (obj->panel.field_8 != 5) {
+        req->x          = obj->panel.field_20.u + 0x11 + x;
+        req->y          = obj->panel.field_22.u + (y - 6);
+        req->otIndex    = obj->panel.field_14.s + 1;
+        req->field_8    = color;
+        req->glyphTable = 0;
+        req->centerMode = 0;
+        req->field_E    = 1;
+        func_8002E53C(req, Gp_GetItemText(item, 0, 0));
+        temp = item - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(obj, x, y, temp % 3 + 1, color);
+        }
+        Gp_DrawItemIcon(obj, x, y, item, 0);
+    }
+}
+
+void func_800C5F70(Task* arg0)
+{
+    TextDrawReq req20;
+    TextDrawReq req30;
+    u8          buf40[0x20];
+    TextDrawReq req60;
+    TextDrawReq req70;
+    TextDrawReq req80;
+    TextDrawReq req90;
+    TextDrawReq reqA0;
+    TextDrawReq reqB0;
+    u8          bufC0[0x20];
+    u8          bufE0[0x20];
+    TextDrawReq req100;
+    TextDrawReq req110;
+    TextDrawReq req120;
+    TextDrawReq req130;
+    TextDrawReq req140;
+    TextDrawReq req150;
+    s32         ready;
+    u32         flags;
+    UiList*     menu;
+    UiObject*   obj;
+    s32         item;
+    s32         featCount;
+    s32         altColor;
+    s32         state;
+    s32         lines;
+    u8*         p;
+    u8*         payload;
+    s32         y;
+    s32         i;
+    s32         spriteCount;
+    s32         h;
+    s32         x;
+    SPRT*       sprt;
+    s32         saved;
+    GpItemAttr* attr;
+    u8**        names;
+    u8*         text;
+    GpRec10*    rec;
+    GpRec10*    recBase;
+    s32         idx;
+    s32         temp;
+    s32         caliber;
+    s32         recIndex;
+    s32         spriteW;
+    s32         textColor;
+    s32         featIndex;
+    s32         spriteI;
+    s32         baseY;
+    s32         spriteMode;
+    GpItemDesc* descBase;
+    GpItemDesc* desc;
+
+    ready = 0;
+    flags = ready;
+    menu  = &D_8010E910;
+    temp  = arg0->spawnArg1;
+    obj   = arg0->spawnArg2;
+    item  = temp & 0xFFFF;
+    if (temp & 0x10000) {
+        flags = 2;
+    } else if (temp & 0x40000) {
+        flags = 1;
+    }
+    obj->field_2E = 0;
+    if (arg0->state == 0) {
+        if ((D_80067634 != NULL) && (D_80067634 != obj)) {
+            Task_CallExit(D_80067634->owner);
+            obj->panel.field_16 = 0x14;
+        }
+        D_80067634         = obj;
+        arg0->exitCallback = func_800CF330;
+        arg0->state        = 2;
+        if ((item < 0x100) || (item == 0x10C) || (item == 0x113) || (item == 0x114) ||
+            (item == 0x11B) || (item == 0x11F) || (item == 0x125) || (item == 0x127) ||
+            (item == 0x128) || (item == 0x129) || (item == 0x107)) {
+            Gp_SetItemSeenBit(item, 1);
+        }
+        if (item == 0x125) {
+            GameFlag_SetNibble(0x111, 1);
+        }
+    } else {
+        if (arg0->spawnArg1 & 0x20000) {
+            Ui_DrawText(&(obj)->panel, Gp_StrNextReplay);
+        } else {
+            Ui_DrawText(&(obj)->panel, Gp_StrSpecs);
+        }
+        if (obj->panel.field_8 == 2) {
+            GameMain_SetFrameTiming(1);
+        }
+        state = arg0->state;
+        if (state == 2) {
+            goto parse;
+        } else if (state < 3) {
+            goto hbar_setup;
+        } else if (state == 3) {
+            goto state3;
+        } else if (state == 4) {
+            goto state4;
+        } else {
+            goto hbar_setup;
+        }
+    parse:
+        if (CdCmd_IsIdle() & 0xFFFF) {
+            lines = 0;
+            p     = Text_SkipLines(Fs_GetChunkPayload(), 5);
+            while (*p != 0) {
+                if (*p == '\\') {
+                    p++;
+                    if (*p == 'Z' || *p == 'z') {
+                        break;
+                    }
+                }
+                if (*p == '\n') {
+                    lines++;
+                }
+                p++;
+            }
+            if (item < 0x100) {
+                if (lines < 2) {
+                    lines = 2;
+                }
+            }
+            menu->field_10  = 0;
+            menu->field_9.u = 0;
+            menu->field_5.u = lines;
+            menu->field_4   = lines;
+            Ui_InitList(menu, &(obj)->panel);
+            if ((s8)menu->field_5.u >= 7) {
+                menu->field_5.u = 6;
+            }
+            menu->field_A  = 1;
+            menu->field_17 = -(s32)(u8)obj->panel.field_18.u + 7;
+            arg0->state    = 3;
+        }
+        goto hbar_setup;
+    state3:
+        arg0->state = 4;
+    state4:
+        if (CdCmd_IsIdle() & 0xFFFF) {
+            ready = 1;
+        }
+    hbar_setup:
+        if (item >= 0x500) {
+            flags |= 0x400;
+            Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, 0x25);
+        } else {
+            Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, 5);
+        }
+        if (ready == 1) {
+            x       = 2;
+            payload = Fs_GetChunkPayload();
+            y       = (s16)obj->panel.field_18.u + 0x1E;
+            for (i = 0; i < 5; i++) {
+                req20.x          = obj->panel.field_20.u + x;
+                req20.y          = obj->panel.field_22.u + y;
+                y               += 0xF;
+                req20.otIndex    = obj->panel.field_14.s + 1;
+                req20.field_8    = 0x606060;
+                req20.glyphTable = 0;
+                req20.centerMode = 0;
+                req20.field_E    = 1;
+                func_8002E53C(&req20, Text_SkipLines(payload, i));
+            }
+            if (item >= 0x500) {
+                Text_DrawMultiLine(obj, obj->panel.field_1C.s + 2, 0x34, Text_SkipLines(payload, 5),
+                                   0x606060, 3, 0);
+            } else {
+                saved                = obj->panel.field_0.w;
+                obj->panel.field_0.w = 0;
+                Ui_UpdateListNoAnim(menu, obj);
+                obj->panel.field_0.w = saved;
+                if ((saved == 1) && ((s32)menu->field_4 > (s8)menu->field_5.u)) {
+                    if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
+                        menu->field_9.u = menu->field_9.u - 1;
+                        if ((s8)menu->field_9.u < 0) {
+                            menu->field_9.u = 0;
+                        } else {
+                            menu->field_16 = -1;
+                            menu->field_14 = (s8)menu->field_7;
+                        }
+                        menu->field_10 = (s8)menu->field_9.u;
+                    } else if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
+                        menu->field_10 = (s8)menu->field_9.u + (s8)menu->field_5.u;
+                        if (menu->field_10 < (s32)menu->field_4) {
+                            menu->field_16 = saved;
+                            menu->field_14 = (s8)menu->field_7;
+                        } else {
+                            menu->field_10 = menu->field_4 - 1;
+                        }
+                    } else if (Pad_CheckButtons(0, 1, 4) != 0) {
+                        if ((s8)menu->field_9.u > 0) {
+                            menu->field_9.u = menu->field_9.u - menu->field_5.u;
+                            if ((s8)menu->field_9.u < 0) {
+                                menu->field_9.u = 0;
+                            }
+                            menu->field_10 = (s8)menu->field_9.u;
+                        }
+                    } else if (Pad_CheckButtons(0, 1, 8) != 0) {
+                        if ((s8)menu->field_9.u < (menu->field_4 - (s8)menu->field_5.u)) {
+                            menu->field_9.u += menu->field_5.u;
+                            if ((s8)menu->field_9.u > (menu->field_4 - (s8)menu->field_5.u)) {
+                                menu->field_9.u = menu->field_4 - menu->field_5.u;
+                            }
+                            menu->field_10 = ((s8)menu->field_9.u + (s8)menu->field_5.u) - 1;
+                        }
+                    }
+                }
+            }
+            func_800C7AE8(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 2, flags);
+            if ((u32)(item - 0x80) < 0x20U) {
+                spriteCount = 1;
+                if ((Gp_GetItemSlot(item)->attachId != 0xFF) || (item == 0x8F) || (item == 0x93) ||
+                    (item == 0x94) || (item == 0x96) || (item == 0x99) || (item == 0x81)) {
+                    spriteCount = 2;
+                }
+                y       = 0x4E;
+                h       = 0xF;
+                spriteW = h;
+                spriteI = 0;
+                x       = obj->panel.field_1C.s + 2;
+                if (spriteCount != 0) {
+                    do {
+                        sprt           = (SPRT*)gGpuPrimCursor;
+                        gGpuPrimCursor = sprt + 1;
+                        sprt->x0       = x;
+                        sprt->y0       = y - 8;
+                        spriteMode     = Mc_SaveData[0].buttonLayout;
+                        if (spriteMode != 2) {
+                            h        = 8;
+                            sprt->y0 = y - 4;
+                            if (spriteI == 0) {
+                                sprt->u0 = 0x90;
+                                sprt->v0 = 0x58;
+                            } else {
+                                sprt->u0 = 0xB0;
+                                sprt->v0 = 0x58;
+                            }
+                        } else if (spriteI == 0) {
+                            sprt->u0 = 0x10;
+                            sprt->v0 = 0x60;
+                        } else {
+                            sprt->u0 = 0x20;
+                            sprt->v0 = 0x70;
+                        }
+                        sprt->clut = 0x3C00;
+                        setlen(sprt, 4);
+                        y      += 0xF;
+                        sprt->w = spriteW;
+                        sprt->h = h;
+                        setcode(sprt, 0x65);
+                        addPrim(gGpuCurrentOt + obj->panel.field_14.s + 1, sprt);
+                        spriteI++;
+                    } while (spriteI < spriteCount);
+                }
+                Ui_InsertDrawTPage(obj->panel.field_14.s + 1, 0);
+                x                = obj->panel.field_1C.s + 2;
+                req30.x          = obj->panel.field_20.u + x;
+                req30.y          = obj->panel.field_22.u + 0x40;
+                req30.otIndex    = obj->panel.field_14.s + 1;
+                req30.glyphTable = 5;
+                req30.field_8    = 0x606060;
+                req30.centerMode = 0;
+                req30.field_E    = 1;
+                func_8002E53C(&req30, Gp_StrOperation);
+            } else if ((u32)(item - 0x60) < 0x20U) {
+                attr      = &Gp_ModStatAttrs[(item)-0x60];
+                featCount = 0;
+                altColor  = 0x808008;
+                x         = 2;
+                text      = Gp_StrAddHp;
+                SOFT_TOUCH_REG_USE(text, attr);
+                flags            = (u32)attr->flags;
+                y                = (s16)obj->panel.field_18.u + 0x1E;
+                req30.x          = obj->panel.field_20.u + x;
+                req30.y          = obj->panel.field_22.u + (y - 2);
+                req30.otIndex    = obj->panel.field_14.s + 1;
+                req30.glyphTable = 5;
+                req30.field_8    = 0x606060;
+                req30.centerMode = 0;
+                req30.field_E    = 1;
+                func_8002E53C(&req30, text);
+                if (attr->field_4 == 0) {
+                    req60.x          = obj->panel.field_20.u + 0x78;
+                    req60.y          = obj->panel.field_22.u + y;
+                    req60.otIndex    = obj->panel.field_14.s + 1;
+                    req60.field_8    = 0x606060;
+                    req60.glyphTable = 0;
+                    req60.centerMode = 2;
+                    req60.field_E    = 3;
+                    func_8002E53C(&req60, D_8009707C);
+                } else {
+                    req60.x          = obj->panel.field_20.u + 0x7A;
+                    req60.y          = obj->panel.field_22.u + y;
+                    req60.otIndex    = obj->panel.field_14.s + 1;
+                    req60.field_8    = altColor;
+                    req60.glyphTable = 0;
+                    req60.centerMode = 2;
+                    req60.field_E    = 3;
+                    func_8002E53C(&req60, Text_ItoaSignedPlus(buf40, attr->field_4));
+                }
+                y += 0xF;
+
+                req60.x          = obj->panel.field_20.u + x;
+                req60.y          = obj->panel.field_22.u + (y - 2);
+                req60.otIndex    = obj->panel.field_14.s + 1;
+                req60.glyphTable = 5;
+                req60.field_8    = 0x606060;
+                req60.centerMode = 0;
+                req60.field_E    = 1;
+                func_8002E53C(&req60, Gp_StrAddMp);
+                if (attr->field_6 == 0) {
+                    req70.x          = obj->panel.field_20.u + 0x76 + x;
+                    req70.y          = obj->panel.field_22.u + y;
+                    req70.otIndex    = obj->panel.field_14.s + 1;
+                    req70.centerMode = 2;
+                    req70.field_8    = 0x606060;
+                    req70.glyphTable = 0;
+                    req70.field_E    = 3;
+                    func_8002E53C(&req70, D_8009707C);
+                } else {
+                    req70.x          = obj->panel.field_20.u + 0x78 + x;
+                    req70.y          = obj->panel.field_22.u + y;
+                    req70.otIndex    = obj->panel.field_14.s + 1;
+                    req70.centerMode = 2;
+                    req70.field_8    = altColor;
+                    req70.glyphTable = 0;
+                    req70.field_E    = 3;
+                    func_8002E53C(&req70, Text_ItoaSignedPlus(buf40, attr->field_6));
+                }
+                y += 0xF;
+
+                req70.x          = obj->panel.field_20.u + x;
+                req70.y          = obj->panel.field_22.u + (y - 2);
+                req70.otIndex    = obj->panel.field_14.s + 1;
+                req70.field_8    = 0x606060;
+                req70.glyphTable = 5;
+                req70.centerMode = 0;
+                req70.field_E    = 1;
+                func_8002E53C(&req70, Gp_StrAttachments3);
+                featIndex        = 0;
+                req80.x          = obj->panel.field_20.u + 0x78 + x;
+                req80.y          = obj->panel.field_22.u + y;
+                req80.otIndex    = obj->panel.field_14.s + 1;
+                y               += 0xF;
+                req80.centerMode = 2;
+                req80.field_8    = altColor;
+                req80.glyphTable = 0;
+                req80.field_E    = 3;
+                func_8002E53C(&req80, Text_ItoaUnsigned(buf40, Gp_GetModLevel(item)));
+                req90.x          = obj->panel.field_20.u + x;
+                req90.y          = obj->panel.field_22.u + (y - 2);
+                req90.otIndex    = obj->panel.field_14.s + 1;
+                y               += 8;
+                req90.field_8    = 0x606060;
+                req90.glyphTable = 5;
+                req90.centerMode = 0;
+                req90.field_E    = 1;
+                func_8002E53C(&req90, Gp_StrSpecialFeat);
+                names = Gp_FeatNameTbl;
+                do {
+                    if (flags & 1) {
+                        reqA0.x          = obj->panel.field_20.u + 8 + x;
+                        reqA0.y          = obj->panel.field_22.u + y;
+                        reqA0.otIndex    = obj->panel.field_14.s + 1;
+                        reqA0.field_8    = 0x606060;
+                        reqA0.glyphTable = 0;
+                        reqA0.centerMode = 0;
+                        reqA0.field_E    = 3;
+                        func_8002E53C(&reqA0, *names);
+                        featCount++;
+                        y += 0xB;
+                        if (featCount >= 2) {
+                            break;
+                        }
+                    }
+                    flags >>= 1;
+                    featIndex++;
+                    names++;
+                } while (featIndex < 0xD);
+                x                = obj->panel.field_1C.s + 2;
+                reqB0.x          = obj->panel.field_20.u + x;
+                reqB0.y          = obj->panel.field_22.u + 0x40;
+                reqB0.otIndex    = obj->panel.field_14.s + 1;
+                reqB0.glyphTable = 5;
+                reqB0.field_8    = 0x606060;
+                reqB0.centerMode = 0;
+                reqB0.field_E    = 1;
+                func_8002E53C(&reqB0, Gp_StrSpecialFeat);
+            } else {
+                idx = item - 0xA0;
+                if ((u32)idx < 0x20U) {
+                    descBase = Gp_ItemDescs;
+                    desc     = descBase + item;
+                    TOUCH_REG(desc);
+                    caliber          = desc->field_2 & 0xF;
+                    baseY            = (s16)obj->panel.field_18.u;
+                    reqB0.x          = obj->panel.field_20.u + 2;
+                    reqB0.y          = obj->panel.field_22.u + baseY + 0x1C;
+                    reqB0.otIndex    = obj->panel.field_14.s + 1;
+                    reqB0.glyphTable = 5;
+                    textColor        = 0x606060;
+                    reqB0.field_8    = textColor;
+                    reqB0.centerMode = 0;
+                    reqB0.field_E    = 1;
+                    func_8002E53C(&reqB0, Gp_CaliberNameTbl[caliber]);
+                    recBase  = Gp_IdParamLo;
+                    recIndex = item - 0x9F;
+                    rec      = recBase + recIndex;
+                    Text_ItoaSigned(bufC0, rec->params[0]);
+                    y                 = baseY + 0x2D;
+                    req100.x          = obj->panel.field_20.u + 2;
+                    req100.y          = obj->panel.field_22.u + (y - 2);
+                    req100.otIndex    = obj->panel.field_14.s + 1;
+                    req100.glyphTable = 5;
+                    req100.field_8    = textColor;
+                    req100.centerMode = 0;
+                    req100.field_E    = 1;
+                    func_8002E53C(&req100, Gp_StrPowerCaps);
+                    req110.x          = obj->panel.field_20.u + 0x4C;
+                    req110.y          = obj->panel.field_22.u + y;
+                    req110.otIndex    = obj->panel.field_14.s + 1;
+                    req110.field_8    = textColor;
+                    req110.glyphTable = 0;
+                    req110.centerMode = 0;
+                    req110.field_E    = 3;
+                    func_8002E53C(&req110, bufC0);
+                    Text_ItoaSigned(bufC0, Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, item));
+                    Text_ItoaSigned(bufE0, Gp_StackLimits[idx].maxHeld);
+                    Text_Strcat(bufC0, Gp_StrSlash);
+                    Text_Strcat(bufC0, bufE0);
+                    y                 = baseY + 0x3C;
+                    req120.x          = obj->panel.field_20.u + 2;
+                    req120.y          = obj->panel.field_22.u + (y - 2);
+                    req120.otIndex    = obj->panel.field_14.s + 1;
+                    req120.glyphTable = 5;
+                    req120.field_8    = textColor;
+                    req120.centerMode = 0;
+                    req120.field_E    = 1;
+                    func_8002E53C(&req120, Gp_StrCapacity);
+                    req130.x          = obj->panel.field_20.u + 0x4C;
+                    req130.y          = obj->panel.field_22.u + y;
+                    req130.otIndex    = obj->panel.field_14.s + 1;
+                    req130.field_8    = textColor;
+                    req130.glyphTable = 0;
+                    req130.centerMode = 0;
+                    req130.field_E    = 3;
+                    func_8002E53C(&req130, bufC0);
+                    y = baseY + 0x4B;
+                    if (rec->params[2] != 0) {
+                        req140.x          = obj->panel.field_20.u + 2;
+                        req140.y          = obj->panel.field_22.u + (y - 2);
+                        req140.otIndex    = obj->panel.field_14.s + 1;
+                        req140.glyphTable = 5;
+                        req140.field_8    = textColor;
+                        req140.centerMode = 0;
+                        req140.field_E    = 1;
+                        func_8002E53C(&req140, Gp_StrSpecial);
+                        req150.x          = obj->panel.field_20.u + 0x4C;
+                        req150.y          = obj->panel.field_22.u + y;
+                        req150.otIndex    = obj->panel.field_14.s + 1;
+                        req150.field_8    = 0xD287F;
+                        req150.glyphTable = 0;
+                        req150.centerMode = 0;
+                        req150.field_E    = 3;
+                        func_8002E53C(&req150, D_8010E7C0[rec->params[2]]);
+                    }
+                    x                 = obj->panel.field_1C.s + 2;
+                    req140.x          = obj->panel.field_20.u + x;
+                    req140.y          = obj->panel.field_22.u + 0x40;
+                    req140.otIndex    = obj->panel.field_14.s + 1;
+                    req140.glyphTable = 5;
+                    req140.field_8    = textColor;
+                    req140.centerMode = 0;
+                    req140.field_E    = 1;
+                    func_8002E53C(&req140, Gp_StrApplicableWpn);
+                }
+            }
+        } else {
+            func_800C7AE8(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 2, flags | 0x100);
+        }
+        _gpDrawItemNameUnmarkedInto(obj, &req30, 2, (s16)obj->panel.field_18.u + 0xF, 0x606060, item);
+        if ((obj->panel.field_0.w == 1) && (CdCmd_IsIdle() & 0xFFFF)) {
+            if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskConfirm | 0x10) != 0) {
+                if (!(arg0->spawnArg1 & 0x20000)) {
+                    SndEvt_EnqueueType6(4, 0, 0);
+                }
+                GameMain_SetFrameTiming(0);
+                obj->field_2E = 6;
+            } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+                GameMain_SetFrameTiming(0);
+                obj->field_2E = -1;
+            }
+        }
+    }
+}
+
+void Gp_UseKeyItemRow(Task* arg0)
+{
+    UiObject* obj;
+    UiList*   menu;
+    void*     slot;
+    s32       item;
+    s32       ret;
+    s32       width;
+    s32       other;
+    s32       color;
+    s32       one;
+    u8*       text;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    if (arg0->state == 0) {
+        menu = &D_8010E960;
+        slot = gameGetPtrSlot(7);
+        item = Gp_NthCollectedId(menu->field_10, 0);
+        ret  = Gp_DispatchMsg(slot, 0x13F1, item, 0);
+        if (ret == 1) {
+            arg0->spawnArg1 = item;
+            width           = Text_MeasureWidth(Gp_GetItemText(item, 0, 0)) + 0xB;
+            other           = Text_MeasureWidth(Gp_StrUsed);
+            if (width < other) {
+                width = other;
+            }
+            Ui_UpdateLayoutSize(&(obj)->panel, width + 5, Ui_Scale15(2) + 1);
+            (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
+            obj->panel.field_4            &= 0x7FFFFFFF;
+        } else if (ret == 2) {
+            Ui_SetState4(obj, arg0);
+            obj->field_2E       = -1;
+            obj->panel.field_16 = 0x64;
+            arg0->state         = arg0->state + 1;
+        } else {
+            arg0->spawnArg1 = -1;
+            Ui_SizeFromTextPlain(&(obj)->panel, Gp_StrNoUseNow);
+            obj->panel.field_4 &= 0x7FFFFFFF;
+        }
+        arg0->killCountdown = 0xBC;
+        arg0->state         = arg0->state + 1;
+    }
+    if (arg0->state != 2) {
+        Ui_DrawText(&(obj)->panel, Gp_StrNotice);
+        if (arg0->spawnArg1 == -1) {
+            color = Ui_LookupTable(obj, 1);
+            Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, Gp_StrNoUseNow, color, 1, 0);
+        } else {
+            color = Ui_LookupTable(obj, 1);
+            one   = 1;
+            Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, Gp_StrUsed, color, one, 0);
+            text  = Gp_GetItemText(arg0->spawnArg1, 0, 0);
+            width = Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0x1E, text, 0x37A78, one, 0);
+            Text_DrawPrompt(obj, width, (s16)obj->panel.field_18.u + 0x1E, Gp_StrDot, 0x606060, one, 0);
+        }
+        arg0->killCountdown = arg0->killCountdown - gDisplayState.frameTicks;
+        if (obj->panel.field_0.w == 1) {
+            if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+                obj->field_2E = -1;
+            } else if ((arg0->killCountdown <= 0) ||
+                       (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+                if (arg0->spawnArg1 == -1) {
+                    if (gGameSession->cutsceneHold == 1) {
+                        obj->field_2E = 6;
+                    } else {
+                        obj->field_2E = 9;
+                    }
+                } else {
+                    obj->field_2E = -1;
+                }
+                arg0->killCountdown = 0x7FFF;
+            }
+        }
+    }
+}
+
+void Gp_KeyItemSubMenuTask(Task* arg0)
+{
+    Task*     childTask;
+    UiObject* obj;
+    UiList*   menu;
+    UiObject* child;
+    s32       flag;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    menu          = &D_8010E938;
+    if (arg0->state == 0) {
+        obj->panel.bounds.unsignedRect.w = 0x60;
+        Ui_LayoutListPanel(menu, &(obj)->panel);
+        arg0->state = arg0->state + 1;
+    }
+    Ui_UpdateListNoAnim(menu, obj);
+    if (obj->panel.field_0.w == 1) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+            obj->field_2E = -1;
+        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+            SndEvt_EnqueueType6(4, 0, 0);
+            obj->field_2E = 6;
+        }
+    }
+    childTask = arg0->firstChild;
+    if (childTask != NULL) {
+        child = childTask->spawnArg2;
+        flag  = child->field_2E;
+        switch (flag) {
+            case -1:
+                obj->field_2E = flag;
+                break;
+            case 6:
+                Ui_TeardownTree(child, child->owner);
+                obj->panel.field_0.w = 1;
+                break;
+            case 9:
+                obj->field_2E = 6;
+                break;
+        }
+    }
+}
+
+void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
+{
+    TextDrawReq req;
+    s32         item;
+    s32         x;
+    s32         y;
+    s32         color;
+    s32         temp;
+    s32         status;
+    s32         one;
+    s32         flag;
+    s32         i;
+    s32         minusOne;
+    UiObject*   obj;
+    s32         baseY;
+
+    item  = Gp_NthCollectedId(arg0->field_8, 0);
+    x     = arg0->field_18;
+    y     = arg0->field_1A;
+    color = arg0->field_1C;
+    if (arg1->panel.field_8 != 5) {
+        req.x          = arg1->panel.field_20.u + 0x11 + x;
+        baseY          = arg1->panel.field_22.u - 6;
+        req.y          = baseY + y;
+        req.otIndex    = arg1->panel.field_14.s + 1;
+        req.field_8    = color;
+        req.glyphTable = 0;
+        req.centerMode = 0;
+        req.field_E    = 1;
+        func_8002E53C(&req, Gp_GetItemText(item, 0, 0));
+        temp = item - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(arg1, x, y, temp % 3 + 1, color);
+        }
+        Gp_DrawItemIcon(arg1, x, y, item, 0);
+    }
+
+    status = arg1->panel.field_0.w;
+    one    = 1;
+    if (((status >> 16) == one) || (status == one)) {
+        if (arg0->field_10 == arg0->field_8) {
+            if (item != Gp_PreviewItems[0]) {
+                i        = 0;
+                minusOne = -1;
+                for (; i < 3; i++) {
+                    if (i == 0) {
+                        Gp_PreviewItems[0] = item;
+                    } else {
+                        Gp_PreviewItems[i] = minusOne;
+                    }
+                }
+                Gp_EnqueueItemPreviewCd(item, 0);
+            }
+            if (item == 0) {
+                Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+            } else {
+                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
+            }
+        }
+    }
+
+    flag = arg0->field_C;
+    if (flag == 1) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            if (gGameSession->cutsceneHold == flag) {
+                Ui_SpawnFromDesc(&D_8010EF84, 0, 1, 1, arg1);
+                arg1->panel.field_0.w = 0;
+            } else {
+                obj = Ui_SpawnFromDesc(&D_8010EF68, item, 1, 1, arg1);
+                if (obj != NULL) {
+                    Ui_ClampDialogRect(&(obj)->panel, arg0, &(arg1)->panel);
+                    arg1->panel.field_0.w = 0;
+                }
+            }
+        } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
+            arg1->panel.field_0.w = 0;
+        }
+    }
+}
+
+void Gp_KeyItemMenuTask(Task* arg0)
+{
+    UiObject* obj;
+    UiList*   menu;
+    Task*     child;
+    Task*     next;
+    Task*     head;
+    UiObject* childObj;
+    s32       flag;
+
+    obj           = arg0->spawnArg2;
+    menu          = &D_8010E960;
+    obj->field_2E = 0;
+    Ui_DrawText(&(obj)->panel, Gp_StrKeyItem);
+    if (arg0->state == 0) {
+        menu->field_5.u = menu->field_4 = Gp_CountCollectedBits();
+        if (menu->field_4 < menu->field_10) {
+            menu->field_10 = menu->field_4;
+        }
+        Ui_InitList(menu, &(obj)->panel);
+        menu->field_A = 1;
+        if (arg0->spawnArg1 == 0) {
+            Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(0xA) + 1);
+            Ui_SpawnFromDesc(&D_8010F868, 0, 0, 1, obj);
+        }
+        menu->field_10  = 0;
+        menu->field_9.u = 0;
+        arg0->state     = arg0->state + 1;
+    } else {
+        menu->field_5.u = menu->field_4 = Gp_CountCollectedBits();
+        if (menu->field_4 < menu->field_10) {
+            menu->field_10 = menu->field_4;
+        }
+        Ui_ComputeVisibleRows(menu, &(obj)->panel);
+        menu->field_A = 1;
+        if (menu->field_10 >= menu->field_4) {
+            menu->field_10 = menu->field_4 - 1;
+        }
+        Ui_UpdateListNoAnim(menu, obj);
+        if (obj->panel.field_0.w == 1) {
+            if (obj->field_2E == 0) {
+                if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+                    obj->field_2E = -1;
+                } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+                    if (gGameSession->cutsceneHold == 1) {
+                        SndEvt_EnqueueType6(4, 0, 0);
+                        obj->field_2E = -1;
+                    } else {
+                        SndEvt_EnqueueType6(4, 0, 0);
+                        obj->field_2C = 1;
+                        obj->field_2E = 6;
+                    }
+                } else {
+                    Pad_CheckButtons(0, 1, 3);
+                }
+            }
+        } else if (obj->panel.field_0.w >= 2) {
+            obj->panel.field_0.w = 1;
+        }
+    }
+    head = arg0->firstChild;
+    if (head != NULL) {
+        child = head;
+        do {
+            childObj = child->spawnArg2;
+            flag     = childObj->field_2E;
+            next     = child->nextSibling;
+            switch (flag) {
+                case -1:
+                    obj->field_2E = flag;
+                    break;
+                case 6:
+                    Ui_TeardownTree(childObj, childObj->owner);
+                    obj->panel.field_0.w = 1;
+                    break;
+            }
+            head  = arg0->firstChild;
+            child = next;
+            if (head == NULL) {
+                break;
+            }
+        } while (child != head);
+    }
+}
+
+void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    POLY_FT4* p;
+    SizeVec   vec;
+    s32       w;
+    s32       h;
+    s32       x;
+    s32       y;
+    s32       scale;
+
+    w = 0x80;
+    h = 0x60;
+    if (arg3 & 0x200) {
+        w = 0x50;
+        h = 0x3C;
+    } else if (arg3 & 0x400) {
+        h = 0x7F;
+    }
+    vec.vx = w;
+    vec.vy = h;
+    vec.vz = 0;
+    if ((arg3 & 0xF0) == 0x10) {
+        scale = 0xA00;
+        gte_lddp(scale);
+        gte_ldsv(&vec);
+        gte_gpf12();
+        gte_stsv(&vec);
+    } else if ((arg3 & 0xF0) == 0x20) {
+        scale = 0xAA0;
+        gte_lddp(scale);
+        gte_ldsv(&vec);
+        gte_gpf12();
+        gte_stsv(&vec);
+    }
+    if (!(arg3 & 0x100)) {
+        p              = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = p + 1;
+        setlen(p, 9);
+        setcode(p, 0x2D);
+        x     = arg0->panel.field_20.u + arg1;
+        p->x2 = x;
+        p->x0 = x;
+        x     = x + vec.vx;
+        p->x3 = x;
+        p->x1 = x;
+        y     = arg0->panel.field_22.u + arg2;
+        p->y1 = y;
+        p->y0 = y;
+        y     = y + vec.vy;
+        p->y3 = y;
+        p->y2 = y;
+        switch (arg3 & 0xF) {
+            case 1:
+                p->tpage = 0x8F;
+                p->u0    = 0;
+                p->v0    = 0;
+                p->u1    = w;
+                p->v1    = 0;
+                p->u2    = 0;
+                p->v2    = h;
+                p->u3    = w;
+                p->v3    = h;
+                p->clut  = 0x3F40;
+                break;
+            case 2:
+                p->u0    = 0;
+                p->u1    = w;
+                p->u2    = 0;
+                p->u3    = w;
+                p->v0    = 0x80;
+                p->v1    = 0x80;
+                p->v2    = h - 0x80;
+                p->v3    = h - 0x80;
+                p->tpage = 0x8F;
+                p->clut  = 0x3F80;
+                break;
+            default:
+                p->u0    = 0;
+                p->u1    = w;
+                p->u2    = 0;
+                p->u3    = w;
+                p->v0    = 0x80;
+                p->v1    = 0x80;
+                p->v2    = h - 0x80;
+                p->v3    = h - 0x80;
+                p->tpage = 0x87;
+                p->clut  = 0x3F40;
+                break;
+        }
+        addPrim(gGpuCurrentOt + arg0->panel.field_14.s + 1, p);
+    }
+    Ui_LayoutWithMode0(arg0, (arg1 - 1), (arg2 - 1), ((s16)vec.vx + 1),
+                       ((s16)vec.vy + 1), 0x81008);
+}
+
+/// Sets bit 0x100 in `flags`, which makes `func_800C7AE8` skip drawing the
+/// item preview, while the CD queue is still busy loading it.
+#define GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags) \
+    do {                                     \
+        if (CdCmd_IsIdle() == 0) {           \
+            (flags) |= 0x100;                \
+        }                                    \
+    } while (0)

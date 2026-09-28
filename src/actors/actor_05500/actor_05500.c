@@ -17,13 +17,22 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 extern void* D_80067704[1];
 
@@ -52,7 +61,6 @@ extern u8            Actor05500_D08AD4[];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
-void    func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void Actor05500_Fn00754(Task* arg0);
 static void Actor05500_Fn00914(Task* arg0);
@@ -376,7 +384,7 @@ static void Actor05500_Fn00754(Task* arg0)
             dz                = Player_Status.coordMtx->t[2] - coord->coord.t[2];
             delta->vz         = dz;
             dx                = scratchEnd[-1].vx;
-            if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0) || (work->field_3D0 != 0) || (Gp_StateF0.field_3 == 2)) {
+            if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0) || (work->field_3D0 != 0) || (Gp_StateF0.prefix.bytes.field_3 == 2)) {
                 work->field_39C = 1;
                 work->field_392 = 0xD;
                 Gp_ArmStateF0(1);
@@ -814,7 +822,7 @@ static void Actor05500_Fn0143C(Task* arg0)
                     work->field_3C8 = 0;
                 }
                 for (index = 1; index < 8; index++) {
-                    func_800B4114(work, index, (s32)work->field_392, 0, 0);
+                    func_800B4114(&work->anim, index, (s32)work->field_392, 0, 0);
                 }
             }
             break;
@@ -1137,12 +1145,12 @@ static inline void _actor05500TickAnim(Task* task)
         work->field_396 = 0;
         value           = Actor05500_D08A18[work->field_392];
         for (i = 1; i < 8; i++) {
-            func_800B4114(work, i, work->field_392, 0, value);
+            func_800B4114(&work->anim, i, work->field_392, 0, value);
         }
     } else {
         work->field_396++;
         for (i = 1; i < 8; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->anim, i);
         }
     }
 }
@@ -1246,13 +1254,13 @@ static void Actor05500_Fn02364(GpEnemy* arg0, Task* arg1)
 
 static void Actor05500_Fn02780(GpEnemy* arg0, Task* arg1)
 {
-    Actor105500Work* work;
-    GpCoord*         coord;
-    s16              age;
-    s16              speed;
-    s32              contact;
-    u16              flags;
-    u32              random;
+    ActorsShared80135c4cObjWork* work;
+    GpCoord*                     coord;
+    s16                          age;
+    s16                          speed;
+    s32                          contact;
+    u16                          flags;
+    u32                          random;
 
     coord = arg1->extra.tmd->coords;
     work  = arg1->work;
@@ -1602,9 +1610,9 @@ static void Actor05500_Fn02FFC(GpEnemy* ctx, Task* actor)
                 coord->coord.t[1] += 0x3E8;
         }
     }
-    func_800B3F84((GpAnimCtx*)work, Actor05500_D08AD4, (TmdObject*)obj, work->field_154, ((Actor105500Anim*)work)->slots);
+    func_800B3F84(&work->anim, Actor05500_D08AD4, (TmdObject*)obj, work->field_154, work->slots);
     for (i = 1; i < 8; i++) {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+        Gp_AnimResetSlot(&work->anim, i, 1);
     }
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     rec0                     = work->field_234;
@@ -1929,22 +1937,22 @@ static void Actor05500_Fn03B60(Task* arg0)
 
 static void Actor05500_Fn03C54(Task* actor)
 {
-    GpAreaKey    key;
-    GpAreaKey*   sessionKey;
-    u8           areaByte0;
-    GpAreaRec*   rec;
-    GpAreaPlace* entry;
-    GpEffWork*   eff;
-    TmdObject*   model;
-    s32          idx;
-    u32          raw;
+    GpAreaKey      key;
+    GpAreaKey*     sessionKey;
+    u8             areaByte0;
+    GpAreaVariant* rec;
+    GpAreaPlace*   entry;
+    GpEffWork*     eff;
+    TmdObject*     model;
+    s32            idx;
+    u32            raw;
 
     D_80067704[0] = Actor05500_D05F18;
     eff           = Gp_SpawnEff(0x40007, actor->extra.tmd->coords + 4, 0x100, NULL);
     if (eff == NULL) {
         return;
     }
-    sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+    sessionKey = &gGameSession->at4.loc;
     raw        = ((GpEnemy*)actor->spawnArg2)->placeKey;
     model      = eff->task->extra.tmd;
     key.stage  = sessionKey->stage;
@@ -1955,7 +1963,7 @@ static void Actor05500_Fn03C54(Task* actor)
     key.view   = areaByte0;
     Gp_SyncAreaKeyIndex(&key);
     rec          = Gp_GetNestedAreaRec(&key);
-    entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    entry        = gpAreaPlaceAt(rec->field_0, idx);
     model->tpage = entry->tpage;
     model->clut  = entry->clut;
     if (model->buffer != NULL) {

@@ -1,10 +1,4 @@
 #include "common.h"
-
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -13,12 +7,15 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-/// The two caption flags the store's cutscene task raises: `Gp_StateF0.field_4` while
-/// the script owns the screen and `D_80115690` when CAP command 0xF showed the
-/// letterbox. `Mc_SaveData[0].at4.loc.view` is the area-record id the same task publishes, and
-/// `gDisplayState.roomVariant` the "chapter advanced" halfword it sets on the way out.
-extern u8 D_80115690;
-extern u8 D_80115598;
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/object_task.h"
+#include "gameplay/world_targets.h"
+#include "main/display.h"
+#include "main/fs.h"
 
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.
@@ -401,7 +398,7 @@ s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* ar
             }
             break;
         case 2:
-            if (Gp_StateF0.field_0 != 1 && GameFlag_GetNibble(0x5E) == 1) {
+            if (Gp_StateF0.prefix.bytes.field_0 != 1 && GameFlag_GetNibble(0x5E) == 1) {
                 func_800E8614((s32)&D_dryfield_general_store_8017E568, 1);
             }
             GameFlag_SetNibble(0x5E, 2);
@@ -415,7 +412,7 @@ static void func_dryfield_general_store_8017DEAC(Task* arg0)
     arg0->msgTable = D_dryfield_general_store_8017E188;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0x5E) == 0) {
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_dryfield_general_store_8017E1B8, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_dryfield_general_store_8017E1B8, 0x7DB);
     } else if (GameFlag_GetNibble(0x5E) == 1) {
         GameFlag_SetNibble(0x5E, 2);
     }
@@ -446,7 +443,7 @@ void func_dryfield_general_store_8017DFB4(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_dryfield_general_store_8017E55C, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_dryfield_general_store_8017E55C, 0x7DB);
             SndEvt_EnqueueType6(0x5203000F, 0, 0);
             arg0->killCountdown = 0x5A;
             arg0->state++;
@@ -468,7 +465,7 @@ void func_dryfield_general_store_8017E064(Task* arg0)
     switch (arg0->state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_dryfield_general_store_8017E560, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_dryfield_general_store_8017E560, 0x7DB);
             arg0->killCountdown = 0x5A;
             arg0->state++;
             return;
@@ -476,7 +473,7 @@ void func_dryfield_general_store_8017E064(Task* arg0)
             temp_v0             = (u16)arg0->killCountdown - 1;
             arg0->killCountdown = temp_v0;
             if (temp_v0 < 0) {
-                Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_dryfield_general_store_8017E564, 0x7DB);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_dryfield_general_store_8017E564, 0x7DB);
                 Gp_MsgPlayerWeapon(1);
                 taskKill(arg0);
             }

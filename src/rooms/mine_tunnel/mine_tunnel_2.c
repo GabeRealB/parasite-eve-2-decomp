@@ -4,13 +4,13 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
 
 /// The tunnel's five light anchors, one `SVECTOR` each in one run; each view
 /// draws a subset of them.

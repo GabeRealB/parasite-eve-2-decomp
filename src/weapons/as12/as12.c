@@ -3,16 +3,19 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "main/fs.h"
 
 /// Per-frame firing state machine for the AS12 automatic shotgun. Case 0 arms
 /// the shot and queues the ready animation, choosing the long variant when the

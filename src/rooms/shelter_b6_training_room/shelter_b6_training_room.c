@@ -1,12 +1,5 @@
 #include "common.h"
 #include "main/stage.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -15,7 +8,14 @@
 #include "main/task.h"
 #include "rooms/room.h"
 
-extern u8 D_801156F9;
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_targets.h"
 
 extern GpMsgEntry D_shelter_b6_training_room_80182AF4[];
 extern s32        D_shelter_b6_training_room_80182B24;
@@ -56,7 +56,7 @@ s32 func_shelter_b6_training_room_8017D684(s32 arg0, s32 arg1, s32 arg2)
         case 5:
             if (GameFlag_GetNibble(0x153) != 0) {
                 Gp_RunCapCmd1(7);
-            } else if (Gp_StateF0.field_0 == 1) {
+            } else if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                 Gp_RunCapCmd1(5);
             } else {
                 Gp_RunCapCmd1(7);
@@ -65,7 +65,7 @@ s32 func_shelter_b6_training_room_8017D684(s32 arg0, s32 arg1, s32 arg2)
         case 6:
             if (GameFlag_GetNibble(0x154) != 0) {
                 Gp_RunCapCmd1(8);
-            } else if (Gp_StateF0.field_0 == 1) {
+            } else if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                 Gp_RunCapCmd1(6);
             } else {
                 Gp_RunCapCmd1(8);
@@ -74,7 +74,7 @@ s32 func_shelter_b6_training_room_8017D684(s32 arg0, s32 arg1, s32 arg2)
         case 4:
             if (GameFlag_GetNibble(0x146) != 0) {
                 Gp_RunCapCmd1(7);
-            } else if (Gp_StateF0.field_0 != 1) {
+            } else if (Gp_StateF0.prefix.bytes.field_0 != 1) {
                 Gp_RunCapCmd1(0xA);
             } else {
                 Gp_RunCapCmd1(4);
@@ -93,8 +93,8 @@ s32 func_shelter_b6_training_room_8017D75C(void)
 s32 func_shelter_b6_training_room_8017D764(void)
 {
     gGameSession->flowFlags |= 0x80;
-    func_800E8634((s32)&D_shelter_b6_training_room_80183BB4, 0, (s32)&D_shelter_b6_training_room_80184124);
-    Gp_DispatchMsg(Gp_LookupSlot4(3), 0x7DB, (s32)&D_shelter_b6_training_room_80182B24, 0);
+    func_800E8634(&D_shelter_b6_training_room_80183BB4, 0, &D_shelter_b6_training_room_80184124);
+    Gp_DispatchMsgPtr(Gp_LookupSlot4(3), 0x7DB, &D_shelter_b6_training_room_80182B24, 0);
     D_shelter_b6_training_room_80185C58 = 1;
     return 0;
 }
@@ -213,7 +213,7 @@ void func_shelter_b6_training_room_8017DAF8(s32 arg0)
 {
     gGameSession->flowFlags |= 0x80;
     if (arg0 != 0) {
-        Gp_StateF0.field_1 = arg0;
+        Gp_StateF0.prefix.bytes.field_1 = arg0;
     }
 }
 

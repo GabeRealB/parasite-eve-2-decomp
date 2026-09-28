@@ -4,11 +4,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -17,11 +12,14 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-extern s32 D_8011572C;
-extern s32 D_80115738;
-extern s32 D_8011574C;
-extern s32 D_80115750;
-extern s32 D_80115758;
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/loading.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// Where the bridge effect task draws its pulsing marker and spawns its two
 /// sparks.

@@ -3,11 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -16,6 +11,12 @@
 #include "rooms/acropolis_fountain.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "main/display.h"
+#include "main/fs.h"
 
 extern GpMsgEntry D_acropolis_fountain_8017E764[];
 extern TaskDesc   D_acropolis_fountain_8017E78C[];

@@ -5,13 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1A8.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -24,12 +17,17 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
-extern u8  D_80115690;
-extern s32 D_8011572C;
-extern s32 D_80115750;
-extern s32 D_80115758;
+extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 extern TaskDesc         D_neo_ark_savanna_zone_8017F9A0;
 extern GpSaveLoc        D_neo_ark_savanna_zone_80180990;
@@ -95,7 +93,7 @@ void func_neo_ark_savanna_zone_8017D5E4(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_neo_ark_savanna_zone_80180990.field_0;
+            Mc_SaveData[0].at4.loc.area = D_neo_ark_savanna_zone_80180990.prefix.bytes.field_0;
             Mc_SaveData[0].at4.loc.warp = D_neo_ark_savanna_zone_80180990.field_2;
             Mc_SaveData[0].at4.loc.room = D_neo_ark_savanna_zone_80180990.field_3;
             Task_Spawn(0, 0x11, 0, 0);

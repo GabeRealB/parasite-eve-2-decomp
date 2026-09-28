@@ -5,14 +5,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/abs.h>
-
-#include "gameplay/1A8.h"
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -27,11 +19,28 @@
 #include "rooms/room_common.h"
 #include "rooms/acropolis_helicopter_landing_pad.h"
 
+#include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/loading.h"
+#include "gameplay/collision.h"
+#include "gameplay/companion_load.h"
+#include "gameplay/direction.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/gamemain.h"
+#include "main/wipsys.h"
+
 /// The room's own task table, eight descriptors that attach no model,
 /// spawned by index and closed by an entry whose `flags` is all ones.
 extern TaskDesc D_acropolis_helicopter_landing_pad_80184DA0[];
-
-extern s32 D_801156A8;
 
 /// Main-executable byte with no module header yet; `+ 1` seeds the slot-3
 /// msg 0x3E8 record's `field_0` in `func_acropolis_helicopter_landing_pad_8017DA9C`.
@@ -137,15 +146,15 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             task->state += 1;
             break;
         case 5:
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7D8, 0x28, (s32)&spawned);
-            Gp_DispatchMsg(spawned, 0x7D3, (s32)&D_acropolis_helicopter_landing_pad_80184E28, 0);
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&D_acropolis_helicopter_landing_pad_801837B0, 0);
+            Gp_DispatchMsgReply(gameGetPtrSlot(4), 0x7D8, 0x28, &spawned);
+            Gp_DispatchMsgPtr(spawned, 0x7D3, &D_acropolis_helicopter_landing_pad_80184E28, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
             D_acropolis_helicopter_landing_pad_80184E3C.field_4         = 9;
             D_acropolis_helicopter_landing_pad_80184E3C.animBlock.index = Player_Status.weapon + 1;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&D_acropolis_helicopter_landing_pad_80184E3C, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &D_acropolis_helicopter_landing_pad_80184E3C, 0);
             coord = spawned->extra.tmd->coords;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F5, (s32)coord, 0);
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&D_acropolis_helicopter_landing_pad_801837B0, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F5, coord, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             task->state += 1;
             break;
@@ -185,8 +194,8 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
         case 9:
             task->spawnArg1 -= 1;
             if (task->spawnArg1 <= 0) {
-                func_800E8634((s32)&D_acropolis_helicopter_landing_pad_8018467C, 1,
-                              (s32)&D_acropolis_helicopter_landing_pad_80184CF4);
+                func_800E8634(&D_acropolis_helicopter_landing_pad_8018467C, 1,
+                              &D_acropolis_helicopter_landing_pad_80184CF4);
                 taskKill(task);
             }
             break;
@@ -208,19 +217,19 @@ void func_acropolis_helicopter_landing_pad_8017DE78(Task* task)
             break;
         case 0x7:
         case 0xCF:
-            Gp_SpawnScript18((s32)&D_acropolis_helicopter_landing_pad_80187D68, (s32)&D_acropolis_helicopter_landing_pad_80187D78);
+            Gp_SpawnScript18(&D_acropolis_helicopter_landing_pad_80187D68, &D_acropolis_helicopter_landing_pad_80187D78);
             break;
         case 0x19A:
             func_acropolis_helicopter_landing_pad_8017E618(0x16, 3);
             break;
         case 0x1A5:
-            Gp_SpawnScript18((s32)&D_acropolis_helicopter_landing_pad_80187D50, (s32)&D_acropolis_helicopter_landing_pad_80187D60);
+            Gp_SpawnScript18(&D_acropolis_helicopter_landing_pad_80187D50, &D_acropolis_helicopter_landing_pad_80187D60);
             break;
         case 0x208:
             func_acropolis_helicopter_landing_pad_8017E618(0x1E, 4);
             break;
         case 0x217:
-            Gp_SpawnScript18((s32)&D_acropolis_helicopter_landing_pad_80187D40, (s32)&D_acropolis_helicopter_landing_pad_80187D48);
+            Gp_SpawnScript18(&D_acropolis_helicopter_landing_pad_80187D40, &D_acropolis_helicopter_landing_pad_80187D48);
             break;
         case 0x280:
             taskKill(task);
@@ -427,7 +436,7 @@ s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, GpMsg1
     if ((msg->field_2 == 0) && (D_acropolis_helicopter_landing_pad_80184D9C == 0) && (D_acropolis_helicopter_landing_pad_80184E0C != 0)) {
         gGameSession->flowFlags = 0x82;
         gStageSceneMusicEntry   = 1;
-        func_800E8634((s32)&D_acropolis_helicopter_landing_pad_80183A34, 0, (s32)&D_acropolis_helicopter_landing_pad_80183FA4);
+        func_800E8634(&D_acropolis_helicopter_landing_pad_80183A34, 0, &D_acropolis_helicopter_landing_pad_80183FA4);
         D_acropolis_helicopter_landing_pad_80184D9C = 1;
         obj                                         = D_acropolis_helicopter_landing_pad_80185FAC;
         obj2                                        = obj + 4;
@@ -473,7 +482,7 @@ void func_acropolis_helicopter_landing_pad_8017E64C(void)
 void func_acropolis_helicopter_landing_pad_8017E67C(void)
 {
     if (D_acropolis_helicopter_landing_pad_80187F84 != 0) {
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&D_acropolis_helicopter_landing_pad_80184E50, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &D_acropolis_helicopter_landing_pad_80184E50, 0);
     }
 }
 
@@ -485,7 +494,7 @@ void func_acropolis_helicopter_landing_pad_8017E6C0(s32 arg0)
 void func_acropolis_helicopter_landing_pad_8017E6F0(void)
 {
     Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1B);
-    Gp_StateF0.field_1 = 3;
+    Gp_StateF0.prefix.bytes.field_1 = 3;
 }
 
 /// Pulses the gameplay state with `Gp_PulseState1C` and sets bit 0 of
@@ -509,7 +518,7 @@ void func_acropolis_helicopter_landing_pad_8017E76C(Task* task)
         case 0:
             args.field_0 = 0xC;
             args.field_4 = 9;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F2, (s32)&D_acropolis_helicopter_landing_pad_801837E0, (s32)&args);
+            Gp_DispatchMsgPtrs(gameGetPtrSlot(3), 0x3F2, &D_acropolis_helicopter_landing_pad_801837E0, &args);
             task->state++;
             break;
         case 1:

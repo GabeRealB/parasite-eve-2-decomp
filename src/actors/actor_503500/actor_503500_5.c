@@ -7,10 +7,6 @@
 #include <psyq/abs.h>
 
 #include "actors/actor_503500.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -19,6 +15,18 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/message.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 /// The 0x44 block `func_actor_503500_801455A4` allocates: the shared head plus
 /// the effect task it reparents itself under.
@@ -158,9 +166,7 @@ extern Actor503500UVec D_actor_503500_801715E4;
 static void            func_actor_503500_80145E98(Task* arg0);
 static void            func_actor_503500_8014618C(Task* arg0);
 static void            func_actor_503500_80146524(Task* arg0);
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void         func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 extern void* D_actor_503500_80176520[];
 static void  func_actor_503500_80144E8C(Task* arg0);
 static void  func_actor_503500_80145428(Task* arg0);

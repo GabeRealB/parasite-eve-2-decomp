@@ -6,13 +6,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mc.h"
@@ -21,6 +14,24 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+#include "actors/companion.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/attachments.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/player_state.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 /// Ground position and collision offset borrowed from G_SCRATCH_HEAD by
 /// func_actor_800100_801635F4.
@@ -200,22 +211,8 @@ static void func_actor_800100_80166E94(Task* arg0, s32 arg1);
 static void func_actor_800100_80166EE8(Task* arg0);
 static s32  func_actor_800100_8016709C(GpCoord* arg0, GpRec18* arg1, GpRec18* arg2);
 
-s32  func_8010BC70(GpCoord* arg0);
-s32  func_8010BCF4(Task* arg0, VECTOR3* arg1);
-void func_8010BD88(Task* arg0, VECTOR3* arg1);
-void func_8010BE5C(Task* arg0, VECTOR3* arg1);
-s32  func_80105ED4(Task* arg0);
-void Gp_PlaceCoordOffset(GpCoord* arg0, GpCoord* arg1, SVECTOR* arg2);
-s32  rand();
+s32 rand();
 
-void Gp_PlayerMode2State0(Task* arg0);
-void Gp_PlayerMode2State1(Task* arg0);
-void Gp_PlayerMode2State2(Task* arg0);
-void Gp_PlayerMode2State6(Task* arg0);
-
-extern s32 D_80115738;
-extern s32 D_8011574C;
-extern u16 D_80112F60[];
 extern u8* D_actor_800100_801672F8[];
 extern u8  D_actor_800100_80167308[];
 extern u8  D_actor_800100_80167310[];
@@ -1871,7 +1868,7 @@ static void func_actor_800100_80165010(Task* arg0)
                 actor->field_95E++;
                 actor->field_52  = d4->targetHeading;
                 actor->field_975 = 0;
-                if (Gp_StateF0.field_0 == 1) {
+                if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                     slot             = 4;
                     actor->field_958 = 3;
                     rng              = Gp_LcgState * 5 + 0x71357911;
@@ -2120,7 +2117,7 @@ static void func_actor_800100_80165748(Task* arg0)
 {
     GameActor* actor;
 
-    if (Gp_StateF0.field_0 == 1) {
+    if (Gp_StateF0.prefix.bytes.field_0 == 1) {
         actor                         = arg0->work;
         actor->field_956              = 3;
         actor->field_954              = 0;
@@ -2137,7 +2134,7 @@ static void func_actor_800100_80165748(Task* arg0)
 
 static void func_actor_800100_801657D8(Task* arg0)
 {
-    if (Gp_StateF0.field_0 != 1) {
+    if (Gp_StateF0.prefix.bytes.field_0 != 1) {
         func_actor_800100_80166E14(arg0);
         return;
     }

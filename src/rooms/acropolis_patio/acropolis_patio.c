@@ -1,13 +1,5 @@
 #include "common.h"
 
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
-
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -25,6 +17,19 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
+
+#include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 typedef struct {
     /* 0x0 */ u16 field_0;
@@ -88,28 +93,29 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0) < 2) {
         if (Mc_SaveData[0].at4.loc.room == 1) {
-            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D4, (s32)&D_acropolis_patio_80180428, 0);
-            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7DB, (s32)&D_acropolis_patio_8018044C, 0);
+            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_patio_80180428, 0);
+            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_acropolis_patio_8018044C, 0);
             Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D5, 1, 0);
             D_acropolis_patio_80187060 = Task_SpawnFromTable(&D_acropolis_patio_801802BC, 2, 0, 0);
         }
         temp = Gp_LookupSlot4(1);
         if (temp != 0) {
-            Gp_DispatchMsg(temp, 0x7D4, (s32)&D_acropolis_patio_8018046C, 0);
+            Gp_DispatchMsgPtr(temp, 0x7D4, &D_acropolis_patio_8018046C, 0);
         }
     }
     if ((gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0x21) < 2) && (GameFlag_GetNibble(0x21) < 2)) {
         temp = Gp_LookupSlot4(1);
         if (temp != 0) {
-            Gp_DispatchMsg(temp, 0x7DB, (s32)&D_acropolis_patio_80180440, 0);
+            Gp_DispatchMsgPtr(temp, 0x7DB, &D_acropolis_patio_80180440, 0);
         }
     }
     if ((gGameSession->at4.loc.place == 2) && (GameFlag_GetNibble(0x26) == 0)) {
         msg.from.loc.stage = 1;
         msg.from.loc.area  = 3;
         msg.command        = 0;
+        /* The message ABI carries this object address in one 32-bit word. */
         Gp_DispatchMsg(Gp_LookupSlot4(2), 0x7DB, (s32)&msg, 0);
-        Gp_DispatchMsg(Gp_LookupSlot4(3), 0x7DB, (s32)&msg, 0);
+        Gp_DispatchMsgPtr(Gp_LookupSlot4(3), 0x7DB, &msg, 0);
     }
     arg0->state = arg0->state + 1;
 }
@@ -140,7 +146,7 @@ s32 func_acropolis_patio_8017D7D0(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2, 
             var_v0 = 2;
             if (arg2->field_5 == 0) {
                 if (GameFlag_GetNibble(0x23) == 0) {
-                    func_800E8634((s32)&D_acropolis_patio_80180DEC, 0, (s32)&D_acropolis_patio_80180EDC);
+                    func_800E8634(&D_acropolis_patio_80180DEC, 0, &D_acropolis_patio_80180EDC);
                     GameFlag_SetNibble(0x23, 1);
                     return 2;
                 }
@@ -238,19 +244,19 @@ void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2)
 
     if ((arg2->field_2 == 0) && (GameFlag_GetNibble(0x21) < 2)) {
         GameFlag_SetNibble(0x21, 3);
-        func_800E8634((s32)&D_acropolis_patio_80180484, 0, (s32)&D_acropolis_patio_801806AC);
+        func_800E8634(&D_acropolis_patio_80180484, 0, &D_acropolis_patio_801806AC);
         Mc_SaveData[0].sceneEvent = 3;
         gGameSession->flowFlags   = 0xC1;
     }
     if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x21) == 3) &&
         (Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D6, 0, 0) == 0)) {
         GameFlag_SetNibble(0x21, 4);
-        func_800E8634((s32)&D_acropolis_patio_8018082C, 0, (s32)&D_acropolis_patio_80180C64);
+        func_800E8634(&D_acropolis_patio_8018082C, 0, &D_acropolis_patio_80180C64);
     }
     state = arg2->field_2;
     if ((state == 2) && (GameFlag_GetNibble(0x26) == 0) && (GameFlag_GetNibble(0) == state)) {
         GameFlag_SetNibble(0x26, 1);
-        func_800E8634((s32)&D_acropolis_patio_8018280C, 0, (s32)&D_acropolis_patio_80182BE4);
+        func_800E8634(&D_acropolis_patio_8018280C, 0, &D_acropolis_patio_80182BE4);
     }
 }
 s32 func_acropolis_patio_8017DCE4(s32 arg0, s32 arg1, s32 arg2)

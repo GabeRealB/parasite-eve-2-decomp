@@ -6,12 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/abs.h>
-
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/4CC.h"
-#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -22,6 +16,15 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
+#include "gameplay/inventory.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/loading.h"
+#include "main/fs.h"
 
 extern GpMsgEntry D_acropolis_hallway_8017E238[];
 extern SVECTOR    D_acropolis_hallway_8017FA4C;

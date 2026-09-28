@@ -1,12 +1,6 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-
-#include "gameplay/1BC.h"
-#include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
@@ -16,6 +10,17 @@
 #include "rooms/room_common.h"
 #include "rooms/shelter_r47.h"
 
+#include "gameplay/captions.h"
+#include "gameplay/loading.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/pad_input.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
+#include "main/fs.h"
+
 /// One entry of a map-marker table: the area it stands for and the screen
 /// position of its marker. A table ends at the entry whose `stage` is 0xFF.
 typedef struct {
@@ -24,11 +29,6 @@ typedef struct {
     s16 x;
     s16 y;
 } ShelterR47MapMark;
-
-extern s16 D_80114D08;
-
-/// Menu input lock, counted down by `Gp_TickMenuLock`.
-extern s16 Gp_MenuLockDelay;
 
 /// Area views published for the first cap script's five selections, indexed by
 /// the selection; entry 1 is switched between views 0x12 and 0x24 by the low bit
@@ -112,7 +112,7 @@ static void func_shelter_r47_801816CC(Task* task)
     RoomActionPrompt* prompt;
     u32               kind;
 
-    prompt = &D_80114D28;
+    prompt = D_80114D28;
     work   = (ShelterR47State*)task->work;
     func_shelter_r47_80181914(task, 0);
     prompt->mode     = 0;
@@ -593,7 +593,7 @@ static void func_shelter_r47_80182470(Task* task)
     }
 
     for (port = first; port < count; port++) {
-        prompt = &D_80114D28 + port;
+        prompt = &D_80114D28[port];
         pad    = &Pad_States[port];
         status = pad->status;
         if (status == 0x12) {
@@ -663,20 +663,20 @@ static void func_shelter_r47_80182470(Task* task)
             prompt->field_4 = 0xDC00;
         }
 
-        statep = &prompt->buttons[0].state;
-        heldp  = &prompt->buttons[0].heldFrames;
+        statep = &prompt->buttons.halfwords[0];
+        heldp  = &prompt->buttons.halfwords[1];
         idx    = 0;
         for (i = 0; i < 2; i++, statep += 4, idx += 4) {
             mask = (i == 0) ? 0x40 : 0xA0;
             if (Pad_CheckButtons(port, 1, mask) != 0) {
                 if (heldp[idx] < prompt->field_E &&
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed == prompt->screen.packed) {
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
                     *statep    = 4;
                     heldp[idx] = prompt->field_E;
                 } else {
-                    heldp[idx]                                           = 0;
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed = prompt->screen.packed;
-                    *statep                                              = 2;
+                    heldp[idx]                                                          = 0;
+                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
+                    *statep                                                             = 2;
                 }
             } else if (Pad_CheckButtons(port, 3, mask) != 0) {
                 *statep = 3;
@@ -824,7 +824,7 @@ s32 func_shelter_r47_80182B9C(Task* task, OverlayHotspot* table, s16 x, s16 y)
 /// the caller's script on one state.
 static void func_shelter_r47_80182C78(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
 
     prompt->targetId    = 0;
     prompt->mode        = 0;
@@ -879,7 +879,7 @@ static void func_shelter_r47_80182CA4(Task* task)
 static void func_shelter_r47_80182DAC(Task* task)
 {
     ShelterR47State*  state;
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
 
     state = (ShelterR47State*)task->work;
     func_shelter_r47_80181914(task, 0);
@@ -1059,17 +1059,17 @@ void func_shelter_r47_80183234(Task* task)
 /// 0x100, double-press window 0xF, `mode` 1) and advances the task's state.
 static void func_shelter_r47_80183284(Task* task)
 {
-    RoomActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = D_80114D28;
     s32               i;
 
     for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0               = 0;
-        prompt->field_4               = 0;
-        prompt->targetId              = 0x100;
-        prompt->field_E               = 0xF;
-        prompt->buttons[0].heldFrames = 0;
-        prompt->buttons[1].heldFrames = 0;
-        prompt->mode                  = 1;
+        prompt->field_0                     = 0;
+        prompt->field_4                     = 0;
+        prompt->targetId                    = 0x100;
+        prompt->field_E                     = 0xF;
+        prompt->buttons.slots[0].heldFrames = 0;
+        prompt->buttons.slots[1].heldFrames = 0;
+        prompt->mode                        = 1;
     }
     task->state = task->state + 1;
 }

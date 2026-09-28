@@ -1,8 +1,4 @@
 #include "common.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
 #include "main/gfx.h"
 #include "main/gameflag.h"
 #include "main/mem.h"
@@ -12,12 +8,24 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/loading.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
 
 typedef struct Actor02100Fn00048Scratch {
     /* 0x00 */ SVECTOR rotation;

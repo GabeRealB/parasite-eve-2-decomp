@@ -7,20 +7,28 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/gameplay.h"
-#include "gameplay/pairsrc.h"
-#include "gameplay/3FB8.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/area_entry.h"
+#include "gameplay/world_collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/object_fields.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
 
 typedef union Actor00700HitRecord {
     GpRec18 rec;
@@ -44,7 +52,8 @@ typedef union Actor00700ContactStorage {
 STATIC_ASSERT_SIZEOF(Actor00700ContactStorage, 0x50);
 
 typedef struct Actor00700Work {
-    /* 0x000 */ byte                     pad_0[0x154];
+    /* 0x000 */ GpAnimCtx                anim;
+    /* 0x014 */ byte                     pad_14[0x140];
     /* 0x154 */ Actor00700HitRecord      field_154;
     /* 0x16C */ byte                     pad_16C[0x20];
     /* 0x18C */ GpRec18                  field_18C;
@@ -108,56 +117,56 @@ typedef struct Actor00700Work {
 
 /// The 0x2F4-byte allocation used by Actor00700_Fn01FE0.
 typedef struct Actor00700SpawnWork {
-    /* 0x000 */ u8      field_0[0x14];
-    /* 0x014 */ u8      field_14[0xA0];
-    /* 0x0B4 */ u8      field_B4[0x40];
-    /* 0x0F4 */ MATRIX  field_F4;
-    /* 0x114 */ MATRIX  field_114;
-    /* 0x134 */ u8      field_134[8];
-    /* 0x13C */ void*   field_13C;
-    /* 0x140 */ void*   field_140;
-    /* 0x144 */ u16     field_144;
-    /* 0x146 */ u16     field_146;
-    /* 0x148 */ u16     field_148;
-    /* 0x14A */ u8      pad_14A[0x2];
-    /* 0x14C */ s32     field_14C;
-    /* 0x150 */ u16     field_150;
-    /* 0x152 */ u16     field_152;
-    /* 0x154 */ GpRec18 field_154;
-    /* 0x16C */ u8      field_16C[8];
-    /* 0x174 */ void*   field_174;
-    /* 0x178 */ void*   field_178;
-    /* 0x17C */ u16     field_17C;
-    /* 0x17E */ u16     field_17E;
-    /* 0x180 */ u16     field_180;
-    /* 0x182 */ u8      pad_182[0x2];
-    /* 0x184 */ s32     field_184;
-    /* 0x188 */ u16     field_188;
-    /* 0x18A */ u16     field_18A;
-    /* 0x18C */ GpRec18 field_18C[4];
-    /* 0x1EC */ u8      field_1EC[8];
-    /* 0x1F4 */ void*   field_1F4;
-    /* 0x1F8 */ void*   field_1F8;
-    /* 0x1FC */ u16     field_1FC;
-    /* 0x1FE */ u16     field_1FE;
-    /* 0x200 */ u16     field_200;
-    /* 0x202 */ u8      pad_202[0x2];
-    /* 0x204 */ s32     field_204;
-    /* 0x208 */ u16     field_208;
-    /* 0x20A */ u16     field_20A;
-    /* 0x20C */ GpRec18 field_20C;
-    /* 0x224 */ void*   field_224;
-    /* 0x228 */ u16     field_228;
-    /* 0x22A */ u16     field_22A;
-    /* 0x22C */ u8      pad_22C[0x80];
-    /* 0x2AC */ s32     field_2AC;
-    /* 0x2B0 */ s32     field_2B0;
-    /* 0x2B4 */ s32     field_2B4;
-    /* 0x2B8 */ u8      pad_2B8[0x1E];
-    /* 0x2D6 */ u16     field_2D6;
-    /* 0x2D8 */ u8      pad_2D8[0x4];
-    /* 0x2DC */ u16     field_2DC;
-    /* 0x2DE */ u8      pad_2DE[0x16];
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[4];
+    /* 0x0B4 */ u8         field_B4[0x40];
+    /* 0x0F4 */ MATRIX     field_F4;
+    /* 0x114 */ MATRIX     field_114;
+    /* 0x134 */ u8         field_134[8];
+    /* 0x13C */ void*      field_13C;
+    /* 0x140 */ void*      field_140;
+    /* 0x144 */ u16        field_144;
+    /* 0x146 */ u16        field_146;
+    /* 0x148 */ u16        field_148;
+    /* 0x14A */ u8         pad_14A[0x2];
+    /* 0x14C */ s32        field_14C;
+    /* 0x150 */ u16        field_150;
+    /* 0x152 */ u16        field_152;
+    /* 0x154 */ GpRec18    field_154;
+    /* 0x16C */ u8         field_16C[8];
+    /* 0x174 */ void*      field_174;
+    /* 0x178 */ void*      field_178;
+    /* 0x17C */ u16        field_17C;
+    /* 0x17E */ u16        field_17E;
+    /* 0x180 */ u16        field_180;
+    /* 0x182 */ u8         pad_182[0x2];
+    /* 0x184 */ s32        field_184;
+    /* 0x188 */ u16        field_188;
+    /* 0x18A */ u16        field_18A;
+    /* 0x18C */ GpRec18    field_18C[4];
+    /* 0x1EC */ u8         field_1EC[8];
+    /* 0x1F4 */ void*      field_1F4;
+    /* 0x1F8 */ void*      field_1F8;
+    /* 0x1FC */ u16        field_1FC;
+    /* 0x1FE */ u16        field_1FE;
+    /* 0x200 */ u16        field_200;
+    /* 0x202 */ u8         pad_202[0x2];
+    /* 0x204 */ s32        field_204;
+    /* 0x208 */ u16        field_208;
+    /* 0x20A */ u16        field_20A;
+    /* 0x20C */ GpRec18    field_20C;
+    /* 0x224 */ void*      field_224;
+    /* 0x228 */ u16        field_228;
+    /* 0x22A */ u16        field_22A;
+    /* 0x22C */ u8         pad_22C[0x80];
+    /* 0x2AC */ s32        field_2AC;
+    /* 0x2B0 */ s32        field_2B0;
+    /* 0x2B4 */ s32        field_2B4;
+    /* 0x2B8 */ u8         pad_2B8[0x1E];
+    /* 0x2D6 */ u16        field_2D6;
+    /* 0x2D8 */ u8         pad_2D8[0x4];
+    /* 0x2DC */ u16        field_2DC;
+    /* 0x2DE */ u8         pad_2DE[0x16];
 } Actor00700SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor00700SpawnWork, 0x2F4);
 
@@ -167,32 +176,30 @@ STATIC_ASSERT_SIZEOF(Actor00700SpawnWork, 0x2F4);
 /// `GpObj` render nodes it links (`Gp_LinkObj` shapes 3/2/2/3, each with its
 /// own `GpRec18` table) start at +0x1DC rather than +0x134.
 typedef struct Actor00700InitWork {
-    /* 0x000 */ byte     pad_0[0x14];
-    /* 0x014 */ byte     field_14[0x118];
-    /* 0x12C */ byte     field_12C[0x70];
-    /* 0x19C */ MATRIX   field_19C;
-    /* 0x1BC */ MATRIX   field_1BC;
-    /* 0x1DC */ GpObj    obj1;
-    /* 0x1FC */ GpRec18  rec1;
-    /* 0x214 */ GpObj    obj2;
-    /* 0x234 */ GpRec18  rec2;
-    /* 0x24C */ byte     pad_24C[0x30];
-    /* 0x27C */ GpObj    obj3;
-    /* 0x29C */ GpRec18  rec3;
-    /* 0x2B4 */ byte     pad_2B4[0x48];
-    /* 0x2FC */ GpObj    obj4;
-    /* 0x31C */ GpRec18  rec4;
-    /* 0x334 */ GpCoord* field_334;
-    /* 0x338 */ u16      field_338;
-    /* 0x33A */ u16      field_33A;
-    /* 0x33C */ byte     pad_33C[0x42];
-    /* 0x37E */ u16      field_37E;
-    /* 0x380 */ s16      field_380;
-    /* 0x382 */ byte     pad_382[0x1A];
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[7];
+    /* 0x12C */ byte       field_12C[0x70];
+    /* 0x19C */ MATRIX     field_19C;
+    /* 0x1BC */ MATRIX     field_1BC;
+    /* 0x1DC */ GpObj      obj1;
+    /* 0x1FC */ GpRec18    rec1;
+    /* 0x214 */ GpObj      obj2;
+    /* 0x234 */ GpRec18    rec2;
+    /* 0x24C */ byte       pad_24C[0x30];
+    /* 0x27C */ GpObj      obj3;
+    /* 0x29C */ GpRec18    rec3;
+    /* 0x2B4 */ byte       pad_2B4[0x48];
+    /* 0x2FC */ GpObj      obj4;
+    /* 0x31C */ GpRec18    rec4;
+    /* 0x334 */ GpCoord*   field_334;
+    /* 0x338 */ u16        field_338;
+    /* 0x33A */ u16        field_33A;
+    /* 0x33C */ byte       pad_33C[0x42];
+    /* 0x37E */ u16        field_37E;
+    /* 0x380 */ s16        field_380;
+    /* 0x382 */ byte       pad_382[0x1A];
 } Actor00700InitWork;
 STATIC_ASSERT_SIZEOF(Actor00700InitWork, 0x39C);
-
-void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern ActorSpriteUv Actor00700_D075BC[];
 
@@ -286,9 +293,9 @@ static void Actor00700_Fn00060(GpEnemy* ctx, Task* actor)
     work->field_338         = 0x100;
     work->field_33A         = 1;
     work->field_334         = coord;
-    func_800B3F84(work, &Actor00700_D06E6C, obj, &work->field_12C, &work->field_14);
+    func_800B3F84(&work->anim, &Actor00700_D06E6C, obj, &work->field_12C, work->slots);
     for (i = 1; i < 7; i++) {
-        Gp_AnimResetSlot(work, i, 1);
+        Gp_AnimResetSlot(&work->anim, i, 1);
     }
     Gp_IncStateF0Ref(0);
     work->field_37E     = 1;
@@ -1054,12 +1061,12 @@ death:
         work2->field_382 = 0;
         val              = Actor00700_D06E98[(s16)work2->field_37E];
         for (i = 1; i < 7; i++) {
-            func_800B4114(work2, i, (s16)work2->field_37E, 0, val);
+            func_800B4114(&work2->anim, i, (s16)work2->field_37E, 0, val);
         }
     } else {
         work2->field_382++;
         for (i = 1; i < 7; i++) {
-            Gp_AnimTickIndex(work2, i);
+            Gp_AnimTickIndex(&work2->anim, i);
         }
     }
     c      = arg1->extra.tmd->coords;
@@ -1090,12 +1097,12 @@ dying:
         work2->field_382 = 0;
         val              = Actor00700_D06E98[(s16)work2->field_37E];
         for (i = 1; i < 7; i++) {
-            func_800B4114(work2, i, (s16)work2->field_37E, 0, val);
+            func_800B4114(&work2->anim, i, (s16)work2->field_37E, 0, val);
         }
     } else {
         work2->field_382++;
         for (i = 1; i < 7; i++) {
-            Gp_AnimTickIndex(work2, i);
+            Gp_AnimTickIndex(&work2->anim, i);
         }
     }
     c      = arg1->extra.tmd->coords;
@@ -1315,12 +1322,12 @@ static void Actor00700_Fn01D80(Task* arg0)
         work2->field_382 = 0;
         val              = Actor00700_D06E98[(s16)work2->field_37E];
         for (i = 1; i < 7; i++) {
-            func_800B4114(work2, i, (s16)work2->field_37E, 0, val);
+            func_800B4114(&work2->anim, i, (s16)work2->field_37E, 0, val);
         }
     } else {
         work2->field_382++;
         for (i = 1; i < 7; i++) {
-            Gp_AnimTickIndex(work2, i);
+            Gp_AnimTickIndex(&work2->anim, i);
         }
     }
 }
@@ -1426,9 +1433,9 @@ static void Actor00700_Fn01FE0(GpEnemy* ctx, Task* actor)
     work->field_228         = 0x100;
     work->field_22A         = 1;
     work->field_224         = coord;
-    func_800B3F84(work, &Actor00700_D075B4, obj, &work->field_B4, &work->field_14);
+    func_800B3F84(&work->anim, &Actor00700_D075B4, obj, &work->field_B4, work->slots);
     for (i = 1; i < 4; i++) {
-        Gp_AnimResetSlot(work, i, 1);
+        Gp_AnimResetSlot(&work->anim, i, 1);
     }
     Gp_IncStateF0Ref(0);
     work->field_2D6 = 1;

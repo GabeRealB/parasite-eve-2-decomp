@@ -1,0 +1,169 @@
+#include "types.h"
+
+#include "gameplay/attachment_state.h"
+#include "attachment_state.h"
+#include "gameplay/weapon_data.h"
+
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/wipsys.h"
+
+/* Define BSS before API headers to preserve first-declaration order. */
+GpStateBE8 Gp_HpMpWork;
+
+u8 Gp_DebugAttachLevels[18];
+
+u16 Gp_ReplayButtons;
+
+u16 Gp_ReplayFramesLeft;
+
+GpStateC08 Gp_StateC08;
+
+McItemRec Gp_ItemTable2[5];
+
+s32 D_80114C34;
+
+u16* Gp_ReplayCursor;
+
+#include "attachments.h"
+
+#include "gameplay/attachments.h"
+
+GpIdParamTable Gp_IdParamHi = { .rows = {
+                                    { { 0, 0, 0, 0, 0, 0, 0, 0 } },
+                                    { { 0, 0, 8, 22, 70, 7, 3, 2 } },
+                                    { { 1250, 1, 7, 22, 100, 7, 3, 2 } },
+                                    { { 3000, 2, 6, 22, 45, 7, 3, 2 } },
+                                    { { 750, 1, 14, 38, 120, 7, 3, 0 } },
+                                    { { 1750, 1, 14, 30, 140, 7, 3, 0 } },
+                                    { { 4000, 2, 14, 22, 170, 7, 3, 0 } },
+                                    { { 3000, 1, 30, 50, 200, 7, 11, 0 } },
+                                    { { 4000, 2, 30, 40, 250, 7, 11, 0 } },
+                                    { { 5000, 4, 30, 28, 300, 7, 11, 0 } },
+                                    { { 500, 1, 7, 38, 15, 3, 2, 12 } },
+                                    { { 1250, 1, 7, 30, 20, 3, 2, 12 } },
+                                    { { 3000, 2, 7, 22, 30, 3, 2, 12 } },
+                                    { { 750, 1, 6, 18, 25, 1, 7, 0 } },
+                                    { { 1750, 1, 5, 18, 30, 1, 7, 0 } },
+                                    { { 4000, 2, 4, 18, 40, 1, 7, 0 } },
+                                    { { 3000, 1, 18, 38, 60, 2, 12, 0 } },
+                                    { { 4000, 2, 18, 38, 80, 2, 12, 0 } },
+                                    { { 5000, 4, 18, 38, 100, 2, 12, 0 } },
+                                    { { 500, 1, 7, 36, 0, 0, 0, 0 } },
+                                    { { 1250, 1, 5, 28, 0, 0, 0, 0 } },
+                                    { { 3000, 1, 3, 18, 0, 0, 0, 0 } },
+                                    { { 750, 1, 12, 42, 30, 60, 0, 0 } },
+                                    { { 1750, 1, 12, 30, 40, 70, 0, 0 } },
+                                    { { 4000, 1, 12, 18, 50, 90, 0, 0 } },
+                                    { { 3000, 1, 20, 44, 200, 0, 13, 0 } },
+                                    { { 4000, 1, 18, 36, 250, 0, 13, 0 } },
+                                    { { 5000, 2, 16, 28, 300, 0, 13, 0 } },
+                                    { { 500, 2, 6, 36, 0, 0, 0, 0 } },
+                                    { { 1250, 2, 5, 28, 0, 0, 0, 0 } },
+                                    { { 3000, 4, 4, 18, 0, 0, 0, 0 } },
+                                    { { 750, 2, 10, 36, 0, 0, 0, 0 } },
+                                    { { 1750, 2, 9, 28, 0, 0, 0, 0 } },
+                                    { { 4000, 4, 8, 18, 0, 0, 0, 0 } },
+                                    { { 3000, 2, 15, 36, 200, 1, 14, 0 } },
+                                    { { 4000, 4, 15, 28, 200, 1, 14, 0 } },
+                                    { { 5000, 9, 15, 18, 200, 1, 14, 0 } },
+                                    { { 0, 5, 5, 30, 0, 0, 0, 0 } },
+                                    { { 0, 4, 10, 30, 0, 0, 0, 0 } },
+                                    { { 0, 3, 20, 30, 0, 0, 0, 0 } },
+                                    { { 0, 0, 0, 0, 0, 0, 0, 0 } },
+                                    { { 0, 0, 0, 0, 0, 0, 0, 0 } },
+                                    { { 0, 0, 0, 0, 0, 0, 0, 0 } },
+                                    { { 0, 0, 0, 0, 0, 0, 0, 0 } },
+                                    { { 0, 0, 0, 0, 0, 0, 0, 0 } },
+                                    { { 0, 0, 0, 0, 0, 0, 0, 0 } },
+                                    { { 0, 0, 0, 0, 50, 9, 0, 0 } },
+                                    { { 0, 0, 0, 0, 0, 0, 0, 0 } },
+                                    { { 0, 0, 0, 0, 0, 0, 0, 0 } },
+                                    { { 0, 0, 0, 12, 5, 2, 0, 0 } },
+                                    { { 0, 0, 0, 0, 0, 0, 0, 0 } },
+                                    { { 0, 0, 0, 0, 0, 0, 0, 0 } },
+                                    { { 0, 0, 0, 18, 0, 8, 0, 0 } },
+                                    { { 0, 0, 0, 0, 0, 0, 0, 0 } },
+                                    { { 0, 0, 0, 0, 0, 0, 0, 0 } },
+                                } };
+
+u16 Gp_GetAttachParam(s32 arg0)
+{
+    PlayerStatus* p;
+    s32           cond;
+    s32           ret;
+    u8*           table;
+    s32           idx;
+    u8*           recs;
+    s32           off;
+
+    recs = Gp_IdParamHi.bytes;
+    idx  = Gp_StateC08.field_5;
+    if (idx >= 0xC) {
+        ret = 1;
+    } else {
+        p = &Player_Status;
+        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
+            cond = 0;
+        } else {
+            cond = p->field_26 == 4;
+        }
+        if (cond == 0) {
+            table = Mc_SaveData[0].attachLevels;
+        } else {
+            table = Gp_DebugAttachLevels;
+        }
+        ret = table[idx];
+        if (ret == 0) {
+            ret = 1;
+        }
+        if (p->peStateFlags & 0x80) {
+            if (ret < 3) {
+                ret++;
+            }
+        }
+    }
+    off  = arg0 * sizeof(u16);
+    off += (Gp_StateC08.field_5 * 3 + ret) * sizeof(GpRec16);
+    {
+        union {
+            u8*  bytes;
+            u16* value;
+        } param;
+        param.bytes = recs + off;
+        return *param.value;
+    }
+}
+
+/// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
+/// the prompt's left edge.
+#define DRAW_PROMPT_LABEL(req, dx, line, color, str)          \
+    {                                                         \
+        req.x          = obj.panel.field_20.u + (dx) + xBase; \
+        req.y          = (obj.panel.field_22.u + 9) + (line); \
+        req.otIndex    = obj.panel.field_14.s + 1;            \
+        req.field_8    = (color);                             \
+        req.glyphTable = 5;                                   \
+        req.centerMode = 0;                                   \
+        req.field_E    = 1;                                   \
+        func_8002E53C(&req, (str));                           \
+    }
+
+/// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
+#define DRAW_PROMPT_COUNT(req, line, count)                   \
+    {                                                         \
+        req.field_8    = 0x606060;                            \
+        req.glyphTable = 5;                                   \
+        req.centerMode = 2;                                   \
+        req.field_E    = 0;                                   \
+        req.x          = obj.panel.field_20.u + 0x94;         \
+        req.y          = (obj.panel.field_22.u + 9) + (line); \
+        req.otIndex    = obj.panel.field_14.s + 1;            \
+        func_8002E53C(&req, Text_ItoaSigned(buf, (count)));   \
+        if ((count) == 0) {                                   \
+            flag = 1;                                         \
+        }                                                     \
+    }
+
+#undef DRAW_PROMPT_LABEL
+#undef DRAW_PROMPT_COUNT

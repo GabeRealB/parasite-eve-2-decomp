@@ -1,7 +1,4 @@
 #include "common.h"
-
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -10,6 +7,11 @@
 #include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "gameplay/direction.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "main/display.h"
 
 /// Work block of the room task, allocated zeroed by its first state: the
 /// child task the current step spawned, and the step it dispatches on.

@@ -8,13 +8,6 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3E9C.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 
 #include "main/display.h"
 #include "main/gfx.h"
@@ -22,6 +15,17 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/actor_render.h"
+#include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+#include "main/fs.h"
 
 typedef struct Actor141000Point {
     /* 0x0 */ s16  field_0;
@@ -124,8 +128,6 @@ extern void* D_actor_141000_8013D778[];
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_141000_8013392C`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_141000_8013D788[];
-
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void func_actor_141000_80132C7C(Task* task);
 static void func_actor_141000_80132D3C(Task* task);
