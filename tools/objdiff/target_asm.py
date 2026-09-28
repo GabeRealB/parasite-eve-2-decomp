@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Bring an objdiff target assembly file in line with what our compiler emits.
 
-    target_asm.py <in.s> [<base.s>]      (writes the rewritten file to stdout)
+    target_asm.py <in.s> [<base.s>] [--source <source.c> --slot-prefix <prefix>]
+                                        (writes the rewritten file to stdout)
 
 objdiff pairs data by symbol and takes each symbol's extent from its size, or,
 when it has none, from where the next symbol starts. Some things splat writes
@@ -23,12 +24,16 @@ identical bytes count as unmatched:
   function as missing. Given the base package's assembly, the functions are
   renamed to the base names by position; both files come from one source, so
   they hold the same functions in the same order.
+  Public entry points declared with SLOT_FUNC keep the current package's
+  prefix and the source's identifier, which need not be their load address.
 
 Only objdiff's target objects pass through this; the matching build assembles
 the split output unchanged.
 """
 import re
 import sys
+from argparse import ArgumentParser
+from pathlib import Path
 
 
 def normalize(text: str) -> str:
@@ -42,13 +47,24 @@ def normalize(text: str) -> str:
 FUNC = re.compile(r"^glabel (\S+)", re.M)
 
 
-def rename_to_base(text: str, base: str) -> str:
+def rename_to_base(text: str, base: str, source: str = "", slot_prefix: str = "") -> str:
     own, theirs = FUNC.findall(text), FUNC.findall(base)
     if len(own) != len(theirs):
         sys.stderr.write(f"target_asm: {len(own)} functions against the base's "
                          f"{len(theirs)}; names left unchanged\n")
         return text
-    names = {a: b for a, b in zip(own, theirs) if a != b}
+    # SLOT_FUNC expands to func_<package prefix>_<identifier>. Private
+    # functions retain the shared source's names. Strip comments so examples
+    # in documentation do not turn a private function into a public one.
+    source = re.sub(r"/\*.*?\*/|//[^\n]*", "", source, flags=re.S)
+    slot_ids = set(re.findall(r"\bSLOT_FUNC\s*\(\s*(\w+)\s*\)", source))
+    names = {}
+    for own_name, base_name in zip(own, theirs):
+        identifier = base_name.rsplit("_", 1)[-1]
+        if slot_prefix and identifier in slot_ids:
+            base_name = f"func_{slot_prefix}_{identifier}"
+        if own_name != base_name:
+            names[own_name] = base_name
     if not names:
         return text
     pattern = re.compile(r"(?<![.\w])(" + "|".join(map(re.escape, names)) + r")\b")
@@ -56,9 +72,16 @@ def rename_to_base(text: str, base: str) -> str:
 
 
 if __name__ == "__main__":
-    with open(sys.argv[1], encoding="utf-8") as f:
-        text = f.read()
-    if len(sys.argv) > 2:
-        with open(sys.argv[2], encoding="utf-8") as f:
-            text = rename_to_base(text, f.read())
+    parser = ArgumentParser(description=__doc__)
+    parser.add_argument("input", type=Path)
+    parser.add_argument("base", type=Path, nargs="?")
+    parser.add_argument("--source", type=Path)
+    parser.add_argument("--slot-prefix", default="")
+    args = parser.parse_args()
+    if bool(args.source) != bool(args.slot_prefix):
+        parser.error("--source and --slot-prefix must be supplied together")
+    text = args.input.read_text(encoding="utf-8")
+    if args.base:
+        source = args.source.read_text(encoding="utf-8") if args.source else ""
+        text = rename_to_base(text, args.base.read_text(encoding="utf-8"), source, args.slot_prefix)
     sys.stdout.write(normalize(text))
