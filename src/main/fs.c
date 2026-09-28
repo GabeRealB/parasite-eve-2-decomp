@@ -1059,11 +1059,15 @@ static void Fs_InitStage0TablesCb(u8 status, u8* result)
     u8*             streamCpyPos;
     FsCdfFileSmall* tbl;
     FsSector*       sectorBuffer;
-    u32*            words;
-    StreamSlot*     streamTable;
-    u32*            fileSect90;
-    u16*            fileSect5;
-    u16*            fileSect0;
+    // The cursor is reused for input words and the full-size output records.
+    union {
+        u32*       words;
+        FsCdfFile* files;
+    } cursor;
+    StreamSlot* streamTable;
+    u32*        fileSect90;
+    u16*        fileSect5;
+    u16*        fileSect0;
 
     streamIdx = 0;
     if (status == CdlDiskError) {
@@ -1206,17 +1210,16 @@ sector_start:
             if (!isValidCategory) {
                 u32 id;
 
-                words = sectorBuffer->words;
-                id    = words[(u16)headerOffset];
+                cursor.words = sectorBuffer->words;
+                id           = cursor.words[(u16)headerOffset];
                 if (id / 100000 != 0) {
-                    register FsCdfFile* fileTbl asm("v1");
-                    u32                 n;
+                    u32 n;
 
-                    fileTbl = Fs_FileTable;
-                    n       = Fs_FileTableLen;
+                    cursor.files = Fs_FileTable;
+                    n            = Fs_FileTableLen;
                     Fs_FileTableLen++;
-                    fileTbl[n].id     = id;
-                    fileTbl[n].offset = (&words[(u16)headerOffset])[1];
+                    cursor.files[n].id     = id;
+                    cursor.files[n].offset = (&sectorBuffer->words[(u16)headerOffset])[1];
                 }
             }
 
