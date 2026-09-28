@@ -66,7 +66,8 @@ STATIC_ASSERT_SIZEOF(CdAudioTblEntry, 0x4);
 
 /// The CD audio player's working state: its position, the location it seeks
 /// to, the ramp that winds the stream down, and the stream setup. CdAudio_Init
-/// clears all of it as one block.
+/// repeatedly clears only its first word; the original loop never advances
+/// its destination pointer.
 typedef struct {
     volatile CdAudioLoc loc;
     CdlLOC              setloc; // passed to CdlSetloc to start a seek

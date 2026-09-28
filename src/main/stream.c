@@ -500,7 +500,7 @@ static void Stream_StartDecoder(void)
     RECT*       stripRect;
     CdCmdQueue* queue;
     u16         imageY;
-    u32*        data;
+    u_long*     data;
     u32         frameWidth;
 
     queue     = &CdCmd_Queue;
@@ -568,7 +568,7 @@ static void Stream_StartDecoder(void)
         for (i = 0; (u32)(i & 0xFFFF) < (frameWidth >> 4); i++) {
             LoadImage(stripRect, data);
             stripRect->x += stripWidth;
-            data          = (u32*)((u8*)data + stride);
+            data          = (u_long*)((u8*)data + stride);
         }
     }
     D_8006AC1C  = 0;
@@ -667,6 +667,7 @@ static void Mdec_KickStrip(void)
 static void Mdec_DecodeFrame(void)
 {
     StHEADER*   header;
+    u_long*     headerWords;
     CdCmdQueue* p;
 
     p = &CdCmd_Queue;
@@ -677,10 +678,11 @@ static void Mdec_DecodeFrame(void)
         return;
     }
 
-    if (StGetNext(&D_8006AC68, (u_long**)&header) != 0) {
+    if (StGetNext(&D_8006AC68, &headerWords) != 0) {
         return;
     }
 
+    header = (StHEADER*)headerWords;
     if (header->frameCount >= (u32)D_8006AC0C) {
         CdVol_ApplyFromTable(0);
         p->field_1F6 = 1;
@@ -743,7 +745,10 @@ static __inline__ s32 _streamStartRead(void)
 
 s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
 {
-    RECT        rect;
+    union {
+        RECT   rect;
+        CdlLOC location;
+    } scratch;
     CdCmdQueue* state;
     CdCmdQueue* stop;
     s32         sector;
@@ -781,8 +786,8 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
             }
             state->field_242 = 1;
             state->field_24E = 1;
-            CdIntToPos(sector, (CdlLOC*)&rect);
-            ready = Stream_SeekPosition((u8*)&rect);
+            CdIntToPos(sector, &scratch.location);
+            ready = Stream_SeekPosition((u8*)&scratch.location);
             if (ready & 0xFFFF) {
                 CdVol_ApplyFromTable((u8)D_8006AC58);
                 if (!(_streamStartRead() & 0xFFFF)) {
@@ -836,17 +841,17 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
             if (videoMode != 0) {
                 displayMode = gDisplayState.videoMode;
                 if (displayMode == 1) {
-                    rect.y = 0;
-                    rect.x = 0;
+                    scratch.rect.y = 0;
+                    scratch.rect.x = 0;
                     if (videoMode == displayMode) {
-                        rect.w = 0x1E0;
+                        scratch.rect.w = 0x1E0;
                     } else {
-                        rect.w = 0x140;
+                        scratch.rect.w = 0x140;
                     }
-                    rect.h = 0xF0;
-                    ClearImage(&rect, 0, 0, 0);
-                    rect.y = 0x110;
-                    ClearImage(&rect, 0, 0, 0);
+                    scratch.rect.h = 0xF0;
+                    ClearImage(&scratch.rect, 0, 0, 0);
+                    scratch.rect.y = 0x110;
+                    ClearImage(&scratch.rect, 0, 0, 0);
                     Display_SetMode(0xD010);
                 }
                 stop->field_1E6          = 0;
@@ -873,8 +878,8 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
             }
             break;
         case 8:
-            CdIntToPos(D_8006AC08 + (state->field_1EA - 1) * 10, (CdlLOC*)&rect);
-            ready = Stream_SeekPosition((u8*)&rect);
+            CdIntToPos(D_8006AC08 + (state->field_1EA - 1) * 10, &scratch.location);
+            ready = Stream_SeekPosition((u8*)&scratch.location);
             if (ready & 0xFFFF) {
                 if (!(_streamStartRead() & 0xFFFF)) {
                     D_8006AC20       = 8;

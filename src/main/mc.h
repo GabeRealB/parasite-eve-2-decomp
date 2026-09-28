@@ -20,8 +20,8 @@ typedef struct _McWork {
     /* 0x004 */ s32             field_4;
     /* 0x008 */ s32             promptId;
     /* 0x00C */ s32             field_C;
-    /* 0x010 */ s32             syncCommand;
-    /* 0x014 */ s32             syncResult;
+    /* 0x010 */ long            syncCommand;
+    /* 0x014 */ long            syncResult;
     /* 0x018 */ void*           buffer;
     /* 0x01C */ s32             sectorOffset;
     /* 0x020 */ s32             transferBytes;
@@ -29,7 +29,7 @@ typedef struct _McWork {
     /* 0x028 */ s32             field_28;
     /* 0x02C */ s32             field_2C;
     /* 0x030 */ struct DIRENTRY directory[15];
-    /* 0x288 */ s32             entryCount;
+    /* 0x288 */ long            entryCount;
     /* 0x28C */ s32             freeBlockCount;
     /* 0x290 */ s32             selectedSlot;
     /* 0x294 */ McSavePreview   previews[15];
@@ -40,6 +40,7 @@ typedef struct _McWork {
     /* 0xA20 */ s32             field_A20;
     /* 0xA24 */ s8              blockOwners[0x10];
 } McWork;
+STATIC_ASSERT_SIZEOF(McWork, 0xA34);
 
 struct _UiObject;
 

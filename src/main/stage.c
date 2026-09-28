@@ -165,7 +165,6 @@ static void Display_StepFadeOverlay(void)
     u8        val;
     TILE*     tile;
     DR_TPAGE* dr;
-    u_long*   ot;
 
     p = Stage_Ctx;
     if ((s8)p->field_19 & 0x80) {
@@ -204,7 +203,7 @@ static void Display_StepFadeOverlay(void)
         }
 
         tile           = (TILE*)gGpuPrimCursor;
-        gGpuPrimCursor = tile + 1;
+        gGpuPrimCursor = (u8*)(tile + 1);
         yoff           = gDisplayState.vramYOffset;
         setlen(tile, 3);
         setcode(tile, 0x62);
@@ -218,7 +217,7 @@ static void Display_StepFadeOverlay(void)
         tile->r0 = val;
 
         dr             = (DR_TPAGE*)gGpuPrimCursor;
-        gGpuPrimCursor = dr + 1;
+        gGpuPrimCursor = (u8*)(dr + 1);
         if (!(Stage_Ctx->field_19 & 1)) {
             setlen(dr, 1);
             dr->code[0] = 0xE1000240;
@@ -227,9 +226,8 @@ static void Display_StepFadeOverlay(void)
             dr->code[0] = 0xE1000220;
         }
 
-        ot = Gpu_OtEntryAtByteOffset((otIdx << 2));
-        addPrim(ot, tile);
-        addPrim(ot, dr);
+        addPrim(&gGpuCurrentOt[otIdx], tile);
+        addPrim(&gGpuCurrentOt[otIdx], dr);
     }
 }
 

@@ -198,7 +198,7 @@ void Fade_DrawOverlay(s32 r, s32 g, s32 b, s32 mode)
     s8        yoff;
 
     p              = (TILE*)gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
+    gGpuPrimCursor = (u8*)(p + 1);
     setlen(p, 3);
     setcode(p, 0x62);
     p->x0 = -0xA0;
@@ -212,7 +212,7 @@ void Fade_DrawOverlay(s32 r, s32 g, s32 b, s32 mode)
     addPrim(gGpuCurrentOt - 0x10, p);
 
     dr             = (DR_TPAGE*)gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
+    gGpuPrimCursor = (u8*)(dr + 1);
     setDrawTPage(dr, 0, 1, (mode & 3) << 5);
     addPrim(gGpuCurrentOt - 0x10, dr);
 }

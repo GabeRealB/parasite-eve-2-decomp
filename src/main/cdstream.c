@@ -866,26 +866,29 @@ void CdStream_Start(CdStreamParams* arg0)
     volatile CdStreamState* p;
     s32                     flag;
     volatile CdStreamState* ap;
-    volatile CdStreamState* a3;
-    SpuVoiceAttr*           t0;
-    SpuVoiceAttr*           ch1;
-    s32                     sectors;
-    s16                     volume;
-    u8                      saved;
-    s16                     f6;
-    s16                     idx;
-    u32                     flags;
-    CdReadyEntry*           e;
-    s32                     one;
-    s32                     cflags;
-    s16                     vff;
-    s16                     v1fc3;
-    s16                     v1000;
-    s32                     temp;
-    u8                      mode;
-    s32                     base;
-    CdReadyEntry*           rem_tmp;
-    s32                     temp_v1;
+    union {
+        volatile CdStreamState* state;
+        volatile CdReadyQueue*  queue;
+    } a3;
+    SpuVoiceAttr* t0;
+    SpuVoiceAttr* ch1;
+    s32           sectors;
+    s16           volume;
+    u8            saved;
+    s16           f6;
+    s16           idx;
+    u32           flags;
+    CdReadyEntry* e;
+    s32           one;
+    s32           cflags;
+    s16           vff;
+    s16           v1fc3;
+    s16           v1000;
+    s32           temp;
+    u8            mode;
+    s32           base;
+    CdReadyEntry* rem_tmp;
+    s32           temp_v1;
 
     p         = &CdStream_Runtime.state;
     p->voiceL = arg0->voiceL;
@@ -907,9 +910,9 @@ void CdStream_Start(CdStreamParams* arg0)
     ap                             = &CdStream_Runtime.state;
     *(s32*)&CdStream_Runtime.state = 0;
     if (ap->readySlot != 0) {
-        a3    = (volatile CdStreamState*)&CdReady_Queue;
-        f6    = ap->readySlot;
-        saved = CdReady_Queue.locked;
+        a3.queue = &CdReady_Queue;
+        f6       = ap->readySlot;
+        saved    = CdReady_Queue.locked;
         if (f6 != 0) {
             idx   = f6 - 1;
             e     = (CdReadyEntry*)&CdReady_Queue.entries[idx];
@@ -922,73 +925,73 @@ void CdStream_Start(CdStreamParams* arg0)
         CdStream_Runtime.state.readySlot = 0;
     }
 
-    a3              = &CdStream_Runtime.state;
-    a3->startCb     = arg0->startCb;
-    a3->voiceFreeCb = arg0->voiceFreeCb;
-    a3->field_4     = 0;
-    a3->doneCb      = arg0->doneCb;
-    a3->field_18    = 0;
-    a3->startSector = arg0->startSector;
-    a3->field_2C    = arg0->startSector;
-    one             = 1;
-    a3->field_30    = arg0->startSector;
-    a3->field_34    = 0;
-    a3->field_38    = one;
-    base            = arg0->spuBase;
-    sectors         = 0x18;
+    a3.state              = &CdStream_Runtime.state;
+    a3.state->startCb     = arg0->startCb;
+    a3.state->voiceFreeCb = arg0->voiceFreeCb;
+    a3.state->field_4     = 0;
+    a3.state->doneCb      = arg0->doneCb;
+    a3.state->field_18    = 0;
+    a3.state->startSector = arg0->startSector;
+    a3.state->field_2C    = arg0->startSector;
+    one                   = 1;
+    a3.state->field_30    = arg0->startSector;
+    a3.state->field_34    = 0;
+    a3.state->field_38    = one;
+    base                  = arg0->spuBase;
+    sectors               = 0x18;
     {
-        s32 ds      = gDisplayState.region;
-        a3->spuBase = base;
+        s32 ds            = gDisplayState.region;
+        a3.state->spuBase = base;
         if (ds == one) {
             sectors = 0x14;
         }
     }
-    a3->sectorsPerChunk = sectors;
-    a3->ringHalf        = 0x2770;
-    t0                  = PARENT_OF(a3, CdStreamRuntime, state)->channels.ch;
-    a3->sector          = (MtsSector*)arg0->sectorBuf;
-    a3->voiceL          = arg0->voiceL;
-    vff                 = 0xFF;
-    a3->voiceR          = arg0->voiceR;
-    mode                = arg0->mode;
-    v1fc3               = 0x1FC3;
-    v1000               = 0x1000;
-    cflags              = 0x6009F;
-    t0->mask            = cflags;
-    t0[1].mask          = cflags;
-    t0->volmode.left    = 0;
-    t0->volmode.right   = 0;
-    t0->pitch           = v1000;
-    t0->adsr1           = vff;
-    t0->adsr2           = v1fc3;
-    t0[1].volmode.left  = 0;
-    t0[1].volmode.right = 0;
-    t0[1].pitch         = v1000;
-    a3->mode            = mode;
-    a3->field_1C        = 0;
-    a3->field_20        = 0;
-    a3->pending         = 0;
-    t0->voice           = one << a3->voiceL;
-    t0->addr            = a3->spuBase;
+    a3.state->sectorsPerChunk = sectors;
+    a3.state->ringHalf        = 0x2770;
+    t0                        = PARENT_OF(a3.state, CdStreamRuntime, state)->channels.ch;
+    a3.state->sector          = (MtsSector*)arg0->sectorBuf;
+    a3.state->voiceL          = arg0->voiceL;
+    vff                       = 0xFF;
+    a3.state->voiceR          = arg0->voiceR;
+    mode                      = arg0->mode;
+    v1fc3                     = 0x1FC3;
+    v1000                     = 0x1000;
+    cflags                    = 0x6009F;
+    t0->mask                  = cflags;
+    t0[1].mask                = cflags;
+    t0->volmode.left          = 0;
+    t0->volmode.right         = 0;
+    t0->pitch                 = v1000;
+    t0->adsr1                 = vff;
+    t0->adsr2                 = v1fc3;
+    t0[1].volmode.left        = 0;
+    t0[1].volmode.right       = 0;
+    t0[1].pitch               = v1000;
+    a3.state->mode            = mode;
+    a3.state->field_1C        = 0;
+    a3.state->field_20        = 0;
+    a3.state->pending         = 0;
+    t0->voice                 = one << a3.state->voiceL;
+    t0->addr                  = a3.state->spuBase;
     {
-        s32 addr      = a3->spuBase + 0x10;
-        s32 mask      = one << a3->voiceR;
+        s32 addr      = a3.state->spuBase + 0x10;
+        s32 mask      = one << a3.state->voiceR;
         t0->loop_addr = addr;
         t0[1].voice   = mask;
     }
-    temp       = a3->spuBase;
+    temp       = a3.state->spuBase;
     temp       = temp + 0x40;
-    temp       = temp + ((s32)((u16)a3->ringHalf << 16) >> 15);
+    temp       = temp + ((s32)((u16)a3.state->ringHalf << 16) >> 15);
     t0[1].addr = temp;
-    temp       = a3->spuBase;
+    temp       = a3.state->spuBase;
     {
-        s32 shift   = (s32)((u16)a3->ringHalf << 16) >> 15;
+        s32 shift   = (s32)((u16)a3.state->ringHalf << 16) >> 15;
         t0[1].adsr1 = vff;
         t0[1].adsr2 = v1fc3;
         temp        = temp + shift;
     }
     {
-        u8 f53          = a3->flags;
+        u8 f53          = a3.state->flags;
         temp            = temp + 0x50;
         t0[1].loop_addr = temp;
         if (f53 & 2) {
@@ -1914,9 +1917,8 @@ wait_for_progress:
 stream_error:
     CdStream_Runtime.state.flags2 |= 2;
     if (CdStream_ErrorCode == 0) {
-        errorCode = (entry->flags >> 5) & 0xFF;
-        /* Keep the phase extraction separate from the error-code shift. */
-        SOFT_USE_REG(errorCode);
+        errorCode          = entry->flags;
+        errorCode          = (errorCode >> 5) & 0xFF;
         errorCode         *= 0x10;
         CdStream_ErrorCode = errorCode | 0xA;
     }

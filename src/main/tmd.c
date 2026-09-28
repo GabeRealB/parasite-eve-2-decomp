@@ -44,6 +44,15 @@ typedef union {
 } TmdStreamWord;
 STATIC_ASSERT_SIZEOF(TmdStreamWord, 4);
 
+/// Tmd_Create allocates the object and its partCount coordinates as one block.
+/// The coordinate tail has no fixed capacity; its extent comes from the source.
+typedef struct {
+    TmdObject object;
+    GpCoord   coords[0];
+} TmdAllocation;
+STATIC_ASSERT_SIZEOF(TmdAllocation, 0x34);
+STATIC_ASSERT(OFFSET_OF(TmdAllocation, coords) == 0x34, tmd_allocation_coords_offset);
+
 static const TaskFuncTable3 Tmd_TaskStates;
 
 static void Tmd_InitSourceStream(TmdSource* src);
@@ -511,11 +520,11 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
     void*      mem = NULL;
 
     Tmd_InitSourceStream(src);
-    obj = memCalloc((src->partCount * sizeof(GpCoord)) + sizeof(TmdObject), 0);
+    obj = memCalloc((src->partCount * sizeof(GpCoord)) + sizeof(TmdAllocation), 0);
     if (obj != NULL) {
         obj->flags       = 0x80;
         obj->partCount   = src->partCount;
-        obj->coords      = (GpCoord*)(obj + 1);
+        obj->coords      = PARENT_OF(obj, TmdAllocation, object)->coords;
         obj->bufferIndex = 0;
         coord            = obj->coords;
         obj->halfSize    = src->halfSize;

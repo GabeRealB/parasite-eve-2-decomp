@@ -1419,7 +1419,7 @@ static void Mc_StateFileSelect(Task* task, McWork* work)
         }
     }
 
-    syncResult = MemCardSync(1, (long*)&work->syncCommand, (long*)&work->syncResult);
+    syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
     if (syncResult != -1) {
         if (syncResult == 1 && work->syncResult != 0) {
             task->state = 2;
@@ -1715,7 +1715,7 @@ static void Mc_StateNameEntry(Task* task, McWork* work)
                 task->state         = 0x27;
                 break;
         }
-        syncResult = MemCardSync(1, (long*)&work->syncCommand, (long*)&work->syncResult);
+        syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
         if (syncResult != -1) {
             if (syncResult == 1 && work->syncResult != 0) {
                 task->state = 2;
@@ -1946,7 +1946,7 @@ static void Mc_StateSyncFileSelect(Task* task, McWork* work)
     work->promptId = 0x16;
     _mcDrawPrompt(task, 0x16);
 
-    syncResult = MemCardSync(1, (long*)&work->syncCommand, (long*)&work->syncResult);
+    syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
     if (syncResult == -1) {
         MemCardExist(work->field_C);
     } else if (syncResult == 1 && work->syncResult != 0) {
@@ -2078,7 +2078,7 @@ static void Mc_StateSyncOpen(Task* task, McWork* work)
 
     _mcDrawPrompt(task, work->promptId);
 
-    syncResult = MemCardSync(1, (long*)&work->syncCommand, (long*)&work->syncResult);
+    syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
     if (syncResult != -1) {
         if (syncResult == 1) {
             if (work->syncCommand == syncResult) {
@@ -2925,7 +2925,7 @@ static void Mc_StateSyncAdvance(Task* task, McWork* work)
     McPromptPair* entry;
     McPromptPair* base;
 
-    if (MemCardSync(1, (long*)&work->syncCommand, (long*)&work->syncResult) != 0) {
+    if (MemCardSync(1, &work->syncCommand, &work->syncResult) != 0) {
         work->field_4 = 0;
         task->state   = task->state + 1;
     } else {
@@ -2995,7 +2995,7 @@ static void Mc_StatePromptChoiceB(Task* task, McWork* work)
         task->killCountdown = 0xC;
         task->state         = 0x27;
     }
-    syncResult = MemCardSync(1, (long*)&work->syncCommand, (long*)&work->syncResult);
+    syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
     if (syncResult != -1) {
         if (syncResult == 1) {
             if (work->syncResult != 0) {
@@ -3179,7 +3179,7 @@ static void Mc_StateSyncPromptFile3(Task* task, McWork* work)
         task->state = 0x13;
         return;
     }
-    syncResult = MemCardSync(1, (long*)&work->syncCommand, (long*)&work->syncResult);
+    syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
     switch (syncResult) {
         case -1:
             MemCardExist(work->field_C);
@@ -3223,7 +3223,7 @@ static void Mc_StatePromptChoice9(Task* task, McWork* work)
             task->state         = 0x29;
             break;
     }
-    syncResult = MemCardSync(1, (long*)&work->syncCommand, (long*)&work->syncResult);
+    syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
     if (syncResult != -1) {
         if (syncResult == 1) {
             if (work->syncResult != 0) {
@@ -3276,7 +3276,7 @@ static void Mc_StateSyncPrompt13(Task* task, McWork* work)
         task->state = 0x13;
         return;
     }
-    syncResult = MemCardSync(1, (long*)&work->syncCommand, (long*)&work->syncResult);
+    syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
     switch (syncResult) {
         case -1:
             MemCardExist(work->field_C);
@@ -3769,7 +3769,7 @@ static void Mc_StateSyncPrompt3(Task* task, McWork* work)
         task->state = 3;
         return;
     }
-    syncResult = MemCardSync(1, (long*)&work->syncCommand, (long*)&work->syncResult);
+    syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
     switch (syncResult) {
         case -1:
             MemCardExist(work->field_C);
@@ -3805,7 +3805,7 @@ static void Mc_StateSyncPromptA(Task* task, McWork* work)
         task->state = 3;
         return;
     }
-    syncResult = MemCardSync(1, (long*)&work->syncCommand, (long*)&work->syncResult);
+    syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
     switch (syncResult) {
         case -1:
             MemCardExist(work->field_C);

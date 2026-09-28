@@ -271,13 +271,13 @@ static void Text_DrawGlyphDualSprtA(TextDrawReq* request, FontGlyph* glyph, s32 
     s32   temp;
 
     p                     = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor        = p + 1;
+    gGpuPrimCursor        = (u8*)(p + 1);
     PRIM_COLOR_WORD(p, 0) = arg2;
     setlen(p, 4);
     setcode(p, 0x66);
 
     p2             = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor = p2 + 1;
+    gGpuPrimCursor = (u8*)(p2 + 1);
     setlen(p2, 4);
     setcode(p2, 0x67);
 
@@ -302,13 +302,13 @@ static void Text_DrawGlyphDualSprt(TextDrawReq* request, FontGlyph* glyph, s32 a
     s32   temp;
 
     p                     = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor        = p + 1;
+    gGpuPrimCursor        = (u8*)(p + 1);
     PRIM_COLOR_WORD(p, 0) = arg2;
     setlen(p, 4);
     setcode(p, 0x64);
 
     p2             = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor = p2 + 1;
+    gGpuPrimCursor = (u8*)(p2 + 1);
     setlen(p2, 4);
     setcode(p2, 0x67);
 
@@ -334,13 +334,13 @@ static void Text_DrawGlyphDualSprtTpage(TextDrawReq* request, FontGlyph* glyph, 
     s32       temp;
 
     p                     = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor        = p + 1;
+    gGpuPrimCursor        = (u8*)(p + 1);
     PRIM_COLOR_WORD(p, 0) = arg2;
     setlen(p, 4);
     setcode(p, 0x64);
 
     p2             = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor = p2 + 1;
+    gGpuPrimCursor = (u8*)(p2 + 1);
     setlen(p2, 4);
     setcode(p2, 0x67);
 
@@ -356,14 +356,14 @@ static void Text_DrawGlyphDualSprtTpage(TextDrawReq* request, FontGlyph* glyph, 
 
     addPrim(gGpuCurrentOt + request->otIndex, p);
     dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
+    gGpuPrimCursor = (u8*)(dr + 1);
     setlen(dr, 1);
     dr->code[0] = 0xE100023F;
     addPrim(gGpuCurrentOt + request->otIndex, dr);
 
     addPrim(gGpuCurrentOt + request->otIndex, p2);
     dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
+    gGpuPrimCursor = (u8*)(dr + 1);
     setlen(dr, 1);
     dr->code[0] = 0xE100025F;
     addPrim(gGpuCurrentOt + request->otIndex, dr);
@@ -574,7 +574,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
     }
     if (request->field_E == 1 || request->field_E == 3) {
         dr             = gGpuPrimCursor;
-        gGpuPrimCursor = dr + 1;
+        gGpuPrimCursor = (u8*)(dr + 1);
         dr->code[0]    = 0xE100025F;
         setlen(dr, 1);
         addPrim(gGpuCurrentOt + request->otIndex + 1, dr);
@@ -582,13 +582,13 @@ void Text_DrawString(TextDrawReq* request, u8* text)
     if (request->field_E != 16) {
         if (request->field_E == 4) {
             dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
+            gGpuPrimCursor = (u8*)(dr + 1);
             dr->code[0]    = 0xE100025F;
             setlen(dr, 1);
             addPrim(gGpuCurrentOt + request->otIndex, dr);
         } else {
             dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
+            gGpuPrimCursor = (u8*)(dr + 1);
             dr->code[0]    = 0xE100023F;
             setlen(dr, 1);
             addPrim(gGpuCurrentOt + request->otIndex, dr);
@@ -964,7 +964,7 @@ static void Text_DrawGlyphQueued(TextDrawReq* request, FontGlyph* glyph, s32 arg
     s32   temp;
 
     p              = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
+    gGpuPrimCursor = (u8*)(p + 1);
     setlen(p, 4);
     PRIM_COLOR_WORD(p, 0) = arg2;
     setcode(p, 0x64);
@@ -985,7 +985,7 @@ static void Text_DrawGlyphOt(TextDrawReq* request, FontGlyph* glyph, s32 unusedC
     s32   temp;
 
     p              = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
+    gGpuPrimCursor = (u8*)(p + 1);
     setlen(p, 4);
     setcode(p, 0x67);
     p->x0   = request->x + (s8)glyph->off_x;

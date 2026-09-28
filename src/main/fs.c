@@ -534,7 +534,7 @@ static u8 Fs_ProcessChunkHeader(void)
 
     CdGetSector(&Fs_CdSector, 0x200);
     D_8006C4D4        = Fs_CdSector.bytes;
-    hdr               = (FsCdfChunkHeader*)D_8006C4D4;
+    hdr               = &Fs_CdSector.chunk.header;
     Fs_ChunkWritePtr  = hdr->loadAddr;
     Fs_ChunkEndSector = Fs_ReqSector - 1 + hdr->size;
     Fs_ChunkEndFlag   = hdr->endFlag;
@@ -1447,7 +1447,7 @@ u8 Fs_LoadImageChunk(FsImageChunk* chunk, u8 arg1)
         }
         if (GetRCnt(RCntCNT2) >= 0x6E40) {
             if (arg1 == 0) {
-                Fs_ContinueDrawing((u_long*)-1);
+                Fs_ContinueDrawing(ot);
                 return 0x7F;
             }
         }
@@ -1554,7 +1554,7 @@ void Fs_CopyWorkEntries(FsWorkEntry* arg0)
 u8 Fs_LoadImageStrip(s32 mode)
 {
     u_long*      ot;
-    s32          none;
+    u_long*      none;
     s32          retry;
     u8           count;
     u8*          scan;
@@ -1564,11 +1564,11 @@ u8 Fs_LoadImageStrip(s32 mode)
     if (ResetRCnt(RCntCNT2) == 0) {
         return 0xFF;
     }
-    none  = -1;
+    none  = (u_long*)-1;
     retry = (u8)mode;
     for (;;) {
         ot = BreakDraw();
-        if ((s32)ot != none) {
+        if (ot != none) {
             break;
         }
         if (GetRCnt(RCntCNT2) >= 0x6E40) {
