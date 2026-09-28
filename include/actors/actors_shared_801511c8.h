@@ -2,9 +2,10 @@
 #define ACTORS_SHARED_801511C8_H
 
 #include "common.h"
-#include "main/task.h"
 
 #include "gameplay/actor.h"
+
+#include "main/task_types.h"
 
 /// Work block of the task served by this shared body. Only the `GpObj` display
 /// node at 0x8 is reached from here -- `ActorsShared801511c8` is the exit

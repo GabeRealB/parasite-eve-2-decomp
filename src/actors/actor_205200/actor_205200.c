@@ -1,5 +1,4 @@
 #include "common.h"
-#include "main/fs.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -8,14 +7,6 @@
 
 #include "actors/actor_205200.h"
 #include "actors/actor.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/wipsys.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/damage.h"
@@ -29,7 +20,26 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/message.h"
+#include "gameplay/pairsrc.h"
+#include "gameplay/view.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/wipsys.h"
+#include "overlay.h"
 
 /// Work block of the controller task, allocated by its setup handler
 /// `func_actor_205200_8014A72C`. It spawns the parts, tracks the live ones
@@ -153,7 +163,7 @@ void func_actor_205200_80149E54(Task* arg0)
                 D_actor_205200_80156868[i].speed  = ((rand() * 100) >> 15) + 20;
             }
             D_actor_205200_8014CA5C        = 0;
-            D_actor_205200_80156814        = arg0->spawnArg2;
+            D_actor_205200_80156814        = arg0->spawnArg2.pointer;
             D_actor_205200_80156814->frame = 0;
             D_actor_205200_80156814->state = 0;
             Display_ClampField126(-8);
@@ -424,10 +434,10 @@ static void func_actor_205200_8014AB98(Task* arg0)
                 if (D_actor_205200_8015B458.state == 2) {
                     D_actor_205200_8015B458.span  = 0xF;
                     D_actor_205200_8015B458.scale = 0xA0;
-                    Task_SpawnFromTable(&D_actor_205200_8014CA44, 0, 0, (s32)&D_actor_205200_8015B458);
+                    Task_SpawnFromTable(&D_actor_205200_8014CA44, 0, 0, &D_actor_205200_8015B458);
                     Gp_ArmStateF0(1);
                     work->field_28 = 1;
-                    SndEvt_EnqueueType6(((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x40340002, 0, 0);
+                    SndEvt_EnqueueType6(((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40340002, 0, 0);
                 }
                 work->field_22 = 20;
                 work->field_26 = 1;
@@ -555,7 +565,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
     vec   = SCRATCH_PUSH(VECTOR);
     coord = arg0->extra.tmd->coords;
     part  = (Actor205200Part*)arg0->work;
-    enemy = arg0->spawnArg2;
+    enemy = arg0->spawnArg2.pointer;
     if (part->field_70 != 0) {
         part->field_70--;
         if (part->field_70 <= 0) {
@@ -724,7 +734,7 @@ void func_actor_205200_8014B8C0(Task* task)
         func_actor_205200_8014A958,
     };
 
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 static s32 func_actor_205200_8014B914(s32 arg0)
@@ -770,7 +780,7 @@ void func_actor_205200_8014B978(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = D_actor_205200_80149E24;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
 /// Per-frame tick of a live part. `Gp_StateF0.field_4` gates the body: mode 1 runs

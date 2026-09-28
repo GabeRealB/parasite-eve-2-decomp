@@ -3,9 +3,9 @@
 
 #include "common.h"
 
-#include "main/task.h"
-
 #include "gameplay/actor.h"
+
+#include "main/task_types.h"
 
 /// Work block the enemy's spawn function parks in the task's `Task::work`
 /// slot (that slot is not a `TaskIdMap` here). Only the three `GpObj` display

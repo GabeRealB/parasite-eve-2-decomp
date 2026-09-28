@@ -7,6 +7,10 @@
 #include "gameplay/animation.h"
 #include "gameplay/effects.h"
 
+#include "main/coord.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
+
 typedef struct Actor01600Range {
     /* 0x0 */ s32 low;
     /* 0x4 */ s32 high;

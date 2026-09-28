@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 /// 0x90-byte scratchpad frame `ActorsShared80163354` carves off
 /// `G_SCRATCH_HEAD` to draw a textured quad between two model parts: both

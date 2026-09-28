@@ -5,14 +5,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include "weapons/m4a1_javelin.h"
 
 #include "gameplay/actor.h"
@@ -25,8 +17,20 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/wipsys.h"
+#include "overlay.h"
 
 static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color);
 static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color);
@@ -91,7 +95,7 @@ static void func_m4a1_javelin_8011D1E4(Task* task)
     base  = &Gp_RoomCoords[1];
     slot  = &base->data.light;
     light = &base->data.coord;
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState != 0) {
@@ -704,7 +708,7 @@ static void func_m4a1_javelin_8011F4E8(Task* arg0)
     GpCoord*   coord;
     s16        flag;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -884,7 +888,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
             if (actor->field_979 != 0) {
                 actor->field_979--;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0 ||
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0 ||
                 ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
                 actor->field_940 = 0xC;
                 func_80106550(arg0);

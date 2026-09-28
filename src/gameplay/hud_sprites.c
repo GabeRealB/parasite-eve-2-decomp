@@ -35,23 +35,6 @@
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "main/coord.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gamemain.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/tmd.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
-
 /// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
 /// the prompt's left edge.
 #define DRAW_PROMPT_LABEL(req, dx, line, color, str)          \
@@ -63,7 +46,7 @@
         req.glyphTable = 5;                                   \
         req.centerMode = 0;                                   \
         req.field_E    = 1;                                   \
-        func_8002E53C(&req, (str));                           \
+        Text_DrawString(&req, (str));                           \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
@@ -76,11 +59,36 @@
         req.x          = obj.panel.field_20.u + 0x94;         \
         req.y          = (obj.panel.field_22.u + 9) + (line); \
         req.otIndex    = obj.panel.field_14.s + 1;            \
-        func_8002E53C(&req, Text_ItoaSigned(buf, (count)));   \
+        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));   \
         if ((count) == 0) {                                   \
             flag = 1;                                         \
         }                                                     \
     }
+
+/// 18-byte MATRIX rotation (3x3 s16). Assigned via unaligned lwl/lwr + lh/sh
+/// (see Gp_ApplyView). The trailing s16 (not u8[2]) keeps the last two bytes
+/// a halfword; a pure u8[18] emits lb/sb instead.
+typedef struct _GBytes18 {
+    u8  data[0x10];
+    s16 field_10;
+} GBytes18;
+
+#include "gameplay/damage.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
+#include "main/wipsys.h"
+#include <psyq/rand.h>
 
 /// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_HudTrackEnemy`.
 /// `field_14` / `field_16` are the current screen X/Y; `field_18` /
@@ -202,10 +210,6 @@ static s32 Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1);
 static void Gp_ResetView(void);
 
 static void func_800A8D5C(void);
-
-extern s32 Pad_MaskConfirm;
-
-extern s32 Pad_MaskCancel;
 
 #undef DRAW_PROMPT_LABEL
 #undef DRAW_PROMPT_COUNT
@@ -413,7 +417,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
     req.glyphTable = 5;
     req.centerMode = 0;
     req.field_E    = 1;
-    func_8002E53C(&req, Gp_StrHP);
+    Text_DrawString(&req, Gp_StrHP);
 
     if (max >= 0) {
         s32 val = cur;
@@ -432,7 +436,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
             s.text.req.glyphTable = 0;
             s.text.req.centerMode = 2;
             s.text.req.field_E    = 3;
-            func_8002E53C(&s.text.req, Text_ItoaUnsigned(s.text.buf, val));
+            Text_DrawString(&s.text.req, Text_ItoaUnsigned(s.text.buf, val));
         } else {
             s32 tx = x + 0x33;
             s32 ty = y + 0xA;
@@ -447,7 +451,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
             s.text.req.glyphTable = 0;
             s.text.req.centerMode = 2;
             s.text.req.field_E    = 3;
-            func_8002E53C(&s.text.req, Text_ItoaUnsigned(s.text.buf, val));
+            Text_DrawString(&s.text.req, Text_ItoaUnsigned(s.text.buf, val));
             span = 0x2D;
         }
 
@@ -525,7 +529,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         s.bar.req.glyphTable = 0;
         s.bar.req.centerMode = 2;
         s.bar.req.field_E    = 3;
-        func_8002E53C(&s.bar.req, D_800938AC);
+        Text_DrawString(&s.bar.req, D_800938AC);
         span = 0x2D;
     }
 
@@ -641,7 +645,7 @@ void Gp_StartAreaBgm(s16* arg0)
     if (cfg->hp <= 0) {
         SndEvt_EnqueueType6((gGameSession->deathVariant << 16) | 0x70000001, 0, 0);
     } else {
-        type = Mc_SaveData[0].companionType;
+        type = Mc_SaveData[0].state.companionType;
         if (type == 1) {
             SndEvt_EnqueueType6(((gGameSession->deathVariant + 0x31) << 16) | 0x70000001, 0, 0);
         } else if (type == 3) {
@@ -664,7 +668,7 @@ u8* Gp_GetAttachLevels(void)
         cond = p->field_26 == 4;
     }
     if (cond == 0) {
-        return Mc_SaveData[0].attachLevels;
+        return Mc_SaveData[0].state.attachLevels;
     }
     return Gp_DebugAttachLevels;
 }
@@ -742,7 +746,7 @@ static void Gp_StartPadReplay(void)
     if (ds->demoScene == 0x10) {
         Gp_ReplayCursor = (u16*)0x80600E4C;
     } else {
-        Gp_ReplayCursor = (u16*)((u8*)D_8005C374 + 0xD4C);
+        Gp_ReplayCursor = (u16*)((u8*)Fs_ActorLoadBase2 + 0xD4C);
     }
     Gp_ReplayButtons        = 0xFFFF;
     Gp_ReplayFramesLeft     = 1;
@@ -767,7 +771,7 @@ void Gp_PlayClockState2(Task* arg0)
             p->field_2 = (s8)session->field_12E;
             Task_SpawnPtr(1, 0x31, 0, p);
         }
-        arg0->spawnArg1 = 0;
+        arg0->spawnArg1.value = 0;
         arg0->state++;
     }
 }
@@ -775,12 +779,12 @@ void Gp_PlayClockState2(Task* arg0)
 void Gp_PlayClockState3(Task* arg0)
 {
     Gp_StartAreaBgm(&arg0->killCountdown);
-    arg0->spawnArg1++;
-    if (arg0->spawnArg1 == 0x40) {
+    arg0->spawnArg1.value++;
+    if (arg0->spawnArg1.value == 0x40) {
         if (gGameSession->restartMode == 3) {
             gDisplayState.skipDraw = 1;
         }
-        arg0->spawnArg1 = 0;
+        arg0->spawnArg1.value = 0;
         arg0->state++;
     }
 }
@@ -843,8 +847,8 @@ void Gp_DrawItemObtained(Task* arg0)
 {
     UiObject* obj;
 
-    obj = arg0->spawnArg2;
-    if (arg0->spawnArg1 == 2) {
+    obj = arg0->spawnArg2.pointer;
+    if (arg0->spawnArg1.value == 2) {
         if (arg0->state == 0) {
             Ui_UpdateLayoutSize(&(obj)->panel, Text_MeasureWidth(Gp_StrBonusItem) + 0xA, 0);
             obj->panel.bounds.unsignedRect.x -= 0xF;
@@ -861,7 +865,7 @@ void Gp_DrawItemTitle(Task* arg0)
 {
     UiObject* obj;
 
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     Ui_DrawTitle(&(obj)->panel, Gp_StrItem);
     if (obj->panel.field_0.w == 1) {
@@ -907,7 +911,7 @@ s32 Gp_GetAttachLevel(s32 arg0)
             cond = p->field_26 == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData[0].attachLevels;
+            table = Mc_SaveData[0].state.attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
@@ -938,7 +942,7 @@ static s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
         cond = p->field_26 == 4;
     }
     if (cond == 0) {
-        table = Mc_SaveData[0].attachLevels;
+        table = Mc_SaveData[0].state.attachLevels;
     } else {
         table = Gp_DebugAttachLevels;
     }
@@ -951,7 +955,7 @@ static s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
                     if (arg0 >= 0xC) {
                         arg0 = 0;
                     }
-                } while (table[arg0] == 0 && save->cheatMode == 0);
+                } while (table[arg0] == 0 && save->state.cheatMode == 0);
                 arg1--;
             } else {
                 do {
@@ -959,7 +963,7 @@ static s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
                     if (arg0 < 0) {
                         arg0 += 0xC;
                     }
-                } while (table[arg0] == 0 && save->cheatMode == 0);
+                } while (table[arg0] == 0 && save->state.cheatMode == 0);
                 arg1++;
             }
         } while (arg1 != 0);
@@ -1429,7 +1433,7 @@ void Gp_ApplyViewTask(Task* task)
     rot   = &gGfxViewRotCoord.coord;
     trans = MATRIX_TRANS(&gGfxViewCoord.coord);
     c1    = &Gfx_ViewOffsetCoord;
-    rec   = task->spawnArg2;
+    rec   = task->spawnArg2.pointer;
 
     *(GBytes18*)rot = *(GBytes18*)rec;
     *trans          = *MATRIX_TRANS(&rec->mtx);
@@ -1506,20 +1510,20 @@ void Gp_ViewGateTask(Task* task)
         task->state = 3;
     }
     save = &Mc_SaveData[0];
-    if (task->spawnArg1 != save->at4.loc.view) {
+    if (task->spawnArg1.value != save->state.at4.loc.view) {
         gGameSession->viewDirty = 1;
     }
     sess = gGameSession;
     if (sess->viewDirty != 0) {
         q = &CdCmd_Queue;
         if ((q->field_214 == 0) || (q->field_218 == 0)) {
-            sess->at4.loc.view = save->at4.loc.view;
+            sess->at4.loc.view = save->state.at4.loc.view;
             Pad_SetCooldown(0);
             Gp_SpawnViewTasks();
             if (Display_SpawnWithOtSmall(0, 0x1E, 0, 0) != 0) {
                 loc                 = (u8)gGameSession->at4.loc.view;
                 task->killCountdown = 2;
-                task->spawnArg1     = loc;
+                task->spawnArg1.value     = loc;
                 if (task->state == 3) {
                     task->state = 1;
                 }

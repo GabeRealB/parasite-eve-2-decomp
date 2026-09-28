@@ -4,7 +4,7 @@
 #include "common.h"
 
 #include "main/coord.h"
-#include "main/tmd.h"
+#include "main/tmd_types.h"
 
 /// The spawn argument and work record of `Gp_FadeWorkTask` (task 0x31), which
 /// fades the screen out through a semi-transparent full-screen quad. `field_0`

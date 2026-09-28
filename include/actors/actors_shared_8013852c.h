@@ -2,8 +2,8 @@
 #define ACTORS_SHARED_8013852C_H
 
 #include "common.h"
-#include "main/task.h"
-#include "main/tmd.h"
+
+#include "main/task_types.h"
 
 /// Message 0x7D5 handler: switches the enemy's model and display nodes between
 /// hidden and shown. `flags ^ 1` is the requested mode, latched in `field_BA0`

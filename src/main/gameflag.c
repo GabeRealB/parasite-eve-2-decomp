@@ -1,12 +1,13 @@
-#include "common.h"
-
 #include "main/gameflag.h"
-#include "main/mc.h"
+
+#include "types.h"
+
 #include "main/pad.h"
 #include "main/task.h"
+#include "task.h"
+#include "main/task_types.h"
 
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
 #include "gameplay/evs_scripts.h"
 
 TaskDesc D_80067734[] = {
@@ -31,31 +32,27 @@ TaskDesc D_80067734[] = {
     { 0xFFFF, 0x20, NULL },
 };
 
-void GameFlag_SetNibble(s32 arg0, s32 arg1)
+void GameFlag_SetNibble(s32 index, s32 value)
 {
     s32 idx;
 
-    idx = arg0 / 2;
-    if (arg0 & 1) {
-        u8* ptr = &D_80073980[idx];
-
-        ptr[4] = (ptr[4] & 0xF0) | (arg1 & 0xF);
+    idx = index / 2;
+    if (index & 1) {
+        GameFlag_NibbleBanks[0].data.values[idx] = (GameFlag_NibbleBanks[0].data.values[idx] & 0xF0) | (value & 0xF);
     } else {
-        u8* ptr = &D_80073980[idx];
-
-        ptr[4] = (ptr[4] & 0xF) | (arg1 << 4);
+        GameFlag_NibbleBanks[0].data.values[idx] = (GameFlag_NibbleBanks[0].data.values[idx] & 0xF) | (value << 4);
     }
 }
 
-s32 GameFlag_GetNibble(s32 arg0)
+s32 GameFlag_GetNibble(s32 index)
 {
     s32 idx;
 
-    idx = arg0 / 2;
-    if (arg0 & 1) {
-        return D_80073980[idx + 4] & 0xF;
+    idx = index / 2;
+    if (index & 1) {
+        return GameFlag_NibbleBanks[0].data.values[idx] & 0xF;
     }
-    return D_80073980[idx + 4] >> 4;
+    return GameFlag_NibbleBanks[0].data.values[idx] >> 4;
 }
 
 s32 Pad_CheckFlag800(void)

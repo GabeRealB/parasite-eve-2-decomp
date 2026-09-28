@@ -8,8 +8,8 @@
 
 #include "gameplay/view.h"
 
-#include "main/session.h"
-#include "main/task.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
 
 s32 Gp_IsDebugAttachRoom(void);
 

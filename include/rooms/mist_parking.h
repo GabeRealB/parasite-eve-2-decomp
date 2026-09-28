@@ -5,9 +5,9 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "main/task.h"
-#include "main/ui.h"
 #include "rooms/room_common.h"
+
+#include "main/task_types.h"
 
 /// Task descriptor tables the room spawns its tasks from.
 extern TaskDesc D_mist_parking_801869B8;

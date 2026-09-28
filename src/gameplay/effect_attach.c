@@ -14,12 +14,10 @@
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
 
-#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/session.h"
 #include "main/task.h"
-#include "main/tmd.h"
 
 /// Unreferenced nonzero tail; its original purpose is unknown.
 extern u32 D_80114B7C;
@@ -56,7 +54,7 @@ void Gp_EffAttachTask37(Task* arg0)
     s32        temp;
 
     extra  = arg0->extra.tmd;
-    mem    = arg0->spawnArg2;
+    mem    = arg0->spawnArg2.pointer;
     coord  = extra->coords;
     player = (gameGetPtrSlot(3))->extra.tmd->coords;
     flag   = Gp_State1C->eventState;
@@ -73,8 +71,8 @@ void Gp_EffAttachTask37(Task* arg0)
         case 0:
             extra->flags &= 0xFF7F;
             mem->scale    = 0x100;
-            if (arg0->spawnArg1 & 0xFFF) {
-                temp = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
+            if (arg0->spawnArg1.value & 0xFFF) {
+                temp = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0 & 0xFFF;
             } else {
                 temp = 0x200;
             }

@@ -1,20 +1,20 @@
-#include "common.h"
+#include "task.h"
 
-#define TASK_C
-#include "main/unknown_syms.h"
-#include "main/text.h"
+#include "types.h"
 
-#include "gameplay/model_objects.h"
 #include "main/display.h"
-#include "main/fs.h"
+#include "main/display_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
+#include "text.h"
+#include "main/tmd_types.h"
 
-static void Task_Free(Task* state);
-static void Task_Unlink(Task* state);
+#include "gameplay/display.h"
+#include "gameplay/model_objects.h"
 
-s32 D_8005ED8C = 0;
-
+/* Define BSS before API headers to preserve first-declaration order. */
 /// The task list the running code is working on: the list a spawned task joins
 /// and the list an unlinked node is taken out of.
 ///
@@ -24,9 +24,26 @@ s32 D_8005ED8C = 0;
 /// callback is running on rather than the main one; callers that must leave
 /// the value as they found it save it first and put it back afterwards.
 static TaskNode* gTaskActiveList;
-TaskNode         gTaskDefaultList;
+
+TaskNode gTaskDefaultList;
+
 /// Unreferenced.
 static u8 D_800716E8[8];
+
+#include "main/task.h"
+
+/// Links `task` into `list` ahead of the first task whose priority is higher,
+/// so the list stays in ascending priority order and equal priorities keep
+/// the order they were spawned in.
+static inline void _taskInsert(TaskNode* list, Task* task, u32 priority);
+
+static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskNode* list);
+
+static void Task_Unlink(Task* state);
+
+static void Task_Free(Task* state);
+
+s32 D_8005ED8C = 0;
 
 /// Links `task` into `list` ahead of the first task whose priority is higher,
 /// so the list stays in ascending priority order and equal priorities keep
@@ -52,7 +69,7 @@ static inline void _taskInsert(TaskNode* list, Task* task, u32 priority)
     *link           = &task->node;
 }
 
-static Task* Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* list)
+static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskNode* list)
 {
     Task*    task;
     TaskBody extra;
@@ -96,7 +113,7 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* li
         kind               = desc->flags & 0xFF;
         task->extra        = extra;
         task->spawnArg1    = arg1;
-        task->spawnArg2    = (void*)arg2;
+        task->spawnArg2    = arg2;
         task->parent       = NULL;
         task->firstChild   = NULL;
         task->nextSibling  = task;
@@ -261,31 +278,31 @@ imm_unlink:
     gTaskActiveList = saved;
 }
 
-Task* Task_SpawnFromTable(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
+Task* Task_SpawnFromTable(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
 {
-    return Task_SpawnFromDesc(&arg0[arg1], arg2, arg3, gTaskActiveList);
+    return Task_SpawnFromDesc(&descriptor[arg1], arg2, arg3, gTaskActiveList);
 }
 
-Task* Task_Spawn(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+Task* Task_Spawn(s32 arg0, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
 {
     TaskDesc* ptr;
 
     if (arg0 >= 0) {
         ptr = gTaskDescBanks[arg0];
-        ptr = &ptr[arg1];
+        ptr = &ptr[arg1.value];
     } else {
-        ptr = (TaskDesc*)arg1;
+        ptr = arg1.pointer;
     }
     return Task_SpawnFromDesc(ptr, arg2, arg3, gTaskActiveList);
 }
 
-void Task_KillChildren(Task* arg0)
+void Task_KillChildren(Task* task)
 {
     Task* start;
     Task* cur;
     Task* temp;
 
-    temp = arg0->firstChild;
+    temp = task->firstChild;
     if (temp != NULL) {
         start = temp;
         cur   = start;
@@ -295,42 +312,42 @@ void Task_KillChildren(Task* arg0)
             cur = cur->nextSibling;
         } while (cur != start);
     }
-    arg0->firstChild = NULL;
+    task->firstChild = NULL;
 }
 
-void Task_CallExit(Task* arg0)
+void Task_CallExit(Task* task)
 {
-    arg0->exitCallback(arg0);
+    task->exitCallback(task);
 }
 
-void Task_DetachFromParent(Task* arg0)
+void Task_DetachFromParent(Task* task)
 {
     Task* parent;
     Task* next;
     Task* cur;
 
-    parent = arg0->parent;
+    parent = task->parent;
     if (parent == NULL) {
         return;
     }
 
-    next = arg0->nextSibling;
-    if (next == arg0) {
+    next = task->nextSibling;
+    if (next == task) {
         parent->firstChild = NULL;
     } else {
-        if (parent->firstChild == arg0) {
+        if (parent->firstChild == task) {
             parent->firstChild = next;
         }
-        cur = arg0;
-        if (arg0->nextSibling != arg0) {
+        cur = task;
+        if (task->nextSibling != task) {
             do {
                 cur = cur->nextSibling;
-            } while (cur->nextSibling != arg0);
+            } while (cur->nextSibling != task);
         }
-        cur->nextSibling  = arg0->nextSibling;
-        arg0->nextSibling = arg0;
+        cur->nextSibling  = task->nextSibling;
+        task->nextSibling = task;
     }
-    arg0->parent = NULL;
+    task->parent = NULL;
 }
 
 void Task_Reparent(Task* arg0, Task* arg1)
@@ -436,17 +453,17 @@ TaskDesc* Task_GetDescAt(TaskDesc* base, u32 idx)
     return base + idx;
 }
 
-void Task_RequestKill(Task* arg0, s32 arg1)
+void Task_RequestKill(Task* task, s32 arg1)
 {
     Task* start;
     Task* cur;
     Task* temp;
 
-    arg0->status     = 0xFF;
-    arg0->extraState = arg1;
-    arg0->callback   = textNoopCallback;
+    task->status     = 0xFF;
+    task->extraState = arg1;
+    task->callback   = textNoopCallback;
 
-    temp = arg0->firstChild;
+    temp = task->firstChild;
     if (temp != NULL) {
         start = temp;
         cur   = start;
@@ -456,19 +473,19 @@ void Task_RequestKill(Task* arg0, s32 arg1)
             cur = cur->nextSibling;
         } while (cur != start);
     }
-    arg0->firstChild = NULL;
+    task->firstChild = NULL;
 }
 
-s32 Task_PollKill(Task* arg0, s32* arg1)
+s32 Task_PollKill(Task* task, s32* arg1)
 {
     s32 result;
 
     result = 0;
-    if (arg0->status == 0xFF) {
+    if (task->status == 0xFF) {
         if (arg1 != NULL) {
-            *arg1 = arg0->extraState;
+            *arg1 = task->extraState;
         }
-        arg0->exitCallback(arg0);
+        task->exitCallback(task);
         result = 1;
     }
     return result;

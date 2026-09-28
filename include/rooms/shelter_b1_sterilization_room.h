@@ -4,10 +4,10 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-
-#include "main/task.h"
-#include "main/ui.h"
 #include "rooms/room.h"
+
+#include "main/task_types.h"
+#include "main/ui_types.h"
 
 /// The "%" suffix appended to a formatted percentage.
 extern u8 D_shelter_b1_sterilization_room_80184594[];

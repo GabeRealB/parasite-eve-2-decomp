@@ -2,17 +2,6 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/ui.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -25,6 +14,20 @@
 #include "gameplay/items.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/evs.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
 
 extern void func_80132210(void);
 extern void func_801322B8(void);
@@ -155,8 +158,8 @@ void func_shelter_1f_tent_8017D6C8(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_shelter_1f_tent_801819C0);
-            Text_FormatTime(p, Mc_SaveData[0].playTime);
+            Text_DrawString(&req, D_shelter_1f_tent_801819C0);
+            Text_FormatTime(p, Mc_SaveData[0].state.playTime);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -172,8 +175,8 @@ void func_shelter_1f_tent_8017D6C8(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_shelter_1f_tent_801819F0);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].saveCount);
+            Text_DrawString(&req, D_shelter_1f_tent_801819F0);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].state.saveCount);
             Text_Strcat(p, D_shelter_1f_tent_80181A10);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -190,8 +193,8 @@ void func_shelter_1f_tent_8017D6C8(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_shelter_1f_tent_801819C8);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].field_6CC);
+            Text_DrawString(&req, D_shelter_1f_tent_801819C8);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_6CC);
             Text_Strcat(p, D_shelter_1f_tent_80181A10);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -208,8 +211,8 @@ void func_shelter_1f_tent_8017D6C8(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_shelter_1f_tent_801819CC);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].field_6CE);
+            Text_DrawString(&req, D_shelter_1f_tent_801819CC);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_6CE);
             Text_Strcat(p, D_shelter_1f_tent_80181A10);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -231,14 +234,14 @@ void func_shelter_1f_tent_8017D6C8(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_shelter_1f_tent_801819D4);
-            if (Mc_SaveData[0].field_6CC == 0) {
+            Text_DrawString(&req, D_shelter_1f_tent_801819D4);
+            if (Mc_SaveData[0].state.field_6CC == 0) {
                 pct = 0;
             } else {
-                pct = (Mc_SaveData[0].field_6CC * 10000) / (Mc_SaveData[0].field_6CC + Mc_SaveData[0].field_6CE);
+                pct = (Mc_SaveData[0].state.field_6CC * 10000) / (Mc_SaveData[0].state.field_6CC + Mc_SaveData[0].state.field_6CE);
             }
             if (pct < 100) {
-                func_8002F44C(p, pct, 3);
+                Text_ItoaPadded(p, pct, 3);
             } else {
                 Text_ItoaUnsigned(p, pct);
             }
@@ -273,7 +276,7 @@ void func_shelter_1f_tent_8017D6C8(UiList* arg0, UiObject* arg1)
             s32         i;
             u8*         q;
 
-            total          = Mc_SaveData[0].field_6CC;
+            total          = Mc_SaveData[0].state.field_6CC;
             req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
             y              = arg1->panel.field_22.u - 6;
             req.y          = (u16)arg0->field_1A + y;
@@ -282,7 +285,7 @@ void func_shelter_1f_tent_8017D6C8(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_shelter_1f_tent_801819E0);
+            Text_DrawString(&req, D_shelter_1f_tent_801819E0);
             cnt   = 326;
             total = total + (GameFlag_GetNibble(0x167) + GameFlag_GetNibble(0x168));
             if (total == 0) {
@@ -291,7 +294,7 @@ void func_shelter_1f_tent_8017D6C8(UiList* arg0, UiObject* arg1)
                 pct = (total * 10000) / cnt;
             }
             if (pct < 100) {
-                func_8002F44C(p, pct, 3);
+                Text_ItoaPadded(p, pct, 3);
             } else {
                 Text_ItoaUnsigned(p, pct);
             }
@@ -329,8 +332,8 @@ void func_shelter_1f_tent_8017D6C8(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_shelter_1f_tent_801819F8);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].clearCount);
+            Text_DrawString(&req, D_shelter_1f_tent_801819F8);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].state.clearCount);
             Text_Strcat(p, D_shelter_1f_tent_80181A10);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -347,8 +350,8 @@ void func_shelter_1f_tent_8017D6C8(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_shelter_1f_tent_80181A00);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].field_92C), arg0->field_1C, 3, 2);
+            Text_DrawString(&req, D_shelter_1f_tent_80181A00);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_92C), arg0->field_1C, 3, 2);
             break;
         }
         case 8: {
@@ -363,8 +366,8 @@ void func_shelter_1f_tent_8017D6C8(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_shelter_1f_tent_80181A08);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].field_930), arg0->field_1C, 3, 2);
+            Text_DrawString(&req, D_shelter_1f_tent_80181A08);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_930), arg0->field_1C, 3, 2);
             break;
         }
     }
@@ -425,7 +428,7 @@ void func_shelter_1f_tent_8017DE94(UiList* arg0, UiObject* arg1)
         req.glyphTable = 0;
         req.centerMode = 0;
         r->field_E     = 1;
-        func_8002E53C(r, (u8*)Gp_GetItemText(item, 0, 0));
+        Text_DrawString(r, (u8*)Gp_GetItemText(item, 0, 0));
         func_800CE5D0(arg1, x, y, item);
     }
     limit = 1;
@@ -436,7 +439,7 @@ void func_shelter_1f_tent_8017DE94(UiList* arg0, UiObject* arg1)
             limit *= 10;
         }
         if (value < limit) {
-            func_8002F44C(p, value, 3);
+            Text_ItoaPadded(p, value, 3);
         } else {
             Text_ItoaUnsigned(p, value);
         }
@@ -493,7 +496,7 @@ void func_shelter_1f_tent_8017DE94(UiList* arg0, UiObject* arg1)
         addPrim(gGpuCurrentOt + arg1->panel.field_14.s + 1, prim);
     }
     one = 1;
-    func_80046B34(&(arg1)->panel, barX, arg0->field_1A - 0xC, barW, 9, 0, one);
+    Ui_DrawBeveledRect(&(arg1)->panel, barX, arg0->field_1A - 0xC, barW, 9, 0, one);
     if (((arg1->panel.field_0.w >> 16) == one) || (arg1->panel.field_0.w == one)) {
         if (arg0->field_10 == arg0->field_8) {
             Gp_SetPreviewItem(item, 0);
@@ -510,7 +513,7 @@ void func_shelter_1f_tent_8017DE94(UiList* arg0, UiObject* arg1)
 }
 
 /// Builds the "Play Data" item-usage panel's three parallel arrays from the
-/// save's per-item use counters (`Mc_SaveData[0].weaponUseCounts`, ids 0x80-0x9F).
+/// save's per-item use counters (`Mc_SaveData[0].state.weaponUseCounts`, ids 0x80-0x9F).
 ///
 /// Every id whose name is non-empty (a leading 0 or 0xA marks an unused row)
 /// and whose counter is non-zero is marked seen and appended to `itemIds`,
@@ -545,19 +548,19 @@ static void func_shelter_1f_tent_8017E290(UiList* list, UiObject* obj)
     for (i = 0; i < 0x20; i++) {
         id = i + 0x80;
         c  = *Gp_GetItemText(id, 0, 1);
-        if ((c != 0) && (c != 0xA) && (Mc_SaveData[0].weaponUseCounts[i] > 0)) {
+        if ((c != 0) && (c != 0xA) && (Mc_SaveData[0].state.weaponUseCounts[i] > 0)) {
             Gp_SetItemSeenBit(id, 1);
             *p++ = id;
             count++;
-            total += Mc_SaveData[0].weaponUseCounts[i];
+            total += Mc_SaveData[0].state.weaponUseCounts[i];
         }
     }
 
     if (count >= 2) {
         for (i = 1; i < count; i++) {
-            uses = Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80];
+            uses = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80];
             for (j = 0; j < i; j++) {
-                if (Mc_SaveData[0].weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
+                if (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
                     tmp = work->itemIds[i];
                     for (k = i - 1; k >= j; k--) {
                         work->itemIds[k + 1] = work->itemIds[k];
@@ -571,7 +574,7 @@ static void func_shelter_1f_tent_8017E290(UiList* list, UiObject* obj)
 
     if (count > 0) {
         scale = 0x4E20;
-        top   = Mc_SaveData[0].weaponUseCounts[work->itemIds[0] - 0x80];
+        top   = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[0] - 0x80];
         shift = 0xC;
         while (top > 0x1869F) {
             top   >>= 1;
@@ -581,9 +584,9 @@ static void func_shelter_1f_tent_8017E290(UiList* list, UiObject* obj)
         }
         for (i = 0; i < count; i++) {
             work->percents[i] =
-                (u32)((Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
+                (u32)((Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
             work->barWidths[i] =
-                (Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
+                (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
         }
     }
 
@@ -596,10 +599,10 @@ static void func_shelter_1f_tent_8017E290(UiList* list, UiObject* obj)
 /// save's per-slot use counters.
 ///
 /// Each of the twelve Parasite Energy slots owns three consecutive ids starting
-/// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].attachLevels[i]`
+/// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].state.attachLevels[i]`
 /// prints as `i * 3 + 0xF + level - 1` (a slot the player has never levelled
 /// keeps the base id). Every slot with a non-zero counter in
-/// `Mc_SaveData[0].attachUseCounts` is appended and its counter summed. Levels
+/// `Mc_SaveData[0].state.attachUseCounts` is appended and its counter summed. Levels
 /// are addressed by page and column, with three slots per page. The ids are
 /// then insertion-sorted by use count, most-used first, and each row gets
 /// `percents`, its share of all recorded uses in hundredths of a percent, and
@@ -632,7 +635,7 @@ static void func_shelter_1f_tent_8017E58C(UiList* list, UiObject* obj)
     for (; i < 12; i++) {
         s32 useCount;
 
-        useCount = Mc_SaveData[0].attachUseCounts[i];
+        useCount = Mc_SaveData[0].state.attachUseCounts[i];
         id       = i * 3 + 0xF;
         if (useCount > 0) {
             s32 page;
@@ -641,22 +644,22 @@ static void func_shelter_1f_tent_8017E58C(UiList* list, UiObject* obj)
             page   = i / 3;
             column = i % 3;
             *p     = id;
-            if (Mc_SaveData[0].attachLevels[column + page * 3] != 0) {
-                *p = id + (Mc_SaveData[0].attachLevels[column + page * 3] - 1u);
+            if (Mc_SaveData[0].state.attachLevels[column + page * 3] != 0) {
+                *p = id + (Mc_SaveData[0].state.attachLevels[column + page * 3] - 1u);
             }
             p++;
             count++;
-            total += Mc_SaveData[0].attachUseCounts[i];
+            total += Mc_SaveData[0].state.attachUseCounts[i];
         }
     }
 
     if (count >= 2) {
         for (i = 1; i < count; i++) {
             slot = (work->peIds[i] - 0xF) / 3;
-            uses = Mc_SaveData[0].attachUseCounts[slot];
+            uses = Mc_SaveData[0].state.attachUseCounts[slot];
             for (j = 0; j < i; j++) {
                 slot = (work->peIds[j] - 0xF) / 3;
-                if (Mc_SaveData[0].attachUseCounts[slot] < uses) {
+                if (Mc_SaveData[0].state.attachUseCounts[slot] < uses) {
                     tmp = work->peIds[i];
                     for (k = i - 1; k >= j; k--) {
                         work->peIds[k + 1] = work->peIds[k];
@@ -671,7 +674,7 @@ static void func_shelter_1f_tent_8017E58C(UiList* list, UiObject* obj)
     if (count > 0) {
         scale = 0x4E20;
         slot  = (work->peIds[0] - 0xF) / 3;
-        top   = Mc_SaveData[0].attachUseCounts[slot];
+        top   = Mc_SaveData[0].state.attachUseCounts[slot];
         shift = 0xC;
         while (top > 0x1869F) {
             top   >>= 1;
@@ -681,9 +684,9 @@ static void func_shelter_1f_tent_8017E58C(UiList* list, UiObject* obj)
         }
         for (i = 0; i < count; i++) {
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->percents[i]  = (u32)((Mc_SaveData[0].attachUseCounts[slot] * scale) / total + 1) >> 1;
+            work->percents[i]  = (u32)((Mc_SaveData[0].state.attachUseCounts[slot] * scale) / total + 1) >> 1;
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->barWidths[i] = (Mc_SaveData[0].attachUseCounts[slot] << shift) / top;
+            work->barWidths[i] = (Mc_SaveData[0].state.attachUseCounts[slot] << shift) / top;
         }
     }
 
@@ -708,10 +711,10 @@ void func_shelter_1f_tent_8017E8AC(Task* task)
     UiObject* childObj;
     void*     work;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     list          = &D_shelter_1f_tent_80181C0C;
-    if (task->spawnArg1 == 0) {
+    if (task->spawnArg1.value == 0) {
         Ui_DrawText(&(obj)->panel, D_shelter_1f_tent_8017D624);
     } else {
         Ui_DrawText(&(obj)->panel, D_shelter_1f_tent_8017D630);
@@ -723,7 +726,7 @@ void func_shelter_1f_tent_8017E8AC(Task* task)
         }
         task->work = work;
         Ui_SpawnFromDesc(&D_shelter_1f_tent_80181C30, 0, 0, 1, obj);
-        if (task->spawnArg1 == 0) {
+        if (task->spawnArg1.value == 0) {
             func_shelter_1f_tent_8017E290(list, obj);
         } else {
             func_shelter_1f_tent_8017E58C(list, obj);
@@ -740,7 +743,7 @@ void func_shelter_1f_tent_8017E8AC(Task* task)
     if (task->firstChild != NULL) {
         child = task->firstChild;
         do {
-            childObj = child->spawnArg2;
+            childObj = child->spawnArg2.pointer;
             next     = child->nextSibling;
             if (childObj->field_2E == -1 || childObj->field_2E == 6) {
                 Ui_TeardownTree(childObj, childObj->owner);
@@ -769,12 +772,12 @@ static void func_shelter_1f_tent_8017EA60(Task* task)
     s32       mode;
     s32       one;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
-    ready         = Mc_SaveData[0].demoScene == 1;
+    ready         = Mc_SaveData[0].state.demoScene == 1;
     list          = &D_shelter_1f_tent_80181C94;
     one           = 1;
-    if (Mc_SaveData[0].clearCount > 0) {
+    if (Mc_SaveData[0].state.clearCount > 0) {
         ready = one;
     }
     if (ready == 0) {
@@ -815,7 +818,7 @@ static void func_shelter_1f_tent_8017EA60(Task* task)
     }
     child = task->firstChild;
     if (child != NULL) {
-        childObj = child->spawnArg2;
+        childObj = child->spawnArg2.pointer;
         sel      = childObj->field_2E;
         switch (sel) {
             case 6:
@@ -872,7 +875,7 @@ void func_shelter_1f_tent_8017ED58(Task* task)
 {
     UiObject* obj;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     if (task->state == 0) {
         Wip_UiHolder       = obj;
@@ -926,7 +929,7 @@ static u8* func_shelter_1f_tent_8017EE24(u8* buf, s32 value, s32 decimals)
     }
 
     if (value < limit) {
-        func_8002F44C(buf, value, decimals + 1);
+        Text_ItoaPadded(buf, value, decimals + 1);
     } else {
         Text_ItoaUnsigned(buf, value);
     }
@@ -963,7 +966,7 @@ void func_shelter_1f_tent_8017EF18(Task* task)
     UiList*   list;
 
     list          = &D_shelter_1f_tent_80181BE4;
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, D_shelter_1f_tent_8017D610);
     if (task->state == 0) {
@@ -1079,7 +1082,7 @@ static void func_shelter_1f_tent_8017F448(Task* task)
 {
     UiObject* holder;
 
-    holder = task->spawnArg2;
+    holder = task->spawnArg2.pointer;
     if (Wip_UiHolder == holder) {
         Wip_UiHolder = NULL;
     }
@@ -1095,18 +1098,18 @@ void func_shelter_1f_tent_8017F484(Task* task)
     RoomCutsceneRec* script;
     McSaveData*      save;
 
-    script = task->spawnArg2;
+    script = task->spawnArg2.pointer;
     switch (task->state) {
         case 0:
             D_shelter_1f_tent_801843C0 = NULL;
             Gp_MsgPlayerWeapon(0);
             save = &Mc_SaveData[0];
-            if (save->companionType == 1) {
+            if (save->state.companionType == 1) {
                 Gp_MsgAllyWeapon(0);
             }
             if (script->field_0 > 0) {
-                D_80115694         = save->at4.loc.view;
-                save->at4.loc.view = (u8)script->field_0;
+                D_80115694         = save->state.at4.loc.view;
+                save->state.at4.loc.view = (u8)script->field_0;
             } else {
                 D_80115694 = -script->field_0;
             }
@@ -1189,7 +1192,7 @@ void func_shelter_1f_tent_8017F484(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
+                    if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -1203,7 +1206,7 @@ void func_shelter_1f_tent_8017F484(Task* task)
                     GameFlag_SetNibble(3, 1);
                     task->state = 0x14;
                 } else {
-                    Gp_RunCapCmd1(task->spawnArg1);
+                    Gp_RunCapCmd1(task->spawnArg1.value);
                     task->state++;
                 }
             }
@@ -1219,7 +1222,7 @@ void func_shelter_1f_tent_8017F484(Task* task)
         case 11:
             Gp_MsgPlayer3F3(1);
             Gp_MsgAlly3F3(1);
-            Mc_SaveData[0].at4.loc.view = (u8)D_80115694;
+            Mc_SaveData[0].state.at4.loc.view = (u8)D_80115694;
             task->state++;
             break;
         case 12:
@@ -1229,7 +1232,7 @@ void func_shelter_1f_tent_8017F484(Task* task)
         case 14:
             SndEvt_EnqueueType6(script->field_8, 0, 0);
             Gp_MsgPlayerWeapon(1);
-            if (Mc_SaveData[0].companionType == 1) {
+            if (Mc_SaveData[0].state.companionType == 1) {
                 Gp_MsgAllyWeapon(1);
             }
             gGameSession->hideHud    = 0;
@@ -1335,7 +1338,7 @@ void func_shelter_1f_tent_8017FBC4(Task* task)
     switch (task->state) {
         case 0x50:
         case 0x0:
-            SndEvt_EnqueueType6((s32)task->spawnArg2, 0, 0);
+            SndEvt_EnqueueType6(task->spawnArg2.value, 0, 0);
             task->state += 1;
             break;
         case 0x78:
@@ -1377,7 +1380,7 @@ s32 func_shelter_1f_tent_8017FCA0(s32 arg0, s32 arg1, s32 arg2)
         D_shelter_1f_tent_801843C4.field_8  = 0x551C0006;
         D_shelter_1f_tent_801843C4.field_10 = 0x551C0004;
         D_shelter_1f_tent_801843C4.field_C  = 0x551C0005;
-        Task_SpawnFromTable(&D_shelter_1f_tent_80181CB8, 0, 0xC, (s32)&D_shelter_1f_tent_801843C4);
+        Task_SpawnFromTable(&D_shelter_1f_tent_80181CB8, 0, 0xC, &D_shelter_1f_tent_801843C4);
     }
     return 0;
 }

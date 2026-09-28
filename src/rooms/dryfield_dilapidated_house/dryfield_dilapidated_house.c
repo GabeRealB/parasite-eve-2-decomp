@@ -7,15 +7,6 @@
 #include "gte.h"
 #include <psyq/abs.h>
 #include <psyq/rand.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -33,8 +24,26 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "overlay.h"
 
 /// Work block of the task family whose state-0 init is
 /// `func_dryfield_dilapidated_house_80180B84`, which allocates it with
@@ -100,7 +109,7 @@ STATIC_ASSERT_SIZEOF(DdhAngleStep, 0x40);
 
 /// Work block of the three effect handlers `func_dryfield_dilapidated_house_80182744`,
 /// `func_dryfield_dilapidated_house_80183C8C` and
-/// `func_dryfield_dilapidated_house_80183D5C`, reached as `task->spawnArg2`
+/// `func_dryfield_dilapidated_house_80183D5C`, reached as `task->spawnArg2.pointer`
 /// and handed to `Gp_ReleaseState1CMem` when their ramp runs out. `field_24` is a
 /// scale and `field_26` an angle in the 0x100-step rotation space: the pair starts
 /// at 0x80 / 0x100, steps by -8 and +0x80 per frame and drives one
@@ -264,7 +273,7 @@ void func_dryfield_dilapidated_house_8017D64C(Task* arg0)
                 D_dryfield_dilapidated_house_80189BD4[i].speed  = (rand() * 100 + 20) >> 15;
             }
             D_dryfield_dilapidated_house_80183E60        = 0;
-            D_dryfield_dilapidated_house_80189B74        = arg0->spawnArg2;
+            D_dryfield_dilapidated_house_80189B74        = arg0->spawnArg2.pointer;
             D_dryfield_dilapidated_house_80189B74->frame = 0;
             D_dryfield_dilapidated_house_80189B74->state = 0;
             Display_ClampField126(-8);
@@ -398,7 +407,7 @@ void func_dryfield_dilapidated_house_8017DE88(Task* task)
     s32                 i;
     u32*                strip;
 
-    args = task->spawnArg2;
+    args = task->spawnArg2.pointer;
     if (D_801156F9 == 0) {
         switch (task->state) {
             case 0:
@@ -502,7 +511,7 @@ void func_dryfield_dilapidated_house_8017E144(Task* task)
             case 1:
                 break;
             case 2:
-                D_dryfield_dilapidated_house_80189B70 = task->spawnArg1;
+                D_dryfield_dilapidated_house_80189B70 = task->spawnArg1.value;
                 task->state                           = task->state + 1;
                 /* fallthrough */
             case 3:
@@ -541,7 +550,7 @@ void func_dryfield_dilapidated_house_8017E144(Task* task)
 /// state 1 fires when the session is back in play (`gGameSession->eventState`
 /// is 2) and hands slot 0 the release event 0x1B, state 6 waits for the room
 /// message (`gGameSession->field_126`), and state 7 -- reached once the save
-/// has not already banked this clear (`Mc_SaveData[0].demoScene`) -- applies the
+/// has not already banked this clear (`Mc_SaveData[0].state.demoScene`) -- applies the
 /// room's two area records, raises the progression flags, refills the party
 /// and hands off to the results screen with `Task_Spawn(0, 0x11, 0, 0)`.
 /// States 0..6 share the `advance` tail that walks the task one state on;
@@ -579,7 +588,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
             } while (0);
             return;
         case 7:
-            if (Mc_SaveData[0].demoScene != 9) {
+            if (Mc_SaveData[0].state.demoScene != 9) {
                 Gp_ApplyAreaRecs(&D_dryfield_dilapidated_house_80189AA0);
                 if (GameFlag_GetNibble(0xCE) != 0) {
                     Gp_ApplyAreaRecs(&D_dryfield_dilapidated_house_80189B24);
@@ -594,11 +603,11 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
                 GameFlag_SetNibble(0x155, 0);
                 Gp_FillPlayerHpMp();
                 Gp_FillAllyHp();
-                Mc_SaveData[0].sceneEvent    = 1;
-                Mc_SaveData[0].at4.loc.stage = 2;
-                Mc_SaveData[0].at4.loc.warp  = 1;
-                Mc_SaveData[0].at4.loc.room  = 1;
-                Mc_SaveData[0].at4.loc.area  = 8;
+                Mc_SaveData[0].state.sceneEvent    = 1;
+                Mc_SaveData[0].state.at4.loc.stage = 2;
+                Mc_SaveData[0].state.at4.loc.warp  = 1;
+                Mc_SaveData[0].state.at4.loc.room  = 1;
+                Mc_SaveData[0].state.at4.loc.area  = 8;
                 gDisplayState.roomVariant    = 1;
                 Task_Spawn(0, 0x11, 0, 0);
             }
@@ -733,7 +742,7 @@ void func_dryfield_dilapidated_house_8017E6DC(Task* arg0)
     temp_v1 = arg0->state;
     switch (temp_v1) { /* irregular */
         case 0:
-            arg0->spawnArg1 = 0;
+            arg0->spawnArg1.value = 0;
             arg0->state    += 1;
             return;
         case 2:
@@ -753,11 +762,11 @@ void func_dryfield_dilapidated_house_8017E780(Task* arg0)
     temp_v1 = arg0->state;
     switch (temp_v1) { /* irregular */
         case 0:
-            D_dryfield_dilapidated_house_80189B6C = arg0->spawnArg1;
+            D_dryfield_dilapidated_house_80189B6C = arg0->spawnArg1.value;
             arg0->state                          += 1;
             return;
         case 1:
-            var_a0 = (s32)(D_dryfield_dilapidated_house_80189B6C * 3) / (s32)arg0->spawnArg1;
+            var_a0 = (s32)(D_dryfield_dilapidated_house_80189B6C * 3) / (s32)arg0->spawnArg1.value;
             if (D_dryfield_dilapidated_house_80189B6C & 1) {
                 var_a0 = -var_a0;
             }
@@ -775,14 +784,14 @@ void func_dryfield_dilapidated_house_8017E858(Task* arg0)
 {
     s32 var_v0;
 
-    var_v0 = arg0->spawnArg1;
+    var_v0 = arg0->spawnArg1.value;
     if (var_v0 < 0) {
         Stage_SetEndingFlag();
         taskKill(arg0);
-        var_v0 = arg0->spawnArg1;
+        var_v0 = arg0->spawnArg1.value;
     }
     var_v0          = var_v0 - 1;
-    arg0->spawnArg1 = var_v0;
+    arg0->spawnArg1.value = var_v0;
 }
 
 /// State handlers of the task `func_dryfield_dilapidated_house_80181134` dispatches.
@@ -849,7 +858,7 @@ void func_dryfield_dilapidated_house_8017E8E8(s32 arg0)
                 D_dryfield_dilapidated_house_80189C94.span  = 5;
                 D_dryfield_dilapidated_house_80189C94.scale = 0x100;
             }
-            Task_SpawnFromTable(&D_dryfield_dilapidated_house_80183E48, 0, 0, (s32)&D_dryfield_dilapidated_house_80189C94);
+            Task_SpawnFromTable(&D_dryfield_dilapidated_house_80183E48, 0, 0, &D_dryfield_dilapidated_house_80189C94);
         }
     } else {
         D_dryfield_dilapidated_house_80189C94.state = arg0;
@@ -864,7 +873,7 @@ void func_dryfield_dilapidated_house_8017E970(s32 arg0)
         return;
     }
     D_dryfield_dilapidated_house_80189B7C->state     = 2;
-    D_dryfield_dilapidated_house_80189B7C->spawnArg1 = arg0;
+    D_dryfield_dilapidated_house_80189B7C->spawnArg1.value = arg0;
 }
 
 static void func_dryfield_dilapidated_house_8017E9A4(s32 arg0)
@@ -873,7 +882,7 @@ static void func_dryfield_dilapidated_house_8017E9A4(s32 arg0)
         Gp_SpawnScript18(&D_80114A24, &D_80114A34);
         D_dryfield_dilapidated_house_80189B80 = arg0;
         Task_SpawnFromTable(&D_dryfield_dilapidated_house_80183E64, 0, 0,
-                            (s32)&D_dryfield_dilapidated_house_80189B80);
+                            &D_dryfield_dilapidated_house_80189B80);
         return;
     }
     D_dryfield_dilapidated_house_80189B82[0] = 1;
@@ -883,7 +892,7 @@ void func_dryfield_dilapidated_house_8017EA10(s32 arg0)
 {
     if (arg0 != 0) {
         D_dryfield_dilapidated_house_801857E8 =
-            Task_SpawnFromTable(D_dryfield_dilapidated_house_80186854, 0, 3, (s32)gameGetPtrSlot(3));
+            Task_SpawnFromTable(D_dryfield_dilapidated_house_80186854, 0, 3, gameGetPtrSlot(3));
         return;
     }
     if (D_dryfield_dilapidated_house_801857E8 != NULL) {
@@ -950,7 +959,7 @@ static void func_dryfield_dilapidated_house_8017EBB8(Task* task)
     s32      i;
 
     i   = 0;
-    mtx = &((DdhCoordWork*)((Task*)task->spawnArg2)->work)->mtx;
+    mtx = &((DdhCoordWork*)((Task*)task->spawnArg2.pointer)->work)->mtx;
     do {
         sc.vec.vx = D_dryfield_dilapidated_house_801866B4[i].vx;
         sc.vec.vy = D_dryfield_dilapidated_house_801866B4[i].vy;
@@ -1018,7 +1027,7 @@ static void func_dryfield_dilapidated_house_8017EE58(Task* task)
     LINE_F2* line;
     s32      i;
 
-    mtx = &((DdhCoordWork*)((Task*)task->spawnArg2)->work)->mtx;
+    mtx = &((DdhCoordWork*)((Task*)task->spawnArg2.pointer)->work)->mtx;
     for (i = 20; i >= 0; i--) {
         func_dryfield_dilapidated_house_8017F418(D_dryfield_dilapidated_house_801866B4, D_dryfield_dilapidated_house_801866B4 + 3, 20, i, out);
         vec.vx = out[0];
@@ -1145,7 +1154,7 @@ static void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts,
     s32       a, b, c, d;
 
     quad                 = D_dryfield_dilapidated_house_801866F4[0];
-    scale                = ((DdhCoordWork*)((Task*)task->spawnArg2)->work)->field_4;
+    scale                = ((DdhCoordWork*)((Task*)task->spawnArg2.pointer)->work)->field_4;
     task->killCountdown += 0x40;
     if (task->killCountdown >= 0x800) {
         task->killCountdown = 0;
@@ -1266,8 +1275,8 @@ static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts,
     s32            dy;
     s32            side;
 
-    side = task->spawnArg1;
-    work = ((Task*)task->spawnArg2)->work;
+    side = task->spawnArg1.value;
+    work = ((Task*)task->spawnArg2.pointer)->work;
     mtx  = &work->mtx;
     f    = work->field_4;
     a.vx = D_dryfield_dilapidated_house_80186794[0].vx;
@@ -1391,7 +1400,7 @@ static void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts)
     v     = verts;
     p     = sxy;
     z     = sz;
-    level = ((DdhCoordWork*)((Task*)task->spawnArg2)->work)->field_8;
+    level = ((DdhCoordWork*)((Task*)task->spawnArg2.pointer)->work)->field_8;
     SetRotMatrix(&gGfxViewCoord.workm);
     SetTransMatrix(&gGfxViewCoord.workm);
     for (i = 0; i < 16; i++) {
@@ -1474,7 +1483,7 @@ static void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
     v1 = &verts[16];
 
     work = (DdhAngleStep*)task->work;
-    src  = (DdhCoordWork*)((Task*)task->spawnArg2)->work;
+    src  = (DdhCoordWork*)((Task*)task->spawnArg2.pointer)->work;
 
     ofs       = D_dryfield_dilapidated_house_80186844;
     ofs2      = D_dryfield_dilapidated_house_80186844 + 1;
@@ -1621,7 +1630,7 @@ static void func_dryfield_dilapidated_house_80180B84(Task* task)
     u16           flags;
     s32           i;
 
-    parent      = (Task*)task->spawnArg2;
+    parent      = (Task*)task->spawnArg2.pointer;
     obj         = task->extra.tmd;
     parentObj   = parent->extra.tmd;
     coord       = obj->coords;
@@ -1640,7 +1649,7 @@ static void func_dryfield_dilapidated_house_80180B84(Task* task)
     }
     obj->otOffset = 4;
     obj->flags   |= 2;
-    parentCoord  += task->spawnArg1;
+    parentCoord  += task->spawnArg1.value;
     coord->flg    = 0;
     coord->sub    = parentCoord;
     obj->lightMtx = parentObj->lightMtx;
@@ -1669,22 +1678,22 @@ static void func_dryfield_dilapidated_house_80180B84(Task* task)
     func_dryfield_dilapidated_house_80180FD8(task);
 
     table   = D_dryfield_dilapidated_house_80186854;
-    spawned = Task_SpawnFromTable(table, 3, 9, (s32)task);
+    spawned = Task_SpawnFromTable(table, 3, 9, task);
     if (spawned != NULL) {
         childCoord        = spawned->extra.tmd->coords;
         childCoord->coord = work->mtx;
     }
-    spawned = Task_SpawnFromTable(table, 3, 0x11, (s32)task);
+    spawned = Task_SpawnFromTable(table, 3, 0x11, task);
     if (spawned != NULL) {
         childCoord        = spawned->extra.tmd->coords;
         childCoord->coord = work->mtx;
     }
-    spawned = Task_SpawnFromTable(table, 2, 0, (s32)task);
+    spawned = Task_SpawnFromTable(table, 2, 0, task);
     if (spawned != NULL) {
         childCoord        = spawned->extra.tmd->coords;
         childCoord->coord = work->mtx;
     }
-    spawned = Task_SpawnFromTable(table, 2, 1, (s32)task);
+    spawned = Task_SpawnFromTable(table, 2, 1, task);
     if (spawned != NULL) {
         childCoord        = spawned->extra.tmd->coords;
         childCoord->coord = work->mtx;
@@ -1712,7 +1721,7 @@ static void func_dryfield_dilapidated_house_80180F5C(Task* arg0)
 
     work = (DdhCoordWork*)arg0->work;
     func_dryfield_dilapidated_house_801810F8(arg0->extra.tmd,
-                                             ((Task*)arg0->spawnArg2)->extra.tmd);
+                                             ((Task*)arg0->spawnArg2.pointer)->extra.tmd);
     func_dryfield_dilapidated_house_80181028(arg0);
     temp_v0       = func_dryfield_dilapidated_house_80180FD8(arg0);
     work->field_0 = temp_v0;
@@ -1759,7 +1768,7 @@ static void func_dryfield_dilapidated_house_80181028(Task* task)
 
     coord                  = task->extra.tmd->coords;
     work                   = (DdhCoordWork*)task->work;
-    node                   = ((Task*)task->spawnArg2)->extra.tmd->coords;
+    node                   = ((Task*)task->spawnArg2.pointer)->extra.tmd->coords;
     mtx                    = &work->mtx;
     *(s32*)&work->mtx      = ONE;
     MATRIX_PAIR(mtx, 0, 2) = 0;
@@ -1820,7 +1829,7 @@ static void func_dryfield_dilapidated_house_8018118C(Task* arg0)
     work->field_20 = 0x1000;
     work->mtx      = coord->coord;
     obj->flags    |= 0x80;
-    Task_Reparent((Task*)arg0->spawnArg2, arg0);
+    Task_Reparent((Task*)arg0->spawnArg2.pointer, arg0);
     arg0->state += 1;
 }
 
@@ -1863,8 +1872,8 @@ static void func_dryfield_dilapidated_house_80181340(Task* arg0)
         return;
     }
     arg0->work = work;
-    coord->sub = ((Task*)arg0->spawnArg2)->extra.tmd->coords;
-    Task_Reparent((Task*)arg0->spawnArg2, arg0);
+    coord->sub = ((Task*)arg0->spawnArg2.pointer)->extra.tmd->coords;
+    Task_Reparent((Task*)arg0->spawnArg2.pointer, arg0);
     arg0->exitCallback = func_dryfield_dilapidated_house_8018142C;
     arg0->state       += 1;
 }
@@ -1919,10 +1928,10 @@ static void func_dryfield_dilapidated_house_801814B4(Task* arg0)
     }
     arg0->work = (TaskIdMap*)work;
     for (i = 0; i < 0x10; i++) {
-        work->step[i] = (D_dryfield_dilapidated_house_80186804[i] * arg0->spawnArg1) & 0x3FFF;
+        work->step[i] = (D_dryfield_dilapidated_house_80186804[i] * arg0->spawnArg1.value) & 0x3FFF;
     }
-    coord->sub = ((Task*)arg0->spawnArg2)->extra.tmd->coords;
-    Task_Reparent((Task*)arg0->spawnArg2, arg0);
+    coord->sub = ((Task*)arg0->spawnArg2.pointer)->extra.tmd->coords;
+    Task_Reparent((Task*)arg0->spawnArg2.pointer, arg0);
     arg0->state += 1;
 }
 
@@ -2094,7 +2103,7 @@ static void func_dryfield_dilapidated_house_80181F08(Task* task)
     SVECTOR*   vec;
     s32        i;
 
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
@@ -2161,7 +2170,7 @@ static void func_dryfield_dilapidated_house_80181F08(Task* task)
                     Gp_UpdateCoord(dst);
                 }
                 func_dryfield_dilapidated_house_801823B8(work->age & 7, 0x210);
-                if (work->age == task->spawnArg1 && work->age != 0) {
+                if (work->age == task->spawnArg1.value && work->age != 0) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
@@ -2263,7 +2272,7 @@ static void func_dryfield_dilapidated_house_80182744(Task* task)
     s32           i;
     u8            rgb[3];
 
-    work           = task->spawnArg2;
+    work           = task->spawnArg2.pointer;
     coord          = task->extra.tmd->coords;
     tick           = work->field_22;
     tick1          = tick + 1;
@@ -2652,7 +2661,7 @@ static void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
     s32         scale;
     s32         angle;
 
-    mem  = arg0->spawnArg2;
+    mem  = arg0->spawnArg2.pointer;
     flag = Gp_State1C->eventState;
     if (flag != 0) {
         if (flag >= 4) {
@@ -2680,7 +2689,7 @@ static void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
 }
 
 /// Per-frame handler of the effect family whose work block is `DdhEffWork`
-/// (`task->spawnArg2`). While the `Gp_State1C` state word at 0x4 is clear it
+/// (`task->spawnArg2.pointer`). While the `Gp_State1C` state word at 0x4 is clear it
 /// seeds the ramp (0x80 / 0x100) on the first frame and then, every frame,
 /// clears the model coordinate's update flag, refreshes the coordinate and feeds
 /// the angle/scale pair to `func_dryfield_dilapidated_house_80183728`, stepping
@@ -2695,7 +2704,7 @@ static void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
     s32         scale;
     s32         angle;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -2706,7 +2715,7 @@ static void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
     }
 
     if (arg0->state == 0) {
-        Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1, 0);
+        Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1.value, 0);
         coord->flg = 0;
         Gp_UpdateCoord(coord);
         mem->field_24 = 0x80;

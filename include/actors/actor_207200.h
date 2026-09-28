@@ -5,8 +5,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/effects.h"

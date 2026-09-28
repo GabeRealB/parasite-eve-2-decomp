@@ -5,14 +5,8 @@
 
 #include "gameplay/areaplace.h"
 
-#include "main/task.h"
-
-/// Per-area variant selector and persistent spawn flags. field_0 is compared
-/// with GpAreaKey.place; field_1 holds bits 0/1/2/4 read by the area helpers.
-typedef struct _GpAreaObj {
-    s8 field_0;
-    u8 field_1;
-} GpAreaObj;
+#include "main/gameflag_types.h"
+#include "main/task_types.h"
 
 /// One 0xFF-terminated area resource entry. The CD loader uses field_2/field_4;
 /// spawning uses field_5/field_8. TaskDesc.flags also controls the model flags.

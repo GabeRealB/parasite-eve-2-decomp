@@ -1,11 +1,43 @@
-#include "common.h"
+#include "main/mem.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/malloc.h>
 #include <psyq/stdio.h>
 
-#include "main/mem.h"
+#include "types.h"
 
+#include "mem.h"
+
+/// Extent in bytes of the primary heap.
+#define G_HEAP_SIZE 0xFF80
+
+/// Selects the heap the allocation routines operate on.
+///
+/// `malloc3` and `free3` work inside one heap at a time, and a block has to be
+/// released to the heap it came from, so the heap in play is set before each
+/// operation rather than once at start-up. The primary heap is the fixed
+/// region at `gMemHeap`; the auxiliary heap is the region `gMemActiveAuxHeap`
+/// currently points at.
+///
+/// @param auxHeap If `true`, the auxiliary heap becomes the active one,
+///                otherwise the primary heap.
 static void memSetActiveHeap(bool auxHeap);
+
+// The rom contains an empty function that is never called.
+// Might have been a debug utility that is not present in
+// the release.
+static void Mem_Dummy0();
+
+// `_freep` is exported by libapi: the block within a heap that `malloc3`
+// and `free3` begin their search from. `InitHeap3` sets it to the heap it
+// initializes, and the two routines move it as that heap's blocks are taken
+// and released. Each heap is an independent ring of blocks, so writing
+// `_freep` is what selects the active heap. The developers decided to
+// repurpose the existing heap utilities instead of writing a custom
+// implementation.
+//
+// NOLINTNEXTLINE
+extern u8* _freep;
 
 void Mem_Set(void* dest, u32 ch, u32 count)
 {
@@ -61,17 +93,6 @@ void Mem_Set(void* dest, u32 ch, u32 count)
         i++;
     }
 }
-
-// `_freep` is exported by libapi: the block within a heap that `malloc3`
-// and `free3` begin their search from. `InitHeap3` sets it to the heap it
-// initializes, and the two routines move it as that heap's blocks are taken
-// and released. Each heap is an independent ring of blocks, so writing
-// `_freep` is what selects the active heap. The developers decided to
-// repurpose the existing heap utilities instead of writing a custom
-// implementation.
-//
-// NOLINTNEXTLINE
-extern u8* _freep;
 
 void* memCalloc(size_t size, bool auxHeap)
 {
@@ -209,8 +230,8 @@ void Mem_SetActiveAuxHeap(bool aux0)
 {
     switch (aux0 & 0xFFFF) {
         case false:
-            gMemActiveAuxHeap  = D_800691F4;
-            GActiveAuxHeapSize = D_800691F8;
+            gMemActiveAuxHeap  = Mem_AuxRegionBase;
+            GActiveAuxHeapSize = Mem_AuxRegionBytes;
             break;
 
         case true:

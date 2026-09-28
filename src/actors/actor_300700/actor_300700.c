@@ -3,11 +3,6 @@
 #include "actors/actor.h"
 #include "actors/actor_300700.h"
 #include "actors/actor_300700_spawn2.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include "psyq/inline_c.h"
 #include "gte.h"
 
@@ -21,9 +16,23 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
+#include "gameplay/pairsrc.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
 #include "main/gamemain.h"
-#include "main/gfx.h"
+#include "main/gfx_types.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
+#include "overlay.h"
 
 /// The 0x2F4-byte allocation `func_actor_300700_80161E80` makes with
 /// `memCalloc` and stores in the task's work slot, then fills with the three
@@ -153,7 +162,7 @@ static void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
     work->field_2AC       = (s32)coord->coord.t[0];
     work->field_2B0       = (s32)coord->coord.t[1];
     work->field_2B4       = (s32)coord->coord.t[2];
-    work->field_2DC       = (u16)((GpEnemy*)arg1->spawnArg2)->place->yaw;
+    work->field_2DC       = (u16)((GpEnemy*)arg1->spawnArg2.pointer)->place->yaw;
     work->obj134.coord    = coord;
     work->obj134.ctx.recs = &work->rec154;
     work->obj134.pos.vx   = 0;
@@ -301,7 +310,7 @@ static void func_actor_300700_801622B4(Task* arg0)
             break;
         case 1:
             arg0->state                     = 2;
-            ((GpEnemy*)arg0->spawnArg2)->hp = 0;
+            ((GpEnemy*)arg0->spawnArg2.pointer)->hp = 0;
             Gp_ArmStateF0(1);
             break;
         case 2:
@@ -320,9 +329,9 @@ static void func_actor_300700_801622B4(Task* arg0)
                 damage = 1;
                 amount = 1;
             }
-            func_800DA6E8(&((GpEnemy*)arg0->spawnArg2)->node, amount, 0);
-            func_800E2C78(arg0->spawnArg2, (s32)work->field_154.hit.id.w, damage, 0);
-            ((GpEnemy*)arg0->spawnArg2)->hp = 0;
+            func_800DA6E8(&((GpEnemy*)arg0->spawnArg2.pointer)->node, amount, 0);
+            func_800E2C78(arg0->spawnArg2.pointer, (s32)work->field_154.hit.id.w, damage, 0);
+            ((GpEnemy*)arg0->spawnArg2.pointer)->hp = 0;
             func_800FDB18(Gp_GetIdParam1((s32)work->field_154.hit.id.w) & 0xFFFF, arg0->extra.tmd->coords, 0,
                           &work->field_224);
             break;
@@ -515,7 +524,7 @@ static void func_actor_300700_801628C8(Task* arg0)
             }
             break;
         case 1:
-            speed = D_actor_300700_80165B78[((GpEnemy*)arg0->spawnArg2)->place->rowIndex] +
+            speed = D_actor_300700_80165B78[((GpEnemy*)arg0->spawnArg2.pointer)->place->rowIndex] +
                     (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1F);
             coord->coord.t[0] += (coord->coord.m[0][2] * speed) >> 12;
             coord->coord.t[2] += (coord->coord.m[2][2] * speed) >> 12;
@@ -727,7 +736,7 @@ static void func_actor_300700_8016335C(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = D_actor_300700_80161E24;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
 /// Updates the actor's lighting colour from the world position of its model
@@ -741,7 +750,7 @@ static void func_actor_300700_801633B8(Task* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2, &vec, 0, 0);
+    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
 static void func_actor_300700_80163410(Task* arg0)

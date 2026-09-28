@@ -4,11 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/stdio.h>
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 
 #include "gameplay/collision.h"
@@ -17,7 +12,14 @@
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/world_state.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/session.h"
+#include "main/task.h"
 
 /// A placement for a spawned task: the x and z written into its coordinate
 /// translation (y is always zero) and the Y rotation passed to
@@ -227,7 +229,7 @@ static void func_neo_ark_forest_zone_80180620(Task* task)
             if (Gp_LookupSlot4(i) == 0) {
                 break;
             }
-            obj = Gp_LookupSlot4(i)->spawnArg2;
+            obj = Gp_LookupSlot4(i)->spawnArg2.pointer;
             if (obj == NULL) {
                 break;
             }
@@ -285,7 +287,7 @@ s32 func_neo_ark_forest_zone_80180A60(Task* task, s32 arg1, GpCmdArg* msg)
                 if (Gp_LookupSlot4(0) != 0) {
                     Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB,
                                       &D_neo_ark_forest_zone_80182E44, 0);
-                    obj                                              = Gp_LookupSlot4(0)->spawnArg2;
+                    obj                                              = Gp_LookupSlot4(0)->spawnArg2.pointer;
                     Gp_LookupSlot4(0)->extra.tmd->coords->coord.t[0] = 5;
                     Gp_LookupSlot4(0)->extra.tmd->coords->coord.t[1] = 0;
                     Gp_LookupSlot4(0)->extra.tmd->coords->coord.t[2] = -0x320;
@@ -404,7 +406,7 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
             if (Gp_LookupSlot4(i) == 0) {
                 break;
             }
-            obj = Gp_LookupSlot4(i)->spawnArg2;
+            obj = Gp_LookupSlot4(i)->spawnArg2.pointer;
             if (obj == NULL) {
                 break;
             }

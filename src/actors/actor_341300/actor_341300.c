@@ -6,13 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/abs.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 /// One step of gameplay's LCG, `state = state * 5 + 0x71357911`, as its high half.
 #define ACTOR_341300_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
@@ -22,8 +15,16 @@
 #include "gameplay/display.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+
+#include "gameplay/enemy.h"
+#include "main/display.h"
+#include "main/fs.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
 
 /// 0x30 block `func_actor_341300_80162878` and `func_actor_341300_801631D4`
 /// allocate into `Task::work`: a tumbling Gouraud triangle shard with its own
@@ -277,7 +278,7 @@ void func_actor_341300_801625AC(void)
 
 void func_actor_341300_80162680(s8 arg0)
 {
-    Mc_SaveData[0].sceneEvent = arg0;
+    Mc_SaveData[0].state.sceneEvent = arg0;
 }
 
 static void func_actor_341300_8016268C(void)
@@ -295,7 +296,7 @@ void func_actor_341300_80162698(Task* arg0)
         case 0:
             i = 0;
             do {
-                Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 0, (s32)arg0);
+                Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 0, arg0);
                 next = i + 1;
                 i    = next;
             } while (next < 0xA);
@@ -306,7 +307,7 @@ void func_actor_341300_80162698(Task* arg0)
             i                   = 0;
             if ((s16)count >= 0x1F) {
                 do {
-                    Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 0, (s32)arg0);
+                    Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 0, arg0);
                     next = i + 1;
                     i    = next;
                 } while (next < 0xA);
@@ -319,7 +320,7 @@ void func_actor_341300_80162698(Task* arg0)
             i                   = 0;
             if ((s16)count >= 0x10) {
                 do {
-                    Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 1, (s32)arg0);
+                    Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 1, arg0);
                     next = i + 1;
                     i    = next;
                 } while (next < 0xA);
@@ -333,8 +334,8 @@ void func_actor_341300_80162698(Task* arg0)
             i                   = 0;
             if ((s16)count >= 0x10) {
                 do {
-                    Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 3, (s32)arg0);
-                    Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 1, (s32)arg0);
+                    Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 3, arg0);
+                    Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 1, arg0);
                     next = i + 1;
                     i    = next;
                 } while (next < 0xA);
@@ -379,10 +380,10 @@ void func_actor_341300_80162878(Task* arg0)
             work       = (Actor341300Shard*)arg0->work;
             coord->sub = &gGfxViewCoord;
             Mem_Set(arg0->work, 0, 0x30);
-            Task_Reparent(arg0->spawnArg2, arg0);
-            coord->coord.t[0] = D_actor_341300_80165A38[arg0->spawnArg1].vx;
-            coord->coord.t[1] = D_actor_341300_80165A38[arg0->spawnArg1].vy;
-            coord->coord.t[2] = D_actor_341300_80165A38[arg0->spawnArg1].vz;
+            Task_Reparent(arg0->spawnArg2.pointer, arg0);
+            coord->coord.t[0] = D_actor_341300_80165A38[arg0->spawnArg1.value].vx;
+            coord->coord.t[1] = D_actor_341300_80165A38[arg0->spawnArg1.value].vy;
+            coord->coord.t[2] = D_actor_341300_80165A38[arg0->spawnArg1.value].vz;
             work->vel.vx      = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x1F) : -(ACTOR_341300_RAND() & 0x1F);
             work->vel.vy      = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x1F) : -(ACTOR_341300_RAND() & 0x1F);
             work->vel.vz      = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x1F) : -(ACTOR_341300_RAND() & 0x1F);
@@ -489,9 +490,9 @@ void func_actor_341300_80163028(Task* arg0)
             count               = (u16)arg0->killCountdown + 1;
             arg0->killCountdown = count;
             if ((s16)count % 3 == 0) {
-                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 0, (s32)arg0);
-                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 1, (s32)arg0);
-                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 1, (s32)arg0);
+                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 0, arg0);
+                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 1, arg0);
+                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 1, arg0);
                 arg0->state = arg0->state + 1;
             }
             break;
@@ -499,9 +500,9 @@ void func_actor_341300_80163028(Task* arg0)
             count               = (u16)arg0->killCountdown + 1;
             arg0->killCountdown = count;
             if ((s16)count % 3 == 0) {
-                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 0, (s32)arg0);
-                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 0, (s32)arg0);
-                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 1, (s32)arg0);
+                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 0, arg0);
+                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 0, arg0);
+                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 1, arg0);
                 arg0->state = arg0->state - 1;
             }
             break;
@@ -537,11 +538,11 @@ void func_actor_341300_801631D4(Task* arg0)
             work       = (Actor341300Shard*)arg0->work;
             coord->sub = &gGfxViewCoord;
             Mem_Set(arg0->work, 0, 0x30);
-            Task_Reparent(arg0->spawnArg2, arg0);
-            coord->coord.t[0] = D_actor_341300_80165A58[arg0->spawnArg1].vx;
-            coord->coord.t[1] = D_actor_341300_80165A58[arg0->spawnArg1].vy;
-            coord->coord.t[2] = D_actor_341300_80165A58[arg0->spawnArg1].vz;
-            if (arg0->spawnArg1 == 0) {
+            Task_Reparent(arg0->spawnArg2.pointer, arg0);
+            coord->coord.t[0] = D_actor_341300_80165A58[arg0->spawnArg1.value].vx;
+            coord->coord.t[1] = D_actor_341300_80165A58[arg0->spawnArg1.value].vy;
+            coord->coord.t[2] = D_actor_341300_80165A58[arg0->spawnArg1.value].vz;
+            if (arg0->spawnArg1.value == 0) {
                 work->vel.vx = ACTOR_341300_RAND() & 0x1F;
             } else {
                 work->vel.vx = -(ACTOR_341300_RAND() & 0x1F);
@@ -665,8 +666,8 @@ void func_actor_341300_80163A10(Task* arg0)
             }
         } else if (++arg0->killCountdown >= 0x10) {
             for (i = 0; i < 0xA; i++) {
-                Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 0, (s32)arg0);
-                Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 1, (s32)arg0);
+                Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 0, arg0);
+                Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 1, arg0);
             }
             arg0->killCountdown = 0;
             arg0->state++;

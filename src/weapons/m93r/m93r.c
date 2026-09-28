@@ -3,10 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/display.h"
@@ -14,7 +10,11 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
-#include "main/fs.h"
+
+#include "gameplay/animation.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
 
 /// Per-frame firing state machine for the M93R burst pistol. Case 0 arms the
 /// shot (four-tick reload window, `field_979` grace of 10) and queues the
@@ -126,7 +126,7 @@ static void func_m93r_8011D1C4(Task* arg0)
             if ((actor->field_962 & actor->field_96A) != 0) {
                 lockedOut = actor->field_979 == 0;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0 || lockedOut) {
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0 || lockedOut) {
                 if (lockedOut) {
                     actor->field_940 = 0xA;
                 } else {

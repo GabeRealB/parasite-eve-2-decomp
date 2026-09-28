@@ -2,10 +2,6 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/tmd.h"
 #include "weapons/m4a1_grenade.h"
 
 #include "gameplay/actor_render.h"
@@ -17,8 +13,19 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/animation.h"
+#include "gameplay/geometry.h"
+#include "gameplay/room.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
 #include "main/wipsys.h"
+#include "weapons/weapon.h"
 
 /// Equipped-weapon index; `Gp_GetItemSlot(Player_Status.weapon + 0x7F)` is the slot the
 /// player is holding, and its `attachId` is the attachment id the sound bank is
@@ -156,7 +163,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
             if (actor->field_979 != 0) {
                 actor->field_979--;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0 ||
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0 ||
                 ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
                 actor->field_940 = 0xC;
                 func_80106550(arg0);
@@ -225,7 +232,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     work->obj.pos.vx   = 0;
     work->obj.pos.vy   = 0;
     work->obj.pos.vz   = 0;
-    work->obj.key      = (u16)arg0->spawnArg1 | 0x20000;
+    work->obj.key      = (u16)arg0->spawnArg1.value | 0x20000;
     work->obj.radius   = 0x94;
     work->obj.flags    = 1;
     Gp_LinkObj(1, &work->obj);
@@ -316,7 +323,7 @@ check:
         arg0->state = 3;
         goto move;
     }
-    if (idx == 1 && Mc_SaveData[0].at4.loc.area == 0x14 && (u32)(Mc_SaveData[0].at4.loc.stage - 2) < 2U) {
+    if (idx == 1 && Mc_SaveData[0].state.at4.loc.area == 0x14 && (u32)(Mc_SaveData[0].state.at4.loc.stage - 2) < 2U) {
         goto explode;
     }
     goto move;

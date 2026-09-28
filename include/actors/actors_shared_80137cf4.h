@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 /// The part of the carriers' work block this body touches. Each carrier's block
 /// is its own type (`Actor107000Work`, ...); the shared unit only names the

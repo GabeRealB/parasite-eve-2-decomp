@@ -1,74 +1,95 @@
-#include "common.h"
+#include "ui.h"
 
-#include <psyq/libmcrd.h>
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
-#include "main/unknown_syms.h"
+#include "types.h"
+
+#include "mc.h"
 #include "main/pad.h"
+#include "main/sound.h"
+#include "main/task_types.h"
 #include "main/text.h"
 #include "main/ui.h"
-#include "main/mc.h"
+#include "main/ui_types.h"
 
-#include "gameplay/display.h"
-#include "main/fs.h"
-#include "main/sound.h"
-#include "main/task.h"
+static const char McText_Select[];
 
-static void McMenu_ConfirmDialog(UiList* arg0, UiObject* arg1);
-static void McMenu_ConfirmNo(UiList* arg0, UiObject* arg1);
-static void McMenu_ConfirmDialogAlt(UiList* arg0, UiObject* arg1);
-static void McMenu_ConfirmYes(UiList* arg0, UiObject* arg1);
-static void McMenu_InitByMode(Task* arg0);
+static UiListItemFunc Mc_YesNoCallbacks[];
 
-static const char D_80013B64[] = "Select";
-const char        D_80013B6C[] = "TIME";
-const char        D_80013B74[] = "CLEAR";
-const char        D_80013B7C[] = "Nightmare";
-const char        D_80013B88[] = "Scavenger";
-const char        D_80013B94[] = "Bounty";
-const char        D_80013B9C[] = "Replay";
-const char        D_80013BA4[] = " (";
-const char        D_80013BA8[] = "EXP";
-const char        D_80013BAC[] = "---";
-const char        D_80013BB0[] = "BP";
+static UiList Mc_YesNoList;
 
-static UiListItemFunc D_80061254[] = { McMenu_ConfirmDialog, McMenu_ConfirmNo };
-static UiList         D_8006125C   = { D_80061254, 2, 2, 0, 0x0F };
-static UiListItemFunc D_80061280[] = { McMenu_ConfirmDialogAlt };
-static UiList         D_80061284   = { D_80061280, 1, 1, 0, 0x0F };
-static UiListItemFunc D_800612A8[] = { McMenu_ConfirmYes };
-static UiList         D_800612AC   = { D_800612A8, 1, 1, 0, 0x0F };
-UiObjectDesc          D_800612D0[] = {
+static UiListItemFunc Mc_OkCallbacks[];
+
+static UiList Mc_OkList;
+
+static UiListItemFunc Mc_YesCallbacks[];
+
+static UiList Mc_YesList;
+
+static void McMenu_UpdateListCursor(void* arg0, UiPanel* panel);
+
+static void McMenu_ConfirmDialog(UiList* list, UiObject* object);
+
+static void McMenu_ConfirmDialogAlt(UiList* list, UiObject* object);
+
+static void McMenu_ConfirmYes(UiList* list, UiObject* object);
+
+static void McMenu_ConfirmNo(UiList* list, UiObject* object);
+
+static void McMenu_InitByMode(Task* task);
+
+static const char McText_Select[]      = "Select";
+const char        McText_Time[]        = "TIME";
+const char        McText_Clear[]       = "CLEAR";
+const char        McText_Nightmare[]   = "Nightmare";
+const char        McText_Scavenger[]   = "Scavenger";
+const char        McText_Bounty[]      = "Bounty";
+const char        McText_Replay[]      = "Replay";
+const char        McText_OpenParen[]   = " (";
+const char        McText_Exp[]         = "EXP";
+const char        McText_Unavailable[] = "---";
+const char        McText_Bp[]          = "BP";
+
+static UiListItemFunc Mc_YesNoCallbacks[] = { McMenu_ConfirmDialog, McMenu_ConfirmNo };
+static UiList         Mc_YesNoList        = { Mc_YesNoCallbacks, 2, 2, 0, 0x0F };
+static UiListItemFunc Mc_OkCallbacks[]    = { McMenu_ConfirmDialogAlt };
+static UiList         Mc_OkList           = { Mc_OkCallbacks, 1, 1, 0, 0x0F };
+static UiListItemFunc Mc_YesCallbacks[]   = { McMenu_ConfirmYes };
+static UiList         Mc_YesList          = { Mc_YesCallbacks, 1, 1, 0, 0x0F };
+UiObjectDesc          Mc_PromptDesc[]     = {
     { 0, 0, 0, 0x4B, 0x20, 0x10, 0, 0, 0xC0, McMenu_InitByMode, 0 },
 };
 
-void func_80036A1C(void)
+void McMenu_NoOpTask(Task* unused)
 {
     char pad[0x10];
 }
 
-static void McMenu_UpdateListCursor(void* arg0, UiPanel* arg1)
+static void McMenu_UpdateListCursor(void* arg0, UiPanel* panel)
 {
-    Ui_UpdateListNoAnim(arg0, arg1);
-    if (arg1->field_0.w == 1) {
-        Ui_SmoothCursor(arg1, arg1->field_1C.s + 2, 0);
+    Ui_UpdateListNoAnim(arg0, panel);
+    if (panel->field_0.w == 1) {
+        Ui_SmoothCursor(panel, panel->field_1C.s + 2, 0);
     }
 }
 
-void McMenu_SelectList(Task* arg0)
+void McMenu_SelectList(Task* task)
 {
     UiPanel* obj;
     UiList*  menu;
 
-    obj  = arg0->spawnArg2;
-    menu = &D_8006116C;
-    Ui_DrawText(obj, D_80013B64);
-    if (arg0->state == 0) {
+    obj  = task->spawnArg2.pointer;
+    menu = &Mc_SaveSlotList;
+    Ui_DrawText(obj, McText_Select);
+    if (task->state == 0) {
         Ui_InitList(menu, obj);
         menu->field_A   = 1;
         menu->field_10  = 0;
         menu->field_9.u = 0;
         Ui_SetListScrollFlag(menu, 1);
-        arg0->state += 1;
+        task->state += 1;
     } else {
         Ui_UpdateListNoAnim(menu, obj);
         if (obj->field_0.w == 1) {
@@ -77,54 +98,54 @@ void McMenu_SelectList(Task* arg0)
     }
 }
 
-void McMenu_ConfirmWithRender(UiList* arg0, UiObject* arg1)
+void McMenu_ConfirmWithRender(UiList* list, UiObject* object)
 {
-    s16 var_v0;
-    s32 temp;
-    s8  temp2;
+    s16     var_v0;
+    McWork* temp;
+    s8      temp2;
 
-    temp2 = arg0->field_8;
-    temp  = arg1->owner->spawnArg1;
-    func_800330D8(arg1, temp, temp2, 0, arg0->field_1A + 7);
-    if (arg0->field_C == 1) {
+    temp2 = list->field_8;
+    temp  = object->owner->spawnArg1.pointer;
+    Mc_DrawSlotDetails(object, temp, temp2, 0, list->field_1A + 7);
+    if (list->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x16, 0, 0);
-            arg1->field_2E = 6;
-            var_v0         = (s8)(u8)arg0->field_8;
+            object->field_2E = 6;
+            var_v0           = (s8)(u8)list->field_8;
             goto block_5;
         }
         if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(0x3B, 0, 0);
-            arg1->field_2E = 6;
-            var_v0         = -1;
+            object->field_2E = 6;
+            var_v0           = -1;
         block_5:
-            arg1->field_2C = var_v0;
+            object->field_2C = var_v0;
         }
     }
 }
 
-void McMenu_SelectListAlt(Task* arg0)
+void McMenu_SelectListAlt(Task* task)
 {
-    UiPanel*          obj;
-    UiList*           menu;
-    WipSelectMenuExt* ctx;
-    s32               temp;
+    UiPanel* obj;
+    UiList*  menu;
+    McWork*  ctx;
+    s32      temp;
 
-    obj  = arg0->spawnArg2;
-    ctx  = (WipSelectMenuExt*)arg0->spawnArg1;
-    menu = &D_80061194;
-    Ui_DrawText(obj, D_80013B64);
-    if (arg0->state == 0) {
+    obj  = task->spawnArg2.pointer;
+    ctx  = task->spawnArg1.pointer;
+    menu = &Mc_LoadSlotList;
+    Ui_DrawText(obj, McText_Select);
+    if (task->state == 0) {
         Ui_InitList(menu, obj);
         menu->field_A   = 1;
-        menu->field_10  = ctx->field_290;
+        menu->field_10  = ctx->selectedSlot;
         temp            = (u8)menu->field_10 - menu->field_5.u + 1;
         menu->field_9.u = temp;
         if ((s8)temp < 0) {
             menu->field_9.u = 0;
         }
         Ui_SetListScrollFlag(menu, 1);
-        arg0->state += 1;
+        task->state += 1;
     } else {
         Ui_UpdateListNoAnim(menu, obj);
         if (obj->field_0.w == 1) {
@@ -133,100 +154,100 @@ void McMenu_SelectListAlt(Task* arg0)
     }
 }
 
-void McMenu_FileInformation(Task* arg0)
+void McMenu_FileInformation(Task* task)
 {
     void*   obj;
-    s32     data;
+    McWork* data;
     UiList* menu;
     s32     val;
 
-    obj = arg0->spawnArg2;
-    if (arg0->state == 0) {
-        arg0->killCountdown = (u16)arg0->spawnArg1;
-        data                = arg0->parent->spawnArg1;
-        arg0->state        += 1;
-        arg0->spawnArg1     = data;
+    obj = task->spawnArg2.pointer;
+    if (task->state == 0) {
+        task->killCountdown     = (u16)task->spawnArg1.value;
+        data                    = task->parent->spawnArg1.pointer;
+        task->state            += 1;
+        task->spawnArg1.pointer = data;
     }
-    data = arg0->spawnArg1;
+    data = task->spawnArg1.pointer;
     Ui_DrawTitle(obj, "File Information");
-    if (arg0->killCountdown == 1) {
-        menu = &D_80061194;
+    if (task->killCountdown == 1) {
+        menu = &Mc_LoadSlotList;
     } else {
-        menu = &D_8006116C;
+        menu = &Mc_SaveSlotList;
     }
     val = menu->field_10;
-    func_800330D8(obj, data, val, 0, 0);
+    Mc_DrawSlotDetails(obj, data, val, 0, 0);
 }
 
-static void McMenu_ConfirmDialog(UiList* arg0, UiObject* arg1)
+static void McMenu_ConfirmDialog(UiList* list, UiObject* object)
 {
     s32 temp;
 
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_80060A54, arg0->field_1C, 1, 0);
-    temp = arg0->field_C;
+    Text_DrawPrompt(object, list->field_18, list->field_1A, McText_Yes, list->field_1C, 1, 0);
+    temp = list->field_C;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x16, 0, 0);
-            arg1->field_2E = 6;
-            arg1->field_2C = temp;
+            object->field_2E = 6;
+            object->field_2C = temp;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(0x15, 0, 0);
-            arg0->field_B  = temp;
-            arg0->field_22 = 0x41;
+            list->field_B  = temp;
+            list->field_22 = 0x41;
         }
     }
 }
 
-static void McMenu_ConfirmDialogAlt(UiList* arg0, UiObject* arg1)
+static void McMenu_ConfirmDialogAlt(UiList* list, UiObject* object)
 {
     s32 temp;
 
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_80060A64, arg0->field_1C, 1, 0);
-    temp = arg0->field_C;
+    Text_DrawPrompt(object, list->field_18, list->field_1A, McText_Ok, list->field_1C, 1, 0);
+    temp = list->field_C;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x16, 0, 0);
-            arg1->field_2E = 6;
-            arg1->field_2C = temp;
+            object->field_2E = 6;
+            object->field_2C = temp;
         }
     }
 }
 
-static void McMenu_ConfirmYes(UiList* arg0, UiObject* arg1)
+static void McMenu_ConfirmYes(UiList* list, UiObject* object)
 {
     s32 temp;
 
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_80060A5C, arg0->field_1C, 1, 0);
-    temp = arg0->field_C;
+    Text_DrawPrompt(object, list->field_18, list->field_1A, McText_Cancel, list->field_1C, 1, 0);
+    temp = list->field_C;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x3B, 0, 0);
-            arg1->field_2E = 6;
-            arg1->field_2C = temp;
+            object->field_2E = 6;
+            object->field_2C = temp;
         }
     }
 }
 
-static void McMenu_ConfirmNo(UiList* arg0, UiObject* arg1)
+static void McMenu_ConfirmNo(UiList* list, UiObject* object)
 {
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_80060A58, arg0->field_1C, 1, 0);
-    if (arg0->field_C == 1) {
+    Text_DrawPrompt(object, list->field_18, list->field_1A, McText_No, list->field_1C, 1, 0);
+    if (list->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(0x3B, 0, 0);
-            arg1->field_2E = 6;
-            arg1->field_2C = -1;
+            object->field_2E = 6;
+            object->field_2C = -1;
         }
     }
 }
 
-static void McMenu_InitByMode(Task* arg0)
+static void McMenu_InitByMode(Task* task)
 {
     UiPanel* obj;
     UiList*  menu;
     s32      mode;
 
-    mode = arg0->spawnArg1;
-    obj  = arg0->spawnArg2;
+    mode = task->spawnArg1.value;
+    obj  = task->spawnArg2.pointer;
     if (mode == 2) {
         goto block_2;
     }
@@ -236,25 +257,25 @@ static void McMenu_InitByMode(Task* arg0)
     if (mode != 1) {
         goto block_default;
     }
-    menu = &D_80061284;
+    menu = &Mc_OkList;
     goto block_done;
 block_2:
-    menu = &D_800612AC;
+    menu = &Mc_YesList;
     goto block_done;
 block_default:
-    menu = &D_8006125C;
+    menu = &Mc_YesNoList;
 block_done:
-    if (arg0->state == 0) {
+    if (task->state == 0) {
         Ui_LayoutListPanel(menu, obj);
         obj->bounds.rect.y -= obj->bounds.rect.h / 2;
-        if (arg0->spawnArg1 != 3) {
+        if (task->spawnArg1.value != 3) {
             menu->field_10 = 0;
         } else {
             menu->field_10 = 1;
         }
         menu->field_9.u = 0;
         Ui_SetListScrollFlag(menu, 1);
-        arg0->state += 1;
+        task->state += 1;
     } else {
         Ui_UpdateListNoAnim(menu, obj);
     }

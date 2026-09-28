@@ -6,14 +6,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 
 #include "actors/companion.h"
 #include "gameplay/actor_render.h"
@@ -30,8 +22,25 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/animation.h"
+#include "gameplay/effects.h"
+#include "gameplay/item_pickup.h"
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/wipsys.h"
 
 /// Ground position and collision offset borrowed from G_SCRATCH_HEAD by
 /// func_actor_800100_801635F4.
@@ -244,7 +253,7 @@ static void func_actor_800100_80161F20(Task* task)
     GpEffWork*    eff;
     u32           ang;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     base  = &Gp_RoomCoords[3];
     light = &base->data.coord;
@@ -274,7 +283,7 @@ static void func_actor_800100_80161F20(Task* task)
             break;
         case 1:
             Gp_UpdateCoord(coord);
-            switch (task->spawnArg1) {
+            switch (task->spawnArg1.value) {
                 case 0:
                     break;
                 case 1:
@@ -322,10 +331,10 @@ static void func_actor_800100_80161F20(Task* task)
                     light->flg = 0;
                     break;
                 case 3:
-                    task->spawnArg1 = 1;
+                    task->spawnArg1.value = 1;
                     break;
                 case 4:
-                    task->spawnArg1 = 0;
+                    task->spawnArg1.value = 0;
                     break;
                 case 5:
                     Gp_ReleaseState1CMem(work, task);
@@ -442,7 +451,7 @@ static void func_actor_800100_801624F0(Task* task)
     u32              ang3;
 
     beam  = (Actor800100Beam*)task->work;
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     fade  = Gp_State1C->eventState;
     coord = task->extra.tmd->coords;
     if (fade >= 4) {
@@ -471,13 +480,13 @@ static void func_actor_800100_801624F0(Task* task)
             work->move.vx      = 0;
             ang0               = Gp_LcgState * 5 + 0x71357911;
             Gp_LcgState        = ang0;
-            work->move.vy      = (u16)task->spawnArg1 - ((ang0 >> 16) & 0x3F);
+            work->move.vy      = (u16)task->spawnArg1.value - ((ang0 >> 16) & 0x3F);
             work->move.vz      = 0;
             gte_SetRotMatrix(&coord->coord);
             gte_ldv0(&work->move);
             gte_rtv0();
             gte_stsv(&work->move);
-            work->scale        = (u16)task->spawnArg1 + 0x180;
+            work->scale        = (u16)task->spawnArg1.value + 0x180;
             ang1               = Gp_LcgState * 5 + 0x71357911;
             work->angle        = (ang1 >> 16) & 0xFFF;
             task->state        = 1;
@@ -704,7 +713,7 @@ static void func_actor_800100_801631C8(Task* arg0)
     void*  temp_s1;
 
     temp_a0 = arg0->work;
-    temp_s1 = arg0->spawnArg2;
+    temp_s1 = arg0->spawnArg2.pointer;
     if (temp_a0 != NULL) {
         Gp_UnlinkObj(temp_a0);
     }
@@ -765,7 +774,7 @@ static void func_actor_800100_80163214(Task* arg0)
     {
         s32 temp;
 
-        temp        = save->characterId;
+        temp        = save->state.characterId;
         obj->radius = 0x12C;
         obj->flags  = 4;
         obj->key    = temp | packed | 0x80;
@@ -785,7 +794,7 @@ static void func_actor_800100_80163214(Task* arg0)
         s32 f = 0x14;
         s32 temp;
 
-        temp        = save->characterId;
+        temp        = save->state.characterId;
         obj->radius = 0xDC;
         obj->flags  = f;
         obj->key    = temp | packed | 0x80;
@@ -803,7 +812,7 @@ static void func_actor_800100_80163214(Task* arg0)
     {
         s32 temp;
 
-        temp        = save->characterId;
+        temp        = save->state.characterId;
         obj->radius = 0xDC;
         obj->flags  = 4;
         obj->key    = temp | packed | 0x80;
@@ -812,20 +821,20 @@ static void func_actor_800100_80163214(Task* arg0)
     obj->flags            |= 0xC000;
     actor->field_984       = 7;
     saved                  = Player_Status.field_26;
-    Player_Status.field_26 = save->companionVariant;
+    Player_Status.field_26 = save->state.companionVariant;
     actor->field_920       = func_80104258(arg0, 0, 5, 1);
     actor->field_924       = func_80104258(arg0, 1, 5, 1);
     Player_Status.field_26 = saved;
     if (actor->field_924 != NULL) {
-        task             = func_80104364((Task*)actor->field_924, save->companionType + 1, save->companionVariant, 0);
+        task             = func_80104364((Task*)actor->field_924, save->state.companionType + 1, save->state.companionVariant, 0);
         actor->field_91C = task;
         if (task != NULL) {
             d4  = actor->field_910;
-            idx = D_actor_800100_80167218[save->companionVariant];
-            Gp_AttachActorObj(arg0, idx, D_actor_800100_80167224[save->companionVariant]);
+            idx = D_actor_800100_80167218[save->state.companionVariant];
+            Gp_AttachActorObj(arg0, idx, D_actor_800100_80167224[save->state.companionVariant]);
             actor->field_124 |= 0x80;
-            d4->actionCount   = D_actor_800100_80167230[save->companionVariant];
-            if ((u8)save->companionVariant == 4) {
+            d4->actionCount   = D_actor_800100_80167230[save->state.companionVariant];
+            if ((u8)save->state.companionVariant == 4) {
                 eff = Gp_SpawnEff(0x80060180, actor->field_91C->extra.tmd->coords, idx, 0);
                 if (eff != NULL) {
                     actor->field_914 = eff->task;
@@ -1207,14 +1216,14 @@ static void func_actor_800100_80163F04(Task* arg0)
         if ((u16)actor->field_96C != 0) {
             func_8010B9A4(arg0);
             pan = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(((Mc_SaveData[0].companionVariant - 1) << 16) + 0x4065000A, pan, (s8)gpGetObjDepth(coord));
+            SndEvt_EnqueueType6(((Mc_SaveData[0].state.companionVariant - 1) << 16) + 0x4065000A, pan, (s8)gpGetObjDepth(coord));
         }
     }
     Gp_TickActorAnimState(arg0);
     Gp_AnimTickChildSlots(arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
-    if (Mc_SaveData[0].companionHp <= 0) {
+    if (Mc_SaveData[0].state.companionHp <= 0) {
         Gp_StopPlayerAnim(arg0, 0);
     }
 }
@@ -1505,8 +1514,8 @@ static void func_actor_800100_80164710(Task* arg0)
                     *(GpLinkNode**)&actor->field_90C = NULL;
                     actor->field_97E                 = 1;
                     actor->field_12A                &= 0x3FFF;
-                    if ((u8)Mc_SaveData[0].companionVariant == 4) {
-                        func_80106350(arg0, D_actor_800100_80167218[Mc_SaveData[0].companionVariant], 0);
+                    if ((u8)Mc_SaveData[0].state.companionVariant == 4) {
+                        func_80106350(arg0, D_actor_800100_80167218[Mc_SaveData[0].state.companionVariant], 0);
                     }
                     actor3            = arg0->work;
                     actor3->field_954 = 0;
@@ -1754,7 +1763,7 @@ static void func_actor_800100_80164E60(Task* arg0)
     d4    = actor->field_910;
     rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
     coord = actor->field_91C->extra.tmd->coords;
-    sel   = D_actor_800100_80167218[Mc_SaveData[0].companionVariant];
+    sel   = D_actor_800100_80167218[Mc_SaveData[0].state.companionVariant];
 
     switch (sel) {
         case 3:
@@ -1793,7 +1802,7 @@ static void func_actor_800100_80164E60(Task* arg0)
             break;
     }
 
-    d4->actionCount = D_actor_800100_80167230[Mc_SaveData[0].companionVariant];
+    d4->actionCount = D_actor_800100_80167230[Mc_SaveData[0].state.companionVariant];
     if (rec != NULL && func_80105894(arg0, 1, 0, 0) == 0) {
         target            = arg0->work;
         target->field_954 = 0;
@@ -2213,7 +2222,7 @@ static void func_actor_800100_80165930(Task* arg0)
     actor = arg0->work;
     sp.funcs[(u16)actor->field_956](arg0);
     Gp_TurnPlayer(arg0);
-    if (Mc_SaveData[0].companionHp <= 0) {
+    if (Mc_SaveData[0].state.companionHp <= 0) {
         func_8010BFCC(arg0);
         Gp_StopPlayerAnim(arg0, 0);
     }
@@ -2384,7 +2393,7 @@ static void func_actor_800100_80165DE8(Task* arg0)
             Gp_PlayObjSfx(coord, 0x40660001, 1);
             if (coord != NULL) {
                 actor->field_940 = 0x28;
-                Gp_SpawnEff(0x6006C, coord, D_actor_800100_80167218[Mc_SaveData[0].companionVariant] | 0x10000, NULL);
+                Gp_SpawnEff(0x6006C, coord, D_actor_800100_80167218[Mc_SaveData[0].state.companionVariant] | 0x10000, NULL);
                 func_80104490(arg0, 1, 2, 0x110C0A);
                 return;
             }
@@ -2399,7 +2408,7 @@ static void func_actor_800100_80165DE8(Task* arg0)
     }
 }
 
-/// Handlers `func_actor_800100_80166EE8` runs, indexed by `Mc_SaveData[0].companionVariant`.
+/// Handlers `func_actor_800100_80166EE8` runs, indexed by `Mc_SaveData[0].state.companionVariant`.
 static const TaskFuncTable5 D_actor_800100_80161EC8 = { {
     func_actor_800100_80165C38,
     func_actor_800100_80165C38,
@@ -2453,7 +2462,7 @@ static void func_actor_800100_80165F50(Task* arg0)
                 d4->actionCount  -= 1;
                 actor->field_12A |= 0xC000;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x40670001, 1);
-                Gp_SpawnEff(0x6002B, coord, D_actor_800100_80167218[Mc_SaveData[0].companionVariant] | 0x10000, NULL);
+                Gp_SpawnEff(0x6002B, coord, D_actor_800100_80167218[Mc_SaveData[0].state.companionVariant] | 0x10000, NULL);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 2);
             }
             break;
@@ -2527,7 +2536,7 @@ static void func_actor_800100_80166190(Task* arg0)
                 actor->field_93E = 0x14;
                 Gp_PlayObjSfx(coord, 0x40680002, 1);
                 if (actor->field_914 != NULL) {
-                    actor->field_914->spawnArg1 = 2;
+                    actor->field_914->spawnArg1.value = 2;
                 }
                 break;
             }
@@ -2551,7 +2560,7 @@ static void func_actor_800100_80166190(Task* arg0)
                         actor->field_93E = 0;
                     }
                     Gp_PlayObjSfx(coord, 0x40680001, 1);
-                    Gp_SpawnEff(0x6006B, coord, D_actor_800100_80167218[Mc_SaveData[0].companionVariant] | 0x10000, NULL);
+                    Gp_SpawnEff(0x6006B, coord, D_actor_800100_80167218[Mc_SaveData[0].state.companionVariant] | 0x10000, NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
                     break;
                 } else {
@@ -2580,7 +2589,7 @@ static void func_actor_800100_80166190(Task* arg0)
             if (actor->field_93E == 0) {
                 actor->field_960 = 6;
                 if (actor->field_914 != NULL) {
-                    actor->field_914->spawnArg1 = 3;
+                    actor->field_914->spawnArg1.value = 3;
                 }
                 SndEvt_EnqueueType7(0x40680002, 1);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 2);
@@ -2882,7 +2891,7 @@ static void func_actor_800100_80166E14(Task* arg0)
     actor->field_95E = 0;
     actor->field_90C = NULL;
     actor->field_97E = 1;
-    func_80106350(arg0, D_actor_800100_80167218[Mc_SaveData[0].companionVariant], 0);
+    func_80106350(arg0, D_actor_800100_80167218[Mc_SaveData[0].state.companionVariant], 0);
     Gp_AnimPlayChildSlotsEx(arg0, 8, 1, 6);
 }
 
@@ -2907,7 +2916,7 @@ static void func_actor_800100_80166EE8(Task* arg0)
     TaskFuncTable5 sp;
 
     sp = D_actor_800100_80161EC8;
-    sp.funcs[Mc_SaveData[0].companionVariant](arg0);
+    sp.funcs[Mc_SaveData[0].state.companionVariant](arg0);
 }
 
 static void func_actor_800100_80166F50(Task* arg0)

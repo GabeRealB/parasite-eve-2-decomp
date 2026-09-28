@@ -2,13 +2,6 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "pe/energyball.h"
 
 #include "gameplay/actor_render.h"
@@ -18,8 +11,21 @@
 #include "gameplay/world_collision.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 static void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
@@ -65,7 +71,7 @@ static void func_energyball_8012EF48(Task* arg0)
     s32        level;
     s32        rng;
 
-    mem      = arg0->spawnArg2;
+    mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.tmd->coords;
     mem->age = mem->age + 1;
     switch (arg0->state) {
@@ -134,13 +140,13 @@ static void func_energyball_8012F180(Task* arg0)
     s16             fade;
     s32             cur;
 
-    slot  = &Gp_RoomCoords[arg0->spawnArg1 + 4];
+    slot  = &Gp_RoomCoords[arg0->spawnArg1.value + 4];
     sc    = &slot->data.coord;
     tail  = &slot->data.light;
     coord = arg0->extra.tmd->coords;
     fade  = Gp_State1C->fadeState;
     work  = (EnergyBallWork*)arg0->work;
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     if (fade != 0) {
         if (fade >= 4) {
             if (D_80115724 > 0) {
@@ -697,7 +703,7 @@ static void func_energyball_8013107C(Task* arg0)
     s32        scale;
     s32        angle;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->fadeState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -705,7 +711,7 @@ static void func_energyball_8013107C(Task* arg0)
     }
 
     if (arg0->state == 0) {
-        Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1 & 0xFFF, 0);
+        Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1.value & 0xFFF, 0);
         coord->flg  = 0;
         mem->scale  = 0x80;
         mem->angle  = 0x100;

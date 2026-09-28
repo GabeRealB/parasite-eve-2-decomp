@@ -5,18 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -28,7 +16,23 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stream.h"
+#include "main/task.h"
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
@@ -75,7 +79,7 @@ void func_shelter_1f_bulwark_8017D61C(Task* arg0)
                     D_shelter_1f_bulwark_80180EBC.field_0 = 0;
                     D_shelter_1f_bulwark_80180EBC.field_1 = 0;
                     D_shelter_1f_bulwark_80180EBC.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, (s32)&D_shelter_1f_bulwark_80180EBC);
+                    Task_Spawn(1, 0x31, 0, &D_shelter_1f_bulwark_80180EBC);
                 }
                 arg0->state++;
             }
@@ -96,9 +100,9 @@ void func_shelter_1f_bulwark_8017D61C(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_shelter_1f_bulwark_80180EC4.prefix.bytes.field_0;
-            Mc_SaveData[0].at4.loc.warp = D_shelter_1f_bulwark_80180EC4.field_2;
-            Mc_SaveData[0].at4.loc.room = D_shelter_1f_bulwark_80180EC4.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_bulwark_80180EC4.prefix.bytes.field_0;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_bulwark_80180EC4.field_2;
+            Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_bulwark_80180EC4.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -187,7 +191,7 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
             D_shelter_1f_bulwark_80180EC0.field_0 = 0;
             D_shelter_1f_bulwark_80180EC0.field_1 = 0;
             D_shelter_1f_bulwark_80180EC0.field_2 = 0x1E;
-            Task_Spawn(1, 0x31, 0, (s32)&D_shelter_1f_bulwark_80180EC0);
+            Task_Spawn(1, 0x31, 0, &D_shelter_1f_bulwark_80180EC0);
             arg0->killCountdown = 0;
             SndEvt_EnqueueType6(0x55030003, 0, 0);
             goto advance;
@@ -336,12 +340,12 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
             arg0->state = arg0->state + 1;
             break;
         case 3:
-            Mc_SaveData[0].at4.loc.stage = 5;
-            Mc_SaveData[0].at4.loc.area  = 0x1A;
-            Mc_SaveData[0].at4.loc.warp  = 1;
-            Mc_SaveData[0].at4.loc.room  = 1;
+            Mc_SaveData[0].state.at4.loc.stage = 5;
+            Mc_SaveData[0].state.at4.loc.area  = 0x1A;
+            Mc_SaveData[0].state.at4.loc.warp  = 1;
+            Mc_SaveData[0].state.at4.loc.room  = 1;
             gDisplayState.roomVariant    = 1;
-            Fs_BeginBootLoad(&Mc_SaveData[0].at4.loc.view, 0);
+            Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 0);
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -458,7 +462,7 @@ static void func_shelter_1f_bulwark_8017E38C(Task* task)
     GpCoord*   coord;
     u8         rgb[3];
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -471,13 +475,13 @@ static void func_shelter_1f_bulwark_8017E38C(Task* task)
             case 0:
                 work->scale = 0;
                 work->angle = 0x80;
-                work->step  = 0x100 / task->spawnArg1;
+                work->step  = 0x100 / task->spawnArg1.value;
                 task->state = 1;
                 break;
             case 1:
                 work->scale += work->step;
                 work->angle += work->step;
-                task->spawnArg1--;
+                task->spawnArg1.value--;
                 rgb[0] = work->scale;
                 rgb[1] = work->scale >> 2;
                 rgb[2] = work->scale >> 1;
@@ -487,7 +491,7 @@ static void func_shelter_1f_bulwark_8017E38C(Task* task)
                 rgb[2] >>= 1;
                 func_shelter_1f_bulwark_8017EA5C(coord, (s16)((u16)work->angle * 2), rgb);
                 func_shelter_1f_bulwark_8017E630(coord, (s16)(0x300 - (u16)work->angle * 2), 0x80, rgb);
-                if (task->spawnArg1 == 0) {
+                if (task->spawnArg1.value == 0) {
                     work->scale = 0xFF;
                     task->state = 2;
                     rgb[0]      = work->scale;
@@ -633,7 +637,7 @@ static void func_shelter_1f_bulwark_8017EDF0(Task* task)
     s32        i;
 
     coords   = (GpCoord*)task->work;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
@@ -706,7 +710,7 @@ static void func_shelter_1f_bulwark_8017EDF0(Task* task)
                     Gp_UpdateCoord(dst);
                 }
                 func_shelter_1f_bulwark_8017F2E0(coords, &coords[8], work->age & 7, 0x123);
-                if (work->age == task->spawnArg1 && work->age != 0) {
+                if (work->age == task->spawnArg1.value && work->age != 0) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
@@ -823,7 +827,7 @@ static void func_shelter_1f_bulwark_8017F6D8(Task* task)
     u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -838,7 +842,7 @@ static void func_shelter_1f_bulwark_8017F6D8(Task* task)
     switch (task->state) {
         case 0:
             Gp_SpawnEff(0x60076, objCoord, 0x400, NULL);
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 Gp_SpawnEff(0x60070, objCoord, 0x80004600, NULL);
                 task->state = 1;
             } else {

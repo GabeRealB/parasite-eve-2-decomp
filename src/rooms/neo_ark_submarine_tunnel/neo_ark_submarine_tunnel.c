@@ -5,17 +5,8 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/gfxgte.h"
 #include <psyq/abs.h>
 #include <psyq/rand.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -24,7 +15,19 @@
 #include "gameplay/display.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/evs.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -317,7 +320,7 @@ void func_neo_ark_submarine_tunnel_8017D634(Task* task)
         task->killCountdown    = rand();
         task->state++;
     }
-    prim = (POLY_FT4*)D_8005C374;
+    prim = (POLY_FT4*)Fs_ActorLoadBase2;
     disp = &gDisplayState;
     if (disp->otBuffer != 0) {
         prim += 488;
@@ -665,9 +668,9 @@ void func_neo_ark_submarine_tunnel_8017E288(Task* task)
     }
 
     if (area == 12 && loc->place == 3) {
-        size  = 0x30000 - D_8006D860;
+        size  = 0x30000 - Fs_ChunkOutputSizes[0];
         size &= ~7;
-        base  = (u8*)D_8005C36C - (size - 0x30000);
+        base  = (u8*)Fs_ActorLoadBase0 - (size - 0x30000);
         if (size < sizeof(POLY_FT4) * 976) {
             return;
         }
@@ -676,7 +679,7 @@ void func_neo_ark_submarine_tunnel_8017E288(Task* task)
         }
         prim = (POLY_FT4*)base - 1;
     } else {
-        prim = (POLY_FT4*)((u8*)D_8005C374 + 0x9880);
+        prim = (POLY_FT4*)((u8*)Fs_ActorLoadBase2 + 0x9880);
         if (gDisplayState.otBuffer != 0) {
             prim += 488;
         }
@@ -825,7 +828,7 @@ void func_neo_ark_submarine_tunnel_8017E828(Task* arg0)
                 D_neo_ark_submarine_tunnel_80187960[i].speed  = (rand() * 100 + 20) >> 15;
             }
             D_neo_ark_submarine_tunnel_80181A4C        = 0;
-            D_neo_ark_submarine_tunnel_8018790C        = arg0->spawnArg2;
+            D_neo_ark_submarine_tunnel_8018790C        = arg0->spawnArg2.pointer;
             D_neo_ark_submarine_tunnel_8018790C->frame = 0;
             D_neo_ark_submarine_tunnel_8018790C->state = 0;
             Display_ClampField126(-8);
@@ -950,7 +953,7 @@ s32 func_neo_ark_submarine_tunnel_8017F064(s32 arg0, s32 arg1, RoomEventMsg* arg
         func_800E3FAC(0xA2, 0x35);
         GameFlag_SetNibble(0xFF, 2);
         GameFlag_SetNibble(0x11F, 1);
-        Mc_SaveData[0].sceneEvent = 0x1A;
+        Mc_SaveData[0].state.sceneEvent = 0x1A;
         func_800E8634(&D_80135220, 0, &D_80135FD0);
     }
     if ((arg2->field_2 == 2) && (GameFlag_GetNibble(0xBC) == 0)) {
@@ -1025,7 +1028,7 @@ void func_neo_ark_submarine_tunnel_8017F318(s32 arg0)
         D_neo_ark_submarine_tunnel_80187A20.blend = 1;
         D_neo_ark_submarine_tunnel_80187A20.g     = 0x80;
         D_neo_ark_submarine_tunnel_80187A20.b     = 0x80;
-        Task_SpawnFromTable(&D_neo_ark_submarine_tunnel_80181A34, 0, 0, (s32)&D_neo_ark_submarine_tunnel_80187A20);
+        Task_SpawnFromTable(&D_neo_ark_submarine_tunnel_80181A34, 0, 0, &D_neo_ark_submarine_tunnel_80187A20);
         return;
     }
     D_neo_ark_submarine_tunnel_80187A24 = arg0;

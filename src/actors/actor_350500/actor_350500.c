@@ -1,13 +1,9 @@
 #include "common.h"
-#include "main/gfx.h"
 
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
 
 #include "actors/actor.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/display.h"
@@ -18,7 +14,14 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
+#include "main/tmd.h"
 
 /// Optional start animation the placement handler takes: the preset's
 /// `field_4` and the `model.nextAnimId` byte. Absent, the defaults are anim 3 (or 2

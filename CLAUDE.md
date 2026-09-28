@@ -424,7 +424,7 @@ When you see pointer arithmetic patterns like `*(type*)((u8*)ptr + offset)`:
 1. **Identify the access pattern:**
 
    - What offset is being accessed? (e.g., `0xC` means field at offset 12)
-   - Is it accessing an array element? (e.g., `arg1 * 36` means 36-byte elements)
+   - Is it accessing an array element? (e.g., `value * 36` means 36-byte elements)
    - What field within the element? (e.g., `+ 0xA` means field at offset 10)
 
 2. **Create appropriate structs:**
@@ -458,7 +458,7 @@ When you see pointer arithmetic patterns like `*(type*)((u8*)ptr + offset)`:
 3. **Verify struct sizes:**
 
    - Calculate total size to ensure it matches the multiplier in pointer arithmetic
-   - Example: `arg1 * 36` means struct must be exactly 36 (0x24) bytes
+   - Example: `value * 36` means struct must be exactly 36 (0x24) bytes
 
 ### When Decompiling
 

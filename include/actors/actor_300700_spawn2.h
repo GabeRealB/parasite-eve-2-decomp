@@ -1,10 +1,11 @@
 #ifndef ACTOR_300700_SPAWN2_H
 #define ACTOR_300700_SPAWN2_H
-#include "main/session.h"
-#include "main/coord.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/animation.h"
+
+#include "main/coord.h"
+#include "main/session_types.h"
 
 /// The 0x39C-byte allocation `func_actor_300700_80163510` makes with
 /// `memCalloc` and stores in `Task::work`, then fills with the four `GpObj`

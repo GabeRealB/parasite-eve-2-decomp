@@ -1,9 +1,4 @@
 #include "common.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/stream.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -12,7 +7,13 @@
 #include "gameplay/display.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
+
 #include "main/display.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/stream.h"
+#include "main/task.h"
 
 /// The room's message table, installed on its entry task.
 extern GpMsgEntry D_acropolis_forked_road_80180F14[];
@@ -84,7 +85,7 @@ s32 func_acropolis_forked_road_8017D5EC(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
             out->field_2 = 2;
         } else if (GameFlag_GetNibble(1) == 2) {
             if (in->field_5 == 0) {
-                Mc_SaveData[0].at4.loc.view = 7;
+                Mc_SaveData[0].state.at4.loc.view = 7;
                 Gp_MsgPlayerWeapon(0);
                 Task_SpawnFromTable(&D_acropolis_forked_road_80180F44, 0, 0, 0);
                 GameFlag_SetNibble(1, 3);

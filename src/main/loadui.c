@@ -1,32 +1,56 @@
-#include "common.h"
-
-#define LOADUI_C
-
-#include "main/stage.h"
-
-#include "main/unknown_syms.h"
 #include "main/fs.h"
-#include "main/loadui.h"
-#include "main/text.h"
-#include "main/wipsys.h"
-#include "main/task.h"
-#include "psyq/libetc.h"
 
-#include "gameplay/display.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libetc.h>
+
+#include "types.h"
+
+#include "main/display.h"
+#include "main/display_types.h"
+#include "fs.h"
+#include "main/fs_types.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "sound.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
 #include "gameplay/effect_tasks.h"
 #include "gameplay/loading.h"
-#include "main/display.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
 
+/// 4-byte block assigned via unaligned lwl/lwr (see Snd_ApplyVolumeTable).
+typedef struct _GBytes4 {
+    u8 data[4];
+} GBytes4;
+
+/* Define BSS before API headers to preserve first-declaration order. */
+static u16 D_8007A390;
+
+static u8 D_8007A392;
+
+static u8 D_8007A393;
+
+u8 D_8007A394;
+
+s16 D_8007A396;
+
+#include "main/loadui.h"
+
+/// Music volume for each of the four volume settings, loudest first.
 static const GBytes4 D_80013F18;
 
-static u16 D_8007A390;
-static u8  D_8007A392;
-static u8  D_8007A393;
-u8         D_8007A394;
-s16        D_8007A396;
+static void Prim_DrawLoadingSprt(void);
+
+static const GBytes4 D_80013F18;
 
 u8       D_800626E8    = 0;
 TaskDesc D_800626EC[6] = {
@@ -37,8 +61,6 @@ TaskDesc D_800626EC[6] = {
     { 0, 0xC0, taskKill },
     { 1, 0x70, Gp_EffAttachTask37 },
 };
-
-static void Prim_DrawLoadingSprt(void);
 
 void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
 {
@@ -94,7 +116,7 @@ void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(8);
 }
 
-s32 func_80042500(void)
+s32 LoadUi_PollDiskSwap(void)
 {
     CdCmdQueue* queue = &CdCmd_Queue;
 
@@ -245,7 +267,7 @@ void Snd_ApplyVolumeTable(s32 arg0)
     u8      temp;
 
     sp10 = D_80013F18;
-    if (Mc_SaveData[0].soundMode == 0) {
+    if (Mc_SaveData[0].state.soundMode == 0) {
         CdVol_SetMixMode(1);
     } else {
         CdVol_SetMixMode(0);
@@ -258,9 +280,9 @@ void Snd_ApplyVolumeTable(s32 arg0)
             SndEvt_EnqueueType5(0, (u8)D_8007A396);
         }
     } else {
-        temp       = sp10.data[(u8)Mc_SaveData[0].musicVolume];
+        temp       = sp10.data[(u8)Mc_SaveData[0].state.musicVolume];
         D_8007A396 = temp;
-        if (Mc_SaveData[0].musicVolume == 3) {
+        if (Mc_SaveData[0].state.musicVolume == 3) {
             SndEvt_EnqueueType5Pending();
         } else {
             SndEvt_FlushType5Pending();
@@ -268,7 +290,7 @@ void Snd_ApplyVolumeTable(s32 arg0)
         if (gStageRoomSong != 0) {
             SndEvt_EnqueueType5(gStageRoomSong, (u8)D_8007A396);
         } else {
-            SndEvt_EnqueueType5(0, sp10.data[(u8)Mc_SaveData[0].musicVolume]);
+            SndEvt_EnqueueType5(0, sp10.data[(u8)Mc_SaveData[0].state.musicVolume]);
         }
     }
 }

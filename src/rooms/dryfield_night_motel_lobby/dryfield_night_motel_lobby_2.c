@@ -1,18 +1,9 @@
 #include "common.h"
-#include "main/gameflag.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/dryfield_night_motel_lobby.h"
 #include "rooms/room_common.h"
 
@@ -22,7 +13,19 @@
 #include "gameplay/display.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/room_effects.h"
+
+#include "gameplay/action_prompt.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 /// Task descriptor of the examine child task `func_dryfield_night_motel_lobby_80180E98`
 /// spawns.
@@ -262,7 +265,7 @@ static s16 func_dryfield_night_motel_lobby_80180734(void)
     return p[0] == 3;
 }
 
-/// Moves the action-prompt cursor of each pad `task->spawnArg1` selects (1:
+/// Moves the action-prompt cursor of each pad `task->spawnArg1.value` selects (1:
 /// port 0, 2: port 1, otherwise both) from its analog stick and d-pad, clamps
 /// it to the screen, updates the press state of its two buttons and draws it.
 static void func_dryfield_night_motel_lobby_801807C0(Task* task)
@@ -282,7 +285,7 @@ static void func_dryfield_night_motel_lobby_801807C0(Task* task)
     u16*              statep;
     u16*              heldp;
 
-    switch (task->spawnArg1) {
+    switch (task->spawnArg1.value) {
         case 1:
             first = 0;
             count = 1;
@@ -492,9 +495,9 @@ static void func_dryfield_night_motel_lobby_80180E98(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2             = Task_SpawnFromTable(D_dryfield_night_motel_lobby_80182814, 0, 1, 0);
+    task->spawnArg2.pointer             = Task_SpawnFromTable(D_dryfield_night_motel_lobby_80182814, 0, 1, 0);
     task->work                  = (TaskIdMap*)work;
-    Mc_SaveData[0].at4.loc.view = 6;
+    Mc_SaveData[0].state.at4.loc.view = 6;
     /* The once-loop folds away, but `flow` counts its references at loop depth
        2: without it the state load is scheduled above the mode store. */
     do {
@@ -576,9 +579,9 @@ static void func_dryfield_night_motel_lobby_801810AC(Task* arg0)
     gGameSession->eventState    = 0;
     gGameSession->hideHud       = 0;
     gGameSession->cutsceneHold  = 0;
-    Mc_SaveData[0].at4.loc.view = 4;
+    Mc_SaveData[0].state.at4.loc.view = 4;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
-    taskKill((Task*)arg0->spawnArg2);
+    taskKill((Task*)arg0->spawnArg2.pointer);
     Task_RequestKill(arg0, 0);
 }
 
@@ -586,7 +589,7 @@ static void func_dryfield_night_motel_lobby_80181138(Task* arg0)
 {
     Gp_ApplyAreaRecs(&D_dryfield_night_motel_lobby_801844AC);
     gGameSession->eventState = 1;
-    taskKill(arg0->spawnArg2);
+    taskKill(arg0->spawnArg2.pointer);
     GameFlag_SetNibble(0x74, 1);
     arg0->state = (s32)(arg0->state + 1);
 }
@@ -616,7 +619,7 @@ static void func_dryfield_night_motel_lobby_8018122C(Task* arg0)
     gGameSession->eventState    = 0;
     gGameSession->hideHud       = 0;
     gGameSession->cutsceneHold  = 0;
-    Mc_SaveData[0].at4.loc.view = 4;
+    Mc_SaveData[0].state.at4.loc.view = 4;
     Task_RequestKill(arg0, 0);
 }
 

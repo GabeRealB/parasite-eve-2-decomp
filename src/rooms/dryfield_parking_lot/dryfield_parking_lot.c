@@ -1,9 +1,4 @@
 #include "common.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -15,8 +10,15 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
 #include "main/display.h"
-#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// The `GpAreaApplyRec` list the 0x11 answer applies when the event fires.
 /// The address sits past the end of this package, so the linker resolves it
@@ -142,9 +144,9 @@ void func_dryfield_parking_lot_8017D74C(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_dryfield_parking_lot_8017FB50.msgId;
-            Mc_SaveData[0].at4.loc.warp = D_dryfield_parking_lot_8017FB50.field_2;
-            Mc_SaveData[0].at4.loc.room = (u8)D_dryfield_parking_lot_8017FB50.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_parking_lot_8017FB50.msgId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_parking_lot_8017FB50.field_2;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_parking_lot_8017FB50.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

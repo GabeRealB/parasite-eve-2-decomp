@@ -5,19 +5,6 @@
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 #include <psyq/strings.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b3_garbage_incinerator.h"
@@ -34,8 +21,29 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/cap.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflow.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/wipsys.h"
+#include "overlay.h"
 
 extern TaskDesc D_80164FF8;
 
@@ -156,7 +164,7 @@ static s32   func_shelter_b3_garbage_incinerator_8017F318(Task* arg0);
 extern Task* D_shelter_b3_garbage_incinerator_8018FC3C;
 
 /// Main-executable global with no module header yet: the base animation-set
-/// id, whose alternate range `Mc_SaveData[0].characterId` selects when it is 1.
+/// id, whose alternate range `Mc_SaveData[0].state.characterId` selects when it is 1.
 
 /// Caption schedule scanned by `func_shelter_b3_garbage_incinerator_8017FA58`.
 extern OverlayCapWindow D_shelter_b3_garbage_incinerator_801871A8[];
@@ -193,12 +201,12 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
             param2[1]       = 0;
             param2[2]       = 0;
             param2[3]       = 0;
-            arg0->spawnArg1 = (u16)CdCmd_Enqueue(0x21, param1, param2);
+            arg0->spawnArg1.value = (u16)CdCmd_Enqueue(0x21, param1, param2);
             if ((u8)gGameSession->skipEventIntro == 0) {
                 if (Player_Status.weapon == 0x17) {
                     p = msg;
                     w = Player_Status.weapon;
-                    if (Mc_SaveData[0].characterId == 1) {
+                    if (Mc_SaveData[0].state.characterId == 1) {
                         v = w + 1;
                     } else {
                         v = w + 0x22;
@@ -212,7 +220,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
                 } else {
                     p = msg;
                     w = Player_Status.weapon;
-                    if (Mc_SaveData[0].characterId == 1) {
+                    if (Mc_SaveData[0].state.characterId == 1) {
                         v = w + 1;
                     } else {
                         v = w + 0x22;
@@ -236,13 +244,13 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
             }
             break;
         case 2:
-            if (CdCmd_IsSlotEmpty(arg0->spawnArg1)) {
-                arg0->spawnArg2 = Task_SpawnFromTable(&D_80164FF8, 0, 0, 0);
+            if (CdCmd_IsSlotEmpty(arg0->spawnArg1.value)) {
+                arg0->spawnArg2.pointer = Task_SpawnFromTable(&D_80164FF8, 0, 0, 0);
                 arg0->state++;
             }
             break;
         case 3:
-            if (Task_PollKill(arg0->spawnArg2, &out) != 0) {
+            if (Task_PollKill(arg0->spawnArg2.pointer, &out) != 0) {
                 taskKill(arg0);
             }
             break;
@@ -392,14 +400,14 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                 SndEvt_EnqueueType6(0x54280003, 0, 0);
                 if (gGameSession->at4.loc.room < 4) {
                     gGameSession->at4.loc.room   = 2;
-                    Mc_SaveData[0].at4.loc.room  = 2;
+                    Mc_SaveData[0].state.at4.loc.room  = 2;
                     gGameSession->eventRoomIndex = 1;
                     gGameSession->roomObjsDirty  = 1;
                     gGameSession->eventRoomIndex = gGameSession->at4.loc.room - 1;
                     gGameSession->field_133      = 0;
                 } else {
                     gGameSession->at4.loc.room   = 5;
-                    Mc_SaveData[0].at4.loc.room  = 5;
+                    Mc_SaveData[0].state.at4.loc.room  = 5;
                     gGameSession->eventRoomIndex = 4;
                     gGameSession->roomObjsDirty  = 1;
                     gGameSession->eventRoomIndex = gGameSession->at4.loc.room - 1;
@@ -434,12 +442,12 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             if (((_DescentWork*)task->work)->view != gGameSession->at4.loc.view) {
                 if (gGameSession->at4.loc.room < 4) {
                     gGameSession->at4.loc.room   = 3;
-                    Mc_SaveData[0].at4.loc.room  = 3;
+                    Mc_SaveData[0].state.at4.loc.room  = 3;
                     gGameSession->eventRoomIndex = 2;
                     gGameSession->roomObjsDirty  = 1;
                 } else {
                     gGameSession->at4.loc.room   = 6;
-                    Mc_SaveData[0].at4.loc.room  = 6;
+                    Mc_SaveData[0].state.at4.loc.room  = 6;
                     gGameSession->eventRoomIndex = 5;
                     gGameSession->roomObjsDirty  = 1;
                 }
@@ -571,7 +579,7 @@ void func_shelter_b3_garbage_incinerator_8017E7D0(Task* arg0)
                 D_shelter_b3_garbage_incinerator_8018FCB0[i].speed  = ((rand() * 100) >> 15) + 20;
             }
             D_shelter_b3_garbage_incinerator_80185BC4        = 0;
-            D_shelter_b3_garbage_incinerator_8018FC38        = arg0->spawnArg2;
+            D_shelter_b3_garbage_incinerator_8018FC38        = arg0->spawnArg2.pointer;
             D_shelter_b3_garbage_incinerator_8018FC38->frame = 0;
             D_shelter_b3_garbage_incinerator_8018FC38->state = 0;
             Display_ClampField126(-8);
@@ -766,7 +774,7 @@ void func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0)
             work->g += 8;
             work->b += 8;
             if ((s16)work->g >= 0x100) {
-                parent             = (GarbageIncineratorWork*)((Task*)arg0->spawnArg2)->work;
+                parent             = (GarbageIncineratorWork*)((Task*)arg0->spawnArg2.pointer)->work;
                 parent->wave.state = 2;
                 Display_SetMode(0xD010);
                 Mem_Set(Fs_ImgBuffers, 0xFF, 0x25800);
@@ -803,7 +811,7 @@ void func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0)
 /// message 0x3ED to it returns nonzero, and 1 otherwise: with no `field_2C`,
 /// with `field_38` below 0x2F, or with a negative table entry nothing is sent;
 /// else the entry plus 0x2F is recorded in `field_38` and sent with message
-/// 0x3E8. The set's block is `Player_Status.weapon + 1` when `Mc_SaveData[0].characterId` is 1 and
+/// 0x3E8. The set's block is `Player_Status.weapon + 1` when `Mc_SaveData[0].state.characterId` is 1 and
 /// `Player_Status.weapon + 0x22` otherwise.
 static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
 {
@@ -830,7 +838,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
     anim                = D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] + 0x2F;
     msgWork             = (GarbageIncineratorWork*)arg0->work;
     weaponId            = Player_Status.weapon;
-    setId               = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    setId               = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = setId;
     msgWork->field_38   = anim;
     msg.field_4         = anim;
@@ -865,7 +873,7 @@ void func_shelter_b3_garbage_incinerator_8017F410(Task* arg0)
             arg0->state++;
             return;
         case 1:
-            if (arg0->spawnArg1 == 0) {
+            if (arg0->spawnArg1.value == 0) {
                 if (gDisplayState.animFrame & 0xF) {
                     return;
                 }
@@ -913,7 +921,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
             Gp_StateC08.field_6 |= 1;
             func_800E8614((s32)&D_shelter_b3_garbage_incinerator_80186FB8, 0);
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
-            work->field_34 = Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 2, 0, (s32)arg0);
+            work->field_34 = Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 2, 0, arg0);
             work->field_3A = work->field_3A + 1;
             break;
         case 1:
@@ -959,7 +967,7 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
                 D_shelter_b3_garbage_incinerator_8018FC3C = arg0;
             }
             Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_80187184, 0, 0xD0, 0);
-            if (arg0->spawnArg1 == 0) {
+            if (arg0->spawnArg1.value == 0) {
                 SndEvt_EnqueueType6(0x54280005, 0, 0);
             }
             break;
@@ -996,7 +1004,7 @@ void func_shelter_b3_garbage_incinerator_8017F8A4(Task* arg0, s32 arg1, s32 arg2
 
 /// Select animation set `arg0 + 0x2F`, record it in the work block, and send
 /// it to `field_2C` with message 0x3E8. The set's block is `Player_Status.weapon + 1`
-/// when `Mc_SaveData[0].characterId` is 1 and `Player_Status.weapon + 0x22` otherwise.
+/// when `Mc_SaveData[0].state.characterId` is 1 and `Player_Status.weapon + 0x22` otherwise.
 void func_shelter_b3_garbage_incinerator_8017F8AC(s32 arg0)
 {
     GarbageIncineratorWork* work;
@@ -1008,7 +1016,7 @@ void func_shelter_b3_garbage_incinerator_8017F8AC(s32 arg0)
     work                = D_shelter_b3_garbage_incinerator_8018FC3C->work;
     anim                = arg0 + 0x2F;
     weaponId            = Player_Status.weapon;
-    setId               = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    setId               = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = setId;
     work->field_38      = anim;
     msg.field_4         = anim;
@@ -1033,7 +1041,7 @@ void func_shelter_b3_garbage_incinerator_8017F968(void)
 
     work->wave.span  = 0x258;
     work->wave.scale = 0x100;
-    Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_80185BAC, 0, 0, (s32)&work->wave);
+    Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_80185BAC, 0, 0, &work->wave);
 }
 
 void func_shelter_b3_garbage_incinerator_8017F9B4(s32 arg0)
@@ -1047,7 +1055,7 @@ void func_shelter_b3_garbage_incinerator_8017F9B4(s32 arg0)
         work->child                 = Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 3, 0, 0);
         return;
     }
-    work->child->spawnArg1 = 1;
+    work->child->spawnArg1.value = 1;
 }
 
 void func_shelter_b3_garbage_incinerator_8017FA3C(void)
@@ -1085,7 +1093,7 @@ void func_shelter_b3_garbage_incinerator_8017FA58(Task* task, s32 arg1)
                 }
             }
             if (script != 0) {
-                func_shelter_b3_garbage_incinerator_8017FD64(script, key, (s16)task->spawnArg1);
+                func_shelter_b3_garbage_incinerator_8017FD64(script, key, (s16)task->spawnArg1.value);
                 func_shelter_b3_garbage_incinerator_8017FB80();
             }
             if ((Gp_CapBusy() == 0) && (Gp_StateF0.field_4 == 0)) {
@@ -1644,8 +1652,8 @@ void func_shelter_b3_garbage_incinerator_80180F18(Task* task)
 {
     s32 remaining;
 
-    remaining       = task->spawnArg1 - 1;
-    task->spawnArg1 = remaining;
+    remaining       = task->spawnArg1.value - 1;
+    task->spawnArg1.value = remaining;
     if (remaining <= 0) {
         taskKill(task);
     }
@@ -1666,8 +1674,8 @@ void func_shelter_b3_garbage_incinerator_80180F54(Task* task)
             task->state = 1;
             break;
         case 1:
-            remaining       = task->spawnArg1 - 1;
-            task->spawnArg1 = remaining;
+            remaining       = task->spawnArg1.value - 1;
+            task->spawnArg1.value = remaining;
             if ((remaining <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0)) {
                 taskKill(task);
                 Stage_SetEndingFlag();
@@ -1680,7 +1688,7 @@ void func_shelter_b3_garbage_incinerator_80180F54(Task* task)
 void func_shelter_b3_garbage_incinerator_80180FE4(s16 arg0, s16 arg1, s16 arg2)
 {
     func_shelter_b3_garbage_incinerator_8017FD64(arg0, arg1, 0xD0);
-    Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_80187190, 0, arg2, 0);
+    Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_80187190, 0, (s32)(arg2), 0);
 }
 
 /// Starts caption script `arg0` at line key `arg1` and spawns the caption

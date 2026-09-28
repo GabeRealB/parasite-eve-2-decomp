@@ -9,8 +9,8 @@
 
 #include "common.h"
 
-#include "main/gfx.h"
-#include "main/task.h"
+#include "main/gfx_types.h"
+#include "main/task_types.h"
 
 /// The Dryfield map's part of main's MDEC buffer setup: `Mdec_SetupBuffers`
 /// calls this map-slot address (as `func_80179954`) for one of its layouts.
@@ -23,12 +23,12 @@ extern GfxImageSlot D_map_dryfield_full_801799A4[];
 extern GfxImageSlot D_map_shelter_80179B40[];
 extern GfxImageSlot D_map_neo_ark_80179DB8[];
 
-/// Per-map tables `D_8005DCB4` indexes (maps without one have NULL there).
+/// Per-map tables `CdCmd_MapHeapSizes` indexes (maps without one have NULL there).
 extern s32 D_map_akropolis_8017A0F8[];
 extern s32 D_map_dryfield_80179B4C[];
 extern s32 D_map_neo_ark_80179EC8[];
 
-/// Per-map task id tables `D_8006273C` and `D_80062750` index.
+/// Per-map task id tables `Stage_MusicTables` and `Stage_CountdownMusicTables` index.
 extern TaskIdPair D_map_akropolis_8017C1B4[];
 extern TaskIdPair D_map_dryfield_8017BDE0[];
 extern TaskIdPair D_map_dryfield_full_8017D238[];

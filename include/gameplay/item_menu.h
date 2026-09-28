@@ -5,8 +5,8 @@
 
 #include "gameplay/action_prompt.h"
 
-#include "main/task.h"
-#include "main/ui.h"
+#include "main/task_types.h"
+#include "main/ui_types.h"
 
 // Inventory menu tasks, item panels, prompts and their shared descriptors.
 

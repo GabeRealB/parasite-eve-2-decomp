@@ -3,11 +3,6 @@
 #include <psyq/rand.h>
 
 #include "actors/actor_143000.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "psyq/strings.h"
 
 #include "gameplay/captions.h"
@@ -17,7 +12,15 @@
 #include "gameplay/items.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/text.h"
 
 extern GpAreaApplyRec D_80186488;
 extern GpAreaApplyRec D_8018649C;
@@ -42,7 +45,7 @@ void func_actor_143000_80133EE4(Task* arg0)
     u8*               p;
     u8*               slot;
 
-    spawn = arg0->spawnArg2;
+    spawn = arg0->spawnArg2.pointer;
     switch (arg0->state) {
         case 0:
             spawn->field_1 = 1;

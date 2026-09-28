@@ -7,14 +7,6 @@
 #include <psyq/abs.h>
 
 #include "actors/actor_503500.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/damage.h"
@@ -26,7 +18,21 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "actors/actor.h"
+#include "gameplay/actor.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
 
 /// The 0x44 block `func_actor_503500_801455A4` allocates: the shared head plus
 /// the effect task it reparents itself under.
@@ -248,7 +254,7 @@ static void func_actor_503500_80144E8C(Task* arg0)
     Gp_InitRec18Table(rec, 4, 0);
     work->head.obj.flags &= 0x7FFF;
 
-    if (arg0->spawnArg1 == 0) {
+    if (arg0->spawnArg1.value == 0) {
         eff = Gp_SpawnEff(0x60195, coord, 0, NULL);
         if (eff == NULL) {
             func_actor_503500_80145480(arg0);
@@ -279,7 +285,7 @@ static void func_actor_503500_801450A0(Task* arg0)
     switch (work->field_CC) {
         case 0:
             if (++work->field_C6 >= 0x1F) {
-                if (arg0->spawnArg1 == 0) {
+                if (arg0->spawnArg1.value == 0) {
                     work->head.obj.flags |= 0x8000;
                 }
                 coord = arg0->extra.tmd->coords;
@@ -291,7 +297,7 @@ static void func_actor_503500_801450A0(Task* arg0)
             break;
         case 1:
             if (++work->field_C6 >= 0x15) {
-                if (arg0->spawnArg1 != 0) {
+                if (arg0->spawnArg1.value != 0) {
                     work->head.obj.flags |= 0x8000;
                 }
                 work->field_C6 = 0;
@@ -300,7 +306,7 @@ static void func_actor_503500_801450A0(Task* arg0)
             break;
         case 2:
             step = -0x20000;
-            if (arg0->spawnArg1 != 0) {
+            if (arg0->spawnArg1.value != 0) {
                 step = 0x20000;
             }
             {
@@ -325,7 +331,7 @@ static void func_actor_503500_801450A0(Task* arg0)
             }
             break;
         case 3:
-            if (arg0->spawnArg1 != 0) {
+            if (arg0->spawnArg1.value != 0) {
                 work->field_C0 -= 0x20000;
                 if (work->field_C0 < 0) {
                     work->field_C0 = 0;
@@ -634,7 +640,7 @@ static void func_actor_503500_80145A2C(Task* arg0)
     Gp_InitRec18Table(rec, 4, 0);
     work->head.obj.flags &= 0x7FFF;
 
-    eff = Gp_SpawnEff(0x60190, coord, arg0->spawnArg1, NULL);
+    eff = Gp_SpawnEff(0x60190, coord, arg0->spawnArg1.value, NULL);
     if (eff == NULL) {
         func_actor_503500_80145E98(arg0);
         return;
@@ -714,7 +720,7 @@ static void func_actor_503500_80145E1C(Task* arg0)
     coord->flg = 0;
     func_actor_503500_80145F18(arg0);
     func_actor_503500_80145C50(arg0);
-    if (func_actor_503500_8013608C(arg0->spawnArg2)) {
+    if (func_actor_503500_8013608C(arg0->spawnArg2.pointer)) {
         arg0->exitCallback(arg0);
     }
 }
@@ -802,7 +808,7 @@ static void func_actor_503500_80145FDC(Task* task)
         pos.vx = coord->workm.t[0];
         pos.vy = coord->workm.t[1];
         pos.vz = coord->workm.t[2];
-        Gp_UpdateActorColor(task->spawnArg2, &pos, 0, 0);
+        Gp_UpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
     }
     if (work->field_4C8 >= 0) {
         if (work->field_4C8 == 0) {
@@ -833,7 +839,7 @@ static void func_actor_503500_8014618C(Task* arg0)
     // target's `move s2, v0` copy.
     coord = arg0->extra.tmd->coords;
     work  = (Actor503500Effect4CC*)arg0->work;
-    enemy = arg0->spawnArg2;
+    enemy = arg0->spawnArg2.pointer;
     ext   = arg0->extra.tmd;
     switch (work->field_4C2) {
         case 0:
@@ -906,7 +912,7 @@ static void func_actor_503500_8014642C(Task* arg0)
     GpEnemy*              enemy;
 
     coord = arg0->extra.tmd->coords;
-    enemy = arg0->spawnArg2;
+    enemy = arg0->spawnArg2.pointer;
 
     work = memCalloc(sizeof(Actor503500Effect4CC), false);
     if (work == NULL) {

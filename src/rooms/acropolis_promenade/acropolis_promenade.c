@@ -5,20 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -36,7 +22,27 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gameflow.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "main/wipsys.h"
+#include "overlay.h"
 
 /// Sign pair for one corner of the promenade's ground-glow quad
 /// (`func_acropolis_promenade_8017ED44`). The four entries of
@@ -109,8 +115,8 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
             Task_SpawnFromTable(D_acropolis_promenade_80181148, 2, 0, 0);
         }
     }
-    if (Mc_SaveData[0].sceneEvent == 6) {
-        Mc_SaveData[0].sceneEvent = 5;
+    if (Mc_SaveData[0].state.sceneEvent == 6) {
+        Mc_SaveData[0].state.sceneEvent = 5;
     }
     temp = gGameSession->at4.loc.place;
     if (temp == 1) {
@@ -139,7 +145,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
 /// not yet at 4; the first pass at 4 advances it to 5 instead of refusing.
 /// Message 0xC, while nibble 2 is still 0, refuses with code 3, latches the
 /// answered record into `D_acropolis_promenade_801862D0` for the room's own
-/// script to pick up, and arms `Mc_SaveData[0].sceneEvent` with 4. Message 0xE spawns the
+/// script to pick up, and arms `Mc_SaveData[0].state.sceneEvent` with 4. Message 0xE spawns the
 /// capsule sequence the first time (nibble 2 still 0) and afterwards reports
 /// through `field_3` whether nibble 2 has reached 3.
 ///
@@ -164,7 +170,7 @@ s32 func_acropolis_promenade_8017D70C(s32 arg0, s32 arg1, RoomEventMsg* in, Room
         if (in->field_5 == 0) {
             out->field_2                   = 3;
             D_acropolis_promenade_801862D0 = *out;
-            Mc_SaveData[0].sceneEvent      = 4;
+            Mc_SaveData[0].state.sceneEvent      = 4;
         }
         return 1;
     }
@@ -348,7 +354,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
             ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             weaponId                              = Player_Status.weapon;
-            rec.animBlock.index                   = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.animBlock.index                   = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.field_4                           = 1;
             rec.field_8                           = 0;
             rec.field_C                           = 0;
@@ -405,7 +411,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
                 Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
                 Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
-                Mc_SaveData[0].at4.loc.view = 2;
+                Mc_SaveData[0].state.at4.loc.view = 2;
                 func_800E9BDC(2, 0x9FF);
                 Gp_StateF0.field_4            = 0;
                 gGameSession->padScriptFlags &= 0x7F;
@@ -465,7 +471,7 @@ static void func_acropolis_promenade_8017E03C(Task* task)
     s16        prev;
 
     coord = task->extra.tmd->coords;
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     view  = Gp_GetViewIndex();
     if (Gp_State1C->eventState >= 4) {
         return;
@@ -538,9 +544,9 @@ static void func_acropolis_promenade_8017E394(Task* task)
     s32        onScreen;
     s32        depth;
 
-    work    = task->spawnArg2;
+    work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
-    if ((u8)Gp_GetViewIndex() == task->spawnArg1) {
+    if ((u8)Gp_GetViewIndex() == task->spawnArg1.value) {
         if (work->age == 0) {
             Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
             work->move.vx = ((u32)Gp_LcgState >> 16) % 240;
@@ -607,9 +613,9 @@ static void func_acropolis_promenade_8017E634(Task* task)
     s32                   grey;
 
     coord = task->extra.tmd->coords;
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
-    work->age   = task->spawnArg1;
+    work->age   = task->spawnArg1.value;
     scratch     = (void**)G_SCRATCH_HEAD;
     head        = *scratch;
     blk         = (OverlaySpriteScratch*)(head - 0x18);
@@ -720,11 +726,11 @@ static void func_acropolis_promenade_8017ED44(Task* task)
     s32              grey;
 
     coord = task->extra.tmd->coords;
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     scratch   = (void**)G_SCRATCH_HEAD;
     head      = *scratch;
-    work->age = task->spawnArg1;
+    work->age = task->spawnArg1.value;
     *scratch  = head - 0x24;
     blk       = (RoomQuadScratch*)(head - 0x24);
     for (i = 0; i < 4; i++) {
@@ -805,7 +811,7 @@ static void func_acropolis_promenade_8017F0BC(Task* task)
     s32                    clut;
 
     coord = task->extra.tmd->coords;
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     blk         = SCRATCH_PUSH(RoomGlowSpriteScratch);
     blk->pos.vx = coord->workm.t[0];
@@ -825,7 +831,7 @@ static void func_acropolis_promenade_8017F0BC(Task* task)
         u8 base[3] = { 0x20, 0x60, 0x20 };
         u8 step[3] = { 0x08, 0x10, 0x0C };
 
-        grey        = base[task->spawnArg1] + (gDisplayState.animFrame & 1) * step[task->spawnArg1];
+        grey        = base[task->spawnArg1.value] + (gDisplayState.animFrame & 1) * step[task->spawnArg1.value];
         prim->code |= 2;
         prim->tpage = 0x2B;
         prim->r0    = grey;
@@ -834,15 +840,15 @@ static void func_acropolis_promenade_8017F0BC(Task* task)
         // Assigning through an `s32` keeps the load of `spawnArg1` in SImode;
         // storing the expression straight into the `u16` field lets the front
         // end shorten the whole chain and the load becomes an `lhu`.
-        clut       = ((task->spawnArg1 + 2) & 0x3F) | 0x4380;
+        clut       = ((task->spawnArg1.value + 2) & 0x3F) | 0x4380;
         prim->clut = clut;
-        prim->u0   = (task->spawnArg1 + 1) * 0x28;
+        prim->u0   = (task->spawnArg1.value + 1) * 0x28;
         prim->v0   = 0x10;
-        prim->u1   = (task->spawnArg1 + 1) * 0x28 + 0x27;
+        prim->u1   = (task->spawnArg1.value + 1) * 0x28 + 0x27;
         prim->v1   = 0x10;
-        prim->u2   = (task->spawnArg1 + 1) * 0x28;
+        prim->u2   = (task->spawnArg1.value + 1) * 0x28;
         prim->v2   = 0x37;
-        prim->u3   = (task->spawnArg1 + 1) * 0x28 + 0x27;
+        prim->u3   = (task->spawnArg1.value + 1) * 0x28 + 0x27;
         prim->v3   = 0x37;
         blk->half  = 0x6180 / blk->otz;
         prim->x0 = prim->x2 = blk->sxy.vx - blk->half;

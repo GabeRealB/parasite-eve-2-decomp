@@ -1,19 +1,5 @@
 #include "common.h"
 #include <psyq/libgte.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/tmd.h"
-#include "main/ui.h"
 #include "rooms/room_common.h"
 #include "rooms/mist_parking.h"
 
@@ -21,6 +7,18 @@
 #include "gameplay/display.h"
 #include "gameplay/items.h"
 #include "gameplay/evs_scripts.h"
+
+#include "gameplay/starter_inventory.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "main/ui.h"
 
 extern s32 D_mist_parking_8018F374;
 extern s32 D_mist_parking_8018F4AC;
@@ -242,7 +240,7 @@ void func_mist_parking_80182F60(Task* task)
             break;
         case 2:
             key             = Gp_GetCapEventKey();
-            task->spawnArg1 = key;
+            task->spawnArg1.value = key;
             switch (key) {
                 case 4:
                     func_800E8614((s32)&D_mist_parking_8018F4AC, 1);
@@ -257,7 +255,7 @@ void func_mist_parking_80182F60(Task* task)
             task->state++;
             break;
         case 4:
-            if (task->spawnArg1 == 4) {
+            if (task->spawnArg1.value == 4) {
                 Gp_MsgPlayerWeapon(1);
             }
             taskKill(task);
@@ -277,8 +275,8 @@ static void func_mist_parking_8018307C(Task* task)
     GpCoord*   coord;
     GpCoord*   dest;
 
-    parent          = (Task*)task->spawnArg2;
-    part            = task->spawnArg1;
+    parent          = (Task*)task->spawnArg2.pointer;
+    part            = task->spawnArg1.value;
     extra           = task->extra.tmd;
     parentExtra     = parent->extra.tmd;
     coord           = extra->coords;
@@ -309,15 +307,15 @@ void func_mist_parking_8018312C(s32 arg0)
 
 void func_mist_parking_8018316C(s32 arg0)
 {
-    Mc_SaveData[0].at4.loc.stage = 1;
-    Mc_SaveData[0].at4.loc.warp  = 1;
-    Mc_SaveData[0].at4.loc.room  = 1;
-    Mc_SaveData[0].at4.loc.area  = arg0;
+    Mc_SaveData[0].state.at4.loc.stage = 1;
+    Mc_SaveData[0].state.at4.loc.warp  = 1;
+    Mc_SaveData[0].state.at4.loc.room  = 1;
+    Mc_SaveData[0].state.at4.loc.area  = arg0;
     gDisplayState.roomVariant    = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
     if (arg0 == 5) {
-        Fs_BeginBootLoad(&Mc_SaveData[0].at4.loc.view, 0);
+        Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 0);
     }
 }
 
@@ -396,7 +394,7 @@ static void func_mist_parking_80183304(Task* task)
     task->exitCallback = func_mist_parking_80183434;
 
     for (; i < 2; i++) {
-        if (task->spawnArg1 == mode) {
+        if (task->spawnArg1.value == mode) {
             node->text = *(u8**)(off + table);
         } else {
             node->text = *line;
@@ -425,7 +423,7 @@ static void func_mist_parking_801833F8(Task* task)
 
     result = ((RoomTextBlock*)task->work)->desc.field_2;
     if (result != 0) {
-        *(s32*)task->spawnArg2 = result;
+        *(s32*)task->spawnArg2.pointer = result;
         task->state            = task->state + 1;
     }
 }
@@ -473,12 +471,12 @@ void func_mist_parking_8018354C(void)
 void func_mist_parking_8018357C(Task* arg0)
 {
     func_800BC4E4();
-    Mc_SaveData[0].at4.loc.stage = 2;
-    Mc_SaveData[0].at4.loc.area  = 1;
-    Mc_SaveData[0].at4.loc.warp  = 1;
-    Mc_SaveData[0].at4.loc.room  = 1;
+    Mc_SaveData[0].state.at4.loc.stage = 2;
+    Mc_SaveData[0].state.at4.loc.area  = 1;
+    Mc_SaveData[0].state.at4.loc.warp  = 1;
+    Mc_SaveData[0].state.at4.loc.room  = 1;
     gDisplayState.roomVariant    = 1;
-    Fs_BeginBootLoad(&Mc_SaveData[0].at4.loc.view, 1);
+    Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 1);
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
     taskKill(arg0);

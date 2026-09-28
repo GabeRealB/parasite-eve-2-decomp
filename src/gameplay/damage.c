@@ -22,13 +22,11 @@
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "main/coord.h"
 #include "main/gamemain.h"
 #include "main/mc.h"
 #include "main/scratch.h"
 #include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
+#include "main/task_types.h"
 #include "main/wipsys.h"
 
 /// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `Gp_RollEnemyChance`.
@@ -279,7 +277,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
             val = val * D_80113CFC[(extra / 16 - 1) * 2 + (s8)(extra % 16)] / 100;
         }
     } else {
-        hp  = Mc_SaveData[0].companionHp;
+        hp  = Mc_SaveData[0].state.companionHp;
         col = D_80113F54[hp / 10];
         val = Gp_DmgRows[Gp_StateF0.field_2B].field_0[col] << 8;
     }

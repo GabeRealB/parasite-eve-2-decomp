@@ -11,6 +11,7 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/text.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
 s8 D_801156B0;
@@ -137,7 +138,7 @@ s32 func_800E7358(void)
 
 s32 func_800E7378(void)
 {
-    if (Mc_SaveData[0].demoScene == 9) {
+    if (Mc_SaveData[0].state.demoScene == 9) {
         if (D_801156B8 != NULL) {
             return 0;
         }
@@ -152,10 +153,10 @@ s32 func_800E73E8(void)
 {
     Task* task;
 
-    if (Mc_SaveData[0].demoScene == 9) {
+    if (Mc_SaveData[0].state.demoScene == 9) {
         task = D_801156B8;
         if (task != NULL) {
-            task->spawnArg1 = 1;
+            task->spawnArg1.value = 1;
             D_801156B8      = NULL;
             return 0;
         }
@@ -167,7 +168,7 @@ s32 func_800E73E8(void)
 
 s32 func_800E7434(void)
 {
-    if (Mc_SaveData[0].demoScene == 9) {
+    if (Mc_SaveData[0].state.demoScene == 9) {
         if (D_801156B8 == NULL) {
             return 0;
         }
@@ -193,7 +194,7 @@ s32 func_800E74EC(s32 arg0, s32 arg1, s32 arg2)
 {
     if (gGameSession->evtSkipped == 0) {
         if (D_801156B1 != 0) {
-            func_8001D580();
+            CdCmd_UnusedStub0();
             D_801156B0 = 1;
             D_801156BC = 0;
         } else {

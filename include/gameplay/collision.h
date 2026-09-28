@@ -32,7 +32,7 @@ STATIC_ASSERT_SIZEOF(GpU16Pair, 0x4);
 /// walks the same list and, on a pending `field_4B`, copies `field_46` /
 /// `field_48` / `field_49` to its out-params and sets `Gp_PendingObj4CFlag`. The
 /// same node type is the `Gp_Obj4CList` list walked by `Gp_CommitObj4CSave`: a
-/// pending `field_4B` copies `field_49` into `Mc_SaveData[0].at4.loc.view` when
+/// pending `field_4B` copies `field_49` into `Mc_SaveData[0].state.at4.loc.view` when
 /// `field_48` matches `gGameSession->at4.loc.view`.
 /// `func_800DF6AC` tests an object against the quad at `field_14`, using
 /// `field_C` as its local origin, `field_34` as its normal, and `field_44`

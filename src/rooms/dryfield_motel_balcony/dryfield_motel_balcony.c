@@ -5,15 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
@@ -29,8 +20,21 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// Descriptor of the event task the gate spawns.
 extern TaskDesc D_dryfield_motel_balcony_80182270;
@@ -163,9 +167,9 @@ void func_dryfield_motel_balcony_8017D74C(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_dryfield_motel_balcony_80186724.msgId;
-            Mc_SaveData[0].at4.loc.warp = D_dryfield_motel_balcony_80186724.field_2;
-            Mc_SaveData[0].at4.loc.room = (u8)D_dryfield_motel_balcony_80186724.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_motel_balcony_80186724.msgId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_motel_balcony_80186724.field_2;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_motel_balcony_80186724.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -176,7 +180,7 @@ void func_dryfield_motel_balcony_8017D74C(Task* task)
 /// from game flags for messages 0x1C, 0xF and 0x1F, then routes messages 0x1C,
 /// 0x1F and 0x1E through the event gate with each one's request; when the
 /// gate fires, it updates the collected and seen item bits (and, for 0x1E, a
-/// flag nibble and `Mc_SaveData[0].sceneEvent`). Any other message answers 1; a gate result
+/// flag nibble and `Mc_SaveData[0].state.sceneEvent`). Any other message answers 1; a gate result
 /// of 0 is reported as 2.
 s32 func_dryfield_motel_balcony_8017D8BC(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
 {
@@ -231,7 +235,7 @@ s32 func_dryfield_motel_balcony_8017D8BC(Task* task, s32 msgId, RoomEventMsg* ms
         ret         = func_dryfield_motel_balcony_8017D5E8(&req, out);
         if (D_dryfield_motel_balcony_8018672C != 0) {
             GameFlag_SetNibble(0x30, 1);
-            Mc_SaveData[0].sceneEvent = 3;
+            Mc_SaveData[0].state.sceneEvent = 3;
             func_800E3FAC(0xA2, 0xC);
         }
     } else {
@@ -333,7 +337,7 @@ static void func_dryfield_motel_balcony_8017DCB8(Task* task)
     GpCoord*   coord;
     s32        lifetime;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -343,29 +347,29 @@ static void func_dryfield_motel_balcony_8017DCB8(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                if (task->spawnArg1 & 3) {
+                if (task->spawnArg1.value & 3) {
                     work->scale   = 0x80;
-                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1.value)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1)->speed;
+                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1.value)->speed;
                     work->move.vz = 0;
-                    if (task->spawnArg1 & 2) {
+                    if (task->spawnArg1.value & 2) {
                         work->move.vy = -work->move.vy;
                     }
                     task->state = 2;
                 } else {
                     work->scale   = 0x20;
-                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1.value)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
+                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1.value)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
                     work->move.vz = 0;
-                    task->state   = (task->spawnArg1 & 1) + 1;
+                    task->state   = (task->spawnArg1.value & 1) + 1;
                 }
                 break;
             case 1:
@@ -596,7 +600,7 @@ static void func_dryfield_motel_balcony_8017EA00(Task* arg0)
     s16         flag;
     s32         shift;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -620,17 +624,17 @@ static void func_dryfield_motel_balcony_8017EA00(Task* arg0)
                 coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->index      = shift;
-                arg0->spawnArg1 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0;
+                arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
                 arg0->state     = 1;
-                mem->step       = 0x100 / arg0->spawnArg1;
+                mem->step       = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
                 mem->scale      += mem->step;
                 mem->angle      += mem->step;
-                arg0->spawnArg1 -= 1;
+                arg0->spawnArg1.value -= 1;
                 rgb[0]           = mem->scale >> D_dryfield_motel_balcony_801822AC[mem->index].r;
                 rgb[1]           = mem->scale >> D_dryfield_motel_balcony_801822AC[mem->index].g;
                 rgb[2]           = mem->scale >> D_dryfield_motel_balcony_801822AC[mem->index].b;
@@ -642,7 +646,7 @@ static void func_dryfield_motel_balcony_8017EA00(Task* arg0)
                     func_dryfield_motel_balcony_8017E66C(coord, mem->angle + 0x100, rgb);
                 }
                 func_dryfield_motel_balcony_8017E248(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
-                if (arg0->spawnArg1 == 0) {
+                if (arg0->spawnArg1.value == 0) {
                     mem->scale  = 0xFF;
                     arg0->state = 2;
                     return;
@@ -682,7 +686,7 @@ static void func_dryfield_motel_balcony_8017ED98(Task* arg0)
     s16        flag;
     s16        step;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -1059,7 +1063,7 @@ static void func_dryfield_motel_balcony_801801A8(Task* arg0)
     s16        flag;
     s16        ang;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -1095,7 +1099,7 @@ static void func_dryfield_motel_balcony_801802DC(Task* arg0)
     GpCoord*   coord;
     u8         rgb[3];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -1108,13 +1112,13 @@ static void func_dryfield_motel_balcony_801802DC(Task* arg0)
             case 0:
                 mem->scale  = 0;
                 mem->angle  = 0x80;
-                mem->step   = 0x100 / arg0->spawnArg1;
+                mem->step   = 0x100 / arg0->spawnArg1.value;
                 arg0->state = 1;
                 break;
             case 1:
                 mem->scale += mem->step;
                 mem->angle += mem->step;
-                arg0->spawnArg1--;
+                arg0->spawnArg1.value--;
                 rgb[0] = mem->scale;
                 rgb[1] = mem->scale >> 2;
                 rgb[2] = mem->scale >> 1;
@@ -1124,7 +1128,7 @@ static void func_dryfield_motel_balcony_801802DC(Task* arg0)
                 rgb[2] >>= 1;
                 func_dryfield_motel_balcony_801809AC(coord, (u16)mem->angle * 2, rgb);
                 func_dryfield_motel_balcony_80180580(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
-                if (arg0->spawnArg1 == 0) {
+                if (arg0->spawnArg1.value == 0) {
                     mem->scale  = 0xFF;
                     arg0->state = 2;
                     rgb[0]      = mem->scale;
@@ -1276,7 +1280,7 @@ static void func_dryfield_motel_balcony_80180D40(Task* task)
     s32        i;
 
     coords   = (GpCoord*)task->work;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
@@ -1349,7 +1353,7 @@ static void func_dryfield_motel_balcony_80180D40(Task* task)
                     Gp_UpdateCoord(dst);
                 }
                 func_dryfield_motel_balcony_80181230(coords, &coords[8], work->age & 7, 0x123);
-                if (work->age == task->spawnArg1 && work->age != 0) {
+                if (work->age == task->spawnArg1.value && work->age != 0) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
@@ -1472,7 +1476,7 @@ static void func_dryfield_motel_balcony_80181628(Task* task)
     u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -1487,7 +1491,7 @@ static void func_dryfield_motel_balcony_80181628(Task* task)
     switch (task->state) {
         case 0:
             Gp_SpawnEff(0x60076, objCoord, 0x400, NULL);
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 Gp_SpawnEff(0x60070, objCoord, 0x80004600, NULL);
                 task->state = 1;
             } else {

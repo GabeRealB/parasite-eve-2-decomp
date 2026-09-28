@@ -5,14 +5,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include "weapons/p229.h"
 #include "weapons/weapons_shared_8011d468.h"
 #include "weapons/weapons_shared_8011d864.h"
@@ -25,8 +17,18 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/task.h"
+#include "main/wipsys.h"
+#include "overlay.h"
 
 static void func_p229_8011D464(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_p229_8011D860(GpCoord* arg0, s16 arg1, s16 arg2);
@@ -52,7 +54,7 @@ static void func_p229_8011D1DC(Task* task)
     u8            rgb[3];
     s32           i;
 
-    work  = (GpEffWork*)task->spawnArg2;
+    work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     base  = &Gp_RoomCoords[0];
     slot  = &base->data.light;
@@ -383,7 +385,7 @@ static void func_p229_8011DDA0(Task* arg0)
             if (actor->field_979 != 0) {
                 actor->field_979--;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0 ||
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0 ||
                 ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
                 frames = 0x12;
                 if (actor->field_97F == 1) {

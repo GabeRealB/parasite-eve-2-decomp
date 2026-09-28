@@ -8,7 +8,7 @@
 #include "gameplay/direction.h"
 #include "message.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 #include "main/text.h"
 
 // CAP dialogue commands, text state, relocation and task control.

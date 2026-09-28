@@ -3,12 +3,13 @@
 
 #include "actors/actor.h"
 #include "actors/actor_400100.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/wipsys.h"
 #include <psyq/inline_c.h>
 #include "gte.h"
+
+#include "main/coord.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
+#include "main/wipsys.h"
 
 void func_801811C4(s32 amount);
 

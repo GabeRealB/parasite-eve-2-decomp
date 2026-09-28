@@ -146,9 +146,9 @@ void Gp_CommitDirWarp(void)
     Gp_DispatchMsgPtrs(slot, 0x13EE, loc, loc);
 
     save               = &Mc_SaveData[0];
-    save->at4.loc.area = Gp_WarpLoc.prefix.bytes.field_0;
-    save->at4.loc.warp = loc->field_2;
-    save->at4.loc.room = loc->field_3;
+    save->state.at4.loc.area = Gp_WarpLoc.prefix.bytes.field_0;
+    save->state.at4.loc.warp = loc->field_2;
+    save->state.at4.loc.room = loc->field_3;
     Task_Spawn(0, 0x11, 0, 0);
 
     Gp_DirAltNibble = 0;
@@ -233,7 +233,7 @@ void Gp_ApplyAreaRecs(GpAreaApplyRec* recs)
         if (mask == 0) {
             apply = 1;
         } else {
-            mode = Mc_SaveData[0].gameMode;
+            mode = Mc_SaveData[0].state.gameMode;
             if (mode == 0 || mode == 2) {
                 if (mask == 0x10) {
                     apply = 1;

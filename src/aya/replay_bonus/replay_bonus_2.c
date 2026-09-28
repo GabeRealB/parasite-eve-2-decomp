@@ -1,15 +1,6 @@
 #include "common.h"
-#include "main/gamemain.h"
 
 #include "aya/replay_bonus.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/text.h"
-#include "main/wipsys.h"
 #include "psyq/libpress.h"
 #include "psyq/strings.h"
 
@@ -17,6 +8,19 @@
 #include "gameplay/items.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/scene_runtime.h"
+
+#include "gameplay/inventory.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
+#include "main/wipsys.h"
 
 extern u8           D_replay_bonus_801157A8[];
 extern u8           D_replay_bonus_801157B0[];
@@ -50,7 +54,7 @@ static void func_replay_bonus_80117194(Task* arg0)
     s32       copied;
     s16       flag;
 
-    obj  = arg0->spawnArg2;
+    obj  = arg0->spawnArg2.pointer;
     flag = obj->field_2E;
     if ((flag == -1) || (flag == 6)) {
         owner  = obj->owner;
@@ -58,41 +62,41 @@ static void func_replay_bonus_80117194(Task* arg0)
         Ui_TeardownTree(obj, owner);
         switch (arg0->state) {
             case 2:
-                arg0->spawnArg2 = Ui_SpawnFromDesc(&D_replay_bonus_8011918C, 0, 1, 1, NULL);
+                arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_8011918C, 0, 1, 1, NULL);
                 break;
             case 3:
                 if (D_replay_bonus_80119284 < 0) {
-                    arg0->spawnArg2 = Ui_SpawnFromDesc(&D_replay_bonus_801191FC, 0, 1, 1, NULL);
+                    arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_801191FC, 0, 1, 1, NULL);
                     arg0->state     = arg0->state + 2;
                 } else {
-                    arg0->spawnArg2 = Ui_SpawnFromDesc(&D_replay_bonus_801191C4, 0, 1, 1, NULL);
+                    arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_801191C4, 0, 1, 1, NULL);
                 }
                 break;
             case 4:
-                arg0->spawnArg2 = Ui_SpawnFromDesc(&D_replay_bonus_801191E0, 1, 1, 1, NULL);
+                arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_801191E0, 1, 1, 1, NULL);
                 break;
             case 5:
-                arg0->spawnArg2 = Ui_SpawnFromDesc(&D_replay_bonus_801191C4, 2, 1, 1, NULL);
+                arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_801191C4, 2, 1, 1, NULL);
                 break;
             case 6:
                 GameMain_SetFrameTiming(0);
                 func_replay_bonus_80116EC0();
                 gDisplayState.gameMode = 0xFF;
-                arg0->spawnArg2        = Ui_SpawnFromDesc(&D_800611E4, 0, 1, 1, NULL);
+                arg0->spawnArg2.pointer        = Ui_SpawnFromDesc(&D_800611E4, 0, 1, 1, NULL);
                 break;
             case 7:
                 if (copied == 0x33) {
-                    arg0->spawnArg2 = ((UiObject * (*)(UiObject*, s32, s32, s32)) Gp_SpawnItemPrompt)(NULL, 0x11, 0, 1);
+                    arg0->spawnArg2.pointer = ((UiObject * (*)(UiObject*, s32, s32, s32)) Gp_SpawnItemPrompt)(NULL, 0x11, 0, 1);
                     arg0->state     = arg0->state + 1;
                 } else {
-                    arg0->spawnArg2 = Ui_SpawnFromDesc(&D_replay_bonus_80119170, 0, 1, 2, NULL);
+                    arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_80119170, 0, 1, 2, NULL);
                 }
                 break;
             case 8:
                 if (copied == 0x33) {
-                    arg0->spawnArg2 = ((UiObject * (*)(UiObject*, s32, s32, s32)) Gp_SpawnItemPrompt)(NULL, 0xF, 0, 1);
+                    arg0->spawnArg2.pointer = ((UiObject * (*)(UiObject*, s32, s32, s32)) Gp_SpawnItemPrompt)(NULL, 0xF, 0, 1);
                 } else {
-                    arg0->spawnArg2 = Ui_SpawnFromDesc(&D_800611E4, 1, 1, 1, NULL);
+                    arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_800611E4, 1, 1, 1, NULL);
                     arg0->state     = arg0->state - 2;
                 }
                 break;
@@ -116,7 +120,7 @@ static s32 func_replay_bonus_801173A8(void)
     spend = func_replay_bonus_80115CA4();
     p     = D_replay_bonus_80118F78;
     idx   = 0;
-    if (Mc_SaveData[0].shopTiers == 0x1FFF) {
+    if (Mc_SaveData[0].state.shopTiers == 0x1FFF) {
         return -1;
     }
     i = 0;
@@ -134,13 +138,13 @@ static s32 func_replay_bonus_801173A8(void)
     } while (0);
 
     save = &Mc_SaveData[0];
-    idx += save->gameMode;
+    idx += save->state.gameMode;
     i    = 0;
     if (idx >= 0xD) {
         idx = 0xC;
     }
     one  = 1;
-    mask = save->shopTiers;
+    mask = save->state.shopTiers;
     do {
         if ((mask & (one << idx)) == 0) {
             return idx;
@@ -168,7 +172,7 @@ static s16 func_replay_bonus_80117484(s32 arg0, s32 arg1)
     spend = func_replay_bonus_80115CA4();
     p     = D_replay_bonus_80118F78;
     idx   = 0;
-    if (Mc_SaveData[0].shopTiers == 0x1FFF) {
+    if (Mc_SaveData[0].state.shopTiers == 0x1FFF) {
         result = -1;
     } else {
         i = 0;
@@ -186,13 +190,13 @@ static s16 func_replay_bonus_80117484(s32 arg0, s32 arg1)
         } while (0);
 
         save = &Mc_SaveData[0];
-        idx += save->gameMode;
+        idx += save->state.gameMode;
         i    = 0;
         if (idx >= 0xD) {
             idx = 0xC;
         }
         one  = 1;
-        mask = save->shopTiers;
+        mask = save->state.shopTiers;
         do {
         loop2:
             if ((mask & (one << idx)) == 0) {
@@ -321,7 +325,7 @@ static void func_replay_bonus_801178C0(Task* arg0)
 {
     if (CdCmd_IsIdle() & 0xFFFF) {
         Text_LoadClutImages();
-        arg0->spawnArg2 = Ui_SpawnFromDesc(&D_replay_bonus_80119154, 0, 1, 1, NULL);
+        arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_80119154, 0, 1, 1, NULL);
         arg0->state     = (s32)(arg0->state + 1);
     }
 }
@@ -513,7 +517,7 @@ static void func_replay_bonus_80117E04(void)
     count                   = D_replay_bonus_801192A0;
     D_replay_bonus_801192B4 = 0;
     D_replay_bonus_801192C0 =
-        (u8*)(Gpu_PrimHeapBase + Gpu_PrimHeapSize + (D_replay_bonus_80119224 << 16));
+        Gpu_PrimHeapBase + Gpu_PrimHeapSize + (D_replay_bonus_80119224 << 16);
     D_replay_bonus_80119224 ^= 1;
     end                      = count - 1;
 
@@ -897,12 +901,12 @@ void func_replay_bonus_80118C64(Task* arg0)
                 break;
             }
             stream                  = D_replay_bonus_801192BC;
-            stream->fileId          = (u16)arg0->spawnArg1;
+            stream->fileId          = (u16)arg0->spawnArg1.value;
             stream->x               = 0x280;
             stream->y               = (D_replay_bonus_80119226 ^ 1) << 8;
             stream->w               = 0xF0;
             stream->h               = 0xB0;
-            D_replay_bonus_80119228 = Task_SpawnFromTable(&D_replay_bonus_80118F6C, 0, 0, (s32)stream);
+            D_replay_bonus_80119228 = Task_SpawnFromTable(&D_replay_bonus_80118F6C, 0, 0, stream);
             D_replay_bonus_80119225 = 1;
             arg0->state            += 1;
             break;
@@ -926,7 +930,7 @@ void func_replay_bonus_80118D7C(Task* arg0)
     temp_v1 = arg0->state;
     switch (temp_v1) {
         case 0:
-            arg0->killCountdown = (u16)arg0->spawnArg1;
+            arg0->killCountdown = (u16)arg0->spawnArg1.value;
             arg0->state        += 1;
             break;
         case 1:
@@ -937,7 +941,7 @@ void func_replay_bonus_80118D7C(Task* arg0)
             }
             break;
     }
-    func_replay_bonus_80117DE0(((s32)(arg0->killCountdown * 0xFF) / (s32)arg0->spawnArg1) & 0xFF);
+    func_replay_bonus_80117DE0(((s32)(arg0->killCountdown * 0xFF) / (s32)arg0->spawnArg1.value) & 0xFF);
 }
 
 void func_replay_bonus_80118E3C(Task* arg0)
@@ -954,12 +958,12 @@ void func_replay_bonus_80118E3C(Task* arg0)
         case 1:
             temp_v0             = arg0->killCountdown + 1;
             arg0->killCountdown = temp_v0;
-            if ((s16)temp_v0 >= arg0->spawnArg1) {
+            if ((s16)temp_v0 >= arg0->spawnArg1.value) {
                 taskKill(arg0);
             }
             break;
     }
-    func_replay_bonus_80117DE0(((s32)(arg0->killCountdown * 0xFF) / (s32)arg0->spawnArg1) & 0xFF);
+    func_replay_bonus_80117DE0(((s32)(arg0->killCountdown * 0xFF) / (s32)arg0->spawnArg1.value) & 0xFF);
 }
 
 static void func_replay_bonus_80118F00(s32 arg0)

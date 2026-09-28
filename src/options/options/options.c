@@ -2,6 +2,8 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/display.h"
+
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mc.h"
@@ -9,9 +11,6 @@
 #include "main/sound.h"
 #include "main/text.h"
 #include "main/ui.h"
-
-#include "gameplay/display.h"
-#include "main/task.h"
 
 /// Menu labels and help text for the options screen.
 static u8 D_options_801D5B2C[32] = "Restore default configuration";
@@ -134,7 +133,7 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
     Text_DrawPrompt(arg1, arg1->panel.field_1C.s + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
     i        = 0;
     p        = labels;
-    saved    = Mc_SaveData[0].soundMode;
+    saved    = Mc_SaveData[0].state.soundMode;
     y        = i;
     selected = saved;
     x        = arg1->panel.field_1C.s + 0x78;
@@ -166,8 +165,8 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
             }
         }
     }
-    Mc_SaveData[0].soundMode = selected;
-    cur                      = Mc_SaveData[0].soundMode;
+    Mc_SaveData[0].state.soundMode = selected;
+    cur                      = Mc_SaveData[0].state.soundMode;
     if (saved != cur) {
         if (cur != 0) {
             if (cur != 1) {
@@ -214,7 +213,7 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
     Text_DrawPrompt((UiObject*)a0tmp, arg1->panel.field_1C.s + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
     i        = 0;
     p        = labels;
-    saved    = Mc_SaveData[0].musicVolume;
+    saved    = Mc_SaveData[0].state.musicVolume;
     y        = i;
     selected = saved;
     x        = arg1->panel.field_1C.s + 0x78;
@@ -246,7 +245,7 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
             }
         }
     }
-    Mc_SaveData[0].musicVolume = selected;
+    Mc_SaveData[0].state.musicVolume = selected;
     if (saved != (s8)selected) {
         Snd_ApplyVolumeTable(0);
     }
@@ -274,7 +273,7 @@ static void func_options_801D4504(UiList* arg0, UiObject* arg1)
     i        = 0;
     p        = labels;
     y        = i;
-    selected = Mc_SaveData[0].cursorMode;
+    selected = Mc_SaveData[0].state.cursorMode;
     x        = arg1->panel.field_1C.s + 0x78;
     span     = (s16)arg1->panel.field_1E.u - x;
     n2       = 2;
@@ -305,7 +304,7 @@ static void func_options_801D4504(UiList* arg0, UiObject* arg1)
             }
         }
     }
-    Mc_SaveData[0].cursorMode = selected;
+    Mc_SaveData[0].state.cursorMode = selected;
     status                    = arg1->panel.field_0.w;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
         Ui_SetHolderParam(D_options_801D5CE4, 0, 0);
@@ -332,7 +331,7 @@ static void func_options_801D4724(UiList* arg0, UiObject* arg1)
     i        = 0;
     p        = labels;
     y        = i;
-    selected = Mc_SaveData[0].vibration;
+    selected = Mc_SaveData[0].state.vibration;
     x        = arg1->panel.field_1C.s + 0x78;
     span     = (s16)arg1->panel.field_1E.u - x;
     n2       = 2;
@@ -363,7 +362,7 @@ static void func_options_801D4724(UiList* arg0, UiObject* arg1)
             }
         }
     }
-    Mc_SaveData[0].vibration = selected;
+    Mc_SaveData[0].state.vibration = selected;
     status                   = arg1->panel.field_0.w;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
         Ui_SetHolderParam(D_options_801D5D28, 0, 0);
@@ -390,7 +389,7 @@ static void func_options_801D4944(UiList* arg0, UiObject* arg1)
     i           = 0;
     p           = labels;
     y           = i;
-    selected    = Mc_SaveData[0].moveMode;
+    selected    = Mc_SaveData[0].state.moveMode;
     x           = arg1->panel.field_1C.s + 0x78;
     span        = (s16)arg1->panel.field_1E.u - x;
     columnCount = 2;
@@ -421,7 +420,7 @@ static void func_options_801D4944(UiList* arg0, UiObject* arg1)
             }
         }
     }
-    Mc_SaveData[0].moveMode = selected;
+    Mc_SaveData[0].state.moveMode = selected;
     status                  = arg1->panel.field_0.w;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
         Ui_SetHolderParam(D_options_801D5D68, 0, 0);
@@ -437,14 +436,14 @@ static void func_options_801D4B64(Task* task)
     s32       result;
 
     list = &D_options_801D5EB0;
-    obj  = task->spawnArg2;
-    if (task->spawnArg1 == 1) {
+    obj  = task->spawnArg2.pointer;
+    if (task->spawnArg1.value == 1) {
         list = &D_options_801D5ED8;
     }
     if (task->state == 0) {
         Ui_LayoutListPanel(list, &(obj)->panel);
         task->state += 1;
-        if (task->spawnArg1 == 1) {
+        if (task->spawnArg1.value == 1) {
             Ui_UpdateLayoutSize(&(obj)->panel, 0xC0, 0);
             obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
             obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
@@ -464,7 +463,7 @@ static void func_options_801D4B64(Task* task)
         }
     }
     if (task->firstChild != NULL) {
-        child  = task->firstChild->spawnArg2;
+        child  = task->firstChild->spawnArg2.pointer;
         result = child->field_2E;
         switch (result) {
             case 6:
@@ -494,7 +493,7 @@ static const KeyIconUvs Options_KeyIconUvs;
 
 static void func_options_801D4D0C(Task* task)
 {
-    UiObject*   obj       = (UiObject*)task->spawnArg2;
+    UiObject*   obj       = (UiObject*)task->spawnArg2.pointer;
     u8*         labels[3] = { D_options_801D5C64, D_options_801D5C6C, D_options_801D5C74 };
     u8*         runWalk;
     TextDrawReq req0;
@@ -541,8 +540,8 @@ static void func_options_801D4D0C(Task* task)
     runWalk  = D_options_801D5C10;
     x        = (s16)obj->panel.field_18.u;
     one      = 1;
-    walkMode = Mc_SaveData[0].moveMode;
-    type     = Mc_SaveData[0].buttonLayout;
+    walkMode = Mc_SaveData[0].state.moveMode;
+    type     = Mc_SaveData[0].state.buttonLayout;
     y        = x + 0xF;
     if (walkMode == one) {
         runWalk = D_options_801D5C14;
@@ -551,7 +550,7 @@ static void func_options_801D4D0C(Task* task)
     Ui_DrawText(&(obj)->panel, "Key Configuration");
     if (task->state == 0) {
         Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(9) + 6);
-        task->spawnArg1 = Mc_SaveData[0].buttonLayout;
+        task->spawnArg1.value = Mc_SaveData[0].state.buttonLayout;
         task->state    += 1;
     }
     y1     = x + 1;
@@ -594,7 +593,7 @@ static void func_options_801D4D0C(Task* task)
     req0.glyphTable = 0;
     req0.centerMode = 0;
     req0.field_E    = one2;
-    func_8002E53C(&req0, D_options_801D5BD4);
+    Text_DrawString(&req0, D_options_801D5BD4);
 
     req1.x          = obj->panel.field_20.u + x;
     req1.y          = obj->panel.field_22.u + y;
@@ -604,7 +603,7 @@ static void func_options_801D4D0C(Task* task)
     req1.glyphTable = 0;
     req1.centerMode = 0;
     req1.field_E    = one2;
-    func_8002E53C(&req1, D_options_801D5BD4);
+    Text_DrawString(&req1, D_options_801D5BD4);
 
     req2.x          = obj->panel.field_20.u + x;
     req2.y          = obj->panel.field_22.u + y;
@@ -614,7 +613,7 @@ static void func_options_801D4D0C(Task* task)
     req2.glyphTable = 0;
     req2.centerMode = 0;
     req2.field_E    = one2;
-    func_8002E53C(&req2, D_options_801D5BD0);
+    Text_DrawString(&req2, D_options_801D5BD0);
 
     req3.x          = obj->panel.field_20.u + x;
     req3.y          = obj->panel.field_22.u + y;
@@ -624,7 +623,7 @@ static void func_options_801D4D0C(Task* task)
     req3.glyphTable = 0;
     req3.centerMode = 0;
     req3.field_E    = one2;
-    func_8002E53C(&req3, D_options_801D5BDC);
+    Text_DrawString(&req3, D_options_801D5BDC);
 
     req4.x          = obj->panel.field_20.u + x;
     req4.y          = obj->panel.field_22.u + y;
@@ -634,7 +633,7 @@ static void func_options_801D4D0C(Task* task)
     req4.glyphTable = 0;
     req4.centerMode = 0;
     req4.field_E    = one2;
-    func_8002E53C(&req4, D_options_801D5BE4);
+    Text_DrawString(&req4, D_options_801D5BE4);
 
     req5.x          = obj->panel.field_20.u + x;
     req5.y          = obj->panel.field_22.u + y;
@@ -645,7 +644,7 @@ static void func_options_801D4D0C(Task* task)
     req5.glyphTable = 0;
     req5.centerMode = 0;
     req5.field_E    = one2;
-    func_8002E53C(&req5, D_options_801D5BF0);
+    Text_DrawString(&req5, D_options_801D5BF0);
 
     /* Middle column: run / walk assignments. */
     Text_DrawPrompt(obj, x, y, D_options_801D5C54, color, one2, 0);
@@ -658,7 +657,7 @@ static void func_options_801D4D0C(Task* task)
         req6.glyphTable = 0;
         req6.centerMode = 0;
         req6.field_E    = one2;
-        func_8002E53C(&req6, D_options_801D5BFC);
+        Text_DrawString(&req6, D_options_801D5BFC);
     } else {
         req6.x          = obj->panel.field_20.u + x;
         req6.y          = obj->panel.field_22.u + y;
@@ -667,7 +666,7 @@ static void func_options_801D4D0C(Task* task)
         req6.glyphTable = 0;
         req6.centerMode = 0;
         req6.field_E    = one2;
-        func_8002E53C(&req6, runWalk);
+        Text_DrawString(&req6, runWalk);
     }
 
     y += 0xF;
@@ -679,7 +678,7 @@ static void func_options_801D4D0C(Task* task)
         req6.glyphTable = 0;
         req6.centerMode = 0;
         req6.field_E    = 1;
-        func_8002E53C(&req6, runWalk);
+        Text_DrawString(&req6, runWalk);
     } else {
         req6.x          = obj->panel.field_20.u + x;
         req6.y          = obj->panel.field_22.u + y;
@@ -688,7 +687,7 @@ static void func_options_801D4D0C(Task* task)
         req6.glyphTable = 0;
         req6.centerMode = 0;
         req6.field_E    = 1;
-        func_8002E53C(&req6, D_options_801D5BFC);
+        Text_DrawString(&req6, D_options_801D5BFC);
     }
 
     y              += 0xF;
@@ -701,7 +700,7 @@ static void func_options_801D4D0C(Task* task)
     req6.glyphTable = 0;
     req6.centerMode = 1;
     req6.field_E    = 1;
-    func_8002E53C(&req6, D_options_801D5C08);
+    Text_DrawString(&req6, D_options_801D5C08);
 
     two = 2;
     if (type == two) {
@@ -712,7 +711,7 @@ static void func_options_801D4D0C(Task* task)
         req6.glyphTable = 0;
         req6.centerMode = 0;
         req6.field_E    = 1;
-        func_8002E53C(&req6, D_options_801D5BFC);
+        Text_DrawString(&req6, D_options_801D5BFC);
 
         y              += 0xF;
         req7.x          = obj->panel.field_20.u + x;
@@ -722,7 +721,7 @@ static void func_options_801D4D0C(Task* task)
         req7.glyphTable = 0;
         req7.centerMode = 0;
         req7.field_E    = 1;
-        func_8002E53C(&req7, D_options_801D5BFC);
+        Text_DrawString(&req7, D_options_801D5BFC);
     }
 
     /* Right column: per-scheme labels, right-aligned. */
@@ -747,7 +746,7 @@ static void func_options_801D4D0C(Task* task)
     req8.glyphTable = 0;
     req8.centerMode = center;
     req8.field_E    = 1;
-    func_8002E53C(&req8, str);
+    Text_DrawString(&req8, str);
 
     if (type == 0) {
         str = D_options_801D5BD4;
@@ -764,7 +763,7 @@ static void func_options_801D4D0C(Task* task)
     req9.glyphTable = 0;
     req9.centerMode = center;
     req9.field_E    = 1;
-    func_8002E53C(&req9, str);
+    Text_DrawString(&req9, str);
 
     if (type == 2) {
         req10.x          = obj->panel.field_20.u + x;
@@ -774,7 +773,7 @@ static void func_options_801D4D0C(Task* task)
         req10.glyphTable = 0;
         req10.centerMode = center;
         req10.field_E    = 1;
-        func_8002E53C(&req10, D_options_801D5C40);
+        Text_DrawString(&req10, D_options_801D5C40);
     } else {
         req10.x          = obj->panel.field_20.u + (((s16)obj->panel.field_1E.u + 0x60 + (s16)obj->panel.field_1C.s) / 2);
         req10.y          = obj->panel.field_22.u + y;
@@ -783,7 +782,7 @@ static void func_options_801D4D0C(Task* task)
         req10.glyphTable = 0;
         req10.centerMode = 1;
         req10.field_E    = 1;
-        func_8002E53C(&req10, D_options_801D5C2C);
+        Text_DrawString(&req10, D_options_801D5C2C);
     }
 
     y += 0xF;
@@ -802,7 +801,7 @@ static void func_options_801D4D0C(Task* task)
     req10.glyphTable = 0;
     req10.centerMode = center;
     req10.field_E    = 1;
-    func_8002E53C(&req10, str);
+    Text_DrawString(&req10, str);
 
     if (type != 2) {
         last.req.x          = obj->panel.field_20.u + x;
@@ -812,7 +811,7 @@ static void func_options_801D4D0C(Task* task)
         last.req.glyphTable = 0;
         last.req.centerMode = center;
         last.req.field_E    = 1;
-        func_8002E53C(&last.req, D_options_801D5C40);
+        Text_DrawString(&last.req, D_options_801D5C40);
     } else {
         last.req.x          = obj->panel.field_20.u + (((s16)obj->panel.field_1E.u + 0x60 + (s16)obj->panel.field_1C.s) / 2);
         last.req.y          = obj->panel.field_22.u + y;
@@ -821,7 +820,7 @@ static void func_options_801D4D0C(Task* task)
         last.req.glyphTable = 0;
         last.req.centerMode = 1;
         last.req.field_E    = 1;
-        func_8002E53C(&last.req, D_options_801D5C2C);
+        Text_DrawString(&last.req, D_options_801D5C2C);
     }
 
     /* Key icons down the left edge: four 15x15 buttons, then three 15x8. */
@@ -873,10 +872,10 @@ static void func_options_801D4D0C(Task* task)
     if (obj->panel.field_0.w == 1) {
         if (Pad_CheckButtons(0, 1, 0x6000) != 0) {
             SndEvt_EnqueueType6(2, 0, 0);
-            Mc_SaveData[0].buttonLayout = ((s8)(Mc_SaveData[0].buttonLayout + 1)) % 3;
+            Mc_SaveData[0].state.buttonLayout = ((s8)(Mc_SaveData[0].state.buttonLayout + 1)) % 3;
         } else if (Pad_CheckButtons(0, 1, 0x9000) != 0) {
             SndEvt_EnqueueType6(2, 0, 0);
-            Mc_SaveData[0].buttonLayout = ((s8)(Mc_SaveData[0].buttonLayout + 2)) % 3;
+            Mc_SaveData[0].state.buttonLayout = ((s8)(Mc_SaveData[0].state.buttonLayout + 2)) % 3;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
             obj->field_2E = 6;

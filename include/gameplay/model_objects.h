@@ -1,12 +1,14 @@
 #ifndef GAMEPLAY_MODEL_OBJECTS_H
 #define GAMEPLAY_MODEL_OBJECTS_H
 
+struct Task;
+
 #include "types.h"
 
 #include "gameplay/display.h"
 
-#include "main/task.h"
-#include "main/tmd.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 TmdObject* Gp_AttachTmd(Task* task, TmdSource* src);
 
@@ -49,7 +51,7 @@ void gpUnlinkDisp2d(TmdListHead* node);
 /// release: `gpFreeTmd` is its counterpart on the model side.
 void gpFreeDisp2d(GpDisp2d* node);
 
-void Gp_DrawDisp2dOt(void);
+void Gp_DrawDisp2dOt(struct Task* unused);
 
 /// Draw handler of a stream's pre-transformed flat-quad records (`0x45`): each
 /// element contributes one untextured quad whose corners are already in screen

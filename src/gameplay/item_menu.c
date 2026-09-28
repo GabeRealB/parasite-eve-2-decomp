@@ -18,7 +18,8 @@
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "main/coord.h"
+#define GP_LOC_STAGE_AREA_VIEW GP_LOC_KEY(0xFF, 0xFF, 0, 0xFF)
+
 #include "main/display.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
@@ -29,7 +30,6 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/text.h"
-#include "main/tmd.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
 
@@ -114,7 +114,7 @@ static const GpPromptTexts Gp_ItemPromptTexts;
 static const VECTOR D_80093DB0;
 
 /// Task callback for the item-move UI. `spawnArg2` is the `UiObject`.
-/// First run copies `Gp_ScanPtrs[Gp_PubItemLoc]` / `Mc_SaveData[0].carriedItems`
+/// First run copies `Gp_ScanPtrs[Gp_PubItemLoc]` / `Mc_SaveData[0].state.carriedItems`
 /// into `Gp_MoveScanSrc` / `Gp_MoveScanDst`, spawns the `D_8010D6F4` pair
 /// (plus `[9]` when `spawnArg1 == 1`), then walks children through
 /// `Gp_ItemMoveChild`. Always writes `field_2C = 0x34`.
@@ -145,7 +145,7 @@ void func_800BDF6C(Task* task);
 /// List-item callback for All / Select / Discard / End. Draws
 /// `Gp_ItemPromptTexts[field_8]`. Confirm: All → `field_2E = 0x26`, Select → 6,
 /// Discard strips 0x80–0x9F attachments missing from
-/// `Mc_SaveData[0].carriedItems` and sets `field_2E = 0x27`. Cancel once sets
+/// `Mc_SaveData[0].state.carriedItems` and sets `field_2E = 0x27`. Cancel once sets
 /// `field_10 = 2` / `field_22 = 0x21`; a second cancel does the discard
 /// strip.
 void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1);
@@ -160,7 +160,7 @@ void Gp_HolderPromptTask(Task* arg0);
 s32 Gp_BindItemObj2(Task* arg0, s32 arg1, GpCmdReply* arg2);
 
 /// Per-child item-move handler. Walked by `Gp_ItemMoveTask` over
-/// `obj->owner`'s children as `Gp_ItemMoveChild(child->spawnArg2, child)`.
+/// `obj->owner`'s children as `Gp_ItemMoveChild(child->spawnArg2.pointer, child)`.
 static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1);
 
 /// The inventory scan an item pane lists; the pane's `spawnArg1` selects which
@@ -185,12 +185,6 @@ static s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1);
 /// onto the parent (`6` also restores status).
 static void Gp_CloseItemPane(UiObject* arg0, Task* arg1);
 
-extern s32 Pad_MaskConfirm;
-
-extern s32 Pad_MaskCancel;
-
-extern s32 Pad_MaskMenu;
-
 extern UiObject* D_80067634;
 
 UiList         Gp_ItemActionList = { Gp_ItemActionFns, 3, { 3 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
@@ -213,7 +207,7 @@ UiObjectDesc   D_8010D6F4[11]    = {
 GpItemReplyEntry D_8010D828[2] = { { 2011, Gp_BindItemObj2 }, { 0x7FFFFFFF, NULL } };
 
 /// Per-child item-move handler. Walked by `Gp_ItemMoveTask` over
-/// `obj->owner`'s children as `Gp_ItemMoveChild(child->spawnArg2, child)`.
+/// `obj->owner`'s children as `Gp_ItemMoveChild(child->spawnArg2.pointer, child)`.
 static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
 {
     GpItemMoveState* mem;
@@ -246,7 +240,7 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
     s32              subA;
     s32              subB;
 
-    obj = arg1->parent->spawnArg2;
+    obj = arg1->parent->spawnArg2.pointer;
     mem = (GpItemMoveState*)arg1->parent->work;
     switch (arg0->field_2E) {
         case 0x26:
@@ -388,7 +382,7 @@ void Gp_ItemMoveTask(Task* arg0)
     Task*            head;
     void             (*cb)(UiObject*, Task*);
 
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     if (arg0->state == 0) {
         Wip_UiHolder = NULL;
@@ -413,13 +407,13 @@ void Gp_ItemMoveTask(Task* arg0)
                 src            = scans[item & 0xFF];
                 Gp_MoveItemKey = item;
             } else {
-                src = &Mc_SaveData[0].carriedItems;
+                src = &Mc_SaveData[0].state.carriedItems;
             }
             (&Gp_MoveScanSrc)[i] = *src;
             i++;
         } while (i < 2);
         Gp_SortItems(&Gp_MoveScanSrc, 0);
-        if (arg0->spawnArg1 == 1) {
+        if (arg0->spawnArg1.value == 1) {
             val          = Gp_CanMoveItems();
             mem->field_8 = 0;
             mem->objs[0] = Ui_SpawnFromDesc(D_8010D6F4, 0x100, 0, 1, obj);
@@ -442,7 +436,7 @@ void Gp_ItemMoveTask(Task* arg0)
     if (child != NULL) {
         do {
             next = child->nextSibling;
-            cb(child->spawnArg2, child);
+            cb(child->spawnArg2.pointer, child);
             head  = owner->firstChild;
             child = next;
             if (head == NULL) {
@@ -466,11 +460,11 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
     s32        idx;
     UiObject*  spawned;
 
-    rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + arg1->owner->spawnArg1, arg0->field_8, 0);
+    rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + arg1->owner->spawnArg1.value, arg0->field_8, 0);
     item = rec->itemId;
     if (arg0->field_C != 1) {
         if ((arg1->owner->state != 1) && (arg0->field_8 == Gp_ItemMoveWork->field_14) &&
-            (arg1->owner->spawnArg1 == Gp_ItemMoveWork->field_10)) {
+            (arg1->owner->spawnArg1.value == Gp_ItemMoveWork->field_10)) {
             arg0->field_1C = 0x37A78;
         }
     }
@@ -481,7 +475,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
             Gp_SetHolderItemText(item);
         }
     }
-    if (arg1->owner->spawnArg1 == 0) {
+    if (arg1->owner->spawnArg1.value == 0) {
         Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 0);
     } else if (rec->attachSlot <= 0) {
         Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 1);
@@ -508,24 +502,24 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
                 arg1->panel.field_0.w = 0;
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            idx   = arg1->owner->spawnArg1;
+            idx   = arg1->owner->spawnArg1.value;
             item2 = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].field_10, 0)->itemId;
             SndEvt_EnqueueType6(3, 0, 0);
             item = -1;
-            if (Gp_ItemMoveWork->field_10 != arg1->owner->spawnArg1) {
+            if (Gp_ItemMoveWork->field_10 != arg1->owner->spawnArg1.value) {
                 flags = arg1->owner->status;
                 flag  = 0;
                 if (Gp_ItemDescs[item2].field_3 & 1) {
                     flag = flags == 1;
                 }
-                if ((Gp_MoveItemKey == 0x703) && (item2 == 0x81) && (Mc_SaveData[0].at4.loc.stage == 1)) {
+                if ((Gp_MoveItemKey == 0x703) && (item2 == 0x81) && (Mc_SaveData[0].state.at4.loc.stage == 1)) {
                     flag = 1;
                 }
                 if (flag) {
                     item = 0x20;
                 } else if ((item2 >= 0xA0 && item2 < 0xC0) && (arg1->owner->status == 0)) {
                     item = 8;
-                } else if (arg1->owner->spawnArg1 == 1) {
+                } else if (arg1->owner->spawnArg1.value == 1) {
                     if ((item2 == Player_Status.weapon + 0x7F) || (item2 == Player_Status.armor + 0x5F)) {
                         item = 0xA;
                     }
@@ -546,7 +540,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
 /// of the two side-by-side scans it shows.
 static inline McItemScan* _gpItemPaneScan(Task* task)
 {
-    return &Gp_MoveScanSrc + task->spawnArg1;
+    return &Gp_MoveScanSrc + task->spawnArg1.value;
 }
 
 void Gp_ItemPaneTask(Task* arg0)
@@ -563,12 +557,12 @@ void Gp_ItemPaneTask(Task* arg0)
     Task*       head;
     void        (*cb)(UiObject*, Task*);
 
-    menu          = &Gp_InvLists[(u8)arg0->spawnArg1];
-    obj           = arg0->spawnArg2;
+    menu          = &Gp_InvLists[(u8)arg0->spawnArg1.value];
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     if (arg0->state == 0) {
-        if (arg0->spawnArg1 >= 0x100) {
-            arg0->spawnArg1 = arg0->spawnArg1 & 0xFF;
+        if (arg0->spawnArg1.value >= 0x100) {
+            arg0->spawnArg1.value = arg0->spawnArg1.value & 0xFF;
             arg0->status    = 1;
         } else {
             arg0->status = 0;
@@ -590,7 +584,7 @@ void Gp_ItemPaneTask(Task* arg0)
         arg0->state   = arg0->state + 1;
     }
 
-    if (arg0->spawnArg1 == 0) {
+    if (arg0->spawnArg1.value == 0) {
         if (arg0->status == 1) {
             Ui_DrawText(&(obj)->panel, Gp_StrBattleField);
         } else {
@@ -634,12 +628,12 @@ void Gp_ItemPaneTask(Task* arg0)
                 obj->panel.field_0.w = 0;
                 obj->field_2E        = -1;
             } else if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
-                if (arg0->spawnArg1 == 0) {
+                if (arg0->spawnArg1.value == 0) {
                     if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
                         goto do_snd;
                     }
                 }
-                if (arg0->spawnArg1 == status) {
+                if (arg0->spawnArg1.value == status) {
                     if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
                         goto do_snd;
                     }
@@ -654,13 +648,13 @@ void Gp_ItemPaneTask(Task* arg0)
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
             obj->field_2E = 0x24;
         } else if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
-            if (arg0->spawnArg1 == 0) {
+            if (arg0->spawnArg1.value == 0) {
                 if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
                     obj->field_2E = 0xA;
                     goto children;
                 }
             }
-            if (arg0->spawnArg1 == status) {
+            if (arg0->spawnArg1.value == status) {
                 if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
                     obj->field_2E = 0xA;
                     goto children;
@@ -679,7 +673,7 @@ children:
     if (child != NULL) {
         do {
             next = child->nextSibling;
-            cb(child->spawnArg2, child);
+            cb(child->spawnArg2.pointer, child);
             head  = owner->firstChild;
             child = next;
             if (head == NULL) {
@@ -711,12 +705,12 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
     req.glyphTable = 0;
     req.centerMode = 0;
     req.field_E    = 1;
-    func_8002E53C(&req, Gp_StrMove2);
+    Text_DrawString(&req, Gp_StrMove2);
     selected = arg0->field_C;
     if ((selected == 1) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
         prompt    = -1;
         chooseQty = 0;
-        idx       = arg1->owner->spawnArg1;
+        idx       = arg1->owner->spawnArg1.value;
         rec       = Gp_GetScanSlot((&Gp_MoveScanSrc + (idx)), Gp_InvLists[idx].field_10, 0);
         item      = rec->itemId;
         qty       = rec->qty;
@@ -724,35 +718,35 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
         if ((u32)(item - 0xA0) < 0x20U) {
             scanOwner = arg1->owner;
             if (scanOwner->status != 0) {
-                if ((Gp_FindItemInScan(item, (&Gp_MoveScanSrc + (scanOwner->spawnArg1 ^ 1))) == NULL) && (Gp_CanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1 ^ 1)), item) == 0)) {
+                if ((Gp_FindItemInScan(item, (&Gp_MoveScanSrc + (scanOwner->spawnArg1.value ^ 1))) == NULL) && (Gp_CanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) == 0)) {
                     prompt = 6;
                 }
-            } else if ((Gp_SumScanQty((&Gp_MoveScanSrc + (scanOwner->spawnArg1 ^ 1)), item) != 0) || (Gp_CanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1 ^ 1)), item) != 0)) {
+            } else if ((Gp_SumScanQty((&Gp_MoveScanSrc + (scanOwner->spawnArg1.value ^ 1)), item) != 0) || (Gp_CanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) != 0)) {
                 chooseQty = 1;
             } else {
                 prompt = 6;
             }
-        } else if (Gp_CanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1 ^ 1)), item) != 0) {
+        } else if (Gp_CanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) != 0) {
             owner      = arg1->owner;
             flags      = owner->parent->status;
             restricted = 0;
             if (Gp_ItemDescs[item].field_3 & 1) {
                 restricted = flags == 1;
             }
-            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData[0].at4.loc.stage == selected)) {
+            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData[0].state.at4.loc.stage == selected)) {
                 restricted = 1;
             }
             if (restricted != 0) {
                 prompt = 0x1E;
             } else if ((u32)(item - 0x80) < 0x20U) {
-                if ((arg1->owner->spawnArg1 != 1) || (item != (Player_Status.weapon + 0x7F))) {
+                if ((arg1->owner->spawnArg1.value != 1) || (item != (Player_Status.weapon + 0x7F))) {
                     if (prompt == -1) {
                         Gp_ClearEquipSlot(item);
                     }
                 } else {
                     prompt = 7;
                 }
-            } else if (((u32)(item - 0x60) < 0x20U) && (arg1->owner->spawnArg1 == 1) && (item == (Player_Status.armor + 0x5F))) {
+            } else if (((u32)(item - 0x60) < 0x20U) && (arg1->owner->spawnArg1.value == 1) && (item == (Player_Status.armor + 0x5F))) {
                 prompt = 7;
             }
         } else {
@@ -768,8 +762,8 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
                 arg1->panel.field_0.w = 0;
             }
         } else {
-            Gp_RemoveItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1)), rec, qty);
-            Gp_GiveItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1 ^ 1)), item, qty);
+            Gp_RemoveItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value)), rec, qty);
+            Gp_GiveItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item, qty);
             arg1->field_2E = 6;
         }
     }
@@ -794,12 +788,12 @@ void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
     req.glyphTable = 0;
     req.centerMode = 0;
     req.field_E    = 1;
-    func_8002E53C(&req, Gp_StrSwitch);
+    Text_DrawString(&req, Gp_StrSwitch);
 
     selected = arg0->field_C;
     if (selected == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            idx  = arg1->owner->spawnArg1;
+            idx  = arg1->owner->spawnArg1.value;
             rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].field_10, 0);
             item = rec->itemId;
             SndEvt_EnqueueType6(3, 0, 0);
@@ -810,13 +804,13 @@ void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
             if (Gp_ItemDescs[item].field_3 & 1) {
                 flag = flags == 1;
             }
-            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData[0].at4.loc.stage == selected)) {
+            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData[0].state.at4.loc.stage == selected)) {
                 flag = 1;
             }
             if (flag) {
                 Gp_SpawnItemPrompt(arg1, 0x1E, 0, 0);
                 arg1->panel.field_0.w = 0;
-            } else if (arg1->owner->spawnArg1 == 1) {
+            } else if (arg1->owner->spawnArg1.value == 1) {
                 cfg = &Player_Status;
                 if ((item == cfg->weapon + 0x7F) || (item == cfg->armor + 0x5F)) {
                     Gp_SpawnItemPrompt(arg1, 7, 0, 0);
@@ -844,7 +838,7 @@ static void Gp_FillItemActions(UiList* arg0, UiObject* arg1)
     McItemScan*     scan;
 
     owner = arg1->owner;
-    idx   = owner->spawnArg1;
+    idx   = owner->spawnArg1.value;
     scan  = &Gp_MoveScanSrc + idx;
     rec   = Gp_GetScanSlot(scan, Gp_InvLists[idx].field_10, 0);
     item  = 0;
@@ -880,7 +874,7 @@ void Gp_ItemActionListTask(Task* arg0)
     s32       flag;
     Task*     parent;
 
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     menu          = &Gp_ItemActionList;
     if (arg0->state == 0) {
@@ -910,7 +904,7 @@ void Gp_ItemActionListTask(Task* arg0)
     }
     childTask = arg0->firstChild;
     if (childTask != NULL) {
-        child = childTask->spawnArg2;
+        child = childTask->spawnArg2.pointer;
         flag  = child->field_2E;
         switch (flag) {
             case -1:
@@ -977,7 +971,7 @@ void func_800BDF6C(Task* task)
     McItemScan*       dstScan;
     GpAmmoSplitState* state;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     width         = ((s16)obj->panel.field_1E.u - obj->panel.field_1C.s) - 0x50;
     Ui_DrawText(&(obj)->panel, (char*)Gp_StrBullet);
@@ -988,19 +982,19 @@ void func_800BDF6C(Task* task)
             return;
         }
         task->work      = (TaskIdMap*)state;
-        srcTotal        = Gp_ScanStackQty(&Gp_MoveScanSrc, task->spawnArg1);
+        srcTotal        = Gp_ScanStackQty(&Gp_MoveScanSrc, task->spawnArg1.value);
         state->srcQty   = srcTotal;
         state->srcOrig  = srcTotal;
-        dstTotal        = Gp_ScanStackQty(&Gp_MoveScanSrc + 1, task->spawnArg1);
+        dstTotal        = Gp_ScanStackQty(&Gp_MoveScanSrc + 1, task->spawnArg1.value);
         state->dstQty   = dstTotal;
         state->dstOrig  = dstTotal;
-        state->equipped = Gp_CountEquippedRelated(&Gp_MoveScanSrc + 1, task->spawnArg1);
+        state->equipped = Gp_CountEquippedRelated(&Gp_MoveScanSrc + 1, task->spawnArg1.value);
         Ui_SetHolderParam(Gp_StrSetAmmoHelp, 0, 0);
-        state->limit = Gp_StackLimits[task->spawnArg1 - 0xA0].maxHeld;
+        state->limit = Gp_StackLimits[task->spawnArg1.value - 0xA0].maxHeld;
         task->state  = task->state + 1;
     }
     state = (GpAmmoSplitState*)task->work;
-    Gp_DrawItemLabel(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, task->spawnArg1, 0x606060, 0);
+    Gp_DrawItemLabel(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, task->spawnArg1.value, 0x606060, 0);
     task->status = 0;
     totalQty     = state->srcQty + state->dstQty;
     color        = 0x606060;
@@ -1106,7 +1100,7 @@ void func_800BDF6C(Task* task)
             transferQty = state->srcQty - state->srcOrig;
             if (transferQty > 0) {
                 sourceScan = &Gp_MoveScanSrc;
-                Gp_GiveItem(sourceScan, task->spawnArg1, transferQty);
+                Gp_GiveItem(sourceScan, task->spawnArg1.value, transferQty);
                 consumeScan = sourceScan + 1;
                 goto consume_transfer;
             }
@@ -1114,10 +1108,10 @@ void func_800BDF6C(Task* task)
             if (transferQty < 0) {
                 transferQty = -transferQty;
                 dstScan     = &Gp_MoveScanDst;
-                Gp_GiveItem(dstScan, task->spawnArg1, transferQty);
+                Gp_GiveItem(dstScan, task->spawnArg1.value, transferQty);
                 consumeScan = dstScan - 1;
             consume_transfer:
-                Gp_ConsumeScanQty(consumeScan, task->spawnArg1, transferQty);
+                Gp_ConsumeScanQty(consumeScan, task->spawnArg1.value, transferQty);
                 result = 9;
             }
             goto set_result;
@@ -1207,7 +1201,7 @@ static inline void _gpDropOrphanedWeaponLoads(void)
     s32         i;
     s32         attach;
 
-    scan = &Mc_SaveData[0].carriedItems;
+    scan = &Mc_SaveData[0].state.carriedItems;
     rec  = Gp_GetItemTable(scan);
     i    = 0;
     rec  = &rec[scan->firstRow];
@@ -1242,7 +1236,7 @@ void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
 
     texts = Gp_ItemPromptTexts;
     if (arg0->field_8 == 0) {
-        if (arg1->owner->spawnArg1 == 0) {
+        if (arg1->owner->spawnArg1.value == 0) {
             arg0->field_1C = Ui_LookupTable(arg1, 2);
             if (arg0->field_C == 1) {
                 arg0->field_B  = 1;
@@ -1311,7 +1305,7 @@ void Gp_ItemPickupTilt(Task* arg0)
     u16          item;
 
     extra   = arg0->extra.tmd;
-    obj     = arg0->spawnArg2;
+    obj     = arg0->spawnArg2.pointer;
     session = gGameSession;
     mapId   = GP_LOC_WORD(session->at4.loc) & GP_LOC_STAGE_AREA_VIEW;
     item    = obj->field_A;
@@ -1416,9 +1410,9 @@ void Gp_ItemPickupTilt(Task* arg0)
         if (arg0->killCountdown >= 0x14) {
             /* Unique items and stackables open the same pickup result task. */
             if (item < 0xA0) {
-                Display_InitModeObj(Task_GetDesc(1, 0x26), 0, (s32)arg0->spawnArg2, 0);
+                Display_InitModeObj(Task_GetDesc(1, 0x26), 0, arg0->spawnArg2.value, 0);
             } else {
-                Display_InitModeObj(Task_GetDesc(1, 0x26), 0, (s32)arg0->spawnArg2, 0);
+                Display_InitModeObj(Task_GetDesc(1, 0x26), 0, arg0->spawnArg2.value, 0);
             }
             arg0->state++;
         }
@@ -1505,7 +1499,7 @@ static void Gp_ForEachUiChild(UiObject* arg0, void (*arg1)(UiObject*, Task*))
     if (child != NULL) {
         do {
             next = child->nextSibling;
-            arg1(child->spawnArg2, child);
+            arg1(child->spawnArg2.pointer, child);
             head  = owner->firstChild;
             child = next;
             if (head == NULL) {
@@ -1523,7 +1517,7 @@ static s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1)
     if (Gp_ItemDescs[arg0].field_3 & 1) {
         ret = arg1 == 1;
     }
-    if ((Gp_MoveItemKey == 0x703) && (arg0 == 0x81) && (Mc_SaveData[0].at4.loc.stage == 1)) {
+    if ((Gp_MoveItemKey == 0x703) && (arg0 == 0x81) && (Mc_SaveData[0].state.at4.loc.stage == 1)) {
         ret = 1;
     }
     return ret;
@@ -1537,7 +1531,7 @@ static void Gp_CloseItemPane(UiObject* arg0, Task* arg1)
 {
     UiObject* parent;
 
-    parent = arg1->parent->spawnArg2;
+    parent = arg1->parent->spawnArg2.pointer;
     switch (arg0->field_2E) {
         case -1:
             if (parent->owner->status) {
@@ -1569,12 +1563,12 @@ void Gp_ItemMenuListTask(Task* arg0)
     UiObject* obj;
     UiList*   menu;
 
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     menu          = &Gp_ItemMenuList;
     if (arg0->state == 0) {
         Ui_LayoutListPanel(menu, &(obj)->panel);
-        if (arg0->spawnArg1 == 0) {
+        if (arg0->spawnArg1.value == 0) {
             menu->field_10 = 1;
         } else {
             menu->field_10 = 0;
@@ -1593,13 +1587,13 @@ void Gp_HolderPromptTask(Task* arg0)
     s32       one;
     u8*       text;
 
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     if (arg0->state == 0) {
         Wip_UiHolder = obj;
         arg0->state += 1;
     }
-    val = arg0->spawnArg1;
+    val = arg0->spawnArg1.value;
     if (val != 0) {
         color = 0x606060;
         one   = 1;
@@ -1614,7 +1608,7 @@ s32 Gp_BindItemObj2(Task* arg0, s32 arg1, GpCmdReply* arg2)
     s32         flag;
     GpItemObj8* obj;
 
-    obj              = arg0->spawnArg2;
+    obj              = arg0->spawnArg2.pointer;
     flag             = 1;
     arg0->status     = flag;
     arg0->extraState = (s32)arg2;
@@ -1626,7 +1620,7 @@ s32 Gp_BindItemObj2(Task* arg0, s32 arg1, GpCmdReply* arg2)
 
 void Gp_PublishItemObj(Task* arg0)
 {
-    GpItemObj8* obj = arg0->spawnArg2;
+    GpItemObj8* obj = arg0->spawnArg2.pointer;
     s32         count;
 
     Gp_PubItemId  = obj->field_8;
@@ -1668,11 +1662,11 @@ void Gp_FadeTileTask(Task* arg0)
 
     flag = 0;
     if (arg0->state == 0) {
-        if (arg0->spawnArg1 == 0) {
+        if (arg0->spawnArg1.value == 0) {
             GameMain_SetFrameTiming(1);
             gDisplayState.at100.flags.flipMode = 0;
             arg0->killCountdown                = 7;
-        } else if ((arg0->spawnArg1 == 2) || (arg0->spawnArg1 == 4)) {
+        } else if ((arg0->spawnArg1.value == 2) || (arg0->spawnArg1.value == 4)) {
             arg0->killCountdown = 8;
         } else {
             arg0->killCountdown = 0;
@@ -1680,13 +1674,13 @@ void Gp_FadeTileTask(Task* arg0)
         arg0->state = arg0->state + 1;
     }
 
-    if (arg0->spawnArg1 == 4) {
+    if (arg0->spawnArg1.value == 4) {
         if (gDisplayState.at100.flags.imageSource == 2) {
             arg0->killCountdown--;
         } else {
             GameMain_SetFrameTiming(1);
         }
-    } else if ((arg0->spawnArg1 == 0) || (arg0->spawnArg1 == 2)) {
+    } else if ((arg0->spawnArg1.value == 0) || (arg0->spawnArg1.value == 2)) {
         flag = 0;
         arg0->killCountdown--;
     } else {
@@ -1695,10 +1689,10 @@ void Gp_FadeTileTask(Task* arg0)
     }
 
     yoff = 0;
-    if (arg0->spawnArg1 == 2) {
+    if (arg0->spawnArg1.value == 2) {
         yoff  = gDisplayState.vramYOffset;
         otIdx = 0;
-    } else if (arg0->spawnArg1 == 5) {
+    } else if (arg0->spawnArg1.value == 5) {
         otIdx = 0x3B;
     } else {
         otIdx = 0x3F;
@@ -1732,13 +1726,13 @@ void Gp_FadeTileTask(Task* arg0)
     addPrim(Gpu_OtEntryAtByteOffset((otIdx << 2)), dr);
 
     if ((flag == 0) && (arg0->killCountdown <= 0)) {
-        if (arg0->spawnArg1 == 4) {
+        if (arg0->spawnArg1.value == 4) {
             GameMain_SetFrameTiming(0);
         }
         taskKill(arg0);
     } else if (flag == 1) {
         if (arg0->killCountdown >= 8) {
-            if (arg0->spawnArg1 == 5) {
+            if (arg0->spawnArg1.value == 5) {
                 gDisplayState.at100.flags.imageSource = 0;
             } else {
                 gDisplayState.at100.flags.flipMode = flag;

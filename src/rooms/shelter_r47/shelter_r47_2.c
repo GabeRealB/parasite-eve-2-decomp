@@ -1,12 +1,6 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gameflow.h"
-#include "main/pad.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_r47.h"
 
@@ -19,7 +13,18 @@
 #include "gameplay/pad_input.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
-#include "main/fs.h"
+
+#include "gameplay/action_prompt.h"
+#include "gameplay/area.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gameflow.h"
+#include "main/mc.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 /// One entry of a map-marker table: the area it stands for and the screen
 /// position of its marker. A table ends at the entry whose `stage` is 0xFF.
@@ -229,7 +234,7 @@ static void func_shelter_r47_801816CC(Task* task)
         func_shelter_r47_80180F38(x_, y_, (id));               \
     }
 
-/// Per-frame draw of the cap script's selection screen. While `Mc_SaveData[0].at4.loc.view` is
+/// Per-frame draw of the cap script's selection screen. While `Mc_SaveData[0].state.at4.loc.view` is
 /// 0x14 it scrolls the background by `field_46`. Every positioned sprite is
 /// eased a quarter of the way toward its target each frame. `arg1` picks the
 /// layout: the entry drawn is `field_4F` when it is 0 and `field_50` otherwise,
@@ -249,7 +254,7 @@ void func_shelter_r47_80181914(Task* task, s16 arg1)
     s16              sel;
 
     work = (ShelterR47State*)task->work;
-    if (Mc_SaveData[0].at4.loc.view == 0x14) {
+    if (Mc_SaveData[0].state.at4.loc.view == 0x14) {
         if (work->field_52 & 1) {
             work->field_46--;
             if (work->field_46 < 0) {
@@ -540,7 +545,7 @@ static void func_shelter_r47_80182348(Task* task)
         gGameSession->eventState   = 0;
         gGameSession->hideHud      = 0;
         gGameSession->cutsceneHold = 0;
-        taskKill((Task*)task->spawnArg2);
+        taskKill((Task*)task->spawnArg2.pointer);
         Task_RequestKill(task, 0);
     }
     level = (u8)state->fade;
@@ -577,7 +582,7 @@ static void func_shelter_r47_80182470(Task* task)
     u16*              statep;
     u16*              heldp;
 
-    switch (task->spawnArg1) {
+    switch (task->spawnArg1.value) {
         case 1:
             first = 0;
             count = 1;
@@ -908,10 +913,10 @@ static void func_shelter_r47_80182E78(Task* task)
     gGameSession->eventState    = 0;
     gGameSession->hideHud       = 0;
     gGameSession->cutsceneHold  = 0;
-    Mc_SaveData[0].at4.loc.view = state->field_4E;
-    /* Keeps the `spawnArg2` load below the `Mc_SaveData[0].at4.loc.view` store, so that it
+    Mc_SaveData[0].state.at4.loc.view = state->field_4E;
+    /* Keeps the `spawnArg2` load below the `Mc_SaveData[0].state.at4.loc.view` store, so that it
        does not fill `taskKill`'s delay slot. */
-    taskKill((Task*)task->spawnArg2);
+    taskKill((Task*)task->spawnArg2.pointer);
     Task_RequestKill(task, 0);
 }
 
@@ -959,7 +964,7 @@ static void func_shelter_r47_80182FDC(Task* task)
     state = (ShelterR47State*)task->work;
     func_shelter_r47_80181914(task, 1);
     if ((s16)func_shelter_r47_80180C48(task) != 0) {
-        Mc_SaveData[0].at4.loc.view = D_shelter_r47_80186FAC[state->selection.index];
+        Mc_SaveData[0].state.at4.loc.view = D_shelter_r47_80186FAC[state->selection.index];
         state->field_48             = 0;
         work                        = (ShelterR47State*)task->work;
         work->field_3A              = 0xFF;
@@ -1126,10 +1131,10 @@ static void func_shelter_r47_801833DC(Task* task, s16 arg1)
         case 1:
             if (!(state->toggles[1] & 1)) {
                 D_shelter_r47_80186FAC[1]   = 0x12;
-                Mc_SaveData[0].at4.loc.view = 0x12;
+                Mc_SaveData[0].state.at4.loc.view = 0x12;
             } else {
                 D_shelter_r47_80186FAC[1]   = 0x24;
-                Mc_SaveData[0].at4.loc.view = 0x24;
+                Mc_SaveData[0].state.at4.loc.view = 0x24;
             }
             break;
         case 3:

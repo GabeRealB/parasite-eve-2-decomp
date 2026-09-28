@@ -4,12 +4,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/stage_tables.h"
@@ -22,8 +16,14 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
 
 extern void func_80131E70(void);
 extern void func_80131E24(void);
@@ -288,7 +288,7 @@ static void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s3
 
 static void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2;
+    GpEffWork* work  = task->spawnArg2.pointer;
     GpCoord*   coord = task->extra.tmd->coords;
     s32        vz;
     s16        f2a;
@@ -297,12 +297,12 @@ static void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
 
     work->age++;
     if (task->state == 0) {
-        work->scale = task->spawnArg1 & 0xFFF;
+        work->scale = task->spawnArg1.value & 0xFFF;
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         work->angle = (Gp_LcgState >> 16) & 0xFFF;
 
-        if (task->spawnArg1 & 0xF000) {
-            work->period = (task->spawnArg1 >> 12) & 0x7;
+        if (task->spawnArg1.value & 0xF000) {
+            work->period = (task->spawnArg1.value >> 12) & 0x7;
         } else {
             work->period = 1;
         }
@@ -310,8 +310,8 @@ static void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
         work->age   = 0;
         task->state = 1;
 
-        if (task->spawnArg1 & 0xFF0000) {
-            f2a = (task->spawnArg1 >> 16) & 0xFF;
+        if (task->spawnArg1.value & 0xFF0000) {
+            f2a = (task->spawnArg1.value >> 16) & 0xFF;
         } else {
             f2a = 0x40;
         }

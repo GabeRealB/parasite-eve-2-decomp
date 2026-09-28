@@ -7,13 +7,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/gfx.h"
-#include "main/gfxgte.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include "overlay.h"
 
 #include "gameplay/actor.h"
@@ -29,6 +22,18 @@
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+
+#include "main/coord.h"
+#include "main/gfx.h"
+#include "main/gfxgte.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
+#include "main/tmd.h"
+#include "main/tmd_types.h"
+#include "main/wipsys_types.h"
 
 /*
  * Types and helpers that the actor overlays each carry a copy of.
@@ -2337,7 +2342,7 @@ static __inline__ void actorMoveForward(GpCoord* coord, s16 amount)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (Mc_SaveData[0].field_5C1 != 1) {
+    if (Mc_SaveData[0].state.field_5C1 != 1) {
         head                  = SCRATCH_HEAD(SVECTOR);
         vec                   = head - 1;
         SCRATCH_HEAD(SVECTOR) = vec;
@@ -2363,7 +2368,7 @@ static __inline__ void actorMoveForwardNonzero(GpCoord* coord, s16 amount)
     SVECTOR* vec;
     SVECTOR* gteVec;
 
-    if (Mc_SaveData[0].field_5C1 != 1) {
+    if (Mc_SaveData[0].state.field_5C1 != 1) {
         head                  = SCRATCH_HEAD(SVECTOR);
         vec                   = head - 1;
         SCRATCH_HEAD(SVECTOR) = vec;
@@ -2392,7 +2397,7 @@ static __inline__ void actorMoveModelForward(Task* task, s16 amount)
     SVECTOR* vec;
 
     coord = task->extra.tmd->coords;
-    if (Mc_SaveData[0].field_5C1 != 1) {
+    if (Mc_SaveData[0].state.field_5C1 != 1) {
         head                  = SCRATCH_HEAD(SVECTOR);
         vec                   = head - 1;
         SCRATCH_HEAD(SVECTOR) = vec;
@@ -2488,7 +2493,7 @@ static __inline__ void actorStepForward(GpCoord* coord, s16 amount)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (Mc_SaveData[0].field_5C1 != 1) {
+    if (Mc_SaveData[0].state.field_5C1 != 1) {
         head                  = SCRATCH_HEAD(SVECTOR);
         vec                   = head - 1;
         SCRATCH_HEAD(SVECTOR) = vec;
@@ -2616,7 +2621,7 @@ static __inline__ void actor402200UpdateTint(Task* task)
     vec.vx = obj->workm.t[0];
     vec.vy = obj->workm.t[1];
     vec.vz = obj->workm.t[2];
-    Gp_UpdateActorColor(task->spawnArg2, &vec, 0, 0);
+    Gp_UpdateActorColor(task->spawnArg2.pointer, &vec, 0, 0);
     switch (work->field_6EA) {
         case 1:
             r = 0;
@@ -2756,7 +2761,7 @@ static __inline__ void actorUpdateModelColor(Task* arg0)
     block->vy                      = coord->workm.t[1];
     block->vz                      = coord->workm.t[2];
     SCRATCH_HEAD_AT(scratch, void) = block;
-    Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);
+    Gp_UpdateActorColor(arg0->spawnArg2.pointer, block, 0, 0);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 

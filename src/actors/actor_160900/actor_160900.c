@@ -6,13 +6,6 @@
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 #include "actors/actor.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "actors/actors_shared_8013411c.h"
 
 #include "gameplay/actor_render.h"
@@ -24,9 +17,23 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/evs.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflow.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/text.h"
 #include "main/wipsys.h"
+#include "overlay.h"
 
 /// 0x20-byte block `func_actor_160900_80133F90` allocates with
 /// `memCalloc(0x20, 0)` for each of the two child tasks it spawns from index 7
@@ -181,7 +188,7 @@ void func_actor_160900_80131EB0(Task* arg0)
                 D_actor_160900_8013FC08[i].speed  = (rand() * 100 + 20) >> 15;
             }
             D_actor_160900_8013F194        = 0;
-            D_actor_160900_8013FBB0        = arg0->spawnArg2;
+            D_actor_160900_8013FBB0        = arg0->spawnArg2.pointer;
             D_actor_160900_8013FBB0->frame = 0;
             D_actor_160900_8013FBB0->state = 0;
             Display_ClampField126(-8);
@@ -425,7 +432,7 @@ void func_actor_160900_80132A14(Task* arg0)
 
     if (arg0->state == 0) {
         TmdObject*             tmd    = arg0->extra.tmd;
-        Task*                  parent = arg0->spawnArg2;
+        Task*                  parent = arg0->spawnArg2.pointer;
         GpCoord*               coord  = tmd->coords;
         Actor160900Child3Work* work;
         Actor160900Child3Work* block;
@@ -439,7 +446,7 @@ void func_actor_160900_80132A14(Task* arg0)
             return;
         }
         work = block;
-        switch (arg0->spawnArg1) {
+        switch (arg0->spawnArg1.value) {
             case 0:
                 coord->sub = &parent->extra.tmd->coords[12];
                 break;
@@ -451,7 +458,7 @@ void func_actor_160900_80132A14(Task* arg0)
         Mem_Set(arg0->work, 0, 0x4BC);
         tmd->lightMtx = &work->light;
         tmd->colorMtx = &work->color;
-        if (arg0->spawnArg1 < 2) {
+        if (arg0->spawnArg1.value < 2) {
             place = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
             id    = place->entryId;
             while (id != 0xFF) {
@@ -462,7 +469,7 @@ void func_actor_160900_80132A14(Task* arg0)
                 id = place->entryId;
             }
             Gp_SetTmdBytes(arg0->extra.tmd, (s8)place->tpage, (s8)place->clut);
-        } else if (arg0->spawnArg1 == 2) {
+        } else if (arg0->spawnArg1.value == 2) {
             Gp_SetTmdBytes(arg0->extra.tmd, 0, 0);
         }
         Task_Reparent(parent, arg0);
@@ -595,7 +602,7 @@ void func_actor_160900_80132E80(Task* task)
     poly->r1 = 0;
     poly->g1 = 0;
     poly->b1 = 0;
-    switch (task->spawnArg1) {
+    switch (task->spawnArg1.value) {
         case 0:
             poly->r0 = 0;
             poly->g0 = 0;
@@ -782,7 +789,7 @@ static void func_actor_160900_80133238(Task* arg0)
         case 3:
             if ((u16)work->field_4E == 0) {
                 x = Player_Status.weapon;
-                if (Mc_SaveData[0].characterId == 1) {
+                if (Mc_SaveData[0].state.characterId == 1) {
                     v = x + 1;
                 } else {
                     v = x + 0x22;
@@ -805,7 +812,7 @@ static void func_actor_160900_80133238(Task* arg0)
         case 4:
             work->wave.span  = 8;
             work->wave.scale = 0x80;
-            Task_SpawnFromTable(&D_actor_160900_8013F17C, 0, 0, (s32)&work->wave);
+            Task_SpawnFromTable(&D_actor_160900_8013F17C, 0, 0, &work->wave);
             work->field_4C = 0;
             return;
         case 5:
@@ -1239,9 +1246,9 @@ void func_actor_160900_8013418C(Task* arg0)
                 Mem_Set(work, 0, 0x68);
                 work->field_34          = gameGetPtrSlot(3);
                 D_actor_160900_8013FBB4 = arg0;
-                work->field_38          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 3, 0, (s32)arg0);
-                work->field_3C          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 5, 1, (s32)work->field_38);
-                work->field_40          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 6, 0, (s32)work->field_38);
+                work->field_38          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 3, 0, arg0);
+                work->field_3C          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 5, 1, work->field_38);
+                work->field_40          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 6, 0, work->field_38);
             }
             Gp_CapFile = 0;
             Gp_LoadCapFile(3);
@@ -1254,7 +1261,7 @@ void func_actor_160900_8013418C(Task* arg0)
             break;
         case 2:
             if (gGameSession->eventState == 0) {
-                Mc_SaveData[0].sceneEvent = 0x1E;
+                Mc_SaveData[0].state.sceneEvent = 0x1E;
                 Task_RequestKill(arg0, 0);
             }
             break;
@@ -1307,9 +1314,9 @@ void func_actor_160900_801343E4(Task* arg0)
             /* fallthrough */
         case 1:
             Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
-            work->r += (u16)arg0->spawnArg1;
-            work->g += (u16)arg0->spawnArg1;
-            work->b += (u16)arg0->spawnArg1;
+            work->r += (u16)arg0->spawnArg1.value;
+            work->g += (u16)arg0->spawnArg1.value;
+            work->b += (u16)arg0->spawnArg1.value;
             if (work->r >= 0x100) {
                 work->b = 0xFF;
                 work->g = 0xFF;
@@ -1346,9 +1353,9 @@ void func_actor_160900_801344D8(Task* arg0)
             /* fallthrough */
         case 4:
             Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
-            work->r -= (u16)arg0->spawnArg1;
-            work->g -= (u16)arg0->spawnArg1;
-            work->b -= (u16)arg0->spawnArg1;
+            work->r -= (u16)arg0->spawnArg1.value;
+            work->g -= (u16)arg0->spawnArg1.value;
+            work->b -= (u16)arg0->spawnArg1.value;
             if (work->r < 0) {
                 taskKill(arg0);
             }

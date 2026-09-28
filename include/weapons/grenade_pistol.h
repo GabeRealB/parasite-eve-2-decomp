@@ -4,7 +4,6 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-#include "main/task.h"
 #include "weapons/weapon.h"
 
 /// Impact clip id per attachment, indexed by `sfx - 0xA`.

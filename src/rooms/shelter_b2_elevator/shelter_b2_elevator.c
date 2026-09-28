@@ -2,13 +2,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -18,8 +11,16 @@
 #include "gameplay/display.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/evs.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mc.h"
 #include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// Per-task state of an elevator car: its travel, kept within 0..500.
 typedef struct {
@@ -44,16 +45,22 @@ static void func_shelter_b2_elevator_8017DB08(Task* task);
 
 /// The room entry task's first state: installs the room's message table, takes
 /// pointer slot 7 and spawns the two elevator cars. Unless the byte
-/// `Mc_SaveData[0].demoScene` is 9, it then either runs the first-visit sequence, setting
+/// `Mc_SaveData[0].state.demoScene` is 9, it then either runs the first-visit sequence, setting
 /// event nibble 0xCF, or on a later visit hides the HUD, spawns the exit task
 /// and runs CAP command 3.
+/// Spawn one of this room's task descriptors with its signed travel direction.
+static __inline__ Task* ShelterElevator_SpawnTask(s32 index, s32 direction)
+{
+    return Task_SpawnFromTable(D_shelter_b2_elevator_8017DF70, index, 0, direction);
+}
+
 static void func_shelter_b2_elevator_8017D5E8(Task* task)
 {
     task->msgTable = D_shelter_b2_elevator_8017DFA0;
     Game_SetPtrSlot(task, 7);
-    D_shelter_b2_elevator_8017EA00[0] = Task_SpawnFromTable(D_shelter_b2_elevator_8017DF70, 0, 0, -1);
-    D_shelter_b2_elevator_8017EA00[1] = Task_SpawnFromTable(D_shelter_b2_elevator_8017DF70, 1, 0, 1);
-    if (Mc_SaveData[0].demoScene != 9) {
+    D_shelter_b2_elevator_8017EA00[0] = ShelterElevator_SpawnTask(0, -1);
+    D_shelter_b2_elevator_8017EA00[1] = ShelterElevator_SpawnTask(1, 1);
+    if (Mc_SaveData[0].state.demoScene != 9) {
         if (GameFlag_GetNibble(0xCF) == 0) {
             GameFlag_SetNibble(0xCF, 1);
             func_800E8634(&D_801378D0, 0, &D_801380F8);
@@ -61,7 +68,7 @@ static void func_shelter_b2_elevator_8017D5E8(Task* task)
         } else {
             gGameSession->hideHud    = 1;
             gGameSession->eventState = 1;
-            Task_SpawnFromTable(D_shelter_b2_elevator_8017DF70, 2, 0, 0);
+            ShelterElevator_SpawnTask(2, 0);
             Gp_RunCapCmd(3, 0);
         }
     }
@@ -101,14 +108,14 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
             break;
         case 1:
             car         = (ShelterElevatorCar*)task->work;
-            car->travel = car->travel + task->spawnArg1 * 10;
+            car->travel = car->travel + task->spawnArg1.value * 10;
             if (car->travel < 0) {
                 car->travel = 0;
             }
             if (car->travel >= 0x1F5) {
                 car->travel = 0x1F4;
             }
-            coord->coord.t[2] = car->travel * (s32)task->spawnArg2 - 0x1F4;
+            coord->coord.t[2] = car->travel * task->spawnArg2.value - 0x1F4;
             if (gGameSession->at4.loc.view == 2) {
                 obj->flags = 0;
             } else {
@@ -154,16 +161,16 @@ void func_shelter_b2_elevator_8017D888(Task* task)
         case 2:
             switch (Gp_GetCapEventKey()) {
                 case 0xB:
-                    Mc_SaveData[0].at4.loc.area = 9;
-                    Mc_SaveData[0].at4.loc.warp = 3;
+                    Mc_SaveData[0].state.at4.loc.area = 9;
+                    Mc_SaveData[0].state.at4.loc.warp = 3;
                     break;
                 case 0xC:
-                    Mc_SaveData[0].at4.loc.area = 0x1B;
-                    Mc_SaveData[0].at4.loc.warp = 2;
+                    Mc_SaveData[0].state.at4.loc.area = 0x1B;
+                    Mc_SaveData[0].state.at4.loc.warp = 2;
                     break;
                 case 0xD:
-                    Mc_SaveData[0].at4.loc.area = 0x2A;
-                    Mc_SaveData[0].at4.loc.warp = 3;
+                    Mc_SaveData[0].state.at4.loc.area = 0x2A;
+                    Mc_SaveData[0].state.at4.loc.warp = 3;
                     break;
             }
             task->state++;
@@ -174,14 +181,14 @@ void func_shelter_b2_elevator_8017D888(Task* task)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             msg.field_5 = 0;
-            msg.msgId   = Mc_SaveData[0].at4.loc.area;
-            msg.field_2 = Mc_SaveData[0].at4.loc.warp;
-            msg.field_3 = Mc_SaveData[0].at4.loc.room;
+            msg.msgId   = Mc_SaveData[0].state.at4.loc.area;
+            msg.field_2 = Mc_SaveData[0].state.at4.loc.warp;
+            msg.field_3 = Mc_SaveData[0].state.at4.loc.room;
             msg2        = msg;
             func_80179A04(&msg, &msg2);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.warp = msg2.field_2;
-            Mc_SaveData[0].at4.loc.room = msg2.field_3;
+            Mc_SaveData[0].state.at4.loc.warp = msg2.field_2;
+            Mc_SaveData[0].state.at4.loc.room = msg2.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -219,8 +226,8 @@ s32 func_shelter_b2_elevator_8017DAB0(void)
 /// cars to 1.
 s32 func_shelter_b2_elevator_8017DAB8(void)
 {
-    D_shelter_b2_elevator_8017EA00[0]->spawnArg1 = 1;
-    D_shelter_b2_elevator_8017EA00[1]->spawnArg1 = 1;
+    D_shelter_b2_elevator_8017EA00[0]->spawnArg1.value = 1;
+    D_shelter_b2_elevator_8017EA00[1]->spawnArg1.value = 1;
     return 0;
 }
 
@@ -228,8 +235,8 @@ s32 func_shelter_b2_elevator_8017DAB8(void)
 /// cars to -1.
 s32 func_shelter_b2_elevator_8017DAE0(void)
 {
-    D_shelter_b2_elevator_8017EA00[0]->spawnArg1 = -1;
-    D_shelter_b2_elevator_8017EA00[1]->spawnArg1 = -1;
+    D_shelter_b2_elevator_8017EA00[0]->spawnArg1.value = -1;
+    D_shelter_b2_elevator_8017EA00[1]->spawnArg1.value = -1;
     return 0;
 }
 

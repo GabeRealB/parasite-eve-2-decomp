@@ -6,17 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/abs.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/rooms_shared_8017d830.h"
 #include "rooms/acropolis_helicopter_landing_pad.h"
@@ -32,7 +21,27 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
 #include "gameplay/world_coords.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/geometry.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
+#include "main/fs.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "overlay.h"
+#include "rooms/room_common.h"
 
 /// 0x20 scratch block `func_acropolis_helicopter_landing_pad_80180A64` takes
 /// from `G_SCRATCH_HEAD` for one spark line. `a` / `b` are the two random
@@ -221,9 +230,9 @@ static void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
 static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0)
 {
     if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
-        Mc_SaveData[0].at4.loc.area = D_acropolis_helicopter_landing_pad_80187F90.prefix.bytes.field_0;
-        Mc_SaveData[0].at4.loc.warp = D_acropolis_helicopter_landing_pad_80187F90.field_2;
-        Mc_SaveData[0].at4.loc.room = D_acropolis_helicopter_landing_pad_80187F90.field_3;
+        Mc_SaveData[0].state.at4.loc.area = D_acropolis_helicopter_landing_pad_80187F90.prefix.bytes.field_0;
+        Mc_SaveData[0].state.at4.loc.warp = D_acropolis_helicopter_landing_pad_80187F90.field_2;
+        Mc_SaveData[0].state.at4.loc.room = D_acropolis_helicopter_landing_pad_80187F90.field_3;
         Task_Spawn(0, 0x11, 0, 0);
         taskKill(arg0);
     }
@@ -435,7 +444,7 @@ static void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
     u32               tmp;
     s16               n;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState >= 2) {
         if (Gp_State1C->eventState >= 4) {
@@ -446,7 +455,7 @@ static void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
     {
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
-            if (arg0->spawnArg1 != 0) {
+            if (arg0->spawnArg1.value != 0) {
                 mem->move.vx = 0;
                 mem->move.vy = -0x18;
                 mem->move.vz = 0;
@@ -494,7 +503,7 @@ static void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
             prim           = (POLY_FT4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
-            if (arg0->spawnArg1 == 1) {
+            if (arg0->spawnArg1.value == 1) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -575,7 +584,7 @@ static void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
     s32           n;
     s32           pan;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (arg0->state == 2) {
@@ -823,7 +832,7 @@ static void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 
     base  = &Gp_RoomCoords[4];
     slot  = &base->data.light;
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (arg0->state == 3) {
         Gp_ReleaseState1CMem(mem, arg0);
@@ -895,7 +904,7 @@ static void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
     s32               lvl;
     u8                tmp;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState >= 2) {
         if (Gp_State1C->eventState >= 4) {
@@ -944,7 +953,7 @@ static void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
                 lvl = (span - n + 1) * 16;
                 setRGB0(prim, lvl, lvl, lvl);
             } else {
-                if (arg0->spawnArg1 != 0) {
+                if (arg0->spawnArg1.value != 0) {
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                     if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
                         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -962,7 +971,7 @@ static void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
                 }
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && Gp_State1C->eventState == 0) {
-                    Gp_SpawnEff(0x6005A, coord, 2 - arg0->spawnArg1, NULL);
+                    Gp_SpawnEff(0x6005A, coord, 2 - arg0->spawnArg1.value, NULL);
                 }
             }
             prim->tpage = 0x2B;
@@ -1011,7 +1020,7 @@ static void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
 /// `func_acropolis_helicopter_landing_pad_8017F010` once per light position.
 static void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
 {
-    GpEffWork* work = (GpEffWork*)arg0->spawnArg2;
+    GpEffWork* work = (GpEffWork*)arg0->spawnArg2.pointer;
     SVECTOR*   pos;
     s32        i;
     s32        v;
@@ -1196,7 +1205,7 @@ void func_acropolis_helicopter_landing_pad_801822B0(Task* task)
     TmdObject*  tmd;
     s32         flag;
 
-    obj  = (GpItemObj8*)task->spawnArg2;
+    obj  = (GpItemObj8*)task->spawnArg2.pointer;
     tmd  = task->extra.tmd;
     flag = Gp_GetCurBit2Flag(obj->field_8);
     Gp_GetViewIndex();

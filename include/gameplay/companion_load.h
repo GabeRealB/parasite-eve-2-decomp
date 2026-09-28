@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_COMPANION_LOAD_H
 #define GAMEPLAY_COMPANION_LOAD_H
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 void func_800ABFF8(void);
 

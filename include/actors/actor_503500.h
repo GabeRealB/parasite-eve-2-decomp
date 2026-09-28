@@ -2,21 +2,22 @@
 #define ACTOR_503500_H
 
 #include "common.h"
-#include "main/gfx.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
 #include "actors/actor.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+
+#include "main/coord.h"
+#include "main/gfx.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
 
 /// Bytes 0x40..0x60 of an `actor_503500` work block, which the two enemies
 /// that reach them disagree about. The 0x160 block parks its display node

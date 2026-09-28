@@ -1,11 +1,4 @@
 #include "common.h"
-#include "main/gameflag.h"
-#include "main/gameflow.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/dryfield_factory.h"
 #include "rooms/dryfield_night_factory.h"
 
@@ -20,9 +13,17 @@
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
-#include "main/gfx.h"
+
+#include "main/gameflag.h"
+#include "main/gameflow.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "overlay.h"
 
 void func_8004BFF8(s32 angle, MATRIX* matrix);
 
@@ -116,9 +117,9 @@ static void func_dryfield_night_factory_8017D6F8(Task* task)
     func_dryfield_night_factory_8017FB68(task);
     func_dryfield_night_factory_8017D858(task, 1, 0);
     if (gGameSession->at4.loc.stage == 2) {
-        Task_SpawnFromTable(D_dryfield_night_factory_80186E28, 7, 0, (s32)task);
+        Task_SpawnFromTable(D_dryfield_night_factory_80186E28, 7, 0, task);
     } else {
-        Task_SpawnFromTable(D_dryfield_night_factory_80186DE0, 7, 0, (s32)task);
+        Task_SpawnFromTable(D_dryfield_night_factory_80186DE0, 7, 0, task);
     }
     task->exitCallback  = func_dryfield_night_factory_8017FB48;
     task->killCountdown = 0;
@@ -235,7 +236,7 @@ static s32 func_dryfield_night_factory_8017DA54(Task* task)
             }
             work->field_10.value += work->field_8;
             if (work->field_10.value <= 0x4000000) {
-                func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2);
+                func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
                     Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -253,7 +254,7 @@ static s32 func_dryfield_night_factory_8017DA54(Task* task)
     }
 
     if ((u8)(work->field_16 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
-        func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2);
+        func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->at4.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
             Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -315,7 +316,7 @@ static s32 func_dryfield_night_factory_8017DDD4(Task* task)
             }
             work->field_10.value += work->field_8;
             if (work->field_10.value >= 0) {
-                func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2);
+                func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
                     Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -333,7 +334,7 @@ static s32 func_dryfield_night_factory_8017DDD4(Task* task)
     }
 
     if ((u8)(work->field_16 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
-        func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2);
+        func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->at4.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
             Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -394,7 +395,7 @@ static s32 func_dryfield_night_factory_8017E13C(Task* task)
             }
             work->field_C.value += work->field_4;
             if (work->field_C.value >= -0x23A0000) {
-                func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2);
+                func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x52170008, 1);
                     Gp_EnqueueStageSnd6(0x52170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -411,7 +412,7 @@ static s32 func_dryfield_night_factory_8017E13C(Task* task)
     }
 
     if ((u8)(work->field_17 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
-        func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2);
+        func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->at4.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x52170008, 1);
             Gp_EnqueueStageSnd6(0x52170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -466,7 +467,7 @@ static s32 func_dryfield_night_factory_8017E480(Task* task)
             }
             work->field_C.value += work->field_4;
             if (work->field_C.value <= 0) {
-                func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2);
+                func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x52170008, 1);
                     Gp_EnqueueStageSnd6(0x52170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -483,7 +484,7 @@ static s32 func_dryfield_night_factory_8017E480(Task* task)
     }
 
     if ((u8)(work->field_17 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
-        func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2);
+        func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->at4.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x52170008, 1);
             Gp_EnqueueStageSnd6(0x52170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -547,7 +548,7 @@ static s32 func_dryfield_night_factory_8017E7A4(Task* task)
                 work->field_0 = GameFlag_GetNibble(0x49) & 0xFE;
                 GameFlag_SetNibble(0x49, work->field_0);
                 work->field_10.value = 0;
-                func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2);
+                func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
                     Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -567,7 +568,7 @@ static s32 func_dryfield_night_factory_8017E7A4(Task* task)
         work->field_0 = GameFlag_GetNibble(0x49) & 0xFE;
         GameFlag_SetNibble(0x49, work->field_0);
         work->field_10.value = 0;
-        func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2);
+        func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->at4.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
             Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -638,7 +639,7 @@ static s32 func_dryfield_night_factory_8017EBD4(Task* task)
                 work->field_0 = GameFlag_GetNibble(0x49) | 1;
                 GameFlag_SetNibble(0x49, work->field_0);
                 work->field_10.value = 0x4000000;
-                func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2);
+                func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
                     Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -658,7 +659,7 @@ static s32 func_dryfield_night_factory_8017EBD4(Task* task)
         work->field_0 = GameFlag_GetNibble(0x49) | 1;
         GameFlag_SetNibble(0x49, work->field_0);
         work->field_10.value = 0x4000000;
-        func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2);
+        func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->at4.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
             Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -796,7 +797,7 @@ void func_dryfield_night_factory_8017F330(Task* task)
         case 0:
             Gp_MsgPlayerWeapon(0);
             Gp_MsgAllyWeapon(0);
-            Gp_RunCapCmd(task->spawnArg1, 0);
+            Gp_RunCapCmd(task->spawnArg1.value, 0);
             goto advance;
         case 1:
             if (GameFlag_GetNibble(0x48) <= 0) {
@@ -825,7 +826,7 @@ void func_dryfield_night_factory_8017F330(Task* task)
                     func_dryfield_night_factory_80181B38(1);
                     func_dryfield_night_factory_80181620(1);
                 }
-                Gp_StartCapSlot(task->spawnArg1, 1, 2);
+                Gp_StartCapSlot(task->spawnArg1.value, 1, 2);
             }
         advance:
             task->state++;
@@ -868,7 +869,7 @@ void func_dryfield_night_factory_8017F4F4(Task* task)
             }
             Gp_MsgPlayerWeapon(0);
             Gp_MsgAllyWeapon(0);
-            Gp_RunCapCmd1(task->spawnArg1);
+            Gp_RunCapCmd1(task->spawnArg1.value);
             goto advance;
         case 2:
             if (Gp_GetCapEventKey() == 1) {
@@ -896,7 +897,7 @@ void func_dryfield_night_factory_8017F4F4(Task* task)
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             goto advance;
         case 5:
-            Mc_SaveData[0].at4.loc.room = 2;
+            Mc_SaveData[0].state.at4.loc.room = 2;
             gGameSession->at4.loc.room  = 2;
             gGameSession->roomObjsDirty = 1;
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
@@ -1077,7 +1078,7 @@ static void func_dryfield_night_factory_8017FBC8(Task* arg0)
 /// on.
 static void func_dryfield_night_factory_8017FBF4(Task* task)
 {
-    Task*                     cap      = task->spawnArg2;
+    Task*                     cap      = task->spawnArg2.pointer;
     TmdObject*                model    = task->extra.tmd;
     TmdObject*                capModel = cap->extra.tmd;
     GpCoord*                  coord    = model->coords;
@@ -1188,7 +1189,7 @@ void func_dryfield_night_factory_8017FEF4(Task* task)
         case 0:
             Gp_MsgPlayerWeapon(0);
             Gp_MsgAllyWeapon(0);
-            Gp_RunCapCmd(task->spawnArg1, 0);
+            Gp_RunCapCmd(task->spawnArg1.value, 0);
             goto advance;
         case 1:
             if (GameFlag_GetNibble(0x4A) < 2) {
@@ -1220,7 +1221,7 @@ void func_dryfield_night_factory_8017FEF4(Task* task)
 void func_dryfield_night_factory_80180038(Task* arg0)
 {
     if (GameFlag_GetNibble(0x47) == 0) {
-        Gp_RunCapCmd1(arg0->spawnArg1);
+        Gp_RunCapCmd1(arg0->spawnArg1.value);
     }
     taskKill(arg0);
 }
@@ -1238,7 +1239,7 @@ void func_dryfield_night_factory_8018007C(Task* task)
             task->state         = task->state + 1;
             return;
         case 2:
-            Gp_RunCapCmd1(task->spawnArg1);
+            Gp_RunCapCmd1(task->spawnArg1.value);
             GameFlag_SetNibble(0x4E, 0);
             task->killCountdown = 0x1E;
             task->state         = task->state + 1;

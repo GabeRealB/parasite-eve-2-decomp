@@ -6,14 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
@@ -24,7 +16,20 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 /// The first enemy's work block, published by its spawn handler.
 extern Actor151000Work* D_actor_535700_80146844;
@@ -118,13 +123,13 @@ void func_actor_535700_80131EF0(s32 frames)
 
 void func_actor_535700_80131F2C(void)
 {
-    if (Mc_SaveData[0].demoScene != 9) {
-        Mc_SaveData[0].at4.loc.area = 0x1D;
-        Mc_SaveData[0].at4.loc.warp = 5;
-        Mc_SaveData[0].at4.loc.room = 2;
+    if (Mc_SaveData[0].state.demoScene != 9) {
+        Mc_SaveData[0].state.at4.loc.area = 0x1D;
+        Mc_SaveData[0].state.at4.loc.warp = 5;
+        Mc_SaveData[0].state.at4.loc.room = 2;
         gDisplayState.roomVariant   = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Mc_SaveData[0].sceneEvent = 6;
+        Mc_SaveData[0].state.sceneEvent = 6;
         Gp_RestoreStreamRng();
     }
 }
@@ -243,7 +248,7 @@ void func_actor_535700_80132478(Task* task)
     };
 
     D_actor_535700_80146844 = task->work;
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// State 1 of the first enemy's task: refreshes the model root's coordinate,
@@ -270,7 +275,7 @@ static void func_actor_535700_801324D4(GpEnemy* enemy, Task* task)
 /// down the enemy the task was spawned for.
 static void func_actor_535700_80132558(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Plays a step sound whenever animation slot 1 rolls onto a new record whose
@@ -591,7 +596,7 @@ void func_actor_535700_80132F20(Task* task)
         func_actor_535700_80132F74,
     };
 
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// State 1 of the second enemy's task: refreshes the model root's coordinate,
@@ -618,7 +623,7 @@ static void func_actor_535700_80132F74(GpEnemy* enemy, Task* task)
 /// down the enemy the task was spawned for.
 static void func_actor_535700_80132FF8(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Draws the second enemy's ground shadow quad under its model root, unless

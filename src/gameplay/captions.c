@@ -27,6 +27,14 @@
 #include "main/task.h"
 #include "main/text.h"
 
+/// Initialize a display mode with an object payload in its first data word.
+static __inline__ s32 Display_InitModeObjPtr(TaskDesc* desc, s32 mode, const void* data, s32 arg3)
+{
+    TaskSpawnArg arg;
+    arg.constPointer = data;
+    return Display_InitModeObj(desc, mode, arg.value, arg3);
+}
+
 /* Define BSS before API headers to preserve first-declaration order. */
 u8 D_80115688;
 
@@ -73,12 +81,6 @@ s32 func_800E6BB8(u16* arg0);
 static void func_800E6E44(GpCapTextCb arg0);
 
 void func_800E704C(void);
-
-s32 Stage_HasTransitionFlags(void);
-
-s32 Stage_RequestImageCapture(void);
-
-void func_8001D5C4(void);
 
 void func_8072455C(s16 arg0, s32 arg1);
 
@@ -147,8 +149,8 @@ void func_800E44A0(Task* task)
         if (spawnDelay != 0) {
             return;
         }
-        D_8011566D                  = Mc_SaveData[0].at4.loc.view;
-        Mc_SaveData[0].at4.loc.view = D_80115694;
+        D_8011566D                  = Mc_SaveData[0].state.at4.loc.view;
+        Mc_SaveData[0].state.at4.loc.view = D_80115694;
         Gp_DispatchMsg(gameGetPtrSlot(5), 0xBB8, 0, 0);
         Stage_RequestImageCapture();
         Task_SpawnPtr(1, 0x2C, 0, &D_801155A0);
@@ -182,7 +184,7 @@ void func_800E44A0(Task* task)
     return;
 resumeView:
     if (D_801156A4 & 0x20) {
-        if (Mc_SaveData[0].demoScene == 5) {
+        if (Mc_SaveData[0].state.demoScene == 5) {
             SndEvt_EnqueueType6(0, 0, 0);
         }
         D_801155BB  = 0;
@@ -232,9 +234,9 @@ resumeView:
                 D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].field_8.text);
                 nextView   = view & 0xFF;
                 D_801155BB = 0;
-                if ((nextView != 0) && (nextView != Mc_SaveData[0].at4.loc.view)) {
+                if ((nextView != 0) && (nextView != Mc_SaveData[0].state.at4.loc.view)) {
                     if (D_80115688 == 0) {
-                        Mc_SaveData[0].at4.loc.view = view;
+                        Mc_SaveData[0].state.at4.loc.view = view;
                         D_801155BB                  = 1;
                         if (gDisplayState.field_112 != 0) {
                             if (D_8011564A == -1) {
@@ -251,7 +253,7 @@ resumeView:
                             viewPhase  = D_801155BB;
                             D_801155BB = viewPhase + 1;
                             if (D_801156F4 != NULL) {
-                                func_8001D5C4();
+                                CdCmd_UnusedStub3();
                             }
                         } else if (!(eventFlags & 0x40)) {
                             D_8011566A = 1;
@@ -301,8 +303,8 @@ resumeView:
                 spawnDialog:
                     D_801155A0.done = 0;
                     if (D_80115666 == 1) {
-                        D_8011566D                  = Mc_SaveData[0].at4.loc.view;
-                        Mc_SaveData[0].at4.loc.view = D_80115694;
+                        D_8011566D                  = Mc_SaveData[0].state.at4.loc.view;
+                        Mc_SaveData[0].state.at4.loc.view = D_80115694;
                         Task_SpawnPtr(1, 0x2C, 0, &D_801155A0);
                     } else if (D_80115666 == 2) {
                         D_801155BA = 4;
@@ -315,7 +317,7 @@ resumeView:
                 }
                 if (D_801155A0.done != 0) {
                     if (D_80115666 != 0) {
-                        Mc_SaveData[0].at4.loc.view = D_8011566D;
+                        Mc_SaveData[0].state.at4.loc.view = D_8011566D;
                     }
                     D_801155AC = 0;
                     if (D_801155A0.field_3 == 0) {
@@ -695,7 +697,7 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                 } else {
                     sel = Gp_FindViewIndex(code & 0xFF);
                 }
-                if (Mc_SaveData[0].at4.loc.view != sel) {
+                if (Mc_SaveData[0].state.at4.loc.view != sel) {
                     if (D_80115666 != 0) {
                         Stage_BeginTransition(sel, 1);
                         D_801155BC = 2;
@@ -704,7 +706,7 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                             Gp_MsgPlayer3F3(0);
                             Gp_MsgAlly3F3(0);
                         }
-                        Mc_SaveData[0].at4.loc.view = sel;
+                        Mc_SaveData[0].state.at4.loc.view = sel;
                         gGameSession->hideHud       = 1;
                         Gp_StateF0.field_4          = 2;
                     }
@@ -881,7 +883,7 @@ void Gp_CapExit(Task* arg0)
         Gp_DispatchMsg(gameGetPtrSlot(5), 0xBB8, 0, 0);
     }
     if (D_80115666 != 0) {
-        if (Mc_SaveData[0].at4.loc.view == D_8011566C) {
+        if (Mc_SaveData[0].state.at4.loc.view == D_8011566C) {
             Stage_SetEndingFlag();
         } else {
             queue->field_22A = D_8011565C;
@@ -894,7 +896,7 @@ void Gp_CapExit(Task* arg0)
     }
     if (gGameSession->eventState == 0) {
         gGameSession->hideHud       = 0;
-        Mc_SaveData[0].at4.loc.view = D_8011566C;
+        Mc_SaveData[0].state.at4.loc.view = D_8011566C;
         Gp_MsgPlayer3F3(1);
         Gp_MsgAlly3F3(1);
         if (gDisplayState.field_112 != 0) {
@@ -1267,13 +1269,13 @@ void Gp_DelayedMsgTask(Task* task)
 
     switch (task->state) {
         case 0:
-            task->killCountdown = (task->spawnArg1 >> 8) & 0xFF;
+            task->killCountdown = (task->spawnArg1.value >> 8) & 0xFF;
             task->state++;
             break;
         case 1:
             if (task->killCountdown == 0) {
-                mode = (task->spawnArg1 >> 16) & 0xFF;
-                val  = task->spawnArg1 & 0xFF;
+                mode = (task->spawnArg1.value >> 16) & 0xFF;
+                val  = task->spawnArg1.value & 0xFF;
                 if (mode == 0) {
                     Gp_DispatchMsg(gameGetPtrSlot(3), 0x401, val, 0);
                 } else if (mode == 1) {

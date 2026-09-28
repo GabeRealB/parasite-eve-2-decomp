@@ -1,19 +1,6 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gamemain.h"
-#include "main/mc.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
 #include "rooms/dryfield_night_garage.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -27,7 +14,24 @@
 #include "gameplay/item_menu.h"
 #include "gameplay/player_state.h"
 #include "gameplay/scene_runtime.h"
+
+#include "gameplay/evs.h"
+#include "gameplay/inventory.h"
+#include "gameplay/message.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 #include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
+#include "main/wipsys.h"
 
 extern s32 func_80179954(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -179,12 +183,12 @@ static void func_dryfield_night_garage_80180604(s32 arg0);
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40
 /// or any other value) and the high halfword one of the group's four;
-/// `Mc_SaveData[0].gameMode` 2 and above has groups of its own. A high halfword
+/// `Mc_SaveData[0].state.gameMode` 2 and above has groups of its own. A high halfword
 /// above 3 falls through the 0x30-0x33 groups in turn and on into 0x20's;
 /// every other miss returns `D_dryfield_night_garage_80181AD4`.
 static u16* func_dryfield_night_garage_8017D754(s32 mode)
 {
-    if (Mc_SaveData[0].gameMode < 2) {
+    if (Mc_SaveData[0].state.gameMode < 2) {
         switch ((u16)mode) {
             case 0x30:
                 switch ((u32)mode >> 16) {
@@ -403,9 +407,9 @@ void func_dryfield_night_garage_8017DDC4(UiList* prompt, UiObject* obj)
     shop    = (RoomShopList*)obj->owner->work;
     blocked = 0;
     itemId  = shop->items[prompt->field_8];
-    /* &Mc_SaveData[0].carriedItems hoisted into a saved register here, as the original does,
+    /* &Mc_SaveData[0].state.carriedItems hoisted into a saved register here, as the original does,
        instead of being rematerialised at the Gp_SumScanQty call. */
-    scan = &Mc_SaveData[0].carriedItems;
+    scan = &Mc_SaveData[0].state.carriedItems;
     if (prompt->field_C == 1) {
         D_dryfield_night_garage_801819EC = itemId;
     }
@@ -429,7 +433,7 @@ void func_dryfield_night_garage_8017DDC4(UiList* prompt, UiObject* obj)
         req.glyphTable = 0;
         req.centerMode = 0;
         req.field_E    = 1;
-        func_8002E53C(&req, D_dryfield_night_garage_80181A0C);
+        Text_DrawString(&req, D_dryfield_night_garage_80181A0C);
         if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x16, 0, 0);
             Ui_SpawnFromDesc(&D_dryfield_night_garage_80181BD8, 0, 1, 1, obj);
@@ -507,7 +511,7 @@ void func_dryfield_night_garage_8017DDC4(UiList* prompt, UiObject* obj)
 static void func_dryfield_night_garage_8017E250(RoomShopList* shop, UiObject* obj, s32 item)
 {
     Task*         task = obj->owner;
-    s32           mode = task->spawnArg1;
+    s32           mode = task->spawnArg1.value;
     RoomShopList* list = (RoomShopList*)task->work;
     s32           i;
 
@@ -545,8 +549,8 @@ static void func_dryfield_night_garage_8017E250(RoomShopList* shop, UiObject* ob
 /// 0, which items of each unlocked price row are added: mode 0 ids 0x80-0x9F
 /// and 9, 0xA, 0xC, 0x42-0x46; mode 1 ids 0xA0-0xBF; mode 2 ids 0x60-0x7F and
 /// 0xD; mode 3 ids 1-0x5F other than those. Mode 3 also adds, for each of the
-/// twelve two-bit levels in `Mc_SaveData[0].shopStock`, the id of that level
-/// (the first slot needs level 2). With `Mc_SaveData[0].demoScene` 1 every row
+/// twelve two-bit levels in `Mc_SaveData[0].state.shopStock`, the id of that level
+/// (the first slot needs level 2). With `Mc_SaveData[0].state.demoScene` 1 every row
 /// and level is unlocked first.
 static void func_dryfield_night_garage_8017E39C(RoomShopList* shop, UiObject* obj)
 {
@@ -567,7 +571,7 @@ static void func_dryfield_night_garage_8017E39C(RoomShopList* shop, UiObject* ob
     u16           tmp;
     u8            count;
 
-    mode = obj->owner->spawnArg1;
+    mode = obj->owner->spawnArg1.value;
     ids  = func_dryfield_night_garage_8017D754(mode);
 
     shop->list.field_4 = 0;
@@ -576,15 +580,15 @@ static void func_dryfield_night_garage_8017E39C(RoomShopList* shop, UiObject* ob
         ids++;
     }
 
-    if (Mc_SaveData[0].demoScene == 1) {
-        Mc_SaveData[0].shopTiers = 0x1FFF;
-        Mc_SaveData[0].shopStock = -1;
+    if (Mc_SaveData[0].state.demoScene == 1) {
+        Mc_SaveData[0].state.shopTiers = 0x1FFF;
+        Mc_SaveData[0].state.shopStock = -1;
     }
 
-    if (Mc_SaveData[0].gameMode == 0) {
-        if (Mc_SaveData[0].shopTiers != 0) {
+    if (Mc_SaveData[0].state.gameMode == 0) {
+        if (Mc_SaveData[0].state.shopTiers != 0) {
             for (tier = 0; tier < 13; tier++) {
-                unlocked = Mc_SaveData[0].shopTiers & (1 << tier);
+                unlocked = Mc_SaveData[0].state.shopTiers & (1 << tier);
                 if (unlocked != 0) {
                     for (j = 0; j < 3; j++) {
                         item = D_dryfield_night_garage_80181950[tier].items[j];
@@ -622,7 +626,7 @@ static void func_dryfield_night_garage_8017E39C(RoomShopList* shop, UiObject* ob
 
         if ((mode >> 16) == 3) {
             for (slot = 0; slot < 0xC; slot++) {
-                level = (Mc_SaveData[0].shopStock >> (slot * 2)) & 3;
+                level = (Mc_SaveData[0].state.shopStock >> (slot * 2)) & 3;
                 if (slot == 0 ? level >= 2 : level > 0) {
                     /* The assignment keeps `+ 0xE` on the level instead of
                        letting GCC reassociate it onto the row base. */
@@ -687,7 +691,7 @@ void func_dryfield_night_garage_8017E768(Task* task)
     s32           x;
     s32           y;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, (char*)D_dryfield_night_garage_8017D6D0);
     if (task->state == 0) {
@@ -721,7 +725,7 @@ void func_dryfield_night_garage_8017E768(Task* task)
     req.glyphTable = 5;
     req.centerMode = 2;
     req.field_E    = 1;
-    func_8002E53C(&req, D_dryfield_night_garage_8017D6D8);
+    Text_DrawString(&req, D_dryfield_night_garage_8017D6D8);
 
     if (obj->panel.field_0.w == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
@@ -736,7 +740,7 @@ void func_dryfield_night_garage_8017E768(Task* task)
     if (head != NULL) {
         child = head;
         do {
-            childObj = child->spawnArg2;
+            childObj = child->spawnArg2.pointer;
             code     = childObj->field_2E;
             next     = child->nextSibling;
             if (code != -1) {
@@ -774,25 +778,25 @@ void func_dryfield_night_garage_8017E9B8(UiList* prompt, UiObject* obj)
     }
 
     text                  = D_dryfield_night_garage_80181A5C;
-    obj->owner->spawnArg1 = (u16)obj->owner->spawnArg1;
+    obj->owner->spawnArg1.value = (u16)obj->owner->spawnArg1.value;
     switch (prompt->field_8) {
         case 0:
             break;
         case 1:
             text                   = D_dryfield_night_garage_80181A64;
-            obj->owner->spawnArg1 |= 0x10000;
+            obj->owner->spawnArg1.value |= 0x10000;
             break;
         case 2:
             text                   = D_dryfield_night_garage_80181A70;
-            obj->owner->spawnArg1 |= 0x20000;
+            obj->owner->spawnArg1.value |= 0x20000;
             break;
         case 3:
             text                   = D_dryfield_night_garage_80181A78;
-            obj->owner->spawnArg1 |= 0x30000;
+            obj->owner->spawnArg1.value |= 0x30000;
             break;
     }
 
-    if (*func_dryfield_night_garage_8017D754(obj->owner->spawnArg1) == 0xFFFF) {
+    if (*func_dryfield_night_garage_8017D754(obj->owner->spawnArg1.value) == 0xFFFF) {
         prompt->field_1C = Ui_LookupTable(obj, 2);
         prompt->field_C  = 0;
     }
@@ -828,7 +832,7 @@ void func_dryfield_night_garage_8017EBD8(Task* task)
     UiObject* childObj;
     s32       code;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     list          = &D_dryfield_night_garage_80181AE0;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, (char*)D_dryfield_night_garage_8017D6DC);
@@ -853,7 +857,7 @@ void func_dryfield_night_garage_8017EBD8(Task* task)
     if (head != NULL) {
         child = head;
         do {
-            childObj = child->spawnArg2;
+            childObj = child->spawnArg2.pointer;
             code     = childObj->field_2E;
             next     = child->nextSibling;
             if (code != -1) {
@@ -889,7 +893,7 @@ void func_dryfield_night_garage_8017ED80(Task* task)
     s32           capacity;
     s32           count;
 
-    obj = task->spawnArg2;
+    obj = task->spawnArg2.pointer;
     cfg = &Player_Status;
     x   = (s16)obj->panel.field_1C.s + 2;
     col = (s16)obj->panel.field_1E.u - 2;
@@ -902,7 +906,7 @@ void func_dryfield_night_garage_8017ED80(Task* task)
     req0.glyphTable = 5;
     req0.centerMode = 0;
     req0.field_E    = 1;
-    func_8002E53C(&req0, D_dryfield_night_garage_8017D6D8);
+    Text_DrawString(&req0, D_dryfield_night_garage_8017D6D8);
 
     Text_ItoaUnsigned((u8*)digits, cfg->bp);
     Text_DrawPrompt(obj, col, y + 0x19, (u8*)digits, 0x606060, 3, 2);
@@ -915,10 +919,10 @@ void func_dryfield_night_garage_8017ED80(Task* task)
     req1.glyphTable = 5;
     req1.centerMode = 0;
     req1.field_E    = 1;
-    func_8002E53C(&req1, (char*)D_dryfield_night_garage_8017D6E4);
+    Text_DrawString(&req1, (char*)D_dryfield_night_garage_8017D6E4);
 
     p        = total;
-    scan     = &Mc_SaveData[0].carriedItems;
+    scan     = &Mc_SaveData[0].state.carriedItems;
     count    = Gp_CountScanItems(scan);
     capacity = scan->rowCount;
     Text_ItoaUnsigned((u8*)p, count);
@@ -945,7 +949,7 @@ void func_dryfield_night_garage_8017EF64(UiList* prompt, UiObject* obj)
     s32           mode;
     s32           price;
 
-    itemId = obj->owner->spawnArg1;
+    itemId = obj->owner->spawnArg1.value;
 
     req.x          = obj->panel.field_20.u + (u16)prompt->field_18;
     req.y          = obj->panel.field_22.u + (u16)prompt->field_1A;
@@ -954,13 +958,13 @@ void func_dryfield_night_garage_8017EF64(UiList* prompt, UiObject* obj)
     req.glyphTable = 0;
     req.centerMode = 0;
     req.field_E    = 1;
-    func_8002E53C(&req, D_dryfield_night_garage_801819F0);
+    Text_DrawString(&req, D_dryfield_night_garage_801819F0);
 
     mode = prompt->field_C;
     if (mode == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         cfg   = &Player_Status;
         price = Gp_ItemDescs[itemId].price;
-        scan  = &Mc_SaveData[0].carriedItems;
+        scan  = &Mc_SaveData[0].state.carriedItems;
         SndEvt_EnqueueType6(0x16, 0, 0);
         if (cfg->bp >= price) {
             if (Gp_CanAddItem(scan, itemId) == 0) {
@@ -970,7 +974,7 @@ void func_dryfield_night_garage_8017EF64(UiList* prompt, UiObject* obj)
                     Ui_SpawnFromDesc(&D_dryfield_night_garage_80181BA0, 1, 1, 1, obj);
                 }
                 obj->panel.field_0.w = 0;
-            } else if ((obj->owner->parent->spawnArg1 >> 16) == mode) {
+            } else if ((obj->owner->parent->spawnArg1.value >> 16) == mode) {
                 child = Ui_SpawnFromDesc(&D_dryfield_night_garage_80181C10, itemId, 1, 1, obj);
                 if (child != NULL) {
                     Ui_ClampDialogRect(&(child)->panel, prompt, &(obj)->panel);
@@ -997,8 +1001,8 @@ void func_dryfield_night_garage_8017F178(Task* task)
     u8*       text;
     s32       kind;
 
-    kind = task->spawnArg1;
-    obj  = task->spawnArg2;
+    kind = task->spawnArg1.value;
+    obj  = task->spawnArg2.pointer;
     switch (kind) {
         case 1:
             text = D_dryfield_night_garage_80181A94;
@@ -1026,7 +1030,7 @@ void func_dryfield_night_garage_8017F178(Task* task)
             return;
         }
         if (task->killCountdown <= 0 || Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-            ((UiObject*)task->parent->spawnArg2)->field_2E = 6;
+            ((UiObject*)task->parent->spawnArg2.pointer)->field_2E = 6;
             task->killCountdown                            = 0x7FFF;
         }
     }
@@ -1052,17 +1056,17 @@ void func_dryfield_night_garage_8017F2F8(Task* task)
     s32         status;
     s16         countdown;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, (char*)D_dryfield_night_garage_8017D6F4);
 
     if (task->state == 0) {
-        task->spawnArg1 = 0;
+        task->spawnArg1.value = 0;
         task->state     = task->state + 1;
     }
     if (task->state == 1) {
-        slotId          = Gp_NextMappedSlot(task->spawnArg1);
-        task->spawnArg1 = slotId;
+        slotId          = Gp_NextMappedSlot(task->spawnArg1.value);
+        task->spawnArg1.value = slotId;
         if (slotId < 0) {
             obj->field_2E = 6;
         } else {
@@ -1111,7 +1115,7 @@ void func_dryfield_night_garage_8017F2F8(Task* task)
         status              = obj->panel.field_0.w;
         if (status == 1 && (countdown <= 0 || Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskConfirm) != 0)) {
             task->state     = status;
-            task->spawnArg1 = task->spawnArg1 + 1;
+            task->spawnArg1.value = task->spawnArg1.value + 1;
         }
     }
 }
@@ -1124,9 +1128,9 @@ static inline s32 _dryfieldNightGarageAddItemCount(s32 item, s32 count)
     McItemScan* scan;
 
     if ((u32)(item - 0xA0) < 0x20U) {
-        count += Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, item);
+        count += Gp_ScanStackQty(&Mc_SaveData[0].state.carriedItems, item);
     } else {
-        scan = &Mc_SaveData[0].carriedItems;
+        scan = &Mc_SaveData[0].state.carriedItems;
         rec  = Gp_GetItemTable(scan) + scan->firstRow;
         n    = scan->rowCount;
         for (i = 0; i < n; i++) {
@@ -1153,7 +1157,7 @@ void func_dryfield_night_garage_8017F5C0(Task* task)
     s32         count;
 
     item         = D_dryfield_night_garage_801819EC;
-    obj          = task->spawnArg2;
+    obj          = task->spawnArg2.pointer;
     task->status = 0;
     if ((CdCmd_IsIdle() & 0xFFFF) && D_dryfield_night_garage_801819EC == Gp_GetPreviewItem()) {
         func_800C7AE8(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 2, 0x20);
@@ -1170,7 +1174,7 @@ void func_dryfield_night_garage_8017F5C0(Task* task)
         req.field_8    = 0x606060;
         req.centerMode = 0;
         req.field_E    = 1;
-        func_8002E53C(&req, D_dryfield_night_garage_80181AC4);
+        Text_DrawString(&req, D_dryfield_night_garage_80181AC4);
         count = 0;
         count = _dryfieldNightGarageAddItemCount(item, count);
         Text_DrawPrompt(obj, (s16)obj->panel.field_1E.u - 2, y + 0xA, Text_ItoaSigned(buf, count), 0x606060, 3, 2);
@@ -1202,8 +1206,8 @@ void func_dryfield_night_garage_8017F794(Task* task)
     s32          y;
     s32          i;
 
-    itemId = task->spawnArg1;
-    obj    = task->spawnArg2;
+    itemId = task->spawnArg1.value;
+    obj    = task->spawnArg2.pointer;
     maxQty = 1;
     price  = Gp_ItemDescs[itemId].price;
 
@@ -1217,7 +1221,7 @@ void func_dryfield_night_garage_8017F794(Task* task)
         RoomShopStock* stock = gpItemStock(itemId);
 
         if (stock->perBuy != 0) {
-            held    = Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, itemId);
+            held    = Gp_ScanStackQty(&Mc_SaveData[0].state.carriedItems, itemId);
             maxHeld = stock->maxHeld;
             maxQty  = maxHeld - held;
             if (maxQty <= 0) {
@@ -1228,7 +1232,7 @@ void func_dryfield_night_garage_8017F794(Task* task)
             }
         }
     } else {
-        maxQty = Mc_SaveData[0].carriedItems.rowCount - Gp_CountScanItems(&Mc_SaveData[0].carriedItems);
+        maxQty = Mc_SaveData[0].state.carriedItems.rowCount - Gp_CountScanItems(&Mc_SaveData[0].state.carriedItems);
     }
 
     afford = Player_Status.bp / price;
@@ -1260,12 +1264,12 @@ void func_dryfield_night_garage_8017F794(Task* task)
     req.glyphTable = 5;
     req.centerMode = 2;
     req.field_E    = 1;
-    func_8002E53C(&req, D_dryfield_night_garage_8017D6D8);
+    Text_DrawString(&req, D_dryfield_night_garage_8017D6D8);
 
     Text_DrawPrompt(obj, -x, top + 0x2B, Text_ItoaSigned(buf, count * price), 0x606060, 3, 2);
 
     if (obj->panel.field_0.w == 1) {
-        parentObj = task->parent->spawnArg2;
+        parentObj = task->parent->spawnArg2.pointer;
         if (Pad_CheckButtons(0, 1, 0x3000) != 0) {
             if (task->extraState < maxQty) {
                 task->extraState = task->extraState + 1;
@@ -1279,7 +1283,7 @@ void func_dryfield_night_garage_8017F794(Task* task)
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             Player_Status.bp -= price * task->extraState;
             for (i = 0; i < task->extraState; i++) {
-                Gp_GiveItem(&Mc_SaveData[0].carriedItems, itemId, -1);
+                Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, itemId, -1);
             }
             SndEvt_EnqueueType6(0x16, 0, 0);
             parentObj->field_2E = 6;
@@ -1302,7 +1306,7 @@ void func_dryfield_night_garage_8017FC14(UiList* prompt, UiObject* obj)
     req.glyphTable = 0;
     req.centerMode = 0;
     req.field_E    = 1;
-    func_8002E53C(&req, D_dryfield_night_garage_80181A04);
+    Text_DrawString(&req, D_dryfield_night_garage_80181A04);
 
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
@@ -1321,7 +1325,7 @@ void func_dryfield_night_garage_8017FCD0(Task* task)
     s16       code;
 
     list          = &D_dryfield_night_garage_80181B0C;
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     if (task->state == 0) {
         Ui_LayoutListPanel(list, &(obj)->panel);
@@ -1340,7 +1344,7 @@ void func_dryfield_night_garage_8017FCD0(Task* task)
 
     child = task->firstChild;
     if (child != NULL) {
-        childObj = child->spawnArg2;
+        childObj = child->spawnArg2.pointer;
         code     = childObj->field_2E;
         if (code != -1) {
             if (code == 6) {
@@ -1370,12 +1374,12 @@ void func_dryfield_night_garage_8017FDF8(Task* task)
         }
         GameMain_SetFrameTiming(0);
         gGameSession->uiOpen = 1;
-        task->spawnArg2      = obj;
+        task->spawnArg2.pointer      = obj;
         task->state++;
     }
 
     if (task->state == 1) {
-        obj = task->spawnArg2;
+        obj = task->spawnArg2.pointer;
         if (obj->field_2E == -1 || obj->field_2E == 6) {
             Ui_TeardownTree(obj, obj->owner);
             task->killCountdown = 10;
@@ -1462,7 +1466,7 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, GpMsg13EF* msg, s
                     GameFlag_SetNibble(0x6C, 1);
                     func_800E3FAC(0xA2, 0x17);
                     Gp_ClearCollectedBit(0x118);
-                    Mc_SaveData[0].sceneEvent = 5;
+                    Mc_SaveData[0].state.sceneEvent = 5;
                 }
             } else {
                 Gp_MsgPlayerWeapon(0);
@@ -1639,7 +1643,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
     temp_v1 = arg0->state;
     switch (temp_v1) {
         case 0:
-            Gp_StartCapSlot((s16)arg0->spawnArg1, 0, 0);
+            Gp_StartCapSlot((s16)arg0->spawnArg1.value, 0, 0);
             Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), 0x7DB, &D_dryfield_night_garage_80182DE0, 0);
             goto block_12;
         case 1:
@@ -1649,7 +1653,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
             }
             return;
         case 2:
-            Gp_StartCapSlot((s16)arg0->spawnArg1, 0, (s16)(GameFlag_GetNibble(0x107) + 1));
+            Gp_StartCapSlot((s16)arg0->spawnArg1.value, 0, (s16)(GameFlag_GetNibble(0x107) + 1));
             if (GameFlag_GetNibble(0x107) == 0) {
                 GameFlag_SetNibble(0x107, 1);
             }

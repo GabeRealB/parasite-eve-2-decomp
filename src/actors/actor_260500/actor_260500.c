@@ -8,11 +8,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/captions.h"
@@ -23,7 +18,16 @@
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/text.h"
 
 /// The work block, published by the spawn routine and by the task handler
 /// `func_actor_260500_8014A460` on every frame, so the message handlers and
@@ -221,7 +225,7 @@ void func_actor_260500_8014A460(Task* task)
     };
 
     D_actor_260500_80159E4C = task->work;
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Per-frame state (state 1 of `func_actor_260500_8014A460`): refreshes the
@@ -248,7 +252,7 @@ static void func_actor_260500_8014A4BC(GpEnemy* enemy, Task* task)
 /// back to `Gp_DestroyEnemy`.
 static void func_actor_260500_8014A540(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Ticks animation slots 1..0x12 of the work block's animation context.

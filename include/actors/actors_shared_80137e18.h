@@ -6,10 +6,11 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/coord.h"
 
 #include "actors/actor.h"
-#include "main/task.h"
+
+#include "main/coord.h"
+#include "main/task_types.h"
 
 /// Work block the carriers hang off `Task::work`. `coord` is the extra
 /// `GpCoord` this body wires as `sub` of the model's second part;

@@ -1,22 +1,14 @@
 #include "common.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
 #include "gameplay/display.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
+
+#include "gameplay/attachment_state.h"
+#include "main/session.h"
+#include "main/task.h"
 
 /// Imports from the 0x80180000 overlay; no header names them yet.
 void            func_8017DCAC(s32 arg0);
@@ -49,7 +41,7 @@ void func_actor_215100_80149F2C(Task* task)
                 taskKill(task);
                 return;
             }
-            if (task->spawnArg1 == 0) {
+            if (task->spawnArg1.value == 0) {
                 func_800E8614((s32)&D_actor_215100_8014ED90, 1);
             } else {
                 slot = 0x1C;
@@ -63,7 +55,7 @@ void func_actor_215100_80149F2C(Task* task)
             break;
         case 0x2:
             gGameSession->eventState = 1;
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 if (Gp_GetCapEventKey() != 0) {
                     task->state = 5;
                 } else {

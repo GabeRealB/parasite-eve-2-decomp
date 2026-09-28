@@ -6,16 +6,18 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/coord.h"
-#include "main/gfx.h"
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/wipsys.h"
 
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+
+#include "main/coord.h"
+#include "main/gfx_types.h"
+#include "main/scratch.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
+#include "main/wipsys_types.h"
 
 /*
  * Types that more than one overlay family carries.

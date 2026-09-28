@@ -6,9 +6,9 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-#include "main/task.h"
 #include "rooms/room_common.h"
+
+#include "main/task_types.h"
 
 /// Two descriptors that attach no model: entry 0 runs
 /// `func_acropolis_helicopter_landing_pad_8017ED00`, entry 1

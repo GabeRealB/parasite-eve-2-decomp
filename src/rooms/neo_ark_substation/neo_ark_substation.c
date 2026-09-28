@@ -4,14 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -20,7 +12,16 @@
 #include "gameplay/display.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
-#include "main/fs.h"
+
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
@@ -55,7 +56,7 @@ static const TaskFuncTable3 D_neo_ark_substation_8017D5C4 = {
 /// in: `gGameSession->at4.loc.view` selects one of the room's nine `(pan, vol)`
 /// entries, and state 0 starts that loop with `SndEvt_EnqueueType6`. States 1
 /// through 4 then watch for the session's index to stop matching the area
-/// `Mc_SaveData[0].at4.loc.view` publishes - state 1 tests the pair and 2, 3 and 4 walk the task
+/// `Mc_SaveData[0].state.at4.loc.view` publishes - state 1 tests the pair and 2, 3 and 4 walk the task
 /// along - and state 5 retunes the playing loop to the new entry with
 /// `SndEvt_EnqueueTypeA` and returns to state 1 to keep watching.
 void func_neo_ark_substation_8017D608(Task* task)
@@ -79,7 +80,7 @@ void func_neo_ark_substation_8017D608(Task* task)
             task->state = task->state + 1;
             break;
         case 1:
-            if (Mc_SaveData[0].at4.loc.view != gGameSession->at4.loc.view) {
+            if (Mc_SaveData[0].state.at4.loc.view != gGameSession->at4.loc.view) {
                 task->state = task->state + 1;
             }
             break;

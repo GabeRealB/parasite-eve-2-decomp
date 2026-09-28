@@ -2,13 +2,15 @@
 #define ACTORS_SHARED_80138EFC_H
 
 #include "common.h"
-#include "main/task.h"
-#include "main/coord.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/animation.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
+
+#include "main/coord.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
 
 /// The enemy's work block: allocated zeroed by the spawn handler and parked in
 /// `Task::work`, then handed to every state handler and message handler of the

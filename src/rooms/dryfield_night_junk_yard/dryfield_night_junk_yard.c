@@ -1,7 +1,4 @@
 #include "common.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -11,7 +8,12 @@
 #include "gameplay/items.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "main/fs.h"
+
+#include "gameplay/sprites.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/task.h"
 
 /// The room's message table, published in `Task::msgTable` for
 /// `Gp_DispatchMsg` to walk.
@@ -133,11 +135,11 @@ s32 func_dryfield_night_junk_yard_8017D82C(s32 arg0, s32 arg1, RoomEventMsg* in)
 }
 
 /// Stores `arg0` as the session's current room number and mirrors it into the
-/// main-executable byte `Mc_SaveData[0].at4.loc.room`.
+/// main-executable byte `Mc_SaveData[0].state.at4.loc.room`.
 void func_dryfield_night_junk_yard_8017D894(u8 arg0)
 {
     gGameSession->at4.loc.room  = arg0;
-    Mc_SaveData[0].at4.loc.room = arg0;
+    Mc_SaveData[0].state.at4.loc.room = arg0;
 }
 
 /// Room entry task tick: publish the message table, claim game pointer slot 7,

@@ -1,9 +1,4 @@
 #include "common.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -11,7 +6,15 @@
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/evs_scripts.h"
+
+#include "gameplay/evs.h"
 #include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/text.h"
 
 extern s32 D_shelter_r36_8017DF2C;
 extern s32 D_shelter_r36_8017E5A4;
@@ -80,14 +83,14 @@ void func_shelter_r36_8017D5E8(Task* task)
 /// event data.
 void func_shelter_r36_8017D738(void)
 {
-    if (Mc_SaveData[0].demoScene != 9) {
-        Mc_SaveData[0].at4.loc.stage = 4;
-        Mc_SaveData[0].at4.loc.area  = 0x24;
-        Mc_SaveData[0].at4.loc.warp  = 2;
-        Mc_SaveData[0].at4.loc.room  = 1;
+    if (Mc_SaveData[0].state.demoScene != 9) {
+        Mc_SaveData[0].state.at4.loc.stage = 4;
+        Mc_SaveData[0].state.at4.loc.area  = 0x24;
+        Mc_SaveData[0].state.at4.loc.warp  = 2;
+        Mc_SaveData[0].state.at4.loc.room  = 1;
         gDisplayState.roomVariant    = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Fs_BeginBootLoad(&Mc_SaveData[0].at4.loc.view, 1);
+        Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 1);
     }
 }
 

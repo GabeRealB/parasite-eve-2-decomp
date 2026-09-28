@@ -2,9 +2,12 @@
 #define ACTOR_400100_UPDATE_H
 
 #include "actors/actor_400100.h"
-#include "main/gfx.h"
 #include <psyq/inline_c.h>
 #include "gte.h"
+
+#include "main/coord.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
 
 typedef struct Actor00100StateTable {
     TaskFunc fn[39];

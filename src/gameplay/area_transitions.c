@@ -23,14 +23,13 @@
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
+#include "mapui/stage_tables.h"
+
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
-#include "main/tmd.h"
-
-#include "mapui/stage_tables.h"
 
 /// 2-byte record in 0xFF-terminated lists walked by `Gp_ApplyAreaFlag4List` and
 /// `Gp_ApplyNewGameAreaFlags`. `field_0` indexes a `GpAreaRec` table (same role as
@@ -642,9 +641,9 @@ static void Gp_CommitSaveLoc(void)
         fade = *(u8*)&Gp_DirFadeLevel;
         Fade_DrawOverlay(fade, fade, fade, 2);
     }
-    Mc_SaveData[0].at4.loc.area = Gp_WarpLoc.prefix.bytes.field_0;
-    Mc_SaveData[0].at4.loc.warp = Gp_WarpLoc.field_2;
-    Mc_SaveData[0].at4.loc.room = Gp_WarpLoc.field_3;
+    Mc_SaveData[0].state.at4.loc.area = Gp_WarpLoc.prefix.bytes.field_0;
+    Mc_SaveData[0].state.at4.loc.warp = Gp_WarpLoc.field_2;
+    Mc_SaveData[0].state.at4.loc.room = Gp_WarpLoc.field_3;
     Task_Spawn(0, 0x11, 0, 0);
     D_80114CF8   = 0;
     Gp_DirNibble = 0;

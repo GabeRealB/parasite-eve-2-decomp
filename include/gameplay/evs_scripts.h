@@ -5,7 +5,7 @@
 
 #include "gameplay/evs.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 extern u8 D_801156F9;
 

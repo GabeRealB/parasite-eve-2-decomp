@@ -3,7 +3,10 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+
 #include "main/coord.h"
 
 /// 0x68-byte scratch block `func_m249_8011D1DC` takes from `G_SCRATCH_HEAD`.

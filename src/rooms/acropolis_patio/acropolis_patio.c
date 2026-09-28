@@ -1,22 +1,13 @@
 #include "common.h"
-
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/acropolis_patio.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -28,8 +19,19 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 typedef struct {
     /* 0x0 */ u16 field_0;
@@ -92,7 +94,7 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
     arg0->msgTable = &D_acropolis_patio_8018028C;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0) < 2) {
-        if (Mc_SaveData[0].at4.loc.room == 1) {
+        if (Mc_SaveData[0].state.at4.loc.room == 1) {
             Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_patio_80180428, 0);
             Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_acropolis_patio_8018044C, 0);
             Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D5, 1, 0);
@@ -227,10 +229,10 @@ void func_acropolis_patio_8017DA5C(Task* task)
                 return;
             }
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].at4.loc.area = 4;
+            Mc_SaveData[0].state.at4.loc.area = 4;
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.warp = D_acropolis_patio_80187064;
-            Mc_SaveData[0].at4.loc.room = D_acropolis_patio_80187065;
+            Mc_SaveData[0].state.at4.loc.warp = D_acropolis_patio_80187064;
+            Mc_SaveData[0].state.at4.loc.room = D_acropolis_patio_80187065;
             Task_Spawn(0, 0x11, 0, 0);
         kill:
             taskKill(task);
@@ -245,7 +247,7 @@ void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2)
     if ((arg2->field_2 == 0) && (GameFlag_GetNibble(0x21) < 2)) {
         GameFlag_SetNibble(0x21, 3);
         func_800E8634(&D_acropolis_patio_80180484, 0, &D_acropolis_patio_801806AC);
-        Mc_SaveData[0].sceneEvent = 3;
+        Mc_SaveData[0].state.sceneEvent = 3;
         gGameSession->flowFlags   = 0xC1;
     }
     if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x21) == 3) &&
@@ -324,7 +326,7 @@ void func_acropolis_patio_8017DE2C(Task* task)
 
     switch (task->state) {
         case 0:
-            task->spawnArg1 = 0;
+            task->spawnArg1.value = 0;
             task->state     = task->state + 1;
             return;
         case 1:
@@ -333,17 +335,17 @@ void func_acropolis_patio_8017DE2C(Task* task)
             func_800B0CF4(target, &work.coord, 0x200, 0x100, 0x1000);
             return;
         case 3:
-            task->spawnArg1 = 0;
+            task->spawnArg1.value = 0;
             func_800B0CF4(target, &work.coord, 0x200, 0x100, 0x1000);
             task->state = task->state + 1;
             return;
         case 4:
-            offset          = task->spawnArg1 + 0x32;
-            task->spawnArg1 = offset;
+            offset          = task->spawnArg1.value + 0x32;
+            task->spawnArg1.value = offset;
             if (offset >= 0x1001) {
-                task->spawnArg1 = 0x1000;
+                task->spawnArg1.value = 0x1000;
             }
-            work.coord.coord.t[2] -= task->spawnArg1;
+            work.coord.coord.t[2] -= task->spawnArg1.value;
             func_800B0CF4(target, &work.coord, 0x200, 0x100, 0x1000);
             return;
     }
@@ -356,7 +358,7 @@ void func_acropolis_patio_8017DF38(s32 arg0)
 
 void func_acropolis_patio_8017DF48(void)
 {
-    gGameSession->at4.loc.room = Mc_SaveData[0].at4.loc.room = 2;
+    gGameSession->at4.loc.room = Mc_SaveData[0].state.at4.loc.room = 2;
     gGameSession->roomObjsDirty                              = 1;
 }
 void func_acropolis_patio_8017DF70(u8 arg0)
@@ -449,7 +451,7 @@ static void func_acropolis_patio_8017E100(Task* task)
     s32        i;
     s32        j;
 
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
     if (task->state == 0) {
@@ -504,10 +506,10 @@ static void func_acropolis_patio_8017E324(Task* task)
     u8                rgb;
     s16               xy;
 
-    work  = (GpEffWork*)task->spawnArg2;
+    work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState < 4 &&
-        ((D_acropolis_patio_80182E4C[task->spawnArg1 & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
+        ((D_acropolis_patio_80182E4C[task->spawnArg1.value & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch = (void**)G_SCRATCH_HEAD;
         SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
@@ -515,13 +517,13 @@ static void func_acropolis_patio_8017E324(Task* task)
         if (task->state == 0) {
             ApGreyLevels levels = D_acropolis_patio_8017D5E8;
 
-            if (task->spawnArg1 & 0xFFF0000) {
-                work->scale = (task->spawnArg1 >> 16) & 0xFFF;
+            if (task->spawnArg1.value & 0xFFF0000) {
+                work->scale = (task->spawnArg1.value >> 16) & 0xFFF;
             } else {
                 work->scale = 0x280;
             }
-            work->angle     = (task->spawnArg1 >> 8) & 3;
-            task->spawnArg1 = task->spawnArg1 & 0xF;
+            work->angle     = (task->spawnArg1.value >> 8) & 3;
+            task->spawnArg1.value = task->spawnArg1.value & 0xF;
             work->period    = levels.level[work->angle];
             task->state     = task->state + 1;
         }
@@ -603,10 +605,10 @@ static void func_acropolis_patio_8017E730(Task* task)
     TILE_1*          prim;
     u32              level;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState < 4 &&
-        ((D_acropolis_patio_80182E4C[task->spawnArg1] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
+        ((D_acropolis_patio_80182E4C[task->spawnArg1.value] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
         sc = (RoomMoteScratch*)SCRATCH_PUSH_BYTES(0xC);
         Gp_UpdateCoord(coord);
         if (task->state == 0) {
@@ -623,11 +625,11 @@ static void func_acropolis_patio_8017E730(Task* task)
             if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
                 anchors       = D_acropolis_patio_80182DDC;
                 dir           = &work->move;
-                work->move.vx = (u16)anchors[task->spawnArg1].vx -
+                work->move.vx = (u16)anchors[task->spawnArg1.value].vx -
                                 (u16)coord->coord.t[0];
-                work->move.vy = (u16)anchors[task->spawnArg1].vy -
+                work->move.vy = (u16)anchors[task->spawnArg1.value].vy -
                                 (u16)coord->coord.t[1];
-                work->move.vz = (u16)anchors[task->spawnArg1].vz -
+                work->move.vz = (u16)anchors[task->spawnArg1.value].vz -
                                 (u16)coord->coord.t[2];
                 VectorNormalSS(dir, dir);
                 gte_lddp(0x20);

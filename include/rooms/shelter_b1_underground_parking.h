@@ -4,11 +4,11 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-
-#include "main/task.h"
-#include "main/ui.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+#include "main/task_types.h"
+#include "main/ui_types.h"
 
 /// Work block of the parking-lot examine task, hung off the `Task::work` slot
 /// (0x1C) -- that slot is *not* a `TaskIdMap` here. Reach it with

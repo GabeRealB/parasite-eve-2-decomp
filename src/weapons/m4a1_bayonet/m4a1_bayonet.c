@@ -5,18 +5,18 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/display.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/gfx.h"
 #include "weapons/m4a1_bayonet.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/room_effects.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
 
 static void func_m4a1_bayonet_8011D69C(s16 slot, s16 flags);
 
@@ -54,7 +54,7 @@ static void func_m4a1_bayonet_8011D1E4(Task* task)
     s32        i;
     s32        alive;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     phase = Gp_State1C->eventState;
     if (phase == 0) {

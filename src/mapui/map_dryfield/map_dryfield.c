@@ -3,11 +3,6 @@
  * the stage's room packages or at the map pictures' marker models.
  */
 #include "common.h"
-#include "main/fs.h"
-#include "main/gfx.h"
-#include "main/session.h"
-#include "main/stream.h"
-#include "main/task.h"
 #include "mappic/mappic.h"
 #include "mapui/mapui.h"
 #include "mapui/stage_tables.h"
@@ -25,6 +20,14 @@
 #include "gameplay/room.h"
 #include "gameplay/scene_tasks.h"
 #include "gameplay/sprites.h"
+
+#include "gameplay/area_flags.h"
+#include "gameplay/view.h"
+#include "main/fs.h"
+#include "main/gfx_types.h"
+#include "main/session.h"
+#include "main/stream.h"
+#include "main/task_types.h"
 
 void func_map_dryfield_80179954(u8* entry)
 {

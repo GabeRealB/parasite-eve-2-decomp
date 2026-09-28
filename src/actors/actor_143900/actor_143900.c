@@ -8,11 +8,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/collision.h"
@@ -22,7 +17,15 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/scene.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/task.h"
 
 /// Work block of the overlay's first actor variant, allocated zeroed by its
 /// spawn routine and kept both in `D_actor_143900_801496B8` and at
@@ -126,8 +129,8 @@ static void func_actor_143900_80133144(void);
 /// plays.
 void func_actor_143900_80131E24(void)
 {
-    if (Mc_SaveData[0].demoScene != 9) {
-        Mc_SaveData[0].sceneEvent = 0x14;
+    if (Mc_SaveData[0].state.demoScene != 9) {
+        Mc_SaveData[0].state.sceneEvent = 0x14;
         Task_SpawnFromTable(&D_8017DA00, 0, 0, 0);
     }
 }
@@ -242,7 +245,7 @@ void func_actor_143900_80132324(Task* task)
     };
 
     D_actor_143900_801496B8 = (Actor143900Work*)task->work;
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Second state of the first variant's task: refreshes the model root's world
@@ -269,7 +272,7 @@ static void func_actor_143900_80132380(GpEnemy* enemy, Task* task)
 /// (parked in `Task::spawnArg2`) back to `Gp_DestroyEnemy`.
 static void func_actor_143900_80132404(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Draws the first variant's ground shadow quad under the model root, unless
@@ -567,7 +570,7 @@ void func_actor_143900_80132DEC(Task* task)
     u8 scratch[0x40]; /* never referenced; only reserves the frame */
 
     D_actor_143900_801496C4 = (Actor461800Work*)task->work;
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Second state of the second variant's task: refreshes the model root's world
@@ -597,7 +600,7 @@ static void func_actor_143900_80132ECC(Task* task)
 {
     Actor461800Work* work = (Actor461800Work*)task->work;
 
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
     taskKill(work->helper1);
     taskKill(work->helper2);
 }
@@ -633,7 +636,7 @@ void func_actor_143900_80132FB0(Task* task)
     TmdObject* extra = task->extra.tmd;
     GpCoord*   coord = extra->coords;
     GpCoord*   parts = D_actor_143900_801496C8->extra.tmd->coords;
-    GpCoord*   part  = parts + task->spawnArg1;
+    GpCoord*   part  = parts + task->spawnArg1.value;
     VECTOR     vec;
 
     switch (task->state) {

@@ -4,14 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -23,7 +15,17 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -162,9 +164,9 @@ void func_shelter_b1_access_tunnel_8017D760(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_shelter_b1_access_tunnel_8017FF54.msgId;
-            Mc_SaveData[0].at4.loc.warp = D_shelter_b1_access_tunnel_8017FF54.field_2;
-            Mc_SaveData[0].at4.loc.room = (u8)D_shelter_b1_access_tunnel_8017FF54.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_access_tunnel_8017FF54.msgId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_access_tunnel_8017FF54.field_2;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_access_tunnel_8017FF54.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -192,7 +194,7 @@ void func_shelter_b1_access_tunnel_8017D8D0(Task* arg0)
                     D_shelter_b1_access_tunnel_8017FF4C.field_0 = 0;
                     D_shelter_b1_access_tunnel_8017FF4C.field_1 = 0;
                     D_shelter_b1_access_tunnel_8017FF4C.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, (s32)&D_shelter_b1_access_tunnel_8017FF4C);
+                    Task_Spawn(1, 0x31, 0, &D_shelter_b1_access_tunnel_8017FF4C);
                 }
                 arg0->state++;
             }
@@ -213,9 +215,9 @@ void func_shelter_b1_access_tunnel_8017D8D0(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_shelter_b1_access_tunnel_8017FF64.msgId;
-            Mc_SaveData[0].at4.loc.warp = D_shelter_b1_access_tunnel_8017FF64.field_2;
-            Mc_SaveData[0].at4.loc.room = D_shelter_b1_access_tunnel_8017FF64.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_access_tunnel_8017FF64.msgId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_access_tunnel_8017FF64.field_2;
+            Mc_SaveData[0].state.at4.loc.room = D_shelter_b1_access_tunnel_8017FF64.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

@@ -2,16 +2,18 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_80132074.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/collision.h"
 #include "gameplay/display.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/enemy.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
 
 /// The actor's work block, allocated by the setup state and parked in
 /// `Task::work`. It holds the model's animation context and slot array and the
@@ -45,7 +47,7 @@ void func_actor_110700_80131E24(Task* task)
         func_actor_110700_80131F44,
     };
 
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// State 0: allocates the work block, points the model at the block's light

@@ -8,16 +8,16 @@
 #include "gameplay/map.h"
 #include "menu.h"
 
-#include "main/mc.h"
-#include "main/task.h"
-#include "main/ui.h"
+#include "main/mc_types.h"
+#include "main/task_types.h"
+#include "main/ui_types.h"
 
 // Inventory menu tasks, item panels, prompts and their shared descriptors.
 
 extern UiObjectDesc D_8010D6D8;
 
 /// List-item callback for an inventory row. Looks up
-/// `Gp_MoveScanSrc[owner->spawnArg1]` at `field_8`, highlights the move-source
+/// `Gp_MoveScanSrc[owner->spawnArg1.value]` at `field_8`, highlights the move-source
 /// row in `0x37A78`, draws the item (and ammo count for ids `0xA0..0xBF`),
 /// then on confirm either opens the stack/info popup (`owner->state == 1`)
 /// or starts a move / restriction prompt.

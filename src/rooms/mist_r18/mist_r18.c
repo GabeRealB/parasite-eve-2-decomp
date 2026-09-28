@@ -4,14 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -20,6 +12,15 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/starter_inventory.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/evs.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// Sprite description the overlay's two primitive emitters read from.
 ///
@@ -172,7 +173,7 @@ void func_mist_r18_8017D5EC(Task* task)
     MistR18TextSpawn* spawn;
     s32               i;
 
-    spawn = task->spawnArg2;
+    spawn = task->spawnArg2.pointer;
     if (gGameSession->eventState == 0) {
         task->state = -1;
     }
@@ -315,8 +316,8 @@ void func_mist_r18_8017DA8C(Task* task)
             break;
         case 2:
             shade = 0;
-            task->spawnArg1--;
-            if ((task->spawnArg1 <= 0) || (gGameSession->evtSkipped != 0)) {
+            task->spawnArg1.value--;
+            if ((task->spawnArg1.value <= 0) || (gGameSession->evtSkipped != 0)) {
                 task->state++;
             }
             break;
@@ -556,8 +557,8 @@ static void func_mist_r18_8017E320(Task* task)
     GpCoord*   coord;
     GpCoord*   dest;
 
-    parent          = (Task*)task->spawnArg2;
-    part            = task->spawnArg1;
+    parent          = (Task*)task->spawnArg2.pointer;
+    part            = task->spawnArg1.value;
     extra           = task->extra.tmd;
     parentExtra     = parent->extra.tmd;
     coord           = extra->coords;
@@ -582,7 +583,7 @@ void func_mist_r18_8017E3A4(Task* task)
     MistR18Sprite       sprite;
     MistR18SpriteSpawn* spawn;
 
-    spawn = task->spawnArg2;
+    spawn = task->spawnArg2.pointer;
 
     if (task->state == 0) {
         sprite.x         = spawn->x;
@@ -596,7 +597,7 @@ void func_mist_r18_8017E3A4(Task* task)
         func_mist_r18_8017E448(&sprite);
         func_mist_r18_8017E654(0, 0, 0, 5);
 
-        if (--task->spawnArg1 > 0) {
+        if (--task->spawnArg1.value > 0) {
             return;
         }
     }
@@ -690,7 +691,7 @@ void func_mist_r18_8017E6D8(s32 idx)
     }
 
     if ((slot != NULL) && (*slot == NULL)) {
-        task  = Task_SpawnFromTable(&D_mist_r18_80184F04, idx, 8, (s32)gameGetPtrSlot(3));
+        task  = Task_SpawnFromTable(&D_mist_r18_80184F04, idx, 8, gameGetPtrSlot(3));
         *slot = task;
         if (task != NULL) {
             task->extra.tmd->flags &= 0xFF7F;
@@ -716,7 +717,7 @@ void func_mist_r18_8017E784(s32 idx)
 
 void func_mist_r18_8017E7F0(void)
 {
-    Task_SpawnFromTable(&D_mist_r18_80184F04, 5, 0, (s32)&D_mist_r18_80184EE4);
+    Task_SpawnFromTable(&D_mist_r18_80184F04, 5, 0, &D_mist_r18_80184EE4);
 }
 
 /// Spawn entry 3 of the room's task table.
@@ -822,10 +823,10 @@ void func_mist_r18_8017EA98(Task* task)
 void func_mist_r18_8017EB48(void)
 {
     Gp_InitStarterInv();
-    Mc_SaveData[0].at4.loc.stage = 1;
-    Mc_SaveData[0].at4.loc.area  = 0x13;
-    Mc_SaveData[0].at4.loc.warp  = 3;
-    Mc_SaveData[0].at4.loc.room  = 3;
+    Mc_SaveData[0].state.at4.loc.stage = 1;
+    Mc_SaveData[0].state.at4.loc.area  = 0x13;
+    Mc_SaveData[0].state.at4.loc.warp  = 3;
+    Mc_SaveData[0].state.at4.loc.room  = 3;
     gDisplayState.roomVariant    = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);

@@ -1,13 +1,12 @@
 #include "common.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/task.h"
 
 #include "gameplay/area_transitions.h"
 #include "gameplay/display.h"
+
 #include "main/display.h"
-#include "main/fs.h"
-#include "main/session.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/task.h"
 
 extern TaskDesc       D_actor_142900_80137600;
 extern s32            D_actor_142900_801382A8;
@@ -45,12 +44,12 @@ void func_actor_142900_80131E24(Task* arg0)
 
 void func_actor_142900_80131F5C(void)
 {
-    if (Mc_SaveData[0].demoScene != 9) {
+    if (Mc_SaveData[0].state.demoScene != 9) {
         Gp_ApplyAreaRecs(&D_8017E9F8);
         GameFlag_SetNibble(0x4C, 0);
-        Mc_SaveData[0].at4.loc.area = 0x1B;
-        Mc_SaveData[0].at4.loc.warp = 2;
-        Mc_SaveData[0].at4.loc.room = 1;
+        Mc_SaveData[0].state.at4.loc.area = 0x1B;
+        Mc_SaveData[0].state.at4.loc.warp = 2;
+        Mc_SaveData[0].state.at4.loc.room = 1;
         gDisplayState.roomVariant   = 1;
         Task_Spawn(0, 0x11, 0, 0);
     }

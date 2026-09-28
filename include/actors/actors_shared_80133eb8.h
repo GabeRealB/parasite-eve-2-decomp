@@ -4,9 +4,10 @@
 #include "common.h"
 
 #include "actors/actor.h"
-#include "main/tmd.h"
 
 #include "gameplay/enemy.h"
+
+#include "main/tmd_types.h"
 
 /// Animation-state view shared by actor_401000 and actor_401800. Each actor
 /// owns a larger work block; these are the fields their animation driver uses.

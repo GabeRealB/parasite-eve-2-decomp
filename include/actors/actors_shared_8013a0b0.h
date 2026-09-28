@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 /// Status flags at + 0xFC of the `Task::work` work block, read through two
 /// widths: bit 0 as a halfword, then bits 0x102 as a word. In

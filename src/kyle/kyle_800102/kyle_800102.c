@@ -3,12 +3,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include "kyle/kyle_800102.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/display.h"
@@ -17,7 +11,17 @@
 #include "gameplay/world_collision.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/geometry.h"
+#include "gameplay/room.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "weapons/weapon.h"
 
 static void func_kyle_800102_80168270(Task* arg0);
 
@@ -41,7 +45,7 @@ static void func_kyle_800102_80167A84(Task* arg0)
     blk                   = (SVECTOR*)(head - 8);
     SCRATCH_HEAD(SVECTOR) = blk;
     extra                 = arg0->extra.tmd;
-    idx                   = ((u32)arg0->spawnArg1 >> 16) & 0xF;
+    idx                   = ((u32)arg0->spawnArg1.value >> 16) & 0xF;
     coord                 = extra->coords;
     muzzle                = coord->sub;
     work                  = memCalloc(sizeof(WeaponGrenadeWork), 0);
@@ -83,9 +87,9 @@ static void func_kyle_800102_80167A84(Task* arg0)
     work->obj.pos.vy   = 0;
     work->obj.pos.vz   = 0;
     work->field_88.w   = speed << 16;
-    flags              = (u16)arg0->spawnArg1 | 0x20000;
+    flags              = (u16)arg0->spawnArg1.value | 0x20000;
     work->obj.key      = flags;
-    if (arg0->spawnArg1 & 0x100000) {
+    if (arg0->spawnArg1.value & 0x100000) {
         work->obj.key = flags | 0x80;
     }
     work->obj.radius = 0x94;
@@ -145,11 +149,11 @@ static void func_kyle_800102_80167DE0(Task* arg0)
     coord->flg = 0;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
     explode:
-        blk->field_30 = arg0->spawnArg1 & 0xFF00;
-        blk->sfx      = (u8)arg0->spawnArg1;
+        blk->field_30 = arg0->spawnArg1.value & 0xFF00;
+        blk->sfx      = (u8)arg0->spawnArg1.value;
         arg0->state   = 2;
         Gp_SpawnEff(0x60071, coord, blk->sfx, NULL);
-        if (arg0->spawnArg1 & 0x100000) {
+        if (arg0->spawnArg1.value & 0x100000) {
             Gp_PlayObjSfx(coord, 0x40660002, 1);
         } else {
             sfxbase = blk->field_30 << 8;
@@ -181,7 +185,7 @@ check:
         arg0->state = 3;
         goto move;
     }
-    if (idx == 1 && Mc_SaveData[0].at4.loc.area == 0x14 && (u32)(Mc_SaveData[0].at4.loc.stage - 2) < 2U) {
+    if (idx == 1 && Mc_SaveData[0].state.at4.loc.area == 0x14 && (u32)(Mc_SaveData[0].state.at4.loc.stage - 2) < 2U) {
         goto explode;
     }
     goto move;

@@ -3,14 +3,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_80133c6c.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
@@ -21,9 +13,24 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
 #include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gameflow.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
 #include "main/wipsys.h"
+#include "overlay.h"
 
 /// Work block this overlay hangs off `Task::work`; each pair at
 /// 0x4C0 and 0x4C8 is a request code plus its phase counter, reset together.
@@ -179,7 +186,7 @@ static inline s16 _actor120300InitChild(Task* arg0, s32 part)
         return 1;
     }
     Mem_Set(work, 0, 0x4E4);
-    coord->sub             = ((Task*)arg0->spawnArg2)->extra.tmd->coords + part;
+    coord->sub             = ((Task*)arg0->spawnArg2.pointer)->extra.tmd->coords + part;
     arg0->extra.tmd->flags = 0;
     Tmd_AllocBuffers(tmd);
     tmd->lightMtx  = &work->field_474;
@@ -228,7 +235,7 @@ void func_actor_120300_80132004(Task* arg0)
         arg0->state += 1;
     }
     tmd2     = arg0->extra.tmd;
-    scaleRaw = ((Actor120300Work*)((Task*)arg0->spawnArg2)->work)->field_4E0;
+    scaleRaw = ((Actor120300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4E0;
     vec.vx   = tmd2->coords->workm.t[0];
     vec.vy   = arg0->extra.tmd->coords->workm.t[1];
     vec.vz   = arg0->extra.tmd->coords->workm.t[2];
@@ -265,7 +272,7 @@ void func_actor_120300_801321C8(Task* arg0)
         arg0->state += 1;
     }
     tmd2     = arg0->extra.tmd;
-    scaleRaw = ((Actor120300Work*)((Task*)arg0->spawnArg2)->work)->field_4E0;
+    scaleRaw = ((Actor120300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4E0;
     vec.vx   = tmd2->coords->workm.t[0];
     vec.vy   = arg0->extra.tmd->coords->workm.t[1];
     vec.vz   = arg0->extra.tmd->coords->workm.t[2];
@@ -315,7 +322,7 @@ static inline void _actor120300SetAnim(Task* task, u16 anim)
 }
 
 /// Sends `target` message 0x3E8 for the player's equipped weapon: the block
-/// index is `Player_Status.weapon` plus 1 when `Mc_SaveData[0].characterId` is 1,
+/// index is `Player_Status.weapon` plus 1 when `Mc_SaveData[0].state.characterId` is 1,
 /// plus 0x22 otherwise, and `blend`/`frames` go to `field_8`/`field_C`.
 #define _ACTOR120300_SEND_WEAPON(target, blend, frames)                                              \
     {                                                                                                \
@@ -323,7 +330,7 @@ static inline void _actor120300SetAnim(Task* task, u16 anim)
         s32       _weaponId;                                                                         \
                                                                                                      \
         _weaponId            = Player_Status.weapon;                                                 \
-        _msg.animBlock.index = (Mc_SaveData[0].characterId == 1) ? _weaponId + 1 : _weaponId + 0x22; \
+        _msg.animBlock.index = (Mc_SaveData[0].state.characterId == 1) ? _weaponId + 1 : _weaponId + 0x22; \
         _msg.field_4         = 1;                                                                    \
         _msg.field_8         = (blend);                                                              \
         _msg.field_C         = (frames);                                                             \
@@ -679,7 +686,7 @@ void func_actor_120300_80133330(s32 arg0)
     Gp_DispatchMsgPtr(work->field_4BC, 0x7D4, &D_actor_120300_80140B5C, 0);
     if (arg0 == 0) {
         weaponId            = Player_Status.weapon;
-        id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+        id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
         rec.animBlock.index = id;
         rec.field_4         = 1;
         rec.field_8         = 0;
@@ -805,8 +812,8 @@ static void func_actor_120300_801335D8(Task* arg0)
         Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 0xE);
         i++;
     } while ((u16)i < 0x14U);
-    work->field_4B8 = Task_SpawnFromTable(D_actor_120300_80141B6C, 2, 0, (s32)arg0);
-    work->field_4BC = Task_SpawnFromTable(D_actor_120300_80141B6C, 3, 0, (s32)arg0);
+    work->field_4B8 = Task_SpawnFromTable(D_actor_120300_80141B6C, 2, 0, arg0);
+    work->field_4BC = Task_SpawnFromTable(D_actor_120300_80141B6C, 3, 0, arg0);
     arg0->msgTable  = &D_actor_120300_80140A44;
     work->field_4E0 = 0x1000;
     Task_Reparent(arg0, work->field_4B8);
@@ -857,7 +864,7 @@ void func_actor_120300_801337C4(Task* arg0)
                     arg0->state = 4;
                 } else {
                     weaponId = Player_Status.weapon;
-                    if (Mc_SaveData[0].characterId == 1) {
+                    if (Mc_SaveData[0].state.characterId == 1) {
                         weaponId = weaponId + 1;
                     } else {
                         weaponId = weaponId + 0x22;
@@ -872,7 +879,7 @@ void func_actor_120300_801337C4(Task* arg0)
                     GameFlag_SetNibble(0x2D, 1);
                     func_800E3FAC(0xA2, 0xB);
                     func_800E8634(&D_actor_120300_80140B94, 0, &D_actor_120300_80141524);
-                    Mc_SaveData[0].sceneEvent = 2;
+                    Mc_SaveData[0].state.sceneEvent = 2;
                     arg0->state              += 1;
                 }
                 Mem_CopyUnaligned(&D_actor_120300_801409A8, &D_8017DD6C, 0x18);
@@ -969,9 +976,9 @@ void func_actor_120300_80133B5C(Task* arg0)
             /* fallthrough */
         case 1:
             Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
-            work->r += (u16)arg0->spawnArg1;
-            work->g += (u16)arg0->spawnArg1;
-            work->b += (u16)arg0->spawnArg1;
+            work->r += (u16)arg0->spawnArg1.value;
+            work->g += (u16)arg0->spawnArg1.value;
+            work->b += (u16)arg0->spawnArg1.value;
             if (work->r >= 0x100) {
                 taskKill(arg0);
             }

@@ -394,18 +394,18 @@ CdCmd_SelectMdecBuffer               = 0x8001D498; // type:func
 CdCmd_GetOverlayStatus               = 0x8001D4F0; // type:func
 CdCmd_GetStreamMode               = 0x8001D524; // type:func
 CdCmd_StartOverlay               = 0x8001D534; // type:func
-func_8001D580               = 0x8001D580; // type:func
+CdCmd_UnusedStub0               = 0x8001D580; // type:func
 CdCmd_CancelReplaceAndActivate               = 0x8001D588; // type:func
-func_8001D5B4               = 0x8001D5B4; // type:func
-func_8001D5BC               = 0x8001D5BC; // type:func
-func_8001D5C4               = 0x8001D5C4; // type:func
+CdCmd_UnusedStub1               = 0x8001D5B4; // type:func
+CdCmd_UnusedStub2               = 0x8001D5BC; // type:func
+CdCmd_UnusedStub3               = 0x8001D5C4; // type:func
 CdCmd_EnqueueOverlay81               = 0x8001D5CC; // type:func
 CdCmd_EnqueueReplaceOverlay81               = 0x8001D628; // type:func
 CdCmd_EnqueueOverlay82               = 0x8001D66C; // type:func
 CdCmd_EnqueueReplaceOverlay82               = 0x8001D6B8; // type:func
 CdCmd_EnqueueReplace        = 0x8001D6FC; // type:func
 CdCmd_CommitReplace               = 0x8001D760; // type:func
-func_8001D82C               = 0x8001D82C; // type:func
+CdCmd_IsIdleOrOverlayPending               = 0x8001D82C; // type:func
 CdCmd_NextEntry               = 0x8001D898; // type:func
 CdCmd_SetBusy               = 0x8001D8DC; // type:func
 CdCmd_ClearBusy               = 0x8001D90C; // type:func
@@ -456,14 +456,14 @@ Stream_InitFromSlot               = 0x8001ED20; // type:func
 Stream_FindSlot               = 0x8001EDC8; // type:func
 Stream_FindSlotByKey               = 0x8001EED8; // type:func
 Stream_RestoreAfterLoad               = 0x8001EF9C; // type:func
-func_8001F180               = 0x8001F180; // type:func
+Stream_InitializePlayback               = 0x8001F180; // type:func
 CdCmd_StopMdec               = 0x8001F2FC; // type:func
-func_8001F430               = 0x8001F430; // type:func
+Stream_StartDecoder               = 0x8001F430; // type:func
 Mdec_UploadSlice               = 0x8001F6B8; // type:func
 Mdec_KickStrip               = 0x8001F854; // type:func
 Mdec_DecodeFrame               = 0x8001F990; // type:func
-func_8001FAE0               = 0x8001FAE0; // type:func
-func_80020058               = 0x80020058; // type:func
+Stream_PollPlayback               = 0x8001FAE0; // type:func
+Stream_PresentFrame               = 0x80020058; // type:func
 Stream_GetSlot               = 0x80020278; // type:func
 Mem_AllocAuxWithImages               = 0x80020298; // type:func
 Stream_ResetRestoreState               = 0x80020388; // type:func
@@ -764,7 +764,7 @@ Game_ClearEd68               = 0x8002BFD4; // type:func
 GameFlow_SpawnWhenIdle               = 0x8002BFE0; // type:func
 GameFlow_DispatchTable               = 0x8002C028; // type:func
 Pad_TickEventBanks               = 0x8002C090; // type:func
-func_8002C1D8               = 0x8002C1D8; // type:func
+Pad_PollControllers               = 0x8002C1D8; // type:func
 Pad_UpdatePort0               = 0x8002C5A4; // type:func
 
 //--------------------------------------------------------------------
@@ -846,7 +846,7 @@ Text_MeasureGlyphWidth               = 0x8002DECC; // type:func
 Text_DrawGlyphDualSprtA               = 0x8002E010; // type:func
 Text_DrawGlyphDualSprt               = 0x8002E188; // type:func
 Text_DrawGlyphDualSprtTpage               = 0x8002E300; // type:func
-func_8002E53C               = 0x8002E53C; // type:func
+Text_DrawString               = 0x8002E53C; // type:func
 Text_FormatTime               = 0x8002EB94; // type:func
 Text_MeasureAndCenter               = 0x8002EDFC; // type:func
 Text_ItoaSignedPlus               = 0x8002EEA0; // type:func
@@ -854,7 +854,7 @@ Text_ItoaSigned               = 0x8002F020; // type:func
 Text_ItoaUnsigned               = 0x8002F18C; // type:func
 Text_ItoaHexSigned               = 0x8002F2A4; // type:func
 Text_ItoaHex               = 0x8002F3A0; // type:func
-func_8002F44C               = 0x8002F44C; // type:func
+Text_ItoaPadded               = 0x8002F44C; // type:func
 Text_SkipLines               = 0x8002F528; // type:func
 Text_Strcat               = 0x8002F588; // type:func
 Text_DrawGlyphImmediate               = 0x8002F5E4; // type:func
@@ -885,7 +885,7 @@ Mc_PromptDialog               = 0x800304AC; // type:func
 Mc_PromptDialogChoice               = 0x8003062C; // type:func
 Mc_PromptDialogSpawn               = 0x800307AC; // type:func
 Mc_PromptDialogFile               = 0x8003092C; // type:func
-func_80030AB0               = 0x80030AB0; // type:func
+Mc_BuildSaveTitle               = 0x80030AB0; // type:func
 Mc_StateScanDirFlags               = 0x80031118; // type:func
 Mc_StateListDirectory               = 0x800312DC; // type:func
 Mc_StateFileSelect               = 0x800314D0; // type:func
@@ -907,7 +907,7 @@ Mc_StateSyncOpen               = 0x800328FC; // type:func
 Mc_StateVerifyFinish               = 0x80032AB0; // type:func
 Mc_StateFinishWrite               = 0x80032D54; // type:func
 Mc_StateSaveSlotUi               = 0x80032F5C; // type:func
-func_800330D8               = 0x800330D8; // type:func
+Mc_DrawSlotDetails               = 0x800330D8; // type:func
 Mc_EncodeAsciiGlyphs        = 0x8003380C; // type:func
 Mc_InitFileName             = 0x800338A8; // type:func
 Mc_CopyFileName             = 0x800338F4; // type:func
@@ -918,7 +918,7 @@ Mc_ResetSaveFlags           = 0x80033A70; // type:func
 Mc_ClearWorkBuffers         = 0x80033AB8; // type:func
 Mc_InitLib                  = 0x80033BBC; // type:func
 Mc_VerifyBlockChecksum      = 0x80033BEC; // type:func
-func_80033C38               = 0x80033C38; // type:func
+Mc_UnusedStub               = 0x80033C38; // type:func
 Mc_CompareBufferHalves               = 0x80033C40; // type:func
 Mc_WriteSlotChecksums               = 0x80033CC0; // type:func
 Mc_WriteFirstByteChecksum               = 0x80033D3C; // type:func
@@ -983,7 +983,7 @@ Mc_DispatchStateTable26               = 0x80036968; // type:func
 //--------------------------------------------------------------------
 //--- PA: 0x2721C   VA: 0x80036A1C   subsegment: c, mcmenu
 //--------------------------------------------------------------------
-func_80036A1C               = 0x80036A1C; // type:func
+McMenu_NoOpTask               = 0x80036A1C; // type:func
 McMenu_UpdateListCursor               = 0x80036A2C; // type:func
 McMenu_SelectList               = 0x80036A70; // type:func
 McMenu_ConfirmWithRender               = 0x80036B2C; // type:func
@@ -1368,7 +1368,7 @@ Display_ResetHeapWrapper               = 0x8003E540; // type:func
 Display_FlipOt               = 0x8003E560; // type:func
 Display_AcquireRef               = 0x8003E610; // type:func
 Display_ReleaseRef               = 0x8003E64C; // type:func
-func_8003E698               = 0x8003E698; // type:func
+Display_GetHoldMode               = 0x8003E698; // type:func
 Gpu_InitOtSmall               = 0x8003E6E4; // type:func
 Display_DispatchModeId               = 0x8003E72C; // type:func
 Display_ResetHeapFromSession               = 0x8003E814; // type:func
@@ -1479,7 +1479,7 @@ SetTile                     = 0x80042344;
 //--- PA: 0x32B64   VA: 0x80042364   subsegment: c, 32B64
 //--------------------------------------------------------------------
 CdCmd_EnqueueLoadFile               = 0x80042364; // type:func
-func_80042500               = 0x80042500; // type:func
+LoadUi_PollDiskSwap               = 0x80042500; // type:func
 Prim_DrawLoadingSprt               = 0x80042838; // type:func
 Snd_ApplyVolumeTable               = 0x800429C8; // type:func
 
@@ -1576,9 +1576,9 @@ RotMatrixZYX                = 0x80044408;
 //--------------------------------------------------------------------
 //--- PA: 0x34E98   VA: 0x80044698   subsegment: c, 34E98
 //--------------------------------------------------------------------
-func_80044698               = 0x80044698; // type:func
+Ui_NoOpTask               = 0x80044698; // type:func
 Ui_DrawWindowBorder               = 0x800446A0; // type:func
-func_80044C34               = 0x80044C34; // type:func
+Ui_DrawPanelFrame               = 0x80044C34; // type:func
 Ui_DrawPanel               = 0x800454E4; // type:func
 Ui_SetupClip               = 0x800457F8; // type:func
 Ui_ScaleRect               = 0x80045A3C; // type:func
@@ -1590,9 +1590,9 @@ Ui_DrawCursor               = 0x800463B4; // type:func
 Ui_DrawCaret               = 0x80046508; // type:func
 Ui_UpdateLayoutSize               = 0x800466E4; // type:func
 Ui_LayoutListPanel               = 0x80046830; // type:func
-func_80046B34               = 0x80046B34; // type:func
+Ui_DrawBeveledRect               = 0x80046B34; // type:func
 Ui_DrawListHighlight               = 0x80046DEC; // type:func
-func_80046EEC               = 0x80046EEC; // type:func
+Ui_UpdateListRows               = 0x80046EEC; // type:func
 Ui_DrawHBar               = 0x80047A0C; // type:func
 Ui_DrawVBar               = 0x80047B24; // type:func
 Ui_DrawTextUnderline               = 0x80047C40; // type:func
@@ -1928,11 +1928,11 @@ DisableEvent                = 0x8004DC7C;
 //--------------------------------------------------------------------
 AsyncCb_Poll               = 0x8004DC8C; // type:func
 AsyncCb_Reset               = 0x8004DDF0; // type:func
-func_8004DE18               = 0x8004DE18; // type:func
+AsyncCb_Enqueue               = 0x8004DE18; // type:func
 AsyncCb_Cancel               = 0x8004DEBC; // type:func
 Spu_InitVoices               = 0x8004DF10; // type:func
 Spu_AllocVoice               = 0x8004E060; // type:func
-func_8004E200               = 0x8004E200; // type:func
+Spu_TickVoices               = 0x8004E200; // type:func
 Spu_FlushVoiceUpdates             = 0x8004E44C; // type:func
 Spu_SetVoiceCallbacks               = 0x8004E560; // type:func
 Spu_ClearVoiceCallbacks               = 0x8004E580; // type:func
@@ -2056,7 +2056,7 @@ SndEvt_Reset               = 0x800509B4; // type:func
 sndEvtAlloc               = 0x800509F4; // type:func
 sndEvtEnqueue               = 0x80050A38; // type:func
 SndEvt_Free               = 0x80050A90; // type:func
-func_80050AAC               = 0x80050AAC; // type:func
+SndEvt_HandleNoOp               = 0x80050AAC; // type:func
 SndEvt_HandleInitSequence               = 0x80050AB4; // type:func
 SndEvt_HandleStartFadeOut               = 0x80050AE0; // type:func
 SndEvt_HandleFadeOn               = 0x80050B0C; // type:func
@@ -2170,7 +2170,7 @@ SndVoice_SetPriorityLevel               = 0x80055D78; // type:func
 SndVoice_FindById               = 0x80055DAC; // type:func
 SndVoice_ApplyMasterVolume               = 0x80055DFC; // type:func
 SndVoice_GetMasterVolume               = 0x80055EE8; // type:func
-func_80055EF8               = 0x80055EF8; // type:func
+SndVoice_SelectStealCandidate               = 0x80055EF8; // type:func
 SndScript_Play               = 0x80055F70; // type:func
 SndVoice_Detach               = 0x80056068; // type:func
 sndBankSlotFind               = 0x80056104; // type:func
@@ -2225,16 +2225,16 @@ CdStream_Start              = 0x80057FAC; // type:func
 CdStream_Continue           = 0x80058320; // type:func
 CdStream_Stop               = 0x8005842C; // type:func
 CdStream_TeardownVoices               = 0x8005854C; // type:func
-func_80058748               = 0x80058748; // type:func
+CdStream_CompleteInitialRead               = 0x80058748; // type:func
 CdStream_CleanupIrq               = 0x800588D8; // type:func
-func_8005896C               = 0x8005896C; // type:func
-func_80058ED4               = 0x80058ED4; // type:func
+CdStream_TickPlayback               = 0x8005896C; // type:func
+CdStream_CompleteChunkRead               = 0x80058ED4; // type:func
 CdStream_Drive               = 0x80059348; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x4A6E0   VA: 0x80059EE0   subsegment: c, 4A6E0
 //--------------------------------------------------------------------
-func_80059EE0               = 0x80059EE0; // type:func
+CdStream_PollMtsRead               = 0x80059EE0; // type:func
 CdStream_ReadyMts               = 0x8005A94C; // type:func
 CdStream_InitDisc           = 0x8005B3B4; // type:func
 CdReady_InstallCallback     = 0x8005B648; // type:func
@@ -2242,18 +2242,18 @@ CdReady_ClearCallback       = 0x8005B6A8; // type:func
 CdStream_Reset              = 0x8005B6EC; // type:func
 CdStream_ArmSpuIrq          = 0x8005B78C; // type:func
 CdStream_SpuIrqHandler      = 0x8005B830; // type:func
-CdStream_SetPitch           = 0x8005B84C; // type:func
+CdStream_SetVolume           = 0x8005B84C; // type:func
 CdStream_SetFlag14               = 0x8005B920; // type:func
 CdStream_AbortPhase         = 0x8005B968; // type:func
 CdStream_FinishQueueEntry   = 0x8005BA8C; // type:func
 CdReady_Cancel              = 0x8005BAEC; // type:func
 CdStream_IsBusy             = 0x8005BB4C; // type:func
 CdStream_ClearReadySlot     = 0x8005BB9C; // type:func
-CdStream_SetLinkedPitch     = 0x8005BBB0; // type:func
+CdStream_SetMono     = 0x8005BBB0; // type:func
 CdStream_MarkEnding         = 0x8005BBF4; // type:func
 CdStream_Flush              = 0x8005BC28; // type:func
 CdStream_ConfigureSpuIrq    = 0x8005BC48; // type:func
-func_8005BCF8               = 0x8005BCF8; // type:func
+CdStream_UnusedStub               = 0x8005BCF8; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x4C500   VA: 0x8005BD00   subsegment: o, libspu/s_si
@@ -2581,11 +2581,11 @@ Gpu_PrimHeapBase                  = 0x80068F88;
 gMemActiveAuxHeap              = 0x80068F8C;
 Gpu_PrimHeapSize                  = 0x80068F90;
 GActiveAuxHeapSize          = 0x80068F94;
-D_80068F98                  = 0x80068F98; // size:0x4
+Gpu_PrimHeapCanaryAddress                  = 0x80068F98; // size:0x4
 D_80068F9C                  = 0x80068F9C; // ignore:true
 CdCmd_Queue                 = 0x80068FA0; // type:CdCmdQueue size:0x254
-D_800691F4                  = 0x800691F4;
-D_800691F8                  = 0x800691F8;
+Mem_AuxRegionBase                  = 0x800691F4;
+Mem_AuxRegionBytes                  = 0x800691F8;
 
 //--------------------------------------------------------------------
 //--- PA: 0x59A00   VA: 0x80069200   subsegment: o, libcd/bios
@@ -2658,7 +2658,7 @@ Fs_WorkEntries             = 0x8006ACE8; // type:GStruct13 size:0xF8
 D5B498_8006ADE0             = 0x8006ADE0; // type:u8
 D5B498_8006ADE1             = 0x8006ADE1; // type:u8
 D_8006ADE2                  = 0x8006ADE2; // type:u8
-D_8006ADE8                  = 0x8006ADE8; // type:FsUnkADE8 size:0xC
+Fs_LoadRedirect                  = 0x8006ADE8; // type:FsLoadRedirect size:0xC
 D5B498_8006ADF4             = 0x8006ADF4; // type:u8
 Fs_FileOffsetsCat0          = 0x8006AE08; // type:u16 size:0x60
 Fs_FileOffsetsCat5          = 0x8006AE68; // type:u16 size:0x80
@@ -2778,8 +2778,7 @@ Spu_KeyOnMaskExtra             = 0x8007EBAC; // type:u32
 Spu_KeyOffMask             = 0x8007EBB0; // type:u32
 Spu_ReverbCfg         = 0x8007EBB8; // type:SpuReverbConfig size:0x24
 CdAudio_Phase                  = 0x80082798; // type:CdAudioPhase size:0x6
-CdStream_State              = 0x80082818; // type:CdStreamState size:0x58
-CdStream_Channels           = 0x80082870; // type:CdStreamChannels size:0x80
+CdStream_Runtime            = 0x80082818; // type:CdStreamRuntime size:0xD8
 CdReady_Queue               = 0x800828F0; // type:CdReadyQueue size:0x58
 
 // One past the last bss byte: the startup code zeroes up to here and starts
@@ -2823,7 +2822,6 @@ Stage_Ctx                   = 0x80062698;
 Snd_BankInitTable           = 0x80068A60; // type:SndBankInitEntry
 CdAudio_TblEntries          = 0x80082794;
 Pad_RemapState              = 0x800626A8;
-D_80073B08                  = 0x80073B08; // type:PlayerStatus size:0x80
 Player_Status               = 0x80073B88; // type:PlayerStatus size:0x80
 Wip_UiHolder                = 0x80067694;
 
@@ -2838,10 +2836,8 @@ Display_HeightTable         = 0x80013E94; // type:u16
 Display_TaskStates                  = 0x80013E98; // size:0x18
 
 // Gameplay naming pass 2 (main-exe table used by overlay)
-Gp_FlagBanks                 = 0x80060A30;
 
 // Gameplay naming pass 9 (main-exe play-time snapshot)
-Gp_PlayTimeMark              = 0x800739B8; // size:0x2
 
 // Gameplay naming pass 15 (main-exe LCG used by overlay)
 Gp_LcgState                  = 0x80070F60;
@@ -2886,10 +2882,10 @@ D_80068B61                  = 0x80068B61; // type:u8 size:0x1
 D_80068B62                  = 0x80068B62; // type:u8 size:0x1
 D_80068B63                  = 0x80068B63; // type:u8 size:0x1
 D_80068B66                  = 0x80068B66; // type:u8 size:0x1
-D_80068B6A                  = 0x80068B6A; // type:s16 size:0x2
+CdStream_ReadyCallbackActive                  = 0x80068B6A; // type:s16 size:0x2
 
 // Tables whose elements the code reaches at constant indices
-D_800680AC                  = 0x800680AC; // type:s8 size:0x10
+Snd_BankSlotsByType                  = 0x800680AC; // type:s8 size:0x10
 D_800689F0                  = 0x800689F0; // type:u8 size:0x64
 
 // Rodata dispatch tables
@@ -2902,7 +2898,374 @@ Mc_FileSelectStates         = 0x80013ACC;
 Mc_PromptStates             = 0x800139AC;
 Tmd_TaskStates              = 0x80013EDC;
 Ui_ObjectStates             = 0x80013F2C;
-D_80013B7C = 0x80013B7C;
-D_80013B88 = 0x80013B88;
-D_80013B94 = 0x80013B94;
-D_80013B9C = 0x80013B9C;
+McText_Nightmare = 0x80013B7C;
+McText_Scavenger = 0x80013B88;
+McText_Bounty = 0x80013B94;
+McText_Replay = 0x80013B9C;
+
+BootCaptionText_MistEvening = 0x800628F8;
+BootCaption_MistEvening = 0x80062934;
+BootCaption_MistEveningSecondary = 0x80062954;
+BootCaptionText_AkropolisEvening = 0x80062974;
+BootCaption_AkropolisEvening = 0x800629B0;
+BootCaption_AkropolisEveningSecondary = 0x800629D0;
+BootCaptionText_DesertAfternoon = 0x800629F0;
+BootCaption_DesertAfternoon = 0x80062A24;
+BootCaption_DesertAfternoonSecondary = 0x80062A44;
+BootCaptionText_DryfieldMesaNight = 0x80062A64;
+BootCaption_DryfieldMesaNight = 0x80062AB4;
+BootCaption_DryfieldMesaNightSecondary = 0x80062AD4;
+BootCaptionText_WhiteHouseEvening = 0x80062AF4;
+BootCaption_WhiteHouseEvening = 0x80062B30;
+BootCaption_WhiteHouseEveningSecondary = 0x80062B50;
+BootCaptionText_DesertReturn = 0x80062B70;
+BootCaption_DesertReturn = 0x80062BA4;
+BootCaption_DesertReturnSecondary = 0x80062BC4;
+BootCaptionText_WhiteHouseAftermath = 0x80062BE4;
+BootCaption_WhiteHouseAftermath = 0x80062C20;
+BootCaption_WhiteHouseAftermathSecondary = 0x80062C40;
+BootCaptionText_MuseumFlashback = 0x80062C60;
+BootCaption_MuseumFlashback = 0x80062C94;
+BootCaption_MuseumFlashbackSecondary = 0x80062CB4;
+BootCaptionText_MistArrival = 0x80062CD4;
+BootCaption_MistArrival = 0x80062D08;
+BootCaptionText_MistUnused = 0x80062D28;
+BootCaption_MistUnused = 0x80062D5C;
+BootCaptionText_Akropolis = 0x80062D7C;
+BootCaption_Akropolis = 0x80062DB0;
+BootCaptionText_MistDeparture = 0x80062DD0;
+BootCaption_MistDeparture = 0x80062E04;
+BootCaptionText_Dryfield = 0x80062E24;
+BootCaption_Dryfield = 0x80062E50;
+BootCaptionText_Mine = 0x80062E70;
+BootCaption_Mine = 0x80062EA0;
+BootCaptionText_ShelterDwelling = 0x80062EC0;
+BootCaption_ShelterDwelling = 0x80062EEC;
+BootCaptionText_ShelterWaste = 0x80062F0C;
+BootCaption_ShelterWaste = 0x80062F34;
+BootCaptionText_DryfieldReturn = 0x80062F54;
+BootCaption_DryfieldReturn = 0x80062F80;
+BootCaptionText_ShelterLaboratory = 0x80062FA0;
+BootCaption_ShelterLaboratory = 0x80062FD0;
+BootCaptionText_ShelterPod = 0x80062FF0;
+BootCaption_ShelterPod = 0x80063018;
+BootCaptionText_ShelterExperiment = 0x80063038;
+BootCaption_ShelterExperiment = 0x80063068;
+BootCaptionText_ShelterHeliport = 0x80063088;
+BootCaption_ShelterHeliport = 0x800630B0;
+Caption_Glyphs = 0x800627E0;
+
+gStageMusicParams = 0x8007A39C;
+
+Fs_ChunkOutputSizes = 0x8006D860; // size:0xC
+
+SndScript_Voices = 0x80082548; // type:SndVoice size:0x200
+
+Fs_ExtensionCdf = 0x800132F4;
+
+Fs_ExtensionStr = 0x800132FC;
+
+Fs_Stage0HeaderName = 0x80013304;
+
+Fs_InitBitstreamName = 0x80013310;
+
+McText_NewBlock = 0x80060A48;
+
+McText_Yes = 0x80060A54;
+
+McText_No = 0x80060A58;
+
+McText_Cancel = 0x80060A5C;
+
+McText_Ok = 0x80060A64;
+
+McText_Empty = 0x80060A68;
+
+McText_AccessFailed = 0x80060A6C;
+
+McText_CheckingCard = 0x80060A8C;
+
+McText_CardChanged = 0x80060AAC;
+
+McText_InsertCard = 0x80060ACC;
+
+McText_NoCard = 0x80060AEC;
+
+McText_Saving = 0x80060B08;
+
+McText_Loading = 0x80060B14;
+
+McText_Formatting = 0x80060B20;
+
+McText_SavePrompt = 0x80060B30;
+
+McText_LoadPrompt = 0x80060B40;
+
+McText_FormatPrompt = 0x80060B50;
+
+McText_NoGameData = 0x80060B64;
+
+McText_CreatePrompt = 0x80060B84;
+
+McText_CreatingData = 0x80060B98;
+
+McText_OverwritePrompt = 0x80060BB0;
+
+McText_PleaseTryAgain = 0x80060BC0;
+
+McText_CardFull = 0x80060BD4;
+
+McText_DoNotRemoveCard = 0x80060BF0;
+
+McText_InsertAnotherCard = 0x80060C0C;
+
+McText_SaveOptional = 0x80060C2C;
+
+McText_SelectData = 0x80060C44;
+
+McText_SaveFailed = 0x80060C54;
+
+McText_LoadFailed = 0x80060C64;
+
+McText_FormatFailed = 0x80060C74;
+
+McText_CardNotFormatted = 0x80060C84;
+
+McText_SaveCorrupted = 0x80060CA0;
+
+McText_CannotLoadData = 0x80060CB8;
+
+McText_LoadAbortedCorrupted = 0x80060CCC;
+
+McText_SlotCorrupted = 0x80060CF0;
+
+Mc_SaveFilePattern = 0x80060DC8;
+
+Mc_FileNameAlphabet = 0x80060E08;
+
+McText_CloseParen = 0x800139A8;
+
+McText_Select = 0x80013B64;
+
+McText_Time = 0x80013B6C;
+
+McText_Clear = 0x80013B74;
+
+McText_OpenParen = 0x80013BA4;
+
+McText_Exp = 0x80013BA8;
+
+McText_Unavailable = 0x80013BAC;
+
+McText_Bp = 0x80013BB0;
+
+Text_MaxEightDigits = 0x800138BC;
+
+Text_ZeroDigit = 0x800138C8;
+
+Text_MaxNineDigits = 0x800138CC;
+
+McLocation_WhereAmI = 0x80067334;
+
+McLocation_Square = 0x80067340;
+
+McLocation_FireEscape = 0x80067348;
+
+McLocation_MistParking = 0x80067354;
+
+McLocation_GasStation = 0x80067364;
+
+McLocation_TrailerCoach = 0x80067370;
+
+McLocation_MotelLobby = 0x80067380;
+
+McLocation_Refuge = 0x8006738C;
+
+McLocation_SterilizationRoom = 0x80067394;
+
+McLocation_UndergroundParking = 0x800673A8;
+
+McLocation_Laboratory = 0x800673BC;
+
+McLocation_IncineratorControlRoom = 0x800673C8;
+
+McLocation_PodDeck = 0x800673E4;
+
+McLocation_Nursery = 0x800673F0;
+
+McLocation_Tent = 0x800673F8;
+
+McLocation_Opening = 0x80067400;
+
+McLocation_MotelRoom6 = 0x80067408;
+
+McTitleLocation_Square = 0x8006745C;
+
+McTitleLocation_FireEscape = 0x8006746C;
+
+McTitleLocation_MistParking = 0x80067484;
+
+McTitleLocation_GasStation = 0x800674A0;
+
+McTitleLocation_TrailerCoach = 0x800674B8;
+
+McTitleLocation_MotelLobby = 0x800674D4;
+
+McTitleLocation_Refuge = 0x800674EC;
+
+McTitleLocation_SterilizationRm = 0x800674FC;
+
+McTitleLocation_UndergroundPark = 0x80067520;
+
+McTitleLocation_Laboratory = 0x80067544;
+
+McTitleLocation_IncinControl = 0x8006755C;
+
+McTitleLocation_PodDeck = 0x8006757C;
+
+McTitleLocation_Nursery = 0x80067590;
+
+McTitleLocation_Tent = 0x800675A0;
+
+McTitleLocation_Opening = 0x800675AC;
+
+McTitleLocation_MotelRoom6 = 0x800675BC;
+
+McTitleLocation_WhereAmI = 0x800675D8;
+
+Fs_ActorLoadBase0 = 0x8005C36C;
+
+Fs_ActorLoadBase1 = 0x8005C370;
+
+Fs_ActorLoadBase2 = 0x8005C374;
+
+Mem_UnusedTopRamPointer = 0x8005C368;
+
+Mem_UnusedDevKitEndPointer = 0x8005C378;
+
+CdCmd_MapHeapSizes = 0x8005DCB4;
+
+Gpu_PrimBufferBytes = 0x8007A0E4;
+
+Display_HoldMode = 0x8007A118;
+
+Gpu_SmallOtTags = 0x8007A120;
+
+Display_MenuTaskDesc = 0x8006268C;
+
+Display_ModeTaskDesc = 0x8006269C;
+
+Stage_Context = 0x8007A320;
+
+Stage_MusicTables = 0x8006273C;
+
+Stage_CountdownMusicTables = 0x80062750;
+
+Stage_MusicRowLengths = 0x80062764;
+
+Stage_SceneEventLimits = 0x8006276C;
+
+Stage_MusicTaskDesc = 0x80062774;
+
+Stage_MusicCountdownActive = 0x8007A398;
+
+Stage_MusicCountdownFrames = 0x8007A39A;
+
+Spu_SemitonePitchTable = 0x80068BB8;
+
+Spu_FinePitchTable = 0x80068C78;
+
+Snd_PanGainTable = 0x80068D78;
+
+Snd_VelocityGainTable = 0x80068E78;
+
+SndScript_VoiceRanges = 0x80068A7C;
+
+Spu_InitialAdpcmBlock = 0x80068184;
+
+Mc_MenuWork = 0x80071730;
+
+Mc_LastRandomValue = 0x80073C08;
+
+Mc_ModeLabels = 0x800611B8;
+
+Mc_SaveSlotCallbacks = 0x80061168;
+
+Mc_SaveSlotList = 0x8006116C;
+
+Mc_LoadSlotCallbacks = 0x80061190;
+
+Mc_LoadSlotList = 0x80061194;
+
+Mc_TaskDescriptors = 0x800611C8;
+
+Mc_SaveListDesc = 0x80061200;
+
+Mc_LoadListDescriptors = 0x8006121C;
+
+Mc_YesNoCallbacks = 0x80061254;
+
+Mc_YesNoList = 0x8006125C;
+
+Mc_OkCallbacks = 0x80061280;
+
+Mc_OkList = 0x80061284;
+
+Mc_YesCallbacks = 0x800612A8;
+
+Mc_YesList = 0x800612AC;
+
+Mc_PromptDesc = 0x800612D0;
+
+Mc_LocationLabels = 0x80067418;
+
+Mc_LocationTitleLabels = 0x800675F0;
+
+Text_FillClutPixels = 0x80060910;
+
+Text_FillClut = 0x80060990;
+
+Text_OutlineClutPixels = 0x800609B0;
+
+Text_OutlineClut = 0x80060A10;
+
+Ui_OverlayLoadingDesc = 0x800608F4;
+
+Ui_DialogLineCallbacks = 0x80067650;
+
+Ui_DialogLineList = 0x80067654;
+
+Ui_DialogListDesc = 0x80067678;
+
+CdStream_PhaseTimeout = 0x800827E8;
+
+CdStream_ErrorCode = 0x80082808;
+
+CdStream_CurrentPhase = 0x8008280C;
+
+CdStream_LastErrorCode = 0x80082810;
+
+CdStream_LastPhase = 0x80082814;
+
+CdStream_ShellOpenErrors = 0x80068B5D;
+
+CdStream_LastTransferBuffer = 0x80068B6C;
+
+CdStream_LastTransferSpuAddress = 0x80068B70;
+
+Pad_DefaultRemapState = 0x8007A370; // type:PadRemapState size:0x1C
+
+CdAudio_SectorBuffer = 0x80082750; // size:0x4
+
+CdAudio_SectorEntries = 0x80082778; // size:0x4
+
+Snd_SequenceBankBuffer = 0x8007E0D4; // size:0x4
+
+// The full dual-bank flag buffer; biased player-address immediates fall inside it.
+GameFlag_NibbleBanks = 0x80073980; // size:0x200
+GameFlag_AcropolisBanks = 0x800733F0; // size:0xD8
+GameFlag_DryfieldBanks = 0x800734C8; // size:0x160
+GameFlag_DryfieldFullBanks = 0x80073628; // size:0x48
+GameFlag_ShelterBanks = 0x80073670; // size:0x1C8
+GameFlag_NeoArkBanks = 0x80073838; // size:0x148
+Gp_FlagBanks = 0x80060A30; // size:0x18

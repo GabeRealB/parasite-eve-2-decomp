@@ -5,12 +5,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "weapons/tonfa_baton.h"
 
 #include "gameplay/actor_render.h"
@@ -19,7 +13,14 @@
 #include "gameplay/world_collision.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
 
 static void func_tonfa_baton_8011D6B0(s16 slot, s16 flags);
 
@@ -46,7 +47,7 @@ static void func_tonfa_baton_8011D1EC(Task* task)
     s32        i;
     s32        flags;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -85,7 +86,7 @@ static void func_tonfa_baton_8011D1EC(Task* task)
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 }
                 flags = 0x13;
-                if (task->spawnArg1 == 0) {
+                if (task->spawnArg1.value == 0) {
                     flags = 1;
                 }
                 D_tonfa_baton_8012C0EC = flags;
@@ -230,10 +231,10 @@ static void func_tonfa_baton_8011DA74(Task* arg0)
     coord->coord.t[2] = 0;
 
     if (*(u32*)&actor->field_954 != 0x40000) {
-        arg0->spawnArg1 = 0;
+        arg0->spawnArg1.value = 0;
     }
 
-    mode = arg0->spawnArg1 & 0xF;
+    mode = arg0->spawnArg1.value & 0xF;
     switch (mode) {
         case 0:
             if (coord->param.rot.vz > 0) {
@@ -330,7 +331,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
                 delay--;
                 actor->field_934 = delay;
                 if (delay == 0) {
-                    actor->field_91C->spawnArg1 = 1;
+                    actor->field_91C->spawnArg1.value = 1;
                     actor->field_12A           |= 0x8000;
                     func_80106238(arg0, 0, 0);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130001, 0);
@@ -363,7 +364,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
                 } else {
                     actor->field_95E            = 5;
                     actor->field_934            = 0xA;
-                    actor->field_91C->spawnArg1 = 0;
+                    actor->field_91C->spawnArg1.value = 0;
                     Gp_AnimResetChildSlots(arg0, 0xE);
                 }
             }
@@ -381,7 +382,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
                 } else if (step == 0) {
                     actor->field_95E            = 4;
                     actor->field_934            = 9;
-                    actor->field_91C->spawnArg1 = 0;
+                    actor->field_91C->spawnArg1.value = 0;
                 }
             }
             /* fallthrough */

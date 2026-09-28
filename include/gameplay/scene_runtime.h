@@ -11,11 +11,11 @@
 #include "gameplay/enemy.h"
 
 #include "main/coord.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
-s32 func_800AF590(void);
+s32 func_800AF590(s32 unused0, s32 unused1);
 
 s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3);
 

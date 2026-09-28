@@ -3,11 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/rand.h>
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -21,7 +16,13 @@
 #include "gameplay/items.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/evs.h"
+#include "gameplay/world_state.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/session.h"
+#include "main/task.h"
 
 extern GpGridParams D_dryfield_night_water_tank_8017E08C;
 extern GpGridParams D_dryfield_night_water_tank_8017F4B0;

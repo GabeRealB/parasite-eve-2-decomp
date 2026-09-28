@@ -9,7 +9,6 @@
 #include "items.h"
 #include "model_lighting.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/sound_params.h"
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
@@ -39,12 +38,6 @@ extern const char Gp_StrTotal[];
 extern const char Gp_StrBP[];
 
 extern const char Gp_StrEXP[];
-
-extern u16 D_8007A39C;
-
-extern s32 Pad_MaskConfirm;
-
-extern s32 Pad_MaskCancel;
 
 GpScriptCmd D_80114A24[4] = {
     { 0, 1 },
@@ -198,10 +191,10 @@ void Gp_EndingTask(Task* arg0)
 {
     GameSession* session;
     GpEndWork*   work;
-    GpSndParam*  pair;
+    StageMusicParams*  pair;
 
     if (arg0->state == 0) {
-        work                = arg0->spawnArg2;
+        work                = arg0->spawnArg2.pointer;
         work->field_4       = 1;
         arg0->killCountdown = 0x1E;
         if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 48, 0, 0)) {
@@ -213,13 +206,13 @@ void Gp_EndingTask(Task* arg0)
     } else if (arg0->state == 1) {
         session = gGameSession;
         if (!(session->flowFlags & 1)) {
-            pair          = (GpSndParam*)&D_8007A39C;
-            pair->field_0 = 0;
-            pair->field_2 = 0;
+            pair          = &gStageMusicParams;
+            pair->fadeFrames = 0;
+            pair->unusedCommandArg = 0;
             if ((session->flowFlags & 4) == 0) {
-                Task_SpawnFromTable(&D_80062774, 0, 2, 0);
+                Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 2, 0);
             } else {
-                Task_SpawnFromTable(&D_80062774, 0, 3, 0);
+                Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 3, 0);
             }
         } else {
             gStageMusicLoadState = 0xFF;
@@ -265,9 +258,9 @@ void func_800A087C(Task* arg0)
     u16           add;
 
     cfg = &Player_Status;
-    obj = arg0->spawnArg2;
+    obj = arg0->spawnArg2.pointer;
     if (arg0->state == 0) {
-        if (arg0->spawnArg1 == 0) {
+        if (arg0->spawnArg1.value == 0) {
             D_80114BE2 = 0;
             D_80114BE4 = 0;
             D_80114BDC = Gp_StateF0.field_C;
@@ -331,7 +324,7 @@ void func_800A087C(Task* arg0)
     req1.glyphTable = 5;
     req1.centerMode = 2;
     req1.field_E    = 1;
-    func_8002E53C(&req1, Gp_StrTotal);
+    Text_DrawString(&req1, Gp_StrTotal);
 
     Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, top + 9);
     Ui_DrawVBar(&(obj)->panel, top + 0xC, (s16)obj->panel.field_1A.u, 0x1C);
@@ -347,7 +340,7 @@ void func_800A087C(Task* arg0)
         req2.glyphTable = 5;
         req2.centerMode = 0;
         req2.field_E    = 1;
-        func_8002E53C(&req2, Gp_StrHP);
+        Text_DrawString(&req2, Gp_StrHP);
         step = 0xA;
 
         req3.x          = obj->panel.field_20.u + col;
@@ -357,7 +350,7 @@ void func_800A087C(Task* arg0)
         req3.glyphTable = 0;
         req3.centerMode = 2;
         req3.field_E    = 3;
-        func_8002E53C(&req3, Text_ItoaUnsigned(buf, D_80114BE2));
+        Text_DrawString(&req3, Text_ItoaUnsigned(buf, D_80114BE2));
         y -= 0xA;
     }
 
@@ -368,7 +361,7 @@ void func_800A087C(Task* arg0)
     req4.glyphTable = 5;
     req4.centerMode = 0;
     req4.field_E    = 1;
-    func_8002E53C(&req4, Gp_StrMP);
+    Text_DrawString(&req4, Gp_StrMP);
 
     req5.x          = obj->panel.field_20.u + col;
     req5.y          = obj->panel.field_22.u + y;
@@ -377,7 +370,7 @@ void func_800A087C(Task* arg0)
     req5.glyphTable = 0;
     req5.centerMode = 2;
     req5.field_E    = 3;
-    func_8002E53C(&req5, Text_ItoaUnsigned(buf, D_80114BE0));
+    Text_DrawString(&req5, Text_ItoaUnsigned(buf, D_80114BE0));
 
     if (D_80114BE4 > 0) {
         buf[0] = '+';
@@ -389,7 +382,7 @@ void func_800A087C(Task* arg0)
         req6.glyphTable = 0;
         req6.centerMode = 0;
         req6.field_E    = 3;
-        func_8002E53C(&req6, buf);
+        Text_DrawString(&req6, buf);
     }
 
     y              -= step;
@@ -400,7 +393,7 @@ void func_800A087C(Task* arg0)
     req6.glyphTable = 5;
     req6.centerMode = 0;
     req6.field_E    = 1;
-    func_8002E53C(&req6, Gp_StrBP);
+    Text_DrawString(&req6, Gp_StrBP);
 
     if (D_80114BDC < 0) {
         req7.x          = obj->panel.field_20.u + col;
@@ -410,7 +403,7 @@ void func_800A087C(Task* arg0)
         req7.glyphTable = 0;
         req7.centerMode = 2;
         req7.field_E    = 3;
-        func_8002E53C(&req7, Text_ItoaSigned(buf, D_80114BDC));
+        Text_DrawString(&req7, Text_ItoaSigned(buf, D_80114BDC));
     } else {
         req7.x          = obj->panel.field_20.u + col;
         req7.y          = obj->panel.field_22.u + y;
@@ -419,7 +412,7 @@ void func_800A087C(Task* arg0)
         req7.glyphTable = 0;
         req7.centerMode = 2;
         req7.field_E    = 3;
-        func_8002E53C(&req7, Text_ItoaUnsigned(buf, D_80114BDC));
+        Text_DrawString(&req7, Text_ItoaUnsigned(buf, D_80114BDC));
     }
 
     y              -= step;
@@ -431,7 +424,7 @@ void func_800A087C(Task* arg0)
     req7.glyphTable = 5;
     req7.centerMode = 0;
     req7.field_E    = 1;
-    func_8002E53C(&req7, Gp_StrEXP);
+    Text_DrawString(&req7, Gp_StrEXP);
 
     req8.x          = obj->panel.field_20.u + col;
     req8.y          = obj->panel.field_22.u + y;
@@ -440,7 +433,7 @@ void func_800A087C(Task* arg0)
     req8.glyphTable = 0;
     req8.centerMode = 2;
     req8.field_E    = 3;
-    func_8002E53C(&req8, Text_ItoaUnsigned(buf, D_80114BDE));
+    Text_DrawString(&req8, Text_ItoaUnsigned(buf, D_80114BDE));
 
     y   = (s16)obj->panel.field_1A.u - 2;
     col = (s16)obj->panel.field_1E.u - 2;
@@ -454,7 +447,7 @@ void func_800A087C(Task* arg0)
             req9.glyphTable = 0;
             req9.centerMode = 2;
             req9.field_E    = 3;
-            func_8002E53C(&req9, Text_ItoaUnsigned(buf, cfg->hp));
+            Text_DrawString(&req9, Text_ItoaUnsigned(buf, cfg->hp));
         }
         y -= step;
     }
@@ -466,7 +459,7 @@ void func_800A087C(Task* arg0)
         req9.glyphTable = 0;
         req9.centerMode = 2;
         req9.field_E    = 3;
-        func_8002E53C(&req9, Text_ItoaUnsigned(buf, cfg->mp));
+        Text_DrawString(&req9, Text_ItoaUnsigned(buf, cfg->mp));
     }
     y -= step;
     if (arg0->killCountdown >= 0x51) {
@@ -477,7 +470,7 @@ void func_800A087C(Task* arg0)
         req10.glyphTable = 0;
         req10.centerMode = 2;
         req10.field_E    = 3;
-        func_8002E53C(&req10, Text_ItoaUnsigned(buf, cfg->bp));
+        Text_DrawString(&req10, Text_ItoaUnsigned(buf, cfg->bp));
     }
     y -= step;
     if (arg0->killCountdown >= 0x33) {
@@ -488,7 +481,7 @@ void func_800A087C(Task* arg0)
         req11.glyphTable = 0;
         req11.centerMode = 2;
         req11.field_E    = 3;
-        func_8002E53C(&req11, Text_ItoaUnsigned(buf, cfg->exp));
+        Text_DrawString(&req11, Text_ItoaUnsigned(buf, cfg->exp));
     }
 
     if (obj->panel.field_0.w == 1) {

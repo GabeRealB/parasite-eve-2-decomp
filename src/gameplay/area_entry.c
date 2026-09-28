@@ -10,7 +10,6 @@
 #include "gameplay/items.h"
 #include "items.h"
 #include "scene_runtime.h"
-#include "gameplay/sound_params.h"
 #include "world_targets.h"
 
 #include "main/fs.h"
@@ -35,8 +34,6 @@ extern UiObjectDesc D_8010CA78[];
 void Gp_AreaEnterTask(Task* arg0);
 
 extern UiObjectDesc D_80185000;
-
-extern u16 D_8007A39C;
 
 u8         Gp_StrItemObtained[] = "Item obtained!";
 u8         Gp_StrBonusItem[]    = "Bonus item!!";
@@ -65,11 +62,11 @@ void Gp_AreaEnterTask(Task* arg0)
     s32          i;
     Task*        slot;
     GameSession* session;
-    GpSndParam*  pair;
+    StageMusicParams*  pair;
     McItemScan*  scan;
 
     if (arg0->state == 0) {
-        work = arg0->spawnArg2;
+        work = arg0->spawnArg2.pointer;
         key  = GP_LOC_WORD(gGameSession->at4.loc);
         key &= GP_LOC_STAGE_AREA;
         Stage_InitPrimBufOnce();
@@ -82,33 +79,33 @@ void Gp_AreaEnterTask(Task* arg0)
         SndEvt_EnqueueType8(0xD);
         Gp_EnqueueSndCd((Gp_GetAttachLevel(7) + 0x15) & 0xFF);
         if (key == GP_LOC_KEY(1, 20, 0, 0)) {
-            arg0->spawnArg2 = Ui_SpawnFromDesc(&D_80185000, arg0->spawnArg1, 1, 4, NULL);
+            arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_80185000, arg0->spawnArg1, 1, 4, NULL);
         } else {
-            arg0->spawnArg2 = Ui_SpawnFromDesc(D_8010CA40, arg0->spawnArg1, 1, 1, NULL);
-            if (arg0->spawnArg1 == 0) {
+            arg0->spawnArg2.pointer = Ui_SpawnFromDesc(D_8010CA40, arg0->spawnArg1, 1, 1, NULL);
+            if (arg0->spawnArg1.value == 0) {
                 work->field_4 = 0;
                 work->field_0 = 0;
                 Gp_SetAreaFlag2(1, (GpAreaKey*)&gGameSession->at4.loc);
                 gGameSession->field_126 = 1;
                 if (!((key == GP_LOC_KEY(5, 11, 0, 0) || key == GP_LOC_KEY(5, 29, 0, 0)) &&
                       gGameSession->at4.loc.place - 1 < 3U)) {
-                    if (Mc_SaveData[0].field_6CC < 0x270FU) {
-                        Mc_SaveData[0].field_6CC++;
+                    if (Mc_SaveData[0].state.field_6CC < 0x270FU) {
+                        Mc_SaveData[0].state.field_6CC++;
                     }
                 }
                 scan = &D_8010CA2C;
                 Gp_ClearScanItems(scan);
                 arg0->status = Gp_GrantLocationItems(scan);
                 if (arg0->status != 0) {
-                    Ui_SpawnFromDesc(D_8010CA78, 1, 0, 0x11, arg0->spawnArg2);
+                    Ui_SpawnFromDesc(D_8010CA78, 1, 0, 0x11, arg0->spawnArg2.pointer);
                     if (arg0->status == 2) {
-                        Ui_SpawnFromDesc(D_8010CA78 + 1, 2, 0, 0x21, arg0->spawnArg2);
+                        Ui_SpawnFromDesc(D_8010CA78 + 1, 2, 0, 0x21, arg0->spawnArg2.pointer);
                     }
                 }
             } else {
                 arg0->status = 0;
-                if (Mc_SaveData[0].field_6CE < 0x270FU) {
-                    Mc_SaveData[0].field_6CE++;
+                if (Mc_SaveData[0].state.field_6CE < 0x270FU) {
+                    Mc_SaveData[0].state.field_6CE++;
                 }
             }
         }
@@ -118,13 +115,13 @@ void Gp_AreaEnterTask(Task* arg0)
         session = gGameSession;
         if (!(session->flowFlags & 2)) {
             session->viewReady = 1;
-            pair               = (GpSndParam*)&D_8007A39C;
-            pair->field_0      = 0;
-            pair->field_2      = 0;
+            pair               = &gStageMusicParams;
+            pair->fadeFrames      = 0;
+            pair->unusedCommandArg      = 0;
             if (!(gGameSession->flowFlags & 8)) {
-                Task_SpawnFromTable(&D_80062774, 0, 1, 0);
+                Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 1, 0);
             } else {
-                Task_SpawnFromTable(&D_80062774, 0, 3, 0);
+                Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 3, 0);
             }
         } else {
             gStageMusicLoadState = 0xFF;
@@ -133,14 +130,14 @@ void Gp_AreaEnterTask(Task* arg0)
     } else if (arg0->state == 2) {
         UiObject* obj;
 
-        obj = arg0->spawnArg2;
+        obj = arg0->spawnArg2.pointer;
         if (gStageMusicLoadState == 0xFF) {
             if (CdCmd_IsIdle() & 0xFFFF) {
                 if (obj->field_2E == 6) {
                     Ui_TeardownTree(obj, obj->owner);
                     if (arg0->status != 0) {
                         Gp_PubItemLoc   = 0x700;
-                        arg0->spawnArg2 = Ui_SpawnFromDesc(&D_8010D6D8, 1, 1, 1, NULL);
+                        arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_8010D6D8, 1, 1, 1, NULL);
                         arg0->state++;
                     } else {
                         arg0->killCountdown = 0xA;
@@ -152,7 +149,7 @@ void Gp_AreaEnterTask(Task* arg0)
     } else if (arg0->state == 3) {
         UiObject* obj;
 
-        obj = arg0->spawnArg2;
+        obj = arg0->spawnArg2.pointer;
         if ((obj->field_2E == 6) || (obj->field_2E == -1)) {
             Ui_TeardownTree(obj, obj->owner);
             arg0->killCountdown = 0xA;
@@ -189,7 +186,7 @@ void Gp_AreaEnterTask(Task* arg0)
         req.glyphTable = 5;                                   \
         req.centerMode = 0;                                   \
         req.field_E    = 1;                                   \
-        func_8002E53C(&req, (str));                           \
+        Text_DrawString(&req, (str));                           \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
@@ -202,7 +199,7 @@ void Gp_AreaEnterTask(Task* arg0)
         req.x          = obj.panel.field_20.u + 0x94;         \
         req.y          = (obj.panel.field_22.u + 9) + (line); \
         req.otIndex    = obj.panel.field_14.s + 1;            \
-        func_8002E53C(&req, Text_ItoaSigned(buf, (count)));   \
+        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));   \
         if ((count) == 0) {                                   \
             flag = 1;                                         \
         }                                                     \

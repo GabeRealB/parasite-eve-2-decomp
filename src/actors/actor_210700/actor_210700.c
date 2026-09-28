@@ -1,13 +1,7 @@
 #include "common.h"
-#include "main/gfx.h"
 
-#include <psyq/libgte.h>
 
 #include "actors/actor.h"
-
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -18,7 +12,16 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/item_pickup.h"
+#include "gameplay/scene.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task_types.h"
+#include "main/tmd.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
 /// The actor's work block. The spawn handler `func_actor_210700_80149F90`
 /// allocates it zeroed with `memCalloc(0x540, 0)` and keeps it in

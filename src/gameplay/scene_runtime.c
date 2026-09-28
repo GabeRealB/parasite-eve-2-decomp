@@ -1,12 +1,12 @@
 #include "gameplay/scene_runtime.h"
 
 #include <psyq/sys/types.h>
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
 #include <psyq/abs.h>
 #include <psyq/gtemac.h>
 #include <psyq/inline_c.h>
 #include <psyq/libcd.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/rand.h>
 #include <psyq/stdio.h>
@@ -32,20 +32,21 @@
 #include "gameplay/world_targets.h"
 #include "world_targets.h"
 
+#include "gameplay/damage.h"
 #include "main/cdaudio.h"
-#include "main/coord.h"
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/loadui.h"
 #include "main/mc.h"
 #include "main/mem.h"
-#include "main/scratch.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/stream.h"
+#include "main/stream_types.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -113,21 +114,6 @@ typedef struct _GpSndMaskRec {
     /* 0x4 */ s32 flags;
 } GpSndMaskRec;
 STATIC_ASSERT_SIZEOF(GpSndMaskRec, 8);
-
-/// 0x3C-byte stream header read before the sector payload and copied into
-/// `CdCmdQueue.field_58`. The payload uses `field_30` sectors and buffer kind
-/// `field_34`; `field_36` controls whether an already-loaded part is skipped.
-typedef struct _GpSectorHeader {
-    /* 0x00 */ u8    pad_0[0x20];
-    /* 0x20 */ void* field_20;
-    /* 0x24 */ u8    pad_24[0xC];
-    /* 0x30 */ s16   field_30;
-    /* 0x32 */ u16   field_32;
-    /* 0x34 */ s16   field_34;
-    /* 0x36 */ s16   field_36;
-    /* 0x38 */ u8    pad_38[4];
-} GpSectorHeader;
-STATIC_ASSERT_SIZEOF(GpSectorHeader, 0x3C);
 
 /// 8-byte RGB555-unpacked vector. `Gp_BlendRgb555` allocates three of
 /// these (0x18 bytes) from `G_SCRATCH_HEAD`: src0, src1, then the GTE
@@ -350,21 +336,13 @@ extern TaskDesc D_8018384C[];
 
 extern GpBit2List D_map_akropolis_8017A7FC[];
 
-extern u32 D_800733FC[];
-
 extern GpBit2List D_map_dryfield_8017A564[];
-
-extern u32 D_800734D4[];
 
 extern GpBit2List D_map_dryfield_full_8017A46C[];
 
 extern GpBit2List D_map_shelter_8017A998[];
 
-extern u32 D_8007367C[];
-
 extern GpBit2List D_map_neo_ark_8017A6EC[];
-
-extern u32 D_80073844[];
 
 GpSndMaskRec Gp_SndMaskTable[7] = {
     { 1, 0 },
@@ -387,9 +365,9 @@ static const char Gp_StrNewEnemyNull[];
 
 static const GpEnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
 
-s32 func_800AF590(void)
+s32 func_800AF590(s32 unused0, s32 unused1)
 {
-    GpSectorHeader header;
+    CdCmd58Entry header;
     CdCmdQueue*    p;
 
     p = &CdCmd_Queue;
@@ -401,7 +379,7 @@ s32 func_800AF590(void)
             if ((D_80114D1C == 0) && ((s16)p->field_246 != 0)) {
                 D_80114D1A = 0;
             }
-            if (header.field_30 != 0) {
+            if (header.sectorCount != 0) {
                 p->field_218        = 1;
                 (*(D_80114D14 + 1)) = header.field_34;
                 if (D_80114D1A != 0) {
@@ -409,34 +387,34 @@ s32 func_800AF590(void)
                 }
                 switch ((*(D_80114D14 + 1))) {
                     case 0:
-                        D_80114D10   = p->field_184;
-                        p->field_194 = header.field_20;
+                        D_80114D10   = p->decodeBuffer;
+                        p->nextDecodeBufferBytes = header.nextDecodeBufferBytes;
                     default:
                         break;
                     case 1:
-                        D_80114D10 = (u8*)D_8005C36C;
+                        D_80114D10 = (u8*)Fs_ActorLoadBase0;
                         if (p->field_190->field_1A == 1) {
-                            D_80114D10 = (u8*)D_8005C36C + 0x11000;
+                            D_80114D10 = (u8*)Fs_ActorLoadBase0 + 0x11000;
                         }
-                        if (p->field_190->field_3 == 2) {
+                        if (p->field_190->bufferKind == 2) {
                             D_80114D10 += p->field_190->field_1E;
                         }
                         break;
                     case 2:
-                        D_80114D10 = (u8*)D_8005C370;
+                        D_80114D10 = (u8*)Fs_ActorLoadBase1;
                         if (p->field_190->field_1A == 2) {
-                            D_80114D10 = (u8*)D_8005C370 + 0x11000;
+                            D_80114D10 = (u8*)Fs_ActorLoadBase1 + 0x11000;
                         }
-                        if (p->field_190->field_3 == 3) {
+                        if (p->field_190->bufferKind == 3) {
                             D_80114D10 += p->field_190->field_1E;
                         }
                         break;
                     case 3:
-                        D_80114D10 = (u8*)D_8005C374;
+                        D_80114D10 = (u8*)Fs_ActorLoadBase2;
                         if (p->field_190->field_1A == 3) {
-                            D_80114D10 = (u8*)D_8005C374 + 0x11000;
+                            D_80114D10 = (u8*)Fs_ActorLoadBase2 + 0x11000;
                         }
-                        if (p->field_190->field_3 == 4) {
+                        if (p->field_190->bufferKind == 4) {
                             D_80114D10 += p->field_190->field_1E;
                         }
                         break;
@@ -449,7 +427,7 @@ s32 func_800AF590(void)
                 }
                 D_80114D10   += 0x7C4;
                 D_80114D14[0] = 1U;
-                D_80114D18    = (u16)header.field_30 - 1;
+                D_80114D18    = (u16)header.sectorCount - 1;
             }
             break;
         case 1:
@@ -489,7 +467,7 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
 
     p = &CdCmd_Queue;
     if (arg0 == 0) {
-        slot  = (StreamSlot*)Fs_Streams;
+        slot  = Fs_Streams;
         count = 0xA;
     } else {
         slot  = Stream_Slots;
@@ -497,7 +475,7 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
     }
 
     for (i = 0, found = 0; i < count; i++, slot++) {
-        if (slot->field_0 == 2 && slot->field_4 != 0 && slot->field_C == arg0 && slot->field_E == arg1 &&
+        if (slot->field_0 == 2 && slot->field_4 != 0 && slot->key.parts.group == arg0 && slot->key.parts.id == arg1 &&
             slot->field_10 == arg2 && slot->field_12 == arg3) {
             found = 1;
             break;
@@ -509,13 +487,13 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
     }
 
     Mem_Set(p->field_58, 0, 0x12C);
-    p->field_190 = (CdCmd190*)slot;
+    p->field_190 = slot;
     p->field_216 = 1;
     temp         = slot->field_8;
     if (temp != 0) {
-        p->field_188 = temp;
+        p->decodeBufferBytes = temp;
     } else {
-        p->field_188 = 0;
+        p->decodeBufferBytes = 0;
     }
     p->field_23A = 0;
     p->field_21E = 0;
@@ -589,11 +567,11 @@ void Gp_StepCdAudioCmd(void)
             p->step = p->step + 1;
             break;
         case 3: {
-            CdCmd190* info;
+            StreamSlot* info;
 
             info         = p->field_190;
             p->field_242 = 1;
-            if (info->field_3 != 0) {
+            if (info->bufferKind != 0) {
                 sector = info->field_4;
                 if ((info->field_1C - 1) / 0x800 != 0) {
                     sector += 1 + (info->field_1C - 1) / 0x800;
@@ -627,18 +605,18 @@ void Gp_StepCdAudioCmd(void)
             p->step = p->step + 1;
             break;
         case 5: {
-            CdCmd190*     info;
+            StreamSlot*     info;
             s32           bits;
             u16           maskbits;
             GpSndMaskRec* entry;
 
             info   = p->field_190;
             sector = info->field_4;
-            if (info->field_3 != 0) {
+            if (info->bufferKind != 0) {
                 sector += 1;
                 sector += (info->field_1C - 1) / 0x800;
             }
-            CdAudio_StartTrack(sector, p->field_190->field_2);
+            CdAudio_StartTrack(sector, p->field_190->volumeIndex);
             i_s1     = 0;
             maskbits = p->field_190->field_16;
             if (Gp_SndMaskTable[0].mask != 0) {
@@ -675,12 +653,12 @@ void Gp_StepCdAudioCmd(void)
             if (cmd != 0x81) {
                 break;
             }
-            save23       = Mc_SaveData[0].demoScene;
+            save23       = Mc_SaveData[0].state.demoScene;
             p->field_20E = one;
             if (save23 != 0) {
                 SndEvt_EnqueueType6(0, 0, 0);
             }
-            if (p->field_190->field_3 != 0) {
+            if (p->field_190->bufferKind != 0) {
                 p->field_240 = one;
             }
             p->field_1A0 = 0;
@@ -691,7 +669,7 @@ void Gp_StepCdAudioCmd(void)
             break;
         }
         case 7: {
-            CdCmd190*     info;
+            StreamSlot*     info;
             s32           i;
             s32           bits;
             u16           maskbits;
@@ -700,7 +678,7 @@ void Gp_StepCdAudioCmd(void)
             if (CdAudio_Phase.field_1 != 4) {
                 break;
             }
-            if (Mc_SaveData[0].demoScene != 0) {
+            if (Mc_SaveData[0].state.demoScene != 0) {
                 SndEvt_EnqueueType6(0, 0, 0);
             }
             Mem_Set(&p->field_40, 0, 0x10);
@@ -904,7 +882,7 @@ void Gp_EnemyTaskExit(Task* task)
 {
     GpEnemy* enemy;
 
-    enemy = task->spawnArg2;
+    enemy = task->spawnArg2.pointer;
     Gp_UnlinkNode(&enemy->node);
     memFree(enemy);
     taskKill(task);
@@ -959,7 +937,7 @@ static GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent)
     }
 
     task->exitCallback = Gp_EnemyTaskExit;
-    task->spawnArg2    = enemy;
+    task->spawnArg2.pointer    = enemy;
     enemy->task        = task;
     enemy->coord       = &gGfxViewCoord;
     if (parent != NULL) {
@@ -989,7 +967,7 @@ void Gp_EnemyDispatch(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = Gp_EnemyWaitFuncs;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
 static s32 Gp_TryEnqueueSndCd(s32 arg0)
@@ -1085,7 +1063,7 @@ static void Gp_FinishStageLoad(Task* task)
             Task_SpawnFromTable(D_8011922C, 0, 0, 0);
             taskKill(task);
         } else {
-            task->spawnArg2 = Task_SpawnFromTable(D_80115D9C, 0, 0, 0);
+            task->spawnArg2.pointer = Task_SpawnFromTable(D_80115D9C, 0, 0, 0);
             SndEvt_EnqueueType1(0x62, 0);
         }
         task->state++;
@@ -1097,7 +1075,7 @@ static void Gp_StageLoadState2(Task* task)
     s32           out;
     DisplayState* ds;
 
-    if (Task_PollKill(task->spawnArg2, &out) != 0) {
+    if (Task_PollKill(task->spawnArg2.pointer, &out) != 0) {
         ds                  = &gDisplayState;
         task->killCountdown = 0;
         ds->gameMode        = 1;
@@ -1636,12 +1614,12 @@ static void func_800B1EFC(Task* t)
     DR_TPAGE* dr;
     u8        color;
 
-    if (t->spawnArg1 > 0) {
+    if (t->spawnArg1.value > 0) {
         if (t->killCountdown > 0) {
             t->killCountdown--;
             color = ~(t->killCountdown << 3);
         } else {
-            t->spawnArg1--;
+            t->spawnArg1.value--;
             color = 0xFF;
         }
     } else {
@@ -1665,7 +1643,7 @@ static void func_800B1EFC(Task* t)
 
     dr             = (DR_TPAGE*)gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
-    if (t->spawnArg2 == 0) {
+    if (t->spawnArg2.pointer == 0) {
         setlen(dr, 1);
         dr->code[0] = 0xE1000240;
     } else {
@@ -1740,7 +1718,7 @@ void Gp_FadeWorkTask(Task* t)
     s16         y;
     s8          yoff;
 
-    work = t->spawnArg2;
+    work = t->spawnArg2.pointer;
 
     if (t->state == 0) {
         t->killCountdown = 0;
@@ -1780,12 +1758,12 @@ void Gp_FadeWorkTask(Task* t)
         dr->code[0] = 0xE1000220;
     }
 
-    if (t->spawnArg1 != 0) {
+    if (t->spawnArg1.value != 0) {
         u_long* ot;
 
         ot = gGpuCurrentOt;
-        addPrim(&ot[t->spawnArg1], tile);
-        addPrim(&ot[t->spawnArg1], dr);
+        addPrim(&ot[t->spawnArg1.value], tile);
+        addPrim(&ot[t->spawnArg1.value], dr);
     } else {
         u_long* ot;
 
@@ -1826,7 +1804,7 @@ void Gp_FadeWorkTask(Task* t)
 
 void func_800B25B0(void)
 {
-    switch (GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) {
+    switch (GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) {
         case GP_LOC_KEY(5, 27, 0, 0):
             Task_SpawnFromTable(D_80181F18, 0, 0, 0);
             break;
@@ -2314,7 +2292,7 @@ void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
     u8          op;
     s32         setIdx;
 
-    if (Mc_SaveData[0].demoScene == 1) {
+    if (Mc_SaveData[0].state.demoScene == 1) {
         u8  idx;
         s32 off;
 
@@ -2766,8 +2744,8 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
     u16        id;
     s32        i;
 
-    rec   = Mc_SaveData[0].enemyPoses;
-    loc   = (GpAreaKey*)&Mc_SaveData[0].at4.loc.view;
+    rec   = Mc_SaveData[0].state.enemyPoses;
+    loc   = (GpAreaKey*)&Mc_SaveData[0].state.at4.loc.view;
     extra = arg0->task->extra.tmd;
     coord = extra->coords;
     if (arg0->spawnState == 0) {
@@ -2781,7 +2759,7 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
     }
 
     euler = SCRATCH_PUSH(SVECTOR);
-    rec   = Mc_SaveData[0].enemyPoses;
+    rec   = Mc_SaveData[0].state.enemyPoses;
     for (i = 0; i < 0x20; i++, rec++) {
         if (rec->spawnState == 0) {
             break;
@@ -2790,7 +2768,7 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
     if (i == 0x20) {
         u32 key;
 
-        rec = Mc_SaveData[0].enemyPoses;
+        rec = Mc_SaveData[0].state.enemyPoses;
         key = (loc->stage << 8) | loc->area;
         for (i = 0; i < 0x1F; i++, rec++) {
             if ((rec->placeKey & 0xFFF) != key) {
@@ -2861,7 +2839,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                         s32       found;
                         s32       j;
 
-                        rec   = Mc_SaveData[0].enemyPoses;
+                        rec   = Mc_SaveData[0].state.enemyPoses;
                         found = 0;
                         for (j = 0; j < 0x20; j++, rec++) {
                             if (rec->placeKey == ((placeNo << 12) | (arg0->stage << 8) | arg0->area)) {
@@ -2903,7 +2881,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                             } else {
                                 McPosRec* rec;
 
-                                rec = Mc_SaveData[0].enemyPoses;
+                                rec = Mc_SaveData[0].state.enemyPoses;
                                 i   = 0;
                                 do {
                                     if (rec->placeKey == enemy->placeKey) {
@@ -3047,14 +3025,14 @@ static void func_800B51F4(Task* task)
     x     = 0;
     y     = 0;
     cx    = 0;
-    if (task->spawnArg1 == 0x10) {
+    if (task->spawnArg1.value == 0x10) {
         count = 2;
     }
-    if (Mc_SaveData[0].demoScene == 1) {
+    if (Mc_SaveData[0].state.demoScene == 1) {
         return;
     }
 
-    if (task->spawnArg1 & 1) {
+    if (task->spawnArg1.value & 1) {
         task->killCountdown++;
         if (task->killCountdown >= 0x3D) {
             color          = task->killCountdown - 0x3C;
@@ -3173,9 +3151,9 @@ void Gp_ApplyAreaTmdFlags(void)
     if (head != NULL) {
         iter = head;
         do {
-            work = iter->spawnArg2;
+            work = iter->spawnArg2.pointer;
             if (iter->spawnType == 1) {
-                key   = (GpAreaKey*)&Mc_SaveData[0].at4.loc.view;
+                key   = (GpAreaKey*)&Mc_SaveData[0].state.at4.loc.view;
                 idx   = key->stage;
                 extra = iter->extra.tmd;
                 rec   = Gp_AreaTables[idx];
@@ -3236,14 +3214,14 @@ GpWorkObj* Gp_FindWorkById(u16 arg0)
     head = (gameGetPtrSlot(4))->firstChild;
     if (head != NULL) {
         iter = head;
-        work = iter->spawnArg2;
+        work = iter->spawnArg2.pointer;
         key  = arg0;
         if (work->field_8.as_u16 != key) {
         loop:
             iter = iter->nextSibling;
             work = NULL;
             if (iter != head) {
-                work = iter->spawnArg2;
+                work = iter->spawnArg2.pointer;
                 if (work->field_8.as_u16 != key) {
                     goto loop;
                 }
@@ -3269,7 +3247,7 @@ static void Gp_SetCurAreaFlag2(s32 arg0)
     GpAreaObj* obj;
     GpAreaKey* key;
 
-    key = (GpAreaKey*)&Mc_SaveData[0].at4.loc.view;
+    key = (GpAreaKey*)&Mc_SaveData[0].state.at4.loc.view;
     rec = Gp_AreaTables[key->stage];
     if (rec != NULL) {
         obj = rec[key->area].field_4;
@@ -3329,7 +3307,7 @@ static void func_800B5A48(GpAreaKey* arg0, GpAreaObj* arg1)
     if (arg1->field_1 & 1) {
         arg1->field_1 &= 0xFC;
         i              = 0x1F;
-        recs           = Mc_SaveData[0].enemyPoses;
+        recs           = Mc_SaveData[0].state.enemyPoses;
         do {
             if ((recs[i].placeKey & 0xFFF) == ((arg0->stage << 8) | arg0->area)) {
                 if (i != 0x1F) {
@@ -3464,7 +3442,7 @@ s32 Gp_FindChildType9(Task* arg0, Task* arg1, s32 arg2, Task** arg3)
     }
     arg1 = child;
     do {
-        arg0 = arg1->spawnArg2;
+        arg0 = arg1->spawnArg2.pointer;
         if (((((GpWorkObj*)arg0)->field_A >> 8) == 9) && (((GpWorkObj*)arg0)->field_8.as_u16 == arg2)) {
             *arg3 = arg1;
             ret   = 0;
@@ -3488,7 +3466,7 @@ s32 Gp_FindChildExceptType9(Task* arg0, Task* arg1, s32 arg2, Task** arg3)
     }
     arg1 = child;
     do {
-        arg0 = arg1->spawnArg2;
+        arg0 = arg1->spawnArg2.pointer;
         if (((((GpWorkObj*)arg0)->field_A >> 8) != 9) && (((GpWorkObj*)arg0)->field_8.as_u8 == arg2)) {
             *arg3 = arg1;
             ret   = 0;
@@ -3512,7 +3490,7 @@ s32 Gp_ExitChildrenType9(Task* arg0)
     }
     arg0 = child;
     do {
-        work = (GpWorkObj*)arg0->spawnArg2;
+        work = (GpWorkObj*)arg0->spawnArg2.pointer;
         type = work->field_A >> 8;
         next = arg0->nextSibling;
         if (type == 9) {
@@ -3536,7 +3514,7 @@ s32 Gp_SendMsgType9(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
     arg0 = child;
     do {
-        work = (GpWorkObj*)arg0->spawnArg2;
+        work = (GpWorkObj*)arg0->spawnArg2.pointer;
         type = work->field_A >> 8;
         next = arg0->nextSibling;
         if (type == 9) {
@@ -3581,7 +3559,7 @@ void Gp_SyncAreaKeyIndex(GpAreaKey* arg0)
 
 static void func_800B6094(Task* task)
 {
-    if (task->spawnArg1 & 1) {
+    if (task->spawnArg1.value & 1) {
         task->killCountdown = 0;
     }
     task->state++;
@@ -3697,7 +3675,7 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
     }
 }
 
-/// Walks `Gp_Bit2Banks[Mc_SaveData[0].at4.loc.area / stage]` for a `GpBit2Rec`
+/// Walks `Gp_Bit2Banks[Mc_SaveData[0].state.at4.loc.area / stage]` for a `GpBit2Rec`
 /// whose `field_0` equals `arg0`. If the packed 2-bit flag at
 /// `Gp_Bit2Banks[gGameSession->at4.loc.stage].field_4` is non-zero, spawns that
 /// placement via `Gp_SpawnEnemyFromTable` (same coord/yaw writeback as `Gp_SpawnPlaces`).
@@ -3783,7 +3761,7 @@ GpSlot4MessageEntry Gp_Slot4MsgTable[5] = {
     { 2010, { .send = Gp_SendMsgType9 } },
     { 0x7FFFFFFF, { .exit = NULL } },
 };
-GpBit2Bank Gp_Bit2Banks[6] = { { NULL, NULL }, { D_map_akropolis_8017A7FC, D_800733FC }, { D_map_dryfield_8017A564, D_800734D4 }, { D_map_dryfield_full_8017A46C, D_800734D4 }, { D_map_shelter_8017A998, D_8007367C }, { D_map_neo_ark_8017A6EC, D_80073844 } };
+GpBit2Bank Gp_Bit2Banks[6] = { { NULL, NULL }, { D_map_akropolis_8017A7FC, GameFlag_AcropolisBanks[0].header.entryStates }, { D_map_dryfield_8017A564, GameFlag_DryfieldBanks[0].header.entryStates }, { D_map_dryfield_full_8017A46C, GameFlag_DryfieldBanks[0].header.entryStates }, { D_map_shelter_8017A998, GameFlag_ShelterBanks[0].header.entryStates }, { D_map_neo_ark_8017A6EC, GameFlag_NeoArkBanks[0].header.entryStates } };
 
 void Gp_BindSlot4(Task* task)
 {

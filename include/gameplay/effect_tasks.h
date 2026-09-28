@@ -6,7 +6,7 @@
 #include "gameplay/effects.h"
 
 #include "main/coord.h"
-#include "main/task.h"
+#include "main/task_types.h"
 
 // Effect task entry points and shared drawing data.
 

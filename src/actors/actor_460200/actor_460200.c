@@ -4,14 +4,6 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "psyq/rand.h"
 
 #include "gameplay/actor_render.h"
@@ -24,8 +16,22 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "overlay.h"
 
 static void func_actor_460200_801325FC(Task* task);
 
@@ -91,7 +97,7 @@ void func_actor_460200_80131E24(Task* task)
     s32                 i;
     u32*                strip;
 
-    args = task->spawnArg2;
+    args = task->spawnArg2.pointer;
     if (D_801156F9 == 0) {
         switch (task->state) {
             case 0:
@@ -183,14 +189,14 @@ void func_actor_460200_80132090(Task* arg0)
 {
     s32 var_v0;
 
-    var_v0 = arg0->spawnArg1;
+    var_v0 = arg0->spawnArg1.value;
     if (var_v0 < 0) {
         Stage_SetEndingFlag();
         taskKill(arg0);
-        var_v0 = arg0->spawnArg1;
+        var_v0 = arg0->spawnArg1.value;
     }
     var_v0          = var_v0 - 1;
-    arg0->spawnArg1 = var_v0;
+    arg0->spawnArg1.value = var_v0;
 }
 
 void func_actor_460200_801320E0(s32 arg0)
@@ -252,7 +258,7 @@ void func_actor_460200_80132124(void)
 
 void func_actor_460200_80132204(s8 arg0)
 {
-    Mc_SaveData[0].sceneEvent = arg0;
+    Mc_SaveData[0].state.sceneEvent = arg0;
 }
 
 static void func_actor_460200_80132210(void)
@@ -412,7 +418,7 @@ void func_actor_460200_801327B4(Task* task)
 {
     GpEnemyTaskFunc fns[2] = { func_actor_460200_80132808, func_actor_460200_80132468 };
 
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Spawn routine of the actor whose `func_actor_460200_80132950` exit path
@@ -466,7 +472,7 @@ static void func_actor_460200_80132808(GpEnemy* enemy, Task* task)
 
 static void func_actor_460200_80132950(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Draws the actor's ground shadow under its root part, unless the model is
@@ -576,7 +582,7 @@ s32 func_actor_460200_80132B98(Task* task, s32 arg1, s32 flags)
 
     self = task->extra.tmd;
     work = (Actor160600Work*)task->work;
-    if (task->spawnArg1 != 0) {
+    if (task->spawnArg1.value != 0) {
         other = work->pairTask->extra.tmd;
     } else {
         other = self;
@@ -680,7 +686,7 @@ static void func_actor_460200_80132D74(GpEnemy* enemy, Task* task)
     enemy->node.state.b.flags    = 1;
     obj->otOffset                = 1;
     work->enemy                  = enemy;
-    if (task->spawnArg1 != 0) {
+    if (task->spawnArg1.value != 0) {
         spawned = Gp_SpawnEnemyFromTable(D_actor_460200_80148118, 1, 0, enemy);
         Task_Reparent(task, spawned->task);
         work->pairTask  = spawned->task;
@@ -746,7 +752,7 @@ void func_actor_460200_801330C8(Task* task)
 {
     GpEnemyTaskFunc fns[2] = { func_actor_460200_80132D74, func_actor_460200_8013311C };
 
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Per-tick state 1 of this actor: faces the model toward the `gameGetPtrSlot(3)`
@@ -787,7 +793,7 @@ static void func_actor_460200_8013311C(GpEnemy* enemy, Task* task)
 
 static void func_actor_460200_8013322C(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Draws the actor's ground shadow under its root part, unless the model is
@@ -894,7 +900,7 @@ s32 func_actor_460200_80133474(Task* task, s32 arg1, s32 flags)
 
     self = task->extra.tmd;
     work = (Actor161500Work*)task->work;
-    if (task->spawnArg1 != 0) {
+    if (task->spawnArg1.value != 0) {
         other = work->pairTask->extra.tmd;
     } else {
         other = self;
@@ -1037,7 +1043,7 @@ void func_actor_460200_8013386C(Task* task)
 {
     GpEnemyTaskFunc fns[2] = { func_actor_460200_801338C0, func_actor_460200_80133A04 };
 
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Spawn routine of the actor whose `func_actor_460200_80133A88` exit path
@@ -1105,7 +1111,7 @@ static void func_actor_460200_80133A04(GpEnemy* arg0, Task* task)
 
 static void func_actor_460200_80133A88(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Draws the actor's ground shadow under its root part, unless the model is
@@ -1212,7 +1218,7 @@ s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags)
 
     self = task->extra.tmd;
     work = (Actor160600Work*)task->work;
-    if (task->spawnArg1 != 0) {
+    if (task->spawnArg1.value != 0) {
         other = work->pairTask->extra.tmd;
     } else {
         other = self;

@@ -1,15 +1,7 @@
 #include "common.h"
 
-#include <psyq/libgte.h>
 #include <psyq/abs.h>
 #include <psyq/rand.h>
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/area_entry.h"
@@ -22,7 +14,18 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/item_pickup.h"
+#include "gameplay/scene.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
 /// 0x18-byte `G_SCRATCH_HEAD` block `func_actor_800300_80162064` takes for the
 /// ground-quad heading it copies into the three `GameActor.field_88` records.
@@ -105,7 +108,7 @@ static void func_actor_800300_80161E80(Task* arg0)
     {
         s32 temp;
 
-        temp        = save->characterId;
+        temp        = save->state.characterId;
         obj->radius = 0x12C;
         obj->flags  = 4;
         packed      = 0x10000;
@@ -125,7 +128,7 @@ static void func_actor_800300_80161E80(Task* arg0)
     {
         s32 temp;
 
-        temp        = save->characterId;
+        temp        = save->state.characterId;
         obj->radius = 0xC8;
         obj->flags  = 4;
         obj->key    = temp | packed;
@@ -418,7 +421,7 @@ static void func_actor_800300_80162658(Task* arg0)
     Gp_AnimTickChildSlots(arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
-    if (Mc_SaveData[0].companionHp <= 0) {
+    if (Mc_SaveData[0].state.companionHp <= 0) {
         Gp_StopPlayerAnim(arg0, 0);
     }
 }
@@ -697,7 +700,7 @@ static void func_actor_800300_80162F98(Task* arg0)
     actor = arg0->work;
     sp.funcs[(u16)actor->field_956](arg0);
     Gp_TurnPlayer(arg0);
-    if (Mc_SaveData[0].companionHp <= 0) {
+    if (Mc_SaveData[0].state.companionHp <= 0) {
         Gp_StopPlayerAnim(arg0, 0);
     }
 }

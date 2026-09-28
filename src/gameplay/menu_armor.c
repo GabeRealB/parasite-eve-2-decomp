@@ -12,7 +12,6 @@
 #include "main/mc.h"
 #include "main/pad.h"
 #include "main/sound.h"
-#include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
@@ -46,12 +45,6 @@ static inline void _gpDrawItemName(UiList* prompt, UiObject* obj, s32 item, s32 
 static inline s32 _gpIsEquippedItem(s32 id);
 
 static void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1);
-
-extern s32 Pad_MaskConfirm;
-
-extern s32 Pad_MaskCancel;
-
-extern s32 Pad_MaskMenu;
 
 const char Gp_StrPEnergy[] = "P.Energy";
 
@@ -156,7 +149,7 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
         req.glyphTable = 0;
         req.centerMode = 0;
         req.field_E    = 1;
-        func_8002E53C(&req, Gp_GetItemText(item, 0, 0));
+        Text_DrawString(&req, Gp_GetItemText(item, 0, 0));
         func_800C22D8(obj, x, y, item, mode);
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
@@ -210,7 +203,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
     McItemRec*  rec;
     s32         item;
 
-    scan = &Mc_SaveData[0].carriedItems;
+    scan = &Mc_SaveData[0].state.carriedItems;
     rec  = Gp_NthEquippableRec(scan, prompt->field_8, 0);
     if (rec != NULL) {
         item = rec->itemId;
@@ -234,7 +227,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
                 req.glyphTable = 5;
                 req.centerMode = 2;
                 req.field_E    = 0;
-                func_8002E53C(&req, Text_ItoaSigned(buf, qty));
+                Text_DrawString(&req, Text_ItoaSigned(buf, qty));
                 Ui_LayoutWithMode0(obj, x + 0x69, y - 8, 0x1B, 7, 0x102010);
             }
         }
@@ -295,7 +288,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, Gp_StrRemoveArmor);
+            Text_DrawString(&req, Gp_StrRemoveArmor);
         }
         if (prompt->field_C == 1) {
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
@@ -327,7 +320,7 @@ static void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
     s32         count;
     McItemScan* scan;
 
-    scan  = &Mc_SaveData[0].carriedItems;
+    scan  = &Mc_SaveData[0].state.carriedItems;
     table = Gp_GetItemTable(scan);
     count = 0;
     table = &table[scan->firstRow];
@@ -352,7 +345,7 @@ void Gp_EquipSelectMenuTask(Task* arg0)
     s32        val;
     Task*      parent;
 
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     menu          = &D_8010E8D4;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, Gp_StrSelectTitle);
@@ -366,13 +359,13 @@ void Gp_EquipSelectMenuTask(Task* arg0)
         menu->field_10                    = 0;
         menu->field_9.u                   = 0;
         parent                            = arg0->parent;
-        Ui_SetState4(parent->spawnArg2, parent);
+        Ui_SetState4(parent->spawnArg2.pointer, parent);
         Ui_SpawnFromDesc(&D_8010EC3C, 3, val, 0x10, obj);
         arg0->state = arg0->state + 1;
     }
     Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, (s16)obj->panel.field_18.u + 0x4A);
     Ui_UpdateListNoAnim(menu, obj);
-    rec = Gp_NthEquippableRec(&Mc_SaveData[0].carriedItems, menu->field_10, 0);
+    rec = Gp_NthEquippableRec(&Mc_SaveData[0].state.carriedItems, menu->field_10, 0);
     if (rec != NULL) {
         val = rec->itemId;
     }
@@ -386,7 +379,7 @@ void Gp_EquipSelectMenuTask(Task* arg0)
         }
     }
     func_800CF148(obj, arg0);
-    if (arg0->spawnArg1 == 0) {
+    if (arg0->spawnArg1.value == 0) {
         if (obj->field_2E == 9) {
             obj->field_2E = 6;
         }
@@ -411,7 +404,7 @@ void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
         return;
     }
     if (gDisplayState.field_112 == -1) {
-        if (Mc_SaveData[0].demoScene != 0xC) {
+        if (Mc_SaveData[0].state.demoScene != 0xC) {
             return;
         }
     }

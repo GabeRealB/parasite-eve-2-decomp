@@ -1,5 +1,4 @@
 #include "common.h"
-#include "main/stage.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -9,14 +8,6 @@
 #include <psyq/rand.h>
 
 #include "rooms/room.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/attachments.h"
@@ -27,7 +18,23 @@
 #include "gameplay/loading.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "overlay.h"
 
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -122,7 +129,7 @@ void func_shelter_b6_corridor_8017D5D0(Task* arg0)
                 D_shelter_b6_corridor_801805BC[i].speed  = ((rand() * 100) >> 15) + 20;
             }
             D_shelter_b6_corridor_8017EF20        = 0;
-            D_shelter_b6_corridor_80180568        = arg0->spawnArg2;
+            D_shelter_b6_corridor_80180568        = arg0->spawnArg2.pointer;
             D_shelter_b6_corridor_80180568->frame = 0;
             D_shelter_b6_corridor_80180568->state = 0;
             Display_ClampField126(-8);
@@ -594,7 +601,7 @@ static void func_shelter_b6_corridor_8017ECA8(Task* task)
     s16        eventState;
     u8         rgb[3];
 
-    mem        = task->spawnArg2;
+    mem        = task->spawnArg2.pointer;
     eventState = Gp_State1C->eventState;
     coord      = task->extra.tmd->coords;
     if (eventState != 0) {
@@ -609,9 +616,9 @@ static void func_shelter_b6_corridor_8017ECA8(Task* task)
         mem->angle = 0x200;
         D_shelter_b6_corridor_801851B8++;
         task->state     = 1;
-        task->spawnArg1 = D_shelter_b6_corridor_801851B8;
+        task->spawnArg1.value = D_shelter_b6_corridor_801851B8;
     }
-    if (task->spawnArg1 != D_shelter_b6_corridor_801851B8) {
+    if (task->spawnArg1.value != D_shelter_b6_corridor_801851B8) {
         goto release;
     }
     rgb[0]      = mem->scale;

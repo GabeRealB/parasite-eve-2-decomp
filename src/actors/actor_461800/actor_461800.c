@@ -8,15 +8,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/collision.h"
@@ -27,6 +18,22 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 extern Actor461800Work* D_actor_461800_80143894;
 
@@ -224,10 +231,10 @@ void func_actor_461800_8013223C(s32 arg0)
 /// been seen. With neither seen the session bails out (`field_128` / `field_12E`
 /// are the stage-load sentinels); otherwise the save header is primed and the
 /// boot loader started, with the stream RNG restored behind it. Skipped whole
-/// when `Mc_SaveData[0].demoScene` (the current screen id) is 9.
+/// when `Mc_SaveData[0].state.demoScene` (the current screen id) is 9.
 void func_actor_461800_8013229C(void)
 {
-    if (Mc_SaveData[0].demoScene != 9) {
+    if (Mc_SaveData[0].state.demoScene != 9) {
         if (GameFlag_GetNibble(0xEA) == 2) {
             Gp_SetCollectedBit(0x130);
         }
@@ -239,13 +246,13 @@ void func_actor_461800_8013229C(void)
             gGameSession->field_12E   = 0xF;
             return;
         }
-        Mc_SaveData[0].at4.loc.stage = 4;
-        Mc_SaveData[0].at4.loc.area  = 0x24;
-        Mc_SaveData[0].at4.loc.warp  = 1;
-        Mc_SaveData[0].at4.loc.room  = 1;
+        Mc_SaveData[0].state.at4.loc.stage = 4;
+        Mc_SaveData[0].state.at4.loc.area  = 0x24;
+        Mc_SaveData[0].state.at4.loc.warp  = 1;
+        Mc_SaveData[0].state.at4.loc.room  = 1;
         gDisplayState.roomVariant    = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Fs_BeginBootLoad(&Mc_SaveData[0].at4.loc.view, 0);
+        Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 0);
         Gp_RestoreStreamRng();
     }
 }
@@ -293,13 +300,13 @@ static void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     spawned1 = Task_SpawnFromTable(&D_actor_461800_80139F8C, 1, 8, 0);
     if (spawned1 != NULL) {
         D_actor_461800_80143894->helper1 = spawned1;
-        actorTintModel(spawned1->extra.tmd, (GpEnemy*)task->spawnArg2);
+        actorTintModel(spawned1->extra.tmd, (GpEnemy*)task->spawnArg2.pointer);
     }
 
     spawned2 = Task_SpawnFromTable(&D_actor_461800_80139F8C, 2, 0xC, 0);
     if (spawned2 != NULL) {
         D_actor_461800_80143894->helper2 = spawned2;
-        actorTintModel(spawned2->extra.tmd, (GpEnemy*)task->spawnArg2);
+        actorTintModel(spawned2->extra.tmd, (GpEnemy*)task->spawnArg2.pointer);
     }
 
     D_actor_461800_80143894->st.travel  = 0;
@@ -366,7 +373,7 @@ void func_actor_461800_801329B0(Task* task)
     };
 
     D_actor_461800_80143894 = (Actor461800Work*)task->work;
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Second state of the first variant's task: refreshes the model root's world
@@ -397,7 +404,7 @@ static void func_actor_461800_80132A90(Task* task)
 {
     Actor461800Work* work = (Actor461800Work*)task->work;
 
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
     taskKill(work->helper1);
     taskKill(work->helper2);
 }
@@ -433,7 +440,7 @@ void func_actor_461800_80132B74(Task* task)
     TmdObject* extra = task->extra.tmd;
     GpCoord*   coord = extra->coords;
     GpCoord*   parts = D_actor_461800_80143898->extra.tmd->coords;
-    GpCoord*   part  = parts + task->spawnArg1;
+    GpCoord*   part  = parts + task->spawnArg1.value;
     VECTOR     vec;
 
     switch (task->state) {
@@ -709,7 +716,7 @@ void func_actor_461800_80133554(Task* task)
     };
 
     D_actor_461800_801438A0 = (Actor151000Work*)task->work;
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Second state of the second variant's task: refreshes the model root's world
@@ -737,7 +744,7 @@ static void func_actor_461800_801335B0(GpEnemy* enemy, Task* task)
 /// `Gp_DestroyEnemy`.
 static void func_actor_461800_80133634(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Footstep sounds of the second variant: whenever animation slot 1 rolls onto

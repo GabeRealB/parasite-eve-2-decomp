@@ -8,7 +8,7 @@
 // --- from main (28 symbols)
 CdVol_SetMixMode = 0x800260B0; // absolute:True
 Pad_CheckButtons = 0x8002C868; // absolute:True
-func_8002E53C = 0x8002E53C; // absolute:True
+Text_DrawString = 0x8002E53C; // absolute:True
 Text_DrawPrompt = 0x8002FDCC; // absolute:True
 Mc_ResetSaveFlags = 0x80033A70; // absolute:True
 Snd_ApplyVolumeTable = 0x800429C8; // absolute:True

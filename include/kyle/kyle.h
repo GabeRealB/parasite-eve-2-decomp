@@ -7,8 +7,8 @@
 
 #include "common.h"
 
-#include "main/task.h"
-#include "main/tmd.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 /// Task entries the resident task descriptor tables name.
 void func_kyle_800102_801682B4(Task* arg0);

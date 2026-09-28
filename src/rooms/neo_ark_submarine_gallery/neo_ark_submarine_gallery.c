@@ -4,16 +4,7 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/gfxgte.h"
 #include <psyq/rand.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/mc.h"
-#include "main/sound.h"
 #include "rooms/room.h"
 
 #include "gameplay/actor_render.h"
@@ -23,6 +14,17 @@
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gfx.h"
+#include "main/gfxgte.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -40,7 +42,7 @@ extern GpFadeWork D_neo_ark_submarine_gallery_8018591C;
 /// Staging save location the gallery commits: `field_2` / `field_4` / `field_1`
 /// hold what `func_neo_ark_submarine_gallery_8017EA0C` copies out of the
 /// incoming location, and `func_neo_ark_submarine_gallery_8017E86C` moves those
-/// same three bytes into `Mc_SaveData[0].at4.loc.area` / `field_8` / `field_5`.
+/// same three bytes into `Mc_SaveData[0].state.at4.loc.area` / `field_8` / `field_5`.
 extern GpSaveLoc D_neo_ark_submarine_gallery_80185924;
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
@@ -293,7 +295,7 @@ void func_neo_ark_submarine_gallery_8017D678(Task* task)
         task->killCountdown    = rand();
         task->state++;
     }
-    prim = (POLY_FT4*)D_8005C374;
+    prim = (POLY_FT4*)Fs_ActorLoadBase2;
     disp = &gDisplayState;
     if (disp->otBuffer != 0) {
         prim += 488;
@@ -640,9 +642,9 @@ void func_neo_ark_submarine_gallery_8017E2CC(Task* task)
     }
 
     if (area == 12 && loc->place == 3) {
-        size  = 0x30000 - D_8006D860;
+        size  = 0x30000 - Fs_ChunkOutputSizes[0];
         size &= ~7;
-        base  = (u8*)D_8005C36C - (size - 0x30000);
+        base  = (u8*)Fs_ActorLoadBase0 - (size - 0x30000);
         if (size < sizeof(POLY_FT4) * 976) {
             return;
         }
@@ -651,7 +653,7 @@ void func_neo_ark_submarine_gallery_8017E2CC(Task* task)
         }
         prim = (POLY_FT4*)base - 1;
     } else {
-        prim = (POLY_FT4*)((u8*)D_8005C374 + 0x9880);
+        prim = (POLY_FT4*)((u8*)Fs_ActorLoadBase2 + 0x9880);
         if (gDisplayState.otBuffer != 0) {
             prim += 488;
         }
@@ -795,7 +797,7 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             D_neo_ark_submarine_gallery_8018591C.field_0 = 0;
             D_neo_ark_submarine_gallery_8018591C.field_1 = 0;
             D_neo_ark_submarine_gallery_8018591C.field_2 = 0x1E;
-            Task_Spawn(1, 0x31, 0, (s32)&D_neo_ark_submarine_gallery_8018591C);
+            Task_Spawn(1, 0x31, 0, &D_neo_ark_submarine_gallery_8018591C);
             SndEvt_EnqueueType6(0x551E0001, 0, 0);
             arg0->state++;
             break;
@@ -806,9 +808,9 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             break;
         case 5:
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_neo_ark_submarine_gallery_80185924.field_2;
-            Mc_SaveData[0].at4.loc.warp = D_neo_ark_submarine_gallery_80185924.field_4;
-            Mc_SaveData[0].at4.loc.room = D_neo_ark_submarine_gallery_80185924.prefix.bytes.field_1;
+            Mc_SaveData[0].state.at4.loc.area = D_neo_ark_submarine_gallery_80185924.field_2;
+            Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_submarine_gallery_80185924.field_4;
+            Mc_SaveData[0].state.at4.loc.room = D_neo_ark_submarine_gallery_80185924.prefix.bytes.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;

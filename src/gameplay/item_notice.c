@@ -9,14 +9,12 @@
 #include "items.h"
 #include "scene_runtime.h"
 
-#include "main/coord.h"
 #include "main/display.h"
 #include "main/gamemain.h"
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/stage.h"
 #include "main/task.h"
-#include "main/tmd.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
 
@@ -55,7 +53,7 @@ void func_800B65B0(Task* task)
     u32*          flags;
     u32*          current;
 
-    work = task->spawnArg2;
+    work = task->spawnArg2.pointer;
     if (task->state == 0) {
         GameMain_SetFrameTiming(0);
         if (Gp_LookupBit2Item(work->field_0) == 0) {
@@ -86,9 +84,9 @@ void func_800B65B0(Task* task)
                 gDisplayState.gameMode = 0xFF;
                 cfg                    = &Player_Status;
                 save                   = &Mc_SaveData[0];
-                save->playerExp        = cfg->exp;
-                save->playerBp         = cfg->bp;
-                save->savePoint        = Gp_PubItemLoc;
+                save->state.playerExp        = cfg->exp;
+                save->state.playerBp         = cfg->bp;
+                save->state.savePoint        = Gp_PubItemLoc;
                 Stage_InitPrimBufOnce();
                 desc = &D_8010D348;
                 break;
@@ -103,7 +101,7 @@ void func_800B65B0(Task* task)
         } else {
             work->field_4 = 1;
         }
-        spawned = Ui_SpawnFromDesc(desc, (s8)(work->field_4 ^ 1), 1, 1, NULL);
+        spawned = Ui_SpawnFromDesc(desc, (s32)((s8)(work->field_4 ^ 1)), 1, 1, NULL);
         if (spawned != NULL) {
             task->firstChild = spawned->owner;
             task->state++;
@@ -112,7 +110,7 @@ void func_800B65B0(Task* task)
     if (task->state < 0x10) {
         child = task->firstChild;
         if (child != NULL) {
-            ui = child->spawnArg2;
+            ui = child->spawnArg2.pointer;
             if (ui->field_2E == -1 || ui->field_2E == 6) {
                 switch (Gp_PubItemLoc >> 8) {
                     case 0:
@@ -123,7 +121,7 @@ void func_800B65B0(Task* task)
                             shift   = (id & 0xF) * 2;
                             mask    = 3 << shift;
                             if (((*current & mask) >> shift) != 3) {
-                                flags  = Gp_Bit2Banks[Mc_SaveData[0].at4.loc.stage].field_4 + (id >> 4);
+                                flags  = Gp_Bit2Banks[Mc_SaveData[0].state.at4.loc.stage].field_4 + (id >> 4);
                                 *flags = (*flags & ~mask) | (2 << shift);
                             }
                             work->field_3 = 1;

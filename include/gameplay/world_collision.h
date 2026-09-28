@@ -1,6 +1,8 @@
 #ifndef GAMEPLAY_WORLD_COLLISION_H
 #define GAMEPLAY_WORLD_COLLISION_H
 
+struct Task;
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -10,11 +12,11 @@
 #include "gameplay/collision.h"
 #include "gameplay/geometry.h"
 
-#include "main/session.h"
+#include "main/session_types.h"
 
 // Collision lists, contact records, room grids and collision updates.
 
-void Gp_TickWorldCollision(void);
+void Gp_TickWorldCollision(struct Task* unused);
 
 extern s32 Gp_RoomParams[8];
 

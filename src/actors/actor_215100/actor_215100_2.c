@@ -6,18 +6,6 @@
 #include "actors/actor.h"
 #include "actors/actors_shared_80132614.h"
 #include "actors/actors_shared_801326ac.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -32,7 +20,30 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/cap.h"
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/tmd.h"
 #include "main/wipsys.h"
+#include "overlay.h"
+#include <psyq/strings.h>
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -225,7 +236,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            if (arg0->spawnArg1 == 2) {
+            if (arg0->spawnArg1.value == 2) {
                 arg0->state = 1;
                 break;
             }
@@ -238,7 +249,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
                 taskKill(arg0);
                 break;
             }
-            if (arg0->spawnArg1 != 0) {
+            if (arg0->spawnArg1.value != 0) {
                 if (GameFlag_GetNibble(0xED) != 0) {
                     Gp_RunCapCmd1(0x17);
                 }
@@ -263,14 +274,14 @@ void func_actor_215100_8014A5C0(Task* arg0)
         case 1:
             if (Gp_CapBusy() == 0) {
                 Player_Status.field_26    = 3;
-                Mc_SaveData[0].sceneEvent = 1;
+                Mc_SaveData[0].state.sceneEvent = 1;
                 Gp_ClearInventory();
                 gGameSession->hideHud = 1;
                 SndEvt_EnqueueType6(0x51140005, 0, 0);
                 gDisplayState.roomVariant   = 1;
-                Mc_SaveData[0].at4.loc.area = D_actor_215100_8015E678.field_0;
-                Mc_SaveData[0].at4.loc.warp = D_actor_215100_8015E678.field_2;
-                Mc_SaveData[0].at4.loc.room = D_actor_215100_8015E678.field_3;
+                Mc_SaveData[0].state.at4.loc.area = D_actor_215100_8015E678.field_0;
+                Mc_SaveData[0].state.at4.loc.warp = D_actor_215100_8015E678.field_2;
+                Mc_SaveData[0].state.at4.loc.room = D_actor_215100_8015E678.field_3;
                 Task_Spawn(0, 0x11, 0, 0);
                 taskKill(arg0);
             }
@@ -304,7 +315,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
             break;
         case 1:
             Gp_MsgPlayerWeapon(0);
-            Mc_SaveData[0].at4.loc.view = 8;
+            Mc_SaveData[0].state.at4.loc.view = 8;
             func_801811C0(0);
             arg0->state++;
             break;
@@ -328,7 +339,7 @@ static void func_actor_215100_8014A908(void)
 {
     D_actor_215100_8014D038 = 0;
     if (D_actor_215100_8015E670 < 3) {
-        Mc_SaveData[0].at4.loc.view = 8;
+        Mc_SaveData[0].state.at4.loc.view = 8;
         func_801811C0(0);
     } else {
         func_80180390(1);
@@ -556,7 +567,7 @@ static void func_actor_215100_8014AFAC(Task* task, s32 arg1)
                 }
             }
             if (script != 0) {
-                func_actor_215100_8014B2B8(script, key, (s16)task->spawnArg1);
+                func_actor_215100_8014B2B8(script, key, (s16)task->spawnArg1.value);
                 func_actor_215100_8014B0D4();
             }
             if ((Gp_CapBusy() == 0) && (Gp_StateF0.field_4 == 0)) {
@@ -1115,8 +1126,8 @@ void func_actor_215100_8014C46C(Task* task)
 {
     s32 remaining;
 
-    remaining       = task->spawnArg1 - 1;
-    task->spawnArg1 = remaining;
+    remaining       = task->spawnArg1.value - 1;
+    task->spawnArg1.value = remaining;
     if (remaining <= 0) {
         taskKill(task);
     }
@@ -1134,8 +1145,8 @@ void func_actor_215100_8014C4A8(Task* task)
             task->state = 1;
             break;
         case 1:
-            remaining       = task->spawnArg1 - 1;
-            task->spawnArg1 = remaining;
+            remaining       = task->spawnArg1.value - 1;
+            task->spawnArg1.value = remaining;
             if ((remaining <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0)) {
                 taskKill(task);
                 Stage_SetEndingFlag();
@@ -1148,7 +1159,7 @@ void func_actor_215100_8014C4A8(Task* task)
 static void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2)
 {
     func_actor_215100_8014B2B8(arg0, arg1, 0xD0);
-    Task_SpawnFromTable(&D_actor_215100_801544FC, 0, arg2, 0);
+    Task_SpawnFromTable(&D_actor_215100_801544FC, 0, (s32)(arg2), 0);
 }
 
 static void func_actor_215100_8014C58C(s16 arg0, s16 arg1, s16 arg2)
@@ -1276,7 +1287,7 @@ void func_actor_215100_8014CA2C(Task* task)
         func_actor_215100_8014CA80,
     };
 
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// State-1 handler of the actor's dispatcher: recomputes the root part's
@@ -1302,7 +1313,7 @@ static void func_actor_215100_8014CA80(GpEnemy* enemy, Task* task)
 /// Exit callback: hands the task's `GpEnemy` back to `Gp_DestroyEnemy`.
 static void func_actor_215100_8014CB04(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Draws the actor's ground shadow under its root part, unless the model's

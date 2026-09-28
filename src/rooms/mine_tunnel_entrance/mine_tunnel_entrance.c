@@ -1,16 +1,9 @@
 #include "common.h"
-#include "main/stage.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -18,7 +11,15 @@
 #include "gameplay/display.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
-#include "main/fs.h"
+
+#include "gameplay/scene.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/stage.h"
+#include "main/task.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -84,8 +85,8 @@ static void func_mine_tunnel_entrance_8017D644(Task* arg0)
 /// State 1 of the room task: moves the saved scene event from 9 on to 10.
 static void func_mine_tunnel_entrance_8017D690(Task* task)
 {
-    if (Mc_SaveData[0].sceneEvent == 9) {
-        Mc_SaveData[0].sceneEvent = 0xA;
+    if (Mc_SaveData[0].state.sceneEvent == 9) {
+        Mc_SaveData[0].state.sceneEvent = 0xA;
     }
 }
 

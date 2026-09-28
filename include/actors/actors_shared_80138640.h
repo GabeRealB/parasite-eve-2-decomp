@@ -6,7 +6,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 typedef struct ActorShared80138640Work {
     /* 0x000 */ byte    pad_0[0x33C];

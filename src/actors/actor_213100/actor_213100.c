@@ -1,13 +1,7 @@
 #include "common.h"
-#include "main/gfx.h"
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013231c.h"
-
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/display.h"
@@ -16,7 +10,13 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/scene.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 /// Work block the spawn state `func_actor_213100_8014A118` allocates
 /// (`memCalloc(0x488)`) and parks in `Task::work` -- that slot is not a
@@ -153,8 +153,8 @@ static void func_actor_213100_8014A03C(Task* task)
     GpCoord*   coord;
     GpCoord*   dest;
 
-    parent          = (Task*)task->spawnArg2;
-    part            = task->spawnArg1;
+    parent          = (Task*)task->spawnArg2.pointer;
+    part            = task->spawnArg1.value;
     extra           = task->extra.tmd;
     parentExtra     = parent->extra.tmd;
     coord           = extra->coords;
@@ -214,7 +214,7 @@ static void func_actor_213100_8014A118(Task* arg0)
     work->field_43D = -1;
     work->field_43E = -1;
     work->field_484 = -1;
-    child           = Task_SpawnFromTable(&D_actor_213100_801521A8, 1, 8, (s32)arg0);
+    child           = Task_SpawnFromTable(&D_actor_213100_801521A8, 1, 8, arg0);
     work->field_480 = child;
     if (child == NULL) {
         Gp_EnemyTaskExit(arg0);

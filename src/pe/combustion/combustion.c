@@ -2,16 +2,11 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "pe/combustion.h"
 
+#include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
 #include "gameplay/actor_render.h"
 #include "gameplay/attachments.h"
@@ -19,9 +14,17 @@
 #include "gameplay/pad_script.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 static void func_combustion_8012F5EC(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_combustion_8012FB14(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
@@ -60,13 +63,13 @@ static void func_combustion_8012EF34(Task* arg0)
     s32         pan;
     u8          rgb[3];
 
-    mem      = arg0->spawnArg2;
+    mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.tmd->coords;
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
-            if (arg0->spawnArg1 == 0) {
-                arg0->spawnArg1 = 1;
+            if (arg0->spawnArg1.value == 0) {
+                arg0->spawnArg1.value = 1;
             }
             D_combustion_801309A4 = coord->workm.t[1];
             rot                   = (GpMtxWords*)&coord->coord;
@@ -79,7 +82,7 @@ static void func_combustion_8012EF34(Task* arg0)
             coord->coord.t[0]     = 0;
             coord->coord.t[1]     = -0x400;
             coord->coord.t[2]     = 0;
-            Gfx_RotMatrixY(&coord->coord, arg0->spawnArg1 << 9, 0);
+            Gfx_RotMatrixY(&coord->coord, arg0->spawnArg1.value << 9, 0);
             coord->flg = 0;
             Gp_UpdateCoord(coord);
             mem->move.vz = 0x200;
@@ -119,7 +122,7 @@ static void func_combustion_8012EF34(Task* arg0)
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
-            Gfx_RotMatrixY(&coord->coord, -(arg0->spawnArg1 * 80), 0);
+            Gfx_RotMatrixY(&coord->coord, -(arg0->spawnArg1.value * 80), 0);
             coord->flg = 0;
             break;
     }
@@ -150,7 +153,7 @@ static void func_combustion_8012F2BC(Task* arg0)
     s32         spawnRng2b;
     s32         last;
 
-    mem      = arg0->spawnArg2;
+    mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.tmd->coords;
     mem->age = mem->age + 1;
     switch (arg0->state) {
@@ -171,11 +174,11 @@ static void func_combustion_8012F2BC(Task* arg0)
 
             rng         = Gp_LcgState * 5 + 0x71357911;
             mem->age    = ((u32)rng >> 16) & 0xF;
-            mem->scale  = arg0->spawnArg1 * 32 + 512;
+            mem->scale  = arg0->spawnArg1.value * 32 + 512;
             mem->index  = Gp_StateC08.field_0 % 10 - 1;
             last        = D_combustion_80130980[mem->index].field_4;
             Gp_LcgState = rng;
-            if (last < arg0->spawnArg1) {
+            if (last < arg0->spawnArg1.value) {
                 arg0->state = 2;
                 return;
             }
@@ -324,7 +327,7 @@ static void func_combustion_8012F888(Task* arg0)
     s32        hi;
     s32        tmp2;
 
-    mem      = arg0->spawnArg2;
+    mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.tmd->coords;
     mem->age = mem->age + 1;
     state    = arg0->state;
@@ -342,7 +345,7 @@ static void func_combustion_8012F888(Task* arg0)
             tmp          = mem->step;
             mem->move.vy = -hi - (tmp << 6);
             Gp_LcgState  = rng2;
-            arg0->state  = arg0->spawnArg1 + 1;
+            arg0->state  = arg0->spawnArg1.value + 1;
             tmp2         = mem->step;
             mem->angle   = (tmp2 << 8) + 0x300;
             if (mem->step >= 2) {
@@ -676,7 +679,7 @@ static void func_combustion_801308E0(Task* arg0)
     GpCoord* coord;
 
     if (arg0->state != 0) {
-        Gp_ReleaseState1CMem(arg0->spawnArg2, arg0);
+        Gp_ReleaseState1CMem(arg0->spawnArg2.pointer, arg0);
         return;
     }
     coord = arg0->extra.tmd->coords;

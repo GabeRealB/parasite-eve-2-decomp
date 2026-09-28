@@ -7,15 +7,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/attachments.h"
 #include "gameplay/display.h"
@@ -24,8 +15,23 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/evs.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflow.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
 #include "main/wipsys.h"
+#include "overlay.h"
 
 /// The overlay's spawn table: entries 1 and 2 are spawned by the one-line
 /// spawners the scene script calls, 3 by the waypoint walker for each new
@@ -149,7 +155,7 @@ STATIC_ASSERT_SIZEOF(Actor121300DebrisWork, 0x5C);
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 message 0x3E8 record is keyed on,
-/// `Mc_SaveData[0].characterId` picks which of the two weapon-id bases that record uses, and
+/// `Mc_SaveData[0].state.characterId` picks which of the two weapon-id bases that record uses, and
 /// `gDisplayState.pendingMode` / `Gp_StateC08.field_A` (the cutscene mode flag) gate the actor's setup.
 
 extern void func_8017F334(s32 arg0);
@@ -221,7 +227,7 @@ void func_actor_121300_80131EB0(Task* arg0)
                 D_actor_121300_8013D470[i].speed  = (rand() * 100 + 20) >> 15;
             }
             D_actor_121300_8013BBE4        = 0;
-            D_actor_121300_8013D414        = arg0->spawnArg2;
+            D_actor_121300_8013D414        = arg0->spawnArg2.pointer;
             D_actor_121300_8013D414->frame = 0;
             D_actor_121300_8013D414->state = 0;
             Display_ClampField126(-8);
@@ -363,9 +369,9 @@ void func_actor_121300_801326EC(Task* arg0)
             break;
         case 3:
             Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->b, 2);
-            fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1);
-            fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1);
-            fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1);
+            fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1.value);
+            fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1.value);
+            fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1.value);
             if (fade->r < 0) {
                 taskKill(arg0);
             }
@@ -446,10 +452,10 @@ void func_actor_121300_8013293C(Task* arg0)
             work = alloc;
             Mem_Set(work, 0, 0x5C);
             coord->sub        = &gGfxViewCoord;
-            coord->coord.t[0] = D_actor_121300_8013CC20[arg0->spawnArg1].x;
-            coord->coord.t[1] = D_actor_121300_8013CC20[arg0->spawnArg1].y;
-            coord->coord.t[2] = D_actor_121300_8013CC20[arg0->spawnArg1].z;
-            switch ((u32)arg0->spawnArg2) {
+            coord->coord.t[0] = D_actor_121300_8013CC20[arg0->spawnArg1.value].x;
+            coord->coord.t[1] = D_actor_121300_8013CC20[arg0->spawnArg1.value].y;
+            coord->coord.t[2] = D_actor_121300_8013CC20[arg0->spawnArg1.value].z;
+            switch (arg0->spawnArg2.unsignedValue) {
                 case 0:
                 case 14:
                     break;
@@ -642,9 +648,9 @@ void func_actor_121300_8013322C(Task* arg0)
     RECT rect;
     s32  page;
 
-    switch (arg0->spawnArg1) {
+    switch (arg0->spawnArg1.value) {
         case 0:
-            page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->work)->field_4AC;
+            page   = ((Actor121300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4AC;
             page <<= 6;
             page  += 0x180;
             rect.x = page;
@@ -652,7 +658,7 @@ void func_actor_121300_8013322C(Task* arg0)
             rect.w = 0x19;
             rect.h = 0x14;
             LoadImage(&rect, D_actor_121300_8013BBE8);
-            page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->work)->field_4AC;
+            page   = ((Actor121300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4AC;
             page <<= 6;
             page  += 0x18C;
             rect.x = page;
@@ -665,7 +671,7 @@ void func_actor_121300_8013322C(Task* arg0)
         case 1:
             switch (arg0->state) {
                 case 0:
-                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->work)->field_4AC;
+                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4AC;
                     page <<= 6;
                     page  += 0x180;
                     rect.x = page;
@@ -676,7 +682,7 @@ void func_actor_121300_8013322C(Task* arg0)
                     arg0->state++;
                     break;
                 case 1:
-                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->work)->field_4AC;
+                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4AC;
                     page <<= 6;
                     page  += 0x180;
                     rect.x = page;
@@ -691,7 +697,7 @@ void func_actor_121300_8013322C(Task* arg0)
         case 2:
             switch (arg0->state) {
                 case 0:
-                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->work)->field_4AC;
+                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4AC;
                     page <<= 6;
                     page  += 0x180;
                     rect.x = page;
@@ -702,7 +708,7 @@ void func_actor_121300_8013322C(Task* arg0)
                     arg0->state++;
                     break;
                 case 1:
-                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->work)->field_4AC;
+                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4AC;
                     page <<= 6;
                     page  += 0x180;
                     rect.x = page;
@@ -718,7 +724,7 @@ void func_actor_121300_8013322C(Task* arg0)
             break;
         case 4:
         case 5:
-            page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->work)->field_4AC;
+            page   = ((Actor121300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4AC;
             page <<= 6;
             page  += 0x18C;
             rect.x = page;
@@ -835,7 +841,7 @@ static void func_actor_121300_80133730(Task* arg0)
                         func_8017F340((u8)(work->field_4A6 - 1), 1);
                     }
                     func_8017F334(work->field_4A6 + 1);
-                    Task_SpawnFromTable(&D_actor_121300_8013D390, 3, work->field_4A6, 0);
+                    Task_SpawnFromTable(&D_actor_121300_8013D390, 3, (s32)(work->field_4A6), 0);
                     work->field_4A4 = 0;
                     work->field_4A6 = (s16)((u16)work->field_4A6 + 1);
                 }
@@ -902,7 +908,7 @@ static void func_actor_121300_80133854(Task* arg0)
                 func_actor_121300_SetCC04(10);
                 work->wave.span  = 0x3C;
                 work->wave.scale = 0x100;
-                work->field_48C  = Task_SpawnFromTable(&D_actor_121300_8013BBCC, 0, 0, (s32)&work->wave);
+                work->field_48C  = Task_SpawnFromTable(&D_actor_121300_8013BBCC, 0, 0, &work->wave);
                 work->field_49A++;
             }
         case 3:
@@ -953,7 +959,7 @@ static void func_actor_121300_80133854(Task* arg0)
                 case 0:
                     work->wave.span  = 8;
                     work->wave.scale = 0x100;
-                    work->field_48C  = Task_SpawnFromTable(&D_actor_121300_8013BBCC, 0, 0, (s32)&work->wave);
+                    work->field_48C  = Task_SpawnFromTable(&D_actor_121300_8013BBCC, 0, 0, &work->wave);
                     work->field_49C  = 0;
                     work->field_49A++;
                     break;
@@ -1071,7 +1077,7 @@ void func_actor_121300_80133D98(Task* arg0)
         case 0:
             if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
                 weaponId                    = Player_Status.weapon;
-                anim                        = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                anim                        = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 scratch.msg.animBlock.index = anim;
                 scratch.msg.field_4         = 1;
                 scratch.msg.field_8         = 0;
@@ -1103,9 +1109,9 @@ void func_actor_121300_80133D98(Task* arg0)
             ClearImage(&scratch.rect, 0, 0, 0);
             Mem_Set(Fs_ImgBuffers, 0, 0x25800);
             SetDispMask(1);
-            Mc_SaveData[0].at4.loc.stage = state;
-            Mc_SaveData[0].at4.loc.area  = 9;
-            Mc_SaveData[0].at4.loc.warp  = state;
+            Mc_SaveData[0].state.at4.loc.stage = state;
+            Mc_SaveData[0].state.at4.loc.area  = 9;
+            Mc_SaveData[0].state.at4.loc.warp  = state;
             gDisplayState.roomVariant    = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
@@ -1142,9 +1148,9 @@ void func_actor_121300_8013400C(Task* arg0)
             /* fallthrough */
         case 1:
             Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
-            fade->r = (s16)((u16)fade->r + (u16)arg0->spawnArg1);
-            fade->g = (s16)((u16)fade->g + (u16)arg0->spawnArg1);
-            fade->b = (s16)((u16)fade->b + (u16)arg0->spawnArg1);
+            fade->r = (s16)((u16)fade->r + (u16)arg0->spawnArg1.value);
+            fade->g = (s16)((u16)fade->g + (u16)arg0->spawnArg1.value);
+            fade->b = (s16)((u16)fade->b + (u16)arg0->spawnArg1.value);
             if (fade->r < 0x100) {
                 return;
             }

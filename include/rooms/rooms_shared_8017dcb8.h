@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 /// Packed view of Task::spawnArg1 for the drifting room effect. The low
 /// halfword supplies mode and drawing flags; the upper bytes supply vertical

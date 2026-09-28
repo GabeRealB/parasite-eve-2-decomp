@@ -1,11 +1,4 @@
 #include "common.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include "weapons/gunblade.h"
 
 #include "gameplay/display.h"
@@ -14,13 +7,20 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
-#include "main/fs.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/effects.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/task.h"
+#include "main/wipsys.h"
 
 /// `Player_Status.weaponSlotItem`, the attachment id of the held weapon, read under
 /// its own address wherever the value is wanted once rather than as one of a
 /// run of accesses to the config block.
 
-/// `Mc_SaveData[0].characterId`, the 1-based difficulty/mode row of `D_80112E04`.
+/// `Mc_SaveData[0].state.characterId`, the 1-based difficulty/mode row of `D_80112E04`.
 
 /// Per-frame firing state machine for the gunblade. State 0 arms the shot and
 /// raises the weapon (clip 6 instead of 1 when it was already up), state 1
@@ -195,7 +195,7 @@ static void func_gunblade_8011E040(Task* arg0)
             /* fallthrough */
         case 7:
             actor->field_12A &= 0x3FFF;
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0) {
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0) {
                 func_80106550(arg0);
             }
             break;

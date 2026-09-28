@@ -285,7 +285,7 @@ attempts, because the seed *looks* authoritative.
   loads `$a0` — GCC knew `$a0` already held the value and emitted no `move`.
   Typing it as zero-argument is not merely wrong, it becomes impossible once the
   callee is prototyped in the same TU.
-- **`func(0)` from a delay-slot `addu a1, zero, zero` is `func(arg0, 0)`** —
+- **`func(0)` from a delay-slot `addu a1, zero, zero` is `func(index, 0)`** —
   same cause, one argument along.
 - **`argN` names encode the register slot**, not the source order, so a dropped
   leading parameter shifts every name.

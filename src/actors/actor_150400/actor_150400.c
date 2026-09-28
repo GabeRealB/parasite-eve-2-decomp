@@ -4,13 +4,6 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/loading.h"
@@ -22,7 +15,19 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 extern TaskDesc D_actor_150400_80132CF0;
 extern TaskDesc D_80181BBC;
@@ -60,7 +65,7 @@ void func_actor_150400_80131E24(Task* task)
     if (task->state == 0) {
         coord->coord.t[0] = 0x2DA;
         coord->coord.t[1] = -0x564;
-        if (task->spawnArg1 == 1) {
+        if (task->spawnArg1.value == 1) {
             coord->coord.t[2] = -0x116C;
         } else {
             coord->coord.t[2] = -0x1018;
@@ -75,7 +80,7 @@ void func_actor_150400_80131E24(Task* task)
         }
         coord->flg = 0;
     }
-    if (Mc_SaveData[0].at4.loc.view != 5) {
+    if (Mc_SaveData[0].state.at4.loc.view != 5) {
         obj->flags = 0x84;
     } else {
         obj->flags    = 0;
@@ -85,15 +90,15 @@ void func_actor_150400_80131E24(Task* task)
 
 void func_actor_150400_80131ECC(void)
 {
-    if (Mc_SaveData[0].demoScene != 9) {
+    if (Mc_SaveData[0].state.demoScene != 9) {
         SetDispMask(1);
         GameFlag_SetNibble(0xE5, 1);
         Gp_EnqueueConfigCd(1);
         Gp_ApplyAreaRecs(&D_80183BE0);
-        Mc_SaveData[0].at4.loc.stage = 4;
-        Mc_SaveData[0].at4.loc.area  = 0x21;
-        Mc_SaveData[0].at4.loc.warp  = 4;
-        Mc_SaveData[0].at4.loc.room  = 1;
+        Mc_SaveData[0].state.at4.loc.stage = 4;
+        Mc_SaveData[0].state.at4.loc.area  = 0x21;
+        Mc_SaveData[0].state.at4.loc.warp  = 4;
+        Mc_SaveData[0].state.at4.loc.room  = 1;
         gDisplayState.roomVariant    = 1;
         Task_Spawn(0, 0x11, 0, 0);
         Gp_RestoreStreamRng();
@@ -214,7 +219,7 @@ void func_actor_150400_801323E0(Task* task)
         func_actor_150400_80132434,
     };
 
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// State-1 handler of the actor's task, run every frame: refreshes the model
@@ -242,7 +247,7 @@ static void func_actor_150400_80132434(GpEnemy* enemy, Task* task)
 /// `Gp_DestroyEnemy`.
 static void func_actor_150400_801324B8(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Draws the actor's ground shadow under its root part, unless the model is

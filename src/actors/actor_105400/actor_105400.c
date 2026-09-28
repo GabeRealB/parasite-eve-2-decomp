@@ -5,13 +5,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013391c.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/wipsys.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/area_transitions.h"
@@ -24,8 +17,26 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/message.h"
+#include "gameplay/pairsrc.h"
+#include "gameplay/world_state.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task_types.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
+#include "overlay.h"
 
 /// Spawn offsets at `D_actor_105400_80133A30`: the spawn reads only the second
 /// vector, `field_8`, into the enemy's body position and the second list
@@ -93,7 +104,7 @@ static void func_actor_105400_80131E3C(Task* arg0)
     scr    = SCRATCH_PUSH(Actor05300Scratch);
     coord  = arg0->extra.tmd->coords;
     work   = arg0->work;
-    enemy  = arg0->spawnArg2;
+    enemy  = arg0->spawnArg2.pointer;
     lastId = 0;
     if (work->field_332 != 0) {
         work->field_332--;
@@ -155,7 +166,7 @@ static void func_actor_105400_80131E3C(Task* arg0)
         if (val > 0) {
             work->field_332 = val;
         }
-        snd = D_actor_105400_8013CE50[2] | ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8);
+        snd = D_actor_105400_8013CE50[2] | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8);
         SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
     }
 end:
@@ -197,7 +208,7 @@ static void func_actor_105400_8013222C(Task* arg0)
                     Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
                     work->field_32A = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
                     sndId           = D_actor_105400_8013CE5C |
-                            ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8);
+                            ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8);
                     pan = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(sndId, pan, (s8)gpGetObjDepth(coord));
                 } else {
@@ -299,7 +310,7 @@ static void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
             pos.vx = coord->workm.t[0];
             pos.vy = coord->workm.t[1];
             pos.vz = coord->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2, &pos, 0, 0);
+            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             return;
         case 2:
             obj->flags = 0x80;
@@ -411,7 +422,7 @@ static void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
             pos.vx = tmp->workm.t[0];
             pos.vy = tmp->workm.t[1];
             pos.vz = tmp->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2, &pos, 0, 0);
+            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             break;
         case 2:
             break;
@@ -460,7 +471,7 @@ static void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
     pos.vx = tmp->workm.t[0];
     pos.vy = tmp->workm.t[1];
     pos.vz = tmp->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2, &pos, 0, 0);
+    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
     if ((s16)work->field_32E == 2 && (s16)work->field_330 == 1) {
         Gp_DestroyEnemy(arg0, arg1);
     }
@@ -725,7 +736,7 @@ static void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
         tmdProcessStream(model);
         tmdProcessStream(model);
     }
-    sound           = D_actor_105400_8013CE60 | ((((GpEnemy*)arg1->spawnArg2)->placeKey >> 12) << 8);
+    sound           = D_actor_105400_8013CE60 | ((((GpEnemy*)arg1->spawnArg2.pointer)->placeKey >> 12) << 8);
     work->field_31C = sound;
     SndEvt_EnqueueType6(sound, D_actor_105400_8013CE64[gGameSession->at4.loc.view].field_0,
                         D_actor_105400_8013CE64[gGameSession->at4.loc.view].field_2);
@@ -798,7 +809,7 @@ static void func_actor_105400_80133530(Task* arg0)
     s16             timer;
 
     work  = arg0->work;
-    enemy = arg0->spawnArg2;
+    enemy = arg0->spawnArg2.pointer;
     if ((work->field_336 == 0) && (enemy->hp < work->field_33C)) {
         timer           = work->field_33E - 1;
         work->field_33E = timer;
@@ -821,7 +832,7 @@ static void func_actor_105400_801335B8(Task* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2, &vec, 0, 0);
+    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
 /// Pose tick. When the pose asked for (`field_320`) differs from the one the
@@ -915,7 +926,7 @@ void func_actor_105400_801337DC(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = D_actor_105400_80131E24;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
 /// Teardown handler of the part task (its state 2), ticking only while the
@@ -1004,5 +1015,5 @@ void func_actor_105400_801339A4(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = D_actor_105400_80131E30;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }

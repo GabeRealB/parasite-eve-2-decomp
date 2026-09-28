@@ -3,8 +3,7 @@
 
 #include "gameplay/area_flags.h"
 
-#include "main/session.h"
-#include "main/task.h"
+#include "main/task_types.h"
 
 // Area transitions and persistent area-flag updates.
 

@@ -7,8 +7,7 @@
 
 #include "common.h"
 
-#include "main/task.h"
-#include "main/tmd.h"
+#include "main/tmd_types.h"
 
 /// Models named after the package that holds them.
 extern TmdSource D_aya_10200_80115B90;

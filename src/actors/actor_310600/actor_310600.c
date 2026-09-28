@@ -1,13 +1,8 @@
 #include "common.h"
-#include "main/gfx.h"
 
 #include <psyq/libgte.h>
 
 #include "actors/actor.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/display.h"
@@ -18,7 +13,14 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/scene.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 /// 0x538-byte work block `func_actor_310600_80161E64` allocates with
 /// `memCalloc` and hangs off `Task::work`. The display node at `obj` is
@@ -158,7 +160,7 @@ static void func_actor_310600_80161E64(Task* task)
     work->field_518 = 0;
     work->field_51C = 0;
     work->field_520 = 0;
-    Task_SpawnFromTable(D_actor_310600_801796A4, 1, 8, (s32)task);
+    Task_SpawnFromTable(D_actor_310600_801796A4, 1, 8, task);
     func_actor_310600_80162A58(task);
     obj           = &work->obj;
     obj->coord    = &task->extra.tmd->coords[1];
@@ -479,7 +481,7 @@ static void func_actor_310600_801627A4(Task* task)
     GpCoord*   coords;
     GpCoord*   root;
 
-    parent      = task->spawnArg2;
+    parent      = task->spawnArg2.pointer;
     obj         = task->extra.tmd;
     parentObj   = parent->extra.tmd;
     coords      = parentObj->coords;
@@ -495,7 +497,7 @@ static void func_actor_310600_801627A4(Task* task)
         obj->flags |= 4;
     }
     obj->otOffset = -2;
-    coords       += task->spawnArg1;
+    coords       += task->spawnArg1.value;
     root->flg     = 0;
     root->sub     = coords;
     obj->lightMtx = parentObj->lightMtx;
@@ -514,7 +516,7 @@ static void func_actor_310600_801628B0(Task* task)
     TmdObject* parentObject;
     TmdObject* object;
 
-    parentObject = ((Task*)task->spawnArg2)->extra.tmd;
+    parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
     object       = task->extra.tmd;
 
     if (!(parentObject->flags & 0x80)) {
@@ -544,8 +546,8 @@ static void func_actor_310600_80162948(Task* task)
     GpCoord*   coord;
     GpCoord*   dest;
 
-    parent          = (Task*)task->spawnArg2;
-    part            = task->spawnArg1;
+    parent          = (Task*)task->spawnArg2.pointer;
+    part            = task->spawnArg1.value;
     extra           = task->extra.tmd;
     parentExtra     = parent->extra.tmd;
     coord           = extra->coords;

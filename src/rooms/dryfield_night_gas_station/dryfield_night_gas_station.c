@@ -1,26 +1,13 @@
 #include "common.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/tmd.h"
-#include "main/ui.h"
 #include "rooms/dryfield_night_gas_station.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include <psyq/libgte.h>
 #include <psyq/rand.h>
 
 #include "gameplay/actor_render.h"
@@ -39,7 +26,31 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/collision.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
+#include "overlay.h"
 
 extern UiObjectDesc D_800611E4;
 extern UiObject*    D_80067634;
@@ -196,8 +207,8 @@ void func_dryfield_night_gas_station_8017D660(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_gas_station_80183D3C);
-            Text_FormatTime(p, Mc_SaveData[0].playTime);
+            Text_DrawString(&req, D_dryfield_night_gas_station_80183D3C);
+            Text_FormatTime(p, Mc_SaveData[0].state.playTime);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -213,8 +224,8 @@ void func_dryfield_night_gas_station_8017D660(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_gas_station_80183D6C);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].saveCount);
+            Text_DrawString(&req, D_dryfield_night_gas_station_80183D6C);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].state.saveCount);
             Text_Strcat(p, D_dryfield_night_gas_station_80183D8C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -231,8 +242,8 @@ void func_dryfield_night_gas_station_8017D660(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_gas_station_80183D44);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].field_6CC);
+            Text_DrawString(&req, D_dryfield_night_gas_station_80183D44);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_6CC);
             Text_Strcat(p, D_dryfield_night_gas_station_80183D8C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -249,8 +260,8 @@ void func_dryfield_night_gas_station_8017D660(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_gas_station_80183D48);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].field_6CE);
+            Text_DrawString(&req, D_dryfield_night_gas_station_80183D48);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_6CE);
             Text_Strcat(p, D_dryfield_night_gas_station_80183D8C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -272,14 +283,14 @@ void func_dryfield_night_gas_station_8017D660(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_gas_station_80183D50);
-            if (Mc_SaveData[0].field_6CC == 0) {
+            Text_DrawString(&req, D_dryfield_night_gas_station_80183D50);
+            if (Mc_SaveData[0].state.field_6CC == 0) {
                 pct = 0;
             } else {
-                pct = (Mc_SaveData[0].field_6CC * 10000) / (Mc_SaveData[0].field_6CC + Mc_SaveData[0].field_6CE);
+                pct = (Mc_SaveData[0].state.field_6CC * 10000) / (Mc_SaveData[0].state.field_6CC + Mc_SaveData[0].state.field_6CE);
             }
             if (pct < 100) {
-                func_8002F44C(p, pct, 3);
+                Text_ItoaPadded(p, pct, 3);
             } else {
                 Text_ItoaUnsigned(p, pct);
             }
@@ -314,7 +325,7 @@ void func_dryfield_night_gas_station_8017D660(UiList* arg0, UiObject* arg1)
             s32         i;
             u8*         q;
 
-            total          = Mc_SaveData[0].field_6CC;
+            total          = Mc_SaveData[0].state.field_6CC;
             req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
             y              = arg1->panel.field_22.u - 6;
             req.y          = (u16)arg0->field_1A + y;
@@ -323,7 +334,7 @@ void func_dryfield_night_gas_station_8017D660(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_gas_station_80183D5C);
+            Text_DrawString(&req, D_dryfield_night_gas_station_80183D5C);
             cnt   = 326;
             total = total + (GameFlag_GetNibble(0x167) + GameFlag_GetNibble(0x168));
             if (total == 0) {
@@ -332,7 +343,7 @@ void func_dryfield_night_gas_station_8017D660(UiList* arg0, UiObject* arg1)
                 pct = (total * 10000) / cnt;
             }
             if (pct < 100) {
-                func_8002F44C(p, pct, 3);
+                Text_ItoaPadded(p, pct, 3);
             } else {
                 Text_ItoaUnsigned(p, pct);
             }
@@ -370,8 +381,8 @@ void func_dryfield_night_gas_station_8017D660(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_gas_station_80183D74);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].clearCount);
+            Text_DrawString(&req, D_dryfield_night_gas_station_80183D74);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].state.clearCount);
             Text_Strcat(p, D_dryfield_night_gas_station_80183D8C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -388,8 +399,8 @@ void func_dryfield_night_gas_station_8017D660(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_gas_station_80183D7C);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].field_92C), arg0->field_1C, 3, 2);
+            Text_DrawString(&req, D_dryfield_night_gas_station_80183D7C);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_92C), arg0->field_1C, 3, 2);
             break;
         }
         case 8: {
@@ -404,8 +415,8 @@ void func_dryfield_night_gas_station_8017D660(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_gas_station_80183D84);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].field_930), arg0->field_1C, 3, 2);
+            Text_DrawString(&req, D_dryfield_night_gas_station_80183D84);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_930), arg0->field_1C, 3, 2);
             break;
         }
     }
@@ -466,7 +477,7 @@ void func_dryfield_night_gas_station_8017DE2C(UiList* arg0, UiObject* arg1)
         req.glyphTable = 0;
         req.centerMode = 0;
         r->field_E     = 1;
-        func_8002E53C(r, (u8*)Gp_GetItemText(item, 0, 0));
+        Text_DrawString(r, (u8*)Gp_GetItemText(item, 0, 0));
         func_800CE5D0(arg1, x, y, item);
     }
     limit = 1;
@@ -477,7 +488,7 @@ void func_dryfield_night_gas_station_8017DE2C(UiList* arg0, UiObject* arg1)
             limit *= 10;
         }
         if (value < limit) {
-            func_8002F44C(p, value, 3);
+            Text_ItoaPadded(p, value, 3);
         } else {
             Text_ItoaUnsigned(p, value);
         }
@@ -534,7 +545,7 @@ void func_dryfield_night_gas_station_8017DE2C(UiList* arg0, UiObject* arg1)
         addPrim(gGpuCurrentOt + arg1->panel.field_14.s + 1, prim);
     }
     one = 1;
-    func_80046B34(&(arg1)->panel, barX, arg0->field_1A - 0xC, barW, 9, 0, one);
+    Ui_DrawBeveledRect(&(arg1)->panel, barX, arg0->field_1A - 0xC, barW, 9, 0, one);
     if (((arg1->panel.field_0.w >> 16) == one) || (arg1->panel.field_0.w == one)) {
         if (arg0->field_10 == arg0->field_8) {
             Gp_SetPreviewItem(item, 0);
@@ -579,19 +590,19 @@ static void func_dryfield_night_gas_station_8017E228(UiList* list, UiObject* obj
     for (i = 0; i < 0x20; i++) {
         id = i + 0x80;
         c  = *Gp_GetItemText(id, 0, 1);
-        if ((c != 0) && (c != 0xA) && (Mc_SaveData[0].weaponUseCounts[i] > 0)) {
+        if ((c != 0) && (c != 0xA) && (Mc_SaveData[0].state.weaponUseCounts[i] > 0)) {
             Gp_SetItemSeenBit(id, 1);
             *p++ = id;
             count++;
-            total += Mc_SaveData[0].weaponUseCounts[i];
+            total += Mc_SaveData[0].state.weaponUseCounts[i];
         }
     }
 
     if (count >= 2) {
         for (i = 1; i < count; i++) {
-            uses = Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80];
+            uses = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80];
             for (j = 0; j < i; j++) {
-                if (Mc_SaveData[0].weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
+                if (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
                     tmp = work->itemIds[i];
                     for (k = i - 1; k >= j; k--) {
                         work->itemIds[k + 1] = work->itemIds[k];
@@ -605,7 +616,7 @@ static void func_dryfield_night_gas_station_8017E228(UiList* list, UiObject* obj
 
     if (count > 0) {
         scale = 0x4E20;
-        top   = Mc_SaveData[0].weaponUseCounts[work->itemIds[0] - 0x80];
+        top   = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[0] - 0x80];
         shift = 0xC;
         while (top > 0x1869F) {
             top   >>= 1;
@@ -615,9 +626,9 @@ static void func_dryfield_night_gas_station_8017E228(UiList* list, UiObject* obj
         }
         for (i = 0; i < count; i++) {
             work->percents[i] =
-                (u32)((Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
+                (u32)((Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
             work->barWidths[i] =
-                (Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
+                (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
         }
     }
 
@@ -630,10 +641,10 @@ static void func_dryfield_night_gas_station_8017E228(UiList* list, UiObject* obj
 /// save's per-slot use counters.
 ///
 /// Each of the twelve Parasite Energy slots owns three consecutive ids starting
-/// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].attachLevels[i]`
+/// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].state.attachLevels[i]`
 /// prints as `i * 3 + 0xF + level - 1` (a slot the player has never levelled
 /// keeps the base id). Every slot with a non-zero counter in
-/// `Mc_SaveData[0].attachUseCounts` is appended and its counter summed. Levels
+/// `Mc_SaveData[0].state.attachUseCounts` is appended and its counter summed. Levels
 /// are addressed by page and column, with three slots per page. The ids are
 /// then insertion-sorted by use count, most-used first, and each row gets
 /// `percents`, its share of all recorded uses in hundredths of a percent, and
@@ -666,7 +677,7 @@ static void func_dryfield_night_gas_station_8017E524(UiList* list, UiObject* obj
     for (; i < 12; i++) {
         s32 useCount;
 
-        useCount = Mc_SaveData[0].attachUseCounts[i];
+        useCount = Mc_SaveData[0].state.attachUseCounts[i];
         id       = i * 3 + 0xF;
         if (useCount > 0) {
             s32 page;
@@ -675,22 +686,22 @@ static void func_dryfield_night_gas_station_8017E524(UiList* list, UiObject* obj
             page   = i / 3;
             column = i % 3;
             *p     = id;
-            if (Mc_SaveData[0].attachLevels[column + page * 3] != 0) {
-                *p = id + (Mc_SaveData[0].attachLevels[column + page * 3] - 1u);
+            if (Mc_SaveData[0].state.attachLevels[column + page * 3] != 0) {
+                *p = id + (Mc_SaveData[0].state.attachLevels[column + page * 3] - 1u);
             }
             p++;
             count++;
-            total += Mc_SaveData[0].attachUseCounts[i];
+            total += Mc_SaveData[0].state.attachUseCounts[i];
         }
     }
 
     if (count >= 2) {
         for (i = 1; i < count; i++) {
             slot = (work->peIds[i] - 0xF) / 3;
-            uses = Mc_SaveData[0].attachUseCounts[slot];
+            uses = Mc_SaveData[0].state.attachUseCounts[slot];
             for (j = 0; j < i; j++) {
                 slot = (work->peIds[j] - 0xF) / 3;
-                if (Mc_SaveData[0].attachUseCounts[slot] < uses) {
+                if (Mc_SaveData[0].state.attachUseCounts[slot] < uses) {
                     tmp = work->peIds[i];
                     for (k = i - 1; k >= j; k--) {
                         work->peIds[k + 1] = work->peIds[k];
@@ -705,7 +716,7 @@ static void func_dryfield_night_gas_station_8017E524(UiList* list, UiObject* obj
     if (count > 0) {
         scale = 0x4E20;
         slot  = (work->peIds[0] - 0xF) / 3;
-        top   = Mc_SaveData[0].attachUseCounts[slot];
+        top   = Mc_SaveData[0].state.attachUseCounts[slot];
         shift = 0xC;
         while (top > 0x1869F) {
             top   >>= 1;
@@ -715,9 +726,9 @@ static void func_dryfield_night_gas_station_8017E524(UiList* list, UiObject* obj
         }
         for (i = 0; i < count; i++) {
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->percents[i]  = (u32)((Mc_SaveData[0].attachUseCounts[slot] * scale) / total + 1) >> 1;
+            work->percents[i]  = (u32)((Mc_SaveData[0].state.attachUseCounts[slot] * scale) / total + 1) >> 1;
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->barWidths[i] = (Mc_SaveData[0].attachUseCounts[slot] << shift) / top;
+            work->barWidths[i] = (Mc_SaveData[0].state.attachUseCounts[slot] << shift) / top;
         }
     }
 
@@ -742,10 +753,10 @@ void func_dryfield_night_gas_station_8017E844(Task* task)
     UiObject* childObj;
     void*     work;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     list          = &D_dryfield_night_gas_station_80183F88;
-    if (task->spawnArg1 == 0) {
+    if (task->spawnArg1.value == 0) {
         Ui_DrawText(&(obj)->panel, D_dryfield_night_gas_station_8017D624);
     } else {
         Ui_DrawText(&(obj)->panel, D_dryfield_night_gas_station_8017D630);
@@ -757,7 +768,7 @@ void func_dryfield_night_gas_station_8017E844(Task* task)
         }
         task->work = work;
         Ui_SpawnFromDesc(&D_dryfield_night_gas_station_80183FAC, 0, 0, 1, obj);
-        if (task->spawnArg1 == 0) {
+        if (task->spawnArg1.value == 0) {
             func_dryfield_night_gas_station_8017E228(list, obj);
         } else {
             func_dryfield_night_gas_station_8017E524(list, obj);
@@ -774,7 +785,7 @@ void func_dryfield_night_gas_station_8017E844(Task* task)
     if (task->firstChild != NULL) {
         child = task->firstChild;
         do {
-            childObj = child->spawnArg2;
+            childObj = child->spawnArg2.pointer;
             next     = child->nextSibling;
             if (childObj->field_2E == -1 || childObj->field_2E == 6) {
                 Ui_TeardownTree(childObj, childObj->owner);
@@ -804,12 +815,12 @@ static void func_dryfield_night_gas_station_8017E9F8(Task* task)
     s32       mode;
     s32       one;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
-    ready         = Mc_SaveData[0].demoScene == 1;
+    ready         = Mc_SaveData[0].state.demoScene == 1;
     list          = &D_dryfield_night_gas_station_80184010;
     one           = 1;
-    if (Mc_SaveData[0].clearCount > 0) {
+    if (Mc_SaveData[0].state.clearCount > 0) {
         ready = one;
     }
     if (ready == 0) {
@@ -848,7 +859,7 @@ static void func_dryfield_night_gas_station_8017E9F8(Task* task)
     }
     child = task->firstChild;
     if (child != NULL) {
-        childObj = child->spawnArg2;
+        childObj = child->spawnArg2.pointer;
         sel      = childObj->field_2E;
         switch (sel) {
             case 6:
@@ -904,7 +915,7 @@ void func_dryfield_night_gas_station_8017ECF0(Task* task)
 {
     UiObject* obj;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     if (task->state == 0) {
         Wip_UiHolder       = obj;
@@ -956,7 +967,7 @@ static u8* func_dryfield_night_gas_station_8017EDBC(u8* buf, s32 value, s32 deci
     }
 
     if (value < limit) {
-        func_8002F44C(buf, value, decimals + 1);
+        Text_ItoaPadded(buf, value, decimals + 1);
     } else {
         Text_ItoaUnsigned(buf, value);
     }
@@ -992,7 +1003,7 @@ void func_dryfield_night_gas_station_8017EEB0(Task* task)
     UiList*   list;
 
     list          = &D_dryfield_night_gas_station_80183F60;
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, D_dryfield_night_gas_station_8017D610);
     if (task->state == 0) {
@@ -1104,7 +1115,7 @@ static void func_dryfield_night_gas_station_8017F3E0(Task* task)
 {
     UiObject* holder;
 
-    holder = task->spawnArg2;
+    holder = task->spawnArg2.pointer;
     if (Wip_UiHolder == holder) {
         Wip_UiHolder = NULL;
     }
@@ -1331,7 +1342,7 @@ void func_dryfield_night_gas_station_8017FA6C(Task* arg0)
     Gp_ClearCollectedBit(0x117);
     func_800E8634(&D_dryfield_night_gas_station_801840AC, 0, &D_dryfield_night_gas_station_801841FC);
     func_800E3FAC(0xA2, 0x16);
-    Mc_SaveData[0].sceneEvent = 4;
+    Mc_SaveData[0].state.sceneEvent = 4;
     taskKill(arg0);
 }
 
@@ -1707,7 +1718,7 @@ void func_dryfield_night_gas_station_801807D4(s32 arg0)
     if (arg0 < 0) {
         goto kill;
     }
-    t->spawnArg1 = arg0;
+    t->spawnArg1.value = arg0;
     return;
 kill:
     taskKill(D_dryfield_night_gas_station_801907A4);
@@ -1730,7 +1741,7 @@ void func_dryfield_night_gas_station_80180828(Task* task)
             task->state = -1;
         }
         if (task->state == 0) {
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 tick                = task->killCountdown + 0x100;
                 task->killCountdown = tick;
                 if ((s16)tick >= 0x1001) {
@@ -1820,9 +1831,9 @@ void func_dryfield_night_gas_station_80180A60(Task* arg0)
 
     if (arg0->state == 0) {
         temp_v0 = (D_dryfield_night_gas_station_80188580[arg0->killCountdown].vx & 1) ^ 1;
-        if (arg0->spawnArg1 != temp_v0) {
-            arg0->spawnArg1 = temp_v0;
-            func_dryfield_night_gas_station_80180DC8((s16)arg0->spawnArg1);
+        if (arg0->spawnArg1.value != temp_v0) {
+            arg0->spawnArg1.value = temp_v0;
+            func_dryfield_night_gas_station_80180DC8((s16)arg0->spawnArg1.value);
         }
         temp_v0_2           = (u16)arg0->killCountdown + 1;
         arg0->killCountdown = temp_v0_2;
@@ -2020,7 +2031,7 @@ static void func_dryfield_night_gas_station_80180E9C(Task* task)
     s32                             mask;
     s32                             i;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     mask  = 1 << Gp_GetViewIndex();
     if (task->state == 0) {
@@ -2281,7 +2292,7 @@ static void func_dryfield_night_gas_station_80181D80(Task* task)
     GpCoord*   coord;
     u8         rgb[3];
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -2294,13 +2305,13 @@ static void func_dryfield_night_gas_station_80181D80(Task* task)
             case 0:
                 work->scale = 0;
                 work->angle = 0x80;
-                work->step  = 0x100 / task->spawnArg1;
+                work->step  = 0x100 / task->spawnArg1.value;
                 task->state = 1;
                 break;
             case 1:
                 work->scale += work->step;
                 work->angle += work->step;
-                task->spawnArg1--;
+                task->spawnArg1.value--;
                 rgb[0] = work->scale;
                 rgb[1] = work->scale >> 2;
                 rgb[2] = work->scale >> 1;
@@ -2310,7 +2321,7 @@ static void func_dryfield_night_gas_station_80181D80(Task* task)
                 rgb[2] >>= 1;
                 func_dryfield_night_gas_station_80182450(coord, (s16)((u16)work->angle * 2), rgb);
                 func_dryfield_night_gas_station_80182024(coord, (s16)(0x300 - (u16)work->angle * 2), 0x80, rgb);
-                if (task->spawnArg1 == 0) {
+                if (task->spawnArg1.value == 0) {
                     work->scale = 0xFF;
                     task->state = 2;
                     rgb[0]      = work->scale;
@@ -2460,7 +2471,7 @@ static void func_dryfield_night_gas_station_801827E4(Task* task)
     s32        i;
 
     coords   = (GpCoord*)task->work;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
@@ -2533,7 +2544,7 @@ static void func_dryfield_night_gas_station_801827E4(Task* task)
                     Gp_UpdateCoord(dst);
                 }
                 func_dryfield_night_gas_station_80182CD4(coords, &coords[8], work->age & 7, 0x123);
-                if (work->age == task->spawnArg1 && work->age != 0) {
+                if (work->age == task->spawnArg1.value && work->age != 0) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
@@ -2651,7 +2662,7 @@ static void func_dryfield_night_gas_station_801830CC(Task* task)
     u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -2666,7 +2677,7 @@ static void func_dryfield_night_gas_station_801830CC(Task* task)
     switch (task->state) {
         case 0:
             Gp_SpawnEff(0x60076, objCoord, 0x400, NULL);
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 Gp_SpawnEff(0x60070, objCoord, 0x80004600, NULL);
                 task->state = 1;
             } else {

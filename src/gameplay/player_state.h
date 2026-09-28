@@ -5,7 +5,7 @@
 
 #include "gameplay/message.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 s32 Gp_SetupAllyWeapon(void);
 

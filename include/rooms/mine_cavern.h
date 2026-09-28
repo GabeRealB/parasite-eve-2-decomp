@@ -6,10 +6,11 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/coord.h"
-#include "main/task.h"
 
 #include "gameplay/actor.h"
+
+#include "main/coord.h"
+#include "main/session_types.h"
 
 /// Work block a mine_cavern task parks at `Task::work`, allocated with
 /// `memCalloc(0x14C, 0)` by the state-0 handler `func_mine_cavern_80182E34`

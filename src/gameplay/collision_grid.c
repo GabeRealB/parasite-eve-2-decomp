@@ -13,10 +13,10 @@
 #include "gameplay/loading.h"
 #include "gameplay/room.h"
 
-#include "main/coord.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/task_types.h"
 
 /// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_800DEAFC`.
 /// `in` is the SVECTOR promoted to VECTOR for `ApplyTransposeMatrixLV`;

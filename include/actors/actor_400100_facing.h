@@ -3,7 +3,7 @@
 
 #include "actors/actor_400100_motion.h"
 #include "actors/actor_400100_update.h"
-#include "main/wipsys.h"
+
 #include "main/coord.h"
 
 extern Actor00100AnimCommand Actor00100_D1B9AC;

@@ -3,17 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stream.h"
-#include "main/task.h"
 #include "rooms/neo_ark_altar.h"
 
 #include "gameplay/actor_render.h"
@@ -23,7 +12,20 @@
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
+
+#include "gameplay/sprites.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gameflow.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stream.h"
+#include "main/task.h"
 
 /// One 12-byte altar floor tile: `x` / `z` are the tile's low corner in world
 /// units, `w` / `d` its size along X and Z, and `id` the number the tile
@@ -88,9 +90,9 @@ void func_neo_ark_altar_8017DA40(Task* task)
             break;
         case 1:
             key = gGameSession->at4;
-            if (task->spawnArg1 == 0) {
+            if (task->spawnArg1.value == 0) {
                 key.loc.view = 0x64;
-            } else if (task->spawnArg1 == 1) {
+            } else if (task->spawnArg1.value == 1) {
                 key.loc.view = 0x65;
             } else {
                 key.loc.view = 0x66;
@@ -136,7 +138,7 @@ void func_neo_ark_altar_8017DA40(Task* task)
 /// `Gp_SpawnViewTasks` and ends.
 void func_neo_ark_altar_8017DBF0(Task* arg0)
 {
-    Display_SpawnWithOt(D_neo_ark_altar_8017EFC0, 1, arg0->spawnArg1, 0);
+    Display_SpawnWithOt(D_neo_ark_altar_8017EFC0, 1, arg0->spawnArg1.value, 0);
     gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);
@@ -797,11 +799,11 @@ static void func_neo_ark_altar_8017EF00(Task* arg0)
     s16* viewDirty;
 
     /* Through a pointer rather than as a member: a member store is struct
-       memory, which the scheduler lets the store to `Mc_SaveData[0].at4.loc.room` pass, and the
+       memory, which the scheduler lets the store to `Mc_SaveData[0].state.at4.loc.room` pass, and the
        original keeps the two in source order. */
     viewDirty                   = &gGameSession->viewDirty;
     *viewDirty                  = 1;
-    Mc_SaveData[0].at4.loc.room = 2;
+    Mc_SaveData[0].state.at4.loc.room = 2;
     gGameSession->at4.loc.room  = 2;
     arg0->state                 = (s32)(arg0->state + 1);
 }

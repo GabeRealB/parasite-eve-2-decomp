@@ -1,12 +1,14 @@
-#include "common.h"
-
 #include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
 
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 #include <psyq/gtemac.h>
+#include <psyq/inline_c.h>
+
+#include "gte.h"
+#include "types.h"
+
+#include "main/scratch.h"
 
 /// Gfx_NormalizeLightDir's scratch-pad block: the direction being scaled down
 /// to fit VectorNormalS, and the leading-zero counts of its components.
@@ -37,7 +39,7 @@ typedef struct {
     /* 0x28 */ s16     sin_z;
     /* 0x2A */ s16     cos_z;
     /* 0x2C */ SVECTOR vec;
-} ScratchRotXYZ; /* 0x34 */
+} ScratchRotXYZ;
 
 typedef struct {
     /* 0x00 */ MATRIX  mat;
@@ -50,7 +52,15 @@ typedef struct {
     /* 0x2C */ SVECTOR vec;
     /* 0x34 */ SVECTOR vec2;
     /* 0x3C */ SVECTOR vec3;
-} ScratchRotZYX; /* 0x44 */
+} ScratchRotZYX;
+
+static void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag);
+
+static void Gfx_TransposeRot(MATRIX* arg0, MATRIX* arg1);
+
+/* 0x34 */
+
+/* 0x44 */
 
 void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
 {
@@ -251,7 +261,7 @@ static void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
     SCRATCH_POP(ScratchRotZYX);
 }
 
-void Gfx_MatrixToEuler(MATRIX* arg0, SVECTOR* arg1)
+void Gfx_MatrixToEuler(MATRIX* matrix, SVECTOR* vector)
 {
     u8*         head;
     ScratchMat* block;
@@ -261,10 +271,10 @@ void Gfx_MatrixToEuler(MATRIX* arg0, SVECTOR* arg1)
     block                    = (ScratchMat*)(head - 0x30); // reserves 0x30 for a 0x24-byte block
     SCRATCH_HEAD(ScratchMat) = block;
 
-    angle          = -ratan2(arg0->m[1][2], arg0->m[2][2]);
-    arg1->vx       = angle;
+    angle          = -ratan2(matrix->m[1][2], matrix->m[2][2]);
+    vector->vx     = angle;
     block->sin_val = rsin(angle);
-    block->cos_val = rcos(arg1->vx);
+    block->cos_val = rcos(vector->vx);
 
     block->mat.m[0][0] = ONE;
     block->mat.m[0][1] = 0;
@@ -276,10 +286,10 @@ void Gfx_MatrixToEuler(MATRIX* arg0, SVECTOR* arg1)
     block->mat.m[2][1] = -block->sin_val;
     block->mat.m[2][2] = block->cos_val;
 
-    gte_MulMatrix0(&block->mat, arg0, &block->mat);
+    gte_MulMatrix0(&block->mat, matrix, &block->mat);
 
-    arg1->vy = ratan2(block->mat.m[0][2], block->mat.m[2][2]);
-    arg1->vz = ratan2(block->mat.m[1][0], block->mat.m[1][1]);
+    vector->vy = ratan2(block->mat.m[0][2], block->mat.m[2][2]);
+    vector->vz = ratan2(block->mat.m[1][0], block->mat.m[1][1]);
 
     SCRATCH_POP_BYTES(0x30);
 }
@@ -289,22 +299,22 @@ static void Gfx_TransposeRot(MATRIX* arg0, MATRIX* arg1)
     gte_TransposeMatrix(arg0, arg1);
 }
 
-void Gfx_MatrixCol0(MATRIX* arg0, SVECTOR* arg1)
+void Gfx_MatrixCol0(MATRIX* matrix, SVECTOR* vector)
 {
-    gte_ReadMatrixColumn(arg0, 0, arg1);
+    gte_ReadMatrixColumn(matrix, 0, vector);
 }
 
-void Gfx_MatrixCol1(MATRIX* arg0, SVECTOR* arg1)
+void Gfx_MatrixCol1(MATRIX* matrix, SVECTOR* vector)
 {
-    gte_ReadMatrixColumn(arg0, 1, arg1);
+    gte_ReadMatrixColumn(matrix, 1, vector);
 }
 
-void Gfx_MatrixCol2(MATRIX* arg0, SVECTOR* arg1)
+void Gfx_MatrixCol2(MATRIX* matrix, SVECTOR* vector)
 {
-    gte_ReadMatrixColumn(arg0, 2, arg1);
+    gte_ReadMatrixColumn(matrix, 2, vector);
 }
 
-void Gfx_RotMatrixX(MATRIX* arg0, s32 angle, s32 flag)
+void Gfx_RotMatrixX(MATRIX* matrix, s32 angle, s32 flag)
 {
     ScratchMat* block;
 
@@ -314,15 +324,15 @@ void Gfx_RotMatrixX(MATRIX* arg0, s32 angle, s32 flag)
     block->cos_val = rcos(angle);
 
     if (flag != 0) {
-        arg0->m[0][0] = ONE;
-        arg0->m[0][1] = 0;
-        arg0->m[0][2] = 0;
-        arg0->m[1][0] = 0;
-        arg0->m[1][1] = block->cos_val;
-        arg0->m[1][2] = -block->sin_val;
-        arg0->m[2][0] = 0;
-        arg0->m[2][1] = block->sin_val;
-        arg0->m[2][2] = block->cos_val;
+        matrix->m[0][0] = ONE;
+        matrix->m[0][1] = 0;
+        matrix->m[0][2] = 0;
+        matrix->m[1][0] = 0;
+        matrix->m[1][1] = block->cos_val;
+        matrix->m[1][2] = -block->sin_val;
+        matrix->m[2][0] = 0;
+        matrix->m[2][1] = block->sin_val;
+        matrix->m[2][2] = block->cos_val;
     } else {
         block->mat.m[0][0] = ONE;
         block->mat.m[0][1] = 0;
@@ -334,13 +344,13 @@ void Gfx_RotMatrixX(MATRIX* arg0, s32 angle, s32 flag)
         block->mat.m[2][1] = block->sin_val;
         block->mat.m[2][2] = block->cos_val;
 
-        gte_MulMatrix0(arg0, &block->mat, arg0);
+        gte_MulMatrix0(matrix, &block->mat, matrix);
     }
 
     SCRATCH_POP(ScratchMat);
 }
 
-void Gfx_RotMatrixY(MATRIX* arg0, s32 angle, s32 flag)
+void Gfx_RotMatrixY(MATRIX* matrix, s32 angle, s32 flag)
 {
     ScratchMat* block;
 
@@ -350,15 +360,15 @@ void Gfx_RotMatrixY(MATRIX* arg0, s32 angle, s32 flag)
     block->cos_val = rcos(angle);
 
     if (flag != 0) {
-        arg0->m[0][0] = block->cos_val;
-        arg0->m[0][1] = 0;
-        arg0->m[0][2] = block->sin_val;
-        arg0->m[1][0] = 0;
-        arg0->m[1][1] = ONE;
-        arg0->m[1][2] = 0;
-        arg0->m[2][0] = -block->sin_val;
-        arg0->m[2][1] = 0;
-        arg0->m[2][2] = block->cos_val;
+        matrix->m[0][0] = block->cos_val;
+        matrix->m[0][1] = 0;
+        matrix->m[0][2] = block->sin_val;
+        matrix->m[1][0] = 0;
+        matrix->m[1][1] = ONE;
+        matrix->m[1][2] = 0;
+        matrix->m[2][0] = -block->sin_val;
+        matrix->m[2][1] = 0;
+        matrix->m[2][2] = block->cos_val;
     } else {
         block->mat.m[0][0] = block->cos_val;
         block->mat.m[0][1] = 0;
@@ -370,13 +380,13 @@ void Gfx_RotMatrixY(MATRIX* arg0, s32 angle, s32 flag)
         block->mat.m[2][1] = 0;
         block->mat.m[2][2] = block->cos_val;
 
-        gte_MulMatrix0(arg0, &block->mat, arg0);
+        gte_MulMatrix0(matrix, &block->mat, matrix);
     }
 
     SCRATCH_POP(ScratchMat);
 }
 
-void Gfx_RotMatrixZ(MATRIX* arg0, s32 angle, s32 flag)
+void Gfx_RotMatrixZ(MATRIX* matrix, s32 angle, s32 flag)
 {
     ScratchMat* block;
 
@@ -386,15 +396,15 @@ void Gfx_RotMatrixZ(MATRIX* arg0, s32 angle, s32 flag)
     block->cos_val = rcos(angle);
 
     if (flag != 0) {
-        arg0->m[0][0] = block->cos_val;
-        arg0->m[0][1] = -block->sin_val;
-        arg0->m[0][2] = 0;
-        arg0->m[1][0] = block->sin_val;
-        arg0->m[1][1] = block->cos_val;
-        arg0->m[1][2] = 0;
-        arg0->m[2][0] = 0;
-        arg0->m[2][1] = 0;
-        arg0->m[2][2] = ONE;
+        matrix->m[0][0] = block->cos_val;
+        matrix->m[0][1] = -block->sin_val;
+        matrix->m[0][2] = 0;
+        matrix->m[1][0] = block->sin_val;
+        matrix->m[1][1] = block->cos_val;
+        matrix->m[1][2] = 0;
+        matrix->m[2][0] = 0;
+        matrix->m[2][1] = 0;
+        matrix->m[2][2] = ONE;
     } else {
         block->mat.m[0][0] = block->cos_val;
         block->mat.m[0][1] = -block->sin_val;
@@ -406,7 +416,7 @@ void Gfx_RotMatrixZ(MATRIX* arg0, s32 angle, s32 flag)
         block->mat.m[2][1] = 0;
         block->mat.m[2][2] = ONE;
 
-        gte_MulMatrix0(arg0, &block->mat, arg0);
+        gte_MulMatrix0(matrix, &block->mat, matrix);
     }
 
     SCRATCH_POP(ScratchMat);

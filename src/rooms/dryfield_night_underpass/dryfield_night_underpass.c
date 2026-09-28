@@ -5,21 +5,20 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
-#include "main/fs.h"
+
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
 
 extern TaskDesc   D_dryfield_night_underpass_8017DCD8[];
 extern GpMsgEntry D_dryfield_night_underpass_8017DCF0[];
@@ -44,9 +43,9 @@ void func_dryfield_night_underpass_8017D5D0(Task* task)
     s32          arg;
     u8           room;
 
-    flag  = task->spawnArg1;
+    flag  = task->spawnArg1.value;
     state = task->state;
-    arg   = (s32)task->spawnArg2;
+    arg   = task->spawnArg2.value;
     switch (state) {
         case 0:
             Gp_RunCapCmd1(arg);
@@ -87,7 +86,7 @@ void func_dryfield_night_underpass_8017D5D0(Task* task)
                     session                     = gGameSession;
                     room                        = dst.field_3;
                     session->at4.loc.room       = room;
-                    Mc_SaveData[0].at4.loc.room = room;
+                    Mc_SaveData[0].state.at4.loc.room = room;
                 }
             }
             task->state = task->state + 1;

@@ -1,5 +1,6 @@
 #include "gameplay/item_menu.h"
 
+#include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
 #include "types.h"
@@ -23,7 +24,7 @@
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
-#include "main/mc.h"
+#include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -129,23 +130,9 @@ static s32 D_8010EA54[];
 
 static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1);
 
-void Ui_WaitCdThenOverlay(Task* arg0);
-
 extern UiObjectDesc D_80184F70;
 
 extern UiObject* D_80067634;
-
-s32 Stage_RequestImageCapture(void);
-
-s32 Stage_GetFadeStatus(void);
-
-void Stage_InitOtOnce(void);
-
-void Stage_ResetFade(void);
-
-s32 Stage_GetModeByte12(void);
-
-Task* Task_SpawnOnDefaultList(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 char        Gp_StrUsedDot[]      = "used.";
 char        Gp_StrCreatedDot[]   = "created.";
@@ -425,7 +412,7 @@ void Gp_MenuRootTask(Task* arg0)
             Gp_AgeFlag119Void();
             arg0->killCountdown = 1;
             arg0->state         = 0xA;
-            if ((arg0->spawnArg1 == 0x42) || (arg0->spawnArg1 == 0x44)) {
+            if ((arg0->spawnArg1.value == 0x42) || (arg0->spawnArg1.value == 0x44)) {
                 arg0->killCountdown = 2;
                 arg0->state         = 0xF;
             }
@@ -475,7 +462,7 @@ void Gp_MenuRootTask(Task* arg0)
                 disp->gameMode = 1;
                 break;
             }
-            arg = arg0->spawnArg1;
+            arg = arg0->spawnArg1.value;
             if (arg == 0x45) {
                 Wip_UiHolder = NULL;
                 CdCmd_EnqueueLoadFile(1, 0, 0);
@@ -494,9 +481,9 @@ void Gp_MenuRootTask(Task* arg0)
             if (obj == NULL) {
                 break;
             }
-            arg0->spawnArg2      = obj;
+            arg0->spawnArg2.pointer      = obj;
             gGameSession->uiOpen = 1;
-            if (arg0->spawnArg1 != 0x44) {
+            if (arg0->spawnArg1.value != 0x44) {
                 SndEvt_EnqueueType6(1, 0, 0);
             }
             break;
@@ -507,12 +494,12 @@ void Gp_MenuRootTask(Task* arg0)
         case 0x28: {
             UiObject* obj;
 
-            obj = arg0->spawnArg2;
+            obj = arg0->spawnArg2.pointer;
             if ((obj->field_2E != 6) && (obj->field_2E != -1)) {
                 return;
             }
             Ui_TeardownTree(obj, obj->owner);
-            if ((arg0->spawnArg1 != 0x44) && (arg0->spawnArg1 != 0x42)) {
+            if ((arg0->spawnArg1.value != 0x44) && (arg0->spawnArg1.value != 0x42)) {
                 SndEvt_EnqueueType6(5, 0, 0);
             }
             arg0->killCountdown = 0xC;
@@ -604,7 +591,7 @@ void Gp_MenuRootTask(Task* arg0)
                 if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                     func_8010870C(gameGetPtrSlot(3), 5);
                 }
-                if (arg0->spawnArg1 == 0x44) {
+                if (arg0->spawnArg1.value == 0x44) {
                     Gp_PlayerWeaponId(&D_8010E7F4.animBlock.index);
                     Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &D_8010E7F4, 0);
                 }
@@ -647,7 +634,7 @@ static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
     s32       flag;
     u8*       map;
 
-    val = arg1->spawnArg1;
+    val = arg1->spawnArg1.value;
     map = (u8*)arg1->work;
     if (val != 0) {
         if ((u32)val > 0xFFFF) {
@@ -662,7 +649,7 @@ static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
     }
     childTask = arg1->firstChild;
     if (childTask != NULL) {
-        child = childTask->spawnArg2;
+        child = childTask->spawnArg2.pointer;
         flag  = child->field_2E;
         if (flag == -1) {
             arg0->field_2E = flag;

@@ -1,17 +1,18 @@
 #include "common.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/direction.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/display.h"
+
 #include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
 
 /// Work block of the room task, allocated zeroed by its first state: the
 /// child task the current step spawned, and the step it dispatches on.
@@ -81,10 +82,10 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
                 break;
             }
             gGameSession->unknown_138    = 1;
-            Mc_SaveData[0].at4.loc.stage = 4;
-            Mc_SaveData[0].at4.loc.area  = 0x11;
-            Mc_SaveData[0].at4.loc.warp  = 2;
-            Mc_SaveData[0].at4.loc.room  = 1;
+            Mc_SaveData[0].state.at4.loc.stage = 4;
+            Mc_SaveData[0].state.at4.loc.area  = 0x11;
+            Mc_SaveData[0].state.at4.loc.warp  = 2;
+            Mc_SaveData[0].state.at4.loc.room  = 1;
             gDisplayState.roomVariant    = 1;
             Task_Spawn(0, 0x11, 0, 0);
         case 2:

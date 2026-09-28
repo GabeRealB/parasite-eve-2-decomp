@@ -8,9 +8,6 @@
 #include "common.h"
 
 #include "actors/actor.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/task.h"
 #include "mappic/mappic.h"
 #include "mapui/map_shelter.h"
 #include "mapui/mapui.h"
@@ -28,6 +25,12 @@
 #include "gameplay/room.h"
 #include "gameplay/scene_tasks.h"
 #include "gameplay/sprites.h"
+
+#include "gameplay/view.h"
+#include "main/gameflag.h"
+#include "main/gfx_types.h"
+#include "main/session.h"
+#include "main/task_types.h"
 
 /// The overlay's own flagged item and enemy placement lists, which the
 /// `GpBit2List` table names before they are defined.

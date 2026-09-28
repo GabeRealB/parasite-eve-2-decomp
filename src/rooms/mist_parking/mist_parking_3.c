@@ -1,16 +1,4 @@
 #include "common.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room_common.h"
 #include "rooms/mist_parking.h"
 
@@ -18,6 +6,19 @@
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/stage.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "main/text.h"
 
 extern GpXformArg D_mist_parking_8018FC3C;
 
@@ -36,7 +37,7 @@ void func_mist_parking_80183634(s32 arg0)
     if (arg0 < 0) {
         goto kill;
     }
-    t->spawnArg1 = arg0;
+    t->spawnArg1.value = arg0;
     return;
 kill:
     taskKill(D_mist_parking_80195324);
@@ -52,8 +53,8 @@ void func_mist_parking_801836CC(Task* arg0)
 {
     s32 temp_v0;
 
-    temp_v0         = arg0->spawnArg1 - 1;
-    arg0->spawnArg1 = temp_v0;
+    temp_v0         = arg0->spawnArg1.value - 1;
+    arg0->spawnArg1.value = temp_v0;
     if (temp_v0 < 0) {
         taskKill(arg0);
         Stage_SetEndingFlag();
@@ -108,7 +109,7 @@ void func_mist_parking_801837B8(Task* task)
             return;
         case 1:
             key = gGameSession->at4;
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 key.loc.view = 0x65;
             } else {
                 key.loc.view = 0x64;
@@ -161,7 +162,7 @@ void func_mist_parking_801837B8(Task* task)
 /// `spawnArg1`, sets `gDisplayState.at100.flags.flipMode`, respawns the view tasks and kills itself.
 void func_mist_parking_8018397C(Task* arg0)
 {
-    Display_SpawnWithOt(&D_mist_parking_8018FC24, 1, arg0->spawnArg1, 0);
+    Display_SpawnWithOt(&D_mist_parking_8018FC24, 1, arg0->spawnArg1.value, 0);
     gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);

@@ -6,16 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/abs.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017e4f8.h"
@@ -31,7 +21,22 @@
 #include "gameplay/loading.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// One water surface: a rectangle at (`x`, `z`) spanning `width` along X and
 /// `depth` along Z. A list of them ends at an entry whose `end` is -1; `end`
@@ -170,10 +175,10 @@ void func_shelter_b4_water_supply_8017D650(Task* arg0)
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
             gDisplayState.roomVariant    = 1;
-            Mc_SaveData[0].at4.loc.stage = D_shelter_b4_water_supply_80184E44.stage;
-            Mc_SaveData[0].at4.loc.area  = D_shelter_b4_water_supply_80184E44.area;
-            Mc_SaveData[0].at4.loc.warp  = D_shelter_b4_water_supply_80184E44.warp;
-            Mc_SaveData[0].at4.loc.room  = D_shelter_b4_water_supply_80184E44.room;
+            Mc_SaveData[0].state.at4.loc.stage = D_shelter_b4_water_supply_80184E44.stage;
+            Mc_SaveData[0].state.at4.loc.area  = D_shelter_b4_water_supply_80184E44.area;
+            Mc_SaveData[0].state.at4.loc.warp  = D_shelter_b4_water_supply_80184E44.warp;
+            Mc_SaveData[0].state.at4.loc.room  = D_shelter_b4_water_supply_80184E44.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -199,7 +204,7 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
         case 0:
             Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(arg0->spawnArg1, 0);
+            Gp_RunCapCmd(arg0->spawnArg1.value, 0);
             arg0->state++;
             break;
         case 1:
@@ -220,7 +225,7 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
             D_shelter_b4_water_supply_80184E34.field_0 = 0;
             D_shelter_b4_water_supply_80184E34.field_1 = 0;
             D_shelter_b4_water_supply_80184E34.field_2 = 0x1E;
-            Task_Spawn(1, 0x31, 0, (s32)&D_shelter_b4_water_supply_80184E34);
+            Task_Spawn(1, 0x31, 0, &D_shelter_b4_water_supply_80184E34);
             arg0->killCountdown = 0x1E;
             arg0->state++;
             break;
@@ -237,9 +242,9 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
             break;
         case 5:
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_shelter_b4_water_supply_80184E3C.field_2;
-            Mc_SaveData[0].at4.loc.warp = D_shelter_b4_water_supply_80184E3C.field_4;
-            Mc_SaveData[0].at4.loc.room = D_shelter_b4_water_supply_80184E3C.prefix.bytes.field_1;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b4_water_supply_80184E3C.field_2;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b4_water_supply_80184E3C.field_4;
+            Mc_SaveData[0].state.at4.loc.room = D_shelter_b4_water_supply_80184E3C.prefix.bytes.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -701,10 +706,10 @@ void func_shelter_b4_water_supply_8017ED28(Task* task)
 }
 
 /// The water task's opening state: clears the session's `field_80` or
-/// `field_7E`, chosen by `Mc_SaveData[0].companionType`, and advances the task to its next state.
+/// `field_7E`, chosen by `Mc_SaveData[0].state.companionType`, and advances the task to its next state.
 static void func_shelter_b4_water_supply_8017ED90(Task* arg0)
 {
-    if (Mc_SaveData[0].companionType == 0) {
+    if (Mc_SaveData[0].state.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
@@ -714,14 +719,14 @@ static void func_shelter_b4_water_supply_8017ED90(Task* arg0)
 
 /// The water task's drawing state: points the primitive cursor
 /// `D_shelter_b4_water_supply_80184E50` at the current buffer's 0xC000-byte
-/// slice of one of two primitive areas, chosen by `Mc_SaveData[0].companionType`, then draws both
+/// slice of one of two primitive areas, chosen by `Mc_SaveData[0].state.companionType`, then draws both
 /// lists of water surfaces.
 static void func_shelter_b4_water_supply_8017EDD0(Task* task)
 {
-    if (Mc_SaveData[0].companionType == 0) {
-        D_shelter_b4_water_supply_80184E50 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
+    if (Mc_SaveData[0].state.companionType == 0) {
+        D_shelter_b4_water_supply_80184E50 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
     } else {
-        D_shelter_b4_water_supply_80184E50 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
+        D_shelter_b4_water_supply_80184E50 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
     }
     func_shelter_b4_water_supply_8017DE74(task);
     func_shelter_b4_water_supply_8017E5D8(task);
@@ -744,7 +749,7 @@ static void func_shelter_b4_water_supply_8017EE54(Task* arg0)
     s32                          i;
     u32                          rnd;
 
-    splash    = arg0->spawnArg2;
+    splash    = arg0->spawnArg2.pointer;
     ctl       = gameGetPtrSlot(3);
     ctlCoords = ctl->extra.tmd->coords;
     if (arg0->state == 0) {
@@ -829,7 +834,7 @@ static void func_shelter_b4_water_supply_8017F24C(Task* task)
     GpEffWork* work;
     GpCoord*   coord;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         func_shelter_b4_water_supply_8017F3A0(coord, work->angle, work->scale);
@@ -841,7 +846,7 @@ static void func_shelter_b4_water_supply_8017F24C(Task* task)
         work->age++;
         if (task->state == 0) {
             work->scale = 0x40;
-            work->angle = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            work->angle = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
             coord->flg  = 0;
@@ -957,7 +962,7 @@ static void func_shelter_b4_water_supply_8017F6D4(Task* task)
     s32        state;
     s32        level;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
@@ -975,29 +980,29 @@ static void func_shelter_b4_water_supply_8017F6D4(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            work->scale = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            work->scale = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            if (task->spawnArg1 & 0xF000) {
-                step = (task->spawnArg1 >> 12) & 0xF;
+            if (task->spawnArg1.value & 0xF000) {
+                step = (task->spawnArg1.value >> 12) & 0xF;
             } else {
                 step = 1;
             }
             work->period = step;
             work->age    = 0;
             state        = 1;
-            if (task->spawnArg1 & 0xF0000000) {
+            if (task->spawnArg1.value & 0xF0000000) {
                 state = 2;
             }
             task->state = state;
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                if (task->spawnArg1 & 0xFF0000) {
-                    level = (task->spawnArg1 >> 16) & 0xFF;
+                if (task->spawnArg1.value & 0xFF0000) {
+                    level = (task->spawnArg1.value >> 16) & 0xFF;
                 } else {
                     level = 0x40;
                 }
                 work->step = level;
-                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1.value)->field_3;
                 switch (kind & 0xF) {
                     case 0:
                         work->step = 0;
@@ -1320,7 +1325,7 @@ static void func_shelter_b4_water_supply_801809DC(Task* arg0)
     MATRIX*    mtx;
     u8         col[4];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
@@ -1362,9 +1367,9 @@ static void func_shelter_b4_water_supply_801809DC(Task* arg0)
             if (mem->angle < 0x200) {
                 mem->angle += 0x10;
             }
-            col[0] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1].r;
-            col[1] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1].g;
-            col[2] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1].b;
+            col[0] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1.value].r;
+            col[1] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1.value].g;
+            col[2] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1.value].b;
             func_shelter_b4_water_supply_80181800(coord, mem->angle, col);
             break;
         case 2:
@@ -1375,9 +1380,9 @@ static void func_shelter_b4_water_supply_801809DC(Task* arg0)
             if (mem->angle < 0x200) {
                 mem->angle += 0x10;
             }
-            col[0] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1].r;
-            col[1] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1].g;
-            col[2] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1].b;
+            col[0] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1.value].r;
+            col[1] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1.value].g;
+            col[2] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1.value].b;
             func_shelter_b4_water_supply_80181800(coord, mem->angle, col);
             col[0] >>= 1;
             col[1] >>= 1;
@@ -1388,9 +1393,9 @@ static void func_shelter_b4_water_supply_801809DC(Task* arg0)
             break;
         case 3:
             Gp_UpdateCoord(coord);
-            col[0] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1].r;
-            col[1] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1].g;
-            col[2] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1].b;
+            col[0] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1.value].r;
+            col[1] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1.value].g;
+            col[2] = mem->scale >> D_shelter_b4_water_supply_801826F0[arg0->spawnArg1.value].b;
             func_shelter_b4_water_supply_80181800(coord, mem->angle, col);
             col[0] = mem->scale;
             col[1] = mem->scale >> 1;
@@ -1437,9 +1442,9 @@ static void func_shelter_b4_water_supply_80180F34(Task* task)
     GpCoord*   target;
     VECTOR     delta;
 
-    work   = task->spawnArg2;
+    work   = task->spawnArg2.pointer;
     coord  = task->extra.tmd->coords;
-    target = (GpCoord*)task->spawnArg1;
+    target = (GpCoord*)task->spawnArg1.value;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -1672,7 +1677,7 @@ static void func_shelter_b4_water_supply_80181B94(Task* arg0)
     s16        flag;
     s16        step;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {

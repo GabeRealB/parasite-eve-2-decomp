@@ -3,11 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/acropolis_fountain.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -15,8 +10,13 @@
 #include "gameplay/captions.h"
 #include "gameplay/display.h"
 #include "gameplay/message.h"
+
 #include "main/display.h"
-#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 extern GpMsgEntry D_acropolis_fountain_8017E764[];
 extern TaskDesc   D_acropolis_fountain_8017E78C[];
@@ -129,9 +129,9 @@ void func_acropolis_fountain_8017D868(Task* task)
 
         case 2:
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].at4.loc.area = 3;
-            Mc_SaveData[0].at4.loc.room = 3;
-            Mc_SaveData[0].at4.loc.warp = D_acropolis_fountain_80183BB0;
+            Mc_SaveData[0].state.at4.loc.area = 3;
+            Mc_SaveData[0].state.at4.loc.room = 3;
+            Mc_SaveData[0].state.at4.loc.warp = D_acropolis_fountain_80183BB0;
             gDisplayState.roomVariant   = 1;
             Task_Spawn(0, 0x11, 0, 0);
             GameFlag_SetNibble(0, 5);

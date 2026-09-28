@@ -5,14 +5,14 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-
 #include "rooms/room_common.h"
 
 #include "gameplay/display.h"
+
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
 
 /// The night motel room's drawable points, one 8-byte `SVECTOR` per disc. Each
 /// is reached by its own address, so the compiler materialises it whole into

@@ -1,14 +1,4 @@
 #include "common.h"
-#include "main/gfx.h"
-#include "main/gameflag.h"
-#include "main/gameflow.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/dryfield_factory.h"
 #include "rooms/dryfield_night_factory.h"
 #include "rooms/room.h"
@@ -16,6 +6,8 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
 #include "gameplay/actor_render.h"
@@ -27,7 +19,21 @@
 #include "gameplay/pad_script.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gameflow.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "overlay.h"
 
 /// The factory model's work block as the lighting helper sees it: `light` and
 /// `color` are the model's own matrices, republished onto
@@ -172,9 +178,9 @@ void func_dryfield_factory_8017D85C(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_dryfield_factory_8018A3B4.msgId;
-            Mc_SaveData[0].at4.loc.warp = D_dryfield_factory_8018A3B4.field_2;
-            Mc_SaveData[0].at4.loc.room = (u8)D_dryfield_factory_8018A3B4.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_factory_8018A3B4.msgId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_factory_8018A3B4.field_2;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_factory_8018A3B4.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -207,7 +213,7 @@ static void func_dryfield_factory_8017D9CC(Task* arg0)
     } else {
         D_dryfield_factory_8018A3C0 = (TaskDesc*)D_dryfield_factory_80186EA0;
     }
-    Task_SpawnFromTable(D_dryfield_factory_8018A3C4, 4, 0, (s32)D_dryfield_factory_8018A3C8);
+    Task_SpawnFromTable(D_dryfield_factory_8018A3C4, 4, 0, D_dryfield_factory_8018A3C8);
     Task_SpawnFromTable(D_dryfield_factory_8018A3C4, 5, 0, 0);
     if (gGameSession->at4.loc.stage == 2) {
         func_dryfield_factory_80181620(GameFlag_GetNibble(0x48) & 0xFF);
@@ -461,9 +467,9 @@ static void func_dryfield_factory_8017DFE0(Task* task)
     func_dryfield_factory_80180450(task);
     func_dryfield_factory_8017E140(task, 1, 0);
     if (gGameSession->at4.loc.stage == 2) {
-        Task_SpawnFromTable(D_dryfield_factory_80186E28, 7, 0, (s32)task);
+        Task_SpawnFromTable(D_dryfield_factory_80186E28, 7, 0, task);
     } else {
-        Task_SpawnFromTable(D_dryfield_factory_80186DE0, 7, 0, (s32)task);
+        Task_SpawnFromTable(D_dryfield_factory_80186DE0, 7, 0, task);
     }
     task->exitCallback  = func_dryfield_factory_80180430;
     task->killCountdown = 0;
@@ -578,7 +584,7 @@ static s32 func_dryfield_factory_8017E33C(Task* task)
             }
             work->field_10.value += work->field_8;
             if (work->field_10.value <= 0x4000000) {
-                func_dryfield_factory_801804B0(*(Task**)task->spawnArg2);
+                func_dryfield_factory_801804B0(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
                     Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -596,7 +602,7 @@ static s32 func_dryfield_factory_8017E33C(Task* task)
     }
 
     if ((u8)(work->field_16 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
-        func_dryfield_factory_801804B0(*(Task**)task->spawnArg2);
+        func_dryfield_factory_801804B0(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->at4.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
             Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -656,7 +662,7 @@ static s32 func_dryfield_factory_8017E6BC(Task* task)
             }
             work->field_10.value += work->field_8;
             if (work->field_10.value >= 0) {
-                func_dryfield_factory_801804B0(*(Task**)task->spawnArg2);
+                func_dryfield_factory_801804B0(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
                     Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -674,7 +680,7 @@ static s32 func_dryfield_factory_8017E6BC(Task* task)
     }
 
     if ((u8)(work->field_16 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
-        func_dryfield_factory_801804B0(*(Task**)task->spawnArg2);
+        func_dryfield_factory_801804B0(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->at4.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
             Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -733,7 +739,7 @@ static s32 func_dryfield_factory_8017EA24(Task* task)
             }
             work->field_C.value += work->field_4;
             if (work->field_C.value >= -0x23A0000) {
-                func_dryfield_factory_801804B0(*(Task**)task->spawnArg2);
+                func_dryfield_factory_801804B0(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x52170008, 1);
                     Gp_EnqueueStageSnd6(0x52170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -750,7 +756,7 @@ static s32 func_dryfield_factory_8017EA24(Task* task)
     }
 
     if ((u8)(work->field_17 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
-        func_dryfield_factory_801804B0(*(Task**)task->spawnArg2);
+        func_dryfield_factory_801804B0(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->at4.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x52170008, 1);
             Gp_EnqueueStageSnd6(0x52170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -803,7 +809,7 @@ static s32 func_dryfield_factory_8017ED68(Task* task)
             }
             work->field_C.value += work->field_4;
             if (work->field_C.value <= 0) {
-                func_dryfield_factory_801804B0(*(Task**)task->spawnArg2);
+                func_dryfield_factory_801804B0(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x52170008, 1);
                     Gp_EnqueueStageSnd6(0x52170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -820,7 +826,7 @@ static s32 func_dryfield_factory_8017ED68(Task* task)
     }
 
     if ((u8)(work->field_17 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
-        func_dryfield_factory_801804B0(*(Task**)task->spawnArg2);
+        func_dryfield_factory_801804B0(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->at4.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x52170008, 1);
             Gp_EnqueueStageSnd6(0x52170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -884,7 +890,7 @@ static s32 func_dryfield_factory_8017F08C(Task* task)
                 work->field_0 = GameFlag_GetNibble(0x49) & 0xFE;
                 GameFlag_SetNibble(0x49, work->field_0);
                 work->field_10.value = 0;
-                func_dryfield_factory_801804B0(*(Task**)task->spawnArg2);
+                func_dryfield_factory_801804B0(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
                     Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -904,7 +910,7 @@ static s32 func_dryfield_factory_8017F08C(Task* task)
         work->field_0 = GameFlag_GetNibble(0x49) & 0xFE;
         GameFlag_SetNibble(0x49, work->field_0);
         work->field_10.value = 0;
-        func_dryfield_factory_801804B0(*(Task**)task->spawnArg2);
+        func_dryfield_factory_801804B0(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->at4.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
             Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -973,7 +979,7 @@ static s32 func_dryfield_factory_8017F4BC(Task* task)
                 work->field_0 = GameFlag_GetNibble(0x49) | 1;
                 GameFlag_SetNibble(0x49, work->field_0);
                 work->field_10.value = 0x4000000;
-                func_dryfield_factory_801804B0(*(Task**)task->spawnArg2);
+                func_dryfield_factory_801804B0(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
                     Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -993,7 +999,7 @@ static s32 func_dryfield_factory_8017F4BC(Task* task)
         work->field_0 = GameFlag_GetNibble(0x49) | 1;
         GameFlag_SetNibble(0x49, work->field_0);
         work->field_10.value = 0x4000000;
-        func_dryfield_factory_801804B0(*(Task**)task->spawnArg2);
+        func_dryfield_factory_801804B0(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->at4.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
             Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -1126,7 +1132,7 @@ void func_dryfield_factory_8017FC18(Task* task)
         case 0:
             Gp_MsgPlayerWeapon(0);
             Gp_MsgAllyWeapon(0);
-            Gp_RunCapCmd(task->spawnArg1, 0);
+            Gp_RunCapCmd(task->spawnArg1.value, 0);
             goto advance;
         case 1:
             if (GameFlag_GetNibble(0x48) <= 0) {
@@ -1155,7 +1161,7 @@ void func_dryfield_factory_8017FC18(Task* task)
                     func_dryfield_night_factory_80181B38(1);
                     func_dryfield_night_factory_80181620(1);
                 }
-                Gp_StartCapSlot(task->spawnArg1, 1, 2);
+                Gp_StartCapSlot(task->spawnArg1.value, 1, 2);
             }
         advance:
             task->state++;
@@ -1195,7 +1201,7 @@ void func_dryfield_factory_8017FDDC(Task* task)
             }
             Gp_MsgPlayerWeapon(0);
             Gp_MsgAllyWeapon(0);
-            Gp_RunCapCmd1(task->spawnArg1);
+            Gp_RunCapCmd1(task->spawnArg1.value);
             goto advance;
         case 2:
             if (Gp_GetCapEventKey() == 1) {
@@ -1223,7 +1229,7 @@ void func_dryfield_factory_8017FDDC(Task* task)
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             goto advance;
         case 5:
-            Mc_SaveData[0].at4.loc.room = 2;
+            Mc_SaveData[0].state.at4.loc.room = 2;
             gGameSession->at4.loc.room  = 2;
             gGameSession->roomObjsDirty = 1;
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
@@ -1400,7 +1406,7 @@ static void func_dryfield_factory_801804B0(Task* arg0)
 /// rotation -0x300 about X. The cap then adopts the task, which steps on.
 static void func_dryfield_factory_801804DC(Task* task)
 {
-    Task*                     cap      = task->spawnArg2;
+    Task*                     cap      = task->spawnArg2.pointer;
     TmdObject*                model    = task->extra.tmd;
     TmdObject*                capModel = cap->extra.tmd;
     GpCoord*                  coord    = model->coords;
@@ -1512,7 +1518,7 @@ void func_dryfield_factory_801807DC(Task* task)
         case 0:
             Gp_MsgPlayerWeapon(0);
             Gp_MsgAllyWeapon(0);
-            Gp_RunCapCmd(task->spawnArg1, 0);
+            Gp_RunCapCmd(task->spawnArg1.value, 0);
             goto advance;
         case 1:
             if (GameFlag_GetNibble(0x4A) < 2) {
@@ -1542,7 +1548,7 @@ void func_dryfield_factory_801807DC(Task* task)
 void func_dryfield_factory_80180920(Task* arg0)
 {
     if (GameFlag_GetNibble(0x47) == 0) {
-        Gp_RunCapCmd1(arg0->spawnArg1);
+        Gp_RunCapCmd1(arg0->spawnArg1.value);
     }
     taskKill(arg0);
 }
@@ -1556,7 +1562,7 @@ void func_dryfield_factory_80180964(Task* task)
             task->state         = task->state + 1;
             return;
         case 2:
-            Gp_RunCapCmd1(task->spawnArg1);
+            Gp_RunCapCmd1(task->spawnArg1.value);
             GameFlag_SetNibble(0x4E, 0);
             task->killCountdown = 0x1E;
             task->state         = task->state + 1;

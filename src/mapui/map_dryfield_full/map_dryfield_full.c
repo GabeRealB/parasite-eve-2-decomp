@@ -4,9 +4,6 @@
  * pictures' marker models.
  */
 #include "common.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/task.h"
 #include "mappic/mappic.h"
 #include "mapui/map_dryfield_full.h"
 #include "mapui/mapui.h"
@@ -26,6 +23,13 @@
 #include "gameplay/room.h"
 #include "gameplay/scene_tasks.h"
 #include "gameplay/sprites.h"
+
+#include "gameplay/area_flags.h"
+#include "gameplay/view.h"
+#include "main/gameflag.h"
+#include "main/gfx_types.h"
+#include "main/session.h"
+#include "main/task_types.h"
 
 static s32 func_map_dryfield_full_80179954(MapDryfieldFullRec* arg0, MapDryfieldFullOut* arg1)
 {

@@ -7,8 +7,8 @@
 #include "area_flags.h"
 
 #include "main/coord.h"
-#include "main/session.h"
-#include "main/task.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
 
 extern GpBit2Bank Gp_Bit2Banks[];
 

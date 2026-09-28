@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mc.h"
@@ -8,9 +11,6 @@
 #include "main/session.h"
 #include "main/stream.h"
 #include "main/task.h"
-
-#include "gameplay/display.h"
-#include "gameplay/hud_sprites.h"
 
 extern TaskDesc D_shelter_r49_8017DA00;
 
@@ -113,10 +113,10 @@ void func_shelter_r49_8017D8D8(Task* arg0)
             break;
         case 3:
             SetDispMask(1);
-            Mc_SaveData[0].at4.loc.stage = 5;
-            Mc_SaveData[0].at4.loc.area  = 7;
-            Mc_SaveData[0].at4.loc.warp  = 1;
-            Mc_SaveData[0].at4.loc.room  = 1;
+            Mc_SaveData[0].state.at4.loc.stage = 5;
+            Mc_SaveData[0].state.at4.loc.area  = 7;
+            Mc_SaveData[0].state.at4.loc.warp  = 1;
+            Mc_SaveData[0].state.at4.loc.room  = 1;
             gDisplayState.roomVariant    = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);

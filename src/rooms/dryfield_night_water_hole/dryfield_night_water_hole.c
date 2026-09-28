@@ -5,16 +5,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/abs.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -28,7 +18,23 @@
 #include "gameplay/loading.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/message.h"
+#include "gameplay/room.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 /// Parameter block of `func_dryfield_night_water_hole_8017D6AC`, the room-local
 /// resolver `func_dryfield_night_water_hole_8017DC28` calls with one pointer as
@@ -273,10 +279,10 @@ void func_dryfield_night_water_hole_8017D7E8(Task* arg0)
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
             gDisplayState.roomVariant    = 1;
-            Mc_SaveData[0].at4.loc.stage = D_dryfield_night_water_hole_80183630.stage;
-            Mc_SaveData[0].at4.loc.area  = D_dryfield_night_water_hole_80183630.area;
-            Mc_SaveData[0].at4.loc.warp  = D_dryfield_night_water_hole_80183630.warp;
-            Mc_SaveData[0].at4.loc.room  = D_dryfield_night_water_hole_80183630.room;
+            Mc_SaveData[0].state.at4.loc.stage = D_dryfield_night_water_hole_80183630.stage;
+            Mc_SaveData[0].state.at4.loc.area  = D_dryfield_night_water_hole_80183630.area;
+            Mc_SaveData[0].state.at4.loc.warp  = D_dryfield_night_water_hole_80183630.warp;
+            Mc_SaveData[0].state.at4.loc.room  = D_dryfield_night_water_hole_80183630.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -516,10 +522,10 @@ static void func_dryfield_night_water_hole_8017DF28(Task* task)
     s32          wave;
 
     e = D_dryfield_night_water_hole_80180970;
-    if (Mc_SaveData[0].companionType == 0) {
-        D_dryfield_night_water_hole_80183628 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
+    if (Mc_SaveData[0].state.companionType == 0) {
+        D_dryfield_night_water_hole_80183628 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
     } else {
-        D_dryfield_night_water_hole_80183628 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
+        D_dryfield_night_water_hole_80183628 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
     }
     if (Gp_StateF0.field_4 == 0) {
         D_dryfield_night_water_hole_8018362C++;
@@ -642,10 +648,10 @@ void func_dryfield_night_water_hole_8017E630(Task* task)
 }
 
 /// The water task's first state: clears the session halfword `field_80`, or
-/// `field_7E` while `Mc_SaveData[0].companionType` is set, then advances to the drawing state.
+/// `field_7E` while `Mc_SaveData[0].state.companionType` is set, then advances to the drawing state.
 static void func_dryfield_night_water_hole_8017E690(Task* arg0)
 {
-    if (Mc_SaveData[0].companionType == 0) {
+    if (Mc_SaveData[0].state.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
@@ -675,7 +681,7 @@ static void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
     u32                            rnd;
 
     ctl       = gameGetPtrSlot(3);
-    splash    = arg0->spawnArg2;
+    splash    = arg0->spawnArg2.pointer;
     mask      = 1 << gGameSession->at4.loc.view;
     ctlCoords = ctl->extra.tmd->coords;
     switch (arg0->state) {
@@ -879,7 +885,7 @@ static void func_dryfield_night_water_hole_8017F254(Task* task)
     GpEffWork* work;
     GpCoord*   coord;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         func_dryfield_night_water_hole_8017F3A8(coord, work->angle, work->scale);
@@ -891,7 +897,7 @@ static void func_dryfield_night_water_hole_8017F254(Task* task)
         work->age++;
         if (task->state == 0) {
             work->scale = 0x40;
-            work->angle = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            work->angle = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
             coord->flg  = 0;
@@ -1007,7 +1013,7 @@ static void func_dryfield_night_water_hole_8017F6DC(Task* task)
     s32        state;
     s32        level;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
@@ -1025,29 +1031,29 @@ static void func_dryfield_night_water_hole_8017F6DC(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            work->scale = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            work->scale = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            if (task->spawnArg1 & 0xF000) {
-                step = (task->spawnArg1 >> 12) & 0xF;
+            if (task->spawnArg1.value & 0xF000) {
+                step = (task->spawnArg1.value >> 12) & 0xF;
             } else {
                 step = 1;
             }
             work->period = step;
             work->age    = 0;
             state        = 1;
-            if (task->spawnArg1 & 0xF0000000) {
+            if (task->spawnArg1.value & 0xF0000000) {
                 state = 2;
             }
             task->state = state;
             if (((u16)work->move.vx | (u16)work->move.vy | (u16)work->move.vz) == 0) {
-                if (task->spawnArg1 & 0xFF0000) {
-                    level = (task->spawnArg1 >> 16) & 0xFF;
+                if (task->spawnArg1.value & 0xFF0000) {
+                    level = (task->spawnArg1.value >> 16) & 0xFF;
                 } else {
                     level = 0x40;
                 }
                 work->step = level;
-                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1.value)->field_3;
                 switch (kind & 0xF) {
                     case 0:
                         work->step = 0;

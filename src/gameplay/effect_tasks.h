@@ -3,8 +3,8 @@
 
 #include "types.h"
 
-#include "main/task.h"
-#include "main/tmd.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 /// Six CLUT X coordinates (0x20, 0x30, 0xC0, 0xD0, 0xE0, 0xF0) selected by
 /// the top nibble of `Gp_DrawFxQuad`'s angle argument and paired with CLUT

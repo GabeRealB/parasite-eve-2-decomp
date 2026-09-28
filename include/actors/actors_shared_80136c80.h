@@ -4,7 +4,9 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-#include "main/task.h"
+
+#include "main/session_types.h"
+#include "main/task_types.h"
 
 /// Movement work the tick reaches through `Task::work`. This is the head of the
 /// block each carrier's own work type overlays (`Actor107000Work` from 0x214

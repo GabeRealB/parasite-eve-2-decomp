@@ -23,7 +23,6 @@
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/sound.h"
-#include "main/task.h"
 #include "main/wipsys.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
@@ -96,7 +95,7 @@ void func_800AD6BC(void)
     cfg   = &Player_Status;
     slot  = gameGetPtrSlot(1);
     if (slot != NULL) {
-        if (slot->spawnArg1 != Mc_SaveData[0].at4.loc.view) {
+        if (slot->spawnArg1.value != Mc_SaveData[0].state.at4.loc.view) {
             func_800A7F24();
             D_80114D08 = 0xA;
         }

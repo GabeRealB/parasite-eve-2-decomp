@@ -7,9 +7,9 @@
 #include "hud.h"
 #include "weapon_data.h"
 
-#include "main/mc.h"
-#include "main/task.h"
-#include "main/ui.h"
+#include "main/mc_types.h"
+#include "main/task_types.h"
+#include "main/ui_types.h"
 
 // Attachment parameters, combination state and menu support.
 

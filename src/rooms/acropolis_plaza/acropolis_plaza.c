@@ -5,19 +5,6 @@
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/unknown_syms.h"
-#include "main/wipsys.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -33,7 +20,31 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "gameplay/light.h"
+#include "gameplay/message.h"
+#include "gameplay/view.h"
+#include "main/display.h"
+#include "main/fs.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
+#include "overlay.h"
+#include <psyq/libcd.h>
 
 /// Scratch block for the plaza's eight-quad glow. `vec` holds the coordinate
 /// origin, `sx` / `sy` its projected screen position, and `half` the radius
@@ -240,12 +251,9 @@ extern GpObj4A D_acropolis_plaza_801991A4;
 extern GpObj4A D_acropolis_plaza_801991F0;
 extern GpObj4A D_acropolis_plaza_8019923C;
 
-extern void Stage_RequestFromAreaTable(s32 arg0);
-extern void Stage_RequestMidiFromMap(s32 arg0);
-
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
-/// `Mc_SaveData[0].characterId` picks which of the two weapon-id bases that record uses.
+/// `Mc_SaveData[0].state.characterId` picks which of the two weapon-id bases that record uses.
 
 /// Script block the plaza hands to slot 3 as msg 0x3F4 entry 0xB; it lives in
 /// the main executable, not in this overlay.
@@ -305,8 +313,8 @@ extern SVECTOR D_acropolis_plaza_80198820[];
 /// 16-bit argument in `idB1:idB2`. Step 0 waits for `CdCmd_PollStatus`: status
 /// 0 keeps waiting, status 2 flushes the drive first, and status 1 (or 2)
 /// promotes a 0x72 entry to 0x71 -- clearing the MDEC strip counters -- kicks
-/// the decoder, primes `func_8001FAE0` and advances to step 1. Step 1 polls
-/// `func_8001FAE0` every frame and retires the command once it reports done.
+/// the decoder, primes `Stream_PollPlayback` and advances to step 1. Step 1 polls
+/// `Stream_PollPlayback` every frame and retires the command once it reports done.
 static void func_acropolis_plaza_8017D6D4(void)
 {
     CdCmdQueue* q;
@@ -341,9 +349,9 @@ static void func_acropolis_plaza_8017D6D4(void)
                                     }
                                     Stream_KickDecode(slot & 0xFFFF);
                                     if (q->entries[q->readIdx].cmd == 0x71) {
-                                        func_8001FAE0(0, arg);
+                                        Stream_PollPlayback(0, arg);
                                     } else if (q->entries[q->readIdx].cmd == 0x73) {
-                                        func_8001FAE0(1, q->field_48);
+                                        Stream_PollPlayback(1, q->field_48);
                                     }
                                     q->step++;
                                     /* fallthrough */
@@ -354,11 +362,11 @@ static void func_acropolis_plaza_8017D6D4(void)
                         case 1:
                         poll:
                             if (q->entries[q->readIdx].cmd == 0x71) {
-                                if (func_8001FAE0(0, arg) != 0) {
+                                if (Stream_PollPlayback(0, arg) != 0) {
                                     CdCmd_AdvanceRead();
                                 }
                             } else if (q->entries[q->readIdx].cmd == 0x73) {
-                                if (func_8001FAE0(1, q->field_48) != 0) {
+                                if (Stream_PollPlayback(1, q->field_48) != 0) {
                                     CdCmd_AdvanceRead();
                                 }
                             }
@@ -424,9 +432,9 @@ void func_acropolis_plaza_8017D8AC(Task* arg0)
             dr->code[0] = 0xE1000240;
             addPrim(gGpuCurrentOt - 16, dr);
 
-            fade->r += (u16)arg0->spawnArg1;
-            fade->g += (u16)arg0->spawnArg1;
-            fade->b += (u16)arg0->spawnArg1;
+            fade->r += (u16)arg0->spawnArg1.value;
+            fade->g += (u16)arg0->spawnArg1.value;
+            fade->b += (u16)arg0->spawnArg1.value;
             if (fade->r >= 0x100) {
                 SetDispMask(0);
             kill:
@@ -490,9 +498,9 @@ void func_acropolis_plaza_8017DA58(Task* arg0)
             dr->code[0] = 0xE1000240;
             addPrim(gGpuCurrentOt - 16, dr);
 
-            fade->r -= (u16)arg0->spawnArg1;
-            fade->g -= (u16)arg0->spawnArg1;
-            fade->b -= (u16)arg0->spawnArg1;
+            fade->r -= (u16)arg0->spawnArg1.value;
+            fade->g -= (u16)arg0->spawnArg1.value;
+            fade->b -= (u16)arg0->spawnArg1.value;
             if (fade->r < 0) {
             kill:
                 taskKill(arg0);
@@ -774,7 +782,7 @@ L_case0:
         return;
     }
     Mem_Set(block, 0, 0x34);
-    arg            = (AcropolisPlazaSceneArg*)task->spawnArg2;
+    arg            = (AcropolisPlazaSceneArg*)task->spawnArg2.pointer;
     work           = (AcropolisPlazaSceneWork*)task->work;
     startView      = arg->view;
     q->field_1F8   = 0;
@@ -784,7 +792,7 @@ L_case0:
     q->field_1F0   = 0;
     q->field_1FA   = 0;
     q->field_1E8   = 0;
-    if (((AcropolisPlazaSceneArg*)task->spawnArg2)->noStream == 0) {
+    if (((AcropolisPlazaSceneArg*)task->spawnArg2.pointer)->noStream == 0) {
         slot[0]   = Stream_FindSlot(&gGameSession->at4.loc.view, q->field_1F8, 0);
         frameOfs  = (q->field_1EA - 1) * 10;
         openFrame = frameOfs & 0xFFFF;
@@ -996,8 +1004,8 @@ void func_acropolis_plaza_8017E7E4(Task* task)
             if (CdCmd_IsIdle() == 0) {
                 return;
             }
-            ((AcropolisPlazaCutWork*)task->spawnArg2)->field_1A = q->field_1EE;
-            taskKill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
+            ((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->field_1A = q->field_1EE;
+            taskKill(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->task);
             func_800E8634(D_acropolis_plaza_80182734, 1, D_acropolis_plaza_80182A34);
             task->state = task->state + 1;
             return;
@@ -1077,8 +1085,8 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             if (CdCmd_IsIdle() == 0) {
                 return;
             }
-            ((AcropolisPlazaCutWork*)task->spawnArg2)->field_1A = q->field_1EE;
-            taskKill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
+            ((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->field_1A = q->field_1EE;
+            taskKill(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->task);
             q->field_1EE = 1;
             q->field_1EA = 1;
             q->field_1F8 = 2;
@@ -1100,7 +1108,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             if (q->field_1EA >= 0x60) {
                 rec                            = &buf.weapon.rec;
                 weaponId                       = Player_Status.weapon;
-                id                             = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                id                             = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 buf.weapon.rec.animBlock.index = id;
                 rec->field_4                   = 1;
                 buf.weapon.rec.field_8         = 0;
@@ -1207,7 +1215,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             if (CdCmd_IsIdle() == 0) {
                 return;
             }
-            taskKill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
+            taskKill(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->task);
             q->field_1EE = 1;
             q->field_1EA = 1;
             q->field_1F8 = 4;
@@ -1433,7 +1441,7 @@ void func_acropolis_plaza_8017F48C(Task* task)
     switch (state) {
         case 0:
             weaponId            = Player_Status.weapon;
-            id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animBlock.index = id;
             rec.field_4         = 1;
             rec.field_8         = 0;
@@ -1444,9 +1452,9 @@ void func_acropolis_plaza_8017F48C(Task* task)
             break;
         case 1:
             if (CdCmd_IsIdle() != 0) {
-                ((AcropolisPlazaCutWork*)task->spawnArg2)->field_1A = q->field_1EE;
-                taskKill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
-                switch (task->spawnArg1) {
+                ((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->field_1A = q->field_1EE;
+                taskKill(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->task);
+                switch (task->spawnArg1.value) {
                     case 0:
                         func_800E8614((s32)D_acropolis_plaza_80183554, 1);
                         break;
@@ -1483,7 +1491,7 @@ void func_acropolis_plaza_8017F620(Task* task)
     switch (task->state) {
         case 0:
             weaponId            = Player_Status.weapon;
-            id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animBlock.index = id;
             rec.field_4         = 1;
             rec.field_8         = 0;
@@ -1494,9 +1502,9 @@ void func_acropolis_plaza_8017F620(Task* task)
             break;
         case 1:
             if (CdCmd_IsIdle() != 0) {
-                ((AcropolisPlazaCutWork*)task->spawnArg2)->field_1A = q->field_1EE;
-                taskKill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
-                Gp_RunCapCmd1(((AcropolisPlazaCutWork*)task->spawnArg2)->capCmd);
+                ((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->field_1A = q->field_1EE;
+                taskKill(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->task);
+                Gp_RunCapCmd1(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->capCmd);
                 task->state = task->state + 1;
             }
             break;
@@ -1635,12 +1643,12 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                 work->evtSub  = evtSub;
                 if ((s8)evtKind == 1) {
                     work->field_C =
-                        Task_SpawnFromTable(D_acropolis_plaza_80183824, 4, 0, (s32)work);
+                        Task_SpawnFromTable(D_acropolis_plaza_80183824, 4, 0, work);
                     work->step = work->step + 1;
                     goto running;
                 } else if ((s8)evtKind >= 6) {
                     work->field_C =
-                        Task_SpawnFromTable(D_acropolis_plaza_80183824, 9, 0, (s32)work);
+                        Task_SpawnFromTable(D_acropolis_plaza_80183824, 9, 0, work);
                     work->step = 5;
                 }
             }
@@ -1650,7 +1658,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                 work->field_12 = 1;
                 work->field_10 = work->streamFrame;
                 work->field_8 =
-                    Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, (s32)&work->field_10);
+                    Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->field_10);
                 Gp_UnlinkObj4A(0, &D_acropolis_plaza_801991F0);
                 work->step = work->step + 1;
             }
@@ -1664,31 +1672,31 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                 kind              = (s8)evtKind;
                 if (kind == 0) {
                     work->field_C =
-                        Task_SpawnFromTable(D_acropolis_plaza_80183824, 2, 0, (s32)work);
+                        Task_SpawnFromTable(D_acropolis_plaza_80183824, 2, 0, work);
                     work->step = work->step + 1;
                     goto running;
                 } else if (kind == 2) {
                     work->field_C =
-                        Task_SpawnFromTable(D_acropolis_plaza_80183824, 3, 0, (s32)work);
+                        Task_SpawnFromTable(D_acropolis_plaza_80183824, 3, 0, work);
                     work->step = work->step + 1;
                     goto running;
                 } else if (kind == 3) {
                     if (work->variant == 0) {
                         work->field_C =
-                            Task_SpawnFromTable(D_acropolis_plaza_80183824, 6, 0, (s32)work);
+                            Task_SpawnFromTable(D_acropolis_plaza_80183824, 6, 0, work);
                         work->step = 4;
                     } else if (work->variant == 1) {
                         work->field_C =
-                            Task_SpawnFromTable(D_acropolis_plaza_80183824, 6, 1, (s32)work);
+                            Task_SpawnFromTable(D_acropolis_plaza_80183824, 6, 1, work);
                         work->step = 4;
                     } else {
                         work->field_C =
-                            Task_SpawnFromTable(D_acropolis_plaza_80183824, 6, 2, (s32)work);
+                            Task_SpawnFromTable(D_acropolis_plaza_80183824, 6, 2, work);
                         work->step = 4;
                     }
                 } else if (kind >= 6) {
                     work->field_C =
-                        Task_SpawnFromTable(D_acropolis_plaza_80183824, 9, 0, (s32)work);
+                        Task_SpawnFromTable(D_acropolis_plaza_80183824, 9, 0, work);
                     work->step = 6;
                 }
             }
@@ -1712,7 +1720,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                 work->field_12 = 1;
                 work->field_10 = work->streamFrame;
                 work->field_8 =
-                    Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, (s32)&work->field_10);
+                    Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->field_10);
             }
             return 0;
         case 4:
@@ -1722,7 +1730,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                 work->field_12 = 1;
                 work->field_10 = work->streamFrame;
                 work->field_8 =
-                    Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, (s32)&work->field_10);
+                    Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->field_10);
                 step = work->step;
                 if (step == 5) {
                     work->step = 0;
@@ -1820,7 +1828,7 @@ void func_acropolis_plaza_80180054(Task* task)
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             work->field_12 = 0;
             work->field_10 = 0;
-            work->field_8  = Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, (s32)&work->field_10);
+            work->field_8  = Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->field_10);
             Stage_RequestFromAreaTable(0);
             Task_SpawnFromTable(D_acropolis_plaza_80183824, 8, 6, 0);
             q->field_244 = 1;
@@ -1834,10 +1842,10 @@ void func_acropolis_plaza_80180054(Task* task)
             task->state = task->state + 1;
             return;
         case 5:
-            Mc_SaveData[0].at4.loc.stage = 1;
-            Mc_SaveData[0].at4.loc.warp  = 1;
-            Mc_SaveData[0].at4.loc.area  = 0x11;
-            Mc_SaveData[0].at4.loc.room  = 1;
+            Mc_SaveData[0].state.at4.loc.stage = 1;
+            Mc_SaveData[0].state.at4.loc.warp  = 1;
+            Mc_SaveData[0].state.at4.loc.area  = 0x11;
+            Mc_SaveData[0].state.at4.loc.room  = 1;
             gDisplayState.roomVariant    = 1;
             Gp_EnqueueHeldWeaponCd();
             SndEvt_EnqueueType7(0x80000000, 0);
@@ -1875,11 +1883,11 @@ static void func_acropolis_plaza_801802C0(Task* task)
     s16                        spread, depthVal;
     u16                        yaw;
 
-    slot       = task->spawnArg1;
+    slot       = task->spawnArg1.value;
     entry      = &Gp_RoomCoords[slot & 7];
     light      = &entry->data.light;
     coord      = task->extra.tmd->coords;
-    work       = (AcropolisPlazaBeamWork*)task->spawnArg2;
+    work       = (AcropolisPlazaBeamWork*)task->spawnArg2.pointer;
     lightCoord = &light->head.u.coord;
     if (task->state == 0) {
         work->yaw   = (slot & 1) << 11;
@@ -1903,7 +1911,7 @@ static void func_acropolis_plaza_801802C0(Task* task)
         if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             brightness  = ((Gp_LcgState >> 16) & 0x7F) | 0x80;
-            if (task->spawnArg1 < 5) {
+            if (task->spawnArg1.value < 5) {
                 work->depth = ABS(work->yaw - 0x800) > 0x200 ? 0x800 : 0x200;
                 red         = brightness >> 1;
                 green       = brightness >> 1;
@@ -2026,7 +2034,7 @@ static void func_acropolis_plaza_801802C0(Task* task)
     }
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     brightness  = ((Gp_LcgState >> 16) & 0x7F) | 0x80;
-    if (task->spawnArg1 < 5) {
+    if (task->spawnArg1.value < 5) {
         work->depth = ABS(work->yaw - 0x800) > 0x300 ? 0x800 : 0x200;
         pulse       = brightness << 16;
         red         = pulse >> 20;
@@ -2099,9 +2107,9 @@ static void func_acropolis_plaza_801811D0(Task* task)
     u32                         pulse2;
     s16                         level;
     coord = task->extra.tmd->coords;
-    work  = (AcropolisPlazaBeamWork*)task->spawnArg2;
+    work  = (AcropolisPlazaBeamWork*)task->spawnArg2.pointer;
     if (task->state == 0) {
-        yawInit     = (task->spawnArg1 & 1) << 11;
+        yawInit     = (task->spawnArg1.value & 1) << 11;
         work->yaw   = yawInit;
         task->state = task->state + 1;
     }
@@ -2121,14 +2129,14 @@ static void func_acropolis_plaza_801811D0(Task* task)
     gte_stszotz(&blk->otz);
     if (blk->otz >= 0x11) {
         if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
-            pulse = gDisplayState.animFrame * 8 + task->spawnArg1 * 0xC0;
+            pulse = gDisplayState.animFrame * 8 + task->spawnArg1.value * 0xC0;
             if (pulse & 0x80) {
                 level = 0x7F - (pulse & 0x7F);
             } else {
                 level = pulse & 0x78;
             }
             brightness = level;
-            if (task->spawnArg1 < 9) {
+            if (task->spawnArg1.value < 9) {
                 red   = brightness >> 2;
                 green = brightness >> 2;
                 blue  = brightness;
@@ -2202,7 +2210,7 @@ static void func_acropolis_plaza_801811D0(Task* task)
     }
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     brightness  = ((Gp_LcgState >> 16) & 0x7F) | 0x80;
-    if (task->spawnArg1 < 9) {
+    if (task->spawnArg1.value < 9) {
         work->depth = ABS(work->yaw - 0x800) > 0x300 ? 0x800 : 0x200;
         pulse       = brightness << 16;
         red         = pulse >> 20;
@@ -2286,7 +2294,7 @@ static void func_acropolis_plaza_80182054(Task* task)
     gte_stszotz(&blk->otz);
     if (blk->otz >= 0x11) {
         if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
-            if (task->spawnArg1 < 0x10) {
+            if (task->spawnArg1.value < 0x10) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 brightness  = (((Gp_LcgState >> 16) & 0x3F) + 0x80) << 16;
                 shade0      = brightness >> 17;

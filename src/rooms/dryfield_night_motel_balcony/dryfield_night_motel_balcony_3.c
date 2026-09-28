@@ -2,21 +2,18 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/wipsys.h"
 #include "rooms/dryfield_night_motel_balcony.h"
 
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
+
+#include "gameplay/sprites.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 extern TaskDesc D_dryfield_night_motel_balcony_80182834;
 

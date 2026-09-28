@@ -3,12 +3,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -16,7 +10,13 @@
 #include "gameplay/display.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
-#include "main/fs.h"
+
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
 
 /// The room's message table, installed on the room entry task.
 extern GpMsgEntry D_dryfield_night_cellar_8017DAA8[];

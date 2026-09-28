@@ -11,6 +11,9 @@
 #include "gameplay/direction_input.h"
 #include "gameplay/room.h"
 
+#include "gameplay/view.h"
+#include "main/coord.h"
+
 GpRoomObjRec D_dryfield_r04_8017D5C4[1] = {
     { &D_dryfield_r04_8017E1F4, NULL, NULL, NULL },
 };

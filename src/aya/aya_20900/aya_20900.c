@@ -1,6 +1,9 @@
 #include "common.h"
 
 #include "aya/aya_20900.h"
+
+#include "gameplay/display.h"
+
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mem.h"
@@ -8,8 +11,6 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
-
-#include "gameplay/display.h"
 
 void func_aya_20900_8011578C(Task* arg0)
 {

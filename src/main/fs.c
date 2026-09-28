@@ -1,121 +1,271 @@
-#include "common.h"
-
-#define FS_C
-
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/kernel.h>
 #include <psyq/libapi.h>
 #include <psyq/libcd.h>
 #include <psyq/libetc.h>
 #include <psyq/strings.h>
 
+#include "common.h"
+
 #include "main/display.h"
-#include "main/fs.h"
+#include "main/display_types.h"
+#include "main/fs_types.h"
+#include "fs_types.h"
 #include "main/gamemain.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
 #include "main/sound.h"
-#include "main/stream.h"
+#include "sound.h"
+#include "stream.h"
+#include "main/stream_types.h"
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/display.h"
+typedef struct _FsCdfFolder {
+    u32 id;     // Folder id.
+    u32 offset; // Offset from the beginning of the file.
+} FsCdfFolder;
 
-static void Fs_ContinueDrawing(u_long* ot);
-static void Fs_OnCdError(u8 arg0);
-static u8   Fs_ProcessChunkData(void);
-static u8   Fs_ProcessChunkHeader(void);
-static void Fs_ReadNReadyCb(u8 status, u8* result);
-static void Fs_ReadNSyncCb(u8 status, u8* result);
-static void Fs_ReadSector(s32 sector);
-static void Fs_SeekToPos(s32 sector);
-static void Fs_SeekToPosCb(u8 status, u8* result);
+typedef struct _FsCdfFile {
+    u32 id;     // File id.
+    u32 offset; // Offset from the beginning of the folder.
+} FsCdfFile;
 
-/// Unreferenced.
-static s32 D_8005EBC0 = 0;
+typedef struct _FsCdfFileSmall {
+    u16 id;     // File id.
+    u16 offset; // Offset from the beginning of the folder.
+} FsCdfFileSmall;
 
-static u8   D5B498_8006ACC8;
-static s32  Fs_Stage0HedSector;
-static s32  Fs_SeekSector;
-static u16  D5B498_8006ACD4;
+/// Small FS control block cleared at the start of `Fs_PrepareFolderLoad`.
+typedef struct _FsLoadRedirect {
+    u16 enabled;
+    u16 sectorsRead;
+    u16 redirectSector;
+    u16 pad_6;
+    u8* destination;
+} FsLoadRedirect;
+STATIC_ASSERT_SIZEOF(FsLoadRedirect, 0xC);
+
+/// Canary value at the end of the STAGE0.HED header.
+#define FS_CDF_STAGE0_CANARY -1
+
+/// Canary value at the end of the folder list.
+#define FS_CDF_FOLDER_CANARY 0
+
+/// Idle / finished value for `Fs_CdOpStatus`.
+#define FS_CD_STATUS_IDLE -1
+
+// Args used by Fs_OnCdError
+#define FS_ERROR_SOFT 0x0
+
+#define FS_ERROR_HARD 0x2
+
+/* Define BSS before API headers to preserve first-declaration order. */
+static u8 D5B498_8006ACC8;
+
+static s32 Fs_Stage0HedSector;
+
+static s32 Fs_SeekSector;
+
+static u16 D5B498_8006ACD4;
+
 static RECT Fs_ImageRect;
+
 /// Unreferenced.
-static u8          D_8006ACE0[8];
+static u8 D_8006ACE0[8];
+
 static FsWorkEntry Fs_WorkEntries[0x1F];
-static u8          D5B498_8006ADE0;
-static u8          D5B498_8006ADE1;
-static u8          D_8006ADE2;
-static FsUnkADE8   D_8006ADE8;
-static u8          D5B498_8006ADF4;
-static s32         D_8006ADF8;
+
+static u8 D5B498_8006ADE0;
+
+static u8 D5B498_8006ADE1;
+
+static u8 D_8006ADE2;
+
+static FsLoadRedirect Fs_LoadRedirect;
+
+static u8 D5B498_8006ADF4;
+
+static s32 D_8006ADF8;
+
 /// Unreferenced.
-static u8             D_8006AE00[8];
-static u16            Fs_FileOffsetsCat0[0x30];
-static u16            Fs_FileOffsetsCat5[0x40];
+static u8 D_8006AE00[8];
+
+static u16 Fs_FileOffsetsCat0[0x30];
+
+static u16 Fs_FileOffsetsCat5[0x40];
+
 static FsCdfFileSmall Fs_FileTableCat3[0x1e];
-static u8             Fs_FileTableCat3Len;
+
+static u8 Fs_FileTableCat3Len;
+
 static FsCdfFileSmall Fs_FileTableCat4[0x46];
-static u8             Fs_FileTableCat4Len;
+
+static u8 Fs_FileTableCat4Len;
+
 static FsCdfFileSmall Fs_FileTableCat1[0x3c];
-static u8             Fs_FileTableCat1Len;
+
+static u8 Fs_FileTableCat1Len;
+
 /// Unreferenced.
-static u8             D_8006B180[8];
+static u8 D_8006B180[8];
+
 static FsCdfFileSmall Fs_FileTableCat2[0x160];
-static u16            Fs_FileTableCat2Len;
+
+static u16 Fs_FileTableCat2Len;
+
 /// Unreferenced.
-static u8        D_8006B710[8];
+static u8 D_8006B710[8];
+
 static FsCdfFile Fs_FileTable[0x10e];
-static u16       Fs_FileTableLen;
+
+static u16 Fs_FileTableLen;
+
 /// Unreferenced.
-static u8          D_8006BF90[8];
-static u32         Fs_FileOffsetsCat90[0x8];
+static u8 D_8006BF90[8];
+
+static u32 Fs_FileOffsetsCat90[0x8];
+
 static FsCdfFolder Fs_FolderTable[50];
-static u16         Fs_FolderTableLen;
+
+static u16 Fs_FolderTableLen;
+
 /// Unreferenced.
 static u8 D_8006C150[8];
+
 /// Absolute sector offsets for folder-local file ids (indexed by file id).
 /// Filled by `Fs_BuildFolderTables` from the folder file list in `Fs_CdSector`.
 static s32 D_8006C158[0x33];
-s32        Fs_ReqSector;
-u8         Fs_CdOpStatus;
-u8*        Fs_ChunkReadPtr;
-static u8  Fs_LoadPhase;
-static u8  Fs_Streaming;
-u8         Fs_ChunkMode;
-s8         D5B498_8006C233;
-s8         D5B498_8006C234;
+
+s32 Fs_ReqSector;
+
+u8 Fs_CdOpStatus;
+
+u8* Fs_ChunkReadPtr;
+
+static u8 Fs_LoadPhase;
+
+static u8 Fs_Streaming;
+
+u8 Fs_ChunkMode;
+
+s8 D5B498_8006C233;
+
+s8 D5B498_8006C234;
+
 /// Referenced only by the table at the start of the image.
-u8           D_8006C238[0x100];
+u8 D_8006C238[0x100];
+
 FsFolderSlot D_8006C338[50];
+
 /// Per-slot image-load status bytes (indexed by `D5B498_8006ADF4`).
-static u8  D_8006C4C8[0xC];
-u8*        D_8006C4D4;
-FsSector   Fs_CdSector;
-static u8  D_8006CCD8[0x800];
-u8*        Fs_ChunkWritePtr;
-static u8  D5B498_8006D4E0[0x10];
+static u8 D_8006C4C8[0xC];
+
+u8* D_8006C4D4;
+
+FsSector Fs_CdSector;
+
+static u8 D_8006CCD8[0x800];
+
+u8* Fs_ChunkWritePtr;
+
+static u8 D5B498_8006D4E0[0x10];
+
 StreamSlot Stream_Slots[15];
-u16        D5B498_8006D748;
+
+u16 D5B498_8006D748;
+
 /// Referenced only by the table at the start of the image.
-u8         D_8006D750[0x100];
-void*      D5B498_8006D850;
+u8 D_8006D750[0x100];
+
+void* D5B498_8006D850;
+
 static s32 Fs_ChunkEndSector;
-u16        D5B498_8006D858;
-u16        D5B498_8006D85A;
+
+u16 D5B498_8006D858;
+
+u16 D5B498_8006D85A;
+
 /// Unreferenced.
-static s32    D_8006D85C;
-s32           D_8006D860;
-static s32    D_8006D864;
-s32           D_8006D868;
-static u8     Fs_ChunkEndFlag;
+static s32 D_8006D85C;
+
+/// Bytes produced in each streaming destination; -1 marks a pending destination.
+s32 Fs_ChunkOutputSizes[3];
+
+static u8 Fs_ChunkEndFlag;
+
 static u_long D5B498_8006D870[0x460];
-s32           Fs_StageCdfSectors[FS_CDF_STAGE_COUNT];
-s16           D_8006EA08;
-s16           D_8006EA0A;
-s32           D_8006EA0C;
-s32           Fs_VBlank;
-static s32    Fs_CurrSector;
-u8            Fs_CdErrorCount;
-u16           D5B498_8006EA1A;
-FsCdfStream   Fs_Streams[0xa];
-u16           D5B498_8006EBB0;
+
+s32 Fs_StageCdfSectors[FS_CDF_STAGE_COUNT];
+
+s16 D_8006EA08;
+
+s16 D_8006EA0A;
+
+s32 D_8006EA0C;
+
+s32 Fs_VBlank;
+
+static s32 Fs_CurrSector;
+
+u8 Fs_CdErrorCount;
+
+u16 D5B498_8006EA1A;
+
+StreamSlot Fs_Streams[0xa];
+
+u16 D5B498_8006EBB0;
+
+#include "main/fs.h"
+
+#include "fs.h"
+#include "main/stream.h"
+
+/// Unreferenced.
+static s32 D_8005EBC0;
+
+/* ISO directory name suffixes / special files (must sit in .rodata before ScanIso jtbl). */
+static const char Fs_ExtensionCdf[];
+
+static const char Fs_ExtensionStr[];
+
+static const char Fs_Stage0HeaderName[];
+
+static const char Fs_InitBitstreamName[];
+
+static void Fs_ResetBootLoadState(void);
+
+static void Fs_CdReadyCb(u8 status, u8* result);
+
+static u8 Fs_ProcessChunkHeader(void);
+
+static u8 Fs_ProcessChunkData(void);
+
+/// Starts a ReadN of `sector` onwards into `dest`, reusing the position of a
+/// preceding seek when it targeted the same sector.
+static inline void _fsStartRead(s32 sector, s32 endSector, u8* dest, u8 phase);
+
+static void Fs_InitStage0TablesCb(u8 status, u8* result);
+
+static void Fs_ReadSector(s32 sector);
+
+static void Fs_SeekToPos(s32 sector);
+
+static void Fs_ReadNSyncCb(u8 status, u8* result);
+
+static void Fs_ReadNReadyCb(u8 status, u8* result);
+
+static void Fs_SeekToPosCb(u8 status, u8* result);
+
+static void Fs_OnCdError(u8 arg0);
+
+static void Fs_ContinueDrawing(u_long* ot);
+
+/// Unreferenced.
+static s32 D_8005EBC0 = 0;
 
 static void Fs_ResetBootLoadState(void)
 {
@@ -388,7 +538,7 @@ static u8 Fs_ProcessChunkHeader(void)
     Fs_ChunkWritePtr  = hdr->loadAddr;
     Fs_ChunkEndSector = Fs_ReqSector - 1 + hdr->size;
     Fs_ChunkEndFlag   = hdr->endFlag;
-    D_8006C4D4       += hdr->field_2;
+    D_8006C4D4       += hdr->offset.dataOffset;
 
     switch (Fs_CdSector.chunk.header.type) {
         case 0:
@@ -491,16 +641,16 @@ static u8 Fs_ProcessChunkHeader(void)
             for (i = 0; i < 50; i++) {
                 D_8006C338[i].field_0 = entry->type;
                 D_8006C338[i].field_4 = entry->loadAddr;
-                if (entry->padding != 0) {
-                    D_8006ADE8.field_0 = 1;
-                    D_8006ADE8.field_4 = entry->field_2;
-                    D_8006ADE8.field_8 = entry->padding;
+                if (entry->redirectAddr != 0) {
+                    Fs_LoadRedirect.enabled        = 1;
+                    Fs_LoadRedirect.redirectSector = entry->offset.redirectSector;
+                    Fs_LoadRedirect.destination    = entry->redirectAddr;
                 }
                 entry++;
             }
-            D_8006ADE8.field_2 = 0;
-            Fs_LoadPhase       = 4;
-            Fs_Streaming       = 1;
+            Fs_LoadRedirect.sectorsRead = 0;
+            Fs_LoadPhase                = 4;
+            Fs_Streaming                = 1;
             break;
         }
 
@@ -600,26 +750,26 @@ static u8 Fs_ProcessChunkData(void)
             }
             switch (D5B498_8006ADF4 - 1) {
                 case 0:
-                    D_8006D860 = Fs_ChunkWritePtr - (u8*)D_8005C36C;
+                    Fs_ChunkOutputSizes[0] = Fs_ChunkWritePtr - (u8*)Fs_ActorLoadBase0;
                     goto check_end_flag;
                 case 1:
-                    D_8006D864 = Fs_ChunkWritePtr - (u8*)D_8005C370;
+                    Fs_ChunkOutputSizes[1] = Fs_ChunkWritePtr - (u8*)Fs_ActorLoadBase1;
                     goto check_end_flag;
                 case 2:
                 case 7:
-                    D_8006D868 = Fs_ChunkWritePtr - (u8*)D_8005C374;
+                    Fs_ChunkOutputSizes[2] = Fs_ChunkWritePtr - (u8*)Fs_ActorLoadBase2;
                     goto check_end_flag;
                 case 3:
-                    offsets    = &D_8006D860;
-                    offsets[1] = -1;
-                    D_8006D860 = Fs_ChunkWritePtr - (u8*)D_8005C36C;
+                    offsets                = &Fs_ChunkOutputSizes[0];
+                    offsets[1]             = -1;
+                    Fs_ChunkOutputSizes[0] = Fs_ChunkWritePtr - (u8*)Fs_ActorLoadBase0;
                     goto check_end_flag;
                 case 4: {
                     s32* p;
-                    p          = &D_8006D860;
-                    p[1]       = -1;
-                    p[2]       = -1;
-                    D_8006D860 = Fs_ChunkWritePtr - (u8*)D_8005C36C;
+                    p                      = &Fs_ChunkOutputSizes[0];
+                    p[1]                   = -1;
+                    p[2]                   = -1;
+                    Fs_ChunkOutputSizes[0] = Fs_ChunkWritePtr - (u8*)Fs_ActorLoadBase0;
                     goto check_end_flag;
                 }
                 case 5:
@@ -677,14 +827,14 @@ static u8 Fs_ProcessChunkData(void)
                 }
                 Fs_Streaming = 0;
             }
-            if (D_8006ADE8.field_0 == 0) {
+            if (Fs_LoadRedirect.enabled == 0) {
                 goto ret0;
             }
-            D_8006ADE8.field_2 += 1;
-            if (D_8006ADE8.field_4 != D_8006ADE8.field_2) {
+            Fs_LoadRedirect.sectorsRead += 1;
+            if (Fs_LoadRedirect.redirectSector != Fs_LoadRedirect.sectorsRead) {
                 goto ret0;
             }
-            val = (u8*)D_8006ADE8.field_8;
+            val = Fs_LoadRedirect.destination;
             __asm__ volatile(
                 ".set\tnoreorder\n\t"
                 "lui $2, %%hi(Fs_ChunkWritePtr)\n\t"
@@ -821,12 +971,12 @@ void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2)
     s32 folderId;
     s32 sector;
 
-    D_8006ADE8.field_0 = 0;
-    D_8006ADE8.field_2 = 0;
-    D_8006ADE8.field_4 = 0;
-    D_8006ADE8.field_8 = 0;
-    Fs_ChunkMode       = 0;
-    D5B498_8006ADF4    = 0;
+    Fs_LoadRedirect.enabled        = 0;
+    Fs_LoadRedirect.sectorsRead    = 0;
+    Fs_LoadRedirect.redirectSector = 0;
+    Fs_LoadRedirect.destination    = 0;
+    Fs_ChunkMode                   = 0;
+    D5B498_8006ADF4                = 0;
 
     for (i = 0; i < 0x32; i++) {
         D_8006C338[i].field_0 = 0;
@@ -853,16 +1003,17 @@ void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2)
 
 void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2)
 {
-    s32          i;
-    s32          j;
-    s32          folderId;
-    FsCdfFile*   files;
+    s32 i;
+    s32 j;
+    s32 folderId;
+    union {
+        FsCdfFile*   file;
+        FsCdfFolder* folder;
+    } files;
     s32*         table;
-    FsCdfFile*   file;
     s32          offset;
     FsCdfFolder* folder;
-    FsCdfStream* streams;
-    FsCdfStream* stream;
+    StreamSlot*  streams;
     StreamSlot*  destBase;
     s32          k;
     u8*          src;
@@ -876,25 +1027,24 @@ void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2)
         }
     }
 
-    files = (FsCdfFile*)&Fs_CdSector;
-    j     = 0;
-    table = D_8006C158;
+    files.file = (FsCdfFile*)&Fs_CdSector;
+    j          = 0;
+    table      = D_8006C158;
     {
         FsCdfFolder* sp = Fs_FolderTable;
         folder          = sp + (i & 0xFFFF);
     }
 loop_files:
-    file   = (FsCdfFile*)(((j & 0xFFFF) << 3) + (s32)files);
-    offset = file->offset;
-    j     += 1;
+    offset = files.file[j & 0xFFFF].offset;
     if (offset != 0) {
-        table[file->id] = offset + folder->offset;
+        table[files.file[j & 0xFFFF].id] = offset + folder->offset;
+        j                               += 1;
         goto loop_files;
     }
 
     i        = 0;
     folderId = ((u8)arg1 * 100) + 1;
-    streams  = (FsCdfStream*)(Fs_CdSector.bytes + 0x514);
+    streams  = (StreamSlot*)(Fs_CdSector.bytes + 0x514);
     for (; (u16)i < Fs_FolderTableLen; i++) {
         if (folderId == Fs_FolderTable[i & 0xFFFF].id) {
             break;
@@ -904,7 +1054,7 @@ loop_files:
     j = 0;
     {
         FsCdfFolder* sp = Fs_FolderTable;
-        files           = (FsCdfFile*)(sp + (i & 0xFFFF));
+        files.folder    = sp + (i & 0xFFFF);
     }
     {
         s32* sp = Fs_StageCdfSectors;
@@ -912,11 +1062,10 @@ loop_files:
     }
     destBase = Stream_Slots;
 loop_streams:
-    stream = (FsCdfStream*)(((j & 0xFFFF) * 0x28) + (s32)streams);
-    if (*(s32*)&stream->data.movie.field_c != 0) {
-        stream->offset += files->offset + *table;
-        src             = (u8*)stream;
-        dst             = (u8*)(((j & 0xFFFF) * 0x28) + (s32)destBase);
+    if (streams[j & 0xFFFF].key.word != 0) {
+        streams[j & 0xFFFF].field_4 += files.folder->offset + *table;
+        src                          = (u8*)&streams[j & 0xFFFF];
+        dst                          = (u8*)(((j & 0xFFFF) * 0x28) + (s32)destBase);
         for (k = 0; (u16)k < 0x28; k++) {
             dst[k & 0xFFFF] = src[k & 0xFFFF];
         }
@@ -941,7 +1090,7 @@ static void Fs_InitStage0TablesCb(u8 status, u8* result)
     FsCdfFileSmall* tbl;
     FsSector*       sectorBuffer;
     u32*            words;
-    FsCdfStream*    streamTable;
+    StreamSlot*     streamTable;
     u32*            fileSect90;
     u16*            fileSect5;
     u16*            fileSect0;
@@ -999,14 +1148,14 @@ sector_start:
 
             // Copy the stream header into the stream table.
             streamCpyPos = (u8*)&streamTable[(u16)streamIdx];
-            for (i = 0; (u16)i < sizeof(FsCdfStream); i++) {
+            for (i = 0; (u16)i < sizeof(StreamSlot); i++) {
                 streamCpyPos[(u16)i] = entryBytes[(u16)i];
             }
 
             // Move to the next entry and adjust the offset to be the absolute
             // offset on the CD rom.
-            streamTable[(u16)streamIdx++].offset += Fs_StageCdfSectors[0];
-            headerOffset                         += sizeof(FsCdfStream) / sizeof(u32);
+            streamTable[(u16)streamIdx++].field_4 += Fs_StageCdfSectors[0];
+            headerOffset                          += sizeof(StreamSlot) / sizeof(u32);
         } else {
             fileCategory = fileId / 10000;
 
@@ -1015,7 +1164,7 @@ sector_start:
                 case 0:
                     i = 0;
                     while (true) {
-                        fileSect0[(u16)i] = ((FsCdfFile*)&sectorBuffer->words[(u16)headerOffset])->offset;
+                        fileSect0[(u16)i] = (&sectorBuffer->words[(u16)headerOffset])[1];
                         i++;
                         if ((u16)i >= 0x2D) {
                             break;
@@ -1033,7 +1182,7 @@ sector_start:
                     n               = Fs_FileTableCat1Len;
                     Fs_FileTableCat1Len++;
                     tbl[n].id     = fileId - 10000;
-                    tbl[n].offset = ((FsCdfFile*)entry)->offset;
+                    tbl[n].offset = entry[1];
                     break;
                 }
 
@@ -1045,7 +1194,7 @@ sector_start:
                     n               = Fs_FileTableCat2Len;
                     Fs_FileTableCat2Len++;
                     tbl[n].id     = fileId - fileCategory * 10000;
-                    tbl[n].offset = ((FsCdfFile*)entry)->offset;
+                    tbl[n].offset = entry[1];
                     break;
                 }
 
@@ -1057,7 +1206,7 @@ sector_start:
                     n               = Fs_FileTableCat3Len;
                     Fs_FileTableCat3Len++;
                     tbl[n].id     = fileId - 30000;
-                    tbl[n].offset = ((FsCdfFile*)entry)->offset;
+                    tbl[n].offset = entry[1];
                     break;
                 }
 
@@ -1069,17 +1218,17 @@ sector_start:
                     n               = Fs_FileTableCat4Len;
                     Fs_FileTableCat4Len++;
                     tbl[n].id     = fileId - fileCategory * 10000;
-                    tbl[n].offset = ((FsCdfFile*)entry)->offset;
+                    tbl[n].offset = entry[1];
                     break;
                 }
 
                 case 5:
-                    fileSect5[*entry % 100] = ((FsCdfFile*)entry)->offset;
+                    fileSect5[*entry % 100] = entry[1];
                     isValidCategory         = true;
                     break;
 
                 case 90:
-                    fileSect90[*entry % 100] = ((FsCdfFile*)entry)->offset;
+                    fileSect90[*entry % 100] = entry[1];
                     isValidCategory          = true;
                     break;
             }
@@ -1097,7 +1246,7 @@ sector_start:
                     n       = Fs_FileTableLen;
                     Fs_FileTableLen++;
                     fileTbl[n].id     = id;
-                    fileTbl[n].offset = ((FsCdfFile*)&words[(u16)headerOffset])->offset;
+                    fileTbl[n].offset = (&words[(u16)headerOffset])[1];
                 }
             }
 
@@ -1110,10 +1259,10 @@ on_error:
 }
 
 /* ISO directory name suffixes / special files (must sit in .rodata before ScanIso jtbl). */
-static const char D_800132F4[] = ".CDF";
-static const char D_800132FC[] = ".STR";
-static const char D_80013304[] = "STAGE0.HED";
-static const char D_80013310[] = "INIT.BS";
+static const char Fs_ExtensionCdf[]      = ".CDF";
+static const char Fs_ExtensionStr[]      = ".STR";
+static const char Fs_Stage0HeaderName[]  = "STAGE0.HED";
+static const char Fs_InitBitstreamName[] = "INIT.BS";
 
 void Fs_ScanIsoDirectory(s32 mode)
 {
@@ -1192,19 +1341,19 @@ restart:
                     s32 nameIdx = i & 0xFF;
                     u8* name    = &entry[0x21 + nameIdx];
 
-                    if (strncmp(D_800132F4, (char*)name, 4) == 0) {
+                    if (strncmp(Fs_ExtensionCdf, (char*)name, 4) == 0) {
                         u8 stageNum;
 
                         stageNum = entry[0x20 + nameIdx] - 0x30;
                         Fs_StageCdfSectors[stageNum] =
                             *(u16*)(entry + 2) + (*(u16*)(entry + 4) << 16);
-                    } else if (strncmp(D_800132FC, (char*)name, 4) == 0) {
+                    } else if (strncmp(Fs_ExtensionStr, (char*)name, 4) == 0) {
                         D_8006AC30.sector =
                             *(u16*)(entry + 2) + (*(u16*)(entry + 4) << 16);
-                    } else if (strncmp(D_80013304, (char*)(entry + 0x21), 0xA) == 0) {
+                    } else if (strncmp(Fs_Stage0HeaderName, (char*)(entry + 0x21), 0xA) == 0) {
                         Fs_Stage0HedSector =
                             *(u16*)(entry + 2) + (*(u16*)(entry + 4) << 16);
-                    } else if (strncmp(D_80013310, (char*)(entry + 0x21), 7) == 0) {
+                    } else if (strncmp(Fs_InitBitstreamName, (char*)(entry + 0x21), 7) == 0) {
                         initBsCount = 0x10;
                         initBsSector =
                             *(u16*)(entry + 2) + (*(u16*)(entry + 4) << 16);
@@ -1279,7 +1428,7 @@ restart:
     }
 }
 
-u8 Fs_LoadImageChunk(FsImageChunk* arg0, u8 arg1)
+u8 Fs_LoadImageChunk(FsImageChunk* chunk, u8 arg1)
 {
     u_long*       ot;
     s32           retry;
@@ -1305,10 +1454,10 @@ u8 Fs_LoadImageChunk(FsImageChunk* arg0, u8 arg1)
     } while (1);
 
     D_8006C4C8[D5B498_8006ADF4] = 0;
-    Fs_ImageRect.x              = arg0->x;
+    Fs_ImageRect.x              = chunk->x;
 
-    inRange = (u32)(arg0->y - 0xF5) < 0xBU;
-    img     = arg0;
+    inRange = (u32)(chunk->y - 0xF5) < 0xBU;
+    img     = chunk;
     if (inRange) {
         yAdj = D5B498_8006C234;
     } else {
@@ -1321,7 +1470,7 @@ u8 Fs_LoadImageChunk(FsImageChunk* arg0, u8 arg1)
         Fs_ImageRect.y = img->y + yAdj;
     }
 
-    Fs_ChunkReadPtr  = (u8*)(arg0 + 1);
+    Fs_ChunkReadPtr  = (u8*)(chunk + 1);
     Fs_ImageRect.w   = img->w;
     Fs_ChunkWritePtr = (u8*)D5B498_8006D870;
     Fs_ImageRect.h   = img->h;
@@ -1733,7 +1882,7 @@ static void Fs_SeekToPos(s32 sector)
     Fs_VBlank = VSync(-1);
 }
 
-void Fs_InitFolderTable(s32 arg0)
+void Fs_InitFolderTable(s32 unused)
 {
     u32                   offset;
     FsCdfFolderListEntry* entry;

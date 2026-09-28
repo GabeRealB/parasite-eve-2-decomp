@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 /// The room's two-entry task descriptor table: entry 0 starts the streamed
 /// sequence, entry 1 is the task that plays it.

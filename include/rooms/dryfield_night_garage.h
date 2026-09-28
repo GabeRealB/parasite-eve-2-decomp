@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 /// Returns the task of the room work object whose id is the current area and
 /// stage with `arg0` in bits 12 and up, or NULL when there is none.

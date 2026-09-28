@@ -1,11 +1,6 @@
 #include "common.h"
 
 #include "actors/actor.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -14,7 +9,14 @@
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 /// Work block of the overlay's actor, allocated zeroed by its state-0 handler
 /// and kept both in `D_actor_420700_8013EFE0` and at `Task::work`; the task
@@ -212,7 +214,7 @@ void func_actor_420700_80132340(Task* task)
     };
 
     D_actor_420700_8013EFE0 = task->work;
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Exit callback of the actor's task: kills the frame-4 model task and
@@ -220,7 +222,7 @@ void func_actor_420700_80132340(Task* task)
 static void func_actor_420700_8013239C(Task* arg0)
 {
     taskKill(D_actor_420700_8013EFE8);
-    Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+    Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
 }
 
 /// State handler of the frame-4 model task: the spawn tick clears its root

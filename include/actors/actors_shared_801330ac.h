@@ -2,7 +2,8 @@
 #define ACTORS_SHARED_801330AC_H
 
 #include "common.h"
-#include "main/task.h"
+
+#include "main/task_types.h"
 
 /// Work block the actors sharing this body hang off the task's `Task::work`
 /// slot (0x1C), which is not a `TaskIdMap` here. Each overlay's spawn routine

@@ -3,17 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/acropolis_cafeteria.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -33,9 +22,20 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 #include "main/wipsys.h"
 
-extern void Stage_RequestFromAreaTable(s32 arg0);
 extern void func_807245E4(void*);
 extern void func_80724608(void*, s32, s32, void*);
 
@@ -163,7 +163,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 2:
             blackout                   = 1;
-            gGameSession->at4.loc.room = Mc_SaveData[0].at4.loc.room = 2;
+            gGameSession->at4.loc.room = Mc_SaveData[0].state.at4.loc.room = 2;
             gGameSession->roomObjsDirty                              = 1;
             task->state                                             += 1;
             break;
@@ -196,9 +196,9 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
         case 7:
             blackout = 1;
             if (CdCmd_IsIdle()) {
-                Gp_SetAreaObjId(&Mc_SaveData[0].at4.loc, 2, 1);
-                Gp_SyncAreaKeyIndex(&Mc_SaveData[0].at4.loc);
-                Gp_SpawnArea(&Mc_SaveData[0].at4.loc);
+                Gp_SetAreaObjId(&Mc_SaveData[0].state.at4.loc, 2, 1);
+                Gp_SyncAreaKeyIndex(&Mc_SaveData[0].state.at4.loc);
+                Gp_SpawnArea(&Mc_SaveData[0].state.at4.loc);
                 D_801156A4  &= ~0x40;
                 task->state += 1;
             }
@@ -332,15 +332,15 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             GameFlag_SetNibble(0x155, 4);
             GameFlag_SetNibble(0xE, 1);
             Gp_ApplyAreaRecs(D_acropolis_cafeteria_8018C9D4);
-            Mc_SaveData[0].sceneEvent = 4;
+            Mc_SaveData[0].state.sceneEvent = 4;
             func_800E3FAC(0xA2, 4);
             func_800ABFF8();
             func_800AC000();
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].at4.loc.stage = 1;
-            Mc_SaveData[0].at4.loc.area  = 3;
-            Mc_SaveData[0].at4.loc.warp  = 3;
-            Mc_SaveData[0].at4.loc.room  = 3;
+            Mc_SaveData[0].state.at4.loc.stage = 1;
+            Mc_SaveData[0].state.at4.loc.area  = 3;
+            Mc_SaveData[0].state.at4.loc.warp  = 3;
+            Mc_SaveData[0].state.at4.loc.room  = 3;
             gDisplayState.roomVariant    = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);

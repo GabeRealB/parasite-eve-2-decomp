@@ -1,17 +1,8 @@
 #include "common.h"
-#include "main/stage.h"
 
 #include <psyq/libgte.h>
 
 #include "actors/actor.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/captions.h"
 #include "gameplay/display.h"
@@ -21,8 +12,23 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gameflow.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/stage.h"
+#include "main/task.h"
 #include "main/wipsys.h"
+#include "overlay.h"
 
 /// Work block of the overlay's sequence/event task -- the one
 /// `D_actor_341900_80164208` points at.
@@ -162,7 +168,7 @@ typedef struct Actor341900AnimCmd {
 STATIC_ASSERT_SIZEOF(Actor341900AnimCmd, 0x14);
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
-/// base weapon id records are numbered from, and `Mc_SaveData[0].characterId` selects the
+/// base weapon id records are numbered from, and `Mc_SaveData[0].state.characterId` selects the
 /// alternate set -- 1 means the second block, anything else the `+0x22` one.
 /// Byte the other actor overlays' one-argument setters write; set to 0xC here
 /// beside `gStageSceneMusicEntry`.
@@ -302,7 +308,7 @@ void func_actor_341900_80162200(Task* arg0)
             taskKill(arg0);
         } else {
             Mem_Set(mtx, 0, 0x44);
-            mtx->field_40                = (Task*)arg0->spawnArg2;
+            mtx->field_40                = (Task*)arg0->spawnArg2.pointer;
             extra->flags                 = 0;
             arg0->extra.tmd->coords->sub = &gGfxViewCoord;
             extra->lightMtx              = &mtx->light;
@@ -344,7 +350,7 @@ static void func_actor_341900_80162330(Task* arg0)
     }
     w = work;
     Mem_Set(w, 0, 0x258);
-    w->field_248    = (Task*)arg0->spawnArg2;
+    w->field_248    = (Task*)arg0->spawnArg2.pointer;
     extra->lightMtx = &w->light;
     extra->colorMtx = &w->color;
     arg0->msgTable  = D_actor_341900_80163A78;
@@ -355,7 +361,7 @@ static void func_actor_341900_80162330(Task* arg0)
         }
     }
     Gp_SetTmdBytes(extra, (s8)rec->tpage, (s8)rec->clut);
-    switch (arg0->spawnArg1) {
+    switch (arg0->spawnArg1.value) {
         case 0:
             func_800B3F84(&w->ctx, D_actor_341900_801639AC, extra, &w->pad_154, w->slots);
             ctx = (Actor341900AnimWork*)arg0->work;
@@ -407,10 +413,10 @@ void func_actor_341900_801625B4(Task* arg0)
 
         extra             = arg0->extra.tmd;
         coord             = extra->coords;
-        coord->sub        = &((Task*)work->field_248)->extra.tmd->coords[D_actor_341900_80163A98[arg0->spawnArg1].field_6];
-        coord->coord.t[0] = D_actor_341900_80163A98[arg0->spawnArg1].field_0;
-        coord->coord.t[1] = D_actor_341900_80163A98[arg0->spawnArg1].field_2;
-        coord->coord.t[2] = D_actor_341900_80163A98[arg0->spawnArg1].field_4;
+        coord->sub        = &((Task*)work->field_248)->extra.tmd->coords[D_actor_341900_80163A98[arg0->spawnArg1.value].field_6];
+        coord->coord.t[0] = D_actor_341900_80163A98[arg0->spawnArg1.value].field_0;
+        coord->coord.t[1] = D_actor_341900_80163A98[arg0->spawnArg1.value].field_2;
+        coord->coord.t[2] = D_actor_341900_80163A98[arg0->spawnArg1.value].field_4;
         coord->flg        = 0;
         arg0->state++;
     }
@@ -500,7 +506,7 @@ static void func_actor_341900_801628B8(Task* arg0)
                 s32 anim;
 
                 weaponId            = Player_Status.weapon;
-                anim                = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                anim                = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 msg.animBlock.index = anim;
                 msg.field_4         = 1;
                 msg.field_8         = 0;
@@ -540,7 +546,7 @@ static void func_actor_341900_801628B8(Task* arg0)
             s32 anim;
 
             weaponId            = Player_Status.weapon;
-            anim                = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.animBlock.index = anim;
             msg.field_4         = 9;
             msg.field_8         = 0;
@@ -713,18 +719,18 @@ void func_actor_341900_80162EFC(Task* arg0)
             sp10.from.loc.area  = sessionIdLo;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &sp10, 0x7DB);
             seqWork          = (Actor341900Work*)arg0->work;
-            seqWork->field_8 = Task_SpawnFromTable(&D_actor_341900_80164190, 2, 0, (s32)arg0);
+            seqWork->field_8 = Task_SpawnFromTable(&D_actor_341900_80164190, 2, 0, arg0);
             for (var_s0 = 0; (u32)(var_s0 & 0xFFFF) < 5U; var_s0++) {
                 temp_a2 = var_s0 & 0xFFFF;
-                Task_SpawnFromTable(&D_actor_341900_80164190, temp_a2 + 3, temp_a2 + 1, (s32)seqWork->field_8);
+                Task_SpawnFromTable(&D_actor_341900_80164190, temp_a2 + 3, temp_a2 + 1, seqWork->field_8);
             }
-            seqWork->field_C         = Task_SpawnFromTable(&D_actor_341900_80164190, 8, 0, (s32)arg0);
-            seqWork->field_10        = Task_SpawnFromTable(&D_actor_341900_80164190, 9, 0, (s32)arg0);
+            seqWork->field_C         = Task_SpawnFromTable(&D_actor_341900_80164190, 8, 0, arg0);
+            seqWork->field_10        = Task_SpawnFromTable(&D_actor_341900_80164190, 9, 0, arg0);
             gGameSession->flowFlags |= 3;
             goto next;
         case 1:
             gStageSceneMusicEntry     = 4;
-            Mc_SaveData[0].sceneEvent = 0xC;
+            Mc_SaveData[0].state.sceneEvent = 0xC;
             func_800E8634(D_actor_341900_80163B48, 0, D_actor_341900_80163FB0);
         next:
             arg0->state += 1;
@@ -767,9 +773,9 @@ void func_actor_341900_80163148(Task* arg0)
             /* fallthrough */
         case 1:
             Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
-            fade->r -= (u16)arg0->spawnArg1;
-            fade->g -= (u16)arg0->spawnArg1;
-            fade->b -= (u16)arg0->spawnArg1;
+            fade->r -= (u16)arg0->spawnArg1.value;
+            fade->g -= (u16)arg0->spawnArg1.value;
+            fade->b -= (u16)arg0->spawnArg1.value;
             if (fade->r < 0) {
                 taskKill(arg0);
             }
@@ -930,7 +936,7 @@ void func_actor_341900_801635A4(void)
 
     work                = (Actor341900Work*)D_actor_341900_80164208->work;
     weaponId            = Player_Status.weapon;
-    anim                = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    anim                = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = anim;
     msg.field_4         = 9;
     msg.field_8         = 0;

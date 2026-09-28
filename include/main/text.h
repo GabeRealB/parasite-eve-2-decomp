@@ -1,16 +1,13 @@
-#ifndef TEXT_H
-#define TEXT_H
+#ifndef MAIN_TEXT_H
+#define MAIN_TEXT_H
 
 #include "common.h"
 
-#include "main/task.h"
-#include "main/ui.h"
+#include "main/ui_types.h"
 
-// Types — font / text draw
-
-/// Text-measure / draw-request block passed to Text_MeasureAndCenter / func_8002E53C.
+/// Text-measure / draw-request block passed to Text_MeasureAndCenter / Text_DrawString.
 /// glyphTable: 0 → Font_Glyphs0, 5 → Font_Glyphs2, else Font_Glyphs1.
-/// func_8002E53C writes vBias (0x26 / 0 / 0x80) from that selector; SPRT v is
+/// Text_DrawString writes vBias (0x26 / 0 / 0x80) from that selector; SPRT v is
 /// glyph.v + vBias. Ui_DrawTextUnderline uses glyphTable 5.
 typedef struct _TextDrawReq {
     /* 0x00 */ s16 x;
@@ -24,43 +21,6 @@ typedef struct _TextDrawReq {
 } TextDrawReq;
 STATIC_ASSERT_SIZEOF(TextDrawReq, 0x10);
 
-/// Per-glyph metrics in the font tables (Font_Glyphs0 / Font_Glyphs1 / Font_Glyphs2).
-/// u/v/w/h are texels in the 4bpp page at (960, 256). SPRT w/h are w+1 / h+1.
-/// off_x / off_y are stored as bytes but used as signed offsets when drawing.
-typedef struct _FontGlyph {
-    /* 0x0 */ u8 u;
-    /* 0x1 */ u8 v;
-    /* 0x2 */ u8 w;
-    /* 0x3 */ u8 h;
-    /* 0x4 */ u8 off_x;
-    /* 0x5 */ u8 off_y;
-    /* 0x6 */ u8 field_6;
-    /* 0x7 */ u8 field_7;
-    /* 0x8 */ u8 field_8;
-    /* 0x9 */ u8 field_9;
-    /* 0xA */ u8 pad_A[2];
-} FontGlyph;
-STATIC_ASSERT_SIZEOF(FontGlyph, 0xC);
-
-/// Draw params for Prim_DrawSprt (SPRT) / Prim_DrawTile (TILE).
-/// w/h are inclusive and decremented when written to the primitive.
-typedef struct _PrimDrawParams {
-    /* 0x00 */ s16 x;
-    /* 0x02 */ s16 y;
-    /* 0x04 */ u8  u;
-    /* 0x05 */ u8  pad_5;
-    /* 0x06 */ u8  v;
-    /* 0x07 */ u8  pad_7;
-    /* 0x08 */ s16 w;
-    /* 0x0A */ s16 h;
-    /* 0x0C */ u8  r;
-    /* 0x0D */ u8  g;
-    /* 0x0E */ u8  b;
-    /* 0x0F */ u8  pad_F;
-    /* 0x10 */ s16 shadeMode;
-} PrimDrawParams;
-STATIC_ASSERT_SIZEOF(PrimDrawParams, 0x12);
-
 /// 4-byte glyph UVWH entry used by TextStream_Draw (tables like D_800627E0).
 /// Distinct from FontGlyph (0xC full font metrics).
 typedef struct _GlyphUvwh {
@@ -71,55 +31,35 @@ typedef struct _GlyphUvwh {
 } GlyphUvwh;
 STATIC_ASSERT_SIZEOF(GlyphUvwh, 0x4);
 
-/// Text stream / font draw object (e.g. D_800630B0).
-/// tpageX low 6 bits are the SPRT u base. chars: 0xFE newline, 0xFF end.
-typedef struct _TextStream {
-    /* 0x00 */ s16        x;
-    /* 0x02 */ s16        y;
-    /* 0x04 */ s16        tpageX;
-    /* 0x06 */ s16        tpageY;
-    /* 0x08 */ s16        clutX;
-    /* 0x0A */ s16        clutY;
-    /* 0x0C */ s16        charDelay;
-    /* 0x0E */ s16        cursor;
-    /* 0x10 */ u8*        chars;
-    /* 0x14 */ GlyphUvwh* glyphs;
-    /* 0x18 */ s16        lineHeight;
-    /* 0x1A */ s16        delayReload;
-    /* 0x1C */ s16        field_1C;
-    /* 0x1E */ s16        field_1E;
-} TextStream;
-STATIC_ASSERT_SIZEOF(TextStream, 0x20);
+void Text_MeasureAndCenter(TextDrawReq* request, u8* arg1);
 
-// --- APIs (from unknown_syms) ---
-s32  TextStream_Draw(TextStream* arg0, u8* arg1, s16* arg2, s32 arg3);
-void Text_MeasureAndCenter(TextDrawReq* arg0, u8* arg1);
-u8*  Text_SkipLines(u8* arg0, s32 arg1);
-s32  Text_DrawMultiLine(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
-s32  Text_MeasureWidth(u8* arg0);
-s32  Text_MeasureMultiLine(u8* arg0);
-s32  Text_DrawPrompt(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
-/// EXE palettes over the title font clut dests. D_80060910 (64) → (256, 243);
-/// D_800609B0 (48) → (0x3D0, 0x1FF) = clut 0x7FFD/E/F. TIM pe2clut_0 row 0 is
+u8* Text_SkipLines(u8* arg0, s32 arg1);
+
+s32 Text_DrawMultiLine(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
+
+s32 Text_MeasureWidth(u8* arg0);
+
+s32 Text_DrawPrompt(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
+
+/// EXE palettes over the title font clut dests. Text_FillClutPixels (64) → (256, 243);
+/// Text_OutlineClutPixels (48) → (0x3D0, 0x1FF) = clut 0x7FFD/E/F. TIM pe2clut_0 row 0 is
 /// empty; UI text uses 0x7FFD (indices 0–10 skip). Called from Title_InitTask.
 void Text_LoadClutImages(void);
-/// Task callback that does nothing.
-///
-/// A task pointed at it stays in its list and is still ticked, but performs no
-/// work. It is what a task holds while it is on its way out: on `exitCallback`,
-/// so a teardown already under way cannot be run a second time, and on
-/// `callback`, so a task whose death is pending stops acting before it is
-/// collected. A descriptor can also spawn it where an inert task is wanted.
-void textNoopCallback(Task* task);
-void func_8002E53C(TextDrawReq* arg0, u8* arg1);
-u8*  Text_ItoaSigned(u8* arg0, s32 arg1);
-u8*  Text_ItoaSignedPlus(u8* arg0, s32 arg1);
-u8*  Text_ItoaUnsigned(u8* arg0, u32 arg1);
-u8*  func_8002F44C(u8* arg0, s32 arg1, s32 arg2);
-u8*  Text_Strcat(u8* dest, u8* src);
-u8*  Text_FormatTime(u8* arg0, u16 time);
 
-// Glyph tables (selected by TextDrawReq.glyphTable); FontGlyph (0xC each).
-// 0: 0x8005EFB0, 224 glyphs. 1: 0x8005FA30, 224. 2: 0x800604B0, 91 (space..z).
+/// Draws encoded text using the request's glyph table, placement and style.
+void Text_DrawString(TextDrawReq* request, u8* text);
 
-#endif // TEXT_H
+u8* Text_ItoaSigned(u8* arg0, s32 arg1);
+
+u8* Text_ItoaSignedPlus(u8* arg0, s32 arg1);
+
+u8* Text_ItoaUnsigned(u8* arg0, u32 arg1);
+
+/// Formats a decimal integer with the requested minimum width.
+u8* Text_ItoaPadded(u8* buffer, s32 value, s32 width);
+
+u8* Text_Strcat(u8* dest, u8* src);
+
+u8* Text_FormatTime(u8* arg0, u16 time);
+
+#endif // MAIN_TEXT_H

@@ -6,15 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "main/display.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
-
 #include "rooms/mist_shooting_gallery.h"
 #include "rooms/room.h"
 
@@ -28,8 +19,26 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/damage.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/message.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
 
 /// The five round scripts of the gallery mini-game, indexed by
 /// `MistShootingGalleryWork::difficulty`. `func_mist_shooting_gallery_80184A14`
@@ -168,7 +177,7 @@ static void func_mist_shooting_gallery_80182064(Task* task)
     u32        rand1;
     u32        rand2;
 
-    work  = (GpEffWork*)task->spawnArg2;
+    work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState != 0) {
@@ -379,7 +388,7 @@ static void func_mist_shooting_gallery_80182B1C(Task* arg0)
     D_mist_shooting_gallery_8018E0C4 = arg0;
     arg0->exitCallback               = func_mist_shooting_gallery_80184A80;
     arg0->state++;
-    work->difficulty = arg0->spawnArg1 & 0xF;
+    work->difficulty = arg0->spawnArg1.value & 0xF;
     work->field_0C   = -0xDC;
 
     actor->field_14C.end0.vz =
@@ -400,7 +409,7 @@ static void func_mist_shooting_gallery_80182B1C(Task* arg0)
 
 /// Per-frame update for the gallery's bonus course. START (`0x100`) aborts the
 /// whole mini-game; otherwise the seventeen states run the banner countdown
-/// (`field_20` steps the sprite, `Mc_SaveData[0].buttonLayout` picks which variant), seed the
+/// (`field_20` steps the sprite, `Mc_SaveData[0].state.buttonLayout` picks which variant), seed the
 /// course by spawning individual records of `D_mist_shooting_gallery_80186900[0]`
 /// on a timer, and finally enter the wave loop of state 15. State 16 is the
 /// out-of-ammo banner: it is entered from anywhere the moment the equipped
@@ -426,7 +435,7 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
     u8                        step;
 
     work  = (MistShootingGalleryWork*)arg0->work;
-    bonus = Mc_SaveData[0].buttonLayout;
+    bonus = Mc_SaveData[0].state.buttonLayout;
     if (Pad_CheckButtons(0, 1, 0x100) != 0) {
         func_8014A9A0();
         return;
@@ -710,7 +719,7 @@ static void func_mist_shooting_gallery_801831B0(Task* arg0)
 /// the countdown hold `gDisplayState.pendingMode`; states 4-5 wait on the player picking up
 /// item 0x40, states 6-8 count the banner up through `field_20` while
 /// `Gp_StateF0.field_4` holds, state 9 spawns the start jingle and state 10 is the
-/// wave loop over `D_mist_shooting_gallery_80186908`. `Mc_SaveData[0].buttonLayout` picks the
+/// wave loop over `D_mist_shooting_gallery_80186908`. `Mc_SaveData[0].state.buttonLayout` picks the
 /// banner sprite the hand-off draws (`variant + 4`).
 static void func_mist_shooting_gallery_8018341C(Task* arg0)
 {
@@ -724,7 +733,7 @@ static void func_mist_shooting_gallery_8018341C(Task* arg0)
     u8                        step;
 
     work  = (MistShootingGalleryWork*)arg0->work;
-    bonus = Mc_SaveData[0].buttonLayout;
+    bonus = Mc_SaveData[0].state.buttonLayout;
 
     switch (work->field_04) {
         case 0:
@@ -904,7 +913,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
     u8                        hold;
 
     work  = (MistShootingGalleryWork*)arg0->work;
-    bonus = Mc_SaveData[0].buttonLayout;
+    bonus = Mc_SaveData[0].state.buttonLayout;
 
     switch (work->field_04) {
         case 0:
@@ -1516,7 +1525,7 @@ void func_mist_shooting_gallery_80184B10(Task* arg0)
         case 0:
             arg0->state         = 1;
             arg0->killCountdown = 0x28;
-            arg0->spawnArg1     = 0xFF;
+            arg0->spawnArg1.value     = 0xFF;
         case 1:
             count = --arg0->killCountdown;
             if (count <= 0) {
@@ -1524,10 +1533,10 @@ void func_mist_shooting_gallery_80184B10(Task* arg0)
                 return;
             }
             if (count < 0x1F) {
-                if (arg0->spawnArg1 >= 9) {
-                    arg0->spawnArg1 -= 8;
+                if (arg0->spawnArg1.value >= 9) {
+                    arg0->spawnArg1.value -= 8;
                 }
-                func_mist_shooting_gallery_801847D4((u8)arg0->spawnArg1);
+                func_mist_shooting_gallery_801847D4((u8)arg0->spawnArg1.value);
             }
             return;
     }
@@ -1549,7 +1558,7 @@ void func_mist_shooting_gallery_80184C0C(Task* arg0)
             if (arg0->killCountdown != 0) {
                 arg0->killCountdown--;
             } else {
-                if (Pad_CheckButtons(0, 1, arg0->spawnArg1) != 0) {
+                if (Pad_CheckButtons(0, 1, arg0->spawnArg1.value) != 0) {
                     arg0->state = arg0->state + 1;
                 } else {
                     func_8014B0D4();

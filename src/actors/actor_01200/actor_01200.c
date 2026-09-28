@@ -7,13 +7,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_80135990.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include "psyq/abs.h"
 
 #include "gameplay/actor_render.h"
@@ -28,9 +21,27 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
+#include "gameplay/message.h"
+#include "gameplay/pairsrc.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task_types.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
+#include "overlay.h"
+#include <psyq/memory.h>
 
 /// Work block this overlay parks in `Task::work`. `field_0` is the
 /// substate the message handler below switches on; the three bytes at 0x194
@@ -123,7 +134,7 @@ static s16 Actor01200_Fn00130(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR*
     OverlayAvoidScratch* s;
     s16                  diff;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData[0].field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.field_5C1 == 1) {
         return 0;
     }
 
@@ -499,9 +510,9 @@ static void Actor01200_Fn00A6C(GpEnemy* arg0, Task* arg1)
     work->patrol[1].vy = arg1->extra.tmd->coords->coord.t[1];
     work->patrol[1].vz = arg1->extra.tmd->coords->coord.t[2] - sv.vz;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    if ((arg1->spawnArg1 >> 16) == 0) {
+    if ((arg1->spawnArg1.value >> 16) == 0) {
         work->field_0 = 7;
-    } else if ((arg1->spawnArg1 >> 16) == 1) {
+    } else if ((arg1->spawnArg1.value >> 16) == 1) {
         work->field_0 = 2;
     } else {
         work->field_0 = 7;
@@ -1331,7 +1342,7 @@ s32 Actor01200_Fn03ABC(Task* arg0, s32 arg1, GpCmdArg* arg2)
     GpEnemy*        ctx;
 
     work            = arg0->work;
-    ctx             = arg0->spawnArg2;
+    ctx             = arg0->spawnArg2.pointer;
     work->field_194 = arg2->from.loc.stage;
     work->field_195 = arg2->from.loc.area;
     work->field_196 = (u8)arg2->command;
@@ -1525,5 +1536,5 @@ void Actor01200_Fn03FD4(Task* task)
     GpEnemyTaskFuncTable3 sp;
 
     sp = Actor01200_D0010C;
-    sp.funcs[task->state](task->spawnArg2, task);
+    sp.funcs[task->state](task->spawnArg2.pointer, task);
 }

@@ -5,21 +5,23 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
 #include "weapons/m4a1_hammer.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
 
 static void func_m4a1_hammer_8011E29C(GpCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
 
@@ -59,7 +61,7 @@ static void func_m4a1_hammer_8011D1E0(Task* task)
     s32           i;
     s32           j;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     base  = &Gp_RoomCoords[1];
     light = &base->data.coord;
@@ -89,7 +91,7 @@ static void func_m4a1_hammer_8011D1E0(Task* task)
                 D_m4a1_hammer_8012D668.vx = coord->workm.t[0];
                 D_m4a1_hammer_8012D668.vy = coord->workm.t[1];
                 D_m4a1_hammer_8012D668.vz = coord->workm.t[2];
-                switch (task->spawnArg1) {
+                switch (task->spawnArg1.value) {
                     case 0:
                         break;
                     case 1:
@@ -183,7 +185,7 @@ static void func_m4a1_hammer_8011D1E0(Task* task)
                         light->flg  = 0;
                         work->index = work->index + 1;
                         if (work->index >= 5) {
-                            task->spawnArg1 = 1;
+                            task->spawnArg1.value = 1;
                         }
                         return;
                     case 3:
@@ -265,13 +267,13 @@ static void func_m4a1_hammer_8011DD08(Task* arg0)
     GpCoord*   coord;
     GpCoord*   parent;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     mem->age++;
     switch (arg0->state) {
         case 0:
             Task_Reparent(D_m4a1_hammer_8012D660, arg0);
-            if (arg0->spawnArg1 != 0) {
+            if (arg0->spawnArg1.value != 0) {
                 parent            = mem->parent;
                 coord->coord.t[0] = 0;
                 coord->coord.t[1] = 0;

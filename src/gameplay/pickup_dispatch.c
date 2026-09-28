@@ -11,14 +11,14 @@
 #include "player_actor.h"
 #include "gameplay/player_state.h"
 
+#define D_8010EB94 D_8010EAB4[8]
+
 #include "main/display.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
-
-#define D_8010EB94 D_8010EAB4[8]
 
 /// Five-entry dispatcher table: `Gp_PublishItemObj`, `Gp_SpawnPickupUiTask`, `Gp_PickupResultTask`,
 /// `func_800CE188`, `Gp_PickupExitTask`. Copied onto the stack by `func_800CE22C`.
@@ -207,7 +207,7 @@ void Gp_ItemMenuTask(Task* arg0)
     UiObjectTaskFuncTable3 sp;
 
     sp = Gp_ItemMenuStates;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
 void Gp_DrawPromptLines(UiObject* arg0, Task* arg1)
@@ -217,7 +217,7 @@ void Gp_DrawPromptLines(UiObject* arg0, Task* arg1)
     s32 one;
     s32 val;
 
-    val = arg1->spawnArg1;
+    val = arg1->spawnArg1.value;
     if (val != 0) {
         if ((u32)val > 0xFFFF) {
             color = Ui_LookupTable(arg0, 1);

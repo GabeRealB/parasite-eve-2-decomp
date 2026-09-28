@@ -4,13 +4,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -19,7 +12,13 @@
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "gameplay/object_task.h"
-#include "main/fs.h"
+
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// The room's message table, installed on the room entry task.
 extern GpMsgEntry D_dryfield_cellar_8017DB8C[];

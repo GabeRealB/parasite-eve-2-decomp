@@ -1,8 +1,4 @@
 #include "common.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -15,7 +11,16 @@
 #include "gameplay/inventory.h"
 #include "gameplay/items.h"
 #include "gameplay/room_effects.h"
-#include "main/fs.h"
+
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
 
 /// Block `func_dryfield_junk_yard_8017D658` carves off the scratch stack
 /// (`0x1F8003FC`, one `addiu` of `-0x18`) to hold the model's world position
@@ -76,7 +81,7 @@ void func_dryfield_junk_yard_8017D5F4(Task* task)
     TmdObject*  tmd;
     s32         flag;
 
-    obj        = (GpItemObj8*)task->spawnArg2;
+    obj        = (GpItemObj8*)task->spawnArg2.pointer;
     tmd        = task->extra.tmd;
     flag       = Gp_GetCurBit2Flag(obj->field_8);
     tmd->flags = 0;
@@ -284,10 +289,10 @@ s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, GpMsg13EF* msg)
 }
 
 /// Room script callback, named by two of the room's script records (command
-/// 0xD, argument 5): stores its argument into `Mc_SaveData[0].sceneEvent`.
+/// 0xD, argument 5): stores its argument into `Mc_SaveData[0].state.sceneEvent`.
 void func_dryfield_junk_yard_8017DC54(s8 arg0)
 {
-    Mc_SaveData[0].sceneEvent = arg0;
+    Mc_SaveData[0].state.sceneEvent = arg0;
 }
 
 /// State 1 of the room task: once `gDisplayState.field_112` is non-zero and a slot-0xA

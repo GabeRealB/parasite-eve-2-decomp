@@ -11,8 +11,6 @@
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "main/wipsys.h"
-
 /// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
 /// the prompt's left edge.
 #define DRAW_PROMPT_LABEL(req, dx, line, color, str)          \
@@ -24,7 +22,7 @@
         req.glyphTable = 5;                                   \
         req.centerMode = 0;                                   \
         req.field_E    = 1;                                   \
-        func_8002E53C(&req, (str));                           \
+        Text_DrawString(&req, (str));                           \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
@@ -37,11 +35,14 @@
         req.x          = obj.panel.field_20.u + 0x94;         \
         req.y          = (obj.panel.field_22.u + 9) + (line); \
         req.otIndex    = obj.panel.field_14.s + 1;            \
-        func_8002E53C(&req, Text_ItoaSigned(buf, (count)));   \
+        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));   \
         if ((count) == 0) {                                   \
             flag = 1;                                         \
         }                                                     \
     }
+
+#include "main/wipsys.h"
+#include <psyq/rand.h>
 
 s32 D_80114F28;
 

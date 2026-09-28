@@ -1,16 +1,18 @@
-#include "common.h"
+#include "task.h"
+
+#include "types.h"
 
 #include "main/display.h"
-#include "main/stage.h"
-#include "main/unknown_syms.h"
-
-#include "gameplay/display.h"
+#include "main/display_types.h"
 #include "main/task.h"
+#include "main/task_types.h"
 
-void Task_KillMaybeSpawn(Task* arg0)
+extern u8 D_80725C54[];
+
+void Task_KillMaybeSpawn(Task* task)
 {
     if (gDisplayState.field_112 != 0) {
         Task_SpawnFromTable((TaskDesc*)&D_80725C54, 0, 0, 0);
     }
-    taskKill(arg0);
+    taskKill(task);
 }

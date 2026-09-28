@@ -3,10 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/tmd.h"
 #include "weapons/weapon.h"
 
 #include "gameplay/actor.h"
@@ -15,7 +11,11 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
-#include "main/fs.h"
+
+#include "gameplay/animation.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
 
 /// The weapon's index: 0x10 for the M4A1, 0x14 and 0x15 for its two upgrades.
 /// The three packages are this source built once each, and each declares its
@@ -111,7 +111,7 @@ static void func_m4a1_8011D1C4(Task* arg0)
             if (actor->field_979 != 0) {
                 actor->field_979--;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0 ||
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0 ||
                 ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
                 actor->field_940 = 0xC;
                 func_80106550(arg0);

@@ -29,10 +29,10 @@
 
 /// 8-byte record in `D_80114198` / `D_801141F0` / `D_80114248`. Indexed by
 /// `GameFlag_GetNibble(0x4B / 0x4C / 0x4D)`. `field_0` is a per-room byte
-/// list, 1-based by `Mc_SaveData[0].at4.loc.area`; `field_4` is the stage id
-/// (`Mc_SaveData[0].at4.loc.stage`). `Gp_ApplyNpcRoomSnd` tests the room byte (second
+/// list, 1-based by `Mc_SaveData[0].state.at4.loc.area`; `field_4` is the stage id
+/// (`Mc_SaveData[0].state.at4.loc.stage`). `Gp_ApplyNpcRoomSnd` tests the room byte (second
 /// table with `& 0xF`) to choose the `Snd_SetModeFlag` argument.
-/// `Gp_PickCompanion` uses the same tables to pick `Mc_SaveData[0].companionType`.
+/// `Gp_PickCompanion` uses the same tables to pick `Mc_SaveData[0].state.companionType`.
 typedef struct _GpNpcRoomRec {
     /* 0x0 */ u8*  field_0;
     /* 0x4 */ u8   field_4;
@@ -152,47 +152,47 @@ s32 Gp_PickCompanion(void)
     u8          variant;
 
     save  = &Mc_SaveData[0];
-    stage = save->at4.loc.stage;
+    stage = save->state.at4.loc.stage;
     bytes = D_80114198[GameFlag_GetNibble(0x4B)].field_0;
-    if (bytes != NULL && D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage && bytes[save->at4.loc.area - 1] != 0) {
+    if (bytes != NULL && D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage && bytes[save->state.at4.loc.area - 1] != 0) {
         GameSession* sess = gGameSession;
 
-        save->companionType    = 2;
-        save->companionVariant = 0;
+        save->state.companionType    = 2;
+        save->state.companionVariant = 0;
         return (sess->companionType != 2) * 2;
     }
 
     bytes = D_801141F0[GameFlag_GetNibble(0x4C)].field_0;
-    if (bytes != NULL && D_801141F0[GameFlag_GetNibble(0x4C)].field_4 == stage && (bytes[Mc_SaveData[0].at4.loc.area - 1] & 0xF)) {
+    if (bytes != NULL && D_801141F0[GameFlag_GetNibble(0x4C)].field_4 == stage && (bytes[Mc_SaveData[0].state.at4.loc.area - 1] & 0xF)) {
         GameSession* sess = gGameSession;
 
-        Mc_SaveData[0].companionType = 1;
+        Mc_SaveData[0].state.companionType = 1;
         if (sess->companionType == 1) {
-            variant = bytes[Mc_SaveData[0].at4.loc.area - 1] >> 4;
+            variant = bytes[Mc_SaveData[0].state.at4.loc.area - 1] >> 4;
             if (sess->companionVariant == variant) {
-                Mc_SaveData[0].companionVariant = variant;
+                Mc_SaveData[0].state.companionVariant = variant;
                 return 0;
             }
         }
-        Mc_SaveData[0].companionVariant = bytes[Mc_SaveData[0].at4.loc.area - 1] >> 4;
-        gGameSession->companionVariant  = bytes[Mc_SaveData[0].at4.loc.area - 1] >> 4;
+        Mc_SaveData[0].state.companionVariant = bytes[Mc_SaveData[0].state.at4.loc.area - 1] >> 4;
+        gGameSession->companionVariant  = bytes[Mc_SaveData[0].state.at4.loc.area - 1] >> 4;
         return 1;
     }
 
     bytes = D_80114248[GameFlag_GetNibble(0x4D)].field_0;
-    if (bytes != NULL && D_80114248[GameFlag_GetNibble(0x4D)].field_4 == stage && bytes[Mc_SaveData[0].at4.loc.area - 1] != 0) {
+    if (bytes != NULL && D_80114248[GameFlag_GetNibble(0x4D)].field_4 == stage && bytes[Mc_SaveData[0].state.at4.loc.area - 1] != 0) {
         GameSession* sess = gGameSession;
 
-        Mc_SaveData[0].companionType    = 3;
-        Mc_SaveData[0].companionVariant = 0;
+        Mc_SaveData[0].state.companionType    = 3;
+        Mc_SaveData[0].state.companionVariant = 0;
         if (sess->companionType == 3) {
             return 0;
         }
         return 3;
     }
 
-    Mc_SaveData[0].companionType    = 0;
-    Mc_SaveData[0].companionVariant = 0;
+    Mc_SaveData[0].state.companionType    = 0;
+    Mc_SaveData[0].state.companionVariant = 0;
     gGameSession->companionType     = 0;
     gGameSession->companionVariant  = 0;
     return 0;
@@ -206,12 +206,12 @@ void Gp_ApplyNpcRoomSnd(void)
     s32         flag;
 
     save  = &Mc_SaveData[0];
-    stage = save->at4.loc.stage;
+    stage = save->state.at4.loc.stage;
     if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(3, 32, 0, 0)) {
         bytes = D_80114198[GameFlag_GetNibble(0x4B)].field_0;
         if (bytes != NULL) {
             if (D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage) {
-                if (bytes[save->at4.loc.area - 1] != 0) {
+                if (bytes[save->state.at4.loc.area - 1] != 0) {
                     flag = 1;
                     goto done;
                 }
@@ -220,7 +220,7 @@ void Gp_ApplyNpcRoomSnd(void)
         bytes = D_801141F0[GameFlag_GetNibble(0x4C)].field_0;
         if (bytes != NULL) {
             if (D_801141F0[GameFlag_GetNibble(0x4C)].field_4 == stage) {
-                if (bytes[Mc_SaveData[0].at4.loc.area - 1] & 0xF) {
+                if (bytes[Mc_SaveData[0].state.at4.loc.area - 1] & 0xF) {
                     flag = 1;
                     goto done;
                 }
@@ -229,7 +229,7 @@ void Gp_ApplyNpcRoomSnd(void)
         bytes = D_80114248[GameFlag_GetNibble(0x4D)].field_0;
         if (bytes != NULL) {
             if (D_80114248[GameFlag_GetNibble(0x4D)].field_4 == stage) {
-                if (bytes[Mc_SaveData[0].at4.loc.area - 1] != 0) {
+                if (bytes[Mc_SaveData[0].state.at4.loc.area - 1] != 0) {
                     flag = 1;
                     goto done;
                 }
@@ -247,10 +247,10 @@ void Gp_SetupCompanionActor(GpActorArg* arg0, u16* arg1)
     s32         field;
 
     save  = &Mc_SaveData[0];
-    field = save->companionType;
+    field = save->state.companionType;
     if (field != 0) {
         if (field == 2) {
-            Gp_SpawnAlly(arg0, save->companionType, GameFlag_GetNibble(0x4B), arg1);
+            Gp_SpawnAlly(arg0, save->state.companionType, GameFlag_GetNibble(0x4B), arg1);
         } else {
             Gp_SpawnAlly(arg0, field, 0, arg1);
         }
@@ -262,8 +262,8 @@ static void Gp_ClearFlagBank(s32 arg0)
     GpFlagBank* bank;
 
     bank             = Gp_FlagBanks[arg0];
-    bank->field_4[0] = 0;
-    bank->field_4[1] = 0;
+    bank->visitedAreas[0] = 0;
+    bank->visitedAreas[1] = 0;
 }
 
 void Gp_MarkAreaVisited(GpAreaKey* arg0)
@@ -277,8 +277,8 @@ void Gp_MarkAreaVisited(GpAreaKey* arg0)
 
     bank = Gp_FlagBanks[arg0->stage];
     save = &Mc_SaveData[0];
-    if ((((s8)save->visitFlags >> arg0->stage) & 1) == 0) {
-        save->visitFlags |= 1 << arg0->stage;
+    if ((((s8)save->state.visitFlags >> arg0->stage) & 1) == 0) {
+        save->state.visitFlags |= 1 << arg0->stage;
         if (gDisplayState.field_112 != 0) {
             func_80724E2C();
         }
@@ -293,9 +293,9 @@ void Gp_MarkAreaVisited(GpAreaKey* arg0)
     }
 
     mask  = 1;
-    flags = bank->field_4[which];
+    flags = bank->visitedAreas[which];
     if (((mask << bit) & flags) == 0) {
-        bank->field_4[which] = flags | (mask << bit);
+        bank->visitedAreas[which] = flags | (mask << bit);
         Gp_SetAreaFlag0(arg0);
     }
 }
@@ -316,7 +316,7 @@ void Gp_SessionState1(Task* task)
     ds             = &gDisplayState;
     ds->skipDraw   = 1;
     ds->holdState |= 0x80;
-    temp           = task->spawnArg1 & 0xF;
+    temp           = task->spawnArg1.value & 0xF;
     if (temp != 0) {
         if (temp == 1) {
             ds->at100.flags.imageSource = 0;
@@ -332,7 +332,7 @@ void Gp_ResumeSessionTask(Task* task)
         taskKill(task);
         return;
     }
-    if ((task->spawnArg1 & 0x10) == 0) {
+    if ((task->spawnArg1.value & 0x10) == 0) {
         if (Gp_StateF0.prefix.bytes.field_0 == 2) {
             Gp_StateF0.prefix.bytes.field_0 = 3;
         }

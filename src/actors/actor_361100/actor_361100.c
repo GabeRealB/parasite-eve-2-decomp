@@ -5,16 +5,8 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/gfxgte.h"
 
 #include "actors/actor.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/collision.h"
@@ -27,6 +19,21 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gfx.h"
+#include "main/gfxgte.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "overlay.h"
 
 /// Work block allocated by `func_actor_361100_80162D28` and
 /// `func_actor_361100_80163410` (`memCalloc(0x4A4)`)
@@ -114,7 +121,7 @@ static const TaskFuncTable3 D_actor_361100_80161E30 = {
     },
 };
 
-/// Runs while `D_8006D868` reports a streaming write in flight -- it is `-1`
+/// Runs while `Fs_ChunkOutputSizes[2]` reports a streaming write in flight -- it is `-1`
 /// until `Fs_LoadFile` has a chunk, and the mode byte in `gGameSession->at4.loc.view`
 /// then picks this actor's part in the load: 11 hands the task to
 /// `func_actor_361100_80161FF8`, 12 publishes the stream position `D_8016069C`
@@ -142,10 +149,10 @@ void func_actor_361100_80161E3C(Task* arg0)
     state   = (ActorEffectState*)arg0->work;
     modePtr = &gGameSession->at4.loc.view;
     coord   = arg0->extra.tmd->coords;
-    if (D_8006D868 != -1) {
-        streamLeft  = 0x18000 - D_8006D868;
+    if (Fs_ChunkOutputSizes[2] != -1) {
+        streamLeft  = 0x18000 - Fs_ChunkOutputSizes[2];
         streamLeft &= ~7;
-        writePtr    = (s32)D_8005C374 + D_8006D868;
+        writePtr    = (s32)Fs_ActorLoadBase2 + Fs_ChunkOutputSizes[2];
         if (arg0->state == 0) {
             state = memCalloc(sizeof(ActorEffectState), false);
             if (state == NULL) {
@@ -189,8 +196,8 @@ void func_actor_361100_80161E3C(Task* arg0)
 }
 
 /// Draws the refraction ripple over screen rows 0x50..0xEF while more than
-/// 0x6680 bytes of the 0x18000-byte window past `D_8006D868` remain free,
-/// building `POLY_FT4` strips downward from the `D_8005C374` side of it (half
+/// 0x6680 bytes of the 0x18000-byte window past `Fs_ChunkOutputSizes[2]` remain free,
+/// building `POLY_FT4` strips downward from the `Fs_ActorLoadBase2` side of it (half
 /// the free space further in when `DisplayState::otBuffer` is set). Each row is
 /// projected through the transposed view matrix to get its ordering-table
 /// depth, and the strip samples the other display buffer (`otBuffer` picks the
@@ -253,10 +260,10 @@ static void func_actor_361100_80161FF8(Task* arg0)
     s32                    cosine;
     u16                    spare;
 
-    left    = 0x18000 - D_8006D868;
+    left    = 0x18000 - Fs_ChunkOutputSizes[2];
     left   &= -8;
     adj     = left - 0x18000;
-    ptr     = (s32)D_8005C374 - adj;
+    ptr     = (s32)Fs_ActorLoadBase2 - adj;
     disp    = &gDisplayState;
     otBuf   = disp->otBuffer;
     mode    = 0;
@@ -552,7 +559,7 @@ void func_actor_361100_801627D4(Task* task)
                         /* fallthrough */
                     case 1:
                         aim = (GpHeadAim*)task->work;
-                        if (task->spawnArg1 != 0) {
+                        if (task->spawnArg1.value != 0) {
                             rate      = aim->rate + 0x100;
                             aim->rate = rate;
                             if ((s16)rate >= 0x1001) {
@@ -615,7 +622,7 @@ void func_actor_361100_801629D0(s32 arg0)
     if (D_actor_361100_80171BE0 != NULL) {
         if (arg0 < 2) {
             if (arg0 >= 0) {
-                D_actor_361100_80171BE0->spawnArg1 = arg0;
+                D_actor_361100_80171BE0->spawnArg1.value = arg0;
                 return;
             }
         }
@@ -633,13 +640,13 @@ void func_actor_361100_80162A54(Task* arg0)
 {
     s32 countdown;
 
-    countdown       = arg0->spawnArg1 - 1;
-    arg0->spawnArg1 = countdown;
+    countdown       = arg0->spawnArg1.value - 1;
+    arg0->spawnArg1.value = countdown;
     if (countdown > 0) {
         Display_ClampField126((countdown & 1) ? 0 : -1);
         Gp_SpawnScript18(&D_actor_361100_80166AD0, &D_actor_361100_80166AD8);
     }
-    if ((arg0->spawnArg1 <= 0) || (gGameSession->evtSkipped != 0)) {
+    if ((arg0->spawnArg1.value <= 0) || (gGameSession->evtSkipped != 0)) {
         Display_ClampField126(0);
         taskKill(arg0);
     }
@@ -708,7 +715,7 @@ static void func_actor_361100_80162B18(Task* task)
         pos.vx = coord->workm.t[0];
         pos.vy = coord->workm.t[1];
         pos.vz = coord->workm.t[2];
-        Gp_UpdateActorColor(task->spawnArg2, &pos, 0, 0);
+        Gp_UpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
     }
     if (work->field_4A2 >= 0) {
         if (work->field_4A2 == 0) {
@@ -744,7 +751,7 @@ static void func_actor_361100_80162D28(Task* arg0)
     GpEnemy*         enemy;
 
     coord = arg0->extra.tmd->coords;
-    enemy = arg0->spawnArg2;
+    enemy = arg0->spawnArg2.pointer;
 
     work = (Actor361100Work*)memCalloc(sizeof(Actor361100Work), false);
     if (work == NULL) {

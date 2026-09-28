@@ -14,7 +14,6 @@
 #include "gameplay/display.h"
 #include "model_objects.h"
 
-#include "main/coord.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -464,7 +463,7 @@ static Task* Gp_FindTaskByCoord(GpCoord* arg0)
     return task;
 }
 
-void Gp_DrawDisp2dOt(void)
+void Gp_DrawDisp2dOt(Task* unused)
 {
     Gp_DrawActorTmdActive(&Gpu_OtBuffers[gDisplayState.drawBuffer]);
 }

@@ -1,18 +1,11 @@
 #include "common.h"
-#include "psyq/libgte.h"
-#include "psyq/libgpu.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include "psyq/libgs.h"
 #include "psyq/inline_c.h"
 #include "gte.h"
 
 #include "actors/actor.h"
-
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "actors/actors_shared_80132074.h"
 #include "actors/actors_shared_8013231c.h"
 #include "actors/actors_shared_801334c4.h"
@@ -27,7 +20,22 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/item_pickup.h"
+#include "gameplay/message.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 /// Work block of the enemy task, reached by its model-attach children through
 /// the parent task's `Task::work`. The spawn handler
@@ -350,8 +358,8 @@ static void func_actor_511000_801321A8(Task* task)
     GpCoord*   coord;
     GpCoord*   dest;
 
-    parent          = (Task*)task->spawnArg2;
-    part            = task->spawnArg1;
+    parent          = (Task*)task->spawnArg2.pointer;
+    part            = task->spawnArg1.value;
     extra           = task->extra.tmd;
     parentExtra     = parent->extra.tmd;
     coord           = extra->coords;
@@ -386,7 +394,7 @@ static void func_actor_511000_80132284(Task* task)
     GpCoord*   coords;
     GpCoord*   root;
 
-    parent      = task->spawnArg2;
+    parent      = task->spawnArg2.pointer;
     obj         = task->extra.tmd;
     parentObj   = parent->extra.tmd;
     coords      = parentObj->coords;
@@ -402,7 +410,7 @@ static void func_actor_511000_80132284(Task* task)
         obj->flags |= 4;
     }
     obj->otOffset = -2;
-    coords       += task->spawnArg1;
+    coords       += task->spawnArg1.value;
     root->flg     = 0;
     root->sub     = coords;
     obj->lightMtx = parentObj->lightMtx;
@@ -420,7 +428,7 @@ static void func_actor_511000_80132390(Task* task)
     TmdObject* parentObject;
     TmdObject* object;
 
-    parentObject = ((Task*)task->spawnArg2)->extra.tmd;
+    parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
     object       = task->extra.tmd;
 
     if (!(parentObject->flags & 0x80)) {
@@ -473,8 +481,8 @@ static void func_actor_511000_80132480(Task* task)
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
         }
     }
-    work->field_4C4 = Task_SpawnFromTable(&D_actor_511000_801472E8, 1, 8, (s32)task);
-    work->field_4C8 = Task_SpawnFromTable(&D_actor_511000_801472E8, 2, 0xC, (s32)task);
+    work->field_4C4 = Task_SpawnFromTable(&D_actor_511000_801472E8, 1, 8, task);
+    work->field_4C8 = Task_SpawnFromTable(&D_actor_511000_801472E8, 2, 0xC, task);
     func_actor_511000_801325A4(task);
     task->msgTable     = D_actor_511000_8014730C;
     task->exitCallback = Gp_EnemyTaskExit;
@@ -705,7 +713,7 @@ static void func_actor_511000_801329C4(Task* task)
     s32        d;
     s8         rgb[3];
 
-    parent = (Task*)task->spawnArg2;
+    parent = (Task*)task->spawnArg2.pointer;
     extra  = task->extra.tmd;
     coord  = extra->coords;
 
@@ -977,7 +985,7 @@ static void func_actor_511000_80133240(Task* task)
     GpCoord*   coord;
     GpCoord*   dest;
 
-    parent          = (Task*)task->spawnArg2;
+    parent          = (Task*)task->spawnArg2.pointer;
     parentExtra     = parent->extra.tmd;
     extra           = task->extra.tmd;
     dest            = parentExtra->coords;
@@ -1008,12 +1016,12 @@ static void func_actor_511000_801332E4(Task* task)
 
     extra       = task->extra.tmd;
     coord       = extra->coords;
-    parentExtra = ((Task*)task->spawnArg2)->extra.tmd;
+    parentExtra = ((Task*)task->spawnArg2.pointer)->extra.tmd;
 
     if (!(parentExtra->flags & 0x80)) {
         extra->flags &= 0xFF7F;
 
-        switch (task->spawnArg1) {
+        switch (task->spawnArg1.value) {
             case 1:
                 coord->param.rot.vy = ((u16)coord->param.rot.vy + 0x294) & 0xFFF;
                 break;
@@ -1046,7 +1054,7 @@ static void func_actor_511000_801333C4(Task* task)
     GpCoord*   coord;
     GpCoord*   dest;
 
-    parent          = (Task*)task->spawnArg2;
+    parent          = (Task*)task->spawnArg2.pointer;
     parentExtra     = parent->extra.tmd;
     extra           = task->extra.tmd;
     dest            = parentExtra->coords;
@@ -1138,7 +1146,7 @@ s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg)
     }
     if (msg == 1 && work->field_2F == 0) {
         for (i = 1; i < 4; i++) {
-            child = Task_SpawnFromTable(&D_actor_511000_80139924, D_actor_511000_80149054[i - 1], i, (s32)task);
+            child = Task_SpawnFromTable(&D_actor_511000_80139924, D_actor_511000_80149054[i - 1], i, task);
             if (child != NULL) {
                 child->extra.tmd->flags &= ~0x84;
             }
@@ -1182,9 +1190,9 @@ static void func_actor_511000_80133760(Task* task)
     GpCoord* coord;
 
     coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = D_actor_511000_80148FE4[task->spawnArg1].vx;
-    coord->coord.t[1]   = D_actor_511000_80148FE4[task->spawnArg1].vy;
-    coord->coord.t[2]   = D_actor_511000_80148FE4[task->spawnArg1].vz;
+    coord->coord.t[0]   = D_actor_511000_80148FE4[task->spawnArg1.value].vx;
+    coord->coord.t[1]   = D_actor_511000_80148FE4[task->spawnArg1.value].vy;
+    coord->coord.t[2]   = D_actor_511000_80148FE4[task->spawnArg1.value].vz;
     coord->param.rot.vx = 0;
     coord->param.rot.vy = 0;
     coord->param.rot.vz = 0;
@@ -1386,7 +1394,7 @@ void func_actor_511000_80133D90(Task* task)
     GpEnemyTaskFuncTable3 sp;
 
     sp = D_actor_511000_80131E6C;
-    sp.funcs[task->state](task->spawnArg2, task);
+    sp.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Copies the animation id from `preset` into the work block parked in
@@ -1447,7 +1455,7 @@ void func_actor_511000_80133EF4(Task* task)
 {
     GpEnemyTaskFunc fns[2] = { func_actor_511000_80133F48, func_actor_511000_80133F88 };
 
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Spawn state of the model child attached to the spawner's part 8: chains
@@ -1484,7 +1492,7 @@ void func_actor_511000_80133FC8(Task* task)
 {
     GpEnemyTaskFunc fns[2] = { func_actor_511000_8013401C, func_actor_511000_8013405C };
 
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 static void func_actor_511000_8013401C(GpEnemy* enemy, Task* task)
@@ -1518,7 +1526,7 @@ void func_actor_511000_8013409C(Task* task)
 {
     GpEnemyTaskFunc fns[2] = { func_actor_511000_801340F0, func_actor_511000_80134130 };
 
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 static void func_actor_511000_801340F0(GpEnemy* enemy, Task* task)

@@ -5,14 +5,6 @@
 
 #include "actors/actor_342100.h"
 #include "actors/actor.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gameflow.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/wipsys.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/attachments.h"
@@ -24,14 +16,30 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gameflow.h"
 #include "main/gamemain.h"
-#include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/wipsys.h"
+#include "overlay.h"
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the base
-/// weapon id records are numbered from, and `Mc_SaveData[0].characterId` selects the alternate
+/// weapon id records are numbered from, and `Mc_SaveData[0].state.characterId` selects the alternate
 /// set -- 1 means the second block, anything else the `+0x22` one.
 
 /// Single-entry spawn table of the screen-wave task
@@ -166,7 +174,7 @@ void func_actor_342100_80161E70(Task* arg0)
                 D_actor_342100_80164C0C[i].speed  = ((rand() * 100) >> 15) + 20;
             }
             D_actor_342100_801648F4        = 0;
-            D_actor_342100_80164BB4        = arg0->spawnArg2;
+            D_actor_342100_80164BB4        = arg0->spawnArg2.pointer;
             D_actor_342100_80164BB4->frame = 0;
             D_actor_342100_80164BB4->state = 0;
             Display_ClampField126(-8);
@@ -361,7 +369,7 @@ void func_actor_342100_80162748(Task* arg0)
             work->g += 8;
             work->b += 8;
             if ((s16)work->g >= 0x100) {
-                parent             = (Actor342100Work*)((Task*)arg0->spawnArg2)->work;
+                parent             = (Actor342100Work*)((Task*)arg0->spawnArg2.pointer)->work;
                 parent->wave.state = 2;
                 Display_SetMode(0xD010);
                 Mem_Set(Fs_ImgBuffers, 0xFF, 0x25800);
@@ -427,7 +435,7 @@ static s32 func_actor_342100_801629B8(Task* arg0)
     anim                = D_actor_342100_80164910[work->field_3C - 0x2F] + 0x2F;
     w                   = (Actor342100Work*)arg0->work;
     weaponId            = Player_Status.weapon;
-    setId               = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    setId               = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = setId;
     w->field_3C         = anim;
     msg.field_4         = anim;
@@ -481,11 +489,11 @@ void func_actor_342100_80162AB0(Task* arg0)
             arg0->state++;
             return;
         case 1:
-            if (arg0->spawnArg1 <= 0) {
+            if (arg0->spawnArg1.value <= 0) {
                 arg0->state = 2;
                 return;
             }
-            arg0->spawnArg1--;
+            arg0->spawnArg1.value--;
             return;
         case 2:
             if (gDisplayState.animFrame & 0xF) {
@@ -613,7 +621,7 @@ void func_actor_342100_80162DDC(Task* arg0)
             arg0->state++;
             return;
         case 1:
-            if (arg0->spawnArg1 == 0) {
+            if (arg0->spawnArg1.value == 0) {
                 if (gDisplayState.animFrame & 0xF) {
                     return;
                 }
@@ -665,7 +673,7 @@ static s32 func_actor_342100_80162F54(Task* arg0)
             Gp_StateC08.field_6 |= 1;
             func_800E8614((s32)&D_actor_342100_801649C8, 0);
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
-            work->field_34 = Task_SpawnFromTable(&D_actor_342100_80164B78, 2, 0, (s32)arg0);
+            work->field_34 = Task_SpawnFromTable(&D_actor_342100_80164B78, 2, 0, arg0);
             work->field_3E = work->field_3E + 1;
             break;
         case 1:
@@ -788,7 +796,7 @@ void func_actor_342100_8016334C(s32 arg0)
     work                = (Actor342100Work*)D_actor_342100_80164BB8->work;
     anim                = arg0 + 0x2F;
     weaponId            = Player_Status.weapon;
-    setId               = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    setId               = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = setId;
     work->field_3C      = anim;
     msg.field_4         = anim;
@@ -813,7 +821,7 @@ void func_actor_342100_80163408(void)
 
     work->wave.span  = 0x258;
     work->wave.scale = 0x100;
-    Task_SpawnFromTable(&D_actor_342100_801648DC, 0, 0, (s32)&work->wave);
+    Task_SpawnFromTable(&D_actor_342100_801648DC, 0, 0, &work->wave);
 }
 
 /// Entry/exit of the overlay's spawned child. A zero arm plays the cue, asks
@@ -840,7 +848,7 @@ void func_actor_342100_80163454(s32 arg0)
         work->field_38 = Task_SpawnFromTable(&D_actor_342100_80164B78, 3, 0, 0);
         return;
     }
-    work->field_38->spawnArg1 = 1;
+    work->field_38->spawnArg1.value = 1;
 }
 
 void func_actor_342100_80163518(void)

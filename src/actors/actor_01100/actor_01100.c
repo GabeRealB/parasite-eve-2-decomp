@@ -3,7 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/gfxgte.h"
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 
@@ -14,14 +13,6 @@
 #include "actors/actors_shared_8013852c.h"
 #include "actors/actors_shared_8013898c.h"
 #include "actors/actors_shared_80138efc.h"
-#include "main/fs.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/area_entry.h"
@@ -35,8 +26,29 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
+#include "gameplay/message.h"
+#include "gameplay/pairsrc.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
+#include "overlay.h"
 
 /* The loops that step the display nodes, the contact tables or the animation
    slots of the work block walk a scalar byte offset from the block rather than
@@ -144,7 +156,7 @@ static const ActorsShared801385e0Scale Actor01100_D00010 = { 0x1400, 0x1400, 0x1
 /// coordinate's world position from it; the last such push is kept in the
 /// scratch block, and its length is scaled down to 0x100 when longer. Returns
 /// whether any record of those kinds was met. Does nothing, returning 0, while
-/// `Mc_SaveData[0].field_5C1` or the session's `viewReady` is 1.
+/// `Mc_SaveData[0].state.field_5C1` or the session's `viewReady` is 1.
 static s32 Actor01100_Fn000E8(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
@@ -152,7 +164,7 @@ static s32 Actor01100_Fn000E8(GpCoord* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (Mc_SaveData[0].field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                      = 0;
@@ -202,14 +214,14 @@ static s32 Actor01100_Fn000E8(GpCoord* coord, GpRec18* recs, s16 count)
 /// 0x400 to another cancel each other, and each remaining one moves the
 /// coordinate 10 units along it in the XZ plane. `pos` receives the total
 /// displacement. Returns whether a kind 0x10000 record was among them. Does
-/// nothing, returning 0, while the session's `viewReady` or `Mc_SaveData[0].field_5C1` is 1.
+/// nothing, returning 0, while the session's `viewReady` or `Mc_SaveData[0].state.field_5C1` is 1.
 static s32 Actor01100_Fn00430(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
     s16                  diff;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData[0].field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.field_5C1 == 1) {
         return 0;
     }
 
@@ -331,14 +343,14 @@ static void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
 
     extra            = task->extra.tmd;
     parts            = extra->coords;
-    task->spawnArg1 &= 0xFFFF0000;
+    task->spawnArg1.value &= 0xFFFF0000;
     work             = (ActorsShared80138efcWork*)memCalloc(sizeof(ActorsShared80138efcWork), 0);
     if (work == NULL) {
         Task_CallExit(task);
         return;
     }
 
-    map = GP_LOC_WORD(Mc_SaveData[0].at4.loc);
+    map = GP_LOC_WORD(Mc_SaveData[0].state.at4.loc);
     SOFT_BARRIER();
     param1[2] = 0xA;
     param2[0] = 0xB;
@@ -543,13 +555,13 @@ static __inline__ s32 _actor01100FindClass2Contact(SVECTOR* out, GpRec18* contac
 /// `func_800E0C10`, stepping each nonzero fractional X/Z delta one unit away
 /// from zero, and raises the height by 0x80 for the caller to restore.
 /// Returns nonzero when the push moved the model on X or Z; always 0 while
-/// `Mc_SaveData[0].field_5C1` is 1.
+/// `Mc_SaveData[0].state.field_5C1` is 1.
 static __inline__ s32 _actor01100PushOut(GpCoord* coord, GpRec18* contacts)
 {
     OverlayDeltaFlag* head;
     OverlayDeltaFlag* blk;
 
-    if (Mc_SaveData[0].field_5C1 == 1) {
+    if (Mc_SaveData[0].state.field_5C1 == 1) {
         return 0;
     }
     head = SCRATCH_HEAD(OverlayDeltaFlag);
@@ -814,7 +826,7 @@ static s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWo
             work->field_B92 = hp;
             enemy->hp       = hp;
             if (work->field_B92 <= 0) {
-                if ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 24, 0, 0)) {
+                if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 24, 0, 0)) {
                     work->field_BC8 = 0;
                 } else {
                     Gp_ReleaseStateF0Add(task, (s8)work->field_BBB);
@@ -1012,11 +1024,11 @@ static void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     }
     work->field_BAA = 0;
 
-    if (task->spawnArg1 == 0) {
+    if (task->spawnArg1.value == 0) {
         if (dist <= 0x5F5E0F) {
             flag = 1;
         }
-    } else if (task->spawnArg1 == 0x20000) {
+    } else if (task->spawnArg1.value == 0x20000) {
         Task*      player = gameGetPtrSlot(3);
         GameActor* actor;
 
@@ -1338,7 +1350,7 @@ static void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcW
                 GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
                 GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
                 GP_NODE_ENEMY(lockNode)->coord      = c + 3;
-                if (Actor01100_Fn00F58(enemy, task, work, arg) == 0 && task->spawnArg1 == 0 && work->field_BC9 == 1 && work->field_BA9 == 1 && Actor01100_Fn06AC8(task->extra.tmd->coords) > 0xA62B10) {
+                if (Actor01100_Fn00F58(enemy, task, work, arg) == 0 && task->spawnArg1.value == 0 && work->field_BC9 == 1 && work->field_BA9 == 1 && Actor01100_Fn06AC8(task->extra.tmd->coords) > 0xA62B10) {
                     i   = 0;
                     off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
                     do {
@@ -1800,7 +1812,7 @@ static void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcW
         self->flg = 0;
 
         if ((u16)(work->field_B90 + 0x7F) < 0xFF) {
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 t           = (u16)((Gp_LcgState >> 0x10) % 3);
                 if (t <= 0) {
@@ -2321,7 +2333,7 @@ static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, SVECTOR* arg1, s32 s
 /// not finished, then `Actor01100_Fn039D0` supplies the yaw at 0xB90. While
 /// the frame sits in [1, 0x2E) the model's `field_46` turns toward that yaw by
 /// at most 0x10 and the Y rotation is rebuilt. The same window steps
-/// `((frame - 13) * 900) / 33` and, while `Mc_SaveData[0].field_5C1` is clear, adds the
+/// `((frame - 13) * 900) / 33` and, while `Mc_SaveData[0].state.field_5C1` is clear, adds the
 /// scaled facing column's X/Z onto the translation through the frame block's
 /// vector at 0x10. Frame 1 cues `0x400B0002` and frame 0x2E cues `0x400B0001`.
 ///
@@ -2351,7 +2363,7 @@ static void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     if (work->field_BA8 == 0) {
         actorCoords = task->extra.tmd->coords;
         Actor104900_DistToPlayer(actorCoords, dist);
-        if ((task->spawnArg1 == 0) && (dist <= 0xA62B0F)) {
+        if ((task->spawnArg1.value == 0) && (dist <= 0xA62B0F)) {
             rand();
             work->state     = 0xF;
             work->field_BA8 = 0;
@@ -2401,7 +2413,7 @@ static void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcW
         frame     = work->field_BAD;
         scale     = ((frame - 13) * 900) / 33 - ((frame - 14) * 900) / 33;
         coords    = task->extra.tmd->coords;
-        if (Mc_SaveData[0].field_5C1 == 0) {
+        if (Mc_SaveData[0].state.field_5C1 == 0) {
             Actor104900_MatrixCol2(&coords->coord, &arg->vec, scale);
             coords->coord.t[0] += arg->vec.vx;
             coords->coord.t[2] += arg->vec.vz;
@@ -2492,7 +2504,7 @@ static void Actor01100_Fn05678(
     GpObj*        obj;
 
     extra = task->extra.tmd;
-    if (((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
+    if (((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
         actor  = gameGetPtrSlot(3)->work;
         status = &Player_Status;
         if ((actor->field_954 != 2) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0) && (status->hp > 0)) {
@@ -2557,7 +2569,7 @@ static void Actor01100_Fn05678(
     } else {
         time            = work->field_B8C - 1;
         work->field_B8C = time;
-        if ((time == 0) && ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(5, 24, 0, 0))) {
+        if ((time == 0) && ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(5, 24, 0, 0))) {
             work->field_BA6 = 0x10;
         }
     }
@@ -2693,9 +2705,9 @@ static void Actor01100_Fn05E68(Task* task)
         Task_CallExit(task);
         return;
     }
-    task->spawnArg2 = eff->task;
+    task->spawnArg2.pointer = eff->task;
     Task_Reparent(task, eff->task);
-    angle               = task->spawnArg1;
+    angle               = task->spawnArg1.value;
     task->killCountdown = 0x5A;
 
     vec         = SCRATCH_PUSH(SVECTOR);
@@ -2764,7 +2776,7 @@ static void Actor01100_Fn06198(Task* task)
     s16                       countdown;
 
     work       = task->work;
-    map        = GP_LOC_WORD(Mc_SaveData[0].at4.loc);
+    map        = GP_LOC_WORD(Mc_SaveData[0].state.at4.loc);
     map       &= GP_LOC_STAGE_AREA;
     coord      = task->extra.tmd->coords;
     soundCoord = coord;
@@ -2783,7 +2795,7 @@ static void Actor01100_Fn06198(Task* task)
         if (Gp_CountRec18Hi(rec, 0x10000) != 0) {
             child = task->firstChild;
             if (child != NULL) {
-                child->spawnArg1 = 3;
+                child->spawnArg1.value = 3;
             }
             goto fire;
         }
@@ -2791,9 +2803,9 @@ static void Actor01100_Fn06198(Task* task)
             child = task->firstChild;
             if (child != NULL) {
                 if (rec->at10.normal.vy >= -0xC00) {
-                    child->spawnArg1 = 3;
+                    child->spawnArg1.value = 3;
                 } else {
-                    child->spawnArg1 = 2;
+                    child->spawnArg1.value = 2;
                 }
             }
         fire:
@@ -2827,7 +2839,7 @@ static void Actor01100_Fn0638C(Task* task)
     GpMtxWords*               rotation;
 
     coord   = task->extra.tmd->coords;
-    area    = GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA;
+    area    = GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA;
     variant = area == 0x03200000;
     work    = memCalloc(sizeof(ActorsShared80137fb8Work), 0);
     if (work == NULL) {
@@ -2882,7 +2894,7 @@ void Actor01100_Fn06554(Task* task)
     u8*                        scratch;
 
     sp      = Actor01100_D00004;
-    enemy   = task->spawnArg2;
+    enemy   = task->spawnArg2.pointer;
     work    = task->work;
     scratch = (u8*)SCRATCH_PUSH_BYTES(0x68);
 
@@ -2932,7 +2944,7 @@ static void Actor01100_Fn0668C(Task* task)
     GpCoord*                  coord;
     s32                       i;
 
-    enemy = task->spawnArg2;
+    enemy = task->spawnArg2.pointer;
     work  = (ActorsShared80138efcWork*)task->work;
     for (i = 0; i < 4; i++) {
         Gp_UnlinkObj(&work->objs[i]);
@@ -2960,7 +2972,7 @@ s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags)
     mode  = flags ^ 1;
     work  = (ActorsShared80138efcWork*)task->work;
     model = task->extra.tmd;
-    enemy = (GpEnemy*)task->spawnArg2;
+    enemy = (GpEnemy*)task->spawnArg2.pointer;
     if (work->field_BA0 != mode) {
         work->field_BA0 = mode;
         if (work->field_BA0 == 0) {
@@ -3114,7 +3126,7 @@ static s32 Actor01100_Fn06AC8(GpCoord* arg0)
 /// itself needs and no call site confirms them.
 static void Actor01100_Fn06B6C(GpCoord* arg0, ActorsShared8013898cVec* arg1, s32 arg2)
 {
-    if (Mc_SaveData[0].field_5C1 == 0) {
+    if (Mc_SaveData[0].state.field_5C1 == 0) {
         gte_ReadMatrixColumn(&arg0->coord, 2, &arg1->vec);
         gte_lddp(arg2);
         gte_ldsv(&arg1->vec);
@@ -3151,7 +3163,7 @@ static void Actor01100_Fn06C0C(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
     GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
     GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
-    if ((Actor01100_Fn00F58(enemy, task, work, arg) == 0) && (task->spawnArg1 == 0)) {
+    if ((Actor01100_Fn00F58(enemy, task, work, arg) == 0) && (task->spawnArg1.value == 0)) {
         trigger = work->field_BC9;
         if ((trigger == 1) && (work->field_BA9 == trigger)) {
             if (Actor01100_Fn06AC8(task->extra.tmd->coords) > 0xA62B10) {

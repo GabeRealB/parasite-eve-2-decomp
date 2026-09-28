@@ -1,9 +1,18 @@
-#include "common.h"
+#include "mem.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libapi.h>
 
-#include "main/gamemain.h"
-#include "main/mem.h"
+#include "types.h"
+
+#include "gamemain.h"
+
+// For some reason, the program starts by modifying its stack pointer and
+// calling the actual entry function of the game. This address does not
+// seem to be inserted by the linker.
+static u32 GStackBase;
+
+int main(void);
 
 // For some reason, the program starts by modifying its stack pointer and
 // calling the actual entry function of the game. This address does not
@@ -16,7 +25,7 @@ static u32 GStackBase = 0x801fff00;
 // moving it means re-attributing that subsegment. `mem.h` documents the symbol.
 u8* gMemHeap = (u8*)0x80083800;
 
-// BSS symbols (GAuxHeap … CdCmd_Queue … D_800691F8) live in the `main` bss
+// BSS symbols (GAuxHeap … CdCmd_Queue … Mem_AuxRegionBytes) live in the `main` bss
 // split (asm/USA/main/data/main.bss.s) so layout matches the retail binary.
 // Defining the large CdCmd_Queue here makes GCC 2.8.1 reorder .comm symbols.
 

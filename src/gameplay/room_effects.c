@@ -1,9 +1,9 @@
 #include "room_effects.h"
 
 #include <psyq/sys/types.h>
+#include <psyq/inline_c.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
 #include "common.h"
@@ -25,7 +25,6 @@
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "main/coord.h"
 #include "main/display.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
@@ -34,8 +33,8 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/tmd.h"
 #include "main/wipsys.h"
+#include <psyq/memory.h>
 
 /// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `Gp_TraceGroundCoord` and
 /// `func_800EA1A8`. `pos` is the low halves of the source XYZ. `dir`
@@ -112,8 +111,6 @@ void Gp_FadeWaveTask(Task* arg0);
 static void Gp_KillState1CTask(Task* arg0);
 
 static void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2);
-
-void taskKill(Task* task);
 
 void func_801802DC(Task* task);
 
@@ -2419,7 +2416,7 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GpCoord* arg1, s32 arg2, SVECTOR* arg3)
         mem->parent = &gGfxViewCoord;
     }
 
-    task->spawnArg2    = mem;
+    task->spawnArg2.pointer    = mem;
     task->exitCallback = Gp_KillState1CTask;
     mem->task          = task;
     mem->index         = 0;
@@ -2851,7 +2848,7 @@ void func_800EC47C(Task* arg0)
     u16        count;
     u32        random;
 
-    mem = arg0->spawnArg2;
+    mem = arg0->spawnArg2.pointer;
     switch (arg0->state) {
         case 0:
             Gp_State1C->screenFxFlags |= 1;
@@ -2918,8 +2915,8 @@ void Gp_FadeWaveTask(Task* arg0)
     u8         rgb[3];
 
     p   = Gp_State1C;
-    mem = arg0->spawnArg2;
-    if (p->peFadeId != arg0->spawnArg1) {
+    mem = arg0->spawnArg2.pointer;
+    if (p->peFadeId != arg0->spawnArg1.value) {
         p->effectCount--;
         memFree(mem);
         taskKill(arg0);
@@ -2928,8 +2925,8 @@ void Gp_FadeWaveTask(Task* arg0)
 
     mem->scale += 0x180;
     mem->angle  = rsin(mem->scale) >> 5;
-    if (arg0->spawnArg1 != 0) {
-        color  = Gp_FadeQuadColors[(cln(arg0->spawnArg1 << 12) / 2839) & 7];
+    if (arg0->spawnArg1.value != 0) {
+        color  = Gp_FadeQuadColors[(cln(arg0->spawnArg1.value << 12) / 2839) & 7];
         rgb[0] = (mem->angle * ((color >> 8) & 0xF)) >> 3;
         rgb[1] = (mem->angle * ((color >> 4) & 0xF)) >> 3;
         rgb[2] = (mem->angle * (color & 0xF)) >> 3;
@@ -2953,7 +2950,7 @@ static void Gp_KillState1CTask(Task* arg0)
 {
     void* mem;
 
-    mem = arg0->spawnArg2;
+    mem = arg0->spawnArg2.pointer;
     Gp_State1C->effectCount--;
     memFree(mem);
     taskKill(arg0);

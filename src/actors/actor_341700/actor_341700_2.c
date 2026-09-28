@@ -7,13 +7,6 @@
 #include "gte.h"
 #include <psyq/abs.h>
 
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-
 #include "actors/actor.h"
 #include "actors/actors_shared_80135990.h"
 #include "actors/actors_shared_80135a60.h"
@@ -25,9 +18,21 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
+#include "gameplay/world_state.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task_types.h"
+#include "main/tmd.h"
+#include "overlay.h"
+#include <psyq/memory.h>
 
 /// The overlay's *other* work block, for the task `func_actor_341700_8016D130`
 /// starts: that function calls `memCalloc(0x80, 0)` and stores the result in
@@ -102,7 +107,7 @@ static void func_actor_341700_8016AC64(GpCoord* coord, s16 yaw)
 /// in a scratch block carved off `G_SCRATCH_HEAD`, the push that would move
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
-/// 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].field_5C1` is 1.
+/// 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1` is 1.
 static s32 func_actor_341700_8016AF70(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
@@ -110,7 +115,7 @@ static s32 func_actor_341700_8016AF70(GpCoord* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (Mc_SaveData[0].field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                      = 0;
@@ -160,7 +165,7 @@ static s32 func_actor_341700_8016AF70(GpCoord* coord, GpRec18* recs, s16 count)
 /// discards any pair more than 0x400 apart, and for each remaining bearing
 /// nudges both `coord`'s translation and `*pos` a short step away from it.
 /// `*pos` accumulates the total nudge. Returns whether any record was of kind
-/// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].field_5C1`
+/// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1`
 /// is 1.
 static s32 func_actor_341700_8016B2B8(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
@@ -168,7 +173,7 @@ static s32 func_actor_341700_8016B2B8(GpCoord* coord, GpRec18* recs, s16 count, 
     OverlayAvoidScratch* s;
     s16                  diff;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData[0].field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.field_5C1 == 1) {
         return 0;
     }
 
@@ -840,5 +845,5 @@ static void func_actor_341700_8016D32C(Task* task)
     GpEnemyTaskFuncTable3 sp;
 
     sp = D_actor_341700_80162064;
-    sp.funcs[task->state](task->spawnArg2, task);
+    sp.funcs[task->state](task->spawnArg2.pointer, task);
 }

@@ -1,9 +1,4 @@
 #include "common.h"
-#include "main/stage.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/mine_cavern.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -16,8 +11,16 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/evs.h"
+#include "gameplay/world_state.h"
+#include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -280,10 +283,10 @@ void func_mine_cavern_8017E0F4(s32 arg0)
     gGameSession->flowFlags |= 8;
 }
 
-/// Room script callback: stores its argument into `Mc_SaveData[0].sceneEvent`.
+/// Room script callback: stores its argument into `Mc_SaveData[0].state.sceneEvent`.
 void func_mine_cavern_8017E150(s8 arg0)
 {
-    Mc_SaveData[0].sceneEvent = arg0;
+    Mc_SaveData[0].state.sceneEvent = arg0;
 }
 
 void func_mine_cavern_8017E15C(void)

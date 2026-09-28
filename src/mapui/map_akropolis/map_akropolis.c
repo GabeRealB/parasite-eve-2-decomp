@@ -4,18 +4,6 @@
  * map pictures' marker models.
  */
 #include "common.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gamemain.h"
-#include "main/gfx.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/ui.h"
 #include "mappic/mappic.h"
 #include "mapui/mapui.h"
 #include "mapui/stage_tables.h"
@@ -34,6 +22,20 @@
 #include "gameplay/room.h"
 #include "gameplay/scene_tasks.h"
 #include "gameplay/sprites.h"
+
+#include "gameplay/view.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/gfx_types.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
 
 static void func_map_akropolis_80179C50(UiList* arg0, UiObject* arg1);
 static void func_map_akropolis_80179D78(Task* task);
@@ -177,13 +179,13 @@ static void func_map_akropolis_80179D78(Task* task)
     s32       result;
 
     list          = &D_map_akropolis_8017A9C0;
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, D_map_akropolis_8017997C);
     if (task->state == 0) {
         Ui_LayoutListPanel(list, &(obj)->panel);
         list->field_A   = 1;
-        task->spawnArg1 = -1;
+        task->spawnArg1.value = -1;
         task->state    += 1;
     }
     Ui_UpdateListNoAnim(list, obj);
@@ -191,7 +193,7 @@ static void func_map_akropolis_80179D78(Task* task)
         obj->field_2E = -1;
     }
     if (task->firstChild != NULL) {
-        child  = task->firstChild->spawnArg2;
+        child  = task->firstChild->spawnArg2.pointer;
         result = child->field_2E;
         switch (result) {
             case 6:
@@ -222,12 +224,12 @@ static void func_map_akropolis_80179E8C(Task* task)
         }
         GameMain_SetFrameTiming(0);
         gGameSession->uiOpen = 1;
-        task->spawnArg2      = obj;
+        task->spawnArg2.pointer      = obj;
         task->state         += 1;
     }
 
     if (task->state == 1) {
-        obj    = task->spawnArg2;
+        obj    = task->spawnArg2.pointer;
         result = obj->field_2E;
         if ((result == -1) || (result == 6)) {
             Ui_TeardownTree(obj, obj->owner);

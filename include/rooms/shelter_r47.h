@@ -2,9 +2,9 @@
 #define ROOMS_SHELTER_R47_H
 
 #include "common.h"
-
-#include "main/task.h"
 #include "rooms/room_common.h"
+
+#include "main/task_types.h"
 
 /// Work block of the room's first cap script: the task family whose state
 /// table is `D_shelter_r47_8017D6C8` (dispatcher `func_shelter_r47_80182B18`).

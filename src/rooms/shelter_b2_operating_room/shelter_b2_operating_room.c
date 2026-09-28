@@ -5,15 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -27,8 +18,21 @@
 #include "gameplay/loading.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -176,9 +180,9 @@ void func_shelter_b2_operating_room_8017D78C(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_shelter_b2_operating_room_8018421C.msgId;
-            Mc_SaveData[0].at4.loc.warp = D_shelter_b2_operating_room_8018421C.field_2;
-            Mc_SaveData[0].at4.loc.room = (u8)D_shelter_b2_operating_room_8018421C.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_operating_room_8018421C.msgId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_operating_room_8018421C.field_2;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_operating_room_8018421C.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -206,7 +210,7 @@ void func_shelter_b2_operating_room_8017D8FC(Task* arg0)
                     D_shelter_b2_operating_room_80184214.field_0 = 0;
                     D_shelter_b2_operating_room_80184214.field_1 = 0;
                     D_shelter_b2_operating_room_80184214.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, (s32)&D_shelter_b2_operating_room_80184214);
+                    Task_Spawn(1, 0x31, 0, &D_shelter_b2_operating_room_80184214);
                 }
                 arg0->state++;
             }
@@ -227,9 +231,9 @@ void func_shelter_b2_operating_room_8017D8FC(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_shelter_b2_operating_room_8018422C.msgId;
-            Mc_SaveData[0].at4.loc.warp = D_shelter_b2_operating_room_8018422C.field_2;
-            Mc_SaveData[0].at4.loc.room = D_shelter_b2_operating_room_8018422C.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_operating_room_8018422C.msgId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_operating_room_8018422C.field_2;
+            Mc_SaveData[0].state.at4.loc.room = D_shelter_b2_operating_room_8018422C.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -655,7 +659,7 @@ static void func_shelter_b2_operating_room_8017ECFC(Task* arg0)
     MATRIX*    mtx;
     u8         col[4];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
@@ -697,9 +701,9 @@ static void func_shelter_b2_operating_room_8017ECFC(Task* arg0)
             if (mem->angle < 0x200) {
                 mem->angle += 0x10;
             }
-            col[0] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1][0];
-            col[1] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1][1];
-            col[2] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1][2];
+            col[0] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1.value][0];
+            col[1] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1.value][1];
+            col[2] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1.value][2];
             func_shelter_b2_operating_room_8017FB20(coord, mem->angle, col);
             break;
         case 2:
@@ -710,9 +714,9 @@ static void func_shelter_b2_operating_room_8017ECFC(Task* arg0)
             if (mem->angle < 0x200) {
                 mem->angle += 0x10;
             }
-            col[0] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1][0];
-            col[1] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1][1];
-            col[2] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1][2];
+            col[0] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1.value][0];
+            col[1] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1.value][1];
+            col[2] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1.value][2];
             func_shelter_b2_operating_room_8017FB20(coord, mem->angle, col);
             col[0] >>= 1;
             col[1] >>= 1;
@@ -723,9 +727,9 @@ static void func_shelter_b2_operating_room_8017ECFC(Task* arg0)
             break;
         case 3:
             Gp_UpdateCoord(coord);
-            col[0] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1][0];
-            col[1] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1][1];
-            col[2] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1][2];
+            col[0] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1.value][0];
+            col[1] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1.value][1];
+            col[2] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1.value][2];
             func_shelter_b2_operating_room_8017FB20(coord, mem->angle, col);
             col[0] = mem->scale;
             col[1] = mem->scale >> 1;
@@ -771,9 +775,9 @@ static void func_shelter_b2_operating_room_8017F254(Task* task)
     GpCoord*   target;
     VECTOR     delta;
 
-    work   = task->spawnArg2;
+    work   = task->spawnArg2.pointer;
     coord  = task->extra.tmd->coords;
-    target = (GpCoord*)task->spawnArg1;
+    target = (GpCoord*)task->spawnArg1.value;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -998,7 +1002,7 @@ static void func_shelter_b2_operating_room_8017FEB4(Task* arg0)
     s16        flag;
     s16        step;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {

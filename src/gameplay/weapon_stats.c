@@ -1,6 +1,7 @@
 #include "item_menu.h"
 
 #include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
 #include "common.h"
@@ -13,18 +14,17 @@
 #include "gameplay/items.h"
 #include "items.h"
 
+#define D_8010EEF8 D_8010EAB4[39]
+
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/sound.h"
-#include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
-
-#define D_8010EEF8 D_8010EAB4[39]
 
 /// Comparison values for weapon items 0x7F..0x9F (row zero is unequipped).
 extern u16 Gp_WeaponStats[33][4];
@@ -57,12 +57,6 @@ static inline void _gpSetPreviewItemWalk(s32 item, u8 slot);
 /// Draws `item` as `_gpDrawItemNameAt` does, but without the
 /// `func_800C22D8` marker.
 static inline void _gpDrawItemNameUnmarkedAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item);
-
-extern s32 Pad_MaskConfirm;
-
-extern s32 Pad_MaskCancel;
-
-extern s32 Pad_MaskMenu;
 
 u16 Gp_WeaponStats[33][4] = {
     { 0, 0, 0, 0 },
@@ -116,7 +110,7 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
         req.glyphTable = 0;
         req.centerMode = 0;
         req.field_E    = 1;
-        func_8002E53C(&req, Gp_GetItemText(item, 0, 0));
+        Text_DrawString(&req, Gp_GetItemText(item, 0, 0));
         func_800C22D8(obj, x, y, item, mode);
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
@@ -238,7 +232,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
             nameReq.glyphTable = 5;
             nameReq.centerMode = 0;
             nameReq.field_E    = 1;
-            func_8002E53C(&nameReq, D_80114D80[i]);
+            Text_DrawString(&nameReq, D_80114D80[i]);
             swap = 0;
             if (i == two) {
                 swap = list == &D_8010E9A4;
@@ -274,7 +268,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 valReq.glyphTable = 0;
                 valReq.centerMode = two;
                 valReq.field_E    = 3;
-                func_8002E53C(&valReq, Text_ItoaSignedPlus(buf, *pItem));
+                Text_DrawString(&valReq, Text_ItoaSignedPlus(buf, *pItem));
             } else {
                 {
                     s32 vx;
@@ -287,7 +281,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 valReq.glyphTable = 0;
                 valReq.centerMode = two;
                 valReq.field_E    = 3;
-                func_8002E53C(&valReq, Text_ItoaSigned(buf, *pItem));
+                Text_DrawString(&valReq, Text_ItoaSigned(buf, *pItem));
             }
             y     += 0x18;
             pItem += 1;
@@ -404,8 +398,8 @@ void Gp_EquipSummaryTask(Task* arg0)
     skip   = 0;
     cfg    = &Player_Status;
     stored = (s32*)arg0->work;
-    mode   = arg0->spawnArg1;
-    obj    = arg0->spawnArg2;
+    mode   = arg0->spawnArg1.value;
+    obj    = arg0->spawnArg2.pointer;
     slot   = 0;
     if (mode == 0) {
         Ui_DrawText(&(obj)->panel, Gp_StrWeaponTitle);
@@ -486,7 +480,7 @@ static inline void _gpDrawItemNameUnmarkedAt(UiObject* obj, s32 x, s32 y, s32 co
         req.glyphTable = 0;
         req.centerMode = 0;
         req.field_E    = 1;
-        func_8002E53C(&req, Gp_GetItemText(item, 0, 0));
+        Text_DrawString(&req, Gp_GetItemText(item, 0, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
             func_800C2538(obj, x, y, temp % 3 + 1, color);
@@ -503,11 +497,11 @@ void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj)
     s32              status;
     UiObject*        spawned;
 
-    spawnArg = obj->owner->spawnArg1;
+    spawnArg = obj->owner->spawnArg1.value;
     USE_REG(spawnArg);
     prompt = arg0;
     USE_REG(arg0);
-    item   = Gp_NthRelatedId(&Mc_SaveData[0].carriedItems, prompt->field_8, spawnArg);
+    item   = Gp_NthRelatedId(&Mc_SaveData[0].state.carriedItems, prompt->field_8, spawnArg);
     status = obj->panel.field_0.w;
     if (((status >> 16) == 1) || (status == 1)) {
         if (prompt->field_10 == prompt->field_8) {
@@ -531,7 +525,7 @@ void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj)
     if (prompt->field_C == 1) {
         obj->field_2C = item;
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            if (obj->owner->spawnArg1 == 0) {
+            if (obj->owner->spawnArg1.value == 0) {
                 SndEvt_EnqueueType6(0xA, 0, 0);
                 Gp_EquipHeld(item);
                 Gp_ReloadMode = 0;
@@ -575,8 +569,8 @@ void Gp_AmmoListTask(Task* arg0)
     UiObject* childObj;
     s32       flag;
 
-    obj           = arg0->spawnArg2;
-    spawnArg      = arg0->spawnArg1;
+    obj           = arg0->spawnArg2.pointer;
+    spawnArg      = arg0->spawnArg1.value;
     obj->field_2E = 0;
     menu          = &D_8010E9A4;
     if (arg0->state == 0) {
@@ -618,7 +612,7 @@ void Gp_AmmoListTask(Task* arg0)
         if (child != NULL) {
             one = 6;
             do {
-                childObj = child->spawnArg2;
+                childObj = child->spawnArg2.pointer;
                 flag     = childObj->field_2E;
                 next     = child->nextSibling;
                 switch (flag) {
@@ -677,17 +671,17 @@ void Gp_SelectWeaponMenuTask(Task* arg0)
     Task*         parent;
 
     menu = &D_8010E9A4;
-    obj  = arg0->spawnArg2;
+    obj  = arg0->spawnArg2.pointer;
     cfg  = &Player_Status;
     Ui_DrawText(&(obj)->panel, Gp_StrSelectWeapon);
     Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, (s16)obj->panel.field_18.u + 0x4A);
     if (arg0->state == 0) {
         parent     = arg0->parent;
         D_80114DD8 = -1;
-        Ui_SetState4(parent->spawnArg2, parent);
+        Ui_SetState4(parent->spawnArg2.pointer, parent);
         Ui_SpawnFromDesc(&D_8010EC3C, 0, 0, 0x10, obj);
     }
-    val = Gp_NthRelatedId(&Mc_SaveData[0].carriedItems, menu->field_10, 0);
+    val = Gp_NthRelatedId(&Mc_SaveData[0].state.carriedItems, menu->field_10, 0);
     if (((obj->panel.field_0.w >> 16) == 1) || (obj->panel.field_0.w == 1) || (val != cfg->weapon + 0x7F)) {
         flags = 0x12;
         if (val == 0) {
@@ -732,7 +726,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
     } draw;
 
     item     = Gp_AttachListIds[prompt->field_8];
-    spawnArg = (u16)obj->owner->spawnArg1;
+    spawnArg = (u16)obj->owner->spawnArg1.value;
     status   = obj->panel.field_0.w;
     if (((status >> 16) == 1) || (status == 1)) {
         if (prompt->field_10 == prompt->field_8) {
@@ -749,7 +743,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
 
     if (item != 0) {
         rec = Gp_FindItemById(item);
-        qty = rec->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].carriedItems, item);
+        qty = rec->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].state.carriedItems, item);
         if (Gp_ReloadMode == 0) {
             attach = Gp_GetItemSlot(spawnArg);
             if (attach->ammoId == item) {
@@ -773,7 +767,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
             draw.count.req.glyphTable = 5;
             draw.count.req.centerMode = 2;
             draw.count.req.field_E    = 0;
-            func_8002E53C(&draw.count.req, Text_ItoaSigned(draw.count.buf, qty));
+            Text_DrawString(&draw.count.req, Text_ItoaSigned(draw.count.buf, qty));
             Ui_LayoutWithMode0(obj, (x + 0x69), (y - 8), 0x1B, 7,
                                0x102010);
         }
@@ -794,7 +788,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
                 draw.req.glyphTable = 0;
                 draw.req.centerMode = 0;
                 draw.req.field_E    = 1;
-                func_8002E53C(&draw.req, Gp_GetItemText(item, 0, 0));
+                Text_DrawString(&draw.req, Gp_GetItemText(item, 0, 0));
                 temp = item - 0xF;
                 if ((u32)temp < 0x24U) {
                     func_800C2538(obj, x, y, temp % 3 + 1, color);
@@ -813,7 +807,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
         draw.req.glyphTable = 0;
         draw.req.centerMode = 0;
         draw.req.field_E    = 1;
-        func_8002E53C(&draw.req, Gp_StrRemoveAmmo);
+        Text_DrawString(&draw.req, Gp_StrRemoveAmmo);
     }
 
     if (prompt->field_C == 1) {
@@ -845,7 +839,7 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
     s32         item;
     s32         qty;
 
-    scan  = &Mc_SaveData[0].carriedItems;
+    scan  = &Mc_SaveData[0].state.carriedItems;
     mode  = Gp_ReloadMode;
     count = 0;
     slot  = Gp_GetItemSlot(arg1);

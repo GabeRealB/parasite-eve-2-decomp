@@ -1,14 +1,14 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-#include "main/session.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/display.h"
 #include "gameplay/message.h"
-#include "main/fs.h"
+
+#include "main/session.h"
+#include "main/task.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_motel_room_5_8017D6B4[];

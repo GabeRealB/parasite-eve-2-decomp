@@ -14,10 +14,6 @@
 #include "player_actor.h"
 #include "world_collision.h"
 
-#include "main/coord.h"
-#include "main/scratch.h"
-#include "main/session.h"
-
 #define GP_CLAIM_CONTACT_REC(rec, obj)                                                                  \
     do {                                                                                                \
         GpRec18* _other;                                                                                \
@@ -71,6 +67,10 @@
             (rec)->flags = _recFlags | (((obj)->flags & 0xF0) + 1);                                     \
         }                                                                                               \
     } while (0)
+
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task_types.h"
 
 /// 0x48-byte scratch from `G_SCRATCH_HEAD` used by `Gp_PairHandler1`.
 /// `Gp_ObjWorldPos` writes world-space positions into `pos0` / `pos1`.
@@ -196,7 +196,7 @@ GpPairRule D_8010FA4C[4][4] = {
     { { 1, 0 }, { 2, 0 }, { 3, 0 }, { 1, 0 } },
 };
 
-void Gp_TickWorldCollision(void)
+void Gp_TickWorldCollision(Task* unused)
 {
     if (gameGetPtrSlot(3) != NULL) {
         Gp_UpdatePlayerMove();

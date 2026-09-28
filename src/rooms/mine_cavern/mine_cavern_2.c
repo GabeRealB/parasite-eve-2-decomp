@@ -5,15 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include "rooms/mine_cavern.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -30,8 +21,28 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/light.h"
+#include "gameplay/pairsrc.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/wipsys.h"
+#include "overlay.h"
+#include <psyq/stdio.h>
 
 extern SVECTOR D_mine_cavern_80188F64[];
 extern SVECTOR D_mine_cavern_80188F7C[];
@@ -157,7 +168,7 @@ static void func_mine_cavern_80180D70(GpCoord* arg0, s16 arg1, u8* arg2);
 
 void func_mine_cavern_8017E330(void)
 {
-    Mc_SaveData[0].at4.loc.room = 2;
+    Mc_SaveData[0].state.at4.loc.room = 2;
     gGameSession->at4.loc.room  = 2;
     gGameSession->roomObjsDirty = 1;
 }
@@ -507,7 +518,7 @@ static void func_mine_cavern_8017F240(Task* task)
     GpCoord*   coord;
     s32        lifetime;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -517,29 +528,29 @@ static void func_mine_cavern_8017F240(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                if (task->spawnArg1 & 3) {
+                if (task->spawnArg1.value & 3) {
                     work->scale   = 0x80;
-                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1.value)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1)->speed;
+                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1.value)->speed;
                     work->move.vz = 0;
-                    if (task->spawnArg1 & 2) {
+                    if (task->spawnArg1.value & 2) {
                         work->move.vy = -work->move.vy;
                     }
                     task->state = 2;
                 } else {
                     work->scale   = 0x20;
-                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1.value)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
+                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1.value)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
                     work->move.vz = 0;
-                    task->state   = (task->spawnArg1 & 1) + 1;
+                    task->state   = (task->spawnArg1.value & 1) + 1;
                 }
                 break;
             case 1:
@@ -773,7 +784,7 @@ static void func_mine_cavern_8017FF88(Task* arg0)
     s16         flag;
     s32         shift;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -797,17 +808,17 @@ static void func_mine_cavern_8017FF88(Task* arg0)
                 coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->index      = shift;
-                arg0->spawnArg1 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0;
+                arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
                 arg0->state     = 1;
-                mem->step       = 0x100 / arg0->spawnArg1;
+                mem->step       = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
                 mem->scale      += mem->step;
                 mem->angle      += mem->step;
-                arg0->spawnArg1 -= 1;
+                arg0->spawnArg1.value -= 1;
                 rgb[0]           = mem->scale >> D_mine_cavern_80188FCC[mem->index].r;
                 rgb[1]           = mem->scale >> D_mine_cavern_80188FCC[mem->index].g;
                 rgb[2]           = mem->scale >> D_mine_cavern_80188FCC[mem->index].b;
@@ -819,7 +830,7 @@ static void func_mine_cavern_8017FF88(Task* arg0)
                     func_mine_cavern_8017FBF4(coord, (s16)(mem->angle + 0x100), rgb);
                 }
                 func_mine_cavern_8017F7D0(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
-                if (arg0->spawnArg1 == 0) {
+                if (arg0->spawnArg1.value == 0) {
                     mem->scale  = 0xFF;
                     arg0->state = 2;
                     return;
@@ -865,7 +876,7 @@ static void func_mine_cavern_80180320(Task* task)
     u8         sp10[3];
     u16        temp;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -1244,7 +1255,7 @@ static void func_mine_cavern_80181730(Task* arg0)
     s16        flag;
     s16        ang;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -1847,7 +1858,7 @@ void func_mine_cavern_80182DC8(Task* arg0)
     TaskFuncTable3 sp;
 
     sp = D_mine_cavern_8017D65C;
-    if (Mc_SaveData[0].demoScene != 3) {
+    if (Mc_SaveData[0].state.demoScene != 3) {
         sp.funcs[arg0->state](arg0);
     }
 }
@@ -1888,9 +1899,9 @@ static void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1)
     arg1->extra.tmd->flags              = 0;
     arg1->extra.tmd->lightMtx           = &work->light;
     arg1->extra.tmd->colorMtx           = &work->color;
-    arg1->extra.tmd->coords->coord.t[0] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vx;
-    arg1->extra.tmd->coords->coord.t[1] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vy;
-    arg1->extra.tmd->coords->coord.t[2] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vz;
+    arg1->extra.tmd->coords->coord.t[0] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vx;
+    arg1->extra.tmd->coords->coord.t[1] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vy;
+    arg1->extra.tmd->coords->coord.t[2] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vz;
     arg1->extra.tmd->coords->flg        = 0;
     obj40                               = &work->obj40;
     obj40->coord                        = arg1->extra.tmd->coords;
@@ -2050,8 +2061,8 @@ found:
         func_800DA6E8(&arg0->node, blk->damage, 0);
         if (arg0->hp <= 0) {
             blk->bits = GameFlag_GetNibble(0xE2);
-            if (!((blk->bits >> (u16)arg1->spawnArg1) & 1)) {
-                blk->bits |= 1 << (u16)arg1->spawnArg1;
+            if (!((blk->bits >> (u16)arg1->spawnArg1.value) & 1)) {
+                blk->bits |= 1 << (u16)arg1->spawnArg1.value;
                 GameFlag_SetNibble(0xE2, blk->bits);
                 arg1->extra.tmd->flags = 0x80;
             }
@@ -2093,9 +2104,9 @@ static void func_mine_cavern_801836D0(GpEnemy* arg0, Task* arg1)
     arg1->extra.tmd->flags              = 0;
     arg1->extra.tmd->lightMtx           = &work->light;
     arg1->extra.tmd->colorMtx           = &work->color;
-    arg1->extra.tmd->coords->coord.t[0] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vx;
-    arg1->extra.tmd->coords->coord.t[1] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vy;
-    arg1->extra.tmd->coords->coord.t[2] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vz;
+    arg1->extra.tmd->coords->coord.t[0] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vx;
+    arg1->extra.tmd->coords->coord.t[1] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vy;
+    arg1->extra.tmd->coords->coord.t[2] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vz;
     arg1->extra.tmd->coords->flg        = 0;
     Gp_UpdateCoord(arg1->extra.tmd->coords);
     vec.vx = arg1->extra.tmd->coords->workm.t[0];
@@ -2215,7 +2226,7 @@ void func_mine_cavern_80183A68(Task* arg0)
     GpEnemyTaskFuncTable5 sp;
 
     sp = D_mine_cavern_8017D7F8;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
 /// Third state handler of `D_mine_cavern_8017D7F8` (`func_mine_cavern_80183A68`
@@ -2245,7 +2256,7 @@ static void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task)
     vec.vz = task->extra.tmd->coords->workm.t[2];
     func_800D7A9C(task->extra.tmd, &vec, 0, 3);
 
-    if (!((GameFlag_GetNibble(0xE2) >> (u16)task->spawnArg1) & 1)) {
+    if (!((GameFlag_GetNibble(0xE2) >> (u16)task->spawnArg1.value) & 1)) {
         task->extra.tmd->flags = 0x80;
     } else {
         m                         = &work->coord.coord;
@@ -2274,5 +2285,5 @@ void func_mine_cavern_80183C10(Task* task)
     GpEnemyTaskFuncTable3 sp;
 
     sp = D_mine_cavern_8017D80C;
-    sp.funcs[task->state](task->spawnArg2, task);
+    sp.funcs[task->state](task->spawnArg2.pointer, task);
 }

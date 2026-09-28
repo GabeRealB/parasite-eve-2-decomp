@@ -2,12 +2,14 @@
 #define ROOMS_SHARED_8017D830_H
 
 #include "common.h"
-#include "main/session.h"
 #include "overlay.h"
 
-#include <psyq/libgs.h>
-#include "main/coord.h"
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
+#include "main/coord.h"
+#include "main/session_types.h"
 
 /// The world delta the last call produced, kept for the room's own use. Every
 /// carrying room holds its own at its own address, named there by the family's

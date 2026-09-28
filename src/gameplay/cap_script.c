@@ -37,10 +37,10 @@ void Gp_EndWaitTask(Task* task)
 {
     GpEndWait* flag;
 
-    flag = task->spawnArg2;
+    flag = task->spawnArg2.pointer;
     switch (task->state) {
         case 0:
-            Task_Spawn(1, 0x2C, 0, (s32)flag);
+            Task_Spawn(1, 0x2C, 0, flag);
             task->state++;
             break;
         case 1:

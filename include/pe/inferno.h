@@ -2,6 +2,7 @@
 #define PE_INFERNO_H
 
 #include "common.h"
+#include <psyq/libgte.h>
 
 /// 0xC jitter block `func_inferno_8012F530` hangs off `Task::work` via
 /// `memCalloc(0xC)`. It is two parallel 6-byte columns, one per ring drawn

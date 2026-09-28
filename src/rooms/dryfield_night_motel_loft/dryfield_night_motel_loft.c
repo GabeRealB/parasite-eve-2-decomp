@@ -1,9 +1,5 @@
 #include "common.h"
 
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/task.h"
-
 #include "rooms/dryfield_night_motel_loft.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -15,7 +11,12 @@
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/world_state.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/task.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_night_motel_loft_8017EB1C[];
@@ -116,11 +117,11 @@ void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
     }
 }
 
-/// Sets the session's current room to `arg0` and mirrors it in `Mc_SaveData[0].at4.loc.room`.
+/// Sets the session's current room to `arg0` and mirrors it in `Mc_SaveData[0].state.at4.loc.room`.
 void func_dryfield_night_motel_loft_8017D7EC(u8 arg0)
 {
     gGameSession->at4.loc.room  = arg0;
-    Mc_SaveData[0].at4.loc.room = arg0;
+    Mc_SaveData[0].state.at4.loc.room = arg0;
 }
 
 /// First state of the room task: publishes the room's message table, claims
@@ -153,7 +154,7 @@ static void func_dryfield_night_motel_loft_8017D8B0(Task* arg0)
         GameFlag_SetNibble(0x96, 1);
         func_800E8614((s32)&D_dryfield_night_motel_loft_8017EB78, 0);
         func_800E3FAC(0xA2, 0x15);
-        Mc_SaveData[0].sceneEvent = 3;
+        Mc_SaveData[0].state.sceneEvent = 3;
     }
 }
 

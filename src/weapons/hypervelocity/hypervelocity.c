@@ -5,13 +5,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "weapons/hypervelocity.h"
 
 #include "gameplay/actor_render.h"
@@ -23,8 +16,21 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 /// Translation of the round's own coordinate frame inside its parent frame
 /// (the muzzle), `(0, 0x240, 0x80)`.
@@ -78,7 +84,7 @@ static void func_hypervelocity_8011D1E8(Task* task)
     GpMtxWords*   dstm;
     s32           pan;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     base  = &Gp_RoomCoords[1];
     light = &base->data.coord;
     slot  = &base->data.light;
@@ -108,7 +114,7 @@ static void func_hypervelocity_8011D1E8(Task* task)
             task->state       = 1;
             /* fallthrough */
         case 1:
-            if (task->spawnArg1 == 1) {
+            if (task->spawnArg1.value == 1) {
                 task->state = 2;
                 work->age   = 0;
             }
@@ -128,19 +134,19 @@ static void func_hypervelocity_8011D1E8(Task* task)
             slot->head.g     = (s16)(u16)slot->head.b >> 1;
             Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
             light->flg = 0;
-            if (task->spawnArg1 < 0) {
-                task->spawnArg1 = 0;
+            if (task->spawnArg1.value < 0) {
+                task->spawnArg1.value = 0;
                 task->state     = 1;
                 return;
             }
             if (work->age >= 0x41) {
-                task->spawnArg1 = 0x18;
+                task->spawnArg1.value = 0x18;
             }
-            if (task->spawnArg1 >= 2) {
+            if (task->spawnArg1.value >= 2) {
                 work->scale  = 0;
                 work->angle  = 0x40;
                 work->period = 0;
-                work->step   = 0x100 / task->spawnArg1;
+                work->step   = 0x100 / task->spawnArg1.value;
                 task->state  = 3;
             }
             return;
@@ -182,16 +188,16 @@ static void func_hypervelocity_8011D1E8(Task* task)
                 rgb[0] = work->period >> 1;
                 rgb[1] = work->period >> 1;
                 rgb[2] = work->period;
-                Gp_DrawArc(coord, (s16)((u16)task->spawnArg1 * 128), 0x60, rgb);
+                Gp_DrawArc(coord, (s16)((u16)task->spawnArg1.value * 128), 0x60, rgb);
             }
-            if (task->spawnArg1 < 0) {
+            if (task->spawnArg1.value < 0) {
                 SndEvt_EnqueueType7(0x20160006, 1);
-                task->spawnArg1 = 0;
+                task->spawnArg1.value = 0;
                 task->state     = 1;
                 return;
             }
-            task->spawnArg1 = task->spawnArg1 - 1;
-            if (task->spawnArg1 == 0) {
+            task->spawnArg1.value = task->spawnArg1.value - 1;
+            if (task->spawnArg1.value == 0) {
                 task->state = 4;
                 eff         = Gp_SpawnEff(0x6000C, coord, 0, NULL);
                 if (eff != NULL) {
@@ -217,7 +223,7 @@ static void func_hypervelocity_8011D1E8(Task* task)
             player      = (gameGetPtrSlot(3))->extra.tmd->coords;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gp_SpawnEff(0x60054, &player[((((u32)Gp_LcgState >> 16) & 1) * 3) + 15], 0x2300, NULL);
-            if (work->age >= 0x6F || task->spawnArg1 < 0) {
+            if (work->age >= 0x6F || task->spawnArg1.value < 0) {
                 task->state = 1;
             }
             return;
@@ -264,7 +270,7 @@ static void func_hypervelocity_8011D830(Task* task)
     s32           i;
 
     beam  = (HyperBeam*)task->work;
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     base  = &Gp_RoomCoords[0];
     light = &base->data.coord;
@@ -780,7 +786,7 @@ static void func_hypervelocity_8011EC1C(GpCoord* coord, s16 age, s32 radius, u8*
 static void func_hypervelocity_8011F11C(Task* task)
 {
     GpObj* obj = task->work;
-    void*  mem = task->spawnArg2;
+    void*  mem = task->spawnArg2.pointer;
 
     if (obj != NULL) {
         Gp_UnlinkObj(obj);
@@ -796,7 +802,7 @@ static void func_hypervelocity_8011F168(Task* arg0)
     s16        val;
     u8         rgb[3];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -834,7 +840,7 @@ static void func_hypervelocity_8011F270(Task* arg0)
     s16        val;
     u8         rgb[3];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -886,14 +892,14 @@ static void func_hypervelocity_8011F374(Task* arg0)
     extra->lightMtx = playerExtra->lightMtx;
 
     SCRATCH_PUSH_BYTES(0x10);
-    switch (arg0->spawnArg1 & 0xF) {
+    switch (arg0->spawnArg1.value & 0xF) {
         case 0:
             if (*(u32*)&((GameActor*)work->work)->field_954 != 0x40000) {
-                arg0->spawnArg1 = 0;
+                arg0->spawnArg1.value = 0;
             }
             break;
         case 1:
-            if (parent->spawnArg1 & 0x10) {
+            if (parent->spawnArg1.value & 0x10) {
                 if (arg0->killCountdown < 0x3C) {
                     arg0->killCountdown = arg0->killCountdown + 1;
                 }
@@ -909,7 +915,7 @@ static void func_hypervelocity_8011F374(Task* arg0)
             coord->coord.t[2] = -0x16;
             break;
         case 2:
-            if (parent->spawnArg1 & 0x20) {
+            if (parent->spawnArg1.value & 0x20) {
                 if (coord->param.rot.vx >= -0x3FF) {
                     coord->param.rot.vx = coord->param.rot.vx - 0x110;
                 }
@@ -946,7 +952,7 @@ static void func_hypervelocity_8011F570(Task* arg0)
     arg0->killCountdown = 0;
     coord->flg          = 0;
     extra->flags        = 0;
-    if (!(arg0->spawnArg1 & 0xF)) {
+    if (!(arg0->spawnArg1.value & 0xF)) {
         child = Task_Spawn(7, 0x70, 1, 0);
         if (child != NULL) {
             child->extra.tmd->coords->sub = coord;
@@ -1029,9 +1035,9 @@ static void func_hypervelocity_8011F724(Task* arg0)
             actor->field_95A            = 0;
             actor->field_95C            = 0;
             actor->field_95E            = 1;
-            actor->field_914->spawnArg1 = 1;
+            actor->field_914->spawnArg1.value = 1;
             actor->field_934            = 0;
-            eff->spawnArg1             |= 0x10;
+            eff->spawnArg1.value             |= 0x10;
             Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160003, 0);
             Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160005, 0);
             Gp_AnimPlayChildSlotsEx(arg0, 0xE, 0, 3);
@@ -1043,22 +1049,22 @@ static void func_hypervelocity_8011F724(Task* arg0)
                 if (count >= 0x5A) {
                     actor->field_981 = 0;
                     actor->field_95E++;
-                    eff->spawnArg1   = 0;
+                    eff->spawnArg1.value   = 0;
                     actor->field_934 = 0x15;
                     Gp_ConsumeSlotQty(0x95, 1);
                     SndEvt_EnqueueType7(0x20160005, 1);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160007, 1);
                     Gp_AnimResetChildSlots(arg0, 0xB);
                 } else if (count == 0x3C) {
-                    eff->spawnArg1 |= 0x20;
+                    eff->spawnArg1.value |= 0x20;
                     SndEvt_EnqueueType7(0x20160003, 1);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160002, 0);
                 }
                 SndEvt_EnqueueType7(0x20160004, 1);
             } else {
                 actor->field_95E            = 3;
-                actor->field_914->spawnArg1 = -1;
-                eff->spawnArg1              = 0;
+                actor->field_914->spawnArg1.value = -1;
+                eff->spawnArg1.value              = 0;
                 SndEvt_EnqueueType7(0x20160003, 1);
                 SndEvt_EnqueueType7(0x20160005, 1);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160004, 0);
@@ -1089,7 +1095,7 @@ static void func_hypervelocity_8011F724(Task* arg0)
             }
             /* fallthrough */
         case 3:
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0) {
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0) {
                 func_80106550(arg0);
             }
             break;

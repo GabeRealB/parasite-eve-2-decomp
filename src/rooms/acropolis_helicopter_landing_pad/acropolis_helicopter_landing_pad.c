@@ -3,14 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/acropolis_helicopter_landing_pad.h"
@@ -21,7 +13,13 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/evs.h"
+#include "main/display.h"
+#include "main/gfx.h"
 #include "main/mem.h"
+#include "main/session.h"
 
 /// 0x54 work block of the helipad enemy task, hung off the `Task::work`
 /// slot -- it is the `memCalloc(0x54)` block that

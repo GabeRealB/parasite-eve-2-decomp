@@ -4,17 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/wipsys.h"
 #include "rooms/dryfield_night_garage.h"
 #include "rooms/room_common.h"
 
@@ -24,6 +13,21 @@
 #include "gameplay/hud_sprites.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+
+#include "gameplay/enemy.h"
+#include "gameplay/message.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gameflow.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "main/wipsys.h"
 
 extern s32            D_dryfield_night_garage_80182DE0;
 extern s32            D_dryfield_night_garage_80182DE4;
@@ -49,7 +53,7 @@ void func_dryfield_night_garage_801809A4(Task* arg0)
     temp_v1 = arg0->state;
     switch (temp_v1) {
         case 0:
-            Gp_RunCapCmd(arg0->spawnArg1, 0);
+            Gp_RunCapCmd(arg0->spawnArg1.value, 0);
             Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), 0x7DB, &D_dryfield_night_garage_80182DE0, 0);
             arg0->state = arg0->state + 1;
             return;
@@ -108,13 +112,13 @@ void func_dryfield_night_garage_80180B20(Task* arg0)
         case 1:
             key = gGameSession->at4;
             if (Wip_SysFlags.field_0 == 2) {
-                if (task->spawnArg1 != 0) {
+                if (task->spawnArg1.value != 0) {
                     key.loc.view = 0x67;
                 } else {
                     key.loc.view = 0x65;
                 }
             } else {
-                if (task->spawnArg1 != 0) {
+                if (task->spawnArg1.value != 0) {
                     key.loc.view = 0x66;
                 } else {
                     key.loc.view = 0x64;
@@ -181,7 +185,7 @@ void func_dryfield_night_garage_80180CEC(Task* arg0)
 /// kills itself.
 void func_dryfield_night_garage_80180D4C(Task* arg0)
 {
-    Display_SpawnWithOt(&D_dryfield_night_garage_80183380, 1, arg0->spawnArg1, 0);
+    Display_SpawnWithOt(&D_dryfield_night_garage_80183380, 1, arg0->spawnArg1.value, 0);
     gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);

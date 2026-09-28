@@ -2,16 +2,17 @@
 #define ACTOR_403600_H
 
 #include "common.h"
-#include "psyq/libgte.h"
-#include "psyq/libgpu.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include "psyq/libgs.h"
-#include "main/coord.h"
-
-#include "main/task.h"
 #include "actors/actor.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/effects.h"
+
+#include "main/coord.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
 
 /// Work block of the `actor_403600` task, parked in the task's `Task::work`
 /// slot (that slot is not a `TaskIdMap` here).

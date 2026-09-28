@@ -4,22 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gamemain.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8018055c.h"
@@ -40,8 +24,30 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
 
+#include "gameplay/evs.h"
+#include "gameplay/inventory.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/loadui.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
+#include "main/wipsys.h"
+#include "overlay.h"
+
 /// The four bonusGpGridParamsmode blurbs shown by the gallery's help panel, indexed by
-/// `Mc_SaveData[0].gameMode`. `func_mist_shooting_gallery_8017FAE8` copies the whole thing
+/// `Mc_SaveData[0].state.gameMode`. `func_mist_shooting_gallery_8017FAE8` copies the whole thing
 /// onto its stack before indexing it.
 typedef struct MistShootingGalleryModeTexts {
     /* 0x0 */ const char* text[4];
@@ -121,13 +127,11 @@ static const char                       D_mist_shooting_gallery_8017D838[];
 static const char                       D_mist_shooting_gallery_8017D844[];
 static const char                       D_mist_shooting_gallery_8017D850[];
 
-extern void func_8002E53C(TextDrawReq* req, u8* text);
 extern void func_8014A398(void);
 extern s32  func_8014AA54(GpSaveLoc* loc);
 extern void func_8014AB6C(void);
 extern void func_8014AF0C(void);
 extern void func_8014C5E0(s32, s32, s32);
-extern s16  D_8007A396;
 
 extern s32      D_8014D038;
 extern TaskDesc D_8014E13C;
@@ -216,7 +220,7 @@ static void func_mist_shooting_gallery_8017DCAC(s32 mode)
     s32         row;
     s32         col;
 
-    scan = &Mc_SaveData[0].carriedItems;
+    scan = &Mc_SaveData[0].state.carriedItems;
     for (row = 0; row < 4; row++) {
         for (col = 0; col < 3; col++) {
             Gp_DebugAttachLevels[col + row * 3] = 0;
@@ -294,7 +298,7 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
     selected = arg0->field_C;
     if (selected == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            scan       = &Mc_SaveData[0].carriedItems;
+            scan       = &Mc_SaveData[0].state.carriedItems;
             weaponIdx  = &Player_Status.weapon;
             row        = &Gp_RelatedQty0.rows[(item)-0x80];
             ammo       = row->related[0];
@@ -326,7 +330,7 @@ void func_mist_shooting_gallery_8017E090(Task* task)
     s32       i;
     s32       count;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     list          = &D_mist_shooting_gallery_80184F4C;
     /* Only "Select" is drawn; the target names that follow it share this
@@ -366,7 +370,7 @@ void func_mist_shooting_gallery_8017E090(Task* task)
     Ui_UpdateListNoAnim(list, obj);
     child = task->firstChild;
     if (child != NULL) {
-        childObj = child->spawnArg2;
+        childObj = child->spawnArg2.pointer;
         if (childObj->field_2E == -1 || childObj->field_2E == 6) {
             Ui_TeardownTree(childObj, childObj->owner);
             obj->panel.field_0.w = 1;
@@ -407,7 +411,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     i     = 0;
     rows  = 0;
     total = 0;
-    obj   = task->spawnArg2;
+    obj   = task->spawnArg2.pointer;
     work  = (MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work;
     xOff  = (s16)obj->panel.field_1C.s + 2;
     y     = (s16)obj->panel.field_18.u + 0x17;
@@ -424,7 +428,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
             req1.glyphTable = 0;
             req1.centerMode = 0;
             req1.field_E    = 3;
-            func_8002E53C(&req1, D_mist_shooting_gallery_80184F98[i].name);
+            Text_DrawString(&req1, D_mist_shooting_gallery_80184F98[i].name);
 
             req2.x          = obj->panel.field_20.u + 0x6E + xOff;
             req2.y          = obj->panel.field_22.u + y;
@@ -433,7 +437,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
             req2.glyphTable = 0;
             req2.centerMode = 2;
             req2.field_E    = 3;
-            func_8002E53C(&req2, Text_ItoaSigned(buf, points));
+            Text_DrawString(&req2, Text_ItoaSigned(buf, points));
 
             req3.x          = obj->panel.field_20.u + 0x91 + xOff;
             req3.y          = obj->panel.field_22.u + y;
@@ -442,7 +446,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
             req3.glyphTable = 0;
             req3.centerMode = 2;
             req3.field_E    = 3;
-            func_8002E53C(&req3, Text_ItoaSigned(buf, kills));
+            Text_DrawString(&req3, Text_ItoaSigned(buf, kills));
             subtotal = kills * points;
 
             req4.x          = obj->panel.field_20.u - 5 - xOff;
@@ -452,7 +456,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
             req4.glyphTable = 0;
             req4.centerMode = 2;
             req4.field_E    = 3;
-            func_8002E53C(&req4, Text_ItoaSigned(buf, subtotal));
+            Text_DrawString(&req4, Text_ItoaSigned(buf, subtotal));
             total += subtotal;
             y     += 0xB;
         }
@@ -469,7 +473,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req1.glyphTable = 5;
     req1.centerMode = 2;
     req1.field_E    = 1;
-    func_8002E53C(&req1, D_mist_shooting_gallery_8017D65C);
+    Text_DrawString(&req1, D_mist_shooting_gallery_8017D65C);
 
     req2.x          = obj->panel.field_20.u - 5 - xOff;
     bottom2         = obj->panel.field_22.u - 4;
@@ -479,7 +483,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req2.glyphTable = 0;
     req2.centerMode = 2;
     req2.field_E    = 3;
-    func_8002E53C(&req2, Text_ItoaSigned(buf, total));
+    Text_DrawString(&req2, Text_ItoaSigned(buf, total));
 
     Ui_DrawHBar(&(obj)->panel, xOff, -xOff, (s16)obj->panel.field_18.u + 0xA);
 
@@ -491,7 +495,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req3.glyphTable = 5;
     req3.centerMode = 1;
     req3.field_E    = 1;
-    func_8002E53C(&req3, "NMC");
+    Text_DrawString(&req3, "NMC");
 
     req4.x          = obj->panel.field_20.u + 0x73 + xOff;
     req4.y          = obj->panel.field_22.u + y;
@@ -500,7 +504,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req4.glyphTable = 5;
     req4.centerMode = 2;
     req4.field_E    = 1;
-    func_8002E53C(&req4, "SCORE");
+    Text_DrawString(&req4, "SCORE");
 
     req5.x          = obj->panel.field_20.u + 0x96 + xOff;
     req5.y          = obj->panel.field_22.u + y;
@@ -509,7 +513,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req5.glyphTable = 5;
     req5.centerMode = 2;
     req5.field_E    = 1;
-    func_8002E53C(&req5, "KILL");
+    Text_DrawString(&req5, "KILL");
 
     req6.x          = obj->panel.field_20.u - xOff;
     req6.y          = obj->panel.field_22.u + y;
@@ -518,7 +522,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req6.glyphTable = 5;
     req6.centerMode = 2;
     req6.field_E    = 1;
-    func_8002E53C(&req6, "TOTAL");
+    Text_DrawString(&req6, "TOTAL");
 
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, "Result");
@@ -564,7 +568,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
 
     child = task->firstChild;
     if (child != NULL) {
-        childObj = child->spawnArg2;
+        childObj = child->spawnArg2.pointer;
         result   = childObj->field_2E;
         if (result == 6) {
             obj->field_2E = result;
@@ -589,8 +593,8 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     s32           color;
     PlayerStatus* cfg;
 
-    obj   = task->spawnArg2;
-    score = task->spawnArg1;
+    obj   = task->spawnArg2.pointer;
+    score = task->spawnArg1.value;
 
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, "BONUS");
@@ -619,7 +623,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     req1.glyphTable = 5;
     req1.centerMode = 0;
     req1.field_E    = 1;
-    func_8002E53C(&req1, D_mist_shooting_gallery_8017D65C);
+    Text_DrawString(&req1, D_mist_shooting_gallery_8017D65C);
 
     req2.x          = obj->panel.field_20.u - xOff;
     req2.y          = obj->panel.field_22.u + y;
@@ -628,7 +632,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     req2.glyphTable = 0;
     req2.centerMode = 2;
     req2.field_E    = 3;
-    func_8002E53C(&req2, Text_ItoaSigned(buf, score));
+    Text_DrawString(&req2, Text_ItoaSigned(buf, score));
 
     Ui_DrawHBar(&(obj)->panel, xOff, -xOff, top + 0x1B);
 
@@ -640,7 +644,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     req3.glyphTable = 5;
     req3.centerMode = 0;
     req3.field_E    = 1;
-    func_8002E53C(&req3, "BONUS BP");
+    Text_DrawString(&req3, "BONUS BP");
 
     req4.x          = obj->panel.field_20.u - xOff;
     req4.y          = obj->panel.field_22.u + y;
@@ -649,7 +653,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     req4.glyphTable = 0;
     req4.centerMode = 2;
     req4.field_E    = 3;
-    func_8002E53C(&req4, Text_ItoaSigned(buf, func_mist_shooting_gallery_80184470(score)));
+    Text_DrawString(&req4, Text_ItoaSigned(buf, func_mist_shooting_gallery_80184470(score)));
 
     if ((obj->panel.field_0.w == 1) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
         obj->field_2E = 6;
@@ -667,23 +671,23 @@ static const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8 = { {
 
 void func_mist_shooting_gallery_8017EAE0(Task* task)
 {
-    UiObject* obj  = task->spawnArg2;
+    UiObject* obj  = task->spawnArg2.pointer;
     UiList*   list = &D_mist_shooting_gallery_8018503C;
 
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, "SELECT");
     if (task->state == 0) {
-        if (Mc_SaveData[0].replayRank == 0) {
+        if (Mc_SaveData[0].state.replayRank == 0) {
             list->field_4   = 2;
             list->field_5.u = 2;
-        } else if (Mc_SaveData[0].replayRank < 2) {
+        } else if (Mc_SaveData[0].state.replayRank < 2) {
             list->field_4   = 3;
             list->field_5.u = 3;
         } else {
             list->field_4   = 4;
             list->field_5.u = 4;
         }
-        if (Mc_SaveData[0].demoScene == 1) {
+        if (Mc_SaveData[0].state.demoScene == 1) {
             list->field_4   = 4;
             list->field_5.u = 4;
         }
@@ -718,7 +722,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     s16         top;
     s32         y;
 
-    obj = task->spawnArg2;
+    obj = task->spawnArg2.pointer;
     Ui_DrawTitle(&(obj)->panel, "STATUS");
     obj->field_2E = 0;
     if (task->state == 0) {
@@ -729,7 +733,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     color = 0x606060;
     top   = (s16)obj->panel.field_18.u;
     y     = top + 0xF;
-    val   = Gp_StatRows[Mc_SaveData[0].gameMode].base.word;
+    val   = Gp_StatRows[Mc_SaveData[0].state.gameMode].base.word;
     xOff  = (s16)obj->panel.field_1C.s + 6;
     if (val < 100) {
         color = 0xD287F;
@@ -742,11 +746,11 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req1.glyphTable = 5;
     req1.centerMode = 0;
     req1.field_E    = 1;
-    func_8002E53C(&req1, "HP");
+    Text_DrawString(&req1, "HP");
     Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), color, 3, 2);
 
     y     = top + 0x1E;
-    val   = Gp_StatRows[Mc_SaveData[0].gameMode].field_4;
+    val   = Gp_StatRows[Mc_SaveData[0].state.gameMode].field_4;
     color = 0x606060;
     if (val < 30) {
         color = 0xD287F;
@@ -759,12 +763,12 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req2.glyphTable = 5;
     req2.centerMode = 0;
     req2.field_E    = 1;
-    func_8002E53C(&req2, "MP");
+    Text_DrawString(&req2, "MP");
     Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), color, 3, 2);
 
     y      = top + 0x2D;
     rawExp = D_mist_shooting_gallery_8018E0BC;
-    switch (Mc_SaveData[0].gameMode) {
+    switch (Mc_SaveData[0].state.gameMode) {
         case 3:
             val = 0;
             break;
@@ -791,12 +795,12 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req3.glyphTable = 5;
     req3.centerMode = 0;
     req3.field_E    = 1;
-    func_8002E53C(&req3, "EXP");
+    Text_DrawString(&req3, "EXP");
     Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, 3, 2);
 
     y    += 0xF;
     rawBp = D_mist_shooting_gallery_8018E0C0;
-    switch (Mc_SaveData[0].gameMode) {
+    switch (Mc_SaveData[0].state.gameMode) {
         case 3:
             val = 0;
             break;
@@ -823,7 +827,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req4.glyphTable = 5;
     req4.centerMode = 0;
     req4.field_E    = 1;
-    func_8002E53C(&req4, "BP");
+    Text_DrawString(&req4, "BP");
     Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, 3, 2);
 }
 static const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708 = { { D_mist_shooting_gallery_80184DD4, D_mist_shooting_gallery_80184E24, D_mist_shooting_gallery_80184E70, D_mist_shooting_gallery_80184EC4 } };
@@ -838,7 +842,7 @@ static const char D_mist_shooting_gallery_8017D730[] = "VERY HARD";
 
 void func_mist_shooting_gallery_8017F128(Task* task)
 {
-    UiObject*                  obj           = task->spawnArg2;
+    UiObject*                  obj           = task->spawnArg2.pointer;
     MistShootingGalleryRatings missionLevels = { {
         { 2, D_mist_shooting_gallery_8017D718 },
         { 3, D_mist_shooting_gallery_8017D720 },
@@ -877,12 +881,12 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     y                 = row + 0xB;
     label0.y          = (s16)(obj->panel.field_22.u - 6) + y;
     label0.otIndex    = obj->panel.field_14.s + 1;
-    rating            = &missionLevels.entries[Mc_SaveData[0].gameMode];
+    rating            = &missionLevels.entries[Mc_SaveData[0].state.gameMode];
     label0.field_8    = 0x606060;
     label0.glyphTable = 5;
     label0.centerMode = 0;
     label0.field_E    = 1;
-    func_8002E53C(&label0, D_mist_shooting_gallery_8017D828);
+    Text_DrawString(&label0, D_mist_shooting_gallery_8017D828);
 
     value0.x          = obj->panel.field_20.u + 0x41;
     value0.y          = (s16)(obj->panel.field_22.u - 3) + y;
@@ -891,7 +895,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value0.glyphTable = 0;
     value0.centerMode = 2;
     value0.field_E    = 3;
-    func_8002E53C(&value0, rating->label);
+    Text_DrawString(&value0, rating->label);
     Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, 3, 0);
     Ui_DrawHBar(&(obj)->panel, col + 6, -x + 5, row + 0xD);
 
@@ -899,12 +903,12 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label1.x          = obj->panel.field_20.u + x;
     label1.y          = (s16)(obj->panel.field_22.u - 6) + y;
     label1.otIndex    = obj->panel.field_14.s + 1;
-    rating            = &conditions.entries[Mc_SaveData[0].gameMode];
+    rating            = &conditions.entries[Mc_SaveData[0].state.gameMode];
     label1.field_8    = 0x606060;
     label1.glyphTable = 5;
     label1.centerMode = 0;
     label1.field_E    = 1;
-    func_8002E53C(&label1, D_mist_shooting_gallery_8017D838);
+    Text_DrawString(&label1, D_mist_shooting_gallery_8017D838);
 
     value1.x          = obj->panel.field_20.u + 0x41;
     value1.y          = (s16)(obj->panel.field_22.u - 3) + y;
@@ -913,19 +917,19 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value1.glyphTable = 0;
     value1.centerMode = 2;
     value1.field_E    = 3;
-    func_8002E53C(&value1, rating->label);
+    Text_DrawString(&value1, rating->label);
     Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, 3, 0);
 
     y                 = row + 0x2D;
     label2.x          = obj->panel.field_20.u + x;
     label2.y          = (s16)(obj->panel.field_22.u - 6) + y;
     label2.otIndex    = obj->panel.field_14.s + 1;
-    rating            = &enemyLevels.entries[Mc_SaveData[0].gameMode];
+    rating            = &enemyLevels.entries[Mc_SaveData[0].state.gameMode];
     label2.field_8    = 0x606060;
     label2.glyphTable = 5;
     label2.centerMode = 0;
     label2.field_E    = 1;
-    func_8002E53C(&label2, D_mist_shooting_gallery_8017D844);
+    Text_DrawString(&label2, D_mist_shooting_gallery_8017D844);
 
     value2.x          = obj->panel.field_20.u + 0x41;
     value2.y          = (s16)(obj->panel.field_22.u - 3) + y;
@@ -934,19 +938,19 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value2.glyphTable = 0;
     value2.centerMode = 2;
     value2.field_E    = 3;
-    func_8002E53C(&value2, rating->label);
+    Text_DrawString(&value2, rating->label);
     Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, 3, 0);
 
     y                 = row + 0x3C;
     label3.x          = obj->panel.field_20.u + x;
     label3.y          = (s16)(obj->panel.field_22.u - 6) + y;
     label3.otIndex    = obj->panel.field_14.s + 1;
-    rating            = &supplyLevels.entries[Mc_SaveData[0].gameMode];
+    rating            = &supplyLevels.entries[Mc_SaveData[0].state.gameMode];
     label3.field_8    = 0x606060;
     label3.glyphTable = 5;
     label3.centerMode = 0;
     label3.field_E    = 1;
-    func_8002E53C(&label3, D_mist_shooting_gallery_8017D850);
+    Text_DrawString(&label3, D_mist_shooting_gallery_8017D850);
 
     value3.x          = obj->panel.field_20.u + 0x41;
     value3.y          = (s16)(obj->panel.field_22.u - 3) + y;
@@ -955,7 +959,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value3.glyphTable = 0;
     value3.centerMode = 2;
     value3.field_E    = 3;
-    func_8002E53C(&value3, rating->label);
+    Text_DrawString(&value3, rating->label);
     Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, 3, 0);
 }
 /// Task handler for the gallery's closing sequence. State 0 spawns the results
@@ -980,11 +984,11 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
             D_mist_shooting_gallery_8018E0C0 = cfg->bp;
             D_mist_shooting_gallery_8018E0BC = cfg->exp;
             GameMain_SetFrameTiming(0);
-            task->spawnArg2 = obj;
+            task->spawnArg2.pointer = obj;
             task->state     = task->state + 1;
         }
     } else if (task->state == 1) {
-        obj = task->spawnArg2;
+        obj = task->spawnArg2.pointer;
         if (obj->field_2E == 6) {
             task->killCountdown = 0xA;
             Ui_TeardownTree(obj, obj->owner);
@@ -992,7 +996,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
             Gp_RecalcMaxMp();
 
             savedBp = D_mist_shooting_gallery_8018E0BC;
-            switch (Mc_SaveData[0].gameMode) {
+            switch (Mc_SaveData[0].state.gameMode) {
                 case 3:
                     bp = 0;
                     goto store_bp;
@@ -1013,7 +1017,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
             cfg->exp = bp;
 
             savedExp = D_mist_shooting_gallery_8018E0C0;
-            switch (Mc_SaveData[0].gameMode) {
+            switch (Mc_SaveData[0].state.gameMode) {
                 case 3:
                     exp = 0;
                     goto store_exp;
@@ -1060,14 +1064,14 @@ void func_mist_shooting_gallery_8017F98C(UiList* arg0, UiObject* arg1)
     one   = 1;
     Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A - 1, texts.text[arg0->field_8], arg0->field_1C, one, 0);
     if (arg0->field_C == one) {
-        Mc_SaveData[0].gameMode = (u8)arg0->field_8;
+        Mc_SaveData[0].state.gameMode = (u8)arg0->field_8;
     }
 }
 static s32 func_mist_shooting_gallery_8017FA38(s32 score)
 {
     s32 value;
 
-    switch (Mc_SaveData[0].gameMode) {
+    switch (Mc_SaveData[0].state.gameMode) {
         case 3:
             return 0;
         case 2:
@@ -1087,7 +1091,7 @@ static s32 func_mist_shooting_gallery_8017FA38(s32 score)
 }
 void func_mist_shooting_gallery_8017FAE8(Task* task)
 {
-    UiObject*                    obj   = task->spawnArg2;
+    UiObject*                    obj   = task->spawnArg2.pointer;
     MistShootingGalleryModeTexts texts = D_mist_shooting_gallery_8017D708;
 
     obj->field_2E = 0;
@@ -1096,11 +1100,11 @@ void func_mist_shooting_gallery_8017FAE8(Task* task)
         obj->panel.bounds.unsignedRect.y = 0x68 - obj->panel.bounds.unsignedRect.h;
         task->state                      = task->state + 1;
     }
-    Text_DrawMultiLine(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, texts.text[Mc_SaveData[0].gameMode], 0x606060, 1, 0);
+    Text_DrawMultiLine(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, texts.text[Mc_SaveData[0].state.gameMode], 0x606060, 1, 0);
 }
 static void func_mist_shooting_gallery_8017FBD8(void)
 {
-    if ((Mc_SaveData[0].clearCount > 0) && (gGameSession->at4.loc.warp == 7)) {
+    if ((Mc_SaveData[0].state.clearCount > 0) && (gGameSession->at4.loc.warp == 7)) {
         Display_InitModeObj(&D_mist_shooting_gallery_801850D0, 0, 0, 0);
     }
 }
@@ -1118,7 +1122,7 @@ static void func_mist_shooting_gallery_8017FC2C(Task* arg0)
         var_a0 = 0;
     }
     func_mist_shooting_gallery_801801E4(var_a0);
-    if (Mc_SaveData[0].demoScene == 7) {
+    if (Mc_SaveData[0].state.demoScene == 7) {
         Task_SpawnFromTable(&D_mist_shooting_gallery_801856B8, 0, 0, 0);
     } else if (gGameSession->at4.loc.warp == 7) {
         Task_SpawnFromTable(&D_8014E13C, 0, 0, 0);
@@ -1151,7 +1155,7 @@ void func_mist_shooting_gallery_8017FDD0(Task* arg0)
     switch (arg0->state) {
         case 0:
             Gp_CapFile = 0;
-            if (arg0->spawnArg2 == (void*)3) {
+            if (arg0->spawnArg2.pointer == (void*)3) {
                 Gp_LoadCapFile(3);
                 var_a0 = 0x2C0;
             } else {
@@ -1159,7 +1163,7 @@ void func_mist_shooting_gallery_8017FDD0(Task* arg0)
                 var_a0 = 0x300;
             }
             func_800E6D4C(var_a0, 0);
-            Gp_RunCapCmd(arg0->spawnArg1, 0);
+            Gp_RunCapCmd(arg0->spawnArg1.value, 0);
             goto block_inc;
         case 1:
             if (Gp_CapBusy() != 0) {
@@ -1230,13 +1234,13 @@ s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, GpSaveLoc* src, G
         }
         if (src->field_5 == 0) {
             if (dst->field_2 == 6) {
-                Mc_SaveData[0].sceneEvent = 2;
+                Mc_SaveData[0].state.sceneEvent = 2;
                 Player_Status.field_26    = 4;
                 gGameSession->hideHud     = 1;
                 Gp_ResetInventory();
             }
             if (dst->field_2 == 5) {
-                Mc_SaveData[0].sceneEvent = 1;
+                Mc_SaveData[0].state.sceneEvent = 1;
                 Player_Status.field_26    = 3;
                 gGameSession->hideHud     = 1;
                 Gp_ClearInventory();
@@ -1454,8 +1458,8 @@ void func_mist_shooting_gallery_8018055C(UiList* prompt, UiObject* obj)
     menu = D_mist_shooting_gallery_8017DADC;
 
     list = 4;
-    if (Mc_SaveData[0].clearCount != 0) {
-        list = Mc_SaveData[0].gameMode;
+    if (Mc_SaveData[0].state.clearCount != 0) {
+        list = Mc_SaveData[0].state.gameMode;
     }
     if (Gp_IsDebugAttachRoom() == 0) {
         list += 5;
@@ -1469,12 +1473,12 @@ void func_mist_shooting_gallery_8018055C(UiList* prompt, UiObject* obj)
     menu.req.glyphTable = 4;
     menu.req.field_E    = 1;
     menu.req.centerMode = 0;
-    func_8002E53C(&menu.req, course->name);
+    Text_DrawString(&menu.req, course->name);
 
     mode = prompt->field_C;
     if (mode == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            if (obj->owner->spawnArg1 != prompt->field_8) {
+            if (obj->owner->spawnArg1.value != prompt->field_8) {
                 SndEvt_EnqueueType6(0x16, 0, 0);
                 if (obj->owner->status != course->id) {
                     SndEvt_EnqueueType2(0, 0x3C);
@@ -1482,7 +1486,7 @@ void func_mist_shooting_gallery_8018055C(UiList* prompt, UiObject* obj)
                     obj->owner->status = course->id;
                     CdCmd_DropPending();
                 }
-                obj->owner->spawnArg1 = prompt->field_8;
+                obj->owner->spawnArg1.value = prompt->field_8;
             }
         }
     }
@@ -1506,13 +1510,13 @@ void func_mist_shooting_gallery_80180728(Task* task)
     s32       state;
     u8        ready;
 
-    obj  = task->spawnArg2;
+    obj  = task->spawnArg2.pointer;
     menu = &D_mist_shooting_gallery_80185338;
 
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, D_mist_shooting_gallery_8017DB04);
     if (task->state == 0) {
-        task->spawnArg1 = -1;
+        task->spawnArg1.value = -1;
         if (Gp_IsDebugAttachRoom() == 0) {
             menu->field_4 = 4;
         } else {
@@ -1609,12 +1613,12 @@ void func_mist_shooting_gallery_80180A00(Task* task)
         }
         GameMain_SetFrameTiming(0);
         gGameSession->uiOpen = 1;
-        task->spawnArg2      = obj;
+        task->spawnArg2.pointer      = obj;
         task->state++;
     }
 
     if (task->state == 1) {
-        obj = task->spawnArg2;
+        obj = task->spawnArg2.pointer;
         if (obj->field_2E == -1 || obj->field_2E == 6) {
             Ui_TeardownTree(obj, obj->owner);
             task->killCountdown = 10;
@@ -1653,7 +1657,7 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
             param2[1] = 0;
             param2[2] = 0;
             param2[3] = 0;
-            switch (Mc_SaveData[0].gameMode) {
+            switch (Mc_SaveData[0].state.gameMode) {
                 case 0:
                     param1[0] = 0x29;
                     break;
@@ -1854,7 +1858,7 @@ void func_mist_shooting_gallery_801810D8(Task* task)
     switch (task->state) {
         case 0:
             SetDispMask(0);
-            if (Mc_SaveData[0].clearCount == 0) {
+            if (Mc_SaveData[0].state.clearCount == 0) {
                 task->state = 2;
                 return;
             }

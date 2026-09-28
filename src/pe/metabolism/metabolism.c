@@ -2,12 +2,6 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "pe/metabolism.h"
 
 #include "gameplay/actor_render.h"
@@ -15,8 +9,17 @@
 #include "gameplay/display.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// Per-level tuning for the metabolism drain, one row per PE level 1-3,
 /// weakest first.
@@ -60,7 +63,7 @@ static void func_metabolism_8012EF34(Task* arg0)
     s32         temp_lo;
     u8          rgb[3];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
         Gp_ReleaseState1CMem(mem, arg0);
@@ -195,7 +198,7 @@ static void func_metabolism_8012F5A0(Task* arg0)
     u16        kind;
     u16        roll;
 
-    mem      = arg0->spawnArg2;
+    mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.tmd->coords;
     mem->age = mem->age + 1;
     switch (arg0->state) {
@@ -203,7 +206,7 @@ static void func_metabolism_8012F5A0(Task* arg0)
             mem->move.vx = 0;
             mem->move.vy = 8;
             mem->move.vz = 0;
-            mem->angle   = arg0->spawnArg1 & 0xFFF;
+            mem->angle   = arg0->spawnArg1.value & 0xFFF;
             kind         = Gp_StateC08.field_0 % 10U;
             if (kind - 1 < 2 ||
                 (Gp_LcgState = Gp_LcgState * 5 + 0x71357911,

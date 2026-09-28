@@ -1,5 +1,6 @@
 #include "gameplay/item_menu.h"
 
+#include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/memory.h>
 
@@ -14,6 +15,8 @@
 #include "items.h"
 #include "gameplay/map.h"
 
+#include "mapui/stage_tables.h"
+
 #include "main/fs.h"
 #include "main/gamemain.h"
 #include "main/mc.h"
@@ -26,8 +29,6 @@
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
-
-#include "mapui/stage_tables.h"
 
 typedef struct {
     /* 0x0 */ u8 src;
@@ -189,19 +190,13 @@ static UiObject* func_800CD78C(UiObject* arg0);
 
 static inline void _gpSetPreviewItem(s32 itemId, u8 slot);
 
-extern s32 Pad_MaskConfirm;
-
-extern s32 Pad_MaskCancel;
-
-extern s32 Pad_MaskMenu;
-
 void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, McItemRec* arg3)
 {
     s32 n;
     s32 mode;
 
     n                                 = 0;
-    mode                              = arg1->owner->spawnArg1;
+    mode                              = arg1->owner->spawnArg1.value;
     arg1->panel.bounds.unsignedRect.w = 0x60;
     switch (mode) {
         case 0:
@@ -214,7 +209,7 @@ void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, McItemRec* arg3
                 Gp_ItemCmdFns[n++] = Gp_DrawMovePrompt;
                 Gp_ItemCmdFns[n++] = Gp_DrawDiscardCmd;
             } else if ((u32)(arg2 - 0xA0) < 0x20U) {
-                if ((arg3->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].carriedItems, arg2)) > 0) {
+                if ((arg3->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].state.carriedItems, arg2)) > 0) {
                     Gp_ItemCmdFns[n++] = Gp_DrawLoadCmd;
                 }
                 Gp_ItemCmdFns[n++] = Gp_DrawMovePrompt;
@@ -258,7 +253,7 @@ void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, McItemRec* arg3
             } else if ((u32)(arg2 - 0x60) < 0x20U) {
             } else if ((u32)(arg2 - 0xA0) < 0x20U) {
                 Gp_ItemCmdFns[n++] = Gp_DrawExchangeSlotCmd;
-                if ((arg3->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].carriedItems, arg2)) > 0) {
+                if ((arg3->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].state.carriedItems, arg2)) > 0) {
                     Gp_ItemCmdFns[n++] = Gp_DrawLoadCmd;
                 }
                 Gp_ItemCmdFns[n++] = Gp_DrawDiscardCmd;
@@ -502,7 +497,7 @@ void Gp_ItemCmdMenuTask(Task* arg0)
     s32        val;
     s32        sel;
 
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     menu          = &D_8010EA30;
     if (arg0->state == 0) {
@@ -535,7 +530,7 @@ void Gp_ItemCmdMenuTask(Task* arg0)
         }
         childTask = arg0->firstChild;
         if (childTask != NULL) {
-            child = childTask->spawnArg2;
+            child = childTask->spawnArg2.pointer;
             flag  = child->field_2E;
             switch (flag) {
                 case -1:
@@ -616,8 +611,8 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
             be8->field_4 = cfg->mp;
             cfg->hp      = cfg->hp + func_800D50D4(arg2, 4);
             save         = &Mc_SaveData[0];
-            if ((s16)save->attachUseCounts[7] < 0x270F) {
-                save->attachUseCounts[7] = save->attachUseCounts[7] + 1;
+            if ((s16)save->state.attachUseCounts[7] < 0x270F) {
+                save->state.attachUseCounts[7] = save->state.attachUseCounts[7] + 1;
             }
         }
         if (cfg->hp > cfg->hpMax) {
@@ -685,12 +680,12 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         src          = 0;
         result       = 0;
         bonus        = 0;
-        item         = arg1->spawnArg1;
+        item         = arg1->spawnArg1.value;
         arg1->status = 0xFF;
         extra        = src;
         switch (item) {
             case 9:
-                scan = &Mc_SaveData[0].carriedItems;
+                scan = &Mc_SaveData[0].state.carriedItems;
                 if (Gp_SumScanQty(scan, 0x9F) != 0) {
                     arg1->status = 0x1A;
                 } else if (Gp_SumScanQty(scan, 0x9E) != 0) {
@@ -704,7 +699,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 }
                 break;
             case 0xC:
-                scan = &Mc_SaveData[0].carriedItems;
+                scan = &Mc_SaveData[0].state.carriedItems;
                 if (Gp_SumScanQty(scan, 0x80) != 0) {
                     arg1->status = 0x1A;
                 } else if (Gp_SumScanQty(scan, 0x83) != 0) {
@@ -720,7 +715,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             case 0x44:
             case 0x45:
             case 0x46:
-                scan = &Mc_SaveData[0].carriedItems;
+                scan = &Mc_SaveData[0].state.carriedItems;
                 if (Gp_SumScanQty(scan, 0x94) != 0) {
                     if (item == 0xA) {
                         arg1->status = 0x1A;
@@ -737,7 +732,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                     p              = start;
                     arg1->status   = 0x17;
                     do {
-                        if (Gp_SumScanQty(&Mc_SaveData[0].carriedItems, p->src) != 0) {
+                        if (Gp_SumScanQty(&Mc_SaveData[0].state.carriedItems, p->src) != 0) {
                             extra = p->dst;
                             if (item == ten && p->src == 0x93) {
                                 extra = 0;
@@ -767,7 +762,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             slotDst    = Gp_GetItemSlot(result);
             rec        = Gp_FindItemById(src);
             newWork    = (GpUseCreateWork*)memCalloc(0x14, 0);
-            scanInit   = &Mc_SaveData[0].carriedItems;
+            scanInit   = &Mc_SaveData[0].state.carriedItems;
             arg1->work = (TaskIdMap*)newWork;
             Gp_RemoveItem(scanInit, Gp_SelItemRec, 1);
             rec->itemId = (u8)result;
@@ -783,10 +778,10 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 cfg->weapon = temp - 0x7F;
             }
             if (extra != 0) {
-                Gp_GiveItem(&Mc_SaveData[0].carriedItems, extra, -1);
+                Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, extra, -1);
             }
             if (bonus != 0) {
-                Gp_GiveItem(&Mc_SaveData[0].carriedItems, bonus, -1);
+                Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, bonus, -1);
             }
             temp              = result;
             newWork->field_8  = temp;
@@ -809,10 +804,10 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         }
     }
     if (arg1->status != 0xFF) {
-        saved           = arg1->spawnArg1;
-        arg1->spawnArg1 = arg1->status;
+        saved           = arg1->spawnArg1.value;
+        arg1->spawnArg1.value = arg1->status;
         Gp_NoticePanelTask(arg1);
-        arg1->spawnArg1 = saved;
+        arg1->spawnArg1.value = saved;
         return;
     }
     color = 0x37A78;
@@ -831,7 +826,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         sp20.u.req.glyphTable = 0;
         sp20.u.req.centerMode = 0;
         sp20.u.req.field_E    = 1;
-        func_8002E53C(&sp20.u.req, Gp_GetItemText(item, 0, 0));
+        Text_DrawString(&sp20.u.req, Gp_GetItemText(item, 0, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
             func_800C2538(arg0, x, y, temp % 3 + 1, color);
@@ -850,7 +845,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         sp20.u.req.glyphTable = 0;
         sp20.u.req.centerMode = 0;
         sp20.u.req.field_E    = 1;
-        func_8002E53C(&sp20.u.req, Gp_GetItemText(item, 0, 0));
+        Text_DrawString(&sp20.u.req, Gp_GetItemText(item, 0, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
             func_800C2538(arg0, x, y, temp % 3 + 1, color);
@@ -871,7 +866,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         sp20.u.req.glyphTable = 0;
         sp20.u.req.centerMode = 0;
         sp20.u.req.field_E    = 1;
-        func_8002E53C(&sp20.u.req, Gp_GetItemText(item, 0, 0));
+        Text_DrawString(&sp20.u.req, Gp_GetItemText(item, 0, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
             func_800C2538(arg0, x, y, temp % 3 + 1, color);
@@ -890,7 +885,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             sp20.u.req.glyphTable = 0;
             sp20.u.req.centerMode = 0;
             sp20.u.req.field_E    = 1;
-            func_8002E53C(&sp20.u.req, Gp_GetItemText(item, 0, 0));
+            Text_DrawString(&sp20.u.req, Gp_GetItemText(item, 0, 0));
             temp = item - 0xF;
             if ((u32)temp < 0x24U) {
                 func_800C2538(arg0, x, y, temp % 3 + 1, color);
@@ -909,7 +904,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 sp20.u.req.glyphTable = 0;
                 sp20.u.req.centerMode = 0;
                 sp20.u.req.field_E    = 1;
-                func_8002E53C(&sp20.u.req, Gp_GetItemText(item, 0, 0));
+                Text_DrawString(&sp20.u.req, Gp_GetItemText(item, 0, 0));
                 temp = item - 0xF;
                 if ((u32)temp < 0x24U) {
                     func_800C2538(arg0, x, y, temp % 3 + 1, color);
@@ -956,7 +951,7 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         Ui_UpdateLayoutSize(&(arg0)->panel, width + 5, Ui_Scale15(2) + 1);
         (&(arg0)->panel)->bounds.rect.x = (-(&(arg0)->panel)->bounds.rect.w) >> 1;
         (&(arg0)->panel)->bounds.rect.y = ((-(&(arg0)->panel)->bounds.rect.h) >> 1) - 0x14;
-        Gp_RemoveItem(&Mc_SaveData[0].carriedItems, Gp_SelItemRec, 1);
+        Gp_RemoveItem(&Mc_SaveData[0].state.carriedItems, Gp_SelItemRec, 1);
 
         i   = (arg2 - 0xF) / 3;
         n   = arg2 - 0xF;
@@ -965,8 +960,8 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         save      = &Mc_SaveData[0];
         n         = n - i * 3 + 1;
         cfg       = &Player_Status;
-        if (save->attachLevels[col + row * 3] < n) {
-            save->attachLevels[col + row * 3] = n;
+        if (save->state.attachLevels[col + row * 3] < n) {
+            save->state.attachLevels[col + row * 3] = n;
         }
         Gp_RecalcMaxMp();
         cfg->mp             = cfg->mpMax;
@@ -999,21 +994,21 @@ void func_800CC41C(UiObject* arg0, Task* arg1)
     s32         slot;
     s32         temp;
 
-    idx = arg1->spawnArg1 - 0x36;
+    idx = arg1->spawnArg1.value - 0x36;
     if (arg1->state == 0) {
         save = &Mc_SaveData[0];
-        p    = (McSaveData*)&save->unknown_0[idx * 3];
-        slot = p->attachLevels[0] > p->attachLevels[1];
-        if (save->attachLevels[slot + idx * 3] >= 3) {
+        p    = (McSaveData*)&save->state.unknown_0[idx * 3];
+        slot = p->state.attachLevels[0] > p->state.attachLevels[1];
+        if (save->state.attachLevels[slot + idx * 3] >= 3) {
             slot = 2;
-            if (save->attachLevels[idx * 3 + 2] >= 3) {
+            if (save->state.attachLevels[idx * 3 + 2] >= 3) {
                 slot = (idx * 3 + 2) * 3 + 0x11;
                 goto store;
             }
         }
         save2 = &Mc_SaveData[0];
         temp  = slot + idx * 3;
-        slot  = save2->attachLevels[temp] + temp * 3 + 0xF;
+        slot  = save2->state.attachLevels[temp] + temp * 3 + 0xF;
     store:
         arg1->extraState = slot;
     }
@@ -1027,11 +1022,11 @@ void Gp_YesNoMenuTask(Task* arg0)
     s32       mode;
     s32       sel;
 
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     menu          = &D_8010EA74;
     obj->field_2E = 0;
     if (arg0->state == 0) {
-        mode = arg0->spawnArg1 & 0xF;
+        mode = arg0->spawnArg1.value & 0xF;
         switch (mode) {
             case 1:
                 Gp_DialogCmdFns[0] = Gp_DrawOkCmd;
@@ -1055,12 +1050,12 @@ void Gp_YesNoMenuTask(Task* arg0)
         menu->field_5.u = menu->field_4;
         Ui_LayoutListPanel(menu, &(obj)->panel);
         obj->panel.bounds.unsignedRect.y -= (s16)obj->panel.bounds.unsignedRect.h / 2;
-        if (arg0->spawnArg1 & 0x10) {
+        if (arg0->spawnArg1.value & 0x10) {
             Ui_SetListScrollFlag(menu, 1);
         } else {
             Ui_SetListScrollFlag(menu, 0);
         }
-        if ((arg0->spawnArg1 & 0xF) == 3) {
+        if ((arg0->spawnArg1.value & 0xF) == 3) {
             menu->field_10 = 1;
         } else {
             menu->field_10 = 0;
@@ -1098,7 +1093,7 @@ void Gp_PeListPanelTask(Task* arg0)
     s32           y;
     s32           flag;
 
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     Ui_DrawTitle(&(obj)->panel, Gp_StrPeList);
     if (arg0->state == 0) {
@@ -1121,7 +1116,7 @@ void Gp_PeListPanelTask(Task* arg0)
     req.glyphTable = 5;
     req.centerMode = 2;
     req.field_E    = 1;
-    func_8002E53C(&req, (u8*)Gp_StrExp);
+    Text_DrawString(&req, (u8*)Gp_StrExp);
     req2.x          = obj->panel.field_20.u + 0xA + x;
     req2.y          = obj->panel.field_22.u + y;
     req2.otIndex    = obj->panel.field_14.s + 1;
@@ -1129,7 +1124,7 @@ void Gp_PeListPanelTask(Task* arg0)
     req2.glyphTable = 0;
     req2.centerMode = 0;
     req2.field_E    = 3;
-    func_8002E53C(&req2, Text_ItoaUnsigned(buf, cfg->exp));
+    Text_DrawString(&req2, Text_ItoaUnsigned(buf, cfg->exp));
     x               = xOff + 0x7A;
     req3.x          = obj->panel.field_20.u + x;
     req3.y          = obj->panel.field_22.u + (y - 2);
@@ -1138,7 +1133,7 @@ void Gp_PeListPanelTask(Task* arg0)
     req3.glyphTable = 5;
     req3.centerMode = 2;
     req3.field_E    = 1;
-    func_8002E53C(&req3, (u8*)Gp_StrMp);
+    Text_DrawString(&req3, (u8*)Gp_StrMp);
     req4.x          = obj->panel.field_20.u + 0xA + x;
     req4.y          = obj->panel.field_22.u + y;
     req4.otIndex    = obj->panel.field_14.s + 1;
@@ -1146,7 +1141,7 @@ void Gp_PeListPanelTask(Task* arg0)
     req4.glyphTable = 0;
     req4.centerMode = 0;
     req4.field_E    = 3;
-    func_8002E53C(&req4, Text_ItoaSigned(buf, cfg->mp));
+    Text_DrawString(&req4, Text_ItoaSigned(buf, cfg->mp));
     req5.x          = obj->panel.field_20.u + 0x25 + x;
     req5.y          = obj->panel.field_22.u + y;
     req5.otIndex    = obj->panel.field_14.s + 1;
@@ -1154,7 +1149,7 @@ void Gp_PeListPanelTask(Task* arg0)
     req5.glyphTable = 0;
     req5.centerMode = 1;
     req5.field_E    = 3;
-    func_8002E53C(&req5, (u8*)Gp_StrSlash);
+    Text_DrawString(&req5, (u8*)Gp_StrSlash);
     req6.x          = obj->panel.field_20.u + 0x2A + x;
     req6.y          = obj->panel.field_22.u + y;
     req6.otIndex    = obj->panel.field_14.s + 1;
@@ -1162,12 +1157,12 @@ void Gp_PeListPanelTask(Task* arg0)
     req6.glyphTable = 0;
     req6.centerMode = 0;
     req6.field_E    = 3;
-    func_8002E53C(&req6, Text_ItoaSigned(buf, cfg->mpMax));
+    Text_DrawString(&req6, Text_ItoaSigned(buf, cfg->mpMax));
     head = arg0->firstChild;
     if (head != NULL) {
         child = head;
         do {
-            childObj = child->spawnArg2;
+            childObj = child->spawnArg2.pointer;
             flag     = childObj->field_2E;
             child    = child->nextSibling;
             if (flag != -1) {
@@ -1199,7 +1194,7 @@ void Gp_ItemCountHeaderTask(Task* arg0)
     s32         y;
     s32         y2;
 
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone(obj) == 0)) {
         Ui_SetState4(obj, obj->owner);
@@ -1210,7 +1205,7 @@ void Gp_ItemCountHeaderTask(Task* arg0)
     buf[0] = D_800971A4;
     memset(&buf[1], 0, 0x1F);
     color = 0x606060;
-    scan  = &Mc_SaveData[0].carriedItems;
+    scan  = &Mc_SaveData[0].state.carriedItems;
     cur   = Gp_CountScanItems(scan);
     cap   = Gp_GetScanCount(scan);
     Text_ItoaUnsigned(buf, cur);
@@ -1226,7 +1221,7 @@ void Gp_ItemCountHeaderTask(Task* arg0)
     req.glyphTable = 0;
     req.centerMode = 2;
     req.field_E    = 3;
-    func_8002E53C(&req, buf);
+    Text_DrawString(&req, buf);
     req2.x          = (u16)obj->panel.field_1C.s + (obj->panel.field_20.u + 2);
     y2              = obj->panel.field_22.u - 6;
     req2.y          = y2 + yOff;
@@ -1235,7 +1230,7 @@ void Gp_ItemCountHeaderTask(Task* arg0)
     req2.glyphTable = 5;
     req2.centerMode = 0;
     req2.field_E    = 1;
-    func_8002E53C(&req2, (u8*)Gp_StrTotal2);
+    Text_DrawString(&req2, (u8*)Gp_StrTotal2);
 }
 
 void Gp_PickupTask(Task* arg0)
@@ -1250,12 +1245,12 @@ void Gp_PickupTask(Task* arg0)
     s32           flag;
     s32           one;
 
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     if (arg0->state == 0) {
         desc = D_8010F02C;
         Ui_SpawnFromDesc(desc, 0, 0, 1, obj);
-        if (arg0->spawnArg1 != 0) {
+        if (arg0->spawnArg1.value != 0) {
             Gp_SetCollectedBit(Gp_PubItemLoc);
             SndEvt_EnqueueType6(3, 0, 0);
             one     = 1;
@@ -1263,7 +1258,7 @@ void Gp_PickupTask(Task* arg0)
             if (spawned != NULL) {
                 spawned->field_2C = 0x33;
             }
-        } else if (Gp_CanAddItem(&Mc_SaveData[0].carriedItems, Gp_PubItemLoc) != 0) {
+        } else if (Gp_CanAddItem(&Mc_SaveData[0].state.carriedItems, Gp_PubItemLoc) != 0) {
             one = 1;
             Ui_SpawnFromDesc(desc + 1, 0, one, one, obj);
         } else {
@@ -1276,7 +1271,7 @@ void Gp_PickupTask(Task* arg0)
     if (head != NULL) {
         child = head;
         do {
-            childObj = child->spawnArg2;
+            childObj = child->spawnArg2.pointer;
             flag     = childObj->field_2E;
             next     = child->nextSibling;
             if (flag != -1) {
@@ -1303,7 +1298,7 @@ void func_800CCDC8(Task* arg0)
     s32         i;
 
     item          = Gp_PubItemLoc;
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     queue         = &CdCmd_Queue;
     obj->field_2E = 0;
     flags         = 0x10;
@@ -1354,7 +1349,7 @@ static inline void _gpDrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 
     req.glyphTable = 5;
     req.centerMode = 2;
     req.field_E    = 0;
-    func_8002E53C(&req, Text_ItoaSigned(buf, arg3));
+    Text_DrawString(&req, Text_ItoaSigned(buf, arg3));
     Ui_LayoutWithMode0(arg0, (arg1 + 0x69), (arg2 - 8), 0x1B, 7, 0x102010);
 }
 
@@ -1371,7 +1366,7 @@ void Gp_PickupTitleTask(Task* arg0)
     s32         item;
 
     item          = Gp_PubItemLoc;
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     if (item < 0x100) {
         Ui_DrawTitle(&(obj)->panel, Gp_StrItemHdr);
@@ -1398,7 +1393,7 @@ void Gp_PickupTitleTask(Task* arg0)
         req.glyphTable = 0;
         req.centerMode = 0;
         req.field_E    = 1;
-        func_8002E53C(&req, Gp_GetItemText(item, 0, 0));
+        Text_DrawString(&req, Gp_GetItemText(item, 0, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
             func_800C2538(obj, x, y, temp % 3 + 1, color);
@@ -1421,7 +1416,7 @@ void Gp_PickupAskTask(Task* arg0)
     s32         one;
     s32         flag;
 
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     if (arg0->state == 0) {
         spawned = Ui_SpawnFromDesc(&D_8010EA98, 0, 1, 2, obj);
@@ -1439,14 +1434,14 @@ void Gp_PickupAskTask(Task* arg0)
     Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, Gp_StrPickupAsk, color, one, 0);
     child = arg0->firstChild;
     if (child != NULL) {
-        childObj = child->spawnArg2;
+        childObj = child->spawnArg2.pointer;
         flag     = childObj->field_2E;
         if (flag != -1) {
             if (flag == 6) {
                 if (arg0->state == one) {
                     if (childObj->field_2C == 0x33) {
                         if (Gp_PubItemLoc < 0xC0U) {
-                            scan = &Mc_SaveData[0].carriedItems;
+                            scan = &Mc_SaveData[0].state.carriedItems;
                             if (Gp_CanAddItem(scan, Gp_PubItemLoc) != 0) {
                                 Gp_GiveItem(scan, Gp_PubItemLoc, Gp_PubItemQty);
                             } else {
@@ -1458,7 +1453,7 @@ void Gp_PickupAskTask(Task* arg0)
                     }
                     obj->field_2C = childObj->field_2C;
                     if (obj->field_2C == 0x33) {
-                        Ui_SpawnFromDesc(&D_8010F080, Gp_PubItemLoc, 1, 1, obj);
+                        Ui_SpawnFromDesc(&D_8010F080, (s32)(Gp_PubItemLoc), 1, 1, obj);
                         obj->panel.field_0.w = 0;
                         Ui_TeardownTree(childObj, childObj->owner);
                         arg0->state = arg0->state + 1;
@@ -1482,7 +1477,7 @@ void Gp_PickupFullTask(Task* arg0)
     s32       color;
     s32       one;
 
-    obj = arg0->spawnArg2;
+    obj = arg0->spawnArg2.pointer;
     Ui_DrawTextColored(&(obj)->panel, Gp_StrWarning);
     obj->field_2E = 0;
     if (arg0->state == 0) {
@@ -1501,7 +1496,7 @@ void Gp_PickupFullTask(Task* arg0)
     Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0x1E, D_8010E588, color, one, 0);
     childTask = arg0->firstChild;
     if (childTask != NULL) {
-        childObj = childTask->spawnArg2;
+        childObj = childTask->spawnArg2.pointer;
         if (childObj->field_2E == 6) {
             obj->field_2E = -1;
             obj->field_2C = 0x34;
@@ -1519,8 +1514,8 @@ void Gp_ObtainedNoticeTask(Task* arg0)
     s32       one;
     u8*       text;
 
-    obj           = arg0->spawnArg2;
-    item          = (u16)arg0->spawnArg1;
+    obj           = arg0->spawnArg2.pointer;
+    item          = (u16)arg0->spawnArg1.value;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, Gp_StrNotice);
     if (arg0->state == 0) {
@@ -1543,7 +1538,7 @@ void Gp_ObtainedNoticeTask(Task* arg0)
     arg0->killCountdown--;
     if (obj->panel.field_0.w == one) {
         if ((arg0->killCountdown <= 0) ||
-            (((arg0->spawnArg1 & 0x10000) == 0) &&
+            (((arg0->spawnArg1.value & 0x10000) == 0) &&
              (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0))) {
             obj->field_2E       = -1;
             arg0->killCountdown = 0x7FFF;
@@ -1622,7 +1617,7 @@ void Gp_DrawItemLabel(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s3
         req.glyphTable = 0;
         req.centerMode = 0;
         req.field_E    = 1;
-        func_8002E53C(&req, Gp_GetItemText(arg3, 0, 0));
+        Text_DrawString(&req, Gp_GetItemText(arg3, 0, 0));
         if (arg5 != 0) {
             func_800C22D8(arg0, arg1, arg2, arg3, arg5);
         }
@@ -1653,7 +1648,7 @@ void Gp_DrawItemNameRow(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, 
         req.glyphTable = 0;
         req.centerMode = 0;
         req.field_E    = 1;
-        func_8002E53C(&req, Gp_GetItemText(arg3, 0, 0));
+        Text_DrawString(&req, Gp_GetItemText(arg3, 0, 0));
         if (arg5 != 0) {
             func_800C22D8(arg0, arg1, arg2, arg3, arg5);
         }
@@ -1680,7 +1675,7 @@ void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, McItemRec* arg3, s32 a
 
     if (arg3 != NULL) {
         if ((u32)(arg3->itemId - 0xA0) < 0x20U) {
-            count          = arg3->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].carriedItems, arg3->itemId);
+            count          = arg3->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].state.carriedItems, arg3->itemId);
             req.x          = arg0->panel.field_20.u + 0x84 + arg1;
             y              = arg0->panel.field_22.u - 3;
             req.y          = y + arg2;
@@ -1689,7 +1684,7 @@ void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, McItemRec* arg3, s32 a
             req.glyphTable = 5;
             req.centerMode = 2;
             req.field_E    = 0;
-            func_8002E53C(&req, Text_ItoaSigned(buf, count));
+            Text_DrawString(&req, Text_ItoaSigned(buf, count));
             Ui_LayoutWithMode0(arg0, (arg1 + 0x69), (arg2 - 8), 0x1B, 7, 0x102010);
         }
     }
@@ -1755,7 +1750,7 @@ void Gp_CheckItemInfoButton(UiObject* arg0)
     if (Pad_CheckButtons(0, 1, 0x10) && (Gp_SelItemRec != NULL) && (Gp_SelItemRec->itemId != 0)) {
         one = 1;
         SndEvt_EnqueueType6(3, 0, 0);
-        Ui_SpawnFromDesc(&D_8010EFA0, Gp_SelItemRec->itemId, one, one, arg0);
+        Ui_SpawnFromDesc(&D_8010EFA0, (s32)(Gp_SelItemRec->itemId), one, one, arg0);
         arg0->panel.field_0.w = 0;
     }
 }
@@ -1775,7 +1770,7 @@ void Gp_SpawnPickupUiTask(Task* arg0)
             case 8:
                 Gp_SavePlayerPos();
                 desc                     = &D_8010D348;
-                Mc_SaveData[0].savePoint = Gp_PubItemLoc;
+                Mc_SaveData[0].state.savePoint = Gp_PubItemLoc;
                 break;
             default:
                 Stage_InitPrimBufOnce();
@@ -1784,7 +1779,7 @@ void Gp_SpawnPickupUiTask(Task* arg0)
         }
         obj = Ui_SpawnFromDesc(desc, 0, 0, 0, NULL);
         if (obj != NULL) {
-            arg0->spawnArg1      = (s32)obj;
+            arg0->spawnArg1.value      = (s32)obj;
             gGameSession->uiOpen = 1;
             arg0->state          = arg0->state + 1;
         }
@@ -1796,8 +1791,8 @@ void Gp_PickupResultTask(Task* arg0)
     UiObject*   obj;
     GpItemObj8* work;
 
-    obj  = (UiObject*)arg0->spawnArg1;
-    work = arg0->spawnArg2;
+    obj  = (UiObject*)arg0->spawnArg1.value;
+    work = arg0->spawnArg2.pointer;
     switch (obj->field_2E) {
         case -1:
             if (obj->field_2C == 0x33) {

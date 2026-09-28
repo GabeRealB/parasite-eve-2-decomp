@@ -2,10 +2,11 @@
 #define ACTORS_SHARED_80136288_H
 
 #include "common.h"
-#include "main/task.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/enemy.h"
+
+#include "main/task_types.h"
 
 /// Work block the carriers hang off their context's 0x1C slot (the task's
 /// `Task::work`, which is not a `TaskIdMap` here). The three `GpObj`s are the

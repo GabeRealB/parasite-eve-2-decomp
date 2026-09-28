@@ -1,17 +1,11 @@
 #include "common.h"
-#include "main/sound.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "pe/apobiosis.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
 #include "gameplay/actor_render.h"
 #include "gameplay/attachments.h"
@@ -19,8 +13,17 @@
 #include "gameplay/pad_script.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx_types.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 static void func_apobiosis_8012F808(s16 bright);
 static void func_apobiosis_8012F9D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
@@ -75,7 +78,7 @@ static void func_apobiosis_8012EF4C(Task* arg0)
     s32         pan;
     u8          rgb[3];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if ((Gp_StateC08.field_3 != -2) && (Gp_State1C->fadeState < 4)) {
         mem->age = mem->age + 1;
@@ -332,14 +335,14 @@ static void func_apobiosis_8012FE10(Task* arg0)
     GpEffWork* mem;
     GpCoord*   coord;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if ((Gp_StateC08.field_3 != -2) && (Gp_State1C->fadeState < 4)) {
         mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0:
                 Task_Reparent(D_apobiosis_80130BA0, arg0);
-                if (arg0->spawnArg1 != 0) {
+                if (arg0->spawnArg1.value != 0) {
                     coord->sub        = mem->parent;
                     coord->coord.t[0] = 0;
                     coord->coord.t[1] = 0;

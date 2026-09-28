@@ -5,15 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
@@ -30,8 +21,22 @@
 #include "gameplay/loading.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -149,9 +154,9 @@ void func_shelter_b2_elevator_hall_8017D774(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_shelter_b2_elevator_hall_80184D7C.msgId;
-            Mc_SaveData[0].at4.loc.warp = D_shelter_b2_elevator_hall_80184D7C.field_2;
-            Mc_SaveData[0].at4.loc.room = (u8)D_shelter_b2_elevator_hall_80184D7C.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_elevator_hall_80184D7C.msgId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_elevator_hall_80184D7C.field_2;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_elevator_hall_80184D7C.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -184,16 +189,16 @@ void func_shelter_b2_elevator_hall_8017D8E4(Task* task)
             Gp_StateF0.field_4 = 1;
             switch (Gp_GetCapEventKey()) {
                 case 0xB:
-                    Mc_SaveData[0].at4.loc.area = 9;
-                    Mc_SaveData[0].at4.loc.warp = 3;
+                    Mc_SaveData[0].state.at4.loc.area = 9;
+                    Mc_SaveData[0].state.at4.loc.warp = 3;
                     break;
                 case 0xC:
-                    Mc_SaveData[0].at4.loc.area = 0x1B;
-                    Mc_SaveData[0].at4.loc.warp = 2;
+                    Mc_SaveData[0].state.at4.loc.area = 0x1B;
+                    Mc_SaveData[0].state.at4.loc.warp = 2;
                     break;
                 case 0xD:
-                    Mc_SaveData[0].at4.loc.area = 0x2A;
-                    Mc_SaveData[0].at4.loc.warp = 3;
+                    Mc_SaveData[0].state.at4.loc.area = 0x2A;
+                    Mc_SaveData[0].state.at4.loc.warp = 3;
                     break;
                 default:
                     Gp_MsgPlayerWeapon(1);
@@ -203,7 +208,7 @@ void func_shelter_b2_elevator_hall_8017D8E4(Task* task)
             }
             goto next;
         case 3:
-            if (SndVoice_HasActiveId(task->spawnArg1) != 0) {
+            if (SndVoice_HasActiveId(task->spawnArg1.value) != 0) {
                 break;
             }
         next:
@@ -213,13 +218,13 @@ void func_shelter_b2_elevator_hall_8017D8E4(Task* task)
             SndEvt_EnqueueType7(0x80000000, 0);
             msg.field_3 = 1;
             msg.field_5 = 0;
-            msg.msgId   = Mc_SaveData[0].at4.loc.area;
-            msg.field_2 = Mc_SaveData[0].at4.loc.warp;
+            msg.msgId   = Mc_SaveData[0].state.at4.loc.area;
+            msg.field_2 = Mc_SaveData[0].state.at4.loc.warp;
             msg2        = msg;
             func_80179A04(&msg, &msg2);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.warp = msg2.field_2;
-            Mc_SaveData[0].at4.loc.room = msg2.field_3;
+            Mc_SaveData[0].state.at4.loc.warp = msg2.field_2;
+            Mc_SaveData[0].state.at4.loc.room = msg2.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -704,7 +709,7 @@ static void func_shelter_b2_elevator_hall_8017F1D8(Task* task)
     GpCoord*   coord;
     s32        lifetime;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -714,29 +719,29 @@ static void func_shelter_b2_elevator_hall_8017F1D8(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                if (task->spawnArg1 & 3) {
+                if (task->spawnArg1.value & 3) {
                     work->scale   = 0x80;
-                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1.value)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1)->speed;
+                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1.value)->speed;
                     work->move.vz = 0;
-                    if (task->spawnArg1 & 2) {
+                    if (task->spawnArg1.value & 2) {
                         work->move.vy = -work->move.vy;
                     }
                     task->state = 2;
                 } else {
                     work->scale   = 0x20;
-                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1.value)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
+                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1.value)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
                     work->move.vz = 0;
-                    task->state   = (task->spawnArg1 & 1) + 1;
+                    task->state   = (task->spawnArg1.value & 1) + 1;
                 }
                 break;
             case 1:
@@ -961,7 +966,7 @@ static void func_shelter_b2_elevator_hall_8017FF20(Task* arg0)
     s16         flag;
     s32         shift;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -985,17 +990,17 @@ static void func_shelter_b2_elevator_hall_8017FF20(Task* arg0)
                 coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->index      = shift;
-                arg0->spawnArg1 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0;
+                arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
                 arg0->state     = 1;
-                mem->step       = 0x100 / arg0->spawnArg1;
+                mem->step       = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
                 mem->scale      += mem->step;
                 mem->angle      += mem->step;
-                arg0->spawnArg1 -= 1;
+                arg0->spawnArg1.value -= 1;
                 rgb[0]           = mem->scale >> D_shelter_b2_elevator_hall_801838B8[mem->index].r;
                 rgb[1]           = mem->scale >> D_shelter_b2_elevator_hall_801838B8[mem->index].g;
                 rgb[2]           = mem->scale >> D_shelter_b2_elevator_hall_801838B8[mem->index].b;
@@ -1007,7 +1012,7 @@ static void func_shelter_b2_elevator_hall_8017FF20(Task* arg0)
                     func_shelter_b2_elevator_hall_8017FB8C(coord, mem->angle + 0x100, rgb);
                 }
                 func_shelter_b2_elevator_hall_8017F768(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
-                if (arg0->spawnArg1 == 0) {
+                if (arg0->spawnArg1.value == 0) {
                     mem->scale  = 0xFF;
                     arg0->state = 2;
                     return;
@@ -1043,7 +1048,7 @@ static void func_shelter_b2_elevator_hall_801802B8(Task* arg0)
     s16        flag;
     s16        step;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -1416,7 +1421,7 @@ static void func_shelter_b2_elevator_hall_801816C8(Task* arg0)
     s16        flag;
     s16        ang;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -1452,7 +1457,7 @@ static void func_shelter_b2_elevator_hall_801817FC(Task* arg0)
     GpCoord*   coord;
     u8         rgb[3];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -1465,13 +1470,13 @@ static void func_shelter_b2_elevator_hall_801817FC(Task* arg0)
             case 0:
                 mem->scale  = 0;
                 mem->angle  = 0x80;
-                mem->step   = 0x100 / arg0->spawnArg1;
+                mem->step   = 0x100 / arg0->spawnArg1.value;
                 arg0->state = 1;
                 break;
             case 1:
                 mem->scale += mem->step;
                 mem->angle += mem->step;
-                arg0->spawnArg1--;
+                arg0->spawnArg1.value--;
                 rgb[0] = mem->scale;
                 rgb[1] = mem->scale >> 2;
                 rgb[2] = mem->scale >> 1;
@@ -1481,7 +1486,7 @@ static void func_shelter_b2_elevator_hall_801817FC(Task* arg0)
                 rgb[2] >>= 1;
                 func_shelter_b2_elevator_hall_80181ECC(coord, (u16)mem->angle * 2, rgb);
                 func_shelter_b2_elevator_hall_80181AA0(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
-                if (arg0->spawnArg1 == 0) {
+                if (arg0->spawnArg1.value == 0) {
                     mem->scale  = 0xFF;
                     arg0->state = 2;
                     rgb[0]      = mem->scale;
@@ -1625,7 +1630,7 @@ static void func_shelter_b2_elevator_hall_80182260(Task* task)
     s32        i;
 
     coords   = (GpCoord*)task->work;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
@@ -1698,7 +1703,7 @@ static void func_shelter_b2_elevator_hall_80182260(Task* task)
                     Gp_UpdateCoord(dst);
                 }
                 func_shelter_b2_elevator_hall_80182750(coords, &coords[8], work->age & 7, 0x123);
-                if (work->age == task->spawnArg1 && work->age != 0) {
+                if (work->age == task->spawnArg1.value && work->age != 0) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
@@ -1813,7 +1818,7 @@ static void func_shelter_b2_elevator_hall_80182B48(Task* task)
     u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -1828,7 +1833,7 @@ static void func_shelter_b2_elevator_hall_80182B48(Task* task)
     switch (task->state) {
         case 0:
             Gp_SpawnEff(0x60076, objCoord, 0x400, NULL);
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 Gp_SpawnEff(0x60070, objCoord, 0x80004600, NULL);
                 task->state = 1;
             } else {

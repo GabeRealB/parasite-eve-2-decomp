@@ -5,12 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "main/display.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -18,7 +12,11 @@
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/room_effects.h"
-#include "main/fs.h"
+
+#include "main/display.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
 
 static void func_dryfield_night_warehouse_8017D610(Task* task);
 static void func_dryfield_night_warehouse_8017D654(Task* task);

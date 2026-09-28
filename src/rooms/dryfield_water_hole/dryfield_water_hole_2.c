@@ -4,17 +4,17 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/display.h"
 #include "gameplay/room_effects.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/scratch.h"
 
 static void func_dryfield_water_hole_8017F5D4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_dryfield_water_hole_8017F9C0(GpCoord* arg0, s32 arg1, s32 arg2);
@@ -41,7 +41,7 @@ static void func_dryfield_water_hole_8017F118(Task* task)
     s32        state;
     s32        level;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
@@ -59,29 +59,29 @@ static void func_dryfield_water_hole_8017F118(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            work->scale = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            work->scale = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            if (task->spawnArg1 & 0xF000) {
-                step = (task->spawnArg1 >> 12) & 0xF;
+            if (task->spawnArg1.value & 0xF000) {
+                step = (task->spawnArg1.value >> 12) & 0xF;
             } else {
                 step = 1;
             }
             work->period = step;
             work->age    = 0;
             state        = 1;
-            if (task->spawnArg1 & 0xF0000000) {
+            if (task->spawnArg1.value & 0xF0000000) {
                 state = 2;
             }
             task->state = state;
             if (((u16)work->move.vx | (u16)work->move.vy | (u16)work->move.vz) == 0) {
-                if (task->spawnArg1 & 0xFF0000) {
-                    level = (task->spawnArg1 >> 16) & 0xFF;
+                if (task->spawnArg1.value & 0xFF0000) {
+                    level = (task->spawnArg1.value >> 16) & 0xFF;
                 } else {
                     level = 0x40;
                 }
                 work->step = level;
-                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1.value)->field_3;
                 switch (kind & 0xF) {
                     case 0:
                         work->step = 0;

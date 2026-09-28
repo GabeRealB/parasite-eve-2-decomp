@@ -1,18 +1,10 @@
 #include "common.h"
-#include "main/sound.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b1_sterilization_room.h"
@@ -22,9 +14,21 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "overlay.h"
 
 extern s32     D_shelter_b1_sterilization_room_80188C94;
 extern s32     D_shelter_b1_sterilization_room_80188E14;
@@ -73,9 +77,9 @@ void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
 
 void func_shelter_b1_sterilization_room_801814B0(void)
 {
-    Mc_SaveData[0].at4.loc.area = 0x27;
-    Mc_SaveData[0].at4.loc.warp = 3;
-    Mc_SaveData[0].at4.loc.room = 1;
+    Mc_SaveData[0].state.at4.loc.area = 0x27;
+    Mc_SaveData[0].state.at4.loc.warp = 3;
+    Mc_SaveData[0].state.at4.loc.room = 1;
     Task_Spawn(0, 0x11, 0, 0);
 }
 
@@ -89,7 +93,7 @@ void func_shelter_b1_sterilization_room_801814FC(Task* arg0)
             arg0->state            += 1;
             break;
         case 1:
-            Mc_SaveData[0].at4.loc.room = 2;
+            Mc_SaveData[0].state.at4.loc.room = 2;
             gGameSession->at4.loc.room  = 2;
             gGameSession->roomObjsDirty = state;
             arg0->state                += 1;
@@ -153,7 +157,7 @@ void func_shelter_b1_sterilization_room_801816E0(Task* task)
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
             func_800E6D4C(0x2C0, 0x100);
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 flag = GameFlag_GetNibble(0x77);
                 cmd  = 8;
                 if (flag == 0) {
@@ -190,7 +194,7 @@ void func_shelter_b1_sterilization_room_801817EC(Task* task)
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
             func_800E6D4C(0x2C0, 0x100);
-            Gp_RunCapCmd1(task->spawnArg1);
+            Gp_RunCapCmd1(task->spawnArg1.value);
             task->state = task->state + 1;
             /* fallthrough */
         case 1:
@@ -238,9 +242,9 @@ static void func_shelter_b1_sterilization_room_8018188C(Task* task)
                 break;
                 do {
                     case 6:
-                        if (task->spawnArg1 != 0) {
+                        if (task->spawnArg1.value != 0) {
                             Gp_PulseState1C();
-                            task->spawnArg1 = 0;
+                            task->spawnArg1.value = 0;
                         }
                         break;
                     case 8:
@@ -259,7 +263,7 @@ static void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
                         func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x48], 0x200, 0x222);
                         func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x4A], 0x200, 0x222);
-                        task->spawnArg1 = 1;
+                        task->spawnArg1.value = 1;
                         if (Gp_State1C->eventState == 0) {
                             u32      rnd;
                             u32      hi;
@@ -289,7 +293,7 @@ static void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         }
                         break;
                     case 21:
-                        task->spawnArg1 = 1;
+                        task->spawnArg1.value = 1;
                         if (Gp_State1C->eventState == 0) {
                             u32      rnd;
                             u32      hi;
@@ -314,7 +318,7 @@ static void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         break;
                     case 22:
                         func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
-                        task->spawnArg1 = 1;
+                        task->spawnArg1.value = 1;
                         if (Gp_State1C->eventState == 0) {
                             u32      rnd;
                             u32      hi;
@@ -339,7 +343,7 @@ static void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         break;
                     case 23:
                         func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
-                        task->spawnArg1 = 1;
+                        task->spawnArg1.value = 1;
                         if (Gp_State1C->eventState == 0) {
                             u32      rnd;
                             u32      hi;
@@ -370,7 +374,7 @@ static void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         break;
                     case 24:
                         func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
-                        task->spawnArg1 = 1;
+                        task->spawnArg1.value = 1;
                         if (Gp_State1C->eventState == 0) {
                             u32      rnd;
                             u32      hi;
@@ -493,20 +497,20 @@ static void func_shelter_b1_sterilization_room_801823D8(Task* task)
     SVECTOR*   vec;
     s32        base;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     work->age++;
     switch (task->state) {
         case 0:
-            base             = ((GpEffSpawnArg*)&task->spawnArg1)->field_2;
+            base             = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_2;
             work->scale      = ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF) + 0x180) + base;
             work->angle      = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFFF;
-            task->spawnArg1 &= 0xFFF;
+            task->spawnArg1.value &= 0xFFF;
             work->index      = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) + 1;
             work->period     = (work->scale >> 5) + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF);
             work->step       = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF;
             gte_lddp(work->period);
-            gte_ldsv(&D_shelter_b1_sterilization_room_80189334[task->spawnArg1 / 16]);
+            gte_ldsv(&D_shelter_b1_sterilization_room_80189334[task->spawnArg1.value / 16]);
             gte_gpf12();
             vec = &work->move;
             gte_stsv(vec);

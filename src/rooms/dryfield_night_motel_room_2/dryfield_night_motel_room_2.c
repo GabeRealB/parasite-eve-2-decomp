@@ -4,18 +4,18 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/display.h"
 #include "gameplay/message.h"
-#include "main/fs.h"
+
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
 
 /// The room's message table, which the event task installs in state 0.
 extern GpMsgEntry D_dryfield_night_motel_room_2_8017DA1C[];

@@ -5,8 +5,8 @@
 
 #include "gameplay/inventory.h"
 
-#include "main/mc.h"
-#include "main/task.h"
+#include "main/mc_types.h"
+#include "main/task_types.h"
 
 // Inventory contents, collection flags, quantities, sorting and equipment.
 
@@ -30,7 +30,7 @@ void Gp_RecalcMaxMp(void);
 /// (item id − 0x5F). Marks the new row's `field_1` as −1 and clears the
 /// previous selection, then recomputes max HP/MP (same bodies as
 /// `Gp_RecalcMaxHp` / `Gp_RecalcMaxMp`), refreshes every inventory row with
-/// `Gp_RefreshItemRow`, and sets the collected bit in `Mc_SaveData[0].itemSeenBits`.
+/// `Gp_RefreshItemRow`, and sets the collected bit in `Mc_SaveData[0].state.itemSeenBits`.
 /// `arg0 == 0` only recomputes HP/MP. Both of those paths copy current
 /// HP/MP into `Gp_HpMpWork`; any other id returns without that copy.
 void Gp_EquipMod(s32 arg0);
@@ -39,14 +39,14 @@ McItemRec* Gp_GiveItem(McItemScan* arg0, s32 arg1, s32 arg2);
 
 /// Unequips `Player_Status.weapon` (ids 1..32 use the same slot clear as
 /// `Gp_ClearEquipSlot`), resets the `Gp_DefaultScan` item table, copies that scan
-/// into `Mc_SaveData[0].carriedItems`, adds one of item 0x6C, heals current HP/MP
+/// into `Mc_SaveData[0].state.carriedItems`, adds one of item 0x6C, heals current HP/MP
 /// to max, zeros the 4x3 `Gp_DebugAttachLevels` table, and clears `Gp_StateC08.field_5`
 /// / `field_B`.
 void Gp_ResetInventory(void);
 
 /// Unequips `Player_Status.weapon` (same slot clear as `Gp_ResetInventory`),
 /// zeros the `Gp_DefaultScan` item table, writes `{0, 0x14, 0}` into
-/// `Mc_SaveData[0].carriedItems`, and if that table has an equipped 0x60–0x7F
+/// `Mc_SaveData[0].state.carriedItems`, and if that table has an equipped 0x60–0x7F
 /// item (`field_1 == -1`) sets `field_23` and recomputes max HP/MP
 /// (`Gp_RecalcMaxHp` / `Gp_RecalcMaxMp`). Heals current HP/MP to max, then
 /// clears `Gp_StateC08.field_5` / `field_B`.
@@ -128,7 +128,7 @@ static inline GpItemA0* gpItemStock(s32 itemId)
 s32 Gp_CanAddItem(McItemScan* arg0, s32 arg1);
 
 /// Returns the `arg1`-th text field of item `arg0` (NUL / `\\n` / `\\N`
-/// delimiters). `arg2 == 0` reads `Mc_SaveData[0].itemSeenBits` and adds 3 to
+/// delimiters). `arg2 == 0` reads `Mc_SaveData[0].state.itemSeenBits` and adds 3 to
 /// `arg1` when the bit is clear. Ids `>= 0x500` index `Gp_ItemTextHi`;
 /// `0x300..0x4FF` unpack and recurse.
 char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2);

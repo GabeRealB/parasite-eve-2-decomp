@@ -1,20 +1,9 @@
 #include "common.h"
-#include "main/gfx.h"
-#include "main/stage.h"
 
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
 
 #include "actors/actor.h"
-
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/unknown_syms.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/attachments.h"
@@ -30,7 +19,27 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a nineteen-part rig, the walk state, and
@@ -276,7 +285,7 @@ void func_actor_335800_801620C0(void)
 
 void func_actor_335800_801620F0(u8 arg0)
 {
-    gGameSession->at4.loc.room = Mc_SaveData[0].at4.loc.room = arg0;
+    gGameSession->at4.loc.room = Mc_SaveData[0].state.at4.loc.room = arg0;
     gGameSession->roomObjsDirty                              = 1;
 }
 
@@ -328,7 +337,7 @@ void func_actor_335800_801621B4(s32 arg0)
 /// the room objects for reloading.
 static inline void _actor335800SetView(s32 view)
 {
-    Mc_SaveData[0].at4.loc.view = view;
+    Mc_SaveData[0].state.at4.loc.view = view;
     gGameSession->at4.loc.view  = view;
     gGameSession->viewDirty     = 1;
     gGameSession->roomObjsDirty = 1;
@@ -380,7 +389,7 @@ void func_actor_335800_801622C0(s32 arg0)
 void func_actor_335800_80162364(Task* arg0)
 {
     if (arg0->state == 0) {
-        if (arg0->spawnArg1 != 0) {
+        if (arg0->spawnArg1.value != 0) {
             func_800E8614((s32)&D_actor_335800_80166098, 0);
         } else {
             func_800E8614((s32)&D_actor_335800_80165FC0, 0);
@@ -403,7 +412,7 @@ void func_actor_335800_80162408(void)
 
 void func_actor_335800_80162428(s8 arg0)
 {
-    Mc_SaveData[0].sceneEvent = arg0;
+    Mc_SaveData[0].state.sceneEvent = arg0;
 }
 
 void func_actor_335800_80162434(s32 arg0)
@@ -488,7 +497,7 @@ static void func_actor_335800_80162640(Task* arg0)
     work->walk.acc[0].w = 0;
     work->walk.acc[1].w = 0;
     work->walk.acc[2].w = 0;
-    spawned             = Task_SpawnFromTable(&D_actor_335800_8016EADC, 1, 4, (s32)arg0);
+    spawned             = Task_SpawnFromTable(&D_actor_335800_8016EADC, 1, 4, arg0);
     if (spawned != NULL) {
         TmdObject*     model;
         GpAreaVariant* rec;
@@ -497,7 +506,7 @@ static void func_actor_335800_80162640(Task* arg0)
 
         work->child0 = spawned;
         model        = spawned->extra.tmd;
-        idx          = ((GpEnemy*)arg0->spawnArg2)->placeKey >> 12;
+        idx          = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
         sessionKey   = &gGameSession->at4.loc;
         key.stage    = sessionKey->stage;
         key.area     = sessionKey->area;
@@ -513,7 +522,7 @@ static void func_actor_335800_80162640(Task* arg0)
             tmdProcessStream(model);
         }
     }
-    spawned = Task_SpawnFromTable(&D_actor_335800_8016EADC, 2, 8, (s32)arg0);
+    spawned = Task_SpawnFromTable(&D_actor_335800_8016EADC, 2, 8, arg0);
     if (spawned != NULL) {
         TmdObject*     model;
         GpAreaVariant* rec;
@@ -522,7 +531,7 @@ static void func_actor_335800_80162640(Task* arg0)
 
         work->child1 = spawned;
         model        = spawned->extra.tmd;
-        idx          = ((GpEnemy*)arg0->spawnArg2)->placeKey >> 12;
+        idx          = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
         sessionKey   = (GpAreaKey*)(keyAddr = (u8*)&gGameSession->at4.loc.view);
         key.stage    = sessionKey->stage;
         key.area     = sessionKey->area;
@@ -730,8 +739,8 @@ static void func_actor_335800_80162E8C(Task* task)
     GpCoord*   coord;
     GpCoord*   dest;
 
-    parent          = (Task*)task->spawnArg2;
-    part            = task->spawnArg1;
+    parent          = (Task*)task->spawnArg2.pointer;
+    part            = task->spawnArg1.value;
     extra           = task->extra.tmd;
     parentExtra     = parent->extra.tmd;
     coord           = extra->coords;

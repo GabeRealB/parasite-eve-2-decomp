@@ -1,14 +1,16 @@
 #include "common.h"
-#include "main/fs.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/task.h"
 #include "rooms/room.h"
 
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/evs_scripts.h"
+
+#include "gameplay/evs.h"
 #include "main/display.h"
+#include "main/fs.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/task.h"
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
@@ -26,14 +28,14 @@ extern GpMsgEntry D_neo_ark_r26_8017E0A4[];
 /// task 0x11 and starts loading that location.
 void func_neo_ark_r26_8017D5D0(void)
 {
-    if (Mc_SaveData[0].demoScene != 9) {
-        Mc_SaveData[0].at4.loc.stage = 5;
-        Mc_SaveData[0].at4.loc.area  = 0x1C;
-        Mc_SaveData[0].at4.loc.warp  = 1;
-        Mc_SaveData[0].at4.loc.room  = 1;
+    if (Mc_SaveData[0].state.demoScene != 9) {
+        Mc_SaveData[0].state.at4.loc.stage = 5;
+        Mc_SaveData[0].state.at4.loc.area  = 0x1C;
+        Mc_SaveData[0].state.at4.loc.warp  = 1;
+        Mc_SaveData[0].state.at4.loc.room  = 1;
         gDisplayState.roomVariant    = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Fs_BeginBootLoad(&Mc_SaveData[0].at4.loc.view, 1);
+        Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 1);
     }
 }
 
@@ -68,7 +70,7 @@ static void func_neo_ark_r26_8017D6A4(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_r26_8017E0A4;
     Game_SetPtrSlot(arg0, 7);
-    if (Mc_SaveData[0].demoScene != 9) {
+    if (Mc_SaveData[0].state.demoScene != 9) {
         func_800E8634(&D_neo_ark_r26_8017DA74, 0, &D_neo_ark_r26_8017DFCC);
     }
     arg0->state = arg0->state + 1;

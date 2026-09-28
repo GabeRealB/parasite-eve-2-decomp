@@ -1,23 +1,24 @@
-#ifndef MEM_H
-#define MEM_H
+#ifndef MAIN_MEM_H
+#define MAIN_MEM_H
 
-#include "common.h"
+#include <psyq/sys/types.h>
 
-/// Extent in bytes of the primary heap.
-#define G_HEAP_SIZE 0xFF80
+#include "types.h"
 
-#include "main/scratch.h"
+extern u8* Gpu_PrimHeapBase;
 
-// Types
+extern size_t Gpu_PrimHeapSize;
 
-typedef struct _HeapBlockHeader {
-    u32                      size;
-    u16                      isAllocated;
-    u16                      magic;
-    struct _HeapBlockHeader* prev;
-    struct _HeapBlockHeader* next;
-} HeapBlockHeader;
-STATIC_ASSERT_SIZEOF(HeapBlockHeader, 0x10);
+/// Base address of the auxiliary heap the game is currently allocating from.
+///
+/// The auxiliary heap is not one fixed region: the game can make the whole of
+/// the memory reserved for image data available to it, or only the part of
+/// that memory beyond the primary heap, and `Mem_SetActiveAuxHeap` switches
+/// between the two.
+extern u8* gMemActiveAuxHeap;
+
+/// Length in bytes of the heap pointed to by `gMemActiveAuxHeap`.
+extern size_t GActiveAuxHeapSize;
 
 /// Optimized `memset` function.
 ///
@@ -27,27 +28,6 @@ STATIC_ASSERT_SIZEOF(HeapBlockHeader, 0x10);
 /// @param ch Character to write into the destination buffer.
 /// @param count Number of bytes to write into the destination buffer.
 void Mem_Set(void* dest, u32 ch, u32 count);
-
-/// Clears `size` bytes at `dst` one byte at a time, in place rather than
-/// through `Mem_Set`.
-#define MEM_CLEAR(dst, size)                             \
-    {                                                    \
-        u8* _clearPtr = (u8*)(dst);                      \
-        u32 _clearI;                                     \
-        for (_clearI = 0; _clearI < (size); _clearI++) { \
-            *_clearPtr++ = 0;                            \
-        }                                                \
-    }
-
-/// Clears `count` words at `dst`, in place like `MEM_CLEAR`.
-#define MEM_CLEAR_WORDS(dst, count)                       \
-    {                                                     \
-        s32* _clearPtr = (s32*)(dst);                     \
-        u32  _clearI;                                     \
-        for (_clearI = 0; _clearI < (count); _clearI++) { \
-            *_clearPtr++ = 0;                             \
-        }                                                 \
-    }
 
 /// Initializes the primary and the auxiliary heap.
 void Mem_Init(void);
@@ -117,43 +97,4 @@ void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1);
 /// Byte copy that does not require aligned src/dest (implemented in task.c).
 void Mem_CopyUnaligned(void* src, void* dest, u32 count);
 
-// =============================================================================
-// Globals — primary / aux heaps
-// =============================================================================
-
-/// Base address of the primary heap, the region allocations are served from
-/// while the primary heap is the active one.
-///
-/// The primary heap is a fixed part of the game's memory map: it is the RAM
-/// below the area the overlays are loaded into, so a loaded overlay never
-/// covers it. Its extent is therefore the `G_HEAP_SIZE` constant, where the
-/// auxiliary heaps take both a base and an extent that are set at runtime as
-/// the images backing them are loaded.
-extern u8* gMemHeap;
-
-#ifndef BOOT_C
-/// Pointer to the auxiliary heap.
-extern u8* GAuxHeap;
-
-/// Length in bytes of the heap pointed to by `GAuxHeap`.
-extern size_t GAuxHeapSize;
-
-extern size_t Gpu_PrimHeapBase;
-extern size_t Gpu_PrimHeapSize;
-
-/// Base address of the auxiliary heap the game is currently allocating from.
-///
-/// The auxiliary heap is not one fixed region: the game can make the whole of
-/// the memory reserved for image data available to it, or only the part of
-/// that memory beyond the primary heap, and `Mem_SetActiveAuxHeap` switches
-/// between the two.
-extern u8* gMemActiveAuxHeap;
-
-/// Length in bytes of the heap pointed to by `gMemActiveAuxHeap`.
-extern size_t GActiveAuxHeapSize;
-
-extern u8*    D_800691F4;
-extern size_t D_800691F8;
-#endif
-
-#endif // MEM_H
+#endif // MAIN_MEM_H

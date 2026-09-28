@@ -6,14 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -21,7 +13,14 @@
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/evs_scripts.h"
-#include "main/fs.h"
+
+#include "gameplay/message.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
 
 extern TaskDesc   D_dryfield_underpass_8017E818[];
 extern GpMsgEntry D_dryfield_underpass_8017E830[];
@@ -48,9 +47,9 @@ void func_dryfield_underpass_8017D5D0(Task* task)
     s32          arg;
     u8           room;
 
-    flag  = task->spawnArg1;
+    flag  = task->spawnArg1.value;
     state = task->state;
-    arg   = (s32)task->spawnArg2;
+    arg   = task->spawnArg2.value;
     switch (state) {
         case 0:
             Gp_RunCapCmd1(arg);
@@ -91,7 +90,7 @@ void func_dryfield_underpass_8017D5D0(Task* task)
                     session                     = gGameSession;
                     room                        = dst.field_3;
                     session->at4.loc.room       = room;
-                    Mc_SaveData[0].at4.loc.room = room;
+                    Mc_SaveData[0].state.at4.loc.room = room;
                 }
             }
             task->state = task->state + 1;
@@ -202,7 +201,7 @@ static void func_dryfield_underpass_8017DA00(Task* task)
 /// Picks the room variant to load next from nibbles 0xC9, 0x53 and 0x51, the
 /// same choice the switch task `func_dryfield_underpass_8017D5D0` makes when it
 /// toggles nibble 0x51, and writes it to the session's room and to
-/// `Mc_SaveData[0].at4.loc.room`, then flags the room objects dirty. Reached from the room's
+/// `Mc_SaveData[0].state.at4.loc.room`, then flags the room objects dirty. Reached from the room's
 /// script data.
 void func_dryfield_underpass_8017DA08(void)
 {
@@ -238,7 +237,7 @@ void func_dryfield_underpass_8017DA08(void)
     session                     = gGameSession;
     room                        = dst.field_3;
     session->at4.loc.room       = room;
-    Mc_SaveData[0].at4.loc.room = room;
+    Mc_SaveData[0].state.at4.loc.room = room;
     gGameSession->roomObjsDirty = 1;
 }
 

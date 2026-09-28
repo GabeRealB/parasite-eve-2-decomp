@@ -4,13 +4,15 @@
 #include "common.h"
 
 #include "actors/actor.h"
-#include "main/task.h"
-#include "main/coord.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/pairsrc.h"
+
+#include "main/coord.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
 
 typedef struct Actor510900Work {
     /* 0x000 */ GpObj  obj0;

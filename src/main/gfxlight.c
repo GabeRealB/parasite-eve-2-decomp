@@ -1,7 +1,14 @@
-#include "common.h"
-
 #include "main/gfx.h"
-#include "main/mem.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
+#include "types.h"
+
+#include "gfx.h"
+#include "main/scratch.h"
 
 typedef struct {
     u8      pad[0x10];
@@ -9,6 +16,12 @@ typedef struct {
 } ScratchLightBlock;
 
 MATRIX D_80074080;
+
+static __inline__ void setLightToMatrices(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx);
+
+static void Gfx_SetDefaultFlatLight(s32 id, GsF_LIGHT* light);
+
+static void Gfx_SetLightAmbient(long arg0, long arg1, long arg2);
 
 static __inline__ void setLightToMatrices(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx)
 {

@@ -1,10 +1,4 @@
 #include "common.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include <psyq/rand.h>
 
@@ -14,8 +8,14 @@
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
-#include "main/fs.h"
+
+#include "gameplay/animation.h"
+#include "main/display.h"
+#include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
 
 extern void func_8017FA98(s32);
 extern void func_80180DAC(s32);
@@ -119,7 +119,7 @@ void func_actor_450200_80131FA8(Task* arg0)
             /* fallthrough */
         case 1:
             aim = (GpHeadAim*)arg0->work;
-            if (arg0->spawnArg1 != 0) {
+            if (arg0->spawnArg1.value != 0) {
                 rate      = aim->rate + 0x200;
                 aim->rate = rate;
                 if ((s16)rate >= 0x1001) {
@@ -166,7 +166,7 @@ void func_actor_450200_8013215C(void)
 void func_actor_450200_8013217C(s32 arg0)
 {
     if (D_actor_450200_801401E0 != NULL) {
-        D_actor_450200_801401E0->spawnArg1 = arg0;
+        D_actor_450200_801401E0->spawnArg1.value = arg0;
     }
 }
 
@@ -343,5 +343,5 @@ void func_actor_450200_80132880(s32 arg0)
 void func_actor_450200_801328A0(u8 arg0)
 {
     gGameSession->at4.loc.room  = arg0;
-    Mc_SaveData[0].at4.loc.room = arg0;
+    Mc_SaveData[0].state.at4.loc.room = arg0;
 }

@@ -7,7 +7,7 @@
 #include "common.h"
 
 #include "main/coord.h"
-#include "main/session.h"
+#include "main/session_types.h"
 
 struct GpAnimSet;
 

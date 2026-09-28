@@ -9,13 +9,6 @@
 
 #include "actors/actor.h"
 
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/display.h"
@@ -25,7 +18,17 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/geometry.h"
+#include "gameplay/item_pickup.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 typedef struct Actor141000Point {
     /* 0x0 */ s16  field_0;
@@ -216,7 +219,7 @@ static void func_actor_141000_80131E94(Task* arg0, Actor141000Point* arg1, s32 a
     s32       a, b, c, d;
 
     quad  = D_actor_141000_801347C8[0];
-    scale = ((Actor141000CtrlWork*)((Task*)arg0->spawnArg2)->work)->field_0;
+    scale = ((Actor141000CtrlWork*)((Task*)arg0->spawnArg2.pointer)->work)->field_0;
     if (arg0->killCountdown >= 0x800) {
         arg0->killCountdown = 0;
     }
@@ -325,7 +328,7 @@ static void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* 
     s32             dx;
     s32             dy;
 
-    parent = arg0->spawnArg2;
+    parent = arg0->spawnArg2.pointer;
     mtx    = &parent->extra.tmd->coords->coord;
     f      = ((Actor141000CtrlWork*)parent->work)->field_0;
     a.vx   = D_actor_141000_80134868[0].vx;
@@ -455,7 +458,7 @@ static void func_actor_141000_80132C7C(Task* task)
     obj->flags   &= 0xFF7F;
     func_actor_141000_80132FD0(coord, 0);
     func_actor_141000_8013308C(coord, 0);
-    Task_SpawnFromTable(&D_actor_141000_801348D8, 1, 0, (s32)task);
+    Task_SpawnFromTable(&D_actor_141000_801348D8, 1, 0, task);
     task->exitCallback = func_actor_141000_80132E04;
     task->state       += 1;
 }
@@ -662,8 +665,8 @@ void func_actor_141000_801331AC(Task* task)
 /// 0x7FF and advances the state.
 static void func_actor_141000_80133204(Task* task)
 {
-    task->extra.tmd->coords->sub = ((Task*)task->spawnArg2)->extra.tmd->coords;
-    Task_Reparent((Task*)task->spawnArg2, task);
+    task->extra.tmd->coords->sub = ((Task*)task->spawnArg2.pointer)->extra.tmd->coords;
+    Task_Reparent((Task*)task->spawnArg2.pointer, task);
     task->killCountdown = 0x7FF;
     task->state        += 1;
 }

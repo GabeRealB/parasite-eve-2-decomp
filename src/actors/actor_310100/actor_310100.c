@@ -1,12 +1,5 @@
 #include "common.h"
 #include "actors/actor.h"
-
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gfx.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -18,7 +11,19 @@
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gfx.h"
 #include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "overlay.h"
 
 /// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. `func_actor_310100_801625E4` allocates it
@@ -224,7 +229,7 @@ void func_actor_310100_801620FC(Task* task)
     GpAreaPlace*     place;
     u8               mode;
 
-    work = (Actor310100Work*)((Task*)task->spawnArg2)->work;
+    work = (Actor310100Work*)((Task*)task->spawnArg2.pointer)->work;
     switch (task->state) {
         case 0:
             gDisplayState.at100.flags.flipMode = 2;
@@ -234,18 +239,18 @@ void func_actor_310100_801620FC(Task* task)
             task->state++;
             return;
         case 3:
-            if (task->spawnArg1 == 0) {
+            if (task->spawnArg1.value == 0) {
                 do {
                     mode = 0x6D;
                 } while (0);
-                work->field_4E4 = Task_SpawnOnDefaultList(&D_actor_310100_80179920, 1, work->field_506, 0);
-            } else if (task->spawnArg1 == 1) {
+                work->field_4E4 = Task_SpawnOnDefaultList(&D_actor_310100_80179920, 1, (s32)(work->field_506), 0);
+            } else if (task->spawnArg1.value == 1) {
                 do {
                     do {
                         mode = 0x6C;
                     } while (0);
                 } while (0);
-                work->field_4E4 = Task_SpawnOnDefaultList(&D_actor_310100_801798FC, 1, work->field_506, 0);
+                work->field_4E4 = Task_SpawnOnDefaultList(&D_actor_310100_801798FC, 1, (s32)(work->field_506), 0);
             } else {
                 goto skip;
             }
@@ -288,7 +293,7 @@ void func_actor_310100_80162284(Task* task)
     GpAreaPlace*     place;
     u8               mode;
 
-    work = (Actor310100Work*)((Task*)task->spawnArg2)->work;
+    work = (Actor310100Work*)((Task*)task->spawnArg2.pointer)->work;
     switch (task->state) {
         case 0:
             gDisplayState.at100.flags.flipMode = 2;
@@ -298,12 +303,12 @@ void func_actor_310100_80162284(Task* task)
             task->state++;
             return;
         case 3:
-            if (task->spawnArg1 == 0) {
+            if (task->spawnArg1.value == 0) {
                 do {
                     mode = 0x6D;
                 } while (0);
                 work->field_4E4 = Task_SpawnOnDefaultList(&D_actor_310100_80179920, 2, 5, 0);
-            } else if (task->spawnArg1 == 1) {
+            } else if (task->spawnArg1.value == 1) {
                 do {
                     do {
                         mode = 0x6C;
@@ -377,7 +382,7 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
                       &work->rig.slots[0]);
     }
     i      = 1;
-    active = task->spawnArg1;
+    active = task->spawnArg1.value;
     work2  = (Actor310100Work*)task->work;
     do {
         work2->rig.slots[i & 0xFFFF].rate = 0x10;
@@ -437,7 +442,7 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
                       &work->rig.slots[0]);
     }
     i               = 1;
-    work->field_504 = task->spawnArg1;
+    work->field_504 = task->spawnArg1.value;
     active          = work->field_504;
     work2           = (Actor310100Work*)task->work;
     do {
@@ -480,7 +485,7 @@ void func_actor_310100_801627BC(Task* task)
         case 0:
             task->work = (TaskIdMap*)Mem_Malloc(0x50C, false);
             if (task->work == NULL) {
-                Gp_DestroyEnemy(task->spawnArg2, task);
+                Gp_DestroyEnemy(task->spawnArg2.pointer, task);
                 return;
             }
             task->msgTable = &D_actor_310100_801798B4;
@@ -552,7 +557,7 @@ void func_actor_310100_801629FC(Task* task)
         case 0:
             task->work = (TaskIdMap*)(work = Mem_Malloc(0x50C, false));
             if (work == NULL) {
-                Gp_DestroyEnemy(task->spawnArg2, task);
+                Gp_DestroyEnemy(task->spawnArg2.pointer, task);
                 return;
             }
             task->msgTable  = &D_actor_310100_801798B4;
@@ -578,7 +583,7 @@ void func_actor_310100_801629FC(Task* task)
                 while (place->entryId != 0xFF && place->entryId != 0x6D) {
                     place++;
                 }
-                child             = Task_SpawnFromTable(&D_actor_310100_80179920, 2, work->field_504, 0);
+                child             = Task_SpawnFromTable(&D_actor_310100_80179920, 2, (s32)(work->field_504), 0);
                 work->field_4E4   = child;
                 coord             = child->extra.tmd->coords;
                 coord->coord.t[0] = place->x;

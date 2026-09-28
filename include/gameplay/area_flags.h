@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 /// 16-byte record of a room's `GpBit2List.field_0` list, ended by a `field_0`
 /// of 0xFFFF. The same list serves two readers. The 2-bit bank code
@@ -55,7 +55,7 @@ STATIC_ASSERT_SIZEOF(GpBit2List, 0x8);
 /// `field_0` indexes `Gp_AreaTables` (same role as `GpAreaKey.stage`);
 /// `field_1` indexes that table (same role as `GpAreaKey.area`);
 /// `field_2` is the id written by `Gp_SetAreaObjId`. High nibble of `field_3`
-/// is a `Mc_SaveData[0].gameMode` filter (0 = always, 0x10 if 0 or 2, 0x20 if
+/// is a `Mc_SaveData[0].state.gameMode` filter (0 = always, 0x10 if 0 or 2, 0x20 if
 /// 1 or 3); low nibble nonzero sets `GpAreaObj.field_1` bit 2, else clears.
 typedef struct _GpAreaApplyRec {
     /* 0x0 */ u8 field_0;

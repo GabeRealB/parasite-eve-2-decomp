@@ -6,19 +6,17 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "main/display.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/display.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
-#include "main/fs.h"
+
+#include "main/display.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_souvenir_shop_8017E014[];

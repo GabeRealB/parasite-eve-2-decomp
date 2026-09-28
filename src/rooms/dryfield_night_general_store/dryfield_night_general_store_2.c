@@ -3,14 +3,16 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/display.h"
 #include "gameplay/room_effects.h"
+
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "overlay.h"
 
 extern SVECTOR D_dryfield_night_general_store_8017E7EC[];
 extern SVECTOR D_dryfield_night_general_store_8017E7FC;

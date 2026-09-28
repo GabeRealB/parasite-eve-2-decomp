@@ -3,8 +3,8 @@
 
 #include "types.h"
 
-#include "main/pad.h"
-#include "main/tmd.h"
+#include "main/pad_types.h"
+#include "main/tmd_types.h"
 
 void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1);
 

@@ -10,8 +10,8 @@
 #include "gameplay/item_pickup.h"
 #include "gameplay/world_state.h"
 
-#include "main/session.h"
-#include "main/task.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
 
 extern GpStateF0 Gp_StateF0;
 

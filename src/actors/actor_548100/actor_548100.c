@@ -1,13 +1,6 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "psyq/abs.h"
 #include "rooms/room_common.h"
 
@@ -17,7 +10,17 @@
 #include "gameplay/items.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/message.h"
-#include "main/fs.h"
+
+#include "gameplay/action_prompt.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 /// Per-instance work block of actor_548100, parked in `Task::work` -- that
 /// slot is not a `TaskIdMap` here, it is the `memCalloc(0x18, 0)` block
@@ -274,7 +277,7 @@ static void func_actor_548100_80131ED8(Task* task)
     u16*              statep;
     u16*              heldp;
 
-    switch (task->spawnArg1) {
+    switch (task->spawnArg1.value) {
         case 1:
             first = 0;
             count = 1;
@@ -471,10 +474,10 @@ static void func_actor_548100_80132420(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2             = Task_SpawnFromTable(&D_actor_548100_801351B4, 0, 1, 0);
+    task->spawnArg2.pointer             = Task_SpawnFromTable(&D_actor_548100_801351B4, 0, 1, 0);
     task->msgTable              = D_actor_548100_801351C0;
     task->work                  = work;
-    Mc_SaveData[0].at4.loc.view = 4;
+    Mc_SaveData[0].state.at4.loc.view = 4;
     task->state                += 1;
     if (GameFlag_GetNibble(0xBE) == 0) {
         GameFlag_SetNibble(0xBE, 1);
@@ -1879,9 +1882,9 @@ static void func_actor_548100_80134E0C(Task* arg0)
     gGameSession->eventState    = 0;
     gGameSession->hideHud       = 0;
     gGameSession->cutsceneHold  = 0;
-    Mc_SaveData[0].at4.loc.view = 3;
+    Mc_SaveData[0].state.at4.loc.view = 3;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
-    taskKill((Task*)arg0->spawnArg2);
+    taskKill((Task*)arg0->spawnArg2.pointer);
     Task_RequestKill(arg0, 0);
 }
 

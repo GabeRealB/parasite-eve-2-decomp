@@ -4,12 +4,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017e4f8.h"
@@ -19,8 +13,16 @@
 #include "gameplay/effect_tasks.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
 
 /// Per-colour channel shifts for the glowing disc, indexed by the spawn
 /// argument.
@@ -48,7 +50,7 @@ static void func_shelter_b1_control_room_access_tunnel_8018026C(Task* arg0)
     MATRIX*    mtx;
     u8         col[4];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
@@ -90,9 +92,9 @@ static void func_shelter_b1_control_room_access_tunnel_8018026C(Task* arg0)
             if (mem->angle < 0x200) {
                 mem->angle += 0x10;
             }
-            col[0] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1].r;
-            col[1] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1].g;
-            col[2] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1].b;
+            col[0] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1.value].r;
+            col[1] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1.value].g;
+            col[2] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1.value].b;
             func_shelter_b1_control_room_access_tunnel_80181090(coord, mem->angle, col);
             break;
         case 2:
@@ -103,9 +105,9 @@ static void func_shelter_b1_control_room_access_tunnel_8018026C(Task* arg0)
             if (mem->angle < 0x200) {
                 mem->angle += 0x10;
             }
-            col[0] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1].r;
-            col[1] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1].g;
-            col[2] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1].b;
+            col[0] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1.value].r;
+            col[1] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1.value].g;
+            col[2] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1.value].b;
             func_shelter_b1_control_room_access_tunnel_80181090(coord, mem->angle, col);
             col[0] >>= 1;
             col[1] >>= 1;
@@ -116,9 +118,9 @@ static void func_shelter_b1_control_room_access_tunnel_8018026C(Task* arg0)
             break;
         case 3:
             Gp_UpdateCoord(coord);
-            col[0] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1].r;
-            col[1] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1].g;
-            col[2] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1].b;
+            col[0] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1.value].r;
+            col[1] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1.value].g;
+            col[2] = mem->scale >> D_shelter_b1_control_room_access_tunnel_80181EF4[arg0->spawnArg1.value].b;
             func_shelter_b1_control_room_access_tunnel_80181090(coord, mem->angle, col);
             col[0] = mem->scale;
             col[1] = mem->scale >> 1;
@@ -162,9 +164,9 @@ static void func_shelter_b1_control_room_access_tunnel_801807C4(Task* task)
     GpCoord*   target;
     VECTOR     delta;
 
-    work   = task->spawnArg2;
+    work   = task->spawnArg2.pointer;
     coord  = task->extra.tmd->coords;
-    target = (GpCoord*)task->spawnArg1;
+    target = (GpCoord*)task->spawnArg1.value;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -387,7 +389,7 @@ static void func_shelter_b1_control_room_access_tunnel_80181424(Task* task)
     u8         sp10[3];
     u16        temp;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {

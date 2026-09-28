@@ -1,5 +1,4 @@
 #include "common.h"
-#include "main/gfx.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -7,10 +6,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013231c.h"
-
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -21,7 +16,14 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/item_pickup.h"
+#include "gameplay/scene.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task_types.h"
+#include "main/tmd.h"
 
 /// Animation source table `func_actor_113000_80132208` indexes by the preset's
 /// bank index and hands `func_800B3F84` as its data argument.

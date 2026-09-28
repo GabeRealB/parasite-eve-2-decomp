@@ -1,10 +1,10 @@
 #include "gameplay/player_actor.h"
 
 #include <psyq/sys/types.h>
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/rand.h>
 
@@ -44,7 +44,12 @@
 
 #include "actors/companion.h"
 
-#include "main/coord.h"
+#include "main/task_types.h"
+
+typedef struct {
+    TaskFunc funcs[33];
+} TaskFuncTable33;
+
 #include "main/display.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
@@ -57,6 +62,8 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+#include <psyq/abs.h>
+#include <psyq/rand.h>
 
 struct _GpImgRec;
 
@@ -118,7 +125,7 @@ typedef struct _GpMoveScratch {
 STATIC_ASSERT_SIZEOF(GpMoveScratch, 0x40);
 
 /// 8-byte rotation row (`SVECTOR` layout). `D_801131B4` is indexed by
-/// `Gp_AimPitchRec` arg1 (`D_80167218[Mc_SaveData[0].companionVariant]`) and by
+/// `Gp_AimPitchRec` arg1 (`D_80167218[Mc_SaveData[0].state.companionVariant]`) and by
 /// `Player_Status.weapon` in `Gp_AimYawToLock`.
 typedef struct _GpAimRot {
     /* 0x0 */ s16 vx;
@@ -243,7 +250,7 @@ extern s16 D_80112E10[];
 extern u16 D_80112E20[];
 
 /// 2-wide rows of `GpCoord` indices. `func_8010403C` indexes
-/// `D_80112E2C[Mc_SaveData[0].characterId - 1][arg0]`.
+/// `D_80112E2C[Mc_SaveData[0].state.characterId - 1][arg0]`.
 extern u8 D_80112E2C[][2];
 
 /// u16 turn-rate rows indexed by `Player_Status.weapon`. `Gp_AimYawToLock`
@@ -1316,7 +1323,7 @@ void Gp_EffSprTask46(Task* arg0)
     s16        flag;
     s32        param;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     extra = arg0->extra.tmd;
     flag  = Gp_State1C->eventState;
     coord = extra->coords;
@@ -1334,14 +1341,14 @@ void Gp_EffSprTask46(Task* arg0)
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
             coord->flg = 0;
-            mem->angle = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
-            param      = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+            mem->angle = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0 & 0xFFF;
+            param      = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
             mem->step  = param & 0xF;
-            if (arg0->spawnArg1 & 0x20000000) {
+            if (arg0->spawnArg1.value & 0x20000000) {
                 mem->period = 0x80;
                 mem->scale  = mem->angle;
                 arg0->state = 4;
-            } else if (arg0->spawnArg1 & 0x10000000) {
+            } else if (arg0->spawnArg1.value & 0x10000000) {
                 mem->period = 0x40;
                 mem->scale  = mem->angle;
                 arg0->state = 2;
@@ -1389,7 +1396,7 @@ static void Gp_DrawEffSprite81(Task* arg0)
 
     extra         = arg0->extra.tmd;
     coord         = extra->coords;
-    mem           = arg0->spawnArg2;
+    mem           = arg0->spawnArg2.pointer;
     block         = SCRATCH_PUSH(GpRingScratch);
     block->vec.vx = coord->workm.t[0];
     block->vec.vy = coord->workm.t[1];
@@ -1504,7 +1511,7 @@ void Gp_EffSprTask81(Task* arg0)
     s32        one;
 
     extra  = arg0->extra.tmd;
-    mem    = arg0->spawnArg2;
+    mem    = arg0->spawnArg2.pointer;
     flag   = Gp_State1C->eventState;
     coord  = extra->coords;
     parent = mem->parent;
@@ -1522,12 +1529,12 @@ void Gp_EffSprTask81(Task* arg0)
     coord->flg = 0;
     Gp_UpdateCoord(coord);
 
-    switch (arg0->spawnArg1) {
+    switch (arg0->spawnArg1.value) {
         case 0:
             mem->scale      = 0x280;
             mem->step       = 1;
             mem->angle      = 0;
-            arg0->spawnArg1 = 1;
+            arg0->spawnArg1.value = 1;
             if (Gp_State1C->eventState != 0) {
                 break;
             }
@@ -1564,7 +1571,7 @@ void Gp_EffSprTask81(Task* arg0)
             if (mem->age < 0x10) {
                 Gp_DrawEffQuadT29(coord, mem->scale, mem->age >> 1, mem->step);
             } else {
-                arg0->spawnArg1 = 4;
+                arg0->spawnArg1.value = 4;
                 break;
             }
             goto lcg;
@@ -1577,7 +1584,7 @@ void Gp_EffSprTask81(Task* arg0)
             }
             mem->age++;
             if (mem->age >= 0x10) {
-                arg0->spawnArg1 = 4;
+                arg0->spawnArg1.value = 4;
                 break;
             }
         lcg:
@@ -1609,7 +1616,7 @@ void Gp_EffSprTask55(Task* arg0)
     s32              pal;
     SVECTOR*         vec;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag >= 2) {
@@ -1637,7 +1644,7 @@ void Gp_EffSprTask55(Task* arg0)
             setlen(prim, 9);
             setcode(prim, 0x2C);
             if (arg0->state == 0) {
-                t   = (u16)arg0->spawnArg1 & 0xFFF;
+                t   = (u16)arg0->spawnArg1.value & 0xFFF;
                 amt = 0x200;
                 if (t != 0) {
                     amt = t;
@@ -1645,7 +1652,7 @@ void Gp_EffSprTask55(Task* arg0)
                 rng         = Gp_LcgState * 5 + 0x71357911;
                 mem->scale  = amt;
                 mem->angle  = ((u32)rng >> 16) & 0xFFF;
-                temp        = ((u16)arg0->spawnArg1 & 0xF000) << 16;
+                temp        = ((u16)arg0->spawnArg1.value & 0xF000) << 16;
                 Gp_LcgState = rng;
                 if (temp != 0) {
                     temp = temp >> 28;
@@ -1653,13 +1660,13 @@ void Gp_EffSprTask55(Task* arg0)
                     temp = 1;
                 }
                 mem->period   = temp;
-                pal           = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+                pal           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->step     = pal & 3;
-                mem->index    = (arg0->spawnArg1 >> 28) & 1;
+                mem->index    = (arg0->spawnArg1.value >> 28) & 1;
                 mem->move.vx += ((mem->angle & 0xF) * rsin(mem->angle)) >> 12;
                 mem->move.vy -= 0x18;
                 mem->move.vz += ((mem->angle & 0xF) * rcos(mem->angle)) >> 12;
-                if (arg0->spawnArg1 & 0x100000) {
+                if (arg0->spawnArg1.value & 0x100000) {
                     Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                     mem->move.vx = (((u32)Gp_LcgState >> 16) & 0x1F) - 0x10;
                     Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
@@ -1667,7 +1674,7 @@ void Gp_EffSprTask55(Task* arg0)
                     Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                     mem->move.vz = (((u32)Gp_LcgState >> 16) & 0x1F) - 0x10;
                 }
-                if (arg0->spawnArg1 & 0x01000000) {
+                if (arg0->spawnArg1.value & 0x01000000) {
                     gte_lddp(mem->scale << 2);
                     vec = &mem->move;
                     gte_ldsv(vec);
@@ -1732,7 +1739,7 @@ void Gp_EffSprTask42(Task* arg0)
     s32              pal;
     SVECTOR*         vec;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag >= 2) {
@@ -1760,7 +1767,7 @@ void Gp_EffSprTask42(Task* arg0)
             setlen(prim, 9);
             setcode(prim, 0x2C);
             if (arg0->state == 0) {
-                t   = (u16)arg0->spawnArg1 & 0xFFF;
+                t   = (u16)arg0->spawnArg1.value & 0xFFF;
                 amt = 0x200;
                 if (t != 0) {
                     amt = t;
@@ -1768,7 +1775,7 @@ void Gp_EffSprTask42(Task* arg0)
                 rng         = Gp_LcgState * 5 + 0x71357911;
                 mem->scale  = amt;
                 mem->angle  = ((u32)rng >> 16) & 0xFFF;
-                temp        = ((u16)arg0->spawnArg1 & 0xF000) << 16;
+                temp        = ((u16)arg0->spawnArg1.value & 0xF000) << 16;
                 Gp_LcgState = rng;
                 if (temp != 0) {
                     temp = temp >> 28;
@@ -1776,10 +1783,10 @@ void Gp_EffSprTask42(Task* arg0)
                     temp = 1;
                 }
                 mem->period  = temp;
-                pal          = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+                pal          = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->step    = pal & 3;
                 mem->move.vy = mem->move.vy - 0x18;
-                if (arg0->spawnArg1 & 0x100000) {
+                if (arg0->spawnArg1.value & 0x100000) {
                     Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                     mem->move.vx = (((u32)Gp_LcgState >> 16) & 0x1F) - 0x10;
                     Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
@@ -1787,7 +1794,7 @@ void Gp_EffSprTask42(Task* arg0)
                     Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                     mem->move.vz = (((u32)Gp_LcgState >> 16) & 0x1F) - 0x10;
                 }
-                if (arg0->spawnArg1 & 0x01000000) {
+                if (arg0->spawnArg1.value & 0x01000000) {
                     gte_lddp(mem->scale << 2);
                     vec = &mem->move;
                     gte_ldsv(vec);
@@ -1848,7 +1855,7 @@ void func_800F91AC(Task* arg0)
     s32         half;
     s32         i;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag < 4) {
@@ -1865,8 +1872,8 @@ void func_800F91AC(Task* arg0)
             coord->coord.t[2] = mem->pos.vz;
             coord->flg        = 0;
             arg0->state       = 1;
-            mem->scale        = arg0->spawnArg1;
-            mem->angle        = arg0->spawnArg1 >> 16;
+            mem->scale        = arg0->spawnArg1.value;
+            mem->angle        = arg0->spawnArg1.value >> 16;
             mem->period       = mem->angle * 3;
             mem->step         = mem->scale / 768 + 1;
         }
@@ -1904,7 +1911,7 @@ void Gp_EffCtlTask9B(Task* arg0)
     GpEffWork* spawned;
     s32        temp;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag < 4) {
@@ -1915,8 +1922,8 @@ void Gp_EffCtlTask9B(Task* arg0)
             coord->coord.t[2] = mem->pos.vz;
             coord->flg        = 0;
             arg0->state       = 1;
-            mem->scale        = ((u16)arg0->spawnArg1 * 3u) >> 4;
-            temp              = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+            mem->scale        = ((u16)arg0->spawnArg1.value * 3u) >> 4;
+            temp              = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
             mem->angle        = temp;
             mem->period       = temp << 2;
             if ((mem->pos.vx | mem->pos.vy | mem->pos.vz) == 0) {
@@ -1965,7 +1972,7 @@ void Gp_EffSprTask30(Task* arg0)
     SVECTOR     wpos;
     u8          color[3];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -1984,7 +1991,7 @@ void Gp_EffSprTask30(Task* arg0)
             rot->m22     = 0x1000;
             rot->m02_m10 = 0;
             rot->m20_m21 = 0;
-            mem->pos.vx  = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
+            mem->pos.vx  = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0 & 0xFFF;
             mem->scale   = 0x100;
             Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
             mem->pos.vy  = ((u32)Gp_LcgState >> 16) & 7;
@@ -2009,9 +2016,9 @@ void Gp_EffSprTask30(Task* arg0)
             VectorNormalSS(&mem->move, &mem->move);
             coord->flg = 0;
             Gp_UpdateCoord(coord);
-            sub             = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+            sub             = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
             arg0->state     = 1;
-            arg0->spawnArg1 = sub & 3;
+            arg0->spawnArg1.value = sub & 3;
             return;
         case 1:
             if (mem->age >= 0x51) {
@@ -2062,7 +2069,7 @@ void Gp_EffSprTask30(Task* arg0)
                 Gp_UpdateCoord(coord);
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 if ((((u32)Gp_LcgState >> 16) & 1) != 0) {
-                    if (arg0->spawnArg1 == 1) {
+                    if (arg0->spawnArg1.value == 1) {
                         base = 0xC0001100;
                         id   = 0x60070;
                     } else {
@@ -2072,7 +2079,7 @@ void Gp_EffSprTask30(Task* arg0)
                     Gp_SpawnEff(id, coord, mem->pos.vx + base, NULL);
                 }
                 if (mem->age - mem->step < 8 && mem->scale < 0x20) {
-                    arg0->state = arg0->spawnArg1 + 2;
+                    arg0->state = arg0->spawnArg1.value + 2;
                     mem->scale  = 0;
                     mem->period = 0;
                     mem->angle  = 0x80;
@@ -2083,11 +2090,11 @@ void Gp_EffSprTask30(Task* arg0)
                 Gp_UpdateCoord(coord);
                 mem->move.vy += 0x10000 / mem->scale;
             }
-            if (arg0->spawnArg1 == 2) {
+            if (arg0->spawnArg1.value == 2) {
                 color[0] = color[1] = color[2] = 0x80;
-                Gp_DrawEffSpark(arg0, arg0->spawnArg1, color);
+                Gp_DrawEffSpark(arg0, arg0->spawnArg1.value, color);
             } else {
-                Gp_DrawEffSpark(arg0, arg0->spawnArg1, NULL);
+                Gp_DrawEffSpark(arg0, arg0->spawnArg1.value, NULL);
             }
             return;
         case 2:
@@ -2104,7 +2111,7 @@ void Gp_EffSprTask30(Task* arg0)
                     u16 rnd;
 
                     color[0] = color[1] = color[2] = mem->angle;
-                    Gp_DrawEffSpark(arg0, arg0->spawnArg1, color);
+                    Gp_DrawEffSpark(arg0, arg0->spawnArg1.value, color);
                     mem->period += mem->pos.vx >> 4;
                     Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                     rnd          = ((u32)Gp_LcgState >> 16) % 3;
@@ -2115,7 +2122,7 @@ void Gp_EffSprTask30(Task* arg0)
                     mem->angle -= 0x10;
                 }
             } else {
-                Gp_DrawEffSpark(arg0, arg0->spawnArg1, NULL);
+                Gp_DrawEffSpark(arg0, arg0->spawnArg1.value, NULL);
             }
             return;
         case 3:
@@ -2126,10 +2133,10 @@ void Gp_EffSprTask30(Task* arg0)
                     return;
                 }
                 color[0] = color[1] = color[2] = mem->angle;
-                Gp_DrawEffSpark(arg0, arg0->spawnArg1, color);
+                Gp_DrawEffSpark(arg0, arg0->spawnArg1.value, color);
                 mem->angle -= 0x10;
             } else {
-                Gp_DrawEffSpark(arg0, arg0->spawnArg1, NULL);
+                Gp_DrawEffSpark(arg0, arg0->spawnArg1.value, NULL);
             }
             return;
         case 4:
@@ -2146,7 +2153,7 @@ void Gp_EffSprTask30(Task* arg0)
                     u16 rnd;
 
                     color[0] = color[1] = color[2] = mem->angle;
-                    Gp_DrawEffSpark(arg0, arg0->spawnArg1, color);
+                    Gp_DrawEffSpark(arg0, arg0->spawnArg1.value, color);
                     mem->period += mem->pos.vx >> 4;
                     Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                     rnd          = ((u32)Gp_LcgState >> 16) % 3;
@@ -2158,7 +2165,7 @@ void Gp_EffSprTask30(Task* arg0)
                 }
             } else {
                 color[0] = color[1] = color[2] = mem->angle;
-                Gp_DrawEffSpark(arg0, arg0->spawnArg1, color);
+                Gp_DrawEffSpark(arg0, arg0->spawnArg1.value, color);
             }
             return;
     }
@@ -2186,7 +2193,7 @@ static void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
     u16              angle;
 
     extra         = arg0->extra.tmd;
-    mem           = arg0->spawnArg2;
+    mem           = arg0->spawnArg2.pointer;
     abr           = 1;
     coord         = extra->coords;
     size          = mem->pos.vx;
@@ -2357,10 +2364,10 @@ void func_800FAA14(Task* arg0)
     GpCoord*   coord;
     s32        pan;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (arg0->state == 0) {
-        arg0->spawnArg1 = D_80112B94[((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
+        arg0->spawnArg1.value = D_80112B94[((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
                                      ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 +
                                      ((u16)(Gp_StateC08.field_0 % 10U) - 1U)];
     }
@@ -2376,8 +2383,8 @@ void func_800FAA14(Task* arg0)
     }
     if (Gp_State1C->battleState != 1 && (u16)(Gp_StateC08.field_0 / 10U) != 0x20) {
     kill:
-        if (arg0->spawnArg1 != 0) {
-            SndEvt_EnqueueType7(arg0->spawnArg1, 1);
+        if (arg0->spawnArg1.value != 0) {
+            SndEvt_EnqueueType7(arg0->spawnArg1.value, 1);
         }
         Gp_ReleaseState1CMem(mem, arg0);
         return;
@@ -2386,7 +2393,7 @@ void func_800FAA14(Task* arg0)
         if (mem->scale < 0x20) {
             if (mem->scale == 0) {
                 pan = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(arg0->spawnArg1, pan, (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(arg0->spawnArg1.value, pan, (s8)gpGetObjDepth(coord));
             }
             Gp_SpawnEff(0x60032, coord, 0, 0);
             mem->scale++;
@@ -2409,7 +2416,7 @@ void Gp_EffCtlTask32(Task* arg0)
     s32        one;
     s32        newState;
 
-    mem      = arg0->spawnArg2;
+    mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.tmd->coords;
     step     = mem->age + 1;
     mem->age = step;
@@ -2533,7 +2540,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
     s16        temp;
     u8         rgb[3];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     state = arg0->state;
     switch (state) {
@@ -2556,7 +2563,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
             arg0->state = 1;
             mem->scale  = 0;
             mem->angle  = 0x40;
-            mem->step   = 0x100 / arg0->spawnArg1;
+            mem->step   = 0x100 / arg0->spawnArg1.value;
             if (Gp_State1C->fadeState >= 4) {
                 goto kill;
             }
@@ -2566,11 +2573,11 @@ void Gp_EffCtlTaskAE(Task* arg0)
             if (Gp_State1C->battleState != 1) {
                 goto kill;
             }
-            arg0->spawnArg1 = D_80112B94[((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
+            arg0->spawnArg1.value = D_80112B94[((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
                                          ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 +
                                          ((u16)(Gp_StateC08.field_0 % 10U) - 1U)];
             pan             = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(arg0->spawnArg1, pan, (s8)gpGetObjDepth(coord));
+            SndEvt_EnqueueType6(arg0->spawnArg1.value, pan, (s8)gpGetObjDepth(coord));
             return;
         case 1:
             Gp_UpdateCoord(coord);
@@ -2636,7 +2643,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
                 goto decay;
             }
         snd7:
-            SndEvt_EnqueueType7(arg0->spawnArg1, 1);
+            SndEvt_EnqueueType7(arg0->spawnArg1.value, 1);
             arg0->state = 3;
             return;
         decay:
@@ -2671,7 +2678,7 @@ void Gp_EffCtlTaskC1(Task* arg0)
     s32        scale;
     s32        angle;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->fadeState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -2682,11 +2689,11 @@ void Gp_EffCtlTaskC1(Task* arg0)
     }
 
     if (arg0->state == 0) {
-        Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1 & 0xFFF, 0);
+        Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1.value & 0xFFF, 0);
         coord->flg  = 0;
         mem->scale  = 0x80;
         mem->angle  = 0x100;
-        idx         = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+        idx         = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
         mem->period = D_80112C6C[idx & 3];
         arg0->state = 1;
     }
@@ -2716,7 +2723,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
     Task*      slot;
     u8         rgb[3];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->fadeState != 0 ||
         ((gameGetPtrSlot(3))->extra.tmd->flags & 0x80)) {
@@ -2832,7 +2839,7 @@ void Gp_EffCtlTaskF4(Task* arg0)
     s16        flag;
     s32        y;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->fadeState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -2855,9 +2862,9 @@ void Gp_EffCtlTaskF4(Task* arg0)
         mem->move.vy = 0xFFF0 - (((u32)Gp_LcgState >> 16) & 0x3F);
         Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
         mem->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-        mem->angle   = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
+        mem->angle   = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0 & 0xFFF;
         arg0->state  = 1;
-        mem->period  = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xF000;
+        mem->period  = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0 & 0xF000;
     }
 
     y                 = coord->coord.t[1] + mem->move.vy;
@@ -2896,7 +2903,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
     s32        saved;
     s32        temp;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->fadeState != 0 ||
         ((gameGetPtrSlot(3))->extra.tmd->flags & 0x80)) {
@@ -3002,7 +3009,7 @@ void Gp_EffCtlTask0E(Task* arg0)
     s32        one;
     u8         rgb[3];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -3077,7 +3084,7 @@ void Gp_EffCtlTaskA5(Task* arg0)
     s32        i;
     s32        temp;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -3100,12 +3107,12 @@ void Gp_EffCtlTaskA5(Task* arg0)
             arg0->state = 1;
             /* fallthrough */
         case 1:
-            if (arg0->spawnArg1 == 0) {
+            if (arg0->spawnArg1.value == 0) {
                 Gp_SpawnEff(0x600A6, coord, 1, 0);
                 arg0->state = 2;
             } else if (mem->scale == 0) {
                 for (i = 0; i < 3; i++) {
-                    Gp_SpawnEff(0x600A6, coord, arg0->spawnArg1, 0);
+                    Gp_SpawnEff(0x600A6, coord, arg0->spawnArg1.value, 0);
                 }
                 mem->scale++;
             } else {
@@ -3114,7 +3121,7 @@ void Gp_EffCtlTaskA5(Task* arg0)
                     mem->scale = 0;
                     mem->angle = 0;
                     mem->index++;
-                    if (mem->index >= arg0->spawnArg1) {
+                    if (mem->index >= arg0->spawnArg1.value) {
                         arg0->state = 2;
                     }
                 }
@@ -3143,7 +3150,7 @@ void Gp_EffCtlTaskA6(Task* arg0)
     s16        flag;
     s32        temp;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag < 4) {
@@ -3154,15 +3161,15 @@ void Gp_EffCtlTaskA6(Task* arg0)
                 mem->scale  = (u32)Gp_LcgState >> 16;
                 mem->angle  = (mem->scale & 0xF) + 8;
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                temp        = arg0->spawnArg1;
+                temp        = arg0->spawnArg1.value;
                 mem->period = -(temp << 4) - (((u32)Gp_LcgState >> 16) & 0x7F);
-                mem->step   = arg0->spawnArg1 * 24 + 0xC0;
+                mem->step   = arg0->spawnArg1.value * 24 + 0xC0;
                 Gfx_RotMatrixY(&coord->coord, mem->scale & 0xFF0, 1);
                 coord->flg = 0;
                 Gp_UpdateCoord(coord);
                 arg0->state = 1;
                 mem->move.vz =
-                    (mem->scale & 0x1F) % (arg0->spawnArg1 * 3) + 7;
+                    (mem->scale & 0x1F) % (arg0->spawnArg1.value * 3) + 7;
                 func_800FCD00(arg0);
                 Gp_SpawnEff(0x600A7, coord, mem->step * 3 + 0x3000, 0);
                 return;
@@ -3236,7 +3243,7 @@ static void func_800FCD00(Task* arg0)
     s32               a;
     s32               c;
 
-    mem       = arg0->spawnArg2;
+    mem       = arg0->spawnArg2.pointer;
     coord     = arg0->extra.tmd->coords;
     heightSum = (u16)mem->period + (rsin(mem->age << 6) >> 8);
     y         = heightSum;
@@ -3380,7 +3387,7 @@ void Gp_EffSprTaskA7(Task* arg0)
     s16                n;
     s16                step;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag >= 2) {
@@ -3393,7 +3400,7 @@ void Gp_EffSprTaskA7(Task* arg0)
     if (arg0->state == 0) {
         rng                  = Gp_LcgState * 5 + 0x71357911;
         mem->scale           = ((u32)rng >> 16) & 0xFFF;
-        mem->angle           = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
+        mem->angle           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0 & 0xFFF;
         parent               = mem->parent;
         mem->move.vy         = -(mem->scale & 7);
         one                  = ONE;
@@ -3420,7 +3427,7 @@ void Gp_EffSprTaskA7(Task* arg0)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    n = (((s32)arg0->spawnArg1 >> 12) & 3) + 1;
+    n = (((s32)arg0->spawnArg1.value >> 12) & 3) + 1;
     gte_stsxy(&block->sx);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
@@ -3601,7 +3608,7 @@ void Gp_EffCtlTask7F(Task* arg0)
     s32        count;
     s32        i;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag >= 2) {
@@ -3625,8 +3632,8 @@ void Gp_EffCtlTask7F(Task* arg0)
         coord->coord.t[2]    = mem->pos.vz;
         coord->flg           = 0;
         arg0->state          = 1;
-        mem->scale           = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0;
-        temp                 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+        mem->scale           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
+        temp                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
         step                 = temp;
         mem->index           = temp;
         if (step != 1) {
@@ -3689,7 +3696,7 @@ void Gp_EffCtlTaskE3(Task* arg0)
     s16        flag;
     s32        temp;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag >= 2) {
@@ -3705,8 +3712,8 @@ void Gp_EffCtlTaskE3(Task* arg0)
             coord->coord.t[2] = mem->pos.vz;
             coord->flg        = 0;
             arg0->state       = 1;
-            mem->scale        = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0;
-            temp              = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+            mem->scale        = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
+            temp              = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
             mem->angle        = temp;
             mem->period       = temp << 2;
         }
@@ -3740,14 +3747,14 @@ void Gp_EffSprTask80(Task* arg0)
     s32            flag2;
     u8*            head;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState < 4) {
         head               = SCRATCH_HEAD(u8) - 0x18;
         SCRATCH_HEAD(void) = head;
         block              = (GpRingScratch*)head;
         if (arg0->state == 0) {
-            t   = (u16)arg0->spawnArg1 & 0xFFF;
+            t   = (u16)arg0->spawnArg1.value & 0xFFF;
             amt = 0x200;
             if (t != 0) {
                 amt = t;
@@ -3755,7 +3762,7 @@ void Gp_EffSprTask80(Task* arg0)
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             mem->scale  = amt;
             mem->angle  = ((u32)Gp_LcgState >> 16) % 12 + 12;
-            flag2       = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+            flag2       = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
             if (flag2 & 1) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 rnd         = (u32)Gp_LcgState >> 16;
@@ -3765,7 +3772,7 @@ void Gp_EffSprTask80(Task* arg0)
             }
             mem->step = rnd;
             arg0->state++;
-            arg0->spawnArg1 &= 0x80000000;
+            arg0->spawnArg1.value &= 0x80000000;
         }
         Gp_UpdateCoord(coord);
         block->vec.vx = (u16)coord->workm.t[0];
@@ -3857,7 +3864,7 @@ void Gp_EffSprTask8D(Task* arg0)
     s32            scale;
     s32            c;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState < 4) {
         Gp_UpdateCoord(coord);
@@ -3879,7 +3886,7 @@ void Gp_EffSprTask8D(Task* arg0)
             setlen(prim, 9);
             setcode(prim, 0x2C);
             if (arg0->state == 0) {
-                t   = (u16)arg0->spawnArg1 & 0xFFF;
+                t   = (u16)arg0->spawnArg1.value & 0xFFF;
                 amt = 0x200;
                 if (t != 0) {
                     amt = t;
@@ -3890,7 +3897,7 @@ void Gp_EffSprTask8D(Task* arg0)
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 mem->step   = ((u32)Gp_LcgState >> 16) % 0x30;
                 arg0->state++;
-                arg0->spawnArg1 &= 0x80000000;
+                arg0->spawnArg1.value &= 0x80000000;
             }
             if (mem->age < 0xC) {
                 scale = mem->scale * mem->age / 12;
@@ -3959,7 +3966,7 @@ void Gp_EffSprTask3F(Task* arg0)
     s32              sub;
     s32              temp;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState < 4) {
         Gp_UpdateCoord(coord);
@@ -3975,12 +3982,12 @@ void Gp_EffSprTask3F(Task* arg0)
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
             if (arg0->state == 0) {
-                mem->period = ((arg0->spawnArg1 >> 12) & 3) + 2;
-                temp        = (u16)arg0->spawnArg1 & 0xFFF;
+                mem->period = ((arg0->spawnArg1.value >> 12) & 3) + 2;
+                temp        = (u16)arg0->spawnArg1.value & 0xFFF;
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 mem->angle  = ((u32)Gp_LcgState >> 16) & 0xFFF;
                 mem->scale  = temp;
-                sub         = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+                sub         = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->index  = sub & 1;
                 if (mem->index != 0) {
                     rot               = (GpMtxWords*)&coord->coord;
@@ -4074,7 +4081,7 @@ void func_800FF710(Task* arg0)
     s32          id;
     u16          v;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag >= 2) {
@@ -4104,10 +4111,10 @@ void func_800FF710(Task* arg0)
             arg0->state          = 1;
             lcg                  = old * 5 + k;
             mem->index           = ((u32)lcg >> 16) & 0xFFF;
-            temp                 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0;
+            temp                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
             Gp_LcgState          = lcg;
             mem->scale           = temp;
-            temp2                = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+            temp2                = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
             mem->step            = ((s16)temp >> 10) + 1;
             mem->angle           = temp2;
             mem->period          = temp2 << 2;
@@ -4163,7 +4170,7 @@ void Gp_EffSprTaskE0(Task* arg0)
     s32              uv;
     u16              vz;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag < 2) {
@@ -4193,12 +4200,12 @@ void Gp_EffSprTaskE0(Task* arg0)
             setlen(prim, 9);
             setcode(prim, 0x2C);
             if (arg0->state == 0) {
-                temp        = (u16)arg0->spawnArg1 & 0xFFF;
+                temp        = (u16)arg0->spawnArg1.value & 0xFFF;
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 mem->scale  = temp + (((u32)Gp_LcgState >> 16) & 0xFF);
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 mem->angle  = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                pal         = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+                pal         = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->step   = pal;
                 arg0->state = 1;
             }
@@ -4264,7 +4271,7 @@ void Gp_EffSprTaskE1(Task* arg0)
     s32              uv;
     u16              vz;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag >= 2) {
@@ -4277,12 +4284,12 @@ void Gp_EffSprTaskE1(Task* arg0)
         SCRATCH_HEAD(GpFxQuadScratch) = block;
         vecp                          = block;
         if (arg0->state == 0) {
-            temp        = (u16)arg0->spawnArg1 & 0xFFF;
+            temp        = (u16)arg0->spawnArg1.value & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             mem->scale  = temp + (((u32)Gp_LcgState >> 16) & 0xFF);
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             mem->angle  = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            pal         = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+            pal         = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
             mem->step   = pal;
             arg0->state++;
         }
@@ -4360,12 +4367,12 @@ void Gp_EffSprTaskE2(Task* arg0)
     s32        one;
     s32        temp;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag < 2) {
         if (arg0->state == 0) {
-            if (arg0->spawnArg1 < 0) {
+            if (arg0->spawnArg1.value < 0) {
                 parent               = mem->parent;
                 one                  = ONE;
                 *(s32*)&coord->coord = one;
@@ -4380,7 +4387,7 @@ void Gp_EffSprTaskE2(Task* arg0)
                 coord->coord.t[2]    = mem->pos.vz;
                 coord->flg           = 0;
             }
-            temp        = (u16)arg0->spawnArg1 & 0xFFF;
+            temp        = (u16)arg0->spawnArg1.value & 0xFFF;
             mem->step   = 0;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             mem->scale  = temp + (((u32)Gp_LcgState >> 16) & 0xFF);
@@ -4482,7 +4489,7 @@ static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, GpObj* obj, GpCoord
     obj->pos.vx                = x;
     obj->pos.vy                = y;
     obj->pos.vz                = z;
-    obj->key                   = Mc_SaveData[0].characterId | 0x10000;
+    obj->key                   = Mc_SaveData[0].state.characterId | 0x10000;
     obj->radius                = radius;
     obj->flags                 = flags;
     Gp_LinkObj(0, obj);
@@ -4552,7 +4559,7 @@ static void Gp_InitPlayerWork(Task* arg0)
         func_80104508(arg0, 0, &sp, 0);
         actor->field_984 = 0x38;
     }
-    if ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 5, 0, 0)) {
+    if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 5, 0, 0)) {
         actor->field_991 = 1;
     }
 }
@@ -5500,7 +5507,7 @@ s32 Gp_SpawnWeaponEff(void)
         goto join_4C;
     }
 
-    task             = spawn_attach(parent, Mc_SaveData[0].characterId, Player_Status.weapon);
+    task             = spawn_attach(parent, Mc_SaveData[0].state.characterId, Player_Status.weapon);
     actor->field_91C = task;
     if (task == NULL) {
         goto join_4C;
@@ -5554,7 +5561,7 @@ join_50:
     actor->field_98F = 0;
     inner            = work->work;
     anim             = work->extra.tmd;
-    inner->field_93A = Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon;
+    inner->field_93A = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
     inner->field_928 = Gp_PlayerAnimBlkTbl[inner->field_93A];
     func_800B3F84((GpAnimCtx*)inner->field_424, inner->field_928, anim, &inner->field_7A8,
                   inner->field_438);
@@ -5570,7 +5577,7 @@ Task* Gp_SpawnPlayer(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3)
     GameActor* actor;
     GpCoord*   coord;
 
-    task = Task_Spawn(7, Player_Status.field_26 + 3, arg2, (s32)arg3);
+    task = Task_Spawn(7, Player_Status.field_26 + 3, arg2, arg3);
     if (task != NULL) {
         goto have_task;
     }
@@ -5627,7 +5634,7 @@ static void Gp_BindActorAnim(Task* arg0)
 
     actor            = arg0->work;
     extra            = arg0->extra.tmd;
-    actor->field_93A = Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon;
+    actor->field_93A = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
     actor->field_928 = Gp_PlayerAnimBlkTbl[actor->field_93A];
     func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
                   actor->field_438);
@@ -5877,7 +5884,7 @@ static GpCoord* func_8010403C(s32 arg0)
     u8    idx;
 
     slot = gameGetPtrSlot(3);
-    idx  = D_80112E2C[Mc_SaveData[0].characterId - 1][arg0];
+    idx  = D_80112E2C[Mc_SaveData[0].state.characterId - 1][arg0];
     return &slot->extra.tmd->coords[idx];
 }
 
@@ -6193,7 +6200,7 @@ s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2)
     actor->field_10                   = coord->coord.t[0];
     actor->field_14                   = coord->coord.t[1];
     actor->field_18                   = coord->coord.t[2];
-    actor->field_93A                  = Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon;
+    actor->field_93A                  = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
     actor->field_928                  = Gp_PlayerAnimBlkTbl[actor->field_93A];
     actor->field_985                  = 0x10;
     actor->field_983                  = 7;
@@ -6822,7 +6829,7 @@ s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, GpCopyArg* arg2)
     s32  i;
     s32  count;
 
-    dest.block = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon];
+    dest.block = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon];
     src        = arg2->words;
     count      = arg2->count;
     if (count >= 0x21) {
@@ -6843,7 +6850,7 @@ s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2)
 
     actor = arg0->work;
     ret   = 0;
-    if (Mc_SaveData[0].cheatMode == 0) {
+    if (Mc_SaveData[0].state.cheatMode == 0) {
         ret = Gp_ApplyHpDamage(Gp_ScaleDamage(arg2, 0, &out, 0));
         if (ret != 0) {
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 0, 0x7DE);
@@ -7057,7 +7064,7 @@ s32 func_801060E0(Task* arg0)
         mask2 = 2;
     } else {
         flags = Pad_States[0].buttons;
-        if (Mc_SaveData[0].buttonLayout == mode) {
+        if (Mc_SaveData[0].state.buttonLayout == mode) {
             mask1 = 0x80;
             mask2 = 0x10;
         } else {
@@ -7180,7 +7187,7 @@ void func_80106350(Task* arg0, s32 arg1, s32 arg2)
     actor = arg0->work;
     if (arg1 == 0x16) {
         if (actor->field_914 != NULL) {
-            actor->field_914->spawnArg1 = -1;
+            actor->field_914->spawnArg1.value = -1;
         }
         SndEvt_EnqueueType7(0x20160003, 0);
         SndEvt_EnqueueType7(0x20160004, 0);
@@ -7188,21 +7195,21 @@ void func_80106350(Task* arg0, s32 arg1, s32 arg2)
     } else if (arg1 == 0x19) {
         if (actor->field_914 != NULL) {
             if (Gp_ConsumeSlotQty(0x98, 0x100) != 0) {
-                actor->field_914->spawnArg1 = 1;
+                actor->field_914->spawnArg1.value = 1;
             } else {
-                actor->field_914->spawnArg1 = 0;
+                actor->field_914->spawnArg1.value = 0;
             }
         }
     } else if (arg1 == 0x1C) {
         if (actor->field_914 != NULL) {
             if (Gp_ConsumeSlotQty(0x9B, 0x100) != 0) {
                 value = 1;
-                if (actor->field_914->spawnArg1 == 2) {
+                if (actor->field_914->spawnArg1.value == 2) {
                     value = 3;
                 }
-                actor->field_914->spawnArg1 = value;
+                actor->field_914->spawnArg1.value = value;
             } else {
-                actor->field_914->spawnArg1 = (actor->field_914->spawnArg1 == 2) << 2;
+                actor->field_914->spawnArg1.value = (actor->field_914->spawnArg1.value == 2) << 2;
             }
             if (actor->field_910 == NULL) {
                 SndEvt_EnqueueType7(0x201C0005, 0);
@@ -7229,8 +7236,8 @@ void Gp_PlayObjSfx(GpCoord* coord, s32 sfx, s32 arg2)
 void func_80106518(s32 arg0)
 {
     arg0--;
-    if (Mc_SaveData[0].weaponUseCounts[arg0] < 99999) {
-        Mc_SaveData[0].weaponUseCounts[arg0]++;
+    if (Mc_SaveData[0].state.weaponUseCounts[arg0] < 99999) {
+        Mc_SaveData[0].state.weaponUseCounts[arg0]++;
     }
 }
 
@@ -7296,7 +7303,7 @@ void func_801066DC(Task* arg0, s16 arg1)
     } else if ((inner->field_962 & 0x40) && (temp != -1)) {
         temp             = 1;
         inner->field_95A = temp;
-        if (Mc_SaveData[0].moveMode == 0 && inner->field_991 == 0) {
+        if (Mc_SaveData[0].state.moveMode == 0 && inner->field_991 == 0) {
             inner->field_958 = 3;
             mode             = 4;
         } else {
@@ -7309,7 +7316,7 @@ void func_801066DC(Task* arg0, s16 arg1)
     } else {
         inner->field_95A = 1;
         if (inner->field_973 == 1) {
-            if (Mc_SaveData[0].moveMode != 0 && inner->field_991 == 0) {
+            if (Mc_SaveData[0].state.moveMode != 0 && inner->field_991 == 0) {
                 inner->field_958 = 3;
                 mode             = 4;
             } else {
@@ -8181,7 +8188,7 @@ static void Gp_PlayerMode2StateB(Task* arg0)
         case 1:
             if (Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1) !=
                 NULL) {
-                if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0) {
+                if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0) {
                     inner            = arg0->work;
                     inner->field_954 = 0;
                     inner->field_956 = 2;
@@ -8254,7 +8261,7 @@ static void Gp_ArmLockOnState(Task* arg0)
     node             = Gp_FindLockNode(arg0);
     inner->field_973 = 0;
     if ((node != NULL && Gp_StateF0.prefix.bytes.field_0 < 2) || (flag = 1, Gp_StateF0.prefix.bytes.field_0 == flag) ||
-        Mc_SaveData[0].field_929 != 0) {
+        Mc_SaveData[0].state.field_929 != 0) {
         if (inner->field_95E != 0) {
             Gp_ArmStateF0(1);
             if (inner->field_97C != 0) {
@@ -8452,7 +8459,7 @@ void func_801088D4(Task* arg0, s32 arg1, s32 arg2)
         }
         inner->field_95C = 0xA;
         mode             = 0x14;
-        if (Mc_SaveData[0].companionType == 1) {
+        if (Mc_SaveData[0].state.companionType == 1) {
             func_80166E94(gameGetPtrSlot(0xA), 0);
         }
     } else {
@@ -8715,7 +8722,7 @@ static void Gp_PlayerNormalState1(Task* arg0)
     node             = Gp_FindLockNode(arg0);
     inner->field_973 = 0;
     if ((node != NULL && Gp_StateF0.prefix.bytes.field_0 < 2) || (flag = 1, Gp_StateF0.prefix.bytes.field_0 == flag) ||
-        Mc_SaveData[0].field_929 != 0) {
+        Mc_SaveData[0].state.field_929 != 0) {
         if (inner->field_95E != 0) {
             Gp_ArmStateF0(1);
             if (inner->field_97C != 0) {

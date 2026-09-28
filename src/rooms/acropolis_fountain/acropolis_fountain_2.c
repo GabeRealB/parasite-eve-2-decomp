@@ -5,15 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stream.h"
-#include "main/task.h"
 #include "rooms/acropolis_fountain.h"
 #include "rooms/room_common.h"
 
@@ -23,6 +14,18 @@
 #include "gameplay/world_collision.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
+
+#include "gameplay/collision.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stream.h"
+#include "main/task.h"
 
 /// Work block the fountain's splash task keeps at `Task::spawnArg2`.
 /// `func_acropolis_fountain_8017E014` latches the camera the splash effect was
@@ -245,7 +248,7 @@ static void func_acropolis_fountain_8017E014(Task* task)
     s16                      id;
 
     coord  = task->extra.tmd->coords;
-    splash = task->spawnArg2;
+    splash = task->spawnArg2.pointer;
     view   = Gp_GetViewIndex();
     switch (task->state) {
         case 0:

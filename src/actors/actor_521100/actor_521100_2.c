@@ -7,11 +7,6 @@
 #include "actors/actor.h"
 #include "actors/actor_521100.h"
 #include "actors/actors_shared_80132074.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -22,8 +17,19 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/message.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "overlay.h"
 
 /// The attach coordinate's rotation as the scale-in step snapshots it, and the
 /// cache the "walk to" placement opcode writes beside it: the heading it
@@ -344,9 +350,9 @@ void func_actor_521100_80136404(Task* task)
 {
     Task* ctx;
 
-    ctx = task->spawnArg2;
+    ctx = task->spawnArg2.pointer;
     if (!(task->state & 7)) {
-        if (task->spawnArg1 == 0) {
+        if (task->spawnArg1.value == 0) {
             D_actor_521100_8016A3E8             = ctx->extra.tmd->coords[1];
             D_actor_521100_8016A3E8.coord.t[2] += 0x32;
             Gp_LcgState                         = Gp_LcgState * 5 + 0x71357911;
@@ -364,7 +370,7 @@ void func_actor_521100_80136404(Task* task)
     }
     if (task->state >= 0x83) {
         taskKill(task);
-        if (task->spawnArg1 == 0) {
+        if (task->spawnArg1.value == 0) {
             D_actor_521100_8016A3E0 = NULL;
         } else {
             D_actor_521100_8016A3E4 = NULL;
@@ -392,7 +398,7 @@ void func_actor_521100_80136604(Task* arg0)
     sp.field_11             = 9;
     sp.field_12             = 1;
     D_actor_521100_8016A3D8 = (Actor521100Work4B4*)arg0->work;
-    sp.table.funcs[arg0->state](arg0->spawnArg2, arg0);
+    sp.table.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
 static void func_actor_521100_80136680(GpEnemy* arg0, Task* task)
@@ -415,7 +421,7 @@ static void func_actor_521100_80136680(GpEnemy* arg0, Task* task)
 /// installs: hands the task's `GpEnemy` back to `Gp_DestroyEnemy`.
 static void func_actor_521100_801366FC(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Ticks animation slots 1..0x12 of the actor's animation context.
@@ -577,7 +583,7 @@ s32 func_actor_521100_80136AE0(Task* task, s32 arg1, GpCmdArg* msg)
 {
     switch (msg->command) {
         case 1:
-            D_actor_521100_8016A3E0 = Task_SpawnFromTable(&D_actor_521100_8016A388, 1, 0, (s32)task);
+            D_actor_521100_8016A3E0 = Task_SpawnFromTable(&D_actor_521100_8016A388, 1, 0, task);
             break;
 
         case 2:
@@ -601,7 +607,7 @@ s32 func_actor_521100_80136AE0(Task* task, s32 arg1, GpCmdArg* msg)
             break;
 
         case 4:
-            D_actor_521100_8016A3E4 = Task_SpawnFromTable(&D_actor_521100_8016A388, 1, 1, (s32)task);
+            D_actor_521100_8016A3E4 = Task_SpawnFromTable(&D_actor_521100_8016A388, 1, 1, task);
             break;
     }
     return 0;

@@ -1,36 +1,62 @@
-#include "common.h"
+#include "display.h"
 
-#define OTUTIL_C
-
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/libapi.h>
 #include <psyq/libetc.h>
+#include <psyq/libgs.h>
 
-#include "main/unknown_syms.h"
-#include "main/boot.h"
-#include "main/gamemain.h"
-#include "main/stage.h"
-#include "main/task.h"
+#include "types.h"
 
-#include "gameplay/actor_render.h"
-#include "gameplay/display.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/loading.h"
+#include "boot.h"
+#include "main/display_types.h"
+#include "display_types.h"
+#include "gamemain.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
+#include "main/stage.h"
+#include "stage.h"
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/loading.h"
+
+/* Define BSS before API headers to preserve first-declaration order. */
+u8 Gpu_PrimBufStatic[0x6000];
+
+static void* Gpu_PrimBufBase;
+
+static s32 Gpu_PrimBufferBytes;
+
+GsOT Gpu_OrderingTables[2];
+
+TaskNode gTaskDisplayList;
+
+static s32 Display_HoldMode;
+
+static u_long Gpu_SmallOtTags[0x80];
+
+#include "main/display.h"
+#include "task.h"
+
+static TaskDesc Display_MenuTaskDesc;
+
+static void Display_FlipOt(void);
+
+/// Resolves special display modes to their effective frame-hold state.
+static s32 Display_GetHoldMode(void);
 
 static void Display_ResetHeapFromSession(void);
 
-u8            Gpu_PrimBufStatic[0x6000];
-static void*  Gpu_PrimBufBase;
-static s32    D_8007A0E4;
-GsOT          Gpu_OrderingTables[2];
-TaskNode      gTaskDisplayList;
-static s32    D_8007A118;
-static u_long D_8007A120[0x80];
+static void Display_FlipOtAlt(void);
 
-static TaskDesc D_8006268C = { 0, 0xC0, Gp_MenuRootTask };
+static TaskDesc Display_MenuTaskDesc = { 0, 0xC0, Gp_MenuRootTask };
 
-s32 Display_FrameFlipDraw(GpuOtBuf* otBufs, s32 arg1, s32 arg2)
+s32 Display_FrameFlipDraw(GpuOtBuf* otBufs, s32 arg1, s32 unused3)
 {
     DisplayState* temp;
     GsOT*         ot;
@@ -49,12 +75,12 @@ s32 Display_FrameFlipDraw(GpuOtBuf* otBufs, s32 arg1, s32 arg2)
     ot = Gpu_OrderingTables;
     GsClearOt(0, 0, &ot[temp->frameBuffer]);
     org            = ot[temp->frameBuffer].org;
-    size           = D_8007A0E4;
+    size           = Gpu_PrimBufferBytes;
     *org           = GPU_OT_END_PRIM;
     size          /= 2;
     saved          = gGpuCurrentOt;
     gGpuCurrentOt  = ot[temp->frameBuffer].org;
-    gGpuPrimCursor = (u8*)((s32)Gpu_PrimBufBase + temp->frameBuffer * size);
+    gGpuPrimCursor = (u8*)Gpu_PrimBufBase + temp->frameBuffer * size;
     Task_ExecList(&gTaskDisplayList);
     Boot_DispatchCdCmd();
     if (temp->mdecActive == 0) {
@@ -102,15 +128,15 @@ Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     temp = &gDisplayState;
     ret  = NULL;
     if (temp->displayOwner == 0) {
-        ot                = Gpu_OrderingTables;
-        ot->length        = 6;
-        ot->org           = D_8007A120;
-        ot[1].length      = 6;
-        ot[1].org         = D_8007A120 + 0x40;
-        Gpu_PrimBufBase   = Gpu_PrimBufStatic;
-        D_8007A0E4        = 0x6000;
-        temp->frameBuffer = temp->drawBuffer ^ 1;
-        saved             = Task_GetActiveList();
+        ot                  = Gpu_OrderingTables;
+        ot->length          = 6;
+        ot->org             = Gpu_SmallOtTags;
+        ot[1].length        = 6;
+        ot[1].org           = Gpu_SmallOtTags + 0x40;
+        Gpu_PrimBufBase     = Gpu_PrimBufStatic;
+        Gpu_PrimBufferBytes = 0x6000;
+        temp->frameBuffer   = temp->drawBuffer ^ 1;
+        saved               = Task_GetActiveList();
         Task_InitList(&gTaskDisplayList);
         ret = Task_Spawn(arg0, arg1, arg2, arg3);
         if (ret != NULL) {
@@ -123,7 +149,7 @@ Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     return ret;
 }
 
-Task* Display_SpawnWithOt(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
+Task* Display_SpawnWithOt(TaskDesc* descriptor, s32 arg1, s32 arg2, s32 arg3)
 {
     DisplayState* temp;
     GsOT*         ot;
@@ -133,17 +159,17 @@ Task* Display_SpawnWithOt(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
     temp = &gDisplayState;
     ret  = NULL;
     if (temp->displayOwner == 0) {
-        ot                = Gpu_OrderingTables;
-        ot->length        = 6;
-        ot->org           = D_8007A120;
-        ot[1].length      = 6;
-        ot[1].org         = D_8007A120 + 0x40;
-        Gpu_PrimBufBase   = Gpu_PrimBufStatic;
-        D_8007A0E4        = 0x6000;
-        temp->frameBuffer = temp->drawBuffer ^ 1;
-        saved             = Task_GetActiveList();
+        ot                  = Gpu_OrderingTables;
+        ot->length          = 6;
+        ot->org             = Gpu_SmallOtTags;
+        ot[1].length        = 6;
+        ot[1].org           = Gpu_SmallOtTags + 0x40;
+        Gpu_PrimBufBase     = Gpu_PrimBufStatic;
+        Gpu_PrimBufferBytes = 0x6000;
+        temp->frameBuffer   = temp->drawBuffer ^ 1;
+        saved               = Task_GetActiveList();
         Task_InitList(&gTaskDisplayList);
-        ret = Task_SpawnFromTable(arg0, arg1, arg2, arg3);
+        ret = Task_SpawnFromTable(descriptor, arg1, arg2, arg3);
         if (ret != NULL) {
             temp->pendingMode          = 0xFF;
             temp->displayOwner         = 2;
@@ -154,7 +180,7 @@ Task* Display_SpawnWithOt(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
     return ret;
 }
 
-Task* Task_SpawnOnDefaultListA(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+Task* Task_SpawnOnDefaultListA(s32 arg0, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
 {
     TaskNode* saved;
     Task*     ret;
@@ -166,14 +192,14 @@ Task* Task_SpawnOnDefaultListA(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     return ret;
 }
 
-Task* Task_SpawnOnDefaultList(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
+Task* Task_SpawnOnDefaultList(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
 {
     TaskNode* saved;
     Task*     ret;
 
     saved = Task_GetActiveList();
     Task_SetActiveList(&gTaskDefaultList);
-    ret = Task_SpawnFromTable(arg0, arg1, arg2, arg3);
+    ret = Task_SpawnFromTable(descriptor, arg1, arg2, arg3);
     Task_SetActiveList(saved);
     return ret;
 }
@@ -231,11 +257,11 @@ void Display_ReleaseRef(void)
     }
 }
 
-static s32 func_8003E698(void)
+static s32 Display_GetHoldMode(void)
 {
     s32 temp;
 
-    temp = D_8007A118;
+    temp = Display_HoldMode;
     if (temp == 2) {
         goto case2;
     }
@@ -258,13 +284,13 @@ void Gpu_InitOtSmall(void)
 {
     GsOT* ot;
 
-    ot              = Gpu_OrderingTables;
-    ot->length      = 6;
-    ot->org         = D_8007A120;
-    ot[1].length    = 6;
-    ot[1].org       = D_8007A120 + 0x40;
-    Gpu_PrimBufBase = Gpu_PrimBufStatic;
-    D_8007A0E4      = 0x6000;
+    ot                  = Gpu_OrderingTables;
+    ot->length          = 6;
+    ot->org             = Gpu_SmallOtTags;
+    ot[1].length        = 6;
+    ot[1].org           = Gpu_SmallOtTags + 0x40;
+    Gpu_PrimBufBase     = Gpu_PrimBufStatic;
+    Gpu_PrimBufferBytes = 0x6000;
 }
 
 s32 Display_DispatchModeId(s32 arg0)
@@ -273,9 +299,9 @@ s32 Display_DispatchModeId(s32 arg0)
         if (arg0 < 0x80) {
             gDisplayState.pendingMode = 0;
             if (arg0 != 0x43) {
-                Display_InitModeObj(&D_8006268C, arg0, 0, 0);
+                Display_InitModeObj(&Display_MenuTaskDesc, arg0, 0, 0);
             } else {
-                Display_InitModeObj(&D_8006268C, 0x43, 0, 0);
+                Display_InitModeObj(&Display_MenuTaskDesc, 0x43, 0, 0);
             }
             gDisplayState.pendingMode = arg0;
             if (gDisplayState.demoScene != 0) {
@@ -345,12 +371,12 @@ void Gpu_InitOt(void)
 
 void Display_SetPrimBufLarge(void)
 {
-    D_8007A0E4      = 0x10000;
-    Gpu_PrimBufBase = (void*)Gpu_PrimHeapBase;
+    Gpu_PrimBufferBytes = 0x10000;
+    Gpu_PrimBufBase     = Gpu_PrimHeapBase;
 }
 
 void Display_SetPrimBufSmall(void)
 {
-    Gpu_PrimBufBase = Gpu_PrimBufStatic;
-    D_8007A0E4      = 0x6000;
+    Gpu_PrimBufBase     = Gpu_PrimBufStatic;
+    Gpu_PrimBufferBytes = 0x6000;
 }

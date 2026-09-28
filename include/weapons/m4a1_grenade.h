@@ -2,11 +2,11 @@
 #define WEAPONS_M4A1_GRENADE_H
 
 #include "common.h"
-#include "main/session.h"
-#include "main/task.h"
 #include "weapons/weapon.h"
 
 #include "gameplay/geometry.h"
+
+#include "main/task_types.h"
 
 /// 0x34-byte scratch the flight state takes from `G_SCRATCH_HEAD`. The
 /// `GpDeltaScratch` at 0x20 is handed to `func_800E0FEC` and also holds the

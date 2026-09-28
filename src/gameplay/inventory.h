@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "main/mc.h"
+#include "main/mc_types.h"
 
 /// 8-byte item attribute row in `Gp_ModStatAttrs`, indexed by item id minus
 /// 0x60 (armor ids 0x60–0x7F).
@@ -12,7 +13,7 @@
 /// field_4 is the unsigned bonus added to `Player_Status.hpMax` by
 /// `Gp_RecalcMaxHp` when `Player_Status.armor` (item id − 0x5F) is
 /// non-zero. field_5 is the unsigned base added to
-/// `Mc_SaveData[0].itemLevelBonus[id-0x60]` and clamped to 10. field_6 is the
+/// `Mc_SaveData[0].state.itemLevelBonus[id-0x60]` and clamped to 10. field_6 is the
 /// unsigned bonus added to `Player_Status.mpMax` by `Gp_RecalcMaxMp`
 /// when `field_23` is non-zero.
 typedef struct _GpItemAttr {
@@ -54,7 +55,7 @@ static inline McItemRec* gpItemRowAt(McItemRec* rows, s32 index)
 /// per-weapon equipment table.
 static inline McItemSlot* gpItemSlot(s32 item)
 {
-    return &Mc_SaveData[0].weaponItems[item - 0x80];
+    return &Mc_SaveData[0].state.weaponItems[item - 0x80];
 }
 
 #endif // GAMEPLAY_PRIVATE_INVENTORY_H

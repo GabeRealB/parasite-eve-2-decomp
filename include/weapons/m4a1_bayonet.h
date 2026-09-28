@@ -3,7 +3,9 @@
 
 #include "common.h"
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+
 #include "main/coord.h"
 
 /// The blade's motion trail: eight tip and eight hilt coordinate frames,

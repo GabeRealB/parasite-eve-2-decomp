@@ -5,19 +5,19 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/task.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/collision.h"
 #include "gameplay/display.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
 
 static void func_shelter_b6_growth_room_8017E0A8(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1);
@@ -84,12 +84,12 @@ static void func_shelter_b6_growth_room_8017D9D8(Task* task)
     s32     z;
 
     if (Gp_State1C->eventState == 0) {
-        if (task->spawnArg1 < 0x130 && !(gDisplayState.animFrame & 7)) {
-            task->spawnArg1++;
+        if (task->spawnArg1.value < 0x130 && !(gDisplayState.animFrame & 7)) {
+            task->spawnArg1.value++;
         }
     }
     if (task->state < 6) {
-        task->state = (task->spawnArg1 >> 4) + 1;
+        task->state = (task->spawnArg1.value >> 4) + 1;
     }
     if (gDisplayState.animFrame % (task->state * 2 + 4) == 0) {
         for (i = 0; i < task->state; i++) {
@@ -97,7 +97,7 @@ static void func_shelter_b6_growth_room_8017D9D8(Task* task)
             angle       = ((Gp_LcgState >> 16) & 0x7FF) - 0x400;
             pos.vx      = D_shelter_b6_growth_room_8017F258[i + 30].vx + ((rcos(angle) * 1000) >> 12);
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            pos.vy      = -((s32)(Gp_LcgState >> 16) % ((task->spawnArg1 + 1) * 8));
+            pos.vy      = -((s32)(Gp_LcgState >> 16) % ((task->spawnArg1.value + 1) * 8));
             pos.vz      = D_shelter_b6_growth_room_8017F258[i + 30].vz + ((rsin(angle) * 1000) >> 12);
             Gp_SpawnEff(0x601A1, NULL, 0x106500, &pos);
         }
@@ -113,7 +113,7 @@ static void func_shelter_b6_growth_room_8017D9D8(Task* task)
         pos.vz      = z + ((Gp_LcgState >> 16) & 1) * 1000;
         Gp_SpawnEff(0x601A2, NULL, 0x183280, &pos);
     }
-    func_shelter_b6_growth_room_8017E448(task->spawnArg1, (task->spawnArg1 >> 1) + 0x50);
+    func_shelter_b6_growth_room_8017E448(task->spawnArg1.value, (task->spawnArg1.value >> 1) + 0x50);
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2:
             func_shelter_b6_growth_room_8017E0A8(&D_shelter_b6_growth_room_8017F298[0], 0x180, 0x44);
@@ -265,7 +265,7 @@ static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1)
 
 static void func_shelter_b6_growth_room_8017E564(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2;
+    GpEffWork* work  = task->spawnArg2.pointer;
     GpCoord*   coord = task->extra.tmd->coords;
     s32        vz;
     s32        t;
@@ -275,10 +275,10 @@ static void func_shelter_b6_growth_room_8017E564(Task* task)
 
     work->age++;
     if (task->state == 0) {
-        work->scale = task->spawnArg1 & 0xFFF;
+        work->scale = task->spawnArg1.value & 0xFFF;
 
-        if (task->spawnArg1 & 0xF000) {
-            work->period = (task->spawnArg1 >> 12) & 0x7;
+        if (task->spawnArg1.value & 0xF000) {
+            work->period = (task->spawnArg1.value >> 12) & 0x7;
         } else {
             work->period = 1;
         }
@@ -286,8 +286,8 @@ static void func_shelter_b6_growth_room_8017E564(Task* task)
         work->age   = 0;
         task->state = 1;
 
-        if (task->spawnArg1 & 0xFF0000) {
-            f2a = (task->spawnArg1 >> 16) & 0xFF;
+        if (task->spawnArg1.value & 0xFF0000) {
+            f2a = (task->spawnArg1.value >> 16) & 0xFF;
         } else {
             f2a = 0x40;
         }
@@ -401,7 +401,7 @@ static void func_shelter_b6_growth_room_8017E7F0(GpCoord* coord, u16 arg1, s16 a
 
 static void func_shelter_b6_growth_room_8017EAC8(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2;
+    GpEffWork* work  = task->spawnArg2.pointer;
     GpCoord*   coord = task->extra.tmd->coords;
     s32        vz;
     s16        f2a;
@@ -410,12 +410,12 @@ static void func_shelter_b6_growth_room_8017EAC8(Task* task)
 
     work->age++;
     if (task->state == 0) {
-        work->scale = task->spawnArg1 & 0xFFF;
+        work->scale = task->spawnArg1.value & 0xFFF;
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         work->angle = (Gp_LcgState >> 16) & 0xFFF;
 
-        if (task->spawnArg1 & 0xF000) {
-            work->period = (task->spawnArg1 >> 12) & 0x7;
+        if (task->spawnArg1.value & 0xF000) {
+            work->period = (task->spawnArg1.value >> 12) & 0x7;
         } else {
             work->period = 1;
         }
@@ -423,8 +423,8 @@ static void func_shelter_b6_growth_room_8017EAC8(Task* task)
         work->age   = 0;
         task->state = 1;
 
-        if (task->spawnArg1 & 0xFF0000) {
-            f2a = (task->spawnArg1 >> 16) & 0xFF;
+        if (task->spawnArg1.value & 0xFF0000) {
+            f2a = (task->spawnArg1.value >> 16) & 0xFF;
         } else {
             f2a = 0x40;
         }

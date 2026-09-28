@@ -18,17 +18,17 @@
 #include "gameplay/scene_runtime.h"
 #include "scene_runtime.h"
 
-#include "main/coord.h"
+#include "gameplay/damage.h"
 #include "main/gfx.h"
+#include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
-#include "main/tmd.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
 
 /// 0xFFFF-terminated item-id list walked by `Gp_NthCollectedId`. Each id's
-/// low 7 bits index a collected-item bit in `Mc_SaveData[0].collectedBits`.
+/// low 7 bits index a collected-item bit in `Mc_SaveData[0].state.collectedBits`.
 extern u16 Gp_CollectedIds[];
 
 /// Unreferenced nonzero halfword after the collected-item terminator.
@@ -60,8 +60,6 @@ static void Gp_InitItemSeenBits(void);
 
 static s16 Gp_PlayTimeDelta(void);
 
-extern u16 Gp_PlayTimeMark;
-
 static inline s32 _gpGetModLevel(s32 item)
 {
     s32         ret;
@@ -73,7 +71,7 @@ static inline s32 _gpGetModLevel(s32 item)
     if ((u32)idx < 0x20) {
         p    = &Gp_ModStatAttrs[(item)-0x60];
         ret  = p->field_5;
-        ret += Mc_SaveData[0].itemLevelBonus[idx];
+        ret += Mc_SaveData[0].state.itemLevelBonus[idx];
         if (ret >= 0xB) {
             ret = 0xA;
         }
@@ -208,7 +206,7 @@ s32 Gp_NthCollectedId(s32 arg0, s32 arg1)
     if (*p != 0xFFFF) {
         do {
             item  = *p;
-            bits  = Mc_SaveData[0].collectedBits;
+            bits  = Mc_SaveData[0].state.collectedBits;
             one   = 1;
             bit   = item & 0x7F;
             bits += bit / 32;
@@ -252,7 +250,7 @@ s32 Gp_SumScanQty(McItemScan* arg0, s32 arg1)
             tmp = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData[0].itemRows;
+            tmp = Mc_SaveData[0].state.itemRows;
             break;
     }
     table = tmp;
@@ -292,11 +290,11 @@ void Gp_SetItemSeenBit(s32 arg0, s32 arg1)
     }
     if (arg1 == 0) {
         p                      = &Mc_SaveData[0];
-        p->itemSeenBits[word] &= ~bit;
+        p->state.itemSeenBits[word] &= ~bit;
         return;
     }
     p                      = &Mc_SaveData[0];
-    p->itemSeenBits[word] |= bit;
+    p->state.itemSeenBits[word] |= bit;
 }
 
 static void Gp_ApplyBit2List(GpBit2List* table, u32* dest)
@@ -363,8 +361,8 @@ void Gp_SavePlayerPos(void)
     }
     cfg             = &Player_Status;
     save            = &Mc_SaveData[0];
-    save->playerExp = cfg->exp;
-    save->playerBp  = cfg->bp;
+    save->state.playerExp = cfg->exp;
+    save->state.playerBp  = cfg->bp;
 }
 
 static GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpBit2Rec* arg1)
@@ -415,7 +413,7 @@ static void func_800BBB54(Task* arg0)
 
         sess    = gGameSession;
         banks   = Gp_Bit2Banks;
-        id      = ((GpItemObj8*)arg0->spawnArg2)->field_8;
+        id      = ((GpItemObj8*)arg0->spawnArg2.pointer)->field_8;
         p       = banks[sess->at4.loc.stage].field_4;
         indexed = p + (id >> 4);
         shift   = (id & 0xF) * 2;
@@ -442,7 +440,7 @@ void Gp_WaitItemFlag2(Task* arg0)
         u32* p;
         s32  shift;
 
-        id    = ((GpItemObj8*)arg0->spawnArg2)->field_8;
+        id    = ((GpItemObj8*)arg0->spawnArg2.pointer)->field_8;
         stage = gGameSession->at4.loc.stage;
         p     = &Gp_Bit2Banks[stage].field_4[id >> 4];
         shift = (id & 0xF) * 2;
@@ -483,7 +481,7 @@ s32 Gp_NextMappedSlot(s32 arg0)
     s32         i;
     GpItemMap*  p;
 
-    scan = &Mc_SaveData[0].carriedItems;
+    scan = &Mc_SaveData[0].state.carriedItems;
     if ((u32)arg0 >= 8) {
         return -1;
     }
@@ -509,7 +507,7 @@ s32 Gp_HasMappedItem(void)
     GpItemMap*  p;
 
     found = 0;
-    scan  = &Mc_SaveData[0].carriedItems;
+    scan  = &Mc_SaveData[0].state.carriedItems;
     for (i = 0, p = Gp_ItemMaps; i < 8; i++) {
         if (Gp_SumScanQty(scan, p->field_1)) {
             found = 1;
@@ -525,7 +523,7 @@ static void Gp_ResetAuxSlots(void)
     McItemSlot* p;
     s32         i;
 
-    p = Mc_SaveData[0].weaponItems;
+    p = Mc_SaveData[0].state.weaponItems;
     for (i = 0; i < 0x20; i++) {
         p->ammoId    = 0;
         p->ammoQty   = 0;
@@ -555,9 +553,9 @@ static void Gp_SetPlayerScan(s32 arg0)
     McSaveData* p;
 
     p                        = &Mc_SaveData[0];
-    p->carriedItems.firstRow = 0;
-    p->carriedItems.rowCount = arg0;
-    p->carriedItems.table    = 0;
+    p->state.carriedItems.firstRow = 0;
+    p->state.carriedItems.rowCount = arg0;
+    p->state.carriedItems.table    = 0;
 }
 
 void Gp_SyncHeldRelated(void)
@@ -574,7 +572,7 @@ void Gp_SyncHeldRelated(void)
     } else {
         /* Keep the item-id bias in an address word. Only the final slot is
          * a pointer into weaponItems; there is no pointer before the array. */
-        slots         = (s32)Mc_SaveData[0].weaponItems - 0x80 * (s32)sizeof(McItemSlot);
+        slots         = (s32)Mc_SaveData[0].state.weaponItems - 0x80 * (s32)sizeof(McItemSlot);
         idx           = p->weapon + 0x7F;
         selected.word = idx * (s32)sizeof(McItemSlot) + slots;
         item          = selected.slot->ammoId;
@@ -597,7 +595,7 @@ static void Gp_InitItemSeenBits(void)
 
     p = &Mc_SaveData[0];
     for (i = 0x5F; i >= 0; i--) {
-        p->itemSeenBits[i] = 0;
+        p->state.itemSeenBits[i] = 0;
     }
 
     i = 0;
@@ -635,7 +633,7 @@ s32 Gp_HasItemSeenBit(s32 arg0)
         return 1;
     }
     p   = &Mc_SaveData[0];
-    val = p->itemSeenBits[word] & bit;
+    val = p->state.itemSeenBits[word] & bit;
     return val != 0;
 }
 
@@ -649,9 +647,9 @@ void Gp_RecalcMaxHp(void)
     cfg        = &Player_Status;
     table      = Gp_StatRows;
     save       = &Mc_SaveData[0];
-    val        = table[save->gameMode].base.half;
+    val        = table[save->state.gameMode].base.half;
     cfg->hpMax = val;
-    val       += save->hpBonus;
+    val       += save->state.hpBonus;
     cfg->hpMax = val;
     if (cfg->armor != 0) {
         val       += Gp_ModStatAttrs[cfg->armor - 1].field_4;
@@ -703,15 +701,15 @@ s32 Gp_ItemSortKey(s32 id)
 
 void Gp_MarkPlayTime(void)
 {
-    Gp_PlayTimeMark = Mc_SaveData[0].playTime;
+    GameFlag_NibbleBanks[0].data.state.playTimeMark = Mc_SaveData[0].state.playTime;
 }
 
 static s16 Gp_PlayTimeDelta(void)
 {
     u16* p;
 
-    p = &Gp_PlayTimeMark;
-    return Mc_SaveData[0].playTime - *p;
+    p = &GameFlag_NibbleBanks[0].data.state.playTimeMark;
+    return Mc_SaveData[0].state.playTime - *p;
 }
 
 s32 Gp_AgeFlag119(void)
@@ -721,8 +719,8 @@ s32 Gp_AgeFlag119(void)
 
     ret = 0;
     if (Gp_HasCollectedBit(0x119) != 0) {
-        p = &Gp_PlayTimeMark;
-        if ((s16)(Mc_SaveData[0].playTime - *p) >= 2) {
+        p = &GameFlag_NibbleBanks[0].data.state.playTimeMark;
+        if ((s16)(Mc_SaveData[0].state.playTime - *p) >= 2) {
             Gp_ClearCollectedBit(0x119);
             Gp_SetCollectedBit(0x11A);
             ret = 1;
@@ -736,8 +734,8 @@ void Gp_AgeFlag119Void(void)
     u16* p;
 
     if (Gp_HasCollectedBit(0x119) != 0) {
-        p = &Gp_PlayTimeMark;
-        if ((s16)(Mc_SaveData[0].playTime - *p) >= 2) {
+        p = &GameFlag_NibbleBanks[0].data.state.playTimeMark;
+        if ((s16)(Mc_SaveData[0].state.playTime - *p) >= 2) {
             Gp_ClearCollectedBit(0x119);
             Gp_SetCollectedBit(0x11A);
         }
@@ -753,7 +751,7 @@ void Gp_TickBoostPanel(Task* arg0)
 {
     UiPanel* panel;
 
-    panel = arg0->spawnArg2;
+    panel = arg0->spawnArg2.pointer;
     if (arg0->state == 0) {
         Ui_UpdateLayoutSize(panel, 0xB0, 0x2F);
         panel->bounds.rect.y = -0xC;
@@ -771,7 +769,7 @@ s32 Gp_HasStockedItem(s32 arg0)
     s32         ret;
     s32         count;
 
-    scan = &Mc_SaveData[0].carriedItems;
+    scan = &Mc_SaveData[0].state.carriedItems;
     ret  = 0;
     switch (scan->table) {
         case 2:
@@ -781,7 +779,7 @@ s32 Gp_HasStockedItem(s32 arg0)
             table = Gp_ItemTable1;
             break;
         default:
-            table = Mc_SaveData[0].itemRows;
+            table = Mc_SaveData[0].state.itemRows;
             break;
     }
     i      = 0;
@@ -804,7 +802,7 @@ void Gp_ResetScanDefault(void)
     McSaveData* p;
 
     p               = &Mc_SaveData[0];
-    p->carriedItems = Gp_DefaultScan;
+    p->state.carriedItems = Gp_DefaultScan;
 }
 
 void func_800BC4BC(void)

@@ -1,77 +1,57 @@
-#ifndef STAGE_H
-#define STAGE_H
+#ifndef MAIN_STAGE_H
+#define MAIN_STAGE_H
 
-#include "common.h"
+#include "types.h"
 
-#include "main/task.h"
+#include "main/stage_types.h"
 
-// =============================================================================
-// Types — stage / area flow context (Stage_Ctx; APIs in src/main/stage.c)
-// =============================================================================
-
-/// Stage / flow context (Stage_Ctx → bss D_8007A320, size 0x38).
-typedef struct _StageCtx {
-    /* 0x00 */ TaskDesc* field_0; // task desc table for spawn
-    /* 0x04 */ s32       field_4; // spawn arg
-    /* 0x08 */ s32       field_8; // spawn arg
-    /* 0x0C */ u32       field_C;
-    /* 0x10 */ byte      unknown_10;
-    /* 0x11 */ u8        field_11;
-    /* 0x12 */ u8        field_12; // flow gate
-    /* 0x13 */ u8        field_13;
-    /* 0x14 */ u8        field_14;
-    /* 0x15 */ u8        field_15;
-    /* 0x16 */ byte      unknown_16;
-    /* 0x17 */ u8        field_17; // flow gate
-    /* 0x18 */ u8        field_18;
-    /* 0x19 */ u8        field_19; // flag bits (bit0/1)
-    /* 0x1A */ u8        field_1a;
-    /* 0x1B */ byte      unknown_1b;
-    /* 0x1C */ u32       field_1c;    // flag word
-    /* 0x20 */ s32       field_20;
-    /* 0x24 */ s32       field_24;    // last gDisplayState.frameBuffer
-    /* 0x28 */ s32       field_28;    // step counter
-    /* 0x2C */ u8        field_2C[8]; // CDF load param block
-    /* 0x34 */ u8        field_34[4]; // CDF load param block
-} StageCtx;
-STATIC_ASSERT_SIZEOF(StageCtx, 0x38);
-
-// =============================================================================
-// Globals
-// =============================================================================
-
-// The stage's background-music state, kept by the task that loads an area's
-// music (`Task_AllocIdMap` and the states after it) and by the requests that
-// start it.
+extern StageMusicParams gStageMusicParams;
 
 /// 0 while a music-load task runs, 0xFF once it has finished or given up; code
 /// that must wait for the music checks it.
 extern u8 gStageMusicLoadState;
+
 /// The music-table entry a scene selects. A load task spawned with argument 2
 /// plays it instead of the area's own entry; rooms and actors set it.
 extern u8 gStageSceneMusicEntry;
+
 /// A song a room started itself, outside the music table. Music-volume
 /// changes are applied to it too, and the next load stops it and clears this.
 extern u8 gStageRoomSong;
 
-// --- APIs ---
-void Stage_InitOtAndSpawn(void);
-s32  Stage_SetEndingFlag(void);
+s32 Stage_SetEndingFlag(void);
+
 void Stage_ReleasePrimBuf(void);
+
 /// Overlay callers pass 1; the argument is unused.
-void Stage_RequestSpecialFlag(s32 arg0);
-s32  Stage_BeginTransition(s32 arg0, s32 arg1);
-s32  Stage_BeginTransitionKind7(s32 arg0);
-s32  Stage_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void Stage_RequestSpecialFlag(s32 unused);
+
+s32 Stage_BeginTransition(s32 arg0, s32 arg1);
+
+s32 Stage_BeginTransitionKind7(s32 arg0);
+
+s32 Stage_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+
 void Stage_SetFadeMax(u8 arg0);
+
 void Stage_InitPrimBufOnce(void);
-s32  Stage_HasTransitionFlags(void);
+
+s32 Stage_HasTransitionFlags(void);
+
 /// Sets StageCtx::field_1c 0x20000000; Display_TransitionTask services it
 /// with Gfx_StoreImageSlot and clears the bit.
-s32  Stage_RequestImageCapture(void);
+s32 Stage_RequestImageCapture(void);
+
 void Stage_RequestFromAreaTable(s32 arg0);
+
 void Stage_RequestMidiFromMap(s32 arg0);
 
-void Stage_TaskExit(Task* arg0);
+s32 Stage_GetFadeStatus(void);
 
-#endif // STAGE_H
+void Stage_InitOtOnce(void);
+
+s32 Stage_GetModeByte12(void);
+
+void Stage_ResetFade(void);
+
+#endif // MAIN_STAGE_H

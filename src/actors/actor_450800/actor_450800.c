@@ -4,14 +4,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
@@ -24,7 +16,22 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/tmd.h"
 
 /// Work block of the overlay's own actor, allocated zeroed by its spawn
 /// routine and kept at `Task::work`; the overlay's enemy uses
@@ -192,11 +199,11 @@ static void func_actor_450800_80132028(void)
 
 void func_actor_450800_80132080(void)
 {
-    if (Mc_SaveData[0].demoScene != 9) {
-        Mc_SaveData[0].at4.loc.stage = 5;
-        Mc_SaveData[0].at4.loc.area  = 0x17;
-        Mc_SaveData[0].at4.loc.warp  = 1;
-        Mc_SaveData[0].at4.loc.room  = 1;
+    if (Mc_SaveData[0].state.demoScene != 9) {
+        Mc_SaveData[0].state.at4.loc.stage = 5;
+        Mc_SaveData[0].state.at4.loc.area  = 0x17;
+        Mc_SaveData[0].state.at4.loc.warp  = 1;
+        Mc_SaveData[0].state.at4.loc.room  = 1;
         gDisplayState.roomVariant    = 1;
         Task_Spawn(0, 0x11, 0, 0);
     }
@@ -226,7 +233,7 @@ static inline void _actor450800TintModel(Task* spawned, Task* actor)
     u32          idx;
 
     sessionKey = &gGameSession->at4.loc;
-    idx        = ((GpEnemy*)actor->spawnArg2)->placeKey >> 12;
+    idx        = ((GpEnemy*)actor->spawnArg2.pointer)->placeKey >> 12;
     model      = spawned->extra.tmd;
     key.stage  = sessionKey->stage;
     key.area   = sessionKey->area;
@@ -272,7 +279,7 @@ static void func_actor_450800_80132160(GpEnemy* enemy, Task* task)
     enemy->field_48              = 0;
     enemy->node.state.b.targeted = 0;
     enemy->node.state.b.flags    = 1;
-    if ((s16)(task->spawnArg1 >> 16) == 1) {
+    if ((s16)(task->spawnArg1.value >> 16) == 1) {
         obj->flags = 0;
     }
     obj->otOffset = 1;
@@ -362,7 +369,7 @@ void func_actor_450800_80132790(Task* task)
 {
     GpEnemyTaskFunc fns[2] = { func_actor_450800_80132160, func_actor_450800_801327E4 };
 
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Per-frame handler of the actor's own task, state 1 of the `fns` table
@@ -390,7 +397,7 @@ static void func_actor_450800_80132868(Task* task)
 {
     Actor450800Work* work = (Actor450800Work*)task->work;
 
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
     taskKill(work->field_4F0);
     taskKill(work->field_4F4);
     taskKill(work->field_4F8);
@@ -433,13 +440,13 @@ void func_actor_450800_80132958(Task* task)
     TmdObject* extra = task->extra.tmd;
     GpCoord*   coord = extra->coords;
     GpCoord*   parts = task->parent->extra.tmd->coords;
-    GpCoord*   part  = parts + task->spawnArg1;
+    GpCoord*   part  = parts + task->spawnArg1.value;
     VECTOR     vec;
 
     switch (task->state) {
         case 0:
             coord->flg = 0;
-            if ((s16)(task->parent->spawnArg1 >> 16) == 1) {
+            if ((s16)(task->parent->spawnArg1.value >> 16) == 1) {
                 extra->flags = 0;
             }
             coord->sub = part;
@@ -760,7 +767,7 @@ void func_actor_450800_80133264(Task* task)
 {
     GpEnemyTaskFunc fns[2] = { func_actor_450800_80132E9C, func_actor_450800_801332B8 };
 
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Per-frame handler of the enemy this actor's model task carries: state 1 of
@@ -792,7 +799,7 @@ static void func_actor_450800_801332B8(GpEnemy* enemy, Task* task)
 /// for.
 static void func_actor_450800_8013333C(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Draws the enemy's ground shadow quad under its model root, skipped while

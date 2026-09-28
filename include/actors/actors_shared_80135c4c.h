@@ -7,6 +7,9 @@
 #include "gameplay/collision.h"
 #include "gameplay/enemy.h"
 
+#include "main/session_types.h"
+#include "main/task_types.h"
+
 /// Collision object and its single record, allocated by the shared setup body.
 typedef struct ActorsShared80135c4cObjWork {
     /* 0x00 */ GpObj   obj;

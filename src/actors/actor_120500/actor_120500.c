@@ -2,17 +2,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
@@ -21,8 +10,26 @@
 #include "gameplay/hud_sprites.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflow.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "main/tmd.h"
 #include "main/wipsys.h"
+#include "overlay.h"
 
 /// The actor's work block, hung off `Task::work`. `func_actor_120500_801322A0`
 /// allocates it with `Mem_Malloc(0x4CC, 0)` and zeroes it with `Mem_Set`.
@@ -253,7 +260,7 @@ static void func_actor_120500_80132028(Task* arg0)
             break;
         case 6:
             base = Player_Status.weapon;
-            if (Mc_SaveData[0].characterId == 1) {
+            if (Mc_SaveData[0].state.characterId == 1) {
                 anim = base + 1;
             } else {
                 anim = base + 0x22;
@@ -361,7 +368,7 @@ void func_actor_120500_8013241C(Task* arg0)
             if (Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == 0) {
                 func_actor_120500_801322A0(arg0);
                 anim = Player_Status.weapon;
-                if (Mc_SaveData[0].characterId == 1) {
+                if (Mc_SaveData[0].state.characterId == 1) {
                     anim = anim + 1;
                 } else {
                     anim = anim + 0x22;
@@ -479,9 +486,9 @@ void func_actor_120500_80132708(Task* arg0)
             /* fallthrough */
         case 1:
             Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
-            fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1);
-            fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1);
-            fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1);
+            fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1.value);
+            fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1.value);
+            fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1.value);
             if (fade->r >= 0) {
                 return;
             }
@@ -519,9 +526,9 @@ void func_actor_120500_801327E4(Task* arg0)
             /* fallthrough */
         case 1:
             Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
-            work->r += (u16)arg0->spawnArg1;
-            work->g += (u16)arg0->spawnArg1;
-            work->b += (u16)arg0->spawnArg1;
+            work->r += (u16)arg0->spawnArg1.value;
+            work->g += (u16)arg0->spawnArg1.value;
+            work->b += (u16)arg0->spawnArg1.value;
             if (work->r >= 0x100) {
                 taskKill(arg0);
             }

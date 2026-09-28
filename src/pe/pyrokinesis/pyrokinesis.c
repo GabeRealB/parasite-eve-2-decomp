@@ -2,12 +2,6 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "pe/pyrokinesis.h"
 
 #include "gameplay/actor_render.h"
@@ -18,8 +12,20 @@
 #include "gameplay/pad_script.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 static void func_pyrokinesis_80130130(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_pyrokinesis_801304C4(GpCoord* arg0, s32 arg1);
@@ -85,7 +91,7 @@ static void func_pyrokinesis_8012EF48(Task* arg0)
     s16           amp;
 
     work     = (PyroWork*)arg0->work;
-    mem      = arg0->spawnArg2;
+    mem      = arg0->spawnArg2.pointer;
     tmdo     = arg0->extra.tmd;
     coord    = tmdo->coords;
     mem->age = mem->age + 1;
@@ -134,13 +140,13 @@ static void func_pyrokinesis_8012EF48(Task* arg0)
             mem->period = ((u32)Gp_LcgState >> 16) & 0xFFF;
             mem->index  = (Gp_StateC08.field_0 % 10) - 1;
             pan         = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(D_pyrokinesis_80131DD8[mem->index * 3 + arg0->spawnArg1], pan,
+            SndEvt_EnqueueType6(D_pyrokinesis_80131DD8[mem->index * 3 + arg0->spawnArg1.value], pan,
                                 (s8)gpGetObjDepth(coord));
             Gp_SpawnPadLerp((s16)(mem->index * 2 + 8), 0xFF, 8);
             if (mem->index == 1) {
-                arg0->spawnArg1 = 1;
-            } else if (arg0->spawnArg1 == 1) {
-                arg0->spawnArg1 = 0;
+                arg0->spawnArg1.value = 1;
+            } else if (arg0->spawnArg1.value == 1) {
+                arg0->spawnArg1.value = 0;
             }
             arg0->work         = (TaskIdMap*)work;
             work->obj.coord    = coord;
@@ -179,7 +185,7 @@ static void func_pyrokinesis_8012EF48(Task* arg0)
                     }
                 }
                 next = 3;
-                if (arg0->spawnArg1 == 2) {
+                if (arg0->spawnArg1.value == 2) {
                     next = 4;
                 }
                 arg0->state = next;
@@ -213,7 +219,7 @@ static void func_pyrokinesis_8012EF48(Task* arg0)
             Gp_UpdateCoord(coord);
             func_pyrokinesis_80130848(coord, mem->age, mem->angle, mem->period);
             func_pyrokinesis_80130130(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
-            if (arg0->spawnArg1 != 0) {
+            if (arg0->spawnArg1.value != 0) {
                 func_pyrokinesis_80131784(coord, mem->age, mem->angle, 0);
                 func_pyrokinesis_80131784(coord, mem->age, mem->angle, 1);
             }
@@ -249,7 +255,7 @@ static void func_pyrokinesis_8012EF48(Task* arg0)
                     }
                 }
                 next = 3;
-                if (arg0->spawnArg1 == 2) {
+                if (arg0->spawnArg1.value == 2) {
                     next = 4;
                 }
                 arg0->state = next;
@@ -306,7 +312,7 @@ static void func_pyrokinesis_8012EF48(Task* arg0)
                     }
                 }
                 next = 3;
-                if (arg0->spawnArg1 == 2) {
+                if (arg0->spawnArg1.value == 2) {
                     next = 4;
                 }
                 arg0->state = next;
@@ -377,7 +383,7 @@ static void func_pyrokinesis_8012FAC8(Task* arg0)
     s16        flag;
     s32        state;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_StateC08.field_3 != -2) {
         scene = Gp_State1C->battleState;
@@ -723,7 +729,7 @@ static void func_pyrokinesis_80130C54(Task* arg0)
     s16        temp_a1;
     s32        y;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_StateC08.field_3 != -2) {
         flag = Gp_State1C->fadeState;
@@ -832,7 +838,7 @@ static void func_pyrokinesis_801311B8(Task* arg0)
     s32        scale;
     s32        angle;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_StateC08.field_3 != -2) {
         flag = Gp_State1C->fadeState;
@@ -841,7 +847,7 @@ static void func_pyrokinesis_801311B8(Task* arg0)
                 return;
             }
             if (arg0->state == 0) {
-                Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1, 0);
+                Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1.value, 0);
                 coord->flg  = 0;
                 mem->scale  = 0x80;
                 mem->angle  = 0x100;
@@ -1052,7 +1058,7 @@ static void func_pyrokinesis_80131CE4(Task* arg0)
     s32        scale;
     s32        angle;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_StateC08.field_3 != -2) {
         flag = Gp_State1C->fadeState;

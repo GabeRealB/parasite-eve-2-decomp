@@ -5,14 +5,6 @@
 #include <psyq/inline_c.h>
 #include <psyq/gtemac.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -21,7 +13,17 @@
 #include "gameplay/direction.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/model_objects.h"
-#include "main/fs.h"
+
+#include "gameplay/evs.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 /// The mirror's configuration, filled in by `func_shelter_b1_control_room_8017D600`
 /// whenever the view moves. `active` other than 1 hides the reflection.
@@ -131,7 +133,7 @@ static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg)
     GpAreaKey* key;
     s32        one;
 
-    key = &Mc_SaveData[0].at4.loc;
+    key = &Mc_SaveData[0].state.at4.loc;
     one = 1;
     do {
         stage = key->stage;
@@ -620,7 +622,7 @@ static void func_shelter_b1_control_room_8017EE2C(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     if (gGameSession->at4.loc.place == 0xB) {
         func_80131FB8();
-        if (Mc_SaveData[0].demoScene != 9) {
+        if (Mc_SaveData[0].state.demoScene != 9) {
             func_800E8634(&D_80132D70, 0, &D_80133088);
         }
     }

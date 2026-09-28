@@ -1,13 +1,4 @@
 #include "common.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/task.h"
 #include "rooms/mist_parking.h"
 
 #include "gameplay/actor.h"
@@ -17,6 +8,18 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
 #include "gameplay/scene_runtime.h"
+
+#include "gameplay/enemy.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "main/text.h"
 #include "main/wipsys.h"
 
 /// Scratch state of the parking-lot cap script driven by
@@ -99,7 +102,7 @@ void func_mist_parking_80183D58(Task* task)
             flag = 0;
         }
         if (task->state == 0) {
-            if ((flag != 0) || (task->spawnArg1 != 0)) {
+            if ((flag != 0) || (task->spawnArg1.value != 0)) {
                 tick                = task->killCountdown + 0x100;
                 task->killCountdown = tick;
                 if ((s16)tick >= 0x1001) {
@@ -237,7 +240,7 @@ void func_mist_parking_80183EAC(Task* task)
             break;
         case 8:
             key             = Gp_GetCapEventKey();
-            task->spawnArg1 = key;
+            task->spawnArg1.value = key;
             if (key == 6) {
                 func_800E8614((s32)&D_mist_parking_80191214, 1);
                 st->field_4 = 1;
@@ -253,7 +256,7 @@ void func_mist_parking_80183EAC(Task* task)
             tick2               = task->killCountdown + 1;
             task->killCountdown = tick2;
             if ((s16)tick2 == 0xA) {
-                switch (task->spawnArg1) {
+                switch (task->spawnArg1.value) {
                     case 6:
                         Gp_RunCapCmd(7, 0);
                         break;
@@ -277,7 +280,7 @@ void func_mist_parking_80183EAC(Task* task)
             }
             cmd                 = 0xA;
             task->killCountdown = 0;
-            if (task->spawnArg1 == 7) {
+            if (task->spawnArg1.value == 7) {
                 cmd = 6;
             }
             task->state = cmd;
@@ -309,7 +312,7 @@ void func_mist_parking_801842DC(Task* task)
             break;
         case 2:
             key             = Gp_GetCapEventKey();
-            task->spawnArg1 = key;
+            task->spawnArg1.value = key;
             switch (key) {
                 case 1:
                     func_800E8614((s32)&D_mist_parking_80190D64, 1);
@@ -324,7 +327,7 @@ void func_mist_parking_801842DC(Task* task)
             task->state++;
             break;
         case 4:
-            if (task->spawnArg1 == 1) {
+            if (task->spawnArg1.value == 1) {
                 Gp_MsgPlayerWeapon(1);
             }
             func_mist_parking_801846A4(0);
@@ -346,15 +349,15 @@ void func_mist_parking_80184428(s32 arg0)
 
 void func_mist_parking_80184468(s32 arg0)
 {
-    Mc_SaveData[0].at4.loc.stage = 1;
-    Mc_SaveData[0].at4.loc.warp  = 1;
-    Mc_SaveData[0].at4.loc.room  = 1;
-    Mc_SaveData[0].at4.loc.area  = arg0;
+    Mc_SaveData[0].state.at4.loc.stage = 1;
+    Mc_SaveData[0].state.at4.loc.warp  = 1;
+    Mc_SaveData[0].state.at4.loc.room  = 1;
+    Mc_SaveData[0].state.at4.loc.area  = arg0;
     gDisplayState.roomVariant    = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
     if (arg0 == 5) {
-        Fs_BeginBootLoad(&Mc_SaveData[0].at4.loc.view, 0);
+        Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 0);
     }
 }
 
@@ -368,14 +371,14 @@ void func_mist_parking_8018451C(void)
 {
     func_800BC4BC();
     Player_Status.field_26       = 1;
-    Mc_SaveData[0].at4.loc.area  = 5;
-    Mc_SaveData[0].at4.loc.stage = 1;
-    Mc_SaveData[0].at4.loc.warp  = 1;
-    Mc_SaveData[0].at4.loc.room  = 1;
+    Mc_SaveData[0].state.at4.loc.area  = 5;
+    Mc_SaveData[0].state.at4.loc.stage = 1;
+    Mc_SaveData[0].state.at4.loc.warp  = 1;
+    Mc_SaveData[0].state.at4.loc.room  = 1;
     gDisplayState.roomVariant    = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
-    Fs_BeginBootLoad(&Mc_SaveData[0].at4.loc.view, 0);
+    Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 0);
 }
 
 /// Spawns entry 1 of `D_mist_parking_80190824` and keeps its handle in
@@ -400,7 +403,7 @@ void func_mist_parking_801845D0(s32 phase)
     if (phase < 0) {
         goto kill;
     }
-    t->spawnArg1 = phase;
+    t->spawnArg1.value = phase;
     return;
 kill:
     taskKill(D_mist_parking_8019532C);
@@ -416,8 +419,8 @@ void func_mist_parking_80184668(Task* arg0)
 {
     s32 temp_v0;
 
-    temp_v0         = arg0->spawnArg1 - 1;
-    arg0->spawnArg1 = temp_v0;
+    temp_v0         = arg0->spawnArg1.value - 1;
+    arg0->spawnArg1.value = temp_v0;
     if (temp_v0 < 0) {
         taskKill(arg0);
         Stage_SetEndingFlag();

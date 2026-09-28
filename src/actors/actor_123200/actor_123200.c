@@ -10,12 +10,6 @@
 #include "actors/actor.h"
 #include "actors/actors_shared_80135990.h"
 #include "actors/actors_shared_80135a60.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/world_collision.h"
@@ -26,8 +20,23 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task_types.h"
+#include "main/tmd.h"
+#include "overlay.h"
+#include <psyq/memory.h>
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 
@@ -140,7 +149,7 @@ static void func_actor_123200_80131E50(GpCoord* coord, s16 yaw)
 /// coordinate's world position from it; the last such push is kept in the
 /// scratch block, and its length is scaled down to 0x100 when longer. Returns
 /// whether any record of those kinds was met. Does nothing, returning 0, while
-/// `Mc_SaveData[0].field_5C1` or the session's `viewReady` is 1.
+/// `Mc_SaveData[0].state.field_5C1` or the session's `viewReady` is 1.
 static s32 func_actor_123200_8013215C(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
@@ -148,7 +157,7 @@ static s32 func_actor_123200_8013215C(GpCoord* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (Mc_SaveData[0].field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                      = 0;
@@ -196,14 +205,14 @@ static s32 func_actor_123200_8013215C(GpCoord* coord, GpRec18* recs, s16 count)
 /// the first `count` of `recs`, drops both bearings of every pair more than 0x400 apart, and
 /// for each bearing left steps `coord` 10 units away from it, accumulating the
 /// total XZ step in `pos`. Returns whether any kind 0x10000 record was met;
-/// returns 0 at once when the session's `viewReady` or `Mc_SaveData[0].field_5C1` is 1.
+/// returns 0 at once when the session's `viewReady` or `Mc_SaveData[0].state.field_5C1` is 1.
 static s32 func_actor_123200_801324A4(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
     s16                  diff;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData[0].field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.field_5C1 == 1) {
         return 0;
     }
 
@@ -693,7 +702,7 @@ static void func_actor_123200_80133820(GpEnemy* enemy, Task* task)
     work->field_6++;
     SCRATCH_PUSH_BYTES(0xC);
     coord = task->extra.tmd->coords;
-    if (Mc_SaveData[0].field_5C1 != 1) {
+    if (Mc_SaveData[0].state.field_5C1 != 1) {
         Actor123200_StepForward(coord);
     }
     func_actor_123200_801332E0(task);
@@ -709,7 +718,7 @@ static __inline__ void Actor123200_MoveForward(GpCoord* coord)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (Mc_SaveData[0].field_5C1 != 1) {
+    if (Mc_SaveData[0].state.field_5C1 != 1) {
         head                  = SCRATCH_HEAD(SVECTOR);
         vec                   = head - 1;
         SCRATCH_HEAD(SVECTOR) = vec;
@@ -895,7 +904,7 @@ s32 func_actor_123200_80133EDC(Task* task, s32 arg1, GpCmdArg* msg)
     GpEnemy*         enemy;
 
     work            = (Actor123200Work*)task->work;
-    enemy           = (GpEnemy*)task->spawnArg2;
+    enemy           = (GpEnemy*)task->spawnArg2.pointer;
     work->field_194 = msg->from.loc.stage;
     work->field_195 = msg->from.loc.area;
     work->field_196 = (u8)msg->command;
@@ -1000,5 +1009,5 @@ void func_actor_123200_801341A8(Task* task)
     GpEnemyTaskFuncTable3 sp;
 
     sp = D_actor_123200_80131E30;
-    sp.funcs[task->state](task->spawnArg2, task);
+    sp.funcs[task->state](task->spawnArg2.pointer, task);
 }

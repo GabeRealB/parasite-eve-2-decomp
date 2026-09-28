@@ -1,26 +1,48 @@
-#include "common.h"
-
-#include <psyq/libetc.h>
-
-#include "main/unknown_syms.h"
-#include "main/cdaudio.h"
-#include "main/cdstream.h"
 #include "main/fs.h"
 
-static void CdVol_ClearCallbackSlot(AsyncCbEntry* unused);
-static void CdVol_Set(s32 arg0);
-static s32  Cd_Flush(AsyncCbEntry* unused);
+#include <psyq/sys/types.h>
+#include <psyq/libcd.h>
+#include <psyq/libetc.h>
+#include <psyq/libspu.h>
+
+#include "types.h"
+
+#include "cdaudio.h"
+#include "cdstream.h"
+#include "fs.h"
+#include "main/sound.h"
+#include "sound.h"
+#include "sound_types.h"
 
 static u16 D_8006EBB8;
-static s8  D_8006EBBA;
+
+static s8 D_8006EBBA;
+
 /// Unreferenced.
-static u8            D_8006EBC0[8];
+static u8 D_8006EBC0[8];
+
 static SpuCommonAttr Fs_SpuAttr;
-static s16           D5B498_8006EBF0;
-static s16           D_8006EBF2;
-static volatile s32  D_8006EBF4;
+
+static s16 D5B498_8006EBF0;
+
+static s16 D_8006EBF2;
+
+static volatile s32 D_8006EBF4;
+
 /// Unreferenced.
 static u8 D_8006EBF8[8];
+
+static s32 Cd_InitStateMachine(AsyncCbEntry* entry);
+
+static void CdVol_RegisterCallbacks(void);
+
+static void CdVol_ClearCallbackSlot(AsyncCbEntry* unused);
+
+static s32 Cd_Flush(AsyncCbEntry* unused);
+
+static s32 CdVol_Get(void);
+
+static void CdVol_Set(s32 arg0);
 
 void Fs_StreamReadyCb(u8 status, u8* result)
 {
@@ -43,7 +65,7 @@ void Fs_StreamReadyCb(u8 status, u8* result)
             return;
         }
         Fs_VBlank     = VSync(-1);
-        buf           = state->field_4;
+        buf           = state->sectorBuffer;
         Fs_ReqSector += 1;
         CdGetSector(buf, 0x200);
         ret = SndLoad_FeedSectorOrError(buf);
@@ -64,7 +86,7 @@ void Fs_StreamReadyCb(u8 status, u8* result)
     CdReadyCallback(NULL);
 }
 
-static s32 Cd_InitStateMachine(AsyncCbEntry* arg0)
+static s32 Cd_InitStateMachine(AsyncCbEntry* entry)
 {
     struct {
         u8     result[8];
@@ -77,14 +99,14 @@ static s32 Cd_InitStateMachine(AsyncCbEntry* arg0)
     u32 temp;
     s16 counter;
 
-    flags = arg0->field_0.word;
+    flags = entry->field_0.word;
     if ((flags >> 1) & 1) {
-        temp               = flags & ~2;
-        temp               = temp & ~0xFF0;
-        arg0->field_0.word = temp | 0x10;
+        temp                = flags & ~2;
+        temp                = temp & ~0xFF0;
+        entry->field_0.word = temp | 0x10;
     }
 
-    switch (((u32)arg0->field_0.word >> 4) & 0xFF) {
+    switch (((u32)entry->field_0.word >> 4) & 0xFF) {
         case 1:
             if (CdControlB(CdlNop, NULL, sp.result) == 0) {
                 return 0;
@@ -93,32 +115,32 @@ static s32 Cd_InitStateMachine(AsyncCbEntry* arg0)
                 return 0;
             }
             if (sp.result[0] & CdlStatStandby) {
-                arg0->field_0.word = (arg0->field_0.word & ~0xFF0) | 0x20;
+                entry->field_0.word = (entry->field_0.word & ~0xFF0) | 0x20;
                 case 2:
                     if (CdControlB(CdlGetTN, NULL, sp.result) != 0) {
-                        arg0->field_0.word = (arg0->field_0.word & ~0xFF0) | 0x40;
+                        entry->field_0.word = (entry->field_0.word & ~0xFF0) | 0x40;
                         case 3:
                             sync = CdSync(1, sp.result);
                             if (sync == CdlDiskError) {
-                                arg0->field_0.word = (arg0->field_0.word & ~0xFF0) | 0x20;
+                                entry->field_0.word = (entry->field_0.word & ~0xFF0) | 0x20;
                             } else if (sync == CdlComplete) {
-                                arg0->field_0.word = (arg0->field_0.word & ~0xFF0) | 0x40;
+                                entry->field_0.word = (entry->field_0.word & ~0xFF0) | 0x40;
                                 case 4:
                                     CdIntToPos(0, &sp.loc);
                                     if (CdControl(CdlSeekL, (u8*)&sp.loc, sp.result) != 0) {
-                                        arg0->field_0.word = (arg0->field_0.word & ~0xFF0) | 0x50;
+                                        entry->field_0.word = (entry->field_0.word & ~0xFF0) | 0x50;
                                         case 5:
                                             sync = CdSync(1, sp.result);
                                             if ((sync == CdlDiskError) && (sp.result[0] & CdlStatError) &&
                                                 (sp.result[1] & 0x40)) {
-                                                arg0->field_0.word = (arg0->field_0.word & ~0xFF0) | 0x10;
+                                                entry->field_0.word = (entry->field_0.word & ~0xFF0) | 0x10;
                                             } else if (sync != CdlComplete) {
-                                                arg0->field_0.word = (arg0->field_0.word & ~0xFF0) | 0x60;
+                                                entry->field_0.word = (entry->field_0.word & ~0xFF0) | 0x60;
                                                 case 6:
                                                     sp.mode = -0x60;
                                                     if (CdControl(CdlSetmode, (u8*)&sp.mode, NULL) != 0) {
-                                                        D_8006EBB8         = 0;
-                                                        arg0->field_0.word = (arg0->field_0.word & ~0xFF0) | 0x70;
+                                                        D_8006EBB8          = 0;
+                                                        entry->field_0.word = (entry->field_0.word & ~0xFF0) | 0x70;
                                                     }
                                             }
                                     }
@@ -175,7 +197,7 @@ void CdVol_SetMixMode(s32 arg0)
     Midi_SetMasterVolume(Midi_GetMasterVolume() & 0xFF);
     flag = (u8)flag;
     SndVoice_ApplyMasterVolume(SndVoice_GetMasterVolume());
-    CdStream_SetLinkedPitch(flag ^ 1);
+    CdStream_SetMono(flag ^ 1);
     if (flag == 0) {
         atv.val0 = 0x5A;
         atv.val1 = 0x5A;
@@ -209,7 +231,7 @@ static void CdVol_RegisterCallbacks(void)
     sp.field_8  = Cd_InitStateMachine;
     sp.field_C  = CdVol_ClearCallbackSlot;
     sp.field_10 = Cd_Flush;
-    *ptr        = func_8004DE18(&sp);
+    *ptr        = AsyncCb_Enqueue(&sp);
 }
 
 static void CdVol_ClearCallbackSlot(AsyncCbEntry* unused)

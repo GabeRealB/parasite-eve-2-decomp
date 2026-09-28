@@ -2,10 +2,6 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/neo_ark_altar.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -15,8 +11,13 @@
 #include "gameplay/area_transitions.h"
 #include "gameplay/display.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/world_state.h"
+#include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// 0xFF-terminated area-record list applied the first time the altar fires.
 extern GpAreaApplyRec D_neo_ark_altar_801800A0;
@@ -50,7 +51,7 @@ void func_neo_ark_altar_8017D668(Task* task)
 {
     switch (task->state) {
         case 0:
-            Mc_SaveData[0].at4.loc.view = 5;
+            Mc_SaveData[0].state.at4.loc.view = 5;
             gGameSession->hideHud       = 1;
             gGameSession->eventState    = 1;
             Gp_StateF0.field_4          = 2;
@@ -114,7 +115,7 @@ void func_neo_ark_altar_8017D668(Task* task)
             break;
         case 10:
             SetDispMask(1);
-            Mc_SaveData[0].at4.loc.view = 2;
+            Mc_SaveData[0].state.at4.loc.view = 2;
             gGameSession->hideHud       = 0;
             gGameSession->eventState    = 0;
             Gp_StateF0.field_4          = 0;

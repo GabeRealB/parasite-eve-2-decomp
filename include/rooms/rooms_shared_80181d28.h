@@ -3,10 +3,10 @@
 
 #include "common.h"
 
-#include "main/task.h"
-
-#include <psyq/libgpu.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
+#include "main/task_types.h"
 
 /// The glow sprite: a camera-facing textured quad at the task coordinate's
 /// origin, flickering between two grey levels on alternate frames and picking

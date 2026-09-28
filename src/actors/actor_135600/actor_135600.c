@@ -9,12 +9,6 @@
 
 #include "actors/actor.h"
 
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-
 #include "gameplay/actor_render.h"
 #include "gameplay/collision.h"
 #include "gameplay/display.h"
@@ -25,7 +19,17 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/enemy.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "overlay.h"
 
 /// Optional start animation for `func_actor_135600_8013282C`: the preset's
 /// `field_4` and the `model.nextAnimId` byte. Absent, the defaults are anim 0xD and 1.
@@ -252,19 +256,19 @@ static void func_actor_135600_80132234(Task* task)
     work->walk.acc[1].w = 0;
     work->walk.acc[2].w = 0;
 
-    spawned = Task_SpawnFromTable(&D_actor_135600_8013B0C4, 1, 8, (s32)task);
+    spawned = Task_SpawnFromTable(&D_actor_135600_8013B0C4, 1, 8, task);
     if (spawned != NULL) {
         work->child1 = spawned;
-        actorTintModel(spawned->extra.tmd, (GpEnemy*)task->spawnArg2);
+        actorTintModel(spawned->extra.tmd, (GpEnemy*)task->spawnArg2.pointer);
     }
 
-    spawned = Task_SpawnFromTable(&D_actor_135600_8013B0C4, 2, 0xC, (s32)task);
+    spawned = Task_SpawnFromTable(&D_actor_135600_8013B0C4, 2, 0xC, task);
     if (spawned != NULL) {
         work->child0 = spawned;
-        actorTintModel(spawned->extra.tmd, (GpEnemy*)task->spawnArg2);
+        actorTintModel(spawned->extra.tmd, (GpEnemy*)task->spawnArg2.pointer);
     }
 
-    spawned = Task_SpawnFromTable(&D_actor_135600_8013B0C4, 3, 8, (s32)task);
+    spawned = Task_SpawnFromTable(&D_actor_135600_8013B0C4, 3, 8, task);
     if (spawned != NULL) {
         work->child2 = spawned;
     }
@@ -471,8 +475,8 @@ static void func_actor_135600_80132A38(Task* task)
     GpCoord*   coord;
     GpCoord*   dest;
 
-    parent          = (Task*)task->spawnArg2;
-    part            = task->spawnArg1;
+    parent          = (Task*)task->spawnArg2.pointer;
+    part            = task->spawnArg1.value;
     extra           = task->extra.tmd;
     parentExtra     = parent->extra.tmd;
     coord           = extra->coords;
@@ -517,9 +521,9 @@ static void func_actor_135600_80132B14(Task* task)
     GpCoord*   coord;
     GpCoord*   dest;
 
-    parent      = (Task*)task->spawnArg2;
+    parent      = (Task*)task->spawnArg2.pointer;
     extra       = task->extra.tmd;
-    part        = task->spawnArg1;
+    part        = task->spawnArg1.value;
     parentExtra = parent->extra.tmd;
     coord       = extra->coords;
     dest        = &parentExtra->coords[part];

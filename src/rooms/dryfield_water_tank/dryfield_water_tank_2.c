@@ -4,17 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/rand.h>
 
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/tmd.h"
-
 #include "rooms/dryfield_water_tank.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -27,8 +16,24 @@
 #include "gameplay/loading.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stream.h"
+#include "main/task.h"
 #include "main/wipsys.h"
+#include "overlay.h"
 
 /// Work block for the water-tank cutscene task, allocated as 0xC zeroed bytes
 /// by `func_dryfield_water_tank_8017E9F8` and hung off `Task::work` (0x1C): only
@@ -51,7 +56,7 @@ STATIC_ASSERT_SIZEOF(DwtWork, 0x10);
 /// Main-executable globals with no module header yet: the cutscene task
 /// refuses to start while `Gp_StateC08.field_A` is 1 or `gDisplayState.pendingMode` is non-zero.
 /// `Player_Status.weapon` is the equipped-weapon index the slot-3 msg 0x3E8 animation
-/// record is keyed on, and `Mc_SaveData[0].characterId` picks which of the two weapon-id bases
+/// record is keyed on, and `Mc_SaveData[0].state.characterId` picks which of the two weapon-id bases
 /// that record uses.
 
 /// Main-executable flag set to 1 before the view tasks are respawned.
@@ -153,9 +158,9 @@ void func_dryfield_water_tank_8017E3C4(Task* arg0)
             dr->code[0] = 0xE1000240;
             addPrim(gGpuCurrentOt - 16, dr);
 
-            fade->r += (u16)arg0->spawnArg1;
-            fade->g += (u16)arg0->spawnArg1;
-            fade->b += (u16)arg0->spawnArg1;
+            fade->r += (u16)arg0->spawnArg1.value;
+            fade->g += (u16)arg0->spawnArg1.value;
+            fade->b += (u16)arg0->spawnArg1.value;
             if (fade->r >= 0x100) {
             kill:
                 taskKill(arg0);
@@ -317,7 +322,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                     // $a1 and `field_4` is stored through it.
                     rec                    = &script;
                     weaponId               = Player_Status.weapon;
-                    script.animBlock.index = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                    script.animBlock.index = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                     rec->field_4           = 1;
                     script.field_8         = 0;
                     script.field_C         = 0;
@@ -379,7 +384,7 @@ L_case0:
             D_dryfield_water_tank_80188D50 = task;
         }
         weaponId               = Player_Status.weapon;
-        anim                   = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+        anim                   = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
         script.animBlock.index = anim;
         script.field_4         = 1;
         script.field_8         = 1;
@@ -428,7 +433,7 @@ void func_dryfield_water_tank_8017EBA0(void)
     Gp_DispatchMsgPtr(((DwtWork*)D_dryfield_water_tank_80188D50->work)->owner, 0x3E9,
                       &D_dryfield_water_tank_801804F4, 0);
     weaponId            = Player_Status.weapon;
-    anim                = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    anim                = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = anim;
     rec.field_4         = 1;
     rec.field_8         = 0;

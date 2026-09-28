@@ -2,18 +2,20 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/tmd.h"
 #include "weapons/gunblade.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/room_effects.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/task.h"
 
 static void func_gunblade_8011D70C(s16 slot, s16 flags);
 
@@ -39,7 +41,7 @@ static void func_gunblade_8011D1E4(Task* task)
     SVECTOR*   vec;
     s32        i;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         keep = Gp_State1C->eventState < 4;
@@ -113,7 +115,7 @@ static void func_gunblade_8011D1E4(Task* task)
                 }
                 if (work->index == 1) {
                     work->index++;
-                    eff = Gp_SpawnEff(0x6029A, coord, task->spawnArg1, NULL);
+                    eff = Gp_SpawnEff(0x6029A, coord, task->spawnArg1.value, NULL);
                     if (eff != NULL) {
                         Task_Reparent(task, eff->task);
                     }
@@ -220,7 +222,7 @@ static void func_gunblade_8011DAA4(Task* task)
     s32        i;
 
     coord = task->extra.tmd->coords;
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -232,7 +234,7 @@ static void func_gunblade_8011DAA4(Task* task)
     Gp_UpdateCoord(coord);
     work->age++;
 
-    switch (task->spawnArg1) {
+    switch (task->spawnArg1.value) {
         case 13:
             if (task->state == 0) {
                 Gp_SpawnEff(0x60076, coord, 0x600, NULL);
@@ -348,7 +350,7 @@ void func_gunblade_8011E008(s32 arg0)
     GpEffWork* work = D_gunblade_8012E248;
 
     if (work != NULL) {
-        D_gunblade_8012E244->spawnArg1 = arg0;
+        D_gunblade_8012E244->spawnArg1.value = arg0;
         work->index++;
     }
 }

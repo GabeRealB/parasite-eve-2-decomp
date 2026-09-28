@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 /// The descriptors of the warehouse's cutscene tasks, spawned by index: the
 /// cutscene task itself, the screen fade that ramps its channels up from 0, and

@@ -1,17 +1,19 @@
 #include "common.h"
 
 #include "actors/actor.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/collision.h"
 #include "gameplay/display.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session_types.h"
+#include "main/task.h"
 
 /// The block above, published by `func_actor_110300_80131F9C` from the task's
 /// `Task::work`.
@@ -105,7 +107,7 @@ void func_actor_110300_80131F9C(Task* task)
     };
 
     D_actor_110300_8013A0A0 = task->work;
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Entry of the helper task: parents the given task's model root to node 8 of
@@ -150,7 +152,7 @@ static void func_actor_110300_80132020(GpEnemy* enemy, Task* task)
 static void func_actor_110300_80132088(Task* arg0)
 {
     taskKill(D_actor_110300_8013A0A8);
-    Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+    Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
 }
 
 /// Advances the animation per the work block's `st.state`: step 1 reseeds the

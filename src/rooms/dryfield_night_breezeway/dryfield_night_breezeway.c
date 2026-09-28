@@ -4,11 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -16,7 +11,14 @@
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/room_effects.h"
-#include "main/fs.h"
+
+#include "gameplay/scene.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "overlay.h"
 
 static void func_dryfield_night_breezeway_8017D634(Task* task);
 static void func_dryfield_night_breezeway_8017D678(Task* task);

@@ -5,15 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
@@ -65,8 +56,22 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 /// Descriptor of the room's own event task, which the message handler spawns.
 extern TaskDesc D_dryfield_night_main_street_8018208C;
@@ -154,7 +159,7 @@ void func_dryfield_night_main_street_8017D600(Task* arg0)
                     D_dryfield_night_main_street_80188BA4.field_0 = 0;
                     D_dryfield_night_main_street_80188BA4.field_1 = 0;
                     D_dryfield_night_main_street_80188BA4.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, (s32)&D_dryfield_night_main_street_80188BA4);
+                    Task_Spawn(1, 0x31, 0, &D_dryfield_night_main_street_80188BA4);
                 }
                 arg0->state++;
             }
@@ -175,9 +180,9 @@ void func_dryfield_night_main_street_8017D600(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_dryfield_night_main_street_80188BAC.msgId;
-            Mc_SaveData[0].at4.loc.warp = D_dryfield_night_main_street_80188BAC.field_2;
-            Mc_SaveData[0].at4.loc.room = D_dryfield_night_main_street_80188BAC.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_main_street_80188BAC.msgId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_main_street_80188BAC.field_2;
+            Mc_SaveData[0].state.at4.loc.room = D_dryfield_night_main_street_80188BAC.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -282,9 +287,9 @@ void func_dryfield_night_main_street_8017D8FC(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_dryfield_night_main_street_80188BBC.msgId;
-            Mc_SaveData[0].at4.loc.warp = D_dryfield_night_main_street_80188BBC.field_2;
-            Mc_SaveData[0].at4.loc.room = (u8)D_dryfield_night_main_street_80188BBC.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_main_street_80188BBC.msgId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_main_street_80188BBC.field_2;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_main_street_80188BBC.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -586,7 +591,7 @@ static void func_dryfield_night_main_street_8017E484(Task* task)
     }
     Gp_State1C->roomEffectMode = D_dryfield_night_main_street_80182178[(Gp_GetViewIndex() & 0xFF) - 1];
     if ((Gp_GetViewIndex() & 0xFF) == 8 || (Gp_GetViewIndex() & 0xFF) == 0x13) {
-        if (task->spawnArg1 != (Gp_GetViewIndex() & 0xFF)) {
+        if (task->spawnArg1.value != (Gp_GetViewIndex() & 0xFF)) {
             for (i = 0; i < 0x30; i++) {
                 D_dryfield_night_main_street_801821A8[16].vx = DRYFIELD_NIGHT_MAIN_STREET_RAND() % 300 - 0x4A1;
                 D_dryfield_night_main_street_801821A8[16].vy = DRYFIELD_NIGHT_MAIN_STREET_RAND() % 600 - 0x4E7;
@@ -602,7 +607,7 @@ static void func_dryfield_night_main_street_8017E484(Task* task)
                         &D_dryfield_night_main_street_801821A8[16]);
         }
     }
-    task->spawnArg1 = Gp_GetViewIndex() & 0xFF;
+    task->spawnArg1.value = Gp_GetViewIndex() & 0xFF;
 }
 
 /// Draws a light shaft between the two world points `arg0[0]` and `arg0[1]`:
@@ -784,7 +789,7 @@ static void func_dryfield_night_main_street_8017F128(SVECTOR* arg0, s32 arg1, s3
 
 static void func_dryfield_night_main_street_8017F3B0(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2;
+    GpEffWork* work  = task->spawnArg2.pointer;
     GpCoord*   coord = task->extra.tmd->coords;
     s32        vz;
     s16        f2a;
@@ -793,12 +798,12 @@ static void func_dryfield_night_main_street_8017F3B0(Task* task)
 
     work->age++;
     if (task->state == 0) {
-        work->scale = task->spawnArg1 & 0xFFF;
+        work->scale = task->spawnArg1.value & 0xFFF;
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         work->angle = (Gp_LcgState >> 16) & 0xFFF;
 
-        if (task->spawnArg1 & 0xF000) {
-            work->period = (task->spawnArg1 >> 12) & 0x7;
+        if (task->spawnArg1.value & 0xF000) {
+            work->period = (task->spawnArg1.value >> 12) & 0x7;
         } else {
             work->period = 1;
         }
@@ -806,8 +811,8 @@ static void func_dryfield_night_main_street_8017F3B0(Task* task)
         work->age   = 0;
         task->state = 1;
 
-        if (task->spawnArg1 & 0xFF0000) {
-            f2a = (task->spawnArg1 >> 16) & 0xFF;
+        if (task->spawnArg1.value & 0xFF0000) {
+            f2a = (task->spawnArg1.value >> 16) & 0xFF;
         } else {
             f2a = 0x40;
         }
@@ -939,7 +944,7 @@ static void func_dryfield_night_main_street_8017FA68(Task* task)
     GpCoord*   coord;
     s32        lifetime;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -949,29 +954,29 @@ static void func_dryfield_night_main_street_8017FA68(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                if (task->spawnArg1 & 3) {
+                if (task->spawnArg1.value & 3) {
                     work->scale   = 0x80;
-                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1.value)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1)->speed;
+                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1.value)->speed;
                     work->move.vz = 0;
-                    if (task->spawnArg1 & 2) {
+                    if (task->spawnArg1.value & 2) {
                         work->move.vy = -work->move.vy;
                     }
                     task->state = 2;
                 } else {
                     work->scale   = 0x20;
-                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1.value)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
+                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1.value)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
                     work->move.vz = 0;
-                    task->state   = (task->spawnArg1 & 1) + 1;
+                    task->state   = (task->spawnArg1.value & 1) + 1;
                 }
                 break;
             case 1:
@@ -1203,7 +1208,7 @@ static void func_dryfield_night_main_street_801807B0(Task* arg0)
     s16         flag;
     s32         shift;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -1227,17 +1232,17 @@ static void func_dryfield_night_main_street_801807B0(Task* arg0)
                 coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->index      = shift;
-                arg0->spawnArg1 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0;
+                arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
                 arg0->state     = 1;
-                mem->step       = 0x100 / arg0->spawnArg1;
+                mem->step       = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
                 mem->scale      += mem->step;
                 mem->angle      += mem->step;
-                arg0->spawnArg1 -= 1;
+                arg0->spawnArg1.value -= 1;
                 rgb[0]           = mem->scale >> D_dryfield_night_main_street_80182270[mem->index].r;
                 rgb[1]           = mem->scale >> D_dryfield_night_main_street_80182270[mem->index].g;
                 rgb[2]           = mem->scale >> D_dryfield_night_main_street_80182270[mem->index].b;
@@ -1249,7 +1254,7 @@ static void func_dryfield_night_main_street_801807B0(Task* arg0)
                     func_dryfield_night_main_street_8018041C(coord, (s16)(mem->angle + 0x100), rgb);
                 }
                 func_dryfield_night_main_street_8017FFF8(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
-                if (arg0->spawnArg1 == 0) {
+                if (arg0->spawnArg1.value == 0) {
                     mem->scale  = 0xFF;
                     arg0->state = 2;
                     return;
@@ -1290,7 +1295,7 @@ static void func_dryfield_night_main_street_80180B48(Task* arg0)
     s16        flag;
     s16        step;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -1666,7 +1671,7 @@ static void func_dryfield_night_main_street_80181F58(Task* arg0)
     s16        flag;
     s16        ang;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {

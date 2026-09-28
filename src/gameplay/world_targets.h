@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#include "main/mc.h"
+#include "main/mc_types.h"
 
 void Gp_DrawTargetCursor(void);
 

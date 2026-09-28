@@ -4,15 +4,14 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-
-#include "main/coord.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/ui.h"
 #include "overlay.h"
 
 #include "gameplay/inventory.h"
 #include "gameplay/message.h"
+
+#include "main/coord.h"
+#include "main/task_types.h"
+#include "main/ui_types.h"
 
 /// Screen rectangle outlined by `Room_Draw26`: the corners it draws are
 /// (`x`, `y`) and (`x + w`, `y + h`), so `w` and `h` are extents rather than a

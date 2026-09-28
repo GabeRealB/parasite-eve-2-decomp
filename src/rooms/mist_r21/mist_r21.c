@@ -1,14 +1,14 @@
 #include "common.h"
-
-#include "main/fs.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/task.h"
 #include "rooms/room.h"
 
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
+
+#include "main/fs.h"
 #include "main/mc.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/task.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_mist_r21_8017D770[];
@@ -60,10 +60,10 @@ static void func_mist_r21_8017D61C(Task* task)
 static void func_mist_r21_8017D678(Task* task)
 {
     if ((Pad_CheckButtons(0, 0, 0x200) != 0) && (Pad_CheckButtons(0, 1, 0x40) != 0)) {
-        Mc_SaveData[0].at4.loc.area = 5;
-        Mc_SaveData[0].at4.loc.warp = 1;
-        Mc_SaveData[0].at4.loc.view = 2;
-        Fs_BeginBootLoad(&Mc_SaveData[0].at4.loc.view, 0);
+        Mc_SaveData[0].state.at4.loc.area = 5;
+        Mc_SaveData[0].state.at4.loc.warp = 1;
+        Mc_SaveData[0].state.at4.loc.view = 2;
+        Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 0);
         Task_Spawn(0, 0x11, 1, 0);
         taskKill(task);
     }

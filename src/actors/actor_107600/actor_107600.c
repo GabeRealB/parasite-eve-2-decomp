@@ -1,11 +1,5 @@
 #include "common.h"
 
-#include "main/mem.h"
-#include "main/gfx.h"
-#include "main/task.h"
-#include "main/session.h"
-#include "main/sound.h"
-
 /* The controller task this actor is reparented to is the Mist shooting
  * gallery's, so the counter at +0xE of its work block is that room's. */
 #include "rooms/mist_shooting_gallery.h"
@@ -27,8 +21,19 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/enemy.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
 #include "main/wipsys.h"
 
 /// Work block this overlay hangs off `Task::work`. The display node at
@@ -251,7 +256,7 @@ static void func_actor_107600_80131F10(Task* arg0)
     Actor107600Work* work;
 
     obj                            = arg0->extra.tmd;
-    enemy                          = arg0->spawnArg2;
+    enemy                          = arg0->spawnArg2.pointer;
     coord                          = obj->coords;
     target                         = (gameGetPtrSlot(3))->extra.tmd->coords;
     scratch                        = SCRATCH_HEAD_ADDR;
@@ -260,9 +265,9 @@ static void func_actor_107600_80131F10(Task* arg0)
     block->vx                      = target->coord.t[0] - coord->coord.t[0];
     SCRATCH_HEAD_AT(scratch, void) = block;
     block->vz                      = target->coord.t[2] - coord->coord.t[2];
-    if ((!(arg0->spawnArg1 & 0x40000000) && func_80103D8C(block->vx, block->vz) < 0x401) || (u8)arg0->spawnArg1 == 0xFF) {
+    if ((!(arg0->spawnArg1.value & 0x40000000) && func_80103D8C(block->vx, block->vz) < 0x401) || (u8)arg0->spawnArg1.value == 0xFF) {
     fail:
-        if ((arg0->spawnArg1 & 0xF000) != 0x2000) {
+        if ((arg0->spawnArg1.value & 0xF000) != 0x2000) {
             ((MistShootingGalleryWork*)arg0->parent->work)->field_0E--;
         }
         SCRATCH_POP_BYTES(0x10);
@@ -275,8 +280,8 @@ static void func_actor_107600_80131F10(Task* arg0)
         goto fail;
     }
     arg0->exitCallback = func_actor_107600_80132AC0;
-    work->field_146    = (u8)((u32)arg0->spawnArg1 >> 16);
-    work->field_144    = (s32)(arg0->spawnArg1 & 0xF000) >> 12;
+    work->field_146    = (u8)((u32)arg0->spawnArg1.value >> 16);
+    work->field_144    = (s32)(arg0->spawnArg1.value & 0xF000) >> 12;
     obj->lightMtx      = &work->matrix_20;
     obj->colorMtx      = &work->matrix_0;
     enemy->param       = &D_actor_107600_80134F84;
@@ -297,8 +302,8 @@ static void func_actor_107600_80131F10(Task* arg0)
     arg0->state++;
     coord->flg = 0;
     Gp_UpdateCoord(coord);
-    func_actor_107600_80132DF0(enemy, arg0->spawnArg1 & 0xF,
-                               work->field_144 | (((u32)arg0->spawnArg1 >> 16) & 0x2000));
+    func_actor_107600_80132DF0(enemy, arg0->spawnArg1.value & 0xF,
+                               work->field_144 | (((u32)arg0->spawnArg1.value >> 16) & 0x2000));
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
@@ -312,7 +317,7 @@ static void func_actor_107600_80131F10(Task* arg0)
 static void func_actor_107600_80132160(Task* arg0)
 {
     Actor107600Work*     work  = (Actor107600Work*)arg0->work;
-    GpEnemy*             enemy = arg0->spawnArg2;
+    GpEnemy*             enemy = arg0->spawnArg2.pointer;
     GpCoord*             coord = arg0->extra.tmd->coords;
     Actor107600Waypoint* wp;
     s32                  d;
@@ -337,21 +342,21 @@ static void func_actor_107600_80132160(Task* arg0)
             coord->coord.t[1] = 0;
             if ((s16)work->field_13A >= 4) {
                 work->field_140.step++;
-                enemy->task->firstChild->spawnArg1 |= 0x10;
+                enemy->task->firstChild->spawnArg1.value |= 0x10;
             }
             return;
         case 2:
-            if (!(enemy->task->firstChild->spawnArg1 & 0x20)) {
+            if (!(enemy->task->firstChild->spawnArg1.value & 0x20)) {
                 return;
             }
             wp  = D_actor_107600_80135624[work->field_146];
             wp += work->field_148;
-            if (arg0->spawnArg1 & 0x10000000) {
+            if (arg0->spawnArg1.value & 0x10000000) {
                 work->field_14A = 1;
             }
             if (wp->step == 0) {
                 work->field_140.step = 4;
-                work->field_13A      = (((u32)arg0->spawnArg1 >> 24) & 0xF) * 30;
+                work->field_13A      = (((u32)arg0->spawnArg1.value >> 24) & 0xF) * 30;
                 return;
             }
             work->field_140.step++;
@@ -363,14 +368,14 @@ static void func_actor_107600_80132160(Task* arg0)
             stop:
                 work->field_140.step                = 5;
                 work->field_14A                     = 0;
-                enemy->task->firstChild->spawnArg1 |= 0x40;
+                enemy->task->firstChild->spawnArg1.value |= 0x40;
                 return;
             }
             d = (s16)(coord->coord.t[0] - x);
             if (d != 0) {
                 step = wp->step;
                 if (step >= abs(d)) {
-                    if (enemy->task->firstChild->spawnArg1 & 0x40) {
+                    if (enemy->task->firstChild->spawnArg1.value & 0x40) {
                         goto stop;
                     }
                     coord->coord.t[0] = x;
@@ -386,7 +391,7 @@ static void func_actor_107600_80132160(Task* arg0)
             if (d != 0) {
                 step = wp->step;
                 if (step >= abs(d)) {
-                    if (enemy->task->firstChild->spawnArg1 & 0x40) {
+                    if (enemy->task->firstChild->spawnArg1.value & 0x40) {
                         goto stop;
                     }
                     coord->coord.t[2] = (s16)z;
@@ -403,7 +408,7 @@ static void func_actor_107600_80132160(Task* arg0)
                 goto stop;
             }
         case 5:
-            if (enemy->task->firstChild->spawnArg1 & 0x80) {
+            if (enemy->task->firstChild->spawnArg1.value & 0x80) {
                 if (work->field_14B > 0) {
                     work->field_14B -= 8;
                     return;
@@ -420,7 +425,7 @@ static void func_actor_107600_80132160(Task* arg0)
 static void func_actor_107600_80132514(Task* arg0)
 {
     Actor107600Work*     work  = (Actor107600Work*)arg0->work;
-    GpEnemy*             enemy = arg0->spawnArg2;
+    GpEnemy*             enemy = arg0->spawnArg2.pointer;
     GpCoord*             coord = arg0->extra.tmd->coords;
     Actor107600Waypoint* wp;
     s32                  d;
@@ -445,21 +450,21 @@ static void func_actor_107600_80132514(Task* arg0)
             coord->coord.t[1] = -0xF3C;
             if ((s16)work->field_13A >= 4) {
                 work->field_140.step++;
-                enemy->task->firstChild->spawnArg1 |= 0x10;
+                enemy->task->firstChild->spawnArg1.value |= 0x10;
             }
             return;
         case 2:
-            if (!(enemy->task->firstChild->spawnArg1 & 0x20)) {
+            if (!(enemy->task->firstChild->spawnArg1.value & 0x20)) {
                 return;
             }
             wp  = D_actor_107600_80135624[work->field_146];
             wp += work->field_148;
-            if (arg0->spawnArg1 & 0x10000000) {
+            if (arg0->spawnArg1.value & 0x10000000) {
                 work->field_14A = 1;
             }
             if (wp->step == 0) {
                 work->field_140.step = 4;
-                work->field_13A      = (((u32)arg0->spawnArg1 >> 24) & 0xF) * 30;
+                work->field_13A      = (((u32)arg0->spawnArg1.value >> 24) & 0xF) * 30;
                 return;
             }
             work->field_140.step++;
@@ -471,14 +476,14 @@ static void func_actor_107600_80132514(Task* arg0)
             stop:
                 work->field_140.step                = 5;
                 work->field_14A                     = 0;
-                enemy->task->firstChild->spawnArg1 |= 0x40;
+                enemy->task->firstChild->spawnArg1.value |= 0x40;
                 return;
             }
             d = (s16)(coord->coord.t[0] - x);
             if (d != 0) {
                 step = wp->step;
                 if (step >= abs(d)) {
-                    if (enemy->task->firstChild->spawnArg1 & 0x40) {
+                    if (enemy->task->firstChild->spawnArg1.value & 0x40) {
                         goto stop;
                     }
                     coord->coord.t[0] = x;
@@ -494,7 +499,7 @@ static void func_actor_107600_80132514(Task* arg0)
             if (d != 0) {
                 step = wp->step;
                 if (step >= abs(d)) {
-                    if (enemy->task->firstChild->spawnArg1 & 0x40) {
+                    if (enemy->task->firstChild->spawnArg1.value & 0x40) {
                         goto stop;
                     }
                     coord->coord.t[2] = (s16)z;
@@ -511,7 +516,7 @@ static void func_actor_107600_80132514(Task* arg0)
                 goto stop;
             }
         case 5:
-            if (enemy->task->firstChild->spawnArg1 & 0x80) {
+            if (enemy->task->firstChild->spawnArg1.value & 0x80) {
                 if (work->field_14B > 0) {
                     work->field_14B -= 8;
                     return;
@@ -612,7 +617,7 @@ static void func_actor_107600_80132AC0(Task* arg0)
     if (work->field_144 != 2) {
         Gp_ReleaseStateF0Add(arg0, 0);
     }
-    Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+    Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
 }
 
 /// Copies the world position of the model's first attach coordinate onto a
@@ -627,7 +632,7 @@ static void func_actor_107600_80132B0C(Task* arg0)
     VECTOR*  block;
     void*    obj;
 
-    obj                            = arg0->spawnArg2;
+    obj                            = arg0->spawnArg2.pointer;
     coord                          = arg0->extra.tmd->coords;
     scratch                        = SCRATCH_HEAD_ADDR;
     head                           = SCRATCH_HEAD_AT(scratch, void);
@@ -714,7 +719,7 @@ static void func_actor_107600_80132D54(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
     GpCoord*         coord = arg0->extra.tmd->coords;
-    GpEnemy*         enemy = arg0->spawnArg2;
+    GpEnemy*         enemy = arg0->spawnArg2.pointer;
 
     switch (work->field_140.step) {
         case 0:
@@ -722,7 +727,7 @@ static void func_actor_107600_80132D54(Task* arg0)
             work->field_14B   = 100;
             coord->coord.t[1] = 0;
         case 1:
-            if (enemy->task->firstChild->spawnArg1 & 0x80) {
+            if (enemy->task->firstChild->spawnArg1.value & 0x80) {
                 if (work->field_14B > 0) {
                     work->field_14B -= 8;
                     return;
@@ -752,7 +757,7 @@ static void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2)
         Task_Reparent(arg0->task, enemy->task);
         coord                  = enemy->task->extra.tmd->coords;
         coord->sub             = arg0->task->extra.tmd->coords;
-        enemy->task->spawnArg1 = arg1 | (arg2 << 16);
+        enemy->task->spawnArg1.value = arg1 | (arg2 << 16);
         obj                    = enemy->task->extra.tmd;
         obj->tpage             = 0;
         if (arg1 < 10) {
@@ -783,15 +788,15 @@ static void func_actor_107600_80132ED0(Task* arg0)
     u32              variant;
 
     obj     = arg0->extra.tmd;
-    variant = (u8)arg0->spawnArg1;
-    enemy   = arg0->spawnArg2;
+    variant = (u8)arg0->spawnArg1.value;
+    enemy   = arg0->spawnArg2.pointer;
     coord   = obj->coords;
     if (variant == 0xFF || (work = (Actor107600Work*)memCalloc(0x16C, false), arg0->work = (TaskIdMap*)work, work == NULL)) {
         Gp_DestroyEnemy(enemy, arg0);
         return;
     }
     arg0->exitCallback    = func_actor_107600_80134920;
-    work->field_162       = ((u32)arg0->spawnArg1 >> 16) & 0xF;
+    work->field_162       = ((u32)arg0->spawnArg1.value >> 16) & 0xF;
     obj->lightMtx         = &work->matrix_20;
     obj->colorMtx         = &work->matrix_0;
     enemy->param          = &D_actor_107600_80135720;
@@ -799,7 +804,7 @@ static void func_actor_107600_80132ED0(Task* arg0)
     work->field_140.coord = arg0->extra.tmd->coords;
     work->field_144       = 0x140;
     work->field_146       = 2;
-    hp                    = D_actor_107600_80135750[arg0->spawnArg1 & 0xF];
+    hp                    = D_actor_107600_80135750[arg0->spawnArg1.value & 0xF];
     enemy->hpMax          = hp;
     enemy->hp             = hp;
     func_actor_107600_80134958(arg0);
@@ -833,7 +838,7 @@ static void func_actor_107600_80133024(Task* arg0)
     SVECTOR*         v;
     s32              i;
 
-    enemy = arg0->spawnArg2;
+    enemy = arg0->spawnArg2.pointer;
     ext   = arg0->extra.tmd;
     work  = (Actor107600Work*)arg0->work;
     coord = ext->coords;
@@ -894,7 +899,7 @@ static void func_actor_107600_80133024(Task* arg0)
 static void func_actor_107600_801332D4(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
-    GpEnemy*         enemy = arg0->spawnArg2;
+    GpEnemy*         enemy = arg0->spawnArg2.pointer;
     Task*            player;
     GameActor*       actor;
     s32              pan;
@@ -906,7 +911,7 @@ static void func_actor_107600_801332D4(Task* arg0)
     }
     switch (work->field_15A) {
         case 0:
-            if (!(arg0->spawnArg1 & 0x10)) {
+            if (!(arg0->spawnArg1.value & 0x10)) {
                 return;
             }
             work->field_15A++;
@@ -947,14 +952,14 @@ static void func_actor_107600_801332D4(Task* arg0)
                 work->field_50 = 0;
                 if ((s16)work->field_154 >= 4) {
                     work->field_15A++;
-                    arg0->spawnArg1 |= 0x20;
+                    arg0->spawnArg1.value |= 0x20;
                     Gp_SetLightMode(enemy, 0);
                     enemy->node.state.b.flags = 4;
                     work->obj.flags          |= 0x8000;
                 }
             }
         case 5:
-            flags = arg0->spawnArg1;
+            flags = arg0->spawnArg1.value;
             if (flags & 0x40) {
                 func_actor_107600_80134B98(arg0, 7);
                 return;
@@ -1054,14 +1059,14 @@ static void func_actor_107600_80133668(Task* arg0)
 static void func_actor_107600_801337FC(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
-    GpEnemy*         enemy = arg0->spawnArg2;
+    GpEnemy*         enemy = arg0->spawnArg2.pointer;
     GpCoord*         obj;
     s32              pan;
 
     switch (work->field_15A) {
         case 0:
             work->field_15A++;
-            arg0->spawnArg1 |= 0x40;
+            arg0->spawnArg1.value |= 0x40;
             work->field_154  = 7;
             Gp_UnlinkNode(&enemy->node);
             enemy->recs      = 0;
@@ -1095,7 +1100,7 @@ static void func_actor_107600_801337FC(Task* arg0)
                 return;
             }
             work->field_15A++;
-            arg0->spawnArg1 |= 0x80;
+            arg0->spawnArg1.value |= 0x80;
             break;
         case 4:
             break;
@@ -1110,7 +1115,7 @@ static void func_actor_107600_801337FC(Task* arg0)
 static void func_actor_107600_801339A4(Task* arg0)
 {
     Actor107600Work*         work  = (Actor107600Work*)arg0->work;
-    GpEnemy*                 enemy = arg0->spawnArg2;
+    GpEnemy*                 enemy = arg0->spawnArg2.pointer;
     TmdObject*               tmd   = arg0->extra.tmd;
     GpCoord*                 obj   = tmd->coords;
     MistShootingGalleryWork* gal   = (MistShootingGalleryWork*)D_8018E0C4->work;
@@ -1126,12 +1131,12 @@ static void func_actor_107600_801339A4(Task* arg0)
         case 0:
             work->field_15A++;
             tmd->flags      |= 2;
-            arg0->spawnArg1 |= 0x40;
+            arg0->spawnArg1.value |= 0x40;
             work->field_16B  = 0;
             work->field_15C  = 0;
             Gp_SetLightMode(enemy, 2);
             work->field_154 = 0;
-            id              = arg0->spawnArg1 & 0xF;
+            id              = arg0->spawnArg1.value & 0xF;
             gal->pad_0F[id]++;
             if (id < 9) {
                 id = 0x51140011;
@@ -1215,7 +1220,7 @@ static void func_actor_107600_801339A4(Task* arg0)
                 }
             } else {
                 arg0->state++;
-                arg0->spawnArg1 |= 0x80;
+                arg0->spawnArg1.value |= 0x80;
             }
             break;
         case 2:
@@ -1236,7 +1241,7 @@ static void func_actor_107600_80133DC4(Task* arg0)
     s32              pan;
 
     work  = (Actor107600Work*)arg0->work;
-    enemy = arg0->spawnArg2;
+    enemy = arg0->spawnArg2.pointer;
     SCRATCH_PUSH_BYTES(8);
     work->field_156 = 0;
     if (Gp_FindRec18(work->obj.ctx.recs, 0) != 0) {
@@ -1504,7 +1509,7 @@ static void func_actor_107600_80134904(Task* arg0)
 static void func_actor_107600_80134920(Task* arg0)
 {
     Gp_UnlinkObj(&((Actor107600Work*)arg0->work)->obj);
-    Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+    Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
 }
 
 /// Links this actor's display node the way `func_8010C980` does for the
@@ -1540,7 +1545,7 @@ static void func_actor_107600_801349E0(Task* arg0)
     VECTOR*  block;
     void*    obj;
 
-    obj                            = arg0->spawnArg2;
+    obj                            = arg0->spawnArg2.pointer;
     coord                          = arg0->extra.tmd->coords;
     scratch                        = SCRATCH_HEAD_ADDR;
     head                           = SCRATCH_HEAD_AT(scratch, void);
@@ -1667,7 +1672,7 @@ static s32 func_actor_107600_80134BAC(Task* arg0)
 static void func_actor_107600_80134C54(Task* arg0)
 {
     Actor107600Work* work = (Actor107600Work*)arg0->work;
-    GpEnemy*         obj  = arg0->spawnArg2;
+    GpEnemy*         obj  = arg0->spawnArg2.pointer;
 
     switch (work->field_162) {
         case 0:

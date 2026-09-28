@@ -1,49 +1,97 @@
-#include "common.h"
+#include "boot.h"
 
-#define BOOT_C
-
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/libcd.h>
 #include <psyq/libetc.h>
 #include <psyq/libpress.h>
 
-#include "mapui/mapui.h"
-#include "main/devkit.h"
-#include "main/boot.h"
-#include "main/cdaudio.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/title.h"
-#include "main/wipsys.h"
+#include "types.h"
 
-#include "gameplay/display.h"
+#include "main/cdaudio.h"
+#include "cdaudio.h"
+#include "main/cdaudio_types.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "fs.h"
+#include "main/fs_types.h"
+#include "main/gameflow.h"
+#include "gfx.h"
+#include "main/gfx_types.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+#include "mapui/mapui.h"
+
+#include "title/title.h"
+
+/* Define BSS before API headers to preserve first-declaration order. */
+u8* GAuxHeap;
+
+size_t GAuxHeapSize;
+
+u8* Gpu_PrimHeapBase;
+
+u8* gMemActiveAuxHeap;
+
+size_t Gpu_PrimHeapSize;
+
+size_t GActiveAuxHeapSize;
+
+static u8* Gpu_PrimHeapCanaryAddress;
+
+CdCmdQueue CdCmd_Queue;
+
+u8* Mem_AuxRegionBase;
+
+size_t Mem_AuxRegionBytes;
+
+#include "main/fs.h"
+#include "main/mem.h"
+#include "mem.h"
+
+/// Fixed addresses no image defines, which main points at: the image-buffer
+/// region, the work area at 0x801FD000, the load addresses of the three actor
+/// slots, and 4MB into the dev kit's memory.
+extern FsImgBuffers D_801D7000;
+
+extern u8 D_801FD000[];
+
+extern u8 D_80131E20[];
+
+extern u8 D_80149E20[];
+
+extern u8 D_80161E20[];
+
+extern u8 D_80400000[];
+
+// Build stamp (must stay in .rodata ahead of Boot_LoadInitialFile jtbl).
+/// Early-image build stamp string @ VA 0x80012750 ("2000/05/01 19:24 ver2.49").
+static const char Boot_BuildStamp[];
+
+/// Unreferenced.
+static void* Mem_UnusedTopRamPointer;
+
+/// Unreferenced.
+static void* Mem_UnusedDevKitEndPointer;
+
+static GfxImageSlot* Gfx_ImageSlotTables[];
 
 // Build stamp (must stay in .rodata ahead of Boot_LoadInitialFile jtbl).
 /// Early-image build stamp string @ VA 0x80012750 ("2000/05/01 19:24 ver2.49").
 static const char Boot_BuildStamp[] = "2000/05/01 19:24 ver2.49";
 
-u8*        GAuxHeap;
-size_t     GAuxHeapSize;
-size_t     Gpu_PrimHeapBase;
-u8*        gMemActiveAuxHeap;
-size_t     Gpu_PrimHeapSize;
-size_t     GActiveAuxHeapSize;
-static int D_80068F98;
-CdCmdQueue CdCmd_Queue;
-u8*        D_800691F4;
-size_t     D_800691F8;
-
 FsImgBuffers* Fs_ImgBuffers = &D_801D7000;
 /// Unreferenced.
-static void* D_8005C368 = D_801FD000;
-void*        D_8005C36C = D_80131E20;
-void*        D_8005C370 = D_80149E20;
-void*        D_8005C374 = D_80161E20;
+static void* Mem_UnusedTopRamPointer = D_801FD000;
+void*        Fs_ActorLoadBase0       = D_80131E20;
+void*        Fs_ActorLoadBase1       = D_80149E20;
+void*        Fs_ActorLoadBase2       = D_80161E20;
 /// Unreferenced.
-static void* D_8005C378 = D_80400000;
+static void* Mem_UnusedDevKitEndPointer = D_80400000;
 
 static GfxImageSlot* Gfx_ImageSlotTables[] = {
     NULL,
@@ -57,40 +105,35 @@ static GfxImageSlot* Gfx_ImageSlotTables[] = {
 void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1)
 {
     GfxImageSlot* entries;
-    GfxImageSlot* slot;
     s32           i;
-    u32           t;
-    size_t*       p88;
+    u8**          p88;
     size_t*       p90;
-    int*          p98;
+    u8**          p98;
     size_t        temp;
 
     entries = Gfx_ImageSlotTables[arg0];
     if ((gDisplayState.videoMode == 0) || (arg0 == 0)) {
-        D_800691F4         = (u8*)0x80179950;
-        D_800691F8         = 0x836B0;
-        Gpu_PrimHeapBase   = 0x80179950;
+        Mem_AuxRegionBase  = (u8*)0x80179950;
+        Mem_AuxRegionBytes = 0x836B0;
+        Gpu_PrimHeapBase   = (u8*)0x80179950;
         gMemActiveAuxHeap  = (u8*)0x80189950;
         GActiveAuxHeapSize = 0x4D6B0;
     } else {
-        t                  = arg1 * 8;
-        t                 += (u32)entries;
-        slot               = (GfxImageSlot*)t;
-        D_800691F4         = (u8*)slot->pixels;
-        D_800691F8         = slot->size + 0x26000;
-        Gpu_PrimHeapBase   = (size_t)slot->pixels;
-        gMemActiveAuxHeap  = (u8*)(Gpu_PrimHeapBase + 0x10000);
-        GActiveAuxHeapSize = slot->size - 0x10000;
+        Mem_AuxRegionBase  = (u8*)entries[arg1].pixels;
+        Mem_AuxRegionBytes = entries[arg1].size + 0x26000;
+        Gpu_PrimHeapBase   = (u8*)entries[arg1].pixels;
+        gMemActiveAuxHeap  = Gpu_PrimHeapBase + 0x10000;
+        GActiveAuxHeapSize = entries[arg1].size - 0x10000;
     }
     i                = 0;
     Gpu_PrimHeapSize = 0x10000;
     GAuxHeap         = gMemActiveAuxHeap;
-    GAuxHeapSize     = D_800691F8 - 0x10000;
+    GAuxHeapSize     = Mem_AuxRegionBytes - 0x10000;
     do {
-        *(u8*)((Gpu_PrimHeapSize - (i & 0xFF)) + Gpu_PrimHeapBase - 1) = 0;
-        i                                                             += 1;
+        Gpu_PrimHeapBase[Gpu_PrimHeapSize - (i & 0xFF) - 1] = 0;
+        i                                                  += 1;
     } while ((u32)(i & 0xFF) < 0xAU);
-    p98  = &D_80068F98;
+    p98  = &Gpu_PrimHeapCanaryAddress;
     p88  = &Gpu_PrimHeapBase;
     p90  = &Gpu_PrimHeapSize;
     temp = *p90 - 0xA;
@@ -215,16 +258,16 @@ void Gfx_StoreImageSlot(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     do {
         Gpu_PrimHeapSize = 0x10000;
     } while (0);
-    pSize        = &GActiveAuxHeapSize;
-    size         = 0x10000 - arg3;
-    *pSize       = size;
-    D_800691F8   = 0x10000;
-    GAuxHeapSize = size;
+    pSize              = &GActiveAuxHeapSize;
+    size               = 0x10000 - arg3;
+    *pSize             = size;
+    Mem_AuxRegionBytes = 0x10000;
+    GAuxHeapSize       = size;
 
     ptr               = (u8*)entries[arg1].pixels + imgBufSize;
-    Gpu_PrimHeapBase  = (size_t)ptr;
+    Gpu_PrimHeapBase  = ptr;
     gMemActiveAuxHeap = ptr + arg3;
-    D_800691F4        = ptr;
+    Mem_AuxRegionBase = ptr;
     GAuxHeap          = ptr + arg3;
 }
 
@@ -275,14 +318,14 @@ void Boot_ResetCd(s32 mode)
     CdCmd_ClearQueue();
 }
 
-void Boot_LoadTask(Task* arg0)
+void Boot_LoadTask(Task* task)
 {
     u8  modeParam[8];
     u8  param1[8];
     u8  param2[8];
     s32 state;
 
-    state = arg0->state;
+    state = task->state;
     switch (state) {
         case 0:
             modeParam[0] = CdlModeSpeed | CdlModeSize1;
@@ -296,14 +339,14 @@ void Boot_LoadTask(Task* arg0)
             param2[2] = 0;
             param2[3] = 0;
             CdCmd_Enqueue(0x21, param1, param2);
-            arg0->state = arg0->state + 1;
+            task->state = task->state + 1;
             return;
         case 1:
             if (CdCmd_IsIdle() != 0) {
                 SetDispMask(1);
                 Mem_ConfigureAuxHeap(0, 0);
                 Task_SpawnFromTable(Title_TaskDescs, 0, 0, 0);
-                taskKill(arg0);
+                taskKill(task);
                 gDisplayState.field_112 = 0;
             }
             return;

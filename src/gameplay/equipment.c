@@ -109,7 +109,7 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
     s32         off4;
 
     off8    = arg0 << 3;
-    slots   = (McItemSlot*)((s32)Mc_SaveData[0].weaponItems - 0x400);
+    slots   = (McItemSlot*)((s32)Mc_SaveData[0].state.weaponItems - 0x400);
     slot    = (McItemSlot*)(off8 + (s32)slots);
     off4    = arg0 << 2;
     counts  = (s32*)((s32)slots + 0x4C0);
@@ -119,9 +119,9 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
         if (slot->ammoId != 0) {
             count = slot->ammoQty;
             if (count != 0) {
-                if (Mc_SaveData[0].cheatMode == 0) {
+                if (Mc_SaveData[0].state.cheatMode == 0) {
                     slot->ammoQty = count - 1;
-                    Gp_ConsumeScanQty(&Mc_SaveData[0].carriedItems, slot->ammoId, 1);
+                    Gp_ConsumeScanQty(&Mc_SaveData[0].state.carriedItems, slot->ammoId, 1);
                     count = *counter;
                     if (count <= 0xF423E) {
                         *counter = count + 1;
@@ -138,9 +138,9 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
                 count = slot->attachQty;
                 if (count != 0) {
                     save = &Mc_SaveData[0];
-                    if (save->cheatMode == 0) {
+                    if (save->state.cheatMode == 0) {
                         slot->attachQty = count - 1;
-                        Gp_ConsumeScanQty(&save->carriedItems, slot->attachId, 1);
+                        Gp_ConsumeScanQty(&save->state.carriedItems, slot->attachId, 1);
                         count = *counter;
                         if (count <= 0xF423E) {
                             *counter = count + 1;
@@ -169,7 +169,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     s32         have;
     s32         i;
 
-    scan  = &Mc_SaveData[0].carriedItems;
+    scan  = &Mc_SaveData[0].state.carriedItems;
     table = Gp_GetItemTable(scan);
     if ((u32)(arg1 - 0x80) >= 0x20) {
         return -1;
@@ -199,7 +199,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         arg3 = maxQty;
     }
     index = scan->firstRow;
-    slot  = &Mc_SaveData[0].weaponItems[arg1 - 0x80];
+    slot  = &Mc_SaveData[0].state.weaponItems[arg1 - 0x80];
     have  = (s16)Gp_FindScanQty(table, scan, &index, arg2);
     have -= Gp_CountEquippedRelated(scan, arg2);
     if (arg0 == 0) {
@@ -276,7 +276,7 @@ s32 Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
         arg3 = maxQty;
     }
     index = arg0->firstRow;
-    slot  = &Mc_SaveData[0].weaponItems[arg1 - 0x80];
+    slot  = &Mc_SaveData[0].state.weaponItems[arg1 - 0x80];
     have  = (s16)Gp_FindScanQty(table, arg0, &index, arg2);
     have -= Gp_CountEquippedRelated(arg0, arg2);
     if (slot->ammoId == arg2) {
@@ -456,7 +456,7 @@ void Gp_RecalcMaxMp(void)
 
     cfg    = &Player_Status;
     acc    = 0;
-    levels = (s8*)Mc_SaveData[0].attachLevels;
+    levels = (s8*)Mc_SaveData[0].state.attachLevels;
     for (i = 0; i < 0xC; i++) {
         if (*levels > 0) {
             for (j = 0; j < *levels; j++) {
@@ -470,8 +470,8 @@ void Gp_RecalcMaxMp(void)
     }
     rows       = Gp_StatRows;
     save       = &Mc_SaveData[0];
-    acc       += rows[save->gameMode].field_4;
-    acc       += save->mpBonus;
+    acc       += rows[save->state.gameMode].field_4;
+    acc       += save->state.mpBonus;
     cfg->mpMax = acc;
     if ((s16)acc >= 0xFB) {
         cfg->mpMax = 0xFA;
@@ -514,9 +514,9 @@ void Gp_EquipMod(s32 arg0)
                     p        = &Player_Status;
                     table    = Gp_StatRows;
                     save     = &Mc_SaveData[0];
-                    val      = table[save->gameMode].base.half;
+                    val      = table[save->state.gameMode].base.half;
                     p->hpMax = val;
-                    val     += save->hpBonus;
+                    val     += save->state.hpBonus;
                     p->hpMax = val;
                     if (p->armor != 0) {
                         val     += Gp_ModStatAttrs[p->armor - 1].field_4;
@@ -529,7 +529,7 @@ void Gp_EquipMod(s32 arg0)
                         p->hp = p->hpMax;
                     }
 
-                    scan = &save->carriedItems;
+                    scan = &save->state.carriedItems;
                     Gp_RecalcMaxMp();
                     switch (scan->table) {
                         case 2:
@@ -539,7 +539,7 @@ void Gp_EquipMod(s32 arg0)
                             tmp = Gp_ItemTable1;
                             break;
                         default:
-                            tmp = save->itemRows;
+                            tmp = save->state.itemRows;
                             break;
                     }
                 }
@@ -562,7 +562,7 @@ void Gp_EquipMod(s32 arg0)
                     bit  = 1 << (arg0 % 32);
                     if ((u32)arg0 < 0x180U) {
                         p                      = &Mc_SaveData[0];
-                        p->itemSeenBits[word] |= bit;
+                        p->state.itemSeenBits[word] |= bit;
                     }
                 }
             }
@@ -574,9 +574,9 @@ void Gp_EquipMod(s32 arg0)
 
         table      = Gp_StatRows;
         save       = &Mc_SaveData[0];
-        val        = table[save->gameMode].base.half;
+        val        = table[save->state.gameMode].base.half;
         cfg->hpMax = val;
-        val       += save->hpBonus;
+        val       += save->state.hpBonus;
         cfg->hpMax = val;
         if (cfg->armor != 0) {
             val       += Gp_ModStatAttrs[cfg->armor - 1].field_4;

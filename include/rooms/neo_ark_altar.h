@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 /// Two-entry spawn table: entry 0 is `func_neo_ark_altar_8017DBF0`, which
 /// starts entry 1, the streaming task `func_neo_ark_altar_8017DA40`, on the

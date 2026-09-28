@@ -737,7 +737,7 @@ is never read on a control entry — it continues at `pose` or ends the track
 instead. Corrected, Kyle's clips are 3–391 ticks.
 
 **The pose kind belongs to the track, not the record.** `Gp_AnimInitSlot` takes
-it once (`arg1->field_B = op & 0xF`) and `func_800B3448` reads
+it once (`value->field_B = op & 0xF`) and `func_800B3448` reads
 `op = slot->field_B` for every record after that. The control records carry 0
 in those bits, so reading the kind per record throws away the final keyframe.
 Kind **1** is `GpPackedPose`, six `s16` — translation then ZYX Euler. Kind **4**

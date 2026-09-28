@@ -1,5 +1,6 @@
 #include "gameplay/loading.h"
 
+#include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
 #include "common.h"
@@ -12,6 +13,7 @@
 
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/loadui.h"
 #include "main/mc.h"
 #include "main/pad.h"
@@ -75,183 +77,93 @@ static void Gp_ReloadAtLoc(s32 arg0);
 
 extern GpAreaVariant D_80185E50[];
 
-extern GpAreaObj D_80073410;
-
 extern GpAreaVariant D_80186C50[];
-
-extern GpAreaObj D_80073414;
 
 extern GpAreaVariant D_80184A90[];
 
-extern GpAreaObj D_80073418;
-
 extern GpAreaVariant D_80189DCC[];
-
-extern GpAreaObj D_8007341C;
 
 extern GpAreaVariant D_80199390[];
 
-extern GpAreaObj D_80073420;
-
 extern GpAreaVariant D_80184088[];
-
-extern GpAreaObj D_80073424;
 
 extern GpAreaVariant D_8017EA3C[];
 
-extern GpAreaObj D_80073428;
-
 extern GpAreaVariant D_8017FC9C[];
-
-extern GpAreaObj D_8007342C;
 
 extern GpAreaVariant D_801831C4[];
 
-extern GpAreaObj D_80073430;
-
 extern GpAreaVariant D_80181264[];
-
-extern GpAreaObj D_80073434;
 
 extern GpAreaVariant D_80183020[];
 
-extern GpAreaObj D_80073438;
-
 extern GpAreaVariant D_8018402C[];
-
-extern GpAreaObj D_8007343C;
 
 extern GpAreaVariant D_80185934[];
 
-extern GpAreaObj D_80073440;
-
 extern GpAreaVariant D_8019004C[];
-
-extern GpAreaObj D_80073444;
 
 extern GpAreaVariant D_8018294C[];
 
-extern GpAreaObj D_80073448;
-
 extern GpAreaVariant D_801861E8[];
-
-extern GpAreaObj D_8007344C;
 
 extern GpAreaVariant D_80186BFC[];
 
-extern GpAreaObj D_80073450;
-
 extern GpAreaVariant D_801951B4[];
-
-extern GpAreaObj D_80073454;
 
 extern GpAreaVariant D_8018DF74[];
 
-extern GpAreaObj D_8007355C;
-
 extern GpAreaVariant D_80184A38[];
-
-extern GpAreaObj D_800734E8;
 
 extern GpAreaVariant D_80184F20[];
 
-extern GpAreaObj D_800734EC;
-
 extern GpAreaVariant D_80185654[];
-
-extern GpAreaObj D_800734F0;
 
 extern GpAreaVariant D_80180A50[];
 
-extern GpAreaObj D_800734F4;
-
 extern GpAreaVariant D_8017F598[];
-
-extern GpAreaObj D_800734F8;
 
 extern GpAreaVariant D_80182100[];
 
-extern GpAreaObj D_800734FC;
-
 extern GpAreaVariant D_80180B88[];
-
-extern GpAreaObj D_8007356C;
 
 extern GpAreaVariant D_80189938[];
 
-extern GpAreaObj D_80073500;
-
 extern GpAreaVariant D_801814DC[];
-
-extern GpAreaObj D_80073504;
 
 extern GpAreaVariant D_80180410[];
 
-extern GpAreaObj D_80073508;
-
 extern GpAreaVariant D_8017FA74[];
-
-extern GpAreaObj D_80073514;
 
 extern GpAreaVariant D_80182918[];
 
-extern GpAreaObj D_80073518;
-
 extern GpAreaVariant D_80181B1C[];
-
-extern GpAreaObj D_8007351C;
 
 extern GpAreaVariant D_8017F4B8[];
 
-extern GpAreaObj D_80073520;
-
 extern GpAreaVariant D_8018757C[];
-
-extern GpAreaObj D_80073524;
 
 extern GpAreaVariant D_80188BF0[];
 
-extern GpAreaObj D_80073528;
-
 extern GpAreaVariant D_801842F8[];
-
-extern GpAreaObj D_8007352C;
 
 extern GpAreaVariant D_801800E0[];
 
-extern GpAreaObj D_80073530;
-
 extern GpAreaVariant D_8017EDD4[];
-
-extern GpAreaObj D_80073534;
 
 extern GpAreaVariant D_8017F558[];
 
-extern GpAreaObj D_80073538;
-
 extern GpAreaVariant D_801876F0[];
-
-extern GpAreaObj D_8007353C;
 
 extern GpAreaVariant D_80186220[];
 
-extern GpAreaObj D_80073544;
-
 extern GpAreaVariant D_80186764[];
-
-extern GpAreaObj D_80073548;
 
 extern GpAreaVariant D_801827BC[];
 
-extern GpAreaObj D_80073550;
-
 extern GpAreaVariant D_80180ACC[];
 
-extern GpAreaObj D_80073554;
-
 extern GpAreaVariant D_8017F868[];
-
-extern GpAreaObj D_80073558;
 
 extern GpAreaVariant D_80190624[];
 
@@ -275,19 +187,13 @@ extern GpAreaVariant D_801809A0[];
 
 extern GpAreaVariant D_80180D24[];
 
-extern GpAreaObj D_8007350C;
-
 extern GpAreaVariant D_801802FC[];
-
-extern GpAreaObj D_80073510;
 
 extern GpAreaVariant D_80181438[];
 
 extern GpAreaVariant D_8017F354[];
 
 extern GpAreaVariant D_801843C4[];
-
-extern GpAreaObj D_80073570;
 
 extern GpAreaVariant D_80188EE4[];
 
@@ -301,8 +207,6 @@ extern GpAreaVariant D_801803E4[];
 
 extern GpAreaVariant D_8018A70C[];
 
-extern GpAreaObj D_80073574;
-
 extern GpAreaVariant D_801874BC[];
 
 extern GpAreaVariant D_80181F4C[];
@@ -313,15 +217,11 @@ extern GpAreaVariant D_8018C15C[];
 
 extern GpAreaVariant D_80181190[];
 
-extern GpAreaObj D_80073540;
-
 extern GpAreaVariant D_8018EA94[];
 
 extern GpAreaVariant D_801861B4[];
 
 extern GpAreaVariant D_80180888[];
-
-extern GpAreaObj D_8007354C;
 
 extern GpAreaVariant D_80183418[];
 
@@ -331,502 +231,354 @@ extern GpAreaVariant D_801802DC[];
 
 extern GpAreaVariant D_801898F4[];
 
-extern GpAreaObj D_80073690;
-
 extern GpAreaVariant D_8018E238[];
-
-extern GpAreaObj D_80073694;
 
 extern GpAreaVariant D_8017F32C[];
 
-extern GpAreaObj D_80073698;
-
 extern GpAreaVariant D_801801CC[];
-
-extern GpAreaObj D_8007369C;
 
 extern GpAreaVariant D_80183544[];
 
-extern GpAreaObj D_800736A0;
-
 extern GpAreaVariant D_80182A00[];
-
-extern GpAreaObj D_800736A4;
 
 extern GpAreaVariant D_80185504[];
 
-extern GpAreaObj D_800736A8;
-
 extern GpAreaVariant D_80183340[];
-
-extern GpAreaObj D_800736AC;
 
 extern GpAreaVariant D_80184940[];
 
-extern GpAreaObj D_800736B0;
-
 extern GpAreaVariant D_80183598[];
-
-extern GpAreaObj D_800736B4;
 
 extern GpAreaVariant D_80186C9C[];
 
-extern GpAreaObj D_800736B8;
-
 extern GpAreaVariant D_80185A38[];
-
-extern GpAreaObj D_800736BC;
 
 extern GpAreaVariant D_801854E0[];
 
-extern GpAreaObj D_800736C0;
-
 extern GpAreaVariant D_80183FDC[];
-
-extern GpAreaObj D_800736C4;
 
 extern GpAreaVariant D_80185C30[];
 
-extern GpAreaObj D_800736C8;
-
 extern GpAreaVariant D_8018C14C[];
-
-extern GpAreaObj D_800736CC;
 
 extern GpAreaVariant D_80184C00[];
 
-extern GpAreaObj D_800736D0;
-
 extern GpAreaVariant D_80183A98[];
-
-extern GpAreaObj D_800736D4;
 
 extern GpAreaVariant D_8017FE50[];
 
-extern GpAreaObj D_800736D8;
-
 extern GpAreaVariant D_8018B5C4[];
-
-extern GpAreaObj D_800736DC;
 
 extern GpAreaVariant D_8017F17C[];
 
-extern GpAreaObj D_800736E0;
-
 extern GpAreaVariant D_80187678[];
-
-extern GpAreaObj D_800736E4;
 
 extern GpAreaVariant D_8017FBF8[];
 
-extern GpAreaObj D_800736E8;
-
 extern GpAreaVariant D_801830B8[];
-
-extern GpAreaObj D_800736EC;
 
 extern GpAreaVariant D_801825AC[];
 
-extern GpAreaObj D_800736F0;
-
 extern GpAreaVariant D_8017E964[];
-
-extern GpAreaObj D_800736F4;
 
 extern GpAreaVariant D_80184C7C[];
 
-extern GpAreaObj D_800736F8;
-
 extern GpAreaVariant D_801837AC[];
-
-extern GpAreaObj D_800736FC;
 
 extern GpAreaVariant D_80184124[];
 
-extern GpAreaObj D_80073700;
-
 extern GpAreaVariant D_80186258[];
-
-extern GpAreaObj D_80073704;
 
 extern GpAreaVariant D_80186360[];
 
-extern GpAreaObj D_80073708;
-
 extern GpAreaVariant D_80183EEC[];
-
-extern GpAreaObj D_8007370C;
 
 extern GpAreaVariant D_8018933C[];
 
-extern GpAreaObj D_80073710;
-
 extern GpAreaVariant D_80186F40[];
-
-extern GpAreaObj D_80073714;
 
 extern GpAreaVariant D_801855AC[];
 
-extern GpAreaObj D_80073718;
-
 extern GpAreaVariant D_8017FA40[];
-
-extern GpAreaObj D_8007371C;
 
 extern GpAreaVariant D_8018EC3C[];
 
-extern GpAreaObj D_80073728;
-
 extern GpAreaVariant D_8018FA58[];
-
-extern GpAreaObj D_8007372C;
 
 extern GpAreaVariant D_80182610[];
 
-extern GpAreaObj D_80073730;
-
 extern GpAreaVariant D_8018477C[];
-
-extern GpAreaObj D_80073734;
 
 extern GpAreaVariant D_80183D48[];
 
-extern GpAreaObj D_80073738;
-
 extern GpAreaVariant D_80188B9C[];
-
-extern GpAreaObj D_8007373C;
 
 extern GpAreaVariant D_80187350[];
 
-extern GpAreaObj D_80073740;
-
 extern GpAreaVariant D_80184CA4[];
-
-extern GpAreaObj D_80073744;
 
 extern GpAreaVariant D_80187CB8[];
 
-extern GpAreaObj D_80073748;
-
 extern GpAreaVariant D_8018BC10[];
-
-extern GpAreaObj D_8007374C;
 
 extern GpAreaVariant D_8017DD74[];
 
-extern GpAreaObj D_80073858;
-
 extern GpAreaVariant D_80182A04[];
-
-extern GpAreaObj D_8007385C;
 
 extern GpAreaVariant D_80180DA8[];
 
-extern GpAreaObj D_80073860;
-
 extern GpAreaVariant D_80182BF4[];
-
-extern GpAreaObj D_80073864;
 
 extern GpAreaVariant D_8017F758[];
 
-extern GpAreaObj D_80073868;
-
 extern GpAreaVariant D_8018786C[];
-
-extern GpAreaObj D_80073870;
 
 extern GpAreaVariant D_801806B8[];
 
-extern GpAreaObj D_80073874;
-
 extern GpAreaVariant D_8018305C[];
-
-extern GpAreaObj D_8007387C;
 
 extern GpAreaVariant D_80182968[];
 
-extern GpAreaObj D_80073880;
-
 extern GpAreaVariant D_80187470[];
-
-extern GpAreaObj D_80073884;
 
 extern GpAreaVariant D_801876C4[];
 
-extern GpAreaObj D_80073888;
-
 extern GpAreaVariant D_80183F48[];
-
-extern GpAreaObj D_8007388C;
 
 extern GpAreaVariant D_80182B54[];
 
-extern GpAreaObj D_80073890;
-
 extern GpAreaVariant D_80182DE0[];
-
-extern GpAreaObj D_80073894;
 
 extern GpAreaVariant D_80181AF8[];
 
-extern GpAreaObj D_80073898;
-
 extern GpAreaVariant D_80180864[];
-
-extern GpAreaObj D_8007389C;
 
 extern GpAreaVariant D_801808E4[];
 
-extern GpAreaObj D_800738A0;
-
 extern GpAreaVariant D_801866C8[];
 
-extern GpAreaObj D_800738A8;
-
 extern GpAreaVariant D_801874A4[];
-
-extern GpAreaObj D_800738AC;
 
 extern GpAreaVariant D_80180338[];
 
 extern GpAreaVariant D_80180304[];
 
-extern GpAreaObj D_800738B4;
-
 extern GpAreaVariant D_801859DC[];
-
-extern GpAreaObj D_800738B8;
 
 extern GpAreaVariant D_8017E994[];
 
-extern GpAreaObj D_800738BC;
-
 extern GpAreaVariant D_80184A50[];
-
-extern GpAreaObj D_800738C0;
 
 extern GpAreaVariant D_80184230[];
 
-extern GpAreaObj D_800738C4;
-
 extern GpAreaVariant D_8018471C[];
-
-extern GpAreaObj D_800738C8;
 
 extern GpAreaVariant D_80185860[];
 
-extern GpAreaObj D_800738CC;
-
 extern GpAreaVariant D_8017DBB8[];
 
-extern GpAreaObj D_800738D0;
-
 extern GpAreaVariant D_80181728[];
-
-extern GpAreaObj D_800738D4;
 
 GpAreaRec* Gp_AreaTables[6] = { NULL, D_8010CBE4, D_8010CC94, D_8010CDD4, D_8010CF14, D_8010D0AC };
 GpAreaRec  D_8010CBE4[21]   = {
     { NULL, NULL },
-    { D_80185E50, &D_80073410 },
-    { D_80186C50, &D_80073414 },
-    { D_80184A90, &D_80073418 },
-    { D_80189DCC, &D_8007341C },
-    { D_80199390, &D_80073420 },
-    { D_80184088, &D_80073424 },
-    { D_8017EA3C, &D_80073428 },
-    { D_8017FC9C, &D_8007342C },
-    { D_801831C4, &D_80073430 },
-    { D_80181264, &D_80073434 },
-    { D_80183020, &D_80073438 },
-    { D_8018402C, &D_8007343C },
-    { D_80185934, &D_80073440 },
-    { D_8019004C, &D_80073444 },
-    { D_8018294C, &D_80073448 },
-    { D_801861E8, &D_8007344C },
+    { D_80185E50, &GameFlag_AcropolisBanks[0].areas[0].state },
+    { D_80186C50, &GameFlag_AcropolisBanks[0].areas[1].state },
+    { D_80184A90, &GameFlag_AcropolisBanks[0].areas[2].state },
+    { D_80189DCC, &GameFlag_AcropolisBanks[0].areas[3].state },
+    { D_80199390, &GameFlag_AcropolisBanks[0].areas[4].state },
+    { D_80184088, &GameFlag_AcropolisBanks[0].areas[5].state },
+    { D_8017EA3C, &GameFlag_AcropolisBanks[0].areas[6].state },
+    { D_8017FC9C, &GameFlag_AcropolisBanks[0].areas[7].state },
+    { D_801831C4, &GameFlag_AcropolisBanks[0].areas[8].state },
+    { D_80181264, &GameFlag_AcropolisBanks[0].areas[9].state },
+    { D_80183020, &GameFlag_AcropolisBanks[0].areas[10].state },
+    { D_8018402C, &GameFlag_AcropolisBanks[0].areas[11].state },
+    { D_80185934, &GameFlag_AcropolisBanks[0].areas[12].state },
+    { D_8019004C, &GameFlag_AcropolisBanks[0].areas[13].state },
+    { D_8018294C, &GameFlag_AcropolisBanks[0].areas[14].state },
+    { D_801861E8, &GameFlag_AcropolisBanks[0].areas[15].state },
     { NULL, NULL },
-    { D_80186BFC, &D_80073450 },
-    { D_801951B4, &D_80073454 },
-    { D_8018DF74, &D_8007355C },
+    { D_80186BFC, &GameFlag_AcropolisBanks[0].areas[16].state },
+    { D_801951B4, &GameFlag_AcropolisBanks[0].areas[17].state },
+    { D_8018DF74, &GameFlag_DryfieldBanks[0].areas[29].state },
 };
 /// End marker following the stage 1 room table.
 u32       D_8010CC8C[2]  = { 0xFFFF, 0 };
 GpAreaRec D_8010CC94[39] = {
     { NULL, NULL },
-    { D_80184A38, &D_800734E8 },
-    { D_80184F20, &D_800734EC },
-    { D_80185654, &D_800734F0 },
+    { D_80184A38, &GameFlag_DryfieldBanks[0].areas[0].state },
+    { D_80184F20, &GameFlag_DryfieldBanks[0].areas[1].state },
+    { D_80185654, &GameFlag_DryfieldBanks[0].areas[2].state },
     { NULL, NULL },
-    { D_80180A50, &D_800734F4 },
-    { D_8017F598, &D_800734F8 },
-    { D_80182100, &D_800734FC },
-    { D_80180B88, &D_8007356C },
-    { D_80189938, &D_80073500 },
+    { D_80180A50, &GameFlag_DryfieldBanks[0].areas[3].state },
+    { D_8017F598, &GameFlag_DryfieldBanks[0].areas[4].state },
+    { D_80182100, &GameFlag_DryfieldBanks[0].areas[5].state },
+    { D_80180B88, &GameFlag_DryfieldBanks[0].areas[33].state },
+    { D_80189938, &GameFlag_DryfieldBanks[0].areas[6].state },
     { NULL, NULL },
-    { D_801814DC, &D_80073504 },
-    { D_80180410, &D_80073508 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_8017FA74, &D_80073514 },
-    { D_80182918, &D_80073518 },
-    { NULL, NULL },
-    { D_80181B1C, &D_8007351C },
-    { D_8017F4B8, &D_80073520 },
-    { D_8018757C, &D_80073524 },
-    { D_80188BF0, &D_80073528 },
-    { D_801842F8, &D_8007352C },
-    { NULL, NULL },
-    { D_801800E0, &D_80073530 },
-    { D_8017EDD4, &D_80073534 },
-    { D_8017F558, &D_80073538 },
-    { D_801876F0, &D_8007353C },
-    { NULL, NULL },
-    { D_80186220, &D_80073544 },
-    { D_80186764, &D_80073548 },
-    { NULL, NULL },
-    { D_801827BC, &D_80073550 },
-    { NULL, NULL },
-    { D_80180ACC, &D_80073554 },
+    { D_801814DC, &GameFlag_DryfieldBanks[0].areas[7].state },
+    { D_80180410, &GameFlag_DryfieldBanks[0].areas[8].state },
     { NULL, NULL },
     { NULL, NULL },
+    { D_8017FA74, &GameFlag_DryfieldBanks[0].areas[11].state },
+    { D_80182918, &GameFlag_DryfieldBanks[0].areas[12].state },
     { NULL, NULL },
-    { D_8017F868, &D_80073558 },
+    { D_80181B1C, &GameFlag_DryfieldBanks[0].areas[13].state },
+    { D_8017F4B8, &GameFlag_DryfieldBanks[0].areas[14].state },
+    { D_8018757C, &GameFlag_DryfieldBanks[0].areas[15].state },
+    { D_80188BF0, &GameFlag_DryfieldBanks[0].areas[16].state },
+    { D_801842F8, &GameFlag_DryfieldBanks[0].areas[17].state },
+    { NULL, NULL },
+    { D_801800E0, &GameFlag_DryfieldBanks[0].areas[18].state },
+    { D_8017EDD4, &GameFlag_DryfieldBanks[0].areas[19].state },
+    { D_8017F558, &GameFlag_DryfieldBanks[0].areas[20].state },
+    { D_801876F0, &GameFlag_DryfieldBanks[0].areas[21].state },
+    { NULL, NULL },
+    { D_80186220, &GameFlag_DryfieldBanks[0].areas[23].state },
+    { D_80186764, &GameFlag_DryfieldBanks[0].areas[24].state },
+    { NULL, NULL },
+    { D_801827BC, &GameFlag_DryfieldBanks[0].areas[26].state },
+    { NULL, NULL },
+    { D_80180ACC, &GameFlag_DryfieldBanks[0].areas[27].state },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_8017F868, &GameFlag_DryfieldBanks[0].areas[28].state },
 };
 /// End marker following the stage 2 room table.
 u32       D_8010CDCC[2]  = { 0xFFFF, 0 };
 GpAreaRec D_8010CDD4[39] = {
     { NULL, NULL },
-    { D_80190624, &D_800734E8 },
-    { D_80188A08, &D_800734EC },
-    { D_8018572C, &D_800734F0 },
+    { D_80190624, &GameFlag_DryfieldBanks[0].areas[0].state },
+    { D_80188A08, &GameFlag_DryfieldBanks[0].areas[1].state },
+    { D_8018572C, &GameFlag_DryfieldBanks[0].areas[2].state },
     { NULL, NULL },
-    { D_80181518, &D_800734F4 },
-    { D_8017F62C, &D_800734F8 },
-    { D_8017FB98, &D_800734FC },
-    { D_801818D8, &D_8007356C },
-    { D_80189FA4, &D_80073500 },
+    { D_80181518, &GameFlag_DryfieldBanks[0].areas[3].state },
+    { D_8017F62C, &GameFlag_DryfieldBanks[0].areas[4].state },
+    { D_8017FB98, &GameFlag_DryfieldBanks[0].areas[5].state },
+    { D_801818D8, &GameFlag_DryfieldBanks[0].areas[33].state },
+    { D_80189FA4, &GameFlag_DryfieldBanks[0].areas[6].state },
     { NULL, NULL },
-    { D_8018075C, &D_80073504 },
-    { D_801809A0, &D_80073508 },
-    { D_80180D24, &D_8007350C },
-    { D_801802FC, &D_80073510 },
-    { D_80181438, &D_80073514 },
-    { D_8017F354, &D_80073518 },
-    { D_801843C4, &D_80073570 },
-    { D_80188EE4, &D_8007351C },
-    { D_8017EB88, &D_80073520 },
-    { D_80182B5C, &D_80073524 },
-    { D_80180764, &D_80073528 },
-    { D_801803E4, &D_8007352C },
-    { D_8018A70C, &D_80073574 },
-    { D_801874BC, &D_80073530 },
-    { D_80181F4C, &D_80073534 },
-    { D_801843F0, &D_80073538 },
-    { D_8018C15C, &D_8007353C },
-    { D_80181190, &D_80073540 },
-    { D_8018EA94, &D_80073544 },
-    { D_801861B4, &D_80073548 },
-    { D_80180888, &D_8007354C },
-    { D_80183418, &D_80073550 },
+    { D_8018075C, &GameFlag_DryfieldBanks[0].areas[7].state },
+    { D_801809A0, &GameFlag_DryfieldBanks[0].areas[8].state },
+    { D_80180D24, &GameFlag_DryfieldBanks[0].areas[9].state },
+    { D_801802FC, &GameFlag_DryfieldBanks[0].areas[10].state },
+    { D_80181438, &GameFlag_DryfieldBanks[0].areas[11].state },
+    { D_8017F354, &GameFlag_DryfieldBanks[0].areas[12].state },
+    { D_801843C4, &GameFlag_DryfieldBanks[0].areas[34].state },
+    { D_80188EE4, &GameFlag_DryfieldBanks[0].areas[13].state },
+    { D_8017EB88, &GameFlag_DryfieldBanks[0].areas[14].state },
+    { D_80182B5C, &GameFlag_DryfieldBanks[0].areas[15].state },
+    { D_80180764, &GameFlag_DryfieldBanks[0].areas[16].state },
+    { D_801803E4, &GameFlag_DryfieldBanks[0].areas[17].state },
+    { D_8018A70C, &GameFlag_DryfieldBanks[0].areas[35].state },
+    { D_801874BC, &GameFlag_DryfieldBanks[0].areas[18].state },
+    { D_80181F4C, &GameFlag_DryfieldBanks[0].areas[19].state },
+    { D_801843F0, &GameFlag_DryfieldBanks[0].areas[20].state },
+    { D_8018C15C, &GameFlag_DryfieldBanks[0].areas[21].state },
+    { D_80181190, &GameFlag_DryfieldBanks[0].areas[22].state },
+    { D_8018EA94, &GameFlag_DryfieldBanks[0].areas[23].state },
+    { D_801861B4, &GameFlag_DryfieldBanks[0].areas[24].state },
+    { D_80180888, &GameFlag_DryfieldBanks[0].areas[25].state },
+    { D_80183418, &GameFlag_DryfieldBanks[0].areas[26].state },
     { NULL, NULL },
-    { D_80180780, &D_80073554 },
+    { D_80180780, &GameFlag_DryfieldBanks[0].areas[27].state },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_801802DC, &D_80073558 },
+    { D_801802DC, &GameFlag_DryfieldBanks[0].areas[28].state },
 };
 /// End marker following the stage 3 room table.
 u32       D_8010CF0C[2]  = { 0xFFFF, 0 };
 GpAreaRec D_8010CF14[50] = {
     { NULL, NULL },
-    { D_801898F4, &D_80073690 },
-    { D_8018E238, &D_80073694 },
-    { D_8017F32C, &D_80073698 },
-    { D_801801CC, &D_8007369C },
-    { D_80183544, &D_800736A0 },
-    { D_80182A00, &D_800736A4 },
-    { D_80185504, &D_800736A8 },
-    { D_80183340, &D_800736AC },
-    { D_80184940, &D_800736B0 },
-    { D_80183598, &D_800736B4 },
-    { D_80186C9C, &D_800736B8 },
-    { D_80185A38, &D_800736BC },
-    { D_801854E0, &D_800736C0 },
-    { D_80183FDC, &D_800736C4 },
-    { D_80185C30, &D_800736C8 },
-    { D_8018C14C, &D_800736CC },
-    { D_80184C00, &D_800736D0 },
-    { D_80183A98, &D_800736D4 },
-    { D_8017FE50, &D_800736D8 },
-    { D_8018B5C4, &D_800736DC },
-    { D_8017F17C, &D_800736E0 },
-    { D_80187678, &D_800736E4 },
-    { D_8017FBF8, &D_800736E8 },
-    { D_801830B8, &D_800736EC },
-    { D_801825AC, &D_800736F0 },
-    { D_8017E964, &D_800736F4 },
-    { D_80184C7C, &D_800736F8 },
-    { D_801837AC, &D_800736FC },
-    { D_80184124, &D_80073700 },
-    { D_80186258, &D_80073704 },
-    { D_80186360, &D_80073708 },
-    { D_80183EEC, &D_8007370C },
-    { D_8018933C, &D_80073710 },
-    { D_80186F40, &D_80073714 },
-    { D_801855AC, &D_80073718 },
-    { D_8017FA40, &D_8007371C },
+    { D_801898F4, &GameFlag_ShelterBanks[0].areas[0].state },
+    { D_8018E238, &GameFlag_ShelterBanks[0].areas[1].state },
+    { D_8017F32C, &GameFlag_ShelterBanks[0].areas[2].state },
+    { D_801801CC, &GameFlag_ShelterBanks[0].areas[3].state },
+    { D_80183544, &GameFlag_ShelterBanks[0].areas[4].state },
+    { D_80182A00, &GameFlag_ShelterBanks[0].areas[5].state },
+    { D_80185504, &GameFlag_ShelterBanks[0].areas[6].state },
+    { D_80183340, &GameFlag_ShelterBanks[0].areas[7].state },
+    { D_80184940, &GameFlag_ShelterBanks[0].areas[8].state },
+    { D_80183598, &GameFlag_ShelterBanks[0].areas[9].state },
+    { D_80186C9C, &GameFlag_ShelterBanks[0].areas[10].state },
+    { D_80185A38, &GameFlag_ShelterBanks[0].areas[11].state },
+    { D_801854E0, &GameFlag_ShelterBanks[0].areas[12].state },
+    { D_80183FDC, &GameFlag_ShelterBanks[0].areas[13].state },
+    { D_80185C30, &GameFlag_ShelterBanks[0].areas[14].state },
+    { D_8018C14C, &GameFlag_ShelterBanks[0].areas[15].state },
+    { D_80184C00, &GameFlag_ShelterBanks[0].areas[16].state },
+    { D_80183A98, &GameFlag_ShelterBanks[0].areas[17].state },
+    { D_8017FE50, &GameFlag_ShelterBanks[0].areas[18].state },
+    { D_8018B5C4, &GameFlag_ShelterBanks[0].areas[19].state },
+    { D_8017F17C, &GameFlag_ShelterBanks[0].areas[20].state },
+    { D_80187678, &GameFlag_ShelterBanks[0].areas[21].state },
+    { D_8017FBF8, &GameFlag_ShelterBanks[0].areas[22].state },
+    { D_801830B8, &GameFlag_ShelterBanks[0].areas[23].state },
+    { D_801825AC, &GameFlag_ShelterBanks[0].areas[24].state },
+    { D_8017E964, &GameFlag_ShelterBanks[0].areas[25].state },
+    { D_80184C7C, &GameFlag_ShelterBanks[0].areas[26].state },
+    { D_801837AC, &GameFlag_ShelterBanks[0].areas[27].state },
+    { D_80184124, &GameFlag_ShelterBanks[0].areas[28].state },
+    { D_80186258, &GameFlag_ShelterBanks[0].areas[29].state },
+    { D_80186360, &GameFlag_ShelterBanks[0].areas[30].state },
+    { D_80183EEC, &GameFlag_ShelterBanks[0].areas[31].state },
+    { D_8018933C, &GameFlag_ShelterBanks[0].areas[32].state },
+    { D_80186F40, &GameFlag_ShelterBanks[0].areas[33].state },
+    { D_801855AC, &GameFlag_ShelterBanks[0].areas[34].state },
+    { D_8017FA40, &GameFlag_ShelterBanks[0].areas[35].state },
     { NULL, NULL },
     { NULL, NULL },
-    { D_8018EC3C, &D_80073728 },
-    { D_8018FA58, &D_8007372C },
-    { D_80182610, &D_80073730 },
-    { D_8018477C, &D_80073734 },
-    { D_80183D48, &D_80073738 },
-    { D_80188B9C, &D_8007373C },
-    { D_80187350, &D_80073740 },
-    { D_80184CA4, &D_80073744 },
-    { D_80187CB8, &D_80073748 },
-    { D_8018BC10, &D_8007374C },
-    { D_8017DD74, &D_800736A4 },
+    { D_8018EC3C, &GameFlag_ShelterBanks[0].areas[38].state },
+    { D_8018FA58, &GameFlag_ShelterBanks[0].areas[39].state },
+    { D_80182610, &GameFlag_ShelterBanks[0].areas[40].state },
+    { D_8018477C, &GameFlag_ShelterBanks[0].areas[41].state },
+    { D_80183D48, &GameFlag_ShelterBanks[0].areas[42].state },
+    { D_80188B9C, &GameFlag_ShelterBanks[0].areas[43].state },
+    { D_80187350, &GameFlag_ShelterBanks[0].areas[44].state },
+    { D_80184CA4, &GameFlag_ShelterBanks[0].areas[45].state },
+    { D_80187CB8, &GameFlag_ShelterBanks[0].areas[46].state },
+    { D_8018BC10, &GameFlag_ShelterBanks[0].areas[47].state },
+    { D_8017DD74, &GameFlag_ShelterBanks[0].areas[5].state },
 };
 /// End marker following the stage 4 room table.
 u32       D_8010D0A4[2]  = { 0xFFFF, 0 };
 GpAreaRec D_8010D0AC[34] = {
     { NULL, NULL },
-    { D_801818D8, &D_80073858 },
-    { D_80182A04, &D_8007385C },
-    { D_80180DA8, &D_80073860 },
-    { D_80182BF4, &D_80073864 },
-    { D_8017F758, &D_80073868 },
+    { D_801818D8, &GameFlag_NeoArkBanks[0].areas[0].state },
+    { D_80182A04, &GameFlag_NeoArkBanks[0].areas[1].state },
+    { D_80180DA8, &GameFlag_NeoArkBanks[0].areas[2].state },
+    { D_80182BF4, &GameFlag_NeoArkBanks[0].areas[3].state },
+    { D_8017F758, &GameFlag_NeoArkBanks[0].areas[4].state },
     { NULL, NULL },
-    { D_8018786C, &D_80073870 },
-    { D_801806B8, &D_80073874 },
+    { D_8018786C, &GameFlag_NeoArkBanks[0].areas[6].state },
+    { D_801806B8, &GameFlag_NeoArkBanks[0].areas[7].state },
     { NULL, NULL },
-    { D_8018305C, &D_8007387C },
-    { D_80182968, &D_80073880 },
-    { D_80187470, &D_80073884 },
-    { D_801876C4, &D_80073888 },
-    { D_80183F48, &D_8007388C },
-    { D_80182B54, &D_80073890 },
-    { D_80182DE0, &D_80073894 },
-    { D_80181AF8, &D_80073898 },
-    { D_80180864, &D_8007389C },
-    { D_801808E4, &D_800738A0 },
+    { D_8018305C, &GameFlag_NeoArkBanks[0].areas[9].state },
+    { D_80182968, &GameFlag_NeoArkBanks[0].areas[10].state },
+    { D_80187470, &GameFlag_NeoArkBanks[0].areas[11].state },
+    { D_801876C4, &GameFlag_NeoArkBanks[0].areas[12].state },
+    { D_80183F48, &GameFlag_NeoArkBanks[0].areas[13].state },
+    { D_80182B54, &GameFlag_NeoArkBanks[0].areas[14].state },
+    { D_80182DE0, &GameFlag_NeoArkBanks[0].areas[15].state },
+    { D_80181AF8, &GameFlag_NeoArkBanks[0].areas[16].state },
+    { D_80180864, &GameFlag_NeoArkBanks[0].areas[17].state },
+    { D_801808E4, &GameFlag_NeoArkBanks[0].areas[18].state },
     { NULL, NULL },
-    { D_801866C8, &D_800738A8 },
-    { D_801874A4, &D_800738AC },
-    { D_80180338, &D_800738AC },
-    { D_80180304, &D_800738B4 },
-    { D_801859DC, &D_800738B8 },
-    { D_8017E994, &D_800738BC },
-    { D_80184A50, &D_800738C0 },
-    { D_80184230, &D_800738C4 },
-    { D_8018471C, &D_800738C8 },
-    { D_80185860, &D_800738CC },
-    { D_8017DBB8, &D_800738D0 },
-    { D_80181728, &D_800738D4 },
+    { D_801866C8, &GameFlag_NeoArkBanks[0].areas[20].state },
+    { D_801874A4, &GameFlag_NeoArkBanks[0].areas[21].state },
+    { D_80180338, &GameFlag_NeoArkBanks[0].areas[21].state },
+    { D_80180304, &GameFlag_NeoArkBanks[0].areas[23].state },
+    { D_801859DC, &GameFlag_NeoArkBanks[0].areas[24].state },
+    { D_8017E994, &GameFlag_NeoArkBanks[0].areas[25].state },
+    { D_80184A50, &GameFlag_NeoArkBanks[0].areas[26].state },
+    { D_80184230, &GameFlag_NeoArkBanks[0].areas[27].state },
+    { D_8018471C, &GameFlag_NeoArkBanks[0].areas[28].state },
+    { D_80185860, &GameFlag_NeoArkBanks[0].areas[29].state },
+    { D_8017DBB8, &GameFlag_NeoArkBanks[0].areas[30].state },
+    { D_80181728, &GameFlag_NeoArkBanks[0].areas[31].state },
     { NULL, NULL },
 };
 /// End marker following the stage 5 room table.
@@ -1020,13 +772,13 @@ void Gp_LoadViewImages(void)
 void Gp_FinishLoadWait(Task* task)
 {
     Pad_ClearCooldown(0);
-    if (task->spawnArg1 == 0) {
+    if (task->spawnArg1.value == 0) {
         Stage_RequestSpecialFlag(1);
         gGameSession->viewDirty = 0;
         taskKill(task);
         Display_ResetHeapWrapper();
     } else {
-        if (task->spawnArg1 == 1) {
+        if (task->spawnArg1.value == 1) {
             gDisplayState.at100.flags.flipMode = 1;
         }
         gDisplayState.at100.flags.imageSource = 2;
@@ -1056,11 +808,11 @@ static void Gp_ReloadFromSave(void)
 
     slot            = gameGetPtrSlot(1);
     save            = &Mc_SaveData[0];
-    slot->spawnArg1 = save->at4.loc.view;
+    slot->spawnArg1.value = save->state.at4.loc.view;
     ResetGraph(1);
     Gpu_ClearOTag(0);
     Gpu_ClearOTag(1);
-    gGameSession->at4.loc.view = save->at4.loc.view;
+    gGameSession->at4.loc.view = save->state.at4.loc.view;
     Pad_SetCooldown(0);
     Gp_SpawnCurView(2);
     gGameSession->viewReady = 0;
@@ -1072,9 +824,9 @@ static void Gp_ReloadAtLoc(s32 arg0)
     Task* slot;
 
     slot                        = gameGetPtrSlot(1);
-    Mc_SaveData[0].at4.loc.view = arg0;
+    Mc_SaveData[0].state.at4.loc.view = arg0;
     gGameSession->at4.loc.view  = arg0;
-    slot->spawnArg1             = (u8)arg0;
+    slot->spawnArg1.value             = (u8)arg0;
     Pad_SetCooldown(0);
     Gp_SpawnCurView(1);
     gDisplayState.at100.flags.imageSource = 1;
@@ -1085,8 +837,8 @@ void Gp_CommitSpawnLoc(Task* task)
 {
     u8 val;
 
-    val                         = (u8)task->spawnArg1;
-    Mc_SaveData[0].at4.loc.view = val;
+    val                         = (u8)task->spawnArg1.value;
+    Mc_SaveData[0].state.at4.loc.view = val;
     gGameSession->at4.loc.view  = val;
     taskKill(task);
 }
@@ -1153,7 +905,7 @@ void Gp_EnqueueConfigCd(s32 arg0)
     GpTbl5 table;
 
     table = Gp_ConfigCdTable;
-    if (Mc_SaveData[0].characterId != 0) {
+    if (Mc_SaveData[0].state.characterId != 0) {
         param1[3] = 0;
         param1[2] = 1;
         param1[0] = 0;
@@ -1240,7 +992,7 @@ void Gp_EnqueueCompanionCd(u8 type, u8 variant)
         CdCmd_Enqueue(0x21, param1, param2);
         if (variant == 5) {
             gGameSession->companionVariant  = 3;
-            Mc_SaveData[0].companionVariant = 3;
+            Mc_SaveData[0].state.companionVariant = 3;
         }
     }
 

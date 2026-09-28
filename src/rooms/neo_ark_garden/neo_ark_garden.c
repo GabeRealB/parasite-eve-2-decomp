@@ -4,16 +4,7 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/gfxgte.h"
 #include <psyq/rand.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -23,6 +14,17 @@
 #include "gameplay/display.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/evs.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/gfxgte.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "overlay.h"
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -286,7 +288,7 @@ void func_neo_ark_garden_8017D64C(Task* task)
         task->killCountdown    = rand();
         task->state++;
     }
-    prim = (POLY_FT4*)D_8005C374;
+    prim = (POLY_FT4*)Fs_ActorLoadBase2;
     disp = &gDisplayState;
     if (disp->otBuffer != 0) {
         prim += 488;
@@ -539,8 +541,8 @@ void func_neo_ark_garden_8017D64C(Task* task)
 /// display buffer shifted vertically by a `rsin` / `rcos` wave, faded out over
 /// the band's last 16 rows; the strips are linked into `gGpuCurrentOt` one
 /// depth nearer per row. View 5 of area 30 draws a second band. In place 3 of
-/// area 12 the strips go into a buffer below `D_8005C36C` sized from
-/// `D_8006D860`, and nothing is drawn when it holds fewer than 976 of them.
+/// area 12 the strips go into a buffer below `Fs_ActorLoadBase0` sized from
+/// `Fs_ChunkOutputSizes[0]`, and nothing is drawn when it holds fewer than 976 of them.
 /// The wave phases derive from
 /// `Task::killCountdown`, seeded from `rand()` on the first call and advanced
 /// every call while `Gp_StateF0.field_4` is clear.
@@ -636,9 +638,9 @@ void func_neo_ark_garden_8017E2A0(Task* task)
     }
 
     if (area == 12 && loc->place == 3) {
-        size  = 0x30000 - D_8006D860;
+        size  = 0x30000 - Fs_ChunkOutputSizes[0];
         size &= ~7;
-        base  = (u8*)D_8005C36C - (size - 0x30000);
+        base  = (u8*)Fs_ActorLoadBase0 - (size - 0x30000);
         if (size < sizeof(POLY_FT4) * 976) {
             return;
         }
@@ -647,7 +649,7 @@ void func_neo_ark_garden_8017E2A0(Task* task)
         }
         prim = (POLY_FT4*)base - 1;
     } else {
-        prim = (POLY_FT4*)((u8*)D_8005C374 + 0x9880);
+        prim = (POLY_FT4*)((u8*)Fs_ActorLoadBase2 + 0x9880);
         if (gDisplayState.otBuffer != 0) {
             prim += 488;
         }

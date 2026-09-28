@@ -1,23 +1,14 @@
 #include "common.h"
 
-#include "psyq/libgte.h"
-#include "psyq/libgpu.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include "psyq/libgs.h"
 #include "psyq/rand.h"
 #include "psyq/inline_c.h"
 #include "psyq/gtemac.h"
 #include "gte.h"
-#include "main/gfxgte.h"
 
 #include "actors/actors_shared_80131fc8.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/wipsys.h"
 #include "actors/actor.h"
 #include "actors/actor_403600.h"
 
@@ -32,6 +23,18 @@
 #include "gameplay/sprites.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gfx.h"
+#include "main/gfxgte.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 /// A quad of the screen distortion grid. Its texture is the copy of the frame
 /// the grid is drawn over, which is wider than one texture page reaches, so a
@@ -712,7 +715,7 @@ void func_actor_403600_80134288(Task* arg0)
         arg0->state++;
     }
     fx                      = arg0->work;
-    D_actor_403600_8016069C = (s32)D_8005C374 + (gDisplayState.otBuffer * 0xC000);
+    D_actor_403600_8016069C = (s32)Fs_ActorLoadBase2 + (gDisplayState.otBuffer * 0xC000);
     if (work->field_742 != 1 && work->field_708 > 0) {
         func_actor_403600_80132A18(arg0, work, fx);
     }
@@ -798,7 +801,7 @@ void func_actor_403600_80134398(Task* arg0)
         Task_CallExit(arg0);
         return;
     }
-    if (((Actor403600Work*)((Task*)arg0->spawnArg2)->work)->field_742 == 1) {
+    if (((Actor403600Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_742 == 1) {
         Task_CallExit(arg0);
         return;
     }
@@ -817,7 +820,7 @@ void func_actor_403600_80134398(Task* arg0)
         coord->coord.t[1]   = 0;
         coord->coord.t[0]   = 0;
         coord->flg          = 0;
-        owner               = arg0->spawnArg2;
+        owner               = arg0->spawnArg2.pointer;
         arg0->killCountdown = 1;
         arg0->status        = 1;
         arg0->extraState    = 0;
@@ -852,19 +855,19 @@ void func_actor_403600_80134398(Task* arg0)
             gte_rtv0();
             gte_stsv(temp_s1);
 
-            if (arg0->spawnArg1 == 0x1100) {
+            if (arg0->spawnArg1.value == 0x1100) {
                 Gp_CopyCoordOffset(arg0, &owner->extra.tmd->coords[14], &sp10);
             } else {
                 Gp_CopyCoordOffset(arg0, &owner->extra.tmd->coords[18], &sp10);
             }
-            if (arg0->spawnArg1 < 0x1000) {
+            if (arg0->spawnArg1.value < 0x1000) {
                 Gp_SpawnEff(0x601BB, coord, 0x20, 0);
             }
             arg0->status        = 3;
             arg0->killCountdown = 0x20;
         }
         var_s4 = 0;
-        if (arg0->spawnArg1 >= 0x1000) {
+        if (arg0->spawnArg1.value >= 0x1000) {
             arg0->status = 4;
         }
         do {
@@ -874,7 +877,7 @@ void func_actor_403600_80134398(Task* arg0)
             var_s4                   += 1;
         } while (var_s4 < 0x20);
         newShape = &newWork->shape;
-        if (arg0->spawnArg1 < 0x1000) {
+        if (arg0->spawnArg1.value < 0x1000) {
             obj                    = &newWork->obj;
             obj->coord             = coord;
             obj->ctx.d4rec         = newShape;
@@ -883,7 +886,7 @@ void func_actor_403600_80134398(Task* arg0)
             obj->pos.vz            = 0;
             obj->radius            = 0;
             recs                   = newWork->recs;
-            obj->key               = Gp_PackPair(&D_actor_403600_801420F0, arg0->spawnArg1 & 0xF);
+            obj->key               = Gp_PackPair(&D_actor_403600_801420F0, arg0->spawnArg1.value & 0xF);
             obj->flags             = 3;
             newShape->recs         = recs;
             newShape->end1.vx      = 0;
@@ -928,7 +931,7 @@ block_22:
     scratch->target.vy = scratch->dir.vy;
     scratch->target.vz = scratch->dir.vz;
     if (Gp_StateF0.field_4 == 0) {
-        if (arg0->spawnArg1 < 0x1000) {
+        if (arg0->spawnArg1.value < 0x1000) {
             work->life = work->life - 1;
         } else {
             arg0->killCountdown = (u16)arg0->killCountdown + 1;
@@ -1001,7 +1004,7 @@ block_22:
                         goto block_51;
                     }
                     if (temp_v1_5 == 3) {
-                        motionParent = arg0->spawnArg2;
+                        motionParent = arg0->spawnArg2.pointer;
                         if ((s16)arg0->killCountdown >= 7) {
                             var_a1_2 = &motionParent->extra.tmd->coords[18];
                             Gp_CopyCoordOffset(arg0, var_a1_2, &sp10);
@@ -1017,8 +1020,8 @@ block_22:
                             goto block_51;
                         }
                     } else {
-                        temp_a0_3 = arg0->spawnArg2;
-                        if (arg0->spawnArg1 == 0x1000) {
+                        temp_a0_3 = arg0->spawnArg2.pointer;
+                        if (arg0->spawnArg1.value == 0x1000) {
                             Gp_CopyCoordOffset(arg0, &temp_a0_3->extra.tmd->coords[18], &sp10);
                         } else {
                             Gp_CopyCoordOffset(arg0, &temp_a0_3->extra.tmd->coords[14], &sp10);
@@ -1038,13 +1041,13 @@ block_22:
         }
     } else {
     block_54:
-        if ((arg0->spawnArg1 < 0x1000) && (Gp_FindRec18(work->recs, 0) != 0)) {
+        if ((arg0->spawnArg1.value < 0x1000) && (Gp_FindRec18(work->recs, 0) != 0)) {
             temp_s0_5 = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(0x5416000A, temp_s0_5, (s8)gpGetObjDepth(coord));
             work->life = -1;
         }
         if (work->life < 0) {
-            if (arg0->spawnArg1 < 0x1000) {
+            if (arg0->spawnArg1.value < 0x1000) {
                 Gp_ClearRec18Occupied(work->recs);
                 work->obj.flags = work->obj.flags & 0x3FFF;
             }
@@ -1054,7 +1057,7 @@ block_22:
         }
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
-        temp_v1_6 = arg0->spawnArg1 & 0xF;
+        temp_v1_6 = arg0->spawnArg1.value & 0xF;
         switch (temp_v1_6) {
             case 0:
                 sp24 = 0x808000;
@@ -1505,7 +1508,7 @@ void func_actor_403600_80135C28(Task* arg0)
     TmdObject*        temp_v0;
     Actor403600Work*  temp_v1;
 
-    temp_a0 = arg0->spawnArg2;
+    temp_a0 = arg0->spawnArg2.pointer;
     temp_v1 = temp_a0->work;
     temp_s4 = arg0->extra.tmd->coords;
     temp_s2 = temp_v1->field_710;
@@ -1534,7 +1537,7 @@ void func_actor_403600_80135C28(Task* arg0)
             temp_v0_2->field_90.coord.t[2] = 0;
             temp_v0_2->field_90.flg        = 0;
             temp_v0_2->field_90.sub        = temp_s4;
-            temp_v1_2                      = arg0->spawnArg1;
+            temp_v1_2                      = arg0->spawnArg1.value;
             arg0->killCountdown            = 0x10;
             switch (temp_v1_2) {
                 case 1:
@@ -1569,12 +1572,12 @@ void func_actor_403600_80135C28(Task* arg0)
     }
     temp_s0 = (ActorEffectState*)arg0->work;
     if (Gp_StateF0.field_4 == 0) {
-        switch (arg0->spawnArg1) {
+        switch (arg0->spawnArg1.value) {
             case 1:
                 temp_v0_9         = temp_s0->field_E4 - 1;
                 temp_s0->field_E4 = temp_v0_9;
                 if (temp_v0_9 == 0) {
-                    temp_a0_5               = ((Task*)arg0->spawnArg2)->extra.tmd;
+                    temp_a0_5               = ((Task*)arg0->spawnArg2.pointer)->extra.tmd;
                     D_actor_403600_801606A0 = NULL;
                     temp_a0_5->flags        = (u16)(temp_a0_5->flags | 0x80);
                 } else if (temp_v0_9 > 0) {
@@ -1586,7 +1589,7 @@ void func_actor_403600_80135C28(Task* arg0)
                 temp_v1_10        = temp_s0->field_E4 - 1;
                 temp_s0->field_E4 = temp_v1_10;
                 if (temp_v1_10 == 0) {
-                    temp_a1                 = ((Task*)arg0->spawnArg2)->extra.tmd;
+                    temp_a1                 = ((Task*)arg0->spawnArg2.pointer)->extra.tmd;
                     D_actor_403600_801606A0 = &temp_s0->field_90;
                     temp_a1->flags          = (u16)(temp_a1->flags & 0xFF7F);
                     Gp_UpdateCoord(&temp_s0->field_90);

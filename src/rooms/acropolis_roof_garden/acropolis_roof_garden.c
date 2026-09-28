@@ -8,14 +8,6 @@
 #include <psyq/abs.h>
 
 #include "decomp/common.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
@@ -33,8 +25,22 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/loading.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
+#include "gameplay/geometry.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 /// Grey level of each of the three variants the ambient sprite task can be
 /// spawned as, picked by bits 8..9 of `Task::spawnArg1`.
@@ -268,8 +274,8 @@ static void func_acropolis_roof_garden_8017DB74(Task* arg0)
 {
     arg0->msgTable = D_acropolis_roof_garden_80183BDC;
     Game_SetPtrSlot(arg0, 7);
-    if (Mc_SaveData[0].sceneEvent == 6) {
-        Mc_SaveData[0].sceneEvent = 5;
+    if (Mc_SaveData[0].state.sceneEvent == 6) {
+        Mc_SaveData[0].state.sceneEvent = 5;
     }
     Task_SpawnFromTable(&D_acropolis_roof_garden_80183C10, 0, 0, 0);
     arg0->state += 1;
@@ -317,7 +323,7 @@ static void func_acropolis_roof_garden_8017DCDC(Task* task)
     SVECTOR*   vec;
     s32        i;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (task->state == 0) {
         for (i = 0; i < 2; i++) {
@@ -378,10 +384,10 @@ static void func_acropolis_roof_garden_8017DE90(Task* arg0)
     s16               x;
     s16               y;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState < 2) {
-        if ((D_acropolis_roof_garden_80184C48[arg0->spawnArg1 & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
+        if ((D_acropolis_roof_garden_80184C48[arg0->spawnArg1.value & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
             Gp_UpdateCoord(coord);
             scratch  = (void**)G_SCRATCH_HEAD;
             head     = *scratch;
@@ -389,10 +395,10 @@ static void func_acropolis_roof_garden_8017DE90(Task* arg0)
             blk      = (RoomShaftScratch*)(head - sizeof(RoomShaftScratch));
             if (arg0->state == 0) {
                 base            = D_acropolis_roof_garden_8017D5D0;
-                param           = arg0->spawnArg1;
+                param           = arg0->spawnArg1.value;
                 mem->scale      = (param & 0x0FFF0000) ? ((param >> 16) & 0xFFF) : 0x280;
-                mem->angle      = (arg0->spawnArg1 >> 8) & 3;
-                arg0->spawnArg1 = arg0->spawnArg1 & 0xF;
+                mem->angle      = (arg0->spawnArg1.value >> 8) & 3;
+                arg0->spawnArg1.value = arg0->spawnArg1.value & 0xF;
                 mem->period     = base.v[mem->angle];
                 arg0->state++;
             }
@@ -470,7 +476,7 @@ static void func_acropolis_roof_garden_8017E29C(Task* arg0)
     u32              depth;
 
     coord = arg0->extra.tmd->coords;
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     head        = SCRATCH_HEAD(void);
     blk         = (RoomGlowScratch*)(SCRATCH_HEAD(void) = head - 0x18);
@@ -486,8 +492,8 @@ static void func_acropolis_roof_garden_8017E29C(Task* arg0)
     gte_stszotz(&blk->otz);
     if (((RoomGlowScratch*)(head - 0x18))->otz >= 0x11) {
         pulse  = gDisplayState.animFrame;
-        pulse *= arg0->spawnArg1 & 0xFF;
-        flip   = (arg0->spawnArg1 >> 16) & 1;
+        pulse *= arg0->spawnArg1.value & 0xFF;
+        flip   = (arg0->spawnArg1.value >> 16) & 1;
         if (pulse & 0x80) {
             level  = ~pulse;
             level &= 0x7F;
@@ -495,7 +501,7 @@ static void func_acropolis_roof_garden_8017E29C(Task* arg0)
             level = pulse & 0x7F;
         }
         lvl   = level * 2;
-        level = arg0->spawnArg1;
+        level = arg0->spawnArg1.value;
         if (level < 0) {
             h           = (level >> 8) & 0xFF;
             blk->rOuter = (h << 10) / blk->otz;
@@ -616,7 +622,7 @@ static void func_acropolis_roof_garden_8017E29C(Task* arg0)
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
-            if (arg0->spawnArg1 & 0x10000000) {
+            if (arg0->spawnArg1.value & 0x10000000) {
                 for (i = 0; i < 2; i++) {
                     line           = (LINE_G3*)gGpuPrimCursor;
                     gGpuPrimCursor = line + 1;
@@ -657,7 +663,7 @@ static void func_acropolis_roof_garden_8017F10C(Task* task)
     s32        vx;
     s32        vz;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     Gp_UpdateCoord(coord);
     work->age++;
@@ -963,7 +969,7 @@ void func_acropolis_roof_garden_80180160(Task* task)
     s32         flag;
     s32         view;
 
-    obj  = (GpItemObj8*)task->spawnArg2;
+    obj  = (GpItemObj8*)task->spawnArg2.pointer;
     tmd  = task->extra.tmd;
     flag = Gp_GetCurBit2Flag(obj->field_8);
     view = Gp_GetViewIndex();

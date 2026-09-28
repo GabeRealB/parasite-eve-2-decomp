@@ -5,14 +5,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include "weapons/mp5a5.h"
 #include "weapons/weapon.h"
 #include "weapons/weapons_shared_8011d468.h"
@@ -26,8 +18,18 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/task.h"
+#include "main/wipsys.h"
+#include "overlay.h"
 
 static void func_mp5a5_8011D468(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_mp5a5_8011D864(GpCoord* arg0, s16 arg1, s16 arg2);
@@ -60,7 +62,7 @@ static void func_mp5a5_8011D1E0(Task* task)
     u8            rgb[3];
     s32           i;
 
-    work  = (GpEffWork*)task->spawnArg2;
+    work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     base  = &Gp_RoomCoords[0];
     slot  = &base->data.light;
@@ -396,7 +398,7 @@ static void func_mp5a5_8011DDA4(Task* arg0)
             if ((s8)func_801060E0(arg0) == 1 && func_80106264(1) > 0 && actor->field_940 == 0) {
                 goto fire;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0) {
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0) {
                 func_80106550(arg0);
             }
             break;

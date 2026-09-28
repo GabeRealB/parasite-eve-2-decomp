@@ -1,8 +1,4 @@
 #include "common.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -13,6 +9,12 @@
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/evs.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/session.h"
+#include "main/task.h"
 
 /// The pair of cutscene blocks `func_800E8634` hands to `Task_Spawn` (bank 9,
 /// type 7): the one the running scene starts and the one it parks in

@@ -5,11 +5,6 @@
 #include <psyq/libgs.h>
 
 #include "actors/actor.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/collision.h"
@@ -20,7 +15,18 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/enemy.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "overlay.h"
+#include <psyq/memory.h>
 
 /// Work block of the actor's second task, the one `func_actor_135400_80132B60`
 /// sets up: the `memCalloc(0x498, 0)` result it stores in `Task::work`, which
@@ -181,7 +187,7 @@ static void func_actor_135400_80131EB4(Task* task)
     SVECTOR     sv;
     GpCoord*    coord;
 
-    switch (task->spawnArg1) {
+    switch (task->spawnArg1.value) {
         case 1:
             coord = task->extra.tmd->coords;
             Gp_ComposeParentWorld(coord, &rot.mat, &sv);
@@ -191,7 +197,7 @@ static void func_actor_135400_80131EB4(Task* task)
             coord->coord.t[2] = sv.vz;
             coord->sub        = &gGfxViewCoord;
             coord->flg        = 0;
-            task->spawnArg1  += 1;
+            task->spawnArg1.value  += 1;
             break;
         case 2:
             if (gGameSession->eventState != 0) {
@@ -212,7 +218,7 @@ static void func_actor_135400_80131EB4(Task* task)
             coord->coord.t[2] = 0x157C;
             coord->sub        = &gGfxViewCoord;
             coord->flg        = 0;
-            task->spawnArg1   = 0;
+            task->spawnArg1.value   = 0;
             break;
     }
 }
@@ -241,12 +247,12 @@ static void func_actor_135400_80132064(Task* arg0)
     arg0->work         = (TaskIdMap*)work;
     work->model.animId = -1;
     work->model.bank   = -1;
-    spawned            = Task_SpawnFromTable(&D_actor_135400_8013A4AC, 1, 4, (s32)arg0);
+    spawned            = Task_SpawnFromTable(&D_actor_135400_8013A4AC, 1, 4, arg0);
     if (spawned != NULL) {
         work->field_4B8 = spawned;
-        actorTintTask(spawned, (GpEnemy*)arg0->spawnArg2);
+        actorTintTask(spawned, (GpEnemy*)arg0->spawnArg2.pointer);
     }
-    spawned = Task_SpawnFromTable(&D_actor_135400_8013A4AC, 2, 8, (s32)arg0);
+    spawned = Task_SpawnFromTable(&D_actor_135400_8013A4AC, 2, 8, arg0);
     if (spawned != NULL) {
         work->field_4BC = spawned;
     }
@@ -332,8 +338,8 @@ static void func_actor_135400_80132450(Task* task)
     GpCoord*   coord;
     GpCoord*   dest;
 
-    parent          = (Task*)task->spawnArg2;
-    part            = task->spawnArg1;
+    parent          = (Task*)task->spawnArg2.pointer;
+    part            = task->spawnArg1.value;
     extra           = task->extra.tmd;
     parentExtra     = parent->extra.tmd;
     coord           = extra->coords;
@@ -374,8 +380,8 @@ static void func_actor_135400_8013252C(Task* task)
     GpCoord*   coord;
     GpCoord*   dest;
 
-    parent          = (Task*)task->spawnArg2;
-    part            = task->spawnArg1;
+    parent          = (Task*)task->spawnArg2.pointer;
+    part            = task->spawnArg1.value;
     extra           = task->extra.tmd;
     parentExtra     = parent->extra.tmd;
     coord           = extra->coords;
@@ -551,12 +557,12 @@ s32 func_actor_135400_801328DC(Task* task, s32 msgId, GpCmdArg* msg, s32 arg3)
             break;
         case 4:
             if (work->field_4BC != NULL) {
-                work->field_4BC->spawnArg1 = 1;
+                work->field_4BC->spawnArg1.value = 1;
             }
             break;
         case 5:
             if (work->field_4BC != NULL) {
-                work->field_4BC->spawnArg1 = 3;
+                work->field_4BC->spawnArg1.value = 3;
                 model                      = work->field_4BC->extra.tmd;
                 model->flags              &= 0xFF7F;
             }

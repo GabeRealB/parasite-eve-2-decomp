@@ -1,13 +1,15 @@
 #include "common.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/session.h"
-#include "main/task.h"
 #include "rooms/room.h"
 
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/evs_scripts.h"
+
+#include "gameplay/evs.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/session.h"
+#include "main/task.h"
 
 extern s32 D_neo_ark_r31_8017DC54;
 

@@ -2,12 +2,6 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "pe/inferno.h"
 
 #include "gameplay/actor_render.h"
@@ -16,8 +10,15 @@
 #include "gameplay/pad_script.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/sound.h"
 
 /// The two fan shapes the inferno wall sweeps through.
 static InfernoFanParam D_inferno_801304E4[] = {
@@ -52,7 +53,7 @@ static void func_inferno_8012EF88(Task* arg0)
     s32        i;
     s32        pan;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
         goto release;
@@ -203,7 +204,7 @@ static void func_inferno_8012F530(Task* arg0)
     s32           tz;
 
     map   = (InfernoIdMap*)arg0->work;
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
         goto release;
@@ -231,7 +232,7 @@ static void func_inferno_8012F530(Task* arg0)
                 Gp_LcgState = rng;
                 p[6]        = (u32)rng >> 16;
             } while (i < 6);
-            arg0->state = arg0->spawnArg1 + 1;
+            arg0->state = arg0->spawnArg1.value + 1;
             gte_lddp(0x80);
             gte_ldsv(&mem->pos);
             gte_gpf12();

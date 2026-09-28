@@ -11,7 +11,7 @@
 #include "gameplay/scene.h"
 
 #include "main/coord.h"
-#include "main/task.h"
+#include "main/task_types.h"
 
 struct GpEffWork;
 

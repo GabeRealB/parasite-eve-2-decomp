@@ -1,12 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_503500.h"
-#include "main/gameflag.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/collision.h"
@@ -16,7 +10,14 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/mem.h"
+#include "main/session_types.h"
+#include "main/tmd.h"
 
 /// Work block allocated by `func_actor_503500_80132430`
 /// (`memCalloc(0x48)`) and parked in that task's `Task::work` slot.
@@ -61,7 +62,7 @@ static void func_actor_503500_8013223C(Task* arg0)
 
     ext   = arg0->extra.tmd;
     work  = (Actor503500ColorMtx*)arg0->work;
-    enemy = arg0->spawnArg2;
+    enemy = arg0->spawnArg2.pointer;
     coord = ext->coords;
     if (work->field_45 != 0) {
         if (work->field_40 < 360) {
@@ -143,7 +144,7 @@ static void func_actor_503500_80132430(Task* arg0)
 /// `Gp_DestroyEnemy`.
 static void func_actor_503500_801324C4(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 static void func_actor_503500_801324EC(Task* arg0)

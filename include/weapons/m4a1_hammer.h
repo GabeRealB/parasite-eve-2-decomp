@@ -5,9 +5,8 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/coord.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 /// Parent task the hammer effect re-attaches itself to each time it restarts.
 extern Task* D_m4a1_hammer_8012D660;

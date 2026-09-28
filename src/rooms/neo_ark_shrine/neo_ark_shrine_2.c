@@ -5,16 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/neo_ark_shrine.h"
 #include "rooms/room_common.h"
 
@@ -29,8 +19,23 @@
 #include "gameplay/loading.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/action_prompt.h"
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 /// Scratch state of the two falling-prop tasks, stored at `Task::work`
 /// (`memCalloc(0x48)` in `func_neo_ark_shrine_8017F4C8` / `_8017F688`).
@@ -145,7 +150,7 @@ static void func_neo_ark_shrine_8017E528(Task* task)
     u16*              statep;
     u16*              heldp;
 
-    switch (task->spawnArg1) {
+    switch (task->spawnArg1.value) {
         case 1:
             first = 0;
             count = 1;
@@ -383,9 +388,9 @@ static void func_neo_ark_shrine_8017ECC4(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2             = Task_SpawnFromTable(D_neo_ark_shrine_80182404, 0, 1, 0);
+    task->spawnArg2.pointer             = Task_SpawnFromTable(D_neo_ark_shrine_80182404, 0, 1, 0);
     task->work                  = (TaskIdMap*)st;
-    Mc_SaveData[0].at4.loc.view = 0xB;
+    Mc_SaveData[0].state.at4.loc.view = 0xB;
     /* The once-loop folds away, but flow counts its references at loop depth
        2: without it the parameter's priority (6*2/42) loses to the state
        pointer's (3*1/10) and the two swap callee-saved homes. Keeping the
@@ -466,10 +471,10 @@ static void func_neo_ark_shrine_8017EED4(Task* task)
     gGameSession->eventState    = 0;
     gGameSession->hideHud       = 0;
     gGameSession->cutsceneHold  = 0;
-    Mc_SaveData[0].at4.loc.view = 0xA;
+    Mc_SaveData[0].state.at4.loc.view = 0xA;
     /* Without this the scheduler hoists the `spawnArg2` load above the
-       `Mc_SaveData[0].at4.loc.view` byte store, which then fills `taskKill`'s delay slot. */
-    taskKill((Task*)task->spawnArg2);
+       `Mc_SaveData[0].state.at4.loc.view` byte store, which then fills `taskKill`'s delay slot. */
+    taskKill((Task*)task->spawnArg2.pointer);
     Task_RequestKill(task, 0);
 }
 
@@ -491,7 +496,7 @@ static void func_neo_ark_shrine_8017EF68(Task* task)
 
 /// The script step that runs while the shrine's pad is idle: it re-clears the
 /// prompt, ticks the step's timer, and once the step has run 0x1E frames latches
-/// the shrine's mode — 2, or 5 when flag 0xE9 is set — into `Mc_SaveData[0].at4.loc.room` and the
+/// the shrine's mode — 2, or 5 when flag 0xE9 is set — into `Mc_SaveData[0].state.at4.loc.room` and the
 /// session, which makes the room rebuild its objects, and enters state 2.
 ///
 /// The same literal is stored in both arms on purpose: `gGameSession` is read
@@ -511,10 +516,10 @@ static void func_neo_ark_shrine_8017EFE4(Task* task)
     func_neo_ark_shrine_8017EAC0(task);
     if (st->timer >= 0x1E) {
         if (GameFlag_GetNibble(0xE9) == 0) {
-            Mc_SaveData[0].at4.loc.room = 2;
+            Mc_SaveData[0].state.at4.loc.room = 2;
             gGameSession->at4.loc.room  = 2;
         } else {
-            Mc_SaveData[0].at4.loc.room = 5;
+            Mc_SaveData[0].state.at4.loc.room = 5;
             gGameSession->at4.loc.room  = 5;
         }
         gGameSession->roomObjsDirty = 1;
@@ -529,7 +534,7 @@ static void func_neo_ark_shrine_8017F094(Task* task)
     st                        = (NeoArkShrineScript*)task->work;
     D_neo_ark_shrine_8018686A = 1;
     func_neo_ark_shrine_8017EAC0();
-    taskKill((Task*)task->spawnArg2);
+    taskKill((Task*)task->spawnArg2.pointer);
     st->timer = 0;
     task->state++;
 }
@@ -545,9 +550,9 @@ static void func_neo_ark_shrine_8017F0F0(Task* task)
     st->timer = timer;
     if (timer >= 0x1EU) {
         Task_SpawnFromTable(&D_neo_ark_shrine_80182508, 1, 0, 0);
-        Mc_SaveData[0].at4.loc.view = 0xE;
+        Mc_SaveData[0].state.at4.loc.view = 0xE;
         /* Without this the scheduler hoists the `task->state` reload above the
-           `Mc_SaveData[0].at4.loc.view` byte store to fill its load-delay slot. */
+           `Mc_SaveData[0].state.at4.loc.view` byte store to fill its load-delay slot. */
         st->timer = 0;
         task->state++;
     }
@@ -566,7 +571,7 @@ static void func_neo_ark_shrine_8017F178(Task* task)
         st->timer = 0;
         if (GameFlag_GetNibble(0xE9) == 0) {
             Task_SpawnFromTable(&D_neo_ark_shrine_80182508, 2, 0, 0);
-            Mc_SaveData[0].at4.loc.view = 0xD;
+            Mc_SaveData[0].state.at4.loc.view = 0xD;
             GameFlag_SetNibble(0xE9, 1);
             next = task->state + 1;
         } else {
@@ -595,7 +600,7 @@ static void func_neo_ark_shrine_8017F21C(Task* task)
 static void func_neo_ark_shrine_8017F274(Task* task)
 {
     Gp_StateF0.field_20         = 2;
-    Mc_SaveData[0].at4.loc.room = 6;
+    Mc_SaveData[0].state.at4.loc.room = 6;
     gGameSession->at4.loc.room  = 6;
     gGameSession->roomObjsDirty = 1;
     Gp_MsgPlayerWeapon(1);
@@ -604,7 +609,7 @@ static void func_neo_ark_shrine_8017F274(Task* task)
     gGameSession->eventState    = 0;
     gGameSession->hideHud       = 0;
     gGameSession->cutsceneHold  = 0;
-    Mc_SaveData[0].at4.loc.view = 0xA;
+    Mc_SaveData[0].state.at4.loc.view = 0xA;
     Task_RequestKill(task, 0);
 }
 
@@ -638,10 +643,10 @@ static void func_neo_ark_shrine_8017F398(Task* task)
     func_neo_ark_shrine_8017EAC0(task);
     if (st->timer >= 0x1E) {
         if (GameFlag_GetNibble(0xE9) == 0) {
-            Mc_SaveData[0].at4.loc.room = 1;
+            Mc_SaveData[0].state.at4.loc.room = 1;
             gGameSession->at4.loc.room  = 1;
         } else {
-            Mc_SaveData[0].at4.loc.room = 4;
+            Mc_SaveData[0].state.at4.loc.room = 4;
             gGameSession->at4.loc.room  = 4;
         }
         gGameSession->roomObjsDirty = 1;
@@ -1038,7 +1043,7 @@ static void func_neo_ark_shrine_8017FEA0(Task* task)
     GpCoord*   coord;
     u8         rgb[3];
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -1051,13 +1056,13 @@ static void func_neo_ark_shrine_8017FEA0(Task* task)
             case 0:
                 work->scale = 0;
                 work->angle = 0x80;
-                work->step  = 0x100 / task->spawnArg1;
+                work->step  = 0x100 / task->spawnArg1.value;
                 task->state = 1;
                 break;
             case 1:
                 work->scale += work->step;
                 work->angle += work->step;
-                task->spawnArg1--;
+                task->spawnArg1.value--;
                 rgb[0] = work->scale;
                 rgb[1] = work->scale >> 2;
                 rgb[2] = work->scale >> 1;
@@ -1067,7 +1072,7 @@ static void func_neo_ark_shrine_8017FEA0(Task* task)
                 rgb[2] >>= 1;
                 func_neo_ark_shrine_80180570(coord, (s16)((u16)work->angle * 2), rgb);
                 func_neo_ark_shrine_80180144(coord, (s16)(0x300 - (u16)work->angle * 2), 0x80, rgb);
-                if (task->spawnArg1 == 0) {
+                if (task->spawnArg1.value == 0) {
                     work->scale = 0xFF;
                     task->state = 2;
                     rgb[0]      = work->scale;
@@ -1221,7 +1226,7 @@ static void func_neo_ark_shrine_80180904(Task* task)
     s32        i;
 
     coords   = (GpCoord*)task->work;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
@@ -1294,7 +1299,7 @@ static void func_neo_ark_shrine_80180904(Task* task)
                     Gp_UpdateCoord(dst);
                 }
                 func_neo_ark_shrine_80180DF4(coords, &coords[8], work->age & 7, 0x123);
-                if (work->age == task->spawnArg1 && work->age != 0) {
+                if (work->age == task->spawnArg1.value && work->age != 0) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
@@ -1415,7 +1420,7 @@ static void func_neo_ark_shrine_801811EC(Task* task)
     u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -1430,7 +1435,7 @@ static void func_neo_ark_shrine_801811EC(Task* task)
     switch (task->state) {
         case 0:
             Gp_SpawnEff(0x60076, objCoord, 0x400, NULL);
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 Gp_SpawnEff(0x60070, objCoord, 0x80004600, NULL);
                 task->state = 1;
             } else {

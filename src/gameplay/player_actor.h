@@ -8,10 +8,10 @@
 #include "gameplay/effects.h"
 #include "gameplay/message.h"
 
-#include "main/session.h"
-#include "main/task.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
 
-/// u8 table indexed by `Mc_SaveData[0].companionVariant`. Non-zero selects
+/// u8 table indexed by `Mc_SaveData[0].state.companionVariant`. Non-zero selects
 /// `Gp_AimPitchToLock`; zero uses `D_80167218` with `Gp_AimPitchRec`.
 extern u8 D_80113388[];
 

@@ -5,15 +5,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/abs.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -24,8 +15,20 @@
 #include "gameplay/hud_sprites.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// One rectangle of water surface drawn by `func_dryfield_water_hole_8017D898`,
 /// in world coordinates: it spans `width` along X from `x` and `depth` along Z
@@ -227,10 +230,10 @@ static void func_dryfield_water_hole_8017D898(Task* task)
     s32                        wave;
 
     e = D_dryfield_water_hole_8017FC98;
-    if (Mc_SaveData[0].companionType == 0) {
-        D_dryfield_water_hole_801828CC = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
+    if (Mc_SaveData[0].state.companionType == 0) {
+        D_dryfield_water_hole_801828CC = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
     } else {
-        D_dryfield_water_hole_801828CC = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
+        D_dryfield_water_hole_801828CC = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
     }
     if (Gp_StateF0.field_4 == 0) {
         D_dryfield_water_hole_801828D0++;
@@ -353,10 +356,10 @@ void func_dryfield_water_hole_8017DFA0(Task* task)
 }
 
 /// The water task's first state: clears the session halfword `field_80`, or
-/// `field_7E` while `Mc_SaveData[0].companionType` is set, then advances to the drawing state.
+/// `field_7E` while `Mc_SaveData[0].state.companionType` is set, then advances to the drawing state.
 static void func_dryfield_water_hole_8017E000(Task* arg0)
 {
-    if (Mc_SaveData[0].companionType == 0) {
+    if (Mc_SaveData[0].state.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
@@ -387,7 +390,7 @@ static void func_dryfield_water_hole_8017E040(Task* arg0)
 
     ctl       = gameGetPtrSlot(3);
     mask      = 1 << gGameSession->at4.loc.view;
-    splash    = arg0->spawnArg2;
+    splash    = arg0->spawnArg2.pointer;
     coord     = arg0->extra.tmd->coords;
     ctlCoords = ctl->extra.tmd->coords;
     switch (arg0->state) {
@@ -600,7 +603,7 @@ static void func_dryfield_water_hole_8017EC90(Task* task)
     GpEffWork* work;
     GpCoord*   coord;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         func_dryfield_water_hole_8017EDE4(coord, work->angle, work->scale);
@@ -612,7 +615,7 @@ static void func_dryfield_water_hole_8017EC90(Task* task)
         work->age++;
         if (task->state == 0) {
             work->scale = 0x40;
-            work->angle = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            work->angle = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
             coord->flg  = 0;

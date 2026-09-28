@@ -1,21 +1,26 @@
 #include "common.h"
 
 #include "aya/replay_bonus.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/text.h"
-#include "main/wipsys.h"
 #include "psyq/libpress.h"
 
 #include "gameplay/attachments.h"
 #include "gameplay/display.h"
 #include "gameplay/items.h"
 #include "gameplay/item_menu.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/inventory.h"
+#include "gameplay/weapon_data.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
+#include "main/wipsys.h"
 
 static const char   D_replay_bonus_801157C8[];
 extern u8           D_replay_bonus_80119014[];
@@ -72,7 +77,7 @@ void func_replay_bonus_801159A0(Task* arg0)
     u_long*            bs;
 
     state  = arg0->state;
-    stream = arg0->spawnArg2;
+    stream = arg0->spawnArg2.pointer;
     switch (state) {
         case 0:
             D_replay_bonus_80119270 = 0;
@@ -157,16 +162,16 @@ s32 func_replay_bonus_80115CA4(void)
     s32 j;
     s32 val;
 
-    levels = Mc_SaveData[0].attachLevels;
+    levels = Mc_SaveData[0].state.attachLevels;
     spend  = Player_Status.exp;
     i      = 0;
     do {
         if (*levels != 0) {
             for (j = 0; j < *levels; ++j) {
                 val = _replayBonusUpgradeCost(i, j);
-                if (Mc_SaveData[0].gameMode > 0) {
+                if (Mc_SaveData[0].state.gameMode > 0) {
                     val = (val * 4) / 5;
-                } else if (Mc_SaveData[0].clearCount > 0) {
+                } else if (Mc_SaveData[0].state.clearCount > 0) {
                     val = (val * 2) / 5;
                 }
                 spend += val;
@@ -191,7 +196,7 @@ static void func_replay_bonus_80115D60(UiList* list, UiObject* ctx)
     u8         item;
     u8         id;
 
-    rec   = Mc_SaveData[0].itemRows;
+    rec   = Mc_SaveData[0].state.itemRows;
     count = 0;
     ids   = ((s16*)ctx->owner->work);
     dest  = ids;
@@ -321,7 +326,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     u8                   nxt;
 
     list          = &D_replay_bonus_80119130;
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, D_replay_bonus_80115774);
     if (arg0->state == 0) {
@@ -351,7 +356,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
         exp                              = cfg->exp;
         D_replay_bonus_80119274.unk0     = tmp;
         totals->field_8                  = exp;
-        switch (Mc_SaveData[0].gameMode) {
+        switch (Mc_SaveData[0].state.gameMode) {
             case 3:
                 totals->field_8 = exp * 10;
                 totals->field_C = totals->field_C * 10;
@@ -375,7 +380,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
         p     = D_replay_bonus_80118F78;
         spend = tmp;
         idx   = 0;
-        if (Mc_SaveData[0].shopTiers == 0x1FFF) {
+        if (Mc_SaveData[0].state.shopTiers == 0x1FFF) {
             result = -1;
         } else {
             for (shop_i = 0; shop_i < 0xD; shop_i++, p++) {
@@ -385,13 +390,13 @@ void func_replay_bonus_80115ED0(Task* arg0)
                 }
             }
             save   = &Mc_SaveData[0];
-            idx   += save->gameMode;
+            idx   += save->state.gameMode;
             shop_i = 0;
             if (idx >= 0xD) {
                 idx = 0xC;
             }
             one  = 1;
-            mask = save->shopTiers;
+            mask = save->state.shopTiers;
             for (; shop_i < 0xD; shop_i++) {
                 if ((mask & (one << idx)) == 0) {
                     break;
@@ -485,7 +490,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req.centerMode = 0;
     req.field_E    = 1;
     req.otIndex    = ot + 1;
-    func_8002E53C(&req, D_replay_bonus_80115784);
+    Text_DrawString(&req, D_replay_bonus_80115784);
 
     req2.x          = obj->panel.field_20.u - xOff;
     req2.y          = obj->panel.field_22.u - 4;
@@ -496,7 +501,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req2.centerMode = 2;
     req2.field_E    = 1;
     req2.otIndex    = ot2 + 1;
-    func_8002E53C(&req2, D_replay_bonus_80115790);
+    Text_DrawString(&req2, D_replay_bonus_80115790);
 
     t    = (s16)obj->panel.field_1A.u;
     yOff = t - 1;
@@ -511,7 +516,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req3.centerMode = 2;
     req3.field_E    = 1;
     req3.otIndex    = ot3 + 1;
-    func_8002E53C(&req3, D_replay_bonus_8011579C);
+    Text_DrawString(&req3, D_replay_bonus_8011579C);
 
     sum = _replayBonusTotalBp(list, obj);
     Text_DrawPrompt(obj, -xOff, yOff, Text_ItoaUnsigned(buf, (u32)sum), 0x606060, 3, 2);
@@ -543,13 +548,13 @@ void func_replay_bonus_801166AC(Task* arg0)
     s32           flag;
 
     cfg = &Player_Status;
-    obj = arg0->spawnArg2;
+    obj = arg0->spawnArg2.pointer;
     if (arg0->state == 0) {
         arg0->killCountdown = 0xBC;
         arg0->state         = arg0->state + 1;
     }
     obj->field_2E = 0;
-    if (arg0->spawnArg1 == 0) {
+    if (arg0->spawnArg1.value == 0) {
         Ui_DrawText(&(obj)->panel, D_replay_bonus_801157A8);
     } else {
         Ui_DrawText(&(obj)->panel, D_replay_bonus_801157B0);
@@ -564,9 +569,9 @@ void func_replay_bonus_801166AC(Task* arg0)
     req.centerMode = 0;
     req.field_E    = 1;
     req.otIndex    = ot + 1;
-    func_8002E53C(&req, D_replay_bonus_801157C4);
+    Text_DrawString(&req, D_replay_bonus_801157C4);
     value = cfg->exp;
-    if (arg0->spawnArg1 == 1) {
+    if (arg0->spawnArg1.value == 1) {
         value = D_replay_bonus_8011927C;
     }
     negX = -xOff;
@@ -579,9 +584,9 @@ void func_replay_bonus_801166AC(Task* arg0)
     req2.centerMode = 0;
     req2.field_E    = 1;
     req2.otIndex    = ot2 + 1;
-    func_8002E53C(&req2, D_replay_bonus_801157C8);
+    Text_DrawString(&req2, D_replay_bonus_801157C8);
     value = D_replay_bonus_80119274.field_4;
-    if (arg0->spawnArg1 == 1) {
+    if (arg0->spawnArg1.value == 1) {
         value = D_replay_bonus_80119274.field_C;
     }
     Text_DrawPrompt(obj, negX, 0x11, Text_ItoaSigned(buf, value), color, 3, 2);
@@ -589,7 +594,7 @@ void func_replay_bonus_801166AC(Task* arg0)
         remaining           = (u16)arg0->killCountdown - 1;
         arg0->killCountdown = remaining;
         if ((remaining << 0x10) <= 0) {
-            if (arg0->spawnArg1 == 0) {
+            if (arg0->spawnArg1.value == 0) {
                 Ui_SpawnFromDesc(&D_replay_bonus_801191A8, 1, 1, 1, obj);
                 obj->panel.field_0.w = 0;
                 arg0->state          = arg0->state + 1;
@@ -605,7 +610,7 @@ void func_replay_bonus_801166AC(Task* arg0)
     }
     child = arg0->firstChild;
     if (child != NULL) {
-        childObj = child->spawnArg2;
+        childObj = child->spawnArg2.pointer;
         flag     = childObj->field_2E;
         if (flag == 6) {
             obj->field_2E = flag;
@@ -625,7 +630,7 @@ void func_replay_bonus_80116964(Task* arg0)
     u16       copied;
     s32       color;
 
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     Ui_DrawTitle(&(obj)->panel, "WARNING");
     if (arg0->state == 0) {
@@ -636,7 +641,7 @@ void func_replay_bonus_80116964(Task* arg0)
     } else if (arg0->state == 1) {
         spawned = func_800CD89C(obj);
         if (spawned != NULL) {
-            spawned->owner->spawnArg1            |= 0x10;
+            spawned->owner->spawnArg1.value            |= 0x10;
             spawned->panel.bounds.unsignedRect.y += 0x10;
             arg0->state                           = arg0->state + 1;
         }
@@ -645,7 +650,7 @@ void func_replay_bonus_80116964(Task* arg0)
     Text_DrawMultiLine(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, D_replay_bonus_80119014, color, 1, 0);
     child = arg0->firstChild;
     if (child != NULL) {
-        childObj = child->spawnArg2;
+        childObj = child->spawnArg2.pointer;
         flag     = childObj->field_2E;
         if ((flag == -1) || (flag == 6)) {
             copied        = childObj->field_2C;
@@ -670,7 +675,7 @@ static inline s32 _replayBonusShopTier(void)
     spend = func_replay_bonus_80115CA4();
     p     = D_replay_bonus_80118F78;
     idx   = 0;
-    if (Mc_SaveData[0].shopTiers == 0x1FFF) {
+    if (Mc_SaveData[0].state.shopTiers == 0x1FFF) {
         return -1;
     }
     for (i = 0; i < 0xD; i++, p++) {
@@ -680,13 +685,13 @@ static inline s32 _replayBonusShopTier(void)
         }
     }
     save = &Mc_SaveData[0];
-    idx += save->gameMode;
+    idx += save->state.gameMode;
     i    = 0;
     if (idx >= 0xD) {
         idx = 0xC;
     }
     one  = 1;
-    mask = save->shopTiers;
+    mask = save->state.shopTiers;
     for (; i < 0xD; i++) {
         if ((mask & (one << idx)) == 0) {
             break;
@@ -717,17 +722,17 @@ void func_replay_bonus_80116AC0(Task* arg0)
     s32       dt;
     UiObject* obj;
 
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     if (arg0->state == 0) {
         if (D_replay_bonus_80119284 < 0) {
             obj->field_2E = 6;
             return;
         }
-        arg0->extraState    = arg0->spawnArg1;
+        arg0->extraState    = arg0->spawnArg1.value;
         arg0->killCountdown = 0xBC;
         Gp_SetPreviewItem(_replayBonusShopItem(arg0->extraState), 0);
-        arg0->spawnArg1 = _replayBonusShopItem(arg0->extraState) + 0x20000;
+        arg0->spawnArg1.value = _replayBonusShopItem(arg0->extraState) + 0x20000;
     }
     func_800C5F70(arg0);
     dt                  = gDisplayState.frameTicks;
@@ -750,7 +755,7 @@ void func_replay_bonus_80116D68(Task* arg0)
     s32         remaining;
     s32         ot;
 
-    obj   = arg0->spawnArg2;
+    obj   = arg0->spawnArg2.pointer;
     bonus = D_replay_bonus_80119288;
     Ui_DrawText(&(obj)->panel, "EXTRA BONUS\0\0\0\0");
     if (arg0->state == 0) {
@@ -767,7 +772,7 @@ void func_replay_bonus_80116D68(Task* arg0)
     req.centerMode = 0;
     req.field_E    = 1;
     req.otIndex    = ot + 1;
-    func_8002E53C(&req, D_replay_bonus_801157C8);
+    Text_DrawString(&req, D_replay_bonus_801157C8);
     Text_DrawPrompt(obj, -xOff, 6, Text_ItoaSigned(buf, bonus), color, 3, 2);
     remaining           = (u16)arg0->killCountdown - 1;
     arg0->killCountdown = remaining;
@@ -795,76 +800,76 @@ void func_replay_bonus_80116EC0(void)
     copy = Mc_SaveData[0];
     Mc_InitBufferSlots();
     dst               = &Mc_SaveData[0];
-    dst->clearCount   = copy.clearCount;
-    dst->vibration    = copy.vibration;
-    dst->demoScene    = copy.demoScene;
-    dst->moveMode     = copy.moveMode;
-    dst->buttonLayout = copy.buttonLayout;
-    dst->musicVolume  = copy.musicVolume;
-    dst->cursorMode   = copy.cursorMode;
-    dst->soundMode    = copy.soundMode;
+    dst->state.clearCount   = copy.state.clearCount;
+    dst->state.vibration    = copy.state.vibration;
+    dst->state.demoScene    = copy.state.demoScene;
+    dst->state.moveMode     = copy.state.moveMode;
+    dst->state.buttonLayout = copy.state.buttonLayout;
+    dst->state.musicVolume  = copy.state.musicVolume;
+    dst->state.cursorMode   = copy.state.cursorMode;
+    dst->state.soundMode    = copy.state.soundMode;
     i                 = 0;
     do {
-        dst->itemSeenBits[i] = copy.itemSeenBits[i];
+        dst->state.itemSeenBits[i] = copy.state.itemSeenBits[i];
         i                   += 1;
     } while (i < 0x60);
     i = 0;
     do {
-        Mc_SaveData[0].attachUseCounts[i] = copy.attachUseCounts[i];
+        Mc_SaveData[0].state.attachUseCounts[i] = copy.state.attachUseCounts[i];
         i                                += 1;
     } while (i < 0x12);
     i = 0;
     do {
-        Mc_SaveData[0].weaponUseCounts[i] = copy.weaponUseCounts[i];
+        Mc_SaveData[0].state.weaponUseCounts[i] = copy.state.weaponUseCounts[i];
         i                                += 1;
     } while (i < 0x20);
 
     save             = &Mc_SaveData[0];
-    save->saveCount  = 0xFF;
-    save->field_92C  = copy.field_92C;
-    save->field_930  = copy.field_930;
-    save->shopTiers  = copy.shopTiers;
-    save->shopStock  = copy.shopStock;
-    save->replayRank = copy.replayRank;
-    save->clearCount++;
-    if (save->clearCount >= 100) {
-        save->clearCount = 99;
+    save->state.saveCount  = 0xFF;
+    save->state.field_92C  = copy.state.field_92C;
+    save->state.field_930  = copy.state.field_930;
+    save->state.shopTiers  = copy.state.shopTiers;
+    save->state.shopStock  = copy.state.shopStock;
+    save->state.replayRank = copy.state.replayRank;
+    save->state.clearCount++;
+    if (save->state.clearCount >= 100) {
+        save->state.clearCount = 99;
     }
-    if (save->field_92C < D_replay_bonus_80119274.unk0) {
-        save->field_92C = D_replay_bonus_80119274.unk0;
+    if (save->state.field_92C < D_replay_bonus_80119274.unk0) {
+        save->state.field_92C = D_replay_bonus_80119274.unk0;
     }
-    if (save->field_930 < D_replay_bonus_80119274.field_4) {
-        save->field_930 = D_replay_bonus_80119274.field_4;
+    if (save->state.field_930 < D_replay_bonus_80119274.field_4) {
+        save->state.field_930 = D_replay_bonus_80119274.field_4;
     }
     sum = D_replay_bonus_80119274.field_C + D_replay_bonus_80119274.field_14;
     if (sum > 0x98967F) {
         sum = 0x98967F;
     }
     cfg->bp         = sum;
-    save->savePoint = 0xF;
+    save->state.savePoint = 0xF;
     exp             = D_replay_bonus_80119274.field_8;
     cfg->exp        = exp;
-    save->playerExp = exp;
-    save->playerBp  = cfg->bp;
-    if (copy.gameMode >= 2) {
-        save->replayRank = 2;
-    } else if (save->replayRank <= 0) {
+    save->state.playerExp = exp;
+    save->state.playerBp  = cfg->bp;
+    if (copy.state.gameMode >= 2) {
+        save->state.replayRank = 2;
+    } else if (save->state.replayRank <= 0) {
         if (D_replay_bonus_80119274.unk0 > 0x10D88) {
-            save->replayRank = 1;
+            save->state.replayRank = 1;
         }
     }
-    p = copy.attachLevels;
+    p = copy.state.attachLevels;
     j = 0;
     do {
         shift = j * 2;
-        if ((s32)((Mc_SaveData[0].shopStock >> shift) & 3) < *p) {
-            Mc_SaveData[0].shopStock &= ~(3 << shift);
-            Mc_SaveData[0].shopStock |= *p << shift;
+        if ((s32)((Mc_SaveData[0].state.shopStock >> shift) & 3) < *p) {
+            Mc_SaveData[0].state.shopStock &= ~(3 << shift);
+            Mc_SaveData[0].state.shopStock |= *p << shift;
         }
         j += 1;
         p += 1;
     } while (j < 0xC);
     if (D_replay_bonus_80119284 >= 0) {
-        Mc_SaveData[0].shopTiers |= 1 << D_replay_bonus_80119284;
+        Mc_SaveData[0].state.shopTiers |= 1 << D_replay_bonus_80119284;
     }
 }

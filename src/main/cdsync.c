@@ -1,13 +1,17 @@
-#include "common.h"
+#include "main/fs.h"
 
+#include <psyq/sys/types.h>
 #include <psyq/libcd.h>
 #include <psyq/libetc.h>
 
-#include "main/fs.h"
+#include "types.h"
 
-s16 CdSync_IsShellOpenBitSet(void);
+#include "fs.h"
+#include "main/fs_types.h"
 
-s32 CdCmd_SeekL(u8* loc)
+static bool CdSync_CanIssueCommand(void);
+
+s32 CdCmd_SeekL(u8* loc, s32 unused)
 {
     CdCmdQueue* state;
     CdCmdQueue* p;

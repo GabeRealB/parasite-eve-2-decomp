@@ -151,17 +151,17 @@ void Gp_EvtCapWeaponTask(Task* arg0)
     GpAnimArg  recB;
     GpAnimArg  recA;
 
-    flags = (s32)arg0->spawnArg2;
+    flags = arg0->spawnArg2.value;
     actor = gameGetPtrSlot(3)->work;
     switch (arg0->state) {
         case 0:
             if ((flags & 1) && (flags != 0xFF)) {
                 recA                 = Gp_WeaponMsgRec;
-                recA.animBlock.index = Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon;
+                recA.animBlock.index = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
                 Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &recA, 0);
             }
             recB                 = D_8010FB10;
-            recB.animBlock.index = Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon;
+            recB.animBlock.index = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FA, 0, 0);
             arg0->state++;
             break;
@@ -191,9 +191,9 @@ void Gp_EvtCapWeaponTask(Task* arg0)
                 mode = 0;
             }
             if (flags == 0xFF) {
-                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F0, arg0->spawnArg1, mode);
+                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F0, arg0->spawnArg1.value, mode);
             } else {
-                Gp_RunCapCmd(arg0->spawnArg1, mode);
+                Gp_RunCapCmd(arg0->spawnArg1.value, mode);
             }
             arg0->state++;
             break;
@@ -205,10 +205,10 @@ void Gp_EvtCapWeaponTask(Task* arg0)
             break;
         case 5:
             if (D_80115598 != 0) {
-                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F2, (s32)arg0->spawnArg2 + 0x64, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F2, arg0->spawnArg2.value + 0x64, 0);
             }
             recB                 = D_8010FB24;
-            recB.animBlock.index = Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon;
+            recB.animBlock.index = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FA, 1, 0);
             arg0->state++;
             break;
@@ -265,7 +265,7 @@ void Gp_MsgPlayerWeapon(s32 arg0)
 
     if (arg0 == 0) {
         sp                 = Gp_WeaponMsgRec;
-        sp.animBlock.index = Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon;
+        sp.animBlock.index = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
         Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &sp, 0);
     } else {
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
@@ -285,12 +285,12 @@ void Gp_MsgSlot4Chain(s32 arg0, s32 arg1)
 
 void Gp_PlayerWeaponId(s32* arg0)
 {
-    *arg0 = Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon;
+    *arg0 = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
 }
 
 void Gp_AllyAnimId(s32* arg0)
 {
-    *arg0 = Gp_AllyIdBase[Mc_SaveData[0].companionType - 1] + Mc_SaveData[0].companionVariant;
+    *arg0 = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
 }
 
 void Gp_FillPlayerHpMp(void)
@@ -304,7 +304,7 @@ void Gp_FillPlayerHpMp(void)
 
 void Gp_FillAllyHp(void)
 {
-    Mc_SaveData[0].companionHp = Mc_SaveData[0].companionHpMax;
+    Mc_SaveData[0].state.companionHp = Mc_SaveData[0].state.companionHpMax;
 }
 
 void Gp_SpawnIfCapIdle(s32 arg0, s32 arg1)
@@ -360,7 +360,7 @@ void Gp_MsgAllyWeapon(s32 arg0)
     if (slot != NULL) {
         if (arg0 == 0) {
             sp                 = Gp_WeaponMsgRec;
-            sp.animBlock.index = Gp_AllyIdBase[Mc_SaveData[0].companionType - 1] + Mc_SaveData[0].companionVariant;
+            sp.animBlock.index = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
             Gp_DispatchMsgPtr(slot, 0x3E8, &sp, 0);
         } else {
             Gp_DispatchMsg(slot, 0x3F1, 0, 0);
@@ -370,12 +370,12 @@ void Gp_MsgAllyWeapon(s32 arg0)
 
 void func_800E3FAC(s32 arg0, s32 arg1)
 {
-    D_80073980[arg0 / 2 + 4] = arg1;
+    GameFlag_NibbleBanks[0].data.values[arg0 / 2] = arg1;
 }
 
 s32 func_800E3FCC(s32 arg0)
 {
-    return D_80073980[arg0 / 2 + 4];
+    return GameFlag_NibbleBanks[0].data.values[arg0 / 2];
 }
 
 /// Location-message fallback of `D_8010FAD4`, the table installed on pointer

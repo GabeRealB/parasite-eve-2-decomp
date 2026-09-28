@@ -5,15 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include "rooms/dryfield_night_dilapidated_house.h"
 #include "rooms/room_common.h"
 
@@ -21,6 +12,16 @@
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/room_effects.h"
+
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "main/wipsys.h"
 
 /// The prism corners, eight per prism: a lit ring of four, then the far ring.
 extern SVECTOR D_dryfield_night_dilapidated_house_801872CC[];

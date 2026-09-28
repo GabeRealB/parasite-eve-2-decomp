@@ -6,14 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/abs.h>
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
@@ -30,9 +22,26 @@
 #include "gameplay/world_collision.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
-#include "main/fs.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/collision.h"
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
+#include "gameplay/geometry.h"
+#include "gameplay/message.h"
+#include "gameplay/sprites.h"
+#include "main/display.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 #include "main/wipsys.h"
+#include "overlay.h"
 
 /// 0xC work block of the sanctuary's cutscene task, hung off the `Task::work`
 /// slot (0x1C) -- that slot is *not* a `TaskIdMap` here, it is the
@@ -154,7 +163,7 @@ typedef struct AcsSpriteLevels {
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
 /// `gDisplayState.pendingMode` and `Gp_StateC08.field_A` gate the cutscene task's setup (the latter is
-/// the cutscene/among-us mode flag) and `Mc_SaveData[0].characterId` picks which of the two
+/// the cutscene/among-us mode flag) and `Mc_SaveData[0].state.characterId` picks which of the two
 /// weapon-id bases that record uses. `gDisplayState.roomVariant` is set to 1 alongside the
 /// save writes when the task hands off to task 0x11, the same way the fountain
 /// and helicopter-pad rooms set it.
@@ -236,7 +245,7 @@ static void func_acropolis_sanctuary_8017D5E0(Task* task)
         GameFlag_SetNibble(2, 2);
         func_800E8634(&D_acropolis_sanctuary_80180B0C, 0, &D_acropolis_sanctuary_80181664);
         Gp_ApplyAreaRecs(D_acropolis_sanctuary_80186418);
-        Mc_SaveData[0].sceneEvent = 6;
+        Mc_SaveData[0].state.sceneEvent = 6;
         GameFlag_SetNibble(1, 5);
         GameFlag_SetNibble(0x25, 1);
         func_800E3FAC(0xA2, 6);
@@ -417,7 +426,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 }
                 slot     = (AcsCutsceneWork*)arg0->work;
                 weaponId = Player_Status.weapon;
-                idx      = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                idx      = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
 
                 weapon.rec.animBlock.index = idx;
                 weapon.rec.field_4         = 1;
@@ -434,10 +443,10 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
         case 1:
             if (gGameSession->eventState == 0) {
                 SndEvt_EnqueueType7(0x80000000, 0);
-                Mc_SaveData[0].at4.loc.area  = 0xD;
-                Mc_SaveData[0].at4.loc.stage = 1;
-                Mc_SaveData[0].at4.loc.warp  = 2;
-                Mc_SaveData[0].at4.loc.room  = 1;
+                Mc_SaveData[0].state.at4.loc.area  = 0xD;
+                Mc_SaveData[0].state.at4.loc.stage = 1;
+                Mc_SaveData[0].state.at4.loc.warp  = 2;
+                Mc_SaveData[0].state.at4.loc.room  = 1;
                 gDisplayState.roomVariant    = 1;
                 Task_Spawn(0, 0x11, 0, 0);
                 taskKill(arg0);
@@ -468,7 +477,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                         rec.place.rot.vy  = 0;
                         rec.place.rot.vz  = 0;
                         Gp_DispatchMsgPtr(cutscene->target, 0x3E9, msg, 0);
-                        Mc_SaveData[0].at4.loc.view = 0xE;
+                        Mc_SaveData[0].state.at4.loc.view = 0xE;
                         cutscene->step              = cutscene->step + 1;
                     }
                     break;
@@ -617,7 +626,7 @@ static void func_acropolis_sanctuary_8017E134(Task* arg0)
     s32        i;
     s32        idx;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (arg0->state != 0) {
         Gp_ReleaseState1CMem(mem, arg0);
@@ -682,8 +691,8 @@ static void func_acropolis_sanctuary_8017E338(Task* arg0)
     s32             i;
     s32             n;
 
-    mem   = arg0->spawnArg2;
-    quad  = D_acropolis_sanctuary_80182320[arg0->spawnArg1].quad;
+    mem   = arg0->spawnArg2.pointer;
+    quad  = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].quad;
     coord = arg0->extra.tmd->coords;
     Gp_UpdateCoord(coord);
     scratch  = (void**)G_SCRATCH_HEAD;
@@ -721,7 +730,7 @@ static void func_acropolis_sanctuary_8017E338(Task* arg0)
     gte_stszotz(&blk->otz);
     if (blk->otz >= 0x11) {
         if (mem->age == 0) {
-            mem->scale = D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_8;
+            mem->scale = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_8;
             if (mem->scale != 0) {
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                 mem->move.vx = -(((u32)Gp_LcgState >> 16) & 0xFF);
@@ -735,7 +744,7 @@ static void func_acropolis_sanctuary_8017E338(Task* arg0)
                 mem->pos.vy  = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                 mem->pos.vz  = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                mem->angle   = D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_A;
+                mem->angle   = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_A;
             } else {
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                 mem->move.vx = -(((u32)Gp_LcgState >> 16) & 0x1F);
@@ -750,25 +759,25 @@ static void func_acropolis_sanctuary_8017E338(Task* arg0)
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                 mem->pos.vz  = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->angle   = D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_A +
+                mem->angle   = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_A +
                              (((u32)Gp_LcgState >> 16) & 7);
             }
         }
         prim->tpage = 0x8C;
         prim->clut  = 0x4200;
         prim->code |= 3;
-        prim->u0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1].row;
-        prim->v0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col;
-        prim->u1    = D_acropolis_sanctuary_80182320[arg0->spawnArg1].row +
-                   D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_0;
-        prim->v1 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col;
-        prim->u2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].row;
-        prim->v2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col +
-                   D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_2;
-        prim->u3 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].row +
-                   D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_0;
-        prim->v3 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col +
-                   D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_2;
+        prim->u0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].row;
+        prim->v0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].col;
+        prim->u1    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].row +
+                   D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_0;
+        prim->v1 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].col;
+        prim->u2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].row;
+        prim->v2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].col +
+                   D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_2;
+        prim->u3 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].row +
+                   D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_0;
+        prim->v3 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].col +
+                   D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_2;
         addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
@@ -790,7 +799,7 @@ static void func_acropolis_sanctuary_8017E338(Task* arg0)
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 n           = (((u32)Gp_LcgState >> 16) & 3) + 1;
                 for (i = 0; i < n; i++) {
-                    Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1 | 0x1000, NULL);
+                    Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1.value | 0x1000, NULL);
                 }
                 mem->age = mem->age + 0x64;
             }
@@ -805,7 +814,7 @@ static void func_acropolis_sanctuary_8017E338(Task* arg0)
             if (quad != 0) {
                 quad = quad + 1;
                 for (i = 0; i < quad; i++) {
-                    Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1, NULL);
+                    Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1.value, NULL);
                 }
                 mem->age = mem->age + 0x64;
             } else {
@@ -866,7 +875,7 @@ static void func_acropolis_sanctuary_8017EC90(Task* arg0)
     s32               flags;
     SVECTOR*          sv;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (mem->age >= 0x3D || mem->index >= 2) {
         Gp_ReleaseState1CMem(mem, arg0);
@@ -878,14 +887,14 @@ static void func_acropolis_sanctuary_8017EC90(Task* arg0)
     *scratch = head - 0x20;
     blk      = (AcsMosaicScratch*)(head - 0x20);
     if (mem->age == 0) {
-        mem->scale = (arg0->spawnArg1 >> 12) & 0xF;
-        hi         = (s16)(arg0->spawnArg1 >> 16);
+        mem->scale = (arg0->spawnArg1.value >> 12) & 0xF;
+        hi         = (s16)(arg0->spawnArg1.value >> 16);
         size       = 0x1000;
         if ((u16)hi != 0) {
             size = hi;
         }
         mem->angle      = size;
-        arg0->spawnArg1 = arg0->spawnArg1 & 0xFFF;
+        arg0->spawnArg1.value = arg0->spawnArg1.value & 0xFFF;
         if (mem->scale != 0) {
             Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
             mem->move.vx = 8 - (((u32)Gp_LcgState >> 16) & 0xF);
@@ -943,14 +952,14 @@ static void func_acropolis_sanctuary_8017EC90(Task* arg0)
         prim->tpage = 0x8C;
         prim->clut  = 0x4200;
         prim->code |= 3;
-        prim->u0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1].row;
-        prim->v0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col;
-        prim->u1    = D_acropolis_sanctuary_80182320[arg0->spawnArg1].row +
-                   ((D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_0 * mem->angle) >> 12);
-        prim->v1 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col;
-        prim->u2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].row;
-        prim->v2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col +
-                   ((D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_2 * mem->angle) >> 12);
+        prim->u0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].row;
+        prim->v0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].col;
+        prim->u1    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].row +
+                   ((D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_0 * mem->angle) >> 12);
+        prim->v1 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].col;
+        prim->u2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].row;
+        prim->v2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].col +
+                   ((D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_2 * mem->angle) >> 12);
         addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
@@ -967,7 +976,7 @@ static void func_acropolis_sanctuary_8017EC90(Task* arg0)
         if (mem->angle >= 0x401 && n != 0) {
             n = n + 1;
             for (i = 0; i < n; i++) {
-                Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1 | (mem->angle << 15), NULL);
+                Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1.value | (mem->angle << 15), NULL);
             }
             mem->age = mem->age + 0x3C;
         } else {
@@ -980,7 +989,7 @@ static void func_acropolis_sanctuary_8017EC90(Task* arg0)
         if ((u16)(((u32)Gp_LcgState >> 16) % 60U) == 0 || coord->coord.t[1] >= -0xBFF) {
             for (i = 0; i < 2; i++) {
                 flags = (mem->angle << 15) | 0x1000;
-                Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1 | flags, NULL);
+                Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1.value | flags, NULL);
             }
             mem->age = mem->age + 0x3C;
         }
@@ -1020,9 +1029,9 @@ static void func_acropolis_sanctuary_8017F4E8(Task* arg0)
     s16               x;
     s16               y;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
-    if ((D_acropolis_sanctuary_801827D4[arg0->spawnArg1 & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
+    if ((D_acropolis_sanctuary_801827D4[arg0->spawnArg1.value & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
         Gp_UpdateCoord(coord);
         scratch  = (void**)G_SCRATCH_HEAD;
         head     = *scratch;
@@ -1031,10 +1040,10 @@ static void func_acropolis_sanctuary_8017F4E8(Task* arg0)
         if (arg0->state == 0) {
             base            = D_acropolis_sanctuary_8017D5D8;
             step            = D_acropolis_sanctuary_8017D5DC;
-            param           = arg0->spawnArg1;
+            param           = arg0->spawnArg1.value;
             mem->scale      = (param & 0x0FFF0000) ? ((param >> 16) & 0xFFF) : 0x280;
-            mem->angle      = (arg0->spawnArg1 >> 8) & 3;
-            arg0->spawnArg1 = arg0->spawnArg1 & 0xF;
+            mem->angle      = (arg0->spawnArg1.value >> 8) & 3;
+            arg0->spawnArg1.value = arg0->spawnArg1.value & 0xF;
             mem->period     = base.v[mem->angle];
             mem->step       = step.v[mem->angle];
             arg0->state++;
@@ -1250,7 +1259,7 @@ static s32 func_acropolis_sanctuary_8017FB18(GpCoord* coord, GpRec18* recs, s16 
 /// default flags.
 void func_acropolis_sanctuary_80180264(Task* task)
 {
-    GpItemObj8* obj = task->spawnArg2;
+    GpItemObj8* obj = task->spawnArg2.pointer;
     TmdObject*  tmd = task->extra.tmd;
     s32         flag;
     s32         view;
@@ -1274,7 +1283,7 @@ static void func_acropolis_sanctuary_801802E0(Task* task)
     TmdObject*  tmd;
     s32         flag;
 
-    obj  = (GpItemObj8*)task->spawnArg2;
+    obj  = (GpItemObj8*)task->spawnArg2.pointer;
     tmd  = task->extra.tmd;
     flag = Gp_GetCurBit2Flag(obj->field_8);
     Gp_GetViewIndex();

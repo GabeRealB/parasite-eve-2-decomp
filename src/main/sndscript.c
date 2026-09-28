@@ -1,9 +1,213 @@
+#include "main/sound.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/abs.h>
+#include <psyq/libspu.h>
+
 #include "common.h"
 
-#include <psyq/abs.h>
+#include "cdaudio.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "sound.h"
+#include "main/sound_types.h"
+#include "sound_types.h"
+#include "task.h"
 
-#include "main/unknown_syms.h"
-#include "main/cdaudio.h"
+/// 6-byte block assigned via unaligned lwl/lwr + lb/sb (see TaskIdMap_RemapIndex).
+typedef struct _GBytes6 {
+    u8 data[6];
+} GBytes6;
+
+typedef struct _SndVoice SndVoice;
+
+struct _SndScript;
+
+/// "oneE" (0x45656E6F) pitch-envelope chunk pointed at by SndVoiceFx.field_20.
+/// Consumed by the state machine in SndVoice_TickEnvelope.
+typedef struct _SndOneE {
+    /* 0x00 */ s32 magic;
+    /* 0x04 */ s16 field_4;
+    /* 0x06 */ s16 field_6;
+    /* 0x08 */ s16 field_8;
+    /* 0x0A */ u16 field_A;
+    /* 0x0C */ s16 field_C;
+    /* 0x0E */ u16 field_E;
+    /* 0x10 */ s16 field_10;
+    /* 0x12 */ s16 field_12;
+    /* 0x14 */ s16 field_14;
+    /* 0x16 */ s16 field_16;
+} SndOneE;
+STATIC_ASSERT_SIZEOF(SndOneE, 0x18);
+
+/// FX/envelope sub-block embedded at SndVoice + 0x10 (SndVoice_SetupEnvelope / SndVoice_TickEnvelope).
+/// field_0 is an active flag; field_1 is the state-machine index; field_2 is a
+/// secondary gate; field_20 points at the current "oneE" (0x45656E6F) chunk.
+typedef struct _SndVoiceFx {
+    /* 0x00 */ s8       field_0;
+    /* 0x01 */ s8       field_1;
+    /* 0x02 */ s8       field_2;
+    /* 0x03 */ u8       pad_3;
+    /* 0x04 */ s32      field_4;
+    /* 0x08 */ s16      field_8;
+    /* 0x0A */ s16      field_A;
+    /* 0x0C */ u16      field_C;
+    /* 0x0E */ s16      field_E;
+    /* 0x10 */ s32      field_10;
+    /* 0x14 */ s32      field_14;
+    /* 0x18 */ s32      field_18;
+    /* 0x1C */ s32      field_1C;
+    /* 0x20 */ SndOneE* field_20;
+} SndVoiceFx;
+STATIC_ASSERT_SIZEOF(SndVoiceFx, 0x24);
+
+/// Voice/FX object for one SPU voice, allocated by `SndVoice_Alloc`.
+///
+/// SPU voices 16..23 have records in SndScript_Voices; voices 0..15 belong to
+/// the MIDI sequencer and are never allocated here.
+/// field_0 is the SPU voice index; field_4 is a countdown/timer (SndVoice_Tick).
+/// field_10 contains the FX state, including its active and secondary gates.
+/// field_34/field_38/field_3C are parent/prev/next list links (SndVoice_Detach free).
+struct _SndVoice {
+    /* 0x00 */ s8                 field_0;
+    /* 0x01 */ u8                 field_1;
+    /* 0x02 */ s8                 field_2;
+    /* 0x03 */ u8                 field_3;
+    /* 0x04 */ s32                field_4;
+    /* 0x08 */ s16                field_8;
+    /* 0x0A */ u8                 field_A;
+    /* 0x0B */ u8                 pad_0B;
+    /* 0x0C */ struct _SndOneV*   field_C; // current oneV/script command (SndScript_Exec)
+    /* 0x10 */ SndVoiceFx         field_10;
+    /* 0x34 */ struct _SndScript* field_34;
+    /* 0x38 */ SndVoice*          field_38;
+    /* 0x3C */ SndVoice*          field_3C;
+};
+STATIC_ASSERT_SIZEOF(SndVoice, 0x40);
+STATIC_ASSERT(OFFSET_OF(SndVoice, field_10) == 0x10, snd_voice_fx_offset);
+STATIC_ASSERT(OFFSET_OF(SndVoice, field_34) == 0x34, snd_voice_owner_offset);
+
+/// "oneV" (0x56656E6F) voice-on script command consumed by SndScript_Exec.
+/// Also the 0x18-byte payload after a "oneC" (0x43656E6F) command.
+typedef struct _SndOneV {
+    /* 0x00 */ s32 magic;
+    /* 0x04 */ u16 field_4;  // bank id for Snd_FindBank (0 = use ctx bank)
+    /* 0x06 */ u8  field_6;  // note group for Snd_GetNote
+    /* 0x07 */ u8  field_7;  // note index for Snd_GetNote
+    /* 0x08 */ u16 field_8;  // duration (high half of field_8 timer units)
+    /* 0x0A */ u16 field_A;  // voice countdown (0 → 0x7FFFFFFF)
+    /* 0x0C */ s8  field_C;  // pan bias (<0 → use SndNote::pan)
+    /* 0x0D */ s8  field_D;  // volume scale (<0 → use SndNote::volume)
+    /* 0x0E */ s8  field_E;  // reverb gate vs D_8008274B
+    /* 0x0F */ u8  pad_F;
+    /* 0x10 */ u16 field_10; // voice-alloc priority for SndVoice_Alloc
+    /* 0x12 */ s16 field_12; // oneA offset for SndScript_FindOneA
+    /* 0x14 */ u16 field_14; // base pitch
+    /* 0x16 */ s16 field_16; // oneE offset for SndVoice_SetupEnvelope (-1 disables)
+} SndOneV;
+STATIC_ASSERT_SIZEOF(SndOneV, 0x18);
+
+/// "Loop" (0x706F6F4C) / "Wait" (0x74696157) / "endL" (0x4C646E65) script cmds.
+/// Loop: repeat count and minimum wait; Wait: signed duration.
+/// endL contains only the magic word and advances the byte cursor by four.
+typedef struct _SndScriptCmd {
+    /* 0x0 */ s32 magic;
+    /* 0x4 */ union {
+        struct {
+            u8  field_4;
+            u8  pad_5;
+            u16 field_6;
+        } loop;
+        s32 duration;
+    } data;
+} SndScriptCmd;
+STATIC_ASSERT_SIZEOF(SndScriptCmd, 0x8);
+
+/// 0x60-byte slot in SndScript_Slots[8]. field_0 is an ID looked up by
+/// SndVoice_FindById; field_16 holds status flags (mask 0xA3 selects active entries).
+/// field_E is a dirty flag; field_10/11/12 and field_13/14/15 are paired ramps
+/// (current/target/step) updated by SndVoice_SetPanRamp and SndVoice_SetVolumeRamp respectively.
+/// field_17/field_18/field_20 are a loop stack (depth, remaining counts, restart
+/// positions) used by Loop/endL in SndScript_Exec.
+/// field_40 heads the doubly-linked voice list (SndVoice_Attach/Detach);
+/// SndScript_TickVoices walks the list and SndScript_Play clears it;
+/// field_44 is the `SndBankSlot` whose bank the script plays (its image holds the
+/// `oneC` entry offsets, its bank is the default for a `oneV` with bank id 0);
+/// field_48 is a byte cursor over variable-length tagged commands;
+/// field_F is bit1 of SndVoiceParams::flags.
+/// field_4C is the `SndVoiceParams` block of the sound being played, reloaded by
+/// its `oneC` command.
+/// field_50 is a volume interpolator driven by SndVoice_FadeMatching via LinInterp_Setup.
+typedef struct _SndScript {
+    /* 0x00 */ s32             field_0;
+    /* 0x04 */ s32             field_4;
+    /* 0x08 */ s32             field_8;
+    /* 0x0C */ s8              field_C;
+    /* 0x0D */ s8              field_D;
+    /* 0x0E */ s8              field_E;
+    /* 0x0F */ s8              field_F;
+    /* 0x10 */ u8              field_10;
+    /* 0x11 */ u8              field_11;
+    /* 0x12 */ s8              field_12;
+    /* 0x13 */ u8              field_13;
+    /* 0x14 */ u8              field_14;
+    /* 0x15 */ s8              field_15;
+    /* 0x16 */ u8              field_16;
+    /* 0x17 */ u8              field_17;
+    /* 0x18 */ u8              field_18[8];
+    /* 0x20 */ u8*             field_20[8];
+    /* 0x40 */ SndVoice*       field_40;
+    /* 0x44 */ SndBankSlot*    field_44;
+    /* 0x48 */ u8*             field_48;
+    /* 0x4C */ SndVoiceParams* field_4C;
+    /* 0x50 */ LinInterp       field_50;
+} SndScript;
+STATIC_ASSERT_SIZEOF(SndScript, 0x60);
+
+/// "oneA" (0x41656E6F) tagged chunk header read by SndScript_FindOneA.
+/// Located at a signed byte offset into a raw buffer.
+typedef struct _SndOneA {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ u16 field_4;
+    /* 0x6 */ u16 field_6;
+} SndOneA;
+STATIC_ASSERT_SIZEOF(SndOneA, 0x8);
+
+STATIC_ASSERT(OFFSET_OF(SpuVoiceAttr, adsr1) == 0x3A, snd_voice_adsr1_offset);
+STATIC_ASSERT(OFFSET_OF(SpuVoiceAttr, adsr2) == 0x3C, snd_voice_adsr2_offset);
+
+/// 0x18-byte voice-slot lookup result filled by SndVoice_ScanCandidates and consumed by
+/// SndVoice_AllocSlot / SndVoice_SelectStealCandidate. field_0 is the chosen slot index (or error);
+/// field_1..field_6 are candidate slot indices (-1 = empty); field_7 is the
+/// candidate count; field_8/C/10/14 hold ranking scores / IDs.
+typedef struct _SndVoicePick {
+    /* 0x00 */ s8  field_0;
+    /* 0x01 */ s8  field_1;
+    /* 0x02 */ s8  field_2;
+    /* 0x03 */ s8  field_3;
+    /* 0x04 */ s8  field_4;
+    /* 0x05 */ s8  field_5;
+    /* 0x06 */ s8  field_6;
+    /* 0x07 */ u8  field_7;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+    /* 0x14 */ s32 field_14;
+} SndVoicePick;
+STATIC_ASSERT_SIZEOF(SndVoicePick, 0x18);
+
+/// 0xC-byte init-table entry at Snd_BankInitTable (two entries used by Snd_InitBanks).
+/// field_0 indexes Snd_BankSlotsByType for a slot id; field_2 is written to SndBankSlot.bankId
+/// and `SndBank::bankId`; field_4/field_6 are SndHeap_Malloc sizes; field_8 is stored
+/// to SndBankSlot.spuAddr.
+typedef struct _SndBankInitEntry {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+    /* 0x4 */ u16 field_4;
+    /* 0x6 */ u16 field_6;
+    /* 0x8 */ s32 field_8;
+} SndBankInitEntry;
+STATIC_ASSERT_SIZEOF(SndBankInitEntry, 0xC);
 
 static volatile u8 D_80082138[0x10];
 
@@ -17,48 +221,110 @@ static volatile u8 D_80082138[0x10];
 /// record free.
 static SndBankSlot _gSndBankSlots[16];
 
-static SndScript    SndScript_Slots[8];
-static s32          D_80082548[0x80];
-static s8           D_80082748;
-static s8           D_80082749;
-static s8           D_8008274A;
-static s8           D_8008274B;
+static SndScript SndScript_Slots[8];
+
+/// Script voices use SPU slots 16..23, after the MIDI sequencer's sixteen slots.
+static SndVoice SndScript_Voices[8];
+
+static s8 D_80082748;
+
+static s8 D_80082749;
+
+static s8 D_8008274A;
+
+static s8 D_8008274B;
+
 static volatile s32 D_8008274C;
 
-static void         SndEvt_EnqueueTypeF(void);
-static s32          SndScript_Exec(SndScript* script);
-static s32          SndScript_FindOneA(u8* arg0, s16 arg1, SndOneAOut* arg2);
-static void         SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* arg4, SndVoiceParams* arg5);
-static s32          SndScript_TickVoices(SndScript* arg0);
-static SndVoice*    SndVoice_Alloc(s32 arg0);
-static void         SndVoice_Attach(SndVoiceOwner* arg0, SndVoice* arg1);
-static void         SndVoice_ClearActive(void);
-static s32          SndVoice_DriveSlots(s32* unused);
-static void         SndVoice_Init(void);
-static void         SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16* arg4);
-static void         SndVoice_SetPriority(s8 arg0);
-static void         SndVoice_SetPriorityLevel(s8 arg0);
-static void         SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitch, SndNote* note);
-static s32          SndVoice_Tick(SndVoice* arg0);
-static void         SndVoice_TickEnvelope(SndVoice* arg0);
-static void         Snd_SetBusyFlag(s32 arg0);
-static s8           func_80055EF8(SndVoicePick* arg0, s32 arg1);
+static u8 D_80068A54[];
+
+static SndBankInitEntry Snd_BankInitTable[];
+
+static s16 SndScript_VoiceRanges[];
+
+/* Per-type arg1 limits for TaskIdMap_RemapIndex; sits between this TU's first
+ * jtbl (SndLoad_ResolveSpuAddr) and TaskIdMap's jtbl at 0x80014130. */
+static const GBytes6 D_80014124;
+
+static void Snd_ClearBusy(void);
+
+static void Snd_SetBusyFlag(s32 arg0);
+
+static s32 SndBank_RemapId(s32 arg0);
+
+static void SndVoice_SetPriority(s8 arg0);
+
+static void SndEvt_EnqueueTypeF(void);
+
+static void SndVoice_StepMasterLevel(void);
+
+static s32 SndVoice_DriveSlots(s32* unused);
+
+static void SndVoice_ScanCandidates(SndVoicePick* candidates, u16 arg1, s32 arg2, u16 arg3);
+
+/// Advances a script's 16.16 tick clock by one step: a whole tick, or 0.6 of
+/// one when the display region is 1.
+static inline void _sndScriptAdvanceClock(SndScript* script);
+
+/// Decides whether a note plays with reverb, from its own level against a
+/// global one. A note at level 3 gets reverb whenever the global level is at
+/// least 2; a global level of 3 turns it off for every other note; otherwise a
+/// note with a non-negative level gets reverb once the global level reaches it.
+static inline u8 _sndScriptUseReverb(SndOneV* oneV);
+
+static s32 SndScript_Exec(SndScript* script);
+
+static void SndVoice_TickEnvelope(SndVoice* voice);
+
+static void SndVoice_Init(void);
+
+static void SndVoice_SetPriorityLevel(s8 arg0);
+
+/// Selects an eligible voice candidate, respecting the retrigger-age limit.
+static s8 SndVoice_SelectStealCandidate(SndVoicePick* candidates, s32 retriggerFrames);
+
+static void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* slot, SndVoiceParams* arg5);
+
+static void SndVoice_Detach(void* context);
+
+/// Finds the slot holding the loaded bank that `bankId` names.
+///
+/// A bank id carries the bank's type in its high nibble, and `byType` selects
+/// how it is compared with the id each loaded bank carries: 0 matches the whole
+/// id, 1 only the `0xF000` type band. A search that matches nothing returns
+/// `NULL`.
 static SndBankSlot* sndBankSlotFind(u16 bankId, s32 byType);
+
+static SndVoice* SndVoice_Alloc(s32 arg0);
+
+static void SndVoice_Attach(SndScript* arg0, SndVoice* voice);
+
+static s32 SndVoice_Tick(SndVoice* voice);
+
+static s32 SndScript_TickVoices(SndScript* script);
+
+static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* voice, LinInterp* arg3, s16* arg4);
+
+static void SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitch, SndNote* note);
+
+static s32 SndScript_FindOneA(u8* arg0, s16 arg1, SpuVoiceAttr* arg2);
+
+static void SndVoice_ClearActive(void);
 
 static u8               D_80068A54[]        = { 0xFF, 0xFF, 0xFF, 0xFF, 0x20, 0x26, 0x20, 0x26, 0x2E, 0x05, 0x1E, 0xFF };
 static SndBankInitEntry Snd_BankInitTable[] = {
     { 0x0002, 0x20FF, 0x00CE, 0x0210, 0x73810 },
     { 0x000E, 0xE0FF, 0x0078, 0x0168, 0x6F810 },
 };
-s32        D_80068A78   = 0;
-static s16 D_80068A7C[] = { 1, 2 };
+s32        D_80068A78              = 0;
+static s16 SndScript_VoiceRanges[] = { 1, 2 };
 
 void Snd_InitFromStage(s32 arg0, s32 arg1)
 {
-    u8* var_s0;
-    s32 var_a0;
-    s32 var_v1;
-    s32 temp_v1;
+    SndBank* var_s0;
+    s32      var_a0;
+    s32      var_v1;
+    s32      temp_v1;
 
     D_8008274C = 0;
     SndVoice_ClearActive();
@@ -111,19 +377,19 @@ block_done:
             D_80082122 = 1;
             break;
     }
-    var_s0 = (u8*)&Snd_Banks[1];
+    var_s0 = &Snd_Banks[1];
 
-    SndLoad_State.field_14 = 0;
-    SndLoad_State.field_18 = 0;
-    D_8008212C             = D_80082122;
-    D_80082121             = D_80082135;
-    Snd_FreeBank((SndBank*)var_s0);
-    Snd_FreeBank((SndBank*)(var_s0 + 0xC0));
-    Snd_FreeBank((SndBank*)(var_s0 + 0x80));
+    SndLoad_State.imageBuffer = 0;
+    SndLoad_State.bank        = 0;
+    D_8008212C                = D_80082122;
+    D_80082121                = D_80082135;
+    Snd_FreeBank(var_s0);
+    Snd_FreeBank(var_s0 + 6);
+    Snd_FreeBank(var_s0 + 4);
     SndBankSlot_Free(5);
-    Snd_FreeBank((SndBank*)(var_s0 + 0xA0));
+    Snd_FreeBank(var_s0 + 5);
     SndBankSlot_Free(6);
-    Snd_FreeBank((SndBank*)(var_s0 + 0x40));
+    Snd_FreeBank(var_s0 + 2);
     SndBankSlot_Free(3);
     SndBank_SetEnableFlags(1, 0x40000000);
 }
@@ -381,7 +647,7 @@ void Snd_SetMutedVolumes(s32 arg0)
     Midi_SetMasterVolume(var_a0);
 }
 
-s32 Snd_InitBanks(u32 arg0)
+s32 Snd_InitBanks(u32 unused)
 {
     s32               i;
     s8                slot;
@@ -399,7 +665,7 @@ s32 Snd_InitBanks(u32 arg0)
     SndVoice_SetPriority(1);
     SndBank_SetEnableFlags(1, 0x80000000);
 
-    map   = D_800680AC;
+    map   = Snd_BankSlotsByType;
     banks = Snd_Banks;
     entry = Snd_BankInitTable;
 loop:
@@ -867,7 +1133,7 @@ static s32 SndVoice_DriveSlots(s32* unused)
                 if (p->field_40 != NULL) {
                     node = p->field_40;
                     do {
-                        if (node->field_10 != 0) {
+                        if (node->field_10.field_0 != 0) {
                             count++;
                             SndVoice_TickEnvelope(node);
                         }
@@ -891,55 +1157,55 @@ static s32 SndVoice_DriveSlots(s32* unused)
     return 0;
 }
 
-static void SndVoice_ScanCandidates(SndVoicePick* arg0, u16 arg1, s32 arg2, u16 arg3)
+static void SndVoice_ScanCandidates(SndVoicePick* candidates, u16 arg1, s32 arg2, u16 arg3)
 {
     s8         i;
     SndScript* p;
     u16        temp;
     s32        score;
 
-    arg0->field_0  = -1;
-    arg0->field_10 = -1;
-    arg0->field_5  = -1;
-    arg0->field_14 = -1;
-    arg0->field_6  = -1;
-    arg0->field_4  = -1;
-    arg0->field_3  = -1;
-    arg0->field_1  = -1;
-    arg0->field_2  = -1;
-    arg0->field_8  = arg1;
-    arg0->field_C  = 0xFFFF;
-    arg0->field_7  = 0;
+    candidates->field_0  = -1;
+    candidates->field_10 = -1;
+    candidates->field_5  = -1;
+    candidates->field_14 = -1;
+    candidates->field_6  = -1;
+    candidates->field_4  = -1;
+    candidates->field_3  = -1;
+    candidates->field_1  = -1;
+    candidates->field_2  = -1;
+    candidates->field_8  = arg1;
+    candidates->field_C  = 0xFFFF;
+    candidates->field_7  = 0;
 
     for (i = 0; i < 8; i++) {
         p = &SndScript_Slots[i];
         if (p->field_16 == 0) {
-            arg0->field_3 = i;
+            candidates->field_3 = i;
         } else if (p->field_16 != 4) {
             temp = p->field_4C->priority;
-            if (temp < (u32)arg0->field_8) {
-                arg0->field_8 = temp;
-                arg0->field_4 = i;
-            } else if (arg0->field_8 == temp) {
-                if ((arg0->field_5 == -1) || (arg0->field_10 < p->field_4)) {
-                    score          = p->field_4;
-                    arg0->field_5  = i;
-                    arg0->field_10 = score;
+            if (temp < (u32)candidates->field_8) {
+                candidates->field_8 = temp;
+                candidates->field_4 = i;
+            } else if (candidates->field_8 == temp) {
+                if ((candidates->field_5 == -1) || (candidates->field_10 < p->field_4)) {
+                    score                = p->field_4;
+                    candidates->field_5  = i;
+                    candidates->field_10 = score;
                 }
             }
             if (((p->field_0 & 0xFFFF00FF) == (arg2 & 0xFFFF00FF)) ||
                 (((temp = p->field_4C->flags) & 0x10) && (arg3 == temp))) {
-                arg0->field_1 = i;
-                if ((arg0->field_2 == -1) || (arg0->field_C > p->field_4)) {
-                    score         = p->field_4;
-                    arg0->field_2 = i;
-                    arg0->field_C = score;
+                candidates->field_1 = i;
+                if ((candidates->field_2 == -1) || (candidates->field_C > p->field_4)) {
+                    score               = p->field_4;
+                    candidates->field_2 = i;
+                    candidates->field_C = score;
                 }
-                arg0->field_7 += 1;
-                if ((arg0->field_6 == -1) || (arg0->field_14 < p->field_4)) {
-                    score          = p->field_4;
-                    arg0->field_6  = i;
-                    arg0->field_14 = score;
+                candidates->field_7 += 1;
+                if ((candidates->field_6 == -1) || (candidates->field_14 < p->field_4)) {
+                    score                = p->field_4;
+                    candidates->field_6  = i;
+                    candidates->field_14 = score;
                 }
             }
         }
@@ -1040,7 +1306,7 @@ static s32 SndScript_Exec(SndScript* script)
     s32           countdown;
     s16           envelopeOffset;
 
-    cmd = script->field_48;
+    cmd = (SndScriptCmd*)script->field_48;
     switch ((u32)cmd->magic) {
         case 0x45656E6F:
             break;
@@ -1053,12 +1319,12 @@ static s32 SndScript_Exec(SndScript* script)
                 goto stop;
             }
             ticks = script->field_8;
-            if ((ticks >> 16) >= cmd->field_6) {
-                script->field_18[script->field_17] = cmd->field_4;
-                script->field_48                   = (SndScriptCmd*)((u8*)script->field_48 + 8);
+            if ((ticks >> 16) >= cmd->data.loop.field_6) {
+                script->field_18[script->field_17] = cmd->data.loop.field_4;
+                script->field_48                   = script->field_48 + sizeof(SndScriptCmd);
                 script->field_20[script->field_17] = script->field_48;
                 script->field_17++;
-                script->field_8 -= cmd->field_6 << 16;
+                script->field_8 -= cmd->data.loop.field_6 << 16;
                 result           = 1;
                 goto done;
             } else {
@@ -1071,7 +1337,7 @@ static s32 SndScript_Exec(SndScript* script)
             }
             index = script->field_17 - 1;
             if (script->field_18[index] == 1) {
-                script->field_48 = (SndScriptCmd*)((u8*)cmd + 4);
+                script->field_48 = (u8*)cmd + sizeof(cmd->magic);
                 script->field_17--;
             } else {
                 script->field_48 = script->field_20[index];
@@ -1086,7 +1352,7 @@ static s32 SndScript_Exec(SndScript* script)
             // Pointer form: a subscript would emit the addition base-first, and
             // the target adds the index first.
             script->field_4C = (SndVoiceParams*)((u8*)header + *(header->entryOffsets + (u8)script->field_0));
-            script->field_48 = (SndScriptCmd*)((u8*)script->field_48 + 0x10);
+            script->field_48 = script->field_48 + sizeof(SndVoiceParams);
         case 0x56656E6F:
             oneV  = (SndOneV*)script->field_48;
             ticks = script->field_8;
@@ -1142,7 +1408,7 @@ static s32 SndScript_Exec(SndScript* script)
                 } else {
                     voice->field_3 = 0x7F;
                 }
-                if (SndScript_FindOneA((u8*)script->field_44->image, oneV->field_12, (SndOneAOut*)attr) == -1) {
+                if (SndScript_FindOneA((u8*)script->field_44->image, oneV->field_12, attr) == -1) {
                     attr->adsr1 = note->adsr1;
                     attr->adsr2 = note->adsr2;
                 }
@@ -1165,30 +1431,30 @@ static s32 SndScript_Exec(SndScript* script)
                 voice->field_C = oneV;
                 countdown      = oneV->field_A == 0 ? 0x7FFFFFFF : oneV->field_A << 16;
                 voice->field_4 = countdown;
-                SndVoice_Attach((SndVoiceOwner*)script, voice);
+                SndVoice_Attach(script, voice);
                 envelopeOffset = oneV->field_16;
                 if (envelopeOffset != -1) {
                     SndVoice_SetupEnvelope(voice, envelopeOffset, pitch & 0xFFFF, note);
                     result = 1;
                 } else {
-                    voice->field_10 = 0;
+                    voice->field_10.field_0 = 0;
                     result          = 1;
                 }
             }
             script->field_8  = (s32)(script->field_8 - (oneV->field_8 << 0x10));
-            script->field_48 = (void*)((u8*)script->field_48 + 0x18);
+            script->field_48 = script->field_48 + sizeof(SndOneV);
 
             goto done;
         case 0x74696157:
             ticks = script->field_8;
-            wait  = ((SndWaitCmd*)cmd)->duration;
+            wait  = cmd->data.duration;
             if ((ticks >> 16) < wait) {
                 _sndScriptAdvanceClock(script);
                 result = 0;
                 goto done;
             }
             script->field_8  = ticks - (wait << 16);
-            script->field_48 = (SndScriptCmd*)((u8*)script->field_48 + 8);
+            script->field_48 = script->field_48 + sizeof(SndScriptCmd);
             result           = 1;
             goto done;
         case 0x41656E6F:
@@ -1201,7 +1467,7 @@ done:
     return result;
 }
 
-static void SndVoice_TickEnvelope(SndVoice* arg0)
+static void SndVoice_TickEnvelope(SndVoice* voice)
 {
     SpuVoiceRef   sp10;
     SndVoiceFx*   fx;
@@ -1211,7 +1477,7 @@ static void SndVoice_TickEnvelope(SndVoice* arg0)
     s32           level;
     SpuVoiceAttr* attr;
 
-    fx    = (SndVoiceFx*)&arg0->field_10;
+    fx    = &voice->field_10;
     chunk = fx->field_20;
 
     if (fx->field_2 == 1) {
@@ -1287,14 +1553,14 @@ static void SndVoice_TickEnvelope(SndVoice* arg0)
     return;
 
 apply:
-    Spu_GetVoiceRef(arg0->field_0, &sp10);
+    Spu_GetVoiceRef(voice->field_0, &sp10);
     attr = sp10.field_4;
     attr->pitch =
         Spu_CalcVolume((pitch >> 8) & 0xFFFF, pitch & 0xFF, (u16)fx->field_8, (u16)fx->field_A);
     attr->mask |= SPU_VOICE_PITCH;
 }
 
-s32 SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, SndBankSlot* arg3, SndVoiceParams* arg4)
+s32 SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, SndBankSlot* slot, SndVoiceParams* arg4)
 {
     SndVoicePick sp18;
 
@@ -1302,10 +1568,10 @@ s32 SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, SndBankSlot* arg3, SndVoicePa
     if ((sp18.field_7 < arg4->maxVoices) && (sp18.field_3 != -1)) {
         sp18.field_0 = sp18.field_3;
     } else {
-        sp18.field_0 = func_80055EF8(&sp18, arg4->retriggerFrames);
+        sp18.field_0 = SndVoice_SelectStealCandidate(&sp18, arg4->retriggerFrames);
     }
     if (sp18.field_0 >= 0) {
-        SndScript_Play(sp18.field_0, arg1, arg2, arg0, arg3, arg4);
+        SndScript_Play(sp18.field_0, arg1, arg2, arg0, slot, arg4);
     }
     return sp18.field_0;
 }
@@ -1454,7 +1720,7 @@ static void SndVoice_Init(void)
         ptr++;
     } while (i < 0x40U);
 
-    ptr = (s32*)D_80082548;
+    ptr = (s32*)SndScript_Voices;
     i   = 0;
     do {
         *ptr = 0;
@@ -1532,45 +1798,45 @@ s8 SndVoice_GetMasterVolume(void)
     return D_80082748;
 }
 
-static s8 func_80055EF8(SndVoicePick* arg0, s32 arg1)
+static s8 SndVoice_SelectStealCandidate(SndVoicePick* candidates, s32 retriggerFrames)
 {
     s32 v;
     u8  u;
     s32 none;
 
     none = -1;
-    if (arg1 == none) {
+    if (retriggerFrames == none) {
         return -9;
     }
-    if (arg0->field_C < arg1) {
+    if (candidates->field_C < retriggerFrames) {
         return -5;
     }
-    if (arg0->field_2 != none) {
+    if (candidates->field_2 != none) {
         goto field6;
     }
-    v = arg0->field_4;
-    u = arg0->field_4;
+    v = candidates->field_4;
+    u = candidates->field_4;
     if (v != none) {
         goto store;
     }
-    v = arg0->field_5;
-    u = arg0->field_5;
+    v = candidates->field_5;
+    u = candidates->field_5;
 join:
     if (v == none) {
         goto ret_m6;
     }
 store:
-    arg0->field_0 = u;
+    candidates->field_0 = u;
     return v;
 field6:
-    v = arg0->field_6;
-    u = arg0->field_6;
+    v = candidates->field_6;
+    u = candidates->field_6;
     goto join;
 ret_m6:
     return -6;
 }
 
-static void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* arg4, SndVoiceParams* arg5)
+static void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* slot, SndVoiceParams* arg5)
 {
     SndScript*      p;
     SndVoice*       node;
@@ -1592,50 +1858,54 @@ static void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* ar
     }
     p->field_16 = 1;
     p->field_40 = NULL;
-    p->field_44 = arg4;
+    p->field_44 = slot;
     p->field_0  = arg3;
     p->field_4  = 0;
     p->field_10 = arg1;
     p->field_13 = arg2;
     p->field_17 = 0;
     flags       = desc->flags;
-    p->field_48 = (SndScriptCmd*)arg5;
+    p->field_48 = (u8*)arg5;
     p->field_F  = (flags >> 1) & 1;
 }
 
-static void SndVoice_Detach(SndVoice* arg0)
+static void SndVoice_Detach(void* context)
 {
-    SndVoice* temp_v0;
+    SndVoice* arg0 = context;
+    union {
+        SndVoice*  voice;
+        SndScript* script;
+    } temp_v0;
     SndVoice* temp_v1;
 
     if (arg0 != NULL) {
-        temp_v0       = arg0->field_38;
+        temp_v0.voice = arg0->field_38;
         arg0->field_8 = 0;
         arg0->field_0 = 0;
-        if (temp_v0 == NULL) {
+        if (temp_v0.voice == NULL) {
             temp_v1 = arg0->field_3C;
             if (temp_v1 == NULL) {
-                temp_v0 = (SndVoice*)arg0->field_34;
-                if (temp_v0 != NULL) {
-                    ((SndVoiceOwner*)temp_v0)->field_40 = NULL;
+                temp_v0.script = arg0->field_34;
+                if (temp_v0.script != NULL) {
+                    temp_v0.script->field_40 = NULL;
                 }
             } else {
-                temp_v0 = (SndVoice*)arg0->field_34;
-                if (temp_v0 != NULL) {
-                    ((SndVoiceOwner*)temp_v0)->field_40 = temp_v1;
+                temp_v0.script = arg0->field_34;
+                if (temp_v0.script != NULL) {
+                    temp_v0.script->field_40 = temp_v1;
                 }
-                temp_v0           = arg0->field_3C;
-                temp_v0->field_38 = NULL;
+                temp_v0.voice           = arg0->field_3C;
+                temp_v0.voice->field_38 = NULL;
             }
         } else {
             temp_v1 = arg0->field_3C;
             if (temp_v1 == NULL) {
-                temp_v0->field_3C = NULL;
+                temp_v0.voice->field_3C = NULL;
             } else {
-                temp_v0->field_3C = temp_v1;
-                temp_v1           = arg0->field_3C;
-                temp_v0           = arg0->field_38;
-                temp_v1->field_38 = temp_v0;
+                temp_v0.voice->field_3C = temp_v1;
+                temp_v1                 = arg0->field_3C;
+                temp_v0.voice           = arg0->field_38;
+                temp_v1->field_38       = temp_v0.voice;
             }
         }
         arg0->field_38 = NULL;
@@ -1718,75 +1988,74 @@ static SndVoice* SndVoice_Alloc(s32 arg0)
     s32       voiceIdx;
     SndVoice* ptr;
 
-    voiceIdx = (s8)Spu_AllocVoice(D_80068A7C, 2, arg0 & 0xFFFF);
+    voiceIdx = (s8)Spu_AllocVoice(SndScript_VoiceRanges, 2, arg0 & 0xFFFF);
     if (voiceIdx < 0) {
         return NULL;
     }
-    /* The voice records are addressed from the bank-slot table's symbol at a
-     * SndVoice stride; which object really lives there is unresolved. */
-    ptr          = (SndVoice*)_gSndBankSlots + voiceIdx;
+    /* Ranges 1 and 2 cover hardware voices 16..23. */
+    ptr          = &SndScript_Voices[voiceIdx - 16];
     ptr->field_0 = voiceIdx;
-    Spu_SetVoiceCallbacks(voiceIdx, (s32)SndVoice_Detach, (s32)ptr);
+    Spu_SetVoiceCallbacks(voiceIdx, SndVoice_Detach, ptr);
     ptr->field_8 = 1;
     return ptr;
 }
 
-static void SndVoice_Attach(SndVoiceOwner* arg0, SndVoice* arg1)
+static void SndVoice_Attach(SndScript* arg0, SndVoice* voice)
 {
     SndVoice* temp_v0;
 
     if (arg0 != NULL) {
         temp_v0 = arg0->field_40;
         if (temp_v0 != NULL) {
-            arg0->field_40    = arg1;
-            arg1->field_3C    = temp_v0;
-            temp_v0->field_38 = arg1;
-            arg1->field_38    = NULL;
-            arg1->field_34    = arg0;
+            arg0->field_40    = voice;
+            voice->field_3C   = temp_v0;
+            temp_v0->field_38 = voice;
+            voice->field_38   = NULL;
+            voice->field_34   = arg0;
             return;
         }
-        arg0->field_40 = arg1;
-        arg1->field_34 = arg0;
-        arg1->field_3C = NULL;
-        arg1->field_38 = NULL;
+        arg0->field_40  = voice;
+        voice->field_34 = arg0;
+        voice->field_3C = NULL;
+        voice->field_38 = NULL;
         return;
     }
-    arg1->field_3C = NULL;
-    arg1->field_38 = NULL;
-    arg1->field_34 = NULL;
+    voice->field_3C = NULL;
+    voice->field_38 = NULL;
+    voice->field_34 = NULL;
 }
 
-static s32 SndVoice_Tick(SndVoice* arg0)
+static s32 SndVoice_Tick(SndVoice* voice)
 {
     s32 temp;
 
-    temp = arg0->field_4;
+    temp = voice->field_4;
     if (temp <= 0) {
-        arg0->field_4 = 0;
-        Spu_KeyOff(arg0->field_0);
-        if (arg0->field_10 != 0) {
-            if (arg0->field_12 == 0) {
-                arg0->field_12 = 1;
+        voice->field_4 = 0;
+        Spu_KeyOff(voice->field_0);
+        if (voice->field_10.field_0 != 0) {
+            if (voice->field_10.field_2 == 0) {
+                voice->field_10.field_2 = 1;
             }
             goto block_8;
         }
     } else {
         if (temp <= 0x7FFFFFFE) {
             if (gDisplayState.region == 1) {
-                arg0->field_4 = temp + 0xFFFF6667;
+                voice->field_4 = temp + 0xFFFF6667;
             } else {
-                arg0->field_4 = temp + 0xFFFF0000;
+                voice->field_4 = temp + 0xFFFF0000;
             }
         }
     block_8:
-        if (arg0->field_10 != 0) {
-            SndVoice_TickEnvelope(arg0);
+        if (voice->field_10.field_0 != 0) {
+            SndVoice_TickEnvelope(voice);
         }
     }
     return 0;
 }
 
-static s32 SndScript_TickVoices(SndScript* arg0)
+static s32 SndScript_TickVoices(SndScript* script)
 {
     SpuVoiceRef sp10;
     SndVoice*   node;
@@ -1795,13 +2064,13 @@ static s32 SndScript_TickVoices(SndScript* arg0)
     u8          status;
     u16         temp;
 
-    head  = arg0->field_40;
+    head  = script->field_40;
     count = 0;
     if (head != NULL) {
         node = head;
         do {
             if (node->field_0 >= 0) {
-                if (arg0->field_C != 1) {
+                if (script->field_C != 1) {
                     status = Spu_GetVoiceStatus(node->field_0);
                     if (status != 0) {
                         Spu_GetVoiceRef(node->field_0, &sp10);
@@ -1816,9 +2085,9 @@ static s32 SndScript_TickVoices(SndScript* arg0)
                 } else {
                     Spu_KeyOff(node->field_0);
                 }
-                if (node->field_10 != 0) {
+                if (node->field_10.field_0 != 0) {
                     count         += 1;
-                    node->field_12 = 1;
+                    node->field_10.field_2 = 1;
                 }
             }
             node = node->field_3C;
@@ -1827,16 +2096,16 @@ static s32 SndScript_TickVoices(SndScript* arg0)
     return count;
 }
 
-static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16* arg4)
+static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* voice, LinInterp* arg3, s16* arg4)
 {
     s32 vol;
 
-    if (arg2->field_0 >= 0) {
+    if (voice->field_0 >= 0) {
         vol = 0x7F - abs(arg1);
-        vol = arg2->field_2 * abs(vol) / 127;
+        vol = voice->field_2 * abs(vol) / 127;
         vol = (vol < 0x80) ? ((vol < 0) ? 0 : vol) : 0x7F;
-        Spu_ApplyPanVolume(arg4, (s8)arg2->field_3 + arg0 * 3,
-                           LinInterp_Apply(arg3, D_80068E78[vol]));
+        Spu_ApplyPanVolume(arg4, (s8)voice->field_3 + arg0 * 3,
+                           LinInterp_Apply(arg3, Snd_VelocityGainTable[vol]));
     }
 }
 
@@ -1848,43 +2117,43 @@ static void SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitc
     s32         magic;
     s16         temp;
 
-    p = (SndVoiceFx*)&voice->field_10;
+    p = &voice->field_10;
     if (envelopeOffset == -1) {
-        voice->field_10 = 0;
+        voice->field_10.field_0 = 0;
         return;
     }
     if (voice->field_34 == NULL) {
-        voice->field_10 = 0;
+        voice->field_10.field_0 = 0;
         return;
     }
-    base        = *voice->field_34->field_44;
+    base        = (u8*)voice->field_34->field_44->image;
     chunk       = (SndOneE*)&base[envelopeOffset];
     p->field_20 = chunk;
     magic       = chunk->magic;
     if (magic == 0x45656E6F) {
-        voice->field_10 = 1;
-        p->field_1      = 0;
-        p->field_2      = 0;
-        p->field_4      = pitch & 0xFFFF;
-        p->field_8      = note->rootKey;
-        temp            = note->rootFine;
-        p->field_C      = 0;
-        p->field_14     = 0;
-        p->field_18     = 0;
-        p->field_1C     = 0;
-        p->field_A      = temp;
+        voice->field_10.field_0 = 1;
+        p->field_1              = 0;
+        p->field_2              = 0;
+        p->field_4              = pitch & 0xFFFF;
+        p->field_8              = note->rootKey;
+        temp                    = note->rootFine;
+        p->field_C              = 0;
+        p->field_14             = 0;
+        p->field_18             = 0;
+        p->field_1C             = 0;
+        p->field_A              = temp;
     }
 }
 
-static s32 SndScript_FindOneA(u8* arg0, s16 arg1, SndOneAOut* arg2)
+static s32 SndScript_FindOneA(u8* arg0, s16 arg1, SpuVoiceAttr* arg2)
 {
     SndOneA* chunk;
 
     if (arg1 != -1) {
         chunk = (SndOneA*)&arg0[arg1];
         if (chunk->field_0 == 0x41656E6F) {
-            arg2->field_3A = chunk->field_4;
-            arg2->field_3C = chunk->field_6;
+            arg2->adsr1 = chunk->field_4;
+            arg2->adsr2 = chunk->field_6;
             return 1;
         }
         return -1;

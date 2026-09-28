@@ -1,17 +1,10 @@
 #include "common.h"
 
-#include "psyq/libgte.h"
+#include <psyq/libgte.h>
 #include "psyq/libgpu.h"
 
 #include "actors/actor.h"
 #include "actors/actors_shared_80133c6c.h"
-#include "main/gameflag.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/attachments.h"
@@ -22,9 +15,24 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gameflow.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
 #include "main/wipsys.h"
+#include "overlay.h"
 
 /// Work block for the `actor_136100` overlay's cutscene actor.
 ///
@@ -164,7 +172,7 @@ static s32 func_actor_136100_80131EC4(Task* arg0)
 
     msgWork             = (Actor136100Work*)arg0->work;
     weaponId            = Player_Status.weapon;
-    id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = id;
     msgWork->field_4DE  = idx;
     rec.field_4         = idx;
@@ -244,7 +252,7 @@ void func_actor_136100_801320E0(Task* arg0)
             taskKill(arg0);
         } else {
             Mem_Set(work, 0, 0x4F0);
-            coord->sub             = (GpCoord*)arg0->spawnArg2;
+            coord->sub             = (GpCoord*)arg0->spawnArg2.pointer;
             arg0->extra.tmd->flags = 0;
             Tmd_AllocBuffers(tmd);
             tmd->lightMtx  = &work->field_474;
@@ -290,7 +298,7 @@ void func_actor_136100_80132284(Task* arg0)
             taskKill(arg0);
         } else {
             Mem_Set(work, 0, 0x4F0);
-            coord->sub             = (GpCoord*)arg0->spawnArg2;
+            coord->sub             = (GpCoord*)arg0->spawnArg2.pointer;
             arg0->extra.tmd->flags = 0;
             Tmd_AllocBuffers(tmd);
             tmd->lightMtx  = &work->field_474;
@@ -299,7 +307,7 @@ void func_actor_136100_80132284(Task* arg0)
             Task_Reparent(D_actor_136100_8014078C, arg0);
         }
         arg0->state += 1;
-        if (arg0->spawnArg1 != 0) {
+        if (arg0->spawnArg1.value != 0) {
             GpCoord* reset = arg0->extra.tmd->coords;
 
             Gfx_RotMatrixX(&reset->coord, 0x400, 1);
@@ -332,7 +340,7 @@ void func_actor_136100_80132284(Task* arg0)
                                                                                                   \
         msgWork             = (Actor136100Work*)(task)->work;                                     \
         weaponId            = Player_Status.weapon;                                               \
-        id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
+        id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
         rec.animBlock.index = id;                                                                 \
         msgWork->field_4DE  = anim;                                                               \
         rec.field_4         = anim;                                                               \
@@ -828,7 +836,7 @@ void func_actor_136100_80133690(void)
 
     msgWork             = (Actor136100Work*)task->work;
     weaponId            = Player_Status.weapon;
-    id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = id;
     msgWork->field_4DE  = 1;
     rec.field_4         = 1;
@@ -882,7 +890,7 @@ void func_actor_136100_8013379C(s32 arg0)
 
     msgWork             = (Actor136100Work*)task->work;
     weaponId            = Player_Status.weapon;
-    id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = id;
     msgWork->field_4DE  = 1;
     rec.field_4         = 1;
@@ -1100,7 +1108,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                                                   (s32)arg0->extra.tmd->coords + 0x140);
             if (work->field_4E4 == 0) {
                 func_actor_136100_ResetSlots(arg0, 1);
-                work->field_4BC = Task_SpawnFromTable(D_actor_136100_80140744, 3, 0, (s32)&gGfxViewCoord);
+                work->field_4BC = Task_SpawnFromTable(D_actor_136100_80140744, 3, 0, &gGfxViewCoord);
             } else {
                 func_actor_136100_ResetSlots(arg0, 3);
                 work->field_4BC = Task_SpawnFromTable(D_actor_136100_80140744, 3, 1,
@@ -1229,9 +1237,9 @@ void func_actor_136100_801344AC(Task* arg0)
             /* fallthrough */
         case 1:
             Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
-            fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1);
-            fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1);
-            fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1);
+            fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1.value);
+            fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1.value);
+            fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1.value);
             if (fade->r >= 0) {
                 return;
             }
@@ -1267,9 +1275,9 @@ void func_actor_136100_80134588(Task* arg0)
             /* fallthrough */
         case 1:
             Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
-            fade->r = (s16)((u16)fade->r + (u16)arg0->spawnArg1);
-            fade->g = (s16)((u16)fade->g + (u16)arg0->spawnArg1);
-            fade->b = (s16)((u16)fade->b + (u16)arg0->spawnArg1);
+            fade->r = (s16)((u16)fade->r + (u16)arg0->spawnArg1.value);
+            fade->g = (s16)((u16)fade->g + (u16)arg0->spawnArg1.value);
+            fade->b = (s16)((u16)fade->b + (u16)arg0->spawnArg1.value);
             if (D_actor_136100_8013F17C != 0) {
                 taskKill(arg0);
                 return;
@@ -1290,7 +1298,7 @@ void func_actor_136100_8013467C(void)
     s32       id;
 
     weaponId            = Player_Status.weapon;
-    id                  = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = id;
     rec.field_4         = 1;
     rec.field_8         = 0;
@@ -1417,7 +1425,7 @@ void func_actor_136100_801349B4(s32 arg0)
     if (arg0 == 0) {
         GameFlag_SetNibble(0x4B, 6);
     } else {
-        Mc_SaveData[0].sceneEvent = 8;
+        Mc_SaveData[0].state.sceneEvent = 8;
         GameFlag_SetNibble(0x4B, 0);
     }
 }

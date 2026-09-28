@@ -3,15 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-
 #include "rooms/dryfield_water_tank.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -25,8 +16,20 @@
 #include "gameplay/loading.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "overlay.h"
 
 /// Work block of the water-tank room's script-driver task, a
 /// `Mem_Malloc(0x58, 0)` the driver `func_dryfield_water_tank_8017DEA4` hangs
@@ -128,7 +131,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
                 break;
             }
             gGameSession->eventState       = 1;
-            D_dryfield_water_tank_80188D48 = Mc_SaveData[0].at4.loc.view;
+            D_dryfield_water_tank_80188D48 = Mc_SaveData[0].state.at4.loc.view;
             Gp_MsgPlayer3F3(0);
             Gp_MsgPlayerWeapon(0);
             Gp_StartCapSlot(0xE, 0, 0);
@@ -151,7 +154,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
                 gGameSession->eventState    = 0;
                 gGameSession->hideHud       = 0;
                 Gp_StateF0.field_4          = 0;
-                Mc_SaveData[0].at4.loc.view = (u8)D_dryfield_water_tank_80188D48;
+                Mc_SaveData[0].state.at4.loc.view = (u8)D_dryfield_water_tank_80188D48;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
             }
@@ -473,7 +476,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             Gp_DispatchMsg(work->child, 0x7DB, (s32)&msg, 0);
             break;
         case 2:
-            Mc_SaveData[0].at4.loc.view = Gp_FindViewIndex(3);
+            Mc_SaveData[0].state.at4.loc.view = Gp_FindViewIndex(3);
             gGameSession->viewDirty     = 1;
             /* Through a pointer rather than as `work->owner`: a member load is
              * struct memory, which lets the store to the view index sink into
@@ -566,7 +569,7 @@ void func_dryfield_water_tank_8017E1B4(void)
     Task**         owner;
 
     work                        = (DwtScriptWork*)D_dryfield_water_tank_80188D4C->work;
-    Mc_SaveData[0].at4.loc.view = Gp_FindViewIndex(3);
+    Mc_SaveData[0].state.at4.loc.view = Gp_FindViewIndex(3);
     /* Through a pointer rather than as `work->owner`: a member load is struct
      * memory, which lets the store to the view index sink into the call's
      * delay slot, and the original keeps it ahead of the load. */
@@ -630,9 +633,9 @@ void func_dryfield_water_tank_8017E220(Task* arg0)
             dr->code[0] = 0xE1000240;
             addPrim(gGpuCurrentOt - 16, dr);
 
-            fade->r -= (u16)arg0->spawnArg1;
-            fade->g -= (u16)arg0->spawnArg1;
-            fade->b -= (u16)arg0->spawnArg1;
+            fade->r -= (u16)arg0->spawnArg1.value;
+            fade->g -= (u16)arg0->spawnArg1.value;
+            fade->b -= (u16)arg0->spawnArg1.value;
             if (fade->r < 0) {
             kill:
                 taskKill(arg0);

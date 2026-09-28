@@ -4,12 +4,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/actor_render.h"
@@ -18,8 +12,17 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// The block the garden's ambience task reaches through `Task::spawnArg2`.
 /// Only `soundDelay` is read here; what precedes it belongs to whoever owns the
@@ -60,14 +63,14 @@ static void func_neo_ark_garden_8017EA9C(Task* task)
     NeoArkGardenAmbience* work;
     u32                   rnd;
 
-    work = task->spawnArg2;
+    work = task->spawnArg2.pointer;
     if (task->state == 0) {
         task->state = 1;
         D_80115734  = 0x60228;
         D_80115730  = 0x60233;
         D_80115754  = 0x6023E;
     }
-    if (task->spawnArg1 != (Gp_GetViewIndex() & 0xFF)) {
+    if (task->spawnArg1.value != (Gp_GetViewIndex() & 0xFF)) {
         work->soundDelay = 4;
     }
     switch (Gp_GetViewIndex() & 0xFF) {
@@ -170,7 +173,7 @@ static void func_neo_ark_garden_8017EA9C(Task* task)
             }
             break;
     }
-    task->spawnArg1 = Gp_GetViewIndex() & 0xFF;
+    task->spawnArg1.value = Gp_GetViewIndex() & 0xFF;
 }
 
 /// Draws a pulsing red star at the world point `arg0`, projected through
@@ -342,7 +345,7 @@ static void func_neo_ark_garden_8017F790(Task* arg0)
     MATRIX*    mtx;
     u8         col[4];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
@@ -384,9 +387,9 @@ static void func_neo_ark_garden_8017F790(Task* arg0)
             if (mem->angle < 0x200) {
                 mem->angle += 0x10;
             }
-            col[0] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1][0];
-            col[1] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1][1];
-            col[2] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1][2];
+            col[0] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1.value][0];
+            col[1] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1.value][1];
+            col[2] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1.value][2];
             func_neo_ark_garden_801805B4(coord, mem->angle, col);
             break;
         case 2:
@@ -397,9 +400,9 @@ static void func_neo_ark_garden_8017F790(Task* arg0)
             if (mem->angle < 0x200) {
                 mem->angle += 0x10;
             }
-            col[0] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1][0];
-            col[1] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1][1];
-            col[2] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1][2];
+            col[0] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1.value][0];
+            col[1] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1.value][1];
+            col[2] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1.value][2];
             func_neo_ark_garden_801805B4(coord, mem->angle, col);
             col[0] >>= 1;
             col[1] >>= 1;
@@ -410,9 +413,9 @@ static void func_neo_ark_garden_8017F790(Task* arg0)
             break;
         case 3:
             Gp_UpdateCoord(coord);
-            col[0] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1][0];
-            col[1] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1][1];
-            col[2] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1][2];
+            col[0] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1.value][0];
+            col[1] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1.value][1];
+            col[2] = mem->scale >> D_neo_ark_garden_80181400[arg0->spawnArg1.value][2];
             func_neo_ark_garden_801805B4(coord, mem->angle, col);
             col[0] = mem->scale;
             col[1] = mem->scale >> 1;
@@ -458,9 +461,9 @@ static void func_neo_ark_garden_8017FCE8(Task* task)
     GpCoord*   target;
     VECTOR     delta;
 
-    work   = task->spawnArg2;
+    work   = task->spawnArg2.pointer;
     coord  = task->extra.tmd->coords;
-    target = (GpCoord*)task->spawnArg1;
+    target = (GpCoord*)task->spawnArg1.value;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -693,7 +696,7 @@ static void func_neo_ark_garden_80180948(Task* arg0)
     s16        flag;
     s16        step;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {

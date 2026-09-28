@@ -1,16 +1,16 @@
 #include "common.h"
 
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/task.h"
-
 #include "rooms/dryfield_motel_room_1.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
-#include "main/fs.h"
+
+#include "gameplay/message.h"
+#include "main/gameflag.h"
+#include "main/session.h"
+#include "main/task.h"
 
 extern GpMsgEntry D_dryfield_motel_room_1_8017E0A8[];
 extern TaskDesc   D_dryfield_motel_room_1_8017E478;

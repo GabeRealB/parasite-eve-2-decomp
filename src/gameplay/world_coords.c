@@ -1,9 +1,10 @@
 #include "gameplay/world_coords.h"
 
 #include <psyq/sys/types.h>
-#include <psyq/libgte.h>
 #include <psyq/gtemac.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
 #include "common.h"
@@ -31,16 +32,14 @@
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "main/coord.h"
+#include "gameplay/damage.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/pad.h"
-#include "main/scratch.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/text.h"
-#include "main/tmd.h"
 #include "main/wipsys.h"
 
 /// 12-byte ranked slot inserted by `Gp_InsertRankedSlot`. That helper walks a
@@ -1103,7 +1102,7 @@ static void Gp_DebugPanTask(Task* arg0)
             req.glyphTable = 0;
             req.centerMode = 1;
             req.field_E    = 0;
-            func_8002E53C(&req, (u8*)D_8009745C);
+            Text_DrawString(&req, (u8*)D_8009745C);
         }
         SCRATCH_POP(_GpPanScratch);
     } else {
@@ -1717,7 +1716,7 @@ static void Gp_BindDefaultMtx(Task* arg0)
             taskKill(arg0);
             return;
         }
-        arg0->spawnArg2     = (void*)result;
+        arg0->spawnArg2.pointer     = (void*)result;
         extra->lightMtx     = &Gp_DefaultMtx;
         extra->colorMtx     = &Gp_DefaultMtx2;
         actor               = slot->work;

@@ -5,11 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
@@ -22,8 +17,15 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/scratch.h"
 
 /// The beam placements the view-dependent beam task draws for camera views 2,
 /// 3/6 and 4/7: pairs of end points, of which each view draws a subset.
@@ -277,7 +279,7 @@ static void func_shelter_b2_pod_access_tunnel_8017E6E0(Task* task)
     s32        step;
     s32        level;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (task->state < 2) {
@@ -293,27 +295,27 @@ static void func_shelter_b2_pod_access_tunnel_8017E6E0(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            work->scale = task->spawnArg1 & 0xFFF;
+            work->scale = task->spawnArg1.value & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            if (task->spawnArg1 & 0xF000) {
-                step = (task->spawnArg1 >> 12) & 7;
+            if (task->spawnArg1.value & 0xF000) {
+                step = (task->spawnArg1.value >> 12) & 7;
             } else {
                 step = 1;
             }
             work->period = step;
             work->age    = 0;
             task->state  = 1;
-            task->state  = task->spawnArg1 < 0 ? 2 : 1;
-            work->pos.vx = (task->spawnArg1 >> 16) & 0x7000;
+            task->state  = task->spawnArg1.value < 0 ? 2 : 1;
+            work->pos.vx = (task->spawnArg1.value >> 16) & 0x7000;
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                if (task->spawnArg1 & 0xFF0000) {
-                    level = (task->spawnArg1 >> 16) & 0xFF;
+                if (task->spawnArg1.value & 0xFF0000) {
+                    level = (task->spawnArg1.value >> 16) & 0xFF;
                 } else {
                     level = 0x40;
                 }
                 work->step = level;
-                switch ((task->spawnArg1 >> 24) & 0xF) {
+                switch ((task->spawnArg1.value >> 24) & 0xF) {
                     case 0:
                         work->step = 0;
                         break;
@@ -371,7 +373,7 @@ static void func_shelter_b2_pod_access_tunnel_8017E6E0(Task* task)
                 coord->coord.t[1] += work->move.vy;
                 coord->coord.t[2] += work->move.vz;
                 coord->flg         = 0;
-                if (((task->spawnArg1 >> 24) & 0xF) == 7) {
+                if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
                     work->move.vy -= 2;
@@ -391,7 +393,7 @@ static void func_shelter_b2_pod_access_tunnel_8017E6E0(Task* task)
                 coord->coord.t[1] += work->move.vy;
                 coord->coord.t[2] += work->move.vz;
                 coord->flg         = 0;
-                if (((task->spawnArg1 >> 24) & 0xF) == 7) {
+                if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
                     work->move.vy -= 1;
@@ -557,7 +559,7 @@ static void func_shelter_b2_pod_access_tunnel_8017F608(Task* task)
     GpCoord*   coord;
     s32        lifetime;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -567,29 +569,29 @@ static void func_shelter_b2_pod_access_tunnel_8017F608(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                if (task->spawnArg1 & 3) {
+                if (task->spawnArg1.value & 3) {
                     work->scale   = 0x80;
-                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1.value)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1)->speed;
+                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1.value)->speed;
                     work->move.vz = 0;
-                    if (task->spawnArg1 & 2) {
+                    if (task->spawnArg1.value & 2) {
                         work->move.vy = -work->move.vy;
                     }
                     task->state = 2;
                 } else {
                     work->scale   = 0x20;
-                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1.value)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
+                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1.value)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
                     work->move.vz = 0;
-                    task->state   = (task->spawnArg1 & 1) + 1;
+                    task->state   = (task->spawnArg1.value & 1) + 1;
                 }
                 break;
             case 1:
@@ -824,7 +826,7 @@ static void func_shelter_b2_pod_access_tunnel_80180350(Task* arg0)
     s16         flag;
     s32         shift;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -848,17 +850,17 @@ static void func_shelter_b2_pod_access_tunnel_80180350(Task* arg0)
                 coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->index      = shift;
-                arg0->spawnArg1 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0;
+                arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
                 arg0->state     = 1;
-                mem->step       = 0x100 / arg0->spawnArg1;
+                mem->step       = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
                 mem->scale      += mem->step;
                 mem->angle      += mem->step;
-                arg0->spawnArg1 -= 1;
+                arg0->spawnArg1.value -= 1;
                 rgb[0]           = mem->scale >> D_shelter_b2_pod_access_tunnel_80183DC8[mem->index].r;
                 rgb[1]           = mem->scale >> D_shelter_b2_pod_access_tunnel_80183DC8[mem->index].g;
                 rgb[2]           = mem->scale >> D_shelter_b2_pod_access_tunnel_80183DC8[mem->index].b;
@@ -870,7 +872,7 @@ static void func_shelter_b2_pod_access_tunnel_80180350(Task* arg0)
                     func_shelter_b2_pod_access_tunnel_8017FFBC(coord, (s16)(mem->angle + 0x100), rgb);
                 }
                 func_shelter_b2_pod_access_tunnel_8017FB98(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
-                if (arg0->spawnArg1 == 0) {
+                if (arg0->spawnArg1.value == 0) {
                     mem->scale  = 0xFF;
                     arg0->state = 2;
                     return;
@@ -914,7 +916,7 @@ static void func_shelter_b2_pod_access_tunnel_801806E8(Task* arg0)
     s16        flag;
     s16        step;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -1293,7 +1295,7 @@ static void func_shelter_b2_pod_access_tunnel_80181AF8(Task* arg0)
     s16        flag;
     s16        ang;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -1329,7 +1331,7 @@ static void func_shelter_b2_pod_access_tunnel_80181C2C(Task* arg0)
     GpCoord*   coord;
     u8         rgb[3];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -1342,13 +1344,13 @@ static void func_shelter_b2_pod_access_tunnel_80181C2C(Task* arg0)
             case 0:
                 mem->scale  = 0;
                 mem->angle  = 0x80;
-                mem->step   = 0x100 / arg0->spawnArg1;
+                mem->step   = 0x100 / arg0->spawnArg1.value;
                 arg0->state = 1;
                 break;
             case 1:
                 mem->scale += mem->step;
                 mem->angle += mem->step;
-                arg0->spawnArg1--;
+                arg0->spawnArg1.value--;
                 rgb[0] = mem->scale;
                 rgb[1] = mem->scale >> 2;
                 rgb[2] = mem->scale >> 1;
@@ -1358,7 +1360,7 @@ static void func_shelter_b2_pod_access_tunnel_80181C2C(Task* arg0)
                 rgb[2] >>= 1;
                 func_shelter_b2_pod_access_tunnel_801822FC(coord, (s16)((u16)mem->angle * 2), rgb);
                 func_shelter_b2_pod_access_tunnel_80181ED0(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
-                if (arg0->spawnArg1 == 0) {
+                if (arg0->spawnArg1.value == 0) {
                     mem->scale  = 0xFF;
                     arg0->state = 2;
                     rgb[0]      = mem->scale;
@@ -1510,7 +1512,7 @@ static void func_shelter_b2_pod_access_tunnel_80182690(Task* task)
     s32        i;
 
     coords   = (GpCoord*)task->work;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
@@ -1583,7 +1585,7 @@ static void func_shelter_b2_pod_access_tunnel_80182690(Task* task)
                     Gp_UpdateCoord(dst);
                 }
                 func_shelter_b2_pod_access_tunnel_80182B80(coords, &coords[8], work->age & 7, 0x123);
-                if (work->age == task->spawnArg1 && work->age != 0) {
+                if (work->age == task->spawnArg1.value && work->age != 0) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
@@ -1707,7 +1709,7 @@ static void func_shelter_b2_pod_access_tunnel_80182F78(Task* task)
     u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -1722,7 +1724,7 @@ static void func_shelter_b2_pod_access_tunnel_80182F78(Task* task)
     switch (task->state) {
         case 0:
             Gp_SpawnEff(0x60076, objCoord, 0x400, NULL);
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 Gp_SpawnEff(0x60070, objCoord, 0x80004600, NULL);
                 task->state = 1;
             } else {

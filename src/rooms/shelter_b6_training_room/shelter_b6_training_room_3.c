@@ -4,12 +4,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -19,8 +13,17 @@
 #include "gameplay/loading.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "overlay.h"
 
 /// Scratchpad block `func_shelter_b6_training_room_80181FDC` takes from
 /// `G_SCRATCH_HEAD`: the two world points the textured strip joins, the first
@@ -80,7 +83,7 @@ static void func_shelter_b6_training_room_8017DDE8(Task* task)
         D_shelter_b6_training_room_80185C98 = 0;
         for (j = 0; j < 3; j++) {
             for (i = 0; i < 6; i++) {
-                D_shelter_b6_training_room_80185C60[task->spawnArg1][i] = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+                D_shelter_b6_training_room_80185C60[task->spawnArg1.value][i] = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
             }
         }
         task->state = 1;
@@ -377,7 +380,7 @@ static void func_shelter_b6_training_room_8017EE70(Task* arg0)
     s16        flag;
     s16        step;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -625,7 +628,7 @@ static void func_shelter_b6_training_room_8017F8B8(Task* task)
     GpCoord*   coord;
     u8         rgb[3];
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState < 4) {
         work->age++;
@@ -635,7 +638,7 @@ static void func_shelter_b6_training_room_8017F8B8(Task* task)
                 work->scale                         = 0;
                 work->angle                         = 0x100;
                 D_shelter_b6_training_room_80185C90 = NULL;
-                work->step                          = 0x80 / task->spawnArg1;
+                work->step                          = 0x80 / task->spawnArg1.value;
             case 1:
                 if (Gp_State1C->eventState != 0) {
                     rgb[0] = work->scale >> 1;
@@ -643,19 +646,19 @@ static void func_shelter_b6_training_room_8017F8B8(Task* task)
                     rgb[2] = work->scale;
                     Gp_DrawRing(coord, work->angle, rgb);
                     Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
-                    Gp_DrawArc(coord, (s16)((task->spawnArg1 << 5) + 0x300), 0x100, rgb);
+                    Gp_DrawArc(coord, (s16)((task->spawnArg1.value << 5) + 0x300), 0x100, rgb);
                     break;
                 }
                 work->scale += work->step;
                 work->angle += work->step << 3;
-                task->spawnArg1--;
+                task->spawnArg1.value--;
                 rgb[0] = work->scale >> 1;
                 rgb[1] = work->scale >> 2;
                 rgb[2] = work->scale;
                 Gp_DrawRing(coord, work->angle, rgb);
                 Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
-                Gp_DrawArc(coord, (s16)((task->spawnArg1 << 5) + 0x300), 0x100, rgb);
-                if (task->spawnArg1 == 0) {
+                Gp_DrawArc(coord, (s16)((task->spawnArg1.value << 5) + 0x300), 0x100, rgb);
+                if (task->spawnArg1.value == 0) {
                     work->scale                         = 0xFF;
                     task->state                         = 2;
                     work->period                        = 0x600;
@@ -977,7 +980,7 @@ static void func_shelter_b6_training_room_80180DB4(Task* task)
     GpMtxWords* rot;
     u8          rgb[3];
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState < 4) {
         work->age++;
@@ -992,7 +995,7 @@ static void func_shelter_b6_training_room_80180DB4(Task* task)
                 coord->flg   = 0;
                 work->scale  = 0;
                 work->angle  = 0x100;
-                work->step   = 0xC0 / task->spawnArg1;
+                work->step   = 0xC0 / task->spawnArg1.value;
                 if (work->step == 0) {
                     work->step = 1;
                 }
@@ -1004,7 +1007,7 @@ static void func_shelter_b6_training_room_80180DB4(Task* task)
                     rgb[2] = work->scale >> 2;
                     Gp_DrawRing(coord, work->angle, rgb);
                     Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
-                    Gp_DrawArc(coord, (s16)((task->spawnArg1 % 15) * (work->scale << 2)), 0x100, rgb);
+                    Gp_DrawArc(coord, (s16)((task->spawnArg1.value % 15) * (work->scale << 2)), 0x100, rgb);
                     return;
                 }
                 work->scale += work->step;
@@ -1012,14 +1015,14 @@ static void func_shelter_b6_training_room_80180DB4(Task* task)
                     work->scale = 0xC0;
                 }
                 work->angle = (u16)work->scale * 8 + 0x100;
-                task->spawnArg1--;
+                task->spawnArg1.value--;
                 rgb[0] = work->scale;
                 rgb[1] = work->scale >> 1;
                 rgb[2] = work->scale >> 2;
                 Gp_DrawRing(coord, work->angle, rgb);
                 Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
-                Gp_DrawArc(coord, (s16)((task->spawnArg1 % 15) * (work->scale << 2)), 0x100, rgb);
-                if (task->spawnArg1 == 0) {
+                Gp_DrawArc(coord, (s16)((task->spawnArg1.value % 15) * (work->scale << 2)), 0x100, rgb);
+                if (task->spawnArg1.value == 0) {
                     work->scale = 0xFF;
                     task->state = 2;
                     Gp_SpawnEff(0x601AA, coord, 0, NULL);
@@ -1055,10 +1058,10 @@ static void func_shelter_b6_training_room_801811AC(Task* task)
     GpEffWork* mem;
     GpCoord*   coord;
 
-    mem   = task->spawnArg2;
+    mem   = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
-        func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1);
+        func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1.value);
         if (Gp_State1C->eventState < 4) {
             return;
         }
@@ -1068,7 +1071,7 @@ static void func_shelter_b6_training_room_801811AC(Task* task)
     switch (task->state) {
         case 0:
             mem->scale        = 0x80;
-            task->state       = task->spawnArg1 + 1;
+            task->state       = task->spawnArg1.value + 1;
             coord->coord.t[1] = 0;
             coord->flg        = 0;
             Gp_UpdateCoord(coord);
@@ -1084,7 +1087,7 @@ static void func_shelter_b6_training_room_801811AC(Task* task)
             }
             mem->angle += 0x20;
             mem->step  += 0x18;
-            func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1);
+            func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1.value);
             return;
         case 2:
             if (mem->scale < 4) {
@@ -1093,7 +1096,7 @@ static void func_shelter_b6_training_room_801811AC(Task* task)
             mem->scale -= 3;
             mem->angle += 0x40;
             mem->step  += 0x18;
-            func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1);
+            func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1.value);
             return;
         case 3:
             if (mem->scale < 5) {
@@ -1102,7 +1105,7 @@ static void func_shelter_b6_training_room_801811AC(Task* task)
             mem->scale -= 4;
             mem->angle += 0x180;
             mem->step  += 0x18;
-            func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1);
+            func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1.value);
             return;
         case 4:
         release:
@@ -1237,7 +1240,7 @@ static void func_shelter_b6_training_room_80181A3C(Task* task)
     GpEffWork* mem;
     GpCoord*   coord;
 
-    mem   = task->spawnArg2;
+    mem   = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState == 0) {
         mem->age++;
@@ -1422,7 +1425,7 @@ static void func_shelter_b6_training_room_8018245C(Task* task)
     s16        eventState;
     u8         rgb[3];
 
-    mem        = task->spawnArg2;
+    mem        = task->spawnArg2.pointer;
     eventState = Gp_State1C->eventState;
     coord      = task->extra.tmd->coords;
     if (eventState != 0) {
@@ -1437,9 +1440,9 @@ static void func_shelter_b6_training_room_8018245C(Task* task)
         mem->angle = 0x200;
         D_shelter_b6_training_room_80185C98++;
         task->state     = 1;
-        task->spawnArg1 = D_shelter_b6_training_room_80185C98;
+        task->spawnArg1.value = D_shelter_b6_training_room_80185C98;
     }
-    if (task->spawnArg1 != D_shelter_b6_training_room_80185C98) {
+    if (task->spawnArg1.value != D_shelter_b6_training_room_80185C98) {
         goto release;
     }
     rgb[0]      = mem->scale;
@@ -1463,7 +1466,7 @@ static void func_shelter_b6_training_room_801825C0(Task* task)
     GpEffWork* mem;
     GpCoord*   coord;
 
-    mem   = task->spawnArg2;
+    mem   = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState == 0) {
         mem->age++;
@@ -1495,7 +1498,7 @@ static void func_shelter_b6_training_room_801826E0(Task* task)
     GpEffWork* mem;
     GpCoord*   coord;
 
-    mem   = task->spawnArg2;
+    mem   = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState == 0) {
         mem->age++;
@@ -1527,7 +1530,7 @@ static void func_shelter_b6_training_room_80182804(Task* task)
 {
     GpEffWork* mem;
 
-    mem = task->spawnArg2;
+    mem = task->spawnArg2.pointer;
     if (mem->age >= 0x15) {
         Gp_ReleaseState1CMem(mem, task);
         return;

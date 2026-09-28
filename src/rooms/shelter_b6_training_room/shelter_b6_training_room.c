@@ -1,11 +1,4 @@
 #include "common.h"
-#include "main/stage.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/room.h"
 
 #include "gameplay/attachments.h"
@@ -16,6 +9,19 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
 
 extern GpMsgEntry D_shelter_b6_training_room_80182AF4[];
 extern s32        D_shelter_b6_training_room_80182B24;
@@ -168,7 +174,7 @@ void func_shelter_b6_training_room_8017D974(s32 arg0)
     if (arg0 < 0) {
         goto kill;
     }
-    t->spawnArg1 = arg0;
+    t->spawnArg1.value = arg0;
     return;
 kill:
     taskKill(D_shelter_b6_training_room_80185C5C);
@@ -182,7 +188,7 @@ void func_shelter_b6_training_room_8017D9C8(Task* task)
 
     if (D_801156F9 == 0) {
         if (task->state == 0) {
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 tick                = task->killCountdown + 0x100;
                 task->killCountdown = tick;
                 if ((s16)tick >= 0x1001) {
@@ -220,9 +226,9 @@ void func_shelter_b6_training_room_8017DAF8(s32 arg0)
 /// Sets the saved location to area 0x16, warp 1, room 1 and spawns task 0x11.
 void func_shelter_b6_training_room_8017DB28(void)
 {
-    Mc_SaveData[0].at4.loc.area = 0x16;
-    Mc_SaveData[0].at4.loc.warp = 1;
-    Mc_SaveData[0].at4.loc.room = 1;
+    Mc_SaveData[0].state.at4.loc.area = 0x16;
+    Mc_SaveData[0].state.at4.loc.warp = 1;
+    Mc_SaveData[0].state.at4.loc.room = 1;
     Task_Spawn(0, 0x11, 0, 0);
 }
 

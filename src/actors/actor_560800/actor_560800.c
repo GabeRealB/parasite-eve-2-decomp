@@ -8,18 +8,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
@@ -31,8 +19,28 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/loading.h"
 #include "gameplay/world_coords.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflow.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/wipsys.h"
+#include "overlay.h"
 
 /// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. Reach it with
@@ -333,7 +341,7 @@ void func_actor_560800_801321A0(Task* task)
             break;
         case 1:
             key = gGameSession->at4;
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 key.loc.view = 0x65;
             } else {
                 key.loc.view = 0x64;
@@ -577,7 +585,7 @@ void func_actor_560800_801326C4(Task* arg0)
             }
             work->field_4BA = 0x13;
             work->field_4B4 = &D_actor_560800_8016ECAC;
-            if (arg0->spawnArg1 == 0) {
+            if (arg0->spawnArg1.value == 0) {
                 Actor560800AnimWork* w = (Actor560800AnimWork*)arg0->work;
                 u16                  i;
                 s32                  fade = 0x10;
@@ -608,7 +616,7 @@ void func_actor_560800_801326C4(Task* arg0)
         case 2: // an empty case: GCC then roots the case tree at 1
             break;
         case 1: {
-            s32 arg = arg0->spawnArg1;
+            s32 arg = arg0->spawnArg1.value;
             if (arg == 1) {
                 Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_560800_8016F154, 0);
                 work->field_4BC = arg;
@@ -638,7 +646,7 @@ void func_actor_560800_80132A14(Task* arg0)
 
     if (arg0->state == 0) {
         TmdObject*           tmd    = arg0->extra.tmd;
-        Task*                parent = arg0->spawnArg2;
+        Task*                parent = arg0->spawnArg2.pointer;
         GpCoord*             coord  = tmd->coords;
         Actor560800AnimWork* block;
         GpAreaPlace*         place;
@@ -651,7 +659,7 @@ void func_actor_560800_80132A14(Task* arg0)
             return;
         }
         work = block;
-        switch (arg0->spawnArg1) {
+        switch (arg0->spawnArg1.value) {
             case 0:
                 coord->sub = &parent->extra.tmd->coords[12];
                 break;
@@ -664,7 +672,7 @@ void func_actor_560800_80132A14(Task* arg0)
         Mem_Set(arg0->work, 0, 0x4CC);
         tmd->lightMtx = &work->light;
         tmd->colorMtx = &work->color;
-        if (arg0->spawnArg1 < 2) {
+        if (arg0->spawnArg1.value < 2) {
             place = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
             id    = place->entryId;
             while (id != 0xFF) {
@@ -675,9 +683,9 @@ void func_actor_560800_80132A14(Task* arg0)
                 id = place->entryId;
             }
             Gp_SetTmdBytes(arg0->extra.tmd, (s8)place->tpage, (s8)place->clut);
-        } else if (arg0->spawnArg1 == 2) {
+        } else if (arg0->spawnArg1.value == 2) {
             Gp_SetTmdBytes(arg0->extra.tmd, 0, 0);
-        } else if (arg0->spawnArg1 == 3) {
+        } else if (arg0->spawnArg1.value == 3) {
             place = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
             id    = place->entryId;
             while (id != 0xFF) {
@@ -1123,7 +1131,7 @@ static inline void Actor560800_PlaySe(s16 arg4)
     s32 val;
 
     val    = Player_Status.weapon;
-    msg[0] = (Mc_SaveData[0].characterId == 1) ? val + 1 : val + 0x22;
+    msg[0] = (Mc_SaveData[0].state.characterId == 1) ? val + 1 : val + 0x22;
     msg[1] = arg4;
     msg[2] = 0;
     msg[3] = 0;
@@ -1137,7 +1145,7 @@ static inline void Actor560800_PlaySeB(s32 arg4)
     s32 val;
 
     val    = Player_Status.weapon;
-    msg[0] = (Mc_SaveData[0].characterId == 1) ? val + 1 : val + 0x22;
+    msg[0] = (Mc_SaveData[0].state.characterId == 1) ? val + 1 : val + 0x22;
     msg[1] = arg4;
     msg[2] = 1;
     msg[3] = 0xA;
@@ -1853,14 +1861,14 @@ static void func_actor_560800_80135BD8(Task* arg0)
     work->field_4           = Task_SpawnFromTable(&D_actor_560800_801718F0, 4, 0, 0);
     sub5                    = Task_SpawnFromTable(&D_actor_560800_801718F0, 5, 0, 0);
     work->field_8           = sub5;
-    work->field_10          = Task_SpawnFromTable(&D_actor_560800_801718F0, 7, 1, (s32)sub5);
-    work->field_14          = Task_SpawnFromTable(&D_actor_560800_801718F0, 8, 0, (s32)work->field_8);
-    work->field_18          = Task_SpawnFromTable(&D_actor_560800_801718F0, 9, 2, (s32)work->field_8);
+    work->field_10          = Task_SpawnFromTable(&D_actor_560800_801718F0, 7, 1, sub5);
+    work->field_14          = Task_SpawnFromTable(&D_actor_560800_801718F0, 8, 0, work->field_8);
+    work->field_18          = Task_SpawnFromTable(&D_actor_560800_801718F0, 9, 2, work->field_8);
     sub6                    = Task_SpawnFromTable(&D_actor_560800_801718F0, 6, 0, 0);
     work->field_C           = sub6;
-    work->field_1C          = Task_SpawnFromTable(&D_actor_560800_801718F0, 0xA, 3, (s32)sub6);
-    work->field_20          = Task_SpawnFromTable(&D_actor_560800_8017575C, 0, 0, (s32)arg0);
-    work->field_24          = Task_SpawnFromTable(&D_actor_560800_8017575C, 2, 0, (s32)arg0);
+    work->field_1C          = Task_SpawnFromTable(&D_actor_560800_801718F0, 0xA, 3, sub6);
+    work->field_20          = Task_SpawnFromTable(&D_actor_560800_8017575C, 0, 0, arg0);
+    work->field_24          = Task_SpawnFromTable(&D_actor_560800_8017575C, 2, 0, arg0);
     vec.vx                  = 0x5A0;
     vec.vy                  = 0x5A0;
     vec.vz                  = 0x5A0;
@@ -1893,7 +1901,7 @@ void func_actor_560800_80135D54(Task* arg0)
                 Gp_LcgState = D_actor_560800_801757A8;
                 Gp_PulseState1C();
                 val    = Player_Status.weapon;
-                msg[0] = (Mc_SaveData[0].characterId == 1) ? val + 1 : val + 0x22;
+                msg[0] = (Mc_SaveData[0].state.characterId == 1) ? val + 1 : val + 0x22;
                 msg[1] = 1;
                 msg[2] = 0;
                 msg[3] = 0;
@@ -1924,7 +1932,7 @@ void func_actor_560800_80135D54(Task* arg0)
 
 void func_actor_560800_80135F50(Task* arg0)
 {
-    Display_SpawnWithOt(&D_actor_560800_8016EA28, 1, arg0->spawnArg1, 0);
+    Display_SpawnWithOt(&D_actor_560800_8016EA28, 1, arg0->spawnArg1.value, 0);
     gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);
@@ -1953,9 +1961,9 @@ void func_actor_560800_80135FA0(Task* arg0)
             /* fallthrough */
         case 1:
             Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
-            work->r += (u16)arg0->spawnArg1;
-            work->g += (u16)arg0->spawnArg1;
-            work->b += (u16)arg0->spawnArg1;
+            work->r += (u16)arg0->spawnArg1.value;
+            work->g += (u16)arg0->spawnArg1.value;
+            work->b += (u16)arg0->spawnArg1.value;
             if (work->r >= 0x100) {
                 SetDispMask(0);
                 taskKill(arg0);
@@ -1996,9 +2004,9 @@ void func_actor_560800_80136094(Task* arg0)
             /* fallthrough */
         case 7:
             Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
-            work->r -= (u16)arg0->spawnArg1;
-            work->g -= (u16)arg0->spawnArg1;
-            work->b -= (u16)arg0->spawnArg1;
+            work->r -= (u16)arg0->spawnArg1.value;
+            work->g -= (u16)arg0->spawnArg1.value;
+            work->b -= (u16)arg0->spawnArg1.value;
             if (work->r < 0) {
                 taskKill(arg0);
             }
@@ -2221,7 +2229,7 @@ void func_actor_560800_801366B0(Task* arg0)
             D5B498_8006C234 = 0;
             taskKill(arg0);
             Display_ResetHeapWrapper();
-            work->field_4 = Task_SpawnOnDefaultList(&D_actor_560800_801718F0, 0xB, 1, (s32)D_actor_560800_8017578C);
+            work->field_4 = Task_SpawnOnDefaultList(&D_actor_560800_801718F0, 0xB, 1, D_actor_560800_8017578C);
             break;
     }
 }
@@ -2566,7 +2574,7 @@ static void func_actor_560800_801376E0(Task* arg0)
     }
     Mem_Set(mem, 0, 0x28C);
     work            = (Actor560800ModelWork*)arg0->work;
-    child           = (Task*)arg0->spawnArg2;
+    child           = (Task*)arg0->spawnArg2.pointer;
     work->field_26C = child;
     coord->sub      = child->extra.tmd->coords;
     obj->lightMtx   = &work->light;
@@ -2580,7 +2588,7 @@ static void func_actor_560800_801376E0(Task* arg0)
     work->field_278 = (Gp_LcgState >> 16) & 0x3FF;
     func_800B3F84(&work->anim, D_actor_560800_801752F0, obj, work->poseBuf,
                   work->slots);
-    work->field_280 = arg0->spawnArg1;
+    work->field_280 = arg0->spawnArg1.value;
 }
 
 /// Per-frame handler of the animated model part `func_actor_560800_801376E0`
@@ -2670,7 +2678,7 @@ void func_actor_560800_80137820(Task* arg0)
         case 4:
             child = Task_SpawnFromTable(&D_actor_560800_8017575C, 3,
                                         D_actor_560800_801757AC->extra.tmd->coords->coord.t[1],
-                                        (s32)arg0->spawnArg2);
+                                        arg0->spawnArg2.pointer);
             if (child == NULL) {
                 arg0->state = 1;
                 return;
@@ -2776,7 +2784,7 @@ void func_actor_560800_80137BEC(Task* task)
             t288              = work->field_288 + t286;
             work->field_288   = t288;
             work->field_286   = t286;
-            coord->coord.t[1] = work->field_28A + task->spawnArg1 -
+            coord->coord.t[1] = work->field_28A + task->spawnArg1.value -
                                 D_actor_560800_801757AC->extra.tmd->coords->coord.t[1] +
                                 (s16)t288;
             coord->flg = 0;
@@ -3049,12 +3057,12 @@ void func_actor_560800_801386D4(Task* task)
                 Mem_Set(task->work, 0, 0x4C);
                 i                 = 0;
                 spawned           = w;
-                spawned->field_40 = (Task*)task->spawnArg2;
+                spawned->field_40 = (Task*)task->spawnArg2.pointer;
                 task->msgTable    = &D_actor_560800_801756D4;
                 Task_Reparent(spawned->field_40, task);
                 do {
                     spawned->parts[i & 0xFFFF] =
-                        Task_SpawnFromTable(&D_actor_560800_8017575C, 1, (i & 0xFFFF) + 1, (s32)task);
+                        Task_SpawnFromTable(&D_actor_560800_8017575C, 1, (i & 0xFFFF) + 1, task);
                     i++;
                 } while ((u32)(i & 0xFFFF) < 8U);
                 D_actor_560800_801757A8 = Gp_LcgState;
@@ -3309,7 +3317,7 @@ static void func_actor_560800_80138D04(Task* task)
             coord->flg = 0;
             return;
         case 3:
-            other              = ((Actor560800Work*)((Task*)task->spawnArg2)->work)->field_C->extra.tmd->coords;
+            other              = ((Actor560800Work*)((Task*)task->spawnArg2.pointer)->work)->field_C->extra.tmd->coords;
             coord->coord.t[1] -= 20;
             other->coord.t[1] -= 20;
             coord->flg         = 0;
@@ -3358,10 +3366,10 @@ void func_actor_560800_80138FC8(Task* task)
                 Mem_Set(task->work, 0, 0x28C);
                 mem            = (Actor560800ModelWork*)task->work;
                 root->sub      = &gGfxViewCoord;
-                mem->field_26C = (Task*)task->spawnArg2;
+                mem->field_26C = (Task*)task->spawnArg2.pointer;
                 obj->lightMtx  = &mem->light;
                 obj->colorMtx  = &mem->color;
-                Task_Reparent((Task*)task->spawnArg2, task);
+                Task_Reparent((Task*)task->spawnArg2.pointer, task);
                 task->msgTable          = &D_actor_560800_80175744;
                 D_actor_560800_801757AC = task;
                 m0                      = &root->coord;

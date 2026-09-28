@@ -4,9 +4,10 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-#include "main/task.h"
 
 #include "gameplay/message.h"
+
+#include "main/task_types.h"
 
 s32 ActorsShared80164954(Task* task, s32 arg1, GpXformArg* placement);
 

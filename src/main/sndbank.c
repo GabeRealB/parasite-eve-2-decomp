@@ -1,50 +1,117 @@
+#include "main/sound.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/kernel.h>
+#include <psyq/libapi.h>
+#include <psyq/libspu.h>
+
 #include "common.h"
 
-#define SNDBANK_C
-
-#include <psyq/libapi.h>
-
-#include "main/unknown_syms.h"
-#include "main/cdaudio.h"
-#include "main/fs.h"
+#include "cdaudio.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "fs.h"
+#include "main/sound_types.h"
+#include "sound_types.h"
 #include "main/task.h"
-#include "main/devkit.h"
-#include "weapons/weapon.h"
+#include "task.h"
+#include "main/task_types.h"
+
 #include "actors/actor.h"
-#include "kyle/kyle.h"
+
 #include "aya/aya.h"
-#include "rooms/room.h"
 
 #include "gameplay/captions.h"
-#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
-#include "main/display.h"
-#include "main/mem.h"
-#include "main/sound.h"
 
-static void           AudioTick_Process(void);
-static AudioTickNode* AudioTick_Remove(AudioTickNode* arg0);
-static void           AudioTick_Reset(void);
-static void           SndHeap_Reset(void);
-static void           Snd_ClearBanks(void);
-static long           Spu_TimerCallback(void);
-static s32            Spu_TimerReentryWork(void);
+#include "kyle/kyle.h"
 
+#include "rooms/room.h"
+
+#include "weapons/weapon.h"
+
+typedef struct _HeapBlockHeader {
+    u32                      size;
+    u16                      isAllocated;
+    u16                      magic;
+    struct _HeapBlockHeader* prev;
+    struct _HeapBlockHeader* next;
+} HeapBlockHeader;
+STATIC_ASSERT_SIZEOF(HeapBlockHeader, 0x10);
+
+/// Per-frame audio callback list node (AudioTick_List sentinel + chain).
+typedef struct _AudioTickNode {
+    /* 0x00 */ AudioTickPoll          poll;
+    /* 0x04 */ AudioTickOnRemove      onRemove;
+    /* 0x08 */ s16                    id;
+    /* 0x0C */ s32*                   arg;
+    /* 0x10 */ struct _AudioTickNode* prev;
+    /* 0x14 */ struct _AudioTickNode* next;
+} AudioTickNode;
+STATIC_ASSERT_SIZEOF(AudioTickNode, 0x18);
+
+#define SNDHEAP_SIZE 0x3D00
+
+#define SNDHEAP_START_MAGIC 0xB25A
+
+#define SNDHEAP_MAGIC 0xA52B
+
+/* Define BSS before API headers to preserve first-declaration order. */
 static HeapBlockHeader* SndHeap_Start;
+
 /// Unreferenced.
-static u8            D_8007A3A8[8];
-static u8            SndHeap_Buffer[SNDHEAP_SIZE];
+static u8 D_8007A3A8[8];
+
+static u8 SndHeap_Buffer[SNDHEAP_SIZE];
+
 static AudioTickNode AudioTick_List;
-static u32           AudioTick_Enabled;
-static u8            D_8007E0CC;
+
+static u32 AudioTick_Enabled;
+
+static u8 D_8007E0CC;
+
 static volatile long D648E0_SpuTimerED;
-s32                  D_8007E0D4;
-SndBank              Snd_Banks[16];
+
+void* Snd_SequenceBankBuffer;
+
+SndBank Snd_Banks[16];
+
 /// Unreferenced.
 static u8 D_8007E2D8[8];
+
+#include "sound.h"
+
+static u8 D_800680A4;
+
+static u8 D58028_SpuTimerEnabled;
+
+/// Unreferenced.
+static s32 D_800680A8;
+
+static u32 D_800680BC;
+
+static volatile u32 D_800680C0;
+
+void func_807257A0(Task* arg0);
+
+static void Spu_InitSystem(s32 arg0);
+
+static void Snd_ClearBanks(void);
+
+static void SndHeap_Reset(void);
+
+static long Spu_TimerCallback(void);
+
+static s32 Spu_TimerReentryWork(void);
+
+static void AudioTick_Reset(void);
+
+static void AudioTick_Process(void);
+
+static AudioTickNode* AudioTick_Remove(AudioTickNode* arg0);
 
 TaskDesc D_80067828[] = {
     { 0x0, 0xC0, taskKill },
@@ -236,10 +303,10 @@ TaskDesc D_800678F4[] = {
 static u8 D_800680A4             = 0;
 static u8 D58028_SpuTimerEnabled = 0;
 /// Unreferenced.
-static s32          D_800680A8   = 0;
-s8                  D_800680AC[] = { 0, 1, 2, 3, 4, 7, 0xC, 0xD, -1, -1, -1, -1, -1, -1, 8, 0xA };
-static u32          D_800680BC   = 0;
-static volatile u32 D_800680C0   = 0;
+static s32          D_800680A8            = 0;
+s8                  Snd_BankSlotsByType[] = { 0, 1, 2, 3, 4, 7, 0xC, 0xD, -1, -1, -1, -1, -1, -1, 8, 0xA };
+static u32          D_800680BC            = 0;
+static volatile u32 D_800680C0            = 0;
 
 static void Spu_InitSystem(s32 arg0)
 {
@@ -319,8 +386,8 @@ SndBank* Snd_AllocBank(SndBankPayload* payload)
     SndBank* bank;
     s32      size;
     u8*      heap;
-    u16      type  = payload->field_4 & 0xF000;
-    s32      entry = D_800680AC[type >> 12];
+    u16      type  = payload->bankId & 0xF000;
+    s32      entry = Snd_BankSlotsByType[type >> 12];
     s8       slot  = entry;
 
     if (entry == -1) {
@@ -331,16 +398,16 @@ SndBank* Snd_AllocBank(SndBankPayload* payload)
         slot = D_80082122 + 4;
     }
 
-    if (type == 0xF000 && D_8007E0D4 != 0) {
+    if (type == 0xF000 && Snd_SequenceBankBuffer != 0) {
         bank            = &Snd_Banks[slot];
-        bank->heapBlock = (void*)D_8007E0D4;
+        bank->heapBlock = Snd_SequenceBankBuffer;
     } else {
         bank = &Snd_Banks[slot];
         Snd_FreeBank(bank);
 
-        size = (payload->field_8 * 5 + payload->field_7) * 4 + payload->field_7 * 2;
+        size = (payload->noteCount * 5 + payload->groupCount) * 4 + payload->groupCount * 2;
 
-        switch (payload->field_4 & 0xF000) {
+        switch (payload->bankId & 0xF000) {
             case 0x2000:
                 if (size < 0xCF) {
                     size = 0xCE;
@@ -366,9 +433,9 @@ SndBank* Snd_AllocBank(SndBankPayload* payload)
 
     heap             = bank->heapBlock;
     bank->groups     = (SndBankGroup*)heap;
-    heap            += payload->field_7 * 4;
+    heap            += payload->groupCount * 4;
     bank->notes      = (SndNote*)heap;
-    bank->groupIndex = (u16*)(heap + payload->field_8 * 0x14);
+    bank->groupIndex = (u16*)(heap + payload->noteCount * 0x14);
     return bank;
 }
 
@@ -386,7 +453,7 @@ void Audio_IrqFrameWork(void)
 {
     if (D_800680C0 != 0) {
         D_800680C0 = 0;
-        func_8004E200();
+        Spu_TickVoices();
         SndEvt_Process();
         AudioTick_Process();
         Spu_FlushVoiceUpdates();
@@ -425,7 +492,7 @@ static void Snd_ClearBanks(void)
         ptr--;
     } while (i >= 0);
 
-    D_8007E0D4 = 0;
+    Snd_SequenceBankBuffer = 0;
 }
 
 void Snd_FreeBank(SndBank* bank)
@@ -573,11 +640,11 @@ void Spu_ApplyPanVolume(s16* arg0, s16 arg1, s32 arg2)
         index = 0;
     }
 
-    left  = (u32)(arg2 * D_80068D78[index]) >> 0xC;
-    right = (u32)(arg2 * D_80068D78[0x7E - index]) >> 0xC;
+    left  = (u32)(arg2 * Snd_PanGainTable[index]) >> 0xC;
+    right = (u32)(arg2 * Snd_PanGainTable[0x7E - index]) >> 0xC;
 
     if (!(CdVol_GetMixMode() & 0xFF)) {
-        right = (u32)((left + right) * D_80068D78[0x3F]) >> 0xC;
+        right = (u32)((left + right) * Snd_PanGainTable[0x3F]) >> 0xC;
         left  = right;
     }
 
@@ -830,7 +897,7 @@ static s32 Spu_TimerReentryWork(void)
         return 0;
     }
     D_800680C0 = 0;
-    func_8004E200();
+    Spu_TickVoices();
     AudioTick_Process();
     Spu_FlushVoiceUpdates();
     D_800680C0  = 1;

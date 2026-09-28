@@ -8,7 +8,6 @@
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mc.h"
-#include "main/session.h"
 #include "main/task.h"
 
 GpEvt12* Gp_CapTable;
@@ -78,7 +77,7 @@ s32 Gp_StartCap(GpEvt12* arg0, s16 arg1, s16 arg2)
     D_80115690     = 0;
     D_80115680     = 1;
     D_80115659     = 0xF;
-    D_8011566C     = Mc_SaveData[0].at4.loc.view;
+    D_8011566C     = Mc_SaveData[0].state.at4.loc.view;
     D_8011565C     = queue->field_22A;
     if (gDisplayState.field_112 != 0) {
         func_807245B8();

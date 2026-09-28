@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_PRIVATE_ENDING_H
 #define GAMEPLAY_PRIVATE_ENDING_H
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 /// Colours and labels defined in `gameplay.c`, shared with `78.c`.
 extern const TaskFuncTable6 Gp_PlayClockStates;

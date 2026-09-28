@@ -6,10 +6,11 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/coord.h"
-#include "main/task.h"
 
 #include "gameplay/effects.h"
+
+#include "main/coord.h"
+#include "main/task_types.h"
 
 /// 0x68-byte scratch `func_gunblade_8011E040` carves off `G_SCRATCH_HEAD`.
 /// `coord` is the sound source handed to `Gp_PickNearestRec18` and

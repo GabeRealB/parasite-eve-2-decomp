@@ -3,12 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/display.h"
@@ -16,7 +10,12 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
-#include "main/fs.h"
+
+#include "gameplay/animation.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
+#include "main/wipsys.h"
 
 /// Per-frame firing state machine for the M4A1 hammer. State 0 arms the shot
 /// and raises the weapon (clip 8 instead of 1 when it was already up), state 1
@@ -97,7 +96,7 @@ static void func_m4a1_hammer_8011E710(Task* arg0)
                 func_80106238(arg0, 0, 0);
                 hammer = actor->field_914;
                 if (hammer != NULL) {
-                    hammer->spawnArg1 = 2;
+                    hammer->spawnArg1.value = 2;
                 }
                 Gp_ConsumeSlotQty(0x98, 0x101);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20190005, 1);
@@ -150,7 +149,7 @@ static void func_m4a1_hammer_8011E710(Task* arg0)
             } else if (delay == 0) {
                 actor->field_95E = 6;
                 if (func_80106264(2) == 0) {
-                    actor->field_914->spawnArg1 = 0;
+                    actor->field_914->spawnArg1.value = 0;
                 }
                 flags            = actor->field_12A & 0x3FFF;
                 actor->field_12A = flags;
@@ -160,7 +159,7 @@ static void func_m4a1_hammer_8011E710(Task* arg0)
             if (actor->field_979 != 0) {
                 actor->field_979--;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0 ||
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0 ||
                 ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
                 actor->field_940 = 0xC;
                 func_80106550(arg0);

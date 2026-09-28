@@ -1,39 +1,99 @@
-#include "common.h"
+#include "main/gameflow.h"
 
-#define GAMEFLOW_C
-
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/libpad.h>
 
-#include "main/unknown_syms.h"
+#include "common.h"
+
+#include "main/display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
-#include "main/mem.h"
-#include "main/gameflow.h"
+#include "main/fs_types.h"
+#include "gameflow.h"
 #include "main/gamemain.h"
-#include "main/pad.h"
-#include "main/title.h"
+#include "main/loadui.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/mem.h"
+#include "mem.h"
+#include "pad.h"
+#include "main/pad_types.h"
+#include "pad_types.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/ui.h"
+#include "ui.h"
+#include "main/ui_types.h"
 #include "main/wipsys.h"
-#include "main/mc.h"
+#include "main/wipsys_types.h"
 
-#include "gameplay/display.h"
 #include "gameplay/model_lighting.h"
-#include "main/display.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 
-static void Game_ResetSessionAndBuffers(Task* arg0);
+#include "title/title.h"
 
-static void GameFlow_CopySaveIds(Task* arg0);
-static void GameFlow_CountdownAdvance(Task* arg0);
-static void GameFlow_EnqueueDefaultLoad(Task* arg0);
-static void GameFlow_SpawnMainWhenReady(Task* arg0);
-static void GameFlow_SpawnMenu(Task* arg0);
-static void GameFlow_SpawnWhenIdle(Task* arg0);
-static void GameFlow_WaitMenuDone(Task* arg0);
+/// Stack workspace for controller polling and analog-axis normalization.
+typedef struct _PadPollWork {
+    /* 0x00 */ s32 state;
+    /* 0x04 */ s32 reserved;
+    /* 0x08 */ s32 delta;
+    /* 0x0C */ s32 range;
+    /* 0x10 */ s32 port;
+} PadPollWork;
+STATIC_ASSERT_SIZEOF(PadPollWork, 0x14);
 
+/* Define BSS before API headers to preserve first-declaration order. */
 static GameSession D61CC0_800714C0;
+
+/// Unreferenced.
+static u8 D_80071600[0x20];
+
+PadState Pad_States[2];
+
+#include "main/pad.h"
+
+/// Unreferenced.
+static s32 D_8005ED6C;
+
+/// Unreferenced.
+static s32 D_8005ED7C;
+
+/// Unreferenced.
+static s32 D_8005ED80;
+
+static u8 D_8005ED84[];
+
+static const TaskFuncTable5 GameFlow_States5;
+
+static const TaskFuncTable3 GameFlow_States3;
+
+static void GameFlow_InitSystems(void);
+
+static void Game_ResetSessionAndBuffers(Task* task);
+
+static void GameFlow_SpawnMenu(Task* task);
+
+static void GameFlow_WaitMenuDone(Task* task);
+
+static void GameFlow_CountdownAdvance(Task* task);
+
+static void GameFlow_SpawnMainWhenReady(Task* task);
+
+static void GameFlow_CopySaveIds(Task* task);
+
+static void GameFlow_EnqueueDefaultLoad(Task* task);
+
+static void GameFlow_SpawnWhenIdle(Task* task);
+
+static void Pad_TickEventBanks(PadState* pad);
 
 GameSession* gGameSession = &D61CC0_800714C0;
 s32          D_8005ED68   = 0;
@@ -49,11 +109,6 @@ static s32 D_8005ED80   = 0x80;
 static u8  D_8005ED84[] = { 0x00, 0x01, 0xFF, 0xFF, 0xFF, 0xFF };
 u16        D_8005ED8A   = 0;
 
-static GameSession D61CC0_800714C0;
-/// Unreferenced.
-static u8 D_80071600[0x20];
-PadState  Pad_States[2];
-
 static const TaskFuncTable5 GameFlow_States5 = { {
     Game_ResetSessionAndBuffers,
     GameFlow_SpawnMenu,
@@ -68,14 +123,14 @@ static const TaskFuncTable3 GameFlow_States3 = { {
     GameFlow_SpawnWhenIdle,
 } };
 
-void GameFlow_StateByField34(Task* arg0)
+void GameFlow_StateByField34(Task* task)
 {
     CdCmdQueue* p;
     s32         saved;
 
     p = &CdCmd_Queue;
-    if (arg0->spawnArg1 == 2) {
-        if (arg0->state == 0) {
+    if (task->spawnArg1.value == 2) {
+        if (task->state == 0) {
             Pad_SetCooldown(0);
             if (gDisplayState.demoScene == 0) {
                 gDisplayState.demoScene = 1;
@@ -83,7 +138,7 @@ void GameFlow_StateByField34(Task* arg0)
             if (gDisplayState.demoScene < 0x10) {
                 Title_EnqueueDemoScene(gDisplayState.demoScene - 1);
             }
-            arg0->state = arg0->state + 1;
+            task->state = task->state + 1;
         }
         if (CdCmd_IsIdle() != 0) {
             if (gDisplayState.roomVariant == 0) {
@@ -98,7 +153,7 @@ void GameFlow_StateByField34(Task* arg0)
             Snd_SetMutedVolumes(1);
             gDisplayState.at100.flags.pendingPlayerPos = 0;
             gDisplayState.stopTaskWalk                 = 1;
-            taskKill(arg0);
+            taskKill(task);
             Task_ResetDefaultList();
             Tmd_InitLists();
             Mem_Init();
@@ -107,8 +162,8 @@ void GameFlow_StateByField34(Task* arg0)
     } else {
         gDisplayState.demoScene = 0;
         Pad_SetCooldown(0);
-        if (arg0->spawnArg1 == 0) {
-            saved = Mc_SaveData[0].vibration;
+        if (task->spawnArg1.value == 0) {
+            saved = Mc_SaveData[0].state.vibration;
             MEM_CLEAR(gGameSession, sizeof(GameSession));
             gDisplayState.at100.flags.pendingPlayerPos = 0;
             gDisplayState.gameRunning                  = 1;
@@ -116,8 +171,8 @@ void GameFlow_StateByField34(Task* arg0)
             p->field_244                               = 1;
             Wip_SysFlags.field_4                       = 1;
             Mc_InitBufferSlots();
-            Mc_SaveData[0].vibration = saved;
-            arg0->state              = arg0->state + 1;
+            Mc_SaveData[0].state.vibration = saved;
+            task->state                    = task->state + 1;
         } else {
             MEM_CLEAR(gGameSession, sizeof(GameSession));
             gDisplayState.gameRunning                  = 1;
@@ -128,7 +183,7 @@ void GameFlow_StateByField34(Task* arg0)
             gGameSession->applySavePlace               = 1;
         }
         gDisplayState.stopTaskWalk = 1;
-        taskKill(arg0);
+        taskKill(task);
         Task_ResetDefaultList();
         Tmd_InitLists();
         Mem_Init();
@@ -177,13 +232,13 @@ static void GameFlow_InitSystems(void)
     Task_Spawn(0, 9, 0, 0);
 }
 
-static void Game_ResetSessionAndBuffers(Task* arg0)
+static void Game_ResetSessionAndBuffers(Task* task)
 {
     s32         saved;
     CdCmdQueue* p;
 
     p     = &CdCmd_Queue;
-    saved = Mc_SaveData[0].vibration;
+    saved = Mc_SaveData[0].state.vibration;
     MEM_CLEAR(gGameSession, sizeof(GameSession));
     gDisplayState.at100.flags.pendingPlayerPos = 0;
     gDisplayState.gameRunning                  = 1;
@@ -192,93 +247,93 @@ static void Game_ResetSessionAndBuffers(Task* arg0)
     Wip_SysFlags.field_4                       = 1;
     Mc_InitBufferSlots();
     do {
-        Mc_SaveData[0].vibration = saved;
+        Mc_SaveData[0].state.vibration = saved;
     } while (0);
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
-static void GameFlow_SpawnMenu(Task* arg0)
+static void GameFlow_SpawnMenu(Task* task)
 {
     void* temp_v0;
 
     GameMain_SetFrameTiming(0);
-    temp_v0         = Ui_SpawnFromDesc(D_800611C8, 0, 1, 0, 0);
-    arg0->spawnArg2 = temp_v0;
+    temp_v0                 = Ui_SpawnFromDesc(Mc_TaskDescriptors, 0, 1, 0, 0);
+    task->spawnArg2.pointer = temp_v0;
     if (temp_v0 != 0) {
         gDisplayState.gameMode = 0xFF;
         gGameSession->uiOpen   = 1;
-        arg0->killCountdown    = 0x10;
-        arg0->state            = arg0->state + 1;
+        task->killCountdown    = 0x10;
+        task->state            = task->state + 1;
     }
 }
 
-static void GameFlow_WaitMenuDone(Task* arg0)
+static void GameFlow_WaitMenuDone(Task* task)
 {
     UiObject* obj;
 
-    obj = arg0->spawnArg2;
+    obj = task->spawnArg2.pointer;
     if (obj->field_2E == -1) {
         Ui_TeardownTree(obj, obj->owner);
         gDisplayState.gameMode = 0;
         gGameSession->uiOpen   = 0;
-        if (Mc_SaveData[0].soundMode == 1) {
+        if (Mc_SaveData[0].state.soundMode == 1) {
             CdVol_SetMixMode(0);
         } else {
             CdVol_SetMixMode(1);
         }
         Snd_ApplyVolumeTable(0);
-        arg0->killCountdown = 0xC;
-        arg0->state         = arg0->state + 1;
+        task->killCountdown = 0xC;
+        task->state         = task->state + 1;
     }
 }
 
-static void GameFlow_CountdownAdvance(Task* arg0)
+static void GameFlow_CountdownAdvance(Task* task)
 {
-    arg0->killCountdown--;
-    if (arg0->killCountdown != 0) {
+    task->killCountdown--;
+    if (task->killCountdown != 0) {
         return;
     }
     Pad_SetCooldown(0);
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
-static void GameFlow_SpawnMainWhenReady(Task* arg0)
+static void GameFlow_SpawnMainWhenReady(Task* task)
 {
     if (gDisplayState.at100.flags.pendingPlayerPos == 0) {
         Task_Spawn(0, 2, 0, 0);
         Display_SetMode(0x5010);
-        taskKill(arg0);
+        taskKill(task);
         return;
     }
     gDisplayState.stopTaskWalk = 1;
-    taskKill(arg0);
+    taskKill(task);
     Task_ResetDefaultList();
     Tmd_InitLists();
     Mem_Init();
     Task_Spawn(0, 9, 0, 0);
 }
 
-void GameFlow_DispatchTable5(Task* arg0)
+void GameFlow_DispatchTable5(Task* task)
 {
     TaskFuncTable5 sp;
 
     sp = GameFlow_States5;
-    sp.funcs[arg0->state](arg0);
+    sp.funcs[task->state](task);
 }
 
-static void GameFlow_CopySaveIds(Task* arg0)
+static void GameFlow_CopySaveIds(Task* task)
 {
-    gGameSession->at4.raw = Mc_SaveData[0].at4.raw;
+    gGameSession->at4.raw = Mc_SaveData[0].state.at4.raw;
     D_8007A394            = 0;
-    arg0->state           = arg0->state + 1;
+    task->state           = task->state + 1;
 }
 
-static void GameFlow_EnqueueDefaultLoad(Task* arg0)
+static void GameFlow_EnqueueDefaultLoad(Task* task)
 {
     u8 param1[8];
     u8 param2[8];
 
-    if ((u8)func_80042500() == 0) {
+    if ((u8)LoadUi_PollDiskSwap() == 0) {
         Fs_BeginBootLoad(&gGameSession->at4.loc.view, 0);
         param1[3] = 0;
         param1[2] = 0;
@@ -288,7 +343,7 @@ static void GameFlow_EnqueueDefaultLoad(Task* arg0)
         param2[2] = 0;
         param2[3] = 0;
         CdCmd_Enqueue(0x21, param1, param2);
-        arg0->state = arg0->state + 1;
+        task->state = task->state + 1;
     }
 }
 
@@ -297,21 +352,21 @@ void Game_ClearEd68(void)
     D_8005ED68 = 0;
 }
 
-static void GameFlow_SpawnWhenIdle(Task* arg0)
+static void GameFlow_SpawnWhenIdle(Task* task)
 {
     if (CdCmd_IsIdle() != 0) {
         Task_Spawn(0, 0x11, 1, 0);
-        taskKill(arg0);
+        taskKill(task);
     }
 }
 
-void GameFlow_DispatchTable(Task* arg0)
+void GameFlow_DispatchTable(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = GameFlow_States3;
     Pad_SetCooldown(0);
-    sp.funcs[arg0->state](arg0);
+    sp.funcs[task->state](task);
 }
 
 static void Pad_TickEventBanks(PadState* pad)
@@ -349,7 +404,7 @@ static void Pad_TickEventBanks(PadState* pad)
         }
     }
 
-    if (Mc_SaveData[0].vibration == 0) {
+    if (Mc_SaveData[0].state.vibration == 0) {
         pad->field_5A = motor[0];
         pad->field_5B = motor[1];
     } else {
@@ -360,7 +415,7 @@ static void Pad_TickEventBanks(PadState* pad)
     SCRATCH_POP_BYTES(4);
 }
 
-void func_8002C1D8(void)
+void Pad_PollControllers(void)
 {
     PadPollWork  buffer;
     PadPollWork* work;

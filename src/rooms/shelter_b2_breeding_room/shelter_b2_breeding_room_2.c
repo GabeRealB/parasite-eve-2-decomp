@@ -4,16 +4,16 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/task.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/display.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
-#include "main/fs.h"
+
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "overlay.h"
 
 extern SVECTOR D_shelter_b2_breeding_room_80180450[];
 extern SVECTOR D_shelter_b2_breeding_room_80180470[];

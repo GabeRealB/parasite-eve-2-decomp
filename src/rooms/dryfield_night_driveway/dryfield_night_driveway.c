@@ -4,14 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -24,7 +16,19 @@
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/evs.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 /// Descriptor of the room's event task, which the event gate spawns.
 extern TaskDesc D_dryfield_night_driveway_8017E678;
@@ -85,7 +89,7 @@ void func_dryfield_night_driveway_8017D608(Task* arg0)
                     D_dryfield_night_driveway_80182110.field_0 = 0;
                     D_dryfield_night_driveway_80182110.field_1 = 0;
                     D_dryfield_night_driveway_80182110.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, (s32)&D_dryfield_night_driveway_80182110);
+                    Task_Spawn(1, 0x31, 0, &D_dryfield_night_driveway_80182110);
                 }
                 arg0->state++;
             }
@@ -106,9 +110,9 @@ void func_dryfield_night_driveway_8017D608(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_dryfield_night_driveway_80182118.msgId;
-            Mc_SaveData[0].at4.loc.warp = D_dryfield_night_driveway_80182118.field_2;
-            Mc_SaveData[0].at4.loc.room = D_dryfield_night_driveway_80182118.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_driveway_80182118.msgId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_driveway_80182118.field_2;
+            Mc_SaveData[0].state.at4.loc.room = D_dryfield_night_driveway_80182118.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

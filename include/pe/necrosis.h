@@ -5,6 +5,8 @@
 
 #include "gameplay/actor.h"
 
+#include "main/session_types.h"
+
 /// One 4-byte row of `D_necrosis_801306BC`, indexed by `GpEffWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the `Gp_SpawnEff` draw
 /// parameter (plus `field_22 * 0x60` each frame) and is copied into the

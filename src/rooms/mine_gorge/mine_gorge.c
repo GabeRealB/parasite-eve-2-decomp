@@ -1,9 +1,4 @@
 #include "common.h"
-#include "main/stage.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -15,7 +10,18 @@
 #include "gameplay/items.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/collision.h"
+#include "gameplay/evs.h"
+#include "gameplay/world_state.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -59,7 +65,7 @@ s32 func_mine_gorge_8017D5F8(s32 arg0, s32 arg1, s32 arg2)
             if (found != 0) {
                 GameFlag_SetNibble(0xA4, 1);
                 Task_SpawnOnDefaultList(D_mine_gorge_8017E2B0, 0, 0, 0);
-                gGameSession->at4.loc.room = (Mc_SaveData[0].at4.loc.room = 2);
+                gGameSession->at4.loc.room = (Mc_SaveData[0].state.at4.loc.room = 2);
                 gGameSession->hideHud      = (gGameSession->roomObjsDirty = 1);
                 gGameSession->eventState   = 1;
                 return 1;

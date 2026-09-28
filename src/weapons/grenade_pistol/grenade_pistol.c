@@ -5,13 +5,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include "weapons/grenade_pistol.h"
 #include "weapons/m4a1_grenade.h"
 #include "weapons/weapon.h"
@@ -25,7 +18,18 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/animation.h"
+#include "gameplay/geometry.h"
+#include "gameplay/room.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/wipsys.h"
 
 static void func_grenade_pistol_8011DB8C(Task* task);
 
@@ -82,7 +86,7 @@ static void func_grenade_pistol_8011D1D4(Task* arg0)
             Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 3);
             break;
         case 3:
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0) {
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0) {
                 func_80106550(arg0);
             }
             break;
@@ -111,7 +115,7 @@ static void func_grenade_pistol_8011D3A0(Task* arg0)
     blk                   = (SVECTOR*)(head - 8);
     SCRATCH_HEAD(SVECTOR) = blk;
     extra                 = arg0->extra.tmd;
-    idx                   = ((u32)arg0->spawnArg1 >> 16) & 0xF;
+    idx                   = ((u32)arg0->spawnArg1.value >> 16) & 0xF;
     coord                 = extra->coords;
     muzzle                = coord->sub;
     work                  = memCalloc(sizeof(WeaponGrenadeWork), 0);
@@ -153,9 +157,9 @@ static void func_grenade_pistol_8011D3A0(Task* arg0)
     work->obj.pos.vy   = 0;
     work->obj.pos.vz   = 0;
     work->field_88.w   = speed << 16;
-    flags              = (u16)arg0->spawnArg1 | 0x20000;
+    flags              = (u16)arg0->spawnArg1.value | 0x20000;
     work->obj.key      = flags;
-    if (arg0->spawnArg1 & 0x100000) {
+    if (arg0->spawnArg1.value & 0x100000) {
         work->obj.key = flags | 0x80;
     }
     work->obj.radius = 0x94;
@@ -223,14 +227,14 @@ static void func_grenade_pistol_8011D6FC(Task* arg0)
     coord->flg       = 0;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
     explode:
-        blk->field_30 = arg0->spawnArg1 & 0xFF00;
-        blk->sfx      = (u8)arg0->spawnArg1;
+        blk->field_30 = arg0->spawnArg1.value & 0xFF00;
+        blk->sfx      = (u8)arg0->spawnArg1.value;
         arg0->state   = 2;
         Gp_SpawnEff(0x60071, coord, blk->sfx, NULL);
         /* Two calls, not one call on a selected argument: the identical tails
            are what cross-jumping merges into a single `jal` with an unfilled
            delay slot. */
-        if (arg0->spawnArg1 & 0x100000) {
+        if (arg0->spawnArg1.value & 0x100000) {
             Gp_PlayObjSfx(coord, 0x40660002, 1);
         } else {
             sfxbase = blk->field_30 << 8;
@@ -273,7 +277,7 @@ check:
         arg0->state = 3;
         goto move;
     }
-    if (idx == 1 && Mc_SaveData[0].at4.loc.area == 0x14 && (u32)(Mc_SaveData[0].at4.loc.stage - 2) < 2U) {
+    if (idx == 1 && Mc_SaveData[0].state.at4.loc.area == 0x14 && (u32)(Mc_SaveData[0].state.at4.loc.stage - 2) < 2U) {
         goto explode;
     }
     goto move;

@@ -5,11 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/actor_render.h"
@@ -17,8 +12,16 @@
 #include "gameplay/effect_tasks.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
 
 /// Per-colour channel shifts for the halo task, indexed by the colour its
 /// spawn argument selects.
@@ -46,7 +49,7 @@ static void func_shelter_b2_breeding_room_8017E774(Task* arg0)
     MATRIX*    mtx;
     u8         col[4];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
@@ -88,9 +91,9 @@ static void func_shelter_b2_breeding_room_8017E774(Task* arg0)
             if (mem->angle < 0x200) {
                 mem->angle += 0x10;
             }
-            col[0] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1][0];
-            col[1] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1][1];
-            col[2] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1][2];
+            col[0] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1.value][0];
+            col[1] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1.value][1];
+            col[2] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1.value][2];
             func_shelter_b2_breeding_room_8017F598(coord, mem->angle, col);
             break;
         case 2:
@@ -101,9 +104,9 @@ static void func_shelter_b2_breeding_room_8017E774(Task* arg0)
             if (mem->angle < 0x200) {
                 mem->angle += 0x10;
             }
-            col[0] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1][0];
-            col[1] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1][1];
-            col[2] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1][2];
+            col[0] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1.value][0];
+            col[1] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1.value][1];
+            col[2] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1.value][2];
             func_shelter_b2_breeding_room_8017F598(coord, mem->angle, col);
             col[0] >>= 1;
             col[1] >>= 1;
@@ -114,9 +117,9 @@ static void func_shelter_b2_breeding_room_8017E774(Task* arg0)
             break;
         case 3:
             Gp_UpdateCoord(coord);
-            col[0] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1][0];
-            col[1] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1][1];
-            col[2] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1][2];
+            col[0] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1.value][0];
+            col[1] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1.value][1];
+            col[2] = mem->scale >> D_shelter_b2_breeding_room_80180550[arg0->spawnArg1.value][2];
             func_shelter_b2_breeding_room_8017F598(coord, mem->angle, col);
             col[0] = mem->scale;
             col[1] = mem->scale >> 1;
@@ -162,9 +165,9 @@ static void func_shelter_b2_breeding_room_8017ECCC(Task* task)
     GpCoord*   target;
     VECTOR     delta;
 
-    work   = task->spawnArg2;
+    work   = task->spawnArg2.pointer;
     coord  = task->extra.tmd->coords;
-    target = (GpCoord*)task->spawnArg1;
+    target = (GpCoord*)task->spawnArg1.value;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -389,7 +392,7 @@ static void func_shelter_b2_breeding_room_8017F92C(Task* arg0)
     s16        flag;
     s16        step;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {

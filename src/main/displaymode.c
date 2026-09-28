@@ -1,8 +1,22 @@
-#include "common.h"
-
 #include "main/display.h"
-#include "main/gfx.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
+#include "types.h"
+
+#include "display.h"
+#include "main/display_types.h"
+#include "gfx.h"
 #include "main/mc.h"
+#include "main/mc_types.h"
+
+static const u16 Display_WidthTable[];
+
+static const u16 Display_HeightTable[];
+
+static void Display_SetModeDefault(void);
 
 static const u16 Display_WidthTable[] = {
     0x100,
@@ -39,7 +53,7 @@ void Display_SetMode(s32 arg0)
     temp_s4    = Display_HeightTable[arg0 & 0xF];
     ds->width  = temp_s5;
     ds->height = temp_s4;
-    if (Mc_SaveData[0].interlace != 0) {
+    if (Mc_SaveData[0].state.interlace != 0) {
         var_s7 = 1;
     }
     temp_s3       = temp_s4 & 0xFFFF;

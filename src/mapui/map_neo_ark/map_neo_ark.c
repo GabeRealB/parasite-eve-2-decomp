@@ -16,21 +16,21 @@
 #include "gameplay/scene_tasks.h"
 #include "gameplay/sprites.h"
 
-extern s32 D_800820E0;
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/unknown_syms.h"
 #include "mappic/mappic.h"
 #include "mapui/map_neo_ark.h"
 #include "mapui/mapui.h"
 #include "mapui/stage_tables.h"
 #include "rooms/room.h"
 #include "rooms/stage_tables.h"
+
+#include "gameplay/view.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gfx_types.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stream.h"
+#include "main/task_types.h"
 
 static GpBit2Rec D_map_neo_ark_8017C790[2];
 static GpBit2Rec D_map_neo_ark_8017C7B0[14];

@@ -3,11 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/abs.h>
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/neo_ark_shrine.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -18,7 +13,15 @@
 #include "gameplay/items.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/pad_script.h"
-#include "main/fs.h"
+
+#include "gameplay/action_prompt.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -431,10 +434,10 @@ static s16 func_neo_ark_shrine_8017E254(void)
     if (flag == 1) {
         D_neo_ark_shrine_8018686A = 0;
         if (GameFlag_GetNibble(0xE9) == 0) {
-            Mc_SaveData[0].at4.loc.room = flag;
+            Mc_SaveData[0].state.at4.loc.room = flag;
             gGameSession->at4.loc.room  = flag;
         } else {
-            Mc_SaveData[0].at4.loc.room = 4;
+            Mc_SaveData[0].state.at4.loc.room = 4;
             gGameSession->at4.loc.room  = 4;
         }
         gGameSession->roomObjsDirty = 1;

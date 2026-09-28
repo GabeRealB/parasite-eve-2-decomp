@@ -3,6 +3,8 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
+#include "gameplay/display.h"
+
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
@@ -12,8 +14,6 @@
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/wipsys.h"
-
-#include "gameplay/display.h"
 
 /// The balcony movie task. It blanks the display, allocates the movie
 /// buffers and plays two streams keyed on the current location - view 0x65

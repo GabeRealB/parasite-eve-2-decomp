@@ -1,18 +1,10 @@
 #include "common.h"
-#include "main/gfx.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
 #include "actors/actor.h"
-#include "main/gameflag.h"
-#include "main/gameflow.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/captions.h"
@@ -25,8 +17,23 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/gameflag.h"
+#include "main/gameflow.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/tmd.h"
 
 /// Work block `func_actor_443500_80132078` `memCalloc`s (0x4C4) and parks in
 /// the task's `Task::work` slot, which holds no `TaskIdMap` here. The spawn
@@ -193,7 +200,7 @@ void func_actor_443500_80132048(void)
 
 void func_actor_443500_8013206C(s8 arg0)
 {
-    Mc_SaveData[0].sceneEvent = arg0;
+    Mc_SaveData[0].state.sceneEvent = arg0;
 }
 
 /// Spawn handler: allocates the work block, seeds its head from the parent
@@ -223,10 +230,10 @@ static void func_actor_443500_80132078(Task* task)
     work->model.bank   = -1;
     work->field_4BC    = -1;
     work->field_4C0    = task->extra.tmd->flags;
-    spawned            = Task_SpawnFromTable(&D_actor_443500_8015873C, 1, 4, (s32)task);
+    spawned            = Task_SpawnFromTable(&D_actor_443500_8015873C, 1, 4, task);
     if (spawned != NULL) {
         sessionKey = &gGameSession->at4.loc;
-        raw        = ((GpEnemy*)task->spawnArg2)->placeKey;
+        raw        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey;
         model      = spawned->extra.tmd;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
@@ -368,7 +375,7 @@ static void func_actor_443500_80132594(Task* task)
     GpCoord*   coords;
     GpCoord*   root;
 
-    parent      = task->spawnArg2;
+    parent      = task->spawnArg2.pointer;
     obj         = task->extra.tmd;
     parentObj   = parent->extra.tmd;
     coords      = parentObj->coords;
@@ -384,7 +391,7 @@ static void func_actor_443500_80132594(Task* task)
         obj->flags |= 4;
     }
     obj->otOffset = -2;
-    coords       += task->spawnArg1;
+    coords       += task->spawnArg1.value;
     root->flg     = 0;
     root->sub     = coords;
     obj->lightMtx = parentObj->lightMtx;
@@ -403,7 +410,7 @@ static void func_actor_443500_801326A0(Task* task)
     TmdObject* parentObject;
     TmdObject* object;
 
-    parentObject = ((Task*)task->spawnArg2)->extra.tmd;
+    parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
     object       = task->extra.tmd;
 
     if (!(parentObject->flags & 0x80)) {

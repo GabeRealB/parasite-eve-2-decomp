@@ -1,18 +1,31 @@
-#include "common.h"
-
-#include "main/unknown_syms.h"
-#include "main/fs.h"
-#include "main/gfx.h"
 #include "main/tmd.h"
 
-#include "psyq/inline_c.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
 #include "gte.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/fs.h"
+#include "main/gfx.h"
+#include "gfx.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "tmd.h"
+#include "main/tmd_types.h"
 
 #include "gameplay/model_lighting.h"
 #include "gameplay/model_objects.h"
-#include "main/display.h"
-#include "main/mem.h"
-#include "main/session.h"
 
 /// A model-path stream command's handler: the function a command in a model's
 /// stream is resolved to, and the signature every handler of that stream shares.
@@ -23,19 +36,50 @@
 /// the command's data starts at, and returns the cursor the walk resumes from.
 typedef u32* (*_TmdModelStreamHandler)(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
-u32* D_80136224(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_80136500(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8013685C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_80136C00(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8013700C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_80137300(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_801375F8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_801379B4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// A model-stream word is normally serialized data. Resolution writes a draw
+/// callback into the second word of each command, which Tmd_DispatchStream calls.
+typedef union {
+    u32                    value;
+    _TmdModelStreamHandler handler;
+} TmdStreamWord;
+STATIC_ASSERT_SIZEOF(TmdStreamWord, 4);
 
+static const TaskFuncTable3 Tmd_TaskStates;
+
+static void Tmd_InitSourceStream(TmdSource* src);
+
+static void Tmd_SetupDraw(TmdObject* obj);
+
+/// Total bytes the attached models hold in their buffers.
+static s32 Tmd_SumBufferBytes(void);
+
+static void Tmd_RewriteOpcodes(TmdSource* src);
+
+/// Marks every attached model as no longer drawn.
 static void Tmd_FlagAllNodes(Task* task);
+
+/// Releases the buffer of every attached model.
 static void Tmd_FreeNodeBuffers(Task* task);
+
+u32* D_80136224(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+u32* D_80136500(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+u32* D_8013685C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+u32* D_80136C00(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+u32* D_8013700C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+u32* D_80137300(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+u32* D_801375F8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+u32* D_801379B4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+u32* D_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+u32* D_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 static const TaskFuncTable3 Tmd_TaskStates = { {
     Tmd_FlagAllNodes,
@@ -45,14 +89,14 @@ static const TaskFuncTable3 Tmd_TaskStates = { {
 
 static void Tmd_InitSourceStream(TmdSource* src)
 {
-    u32*                   stream;
+    TmdStreamWord*         stream;
     u32                    id;
     u32                    dims;
     _TmdModelStreamHandler handler;
     s32                    flag;
     u32                    tmp;
 
-    stream = src->stream;
+    stream = (TmdStreamWord*)src->stream;
     if (src->handlersResolved == 0) {
         tmp  = GP_LOC_WORD(gGameSession->at4.loc);
         tmp  = (tmp & GP_LOC_STAGE_AREA) ^ GP_LOC_KEY(2, 16, 0, 0);
@@ -249,13 +293,13 @@ static void Tmd_InitSourceStream(TmdSource* src)
             }
 
             stream++;
-            *stream = (u32)handler;
+            stream->handler = handler;
             stream++;
-            dims = *stream;
+            dims = stream->value;
             stream++;
             id      = dims & 0xFFFF;
             stream += (dims >> 16) * id;
-            id      = *stream;
+            id      = stream->value;
 
             while (1) {
                 if (id != -2U) {
@@ -263,7 +307,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                 }
                 stream++;
             read_id:
-                id = *stream;
+                id = stream->value;
                 if (id == -1U) {
                     goto done;
                 }
@@ -520,38 +564,38 @@ static void Tmd_SetupDraw(TmdObject* obj)
     TmdSource*           p;
     s32                  e;
     void*                b;
-    s32                  field18;
+    SVECTOR*             normals;
 
     {
         TmdSource* p;
 
-        p            = obj->source;
-        tmp          = SCRATCH_HEAD(TmdScratchDrawBlock);
-        stream       = p->stream;
-        disp         = gDisplayState.otDepthShift;
-        ws           = tmp - 1;
-        ws->field_80 = obj;
-        ws->field_84 = disp;
+        p                = obj->source;
+        tmp              = SCRATCH_HEAD(TmdScratchDrawBlock);
+        stream           = p->stream;
+        disp             = gDisplayState.otDepthShift;
+        ws               = tmp - 1;
+        ws->obj          = obj;
+        ws->otDepthShift = disp;
     }
     bufptr                            = obj->buffer;
-    ws->field_0                       = bufptr;
+    ws->primWrite                     = bufptr;
     SCRATCH_HEAD(TmdScratchDrawBlock) = ws;
     if (obj->bufferIndex != 0) {
-        ws->field_0 = (u8*)bufptr + obj->halfSize;
+        ws->primWrite = (u8*)bufptr + obj->halfSize;
     }
-    ws->field_4       = ws->field_0;
-    ws->field_0       = (u8*)ws->field_0 + obj->source->firstRegionSize;
+    ws->preXformWrite = ws->primWrite;
+    ws->primWrite     = (u8*)ws->primWrite + obj->source->firstRegionSize;
     obj->bufferIndex ^= 1;
-    ws->field_8       = (s32)obj->source->verts;
+    ws->verts         = obj->source->verts;
     ot                = gGpuCurrentOt;
     p                 = obj->source;
-    field18           = (s32)p->normals;
-    ws->field_14      = ot;
-    ws->field_C       = field18;
+    normals           = p->normals;
+    ws->ot            = ot;
+    ws->normals       = normals;
     e                 = obj->otOffset;
     b                 = buf;
-    ws->field_10      = b;
-    ws->field_14      = ot + e;
+    ws->szTable       = b;
+    ws->ot            = ot + e;
 
     gte_SetColorMatrix(obj->colorMtx);
     gte_ldbkdir(obj->colorMtx->t[0], obj->colorMtx->t[1], obj->colorMtx->t[2]);

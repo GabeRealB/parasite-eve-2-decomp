@@ -1,5 +1,6 @@
 #include "loading.h"
 
+#include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
 #include "types.h"
@@ -9,7 +10,7 @@
 
 #include "main/fs.h"
 #include "main/mem.h"
-#include "main/task.h"
+#include "main/task_types.h"
 
 DR_STP D_80114C50;
 
@@ -36,7 +37,7 @@ GpViewTbl* Gp_ViewTables[5] = { &D_map_akropolis_8017AC14, &D_map_dryfield_8017A
         req.glyphTable = 5;                                   \
         req.centerMode = 0;                                   \
         req.field_E    = 1;                                   \
-        func_8002E53C(&req, (str));                           \
+        Text_DrawString(&req, (str));                           \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
@@ -49,7 +50,7 @@ GpViewTbl* Gp_ViewTables[5] = { &D_map_akropolis_8017AC14, &D_map_dryfield_8017A
         req.x          = obj.panel.field_20.u + 0x94;         \
         req.y          = (obj.panel.field_22.u + 9) + (line); \
         req.otIndex    = obj.panel.field_14.s + 1;            \
-        func_8002E53C(&req, Text_ItoaSigned(buf, (count)));   \
+        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));   \
         if ((count) == 0) {                                   \
             flag = 1;                                         \
         }                                                     \

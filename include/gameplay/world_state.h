@@ -4,8 +4,8 @@
 #include "common.h"
 
 /// Global at `Gp_StateF0`. `Gp_InitStateF0` zeros the object, then writes
-/// `field_2B` from `Mc_SaveData[0].gameMode` (as `u8`), or 4 when that byte is
-/// 0 and `Mc_SaveData[0].clearCount != 0`. `Gp_IsDebugAttachRoom() == 1` forces
+/// `field_2B` from `Mc_SaveData[0].state.gameMode` (as `u8`), or 4 when that byte is
+/// 0 and `Mc_SaveData[0].state.clearCount != 0`. `Gp_IsDebugAttachRoom() == 1` forces
 /// `field_2B = 0` instead. `field_0` is a state byte (1 if first set by
 /// `Gp_ArmStateF0`; 2 when the last `field_6` ref is released). `field_1`
 /// is an alternate-active flag (`Gp_IsStateF0Active` / `func_800A7CB0` /

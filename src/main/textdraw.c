@@ -1,36 +1,117 @@
+#include "main/text.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
 #include "common.h"
 
-#include "main/unknown_syms.h"
-#include "main/text.h"
-#include "main/title.h"
-#include "main/ui.h"
-#include "main/boot.h"
-#include "main/fs.h"
-#include "main/gameflow.h"
-#include "main/mc.h"
-#include "main/stage.h"
+#include "boot.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "fs.h"
+#include "gameflow.h"
+#include "mc.h"
+#include "session.h"
+#include "stage.h"
 #include "main/task.h"
-#include "main/devkit.h"
+#include "task.h"
+#include "main/task_types.h"
+#include "text.h"
+#include "main/ui.h"
+#include "main/ui_types.h"
 
 #include "gameplay/area_transitions.h"
-#include "gameplay/loading.h"
 #include "gameplay/companion_load.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
 #include "gameplay/model_objects.h"
 #include "gameplay/room_effects.h"
-#include "main/display.h"
 
-static const char D_800138BC[];
-static const char D_800138C8[];
-static const char D_800138CC[];
+#include "title/title.h"
 
-static void Text_DrawGlyphImmediate(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
-static void Text_DrawGlyphOt(TextDrawReq* arg0, FontGlyph* arg1);
-static void Text_DrawGlyphQueued(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
-static void Text_UiTaskCallback(Task* arg0);
+/// Per-glyph metrics in the font tables (Font_Glyphs0 / Font_Glyphs1 / Font_Glyphs2).
+/// u/v/w/h are texels in the 4bpp page at (960, 256). SPRT w/h are w+1 / h+1.
+/// off_x / off_y are stored as bytes but used as signed offsets when drawing.
+typedef struct _FontGlyph {
+    /* 0x0 */ u8 u;
+    /* 0x1 */ u8 v;
+    /* 0x2 */ u8 w;
+    /* 0x3 */ u8 h;
+    /* 0x4 */ u8 off_x;
+    /* 0x5 */ u8 off_y;
+    /* 0x6 */ u8 field_6;
+    /* 0x7 */ u8 field_7;
+    /* 0x8 */ u8 field_8;
+    /* 0x9 */ u8 field_9;
+    /* 0xA */ u8 pad_A[2];
+} FontGlyph;
+STATIC_ASSERT_SIZEOF(FontGlyph, 0xC);
 
-static void Text_BootTask(Task* arg0);
+/// Immediate-mode SPRT scratch used by Text_DrawGlyphImmediate.
+static SPRT D_80071710;
+
+static DR_TPAGE D_80071728;
+
+static TaskDesc D_8005EDA0[];
+
+static u8 Font_Glyphs0[];
+
+static u8 Font_Glyphs1[];
+
+static u8 Font_Glyphs2[];
+
+static UiObjectDesc Ui_OverlayLoadingDesc[];
+
+/// Overflow and zero texts of the number formatters.
+static const char Text_MaxEightDigits[];
+
+static const char Text_ZeroDigit[];
+
+static const char Text_MaxNineDigits[];
+
+void func_807011D8(Task* arg0);
+
+void func_80701400(Task* arg0);
+
+static s32 Text_MeasureGlyphWidth(TextDrawReq* req, u8* str, u8* table);
+
+static void Text_DrawGlyphDualSprtA(TextDrawReq* request, FontGlyph* glyph, s32 arg2);
+
+static void Text_DrawGlyphDualSprt(TextDrawReq* request, FontGlyph* glyph, s32 arg2);
+
+static void Text_DrawGlyphDualSprtTpage(TextDrawReq* request, FontGlyph* glyph, s32 arg2);
+
+/// Writes `value` in decimal to `arg0` and terminates it; values past nine
+/// digits are written as all nines.
+static inline u8* _textItoaUnsigned(u8* arg0, u32 value);
+
+/// Writes `arg1` in decimal to `arg0`, with a leading '-' when negative, and
+/// terminates it; values past nine digits are written as all nines.
+static inline u8* _textItoaSigned(u8* arg0, s32 arg1);
+
+/// Writes `value` in decimal to `arg0` as exactly `width` digits, padded with
+/// leading zeros and clamped to the largest value that fits, and terminates it.
+static inline u8* _textItoaPadded(u8* arg0, u32 value, s32 width);
+
+static u8* Text_ItoaHexSigned(u8* arg0, s32 arg1);
+
+static u8* Text_ItoaHex(u8* arg0, u32 arg1);
+
+static void Text_DrawGlyphImmediate(TextDrawReq* request, FontGlyph* glyph, s32 arg2);
+
+static void Text_DrawGlyphQueued(TextDrawReq* request, FontGlyph* glyph, s32 arg2);
+
+static void Text_DrawGlyphOt(TextDrawReq* request, FontGlyph* glyph, s32 unusedColor);
+
+static void Text_UiTaskCallback(Task* task);
+
+static void Text_BootTask(Task* task);
+
+static const char Text_MaxEightDigits[];
+static const char Text_ZeroDigit[];
+static const char Text_MaxNineDigits[];
 
 static TaskDesc D_8005EDA0[] = {
     { 0x0, 0xC0, textNoopCallback },
@@ -45,7 +126,7 @@ static TaskDesc D_8005EDA0[] = {
     { 0x0, 0x18, GameFlow_DispatchTable },
     { 0x0, 0x10, Mc_DispatchStateTable },
     { 0x0, 0x10, Mc_DispatchStateTable26 },
-    { 0x0, 0xC0, func_80036A1C },
+    { 0x0, 0xC0, McMenu_NoOpTask },
     { 0x0, 0x10, Text_BootTask },
     { 0x2, 0x2F, func_800A8654 },
     { 0x0, 0x2F, Gp_ApplyViewTask },
@@ -102,13 +183,9 @@ static u8 Font_Glyphs2[] = {
 #include "assets/font_glyphs2.inc"
 };
 
-static UiObjectDesc D_800608F4[] = {
+static UiObjectDesc Ui_OverlayLoadingDesc[] = {
     { 2, 0xFF70, 0xFF98, 0x120, 0x90, 0x38, 0, 0, 0xC0, Ui_WaitCdThenOverlay, 0 },
 };
-
-/// Immediate-mode SPRT scratch used by Text_DrawGlyphImmediate.
-static SPRT     D_80071710;
-static DR_TPAGE D_80071728;
 
 void textNoopCallback(Task* task)
 {
@@ -187,7 +264,7 @@ static s32 Text_MeasureGlyphWidth(TextDrawReq* req, u8* str, u8* table)
     return width - (s8)glyph->field_6;
 }
 
-static void Text_DrawGlyphDualSprtA(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
+static void Text_DrawGlyphDualSprtA(TextDrawReq* request, FontGlyph* glyph, s32 arg2)
 {
     SPRT* p;
     SPRT* p2;
@@ -204,21 +281,21 @@ static void Text_DrawGlyphDualSprtA(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2
     setlen(p2, 4);
     setcode(p2, 0x67);
 
-    p2->x0 = p->x0 = arg0->x + (s8)arg1->off_x;
-    p2->y0 = p->y0 = (arg0->y - arg1->h) + (s8)arg1->off_y;
-    p2->u0 = p->u0 = arg1->u;
-    p2->v0 = p->v0 = arg1->v + arg0->vBias;
-    p2->w = p->w = arg1->w + 1;
-    temp         = arg1->h;
+    p2->x0 = p->x0 = request->x + (s8)glyph->off_x;
+    p2->y0 = p->y0 = (request->y - glyph->h) + (s8)glyph->off_y;
+    p2->u0 = p->u0 = glyph->u;
+    p2->v0 = p->v0 = glyph->v + request->vBias;
+    p2->w = p->w = glyph->w + 1;
+    temp         = glyph->h;
     p2->h = p->h = temp + 1;
     p2->clut     = 0x7FFE;
     p->clut      = 0x7FFD;
 
-    addPrim(gGpuCurrentOt + arg0->otIndex + 1, p2);
-    addPrim(gGpuCurrentOt + arg0->otIndex, p);
+    addPrim(gGpuCurrentOt + request->otIndex + 1, p2);
+    addPrim(gGpuCurrentOt + request->otIndex, p);
 }
 
-static void Text_DrawGlyphDualSprt(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
+static void Text_DrawGlyphDualSprt(TextDrawReq* request, FontGlyph* glyph, s32 arg2)
 {
     SPRT* p;
     SPRT* p2;
@@ -235,21 +312,21 @@ static void Text_DrawGlyphDualSprt(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     setlen(p2, 4);
     setcode(p2, 0x67);
 
-    p2->x0 = p->x0 = arg0->x + (s8)arg1->off_x;
-    p2->y0 = p->y0 = (arg0->y - arg1->h) + (s8)arg1->off_y;
-    p2->u0 = p->u0 = arg1->u;
-    p2->v0 = p->v0 = arg1->v + arg0->vBias;
-    p2->w = p->w = arg1->w + 1;
-    temp         = arg1->h;
+    p2->x0 = p->x0 = request->x + (s8)glyph->off_x;
+    p2->y0 = p->y0 = (request->y - glyph->h) + (s8)glyph->off_y;
+    p2->u0 = p->u0 = glyph->u;
+    p2->v0 = p->v0 = glyph->v + request->vBias;
+    p2->w = p->w = glyph->w + 1;
+    temp         = glyph->h;
     p2->h = p->h = temp + 1;
     p2->clut     = 0x7FFF;
     p->clut      = 0x7FFD;
 
-    addPrim(gGpuCurrentOt + arg0->otIndex + 1, p2);
-    addPrim(gGpuCurrentOt + arg0->otIndex, p);
+    addPrim(gGpuCurrentOt + request->otIndex + 1, p2);
+    addPrim(gGpuCurrentOt + request->otIndex, p);
 }
 
-static void Text_DrawGlyphDualSprtTpage(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
+static void Text_DrawGlyphDualSprtTpage(TextDrawReq* request, FontGlyph* glyph, s32 arg2)
 {
     SPRT*     p;
     SPRT*     p2;
@@ -267,37 +344,37 @@ static void Text_DrawGlyphDualSprtTpage(TextDrawReq* arg0, FontGlyph* arg1, s32 
     setlen(p2, 4);
     setcode(p2, 0x67);
 
-    p2->x0 = p->x0 = arg0->x + (s8)arg1->off_x;
-    p2->y0 = p->y0 = (arg0->y - arg1->h) + (s8)arg1->off_y;
-    p2->u0 = p->u0 = arg1->u;
-    p2->v0 = p->v0 = arg1->v + arg0->vBias;
-    p2->w = p->w = arg1->w + 1;
-    temp         = arg1->h;
+    p2->x0 = p->x0 = request->x + (s8)glyph->off_x;
+    p2->y0 = p->y0 = (request->y - glyph->h) + (s8)glyph->off_y;
+    p2->u0 = p->u0 = glyph->u;
+    p2->v0 = p->v0 = glyph->v + request->vBias;
+    p2->w = p->w = glyph->w + 1;
+    temp         = glyph->h;
     p2->h = p->h = temp + 1;
     p2->clut     = 0x7FFF;
     p->clut      = 0x7FFD;
 
-    addPrim(gGpuCurrentOt + arg0->otIndex, p);
+    addPrim(gGpuCurrentOt + request->otIndex, p);
     dr             = gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE100023F;
-    addPrim(gGpuCurrentOt + arg0->otIndex, dr);
+    addPrim(gGpuCurrentOt + request->otIndex, dr);
 
-    addPrim(gGpuCurrentOt + arg0->otIndex, p2);
+    addPrim(gGpuCurrentOt + request->otIndex, p2);
     dr             = gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE100025F;
-    addPrim(gGpuCurrentOt + arg0->otIndex, dr);
+    addPrim(gGpuCurrentOt + request->otIndex, dr);
 }
 
-void func_8002E53C(TextDrawReq* arg0, u8* arg1)
+void Text_DrawString(TextDrawReq* request, u8* text)
 {
     u8*        ptr;
     u8*        table;
     FontGlyph* glyph;
-    void       (*draw)();
+    void       (*draw)(TextDrawReq*, FontGlyph*, s32);
     s32        color;
     s32        prev9;
     s32        width;
@@ -307,35 +384,35 @@ void func_8002E53C(TextDrawReq* arg0, u8* arg1)
     s32        temp;
     DR_TPAGE*  dr;
 
-    ptr         = arg1;
-    prev9       = 0;
-    color       = arg0->field_8;
-    arg0->vBias = 0;
-    switch (arg0->glyphTable) {
+    ptr            = text;
+    prev9          = 0;
+    color          = request->field_8;
+    request->vBias = 0;
+    switch (request->glyphTable) {
         case 0:
-            table       = Font_Glyphs0;
-            arg0->vBias = 0x26;
+            table          = Font_Glyphs0;
+            request->vBias = 0x26;
             break;
         case 5:
-            table       = Font_Glyphs2;
-            arg0->vBias = 0;
+            table          = Font_Glyphs2;
+            request->vBias = 0;
             break;
         default:
-            table       = Font_Glyphs1;
-            arg0->vBias = 0x80;
+            table          = Font_Glyphs1;
+            request->vBias = 0x80;
             break;
     }
-    switch (arg0->centerMode) {
+    switch (request->centerMode) {
         case 1:
-            width    = Text_MeasureGlyphWidth(arg0, arg1, table);
-            arg0->x -= width >> 1;
+            width       = Text_MeasureGlyphWidth(request, text, table);
+            request->x -= width >> 1;
             break;
         case 2:
-            width    = Text_MeasureGlyphWidth(arg0, arg1, table);
-            arg0->x -= width;
+            width       = Text_MeasureGlyphWidth(request, text, table);
+            request->x -= width;
             break;
     }
-    switch (arg0->field_E) {
+    switch (request->field_E) {
         case 1:
             draw = Text_DrawGlyphDualSprt;
             break;
@@ -407,18 +484,18 @@ void func_8002E53C(TextDrawReq* arg0, u8* arg1)
                         switch (*ptr) {
                             case 'S':
                             case 's':
-                                table       = Font_Glyphs2;
-                                arg0->vBias = 0;
+                                table          = Font_Glyphs2;
+                                request->vBias = 0;
                                 break;
                             case 'M':
                             case 'm':
-                                table       = Font_Glyphs0;
-                                arg0->vBias = 0x26;
+                                table          = Font_Glyphs0;
+                                request->vBias = 0x26;
                                 break;
                             case 'L':
                             case 'l':
-                                table       = Font_Glyphs1;
-                                arg0->vBias = 0x80;
+                                table          = Font_Glyphs1;
+                                request->vBias = 0x80;
                                 break;
                         }
                         ptr++;
@@ -428,12 +505,12 @@ void func_8002E53C(TextDrawReq* arg0, u8* arg1)
                         ptr++;
                         switch (*ptr) {
                             case '0':
-                                arg0->field_E = 3;
-                                draw          = Text_DrawGlyphDualSprtA;
+                                request->field_E = 3;
+                                draw             = Text_DrawGlyphDualSprtA;
                                 break;
                             case '1':
-                                arg0->field_E = 1;
-                                draw          = Text_DrawGlyphDualSprt;
+                                request->field_E = 1;
+                                draw             = Text_DrawGlyphDualSprt;
                                 break;
                         }
                         ptr++;
@@ -442,7 +519,7 @@ void func_8002E53C(TextDrawReq* arg0, u8* arg1)
                     case 'u':
                         ptr++;
                         if ((u32)(*ptr - '0') < 10) {
-                            arg0->y -= *ptr - '0';
+                            request->y -= *ptr - '0';
                         }
                         ptr++;
                         break;
@@ -450,7 +527,7 @@ void func_8002E53C(TextDrawReq* arg0, u8* arg1)
                     case 'd':
                         ptr++;
                         if ((u32)(*ptr - '0') < 10) {
-                            arg0->y += *ptr - '0';
+                            request->y += *ptr - '0';
                         }
                         ptr++;
                         break;
@@ -458,7 +535,7 @@ void func_8002E53C(TextDrawReq* arg0, u8* arg1)
                     case 'b':
                         ptr++;
                         if ((u32)(*ptr - '0') < 10) {
-                            arg0->x = (*ptr - '0') << 3;
+                            request->x = (*ptr - '0') << 3;
                         }
                         ptr++;
                         break;
@@ -483,38 +560,38 @@ void func_8002E53C(TextDrawReq* arg0, u8* arg1)
         glyph = &((FontGlyph*)table)[idx];
         temp  = prev9 + glyph->field_8 + 1;
         if ((u8)temp >= 3) {
-            if (arg0->glyphTable == 5) {
-                arg0->x -= 1;
+            if (request->glyphTable == 5) {
+                request->x -= 1;
             } else {
-                arg0->x -= 2;
+                request->x -= 2;
             }
         }
         prev9 = glyph->field_9;
-        draw(arg0, glyph, color);
+        draw(request, glyph, color);
         ptr++;
-        arg0->x += glyph->w + (s8)glyph->field_6 + (s8)glyph->off_x;
-        arg0->y += (s8)glyph->field_7;
+        request->x += glyph->w + (s8)glyph->field_6 + (s8)glyph->off_x;
+        request->y += (s8)glyph->field_7;
     }
-    if (arg0->field_E == 1 || arg0->field_E == 3) {
+    if (request->field_E == 1 || request->field_E == 3) {
         dr             = gGpuPrimCursor;
         gGpuPrimCursor = dr + 1;
         dr->code[0]    = 0xE100025F;
         setlen(dr, 1);
-        addPrim(gGpuCurrentOt + arg0->otIndex + 1, dr);
+        addPrim(gGpuCurrentOt + request->otIndex + 1, dr);
     }
-    if (arg0->field_E != 16) {
-        if (arg0->field_E == 4) {
+    if (request->field_E != 16) {
+        if (request->field_E == 4) {
             dr             = gGpuPrimCursor;
             gGpuPrimCursor = dr + 1;
             dr->code[0]    = 0xE100025F;
             setlen(dr, 1);
-            addPrim(gGpuCurrentOt + arg0->otIndex, dr);
+            addPrim(gGpuCurrentOt + request->otIndex, dr);
         } else {
             dr             = gGpuPrimCursor;
             gGpuPrimCursor = dr + 1;
             dr->code[0]    = 0xE100023F;
             setlen(dr, 1);
-            addPrim(gGpuCurrentOt + arg0->otIndex, dr);
+            addPrim(gGpuCurrentOt + request->otIndex, dr);
         }
     }
 }
@@ -535,9 +612,9 @@ static inline u8* _textItoaUnsigned(u8* arg0, u32 value)
 
     place = 0x5F5E100;
     if (value > 0x3B9AC9FEU) {
-        *(Bytes10*)arg0 = *(Bytes10*)D_800138CC;
+        *(Bytes10*)arg0 = *(Bytes10*)Text_MaxNineDigits;
     } else if (value == 0) {
-        *(Bytes2*)arg0 = *(Bytes2*)D_800138C8;
+        *(Bytes2*)arg0 = *(Bytes2*)Text_ZeroDigit;
     } else {
         dest = arg0;
         while (value < place) {
@@ -578,12 +655,12 @@ static inline u8* _textItoaSigned(u8* arg0, s32 arg1)
         return arg0;
     }
     if (arg1 > 0x5F5E0FF) {
-        *(Bytes9*)arg0 = *(Bytes9*)D_800138BC;
+        *(Bytes9*)arg0 = *(Bytes9*)Text_MaxEightDigits;
         return arg0;
     }
     cmp = arg1 < place;
     if (arg1 == 0) {
-        *(Bytes2*)arg0 = *(Bytes2*)D_800138C8;
+        *(Bytes2*)arg0 = *(Bytes2*)Text_ZeroDigit;
         return arg0;
     }
     dest = arg0;
@@ -669,12 +746,12 @@ u8* Text_FormatTime(u8* arg0, u16 time)
     return ret;
 }
 
-void Text_MeasureAndCenter(TextDrawReq* arg0, u8* arg1)
+void Text_MeasureAndCenter(TextDrawReq* request, u8* arg1)
 {
     u8* table;
     s32 width;
 
-    switch (arg0->glyphTable) {
+    switch (request->glyphTable) {
         case 0:
             table = Font_Glyphs0;
             break;
@@ -686,14 +763,14 @@ void Text_MeasureAndCenter(TextDrawReq* arg0, u8* arg1)
             break;
     }
 
-    switch (arg0->centerMode) {
+    switch (request->centerMode) {
         case 1:
-            width    = Text_MeasureGlyphWidth(arg0, arg1, table);
-            arg0->x -= width >> 1;
+            width       = Text_MeasureGlyphWidth(request, arg1, table);
+            request->x -= width >> 1;
             break;
         case 2:
-            width    = Text_MeasureGlyphWidth(arg0, arg1, table);
-            arg0->x -= width;
+            width       = Text_MeasureGlyphWidth(request, arg1, table);
+            request->x -= width;
             break;
     }
 }
@@ -735,7 +812,7 @@ static u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
     }
     cmp = arg1 < place;
     if (arg1 == 0) {
-        *(Bytes2*)arg0 = *(Bytes2*)D_800138C8;
+        *(Bytes2*)arg0 = *(Bytes2*)Text_ZeroDigit;
         return arg0;
     }
     dest = arg0;
@@ -776,7 +853,7 @@ static u8* Text_ItoaHex(u8* arg0, u32 arg1)
 
     place = 0x10000000;
     if (arg1 == 0) {
-        *(Bytes2*)arg0 = *(Bytes2*)D_800138C8;
+        *(Bytes2*)arg0 = *(Bytes2*)Text_ZeroDigit;
     } else {
         dest = arg0;
         if (arg1 < place) {
@@ -803,9 +880,9 @@ static u8* Text_ItoaHex(u8* arg0, u32 arg1)
     return arg0;
 }
 
-u8* func_8002F44C(u8* arg0, s32 arg1, s32 arg2)
+u8* Text_ItoaPadded(u8* buffer, s32 value, s32 width)
 {
-    return _textItoaPadded(arg0, arg1, arg2);
+    return _textItoaPadded(buffer, value, width);
 }
 
 u8* Text_SkipLines(u8* arg0, s32 arg1)
@@ -861,7 +938,7 @@ u8* Text_Strcat(u8* dest, u8* src)
     return dest;
 }
 
-static void Text_DrawGlyphImmediate(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
+static void Text_DrawGlyphImmediate(TextDrawReq* request, FontGlyph* glyph, s32 arg2)
 {
     SPRT* p;
     s32   temp;
@@ -870,18 +947,18 @@ static void Text_DrawGlyphImmediate(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2
     setlen(p, 4);
     PRIM_COLOR_WORD(p, 0) = arg2;
     setcode(p, 0x64);
-    p->x0   = arg0->x + (s8)arg1->off_x;
-    p->y0   = (arg0->y - arg1->h) + (s8)arg1->off_y;
-    p->u0   = arg1->u;
-    p->v0   = arg1->v + arg0->vBias;
-    p->w    = arg1->w + 1;
-    temp    = arg1->h;
+    p->x0   = request->x + (s8)glyph->off_x;
+    p->y0   = (request->y - glyph->h) + (s8)glyph->off_y;
+    p->u0   = glyph->u;
+    p->v0   = glyph->v + request->vBias;
+    p->w    = glyph->w + 1;
+    temp    = glyph->h;
     p->clut = 0x7FFD;
     p->h    = temp + 1;
     DrawPrim(p);
 }
 
-static void Text_DrawGlyphQueued(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
+static void Text_DrawGlyphQueued(TextDrawReq* request, FontGlyph* glyph, s32 arg2)
 {
     SPRT* p;
     s32   temp;
@@ -891,18 +968,18 @@ static void Text_DrawGlyphQueued(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     setlen(p, 4);
     PRIM_COLOR_WORD(p, 0) = arg2;
     setcode(p, 0x64);
-    p->x0   = arg0->x + (s8)arg1->off_x;
-    p->y0   = (arg0->y - arg1->h) + (s8)arg1->off_y;
-    p->u0   = arg1->u;
-    p->v0   = arg1->v + arg0->vBias;
-    p->w    = arg1->w + 1;
-    temp    = arg1->h;
+    p->x0   = request->x + (s8)glyph->off_x;
+    p->y0   = (request->y - glyph->h) + (s8)glyph->off_y;
+    p->u0   = glyph->u;
+    p->v0   = glyph->v + request->vBias;
+    p->w    = glyph->w + 1;
+    temp    = glyph->h;
     p->clut = 0x7FFD;
     p->h    = temp + 1;
-    addPrim(gGpuCurrentOt + arg0->otIndex, p);
+    addPrim(gGpuCurrentOt + request->otIndex, p);
 }
 
-static void Text_DrawGlyphOt(TextDrawReq* arg0, FontGlyph* arg1)
+static void Text_DrawGlyphOt(TextDrawReq* request, FontGlyph* glyph, s32 unusedColor)
 {
     SPRT* p;
     s32   temp;
@@ -911,56 +988,56 @@ static void Text_DrawGlyphOt(TextDrawReq* arg0, FontGlyph* arg1)
     gGpuPrimCursor = p + 1;
     setlen(p, 4);
     setcode(p, 0x67);
-    p->x0   = arg0->x + (s8)arg1->off_x;
-    p->y0   = (arg0->y - arg1->h) + (s8)arg1->off_y;
-    p->u0   = arg1->u;
-    p->v0   = arg1->v + arg0->vBias;
-    p->w    = arg1->w + 1;
-    temp    = arg1->h;
+    p->x0   = request->x + (s8)glyph->off_x;
+    p->y0   = (request->y - glyph->h) + (s8)glyph->off_y;
+    p->u0   = glyph->u;
+    p->v0   = glyph->v + request->vBias;
+    p->w    = glyph->w + 1;
+    temp    = glyph->h;
     p->clut = 0x7FFF;
     p->h    = temp + 1;
-    addPrim(gGpuCurrentOt + arg0->otIndex, p);
+    addPrim(gGpuCurrentOt + request->otIndex, p);
 }
 
-static void Text_UiTaskCallback(Task* arg0)
+static void Text_UiTaskCallback(Task* task)
 {
     UiObject* obj;
     s16       temp;
 
-    if (arg0->state == 0) {
+    if (task->state == 0) {
         Wip_UiHolder = NULL;
-        obj          = Ui_SpawnFromDesc(D_800608F4, 1, 1, 2, 0);
+        obj          = Ui_SpawnFromDesc(Ui_OverlayLoadingDesc, 1, 1, 2, 0);
         if (obj != NULL) {
-            arg0->spawnArg2 = obj;
-            arg0->state     = arg0->state + 1;
+            task->spawnArg2.pointer = obj;
+            task->state             = task->state + 1;
         }
-    } else if (arg0->state == 1) {
-        obj = arg0->spawnArg2;
+    } else if (task->state == 1) {
+        obj = task->spawnArg2.pointer;
         if (obj->field_2E == -1 || obj->field_2E == 6) {
-            arg0->killCountdown = 0xA;
-            arg0->state         = arg0->state + 1;
+            task->killCountdown = 0xA;
+            task->state         = task->state + 1;
             Ui_TeardownTree(obj, obj->owner);
         }
     } else {
-        temp                = arg0->killCountdown - gDisplayState.frameTicks;
-        arg0->killCountdown = temp;
+        temp                = task->killCountdown - gDisplayState.frameTicks;
+        task->killCountdown = temp;
         if (temp <= 0) {
             Task_Spawn(0, 2, 0xC, 0);
-            Task_CallExit(arg0);
+            Task_CallExit(task);
         }
     }
 }
 
-static void Text_BootTask(Task* arg0)
+static void Text_BootTask(Task* task)
 {
     Text_LoadClutImages();
     Display_SetMode(0x1010);
     Game_ClearSession();
     Task_SpawnFromTable(Title_TaskDescs, 0, 0, 0);
-    taskKill(arg0);
+    taskKill(task);
 }
 
 /// Overflow and zero texts of the number formatters.
-static const char D_800138BC[] = "99999999";
-static const char D_800138C8[] = "0";
-static const char D_800138CC[] = "999999999";
+static const char Text_MaxEightDigits[] = "99999999";
+static const char Text_ZeroDigit[]      = "0";
+static const char Text_MaxNineDigits[]  = "999999999";

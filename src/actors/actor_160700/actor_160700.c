@@ -6,12 +6,6 @@
 #include "actors/actor.h"
 #include "actors/actors_shared_80132614.h"
 #include "actors/actors_shared_801326ac.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/collision.h"
@@ -21,7 +15,18 @@
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -179,7 +184,7 @@ void func_actor_160700_8013233C(Task* task)
         func_actor_160700_80132390,
     };
 
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// State-1 handler of the actor's dispatcher: recomputes the root part's
@@ -205,7 +210,7 @@ static void func_actor_160700_80132390(GpEnemy* enemy, Task* task)
 /// Exit callback: hands the task's `GpEnemy` back to `Gp_DestroyEnemy`.
 static void func_actor_160700_80132414(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Draws the actor's ground shadow under its root part, unless the model's

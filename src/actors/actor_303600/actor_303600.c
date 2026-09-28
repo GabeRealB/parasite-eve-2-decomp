@@ -5,15 +5,6 @@
 #include <psyq/libgs.h>
 
 #include "actors/actor.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/attachments.h"
 #include "gameplay/display.h"
@@ -22,6 +13,20 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflow.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "overlay.h"
 
 /// Work block for the `actor_303600` overlay's cutscene controller.
 ///
@@ -259,10 +264,10 @@ void func_actor_303600_8016216C(Task* arg0)
             break;
         case 2:
             if (gGameSession->eventState == 0) {
-                Mc_SaveData[0].at4.loc.stage = 5;
-                Mc_SaveData[0].at4.loc.area  = 0x1F;
-                Mc_SaveData[0].at4.loc.warp  = 1;
-                Mc_SaveData[0].at4.loc.room  = 1;
+                Mc_SaveData[0].state.at4.loc.stage = 5;
+                Mc_SaveData[0].state.at4.loc.area  = 0x1F;
+                Mc_SaveData[0].state.at4.loc.warp  = 1;
+                Mc_SaveData[0].state.at4.loc.room  = 1;
                 gDisplayState.roomVariant    = 1;
                 Task_Spawn(0, 0x11, 0x10, 0);
                 taskKill(arg0);
@@ -301,9 +306,9 @@ void func_actor_303600_801622E8(Task* arg0)
             /* fallthrough */
         case 1:
             Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 1);
-            work->r -= (u16)arg0->spawnArg1;
-            work->g -= (u16)arg0->spawnArg1;
-            work->b -= (u16)arg0->spawnArg1;
+            work->r -= (u16)arg0->spawnArg1.value;
+            work->g -= (u16)arg0->spawnArg1.value;
+            work->b -= (u16)arg0->spawnArg1.value;
             if (work->r < 0) {
                 D_actor_303600_8016E4C4 = NULL;
                 taskKill(arg0);
@@ -341,9 +346,9 @@ void func_actor_303600_801623CC(Task* arg0)
             /* fallthrough */
         case 1:
             Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 1);
-            work->r += (u16)arg0->spawnArg1;
-            work->g += (u16)arg0->spawnArg1;
-            work->b += (u16)arg0->spawnArg1;
+            work->r += (u16)arg0->spawnArg1.value;
+            work->g += (u16)arg0->spawnArg1.value;
+            work->b += (u16)arg0->spawnArg1.value;
             if (work->r >= 0x100) {
                 D_actor_303600_8016E4C4 = NULL;
                 taskKill(arg0);
@@ -467,7 +472,7 @@ static void func_actor_303600_801626C0(Task* task)
     coord->coord.t[1] = 0;
     coord->coord.t[2] = 0;
     for (i = 0; i < 5; i++) {
-        child = Task_SpawnFromTable(D_actor_303600_8016E468, 1, 0, (s32)task);
+        child = Task_SpawnFromTable(D_actor_303600_8016E468, 1, 0, task);
         if (child == NULL) {
             break;
         }
@@ -588,7 +593,7 @@ void func_actor_303600_801628E4(Task* task)
 /// `work` slot, and splices this task's model root under its spawn parent's.
 static void func_actor_303600_80162950(Task* task)
 {
-    Task*                 parent      = task->spawnArg2;
+    Task*                 parent      = task->spawnArg2.pointer;
     TmdObject*            obj         = task->extra.tmd;
     GpCoord*              coord       = obj->coords;
     TmdObject*            parentObj   = parent->extra.tmd;

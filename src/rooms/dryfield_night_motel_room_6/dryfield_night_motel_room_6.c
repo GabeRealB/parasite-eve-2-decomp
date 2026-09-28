@@ -4,22 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/gfxgte.h"
 #include <psyq/gtemac.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/tmd.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181228.h"
@@ -38,12 +23,29 @@
 #include "gameplay/loading.h"
 #include "gameplay/world_targets.h"
 
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/gfxgte.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/tmd.h"
+#include "main/ui.h"
+#include "main/wipsys.h"
+
 extern UiObject*    D_80067634;
 extern UiObjectDesc D_800611E4;
 
-/// `Mc_SaveData[0].companionType` (ally present), read through its own symbol.
+/// `Mc_SaveData[0].state.companionType` (ally present), read through its own symbol.
 
-/// `Mc_SaveData[0].at4.loc.view` as it was when the cutscene started, restored
+/// `Mc_SaveData[0].state.at4.loc.view` as it was when the cutscene started, restored
 /// when it ends.
 
 /// Area-record patch list applied when the cutscene advances the story flags.
@@ -183,8 +185,8 @@ void func_dryfield_night_motel_room_6_8017D6DC(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_motel_room_6_80182B78);
-            Text_FormatTime(p, Mc_SaveData[0].playTime);
+            Text_DrawString(&req, D_dryfield_night_motel_room_6_80182B78);
+            Text_FormatTime(p, Mc_SaveData[0].state.playTime);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -200,8 +202,8 @@ void func_dryfield_night_motel_room_6_8017D6DC(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_motel_room_6_80182BA8);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].saveCount);
+            Text_DrawString(&req, D_dryfield_night_motel_room_6_80182BA8);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].state.saveCount);
             Text_Strcat(p, D_dryfield_night_motel_room_6_80182BC8);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -218,8 +220,8 @@ void func_dryfield_night_motel_room_6_8017D6DC(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_motel_room_6_80182B80);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].field_6CC);
+            Text_DrawString(&req, D_dryfield_night_motel_room_6_80182B80);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_6CC);
             Text_Strcat(p, D_dryfield_night_motel_room_6_80182BC8);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -236,8 +238,8 @@ void func_dryfield_night_motel_room_6_8017D6DC(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_motel_room_6_80182B84);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].field_6CE);
+            Text_DrawString(&req, D_dryfield_night_motel_room_6_80182B84);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_6CE);
             Text_Strcat(p, D_dryfield_night_motel_room_6_80182BC8);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -259,14 +261,14 @@ void func_dryfield_night_motel_room_6_8017D6DC(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_motel_room_6_80182B8C);
-            if (Mc_SaveData[0].field_6CC == 0) {
+            Text_DrawString(&req, D_dryfield_night_motel_room_6_80182B8C);
+            if (Mc_SaveData[0].state.field_6CC == 0) {
                 pct = 0;
             } else {
-                pct = (Mc_SaveData[0].field_6CC * 10000) / (Mc_SaveData[0].field_6CC + Mc_SaveData[0].field_6CE);
+                pct = (Mc_SaveData[0].state.field_6CC * 10000) / (Mc_SaveData[0].state.field_6CC + Mc_SaveData[0].state.field_6CE);
             }
             if (pct < 100) {
-                func_8002F44C(p, pct, 3);
+                Text_ItoaPadded(p, pct, 3);
             } else {
                 Text_ItoaUnsigned(p, pct);
             }
@@ -301,7 +303,7 @@ void func_dryfield_night_motel_room_6_8017D6DC(UiList* arg0, UiObject* arg1)
             s32         i;
             u8*         q;
 
-            total          = Mc_SaveData[0].field_6CC;
+            total          = Mc_SaveData[0].state.field_6CC;
             req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
             y              = arg1->panel.field_22.u - 6;
             req.y          = (u16)arg0->field_1A + y;
@@ -310,7 +312,7 @@ void func_dryfield_night_motel_room_6_8017D6DC(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_motel_room_6_80182B98);
+            Text_DrawString(&req, D_dryfield_night_motel_room_6_80182B98);
             cnt   = 326;
             total = total + (GameFlag_GetNibble(0x167) + GameFlag_GetNibble(0x168));
             if (total == 0) {
@@ -319,7 +321,7 @@ void func_dryfield_night_motel_room_6_8017D6DC(UiList* arg0, UiObject* arg1)
                 pct = (total * 10000) / cnt;
             }
             if (pct < 100) {
-                func_8002F44C(p, pct, 3);
+                Text_ItoaPadded(p, pct, 3);
             } else {
                 Text_ItoaUnsigned(p, pct);
             }
@@ -357,8 +359,8 @@ void func_dryfield_night_motel_room_6_8017D6DC(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_motel_room_6_80182BB0);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].clearCount);
+            Text_DrawString(&req, D_dryfield_night_motel_room_6_80182BB0);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].state.clearCount);
             Text_Strcat(p, D_dryfield_night_motel_room_6_80182BC8);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -375,8 +377,8 @@ void func_dryfield_night_motel_room_6_8017D6DC(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_motel_room_6_80182BB8);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].field_92C), arg0->field_1C, 3, 2);
+            Text_DrawString(&req, D_dryfield_night_motel_room_6_80182BB8);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_92C), arg0->field_1C, 3, 2);
             break;
         }
         case 8: {
@@ -391,8 +393,8 @@ void func_dryfield_night_motel_room_6_8017D6DC(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_motel_room_6_80182BC0);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].field_930), arg0->field_1C, 3, 2);
+            Text_DrawString(&req, D_dryfield_night_motel_room_6_80182BC0);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_930), arg0->field_1C, 3, 2);
             break;
         }
     }
@@ -455,7 +457,7 @@ void func_dryfield_night_motel_room_6_8017DEA8(UiList* arg0, UiObject* arg1)
         req.glyphTable = 0;
         req.centerMode = 0;
         r->field_E     = 1;
-        func_8002E53C(r, (u8*)Gp_GetItemText(item, 0, 0));
+        Text_DrawString(r, (u8*)Gp_GetItemText(item, 0, 0));
         func_800CE5D0(arg1, x, y, item);
     }
     limit = 1;
@@ -466,7 +468,7 @@ void func_dryfield_night_motel_room_6_8017DEA8(UiList* arg0, UiObject* arg1)
             limit *= 10;
         }
         if (value < limit) {
-            func_8002F44C(p, value, 3);
+            Text_ItoaPadded(p, value, 3);
         } else {
             Text_ItoaUnsigned(p, value);
         }
@@ -523,7 +525,7 @@ void func_dryfield_night_motel_room_6_8017DEA8(UiList* arg0, UiObject* arg1)
         addPrim(gGpuCurrentOt + arg1->panel.field_14.s + 1, prim);
     }
     one = 1;
-    func_80046B34(&(arg1)->panel, barX, arg0->field_1A - 0xC, barW, 9, 0, one);
+    Ui_DrawBeveledRect(&(arg1)->panel, barX, arg0->field_1A - 0xC, barW, 9, 0, one);
     if (((arg1->panel.field_0.w >> 16) == one) || (arg1->panel.field_0.w == one)) {
         if (arg0->field_10 == arg0->field_8) {
             Gp_SetPreviewItem(item, 0);
@@ -540,7 +542,7 @@ void func_dryfield_night_motel_room_6_8017DEA8(UiList* arg0, UiObject* arg1)
 }
 
 /// Builds the "Play Data" item-usage panel's three parallel arrays from the
-/// save's per-item use counters (`Mc_SaveData[0].weaponUseCounts`, ids 0x80-0x9F).
+/// save's per-item use counters (`Mc_SaveData[0].state.weaponUseCounts`, ids 0x80-0x9F).
 ///
 /// Every id whose name is non-empty (a leading 0 or 0xA marks an unused row)
 /// and whose counter is non-zero is marked seen and appended to `itemIds`,
@@ -575,19 +577,19 @@ static void func_dryfield_night_motel_room_6_8017E2A4(UiList* list, UiObject* ob
     for (i = 0; i < 0x20; i++) {
         id = i + 0x80;
         c  = *Gp_GetItemText(id, 0, 1);
-        if ((c != 0) && (c != 0xA) && (Mc_SaveData[0].weaponUseCounts[i] > 0)) {
+        if ((c != 0) && (c != 0xA) && (Mc_SaveData[0].state.weaponUseCounts[i] > 0)) {
             Gp_SetItemSeenBit(id, 1);
             *p++ = id;
             count++;
-            total += Mc_SaveData[0].weaponUseCounts[i];
+            total += Mc_SaveData[0].state.weaponUseCounts[i];
         }
     }
 
     if (count >= 2) {
         for (i = 1; i < count; i++) {
-            uses = Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80];
+            uses = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80];
             for (j = 0; j < i; j++) {
-                if (Mc_SaveData[0].weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
+                if (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
                     tmp = work->itemIds[i];
                     for (k = i - 1; k >= j; k--) {
                         work->itemIds[k + 1] = work->itemIds[k];
@@ -601,7 +603,7 @@ static void func_dryfield_night_motel_room_6_8017E2A4(UiList* list, UiObject* ob
 
     if (count > 0) {
         scale = 0x4E20;
-        top   = Mc_SaveData[0].weaponUseCounts[work->itemIds[0] - 0x80];
+        top   = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[0] - 0x80];
         shift = 0xC;
         while (top > 0x1869F) {
             top   >>= 1;
@@ -611,9 +613,9 @@ static void func_dryfield_night_motel_room_6_8017E2A4(UiList* list, UiObject* ob
         }
         for (i = 0; i < count; i++) {
             work->percents[i] =
-                (u32)((Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
+                (u32)((Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
             work->barWidths[i] =
-                (Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
+                (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
         }
     }
 
@@ -626,10 +628,10 @@ static void func_dryfield_night_motel_room_6_8017E2A4(UiList* list, UiObject* ob
 /// save's per-slot use counters.
 ///
 /// Each of the twelve Parasite Energy slots owns three consecutive ids starting
-/// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].attachLevels[i]`
+/// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].state.attachLevels[i]`
 /// prints as `i * 3 + 0xF + level - 1` (a slot the player has never levelled
 /// keeps the base id). Every slot with a non-zero counter in
-/// `Mc_SaveData[0].attachUseCounts` is appended and its counter summed. Levels
+/// `Mc_SaveData[0].state.attachUseCounts` is appended and its counter summed. Levels
 /// are addressed by page and column, with three slots per page. The ids are
 /// then insertion-sorted by use count, most-used first, and each row gets
 /// `percents`, its share of all recorded uses in hundredths of a percent, and
@@ -662,7 +664,7 @@ static void func_dryfield_night_motel_room_6_8017E5A0(UiList* list, UiObject* ob
     for (; i < 12; i++) {
         s32 useCount;
 
-        useCount = Mc_SaveData[0].attachUseCounts[i];
+        useCount = Mc_SaveData[0].state.attachUseCounts[i];
         id       = i * 3 + 0xF;
         if (useCount > 0) {
             s32 page;
@@ -671,22 +673,22 @@ static void func_dryfield_night_motel_room_6_8017E5A0(UiList* list, UiObject* ob
             page   = i / 3;
             column = i % 3;
             *p     = id;
-            if (Mc_SaveData[0].attachLevels[column + page * 3] != 0) {
-                *p = id + (Mc_SaveData[0].attachLevels[column + page * 3] - 1u);
+            if (Mc_SaveData[0].state.attachLevels[column + page * 3] != 0) {
+                *p = id + (Mc_SaveData[0].state.attachLevels[column + page * 3] - 1u);
             }
             p++;
             count++;
-            total += Mc_SaveData[0].attachUseCounts[i];
+            total += Mc_SaveData[0].state.attachUseCounts[i];
         }
     }
 
     if (count >= 2) {
         for (i = 1; i < count; i++) {
             slot = (work->peIds[i] - 0xF) / 3;
-            uses = Mc_SaveData[0].attachUseCounts[slot];
+            uses = Mc_SaveData[0].state.attachUseCounts[slot];
             for (j = 0; j < i; j++) {
                 slot = (work->peIds[j] - 0xF) / 3;
-                if (Mc_SaveData[0].attachUseCounts[slot] < uses) {
+                if (Mc_SaveData[0].state.attachUseCounts[slot] < uses) {
                     tmp = work->peIds[i];
                     for (k = i - 1; k >= j; k--) {
                         work->peIds[k + 1] = work->peIds[k];
@@ -701,7 +703,7 @@ static void func_dryfield_night_motel_room_6_8017E5A0(UiList* list, UiObject* ob
     if (count > 0) {
         scale = 0x4E20;
         slot  = (work->peIds[0] - 0xF) / 3;
-        top   = Mc_SaveData[0].attachUseCounts[slot];
+        top   = Mc_SaveData[0].state.attachUseCounts[slot];
         shift = 0xC;
         while (top > 0x1869F) {
             top   >>= 1;
@@ -711,9 +713,9 @@ static void func_dryfield_night_motel_room_6_8017E5A0(UiList* list, UiObject* ob
         }
         for (i = 0; i < count; i++) {
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->percents[i]  = (u32)((Mc_SaveData[0].attachUseCounts[slot] * scale) / total + 1) >> 1;
+            work->percents[i]  = (u32)((Mc_SaveData[0].state.attachUseCounts[slot] * scale) / total + 1) >> 1;
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->barWidths[i] = (Mc_SaveData[0].attachUseCounts[slot] << shift) / top;
+            work->barWidths[i] = (Mc_SaveData[0].state.attachUseCounts[slot] << shift) / top;
         }
     }
 
@@ -739,10 +741,10 @@ void func_dryfield_night_motel_room_6_8017E8C0(Task* task)
     UiObject* childObj;
     void*     work;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     list          = &D_dryfield_night_motel_room_6_80182DC4;
-    if (task->spawnArg1 == 0) {
+    if (task->spawnArg1.value == 0) {
         Ui_DrawText(&(obj)->panel, D_dryfield_night_motel_room_6_8017D624);
     } else {
         Ui_DrawText(&(obj)->panel, D_dryfield_night_motel_room_6_8017D630);
@@ -754,7 +756,7 @@ void func_dryfield_night_motel_room_6_8017E8C0(Task* task)
         }
         task->work = work;
         Ui_SpawnFromDesc(&D_dryfield_night_motel_room_6_80182DE8, 0, 0, 1, obj);
-        if (task->spawnArg1 == 0) {
+        if (task->spawnArg1.value == 0) {
             func_dryfield_night_motel_room_6_8017E2A4(list, obj);
         } else {
             func_dryfield_night_motel_room_6_8017E5A0(list, obj);
@@ -771,7 +773,7 @@ void func_dryfield_night_motel_room_6_8017E8C0(Task* task)
     if (task->firstChild != NULL) {
         child = task->firstChild;
         do {
-            childObj = child->spawnArg2;
+            childObj = child->spawnArg2.pointer;
             next     = child->nextSibling;
             if (childObj->field_2E == -1 || childObj->field_2E == 6) {
                 Ui_TeardownTree(childObj, childObj->owner);
@@ -805,12 +807,12 @@ static void func_dryfield_night_motel_room_6_8017EA74(Task* task)
     s32       mode;
     s32       one;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
-    ready         = Mc_SaveData[0].demoScene == 1;
+    ready         = Mc_SaveData[0].state.demoScene == 1;
     list          = &D_dryfield_night_motel_room_6_80182E4C;
     one           = 1;
-    if (Mc_SaveData[0].clearCount > 0) {
+    if (Mc_SaveData[0].state.clearCount > 0) {
         ready = one;
     }
     if (ready == 0) {
@@ -851,7 +853,7 @@ static void func_dryfield_night_motel_room_6_8017EA74(Task* task)
     }
     child = task->firstChild;
     if (child != NULL) {
-        childObj = child->spawnArg2;
+        childObj = child->spawnArg2.pointer;
         sel      = childObj->field_2E;
         switch (sel) {
             case 6:
@@ -908,7 +910,7 @@ void func_dryfield_night_motel_room_6_8017ED6C(Task* task)
 {
     UiObject* obj;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     if (task->state == 0) {
         Wip_UiHolder       = obj;
@@ -962,7 +964,7 @@ static u8* func_dryfield_night_motel_room_6_8017EE38(u8* buf, s32 value, s32 dec
     }
 
     if (value < limit) {
-        func_8002F44C(buf, value, decimals + 1);
+        Text_ItoaPadded(buf, value, decimals + 1);
     } else {
         Text_ItoaUnsigned(buf, value);
     }
@@ -998,7 +1000,7 @@ void func_dryfield_night_motel_room_6_8017EF2C(Task* task)
     UiList*   list;
 
     list          = &D_dryfield_night_motel_room_6_80182D9C;
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, D_dryfield_night_motel_room_6_8017D610);
     if (task->state == 0) {
@@ -1112,7 +1114,7 @@ static void func_dryfield_night_motel_room_6_8017F45C(Task* task)
 {
     UiObject* holder;
 
-    holder = task->spawnArg2;
+    holder = task->spawnArg2.pointer;
     if (Wip_UiHolder == holder) {
         Wip_UiHolder = NULL;
     }
@@ -1144,7 +1146,7 @@ static void func_dryfield_night_motel_room_6_8017F498(Task* task)
     }
     extra = task->extra.tmd;
     parts = extra->coords;
-    if ((u32)task->spawnArg1 >= 2U) {
+    if ((u32)task->spawnArg1.value >= 2U) {
         taskKill(task);
         return;
     }
@@ -1159,7 +1161,7 @@ static void func_dryfield_night_motel_room_6_8017F498(Task* task)
     tmdProcessStream(extra);
     extra->flags    = 0x10;
     extra->otOffset = 0x1F;
-    if (task->spawnArg1 == 0) {
+    if (task->spawnArg1.value == 0) {
         gGameSession->field_4E = 1;
     }
     parts->sub      = &work->coord;
@@ -1177,7 +1179,7 @@ static void func_dryfield_night_motel_room_6_8017F498(Task* task)
     for (i = 0; i < 2; i++) {
         child = (&actor->field_920)[i];
         if (child != NULL) {
-            spawned = Task_SpawnFromTable(&D_dryfield_night_motel_room_6_80182E74, 1, i, (s32)task);
+            spawned = Task_SpawnFromTable(&D_dryfield_night_motel_room_6_80182E74, 1, i, task);
             if (spawned != NULL) {
                 Task_Reparent(child, spawned);
             }
@@ -1236,9 +1238,9 @@ static void func_dryfield_night_motel_room_6_8017F64C(Task* task)
     width  = 0x1C0;
     work   = task->work;
     extra  = task->extra.tmd;
-    stage  = Mc_SaveData[0].at4.loc.stage;
-    area   = Mc_SaveData[0].at4.loc.area;
-    view   = Mc_SaveData[0].at4.loc.view;
+    stage  = Mc_SaveData[0].state.at4.loc.stage;
+    area   = Mc_SaveData[0].state.at4.loc.area;
+    view   = Mc_SaveData[0].state.at4.loc.view;
     status = &Player_Status;
     if (stage == 5) {
         width = 0x140;
@@ -1249,7 +1251,7 @@ static void func_dryfield_night_motel_room_6_8017F64C(Task* task)
         for (i = 0; i < 2; i++) {
             child = (&actor->field_918)[i];
             if (child != NULL) {
-                spawned = Task_SpawnFromTable(&D_dryfield_night_motel_room_6_80182E74, 1, i + 2, (s32)task);
+                spawned = Task_SpawnFromTable(&D_dryfield_night_motel_room_6_80182E74, 1, i + 2, task);
                 if (spawned != NULL) {
                     Task_Reparent(child, spawned);
                 }
@@ -1270,7 +1272,7 @@ static void func_dryfield_night_motel_room_6_8017F64C(Task* task)
         work->field_A0[3] = 0x78;
         plane             = (RoomMirrorPlaneScratch*)SCRATCH_PUSH_BYTES(0x70);
         work->coord.sub   = sub;
-        if (task->spawnArg1 == 0) {
+        if (task->spawnArg1.value == 0) {
             work->field_4     = 1;
             work->coord.coord = gGfxViewCoord.coord;
             plane->viewRow.vx = work->coord.coord.m[1][0];
@@ -1486,7 +1488,7 @@ static void func_dryfield_night_motel_room_6_8017F64C(Task* task)
     }
 
     copyPending = work->field_4;
-    if (copyPending == 1 && task->spawnArg1 == 0 && !(area == 1 && view == 0xF) && gDisplayState.pendingMode == 0) {
+    if (copyPending == 1 && task->spawnArg1.value == 0 && !(area == 1 && view == 0xF) && gDisplayState.pendingMode == 0) {
         u16  ofs[2];
         RECT rect;
 
@@ -1640,8 +1642,8 @@ static void func_dryfield_night_motel_room_6_8017F64C(Task* task)
             if (halfWidth >= 0x60) {
                 halfWidth = 0x5F;
             }
-            if ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_AREA_VIEW) == GP_LOC_KEY(0, 2, 0, 5)) {
-                if (task->spawnArg1 == 0) {
+            if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_AREA_VIEW) == GP_LOC_KEY(0, 2, 0, 5)) {
+                if (task->spawnArg1.value == 0) {
                     halfWidth = 0x5F;
                 } else {
                     extent->otzFoot = extent->otzHead + 0xA;
@@ -1752,8 +1754,8 @@ void func_dryfield_night_motel_room_6_80180FD0(Task* task)
     if (task->parent == NULL) {
         Task_CallExit(task);
     }
-    mirror      = (Task*)task->spawnArg2;
-    mirrorPart  = &mirror->extra.tmd->coords[D_dryfield_night_motel_room_6_80182E70[task->spawnArg1]];
+    mirror      = (Task*)task->spawnArg2.pointer;
+    mirrorPart  = &mirror->extra.tmd->coords[D_dryfield_night_motel_room_6_80182E70[task->spawnArg1.value]];
     work        = (RoomMirrorWork*)mirror->work;
     mirrorExtra = mirror->extra.tmd;
     if (task->state == 0) {
@@ -1773,7 +1775,7 @@ void func_dryfield_night_motel_room_6_80180FD0(Task* task)
         parts->sub      = mirrorPart;
         extra->lightMtx = &work->light;
         extra->colorMtx = &work->color;
-        if (task->spawnArg1 >= 2) {
+        if (task->spawnArg1.value >= 2) {
             scale = D_dryfield_night_motel_room_6_8017D644;
             ScaleMatrix(&parts->coord, &scale);
         }
@@ -1786,7 +1788,7 @@ void func_dryfield_night_motel_room_6_80180FD0(Task* task)
     extra        = task->extra.tmd;
     flags        = mirrorExtra->flags;
     extra->flags = flags;
-    if (task->spawnArg1 >= 2) {
+    if (task->spawnArg1.value >= 2) {
         extra->flags = flags & 0xFFEF;
     }
 }
@@ -1817,18 +1819,18 @@ void func_dryfield_night_motel_room_6_801811F0(Task* task)
     RoomCutsceneRec* script;
     McSaveData*      save;
 
-    script = task->spawnArg2;
+    script = task->spawnArg2.pointer;
     switch (task->state) {
         case 0:
             D_dryfield_night_motel_room_6_801862B4 = NULL;
             Gp_MsgPlayerWeapon(0);
             save = &Mc_SaveData[0];
-            if (save->companionType == 1) {
+            if (save->state.companionType == 1) {
                 Gp_MsgAllyWeapon(0);
             }
             if (script->field_0 > 0) {
-                D_80115694         = save->at4.loc.view;
-                save->at4.loc.view = (u8)script->field_0;
+                D_80115694         = save->state.at4.loc.view;
+                save->state.at4.loc.view = (u8)script->field_0;
             } else {
                 D_80115694 = -script->field_0;
             }
@@ -1911,7 +1913,7 @@ void func_dryfield_night_motel_room_6_801811F0(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
+                    if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -1925,7 +1927,7 @@ void func_dryfield_night_motel_room_6_801811F0(Task* task)
                     GameFlag_SetNibble(3, 1);
                     task->state = 0x14;
                 } else {
-                    Gp_RunCapCmd1(task->spawnArg1);
+                    Gp_RunCapCmd1(task->spawnArg1.value);
                     task->state++;
                 }
             }
@@ -1941,7 +1943,7 @@ void func_dryfield_night_motel_room_6_801811F0(Task* task)
         case 11:
             Gp_MsgPlayer3F3(1);
             Gp_MsgAlly3F3(1);
-            Mc_SaveData[0].at4.loc.view = (u8)D_80115694;
+            Mc_SaveData[0].state.at4.loc.view = (u8)D_80115694;
             task->state++;
             break;
         case 12:
@@ -1951,7 +1953,7 @@ void func_dryfield_night_motel_room_6_801811F0(Task* task)
         case 14:
             SndEvt_EnqueueType6(script->field_8, 0, 0);
             Gp_MsgPlayerWeapon(1);
-            if (Mc_SaveData[0].companionType == 1) {
+            if (Mc_SaveData[0].state.companionType == 1) {
                 Gp_MsgAllyWeapon(1);
             }
             gGameSession->hideHud    = 0;
@@ -2048,7 +2050,7 @@ s32 func_dryfield_night_motel_room_6_8018175C(s32 arg0, s32 arg1, s32 arg2, s32 
         D_dryfield_night_motel_room_6_801862B8.field_8  = Gp_PackStageSndId(0x521E000B);
         D_dryfield_night_motel_room_6_801862B8.field_10 = Gp_PackStageSndId(0x521E0009);
         D_dryfield_night_motel_room_6_801862B8.field_C  = Gp_PackStageSndId(0x521E000A);
-        Task_SpawnFromTable(&D_dryfield_night_motel_room_6_80182E8C, 0, count, (s32)&D_dryfield_night_motel_room_6_801862B8);
+        Task_SpawnFromTable(&D_dryfield_night_motel_room_6_80182E8C, 0, count, &D_dryfield_night_motel_room_6_801862B8);
     } else {
         func_dryfield_night_motel_room_6_80181A9C(arg0, arg1, arg2, arg3);
     }
@@ -2117,9 +2119,9 @@ L_case5:
     GameFlag_SetNibble(0x59, 1);
     GameFlag_SetNibble(0x5A, 2);
     GameFlag_SetNibble(0x30, 0);
-    Mc_SaveData[0].at4.loc.area = 8;
-    Mc_SaveData[0].at4.loc.warp = 1;
-    Mc_SaveData[0].at4.loc.room = 1;
+    Mc_SaveData[0].state.at4.loc.area = 8;
+    Mc_SaveData[0].state.at4.loc.warp = 1;
+    Mc_SaveData[0].state.at4.loc.room = 1;
     gDisplayState.roomVariant   = 1;
     Task_Spawn(0, 0x11, 0, 0);
     taskKill(task);
@@ -2132,7 +2134,7 @@ void func_dryfield_night_motel_room_6_80181A0C(Task* task)
     switch (task->state) {
         case 0x50:
         case 0x0:
-            SndEvt_EnqueueType6((s32)task->spawnArg2, 0, 0);
+            SndEvt_EnqueueType6(task->spawnArg2.value, 0, 0);
             task->state += 1;
             break;
         case 0x78:

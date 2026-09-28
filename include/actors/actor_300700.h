@@ -6,10 +6,12 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/coord.h"
 
 #include "gameplay/effects.h"
 #include "gameplay/geometry.h"
+
+#include "main/coord.h"
+#include "main/session_types.h"
 
 /// The first collision record of the work block, viewed both as a plain
 /// `GpRec18` and as the raw id pair the tick handler reads back out of it.

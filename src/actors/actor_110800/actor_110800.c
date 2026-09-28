@@ -1,18 +1,20 @@
 #include "common.h"
 
 #include "actors/actor.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/collision.h"
 #include "gameplay/display.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// The block above, published by `func_actor_110800_801322A0` from the task's
 /// `Task::work`.
@@ -190,7 +192,7 @@ void func_actor_110800_801322A0(Task* task)
     };
 
     D_actor_110800_80139F10 = task->work;
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Parents the given task's model root to node 8 of the actor's model, offset
@@ -212,7 +214,7 @@ void func_actor_110800_801322FC(Task* arg0)
 static void func_actor_110800_8013232C(Task* arg0)
 {
     taskKill(D_actor_110800_80139F18);
-    Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+    Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
 }
 
 /// Advances the animation per the work block's `st.state`: step 1 reseeds the

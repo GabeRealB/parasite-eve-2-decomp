@@ -10,8 +10,8 @@
 #include "gameplay/pairsrc.h"
 
 #include "main/coord.h"
-#include "main/session.h"
-#include "main/task.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
 
 /// One enemy: the work object `Gp_AllocEnemy` allocates and hangs off
 /// `Task::spawnArg2`, which the enemy's task frees again when it dies.

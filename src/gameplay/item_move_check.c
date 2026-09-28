@@ -5,8 +5,8 @@
 #include "item_use.h"
 #include "gameplay/items.h"
 
-#include "main/mc.h"
-#include "main/ui.h"
+#include "main/mc_types.h"
+#include "main/ui_types.h"
 
 extern UiListItemFunc D_8010D630[1];
 

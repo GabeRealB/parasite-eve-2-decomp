@@ -9,13 +9,6 @@
 #include "actors/actor_400100_motion.h"
 #include "actors/actor_400100_update.h"
 #include "actors/actors_shared_80169f74.h"
-#include "main/fs.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/wipsys.h"
 #include "psyq/abs.h"
 
 #include "gameplay/actor_render.h"
@@ -33,8 +26,32 @@
 #include "gameplay/loading.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+
+#include "actors/actor.h"
+#include "gameplay/actor.h"
+#include "gameplay/animation.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
+#include "gameplay/message.h"
+#include "gameplay/pairsrc.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
+#include "overlay.h"
+#include <psyq/memory.h>
+#include <psyq/stdio.h>
 
 /// Twelve `SVECTOR` hit positions `Actor00100_Fn03340` picks from by damage
 /// magnitude. The fourth halfword (`pad`, unused by the effect) is the model
@@ -167,14 +184,14 @@ static void Actor00100_Fn001FC(GpCoord* coord, s16 yaw)
 /// apart cancel each other. Each remaining bearing becomes a short step
 /// against it, added to both `pos` and the coordinate's translation. Returns
 /// whether a kind 0x10000 record was among them. Does nothing, and returns 0,
-/// while the session's `viewReady` or `Mc_SaveData[0].field_5C1` is 1.
+/// while the session's `viewReady` or `Mc_SaveData[0].state.field_5C1` is 1.
 static s32 Actor00100_Fn00508(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
     s16                  diff;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData[0].field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.field_5C1 == 1) {
         return 0;
     }
 
@@ -386,7 +403,7 @@ s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, GpCmdArg* arg2)
     s32                 pan;
 
     work = arg0->work;
-    ctx  = arg0->spawnArg2;
+    ctx  = arg0->spawnArg2.pointer;
 
     if (arg2->from.key == 0x109) {
         kind = arg2->command;
@@ -525,7 +542,7 @@ static s32 Actor00100_Fn01388(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR*
     SCRATCH_HEAD(u8) = head - sizeof(Actor00100AvoidScratch16);
     s                = (Actor00100AvoidScratch16*)SCRATCH_HEAD(u8);
 
-    if (Mc_SaveData[0].field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
 
@@ -1226,7 +1243,7 @@ static void Actor00100_Fn02788(Task* arg0)
     arg0->extra.tmd->coords[10].flg = 0;
     sound                           = Actor00100_Fn01EEC(arg0, work);
     if (sound != 0) {
-        soundId = sound | ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8);
+        soundId = sound | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
         pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, (s32)pan, (s32)(s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
@@ -1382,7 +1399,7 @@ static void Actor00100_Fn02C54(GpEnemy* arg0, Task* arg1)
     work->field_890.coord      = &arg1->extra.tmd->coords[1];
     work->field_890.spawnArgLo = 0x100;
     work->field_890.spawnArgHi = 2;
-    kind                       = (arg1->spawnArg1 >> 16) & 0xF;
+    kind                       = (arg1->spawnArg1.value >> 16) & 0xF;
     if (kind == 1) {
         goto state1;
     }
@@ -1416,7 +1433,7 @@ stateStill:
     work->field_0 = 0x18;
     Tmd_AllocBuffers(tmd);
 stateEnd:
-    kind = arg1->spawnArg1 & 0xF;
+    kind = arg1->spawnArg1.value & 0xF;
     if (kind == 1) {
         goto pose2;
     }
@@ -1578,7 +1595,7 @@ static void Actor00100_Fn0375C(Task* arg0)
     void*                    temp_v1_2;
     void*                    temp_v1_3;
 
-    ctx  = arg0->spawnArg2;
+    ctx  = arg0->spawnArg2.pointer;
     work = (Actor00100DamageWork*)((Actor00100Work*)arg0->work);
     if (ctx->hp > 0) {
         head              = SCRATCH_HEAD(Actor00100DamageScratch);
@@ -1804,7 +1821,7 @@ static void Actor00100_Fn04270(Task* arg0)
 
     work = arg0->work;
     obj  = arg0->extra.tmd;
-    ctx  = arg0->spawnArg2;
+    ctx  = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj->flags              = 0;
         work->objs[2].flags    &= 0xBFFF;
@@ -1882,7 +1899,7 @@ static void Actor00100_Fn04864(Task* arg0)
     s16                 yaw;
 
     work = arg0->work;
-    ctx  = arg0->spawnArg2;
+    ctx  = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj                     = arg0->extra.tmd;
         ctx->node.state.b.flags = 0;
@@ -2067,7 +2084,7 @@ static void Actor00100_Fn0503C(Task* arg0)
     work       = arg0->work;
     player     = gameGetPtrSlot(3);
     playerWork = (GameActor*)player->work;
-    ctx        = arg0->spawnArg2;
+    ctx        = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj              = arg0->extra.tmd;
         initialDelta.pad = actorPositionYaw(arg0, &initialDelta, config);
@@ -2414,7 +2431,7 @@ static void Actor00100_Fn061FC(Task* arg0)
     work = arg0->work;
     if (work->field_4 != 0) {
         obj                                             = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
         obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
@@ -2457,7 +2474,7 @@ static void Actor00100_Fn06398(Task* arg0)
     head                  = SCRATCH_HEAD(SVECTOR);
     vec                   = head - 2;
     SCRATCH_HEAD(SVECTOR) = vec;
-    ctx                   = arg0->spawnArg2;
+    ctx                   = arg0->spawnArg2.pointer;
     gteVec                = vec;
     if (work->field_4 != 0) {
         obj                     = arg0->extra.tmd;
@@ -2527,7 +2544,7 @@ static void Actor00100_Fn06654(Task* arg0)
     head = SCRATCH_HEAD(SVECTOR);
     vec  = (SCRATCH_HEAD(SVECTOR) = head - 2);
     work = arg0->work;
-    ctx  = arg0->spawnArg2;
+    ctx  = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj                     = arg0->extra.tmd;
         ctx->node.state.b.flags = 0;
@@ -2602,7 +2619,7 @@ static void Actor00100_Fn06C10(Task* arg0)
     work = arg0->work;
     if (work->field_4 != 0) {
         obj                                             = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
         obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
@@ -2678,7 +2695,7 @@ static void Actor00100_Fn070DC(Task* arg0)
     scratch = (SCRATCH_HEAD(Actor00100AngleScratch) = head - 1);
     if (work->field_4 != 0) {
         obj                                             = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
         obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
@@ -2784,7 +2801,7 @@ static void Actor00100_Fn0747C(Task* arg0)
     work = arg0->work;
     if (work->field_4 != 0) {
         obj                                             = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
         obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
@@ -2818,7 +2835,7 @@ static void Actor00100_Fn07650(Task* arg0)
     s32             pan2;
 
     work = arg0->work;
-    ctx  = arg0->spawnArg2;
+    ctx  = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj                     = arg0->extra.tmd;
         ctx->node.state.b.flags = 0;
@@ -2913,7 +2930,7 @@ static void Actor00100_Fn0782C(Task* arg0)
     s32               yawDifference;
     u16               unsignedDelta;
     work = arg0->work;
-    ctx  = arg0->spawnArg2;
+    ctx  = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         head                    = SCRATCH_HEAD(ActorMoveScratch);
         obj                     = arg0->extra.tmd;
@@ -3192,7 +3209,7 @@ static void Actor00100_Fn08588(Task* arg0)
     head    = SCRATCH_HEAD(ActorTurnStepScratch);
     scratch = (SCRATCH_HEAD(ActorTurnStepScratch) = head - 1);
     work    = arg0->work;
-    ctx     = arg0->spawnArg2;
+    ctx     = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj                     = arg0->extra.tmd;
         work->field_BE4         = 0;
@@ -3294,7 +3311,7 @@ static void Actor00100_Fn08A14(Task* arg0)
     head    = SCRATCH_HEAD(ActorTurnStepScratch);
     scratch = (SCRATCH_HEAD(ActorTurnStepScratch) = head - 1);
     work    = arg0->work;
-    ctx     = arg0->spawnArg2;
+    ctx     = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj                     = arg0->extra.tmd;
         work->field_BE4         = 0;
@@ -3398,7 +3415,7 @@ static void Actor00100_Fn08E7C(Task* arg0)
     scratch = (SCRATCH_HEAD(Actor00100ProjectScratch) = head - 1);
     if (work->field_4 != 0) {
         obj                                             = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
         obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
@@ -3526,7 +3543,7 @@ static void Actor00100_Fn09310(Task* arg0)
     GpEnemy*        ctx;
 
     work = arg0->work;
-    ctx  = arg0->spawnArg2;
+    ctx  = arg0->spawnArg2.pointer;
     obj  = arg0->extra.tmd;
     if (work->field_4 != 0) {
         work->field_BE4         = 0;
@@ -3635,7 +3652,7 @@ static void Actor00100_Fn09724(Task* arg0)
 
     work = arg0->work;
     SCRATCH_PUSH_BYTES(0x10);
-    ctx = arg0->spawnArg2;
+    ctx = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj                     = arg0->extra.tmd;
         ctx->node.state.b.flags = 0;
@@ -3705,7 +3722,7 @@ static void Actor00100_Fn09CCC(Task* arg0)
 
     work = arg0->work;
     SCRATCH_PUSH_BYTES(0x14);
-    ctx = arg0->spawnArg2;
+    ctx = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj                     = arg0->extra.tmd;
         ctx->node.state.b.flags = 1;
@@ -4028,7 +4045,7 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                 if (command == &Actor00100_D1B9D0) {
                     if ((config->hp > 0) && ((s16)work->field_C28 >= 0x17)) {
                         message           = &work->field_BF8;
-                        command->field_10 = (s32)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]->prefix.addresses[7];
+                        command->field_10 = (s32)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon]->prefix.addresses[7];
                         work->field_BFC   = 4;
                         work->field_C00   = 1;
                         work->field_C04   = 3;
@@ -4037,7 +4054,7 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                     }
                 } else if ((config->hp > 0) && ((s16)work->field_C28 >= 0x22)) {
                     message                 = &work->field_BF8;
-                    Actor00100_D1B9BC.value = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]->prefix.addresses[7];
+                    Actor00100_D1B9BC.value = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon]->prefix.addresses[7];
                     work->field_BFC         = 4;
                     work->field_C00         = 1;
                     work->field_C04         = 3;
@@ -4083,9 +4100,9 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                         work->field_BFC = 5;
                         command2        = work->field_BF8;
                         if (command2 == &Actor00100_D1B9D0) {
-                            command2->field_14 = (s32)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]->prefix.addresses[9];
+                            command2->field_14 = (s32)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon]->prefix.addresses[9];
                         } else {
-                            Actor00100_D1B9C0.value = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].characterId - 1] + Player_Status.weapon]->prefix.addresses[9];
+                            Actor00100_D1B9C0.value = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon]->prefix.addresses[9];
                         }
                         nextMessage = &work->field_BF8;
                         Gp_DispatchMsgPtr(player, 0x3FF, nextMessage, 0);
@@ -4198,7 +4215,7 @@ s32 Actor00100_Fn0B264(Task* task)
 {
     u16 flags;
 
-    if (((GpEnemy*)task->spawnArg2)->hp <= 0) {
+    if (((GpEnemy*)task->spawnArg2.pointer)->hp <= 0) {
         flags = task->extra.tmd->flags;
         if (flags & 0x80) {
             return 0;
@@ -4234,7 +4251,7 @@ s32 Actor00100_Fn0B2B4(Task* task, s32 arg1, GpXformArg* placement)
 
 static void Actor00100_Fn0B3B4(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 static void Actor00100_Fn0B3DC(Task* arg0, s16 arg1, s16 arg2)
@@ -4287,7 +4304,7 @@ static void Actor00100_Fn0B4D8(Task* arg0)
     work = arg0->work;
     if (work->field_4 != 0) {
         obj                                             = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 1;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 1;
         obj->flags                                     |= 0x80;
         work->objs[2].flags                            &= 0xBFFF;
     }
@@ -4302,7 +4319,7 @@ static void Actor00100_Fn0B52C(Task* arg0)
     u32             magnitude;
 
     work = arg0->work;
-    ctx  = arg0->spawnArg2;
+    ctx  = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj                     = arg0->extra.tmd;
         ctx->node.state.b.flags = 0;
@@ -4343,7 +4360,7 @@ static void Actor00100_Fn0B658(Task* arg0)
     work = arg0->work;
     if (work->field_4 != 0) {
         obj                                             = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
         obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
@@ -4371,7 +4388,7 @@ static void Actor00100_Fn0B730(Task* arg0)
     work = arg0->work;
     if (work->field_4 != 0) {
         obj                                             = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
         obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
@@ -4395,7 +4412,7 @@ static void Actor00100_Fn0B7DC(Task* arg0)
     TmdObject*      obj;
 
     work = arg0->work;
-    ctx  = arg0->spawnArg2;
+    ctx  = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj                     = arg0->extra.tmd;
         work->field_BE4         = 0;
@@ -4443,7 +4460,7 @@ static void Actor00100_Fn0B8D8(Task* arg0)
     timer         = work->field_6 - 1;
     work->field_6 = timer;
     if ((s16)timer < 0) {
-        if (((GpEnemy*)arg0->spawnArg2)->hp > 0) {
+        if (((GpEnemy*)arg0->spawnArg2.pointer)->hp > 0) {
             work->field_0 = 0x24;
         } else {
             work->field_0 = 0x15;
@@ -4458,7 +4475,7 @@ static void Actor00100_Fn0B98C(Task* arg0)
     TmdObject*      obj;
 
     work = arg0->work;
-    ctx  = arg0->spawnArg2;
+    ctx  = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj                     = arg0->extra.tmd;
         work->field_BE4         = 0;
@@ -4496,7 +4513,7 @@ static void Actor00100_Fn0BA70(Task* arg0)
     Actor00100Work* work;
 
     work = arg0->work;
-    ctx  = arg0->spawnArg2;
+    ctx  = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj                     = arg0->extra.tmd;
         work->field_BE4         = 0;
@@ -4526,7 +4543,7 @@ static void Actor00100_Fn0BB2C(Task* arg0)
     TmdObject*      obj;
 
     work = arg0->work;
-    ctx  = arg0->spawnArg2;
+    ctx  = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj                     = arg0->extra.tmd;
         work->field_BE4         = 0;
@@ -4595,5 +4612,5 @@ void Actor00100_Fn0BD28(Task* arg0)
     GpEnemyTaskFuncTable4 sp;
 
     sp = Actor00100_D001A0;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }

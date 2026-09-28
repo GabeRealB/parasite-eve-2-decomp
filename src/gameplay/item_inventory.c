@@ -8,12 +8,12 @@
 #include "gameplay/items.h"
 #include "gameplay/starter_inventory.h"
 
+/* Total quantity of item `id` held, via a fresh scan covering every row. */
+#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = 0xFF, Gp_SumScanQty(&(scan), (id)))
+
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/wipsys.h"
-
-/* Total quantity of item `id` held, via a fresh scan covering every row. */
-#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = 0xFF, Gp_SumScanQty(&(scan), (id)))
 
 /* Item names and descriptions shared by the inventory tables. */
 extern const u8 D_80093E68[];
@@ -892,13 +892,13 @@ void func_800B8014(void)
     s32           row;
     s32           col;
 
-    for (j = 0, rec = Mc_SaveData[0].itemRows; j < 0x100; j++) {
+    for (j = 0, rec = Mc_SaveData[0].state.itemRows; j < 0x100; j++) {
         rec->itemId = 0;
         rec->qty    = 0;
         rec++;
     }
     for (i = 0x5F; i >= 0; i--) {
-        Mc_SaveData[0].itemSeenBits[i] = 0;
+        Mc_SaveData[0].state.itemSeenBits[i] = 0;
     }
 
     i = 0;
@@ -922,7 +922,7 @@ void func_800B8014(void)
         i++;
     } while (i < 0x180);
     Gp_ClearCollectedBits();
-    slots = Mc_SaveData[0].weaponItems;
+    slots = Mc_SaveData[0].state.weaponItems;
     for (j = 0; j < 0x20; j++) {
         slots->ammoId    = 0;
         slots->ammoQty   = 0;
@@ -936,19 +936,19 @@ void func_800B8014(void)
         slots++;
     }
     Gp_ApplyItemMap();
-    Mc_SaveData[0].carriedItems.firstRow = 0;
-    Mc_SaveData[0].carriedItems.rowCount = 0x14;
-    Mc_SaveData[0].carriedItems.table    = 0;
+    Mc_SaveData[0].state.carriedItems.firstRow = 0;
+    Mc_SaveData[0].state.carriedItems.rowCount = 0x14;
+    Mc_SaveData[0].state.carriedItems.table    = 0;
     for (row = 0; row < 4; row++) {
         for (col = 0; col < 3; col++) {
-            Mc_SaveData[0].attachLevels[col + row * 3] = 0;
+            Mc_SaveData[0].state.attachLevels[col + row * 3] = 0;
         }
     }
     save                  = &Mc_SaveData[0];
-    scan                  = &save->carriedItems;
-    save->attachLevels[0] = 1;
+    scan                  = &save->state.carriedItems;
+    save->state.attachLevels[0] = 1;
     cfg                   = &Player_Status;
-    if (save->clearCount == 0) {
+    if (save->state.clearCount == 0) {
         cfg->bp = 0xC8;
         _gpInitStartingItems(scan, cfg);
     } else {
@@ -979,11 +979,11 @@ void func_800B8014(void)
     Gp_GiveItem(scan, 0xAC, 0x14);
     Gp_GiveItem(scan, 0xA9, 8);
     Gp_SetCollectedBit(0x106);
-    word  = GP_LOC_WORD(Mc_SaveData[0].at4.loc);
+    word  = GP_LOC_WORD(Mc_SaveData[0].state.at4.loc);
     word &= GP_LOC_STAGE_AREA;
     if (word == GP_LOC_KEY(1, 0x14, 0, 0)) {
         Gp_ResetInventory();
-        Gp_GiveItem(&Mc_SaveData[0].carriedItems, 0x81, 1);
+        Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, 0x81, 1);
         Gp_EquipHeld(0x81);
     }
 }
@@ -1001,7 +1001,7 @@ static inline McItemRec* _gpScanTable(McItemScan* scan)
             table = Gp_ItemTable1;
             break;
         default:
-            table = Mc_SaveData[0].itemRows;
+            table = Mc_SaveData[0].state.itemRows;
             break;
     }
     return table;

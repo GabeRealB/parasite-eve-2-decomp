@@ -2,12 +2,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/attachments.h"
@@ -20,7 +14,16 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 /// Work block of the overlay's actor, allocated zeroed by its spawn routine
 /// and kept both in `D_actor_146300_80142828` and at `Task::work`; every other
@@ -320,7 +323,7 @@ void func_actor_146300_801326CC(Task* task)
     };
 
     D_actor_146300_80142828 = task->work;
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// State 1 of the task handler `func_actor_146300_801326CC`: refreshes the model
@@ -346,7 +349,7 @@ static void func_actor_146300_80132728(GpEnemy* enemy, Task* task)
 /// (parked in `Task::spawnArg2`) back to `Gp_DestroyEnemy`.
 static void func_actor_146300_801327A4(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Per-frame update: reset mode 1 runs the reseed with the latched reset

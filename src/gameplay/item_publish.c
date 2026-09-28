@@ -12,7 +12,7 @@
 #include "scene_runtime.h"
 
 #include "main/mc.h"
-#include "main/session.h"
+#include "main/task_types.h"
 
 u16 Gp_PubItemReady;
 
@@ -119,7 +119,7 @@ s32 Gp_LookupBit2Item(s32 arg0)
     s32         term;
     s32         found;
 
-    idx   = Mc_SaveData[0].at4.loc.stage;
+    idx   = Mc_SaveData[0].state.at4.loc.stage;
     lists = Gp_Bit2Banks[idx].field_0;
     found = 0;
     if (lists != NULL) {

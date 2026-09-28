@@ -6,7 +6,7 @@
 #include "direction.h"
 #include "geometry.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 extern const GpDirActionTable Gp_DirActionFns;
 

@@ -6,6 +6,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+
 #include "main/coord.h"
 
 /// 0x78 stack scratch the patio's look-at task

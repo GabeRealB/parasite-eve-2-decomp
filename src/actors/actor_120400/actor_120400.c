@@ -1,5 +1,4 @@
 #include "common.h"
-#include "main/gfx.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -7,10 +6,6 @@
 #include <psyq/abs.h>
 
 #include "actors/actor.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/collision.h"
@@ -22,7 +17,18 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 /// Work block of the parent task, allocated zeroed by its spawn routine and
 /// kept at `Task::work`: a twenty-part rig, the walk state, and
@@ -131,7 +137,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
     work->walk.acc[0].w = 0;
     work->walk.acc[1].w = 0;
     work->walk.acc[2].w = 0;
-    spawned             = Task_SpawnFromTable(&D_actor_120400_8013E748, 1, 8, (s32)arg0);
+    spawned             = Task_SpawnFromTable(&D_actor_120400_8013E748, 1, 8, arg0);
     if (spawned != NULL) {
         TmdObject*     model;
         GpAreaVariant* rec;
@@ -139,7 +145,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
         s32            idx;
 
         model      = spawned->extra.tmd;
-        idx        = ((GpEnemy*)arg0->spawnArg2)->placeKey >> 12;
+        idx        = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
         sessionKey = &gGameSession->at4.loc;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
@@ -155,7 +161,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
             tmdProcessStream(model);
         }
     }
-    spawned = Task_SpawnFromTable(&D_actor_120400_8013E748, 2, 0xC, (s32)arg0);
+    spawned = Task_SpawnFromTable(&D_actor_120400_8013E748, 2, 0xC, arg0);
     if (spawned != NULL) {
         TmdObject*     model;
         GpAreaVariant* rec;
@@ -163,7 +169,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
         s32            idx;
 
         model = spawned->extra.tmd;
-        idx   = ((GpEnemy*)arg0->spawnArg2)->placeKey >> 12;
+        idx   = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
         /* Re-derived address, not the block-1 form: with `sessionKey->field_0`
            for the last byte, global CSE merges this block's area key with the
            one above into a single cross-block pseudo, and the allocation of
@@ -382,7 +388,7 @@ static void func_actor_120400_801325A4(Task* task)
     GpCoord*   coords;
     GpCoord*   root;
 
-    parent      = task->spawnArg2;
+    parent      = task->spawnArg2.pointer;
     obj         = task->extra.tmd;
     parentObj   = parent->extra.tmd;
     coords      = parentObj->coords;
@@ -398,7 +404,7 @@ static void func_actor_120400_801325A4(Task* task)
         obj->flags |= 4;
     }
     obj->otOffset = -2;
-    coords       += task->spawnArg1;
+    coords       += task->spawnArg1.value;
     root->flg     = 0;
     root->sub     = coords;
     obj->lightMtx = parentObj->lightMtx;
@@ -415,7 +421,7 @@ static void func_actor_120400_801326B0(Task* task)
     TmdObject* parentObject;
     TmdObject* object;
 
-    parentObject = ((Task*)task->spawnArg2)->extra.tmd;
+    parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
     object       = task->extra.tmd;
 
     if (!(parentObject->flags & 0x80)) {

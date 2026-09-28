@@ -8,12 +8,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/captions.h"
@@ -25,7 +19,19 @@
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/tmd.h"
 
 /// Work block of the overlay's actor, allocated zeroed by its spawn routine
 /// and kept both at `Task::work` and in `D_actor_260400_80154C70`: the light
@@ -185,7 +191,7 @@ static void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task)
     spawned                            = Task_SpawnFromTable(D_actor_260400_80154C18, 1, 8, 0);
     if (spawned != NULL) {
         D_actor_260400_80154C70->helper = spawned;
-        actorTintTask(spawned, (GpEnemy*)task->spawnArg2);
+        actorTintTask(spawned, (GpEnemy*)task->spawnArg2.pointer);
     }
     D_actor_260400_80154C70->st.travel   = 0;
     D_actor_260400_80154C70->turnFrames  = 0;
@@ -255,7 +261,7 @@ void func_actor_260400_8014A550(Task* task)
     };
 
     D_actor_260400_80154C70 = (Actor260400Work*)task->work;
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Per-frame state (state 1 of `func_actor_260400_8014A550`): refreshes the
@@ -284,7 +290,7 @@ static void func_actor_260400_8014A630(Task* task)
 {
     Actor260400Work* work = (Actor260400Work*)task->work;
 
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
     taskKill(work->helper);
 }
 
@@ -319,7 +325,7 @@ void func_actor_260400_8014A6F8(Task* task)
     TmdObject* extra = task->extra.tmd;
     GpCoord*   coord = extra->coords;
     GpCoord*   parts = D_actor_260400_80154C74->extra.tmd->coords;
-    GpCoord*   part  = parts + task->spawnArg1;
+    GpCoord*   part  = parts + task->spawnArg1.value;
     VECTOR     vec;
 
     switch (task->state) {

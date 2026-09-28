@@ -4,9 +4,10 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
-#include "main/gfx.h"
+#include "main/coord.h"
 
 /// 0x18-byte scratchpad block `func_tonfa_baton_8011DBFC` reserves for one
 /// frame of the swing. `dir` receives the third column of the weapon's

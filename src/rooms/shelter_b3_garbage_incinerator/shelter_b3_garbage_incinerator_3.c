@@ -5,13 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b3_garbage_incinerator.h"
 
@@ -20,8 +13,18 @@
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
+
+#include "gameplay/collision.h"
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
+#include "main/fs.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
 #include "main/wipsys.h"
 
 typedef struct {
@@ -63,7 +66,7 @@ static void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
     u32                     mode;
     u8                      view;
 
-    ctx                        = task->spawnArg2;
+    ctx                        = task->spawnArg2.pointer;
     Gp_State1C->roomEffectMode = 2;
     mode                       = gGameSession->field_132;
 
@@ -403,10 +406,10 @@ static void func_shelter_b3_garbage_incinerator_80182368(Task* task)
     s32        step;
     s32        level;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
-        if (task->spawnArg1 < 0) {
+        if (task->spawnArg1.value < 0) {
             func_shelter_b3_garbage_incinerator_80182F18(coord, work->index | work->pos.vx, work->scale, work->angle);
         } else {
             func_shelter_b3_garbage_incinerator_80182AB8(coord, work->index | work->pos.vx, work->scale, work->angle);
@@ -419,27 +422,27 @@ static void func_shelter_b3_garbage_incinerator_80182368(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            work->scale = task->spawnArg1 & 0xFFF;
+            work->scale = task->spawnArg1.value & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            if (task->spawnArg1 & 0xF000) {
-                step = (task->spawnArg1 >> 12) & 7;
+            if (task->spawnArg1.value & 0xF000) {
+                step = (task->spawnArg1.value >> 12) & 7;
             } else {
                 step = 1;
             }
             work->period = step;
             work->age    = 0;
             task->state  = 1;
-            task->state  = task->spawnArg1 < 0 ? 2 : 1;
-            work->pos.vx = (task->spawnArg1 >> 16) & 0x7000;
+            task->state  = task->spawnArg1.value < 0 ? 2 : 1;
+            work->pos.vx = (task->spawnArg1.value >> 16) & 0x7000;
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                if (task->spawnArg1 & 0xFF0000) {
-                    level = (task->spawnArg1 >> 16) & 0xFF;
+                if (task->spawnArg1.value & 0xFF0000) {
+                    level = (task->spawnArg1.value >> 16) & 0xFF;
                 } else {
                     level = 0x40;
                 }
                 work->step = level;
-                switch ((task->spawnArg1 >> 24) & 0xF) {
+                switch ((task->spawnArg1.value >> 24) & 0xF) {
                     case 0:
                         work->step = 0;
                         break;
@@ -509,7 +512,7 @@ static void func_shelter_b3_garbage_incinerator_80182368(Task* task)
                 coord->coord.t[1] += work->move.vy;
                 coord->coord.t[2] += work->move.vz;
                 coord->flg         = 0;
-                if (((task->spawnArg1 >> 24) & 0xF) == 7) {
+                if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
                     work->move.vy -= 2;
@@ -529,7 +532,7 @@ static void func_shelter_b3_garbage_incinerator_80182368(Task* task)
                 coord->coord.t[1] += work->move.vy;
                 coord->coord.t[2] += work->move.vz;
                 coord->flg         = 0;
-                if (((task->spawnArg1 >> 24) & 0xF) == 7) {
+                if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
                     work->move.vy -= 1;
@@ -682,7 +685,7 @@ static void func_shelter_b3_garbage_incinerator_80183364(Task* task)
     s32        state;
     s32        level;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         func_shelter_b3_garbage_incinerator_801837F8(coord, work->index, work->scale, work->angle);
@@ -694,29 +697,29 @@ static void func_shelter_b3_garbage_incinerator_80183364(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            work->scale = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            work->scale = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            if (task->spawnArg1 & 0xF000) {
-                step = (task->spawnArg1 >> 12) & 0xF;
+            if (task->spawnArg1.value & 0xF000) {
+                step = (task->spawnArg1.value >> 12) & 0xF;
             } else {
                 step = 1;
             }
             work->period = step;
             work->age    = 0;
             state        = 1;
-            if (task->spawnArg1 & 0xF0000000) {
+            if (task->spawnArg1.value & 0xF0000000) {
                 state = 2;
             }
             task->state = state;
             if (((u16)work->move.vx | (u16)work->move.vy | (u16)work->move.vz) == 0) {
-                if (task->spawnArg1 & 0xFF0000) {
-                    level = (task->spawnArg1 >> 16) & 0xFF;
+                if (task->spawnArg1.value & 0xFF0000) {
+                    level = (task->spawnArg1.value >> 16) & 0xFF;
                 } else {
                     level = 0x40;
                 }
                 work->step = level;
-                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1.value)->field_3;
                 switch (kind & 0xF) {
                     case 0:
                         work->step = 0;
@@ -1134,7 +1137,7 @@ void func_shelter_b3_garbage_incinerator_80184D84(Task* arg0)
     switch (arg0->state) {
         case 0:
             v = Player_Status.weapon;
-            if (Mc_SaveData[0].characterId == 1) {
+            if (Mc_SaveData[0].state.characterId == 1) {
                 v = v + 1;
             } else {
                 v = v + 0x22;
@@ -1145,11 +1148,11 @@ void func_shelter_b3_garbage_incinerator_80184D84(Task* arg0)
             buf.msg[3] = 0;
             buf.msg[4] = 0;
             Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, buf.msg, 0);
-            arg0->spawnArg2 = Task_SpawnFromTable(&D_80164190, 0, 0, 0);
+            arg0->spawnArg2.pointer = Task_SpawnFromTable(&D_80164190, 0, 0, 0);
             arg0->state++;
             return;
         case 1:
-            if (Task_PollKill(arg0->spawnArg2, &out) != 0) {
+            if (Task_PollKill(arg0->spawnArg2.pointer, &out) != 0) {
                 arg0->state++;
             }
             return;

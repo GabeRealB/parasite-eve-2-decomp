@@ -10,7 +10,6 @@
 #include "main/mc.h"
 #include "main/pad.h"
 #include "main/session.h"
-#include "main/task.h"
 #include "main/wipsys.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
@@ -187,21 +186,21 @@ void Gp_UpdatePadInput(void)
             mask |= 0x1000;
             if (actor->field_954 != 0 || actor->field_956 < 2) {
                 if (pad->field_56 < -0xE80) {
-                    if (Mc_SaveData[0].moveMode == 0) {
-                        if (Mc_SaveData[0].buttonLayout != 1) {
+                    if (Mc_SaveData[0].state.moveMode == 0) {
+                        if (Mc_SaveData[0].state.buttonLayout != 1) {
                             mask |= 0x20;
                         } else {
                             mask |= 0x80;
                         }
                     } else {
-                        if (Mc_SaveData[0].buttonLayout == 1) {
+                        if (Mc_SaveData[0].state.buttonLayout == 1) {
                             mask &= 0xFF7F;
                         } else {
                             mask &= 0xFFDF;
                         }
                     }
-                } else if (Mc_SaveData[0].moveMode == 1) {
-                    if (Mc_SaveData[0].buttonLayout != 1) {
+                } else if (Mc_SaveData[0].state.moveMode == 1) {
+                    if (Mc_SaveData[0].state.buttonLayout != 1) {
                         mask |= 0x20;
                     } else {
                         mask |= 0x80;
@@ -249,7 +248,7 @@ static u16 Gp_RemapButtons(GameActor* actor, u16 mask)
     s32 i;
 
     result = 0;
-    switch (Mc_SaveData[0].buttonLayout) {
+    switch (Mc_SaveData[0].state.buttonLayout) {
         case 0:
             for (i = 0; i < 0x10; i++) {
                 if ((mask >> i) & 1) {

@@ -1,7 +1,4 @@
 #include "common.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -10,7 +7,11 @@
 #include "gameplay/area_transitions.h"
 #include "gameplay/display.h"
 #include "gameplay/evs_scripts.h"
-#include "main/fs.h"
+
+#include "gameplay/evs.h"
+#include "main/gameflag.h"
+#include "main/session.h"
+#include "main/task.h"
 
 extern TaskDesc       D_80135E78;
 extern GpMsgEntry     D_shelter_b6_growth_room_8017F16C[];

@@ -1,25 +1,28 @@
 #include "common.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "pe/healing.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
 #include "gameplay/actor_render.h"
 #include "gameplay/attachments.h"
 #include "gameplay/display.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// Per-level tuning for the healing aura: rows are PE levels 1-3, selected by
 /// `index`. `field_2` is the brightness ceiling, `field_4` the per-tick
@@ -58,7 +61,7 @@ static void func_healing_8012EF34(Task* arg0)
     u8          rgb[3];
 
     state = &Gp_StateC08;
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if ((state->field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
         if (arg0->state == 0) {
@@ -177,7 +180,7 @@ static void func_healing_8012F494(Task* arg0)
     s16        step;
     u16        spawn;
 
-    mem      = arg0->spawnArg2;
+    mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.tmd->coords;
     mem->age = mem->age + 1;
     state    = arg0->state;
@@ -189,7 +192,7 @@ static void func_healing_8012F494(Task* arg0)
             arg0->state  = 1;
             Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
             mem->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            spawn        = (u16)arg0->spawnArg1;
+            spawn        = (u16)arg0->spawnArg1.value;
             mem->period  = 0x1000;
             mem->angle   = spawn & 0xFFF;
             return;
@@ -225,7 +228,7 @@ static void func_healing_8012F5E4(Task* arg0)
     s16        kind;
     GpEffWork* spawned;
 
-    mem      = arg0->spawnArg2;
+    mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.tmd->coords;
     mem->age = mem->age + 1;
     if (arg0->state == 0) {
@@ -242,7 +245,7 @@ static void func_healing_8012F5E4(Task* arg0)
         kind         = (Gp_StateC08.field_0 % 10U) - 1;
         mem->step    = kind;
         mem->scale   = D_healing_8012FC1C[kind].field_2;
-        mem->angle   = (u16)arg0->spawnArg1 & 0xFFF;
+        mem->angle   = (u16)arg0->spawnArg1.value & 0xFFF;
     }
     step              = mem->move.vy;
     y                 = coord->coord.t[1] + step;

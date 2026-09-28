@@ -2,9 +2,9 @@
 #define ROOMS_DRYFIELD_NIGHT_MOTEL_LOBBY_H
 
 #include "common.h"
-
-#include "main/task.h"
 #include "rooms/room_common.h"
+
+#include "main/task_types.h"
 
 /// Work block the motel lobby's examine task keeps at `Task::work` (0x1C) --
 /// that slot is *not* a `TaskIdMap` here. `func_dryfield_night_motel_lobby_80180E98`

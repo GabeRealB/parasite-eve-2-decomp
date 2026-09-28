@@ -6,7 +6,7 @@
 
 #include "main/fs.h"
 #include "main/mc.h"
-#include "main/session.h"
+#include "main/task_types.h"
 
 /// 2-byte table at `D_8010CAD0`. `Gp_PollAreaCdLoads` reads `field_0` at
 /// `GpCdRec0C.field_4` (stride 2) as the CdCmd 0x21 param1[2] base.
@@ -57,7 +57,7 @@ u16 Gp_PollAreaCdLoads(void)
 
     switch (Gp_AreaCdPhase) {
         case 0:
-            rec         = Gp_GetNestedAreaRec(&Mc_SaveData[0].at4.loc);
+            rec         = Gp_GetNestedAreaRec(&Mc_SaveData[0].state.at4.loc);
             D_80114C64  = rec;
             Gp_CdRecCur = rec->field_0;
             if (rec == NULL) {
@@ -130,7 +130,7 @@ u16 func_800AA120(void)
 
     switch (D_80114C70) {
         case 0:
-            rec        = Gp_GetNestedAreaRec(&Mc_SaveData[0].at4.loc);
+            rec        = Gp_GetNestedAreaRec(&Mc_SaveData[0].state.at4.loc);
             D_80114C64 = rec;
             D_80114C68 = rec->field_4;
             if (rec == NULL) {

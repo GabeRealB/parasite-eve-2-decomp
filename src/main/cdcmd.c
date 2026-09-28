@@ -1,24 +1,71 @@
-#include "common.h"
+#include "main/fs.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libcd.h>
+#include <psyq/libpress.h>
+
+#include "types.h"
+
+#include "main/cdaudio.h"
+#include "cdaudio.h"
+#include "main/cdaudio_types.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "fs.h"
+#include "main/fs_types.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/stream.h"
+#include "main/stream_types.h"
+#include "stream.h"
+
+#include "gameplay/scene_runtime.h"
 
 #include "mapui/mapui.h"
-#include "main/unknown_syms.h"
-#include "main/cdaudio.h"
-#include "main/fs.h"
-#include "main/stream.h"
-
-#include "psyq/libpress.h"
-
-#include "gameplay/display.h"
-#include "gameplay/scene_runtime.h"
-#include "main/display.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/sound.h"
 
 static void* D_8006AC00;
-static u16   CdCmd_EntryIter;
 
-static s32* D_8005DCB4[] = {
+static u16 CdCmd_EntryIter;
+
+static s32* CdCmd_MapHeapSizes[];
+
+extern void func_8017D6D4(void);
+
+static void CdCmd_HandleStreamDecode(void);
+
+static void CdCmd_HandleFileLoad(void);
+
+static void CdCmd_HandleMount(void);
+
+static void CdCmd_ProcessPhase1(void);
+
+static void CdCmd_ProcessPhase2(void);
+
+/* Appends a command to the ring and returns the slot it was written to. */
+static inline s32 _cdCmdEnqueue(s32 cmd, u8* paramA, u8* paramB);
+
+/* True when no transfer is in progress and the ring is empty. */
+static inline u16 _cdCmdIsIdle(void);
+
+static s32 CdCmd_GetOverlayStatus(void);
+
+static s16 CdCmd_GetStreamMode(void);
+
+/// Unused command-module entry point; retained for the original image layout.
+static void CdCmd_UnusedStub1(void);
+
+/// Unused command-module entry point; retained for the original image layout.
+static void CdCmd_UnusedStub2(void);
+
+static void CdCmd_EnqueueReplaceOverlay81(void);
+
+static void CdCmd_ResetRing(void);
+
+static s32* CdCmd_MapHeapSizes[] = {
     NULL,
     D_map_akropolis_8017A0F8,
     D_map_dryfield_80179B4C,
@@ -49,15 +96,15 @@ void* CdCmd_SetupMdecBuffers(void)
                     break;
                 case 1:
                     gGameSession->field_7C = 0;
-                    p->field_18C           = D_8005C36C;
+                    p->field_18C           = Fs_ActorLoadBase0;
                     break;
                 case 2:
                     gGameSession->field_7E = 0;
-                    p->field_18C           = D_8005C370;
+                    p->field_18C           = Fs_ActorLoadBase1;
                     break;
                 case 3:
                     gGameSession->field_80 = 0;
-                    p->field_18C           = D_8005C374;
+                    p->field_18C           = Fs_ActorLoadBase2;
                     break;
             }
             if (p->field_21E == 0) {
@@ -69,37 +116,37 @@ void* CdCmd_SetupMdecBuffers(void)
         }
 
         p->field_1A4 = NULL;
-        kind         = p->field_190->field_3;
+        kind         = p->field_190->bufferKind;
         switch (kind) {
             case 1:
                 p->field_1A4 = Mem_Malloc(p->field_190->field_1E, 1);
                 break;
             case 2:
                 gGameSession->field_7C = 0;
-                p->field_1A4           = D_8005C36C;
+                p->field_1A4           = Fs_ActorLoadBase0;
                 if (p->field_190->field_1A == 1) {
-                    p->field_1A4 = (u8*)D_8005C36C + 0x11000;
+                    p->field_1A4 = (u8*)Fs_ActorLoadBase0 + 0x11000;
                 }
                 break;
             case 3:
                 gGameSession->field_7E = 0;
-                p->field_1A4           = D_8005C370;
+                p->field_1A4           = Fs_ActorLoadBase1;
                 if (p->field_190->field_1A == 2) {
-                    p->field_1A4 = (u8*)D_8005C370 + 0x11000;
+                    p->field_1A4 = (u8*)Fs_ActorLoadBase1 + 0x11000;
                 }
                 break;
             case 4:
                 gGameSession->field_80 = 0;
-                p->field_1A4           = D_8005C374;
+                p->field_1A4           = Fs_ActorLoadBase2;
                 if (p->field_190->field_1A == 3) {
-                    p->field_1A4 = (u8*)D_8005C374 + 0x11000;
+                    p->field_1A4 = (u8*)Fs_ActorLoadBase2 + 0x11000;
                 }
                 break;
         }
 
         p->field_19C = (u32*)p->field_1A4;
-        if (p->field_188 != 0) {
-            p->field_184 = Mem_Malloc(p->field_188, 1);
+        if (p->decodeBufferBytes != 0) {
+            p->decodeBuffer = Mem_Malloc(p->decodeBufferBytes, 1);
         }
     }
 
@@ -109,9 +156,9 @@ void* CdCmd_SetupMdecBuffers(void)
     } else if (Stream_FindSlot(&gGameSession->at4.loc.view, 0, 0) < 0) {
         return NULL;
     } else {
-        sizeRow = D_8005DCB4[Mc_SaveData[0].at4.loc.stage];
+        sizeRow = CdCmd_MapHeapSizes[Mc_SaveData[0].state.at4.loc.stage];
         if (sizeRow != NULL) {
-            size = sizeRow[Mc_SaveData[0].at4.loc.area];
+            size = sizeRow[Mc_SaveData[0].state.at4.loc.area];
             if (size != 0) {
                 D_8006AC00 = Mem_Malloc(size, 1);
             }
@@ -172,7 +219,7 @@ static void CdCmd_HandleStreamDecode(void)
             } else if (entry->cmd == 0x62) {
                 entry->cmd = 0x61;
             }
-            if ((s16)func_8001F180(idB0 & 0xFFFF) != 0) {
+            if ((s16)Stream_InitializePlayback(idB0 & 0xFFFF) != 0) {
                 p                = &CdCmd_Queue;
                 busy             = p->busy;
                 state->field_1FA = 1;
@@ -193,12 +240,12 @@ static void CdCmd_HandleStreamDecode(void)
                 goto end_check;
             }
             state->field_1E8 = 1;
-            func_8001FAE0(0, ((u16)state->field_1EA - 1) * 0xA);
+            Stream_PollPlayback(0, ((u16)state->field_1EA - 1) * 0xA);
             state->step = state->step + 1;
             /* fallthrough */
         case 1:
         end_check:
-            if ((s16)func_8001FAE0(0, ((u16)state->field_1EA - 1) * 0xA) != 0) {
+            if ((s16)Stream_PollPlayback(0, ((u16)state->field_1EA - 1) * 0xA) != 0) {
                 p = &CdCmd_Queue;
                 if (p->busy != 0) {
                     p->busy              = 0;
@@ -563,10 +610,7 @@ static void CdCmd_HandleMount(void)
             state->field_222 = 0;
             state->field_242 = 0;
             if (state->readIdx != state->writeIdx) {
-                u32 t;
-                t                     = state->readIdx << 3;
-                t                    += (u32)state;
-                ((CdCmdEntry*)t)->cmd = 0;
+                (state->entries + state->readIdx)->cmd = 0;
                 state->readIdx        = state->readIdx + 1;
                 state->readIdx        = state->readIdx % 8;
             }
@@ -626,7 +670,7 @@ static void CdCmd_ProcessPhase1(void)
     u16*        statePtr;
     u16         ret;
     s32         temp;
-    CdCmd190*   info;
+    StreamSlot* info;
 
     p = &CdCmd_Queue;
     switch (p->field_40.cmd >> 4) {
@@ -705,7 +749,7 @@ static void CdCmd_ProcessPhase1(void)
             if ((u16)p->field_20E != 0) {
                 switch (p->field_1fc) {
                     case 0:
-                        if (Mc_SaveData[0].demoScene != 0) {
+                        if (Mc_SaveData[0].state.demoScene != 0) {
                             SndEvt_EnqueueType6(0, 0, 0);
                         }
                         CdAudio_Begin();
@@ -991,7 +1035,7 @@ void CdCmd_BuildVlcIfStream(void)
 {
     CdCmd_Queue.field_1EA = 1;
     if (Stream_HasActiveLowId(&gGameSession->at4.loc.view) != 0) {
-        DecDCTvlcBuild(D_8005C36C);
+        DecDCTvlcBuild(Fs_ActorLoadBase0);
         gGameSession->field_7C = 0;
     }
 }
@@ -1070,7 +1114,7 @@ void CdCmd_StartOverlay(u16 arg0, u16 arg1, u16 arg2)
     p->field_21A = Gp_FindStreamSlot(arg0, arg1, arg2, 0);
 }
 
-void func_8001D580(void)
+void CdCmd_UnusedStub0(void)
 {
 }
 
@@ -1081,15 +1125,15 @@ void CdCmd_CancelReplaceAndActivate(void)
     Gp_RestoreStreamRng();
 }
 
-static void func_8001D5B4(void)
+static void CdCmd_UnusedStub1(void)
 {
 }
 
-static void func_8001D5BC(void)
+static void CdCmd_UnusedStub2(void)
 {
 }
 
-void func_8001D5C4(void)
+void CdCmd_UnusedStub3(void)
 {
 }
 
@@ -1208,7 +1252,7 @@ s32 CdCmd_CommitReplace(void)
  * completely idle (no error latched and nothing pending) or the entry the
  * consumer is about to run is a 0x8_ command.
  */
-u16 func_8001D82C(void)
+u16 CdCmd_IsIdleOrOverlayPending(void)
 {
     CdCmdQueue* p;
 

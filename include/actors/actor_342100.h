@@ -2,8 +2,9 @@
 #define ACTOR_342100_H
 
 #include "common.h"
-#include "main/task.h"
 #include "overlay.h"
+
+#include "main/task_types.h"
 
 /// Work block of the overlay's event/controller task -- the one
 /// `D_actor_342100_80164BB8` points at.

@@ -3,14 +3,6 @@
 #include <psyq/abs.h>
 
 #include "actors/actor_503500.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/attachments.h"
@@ -21,8 +13,19 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gfx_types.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
 #include "main/wipsys.h"
 
 /// Work block `func_actor_503500_80132778` allocates (`memCalloc(0xC)`) and
@@ -69,7 +72,7 @@ void func_actor_503500_80132778(Task* task)
 
     coord = task->extra.tmd->coords;
     if (task->state == 0) {
-        pos               = &D_actor_503500_8014B97C[task->spawnArg1];
+        pos               = &D_actor_503500_8014B97C[task->spawnArg1.value];
         coord->coord.t[0] = pos->vx;
         coord->coord.t[1] = pos->vy;
         coord->coord.t[2] = pos->vz;
@@ -148,7 +151,7 @@ void func_actor_503500_80132990(Task* task)
                 task->state++;
                 break;
             case 1:
-                if (--task->spawnArg1 < 0 || gGameSession->evtSkipped != 0) {
+                if (--task->spawnArg1.value < 0 || gGameSession->evtSkipped != 0) {
                     task->state++;
                 }
                 break;
@@ -209,9 +212,9 @@ void func_actor_503500_80132BD8(void)
 
 void func_actor_503500_80132BF8(void)
 {
-    Mc_SaveData[0].at4.loc.area = 0x16;
-    Mc_SaveData[0].at4.loc.warp = 1;
-    Mc_SaveData[0].at4.loc.room = 1;
+    Mc_SaveData[0].state.at4.loc.area = 0x16;
+    Mc_SaveData[0].state.at4.loc.warp = 1;
+    Mc_SaveData[0].state.at4.loc.room = 1;
     Task_Spawn(0, 0x11, 0, 0);
 }
 

@@ -6,13 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/abs.h>
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
@@ -24,7 +17,16 @@
 #include "gameplay/message.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/loading.h"
-#include "main/fs.h"
+
+#include "gameplay/geometry.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "overlay.h"
 
 extern GpMsgEntry D_acropolis_hallway_8017E238[];
 extern SVECTOR    D_acropolis_hallway_8017FA4C;
@@ -275,7 +277,7 @@ void func_acropolis_hallway_8017E120(Task* task)
     TmdObject*  tmd;
     s32         flag;
 
-    obj  = (GpItemObj8*)task->spawnArg2;
+    obj  = (GpItemObj8*)task->spawnArg2.pointer;
     tmd  = task->extra.tmd;
     flag = Gp_GetCurBit2Flag(obj->field_8);
     if (task->state == 0) {
@@ -302,7 +304,7 @@ static void func_acropolis_hallway_8017E1C0(Task* task)
     TmdObject*  tmd;
     s32         flag;
 
-    obj  = (GpItemObj8*)task->spawnArg2;
+    obj  = (GpItemObj8*)task->spawnArg2.pointer;
     tmd  = task->extra.tmd;
     flag = Gp_GetCurBit2Flag(obj->field_8);
     Gp_GetViewIndex();

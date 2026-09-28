@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_PRIVATE_MODEL_LIGHTING_H
 #define GAMEPLAY_PRIVATE_MODEL_LIGHTING_H
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 void Gp_InitPlayClock(Task* task);
 

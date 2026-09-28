@@ -1,6 +1,7 @@
-#include "common.h"
+#include "wipsys.h"
 
 #include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
 void Player_InitNewGameStats(void)
 {

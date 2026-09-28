@@ -1,5 +1,6 @@
 #include "attachments.h"
 
+#include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
 #include "types.h"
@@ -10,18 +11,17 @@
 #include "gameplay/items.h"
 #include "items.h"
 
+#define D_8010EEDC D_8010EAB4[38]
+
+#define D_8010EF30 D_8010EAB4[41]
+
 #include "main/fs.h"
 #include "main/mc.h"
 #include "main/pad.h"
 #include "main/sound.h"
-#include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
-
-#define D_8010EEDC D_8010EAB4[38]
-
-#define D_8010EF30 D_8010EAB4[41]
 
 extern UiListItemFunc Gp_ItemCmdRows[2];
 
@@ -63,7 +63,7 @@ static inline s32 _gpIsArmorItem(u8 id)
         s32           _i;                                                               \
         s32           _n;                                                               \
                                                                                         \
-        _scan   = &Mc_SaveData[0].carriedItems;                                         \
+        _scan   = &Mc_SaveData[0].state.carriedItems;                                         \
         _cfg    = &Player_Status;                                                       \
         _n      = (index);                                                              \
         _rec    = Gp_GetItemTable(_scan);                                               \
@@ -88,7 +88,7 @@ static inline s32 _gpIsArmorItem(u8 id)
         s32           _i;                                                               \
                                                                                         \
         (count) = 0;                                                                    \
-        _scan   = &Mc_SaveData[0].carriedItems;                                         \
+        _scan   = &Mc_SaveData[0].state.carriedItems;                                         \
         _cfg    = &Player_Status;                                                       \
         _rec    = Gp_GetItemTable(_scan);                                               \
         _i      = 0;                                                                    \
@@ -108,7 +108,7 @@ static inline s32 _gpFindSpareArmor(s32 index)
     s32           i;
     s32           found;
 
-    scan  = &Mc_SaveData[0].carriedItems;
+    scan  = &Mc_SaveData[0].state.carriedItems;
     cfg   = &Player_Status;
     rec   = Gp_GetItemTable(scan);
     found = i = 0;
@@ -136,7 +136,7 @@ static inline void _gpApplyChildResults(UiObject* obj, Task* task)
     child = task->firstChild;
     if (child != NULL) {
         do {
-            childObj = child->spawnArg2;
+            childObj = child->spawnArg2.pointer;
             flag     = childObj->field_2E;
             next     = child->nextSibling;
             switch (flag) {
@@ -207,8 +207,8 @@ void Gp_AttachListTask(Task* task)
     UiObject*   childObj;
     s32         flag;
 
-    obj           = task->spawnArg2;
-    val           = (u16)task->spawnArg1;
+    obj           = task->spawnArg2.pointer;
+    val           = (u16)task->spawnArg1.value;
     menu          = &D_8010E9CC;
     obj->field_2E = 0;
     state         = task->state;
@@ -223,7 +223,7 @@ void Gp_AttachListTask(Task* task)
             task->state         = 2;
             task->killCountdown = 0xBC;
             obj->panel.field_4 |= 2;
-            if (task->spawnArg1 & 0x10000) {
+            if (task->spawnArg1.value & 0x10000) {
                 if (val != 0) {
                     slot = Gp_GetItemSlot(val);
                     if ((val == 0x92) || (val == 0x99) || (val == 0x96)) {
@@ -269,7 +269,7 @@ void Gp_AttachListTask(Task* task)
         child = task->firstChild;
         if (child != NULL) {
             do {
-                childObj = child->spawnArg2;
+                childObj = child->spawnArg2.pointer;
                 flag     = childObj->field_2E;
                 next     = child->nextSibling;
                 switch (flag) {
@@ -310,7 +310,7 @@ void Gp_AttachListTask(Task* task)
             return;
         }
         if ((task->killCountdown == 0) || (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            if ((task->spawnArg1 & 0x10000) && (task->state == 2)) {
+            if ((task->spawnArg1.value & 0x10000) && (task->state == 2)) {
                 obj->field_2E = 6;
             } else {
                 obj->field_2E = 9;
@@ -336,7 +336,7 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
     s32*      p;
 
     menu       = &D_8010E9CC;
-    obj        = arg0->spawnArg2;
+    obj        = arg0->spawnArg2.pointer;
     savedState = arg0->state;
     Gp_AttachListTask(arg0);
     if (obj->field_2E == 9) {
@@ -350,7 +350,7 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
             obj->panel.bounds.unsignedRect.h += 0x4C;
             parent                            = arg0->parent;
             D_80114DD8                        = -1;
-            Ui_SetState4(parent->spawnArg2, parent);
+            Ui_SetState4(parent->spawnArg2.pointer, parent);
             Ui_SpawnFromDesc(&D_8010EC3C, 1, 0, 0x10, obj);
         }
         Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, (s16)obj->panel.field_18.u + 0x4A);
@@ -427,7 +427,7 @@ void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1)
         req.glyphTable = 0;
         req.centerMode = 0;
         req.field_E    = 1;
-        func_8002E53C(&req, Gp_GetItemText(item, 0, 0));
+        Text_DrawString(&req, Gp_GetItemText(item, 0, 0));
         func_800C22D8(arg1, x, y, item, one);
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
@@ -459,7 +459,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
     s32       flags;
 
     menu          = &D_8010E9F4;
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, Gp_StrSelectArmor);
 
@@ -474,7 +474,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
         menu->field_10                    = 0;
         menu->field_9.u                   = 0;
         parent                            = arg0->parent;
-        Ui_SetState4(parent->spawnArg2, parent);
+        Ui_SetState4(parent->spawnArg2.pointer, parent);
         Ui_SpawnFromDesc(&D_8010EC3C, 2, 0, 0x10, obj);
         arg0->state++;
     }
@@ -529,9 +529,9 @@ void Gp_ReloadPromptTask(Task* arg0)
     s32         one;
     McItemSlot* slot;
 
-    obj           = arg0->spawnArg2;
-    lo            = arg0->spawnArg1 & 0xFF;
-    hi            = (arg0->spawnArg1 >> 8) & 0xFF;
+    obj           = arg0->spawnArg2.pointer;
+    lo            = arg0->spawnArg1.value & 0xFF;
+    hi            = (arg0->spawnArg1.value >> 8) & 0xFF;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, Gp_StrReload);
     if (arg0->state == 0) {
@@ -540,7 +540,7 @@ void Gp_ReloadPromptTask(Task* arg0)
             arg0->state = 0x10;
             if (Gp_ReloadMode == 1) {
                 if (slot->ammoId != 0) {
-                    arg0->spawnArg1 |= slot->ammoId;
+                    arg0->spawnArg1.value |= slot->ammoId;
                     text             = Gp_GetItemText(slot->ammoId, 0, 0);
                 } else {
                     arg0->state = 0x20;
@@ -548,7 +548,7 @@ void Gp_ReloadPromptTask(Task* arg0)
                 }
             } else if (Gp_ReloadMode == 2) {
                 if (slot->attachId != 0) {
-                    arg0->spawnArg1 |= slot->attachId;
+                    arg0->spawnArg1.value |= slot->attachId;
                     text             = Gp_GetItemText(slot->attachId, 0, 0);
                 } else {
                     arg0->state = 0x20;
@@ -563,7 +563,7 @@ void Gp_ReloadPromptTask(Task* arg0)
         } else {
             Gp_SetItemSeenBit(lo, 1);
             text = Gp_GetItemText(lo, 0, 0);
-            Gp_EquipRelatedItem(&Mc_SaveData[0].carriedItems, hi, lo, -1);
+            Gp_EquipRelatedItem(&Mc_SaveData[0].state.carriedItems, hi, lo, -1);
             other       = Text_MeasureWidth(Gp_StrLoaded);
             arg0->state = 1;
         }
@@ -622,9 +622,9 @@ void Gp_AttachPromptTask(Task* arg0)
     s32       one;
     s32       width;
 
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
-    text          = Gp_GetItemText(arg0->spawnArg1, 0, 0);
+    text          = Gp_GetItemText(arg0->spawnArg1.value, 0, 0);
     if (arg0->state == 0) {
         width = Text_MeasureWidth(text) + 0x40;
         Ui_UpdateLayoutSize(&(obj)->panel, width, Ui_Scale15(2) + 8);
@@ -668,10 +668,10 @@ void Gp_EquipPromptTask(Task* arg0)
     McItemRec*    prev;
     u8            field21;
 
-    obj           = arg0->spawnArg2;
+    obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
     if (arg0->state == 0) {
-        val = arg0->spawnArg1;
+        val = arg0->spawnArg1.value;
         if ((u32)(val - 0x80) < 0x20U) {
             p       = &Player_Status;
             rec     = Gp_FindItemById(val);
@@ -692,7 +692,7 @@ void Gp_EquipPromptTask(Task* arg0)
         } else if ((u32)(val - 0x60) < 0x20U) {
             Gp_EquipMod(val);
         }
-        width = Text_MeasureWidth(Gp_GetItemText(arg0->spawnArg1, 0, 0)) + 0xB;
+        width = Text_MeasureWidth(Gp_GetItemText(arg0->spawnArg1.value, 0, 0)) + 0xB;
         other = Text_MeasureWidth(Gp_StrEquipped);
         if (width < other) {
             width = other;
@@ -703,7 +703,7 @@ void Gp_EquipPromptTask(Task* arg0)
         arg0->state                    = arg0->state + 1;
     } else if (arg0->state == 1) {
         if (obj->panel.field_8 == 2) {
-            if ((u32)(arg0->spawnArg1 - 0x80) < 0x20U) {
+            if ((u32)(arg0->spawnArg1.value - 0x80) < 0x20U) {
                 SndEvt_EnqueueType6(0xA, 0, 0);
             } else {
                 SndEvt_EnqueueType6(0x16, 0, 0);
@@ -712,7 +712,7 @@ void Gp_EquipPromptTask(Task* arg0)
         }
     }
     Ui_DrawText(&(obj)->panel, Gp_StrEquip);
-    text  = Gp_GetItemText(arg0->spawnArg1, 0, 0);
+    text  = Gp_GetItemText(arg0->spawnArg1.value, 0, 0);
     color = 0x606060;
     one   = 1;
     Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, Gp_StrEquipped, color, one, 0);
@@ -743,7 +743,7 @@ void Gp_DrawLoadCmd(UiList* arg0, UiObject* arg1)
     req.glyphTable = 0;
     req.centerMode = 0;
     req.field_E    = 1;
-    func_8002E53C(&req, Gp_StrLoad);
+    Text_DrawString(&req, Gp_StrLoad);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             val = Gp_SelItemRec->itemId;
@@ -783,7 +783,7 @@ void Gp_DrawExchangeCmd(UiList* arg0, UiObject* arg1)
     req.glyphTable = 0;
     req.centerMode = 0;
     req.field_E    = 1;
-    func_8002E53C(&req, Gp_StrExchange);
+    Text_DrawString(&req, Gp_StrExchange);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);

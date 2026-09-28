@@ -5,19 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -30,7 +17,25 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/message.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflow.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "main/wipsys.h"
 
 extern TaskDesc D_acropolis_forked_road_80180F44;
 
@@ -154,10 +159,10 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             Gp_StateF0.field_4 = 0;
             func_800E9BDC(2, 0x9FF);
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].at4.loc.stage = 1;
-            Mc_SaveData[0].at4.loc.area  = 0xA;
-            Mc_SaveData[0].at4.loc.warp  = 4;
-            Mc_SaveData[0].at4.loc.room  = 1;
+            Mc_SaveData[0].state.at4.loc.stage = 1;
+            Mc_SaveData[0].state.at4.loc.area  = 0xA;
+            Mc_SaveData[0].state.at4.loc.warp  = 4;
+            Mc_SaveData[0].state.at4.loc.room  = 1;
             gDisplayState.roomVariant    = 1;
             Task_Spawn(0, 0x11, 0, 0);
             gGameSession->padScriptFlags &= 0x7F;
@@ -207,7 +212,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             weaponId            = Player_Status.weapon;
-            rec.animBlock.index = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.animBlock.index = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.field_4         = 1;
             rec.field_8         = 0;
             rec.field_C         = 0;
@@ -270,7 +275,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
         case 3:
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
                 Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
-                Mc_SaveData[0].at4.loc.view = Gp_FindViewIndex(5);
+                Mc_SaveData[0].state.at4.loc.view = Gp_FindViewIndex(5);
                 Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
                 func_800E9BDC(2, 0x9FF);
                 Gp_StateF0.field_4            = 0;
@@ -379,10 +384,10 @@ static void func_acropolis_forked_road_8017E410(Task* task)
     s32               flicker;
     s16               xy;
 
-    work  = (GpEffWork*)task->spawnArg2;
+    work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState < 4 &&
-        ((D_acropolis_forked_road_801821E8[task->spawnArg1 & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
+        ((D_acropolis_forked_road_801821E8[task->spawnArg1.value & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch = (void**)G_SCRATCH_HEAD;
         SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
@@ -390,13 +395,13 @@ static void func_acropolis_forked_road_8017E410(Task* task)
         if (task->state == 0) {
             u8 levels[3] = { 0x50, 0x30, 0x10 };
 
-            if (task->spawnArg1 & 0xFFF0000) {
-                work->scale = (task->spawnArg1 >> 16) & 0xFFF;
+            if (task->spawnArg1.value & 0xFFF0000) {
+                work->scale = (task->spawnArg1.value >> 16) & 0xFFF;
             } else {
                 work->scale = 0x280;
             }
-            work->angle     = (task->spawnArg1 >> 8) & 3;
-            task->spawnArg1 = task->spawnArg1 & 0xF;
+            work->angle     = (task->spawnArg1.value >> 8) & 3;
+            task->spawnArg1.value = task->spawnArg1.value & 0xF;
             work->period    = levels[work->angle];
             task->state     = task->state + 1;
         }
@@ -466,7 +471,7 @@ static void func_acropolis_forked_road_8017E81C(Task* task)
     s32        vx;
     s32        vz;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     Gp_UpdateCoord(coord);
     work->age++;
@@ -627,7 +632,7 @@ static void func_acropolis_forked_road_8017EF80(Task* task)
     GpCoord*   coord;
     u8         rgb[3];
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -640,13 +645,13 @@ static void func_acropolis_forked_road_8017EF80(Task* task)
             case 0:
                 work->scale = 0;
                 work->angle = 0x80;
-                work->step  = 0x100 / task->spawnArg1;
+                work->step  = 0x100 / task->spawnArg1.value;
                 task->state = 1;
                 break;
             case 1:
                 work->scale += work->step;
                 work->angle += work->step;
-                task->spawnArg1--;
+                task->spawnArg1.value--;
                 rgb[0] = work->scale;
                 rgb[1] = work->scale >> 2;
                 rgb[2] = work->scale >> 1;
@@ -656,7 +661,7 @@ static void func_acropolis_forked_road_8017EF80(Task* task)
                 rgb[2] >>= 1;
                 func_acropolis_forked_road_8017F650(coord, (s16)((u16)work->angle * 2), rgb);
                 func_acropolis_forked_road_8017F224(coord, (s16)(0x300 - (u16)work->angle * 2), 0x80, rgb);
-                if (task->spawnArg1 == 0) {
+                if (task->spawnArg1.value == 0) {
                     work->scale = 0xFF;
                     task->state = 2;
                     rgb[0]      = work->scale;
@@ -808,7 +813,7 @@ static void func_acropolis_forked_road_8017F9E4(Task* task)
     s32        i;
 
     coords   = (GpCoord*)task->work;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
@@ -881,7 +886,7 @@ static void func_acropolis_forked_road_8017F9E4(Task* task)
                     Gp_UpdateCoord(dst);
                 }
                 func_acropolis_forked_road_8017FED4(coords, &coords[8], work->age & 7, 0x123);
-                if (work->age == task->spawnArg1 && work->age != 0) {
+                if (work->age == task->spawnArg1.value && work->age != 0) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
@@ -1004,7 +1009,7 @@ static void func_acropolis_forked_road_801802CC(Task* task)
     u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -1019,7 +1024,7 @@ static void func_acropolis_forked_road_801802CC(Task* task)
     switch (task->state) {
         case 0:
             Gp_SpawnEff(0x60076, objCoord, 0x400, NULL);
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 Gp_SpawnEff(0x60070, objCoord, 0x80004600, NULL);
                 task->state = 1;
             } else {

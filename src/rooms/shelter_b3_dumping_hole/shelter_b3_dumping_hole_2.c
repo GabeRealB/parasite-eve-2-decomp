@@ -5,21 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/gfxgte.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b3_dumping_hole.h"
@@ -52,7 +37,34 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/cap.h"
+#include "gameplay/damage.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gameflow.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/gfxgte.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
+#include "overlay.h"
+#include <psyq/strings.h>
 
 typedef struct {
     s32   field_0;
@@ -549,7 +561,7 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
     switch (arg0->state) {
         case 0:
             coord->sub = &gGfxViewCoord;
-            Gp_ComposeParentWorld((GpCoord*)arg0->spawnArg2, &coord->coord, &vec);
+            Gp_ComposeParentWorld((GpCoord*)arg0->spawnArg2.pointer, &coord->coord, &vec);
             coord->coord.t[0] = vec.vx + W->field_C;
             coord->coord.t[1] = vec.vy + W->field_E;
             coord->coord.t[2] = vec.vz + W->field_10;
@@ -643,7 +655,7 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
     switch (arg0->state) {
         case 0:
             coord->sub = &gGfxViewCoord;
-            Gp_ComposeParentWorld((GpCoord*)arg0->spawnArg2, &coord->coord, &vec);
+            Gp_ComposeParentWorld((GpCoord*)arg0->spawnArg2.pointer, &coord->coord, &vec);
             coord->coord.t[0] = vec.vx;
             coord->coord.t[1] = vec.vy;
             coord->coord.t[2] = vec.vz;
@@ -661,7 +673,7 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
             work->field_14 = 0;
             roll1          = Gp_LcgState * 5 + 0x71357911;
             work->field_16 = 0xFFF1 - ((roll1 >> 16) & 7);
-            sa1            = arg0->spawnArg1;
+            sa1            = arg0->spawnArg1.value;
             Gp_LcgState    = roll1;
             if (sa1 == 0) {
                 roll2       = roll1 * 5 + 0x71357911;
@@ -678,10 +690,10 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
             } else {
                 if (sa1 < 0) {
                     Gp_LcgState = roll1 * 5 + 0x71357911;
-                    delta       = (u16)work->field_18 + ((u16)arg0->spawnArg1 - ((Gp_LcgState >> 16) & 1));
+                    delta       = (u16)work->field_18 + ((u16)arg0->spawnArg1.value - ((Gp_LcgState >> 16) & 1));
                 } else {
                     Gp_LcgState = roll1 * 5 + 0x71357911;
-                    delta       = (u16)work->field_18 + ((u16)arg0->spawnArg1 + ((Gp_LcgState >> 16) & 1));
+                    delta       = (u16)work->field_18 + ((u16)arg0->spawnArg1.value + ((Gp_LcgState >> 16) & 1));
                 }
                 work->field_18 = delta;
             }
@@ -735,7 +747,7 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     TmdObject*            e2;
 
     extra      = arg0->extra.tmd;
-    cfg        = (DumpingHoleCoordCfg*)arg0->spawnArg2;
+    cfg        = (DumpingHoleCoordCfg*)arg0->spawnArg2.pointer;
     coord      = extra->coords;
     work       = (DumpingHoleCoordWork*)Mem_Malloc(0x5C, 0);
     arg0->work = (TaskIdMap*)work;
@@ -832,7 +844,7 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
             angle      = ratan2(sy, sx);
             work->velZ = rcos(angle) * ((DUMPING_HOLE_RAND() & 7) + 0x11) / 4096;
             work->velY = rsin(angle) * ((DUMPING_HOLE_RAND() & 7) + 5) / 4096;
-            switch (arg0->spawnArg1) {
+            switch (arg0->spawnArg1.value) {
                 case 0:
                     work->velX = (DUMPING_HOLE_RAND() & 0x1F) + 0x32;
                     break;
@@ -913,7 +925,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                     {
                         DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
                         s32                weaponId = Player_Status.weapon;
-                        msg.anim.animBlock.index    = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                        msg.anim.animBlock.index    = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                         msg.anim.field_4            = 0x2F;
                         msg.anim.field_8            = 1;
                         msg.anim.field_C            = 0xA;
@@ -928,7 +940,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 2: {
             DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
             s32                weaponId = Player_Status.weapon;
-            msg.anim.animBlock.index    = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.anim.animBlock.index    = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.field_4            = 0x32;
             msg.anim.field_8            = 0;
             msg.anim.field_C            = 0;
@@ -944,7 +956,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
             {
                 DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
                 s32                weaponId = Player_Status.weapon;
-                msg.anim.animBlock.index    = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                msg.anim.animBlock.index    = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 msg.anim.field_4            = 9;
                 msg.anim.field_8            = 0;
                 msg.anim.field_C            = 0;
@@ -970,7 +982,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                     {
                         DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
                         s32                weaponId = Player_Status.weapon;
-                        msg.anim.animBlock.index    = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                        msg.anim.animBlock.index    = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                         msg.anim.field_4            = 0x30;
                         msg.anim.field_8            = 1;
                         msg.anim.field_C            = 0xA;
@@ -985,7 +997,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 6: {
             DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
             s32                weaponId = Player_Status.weapon;
-            msg.anim.animBlock.index    = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.anim.animBlock.index    = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.field_4            = 0x33;
             msg.anim.field_8            = 1;
             msg.anim.field_C            = 0xA;
@@ -997,7 +1009,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 7: {
             DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
             s32                weaponId = Player_Status.weapon;
-            msg.anim.animBlock.index    = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.anim.animBlock.index    = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.field_4            = 0x31;
             msg.anim.field_8            = 1;
             msg.anim.field_C            = 0xA;
@@ -1070,14 +1082,14 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
                     return;
                 case 1:
                     for (i = 0; D_shelter_b3_dumping_hole_801881FC[i].field_0 != 0xFFFF; i++) {
-                        Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188BC8, 2, 0, (s32)&D_shelter_b3_dumping_hole_801881FC[i]);
+                        Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188BC8, 2, 0, &D_shelter_b3_dumping_hole_801881FC[i]);
                     }
                     for (i = 0; D_shelter_b3_dumping_hole_80188304[i].field_0 != 0xFFFF; i++) {
-                        Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188BC8, 3, 1, (s32)&D_shelter_b3_dumping_hole_80188304[i]);
+                        Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188BC8, 3, 1, &D_shelter_b3_dumping_hole_80188304[i]);
                     }
                     for (i = 0; D_shelter_b3_dumping_hole_801884CC[i].x != 0xFFFF; i++) {
                         e = &D_shelter_b3_dumping_hole_801884CC[i];
-                        Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188BC8, 4, 2, (s32)e);
+                        Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188BC8, 4, 2, e);
                         if (e->field_18 != 0) {
                             p            = e;
                             seed.x       = p->x;
@@ -1151,7 +1163,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             w->field_12               = 0x400;
             w->field_10               = 0;
             w->field_14               = 0;
-            Mc_SaveData[0].sceneEvent = 0xC;
+            Mc_SaveData[0].state.sceneEvent = 0xC;
             gStageSceneMusicEntry     = 3;
             arg0->state++;
             break;
@@ -1175,7 +1187,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             Gp_DispatchMsgPtr(w2->field_24, 0x3F7, &msg, 0);
             weaponId             = Player_Status.weapon;
             p                    = &anim;
-            anim.animBlock.index = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim.animBlock.index = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             p->field_4           = 1;
             p->field_8           = 1;
             p->field_C           = 0xA;
@@ -1235,9 +1247,9 @@ void func_shelter_b3_dumping_hole_8017FBA0(Task* arg0)
             /* fallthrough */
         case 1:
             Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
-            fade->r -= (u16)arg0->spawnArg1;
-            fade->g -= (u16)arg0->spawnArg1;
-            fade->b -= (u16)arg0->spawnArg1;
+            fade->r -= (u16)arg0->spawnArg1.value;
+            fade->g -= (u16)arg0->spawnArg1.value;
+            fade->b -= (u16)arg0->spawnArg1.value;
             if (fade->r < 0) {
                 taskKill(arg0);
             }
@@ -1263,7 +1275,7 @@ static void func_shelter_b3_dumping_hole_8017FCF4(Task* arg0, DumpingHoleSpawnAr
     Task*                 task;
     DumpingHoleSpawnWork* work;
 
-    task       = Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188C04, 1, 0, (s32)arg0);
+    task       = Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188C04, 1, 0, arg0);
     work       = (DumpingHoleSpawnWork*)Mem_Malloc(0x24, 0);
     task->work = (TaskIdMap*)work;
     if (work == NULL) {
@@ -1335,7 +1347,7 @@ void func_shelter_b3_dumping_hole_8017FF14(void)
     Gp_DispatchMsg(ent->field_24, 0x3F3, 1, 0);
     Gp_DispatchMsgPtr(ent->field_24, 0x3E9, &D_shelter_b3_dumping_hole_801881CC, 0);
     ent2    = st->work;
-    desc[0] = Player_Status.weapon + (Mc_SaveData[0].characterId == 1 ? 1 : 0x22);
+    desc[0] = Player_Status.weapon + (Mc_SaveData[0].state.characterId == 1 ? 1 : 0x22);
     desc[1] = 9;
     desc[2] = 0;
     desc[3] = 0;
@@ -1388,7 +1400,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
 
     work  = (DumpingHoleShard*)arg0->work;
     coord = arg0->extra.tmd->coords;
-    cfg   = (DumpingHoleShardCfg*)arg0->spawnArg2;
+    cfg   = (DumpingHoleShardCfg*)arg0->spawnArg2.pointer;
     if (D_shelter_b3_dumping_hole_8018F4B0 == 0) {
         taskKill(arg0);
         return;
@@ -1543,7 +1555,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
         case 1:
             Gp_PulseState1C();
             Gp_StateC08.field_6 |= 1;
-            buf.words[0]         = Player_Status.weapon + (Mc_SaveData[0].characterId == 1 ? 1 : 0x22);
+            buf.words[0]         = Player_Status.weapon + (Mc_SaveData[0].state.characterId == 1 ? 1 : 0x22);
             buf.words[1]         = 9;
             buf.words[2]         = 1;
             buf.words[3]         = 0xA;
@@ -1593,7 +1605,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                         work->field_60.vz = 0;
                         work->field_6E    = 4;
                         for (i = 0; i < 10; i++) {
-                            Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80189ADC, 1, 0, (s32)&work->field_58);
+                            Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80189ADC, 1, 0, &work->field_58);
                         }
                     }
                     if (work->timer >= 0x5B) {
@@ -1702,7 +1714,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             Gp_DispatchMsg(work->field_84, 0x7D5, 2, 0);
             break;
         case 5:
-            Mc_SaveData[0].at4.loc.view = work->field_94;
+            Mc_SaveData[0].state.at4.loc.view = work->field_94;
             Gp_DispatchMsg(work->field_80, 0x3F3, 1, 0);
             Gp_DispatchMsg(work->field_84, 0x7D5, 1, 0);
             work->field_96 = 1;
@@ -1713,7 +1725,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             loc5->command           = 0xC;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, loc5, 0x7DB);
             p        = words;
-            words[0] = Player_Status.weapon + (Mc_SaveData[0].characterId == 1 ? 1 : 0x22);
+            words[0] = Player_Status.weapon + (Mc_SaveData[0].state.characterId == 1 ? 1 : 0x22);
             p[1]     = 1;
             p[2]     = 1;
             p[3]     = 0xA;
@@ -1791,7 +1803,7 @@ void func_shelter_b3_dumping_hole_80181430(void)
     Gp_DispatchMsg(ent->field_80, 0x3F3, 1, 0);
 
     p3       = desc3;
-    desc3[0] = Player_Status.weapon + (Mc_SaveData[0].characterId == 1 ? 1 : 0x22);
+    desc3[0] = Player_Status.weapon + (Mc_SaveData[0].state.characterId == 1 ? 1 : 0x22);
     p3[1]    = 1;
     desc3[2] = 0;
     desc3[3] = 0;
@@ -1831,7 +1843,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
             D_shelter_b3_dumping_hole_8018F4D8          = 0;
             ((DumpingHoleEntity4*)task->work)->field_94 = gGameSession->at4.loc.view;
             Gp_MsgPlayerWeapon(0);
-            desc[0] = Player_Status.weapon + (Mc_SaveData[0].characterId == 1 ? 1 : 0x22);
+            desc[0] = Player_Status.weapon + (Mc_SaveData[0].state.characterId == 1 ? 1 : 0x22);
             desc[1] = 9;
             desc[2] = 1;
             desc[3] = 0xA;
@@ -1950,7 +1962,7 @@ void func_shelter_b3_dumping_hole_80181A48(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            arg0->spawnArg1     = 3;
+            arg0->spawnArg1.value     = 3;
             arg0->killCountdown = 8;
             arg0->state        += 1;
             break;
@@ -1958,8 +1970,8 @@ void func_shelter_b3_dumping_hole_80181A48(Task* arg0)
             if (--arg0->killCountdown < 0) {
                 arg0->state += 1;
             }
-            Display_ClampField126(arg0->spawnArg1);
-            arg0->spawnArg1 = -arg0->spawnArg1;
+            Display_ClampField126(arg0->spawnArg1.value);
+            arg0->spawnArg1.value = -arg0->spawnArg1.value;
             break;
         default:
             Display_ClampField126(0);
@@ -2009,7 +2021,7 @@ static void func_shelter_b3_dumping_hole_80181B64(Task* task, s32 arg1)
                 }
             }
             if (script != 0) {
-                func_shelter_b3_dumping_hole_80181E70(script, key, (s16)task->spawnArg1);
+                func_shelter_b3_dumping_hole_80181E70(script, key, (s16)task->spawnArg1.value);
                 func_shelter_b3_dumping_hole_80181C8C();
             }
             if ((Gp_CapBusy() == 0) && (Gp_StateF0.field_4 == 0)) {
@@ -2562,7 +2574,7 @@ loop:
 
 void func_shelter_b3_dumping_hole_80183024(Task* arg0)
 {
-    if ((arg0->spawnArg1 -= 1) <= 0) {
+    if ((arg0->spawnArg1.value -= 1) <= 0) {
         taskKill(arg0);
     }
     func_shelter_b3_dumping_hole_80181C8C();
@@ -2575,8 +2587,8 @@ void func_shelter_b3_dumping_hole_80183060(Task* arg0)
             arg0->state = 1;
             break;
         case 1:
-            arg0->spawnArg1 -= 1;
-            if (arg0->spawnArg1 <= 0 || Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+            arg0->spawnArg1.value -= 1;
+            if (arg0->spawnArg1.value <= 0 || Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
                 taskKill(arg0);
                 Stage_SetEndingFlag();
             }
@@ -2591,7 +2603,7 @@ void func_shelter_b3_dumping_hole_80183060(Task* arg0)
 static void func_shelter_b3_dumping_hole_801830F0(s16 arg0, s16 arg1, s16 arg2)
 {
     func_shelter_b3_dumping_hole_80181E70(arg0, arg1, 0xD0);
-    Task_SpawnFromTable(&D_shelter_b3_dumping_hole_8018B588, 0, arg2, 0);
+    Task_SpawnFromTable(&D_shelter_b3_dumping_hole_8018B588, 0, (s32)(arg2), 0);
 }
 
 static void func_shelter_b3_dumping_hole_80183144(s16 arg0, s16 arg1, s16 arg2)
@@ -2678,7 +2690,7 @@ static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
         obj->clut  = 5;
         enemy->hp  = 1;
     }
-    D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1 >> 16)].status = 1;
+    D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
     arg0->state++;
 }
 
@@ -2878,7 +2890,7 @@ static void func_shelter_b3_dumping_hole_80183950(Task* arg0)
         enemy      = Gp_SpawnEnemyFromTable(&D_80142604, 1, 0, NULL);
         if (enemy != NULL) {
             u16 idx;
-            D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1 >> 16)].status = 1;
+            D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
             idx                                                                     = D_shelter_b3_dumping_hole_8018F4D4;
             work->enemy                                                             = enemy;
             enemy->placeKey                                                         = idx << 12;
@@ -2904,7 +2916,7 @@ static void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
         t0->workType        = 0x900;
         desc.from.loc.stage = 0;
         desc.from.loc.area  = 0x2C;
-        desc.command        = arg0->spawnArg1;
+        desc.command        = arg0->spawnArg1.value;
         Gp_DispatchMsg(t00, 0x7DB, (s32)&desc, 0);
         arg0->state += 1;
     }
@@ -2913,7 +2925,7 @@ static void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
 static void func_shelter_b3_dumping_hole_80183A98(Task* arg0)
 {
     if (((OverlayEncounterSingleWork*)arg0->work)->enemy->hp <= 0) {
-        D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1 >> 16)].status = 2;
+        D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
         taskKill(arg0);
     }
 }
@@ -2927,7 +2939,7 @@ static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
         enemy      = Gp_SpawnEnemyFromTable(&D_801575F0, 2, 0, NULL);
         if (enemy != NULL) {
             u16 idx;
-            D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1 >> 16)].status = 1;
+            D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
             idx                                                                     = D_shelter_b3_dumping_hole_8018F4D4;
             work->enemy                                                             = enemy;
             enemy->placeKey                                                         = idx << 12;
@@ -2953,7 +2965,7 @@ static void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
         t0->workType        = 0x900;
         desc.from.loc.stage = 0;
         desc.from.loc.area  = 0x2A;
-        desc.command        = arg0->spawnArg1;
+        desc.command        = arg0->spawnArg1.value;
         Gp_DispatchMsg(t00, 0x7DB, (s32)&desc, 0);
         arg0->state += 1;
     }
@@ -2962,7 +2974,7 @@ static void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
 static void func_shelter_b3_dumping_hole_80183C38(Task* arg0)
 {
     if (((OverlayEncounterSingleWork*)arg0->work)->enemy->hp <= 0) {
-        D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1 >> 16)].status = 2;
+        D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
         taskKill(arg0);
     }
 }
@@ -2987,7 +2999,7 @@ static void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
         t0->workType        = 0x900;
         desc.from.loc.stage = 0;
         desc.from.loc.area  = 0x2E;
-        desc.command        = arg0->spawnArg1;
+        desc.command        = arg0->spawnArg1.value;
         Gp_DispatchMsg(t00, 0x7DB, (s32)&desc, 0);
     }
     ent->frames  = 0;
@@ -3013,7 +3025,7 @@ static void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
             t->workType         = 0x900;
             desc.from.loc.stage = 0;
             desc.from.loc.area  = 0x2E;
-            desc.command        = arg0->spawnArg1;
+            desc.command        = arg0->spawnArg1.value;
             Gp_DispatchMsg(t00, 0x7DB, (s32)&desc, 0);
         }
     }
@@ -3026,7 +3038,7 @@ static void func_shelter_b3_dumping_hole_80183E08(Task* arg0)
     OverlayEncounterPairWork* ent = (OverlayEncounterPairWork*)arg0->work;
     func_shelter_b3_dumping_hole_80183F04(arg0);
     if (ent->goneMask == 3) {
-        D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1 >> 16)].status = 2;
+        D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
         taskKill(arg0);
     }
 }
@@ -3434,10 +3446,10 @@ static void func_shelter_b3_dumping_hole_8018521C(Task* task)
     s32        step;
     s32        level;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
-        if (task->spawnArg1 < 0) {
+        if (task->spawnArg1.value < 0) {
             func_shelter_b3_dumping_hole_80185DCC(coord, work->index | work->pos.vx, work->scale, work->angle);
         } else {
             func_shelter_b3_dumping_hole_8018596C(coord, work->index | work->pos.vx, work->scale, work->angle);
@@ -3450,27 +3462,27 @@ static void func_shelter_b3_dumping_hole_8018521C(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            work->scale = task->spawnArg1 & 0xFFF;
+            work->scale = task->spawnArg1.value & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            if (task->spawnArg1 & 0xF000) {
-                step = (task->spawnArg1 >> 12) & 7;
+            if (task->spawnArg1.value & 0xF000) {
+                step = (task->spawnArg1.value >> 12) & 7;
             } else {
                 step = 1;
             }
             work->period = step;
             work->age    = 0;
             task->state  = 1;
-            task->state  = task->spawnArg1 < 0 ? 2 : 1;
-            work->pos.vx = (task->spawnArg1 >> 16) & 0x7000;
+            task->state  = task->spawnArg1.value < 0 ? 2 : 1;
+            work->pos.vx = (task->spawnArg1.value >> 16) & 0x7000;
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                if (task->spawnArg1 & 0xFF0000) {
-                    level = (task->spawnArg1 >> 16) & 0xFF;
+                if (task->spawnArg1.value & 0xFF0000) {
+                    level = (task->spawnArg1.value >> 16) & 0xFF;
                 } else {
                     level = 0x40;
                 }
                 work->step = level;
-                switch ((task->spawnArg1 >> 24) & 0xF) {
+                switch ((task->spawnArg1.value >> 24) & 0xF) {
                     case 0:
                         work->step = 0;
                         break;
@@ -3540,7 +3552,7 @@ static void func_shelter_b3_dumping_hole_8018521C(Task* task)
                 coord->coord.t[1] += work->move.vy;
                 coord->coord.t[2] += work->move.vz;
                 coord->flg         = 0;
-                if (((task->spawnArg1 >> 24) & 0xF) == 7) {
+                if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
                     work->move.vy -= 2;
@@ -3560,7 +3572,7 @@ static void func_shelter_b3_dumping_hole_8018521C(Task* task)
                 coord->coord.t[1] += work->move.vy;
                 coord->coord.t[2] += work->move.vz;
                 coord->flg         = 0;
-                if (((task->spawnArg1 >> 24) & 0xF) == 7) {
+                if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
                     work->move.vy -= 1;
@@ -3728,7 +3740,7 @@ static void func_shelter_b3_dumping_hole_80186218(Task* task)
     s32        state;
     s32        level;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
@@ -3745,29 +3757,29 @@ static void func_shelter_b3_dumping_hole_80186218(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            work->scale = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            work->scale = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            if (task->spawnArg1 & 0xF000) {
-                step = (task->spawnArg1 >> 12) & 0xF;
+            if (task->spawnArg1.value & 0xF000) {
+                step = (task->spawnArg1.value >> 12) & 0xF;
             } else {
                 step = 1;
             }
             work->period = step;
             work->age    = 0;
             state        = 1;
-            if (task->spawnArg1 & 0xF0000000) {
+            if (task->spawnArg1.value & 0xF0000000) {
                 state = 2;
             }
             task->state = state;
             if (((u16)work->move.vx | (u16)work->move.vy | (u16)work->move.vz) == 0) {
-                if (task->spawnArg1 & 0xFF0000) {
-                    level = (task->spawnArg1 >> 16) & 0xFF;
+                if (task->spawnArg1.value & 0xFF0000) {
+                    level = (task->spawnArg1.value >> 16) & 0xFF;
                 } else {
                     level = 0x40;
                 }
                 work->step = level;
-                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1.value)->field_3;
                 switch (kind & 0xF) {
                     case 0:
                         work->step = 0;
@@ -3965,7 +3977,7 @@ static void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
     MATRIX*    m;
     s32        i;
 
-    mem   = (GpEffWork*)arg0->spawnArg2;
+    mem   = (GpEffWork*)arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         func_shelter_b3_dumping_hole_80186AB8(coord, (mem->age / 2) & 0xFFFF, 0x380);
@@ -3990,10 +4002,10 @@ static void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
         arg0->state = 1;
     }
     mem->age += 1;
-    switch (arg0->spawnArg1) {
+    switch (arg0->spawnArg1.value) {
         case 0:
             Gp_SpawnEff(0x6019A, coord, 0x14002400, NULL);
-            arg0->spawnArg1 = 1;
+            arg0->spawnArg1.value = 1;
             return;
         case 1:
             func_shelter_b3_dumping_hole_80186AB8(coord, (mem->age / 2) & 0xFFFF, 0x380);
@@ -4008,7 +4020,7 @@ static void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
                 Gp_SpawnEff(0x6019A, coord, 0x2002400, NULL);
                 Gp_SpawnEff(0x60199, coord, 0x2202300, NULL);
             }
-            arg0->spawnArg1 = 3;
+            arg0->spawnArg1.value = 3;
             return;
         case 3:
             Gp_ReleaseState1CMem(mem, arg0);

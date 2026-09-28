@@ -1,8 +1,4 @@
 #include "common.h"
-#include "main/stage.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -11,7 +7,12 @@
 #include "gameplay/display.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/world_state.h"
+#include "main/gameflag.h"
+#include "main/session.h"
+#include "main/stage.h"
+#include "main/task.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 

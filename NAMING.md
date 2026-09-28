@@ -318,8 +318,8 @@ or none of it does.
 
 **The same goes for a function's parameters**, and they are named in both
 places: the prototype in the header and the definition in the `.c`. A signature
-reading `(s32 arg0, s32 arg1, s32 arg2)` tells a caller nothing, and a
-declaration that names its parameters while the definition still says `arg0` is
+reading `(s32 index, s32 value, s32 arg2)` tells a caller nothing, and a
+declaration that names its parameters while the definition still says `index` is
 two descriptions of one function. `rename_item.py` takes
 `<file>/<function>::<param>` and matches the parameter by position, so it
 rewrites every declaration and the definition together. That rewrite covers
@@ -525,7 +525,7 @@ declaration in the module header, once; a private one at its definition in the
 date.
 
 `@param` and `@return` are for parameters whose meaning is not obvious from a
-proven name. They are not required, and on a signature still carrying `arg0`
+proven name. They are not required, and on a signature still carrying `index`
 they add nothing — write the prose instead, or leave it until the roles are
 known.
 

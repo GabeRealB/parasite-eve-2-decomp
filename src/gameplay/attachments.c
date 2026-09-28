@@ -6,6 +6,7 @@
 
 #include "main/mc.h"
 #include "main/session.h"
+#include "main/task_types.h"
 #include "main/wipsys.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
@@ -109,7 +110,7 @@ u16 Gp_GetAttachParam(s32 arg0)
             cond = p->field_26 == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData[0].attachLevels;
+            table = Mc_SaveData[0].state.attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
@@ -146,7 +147,7 @@ u16 Gp_GetAttachParam(s32 arg0)
         req.glyphTable = 5;                                   \
         req.centerMode = 0;                                   \
         req.field_E    = 1;                                   \
-        func_8002E53C(&req, (str));                           \
+        Text_DrawString(&req, (str));                           \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
@@ -159,7 +160,7 @@ u16 Gp_GetAttachParam(s32 arg0)
         req.x          = obj.panel.field_20.u + 0x94;         \
         req.y          = (obj.panel.field_22.u + 9) + (line); \
         req.otIndex    = obj.panel.field_14.s + 1;            \
-        func_8002E53C(&req, Text_ItoaSigned(buf, (count)));   \
+        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));   \
         if ((count) == 0) {                                   \
             flag = 1;                                         \
         }                                                     \

@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_PRIVATE_ITEM_PLACEMENT_H
 #define GAMEPLAY_PRIVATE_ITEM_PLACEMENT_H
 
-#include "main/session.h"
+#include "main/session_types.h"
 
 void Gp_SpawnPlaces(GpAreaKey* arg0);
 

@@ -1,35 +1,127 @@
-#include "common.h"
+#include "gamemain.h"
 
-#define GAMEMAIN_C
-
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 #include <psyq/libapi.h>
 #include <psyq/libetc.h>
-#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
 
-#include "main/unknown_syms.h"
-#include "main/boot.h"
-#include "main/cdaudio.h"
+#include "types.h"
+
+#include "boot.h"
+#include "cdaudio.h"
+#include "main/coord.h"
+#include "main/display_types.h"
+#include "display_types.h"
 #include "main/fs.h"
-#include "main/gamemain.h"
-#include "main/gfx.h"
-#include "main/gpuext.h"
+#include "main/fs_types.h"
+#include "gameflow.h"
+#include "gfx.h"
+#include "gpuext.h"
+#include "mc.h"
+#include "main/mem.h"
 #include "main/pad.h"
+#include "pad.h"
+#include "main/pad_types.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "sound.h"
+#include "stream.h"
+#include "main/task.h"
+#include "task.h"
 #include "main/text.h"
 #include "main/tmd.h"
+#include "main/wipsys_types.h"
+
+#define GameResetScratchHead() *(void**)G_SCRATCH_HEAD = G_SCRATCH_HEAD
+
+/* Define BSS before API headers to preserve first-declaration order. */
+/// Immediate-mode TILE / DR_TPAGE scratch for the "now loading" overlay.
+static TILE D_8006EC18;
+
+static DR_TPAGE D_8006EC28;
+
+volatile u8 D_8006EC30;
+
+u_long Gpu_OtTags[2 * GPU_OT_ENTRIES];
+
+volatile u8 D_80070E38;
+
+GpCoord gGfxViewRotCoord;
+
+GpCoord Gfx_ViewOffsetCoord;
+
+u8* Gpu_SysPrimCursor;
+
+GpuOtBuf Gpu_OtBuffers[2];
+
+GpCoord gGfxViewCoord;
+
+u32 Gp_LcgState;
+
+static volatile s32 D_80070F64;
+
+DisplayState gDisplayState;
+
+u_long* gGpuCurrentOt;
+
+WipSysFlags Wip_SysFlags;
+
+/// Unreferenced.
+static u8 D_800710C8[0x50];
+
+#include "main/display.h"
+#include "display.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
 #include "main/wipsys.h"
 
-#include "gameplay/display.h"
-#include "main/display.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
+static u32 D_8005EC64;
 
+/// Unreferenced.
+static s32 D_8005EC7C;
+
+/// Unreferenced.
+static u32 D_8005EC84[4];
+
+// Drawn by GameMain_ShowLoading (must stay in .rodata for this TU).
+/// "PAUSE!" overlay text for GameMain_ShowLoading (@ VA 0x80013404).
+static const u8 GameMain_PauseText[];
+
+static void GameMain_Init(void);
+
+/// Puts buffer `buf`'s draw and display environments, uploads the image the
+/// flip wants in it, and draws that buffer's ordering table unless drawing is
+/// suppressed.
+static inline void _displayPresentFrame(s32 buf);
+
+/// VSync callback: timed flip / strip load / audio tick (gamemain.c).
 static void Display_VSyncCallback(void);
+
+/// Nonzero while the game cannot be halted: a CD command is running without
+/// the halt flag that permits it, the flip is holding the displayed frame, a CD
+/// operation is in progress, or the display is off.
+static inline s32 _gameMainPauseBlocked(void);
+
 static void GameMain_ShowLoading(s32 arg0);
-static void GameMain_SpawnBootTask(void);
+
+/// Holds the frame back until the stream's timing table allows it: while the
+/// table is active, waits until the accumulated time reaches the current entry,
+/// adds this frame's time and advances the cursor (skipping -1 entries, stopping
+/// at 0). Returns the frame's elapsed time, remeasured if it waited.
+static inline s32 _gameMainPaceToStream(s32 start, s32 elapsed);
+
+static void GameMain_Loop(void);
+
 static void Gfx_InitGraph(void);
+
+static void GameMain_SpawnBootTask(void);
+
+static void Display_PutEnvAndDraw(s32 arg0);
 
 static u32   D_8005EC64          = 0;
 s32          D_8005EC68          = 0;
@@ -43,24 +135,7 @@ volatile s32 GameMain_HaltFlags = 0;
 /// Unreferenced.
 static u32 D_8005EC84[4] = { 0, 0x01FF03FF, 0, 0 };
 
-/// Immediate-mode TILE / DR_TPAGE scratch for the "now loading" overlay.
-static TILE         D_8006EC18;
-static DR_TPAGE     D_8006EC28;
-volatile u8         D_8006EC30;
-u_long              Gpu_OtTags[2 * GPU_OT_ENTRIES];
-volatile u8         D_80070E38;
-GpCoord             gGfxViewRotCoord;
-GpCoord             Gfx_ViewOffsetCoord;
-u8*                 Gpu_SysPrimCursor;
-GpuOtBuf            Gpu_OtBuffers[2];
-GpCoord             gGfxViewCoord;
-u32                 Gp_LcgState;
-static volatile s32 D_80070F64; // VSync countdown
-DisplayState        gDisplayState;
-u_long*             gGpuCurrentOt;
-WipSysFlags         Wip_SysFlags;
-/// Unreferenced.
-static u8 D_800710C8[0x50];
+// VSync countdown
 
 static void GameMain_Init(void)
 {
@@ -109,8 +184,6 @@ static void GameMain_Init(void)
     Mem_Set(Pad_RemapState, 0, 0x1C);
 }
 
-void func_80020058(void);
-
 void Display_FlipDraw(s32 arg0)
 {
     s32 mode;
@@ -125,7 +198,7 @@ void Display_FlipDraw(s32 arg0)
                 Display_LoadImageStrips(arg0);
                 saved                    = gDisplayState.drawBuffer;
                 gDisplayState.drawBuffer = arg0;
-                func_80020058();
+                Stream_PresentFrame();
                 gDisplayState.drawBuffer = saved;
             }
             DrawOTag(Gpu_OtBuffers[gDisplayState.otBuffer].lastTag);
@@ -150,7 +223,7 @@ static inline void _displayPresentFrame(s32 buf)
     if (gDisplayState.at100.flags.imageSource != 0) {
         Display_LoadImageStrips(buf);
     }
-    func_80020058();
+    Stream_PresentFrame();
     if (gDisplayState.skipDraw == 0) {
         DrawOTag(Gpu_OtBuffers[buf].lastTag);
     }
@@ -180,7 +253,7 @@ static void Display_VSyncCallback(void)
     gDisplayState.vsyncCount += 1;
     CdAudio_Tick();
     Audio_IrqFrameWork();
-    func_8002C1D8();
+    Pad_PollControllers();
     D_8005EC74 = VSync(1) - (start & 0xFFFF);
 }
 
@@ -243,7 +316,7 @@ static void GameMain_ShowLoading(s32 arg0)
             req.centerMode = 1;
             req.field_E    = 0x10;
             req.y          = 6 - gDisplayState.vramYOffset;
-            func_8002E53C(&req, GameMain_PauseText);
+            Text_DrawString(&req, GameMain_PauseText);
 
             buf = gDisplayState.drawBuffer ^ 1;
             PutDrawEnv(&gDisplayState.drawEnv[buf]);
@@ -347,7 +420,7 @@ static void GameMain_Loop(void)
         gpuBeginOt(buf);
 
         Gpu_SysPrimCursor = Gpu_PrimBufStatic + gDisplayState.otBuffer * 0x3000;
-        gGpuPrimCursor    = (u8*)(Gpu_PrimHeapBase + gDisplayState.otBuffer * (Gpu_PrimHeapSize >> 1));
+        gGpuPrimCursor    = Gpu_PrimHeapBase + gDisplayState.otBuffer * (Gpu_PrimHeapSize >> 1);
         Task_ExecDefaultList();
 
         if (gDisplayState.displayOwner != 0) {
@@ -557,7 +630,7 @@ static void Display_PutEnvAndDraw(s32 arg0)
     if (gDisplayState.at100.flags.imageSource != 0) {
         Display_LoadImageStrips(arg0);
     }
-    func_80020058();
+    Stream_PresentFrame();
     if (gDisplayState.skipDraw == 0) {
         DrawOTag(Gpu_OtBuffers[arg0].lastTag);
     }

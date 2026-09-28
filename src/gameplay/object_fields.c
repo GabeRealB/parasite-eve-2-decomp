@@ -11,7 +11,10 @@
 #include "gameplay/pairsrc.h"
 #include "gameplay/weapon_data.h"
 
+#include "gameplay/damage.h"
 #include "main/gamemain.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
 
 /// 4-byte table entry at `Gp_IdField0`. `Gp_LookupIdField(idx, 0)` returns
 /// `field_0` for index `(u16)idx`.

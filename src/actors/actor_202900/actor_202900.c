@@ -1,18 +1,20 @@
 #include "common.h"
 #include "actors/actor.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/collision.h"
 #include "gameplay/display.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 /// Work block of the overlay's actor, allocated zeroed by its setup handler
 /// and reached through `D_actor_202900_80156E54`, which the actor's update
@@ -112,7 +114,7 @@ void func_actor_202900_8014A02C(Task* task)
     };
 
     D_actor_202900_80156E54 = (Actor202900Work*)task->work;
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Update of the second task: parents its model to the fifth coordinate of the
@@ -157,7 +159,7 @@ static void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task)
 static void func_actor_202900_8014A158(Task* arg0)
 {
     taskKill(D_actor_202900_80156E5C);
-    Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+    Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
 }
 
 /// Runs the body the actor's step selects and then leaves it in step 3, the

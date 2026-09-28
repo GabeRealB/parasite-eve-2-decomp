@@ -1,4 +1,8 @@
 #include "common.h"
+
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mem.h"
@@ -6,9 +10,6 @@
 #include "main/session.h"
 #include "main/stream.h"
 #include "main/task.h"
-
-#include "gameplay/display.h"
-#include "gameplay/hud_sprites.h"
 
 /// The stream playback descriptors: the one-shot launcher, then the player.
 extern TaskDesc D_shelter_b6_training_room_8018431C[];
@@ -70,7 +71,7 @@ L_case3:
     if (CdCmd_IsIdle() & 0xFFFF) {
         SetDispMask(0);
         state           = task->state;
-        task->spawnArg1 = 0;
+        task->spawnArg1.value = 0;
         task->state     = state + 1;
         return;
     }
@@ -79,7 +80,7 @@ L_case3:
     }
     SetDispMask(0);
     CdCmd_ActivatePhase1();
-    task->spawnArg1 = 1;
+    task->spawnArg1.value = 1;
     task->state     = task->state + 1;
     return;
 
@@ -94,7 +95,7 @@ L_case5:
     if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
         return;
     }
-    if (task->spawnArg1 != 0) {
+    if (task->spawnArg1.value != 0) {
         goto kill;
     }
 advance:

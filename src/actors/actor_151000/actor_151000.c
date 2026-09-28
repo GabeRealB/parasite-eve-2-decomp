@@ -7,12 +7,6 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/collision.h"
@@ -22,7 +16,18 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -214,7 +219,7 @@ void func_actor_151000_801323F4(Task* task)
     };
 
     D_actor_151000_8013D37C = task->work;
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// State 1 of the enemy's task: refreshes the model root's coordinate, hands
@@ -241,7 +246,7 @@ static void func_actor_151000_80132450(GpEnemy* enemy, Task* task)
 /// the enemy the task was spawned for.
 static void func_actor_151000_801324D4(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Plays a step sound whenever animation slot 1 rolls onto a new record whose

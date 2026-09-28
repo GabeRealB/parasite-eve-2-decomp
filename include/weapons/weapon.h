@@ -8,6 +8,10 @@
 #include "gameplay/actor.h"
 #include "gameplay/geometry.h"
 
+#include "main/session_types.h"
+#include "main/task_types.h"
+#include "main/tmd_types.h"
+
 /// The item a weapon's rounds are taken from, given the weapon's index. Weapon
 /// items follow item 0x7F in weapon order, so every weapon consumes item
 /// `index + 0x7F`.

@@ -1,9 +1,4 @@
 #include "common.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -14,8 +9,14 @@
 #include "gameplay/message.h"
 #include "gameplay/object_task.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/world_state.h"
 #include "main/display.h"
-#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.
@@ -28,9 +29,9 @@ extern TaskDesc D_dryfield_general_store_8017E158;
 
 extern TaskDesc D_dryfield_general_store_8017E164;
 
-/// The stage byte `Mc_SaveData[0].at4.loc.view` held when the cutscene began, saved by
+/// The stage byte `Mc_SaveData[0].state.at4.loc.view` held when the cutscene began, saved by
 /// `func_dryfield_general_store_8017DAC0`'s first state and restored into
-/// `Mc_SaveData[0].at4.loc.view` when the cutscene is cut short.
+/// `Mc_SaveData[0].state.at4.loc.view` when the cutscene is cut short.
 extern u8 D_dryfield_general_store_801856F8;
 
 /// The two script arguments, latched from the message that armed the cutscene
@@ -152,9 +153,9 @@ void func_dryfield_general_store_8017D764(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_dryfield_general_store_80185700.msgId;
-            Mc_SaveData[0].at4.loc.warp = D_dryfield_general_store_80185700.field_2;
-            Mc_SaveData[0].at4.loc.room = (u8)D_dryfield_general_store_80185700.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_general_store_80185700.msgId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_general_store_80185700.field_2;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_general_store_80185700.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -251,7 +252,7 @@ s32 func_dryfield_general_store_8017D8D4(s32 arg0, s32 arg1, RoomEventMsg* in, R
 /// helper task 0x31, which it spawns with a zeroed `GpFadeWork` record whose
 /// `field_2` selects variant 8; any other key cuts the cutscene short instead -
 /// captions off, stage sound 0x5203000E, the latched stage byte back into
-/// `Mc_SaveData[0].at4.loc.view` and the player's weapon messages re-enabled.
+/// `Mc_SaveData[0].state.at4.loc.view` and the player's weapon messages re-enabled.
 ///
 /// State 5 is the commit: it queues sound event 0x80000000, points the save's
 /// location at area 0x26 with the two latched script arguments as its warp
@@ -265,8 +266,8 @@ void func_dryfield_general_store_8017DAC0(Task* arg0)
         case 0:
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
-            D_dryfield_general_store_801856F8 = Mc_SaveData[0].at4.loc.view;
-            Mc_SaveData[0].at4.loc.view       = 0x10;
+            D_dryfield_general_store_801856F8 = Mc_SaveData[0].state.at4.loc.view;
+            Mc_SaveData[0].state.at4.loc.view       = 0x10;
             arg0->state                      += 1;
             return;
         case 1:
@@ -285,21 +286,21 @@ void func_dryfield_general_store_8017DAC0(Task* arg0)
                 D_dryfield_general_store_801856FC.field_0 = 0;
                 D_dryfield_general_store_801856FC.field_1 = 0;
                 D_dryfield_general_store_801856FC.field_2 = 8;
-                Task_Spawn(1, 0x31, 0, (s32)&D_dryfield_general_store_801856FC);
+                Task_Spawn(1, 0x31, 0, &D_dryfield_general_store_801856FC);
                 arg0->state += 1;
                 return;
             }
             Gp_StateF0.field_4 = 0;
             Gp_EnqueueStageSnd6(0x5203000E, 0, 0);
-            Mc_SaveData[0].at4.loc.view = D_dryfield_general_store_801856F8;
+            Mc_SaveData[0].state.at4.loc.view = D_dryfield_general_store_801856F8;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].at4.loc.area = 0x26;
-            Mc_SaveData[0].at4.loc.warp = D_dryfield_general_store_80185709;
-            Mc_SaveData[0].at4.loc.room = D_dryfield_general_store_8018570A;
+            Mc_SaveData[0].state.at4.loc.area = 0x26;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_general_store_80185709;
+            Mc_SaveData[0].state.at4.loc.room = D_dryfield_general_store_8018570A;
             gDisplayState.roomVariant   = 1;
             Task_Spawn(0, 0x11, 0, 0);
             break;
@@ -325,8 +326,8 @@ void func_dryfield_general_store_8017DC78(Task* task)
     s32 flag;
     s32 cmd;
 
-    flag = task->spawnArg1;
-    cmd  = (s32)task->spawnArg2;
+    flag = task->spawnArg1.value;
+    cmd  = task->spawnArg2.value;
     switch (task->state) {
         case 0:
             Gp_RunCapCmd1(cmd);

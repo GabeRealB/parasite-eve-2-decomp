@@ -1,18 +1,18 @@
 #include "common.h"
 
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/stream.h"
-#include "main/task.h"
-
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/display.h"
 #include "gameplay/message.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/gameflag.h"
+#include "main/session.h"
+#include "main/stream.h"
+#include "main/task.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_acropolis_observatory_8017E7B8[];

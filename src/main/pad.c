@@ -1,16 +1,25 @@
-#include "common.h"
-
-#define PAD_C
-
+#include <psyq/sys/types.h>
 #include <psyq/libpad.h>
 
-#include "main/pad.h"
-#include "main/tmd.h"
+#include "types.h"
 
+#include "main/pad.h"
+#include "main/pad_types.h"
+#include "pad_types.h"
+#include "main/tmd_types.h"
+
+/* Define BSS before API headers to preserve first-declaration order. */
 TmdListHead gTmdList;
+
 TmdListHead gTmdDisp2dList;
-PadRawPort  Pad_RawPorts[2];
-s32         D_80071210;
+
+PadRawPort Pad_RawPorts[2];
+
+s32 D_80071210;
+
+#include "pad.h"
+
+#include "main/tmd.h"
 
 void Pad_Init(void)
 {

@@ -16,13 +16,13 @@
 #include "player_state.h"
 #include "scene.h"
 #include "gameplay/scene_runtime.h"
-#include "gameplay/sound_params.h"
 #include "gameplay/world_coords.h"
 #include "world_coords.h"
 
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
+#include "main/loadui.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
@@ -146,10 +146,6 @@ static void Gp_ScriptTaskState1(Task* arg0);
 
 static void Gp_ScriptInit(Task* arg0);
 
-extern s16 D_8007A396;
-
-extern u16 D_8007A39C;
-
 Task* D_8010FBE0 = NULL;
 
 Task* D_8010FBE4 = NULL;
@@ -174,7 +170,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
     SVECTOR      vec;
     TextDrawReq  req;
     Task*        slot;
-    GpSndParam*  pair;
+    StageMusicParams*  pair;
     s32          mode;
     GpEvsCmd*    cmd;
 
@@ -210,7 +206,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
     if (st->wait != 0) {
         st->wait--;
-        if (Mc_SaveData[0].demoScene == 9) {
+        if (Mc_SaveData[0].state.demoScene == 9) {
             req.x          = -0x8C;
             req.y          = 0x50;
             req.otIndex    = 4;
@@ -218,13 +214,13 @@ static void Gp_ScriptTaskState1(Task* arg0)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 0;
-            func_8002E53C(&req, Gp_StrDemoWait);
+            Text_DrawString(&req, Gp_StrDemoWait);
         }
         return;
     }
 
     if (D_801156A4 & 0x40) {
-        if (Mc_SaveData[0].demoScene == 9) {
+        if (Mc_SaveData[0].state.demoScene == 9) {
             req.x          = -0x8C;
             req.y          = 0x50;
             req.otIndex    = 4;
@@ -232,7 +228,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 0;
-            func_8002E53C(&req, Gp_StrDemoPause);
+            Text_DrawString(&req, Gp_StrDemoPause);
         }
         return;
     }
@@ -265,7 +261,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 }
                 D_801156F4               = NULL;
                 gGameSession->eventState = 0;
-                if (arg0->spawnArg1 == 0) {
+                if (arg0->spawnArg1.value == 0) {
                     Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
                 }
                 arg0->state++;
@@ -285,7 +281,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 /* fallthrough */
 
             case 3:
-                Mc_SaveData[0].at4.loc.view = (u8)st->pc->arg0;
+                Mc_SaveData[0].state.at4.loc.view = (u8)st->pc->arg0;
                 break;
 
             case 4:
@@ -341,7 +337,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 11:
-                Mc_SaveData[0].at4.loc.view = D_801156F8;
+                Mc_SaveData[0].state.at4.loc.view = D_801156F8;
                 break;
 
             case 12:
@@ -394,13 +390,13 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 if (D_801156C9 != 0) {
                     break;
                 }
-                pair                      = (GpSndParam*)&D_8007A39C;
-                Mc_SaveData[0].sceneEvent = (u8)st->pc->arg0;
+                pair                      = &gStageMusicParams;
+                Mc_SaveData[0].state.sceneEvent = (u8)st->pc->arg0;
                 D_801156C9                = 1;
-                pair->field_0             = (u16)st->pc->arg1;
+                pair->fadeFrames             = (u16)st->pc->arg1;
                 gStageMusicLoadState      = 0;
-                pair->field_2             = (u16)st->pc->arg2;
-                Task_SpawnFromTable(&D_80062774, 0, 0, 0);
+                pair->unusedCommandArg             = (u16)st->pc->arg2;
+                Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
                 break;
 
             case 21:
@@ -414,10 +410,10 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 23:
-                if (arg0->spawnArg1 == 0) {
+                if (arg0->spawnArg1.value == 0) {
                     Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
                 }
-                arg0->spawnArg1 = 1;
+                arg0->spawnArg1.value = 1;
                 Gp_AbortCap();
                 Gp_MsgPlayer3F3(1);
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x401, 0, 0);
@@ -608,7 +604,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 49:
-                D_801156F8 = Mc_SaveData[0].at4.loc.view;
+                D_801156F8 = Mc_SaveData[0].state.at4.loc.view;
                 break;
         }
         D_801156CB = 1;
@@ -621,7 +617,7 @@ void Gp_VolFadeTask(Task* arg0)
     GpVolFade* fade;
     s32        volume;
 
-    fade = arg0->spawnArg2;
+    fade = arg0->spawnArg2.pointer;
     switch (arg0->state) {
         case 0:
             if (fade->field_2 == 0) {
@@ -651,7 +647,7 @@ void Gp_SndFadeTask(Task* arg0)
     GpSndFade* fade;
     s32        volume;
 
-    fade = arg0->spawnArg2;
+    fade = arg0->spawnArg2.pointer;
     switch (arg0->state) {
         case 0:
             if (fade->field_8 == 0) {
@@ -695,7 +691,7 @@ void func_800E8634(GpEvsAddress arg0, s32 arg1, GpEvsAddress arg2)
     D_801156F0               = 5;
     D_801156CD               = 0;
     D_801156CE               = 0;
-    D_801156F8               = Mc_SaveData[0].at4.loc.view;
+    D_801156F8               = Mc_SaveData[0].state.at4.loc.view;
     D_801156EC               = Player_Status.weapon;
     SndEvt_EnqueueType7(0xFF0D, 1);
     Task_Spawn(9, 7, arg1, arg0.address);
@@ -723,14 +719,14 @@ static void Gp_ScriptInit(Task* arg0)
     D_801156F9 = 0;
     D_801156F4 = 0;
     Display_AcquireRef();
-    script              = arg0->spawnArg2;
+    script              = arg0->spawnArg2.pointer;
     D_801156A4          = 0;
     arg0->work          = (TaskIdMap*)mem;
     mem->script.field_4 = 0;
     D_801156C8          = 0;
     mem->script.field_0 = script;
     D_801156CA          = 0;
-    if (arg0->spawnArg1 == 0) {
+    if (arg0->spawnArg1.value == 0) {
         Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
     }
     D_801156CB    = 1;
@@ -756,11 +752,11 @@ void func_800E8888(Task* arg0)
     switch (arg0->state) {
         case 0:
             arg0->killCountdown = 0;
-            arg0->spawnArg1     = -1;
+            arg0->spawnArg1.value     = -1;
             arg0->state++;
             break;
         case 1:
-            arg0->killCountdown = (u16)arg0->killCountdown - (u16)arg0->spawnArg1;
+            arg0->killCountdown = (u16)arg0->killCountdown - (u16)arg0->spawnArg1.value;
             if (arg0->killCountdown >= 9) {
                 arg0->killCountdown = 8;
             }
@@ -786,30 +782,30 @@ void Gp_ShakeTask(Task* arg0)
     s32 scaled;
     s32 val;
 
-    packed = (s32)arg0->spawnArg2;
+    packed = arg0->spawnArg2.value;
     lo     = packed & 0xFF;
 
     switch (arg0->state) {
         case 0:
-            arg0->spawnArg1 = -lo;
+            arg0->spawnArg1.value = -lo;
             arg0->state++;
             break;
         case 1:
-            if (lo < arg0->spawnArg1) {
+            if (lo < arg0->spawnArg1.value) {
                 Display_ClampField126(0);
                 taskKill(arg0);
             } else {
-                val         = lo - ABS(arg0->spawnArg1);
+                val         = lo - ABS(arg0->spawnArg1.value);
                 scaled      = val * (packed >> 8);
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 val         = (scaled * (s32)(Gp_LcgState >> 16)) / lo >> 16;
-                if (arg0->spawnArg1 & 1) {
+                if (arg0->spawnArg1.value & 1) {
                     val = ABS(val);
                 } else {
                     val = -ABS(val);
                 }
                 Display_ClampField126(val);
-                arg0->spawnArg1++;
+                arg0->spawnArg1.value++;
             }
             break;
     }

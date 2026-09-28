@@ -2,7 +2,7 @@
 #define GAMEPLAY_ACTOR_RENDER_H
 
 #include "main/coord.h"
-#include "main/display.h"
+#include "main/display_types.h"
 
 void Gp_UpdateCoord(GpCoord* arg0);
 

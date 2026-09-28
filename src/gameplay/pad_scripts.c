@@ -173,7 +173,7 @@ static void Gp_StepScriptB(Task* task)
 static void Gp_SpawnPadHold(s16 arg0)
 {
     if (arg0 != 0) {
-        Task_Spawn(2, 0xB, arg0, 0);
+        Task_Spawn(2, 0xB, (s32)(arg0), 0);
     }
 }
 
@@ -380,8 +380,8 @@ static void Gp_ScriptBState4(Task* task)
 void Gp_PadHoldTask(Task* task)
 {
     if (Gp_StateF0.field_4 == 0 || (gGameSession->padScriptFlags & 0x80)) {
-        if (task->spawnArg1 != 0 && Gp_PadHoldHalt == 0) {
-            task->spawnArg1--;
+        if (task->spawnArg1.value != 0 && Gp_PadHoldHalt == 0) {
+            task->spawnArg1.value--;
             Pad_PostEvent(0, 0, 1, 1);
             gGameSession->padScriptFlags |= 1;
         } else {

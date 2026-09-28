@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 /// Descriptors of the tasks the gas station's sequencer spawns: entry 0 is the
 /// cutscene task the sequencer waits on, entry 1 the fade the cutscene's last

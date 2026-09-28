@@ -4,14 +4,15 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
+
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
 
 /// The points the room's glows are drawn at, per view.
 extern SVECTOR D_shelter_b1_armory_80182528[];

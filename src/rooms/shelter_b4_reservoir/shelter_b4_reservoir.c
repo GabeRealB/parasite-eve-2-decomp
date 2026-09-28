@@ -7,16 +7,6 @@
 #include "gte.h"
 #include <psyq/abs.h>
 #include <psyq/rand.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -35,7 +25,24 @@
 #include "gameplay/loading.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/evs.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
+#include <psyq/rand.h>
 
 /// Working copy of one surface's extents, carved off the scratchpad stack.
 typedef struct {
@@ -196,7 +203,7 @@ void func_shelter_b4_reservoir_8017D650(Task* arg0)
                 D_shelter_b4_reservoir_80187564[i].speed  = (rand() * 100 + 20) >> 15;
             }
             D_shelter_b4_reservoir_8018473C        = 0;
-            D_shelter_b4_reservoir_80187504        = arg0->spawnArg2;
+            D_shelter_b4_reservoir_80187504        = arg0->spawnArg2.pointer;
             D_shelter_b4_reservoir_80187504->frame = 0;
             D_shelter_b4_reservoir_80187504->state = 0;
             Display_ClampField126(-8);
@@ -332,7 +339,7 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
             Gp_StateF0.field_4 = 0;
             if (Gp_GetCapEventKey() == 0xC) {
                 taskKill(task);
-                Mc_SaveData[0].at4.loc.view = 5;
+                Mc_SaveData[0].state.at4.loc.view = 5;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
                 Gp_MsgAllyWeapon(1);
@@ -348,7 +355,7 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
             break;
         case 4:
             if (gGameSession->eventState == 0) {
-                Mc_SaveData[0].at4.loc.room = 2;
+                Mc_SaveData[0].state.at4.loc.room = 2;
                 gGameSession->at4.loc.room  = 2;
                 gGameSession->roomObjsDirty = 1;
                 GameFlag_SetNibble(0xB7, 1);
@@ -374,7 +381,7 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
         case 0:
             Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(arg0->spawnArg1, 0);
+            Gp_RunCapCmd(arg0->spawnArg1.value, 0);
             arg0->state++;
             break;
         case 1:
@@ -395,7 +402,7 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
             D_shelter_b4_reservoir_80187500.field_0 = 0;
             D_shelter_b4_reservoir_80187500.field_1 = 0;
             D_shelter_b4_reservoir_80187500.field_2 = 0x1E;
-            Task_Spawn(1, 0x31, 0, (s32)&D_shelter_b4_reservoir_80187500);
+            Task_Spawn(1, 0x31, 0, &D_shelter_b4_reservoir_80187500);
             arg0->killCountdown = 0x1E;
             arg0->state++;
             break;
@@ -412,9 +419,9 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
             break;
         case 5:
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_shelter_b4_reservoir_80187508.field_2;
-            Mc_SaveData[0].at4.loc.warp = D_shelter_b4_reservoir_80187508.field_4;
-            Mc_SaveData[0].at4.loc.room = D_shelter_b4_reservoir_80187508.prefix.bytes.field_1;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b4_reservoir_80187508.field_2;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b4_reservoir_80187508.field_4;
+            Mc_SaveData[0].state.at4.loc.room = D_shelter_b4_reservoir_80187508.prefix.bytes.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -456,7 +463,7 @@ s32 func_shelter_b4_reservoir_8017E354(s32 arg0, s32 arg1, s32 arg2)
         Gp_MsgAlly3F3(0);
         Gp_MsgPlayerWeapon(0);
         Gp_MsgAllyWeapon(0);
-        Mc_SaveData[0].at4.loc.view = 6;
+        Mc_SaveData[0].state.at4.loc.view = 6;
         Gp_StateF0.field_4          = 2;
         Task_SpawnFromTable(&D_shelter_b4_reservoir_801848EC, 0, 0, 0);
     }
@@ -481,11 +488,11 @@ void func_shelter_b4_reservoir_8017E400(Task* arg0)
     s16 temp_v1;
     s32 temp_v0;
 
-    temp_v0                         = (s32)(arg0->killCountdown * 0x5DC) / (s32)arg0->spawnArg1;
+    temp_v0                         = (s32)(arg0->killCountdown * 0x5DC) / (s32)arg0->spawnArg1.value;
     temp_v1                         = (u16)arg0->killCountdown + 1;
     arg0->killCountdown             = temp_v1;
     D_shelter_b4_reservoir_80184F80 = temp_v0 - 0x7D0;
-    if (arg0->spawnArg1 < temp_v1) {
+    if (arg0->spawnArg1.value < temp_v1) {
         taskKill(arg0);
         D_shelter_b4_reservoir_8018492C = 0;
     }
@@ -496,11 +503,11 @@ void func_shelter_b4_reservoir_8017E4B0(Task* arg0)
     s16 temp_v1;
     s32 temp_v0;
 
-    temp_v0                         = (s32) - (arg0->killCountdown * 0x708) / (s32)arg0->spawnArg1;
+    temp_v0                         = (s32) - (arg0->killCountdown * 0x708) / (s32)arg0->spawnArg1.value;
     temp_v1                         = (u16)arg0->killCountdown + 1;
     arg0->killCountdown             = temp_v1;
     D_shelter_b4_reservoir_80184F82 = (s16)temp_v0;
-    if (arg0->spawnArg1 < temp_v1) {
+    if (arg0->spawnArg1.value < temp_v1) {
         taskKill(arg0);
         D_shelter_b4_reservoir_8018492C = 0;
     }
@@ -529,7 +536,7 @@ void func_shelter_b4_reservoir_8017E558(Task* arg0)
         coord->flg         = 0;
         coord->coord.t[1] += 4;
     }
-    if (Mc_SaveData[0].at4.loc.view != 8) {
+    if (Mc_SaveData[0].state.at4.loc.view != 8) {
         obj->flags = 0x84;
     } else {
         obj->flags    = 0;
@@ -554,7 +561,7 @@ void func_shelter_b4_reservoir_8017E610(s32 arg0)
         D_shelter_b4_reservoir_80187624.blend = 1;
         D_shelter_b4_reservoir_80187624.g     = 0x80;
         D_shelter_b4_reservoir_80187624.b     = 0x80;
-        Task_SpawnFromTable(&D_shelter_b4_reservoir_80184724, 0, 0, (s32)&D_shelter_b4_reservoir_80187624);
+        Task_SpawnFromTable(&D_shelter_b4_reservoir_80184724, 0, 0, &D_shelter_b4_reservoir_80187624);
         return;
     }
     D_shelter_b4_reservoir_80187628 = arg0;
@@ -641,10 +648,10 @@ static void func_shelter_b4_reservoir_8017E8EC(Task* task)
 {
     RoomWaterSurface* p = D_shelter_b4_reservoir_80184F90;
 
-    if (Mc_SaveData[0].companionType == 0) {
-        D_shelter_b4_reservoir_80187630 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
+    if (Mc_SaveData[0].state.companionType == 0) {
+        D_shelter_b4_reservoir_80187630 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
     } else {
-        D_shelter_b4_reservoir_80187630 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
+        D_shelter_b4_reservoir_80187630 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
     }
     if (gGameSession->at4.loc.view != 0xA) {
         p->depth = 0x2328 - (((D_shelter_b4_reservoir_80184F80 + 0x7D0) * 0x31) >> 5);
@@ -965,11 +972,11 @@ void func_shelter_b4_reservoir_8017FADC(Task* task)
 }
 
 /// First state of the water task: clears the session counter the current
-/// display mode selects (`field_80` when `Mc_SaveData[0].companionType` is zero, `field_7E`
+/// display mode selects (`field_80` when `Mc_SaveData[0].state.companionType` is zero, `field_7E`
 /// otherwise) and moves on to the per-frame state.
 static void func_shelter_b4_reservoir_8017FB44(Task* arg0)
 {
-    if (Mc_SaveData[0].companionType == 0) {
+    if (Mc_SaveData[0].state.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
@@ -988,7 +995,7 @@ static void func_shelter_b4_reservoir_8017FB84(Task* task)
     s32                      offset;
     s32                      roll;
 
-    work   = task->spawnArg2;
+    work   = task->spawnArg2.pointer;
     player = gameGetPtrSlot(3);
     root   = player->extra.tmd->coords;
     if (task->state == 0) {
@@ -1127,7 +1134,7 @@ static void func_shelter_b4_reservoir_801803DC(Task* task)
     GpEffWork* work;
     GpCoord*   coord;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         func_shelter_b4_reservoir_80180530(coord, work->angle, work->scale);
@@ -1139,7 +1146,7 @@ static void func_shelter_b4_reservoir_801803DC(Task* task)
         work->age++;
         if (task->state == 0) {
             work->scale = 0x40;
-            work->angle = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            work->angle = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
             coord->flg  = 0;
@@ -1254,7 +1261,7 @@ static void func_shelter_b4_reservoir_80180864(Task* task)
     s32        state;
     s32        level;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
@@ -1272,29 +1279,29 @@ static void func_shelter_b4_reservoir_80180864(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            work->scale = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            work->scale = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            if (task->spawnArg1 & 0xF000) {
-                step = (task->spawnArg1 >> 12) & 0xF;
+            if (task->spawnArg1.value & 0xF000) {
+                step = (task->spawnArg1.value >> 12) & 0xF;
             } else {
                 step = 1;
             }
             work->period = step;
             work->age    = 0;
             state        = 1;
-            if (task->spawnArg1 & 0xF0000000) {
+            if (task->spawnArg1.value & 0xF0000000) {
                 state = 2;
             }
             task->state = state;
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                if (task->spawnArg1 & 0xFF0000) {
-                    level = (task->spawnArg1 >> 16) & 0xFF;
+                if (task->spawnArg1.value & 0xFF0000) {
+                    level = (task->spawnArg1.value >> 16) & 0xFF;
                 } else {
                     level = 0x40;
                 }
                 work->step = level;
-                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1.value)->field_3;
                 switch (kind & 0xF) {
                     case 0:
                         work->step = 0;
@@ -1469,7 +1476,7 @@ static void func_shelter_b4_reservoir_8018110C(GpCoord* arg0, s16 arg1, s16 arg2
 
 static void func_shelter_b4_reservoir_801813F0(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2;
+    GpEffWork* work  = task->spawnArg2.pointer;
     GpCoord*   coord = task->extra.tmd->coords;
     s16        f2a;
     u32        rng;
@@ -1485,10 +1492,10 @@ static void func_shelter_b4_reservoir_801813F0(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            work->scale = task->spawnArg1 & 0xFFF;
+            work->scale = task->spawnArg1.value & 0xFFF;
 
-            if (task->spawnArg1 & 0xF000) {
-                work->period = (task->spawnArg1 >> 12) & 0x7;
+            if (task->spawnArg1.value & 0xF000) {
+                work->period = (task->spawnArg1.value >> 12) & 0x7;
             } else {
                 work->period = 1;
             }
@@ -1496,8 +1503,8 @@ static void func_shelter_b4_reservoir_801813F0(Task* task)
             work->age   = 0;
             task->state = 1;
 
-            if (task->spawnArg1 & 0xFF0000) {
-                f2a = (task->spawnArg1 >> 16) & 0xFF;
+            if (task->spawnArg1.value & 0xFF0000) {
+                f2a = (task->spawnArg1.value >> 16) & 0xFF;
             } else {
                 f2a = 0x40;
             }
@@ -1919,7 +1926,7 @@ static void func_shelter_b4_reservoir_80182B1C(Task* arg0)
     MATRIX*    mtx;
     u8         col[4];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
@@ -1961,9 +1968,9 @@ static void func_shelter_b4_reservoir_80182B1C(Task* arg0)
             if (mem->angle < 0x200) {
                 mem->angle += 0x10;
             }
-            col[0] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1][0];
-            col[1] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1][1];
-            col[2] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1][2];
+            col[0] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1.value][0];
+            col[1] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1.value][1];
+            col[2] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1.value][2];
             func_shelter_b4_reservoir_80183940(coord, mem->angle, col);
             break;
         case 2:
@@ -1974,9 +1981,9 @@ static void func_shelter_b4_reservoir_80182B1C(Task* arg0)
             if (mem->angle < 0x200) {
                 mem->angle += 0x10;
             }
-            col[0] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1][0];
-            col[1] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1][1];
-            col[2] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1][2];
+            col[0] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1.value][0];
+            col[1] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1.value][1];
+            col[2] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1.value][2];
             func_shelter_b4_reservoir_80183940(coord, mem->angle, col);
             col[0] >>= 1;
             col[1] >>= 1;
@@ -1987,9 +1994,9 @@ static void func_shelter_b4_reservoir_80182B1C(Task* arg0)
             break;
         case 3:
             Gp_UpdateCoord(coord);
-            col[0] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1][0];
-            col[1] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1][1];
-            col[2] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1][2];
+            col[0] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1.value][0];
+            col[1] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1.value][1];
+            col[2] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1.value][2];
             func_shelter_b4_reservoir_80183940(coord, mem->angle, col);
             col[0] = mem->scale;
             col[1] = mem->scale >> 1;
@@ -2035,9 +2042,9 @@ static void func_shelter_b4_reservoir_80183074(Task* task)
     GpCoord*   target;
     VECTOR     delta;
 
-    work   = task->spawnArg2;
+    work   = task->spawnArg2.pointer;
     coord  = task->extra.tmd->coords;
-    target = (GpCoord*)task->spawnArg1;
+    target = (GpCoord*)task->spawnArg1.value;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -2261,7 +2268,7 @@ static void func_shelter_b4_reservoir_80183CD4(Task* arg0)
     s16        flag;
     s16        step;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {

@@ -4,16 +4,7 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/gfxgte.h"
 #include <psyq/rand.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -22,6 +13,17 @@
 #include "gameplay/display.h"
 #include "gameplay/object_task.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gfx.h"
+#include "main/gfxgte.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -32,7 +34,7 @@ extern GpMsgEntry D_neo_ark_island_80181B48[];
 /// Staging save location the island commits: `field_2` / `field_4` / `field_1`
 /// hold what `func_neo_ark_island_8017E968` copies out of the incoming
 /// location, and `func_neo_ark_island_8017E844` moves those same three bytes
-/// into `Mc_SaveData[0].at4.loc.area` / `warp` / `room`.
+/// into `Mc_SaveData[0].state.at4.loc.area` / `warp` / `room`.
 extern GpSaveLoc D_neo_ark_island_80184008;
 
 extern TaskDesc D_neo_ark_island_80181B78;
@@ -292,7 +294,7 @@ void func_neo_ark_island_8017D650(Task* task)
         task->killCountdown    = rand();
         task->state++;
     }
-    prim = (POLY_FT4*)D_8005C374;
+    prim = (POLY_FT4*)Fs_ActorLoadBase2;
     disp = &gDisplayState;
     if (disp->otBuffer != 0) {
         prim += 488;
@@ -639,9 +641,9 @@ void func_neo_ark_island_8017E2A4(Task* task)
     }
 
     if (area == 12 && loc->place == 3) {
-        size  = 0x30000 - D_8006D860;
+        size  = 0x30000 - Fs_ChunkOutputSizes[0];
         size &= ~7;
-        base  = (u8*)D_8005C36C - (size - 0x30000);
+        base  = (u8*)Fs_ActorLoadBase0 - (size - 0x30000);
         if (size < sizeof(POLY_FT4) * 976) {
             return;
         }
@@ -650,7 +652,7 @@ void func_neo_ark_island_8017E2A4(Task* task)
         }
         prim = (POLY_FT4*)base - 1;
     } else {
-        prim = (POLY_FT4*)((u8*)D_8005C374 + 0x9880);
+        prim = (POLY_FT4*)((u8*)Fs_ActorLoadBase2 + 0x9880);
         if (gDisplayState.otBuffer != 0) {
             prim += 488;
         }
@@ -787,9 +789,9 @@ void func_neo_ark_island_8017E844(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_neo_ark_island_80184008.field_2;
-            Mc_SaveData[0].at4.loc.warp = D_neo_ark_island_80184008.field_4;
-            Mc_SaveData[0].at4.loc.room = D_neo_ark_island_80184008.prefix.bytes.field_1;
+            Mc_SaveData[0].state.at4.loc.area = D_neo_ark_island_80184008.field_2;
+            Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_island_80184008.field_4;
+            Mc_SaveData[0].state.at4.loc.room = D_neo_ark_island_80184008.prefix.bytes.field_1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

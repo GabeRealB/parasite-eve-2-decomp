@@ -1,6 +1,7 @@
 #include "gameplay/loading.h"
 
 #include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
 #include "types.h"
@@ -15,7 +16,6 @@
 #include "gameplay/world_collision.h"
 #include "world_collision.h"
 
-#include "main/coord.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -463,10 +463,10 @@ void* Gp_GetViewSprtExtra(void)
 
 void Gp_RoomObjState1(Task* task)
 {
-    if (task->spawnArg1 != (u8)gGameSession->at4.loc.view) {
+    if (task->spawnArg1.value != (u8)gGameSession->at4.loc.view) {
         gGfxViewCoord.flg = 0;
         Gp_UpdateCoord(&gGfxViewCoord);
-        task->spawnArg1 = (u8)gGameSession->at4.loc.view;
+        task->spawnArg1.value = (u8)gGameSession->at4.loc.view;
     }
     if (gGameSession->roomObjsDirty != 0) {
         Gp_LinkRoomObjects(task);

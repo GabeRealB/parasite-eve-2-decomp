@@ -1,23 +1,26 @@
-#ifndef GAMEFLAG_H
-#define GAMEFLAG_H
+#ifndef MAIN_GAMEFLAG_H
+#define MAIN_GAMEFLAG_H
 
-#include "common.h"
+#include "types.h"
 
-// Packed 4-bit game flags (src/main/gameflag.c)
+#include "main/gameflag_types.h"
 
+extern GameFlagNibbleBank GameFlag_NibbleBanks[2];
+
+/// Stage banks contain the live state followed by its memory-card backup.
+extern GameFlagAcropolisBank    GameFlag_AcropolisBanks[2];
+extern GameFlagDryfieldBank     GameFlag_DryfieldBanks[2];
+extern GameFlagDryfieldFullBank GameFlag_DryfieldFullBanks[2];
+extern GameFlagShelterBank      GameFlag_ShelterBanks[2];
+extern GameFlagNeoArkBank       GameFlag_NeoArkBanks[2];
+
+/// Live stage headers, indexed by GpAreaKey.stage (1..5; slot 0 is NULL).
+extern GpFlagBank* Gp_FlagBanks[6];
+
+/// Set one of the 504 game flags; index is 0..503 and value is 0..15.
 void GameFlag_SetNibble(s32 index, s32 value);
-s32  GameFlag_GetNibble(s32 index);
 
-/// Per-index flag object pointed to by `Gp_FlagBanks`. `field_4[0]` / `[1]` are
-/// bitmasks (ids 1–32 and 33–64) cleared by `Gp_ClearFlagBank` and set by
-/// `Gp_MarkAreaVisited`.
-typedef struct _GpFlagBank {
-    /* 0x00 */ byte pad_0[4];
-    /* 0x04 */ s32  field_4[2];
-} GpFlagBank;
-STATIC_ASSERT_SIZEOF(GpFlagBank, 0xC);
+/// Read a four-bit game flag, indexed 0..503.
+s32 GameFlag_GetNibble(s32 index);
 
-/// Main-executable table of `GpFlagBank*`, indexed by slot / session field_7.
-extern GpFlagBank* Gp_FlagBanks[];
-
-#endif // GAMEFLAG_H
+#endif // MAIN_GAMEFLAG_H

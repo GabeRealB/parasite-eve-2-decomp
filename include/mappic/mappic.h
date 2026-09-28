@@ -8,7 +8,7 @@
 
 #include "common.h"
 
-#include "main/tmd.h"
+#include "main/tmd_types.h"
 
 // mappic_s1_00
 extern TmdSource D_mappic_s1_00_8012EFD8;

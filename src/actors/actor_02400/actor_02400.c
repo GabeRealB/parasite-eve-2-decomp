@@ -6,13 +6,6 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/area_entry.h"
@@ -28,8 +21,30 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
+#include "gameplay/light.h"
+#include "gameplay/pairsrc.h"
+#include "gameplay/room.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
+#include "overlay.h"
+#include <psyq/memory.h>
 
 /// Main-executable counter whose lowest bit the flicker alternates on.
 
@@ -464,7 +479,7 @@ static void Actor02400_Fn00C08(Task* task)
     work    = task->work;
     scratch = (ActorPushFrame*)SCRATCH_PUSH_BYTES(0x58);
     coord   = task->extra.tmd->coords;
-    enemy   = task->spawnArg2;
+    enemy   = task->spawnArg2.pointer;
     res     = func_800E0C10(work->rec60, &scratch->delta, 4, NULL);
     if (res == 1)
         goto move_delta;
@@ -589,8 +604,8 @@ move_done:
                         break;
                 }
                 dmg = damage;
-                func_800E2C78(task->spawnArg2, work->rec60[i].key, dmg, 0);
-                func_800DA6E8(&((GpEnemy*)task->spawnArg2)->node, dmg, 0);
+                func_800E2C78(task->spawnArg2.pointer, work->rec60[i].key, dmg, 0);
+                func_800DA6E8(&((GpEnemy*)task->spawnArg2.pointer)->node, dmg, 0);
                 if ((enemy->hp -= damage) <= 0) {
                     task->state = 2;
                 }
@@ -598,7 +613,7 @@ move_done:
                 if (stun > 0) {
                     work->field_136 = stun;
                 }
-                sndId = ((((GpEnemy*)task->spawnArg2)->placeKey >> 12) << 8) | 0x40180003;
+                sndId = ((((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40180003;
                 pan   = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(sndId, pan, (s8)gpGetObjDepth(coord));
                 break;
@@ -821,7 +836,7 @@ static void Actor02400_Fn01590(Task* task)
         Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
         scratch->rot.vx = ((Gp_LcgState >> 16) & 0xFF) + 0x100;
         RotMatrix(&scratch->rot, &task->extra.tmd->coords[2].coord);
-        sound = ((((GpEnemy*)task->spawnArg2)->placeKey >> 12) << 8) | 0x40180002;
+        sound = ((((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40180002;
         pan   = (s8)Gp_GetObjPan(coord);
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
         eff             = (Task**)Gp_SpawnEff(D_80115734, coord, work->variant, NULL);
@@ -965,14 +980,14 @@ static void Actor02400_Fn01B90(Task* task)
             }
             break;
         case 2:
-            Gp_SpawnEnemyFromTable(Actor02400_D0465C, 1, 0, task->spawnArg2);
+            Gp_SpawnEnemyFromTable(Actor02400_D0465C, 1, 0, task->spawnArg2.pointer);
             Gp_StateF0.field_1B = 1;
             work->field_13E     = 3;
             if (work->field_130 != NULL) {
                 (*work->field_130)->state = 3;
             }
             work->field_130 = NULL;
-            sound           = ((((GpEnemy*)task->spawnArg2)->placeKey >> 12) << 8) | 0x40180004;
+            sound           = ((((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40180004;
             pan             = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
             break;
@@ -1170,7 +1185,7 @@ static void Actor02400_Fn023B4(Task* task)
     if ((s16)counter >= 0x19) {
         work->field_14A = 0;
         scale           = work->field_12A;
-        soundId         = (((u16)((GpEnemy*)task->spawnArg2)->placeKey >> 0xC) << 8) | 0x40180001;
+        soundId         = (((u16)((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x40180001;
         if (scale >= 0x1D01) {
             ramp = 0x1700;
         } else {
@@ -1207,7 +1222,7 @@ static void Actor02400_Fn024F8(GpEnemy* arg0, Task* arg1)
             pos.vx = coord->workm.t[0];
             pos.vy = coord->workm.t[1];
             pos.vz = coord->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2, &pos, 0, 0);
+            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             return;
         case 2:
             obj->flags = 0x80;
@@ -1230,7 +1245,7 @@ static void Actor02400_Fn024F8(GpEnemy* arg0, Task* arg1)
                     pos.vx          = cur->workm.t[0];
                     pos.vy          = cur->workm.t[1];
                     pos.vz          = cur->workm.t[2];
-                    Gp_UpdateActorColor(arg1->spawnArg2, &pos, 0, 0);
+                    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
                     if (work->field_130 != NULL) {
                         (*work->field_130)->state = 4;
                     }
@@ -1255,7 +1270,7 @@ static void Actor02400_Fn024F8(GpEnemy* arg0, Task* arg1)
                     pos.vx = cur->workm.t[0];
                     pos.vy = cur->workm.t[1];
                     pos.vz = cur->workm.t[2];
-                    Gp_UpdateActorColor(arg1->spawnArg2, &pos, 0, 0);
+                    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
                     break;
                 case 2:
                     Gp_DestroyEnemy(arg0, arg1);
@@ -1448,7 +1463,7 @@ void Actor02400_Fn02DB0(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = Actor02400_D00004;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
 /// Per-frame handler of the main body. In global mode 2 it only hides the
@@ -1628,7 +1643,7 @@ static void Actor02400_Fn031D0(Task* task)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(task->spawnArg2, &vec, 0, 0);
+    Gp_UpdateActorColor(task->spawnArg2.pointer, &vec, 0, 0);
 }
 
 /// Draws the body's ground mark at its root coordinate's world position.
@@ -1683,7 +1698,7 @@ void Actor02400_Fn03358(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = Actor02400_D0003C;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
 /// Teardown handler of the projectile: phase 0 unlinks its three collision

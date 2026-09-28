@@ -20,20 +20,6 @@
 #include "gameplay/scene.h"
 #include "world_collision.h"
 
-#include "main/coord.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/gfxgte.h"
-#include "main/mc.h"
-#include "main/pad.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/tmd.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
-
 /// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
 /// the prompt's left edge.
 #define DRAW_PROMPT_LABEL(req, dx, line, color, str)          \
@@ -45,7 +31,7 @@
         req.glyphTable = 5;                                   \
         req.centerMode = 0;                                   \
         req.field_E    = 1;                                   \
-        func_8002E53C(&req, (str));                           \
+        Text_DrawString(&req, (str));                           \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
@@ -58,11 +44,22 @@
         req.x          = obj.panel.field_20.u + 0x94;         \
         req.y          = (obj.panel.field_22.u + 9) + (line); \
         req.otIndex    = obj.panel.field_14.s + 1;            \
-        func_8002E53C(&req, Text_ItoaSigned(buf, (count)));   \
+        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));   \
         if ((count) == 0) {                                   \
             flag = 1;                                         \
         }                                                     \
     }
+
+#include "gameplay/damage.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/gfxgte.h"
+#include "main/mc.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/text.h"
+#include "main/ui.h"
+#include "main/wipsys.h"
 
 /// 0x60-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawAimCircle` to draw the
 /// wireframe targeting sphere. `vec` is the point being rotated / projected,
@@ -410,7 +407,7 @@ static inline void _gpDrawHudValue(s32 x, s32 y, s32 color, s32 val)
     req.glyphTable = 0;
     req.centerMode = 2;
     req.field_E    = 3;
-    func_8002E53C(&req, Text_ItoaUnsigned(buf, val));
+    Text_DrawString(&req, Text_ItoaUnsigned(buf, val));
 }
 
 /// Draws the "HP" and "MP" captions relative to `obj`'s origin and draw order.
@@ -426,7 +423,7 @@ static inline void _gpDrawHudLabels(UiObject* obj, s32 x, s32 y, s32 color)
     hpReq.glyphTable = 5;
     hpReq.centerMode = 0;
     hpReq.field_E    = 1;
-    func_8002E53C(&hpReq, Gp_StrHP);
+    Text_DrawString(&hpReq, Gp_StrHP);
 
     mpReq.x          = obj->panel.field_20.u + 0x2E + x;
     mpReq.y          = obj->panel.field_22.u + 8 + y;
@@ -435,7 +432,7 @@ static inline void _gpDrawHudLabels(UiObject* obj, s32 x, s32 y, s32 color)
     mpReq.glyphTable = 5;
     mpReq.centerMode = 0;
     mpReq.field_E    = 1;
-    func_8002E53C(&mpReq, Gp_StrMP);
+    Text_DrawString(&mpReq, Gp_StrMP);
 }
 
 void func_800A57B0(GpIdMapC* arg0)
@@ -754,8 +751,8 @@ void func_800A57B0(GpIdMapC* arg0)
     }
 
     if (Gp_ActorSlots[1] != NULL) {
-        if (Mc_SaveData[0].companionType != 2) {
-            Gp_DrawHudNumbers(0x2D, -0x64, Mc_SaveData[0].companionHp, Mc_SaveData[0].companionHpMax, 0);
+        if (Mc_SaveData[0].state.companionType != 2) {
+            Gp_DrawHudNumbers(0x2D, -0x64, Mc_SaveData[0].state.companionHp, Mc_SaveData[0].state.companionHpMax, 0);
         }
     }
 }

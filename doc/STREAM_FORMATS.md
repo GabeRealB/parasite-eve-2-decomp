@@ -234,7 +234,7 @@ Layout matches `FsCdfStream` / `StreamSlot` (`0x28` bytes). USA retail survey
 | `0x08` | `u32` | `interOffset` | `offset_inter` | Sector index **within** the disc’s `INTER*.STR` (`0` = file start). **Seek base when `movie_number ≠ 0`** | High |
 | `0x0C` | `u16` | `field_c` | `unknown2` | Secondary match key in `Stream_FindSlot`: if ≠0, must equal `key[1]`; if `0`, any secondary. USA: almost always `0` | Medium |
 | `0x0E` | `u16` | `id` | `stream_id` | **Primary lookup key** (`Stream_FindSlot` matches `key[0]`) | High |
-| `0x10` | `u16` | `subId` | `stream_sub_id` | Matched against `arg1` in `Stream_FindSlot` (often `0`; small room sub-indices) | High |
+| `0x10` | `u16` | `subId` | `stream_sub_id` | Matched against `value` in `Stream_FindSlot` (often `0`; small room sub-indices) | High |
 | `0x12` | `u16` | `width` | `picture_width` | MDEC width (e.g. 320) → `D_8006AC5A` | High |
 | `0x14` | `u16` | `height` | `picture_height` | MDEC height (e.g. 240, 192) → `D_8006AC6C` | High |
 | `0x16` | `u16` | `field_16` | `unknown3` | Copied to `D_8006AC0E`. Usually `0`; occasional non-zero (display/crop-related?) | Low |

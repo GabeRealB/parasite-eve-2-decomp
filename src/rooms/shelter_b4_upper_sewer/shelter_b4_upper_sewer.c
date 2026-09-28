@@ -5,16 +5,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
@@ -33,7 +23,24 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
 
@@ -131,7 +138,7 @@ void func_shelter_b4_upper_sewer_8017D660(Task* task)
         case 3:
             if (Gp_GetCapEventKey() == 0xC) {
                 taskKill(task);
-                Mc_SaveData[0].at4.loc.view = D_shelter_b4_upper_sewer_80188D2C;
+                Mc_SaveData[0].state.at4.loc.view = D_shelter_b4_upper_sewer_80188D2C;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
                 Gp_MsgAllyWeapon(1);
@@ -163,7 +170,7 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
         case 0:
             Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(arg0->spawnArg1, 0);
+            Gp_RunCapCmd(arg0->spawnArg1.value, 0);
             arg0->state++;
             break;
         case 1:
@@ -184,7 +191,7 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
             D_shelter_b4_upper_sewer_80188D1C.field_0 = 0;
             D_shelter_b4_upper_sewer_80188D1C.field_1 = 0;
             D_shelter_b4_upper_sewer_80188D1C.field_2 = 0x1E;
-            Task_Spawn(1, 0x31, 0, (s32)&D_shelter_b4_upper_sewer_80188D1C);
+            Task_Spawn(1, 0x31, 0, &D_shelter_b4_upper_sewer_80188D1C);
             arg0->killCountdown = 0x1E;
             arg0->state++;
             break;
@@ -201,9 +208,9 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
             break;
         case 5:
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_shelter_b4_upper_sewer_80188D24.field_2;
-            Mc_SaveData[0].at4.loc.warp = D_shelter_b4_upper_sewer_80188D24.field_4;
-            Mc_SaveData[0].at4.loc.room = D_shelter_b4_upper_sewer_80188D24.prefix.bytes.field_1;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b4_upper_sewer_80188D24.field_2;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b4_upper_sewer_80188D24.field_4;
+            Mc_SaveData[0].state.at4.loc.room = D_shelter_b4_upper_sewer_80188D24.prefix.bytes.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -251,8 +258,8 @@ s32 func_shelter_b4_upper_sewer_8017DAB0(Task* task, s32 msgId, s32 arg2)
             Gp_MsgPlayerWeapon(0);
             Gp_MsgAllyWeapon(0);
             Gp_StateF0.field_4                = 2;
-            temp_a1                           = Mc_SaveData[0].at4.loc.view;
-            Mc_SaveData[0].at4.loc.view       = 0xD;
+            temp_a1                           = Mc_SaveData[0].state.at4.loc.view;
+            Mc_SaveData[0].state.at4.loc.view       = 0xD;
             D_shelter_b4_upper_sewer_80188D2C = temp_a1;
             Task_SpawnFromTable(&D_shelter_b4_upper_sewer_80186300, 0, 0, 0);
         } else {
@@ -278,7 +285,7 @@ s32 func_shelter_b4_upper_sewer_8017DB58(s32 arg0, s32 arg1, s32 arg2)
 
 void func_shelter_b4_upper_sewer_8017DB94(void)
 {
-    Mc_SaveData[0].at4.loc.view = D_shelter_b4_upper_sewer_80188D2C;
+    Mc_SaveData[0].state.at4.loc.view = D_shelter_b4_upper_sewer_80188D2C;
 }
 
 static void func_shelter_b4_upper_sewer_8017DBA8(Task* task)
@@ -316,10 +323,10 @@ static void func_shelter_b4_upper_sewer_8017DC88(Task* task)
     u8  c;
     s32 h;
 
-    if (Mc_SaveData[0].companionType == 0) {
-        D_shelter_b4_upper_sewer_80188D30 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
+    if (Mc_SaveData[0].state.companionType == 0) {
+        D_shelter_b4_upper_sewer_80188D30 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
     } else {
-        D_shelter_b4_upper_sewer_80188D30 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
+        D_shelter_b4_upper_sewer_80188D30 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
     }
     if (D_shelter_b4_upper_sewer_80186438 < -0x640) {
         D_shelter_b4_upper_sewer_80186438 = -0x640;
@@ -469,7 +476,7 @@ void func_shelter_b4_upper_sewer_8017E4F4(Task* task)
 
 static void func_shelter_b4_upper_sewer_8017E55C(Task* arg0)
 {
-    if (Mc_SaveData[0].companionType == 0) {
+    if (Mc_SaveData[0].state.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
@@ -582,7 +589,7 @@ static void func_shelter_b4_upper_sewer_8017E8B8(Task* task)
     GpEffWork* work;
     GpCoord*   coord;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         func_shelter_b4_upper_sewer_8017EA0C(coord, work->angle, work->scale);
@@ -594,7 +601,7 @@ static void func_shelter_b4_upper_sewer_8017E8B8(Task* task)
         work->age++;
         if (task->state == 0) {
             work->scale = 0x40;
-            work->angle = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            work->angle = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
             coord->flg  = 0;
@@ -708,7 +715,7 @@ static void func_shelter_b4_upper_sewer_8017ED40(Task* task)
     s32        state;
     s32        level;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
@@ -726,29 +733,29 @@ static void func_shelter_b4_upper_sewer_8017ED40(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            work->scale = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            work->scale = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            if (task->spawnArg1 & 0xF000) {
-                step = (task->spawnArg1 >> 12) & 0xF;
+            if (task->spawnArg1.value & 0xF000) {
+                step = (task->spawnArg1.value >> 12) & 0xF;
             } else {
                 step = 1;
             }
             work->period = step;
             work->age    = 0;
             state        = 1;
-            if (task->spawnArg1 & 0xF0000000) {
+            if (task->spawnArg1.value & 0xF0000000) {
                 state = 2;
             }
             task->state = state;
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                if (task->spawnArg1 & 0xFF0000) {
-                    level = (task->spawnArg1 >> 16) & 0xFF;
+                if (task->spawnArg1.value & 0xFF0000) {
+                    level = (task->spawnArg1.value >> 16) & 0xFF;
                 } else {
                     level = 0x40;
                 }
                 work->step = level;
-                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1.value)->field_3;
                 switch (kind & 0xF) {
                     case 0:
                         work->step = 0;
@@ -1066,7 +1073,7 @@ static void func_shelter_b4_upper_sewer_80180110(Task* task)
     GpCoord*   coord;
     s32        lifetime;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -1076,29 +1083,29 @@ static void func_shelter_b4_upper_sewer_80180110(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                if (task->spawnArg1 & 3) {
+                if (task->spawnArg1.value & 3) {
                     work->scale   = 0x80;
-                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1.value)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1)->speed;
+                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1.value)->speed;
                     work->move.vz = 0;
-                    if (task->spawnArg1 & 2) {
+                    if (task->spawnArg1.value & 2) {
                         work->move.vy = -work->move.vy;
                     }
                     task->state = 2;
                 } else {
                     work->scale   = 0x20;
-                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1.value)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
+                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1.value)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
                     work->move.vz = 0;
-                    task->state   = (task->spawnArg1 & 1) + 1;
+                    task->state   = (task->spawnArg1.value & 1) + 1;
                 }
                 break;
             case 1:
@@ -1322,7 +1329,7 @@ static void func_shelter_b4_upper_sewer_80180E58(Task* arg0)
     s16         flag;
     s32         shift;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -1346,17 +1353,17 @@ static void func_shelter_b4_upper_sewer_80180E58(Task* arg0)
                 coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->index      = shift;
-                arg0->spawnArg1 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0;
+                arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
                 arg0->state     = 1;
-                mem->step       = 0x100 / arg0->spawnArg1;
+                mem->step       = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
                 mem->scale      += mem->step;
                 mem->angle      += mem->step;
-                arg0->spawnArg1 -= 1;
+                arg0->spawnArg1.value -= 1;
                 rgb[0]           = mem->scale >> D_shelter_b4_upper_sewer_80186560[mem->index].r;
                 rgb[1]           = mem->scale >> D_shelter_b4_upper_sewer_80186560[mem->index].g;
                 rgb[2]           = mem->scale >> D_shelter_b4_upper_sewer_80186560[mem->index].b;
@@ -1368,7 +1375,7 @@ static void func_shelter_b4_upper_sewer_80180E58(Task* arg0)
                     func_shelter_b4_upper_sewer_80180AC4(coord, mem->angle + 0x100, rgb);
                 }
                 func_shelter_b4_upper_sewer_801806A0(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
-                if (arg0->spawnArg1 == 0) {
+                if (arg0->spawnArg1.value == 0) {
                     mem->scale  = 0xFF;
                     arg0->state = 2;
                     return;
@@ -1404,7 +1411,7 @@ static void func_shelter_b4_upper_sewer_801811F0(Task* arg0)
     s16        flag;
     s16        step;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -1778,7 +1785,7 @@ static void func_shelter_b4_upper_sewer_80182600(Task* arg0)
     s16        flag;
     s16        ang;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -1814,7 +1821,7 @@ static void func_shelter_b4_upper_sewer_80182734(Task* arg0)
     GpCoord*   coord;
     u8         rgb[3];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -1827,13 +1834,13 @@ static void func_shelter_b4_upper_sewer_80182734(Task* arg0)
             case 0:
                 mem->scale  = 0;
                 mem->angle  = 0x80;
-                mem->step   = 0x100 / arg0->spawnArg1;
+                mem->step   = 0x100 / arg0->spawnArg1.value;
                 arg0->state = 1;
                 break;
             case 1:
                 mem->scale += mem->step;
                 mem->angle += mem->step;
-                arg0->spawnArg1--;
+                arg0->spawnArg1.value--;
                 rgb[0] = mem->scale;
                 rgb[1] = mem->scale >> 2;
                 rgb[2] = mem->scale >> 1;
@@ -1843,7 +1850,7 @@ static void func_shelter_b4_upper_sewer_80182734(Task* arg0)
                 rgb[2] >>= 1;
                 func_shelter_b4_upper_sewer_80182E04(coord, (u16)mem->angle * 2, rgb);
                 func_shelter_b4_upper_sewer_801829D8(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
-                if (arg0->spawnArg1 == 0) {
+                if (arg0->spawnArg1.value == 0) {
                     mem->scale  = 0xFF;
                     arg0->state = 2;
                     rgb[0]      = mem->scale;
@@ -1990,7 +1997,7 @@ static void func_shelter_b4_upper_sewer_80183198(Task* task)
     s32        i;
 
     coords   = (GpCoord*)task->work;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
@@ -2063,7 +2070,7 @@ static void func_shelter_b4_upper_sewer_80183198(Task* task)
                     Gp_UpdateCoord(dst);
                 }
                 func_shelter_b4_upper_sewer_80183688(coords, &coords[8], work->age & 7, 0x123);
-                if (work->age == task->spawnArg1 && work->age != 0) {
+                if (work->age == task->spawnArg1.value && work->age != 0) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
@@ -2181,7 +2188,7 @@ static void func_shelter_b4_upper_sewer_80183A80(Task* task)
     u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -2196,7 +2203,7 @@ static void func_shelter_b4_upper_sewer_80183A80(Task* task)
     switch (task->state) {
         case 0:
             Gp_SpawnEff(0x60076, objCoord, 0x400, NULL);
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 Gp_SpawnEff(0x60070, objCoord, 0x80004600, NULL);
                 task->state = 1;
             } else {
@@ -2383,7 +2390,7 @@ static void func_shelter_b4_upper_sewer_801846C8(Task* arg0)
     MATRIX*    mtx;
     u8         col[4];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
@@ -2425,9 +2432,9 @@ static void func_shelter_b4_upper_sewer_801846C8(Task* arg0)
             if (mem->angle < 0x200) {
                 mem->angle += 0x10;
             }
-            col[0] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1][0];
-            col[1] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1][1];
-            col[2] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1][2];
+            col[0] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1.value][0];
+            col[1] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1.value][1];
+            col[2] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1.value][2];
             func_shelter_b4_upper_sewer_801854EC(coord, mem->angle, col);
             break;
         case 2:
@@ -2438,9 +2445,9 @@ static void func_shelter_b4_upper_sewer_801846C8(Task* arg0)
             if (mem->angle < 0x200) {
                 mem->angle += 0x10;
             }
-            col[0] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1][0];
-            col[1] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1][1];
-            col[2] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1][2];
+            col[0] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1.value][0];
+            col[1] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1.value][1];
+            col[2] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1.value][2];
             func_shelter_b4_upper_sewer_801854EC(coord, mem->angle, col);
             col[0] >>= 1;
             col[1] >>= 1;
@@ -2451,9 +2458,9 @@ static void func_shelter_b4_upper_sewer_801846C8(Task* arg0)
             break;
         case 3:
             Gp_UpdateCoord(coord);
-            col[0] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1][0];
-            col[1] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1][1];
-            col[2] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1][2];
+            col[0] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1.value][0];
+            col[1] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1.value][1];
+            col[2] = mem->scale >> D_shelter_b4_upper_sewer_80186584[arg0->spawnArg1.value][2];
             func_shelter_b4_upper_sewer_801854EC(coord, mem->angle, col);
             col[0] = mem->scale;
             col[1] = mem->scale >> 1;
@@ -2492,9 +2499,9 @@ static void func_shelter_b4_upper_sewer_80184C20(Task* task)
     GpCoord*   target;
     VECTOR     delta;
 
-    work   = task->spawnArg2;
+    work   = task->spawnArg2.pointer;
     coord  = task->extra.tmd->coords;
-    target = (GpCoord*)task->spawnArg1;
+    target = (GpCoord*)task->spawnArg1.value;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -2725,7 +2732,7 @@ static void func_shelter_b4_upper_sewer_80185880(Task* task)
     u8         sp10[3];
     u16        temp;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {

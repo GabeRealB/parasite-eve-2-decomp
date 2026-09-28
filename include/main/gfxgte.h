@@ -1,15 +1,14 @@
-#ifndef GFXGTE_H
-#define GFXGTE_H
+#ifndef MAIN_GFXGTE_H
+#define MAIN_GFXGTE_H
 
-/// Small inline GTE helpers of the gfx module, shared by the units that inline
-/// them. They live apart from `gfx.h` because they need the real GTE command
-/// words from `decomp/gte.h`, which not every includer of `gfx.h` may pull in.
-
-#include "common.h"
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
 #include <psyq/gtemac.h>
+#include <psyq/inline_c.h>
+
+#include "gte.h"
+#include "types.h"
+
 #include "main/scratch.h"
 
 /// Rotates `v` in place by the rotation part of `m`, with no translation.
@@ -62,4 +61,4 @@ static __inline__ void gfxScaleMatrixColumns(MATRIX* m, VECTOR* scale)
     SCRATCH_POP(SVECTOR);
 }
 
-#endif // GFXGTE_H
+#endif // MAIN_GFXGTE_H

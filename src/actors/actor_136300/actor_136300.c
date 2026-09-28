@@ -4,13 +4,6 @@
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 #include "actors/actor.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/task.h"
 
 #include "gameplay/captions.h"
 #include "gameplay/display.h"
@@ -19,7 +12,17 @@
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
+
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "overlay.h"
 
 extern TaskDesc D_actor_136300_8013B134;
 extern TaskDesc D_80183380;
@@ -91,7 +94,7 @@ void func_actor_136300_80131E40(Task* arg0)
                 D_actor_136300_8013C8DC[i].speed  = (rand() * 100 + 20) >> 15;
             }
             D_actor_136300_80132ADC        = 0;
-            D_actor_136300_8013C888        = arg0->spawnArg2;
+            D_actor_136300_8013C888        = arg0->spawnArg2.pointer;
             D_actor_136300_8013C888->frame = 0;
             D_actor_136300_8013C888->state = 0;
             Display_ClampField126(-8);
@@ -255,12 +258,12 @@ void func_actor_136300_8013267C(Task* arg0)
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 0xF);
             GameFlag_SetNibble(0x4C, 4);
-            Mc_SaveData[0].sceneEvent    = 9;
-            Mc_SaveData[0].at4.loc.stage = 4;
-            Mc_SaveData[0].at4.loc.area  = 1;
-            Mc_SaveData[0].at4.loc.warp  = 1;
-            Mc_SaveData[0].at4.loc.room  = 1;
-            Fs_BeginBootLoad(&Mc_SaveData[0].at4.loc.view, 0);
+            Mc_SaveData[0].state.sceneEvent    = 9;
+            Mc_SaveData[0].state.at4.loc.stage = 4;
+            Mc_SaveData[0].state.at4.loc.area  = 1;
+            Mc_SaveData[0].state.at4.loc.warp  = 1;
+            Mc_SaveData[0].state.at4.loc.room  = 1;
+            Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 0);
             Gp_ClearCollectedBit(0x116);
             gDisplayState.roomVariant = 1;
             Task_Spawn(0, 0x11, 0, 0);
@@ -281,19 +284,19 @@ void func_actor_136300_80132854(Task* arg0)
         Gp_SpawnScript18(&D_80114A24, &D_80114A34);
         arg0->state += 1;
     }
-    var_v0 = arg0->spawnArg1;
+    var_v0 = arg0->spawnArg1.value;
     if (var_v0 < 0) {
         Stage_SetEndingFlag();
         taskKill(arg0);
-        var_v0 = arg0->spawnArg1;
+        var_v0 = arg0->spawnArg1.value;
     }
     var_v0          = var_v0 - 1;
-    arg0->spawnArg1 = var_v0;
+    arg0->spawnArg1.value = var_v0;
 }
 
 void func_actor_136300_801328D4(s8 arg0)
 {
-    Mc_SaveData[0].sceneEvent = arg0;
+    Mc_SaveData[0].state.sceneEvent = arg0;
 }
 
 void func_actor_136300_801328E0(s32 arg0)
@@ -329,7 +332,7 @@ void func_actor_136300_80132910(s32 arg0)
                 D_actor_136300_8013C99C.span  = 5;
                 D_actor_136300_8013C99C.scale = 0x100;
             }
-            Task_SpawnFromTable(&D_actor_136300_80132AC4, 0, 0, (s32)&D_actor_136300_8013C99C);
+            Task_SpawnFromTable(&D_actor_136300_80132AC4, 0, 0, &D_actor_136300_8013C99C);
         }
     } else {
         D_actor_136300_8013C99C.state = arg0;

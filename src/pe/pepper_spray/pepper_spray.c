@@ -5,19 +5,22 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/display.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "pe/pepper_spray.h"
 
 #include "gameplay/attachments.h"
 #include "gameplay/display.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/scratch.h"
+#include "main/sound.h"
+#include "overlay.h"
 
 static void func_pepper_spray_8012F21C(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_pepper_spray_8012F634(GpCoord* arg0, s16 arg1, s16 arg2);
@@ -53,7 +56,7 @@ static void func_pepper_spray_8012EF34(Task* arg0)
 
     base  = Gp_RoomCoords;
     slot  = &base->data.light;
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState != 0)) {
         SndEvt_EnqueueType7(0xE03F0001, 1);

@@ -6,8 +6,8 @@
 #include "gameplay/actor.h"
 
 #include "main/coord.h"
-#include "main/session.h"
-#include "main/task.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
 
 void Gp_TriggerPeState(s32 arg0, s32 arg1);
 

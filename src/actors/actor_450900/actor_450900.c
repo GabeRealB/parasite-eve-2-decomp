@@ -1,12 +1,4 @@
 #include "common.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/unknown_syms.h"
 #include "psyq/rand.h"
 
 #include "gameplay/actor_render.h"
@@ -17,7 +9,16 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 extern s32 D_8017A99C;
 extern s8  D_actor_450900_80135E70;
@@ -84,11 +85,11 @@ void func_actor_450900_80131E38(Task* task)
             if (Gp_StateF0.field_4 != 0) {
                 break;
             }
-            if (Mc_SaveData[0].demoScene != 0xB) {
+            if (Mc_SaveData[0].state.demoScene != 0xB) {
                 D_8017A99C = D_8017A99C + 1;
             }
             t = D_8017A99C - 0x30C;
-            if (D_actor_450900_80135E74 == 0 && Mc_SaveData[0].companionHp > 0 && t >= 0) {
+            if (D_actor_450900_80135E74 == 0 && Mc_SaveData[0].state.companionHp > 0 && t >= 0) {
                 D_actor_450900_80135E70 = state;
                 if (t % 210 == 0) {
                     coord = (gameGetPtrSlot(0xA))->extra.tmd->coords;
@@ -224,10 +225,10 @@ void func_actor_450900_8013235C(Task* task)
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 8);
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].at4.loc.area  = 0xF;
-            Mc_SaveData[0].at4.loc.warp  = 3;
-            Mc_SaveData[0].companionType = 0;
-            Mc_SaveData[0].at4.loc.room  = 1;
+            Mc_SaveData[0].state.at4.loc.area  = 0xF;
+            Mc_SaveData[0].state.at4.loc.warp  = 3;
+            Mc_SaveData[0].state.companionType = 0;
+            Mc_SaveData[0].state.at4.loc.room  = 1;
             gDisplayState.roomVariant    = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Gp_RestoreStreamRng();
@@ -243,10 +244,10 @@ void func_actor_450900_80132518(s32 arg0)
 {
     if (D_actor_450900_80136C9C != NULL) {
         if (arg0 == 1) {
-            D_actor_450900_80136C9C->spawnArg1 = 0;
+            D_actor_450900_80136C9C->spawnArg1.value = 0;
             return;
         }
-        D_actor_450900_80136C9C->spawnArg1 = 1;
+        D_actor_450900_80136C9C->spawnArg1.value = 1;
     }
 }
 
@@ -278,7 +279,7 @@ void func_actor_450900_80132548(Task* task)
             /* fallthrough */
         case 1:
             aim = (GpHeadAim*)task->work;
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 rate      = aim->rate + 0x200;
                 aim->rate = rate;
                 if ((s16)rate >= 0x1001) {

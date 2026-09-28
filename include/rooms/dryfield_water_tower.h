@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 /// The room's task table at 0x80182384: entry 0 is the cap script
 /// `func_dryfield_water_tower_8017F128`, which the room's entry task spawns,

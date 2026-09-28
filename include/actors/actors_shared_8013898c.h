@@ -4,9 +4,10 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+
 #include "main/coord.h"
-#include "main/mc.h"
 
 /// The caller's vector slot: the column copy fills the `SVECTOR` at 0x10, GPF
 /// scales it in place and the translation update reads `vx` / `vz` back out of

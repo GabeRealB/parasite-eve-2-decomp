@@ -5,6 +5,8 @@
 
 #include "gameplay/actor.h"
 
+#include "main/session_types.h"
+
 /// Collision pair allocated by `func_pyrokinesis_8012EF48` (`memCalloc(0x58)`)
 /// and stored in `Task::work`. `obj` is linked on list 1 and carries the
 /// packed combo id, `obj2` on list 7 with the 0x4400 flags the cone uses to

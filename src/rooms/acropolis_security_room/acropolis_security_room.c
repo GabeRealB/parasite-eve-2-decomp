@@ -7,19 +7,6 @@
 #include "gte.h"
 #include <psyq/abs.h>
 #include <psyq/stdio.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
@@ -39,7 +26,27 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/action_prompt.h"
+#include "gameplay/effects.h"
+#include "gameplay/geometry.h"
+#include "gameplay/message.h"
+#include "gameplay/sprites.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gameflow.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "overlay.h"
 
 /// 0xA work block of the security-monitor task, hung off the `Task::work`
 /// slot (0x1C) -- that slot is *not* a `TaskIdMap` here, it is the
@@ -408,7 +415,7 @@ static void func_acropolis_security_room_8017D9DC(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2  = Task_SpawnFromTable(&D_acropolis_security_room_8018263C, 0, 1, 0);
+    task->spawnArg2.pointer  = Task_SpawnFromTable(&D_acropolis_security_room_8018263C, 0, 1, 0);
     task->work       = (TaskIdMap*)work;
     work->blinkTimer = 0;
     stateElse        = 6;
@@ -419,13 +426,13 @@ static void func_acropolis_security_room_8017D9DC(Task* task)
         work->cameraId = D_acropolis_security_room_801826B4[0];
     }
     if (GameFlag_GetNibble(1) < 3) {
-        Mc_SaveData[0].at4.loc.view = 8;
+        Mc_SaveData[0].state.at4.loc.view = 8;
         /* Without this the scheduler hoists the `task->state` load above the
-           `Mc_SaveData[0].at4.loc.view` byte store to fill its load-delay slot. */
+           `Mc_SaveData[0].state.at4.loc.view` byte store to fill its load-delay slot. */
         state = task->state;
         state++;
     } else {
-        Mc_SaveData[0].at4.loc.view = 5;
+        Mc_SaveData[0].state.at4.loc.view = 5;
         state                       = stateElse;
     }
     task->state = state;
@@ -491,7 +498,7 @@ static void func_acropolis_security_room_8017DB30(Task* task)
 }
 
 /// Runs the camera-list state of the security monitor: mirrors the highlighted
-/// row into `Mc_SaveData[0].at4.loc.view` (with a click), scrolls the panel by a page
+/// row into `Mc_SaveData[0].state.at4.loc.view` (with a click), scrolls the panel by a page
 /// when the row is one of the two 0x8000/0x8001 scroll commands, and fires the
 /// two one-shot cap sequences the room gates on the `0xA` game-flag nibble.
 /// Then redraws the panel plus cursor overlay and advances to state 2.
@@ -510,8 +517,8 @@ static void func_acropolis_security_room_8017DC7C(Task* task)
         sel = work->selection;
         if (sel >= 0) {
             save = &Mc_SaveData[0];
-            if (save->at4.loc.view != sel) {
-                save->at4.loc.view = work->selection;
+            if (save->state.at4.loc.view != sel) {
+                save->state.at4.loc.view = work->selection;
                 SndEvt_EnqueueType6(0x51060003, 0, 0);
                 if ((work->selection == 0xA) && !(GameFlag_GetNibble(0xA) & 2)) {
                     work->field_7 = 1;
@@ -533,11 +540,11 @@ static void func_acropolis_security_room_8017DC7C(Task* task)
                 SndEvt_EnqueueType6(sfx, 0, 0);
             }
         }
-        if (((u8)Mc_SaveData[0].at4.loc.view == 0xB) && ((s16)work->cameraId != 4) && !(GameFlag_GetNibble(0xA) & 1)) {
+        if (((u8)Mc_SaveData[0].state.at4.loc.view == 0xB) && ((s16)work->cameraId != 4) && !(GameFlag_GetNibble(0xA) & 1)) {
             Gp_StartCapSlot(0xD, 0, 0);
             GameFlag_SetNibble(0xA, GameFlag_GetNibble(0xA) | 1);
         }
-        if (((u8)Mc_SaveData[0].at4.loc.view == 0xA) && ((s16)work->cameraId != 4) && (work->field_7 != 0) &&
+        if (((u8)Mc_SaveData[0].state.at4.loc.view == 0xA) && ((s16)work->cameraId != 4) && (work->field_7 != 0) &&
             (work->field_8 == 0) && (GameFlag_GetNibble(0x102) == 0)) {
             Gp_StartCapSlot(0xC, 0, 0);
             work->field_8 = 1;
@@ -766,7 +773,7 @@ static void func_acropolis_security_room_8017E490(Task* task)
     u16*              statep;
     u16*              heldp;
 
-    switch (task->spawnArg1) {
+    switch (task->spawnArg1.value) {
         case 1:
             first = 0;
             count = 1;
@@ -1000,12 +1007,12 @@ loop:
     }
     GameFlag_SetNibble(0x2A, index);
 done:
-    Mc_SaveData[0].at4.loc.view = 4;
+    Mc_SaveData[0].state.at4.loc.view = 4;
     Display_ReleaseRef();
     gGameSession->cutsceneHold = 0;
     gGameSession->hideHud      = 0;
     gGameSession->eventState   = 0;
-    taskKill((Task*)task->spawnArg2);
+    taskKill((Task*)task->spawnArg2.pointer);
     Task_RequestKill(task, 0);
 }
 
@@ -1245,7 +1252,7 @@ static void func_acropolis_security_room_8017F1BC(Task* task)
             task->state = 6;
             func_800E9BDC(1, 0xF9FF);
             Gp_ApplyAreaRecs(D_acropolis_security_room_80184F80);
-            taskKill((Task*)task->spawnArg2);
+            taskKill((Task*)task->spawnArg2.pointer);
             return;
         } else {
             Gp_StartCapSlot(3, 1, 2);
@@ -1288,7 +1295,7 @@ static void func_acropolis_security_room_8017F300(Task* task)
             } else {
                 Gp_ApplyAreaRecs(D_acropolis_security_room_80184F7C);
             }
-            taskKill((Task*)task->spawnArg2);
+            taskKill((Task*)task->spawnArg2.pointer);
             return;
         } else {
             Gp_StartCapSlot(4, 1, 2);
@@ -1342,7 +1349,7 @@ static void func_acropolis_security_room_8017F480(Task* task)
     u16*              statep;
     u16*              heldp;
 
-    switch (task->spawnArg1) {
+    switch (task->spawnArg1.value) {
         case 1:
             first = 0;
             count = 1;
@@ -1532,10 +1539,10 @@ static void func_acropolis_security_room_8017FA18(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2             = Task_SpawnFromTable(D_acropolis_security_room_801826C0, 0, 1, 0);
+    task->spawnArg2.pointer             = Task_SpawnFromTable(D_acropolis_security_room_801826C0, 0, 1, 0);
     task->msgTable              = D_acropolis_security_room_801826CC;
     task->work                  = (TaskIdMap*)st;
-    Mc_SaveData[0].at4.loc.view = 6;
+    Mc_SaveData[0].state.at4.loc.view = 6;
     task->state++;
     st->field_0 = 0;
     st->frames  = 0;
@@ -1614,9 +1621,9 @@ static void func_acropolis_security_room_8017FC30(Task* task)
     gGameSession->eventState    = 0;
     gGameSession->hideHud       = 0;
     gGameSession->cutsceneHold  = 0;
-    Mc_SaveData[0].at4.loc.view = 3;
+    Mc_SaveData[0].state.at4.loc.view = 3;
     Display_ReleaseRef();
-    taskKill((Task*)task->spawnArg2);
+    taskKill((Task*)task->spawnArg2.pointer);
     Task_RequestKill(task, 0);
 }
 
@@ -1704,7 +1711,7 @@ s32 func_acropolis_security_room_8017FE24(Task* task, s32 msgId, s32 item, s32 a
 /// state: `frames` doubles as the fade level here, rising by 4 a frame and
 /// driving `Fade_DrawOverlay`'s three colour channels together. At the halfway
 /// point (0x80) the door chime is queued; once the level passes 0xFF the
-/// counter is reset for the next state and `Mc_SaveData[0].at4.loc.view` is set to 0x10.
+/// counter is reset for the next state and `Mc_SaveData[0].state.at4.loc.view` is set to 0x10.
 static void func_acropolis_security_room_8017FE6C(Task* task)
 {
     AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
@@ -1718,7 +1725,7 @@ static void func_acropolis_security_room_8017FE6C(Task* task)
     }
     if (st->frames >= 0x100) {
         st->frames                  = 0;
-        Mc_SaveData[0].at4.loc.view = 0x10;
+        Mc_SaveData[0].state.at4.loc.view = 0x10;
         /* Without the barrier GCC hoists the `lw` of `task->state` above the
          * byte store, dropping the load-delay `nop`. */
         task->state = task->state + 1;
@@ -1754,7 +1761,7 @@ static void func_acropolis_security_room_8017FFD0(Task* arg0)
 
 static void func_acropolis_security_room_80180010(Task* task)
 {
-    Mc_SaveData[0].at4.loc.view = 3;
+    Mc_SaveData[0].state.at4.loc.view = 3;
     /* Without the barrier GCC hoists the `lw` of `task->state` above the byte
      * store, dropping the load-delay `nop` and making the body one instruction
      * short. */
@@ -1789,7 +1796,7 @@ static void func_acropolis_security_room_801800A4(Task* task)
     }
     if (st->frames >= 0x100) {
         st->frames                  = 0;
-        Mc_SaveData[0].at4.loc.view = 0xE;
+        Mc_SaveData[0].state.at4.loc.view = 0xE;
         /* Same load-delay shape as `func_acropolis_security_room_80180010`:
          * without the barrier GCC hoists the `lw` of `task->state` above the
          * byte store and drops the delay `nop`. */
@@ -1821,7 +1828,7 @@ static void func_acropolis_security_room_801801C4(Task* task)
 static void func_acropolis_security_room_80180218(Task* task)
 {
     D_80114D08                  = 0xA;
-    Mc_SaveData[0].at4.loc.view = 3;
+    Mc_SaveData[0].state.at4.loc.view = 3;
     Display_ReleaseRef();
     func_800E9BDC(0, 0xF9FF);
     Task_RequestKill(task, 0);
@@ -1976,7 +1983,7 @@ static void func_acropolis_security_room_801805A4(Task* task)
     GpCoord*   coord;
     s32        i;
 
-    work  = (GpEffWork*)task->spawnArg2;
+    work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
 
     switch (task->state) {
@@ -2144,7 +2151,7 @@ static void func_acropolis_security_room_80180E34(Task* arg0)
     u16        cy;
 
     coord = arg0->extra.tmd->coords;
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -2152,7 +2159,7 @@ static void func_acropolis_security_room_80180E34(Task* arg0)
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
-    mem->scale  = arg0->spawnArg1 & 3;
+    mem->scale  = arg0->spawnArg1.value & 3;
     prim->tpage = 0xAB;
     prim->code |= 3;
     prim->clut  = D_acropolis_security_room_80183970[mem->scale].clut << 6;
@@ -2198,7 +2205,7 @@ static void func_acropolis_security_room_80181108(Task* arg0)
     SCRATCH_PUSH(RoomQuadScratch);
     blk   = SCRATCH_HEAD(RoomQuadScratch);
     coord = arg0->extra.tmd->coords;
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
 
     if (mem->age == 0) {
@@ -2336,7 +2343,7 @@ static void func_acropolis_security_room_801817A4(Task* task)
     s32              i;
 
     coord = task->extra.tmd->coords;
-    mem   = task->spawnArg2;
+    mem   = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     scratch       = SCRATCH_PUSH(AsrFlashScratch);
     scratch->v.vx = coord->workm.t[0];
@@ -2349,8 +2356,8 @@ static void func_acropolis_security_room_801817A4(Task* task)
     gte_stsxy(&scratch->x);
     gte_stszotz(&scratch->otz);
     if (scratch->otz >= 0x11) {
-        red           = (task->spawnArg1 >> 1) & 1;
-        green         = task->spawnArg1 & 1;
+        red           = (task->spawnArg1.value >> 1) & 1;
+        green         = task->spawnArg1.value & 1;
         Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
         lum           = ((Gp_LcgState >> 16) & 0x70) + 0x40;
         scratch->step = 0xC00 / scratch->otz;
@@ -2546,7 +2553,7 @@ static void func_acropolis_security_room_80182574(Task* task)
     TmdObject*  tmd;
     s32         flag;
 
-    obj  = (GpItemObj8*)task->spawnArg2;
+    obj  = (GpItemObj8*)task->spawnArg2.pointer;
     tmd  = task->extra.tmd;
     flag = Gp_GetCurBit2Flag(obj->field_8);
     Gp_GetViewIndex();

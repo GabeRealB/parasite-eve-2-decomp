@@ -5,18 +5,7 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/gfxgte.h"
 #include <psyq/gtemac.h>
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -31,7 +20,21 @@
 #include "gameplay/model_objects.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
-#include "main/fs.h"
+
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/gfxgte.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
 
 /// Record the destination resolver `func_neo_ark_observatory_8017F44C` reads:
 /// `field_0` is the destination area and `field_5` must be 0 for it to act.
@@ -138,7 +141,7 @@ static void func_neo_ark_observatory_8017D6F4(Task* task)
     }
     extra = task->extra.tmd;
     parts = extra->coords;
-    if ((u32)task->spawnArg1 >= 2U) {
+    if ((u32)task->spawnArg1.value >= 2U) {
         taskKill(task);
         return;
     }
@@ -153,7 +156,7 @@ static void func_neo_ark_observatory_8017D6F4(Task* task)
     tmdProcessStream(extra);
     extra->flags    = 0x10;
     extra->otOffset = 0x1F;
-    if (task->spawnArg1 == 0) {
+    if (task->spawnArg1.value == 0) {
         gGameSession->field_4E = 1;
     }
     parts->sub      = &work->coord;
@@ -171,7 +174,7 @@ static void func_neo_ark_observatory_8017D6F4(Task* task)
     for (i = 0; i < 2; i++) {
         child = (&actor->field_920)[i];
         if (child != NULL) {
-            spawned = Task_SpawnFromTable(D_neo_ark_observatory_80180DBC, 1, i, (s32)task);
+            spawned = Task_SpawnFromTable(D_neo_ark_observatory_80180DBC, 1, i, task);
             if (spawned != NULL) {
                 Task_Reparent(child, spawned);
             }
@@ -229,9 +232,9 @@ static void func_neo_ark_observatory_8017D8A8(Task* task)
     width  = 0x1C0;
     work   = task->work;
     extra  = task->extra.tmd;
-    stage  = Mc_SaveData[0].at4.loc.stage;
-    area   = Mc_SaveData[0].at4.loc.area;
-    view   = Mc_SaveData[0].at4.loc.view;
+    stage  = Mc_SaveData[0].state.at4.loc.stage;
+    area   = Mc_SaveData[0].state.at4.loc.area;
+    view   = Mc_SaveData[0].state.at4.loc.view;
     status = &Player_Status;
     if (stage == 5) {
         width = 0x140;
@@ -242,7 +245,7 @@ static void func_neo_ark_observatory_8017D8A8(Task* task)
         for (i = 0; i < 2; i++) {
             child = (&actor->field_918)[i];
             if (child != NULL) {
-                spawned = Task_SpawnFromTable(D_neo_ark_observatory_80180DBC, 1, i + 2, (s32)task);
+                spawned = Task_SpawnFromTable(D_neo_ark_observatory_80180DBC, 1, i + 2, task);
                 if (spawned != NULL) {
                     Task_Reparent(child, spawned);
                 }
@@ -263,7 +266,7 @@ static void func_neo_ark_observatory_8017D8A8(Task* task)
         work->field_A0[3] = 0x78;
         plane             = (RoomMirrorPlaneScratch*)SCRATCH_PUSH_BYTES(0x70);
         work->coord.sub   = sub;
-        if (task->spawnArg1 == 0) {
+        if (task->spawnArg1.value == 0) {
             work->field_4     = 1;
             work->coord.coord = gGfxViewCoord.coord;
             plane->viewRow.vx = work->coord.coord.m[1][0];
@@ -479,7 +482,7 @@ static void func_neo_ark_observatory_8017D8A8(Task* task)
     }
 
     copyPending = work->field_4;
-    if (copyPending == 1 && task->spawnArg1 == 0 && !(area == 1 && view == 0xF) && gDisplayState.pendingMode == 0) {
+    if (copyPending == 1 && task->spawnArg1.value == 0 && !(area == 1 && view == 0xF) && gDisplayState.pendingMode == 0) {
         u16  ofs[2];
         RECT rect;
 
@@ -633,8 +636,8 @@ static void func_neo_ark_observatory_8017D8A8(Task* task)
             if (halfWidth >= 0x60) {
                 halfWidth = 0x5F;
             }
-            if ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_AREA_VIEW) == GP_LOC_KEY(0, 2, 0, 5)) {
-                if (task->spawnArg1 == 0) {
+            if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_AREA_VIEW) == GP_LOC_KEY(0, 2, 0, 5)) {
+                if (task->spawnArg1.value == 0) {
                     halfWidth = 0x5F;
                 } else {
                     extent->otzFoot = extent->otzHead + 0xA;
@@ -746,8 +749,8 @@ void func_neo_ark_observatory_8017F22C(Task* task)
     if (task->parent == NULL) {
         Task_CallExit(task);
     }
-    mirror      = (Task*)task->spawnArg2;
-    mirrorPart  = &mirror->extra.tmd->coords[D_neo_ark_observatory_80180DB8[task->spawnArg1]];
+    mirror      = (Task*)task->spawnArg2.pointer;
+    mirrorPart  = &mirror->extra.tmd->coords[D_neo_ark_observatory_80180DB8[task->spawnArg1.value]];
     work        = (RoomMirrorWork*)mirror->work;
     mirrorExtra = mirror->extra.tmd;
     if (task->state == 0) {
@@ -767,7 +770,7 @@ void func_neo_ark_observatory_8017F22C(Task* task)
         parts->sub      = mirrorPart;
         extra->lightMtx = &work->light;
         extra->colorMtx = &work->color;
-        if (task->spawnArg1 >= 2) {
+        if (task->spawnArg1.value >= 2) {
             scale = D_neo_ark_observatory_8017D5C4;
             ScaleMatrix(&parts->coord, &scale);
         }
@@ -780,7 +783,7 @@ void func_neo_ark_observatory_8017F22C(Task* task)
     extra        = task->extra.tmd;
     flags        = mirrorExtra->flags;
     extra->flags = flags;
-    if (task->spawnArg1 >= 2) {
+    if (task->spawnArg1.value >= 2) {
         extra->flags = flags & 0xFFEF;
     }
 }
@@ -936,10 +939,10 @@ void func_neo_ark_observatory_8017F588(Task* arg0)
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
             gDisplayState.roomVariant    = 1;
-            Mc_SaveData[0].at4.loc.stage = D_neo_ark_observatory_80187A30.stage;
-            Mc_SaveData[0].at4.loc.area  = D_neo_ark_observatory_80187A30.area;
-            Mc_SaveData[0].at4.loc.warp  = D_neo_ark_observatory_80187A30.warp;
-            Mc_SaveData[0].at4.loc.room  = D_neo_ark_observatory_80187A30.room;
+            Mc_SaveData[0].state.at4.loc.stage = D_neo_ark_observatory_80187A30.stage;
+            Mc_SaveData[0].state.at4.loc.area  = D_neo_ark_observatory_80187A30.area;
+            Mc_SaveData[0].state.at4.loc.warp  = D_neo_ark_observatory_80187A30.warp;
+            Mc_SaveData[0].state.at4.loc.room  = D_neo_ark_observatory_80187A30.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -1022,7 +1025,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 6);
             GameFlag_SetNibble(0xE1, 1);
-            Mc_SaveData[0].sceneEvent = 0x15;
+            Mc_SaveData[0].state.sceneEvent = 0x15;
             func_800E8634(&D_8013FC58, 0, &D_80140078);
         }
     }
@@ -1065,7 +1068,7 @@ void func_neo_ark_observatory_8017FB1C(Task* task)
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
             func_800E6D4C(0x300, 0);
-            Gp_SpawnIfCapIdle(task->spawnArg1, 0);
+            Gp_SpawnIfCapIdle(task->spawnArg1.value, 0);
             task->state++;
             break;
         case 1:
@@ -1138,13 +1141,13 @@ static void func_neo_ark_observatory_8017FD7C(Task* task)
     s32 var_a0;
 
     if (gGameSession->eventState == 0) {
-        if (Mc_SaveData[0].at4.loc.view != 2) {
+        if (Mc_SaveData[0].state.at4.loc.view != 2) {
             Gp_MsgAlly3F3(2);
             return;
         }
     }
     var_a0 = 1;
-    if (Mc_SaveData[0].at4.loc.view == 3) {
+    if (Mc_SaveData[0].state.at4.loc.view == 3) {
         var_a0 = 2;
     }
     Gp_MsgAlly3F3(var_a0);

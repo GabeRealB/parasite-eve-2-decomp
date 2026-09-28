@@ -2,10 +2,11 @@
 #define ACTORS_SHARED_80137FB8_H
 
 #include "common.h"
-#include "main/session.h"
-#include "main/task.h"
 
 #include "gameplay/actor.h"
+
+#include "main/session_types.h"
+#include "main/task_types.h"
 
 /// 0x58-byte work block the body at 0x80137C88 allocates with
 /// `memCalloc(0x58, 0)` and parks in `Task::work` (0x1C), which is not a

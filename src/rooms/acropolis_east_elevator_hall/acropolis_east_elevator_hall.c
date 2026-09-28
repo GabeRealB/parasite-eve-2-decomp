@@ -5,17 +5,7 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/gfxgte.h"
 #include <psyq/gtemac.h>
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -27,7 +17,19 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/model_objects.h"
 #include "gameplay/room_effects.h"
-#include "main/fs.h"
+
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/gfxgte.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
 
 extern void func_807245E4(void*);
 extern void func_80724608(void*, s32, s32, void*);
@@ -89,7 +91,7 @@ static void func_acropolis_east_elevator_hall_8017D5F0(Task* task)
     }
     extra = task->extra.tmd;
     parts = extra->coords;
-    if ((u32)task->spawnArg1 >= 2U) {
+    if ((u32)task->spawnArg1.value >= 2U) {
         taskKill(task);
         return;
     }
@@ -104,7 +106,7 @@ static void func_acropolis_east_elevator_hall_8017D5F0(Task* task)
     tmdProcessStream(extra);
     extra->flags    = 0x10;
     extra->otOffset = 0x1F;
-    if (task->spawnArg1 == 0) {
+    if (task->spawnArg1.value == 0) {
         gGameSession->field_4E = 1;
     }
     parts->sub      = &work->coord;
@@ -122,7 +124,7 @@ static void func_acropolis_east_elevator_hall_8017D5F0(Task* task)
     for (i = 0; i < 2; i++) {
         child = (&actor->field_920)[i];
         if (child != NULL) {
-            spawned = Task_SpawnFromTable(D_acropolis_east_elevator_hall_8017FC90, 1, i, (s32)task);
+            spawned = Task_SpawnFromTable(D_acropolis_east_elevator_hall_8017FC90, 1, i, task);
             if (spawned != NULL) {
                 Task_Reparent(child, spawned);
             }
@@ -181,9 +183,9 @@ static void func_acropolis_east_elevator_hall_8017D7A4(Task* task)
     width  = 0x1C0;
     work   = task->work;
     extra  = task->extra.tmd;
-    stage  = Mc_SaveData[0].at4.loc.stage;
-    area   = Mc_SaveData[0].at4.loc.area;
-    view   = Mc_SaveData[0].at4.loc.view;
+    stage  = Mc_SaveData[0].state.at4.loc.stage;
+    area   = Mc_SaveData[0].state.at4.loc.area;
+    view   = Mc_SaveData[0].state.at4.loc.view;
     status = &Player_Status;
     if (stage == 5) {
         width = 0x140;
@@ -194,7 +196,7 @@ static void func_acropolis_east_elevator_hall_8017D7A4(Task* task)
         for (i = 0; i < 2; i++) {
             child = (&actor->field_918)[i];
             if (child != NULL) {
-                spawned = Task_SpawnFromTable(D_acropolis_east_elevator_hall_8017FC90, 1, i + 2, (s32)task);
+                spawned = Task_SpawnFromTable(D_acropolis_east_elevator_hall_8017FC90, 1, i + 2, task);
                 if (spawned != NULL) {
                     Task_Reparent(child, spawned);
                 }
@@ -215,7 +217,7 @@ static void func_acropolis_east_elevator_hall_8017D7A4(Task* task)
         work->field_A0[3] = 0x78;
         plane             = (RoomMirrorPlaneScratch*)SCRATCH_PUSH_BYTES(0x70);
         work->coord.sub   = sub;
-        if (task->spawnArg1 == 0) {
+        if (task->spawnArg1.value == 0) {
             work->field_4     = 1;
             work->coord.coord = gGfxViewCoord.coord;
             plane->viewRow.vx = work->coord.coord.m[1][0];
@@ -431,7 +433,7 @@ static void func_acropolis_east_elevator_hall_8017D7A4(Task* task)
     }
 
     copyPending = work->field_4;
-    if (copyPending == 1 && task->spawnArg1 == 0 && !(area == 1 && view == 0xF) && gDisplayState.pendingMode == 0) {
+    if (copyPending == 1 && task->spawnArg1.value == 0 && !(area == 1 && view == 0xF) && gDisplayState.pendingMode == 0) {
         u16  ofs[2];
         RECT rect;
 
@@ -585,8 +587,8 @@ static void func_acropolis_east_elevator_hall_8017D7A4(Task* task)
             if (halfWidth >= 0x60) {
                 halfWidth = 0x5F;
             }
-            if ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_AREA_VIEW) == GP_LOC_KEY(0, 2, 0, 5)) {
-                if (task->spawnArg1 == 0) {
+            if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_AREA_VIEW) == GP_LOC_KEY(0, 2, 0, 5)) {
+                if (task->spawnArg1.value == 0) {
                     halfWidth = 0x5F;
                 } else {
                     extent->otzFoot = extent->otzHead + 0xA;
@@ -695,8 +697,8 @@ void func_acropolis_east_elevator_hall_8017F128(Task* task)
     if (task->parent == NULL) {
         Task_CallExit(task);
     }
-    mirror      = (Task*)task->spawnArg2;
-    mirrorPart  = &mirror->extra.tmd->coords[D_acropolis_east_elevator_hall_8017FC8C[task->spawnArg1]];
+    mirror      = (Task*)task->spawnArg2.pointer;
+    mirrorPart  = &mirror->extra.tmd->coords[D_acropolis_east_elevator_hall_8017FC8C[task->spawnArg1.value]];
     work        = (RoomMirrorWork*)mirror->work;
     mirrorExtra = mirror->extra.tmd;
     if (task->state == 0) {
@@ -716,7 +718,7 @@ void func_acropolis_east_elevator_hall_8017F128(Task* task)
         parts->sub      = mirrorPart;
         extra->lightMtx = &work->light;
         extra->colorMtx = &work->color;
-        if (task->spawnArg1 >= 2) {
+        if (task->spawnArg1.value >= 2) {
             scale = D_acropolis_east_elevator_hall_8017D5C4;
             ScaleMatrix(&parts->coord, &scale);
         }
@@ -729,7 +731,7 @@ void func_acropolis_east_elevator_hall_8017F128(Task* task)
     extra        = task->extra.tmd;
     flags        = mirrorExtra->flags;
     extra->flags = flags;
-    if (task->spawnArg1 >= 2) {
+    if (task->spawnArg1.value >= 2) {
         extra->flags = flags & 0xFFEF;
     }
 }
@@ -885,7 +887,7 @@ static void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
     s32               level;
 
     coord = arg0->extra.tmd->coords;
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     head               = SCRATCH_HEAD(void);
     SCRATCH_HEAD(void) = head - 0x14;
@@ -901,14 +903,14 @@ static void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
     gte_stsxy(&block->sx);
     gte_stszotz(&block->otz);
     if (block->otz >= 0x11) {
-        pulse = gDisplayState.animFrame * ((RoomShaftArg*)&arg0->spawnArg1)->phase;
+        pulse = gDisplayState.animFrame * ((RoomShaftArg*)&arg0->spawnArg1.value)->phase;
         if (pulse & 0x80) {
             level = 0x80 - (pulse & 0x7F);
         } else {
             level = pulse & 0x7F;
         }
         red              = level;
-        block->halfWidth = (((RoomShaftArg*)&arg0->spawnArg1)->height << 9) / block->otz;
+        block->halfWidth = (((RoomShaftArg*)&arg0->spawnArg1.value)->height << 9) / block->otz;
         for (i = 0; i < 2; i++) {
             prim           = (POLY_G4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -943,7 +945,7 @@ static void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
 
     scratch = (void**)G_SCRATCH_HEAD;
     coord   = arg0->extra.tmd->coords;
-    mem     = arg0->spawnArg2;
+    mem     = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     head          = *scratch;
     block         = (RoomMoteScratch*)(head - 0xC);

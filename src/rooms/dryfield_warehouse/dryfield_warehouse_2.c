@@ -6,15 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "main/display.h"
-#include "main/gameflow.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-
 #include "rooms/dryfield_warehouse.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -25,8 +16,21 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
-#include "main/fs.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
+#include "main/gameflow.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 #include "main/wipsys.h"
+#include "overlay.h"
 
 /// Work block of the warehouse's cutscene task, allocated as 0x10 zeroed bytes
 /// by `func_dryfield_warehouse_8017E090` and parked in `Task::work`. `owner` is
@@ -77,7 +81,7 @@ extern s16 D_dryfield_warehouse_8017FBAC[];
 /// turns the display back on and, while `DwhWork::playerEffActive` is up, ends
 /// the weapon effect and re-sends the player-weapon record. The owner is then
 /// handed that same 0x3E8 record -- `GpAnimArg::animBlock.index` is the equipped weapon's
-/// animation id, `Player_Status.weapon` plus 1 or 0x22 depending on `Mc_SaveData[0].characterId`, with 1
+/// animation id, `Player_Status.weapon` plus 1 or 0x22 depending on `Mc_SaveData[0].state.characterId`, with 1
 /// and 0 padding it out -- followed by the room's placement as msg 0x3E9.
 ///
 /// The session's weapon id is synced to 2 once, and `D_dryfield_warehouse_801821C4`
@@ -104,7 +108,7 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
                 Gp_MsgPlayerWeapon(0);
             }
             weaponId            = Player_Status.weapon;
-            anim                = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animBlock.index = anim;
             rec.field_4         = 1;
             rec.field_8         = 0;
@@ -112,8 +116,8 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
             rec.field_10        = 1;
             Gp_DispatchMsgPtr((Task*)work->owner, 0x3E8, &rec, 0);
             Gp_DispatchMsgPtr((Task*)work->owner, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
-            if (Mc_SaveData[0].at4.loc.room != 2) {
-                Mc_SaveData[0].at4.loc.room   = 2;
+            if (Mc_SaveData[0].state.at4.loc.room != 2) {
+                Mc_SaveData[0].state.at4.loc.room   = 2;
                 gGameSession->at4.loc.room    = 2;
                 D_dryfield_warehouse_801821C4 = 1;
                 return;
@@ -191,7 +195,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
                 Gp_MsgPlayerWeapon(0);
             }
             weaponId                = Player_Status.weapon;
-            anim                    = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                    = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.rec.animBlock.index = anim;
             msg.rec.field_4         = 1;
             msg.rec.field_8         = 0;
@@ -242,7 +246,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             switch (work->field_6) {
                 case 0:
-                    Mc_SaveData[0].at4.loc.room = 2;
+                    Mc_SaveData[0].state.at4.loc.room = 2;
                     gGameSession->at4.loc.room  = 2;
                     work->field_8               = 0;
                     work->field_6++;
@@ -290,7 +294,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
 ///
 /// The 0x3E8 record is rebuilt here rather than taken from its owner: `GpAnimArg`
 /// field 0 is the equipped weapon's animation id, `Player_Status.weapon` plus 1 or 0x22
-/// depending on `Mc_SaveData[0].characterId`, and 1 and 0 pad it out. It is dispatched to a
+/// depending on `Mc_SaveData[0].state.characterId`, and 1 and 0 pad it out. It is dispatched to a
 /// freshly fetched slot 3, not to the work block's owner.
 ///
 /// State 0 then falls into state 1, which only steps the machine, so a task
@@ -316,7 +320,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                     D_dryfield_warehouse_801821BC = arg0;
                 }
                 weaponId            = Player_Status.weapon;
-                anim                = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                anim                = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 rec.animBlock.index = anim;
                 rec.field_4         = 1;
                 rec.field_8         = 0;
@@ -370,9 +374,9 @@ void func_dryfield_warehouse_8017E22C(Task* arg0)
             /* fallthrough */
         case 1:
             Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
-            fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1);
-            fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1);
-            fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1);
+            fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1.value);
+            fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1.value);
+            fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1.value);
             if (fade->r < 0) {
                 taskKill(arg0);
             }
@@ -408,9 +412,9 @@ void func_dryfield_warehouse_8017E308(Task* arg0)
             /* fallthrough */
         case 1:
             Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
-            fade->r = (s16)((u16)fade->r + (u16)arg0->spawnArg1);
-            fade->g = (s16)((u16)fade->g + (u16)arg0->spawnArg1);
-            fade->b = (s16)((u16)fade->b + (u16)arg0->spawnArg1);
+            fade->r = (s16)((u16)fade->r + (u16)arg0->spawnArg1.value);
+            fade->g = (s16)((u16)fade->g + (u16)arg0->spawnArg1.value);
+            fade->b = (s16)((u16)fade->b + (u16)arg0->spawnArg1.value);
             if (fade->r < 0x100) {
                 return;
             }

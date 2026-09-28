@@ -4,9 +4,9 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-#include "main/session.h"
-#include "main/task.h"
 #include "weapons/weapon.h"
+
+#include "main/task_types.h"
 
 /// One entry of the task's state table; the dispatcher passes the task itself.
 typedef void (*Kyle800102StateFn)(Task* task);

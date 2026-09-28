@@ -4,7 +4,6 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-#include "main/task.h"
 
 #include "rooms/room_common.h"
 

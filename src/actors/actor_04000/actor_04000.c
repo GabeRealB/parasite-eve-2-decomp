@@ -7,13 +7,6 @@
 #include "actors/actor.h"
 #include "actors/actors_shared_80135990.h"
 #include "actors/actors_shared_80138548.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include "psyq/abs.h"
 
 #include "gameplay/actor_render.h"
@@ -29,9 +22,25 @@
 #include "gameplay/loading.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
+#include "gameplay/message.h"
+#include "gameplay/pairsrc.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task_types.h"
+#include "main/wipsys.h"
+#include "overlay.h"
 
 /// Event packet handed to the message handlers: the same four bytes read as
 /// two `u16` words, a command word (0x1003, 0x1203, 0x302) and a sub-command.
@@ -151,7 +160,7 @@ static s32 Actor04000_Fn0024C(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR*
     OverlayAvoidScratch* s;
     s16                  diff;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData[0].field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.field_5C1 == 1) {
         return 0;
     }
 
@@ -291,7 +300,7 @@ s32 Actor04000_Fn0093C(Task* arg0, s32 arg1, Actor104000Event* event)
     GpEnemy*         ctx;
 
     work = arg0->work;
-    ctx  = arg0->spawnArg2;
+    ctx  = arg0->spawnArg2.pointer;
     if (event->words[0] == 0x1003 && event->words[1] == 1) {
         work->field_0                          = 0xE;
         Actor04000_D0C718[ctx->placeKey >> 12] = arg0;
@@ -664,9 +673,9 @@ static void Actor04000_Fn010B8(GpEnemy* arg0, Task* arg1)
     work->patrol[1].vz = arg1->extra.tmd->coords->coord.t[2] - sv.vz;
     /* the gameplay prototype takes no argument, but this call site passes 0 */
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    if ((arg1->spawnArg1 >> 16) == 0) {
+    if ((arg1->spawnArg1.value >> 16) == 0) {
         work->field_0 = 7;
-    } else if ((arg1->spawnArg1 >> 16) == 1) {
+    } else if ((arg1->spawnArg1.value >> 16) == 1) {
         work->field_0 = 2;
     } else {
         work->field_0 = 7;
@@ -704,7 +713,7 @@ static void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
     actor  = player->work;
     if (work->field_4 != 0) {
         obj                                             = arg1->extra.tmd;
-        ((GpEnemy*)arg1->spawnArg2)->node.state.b.flags = 0;
+        ((GpEnemy*)arg1->spawnArg2.pointer)->node.state.b.flags = 0;
         Gp_ArmStateF0(1);
         obj->flags          = 0;
         work->field_170     = 1;
@@ -2057,7 +2066,7 @@ void Actor04000_Fn06380(Task* arg0)
     bi = 0;
     for (i = 0; i < 2; i++) {
         if (Actor04000_D0C710[i] != NULL) {
-            if (((GpEnemy*)Actor04000_D0C710[i]->spawnArg2)->hp <= 0) {
+            if (((GpEnemy*)Actor04000_D0C710[i]->spawnArg2.pointer)->hp <= 0) {
                 Actor04000_D0C710[i] = NULL;
             }
             if (Actor04000_D0C710[i] != NULL) {
@@ -2256,7 +2265,7 @@ static void Actor04000_Fn06994(GpEnemy* arg0, Task* arg1)
     work = arg1->work;
     if (work->field_4 != 0) {
         obj                                             = arg1->extra.tmd;
-        ((GpEnemy*)arg1->spawnArg2)->node.state.b.flags = 0;
+        ((GpEnemy*)arg1->spawnArg2.pointer)->node.state.b.flags = 0;
         obj->flags                                      = 0;
         work->field_170                                 = 2;
         work->field_176                                 = 0x10;
@@ -2428,7 +2437,7 @@ void Actor04000_Fn06E4C(Task* task)
     GpEnemyTaskFuncTable3 sp;
 
     sp = Actor04000_D00240;
-    sp.funcs[task->state](task->spawnArg2, task);
+    sp.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
 /// The controller task's state handlers, indexed by its `state`.
@@ -2458,12 +2467,12 @@ void Actor04000_Fn06F54(Task* arg0)
     if (Gp_StateF0.prefix.bytes.field_0 == 1) {
         for (i = 0; i < 6; i++) {
             if (Actor04000_D0C718[i] != NULL) {
-                ((GpEnemy*)Actor04000_D0C718[i]->spawnArg2)->node.state.b.flags = 0;
+                ((GpEnemy*)Actor04000_D0C718[i]->spawnArg2.pointer)->node.state.b.flags = 0;
             }
         }
         arg0->state++;
     }
-    if (Mc_SaveData[0].at4.loc.view == 5) {
+    if (Mc_SaveData[0].state.at4.loc.view == 5) {
         for (i = 0; i < 6; i++) {
             if (Actor04000_D0C718[i] != NULL) {
                 Gp_ArmStateF0(1);

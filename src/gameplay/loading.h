@@ -11,7 +11,7 @@
 #include "gameplay/room.h"
 #include "gameplay/view.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 // Room-resource loading, view setup and sprite-list construction.
 

@@ -1,10 +1,4 @@
 #include "common.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "pe/energyshot.h"
 
 #include <psyq/inline_c.h>
@@ -15,8 +9,15 @@
 #include "gameplay/display.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx_types.h"
+#include "main/scratch.h"
+#include "main/sound.h"
 
 /// Per-level tuning for the energy shot: rows are PE levels 1-3.
 static EnergyShotScale D_energyshot_801300E4[] = {
@@ -60,7 +61,7 @@ static void func_energyshot_8012EF34(Task* arg0)
     u8          rgb[3];
 
     state = &Gp_StateC08;
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if ((state->field_3 != -2) && (Gp_State1C->fadeState < 4)) {
         mem->age = mem->age + 1;
@@ -404,7 +405,7 @@ static void func_energyshot_8012FFB8(Task* arg0)
     GpCoord*   coord;
     s32        y;
 
-    mem      = arg0->spawnArg2;
+    mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.tmd->coords;
     mem->age = mem->age + 1;
     if (arg0->state == 0) {

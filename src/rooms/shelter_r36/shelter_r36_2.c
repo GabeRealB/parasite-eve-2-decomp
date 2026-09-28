@@ -1,4 +1,8 @@
 #include "common.h"
+
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mem.h"
@@ -6,9 +10,6 @@
 #include "main/session.h"
 #include "main/stream.h"
 #include "main/task.h"
-
-#include "gameplay/display.h"
-#include "gameplay/hud_sprites.h"
 
 extern TaskDesc D_shelter_r36_8017E9A4[];
 
@@ -96,7 +97,7 @@ L_case5:
 /// this task's `spawnArg1`, sets `gDisplayState.at100.flags.flipMode`, spawns the view tasks and ends.
 void func_shelter_r36_8017DBC0(Task* arg0)
 {
-    Display_SpawnWithOt(D_shelter_r36_8017E9A4, 1, arg0->spawnArg1, 0);
+    Display_SpawnWithOt(D_shelter_r36_8017E9A4, 1, arg0->spawnArg1.value, 0);
     gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);

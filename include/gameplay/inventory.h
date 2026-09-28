@@ -6,7 +6,7 @@
 #include "gameplay/starter_inventory.h"
 
 /// 4-byte table entry in `Gp_ItemMaps` (8 entries). field_1 is an item id
-/// used to index `Mc_SaveData[0].weaponItems`; field_0 selects which (id, count) pair;
+/// used to index `Mc_SaveData[0].state.weaponItems`; field_0 selects which (id, count) pair;
 /// field_2 is the mapped item id (`Gp_ApplyItemMap`).
 typedef struct _GpItemMap {
     /* 0x00 */ u8 field_0;
@@ -57,7 +57,7 @@ typedef union _GpStatBase {
 } GpStatBase;
 STATIC_ASSERT_SIZEOF(GpStatBase, 0x4);
 
-/// 8-byte row in `Gp_StatRows` (4 entries), indexed by `Mc_SaveData[0].gameMode`.
+/// 8-byte row in `Gp_StatRows` (4 entries), indexed by `Mc_SaveData[0].state.gameMode`.
 /// base is the starting max HP (see `GpStatBase`). field_4 is the word added
 /// into `Player_Status.mpMax` (`Gp_RecalcMaxMp`).
 typedef struct _GpStatRow {

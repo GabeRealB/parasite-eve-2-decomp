@@ -11,12 +11,12 @@
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
+#include "mapui/stage_tables.h"
+
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/stage.h"
 #include "main/task.h"
-
-#include "mapui/stage_tables.h"
 
 /// Fallback message handlers installed by `func_800E31E8` for pointer slot 7.
 typedef struct {
@@ -108,7 +108,7 @@ void Gp_EvtCapTask(Task* arg0)
     s32 flag;
 
     flag  = 1;
-    flags = arg0->spawnArg1;
+    flags = arg0->spawnArg1.value;
     switch (arg0->state) {
         case 0:
             bit0 = flags & 1;
@@ -126,7 +126,7 @@ void Gp_EvtCapTask(Task* arg0)
             } else {
                 mode = 0;
             }
-            Gp_RunCapCmd((s32)arg0->spawnArg2, mode);
+            Gp_RunCapCmd(arg0->spawnArg2.value, mode);
             arg0->state++;
             break;
         case 1:
@@ -143,7 +143,7 @@ void Gp_EvtCapTask(Task* arg0)
                 Gp_MsgPlayer3F3(1);
             }
             if (D_80115598 != 0) {
-                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F2, (s32)arg0->spawnArg2 + 0x64, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F2, arg0->spawnArg2.value + 0x64, 0);
             }
             taskKill(arg0);
             break;

@@ -2,7 +2,8 @@
 #define ACTORS_SHARED_80137F1C_H
 
 #include "common.h"
-#include "main/task.h"
+
+#include "main/task_types.h"
 
 /// View of the work field used by both specimen actor overlays.
 typedef struct ActorsShared80137f1cWork {

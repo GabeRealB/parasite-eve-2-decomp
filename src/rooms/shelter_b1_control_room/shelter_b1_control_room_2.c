@@ -4,20 +4,23 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/stream.h"
-#include "main/task.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
+
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "overlay.h"
 
 extern TaskDesc D_shelter_b1_control_room_80181BBC;
 extern SVECTOR  D_shelter_b1_control_room_80181BD4[];
@@ -84,7 +87,7 @@ L_case3:
     if (CdCmd_IsIdle() & 0xFFFF) {
         SetDispMask(0);
         state           = task->state;
-        task->spawnArg1 = 0;
+        task->spawnArg1.value = 0;
         task->state     = state + 1;
         return;
     }
@@ -93,7 +96,7 @@ L_case3:
     }
     SetDispMask(0);
     CdCmd_ActivatePhase1();
-    task->spawnArg1 = 1;
+    task->spawnArg1.value = 1;
     task->state     = task->state + 1;
     return;
 
@@ -108,7 +111,7 @@ L_case5:
     if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
         return;
     }
-    if (task->spawnArg1 != 0) {
+    if (task->spawnArg1.value != 0) {
         goto kill;
     }
 advance:

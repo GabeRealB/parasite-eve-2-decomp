@@ -8,7 +8,6 @@
 #include "cap.h"
 #include "gameplay/captions.h"
 
-#include "main/task.h"
 #include "main/text.h"
 
 GpCapChoice D_801155D0[15];

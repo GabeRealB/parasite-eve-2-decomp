@@ -148,7 +148,6 @@ GsWSMATRIX = 0x80071138; // absolute:True
 gGpuPrimCursor = 0x80071190; // absolute:True
 Pad_States = 0x80071620; // absolute:True
 Mc_SaveData = 0x80072168; // absolute:True
-D_80073B08 = 0x80073B08; // absolute:True
 Player_Status = 0x80073B88; // absolute:True
 
 // --- from gameplay (216 symbols)
@@ -371,7 +370,7 @@ D_80115768 = 0x80115768; // absolute:True
 
 // --- still unnamed in their own overlay (185)
 func_8004BFF8 = 0x8004BFF8; // absolute:True
-D_8005C374 = 0x8005C374; // absolute:True
+Fs_ActorLoadBase2 = 0x8005C374; // absolute:True
 D_800626EC = 0x800626EC; // absolute:True
 D_80062730 = 0x80062730; // absolute:True
 D_80067330 = 0x80067330; // absolute:True
@@ -380,7 +379,6 @@ D_800678F0 = 0x800678F0; // absolute:True
 D_800691CA = 0x800691CA; // absolute:True
 D_8006C454 = 0x8006C454; // absolute:True
 D_8006C45C = 0x8006C45C; // absolute:True
-D_8006D868 = 0x8006D868; // absolute:True
 D_80070F6C = 0x80070F6C; // absolute:True
 D_80070F70 = 0x80070F70; // absolute:True
 D_80070F87 = 0x80070F87; // absolute:True
@@ -556,3 +554,8 @@ D_8018FB6C = 0x8018FB6C; // absolute:True
 D_8018FBC8 = 0x8018FBC8; // absolute:True
 
 D_80114B34 = 0x80114B34; // absolute:True size:0x48
+
+Fs_ChunkOutputSizes = 0x8006D860; // absolute:True size:0xC
+
+// The full dual-bank flag buffer; biased player-address immediates fall inside it.
+GameFlag_NibbleBanks = 0x80073980; // absolute:True size:0x200

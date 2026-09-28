@@ -1,16 +1,19 @@
 #include "common.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stream.h"
-#include "main/task.h"
 #include "rooms/room.h"
 
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/loading.h"
+
+#include "gameplay/cap.h"
+#include "gameplay/sprites.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stream.h"
+#include "main/task.h"
 
 /// The room's message table, installed on its event task in state 0.
 extern GpMsgEntry D_shelter_1f_guardroom_8017DA30[];

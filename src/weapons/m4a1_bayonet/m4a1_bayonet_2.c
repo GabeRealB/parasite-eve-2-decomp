@@ -3,12 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 
 #include "gameplay/display.h"
 #include "gameplay/items.h"
@@ -16,7 +10,13 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
-#include "main/fs.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/effects.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/task.h"
+#include "main/wipsys.h"
 
 /// Per-frame firing state machine for the M4A1 bayonet. State 0 arms the shot
 /// and raises the weapon (clip 8 instead of 1 when it was already up), state 1
@@ -158,7 +158,7 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
             if (actor->field_979 != 0) {
                 actor->field_979--;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0 ||
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0 ||
                 ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
                 actor->field_940 = 0xC;
                 func_80106550(arg0);

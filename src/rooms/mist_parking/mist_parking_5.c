@@ -3,14 +3,16 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
 #include "rooms/room_common.h"
 #include "rooms/mist_parking.h"
 
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
+
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "overlay.h"
 
 /// World-space points the room's glow markers are drawn at. Every view draws
 /// its markers from this one table, by index.

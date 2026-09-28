@@ -4,8 +4,8 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/coord.h"
 
 /// Per-ring radius scale for `func_plasma_8012F568`, indexed by ring number
 /// (0..2). `rInner` widens the inner radius (`GpEffWork::angle`), `rExtra`

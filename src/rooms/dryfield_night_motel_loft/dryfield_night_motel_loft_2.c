@@ -6,12 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
-
 #include "rooms/dryfield_night_motel_loft.h"
 #include "rooms/room_common.h"
 
@@ -19,8 +13,12 @@
 #include "gameplay/display.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
-#include "main/fs.h"
+
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
 
 /// Scratch block one triangle is built in: the GTE depth and flag of its
 /// projection, then its three corners in world space.
@@ -232,7 +230,7 @@ static void func_dryfield_night_motel_loft_8017DE14(SVECTOR* arg0, s32 arg1, s32
 /// or 3 and frees itself at 4 or more.
 static void func_dryfield_night_motel_loft_8017E090(Task* task)
 {
-    _DryfieldNightMotelLoftShard* w     = task->spawnArg2;
+    _DryfieldNightMotelLoftShard* w     = task->spawnArg2.pointer;
     s16                           ev    = Gp_State1C->eventState;
     GpCoord*                      coord = task->extra.tmd->coords;
     SVECTOR                       step;
@@ -249,7 +247,7 @@ static void func_dryfield_night_motel_loft_8017E090(Task* task)
                     w->vel.vz   = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                     w->gain     = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x40;
-                    w->size     = task->spawnArg1 & 0xFFF;
+                    w->size     = task->spawnArg1.value & 0xFFF;
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                     w->shade    = (((u32)Gp_LcgState >> 16) & 0x7F) + 0x40;
                     VectorNormalSS(&w->vel, &w->vel);

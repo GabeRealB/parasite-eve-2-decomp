@@ -1,15 +1,16 @@
 #include "common.h"
+
+#include "gameplay/area_transitions.h"
+#include "gameplay/display.h"
+#include "gameplay/evs_scripts.h"
+
+#include "gameplay/evs.h"
+#include "main/display.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
-
-#include "gameplay/area_transitions.h"
-#include "gameplay/display.h"
-#include "gameplay/evs_scripts.h"
-#include "main/display.h"
-#include "main/fs.h"
 
 extern GpAreaApplyRec D_80183618;
 extern s32            D_actor_146000_80135428;
@@ -27,10 +28,10 @@ void func_actor_146000_80131E24(Task* arg0)
             if (GameFlag_GetNibble(0x73) != 0) {
                 func_800E8634(&D_actor_146000_80135980, 0, &D_actor_146000_80135BD8);
                 GameFlag_SetNibble(0x4B, 7);
-                Mc_SaveData[0].at4.loc.warp = 4;
+                Mc_SaveData[0].state.at4.loc.warp = 4;
             } else {
                 func_800E8634(&D_actor_146000_80135428, 1, &D_actor_146000_80135BD8);
-                Mc_SaveData[0].at4.loc.warp = 2;
+                Mc_SaveData[0].state.at4.loc.warp = 2;
             }
             arg0->state++;
             return;
@@ -44,8 +45,8 @@ void func_actor_146000_80131E24(Task* arg0)
             SndEvt_EnqueueType7(0x80000000, 0);
             GameFlag_SetNibble(0x4C, 0);
             Gp_ApplyAreaRecs(&D_80183618);
-            Mc_SaveData[0].at4.loc.area = 0x19;
-            Mc_SaveData[0].at4.loc.room = state;
+            Mc_SaveData[0].state.at4.loc.area = 0x19;
+            Mc_SaveData[0].state.at4.loc.room = state;
             gDisplayState.roomVariant   = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);

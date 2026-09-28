@@ -1,11 +1,6 @@
 #include "common.h"
 
 #include "actors/actor.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -24,8 +19,27 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
+#include "gameplay/pairsrc.h"
+#include "gameplay/world_state.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task_types.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
+#include "overlay.h"
 
 typedef struct Actor103800Work {
     /* 0x000 */ GpAnimCtx  anim;
@@ -136,8 +150,6 @@ extern u16        Actor03800_D05F42;
 extern GpPairSrcE Actor03800_D05F44;
 extern u16        Actor03800_D05F48;
 extern u8         Actor03800_D05F60[];
-
-s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -290,7 +302,7 @@ static void Actor03800_Fn003B8(Task* arg0)
     s16              mode;
     s16              kind;
 
-    ctx  = (GpEnemy*)arg0->spawnArg2;
+    ctx  = (GpEnemy*)arg0->spawnArg2.pointer;
     work = (Actor103800Work*)arg0->work;
     src  = arg0->extra.tmd->coords;
     mode = ctx->place->mode / 10;
@@ -434,7 +446,7 @@ static void Actor03800_Fn00974(Task* arg0)
     u16              remaining;
     u8               flags;
 
-    ctx   = arg0->spawnArg2;
+    ctx   = arg0->spawnArg2.pointer;
     flags = ctx->reactionFlags;
     work  = arg0->work;
     if (flags & 2) {
@@ -509,7 +521,7 @@ static void Actor03800_Fn00A98(Task* arg0)
     SCRATCH_PUSH(ActorWallPushFrame);
     frame  = SCRATCH_HEAD(ActorWallPushFrame);
     coord  = work->field_344;
-    ctx    = arg0->spawnArg2;
+    ctx    = arg0->spawnArg2.pointer;
     result = func_800E0C10(work->field_22C, &frame->delta, 4, NULL);
     if (result != 0) {
         for (i = 0; i < 4; i++) {
@@ -881,7 +893,7 @@ static void Actor03800_Fn0166C(Task* arg0)
 
     scratch = (Actor03800MoveScratch*)SCRATCH_PUSH_BYTES(0x18);
     work    = arg0->work;
-    ctx     = arg0->spawnArg2;
+    ctx     = arg0->spawnArg2.pointer;
     state   = work->field_354;
     coord   = work->field_344;
     switch (state) {
@@ -891,7 +903,7 @@ static void Actor03800_Fn0166C(Task* arg0)
             work->field_36A  = 0;
             work->field_36E  = 1;
             work->field_2AA &= 0x7FFF;
-            snd              = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x40260003;
+            snd              = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40260003;
             pan              = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
             break;
@@ -908,7 +920,7 @@ static void Actor03800_Fn0166C(Task* arg0)
                 work->field_35E = 0;
             }
             if ((s16)work->field_34C == 12) {
-                snd  = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x40260002;
+                snd  = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40260002;
                 pan2 = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(snd, pan2, (s8)gpGetObjDepth(coord));
             }
@@ -959,7 +971,7 @@ static void Actor03800_Fn01948(Task* arg0)
             work->field_35C = 0;
             work->field_35E = 0;
             work->field_360 = 0;
-            snd             = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x40260003;
+            snd             = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40260003;
             pan             = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
             break;
@@ -994,7 +1006,7 @@ static void Actor03800_Fn01AD0(Task* arg0)
     Actor103800Work* work;
 
     work            = arg0->work;
-    ctx             = arg0->spawnArg2;
+    ctx             = arg0->spawnArg2.pointer;
     work->field_360 = 0;
     work->field_35C = 0;
     work->field_35E = 0;
@@ -1009,7 +1021,7 @@ static void Actor03800_Fn01AD0(Task* arg0)
         Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
         work->field_356 = (((u32)Gp_LcgState >> 16) & 7) + 3;
     }
-    if (Gp_TickObjFlag2(arg0->spawnArg2) != 0) {
+    if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
         work->field_37E = 0;
         if (work->field_350 == 0) {
             if (work->field_36E == 0) {
@@ -1235,7 +1247,7 @@ static void Actor03800_Fn021E4(Task* arg0)
     scratch = (Actor03800TurnScratch*)SCRATCH_PUSH_BYTES(sizeof(*scratch));
     work    = arg0->work;
     coord   = arg0->extra.tmd->coords;
-    ctx     = arg0->spawnArg2;
+    ctx     = arg0->spawnArg2.pointer;
     switch (work->field_354) {
         case 0:
             work->field_356--;
@@ -1252,7 +1264,7 @@ static void Actor03800_Fn021E4(Task* arg0)
                 work->field_354  = 2;
                 work->field_366  = 0x80;
                 work->field_2AA &= 0x7FFF;
-                sound            = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x40260002;
+                sound            = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x40260002;
                 pan              = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)gpGetObjDepth(coord));
             }
@@ -1522,7 +1534,7 @@ case1:
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2, &vec, 0, 0);
+    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     return;
 case2:
     obj->flags = 0x80;
@@ -1575,7 +1587,7 @@ death:
     vec.vx = c->workm.t[0];
     vec.vy = c->workm.t[1];
     vec.vz = c->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2, &vec, 0, 0);
+    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     snd = ((arg0->placeKey >> 12) << 8) | 0x40260004;
     pan = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
@@ -1599,7 +1611,7 @@ dying:
     vec.vx = c->workm.t[0];
     vec.vy = c->workm.t[1];
     vec.vz = c->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2, &vec, 0, 0);
+    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     return;
 destroy:
     Gp_DestroyEnemy((GpEnemy*)arg0, arg1);
@@ -1698,7 +1710,7 @@ static void Actor03800_Fn03008(Task* actor, u32 variant)
         return;
     }
     sessionKey = &gGameSession->at4.loc;
-    raw        = ((GpEnemy*)actor->spawnArg2)->placeKey;
+    raw        = ((GpEnemy*)actor->spawnArg2.pointer)->placeKey;
     model      = eff->task->extra.tmd;
     key.stage  = sessionKey->stage;
     key.area   = sessionKey->area;
@@ -1723,7 +1735,7 @@ static void Actor03800_Fn0315C(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = Actor03800_D00004;
-    sp.funcs[arg0->state](((GpEnemy*)arg0->spawnArg2), arg0);
+    sp.funcs[arg0->state](((GpEnemy*)arg0->spawnArg2.pointer), arg0);
 }
 
 static void Actor03800_Fn031B8(GpEnemy* arg0, Task* arg1)
@@ -1873,7 +1885,7 @@ static void Actor03800_Fn034B0(Task* arg0)
 
     work = arg0->work;
     obj  = arg0->extra.tmd;
-    ctx  = arg0->spawnArg2;
+    ctx  = arg0->spawnArg2.pointer;
     switch (Gp_StateF0.field_20) {
         case 0:
             obj->flags              = 0x84;
@@ -1910,7 +1922,7 @@ static void Actor03800_Fn03594(Task* arg0)
     coord = work->field_344;
     if (--work->field_36A <= 0) {
         work->field_36A = 0xC;
-        soundId         = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x40260001;
+        soundId         = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x40260001;
         pan             = (s8)Gp_GetObjPan(coord);
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(coord));
     }
@@ -1930,7 +1942,7 @@ static void Actor03800_Fn036EC(Task* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2, &vec, 0, 0);
+    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
 static void Actor03800_Fn03744(Task* arg0)

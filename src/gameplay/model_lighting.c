@@ -21,6 +21,12 @@
 #include "gameplay/player_actor.h"
 #include "scene_runtime.h"
 
+/// The first texture word: `u0` and `v0`, then the CLUT.
+#define PRIM_UV_CLUT_WORD(p) (*(u32*)&(p)->u0)
+
+/// The second texture word: `u1` and `v1`, then the texture page.
+#define PRIM_UV_TPAGE_WORD(p) (*(u32*)&(p)->u1)
+
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
@@ -31,11 +37,12 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/text.h"
-#include "main/tmd.h"
 #include "main/wipsys.h"
+#include <psyq/memory.h>
+#include <psyq/rand.h>
 
 /// 0x30-byte play-clock work `Gp_InitPlayClock` stores at `Task::work`.
-/// `field_0` / `field_4` are `Mc_SaveData[0].playTime` split into minutes and
+/// `field_0` / `field_4` are `Mc_SaveData[0].state.playTime` split into minutes and
 /// seconds. `field_8` snapshots `gDisplayState.gameTick`. `extra` is the
 /// +0xC overlay passed to `Gp_ResetHudFx`.
 typedef struct _GpIdMap30 {
@@ -2474,7 +2481,7 @@ void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1)
         return;
     }
 
-    offset = (u8*)Gp_ReplayCursor - (u8*)D_8005C374;
+    offset = (u8*)Gp_ReplayCursor - (u8*)Fs_ActorLoadBase2;
     if (gDisplayState.demoScene == 0x10) {
         offset = (u8*)Gp_ReplayCursor - (u8*)0x80600100;
     }
@@ -2526,8 +2533,8 @@ void Gp_InitPlayClock(Task* task)
     Gp_ResetHudFx(&rec->extra);
     GameMain_SetFrameTiming(1);
     task->work   = (TaskIdMap*)rec;
-    rec->field_0 = Mc_SaveData[0].playTime / 60;
-    rec->field_4 = Mc_SaveData[0].playTime % 60;
+    rec->field_0 = Mc_SaveData[0].state.playTime / 60;
+    rec->field_4 = Mc_SaveData[0].state.playTime % 60;
     ds           = &gDisplayState;
     rec->field_8 = ds->gameTick;
     func_800B25B0();
@@ -2543,7 +2550,7 @@ void Gp_InitPlayClock(Task* task)
         if (ds->demoScene == 0x10) {
             Gp_ReplayCursor = (u16*)0x80600E4C;
         } else {
-            Gp_ReplayCursor = (u16*)((u8*)D_8005C374 + 0xD4C);
+            Gp_ReplayCursor = (u16*)((u8*)Fs_ActorLoadBase2 + 0xD4C);
         }
         Gp_ReplayButtons        = 0xFFFF;
         Gp_ReplayFramesLeft     = 1;
@@ -2577,15 +2584,15 @@ void Gp_TickPlayClock(Task* task)
         McSaveData* p;
         D_8005ED68 -= 0xE10;
         p           = &Mc_SaveData[0];
-        if (p->playTime <= 0xEA5E) {
-            p->playTime++;
+        if (p->state.playTime <= 0xEA5E) {
+            p->state.playTime++;
             rec->field_4++;
             if (rec->field_4 >= 0x3C) {
                 rec->field_4 -= 0x3C;
                 rec->field_0++;
             }
         } else {
-            p->playTime  = 0xEA5F;
+            p->state.playTime  = 0xEA5F;
             rec->field_0 = 0x3E7;
             rec->field_4 = 0x3B;
         }
@@ -2593,7 +2600,7 @@ void Gp_TickPlayClock(Task* task)
 
     save = &Mc_SaveData[0];
     one  = 1;
-    if (save->demoScene == one) {
+    if (save->state.demoScene == one) {
         req.x          = -0x96;
         req.y          = 0x64;
         req.otIndex    = 4;
@@ -2601,26 +2608,26 @@ void Gp_TickPlayClock(Task* task)
         req.glyphTable = 2;
         req.centerMode = 0;
         req.field_E    = one;
-        func_8002E53C(&req, Text_ItoaUnsigned(buf, rec->field_0));
-        func_8002E53C(&req, ":");
-        func_8002E53C(&req, func_8002F44C(buf, rec->field_4, 2));
-        func_8002E53C(&req, "'");
-        func_8002E53C(&req, func_8002F44C(buf, D_8005ED68 / 60, 2));
+        Text_DrawString(&req, Text_ItoaUnsigned(buf, rec->field_0));
+        Text_DrawString(&req, ":");
+        Text_DrawString(&req, Text_ItoaPadded(buf, rec->field_4, 2));
+        Text_DrawString(&req, "'");
+        Text_DrawString(&req, Text_ItoaPadded(buf, D_8005ED68 / 60, 2));
         Pad_CheckButtons(one, one, 0x100);
     }
 
     if (gGameSession->suppressDeathChecks == 0) {
         if (cfg->hp > 0) {
-            companion = save->companionType;
+            companion = save->state.companionType;
             if (companion == one) {
-                if (save->companionHp <= 0) {
+                if (save->state.companionHp <= 0) {
                     goto block_hp;
                 }
             }
             if (companion != 3) {
                 goto block_normal;
             }
-            if (save->companionHp > 0) {
+            if (save->state.companionHp > 0) {
                 goto block_normal;
             }
         block_hp:
@@ -2648,15 +2655,15 @@ void Gp_TickPlayClock(Task* task)
     block_companion: {
         McSaveData* p;
         p = &Mc_SaveData[0];
-        if (p->companionHp <= 0) {
+        if (p->state.companionHp <= 0) {
             if (gGameSession->eventState != 0) {
-                p->companionHp = 1;
+                p->state.companionHp = 1;
                 return;
             }
             Gp_StateC08.field_3 = 0;
             func_800A7DE0();
             Gp_PulseState1C80();
-            companion = p->companionType;
+            companion = p->state.companionType;
             if (companion == 1) {
                 gGameSession->restartMode  = companion;
                 Gp_LcgState                = Gp_LcgState * 5 + 0x71357911;
@@ -2664,7 +2671,7 @@ void Gp_TickPlayClock(Task* task)
                 SndEvt_EnqueueType7(0x20000000, 8);
                 SndBank_SetEnableFlags(0, 0x20000000);
                 CdCmd_EnqueueLoadFile(9, ((u8)gGameSession->deathVariant + 0x20) & 0xFF, 3);
-                companion = p->companionType;
+                companion = p->state.companionType;
             }
             if (companion == 3) {
                 gGameSession->restartMode = 4;
@@ -2698,8 +2705,8 @@ void Gp_RestartSessionTask(Task* arg0)
 
     queue = &CdCmd_Queue;
     Gp_StartAreaBgm(&arg0->killCountdown);
-    arg0->spawnArg1 += 0xA;
-    if (arg0->spawnArg1 < 0x100) {
+    arg0->spawnArg1.value += 0xA;
+    if (arg0->spawnArg1.value < 0x100) {
         return;
     }
     if (gGameSession->restartMode != 3) {
@@ -2709,7 +2716,7 @@ void Gp_RestartSessionTask(Task* arg0)
     SndEvt_EnqueueType7(0x80000000, 0x78);
     SndEvt_EnqueueType7(0x60010001, 0x78);
     flag            = 0xFF;
-    arg0->spawnArg1 = flag;
+    arg0->spawnArg1.value = flag;
     Pad_SetCooldown(0);
     Game_ClearPtrSlots();
     ds               = &gDisplayState;
@@ -2735,7 +2742,7 @@ void Gp_RestartSessionTask(Task* arg0)
     if (gGameSession->restartMode == flag) {
         Gpu_PrimHeapSize   = 0xB000;
         GActiveAuxHeapSize = 0x30000;
-        Gpu_PrimHeapBase   = (size_t)((u8*)Fs_ImgBuffers - 0x35800);
+        Gpu_PrimHeapBase   = (u8*)Fs_ImgBuffers - 0x35800;
         gMemActiveAuxHeap  = (u8*)Fs_ImgBuffers - 0xA800;
     }
     Mem_Init();

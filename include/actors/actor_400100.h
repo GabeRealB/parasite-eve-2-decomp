@@ -6,13 +6,14 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include "actors/actor.h"
-#include "main/tmd.h"
-#include "main/task.h"
-#include "main/session.h"
 
 #include "gameplay/animation.h"
 #include "gameplay/effects.h"
 #include "gameplay/pairsrc.h"
+
+#include "main/coord.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
 
 /// 0x98-byte object embedded four times in `Actor00100Work` at 0x908. The
 /// leading 0x20 bytes are the `GpObj` list node unlinked by `Gp_UnlinkObj`;

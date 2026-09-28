@@ -3,10 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/tmd.h"
 #include "weapons/m249.h"
 
 #include "gameplay/actor.h"
@@ -15,7 +11,11 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
-#include "main/fs.h"
+
+#include "gameplay/animation.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
 
 static void func_m249_8011D1DC(Task* arg0)
 {
@@ -83,7 +83,7 @@ static void func_m249_8011D1DC(Task* arg0)
             if ((s8)func_801060E0(arg0) != 0 && func_80106264(1) > 0) {
                 goto fire;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0) {
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0) {
                 func_80106550(arg0);
             }
             break;

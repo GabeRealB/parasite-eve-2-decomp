@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_AREA_ENTRY_H
 #define GAMEPLAY_AREA_ENTRY_H
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 /// The tasks of the two player-side actors, whose `work` is each actor's
 /// `GameActor`. Slot 0 is the player's: `Gp_InitPlayerWork` claims it and

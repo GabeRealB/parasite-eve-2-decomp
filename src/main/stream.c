@@ -1,48 +1,120 @@
-#include "common.h"
+#include "fs.h"
 
-#define STREAM_C
-
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libcd.h>
 #include <psyq/libpress.h>
 
-#include "main/unknown_syms.h"
-#include "main/fs.h"
-#include "main/stream.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
+#include "types.h"
 
-#include "gameplay/display.h"
 #include "main/display.h"
+#include "main/display_types.h"
+#include "main/fs.h"
+#include "main/fs_types.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/session_types.h"
+#include "main/stream_types.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
+#include "main/wipsys_types.h"
 
-static s32      D_8006AC08;
-static u16      D_8006AC0C;
-static u16      D_8006AC0E;
-static u16      D_8006AC10;
-static u16      D_8006AC12;
-static u16      D_8006AC14;
-static u16      D_8006AC16;
-static u16      D_8006AC18;
-static u16      D_8006AC1A;
-static u16      D_8006AC1C;
-static u16      D_8006AC1E;
-static u16      D_8006AC20;
-static s32      D_8006AC24;
-static u16      D_8006AC28;
-FsStrInfo       D_8006AC30;
+/* Define BSS before API headers to preserve first-declaration order. */
+static s32 D_8006AC08;
+
+static u16 D_8006AC0C;
+
+static u16 D_8006AC0E;
+
+static u16 D_8006AC10;
+
+static u16 D_8006AC12;
+
+static u16 D_8006AC14;
+
+static u16 D_8006AC16;
+
+static u16 D_8006AC18;
+
+static u16 D_8006AC1A;
+
+static u16 D_8006AC1C;
+
+static u16 D_8006AC1E;
+
+static u16 D_8006AC20;
+
+static s32 D_8006AC24;
+
+static u16 D_8006AC28;
+
+FsStrInfo D_8006AC30;
+
 static u_short* D_8006AC38;
-u16             D_8006AC3C;
-void*           D_8006AC40;
-void*           D_8006AC44;
-u_long*         D_8006AC48[2];
-u_long*         D_8006AC50[2];
-u16             D_8006AC58;
-u16             D_8006AC5A;
-u16             D_8006AC5C;
-u16*            D_8006AC60;
-static void*    D_8006AC64;
-static u_long*  D_8006AC68;
-u16             D_8006AC6C;
+
+u16 D_8006AC3C;
+
+void* D_8006AC40;
+
+void* D_8006AC44;
+
+u_long* D_8006AC48[2];
+
+u_long* D_8006AC50[2];
+
+u16 D_8006AC58;
+
+u16 D_8006AC5A;
+
+u16 D_8006AC5C;
+
+u16* D_8006AC60;
+
+static void* D_8006AC64;
+
+static u_long* D_8006AC68;
+
+u16 D_8006AC6C;
+
+#include "main/stream.h"
+#include "stream.h"
+
+extern s32 StCdIntrFlag;
+
+extern void func_80179954(void* arg0);
+
+extern void func_80179988(void* arg0);
+
+extern void func_801799BC(void* arg0);
+
+static void Mdec_SetupBuffers(u8* arg0);
+
+static void Stream_InitFromSlot(u32 arg0);
+
+/* Clears both display buffers to black, at the width of the current MDEC mode. */
+static __inline__ void _streamClearDisplayBuffers(RECT* rect);
+
+/// Initializes the MDEC ring, output callback and frame decode state.
+static void Stream_StartDecoder(void);
+
+static void Mdec_UploadSlice(void);
+
+static void Mdec_KickStrip(void);
+
+static void Mdec_DecodeFrame(void);
+
+static __inline__ u16 Stream_SeekPosition(u8* loc);
+
+/* Resets the decoder and the stream ring, routes decoded slices to the upload
+ * callback and applies CD volume table entry 0 ahead of a streaming read. */
+static __inline__ void _streamStartDecode(void);
+
+/* Starts the streaming read; ADPCM playback is enabled when the stream's
+ * volume table entry is nonzero. */
+static __inline__ s32 _streamStartRead(void);
+
+static __inline__ void Stream_UploadFrameStrips(RECT* rect, u32 x, u32 y, u16 useDisplayBuffer);
 
 u16 D_8005EAEC = 0;
 u16 D_8005EAEE = 0;
@@ -62,8 +134,8 @@ static void Mdec_SetupBuffers(u8* arg0)
     CdCmd_Queue.field_24A = 0;
     CdCmd_Queue.field_22C = 0;
     D_8006AC24            = 0x20;
-    D_8006AC38            = D_8005C36C;
-    D_8006AC60            = (u16*)((u8*)D_8005C36C + 0x11000);
+    D_8006AC38            = Fs_ActorLoadBase0;
+    D_8006AC60            = (u16*)((u8*)Fs_ActorLoadBase0 + 0x11000);
     D_8006AC64            = D_8006AC40;
 
     switch ((s8)(arg0[3] + 1)) {
@@ -150,9 +222,9 @@ s16 Stream_FindSlot(u8* arg0, s32 arg1, s32 arg2)
 loop:
     if (base[i & 0xFFFF].field_0 == one) {
         if (base[i & 0xFFFF].field_4 != 0) {
-            if (base[i & 0xFFFF].field_E == arg0[0]) {
+            if (base[i & 0xFFFF].key.parts.id == arg0[0]) {
                 if (base[i & 0xFFFF].field_10 == (arg1 & 0xFFFF)) {
-                    if (base[i & 0xFFFF].field_C == 0) {
+                    if (base[i & 0xFFFF].key.parts.group == 0) {
                         if (arg2 == 0) {
                             goto matched;
                         }
@@ -160,7 +232,7 @@ loop:
                             found = 1;
                             goto matched_result;
                         }
-                    } else if (base[i & 0xFFFF].field_C == arg0[1]) {
+                    } else if (base[i & 0xFFFF].key.parts.group == arg0[1]) {
                         if (arg2 == 0) {
                             goto matched;
                         }
@@ -207,14 +279,14 @@ s16 Stream_FindSlotByKey(u8* arg0)
     one  = 1;
     while (1) {
         if (base[i & 0xFFFF].field_0 == one) {
-            if (base[i & 0xFFFF].field_E == arg0[0]) {
-                if (base[i & 0xFFFF].field_C == 0) {
+            if (base[i & 0xFFFF].key.parts.id == arg0[0]) {
+                if (base[i & 0xFFFF].key.parts.group == 0) {
                     if (base[i & 0xFFFF].field_1E != 0) {
                         ret = i << 0x10;
                         return ret >> 0x10;
                     }
                 }
-                if (base[i & 0xFFFF].field_C == arg0[1]) {
+                if (base[i & 0xFFFF].key.parts.group == arg0[1]) {
                     if (base[i & 0xFFFF].field_1E != 0) {
                         ret = i << 0x10;
                         return ret >> 0x10;
@@ -324,14 +396,14 @@ static __inline__ void _streamClearDisplayBuffers(RECT* rect)
     ClearImage(rect, 0, 0, 0);
 }
 
-u32 func_8001F180(u32 arg0)
+u32 Stream_InitializePlayback(u32 slotIndex)
 {
     u8          params[8];
     RECT        clearRect;
     CdCmdQueue* queue;
     u32         slot;
 
-    slot             = arg0 & 0xFFFF;
+    slot             = slotIndex & 0xFFFF;
     queue            = &CdCmd_Queue;
     queue->field_1F2 = 0;
     queue->field_1E4 = 0;
@@ -410,7 +482,7 @@ s32 CdCmd_StopMdec(s32 arg0)
     return 0;
 }
 
-static void func_8001F430(void)
+static void Stream_StartDecoder(void)
 {
     CdlLOC      loc;
     RECT        rect;
@@ -556,7 +628,7 @@ static void Mdec_UploadSlice(void)
             return;
         }
     }
-    func_8001F430();
+    Stream_StartDecoder();
 }
 
 static void Mdec_KickStrip(void)
@@ -635,7 +707,7 @@ static void Mdec_DecodeFrame(void)
 
 static __inline__ u16 Stream_SeekPosition(u8* loc)
 {
-    if (((s32 (*)())CdCmd_SeekL)(loc, 0) & 0xFFFF) {
+    if (CdCmd_SeekL(loc, 0) & 0xFFFF) {
         return 1;
     }
     return 0;
@@ -669,7 +741,7 @@ static __inline__ s32 _streamStartRead(void)
     return CdRead2(CdlModeStream2 | CdlModeSpeed);
 }
 
-s32 func_8001FAE0(u16 arg0, s32 arg1)
+s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
 {
     RECT        rect;
     CdCmdQueue* state;
@@ -702,10 +774,10 @@ s32 func_8001FAE0(u16 arg0, s32 arg1)
             state->field_1D6 = 0;
             state->field_1E4++;
         case 2:
-            if ((arg0 & 0xFFFF) == 0) {
-                sector = D_8006AC08 + arg1;
+            if ((resume & 0xFFFF) == 0) {
+                sector = D_8006AC08 + sectorOffset;
             } else {
-                sector = arg1;
+                sector = sectorOffset;
             }
             state->field_242 = 1;
             state->field_24E = 1;
@@ -860,7 +932,7 @@ static __inline__ void Stream_UploadFrameStrips(RECT* rect, u32 x, u32 y, u16 us
     }
 }
 
-void func_80020058(void)
+void Stream_PresentFrame(void)
 {
     RECT        rect;
     s32         yOffset;
@@ -939,7 +1011,7 @@ void Stream_ResetRestoreState(void)
     D_8006AC28 = 0;
 }
 
-s16 Stream_HasActiveLowId(void* arg0)
+s16 Stream_HasActiveLowId(void* unused)
 {
     s32 i;
     s32 result;
@@ -948,7 +1020,7 @@ s16 Stream_HasActiveLowId(void* arg0)
     result = 0;
     while (1) {
         if (Stream_Slots[i & 0xFFFF].field_0 == 1) {
-            if (Stream_Slots[i & 0xFFFF].field_E < 0x64U) {
+            if (Stream_Slots[i & 0xFFFF].key.parts.id < 0x64U) {
                 if (Stream_Slots[i & 0xFFFF].field_4 != 0) {
                     result = 1;
                     break;
@@ -970,5 +1042,5 @@ u16 Stream_GetSlotField1A(u32 arg0)
 
 void Stream_KickDecode(u32 arg0)
 {
-    func_8001F180(arg0 & 0xFFFF);
+    Stream_InitializePlayback(arg0 & 0xFFFF);
 }

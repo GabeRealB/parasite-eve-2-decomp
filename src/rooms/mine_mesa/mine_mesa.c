@@ -1,28 +1,13 @@
 #include "common.h"
-#include "main/stage.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/unknown_syms.h"
 #include "rooms/mine_mesa.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include <psyq/libgte.h>
 #include <psyq/stdio.h>
 
 #include "gameplay/actor_render.h"
@@ -38,7 +23,35 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/loading.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/collision.h"
+#include "gameplay/damage.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gameflow.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 /// A place an enemy can be spawned at: its position and the yaw it faces.
 typedef struct {
@@ -142,7 +155,7 @@ void func_mine_mesa_8017D670(Task* arg0)
                     D_mine_mesa_80189B38.field_0 = 0;
                     D_mine_mesa_80189B38.field_1 = 0;
                     D_mine_mesa_80189B38.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, (s32)&D_mine_mesa_80189B38);
+                    Task_Spawn(1, 0x31, 0, &D_mine_mesa_80189B38);
                 }
                 arg0->state++;
             }
@@ -163,9 +176,9 @@ void func_mine_mesa_8017D670(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_mine_mesa_80189B40.prefix.bytes.field_0;
-            Mc_SaveData[0].at4.loc.warp = D_mine_mesa_80189B40.field_2;
-            Mc_SaveData[0].at4.loc.room = D_mine_mesa_80189B40.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_mine_mesa_80189B40.prefix.bytes.field_0;
+            Mc_SaveData[0].state.at4.loc.warp = D_mine_mesa_80189B40.field_2;
+            Mc_SaveData[0].state.at4.loc.room = D_mine_mesa_80189B40.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -309,7 +322,7 @@ static void func_mine_mesa_8017DC80(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0x90) == 0) {
         if (gameGetPtrSlot(0xA) != NULL) {
-            Mc_SaveData[0].companionHp = 5;
+            Mc_SaveData[0].state.companionHp = 5;
             Task_SpawnFromTable(&D_mine_mesa_80181990, 0, 0, 0);
         }
         GameFlag_SetNibble(0x1BD, 0);
@@ -508,7 +521,7 @@ void func_mine_mesa_8017E15C(Task* arg0)
                         /* fallthrough */
                     case 1:
                         aim = (GpHeadAim*)arg0->work;
-                        if (arg0->spawnArg1 != 0) {
+                        if (arg0->spawnArg1.value != 0) {
                             rateUp    = aim->rate + 0x100;
                             aim->rate = rateUp;
                             if ((s16)rateUp >= 0x1001) {
@@ -566,7 +579,7 @@ void func_mine_mesa_8017E2A4(Task* arg0)
                         /* fallthrough */
                     case 1:
                         aim = (GpHeadAim*)arg0->work;
-                        if (arg0->spawnArg1 != 0) {
+                        if (arg0->spawnArg1.value != 0) {
                             rate      = aim->rate + 0x100;
                             aim->rate = rate;
                             if ((s16)rate >= 0x1001) {
@@ -616,7 +629,7 @@ void func_mine_mesa_8017E3E0(Task* arg0)
             arg0->state++;
             break;
         case 1:
-            if (--arg0->spawnArg1 < 0) {
+            if (--arg0->spawnArg1.value < 0) {
                 arg0->state++;
             }
             break;
@@ -692,7 +705,7 @@ void func_mine_mesa_8017E684(s32 arg0)
     if (arg0 < 0) {
         goto kill;
     }
-    t->spawnArg1 = arg0;
+    t->spawnArg1.value = arg0;
     return;
 kill:
     taskKill(D_mine_mesa_80189B54);
@@ -709,7 +722,7 @@ void func_mine_mesa_8017E70C(s32 arg0)
     if (D_mine_mesa_80189B58 != NULL) {
         if (arg0 < 2) {
             if (arg0 >= 0) {
-                D_mine_mesa_80189B58->spawnArg1 = arg0;
+                D_mine_mesa_80189B58->spawnArg1.value = arg0;
                 return;
             }
         }
@@ -745,7 +758,7 @@ void func_mine_mesa_8017E7B0(Task* task)
             task->state = -1;
         }
         if (task->state == 0) {
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 tick                = task->killCountdown + 0x100;
                 task->killCountdown = tick;
                 if ((s16)tick >= 0x1001) {
@@ -817,7 +830,7 @@ void func_mine_mesa_8017EA24(void)
 {
     if (GameFlag_GetNibble(0x4C) != 0) {
         GameFlag_SetNibble(0x4C, 0);
-        Mc_SaveData[0].companionType = 0;
+        Mc_SaveData[0].state.companionType = 0;
         Task_CallExit(gameGetPtrSlot(0xA));
         Game_SetPtrSlot(NULL, 0xA);
     }
@@ -1036,7 +1049,7 @@ static void func_mine_mesa_8017F230(Task* task)
     GpCoord*   coord;
     u8         rgb[3];
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -1049,13 +1062,13 @@ static void func_mine_mesa_8017F230(Task* task)
             case 0:
                 work->scale = 0;
                 work->angle = 0x80;
-                work->step  = 0x100 / task->spawnArg1;
+                work->step  = 0x100 / task->spawnArg1.value;
                 task->state = 1;
                 break;
             case 1:
                 work->scale += work->step;
                 work->angle += work->step;
-                task->spawnArg1--;
+                task->spawnArg1.value--;
                 rgb[0] = work->scale;
                 rgb[1] = work->scale >> 2;
                 rgb[2] = work->scale >> 1;
@@ -1065,7 +1078,7 @@ static void func_mine_mesa_8017F230(Task* task)
                 rgb[2] >>= 1;
                 func_mine_mesa_8017F900(coord, (s16)((u16)work->angle * 2), rgb);
                 func_mine_mesa_8017F4D4(coord, (s16)(0x300 - (u16)work->angle * 2), 0x80, rgb);
-                if (task->spawnArg1 == 0) {
+                if (task->spawnArg1.value == 0) {
                     work->scale = 0xFF;
                     task->state = 2;
                     rgb[0]      = work->scale;
@@ -1221,7 +1234,7 @@ static void func_mine_mesa_8017FC94(Task* task)
     s32        i;
 
     coords   = (GpCoord*)task->work;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
@@ -1294,7 +1307,7 @@ static void func_mine_mesa_8017FC94(Task* task)
                     Gp_UpdateCoord(dst);
                 }
                 func_mine_mesa_80180184(coords, &coords[8], work->age & 7, 0x123);
-                if (work->age == task->spawnArg1 && work->age != 0) {
+                if (work->age == task->spawnArg1.value && work->age != 0) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
@@ -1413,7 +1426,7 @@ static void func_mine_mesa_8018057C(Task* task)
     u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -1428,7 +1441,7 @@ static void func_mine_mesa_8018057C(Task* task)
     switch (task->state) {
         case 0:
             Gp_SpawnEff(0x60076, objCoord, 0x400, NULL);
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 Gp_SpawnEff(0x60070, objCoord, 0x80004600, NULL);
                 task->state = 1;
             } else {
@@ -1723,7 +1736,7 @@ static void func_mine_mesa_80181358(Task* arg0)
         place      = (GpAreaPlace*)Gp_GetNestedAreaRec(&key)->field_0;
         tmd->tpage = place->tpage;
         tmd->clut  = place->clut;
-        if (Mc_SaveData[0].demoScene == 10) {
+        if (Mc_SaveData[0].state.demoScene == 10) {
             printf("tpage=%x, clut=%x, eno=%x\n", (s8)place->tpage, (s8)place->clut, 0);
         }
         if (tmd->buffer != NULL) {
@@ -1740,8 +1753,8 @@ static void func_mine_mesa_80181358(Task* arg0)
         return;
     }
 end:
-    Mc_SaveData[0].companionType = 0;
-    arg0->spawnArg2              = &result;
+    Mc_SaveData[0].state.companionType = 0;
+    arg0->spawnArg2.pointer              = &result;
     result.param                 = NULL;
     Gp_StateF0.field_6           = 1;
     Gp_ReleaseStateF0(arg0, 0);

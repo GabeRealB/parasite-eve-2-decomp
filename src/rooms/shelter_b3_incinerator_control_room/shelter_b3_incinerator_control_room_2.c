@@ -4,13 +4,15 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
+
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "overlay.h"
 
 /// Glow positions `func_shelter_b3_incinerator_control_room_8017FD10` draws
 /// per view.

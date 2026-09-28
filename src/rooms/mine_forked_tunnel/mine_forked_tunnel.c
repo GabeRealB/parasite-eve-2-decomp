@@ -1,17 +1,9 @@
 #include "common.h"
-#include "main/stage.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -28,7 +20,22 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "gameplay/scene.h"
+#include "gameplay/sprites.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 /// The enemy's position / rotation path, one `SVECTOR` per step: `pos` and
 /// `rot` are the halves `func_mine_forked_tunnel_8017D5E8` and
@@ -166,7 +173,7 @@ static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
 
     func_mine_forked_tunnel_8017DD08(arg0, 0x7D5, 1, 0);
     func_mine_forked_tunnel_8017DC70(arg0);
-    work->field_40 = Task_SpawnFromTable(&D_mine_forked_tunnel_80181B74, 1, 0, (s32)arg0);
+    work->field_40 = Task_SpawnFromTable(&D_mine_forked_tunnel_80181B74, 1, 0, arg0);
     arg0->msgTable = &D_mine_forked_tunnel_80181B8C;
     func_mine_forked_tunnel_8017DF34(GameFlag_GetNibble(0x75));
     arg0->exitCallback = func_mine_forked_tunnel_8017DC50;
@@ -181,7 +188,7 @@ static void func_mine_forked_tunnel_8017D724(Task* arg0)
 
     ext = arg0->extra.tmd;
 
-    if (arg0->spawnArg1 == 1 && arg0->killCountdown < 0x6E) {
+    if (arg0->spawnArg1.value == 1 && arg0->killCountdown < 0x6E) {
         placement.pos.vx = D_mine_forked_tunnel_80181244[arg0->killCountdown].vx;
         placement.pos.vy = D_mine_forked_tunnel_80181244[arg0->killCountdown].vy;
         placement.pos.vz = D_mine_forked_tunnel_80181244[arg0->killCountdown].vz;
@@ -237,10 +244,10 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, GpCmdArg* msg)
     switch (msg->command) {
         case 0:
             work                = task->work;
-            task->spawnArg1     = 0;
+            task->spawnArg1.value     = 0;
             task->killCountdown = 0;
             if (work->field_40 != 0) {
-                ((Task*)work->field_40)->spawnArg1     = 0;
+                ((Task*)work->field_40)->spawnArg1.value     = 0;
                 ((Task*)work->field_40)->killCountdown = 0;
             }
             placement.pos.vx = D_mine_forked_tunnel_80181244[0].vx;
@@ -264,11 +271,11 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, GpCmdArg* msg)
         case 1:
             work = task->work;
             if (work->field_40 != 0) {
-                ((Task*)work->field_40)->spawnArg1 = 1;
+                ((Task*)work->field_40)->spawnArg1.value = 1;
             }
             break;
         case 2:
-            task->spawnArg1 = 1;
+            task->spawnArg1.value = 1;
             break;
             do {
                 case 3:
@@ -284,7 +291,7 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, GpCmdArg* msg)
                     coord->flg = 0;
 
                     func_mine_forked_tunnel_8017DF34(GameFlag_GetNibble(0x75));
-                    task->spawnArg1 = 0;
+                    task->spawnArg1.value = 0;
                     break;
             } while (0);
     }
@@ -297,7 +304,7 @@ static void func_mine_forked_tunnel_8017DAB8(Task* arg0)
     GpXformArg* place;
     GpCoord*    coord;
 
-    if (arg0->spawnArg1 == 1 && arg0->killCountdown < 0x36) {
+    if (arg0->spawnArg1.value == 1 && arg0->killCountdown < 0x36) {
         placement.pos.vx = D_mine_forked_tunnel_80181BA4.pos.vx;
         placement.pos.vy = D_mine_forked_tunnel_80181BA4.pos.vy;
         placement.pos.vz = D_mine_forked_tunnel_80181BA4.pos.vz;
@@ -438,7 +445,7 @@ static void func_mine_forked_tunnel_8017DE54(Task* task)
     GpCoord*   coord;
     GpCoord*   dst;
 
-    parent      = task->spawnArg2;
+    parent      = task->spawnArg2.pointer;
     ext         = task->extra.tmd;
     parentExt   = parent->extra.tmd;
     coord       = ext->coords;

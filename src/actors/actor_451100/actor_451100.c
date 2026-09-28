@@ -6,11 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
-
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
@@ -21,7 +16,15 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/scene.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/task.h"
 
 /// Work block of the actor `func_actor_451100_801322D4` dispatches, published
 /// by its spawn handler so the actor's message handlers and animation helpers
@@ -173,7 +176,7 @@ void func_actor_451100_801322D4(Task* task)
     };
 
     D_actor_451100_8014E744 = (Actor260500Work*)task->work;
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// State 1 of the `func_actor_451100_801322D4` dispatcher, run each frame:
@@ -201,7 +204,7 @@ static void func_actor_451100_80132330(GpEnemy* enemy, Task* task)
 /// actor's task: tears down the enemy the task was spawned for.
 static void func_actor_451100_801323B4(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Ticks animation slots 1..0x12 of the published work block, the last step of
@@ -501,7 +504,7 @@ void func_actor_451100_80132BD4(Task* task)
         func_actor_451100_80132C28,
     };
 
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// State 1 of the `func_actor_451100_80132BD4` dispatcher, run each frame:
@@ -529,7 +532,7 @@ static void func_actor_451100_80132C28(GpEnemy* enemy, Task* task)
 /// actor's task: tears down the enemy the task was spawned for.
 static void func_actor_451100_80132CAC(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Draws the ground shadow quad under the model root of the actor

@@ -11,7 +11,7 @@
 
 #include "main/mc.h"
 #include "main/session.h"
-#include "main/task.h"
+#include "main/task_types.h"
 #include "main/wipsys.h"
 
 /// Resolve a row in the PS1 stack-limit table address space. Address words preserve
@@ -289,7 +289,7 @@ static inline McItemRec* _gpScanTable(McItemScan* scan)
             table = Gp_ItemTable1;
             break;
         default:
-            table = Mc_SaveData[0].itemRows;
+            table = Mc_SaveData[0].state.itemRows;
             break;
     }
     return table;
@@ -326,7 +326,7 @@ void Gp_SortItems(McItemScan* arg0, s32 arg1)
                     tmp = Gp_ItemTable1;
                     break;
                 default:
-                    tmp = Mc_SaveData[0].itemRows;
+                    tmp = Mc_SaveData[0].state.itemRows;
                     break;
             }
             table = tmp;
@@ -361,7 +361,7 @@ void Gp_SortItems(McItemScan* arg0, s32 arg1)
             minKey = key;
 
             if (arg0->table != 1) {
-                tmp = Mc_SaveData[0].itemRows;
+                tmp = Mc_SaveData[0].state.itemRows;
                 if (arg0->table == 2) {
                     tmp = Gp_ItemTable2;
                 }
@@ -454,7 +454,7 @@ static s32 Gp_CanAddItemQty(McItemScan* arg0, s32 arg1, s32 arg2)
             tmp = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData[0].itemRows;
+            tmp = Mc_SaveData[0].state.itemRows;
             break;
     }
     table    = tmp;
@@ -491,7 +491,7 @@ static s32 Gp_CanAddItemQty(McItemScan* arg0, s32 arg1, s32 arg2)
                 table2 = Gp_ItemTable1;
                 break;
             default:
-                table2 = Mc_SaveData[0].itemRows;
+                table2 = Mc_SaveData[0].state.itemRows;
                 break;
         }
         if (arg2 < 0) {
@@ -558,7 +558,7 @@ s32 Gp_CanAddItem(McItemScan* arg0, s32 arg1)
             tmp = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData[0].itemRows;
+            tmp = Mc_SaveData[0].state.itemRows;
             break;
     }
     table    = tmp;
@@ -595,7 +595,7 @@ s32 Gp_CanAddItem(McItemScan* arg0, s32 arg1)
                 table2 = Gp_ItemTable1;
                 break;
             default:
-                table2 = Mc_SaveData[0].itemRows;
+                table2 = Mc_SaveData[0].state.itemRows;
                 break;
         }
         i      = 0;
@@ -766,7 +766,7 @@ static inline s32 _gpHasItemSeenBit(s32 item)
         return 1;
     }
     p   = &Mc_SaveData[0];
-    val = p->itemSeenBits[word] & bit;
+    val = p->state.itemSeenBits[word] & bit;
     return val != 0;
 }
 
@@ -874,7 +874,7 @@ static inline void _gpClearEquipSlot(s32 item)
         return;
     }
 
-    slot = &Mc_SaveData[0].weaponItems[item - 0x80];
+    slot = &Mc_SaveData[0].state.weaponItems[item - 0x80];
     for (i = 0; i < 8; i++) {
         if (item == Gp_ItemMaps[i].field_1) {
             found = 1;
@@ -920,7 +920,7 @@ void Gp_RefreshItemRow(McItemRec* arg0)
 
 void func_800B92CC(Task* task)
 {
-    switch (GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) {
+    switch (GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) {
         case GP_LOC_KEY(1, 1, 0, 0):
             func_80180804();
             break;

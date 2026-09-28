@@ -1,13 +1,15 @@
 #include "common.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/attachments.h"
 #include "gameplay/display.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "main/sound.h"
+#include "main/task_types.h"
 
 /// This overlay's id, the `u16` every package opens with.
 
@@ -36,7 +38,7 @@ static void ofudaEffectTask(Task* arg0)
     u8          rgb[3];
 
     state = &Gp_StateC08;
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if ((state->field_3 == -2) || (Gp_State1C->fadeState != 0)) {
         SndEvt_EnqueueType7(0xE03D0001, 1);
@@ -46,10 +48,10 @@ static void ofudaEffectTask(Task* arg0)
     mem->age++;
     switch (arg0->state) {
         case 0:
-            arg0->spawnArg1 = 0x1E;
+            arg0->spawnArg1.value = 0x1E;
             mem->scale      = 0;
             mem->angle      = 0x100;
-            mem->step       = 0x100 / arg0->spawnArg1;
+            mem->step       = 0x100 / arg0->spawnArg1.value;
             arg0->state     = 1;
             pan             = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(0xE03D0001, pan, (s8)gpGetObjDepth(coord));
@@ -57,18 +59,18 @@ static void ofudaEffectTask(Task* arg0)
         case 1:
             mem->scale += mem->step;
             mem->angle += mem->step << 3;
-            arg0->spawnArg1--;
+            arg0->spawnArg1.value--;
             rgb[0] = mem->scale;
             rgb[1] = mem->scale >> 2;
             rgb[2] = mem->scale >> 1;
             Gp_DrawRing(coord, mem->angle, rgb);
             Gp_DrawRing(coord, (s16)(mem->angle << 1), rgb);
-            Gp_DrawArc(coord, (s16)((arg0->spawnArg1 << 4) + 0x800), 0x100, rgb);
+            Gp_DrawArc(coord, (s16)((arg0->spawnArg1.value << 4) + 0x800), 0x100, rgb);
             rgb[0] >>= 1;
             rgb[1] >>= 1;
             rgb[2] >>= 1;
-            Gp_DrawArc(coord, (s16)((arg0->spawnArg1 << 5) + 0xC00), 0xC0, rgb);
-            if (arg0->spawnArg1 == 0) {
+            Gp_DrawArc(coord, (s16)((arg0->spawnArg1.value << 5) + 0xC00), 0xC0, rgb);
+            if (arg0->spawnArg1.value == 0) {
                 mem->scale      = 0xFF;
                 arg0->state     = 2;
                 mem->period     = 0x600;

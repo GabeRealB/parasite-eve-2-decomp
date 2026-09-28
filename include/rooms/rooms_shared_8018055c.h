@@ -4,7 +4,7 @@
 #include "common.h"
 
 #include "main/text.h"
-#include "main/ui.h"
+#include "main/ui_types.h"
 
 /// One selectable course in a gallery's SELECT menu: the id the controller
 /// task remembers in `Task::flags` (so re-picking the same course does not

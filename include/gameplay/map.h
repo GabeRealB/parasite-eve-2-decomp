@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/tmd.h"
+#include "main/tmd_types.h"
 
 /// 0xE-byte per-room record in tables pointed to by `Gp_MapRecTables`.
 /// Indexed by `GameSession.at4.loc.stage - 1` then `GameSession.at4.loc.area`.

@@ -4,24 +4,64 @@
 #include <psyq/rand.h>
 #include <psyq/stdio.h>
 
+#include "gameplay/display.h"
+
+/// Title-screen work block stored at Task::work (memCalloc 0x18).
+typedef struct _TitleWork {
+    /* 0x00 */ s32 timer;          // frame / phase counter
+    /* 0x04 */ s32 selection;      // menu cursor index
+    /* 0x08 */ s32 fadeTileEnable; // fullscreen fade TILE when non-zero
+    /* 0x0C */ s32 logoFade;       // intro logo alpha 0..0x80
+    /* 0x10 */ s32 menuFade;       // menu chrome alpha 0..0x80
+    /* 0x14 */ s32 menuCount;      // number of menu entries
+} TitleWork;
+STATIC_ASSERT_SIZEOF(TitleWork, 0x18);
+
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
+#include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/scratch.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/text.h"
-#include "main/title.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
+#include <psyq/memory.h>
+#include <psyq/rand.h>
+#include <psyq/stdio.h>
+#include "title/title.h"
 
-#include "gameplay/display.h"
+/// Retained text labels for the title menu (src/title/title.c).
+extern char Title_StrNewGame[];
 
-extern s32 Pad_MaskConfirm;
+extern char Title_StrLoadGame[];
+
+extern char Title_StrConfiguration[];
+
+extern char Title_StrDebugOption[];
+
+extern char Title_StrExtraGame[];
+
+extern char Title_StrSurvival[];
+
+/// Task spawn ids for menu selection indices.
+extern s32 Title_MenuSpawnIds[];
+
+/// Last rand() from Title_Dispatch.
+extern s32 Title_LastRand;
+
+/// When set, Title_BootTask spawns phase task with arg 0x80000000 (skip fade TILE).
+extern u16 Title_SkipFadeFlag;
+
+void Title_DemoStreamTask(Task* task);
+
+void Title_BootTask(Task* task);
 
 void func_807246B4(void);
 
@@ -88,12 +128,12 @@ static void Title_InitTask(Task* arg0)
     ds                          = &gDisplayState;
     ds->at100.flags.imageSource = 0;
     Wip_UiHolder                = NULL;
-    if (arg0->spawnArg1 < 0) {
+    if (arg0->spawnArg1.value < 0) {
         flag             = 0;
-        arg0->spawnArg1 &= 0x7FFFFFFF;
+        arg0->spawnArg1.value &= 0x7FFFFFFF;
     }
-    if (arg0->spawnArg1 > 0) {
-        arg0->spawnArg1 -= 1;
+    if (arg0->spawnArg1.value > 0) {
+        arg0->spawnArg1.value -= 1;
         return;
     }
     work = memCalloc(0x18, 0);
@@ -284,9 +324,9 @@ static void Title_MenuTask(Task* task)
     }
 }
 
-/// Restore demo card / save banks from D_8005C374 (or 0x80600100 when
+/// Restore demo card / save banks from Fs_ActorLoadBase2 (or 0x80600100 when
 /// gDisplayState.demoScene == 0x10).
-/// Preserves Mc_SaveData[0].vibration / field_23 across the bulk copy.
+/// Preserves Mc_SaveData[0].state.vibration / field_23 across the bulk copy.
 void Title_RestoreDemoCard(void)
 {
     u8* src;
@@ -296,14 +336,14 @@ void Title_RestoreDemoCard(void)
     s32 t;
     u8* base;
 
-    src         = (u8*)D_8005C374;
+    src         = (u8*)Fs_ActorLoadBase2;
     bank        = 0;
-    saveField23 = Mc_SaveData[0].demoScene;
-    saveField21 = Mc_SaveData[0].vibration;
+    saveField23 = Mc_SaveData[0].state.demoScene;
+    saveField21 = Mc_SaveData[0].state.vibration;
     if (gDisplayState.demoScene == 0x10) {
         src = (u8*)0x80600100;
     }
-    printf(Title_DemoCardRestoreMsg, Mc_SaveData[0].at4.loc.stage, Mc_SaveData[0].at4.loc.area);
+    printf(Title_DemoCardRestoreMsg, Mc_SaveData[0].state.at4.loc.stage, Mc_SaveData[0].state.at4.loc.area);
 
     memcpy(&Mc_SaveData[0], src, sizeof(McSaveData));
     src += sizeof(McSaveData);
@@ -314,32 +354,32 @@ void Title_RestoreDemoCard(void)
     memcpy((u8*)&Player_Status + bank * 0x40, src, 0x40);
     src += 0x40;
 
-    memcpy(D_800733F0[bank], src, 0x6C);
+    memcpy(&GameFlag_AcropolisBanks[bank], src, 0x6C);
     src += 0x6C;
 
-    memcpy(D_800734C8, src, 0xB0);
+    memcpy(GameFlag_DryfieldBanks, src, 0xB0);
     src += 0xB0;
 
-    memcpy(D_80073628, src, 0x24);
+    memcpy(GameFlag_DryfieldFullBanks, src, 0x24);
     src += 0x24;
 
-    /* bank * 0xE4, split so GCC interleaves lui of D_80073670 after first sll */
+    /* bank * 0xE4, split so GCC interleaves lui of GameFlag_ShelterBanks after first sll */
     t    = bank * 8;
-    base = (u8*)D_80073670;
+    base = (u8*)GameFlag_ShelterBanks;
     memcpy(base + ((t - bank) * 8 + bank) * 4, src, 0xE4);
     src += 0xE4;
 
-    memcpy(D_80073838, src, 0xA4);
+    memcpy(GameFlag_NeoArkBanks, src, 0xA4);
     src += 0xA4;
 
-    memcpy(&D_80073980[bank * 0x100], src, 0x100);
+    memcpy(&GameFlag_NibbleBanks[bank], src, 0x100);
 
-    Mc_SaveData[0].demoScene = saveField23;
-    Mc_SaveData[0].vibration = saveField21;
-    if (Fs_StageCdfIsAvailable(Mc_SaveData[0].at4.loc.stage) != 1) {
+    Mc_SaveData[0].state.demoScene = saveField23;
+    Mc_SaveData[0].state.vibration = saveField21;
+    if (Fs_StageCdfIsAvailable(Mc_SaveData[0].state.at4.loc.stage) != 1) {
         gDisplayState.gameMode = 1;
     }
-    printf(Title_DemoCardRestoreMsg, Mc_SaveData[0].at4.loc.stage, Mc_SaveData[0].at4.loc.area);
+    printf(Title_DemoCardRestoreMsg, Mc_SaveData[0].state.at4.loc.stage, Mc_SaveData[0].state.at4.loc.area);
 }
 
 static void Title_FlagAdvanceTask(Task* arg0)

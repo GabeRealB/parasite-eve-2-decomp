@@ -6,18 +6,21 @@
 
 #include "actors/actor.h"
 
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-
 #include "gameplay/actor_render.h"
 #include "gameplay/collision.h"
 #include "gameplay/display.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 /// Work block the spawn handler allocates (`memCalloc(0x4C4)`) and parks in
 /// `Task::work`. It opens with the animation context the preset handler hands
@@ -95,10 +98,10 @@ static void func_actor_213000_80149E54(Task* task)
     work->field_478 = 0;
     work->field_477 = -1;
     obj->flags     |= 0x80;
-    work->field_4BC = Task_SpawnFromTable(&D_actor_213000_80157DE0, 1, 8, (s32)task);
-    work->field_4C0 = Task_SpawnFromTable(&D_actor_213000_80157DE0, 2, 8, (s32)task);
-    spawned1        = Task_SpawnFromTable(&D_actor_213000_80157DE0, 3, 9, (s32)task);
-    spawned2        = Task_SpawnFromTable(&D_actor_213000_80157DE0, 4, 0xC, (s32)task);
+    work->field_4BC = Task_SpawnFromTable(&D_actor_213000_80157DE0, 1, 8, task);
+    work->field_4C0 = Task_SpawnFromTable(&D_actor_213000_80157DE0, 2, 8, task);
+    spawned1        = Task_SpawnFromTable(&D_actor_213000_80157DE0, 3, 9, task);
+    spawned2        = Task_SpawnFromTable(&D_actor_213000_80157DE0, 4, 0xC, task);
     if (spawned1 != NULL) {
         TmdObject*     model;
         GpAreaVariant* rec;
@@ -106,7 +109,7 @@ static void func_actor_213000_80149E54(Task* task)
         GpAreaKey*     sessionKey;
         s32            idx;
 
-        idx        = ((GpEnemy*)task->spawnArg2)->placeKey >> 12;
+        idx        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12;
         model      = spawned1->extra.tmd;
         sessionKey = &gGameSession->at4.loc;
         key.stage  = sessionKey->stage;
@@ -131,7 +134,7 @@ static void func_actor_213000_80149E54(Task* task)
         s32            idx;
 
         model      = spawned2->extra.tmd;
-        idx        = ((GpEnemy*)task->spawnArg2)->placeKey >> 12;
+        idx        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12;
         sessionKey = &gGameSession->at4.loc;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
@@ -187,8 +190,8 @@ static void func_actor_213000_8014A0DC(Task* task)
     GpCoord*   coord;
     GpCoord*   dest;
 
-    parent          = (Task*)task->spawnArg2;
-    part            = task->spawnArg1;
+    parent          = (Task*)task->spawnArg2.pointer;
+    part            = task->spawnArg1.value;
     extra           = task->extra.tmd;
     parentExtra     = parent->extra.tmd;
     coord           = extra->coords;
@@ -240,7 +243,7 @@ static void func_actor_213000_8014A1B8(Task* task)
     GpCoord*   coords;
     GpCoord*   root;
 
-    parent      = task->spawnArg2;
+    parent      = task->spawnArg2.pointer;
     obj         = task->extra.tmd;
     parentObj   = parent->extra.tmd;
     coords      = parentObj->coords;
@@ -256,7 +259,7 @@ static void func_actor_213000_8014A1B8(Task* task)
         obj->flags |= 4;
     }
     obj->otOffset = -2;
-    coords       += task->spawnArg1;
+    coords       += task->spawnArg1.value;
     root->flg     = 0;
     root->sub     = coords;
     obj->lightMtx = parentObj->lightMtx;
@@ -274,7 +277,7 @@ static void func_actor_213000_8014A2C4(Task* task)
     TmdObject* parentObject;
     TmdObject* object;
 
-    parentObject = ((Task*)task->spawnArg2)->extra.tmd;
+    parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
     object       = task->extra.tmd;
 
     if (!(parentObject->flags & 0x80)) {
@@ -306,7 +309,7 @@ static void func_actor_213000_8014A35C(Task* task)
     s32        i;
     u16        flags;
 
-    parent    = task->spawnArg2;
+    parent    = task->spawnArg2.pointer;
     obj       = task->extra.tmd;
     parentObj = parent->extra.tmd;
     for (i = 0; i < 3; i++) {
@@ -347,7 +350,7 @@ static void func_actor_213000_8014A488(Task* task)
     TmdObject* parentObject;
     TmdObject* object;
 
-    parentObject = ((Task*)task->spawnArg2)->extra.tmd;
+    parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
     object       = task->extra.tmd;
 
     if (!(parentObject->flags & 0x80)) {

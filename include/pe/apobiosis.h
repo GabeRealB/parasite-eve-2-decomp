@@ -2,10 +2,10 @@
 #define PE_APOBIOSIS_H
 
 #include "common.h"
-#include "main/task.h"
 
-#include <psyq/libgs.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 /// 0x28-byte scratch block `func_apobiosis_80130630` takes from
 /// `G_SCRATCH_HEAD` to draw one burst shard. `v0` is the effect coordinate's

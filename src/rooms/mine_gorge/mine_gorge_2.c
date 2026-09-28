@@ -4,13 +4,15 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
+
+#include "gameplay/scene.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
 
 /// Per-view halfword table, indexed 1-based by `Gp_GetViewIndex()`. The value
 /// the room publishes as its `Gp_State1C->roomEffectMode` variant index.

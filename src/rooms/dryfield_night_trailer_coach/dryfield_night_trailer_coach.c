@@ -4,6 +4,23 @@
 #include <psyq/libgpu.h>
 
 #include "decomp/common.h"
+#include "rooms/room.h"
+#include "rooms/room_common.h"
+#include "rooms/rooms_shared_80181228.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/area_transitions.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/display.h"
+#include "gameplay/items.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/item_menu.h"
+#include "gameplay/message.h"
+#include "gameplay/world_targets.h"
+
+#include "gameplay/evs.h"
+#include "gameplay/inventory.h"
+#include "gameplay/world_state.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -18,19 +35,6 @@
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
-#include "rooms/room.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_80181228.h"
-
-#include "gameplay/captions.h"
-#include "gameplay/area_transitions.h"
-#include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/items.h"
-#include "gameplay/evs_scripts.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/message.h"
-#include "gameplay/world_targets.h"
 
 /// The "%" suffix the room's percentage formatters append.
 extern u8 D_dryfield_night_trailer_coach_80184D44[];
@@ -118,12 +122,12 @@ extern u16 D_dryfield_night_trailer_coach_80184578[];
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40
 /// or any other value) and the high halfword one of the group's four;
-/// `Mc_SaveData[0].gameMode` 2 and above has groups of its own. A high halfword
+/// `Mc_SaveData[0].state.gameMode` 2 and above has groups of its own. A high halfword
 /// above 3 falls through the 0x30-0x33 groups in turn and on into 0x20's;
 /// every other miss returns `D_dryfield_night_trailer_coach_80184578`.
 static u16* func_dryfield_night_trailer_coach_8017D81C(s32 mode)
 {
-    if (Mc_SaveData[0].gameMode < 2) {
+    if (Mc_SaveData[0].state.gameMode < 2) {
         switch ((u16)mode) {
             case 0x30:
                 switch ((u32)mode >> 16) {
@@ -350,9 +354,9 @@ void func_dryfield_night_trailer_coach_8017DE8C(UiList* prompt, UiObject* obj)
     shop    = (RoomShopList*)obj->owner->work;
     blocked = 0;
     itemId  = shop->items[prompt->field_8];
-    /* &Mc_SaveData[0].carriedItems hoisted into a saved register here, as the original does,
+    /* &Mc_SaveData[0].state.carriedItems hoisted into a saved register here, as the original does,
        instead of being rematerialised at the Gp_SumScanQty call. */
-    scan = &Mc_SaveData[0].carriedItems;
+    scan = &Mc_SaveData[0].state.carriedItems;
     if (prompt->field_C == 1) {
         D_dryfield_night_trailer_coach_80184490 = itemId;
     }
@@ -376,7 +380,7 @@ void func_dryfield_night_trailer_coach_8017DE8C(UiList* prompt, UiObject* obj)
         req.glyphTable = 0;
         req.centerMode = 0;
         req.field_E    = 1;
-        func_8002E53C(&req, D_dryfield_night_trailer_coach_801844B0);
+        Text_DrawString(&req, D_dryfield_night_trailer_coach_801844B0);
         if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x16, 0, 0);
             Ui_SpawnFromDesc(&D_dryfield_night_trailer_coach_8018467C, 0, 1, 1, obj);
@@ -454,7 +458,7 @@ void func_dryfield_night_trailer_coach_8017DE8C(UiList* prompt, UiObject* obj)
 static void func_dryfield_night_trailer_coach_8017E318(RoomShopList* shop, UiObject* obj, s32 item)
 {
     Task*         task = obj->owner;
-    s32           mode = task->spawnArg1;
+    s32           mode = task->spawnArg1.value;
     RoomShopList* list = (RoomShopList*)task->work;
     s32           i;
 
@@ -494,8 +498,8 @@ extern RoomShopTier D_dryfield_night_trailer_coach_801843F4[13];
 /// 0, which items of each unlocked price row are added: mode 0 ids 0x80-0x9F
 /// and 9, 0xA, 0xC, 0x42-0x46; mode 1 ids 0xA0-0xBF; mode 2 ids 0x60-0x7F and
 /// 0xD; mode 3 ids 1-0x5F other than those. Mode 3 also adds, for each of the
-/// twelve two-bit levels in `Mc_SaveData[0].shopStock`, the id of that level
-/// (the first slot needs level 2). With `Mc_SaveData[0].demoScene` 1 every row
+/// twelve two-bit levels in `Mc_SaveData[0].state.shopStock`, the id of that level
+/// (the first slot needs level 2). With `Mc_SaveData[0].state.demoScene` 1 every row
 /// and level is unlocked first.
 static void func_dryfield_night_trailer_coach_8017E464(RoomShopList* shop, UiObject* obj)
 {
@@ -516,7 +520,7 @@ static void func_dryfield_night_trailer_coach_8017E464(RoomShopList* shop, UiObj
     u16           tmp;
     u8            count;
 
-    mode = obj->owner->spawnArg1;
+    mode = obj->owner->spawnArg1.value;
     ids  = func_dryfield_night_trailer_coach_8017D81C(mode);
 
     shop->list.field_4 = 0;
@@ -525,15 +529,15 @@ static void func_dryfield_night_trailer_coach_8017E464(RoomShopList* shop, UiObj
         ids++;
     }
 
-    if (Mc_SaveData[0].demoScene == 1) {
-        Mc_SaveData[0].shopTiers = 0x1FFF;
-        Mc_SaveData[0].shopStock = -1;
+    if (Mc_SaveData[0].state.demoScene == 1) {
+        Mc_SaveData[0].state.shopTiers = 0x1FFF;
+        Mc_SaveData[0].state.shopStock = -1;
     }
 
-    if (Mc_SaveData[0].gameMode == 0) {
-        if (Mc_SaveData[0].shopTiers != 0) {
+    if (Mc_SaveData[0].state.gameMode == 0) {
+        if (Mc_SaveData[0].state.shopTiers != 0) {
             for (tier = 0; tier < 13; tier++) {
-                unlocked = Mc_SaveData[0].shopTiers & (1 << tier);
+                unlocked = Mc_SaveData[0].state.shopTiers & (1 << tier);
                 if (unlocked != 0) {
                     for (j = 0; j < 3; j++) {
                         item = D_dryfield_night_trailer_coach_801843F4[tier].items[j];
@@ -571,7 +575,7 @@ static void func_dryfield_night_trailer_coach_8017E464(RoomShopList* shop, UiObj
 
         if ((mode >> 16) == 3) {
             for (slot = 0; slot < 0xC; slot++) {
-                level = (Mc_SaveData[0].shopStock >> (slot * 2)) & 3;
+                level = (Mc_SaveData[0].state.shopStock >> (slot * 2)) & 3;
                 if (slot == 0 ? level >= 2 : level > 0) {
                     /* The assignment keeps `+ 0xE` on the level instead of
                        letting GCC reassociate it onto the row base. */
@@ -667,7 +671,7 @@ void func_dryfield_night_trailer_coach_8017E830(Task* task)
     s32           x;
     s32           y;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, (char*)D_dryfield_night_trailer_coach_8017D6D0);
     if (task->state == 0) {
@@ -701,7 +705,7 @@ void func_dryfield_night_trailer_coach_8017E830(Task* task)
     req.glyphTable = 5;
     req.centerMode = 2;
     req.field_E    = 1;
-    func_8002E53C(&req, D_dryfield_night_trailer_coach_8017D6D8);
+    Text_DrawString(&req, D_dryfield_night_trailer_coach_8017D6D8);
 
     if (obj->panel.field_0.w == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
@@ -716,7 +720,7 @@ void func_dryfield_night_trailer_coach_8017E830(Task* task)
     if (head != NULL) {
         child = head;
         do {
-            childObj = child->spawnArg2;
+            childObj = child->spawnArg2.pointer;
             code     = childObj->field_2E;
             next     = child->nextSibling;
             if (code != -1) {
@@ -754,25 +758,25 @@ void func_dryfield_night_trailer_coach_8017EA80(UiList* prompt, UiObject* obj)
     }
 
     text                  = D_dryfield_night_trailer_coach_80184500;
-    obj->owner->spawnArg1 = (u16)obj->owner->spawnArg1;
+    obj->owner->spawnArg1.value = (u16)obj->owner->spawnArg1.value;
     switch (prompt->field_8) {
         case 0:
             break;
         case 1:
             text                   = D_dryfield_night_trailer_coach_80184508;
-            obj->owner->spawnArg1 |= 0x10000;
+            obj->owner->spawnArg1.value |= 0x10000;
             break;
         case 2:
             text                   = D_dryfield_night_trailer_coach_80184514;
-            obj->owner->spawnArg1 |= 0x20000;
+            obj->owner->spawnArg1.value |= 0x20000;
             break;
         case 3:
             text                   = D_dryfield_night_trailer_coach_8018451C;
-            obj->owner->spawnArg1 |= 0x30000;
+            obj->owner->spawnArg1.value |= 0x30000;
             break;
     }
 
-    if (*func_dryfield_night_trailer_coach_8017D81C(obj->owner->spawnArg1) == 0xFFFF) {
+    if (*func_dryfield_night_trailer_coach_8017D81C(obj->owner->spawnArg1.value) == 0xFFFF) {
         prompt->field_1C = Ui_LookupTable(obj, 2);
         prompt->field_C  = 0;
     }
@@ -808,7 +812,7 @@ void func_dryfield_night_trailer_coach_8017ECA0(Task* task)
     UiObject* childObj;
     s32       code;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     list          = &D_dryfield_night_trailer_coach_80184584;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, (char*)D_dryfield_night_trailer_coach_8017D6DC);
@@ -833,7 +837,7 @@ void func_dryfield_night_trailer_coach_8017ECA0(Task* task)
     if (head != NULL) {
         child = head;
         do {
-            childObj = child->spawnArg2;
+            childObj = child->spawnArg2.pointer;
             code     = childObj->field_2E;
             next     = child->nextSibling;
             if (code != -1) {
@@ -869,7 +873,7 @@ void func_dryfield_night_trailer_coach_8017EE48(Task* task)
     s32           capacity;
     s32           count;
 
-    obj = task->spawnArg2;
+    obj = task->spawnArg2.pointer;
     cfg = &Player_Status;
     x   = (s16)obj->panel.field_1C.s + 2;
     col = (s16)obj->panel.field_1E.u - 2;
@@ -882,7 +886,7 @@ void func_dryfield_night_trailer_coach_8017EE48(Task* task)
     req0.glyphTable = 5;
     req0.centerMode = 0;
     req0.field_E    = 1;
-    func_8002E53C(&req0, D_dryfield_night_trailer_coach_8017D6D8);
+    Text_DrawString(&req0, D_dryfield_night_trailer_coach_8017D6D8);
 
     Text_ItoaUnsigned((u8*)digits, cfg->bp);
     Text_DrawPrompt(obj, col, y + 0x19, (u8*)digits, 0x606060, 3, 2);
@@ -895,10 +899,10 @@ void func_dryfield_night_trailer_coach_8017EE48(Task* task)
     req1.glyphTable = 5;
     req1.centerMode = 0;
     req1.field_E    = 1;
-    func_8002E53C(&req1, (char*)D_dryfield_night_trailer_coach_8017D6E4);
+    Text_DrawString(&req1, (char*)D_dryfield_night_trailer_coach_8017D6E4);
 
     p        = total;
-    scan     = &Mc_SaveData[0].carriedItems;
+    scan     = &Mc_SaveData[0].state.carriedItems;
     count    = Gp_CountScanItems(scan);
     capacity = scan->rowCount;
     Text_ItoaUnsigned((u8*)p, count);
@@ -925,7 +929,7 @@ void func_dryfield_night_trailer_coach_8017F02C(UiList* prompt, UiObject* obj)
     s32           mode;
     s32           price;
 
-    itemId = obj->owner->spawnArg1;
+    itemId = obj->owner->spawnArg1.value;
 
     req.x          = obj->panel.field_20.u + (u16)prompt->field_18;
     req.y          = obj->panel.field_22.u + (u16)prompt->field_1A;
@@ -934,13 +938,13 @@ void func_dryfield_night_trailer_coach_8017F02C(UiList* prompt, UiObject* obj)
     req.glyphTable = 0;
     req.centerMode = 0;
     req.field_E    = 1;
-    func_8002E53C(&req, D_dryfield_night_trailer_coach_80184494);
+    Text_DrawString(&req, D_dryfield_night_trailer_coach_80184494);
 
     mode = prompt->field_C;
     if (mode == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         cfg   = &Player_Status;
         price = Gp_ItemDescs[itemId].price;
-        scan  = &Mc_SaveData[0].carriedItems;
+        scan  = &Mc_SaveData[0].state.carriedItems;
         SndEvt_EnqueueType6(0x16, 0, 0);
         if (cfg->bp >= price) {
             if (Gp_CanAddItem(scan, itemId) == 0) {
@@ -950,7 +954,7 @@ void func_dryfield_night_trailer_coach_8017F02C(UiList* prompt, UiObject* obj)
                     Ui_SpawnFromDesc(&D_dryfield_night_trailer_coach_80184644, 1, 1, 1, obj);
                 }
                 obj->panel.field_0.w = 0;
-            } else if ((obj->owner->parent->spawnArg1 >> 16) == mode) {
+            } else if ((obj->owner->parent->spawnArg1.value >> 16) == mode) {
                 child = Ui_SpawnFromDesc(&D_dryfield_night_trailer_coach_801846B4, itemId, 1, 1, obj);
                 if (child != NULL) {
                     Ui_ClampDialogRect(&(child)->panel, prompt, &(obj)->panel);
@@ -977,8 +981,8 @@ void func_dryfield_night_trailer_coach_8017F240(Task* task)
     u8*       text;
     s32       kind;
 
-    kind = task->spawnArg1;
-    obj  = task->spawnArg2;
+    kind = task->spawnArg1.value;
+    obj  = task->spawnArg2.pointer;
     switch (kind) {
         case 1:
             text = D_dryfield_night_trailer_coach_80184538;
@@ -1006,7 +1010,7 @@ void func_dryfield_night_trailer_coach_8017F240(Task* task)
             return;
         }
         if (task->killCountdown <= 0 || Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-            ((UiObject*)task->parent->spawnArg2)->field_2E = 6;
+            ((UiObject*)task->parent->spawnArg2.pointer)->field_2E = 6;
             task->killCountdown                            = 0x7FFF;
         }
     }
@@ -1032,17 +1036,17 @@ void func_dryfield_night_trailer_coach_8017F3C0(Task* task)
     s32         status;
     s16         countdown;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, (char*)D_dryfield_night_trailer_coach_8017D6F4);
 
     if (task->state == 0) {
-        task->spawnArg1 = 0;
+        task->spawnArg1.value = 0;
         task->state     = task->state + 1;
     }
     if (task->state == 1) {
-        slotId          = Gp_NextMappedSlot(task->spawnArg1);
-        task->spawnArg1 = slotId;
+        slotId          = Gp_NextMappedSlot(task->spawnArg1.value);
+        task->spawnArg1.value = slotId;
         if (slotId < 0) {
             obj->field_2E = 6;
         } else {
@@ -1091,7 +1095,7 @@ void func_dryfield_night_trailer_coach_8017F3C0(Task* task)
         status              = obj->panel.field_0.w;
         if (status == 1 && (countdown <= 0 || Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskConfirm) != 0)) {
             task->state     = status;
-            task->spawnArg1 = task->spawnArg1 + 1;
+            task->spawnArg1.value = task->spawnArg1.value + 1;
         }
     }
 }
@@ -1104,9 +1108,9 @@ static inline s32 _dryfield_night_trailer_coachAddItemCount(s32 item, s32 count)
     McItemScan* scan;
 
     if ((u32)(item - 0xA0) < 0x20U) {
-        count += Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, item);
+        count += Gp_ScanStackQty(&Mc_SaveData[0].state.carriedItems, item);
     } else {
-        scan = &Mc_SaveData[0].carriedItems;
+        scan = &Mc_SaveData[0].state.carriedItems;
         rec  = Gp_GetItemTable(scan) + scan->firstRow;
         n    = scan->rowCount;
         for (i = 0; i < n; i++) {
@@ -1133,7 +1137,7 @@ void func_dryfield_night_trailer_coach_8017F688(Task* task)
     s32         count;
 
     item         = D_dryfield_night_trailer_coach_80184490;
-    obj          = task->spawnArg2;
+    obj          = task->spawnArg2.pointer;
     task->status = 0;
     if ((CdCmd_IsIdle() & 0xFFFF) && D_dryfield_night_trailer_coach_80184490 == Gp_GetPreviewItem()) {
         func_800C7AE8(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 2, 0x20);
@@ -1150,7 +1154,7 @@ void func_dryfield_night_trailer_coach_8017F688(Task* task)
         req.field_8    = 0x606060;
         req.centerMode = 0;
         req.field_E    = 1;
-        func_8002E53C(&req, D_dryfield_night_trailer_coach_80184568);
+        Text_DrawString(&req, D_dryfield_night_trailer_coach_80184568);
         count = 0;
         count = _dryfield_night_trailer_coachAddItemCount(item, count);
         Text_DrawPrompt(obj, (s16)obj->panel.field_1E.u - 2, y + 0xA, Text_ItoaSigned(buf, count), 0x606060, 3, 2);
@@ -1186,8 +1190,8 @@ void func_dryfield_night_trailer_coach_8017F85C(Task* task)
     s32          y;
     s32          i;
 
-    itemId = task->spawnArg1;
-    obj    = task->spawnArg2;
+    itemId = task->spawnArg1.value;
+    obj    = task->spawnArg2.pointer;
     maxQty = 1;
     price  = Gp_ItemDescs[itemId].price;
 
@@ -1202,7 +1206,7 @@ void func_dryfield_night_trailer_coach_8017F85C(Task* task)
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
         if (gpItemStock(itemId)->perBuy != 0) {
-            held    = Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, itemId);
+            held    = Gp_ScanStackQty(&Mc_SaveData[0].state.carriedItems, itemId);
             maxHeld = gpItemStock(itemId)->maxHeld;
             maxQty  = maxHeld - held;
             if (maxQty <= 0) {
@@ -1213,7 +1217,7 @@ void func_dryfield_night_trailer_coach_8017F85C(Task* task)
             }
         }
     } else {
-        maxQty = Mc_SaveData[0].carriedItems.rowCount - Gp_CountScanItems(&Mc_SaveData[0].carriedItems);
+        maxQty = Mc_SaveData[0].state.carriedItems.rowCount - Gp_CountScanItems(&Mc_SaveData[0].state.carriedItems);
     }
 
     afford = Player_Status.bp / price;
@@ -1245,12 +1249,12 @@ void func_dryfield_night_trailer_coach_8017F85C(Task* task)
     req.glyphTable = 5;
     req.centerMode = 2;
     req.field_E    = 1;
-    func_8002E53C(&req, D_dryfield_night_trailer_coach_8017D6D8);
+    Text_DrawString(&req, D_dryfield_night_trailer_coach_8017D6D8);
 
     Text_DrawPrompt(obj, -x, top + 0x2B, Text_ItoaSigned(buf, count * price), 0x606060, 3, 2);
 
     if (obj->panel.field_0.w == 1) {
-        parentObj = task->parent->spawnArg2;
+        parentObj = task->parent->spawnArg2.pointer;
         if (Pad_CheckButtons(0, 1, 0x3000) != 0) {
             if (task->extraState < maxQty) {
                 task->extraState = task->extraState + 1;
@@ -1264,7 +1268,7 @@ void func_dryfield_night_trailer_coach_8017F85C(Task* task)
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             Player_Status.bp -= price * task->extraState;
             for (i = 0; i < task->extraState; i++) {
-                Gp_GiveItem(&Mc_SaveData[0].carriedItems, itemId, -1);
+                Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, itemId, -1);
             }
             SndEvt_EnqueueType6(0x16, 0, 0);
             parentObj->field_2E = 6;
@@ -1287,7 +1291,7 @@ void func_dryfield_night_trailer_coach_8017FCDC(UiList* prompt, UiObject* obj)
     req.glyphTable = 0;
     req.centerMode = 0;
     req.field_E    = 1;
-    func_8002E53C(&req, D_dryfield_night_trailer_coach_801844A8);
+    Text_DrawString(&req, D_dryfield_night_trailer_coach_801844A8);
 
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
@@ -1306,7 +1310,7 @@ void func_dryfield_night_trailer_coach_8017FD98(Task* task)
     s16       code;
 
     list          = &D_dryfield_night_trailer_coach_801845B0;
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     if (task->state == 0) {
         Ui_LayoutListPanel(list, &(obj)->panel);
@@ -1325,7 +1329,7 @@ void func_dryfield_night_trailer_coach_8017FD98(Task* task)
 
     child = task->firstChild;
     if (child != NULL) {
-        childObj = child->spawnArg2;
+        childObj = child->spawnArg2.pointer;
         code     = childObj->field_2E;
         if (code != -1) {
             if (code == 6) {
@@ -1358,12 +1362,12 @@ void func_dryfield_night_trailer_coach_8017FEC0(Task* task)
         }
         GameMain_SetFrameTiming(0);
         gGameSession->uiOpen = 1;
-        task->spawnArg2      = obj;
+        task->spawnArg2.pointer      = obj;
         task->state++;
     }
 
     if (task->state == 1) {
-        obj = task->spawnArg2;
+        obj = task->spawnArg2.pointer;
         if (obj->field_2E == -1 || obj->field_2E == 6) {
             Ui_TeardownTree(obj, obj->owner);
             task->killCountdown = 10;
@@ -1440,8 +1444,8 @@ void func_dryfield_night_trailer_coach_8017FFF4(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_trailer_coach_80184CEC);
-            Text_FormatTime(p, Mc_SaveData[0].playTime);
+            Text_DrawString(&req, D_dryfield_night_trailer_coach_80184CEC);
+            Text_FormatTime(p, Mc_SaveData[0].state.playTime);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -1457,8 +1461,8 @@ void func_dryfield_night_trailer_coach_8017FFF4(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_trailer_coach_80184D1C);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].saveCount);
+            Text_DrawString(&req, D_dryfield_night_trailer_coach_80184D1C);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].state.saveCount);
             Text_Strcat(p, D_dryfield_night_trailer_coach_80184D3C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -1475,8 +1479,8 @@ void func_dryfield_night_trailer_coach_8017FFF4(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_trailer_coach_80184CF4);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].field_6CC);
+            Text_DrawString(&req, D_dryfield_night_trailer_coach_80184CF4);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_6CC);
             Text_Strcat(p, D_dryfield_night_trailer_coach_80184D3C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -1493,8 +1497,8 @@ void func_dryfield_night_trailer_coach_8017FFF4(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_trailer_coach_80184CF8);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].field_6CE);
+            Text_DrawString(&req, D_dryfield_night_trailer_coach_80184CF8);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_6CE);
             Text_Strcat(p, D_dryfield_night_trailer_coach_80184D3C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -1516,14 +1520,14 @@ void func_dryfield_night_trailer_coach_8017FFF4(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_trailer_coach_80184D00);
-            if (Mc_SaveData[0].field_6CC == 0) {
+            Text_DrawString(&req, D_dryfield_night_trailer_coach_80184D00);
+            if (Mc_SaveData[0].state.field_6CC == 0) {
                 pct = 0;
             } else {
-                pct = (Mc_SaveData[0].field_6CC * 10000) / (Mc_SaveData[0].field_6CC + Mc_SaveData[0].field_6CE);
+                pct = (Mc_SaveData[0].state.field_6CC * 10000) / (Mc_SaveData[0].state.field_6CC + Mc_SaveData[0].state.field_6CE);
             }
             if (pct < 100) {
-                func_8002F44C(p, pct, 3);
+                Text_ItoaPadded(p, pct, 3);
             } else {
                 Text_ItoaUnsigned(p, pct);
             }
@@ -1558,7 +1562,7 @@ void func_dryfield_night_trailer_coach_8017FFF4(UiList* arg0, UiObject* arg1)
             s32         i;
             u8*         q;
 
-            total          = Mc_SaveData[0].field_6CC;
+            total          = Mc_SaveData[0].state.field_6CC;
             req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
             y              = arg1->panel.field_22.u - 6;
             req.y          = (u16)arg0->field_1A + y;
@@ -1567,7 +1571,7 @@ void func_dryfield_night_trailer_coach_8017FFF4(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_trailer_coach_80184D0C);
+            Text_DrawString(&req, D_dryfield_night_trailer_coach_80184D0C);
             cnt   = 326;
             total = total + (GameFlag_GetNibble(0x167) + GameFlag_GetNibble(0x168));
             if (total == 0) {
@@ -1576,7 +1580,7 @@ void func_dryfield_night_trailer_coach_8017FFF4(UiList* arg0, UiObject* arg1)
                 pct = (total * 10000) / cnt;
             }
             if (pct < 100) {
-                func_8002F44C(p, pct, 3);
+                Text_ItoaPadded(p, pct, 3);
             } else {
                 Text_ItoaUnsigned(p, pct);
             }
@@ -1614,8 +1618,8 @@ void func_dryfield_night_trailer_coach_8017FFF4(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_trailer_coach_80184D24);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].clearCount);
+            Text_DrawString(&req, D_dryfield_night_trailer_coach_80184D24);
+            Text_ItoaUnsigned(p, Mc_SaveData[0].state.clearCount);
             Text_Strcat(p, D_dryfield_night_trailer_coach_80184D3C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -1632,8 +1636,8 @@ void func_dryfield_night_trailer_coach_8017FFF4(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_trailer_coach_80184D2C);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].field_92C), arg0->field_1C, 3, 2);
+            Text_DrawString(&req, D_dryfield_night_trailer_coach_80184D2C);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_92C), arg0->field_1C, 3, 2);
             break;
         }
         case 8: {
@@ -1648,8 +1652,8 @@ void func_dryfield_night_trailer_coach_8017FFF4(UiList* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, D_dryfield_night_trailer_coach_80184D34);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].field_930), arg0->field_1C, 3, 2);
+            Text_DrawString(&req, D_dryfield_night_trailer_coach_80184D34);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_930), arg0->field_1C, 3, 2);
             break;
         }
     }
@@ -1717,7 +1721,7 @@ void func_dryfield_night_trailer_coach_801807C0(UiList* arg0, UiObject* arg1)
         req.glyphTable = 0;
         req.centerMode = 0;
         r->field_E     = 1;
-        func_8002E53C(r, (u8*)Gp_GetItemText(item, 0, 0));
+        Text_DrawString(r, (u8*)Gp_GetItemText(item, 0, 0));
         func_800CE5D0(arg1, x, y, item);
     }
     limit = 1;
@@ -1728,7 +1732,7 @@ void func_dryfield_night_trailer_coach_801807C0(UiList* arg0, UiObject* arg1)
             limit *= 10;
         }
         if (value < limit) {
-            func_8002F44C(p, value, 3);
+            Text_ItoaPadded(p, value, 3);
         } else {
             Text_ItoaUnsigned(p, value);
         }
@@ -1785,7 +1789,7 @@ void func_dryfield_night_trailer_coach_801807C0(UiList* arg0, UiObject* arg1)
         addPrim(gGpuCurrentOt + arg1->panel.field_14.s + 1, prim);
     }
     one = 1;
-    func_80046B34(&(arg1)->panel, barX, arg0->field_1A - 0xC, barW, 9, 0, one);
+    Ui_DrawBeveledRect(&(arg1)->panel, barX, arg0->field_1A - 0xC, barW, 9, 0, one);
     if (((arg1->panel.field_0.w >> 16) == one) || (arg1->panel.field_0.w == one)) {
         if (arg0->field_10 == arg0->field_8) {
             Gp_SetPreviewItem(item, 0);
@@ -1810,7 +1814,7 @@ extern UiList       D_dryfield_night_trailer_coach_80184FC0;
 extern UiObjectDesc D_dryfield_night_trailer_coach_80184F5C;
 
 /// Builds the item-usage panel's three parallel arrays from the save's
-/// per-item use counters (`Mc_SaveData[0].weaponUseCounts`, ids 0x80-0x9F).
+/// per-item use counters (`Mc_SaveData[0].state.weaponUseCounts`, ids 0x80-0x9F).
 ///
 /// Every id whose name is non-empty (a leading 0 or 0xA marks an unused row)
 /// and whose counter is non-zero is marked seen and appended to `itemIds`,
@@ -1845,19 +1849,19 @@ static void func_dryfield_night_trailer_coach_80180BBC(UiList* list, UiObject* o
     for (i = 0; i < 0x20; i++) {
         id = i + 0x80;
         c  = *Gp_GetItemText(id, 0, 1);
-        if ((c != 0) && (c != 0xA) && (Mc_SaveData[0].weaponUseCounts[i] > 0)) {
+        if ((c != 0) && (c != 0xA) && (Mc_SaveData[0].state.weaponUseCounts[i] > 0)) {
             Gp_SetItemSeenBit(id, 1);
             *p++ = id;
             count++;
-            total += Mc_SaveData[0].weaponUseCounts[i];
+            total += Mc_SaveData[0].state.weaponUseCounts[i];
         }
     }
 
     if (count >= 2) {
         for (i = 1; i < count; i++) {
-            uses = Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80];
+            uses = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80];
             for (j = 0; j < i; j++) {
-                if (Mc_SaveData[0].weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
+                if (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
                     tmp = work->itemIds[i];
                     for (k = i - 1; k >= j; k--) {
                         work->itemIds[k + 1] = work->itemIds[k];
@@ -1871,7 +1875,7 @@ static void func_dryfield_night_trailer_coach_80180BBC(UiList* list, UiObject* o
 
     if (count > 0) {
         scale = 0x4E20;
-        top   = Mc_SaveData[0].weaponUseCounts[work->itemIds[0] - 0x80];
+        top   = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[0] - 0x80];
         shift = 0xC;
         while (top > 0x1869F) {
             top   >>= 1;
@@ -1881,9 +1885,9 @@ static void func_dryfield_night_trailer_coach_80180BBC(UiList* list, UiObject* o
         }
         for (i = 0; i < count; i++) {
             work->percents[i] =
-                (u32)((Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
+                (u32)((Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
             work->barWidths[i] =
-                (Mc_SaveData[0].weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
+                (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
         }
     }
 
@@ -1896,10 +1900,10 @@ static void func_dryfield_night_trailer_coach_80180BBC(UiList* list, UiObject* o
 /// save's per-slot use counters.
 ///
 /// Each of the twelve Parasite Energy slots owns three consecutive ids starting
-/// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].attachLevels[i]`
+/// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].state.attachLevels[i]`
 /// prints as `i * 3 + 0xF + level - 1` (a slot the player has never levelled
 /// keeps the base id). Every slot with a non-zero counter in
-/// `Mc_SaveData[0].attachUseCounts` is appended and its counter summed. Levels
+/// `Mc_SaveData[0].state.attachUseCounts` is appended and its counter summed. Levels
 /// are addressed by page and column, with three slots per page. The ids are
 /// then insertion-sorted by use count, most-used first, and each row gets
 /// `percents`, its share of all recorded uses in hundredths of a percent, and
@@ -1932,7 +1936,7 @@ static void func_dryfield_night_trailer_coach_80180EB8(UiList* list, UiObject* o
     for (; i < 12; i++) {
         s32 useCount;
 
-        useCount = Mc_SaveData[0].attachUseCounts[i];
+        useCount = Mc_SaveData[0].state.attachUseCounts[i];
         id       = i * 3 + 0xF;
         if (useCount > 0) {
             s32 page;
@@ -1941,22 +1945,22 @@ static void func_dryfield_night_trailer_coach_80180EB8(UiList* list, UiObject* o
             page   = i / 3;
             column = i % 3;
             *p     = id;
-            if (Mc_SaveData[0].attachLevels[column + page * 3] != 0) {
-                *p = id + (Mc_SaveData[0].attachLevels[column + page * 3] - 1u);
+            if (Mc_SaveData[0].state.attachLevels[column + page * 3] != 0) {
+                *p = id + (Mc_SaveData[0].state.attachLevels[column + page * 3] - 1u);
             }
             p++;
             count++;
-            total += Mc_SaveData[0].attachUseCounts[i];
+            total += Mc_SaveData[0].state.attachUseCounts[i];
         }
     }
 
     if (count >= 2) {
         for (i = 1; i < count; i++) {
             slot = (work->peIds[i] - 0xF) / 3;
-            uses = Mc_SaveData[0].attachUseCounts[slot];
+            uses = Mc_SaveData[0].state.attachUseCounts[slot];
             for (j = 0; j < i; j++) {
                 slot = (work->peIds[j] - 0xF) / 3;
-                if (Mc_SaveData[0].attachUseCounts[slot] < uses) {
+                if (Mc_SaveData[0].state.attachUseCounts[slot] < uses) {
                     tmp = work->peIds[i];
                     for (k = i - 1; k >= j; k--) {
                         work->peIds[k + 1] = work->peIds[k];
@@ -1971,7 +1975,7 @@ static void func_dryfield_night_trailer_coach_80180EB8(UiList* list, UiObject* o
     if (count > 0) {
         scale = 0x4E20;
         slot  = (work->peIds[0] - 0xF) / 3;
-        top   = Mc_SaveData[0].attachUseCounts[slot];
+        top   = Mc_SaveData[0].state.attachUseCounts[slot];
         shift = 0xC;
         while (top > 0x1869F) {
             top   >>= 1;
@@ -1981,9 +1985,9 @@ static void func_dryfield_night_trailer_coach_80180EB8(UiList* list, UiObject* o
         }
         for (i = 0; i < count; i++) {
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->percents[i]  = (u32)((Mc_SaveData[0].attachUseCounts[slot] * scale) / total + 1) >> 1;
+            work->percents[i]  = (u32)((Mc_SaveData[0].state.attachUseCounts[slot] * scale) / total + 1) >> 1;
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->barWidths[i] = (Mc_SaveData[0].attachUseCounts[slot] << shift) / top;
+            work->barWidths[i] = (Mc_SaveData[0].state.attachUseCounts[slot] << shift) / top;
         }
     }
 
@@ -2004,10 +2008,10 @@ void func_dryfield_night_trailer_coach_801811D8(Task* task)
     UiObject* childObj;
     void*     work;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     list          = &D_dryfield_night_trailer_coach_80184F38;
-    if (task->spawnArg1 == 0) {
+    if (task->spawnArg1.value == 0) {
         Ui_DrawText(&(obj)->panel, D_dryfield_night_trailer_coach_8017D75C);
     } else {
         Ui_DrawText(&(obj)->panel, D_dryfield_night_trailer_coach_8017D768);
@@ -2019,7 +2023,7 @@ void func_dryfield_night_trailer_coach_801811D8(Task* task)
         }
         task->work = work;
         Ui_SpawnFromDesc(&D_dryfield_night_trailer_coach_80184F5C, 0, 0, 1, obj);
-        if (task->spawnArg1 == 0) {
+        if (task->spawnArg1.value == 0) {
             func_dryfield_night_trailer_coach_80180BBC(list, obj);
         } else {
             func_dryfield_night_trailer_coach_80180EB8(list, obj);
@@ -2036,7 +2040,7 @@ void func_dryfield_night_trailer_coach_801811D8(Task* task)
     if (task->firstChild != NULL) {
         child = task->firstChild;
         do {
-            childObj = child->spawnArg2;
+            childObj = child->spawnArg2.pointer;
             next     = child->nextSibling;
             if (childObj->field_2E == -1 || childObj->field_2E == 6) {
                 Ui_TeardownTree(childObj, childObj->owner);
@@ -2059,12 +2063,12 @@ static void func_dryfield_night_trailer_coach_8018138C(Task* task)
     s32       mode;
     s32       one;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
-    ready         = Mc_SaveData[0].demoScene == 1;
+    ready         = Mc_SaveData[0].state.demoScene == 1;
     list          = &D_dryfield_night_trailer_coach_80184FC0;
     one           = 1;
-    if (Mc_SaveData[0].clearCount > 0) {
+    if (Mc_SaveData[0].state.clearCount > 0) {
         ready = one;
     }
     if (ready == 0) {
@@ -2103,7 +2107,7 @@ static void func_dryfield_night_trailer_coach_8018138C(Task* task)
     }
     child = task->firstChild;
     if (child != NULL) {
-        childObj = child->spawnArg2;
+        childObj = child->spawnArg2.pointer;
         sel      = childObj->field_2E;
         switch (sel) {
             case 6:
@@ -2157,7 +2161,7 @@ void func_dryfield_night_trailer_coach_80181684(Task* task)
 {
     UiObject* obj;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     if (task->state == 0) {
         Wip_UiHolder       = obj;
@@ -2211,7 +2215,7 @@ static u8* func_dryfield_night_trailer_coach_80181750(u8* buf, s32 value, s32 de
     }
 
     if (value < limit) {
-        func_8002F44C(buf, value, decimals + 1);
+        Text_ItoaPadded(buf, value, decimals + 1);
     } else {
         Text_ItoaUnsigned(buf, value);
     }
@@ -2256,7 +2260,7 @@ void func_dryfield_night_trailer_coach_80181844(Task* task)
     UiList*   list;
 
     list          = &D_dryfield_night_trailer_coach_80184F10;
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, (char*)D_dryfield_night_trailer_coach_8017D748);
     if (task->state == 0) {
@@ -2363,7 +2367,7 @@ static void func_dryfield_night_trailer_coach_80181D74(Task* task)
 {
     UiObject* holder;
 
-    holder = task->spawnArg2;
+    holder = task->spawnArg2.pointer;
     if (Wip_UiHolder == holder) {
         Wip_UiHolder = NULL;
     }
@@ -2390,17 +2394,17 @@ void func_dryfield_night_trailer_coach_80181DB0(Task* task)
     s32              fadeA;
     s32              fadeB;
 
-    rec = (RoomCutsceneRec*)task->spawnArg2;
+    rec = (RoomCutsceneRec*)task->spawnArg2.pointer;
     switch (task->state) {
         case 0:
             D_dryfield_night_trailer_coach_8018C218 = NULL;
             Gp_MsgPlayerWeapon(0);
-            if (Mc_SaveData[0].companionType == 1) {
+            if (Mc_SaveData[0].state.companionType == 1) {
                 Gp_MsgAllyWeapon(0);
             }
             if (rec->field_0 > 0) {
-                D_80115694                  = Mc_SaveData[0].at4.loc.view;
-                Mc_SaveData[0].at4.loc.view = rec->field_0;
+                D_80115694                  = Mc_SaveData[0].state.at4.loc.view;
+                Mc_SaveData[0].state.at4.loc.view = rec->field_0;
             } else {
                 D_80115694 = -rec->field_0;
             }
@@ -2482,7 +2486,7 @@ void func_dryfield_night_trailer_coach_80181DB0(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
+                    if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(&D_dryfield_night_trailer_coach_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -2496,7 +2500,7 @@ void func_dryfield_night_trailer_coach_80181DB0(Task* task)
                     GameFlag_SetNibble(3, 1);
                     task->state = 0x14;
                 } else {
-                    Gp_RunCapCmd1(task->spawnArg1);
+                    Gp_RunCapCmd1(task->spawnArg1.value);
                     task->state++;
                 }
             }
@@ -2512,7 +2516,7 @@ void func_dryfield_night_trailer_coach_80181DB0(Task* task)
         case 11:
             Gp_MsgPlayer3F3(1);
             Gp_MsgAlly3F3(1);
-            Mc_SaveData[0].at4.loc.view = D_80115694;
+            Mc_SaveData[0].state.at4.loc.view = D_80115694;
             task->state++;
             break;
         case 12:
@@ -2522,7 +2526,7 @@ void func_dryfield_night_trailer_coach_80181DB0(Task* task)
         case 14:
             SndEvt_EnqueueType6(rec->field_8, 0, 0);
             Gp_MsgPlayerWeapon(1);
-            if (Mc_SaveData[0].companionType == 1) {
+            if (Mc_SaveData[0].state.companionType == 1) {
                 Gp_MsgAllyWeapon(1);
             }
             gGameSession->hideHud    = 0;
@@ -2607,10 +2611,10 @@ static void func_dryfield_night_trailer_coach_8018231C(Task* task)
         Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E9, &D_dryfield_night_trailer_coach_801879B8, 0);
         Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E8, &D_dryfield_night_trailer_coach_80187CEC, 0);
     }
-    if (Mc_SaveData[0].at4.loc.warp == 2) {
+    if (Mc_SaveData[0].state.at4.loc.warp == 2) {
         func_800E8634(&D_dryfield_night_trailer_coach_80187D00, 0, &D_dryfield_night_trailer_coach_80187F58);
     }
-    if (Mc_SaveData[0].at4.loc.warp == 3) {
+    if (Mc_SaveData[0].state.at4.loc.warp == 3) {
         func_800E8634(&D_dryfield_night_trailer_coach_80189080, 0, &D_dryfield_night_trailer_coach_801892C0);
         Gp_SetCurBit2Flag(0x22, 1);
     }
@@ -2656,7 +2660,7 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
                     func_800E8634(&D_dryfield_night_trailer_coach_801889A8, 1,
                                   &D_dryfield_night_trailer_coach_80188F00);
                     func_800E3FAC(0xA2, 0x13);
-                    Mc_SaveData[0].sceneEvent = 2;
+                    Mc_SaveData[0].state.sceneEvent = 2;
                 } else {
                     func_800E8614((s32)&D_dryfield_night_trailer_coach_80188858, 1);
                 }
@@ -2682,7 +2686,7 @@ void func_dryfield_night_trailer_coach_80182610(Task* task)
     switch (task->state) {
         case 0x50:
         case 0x0:
-            SndEvt_EnqueueType6((s32)task->spawnArg2, 0, 0);
+            SndEvt_EnqueueType6(task->spawnArg2.value, 0, 0);
             task->state += 1;
             break;
         case 0x78:
@@ -2726,7 +2730,7 @@ extern RoomCutsceneRec D_dryfield_night_trailer_coach_8018C21C;
 s32 func_dryfield_night_trailer_coach_801826EC(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 0xE) {
-        Mc_SaveData[0].at4.loc.warp                     = 1;
+        Mc_SaveData[0].state.at4.loc.warp                     = 1;
         D_dryfield_night_trailer_coach_8018C21C.field_0 = 8;
         D_dryfield_night_trailer_coach_8018C21C.field_1 = 1;
         if (GameFlag_GetNibble(0x7A) < 4) {
@@ -2741,7 +2745,7 @@ s32 func_dryfield_night_trailer_coach_801826EC(s32 arg0, s32 arg1, s32 arg2)
         D_dryfield_night_trailer_coach_8018C21C.field_8  = 0x531B0005;
         D_dryfield_night_trailer_coach_8018C21C.field_10 = 0x531B0004;
         D_dryfield_night_trailer_coach_8018C21C.field_C  = 0x531B0006;
-        Task_SpawnFromTable(&D_dryfield_night_trailer_coach_80184FE4, 0, 3, (s32)&D_dryfield_night_trailer_coach_8018C21C);
+        Task_SpawnFromTable(&D_dryfield_night_trailer_coach_80184FE4, 0, 3, &D_dryfield_night_trailer_coach_8018C21C);
     }
     if (arg2 == 3) {
         Task_SpawnFromTable(&D_dryfield_night_trailer_coach_8018797C, 0, 0, 0);
@@ -2779,7 +2783,7 @@ static void func_dryfield_night_trailer_coach_80182898(Task* task)
 {
     char pad[0x10];
 
-    if (Mc_SaveData[0].at4.loc.view == 5) {
+    if (Mc_SaveData[0].state.at4.loc.view == 5) {
         gDisplayState.otDepthShift = 0;
     } else {
         gDisplayState.otDepthShift = 3;

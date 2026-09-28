@@ -2,9 +2,9 @@
 #define ROOMS_SHARED_8017FF88_H
 
 #include "common.h"
-
-#include "main/task.h"
 #include "rooms/room.h"
+
+#include "main/task_types.h"
 
 /// The halo's shade table, one row per palette selector.
 extern RoomHaloShade RoomsShared8017ff88Shades[];

@@ -1,11 +1,10 @@
 #ifndef MAIN_COORD_H
 #define MAIN_COORD_H
 
-#include "common.h"
-
+#include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
+
+#include "common.h"
 
 /// A coordinate node: one frame of the game's transform hierarchy. A model
 /// body carries an array of them, one per part, and a 2D-display body a single
@@ -30,4 +29,4 @@ typedef struct GpCoord {
 } GpCoord;
 STATIC_ASSERT_SIZEOF(GpCoord, 0x50);
 
-#endif
+#endif // MAIN_COORD_H

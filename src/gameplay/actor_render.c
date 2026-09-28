@@ -12,8 +12,7 @@
 #include "gameplay/hud_sprites.h"
 #include "model_objects.h"
 
-#include "main/coord.h"
-#include "main/display.h"
+#include "main/display_types.h"
 #include "main/gfx.h"
 #include "main/tmd.h"
 

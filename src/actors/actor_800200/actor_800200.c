@@ -3,13 +3,6 @@
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
 #include <psyq/rand.h>
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/area_entry.h"
@@ -25,8 +18,19 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/animation.h"
+#include "gameplay/room.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// 8-byte fixed-point X/Z entry of a path table (`D_actor_800200_8016A128`
 /// and its neighbours). `GpActorD4.pathStep` selects the entry; the Y
@@ -148,7 +152,7 @@ static void func_actor_800200_80162088(Task* arg0)
     {
         s32 temp;
 
-        temp        = save->characterId;
+        temp        = save->state.characterId;
         obj->radius = 0xFA;
         obj->flags  = 4;
         packed      = 0x10000;
@@ -168,7 +172,7 @@ static void func_actor_800200_80162088(Task* arg0)
     {
         s32 temp;
 
-        temp        = save->characterId;
+        temp        = save->state.characterId;
         obj->radius = 0xC8;
         obj->flags  = 4;
         obj->key    = temp | packed;
@@ -2198,7 +2202,7 @@ static void func_actor_800200_80165CB4(Task* arg0)
     TaskFuncTable11 sp;
 
     sp = D_actor_800200_80161E8C;
-    sp.funcs[arg0->spawnArg1 & 0xF](arg0);
+    sp.funcs[arg0->spawnArg1.value & 0xF](arg0);
 }
 
 static void func_actor_800200_80165D44(Task* arg0)

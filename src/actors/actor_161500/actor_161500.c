@@ -7,12 +7,6 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/attachments.h"
@@ -26,7 +20,18 @@
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/text.h"
 
 extern TaskDesc D_actor_161500_801401B0[];
 extern u8       D_actor_161500_801401C8[];
@@ -261,7 +266,7 @@ static void func_actor_161500_80132394(GpEnemy* enemy, Task* task)
     enemy->node.state.b.flags    = 1;
     obj->otOffset                = 1;
     work->enemy                  = enemy;
-    if (task->spawnArg1 != 0) {
+    if (task->spawnArg1.value != 0) {
         spawned = Gp_SpawnEnemyFromTable(D_actor_161500_801401B0, 1, 0, enemy);
         Task_Reparent(task, spawned->task);
         work->pairTask  = spawned->task;
@@ -333,7 +338,7 @@ void func_actor_161500_801326E8(Task* task)
         func_actor_161500_8013273C,
     };
 
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// The actor's draw body: refreshes the model root's coordinate, lights the
@@ -377,7 +382,7 @@ static void func_actor_161500_8013273C(GpEnemy* enemy, Task* task)
 /// `Task::spawnArg2`, back to `Gp_DestroyEnemy`.
 static void func_actor_161500_8013284C(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Draws the actor's ground shadow quad under the model root, unless the model
@@ -486,7 +491,7 @@ s32 func_actor_161500_80132A94(Task* task, s32 arg1, s32 flags)
 
     self = task->extra.tmd;
     work = (Actor161500Work*)task->work;
-    if (task->spawnArg1 != 0) {
+    if (task->spawnArg1.value != 0) {
         other = work->pairTask->extra.tmd;
     } else {
         other = self;

@@ -3,8 +3,8 @@
 
 #include "types.h"
 
-#include "main/mc.h"
-#include "main/task.h"
+#include "main/mc_types.h"
+#include "main/task_types.h"
 
 extern u8 Gp_StrItemObtained[];
 

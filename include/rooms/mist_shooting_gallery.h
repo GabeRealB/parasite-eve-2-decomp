@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 /// Per-run state of the Mist shooting gallery mini-game: a 0x24-byte
 /// `memCalloc` allocation that `func_mist_shooting_gallery_80182B1C` stores at

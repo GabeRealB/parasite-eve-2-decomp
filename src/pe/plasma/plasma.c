@@ -1,16 +1,11 @@
 #include "common.h"
-#include "main/display.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "pe/plasma.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
 #include "gameplay/actor_render.h"
 #include "gameplay/attachments.h"
@@ -18,8 +13,14 @@
 #include "gameplay/pad_script.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/scratch.h"
+#include "main/sound.h"
 
 /// This overlay's id. Every package opens with one: a u16 in a u32
 /// slot, distinct across all 448, with the families in contiguous blocks.
@@ -71,7 +72,7 @@ static void func_plasma_8012EF34(Task* arg0)
     s16         span;
 
     state = &Gp_StateC08;
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if ((state->field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
         goto release;

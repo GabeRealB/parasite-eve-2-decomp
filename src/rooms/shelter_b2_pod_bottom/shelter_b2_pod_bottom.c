@@ -3,15 +3,17 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/session.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/evs_scripts.h"
-#include "main/fs.h"
+
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "main/session.h"
+#include "main/task.h"
 
 void       func_80162B0C(s32);
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);

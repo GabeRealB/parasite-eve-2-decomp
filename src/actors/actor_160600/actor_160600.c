@@ -8,10 +8,6 @@
 #include <psyq/rand.h>
 
 #include "actors/actor.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/collision.h"
@@ -21,8 +17,16 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task.h"
 
 extern u8 D_actor_160600_8013DF70[];
 extern u8 D_actor_160600_8013DFAC[];
@@ -136,7 +140,7 @@ void func_actor_160600_801321B4(Task* task)
         func_actor_160600_80131E68,
     };
 
-    fns[task->state](task->spawnArg2, task);
+    fns[task->state](task->spawnArg2.pointer, task);
 }
 
 /// The actor's spawn routine (task state 0): allocates the work block,
@@ -189,7 +193,7 @@ static void func_actor_160600_80132208(GpEnemy* enemy, Task* task)
 /// `Task::spawnArg2`, back to `Gp_DestroyEnemy`.
 static void func_actor_160600_80132350(Task* task)
 {
-    Gp_DestroyEnemy(task->spawnArg2, task);
+    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
 
 /// Draws the actor's ground shadow quad under the model root, unless the model
@@ -300,7 +304,7 @@ s32 func_actor_160600_80132598(Task* task, s32 arg1, s32 flags)
 
     self = task->extra.tmd;
     work = (Actor160600Work*)task->work;
-    if (task->spawnArg1 != 0) {
+    if (task->spawnArg1.value != 0) {
         other = work->pairTask->extra.tmd;
     } else {
         other = self;

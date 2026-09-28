@@ -9,7 +9,7 @@
 #include "gameplay/geometry.h"
 
 #include "main/coord.h"
-#include "main/session.h"
+#include "main/session_types.h"
 
 struct _GpObjDirRec;
 

@@ -1,18 +1,11 @@
 #include "common.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
 #include "pe/lifedrain.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include <psyq/libgs.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "gameplay/actor_render.h"
 #include "gameplay/attachments.h"
@@ -20,8 +13,19 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/wipsys.h"
 
 static void func_lifedrain_801301AC(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_lifedrain_801305C0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
@@ -82,10 +86,10 @@ static void func_lifedrain_8012EF48(Task* arg0)
     s32        i;
     u8         rgb[3];
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
-        if ((arg0->state < 2) && (arg0->spawnArg1 != 0)) {
+        if ((arg0->state < 2) && (arg0->spawnArg1.value != 0)) {
             Player_Status.hp = (u16)Player_Status.hp + Gp_StateF0.field_14;
             if (Player_Status.hp > Player_Status.hpMax) {
                 Player_Status.hp = Player_Status.hpMax;
@@ -148,7 +152,7 @@ static void func_lifedrain_8012EF48(Task* arg0)
                 Gp_DrawFadeQuad(rgb, 1);
             }
             if (mem->age == 0x1E) {
-                if (arg0->spawnArg1 != 0) {
+                if (arg0->spawnArg1.value != 0) {
                     Player_Status.hp = (u16)Player_Status.hp + Gp_StateF0.field_14;
                     if (Player_Status.hp > Player_Status.hpMax) {
                         Player_Status.hp = Player_Status.hpMax;
@@ -163,7 +167,7 @@ static void func_lifedrain_8012EF48(Task* arg0)
                 return;
             }
             Gp_UpdateCoord(coord);
-            if (arg0->spawnArg1 != 0) {
+            if (arg0->spawnArg1.value != 0) {
                 SndEvt_EnqueueType6(D_lifedrain_80130AD4[mem->index + 3],
                                     (s8)Gp_GetObjPan(coord),
                                     (s8)gpGetObjDepth(coord));
@@ -317,7 +321,7 @@ static void func_lifedrain_8012F9A8(Task* arg0)
     s16        step;
     u16        spawn;
 
-    mem      = arg0->spawnArg2;
+    mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.tmd->coords;
     mem->age = mem->age + 1;
     state    = arg0->state;
@@ -329,7 +333,7 @@ static void func_lifedrain_8012F9A8(Task* arg0)
             arg0->state  = 1;
             Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
             mem->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            spawn        = (u16)arg0->spawnArg1;
+            spawn        = (u16)arg0->spawnArg1.value;
             mem->period  = 0x1000;
             mem->angle   = spawn & 0xFFF;
             return;
@@ -385,14 +389,14 @@ static void func_lifedrain_8012FAF8(Task* arg0)
     s32        cur;
     VECTOR     vec;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if ((Gp_StateC08.field_3 != -2) && (Gp_State1C->fadeState < 4)) {
         mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0:
                 Task_Reparent(D_lifedrain_80130B0C, arg0);
-                D_lifedrain_80130B0C->spawnArg1 += arg0->spawnArg1;
+                D_lifedrain_80130B0C->spawnArg1.value += arg0->spawnArg1.value;
                 Gp_LcgState                      = Gp_LcgState * 5 + 0x71357911;
                 mem->move.vx                     = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
                 Gp_LcgState                      = Gp_LcgState * 5 + 0x71357911;
@@ -658,7 +662,7 @@ static void func_lifedrain_801308C0(Task* arg0)
     u8         rgb[3];
     s32        scale;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->fadeState;
     coord = arg0->extra.tmd->coords;
     if (flag != 0) {
@@ -669,7 +673,7 @@ static void func_lifedrain_801308C0(Task* arg0)
     }
 
     if (arg0->state == 0) {
-        Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1 & 0xFFF, 0);
+        Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1.value & 0xFFF, 0);
         coord->flg  = 0;
         kind        = (Gp_StateC08.field_0 % 10U) - 1;
         mem->index  = kind;

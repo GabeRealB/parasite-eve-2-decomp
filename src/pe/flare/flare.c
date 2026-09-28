@@ -2,11 +2,6 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "pe/flare.h"
 
 #include "gameplay/actor_render.h"
@@ -14,9 +9,17 @@
 #include "gameplay/display.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
-#include "main/gfx.h"
+#include "main/gfx_types.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// This overlay's id, the `u16` every package opens with.
 
@@ -43,7 +46,7 @@ static void flareEffectTask(Task* arg0)
     s32         rng;
 
     state = &Gp_StateC08;
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if ((state->field_3 == -2) || (Gp_State1C->fadeState != 0)) {
         SndEvt_EnqueueType7(0xE03E0001, 1);
@@ -93,7 +96,7 @@ static void flareSparkTask(Task* arg0)
     u32         rng;
     s32         temp_lo;
 
-    mem      = arg0->spawnArg2;
+    mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.tmd->coords;
     mem->age = mem->age + 1;
     if (arg0->state == 0) {
@@ -108,7 +111,7 @@ static void flareSparkTask(Task* arg0)
         coord->flg    = 0;
         Gp_UpdateCoord(coord);
         rng          = Gp_LcgState * 5 + 0x71357911;
-        mem->period  = arg0->spawnArg1 & 0xFFF;
+        mem->period  = arg0->spawnArg1.value & 0xFFF;
         mem->scale   = (rng >> 16) & 0xFFF;
         Gp_LcgState  = rng;
         mem->angle   = mem->period >> 5;

@@ -1,19 +1,6 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/gamemain.h"
-#include "main/mc.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -25,7 +12,24 @@
 #include "gameplay/item_menu.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/collision.h"
+#include "gameplay/inventory.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
 #include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
+#include "main/wipsys.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -164,12 +168,12 @@ static void func_shelter_b1_armory_80180784(Task* task);
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40
 /// or any other value) and the high halfword one of the group's four;
-/// `Mc_SaveData[0].gameMode` 2 and above has groups of its own. A high halfword
+/// `Mc_SaveData[0].state.gameMode` 2 and above has groups of its own. A high halfword
 /// above 3 falls through the 0x30-0x33 groups in turn and on into 0x20's;
 /// every other miss returns `D_shelter_b1_armory_80182378`.
 static u16* func_shelter_b1_armory_8017D768(s32 mode)
 {
-    if (Mc_SaveData[0].gameMode < 2) {
+    if (Mc_SaveData[0].state.gameMode < 2) {
         switch ((u16)mode) {
             case 0x30:
                 switch ((u32)mode >> 16) {
@@ -388,9 +392,9 @@ void func_shelter_b1_armory_8017DDD8(UiList* prompt, UiObject* obj)
     shop    = (RoomShopList*)obj->owner->work;
     blocked = 0;
     itemId  = shop->items[prompt->field_8];
-    /* &Mc_SaveData[0].carriedItems hoisted into a saved register here, as the original does,
+    /* &Mc_SaveData[0].state.carriedItems hoisted into a saved register here, as the original does,
        instead of being rematerialised at the Gp_SumScanQty call. */
-    scan = &Mc_SaveData[0].carriedItems;
+    scan = &Mc_SaveData[0].state.carriedItems;
     if (prompt->field_C == 1) {
         D_shelter_b1_armory_80182290 = itemId;
     }
@@ -414,7 +418,7 @@ void func_shelter_b1_armory_8017DDD8(UiList* prompt, UiObject* obj)
         req.glyphTable = 0;
         req.centerMode = 0;
         req.field_E    = 1;
-        func_8002E53C(&req, D_shelter_b1_armory_801822B0);
+        Text_DrawString(&req, D_shelter_b1_armory_801822B0);
         if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x16, 0, 0);
             Ui_SpawnFromDesc(&D_shelter_b1_armory_8018247C, 0, 1, 1, obj);
@@ -492,7 +496,7 @@ void func_shelter_b1_armory_8017DDD8(UiList* prompt, UiObject* obj)
 static void func_shelter_b1_armory_8017E264(RoomShopList* shop, UiObject* obj, s32 item)
 {
     Task*         task = obj->owner;
-    s32           mode = task->spawnArg1;
+    s32           mode = task->spawnArg1.value;
     RoomShopList* list = (RoomShopList*)task->work;
     s32           i;
 
@@ -530,8 +534,8 @@ static void func_shelter_b1_armory_8017E264(RoomShopList* shop, UiObject* obj, s
 /// 0, which items of each unlocked price row are added: mode 0 ids 0x80-0x9F
 /// and 9, 0xA, 0xC, 0x42-0x46; mode 1 ids 0xA0-0xBF; mode 2 ids 0x60-0x7F and
 /// 0xD; mode 3 ids 1-0x5F other than those. Mode 3 also adds, for each of the
-/// twelve two-bit levels in `Mc_SaveData[0].shopStock`, the id of that level
-/// (the first slot needs level 2). With `Mc_SaveData[0].demoScene` 1 every row
+/// twelve two-bit levels in `Mc_SaveData[0].state.shopStock`, the id of that level
+/// (the first slot needs level 2). With `Mc_SaveData[0].state.demoScene` 1 every row
 /// and level is unlocked first.
 static void func_shelter_b1_armory_8017E3B0(RoomShopList* shop, UiObject* obj)
 {
@@ -552,7 +556,7 @@ static void func_shelter_b1_armory_8017E3B0(RoomShopList* shop, UiObject* obj)
     u16           tmp;
     u8            count;
 
-    mode = obj->owner->spawnArg1;
+    mode = obj->owner->spawnArg1.value;
     ids  = func_shelter_b1_armory_8017D768(mode);
 
     shop->list.field_4 = 0;
@@ -561,15 +565,15 @@ static void func_shelter_b1_armory_8017E3B0(RoomShopList* shop, UiObject* obj)
         ids++;
     }
 
-    if (Mc_SaveData[0].demoScene == 1) {
-        Mc_SaveData[0].shopTiers = 0x1FFF;
-        Mc_SaveData[0].shopStock = -1;
+    if (Mc_SaveData[0].state.demoScene == 1) {
+        Mc_SaveData[0].state.shopTiers = 0x1FFF;
+        Mc_SaveData[0].state.shopStock = -1;
     }
 
-    if (Mc_SaveData[0].gameMode == 0) {
-        if (Mc_SaveData[0].shopTiers != 0) {
+    if (Mc_SaveData[0].state.gameMode == 0) {
+        if (Mc_SaveData[0].state.shopTiers != 0) {
             for (tier = 0; tier < 13; tier++) {
-                unlocked = Mc_SaveData[0].shopTiers & (1 << tier);
+                unlocked = Mc_SaveData[0].state.shopTiers & (1 << tier);
                 if (unlocked != 0) {
                     for (j = 0; j < 3; j++) {
                         item = D_shelter_b1_armory_801821F4[tier].items[j];
@@ -607,7 +611,7 @@ static void func_shelter_b1_armory_8017E3B0(RoomShopList* shop, UiObject* obj)
 
         if ((mode >> 16) == 3) {
             for (slot = 0; slot < 0xC; slot++) {
-                level = (Mc_SaveData[0].shopStock >> (slot * 2)) & 3;
+                level = (Mc_SaveData[0].state.shopStock >> (slot * 2)) & 3;
                 if (slot == 0 ? level >= 2 : level > 0) {
                     /* The assignment keeps `+ 0xE` on the level instead of
                        letting GCC reassociate it onto the row base. */
@@ -672,7 +676,7 @@ void func_shelter_b1_armory_8017E77C(Task* task)
     s32           x;
     s32           y;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, (char*)D_shelter_b1_armory_8017D6D0);
     if (task->state == 0) {
@@ -706,7 +710,7 @@ void func_shelter_b1_armory_8017E77C(Task* task)
     req.glyphTable = 5;
     req.centerMode = 2;
     req.field_E    = 1;
-    func_8002E53C(&req, D_shelter_b1_armory_8017D6D8);
+    Text_DrawString(&req, D_shelter_b1_armory_8017D6D8);
 
     if (obj->panel.field_0.w == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
@@ -721,7 +725,7 @@ void func_shelter_b1_armory_8017E77C(Task* task)
     if (head != NULL) {
         child = head;
         do {
-            childObj = child->spawnArg2;
+            childObj = child->spawnArg2.pointer;
             code     = childObj->field_2E;
             next     = child->nextSibling;
             if (code != -1) {
@@ -759,25 +763,25 @@ void func_shelter_b1_armory_8017E9CC(UiList* prompt, UiObject* obj)
     }
 
     text                  = D_shelter_b1_armory_80182300;
-    obj->owner->spawnArg1 = (u16)obj->owner->spawnArg1;
+    obj->owner->spawnArg1.value = (u16)obj->owner->spawnArg1.value;
     switch (prompt->field_8) {
         case 0:
             break;
         case 1:
             text                   = D_shelter_b1_armory_80182308;
-            obj->owner->spawnArg1 |= 0x10000;
+            obj->owner->spawnArg1.value |= 0x10000;
             break;
         case 2:
             text                   = D_shelter_b1_armory_80182314;
-            obj->owner->spawnArg1 |= 0x20000;
+            obj->owner->spawnArg1.value |= 0x20000;
             break;
         case 3:
             text                   = D_shelter_b1_armory_8018231C;
-            obj->owner->spawnArg1 |= 0x30000;
+            obj->owner->spawnArg1.value |= 0x30000;
             break;
     }
 
-    if (*func_shelter_b1_armory_8017D768(obj->owner->spawnArg1) == 0xFFFF) {
+    if (*func_shelter_b1_armory_8017D768(obj->owner->spawnArg1.value) == 0xFFFF) {
         prompt->field_1C = Ui_LookupTable(obj, 2);
         prompt->field_C  = 0;
     }
@@ -813,7 +817,7 @@ void func_shelter_b1_armory_8017EBEC(Task* task)
     UiObject* childObj;
     s32       code;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     list          = &D_shelter_b1_armory_80182384;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, (char*)D_shelter_b1_armory_8017D6DC);
@@ -838,7 +842,7 @@ void func_shelter_b1_armory_8017EBEC(Task* task)
     if (head != NULL) {
         child = head;
         do {
-            childObj = child->spawnArg2;
+            childObj = child->spawnArg2.pointer;
             code     = childObj->field_2E;
             next     = child->nextSibling;
             if (code != -1) {
@@ -874,7 +878,7 @@ void func_shelter_b1_armory_8017ED94(Task* task)
     s32           capacity;
     s32           count;
 
-    obj = task->spawnArg2;
+    obj = task->spawnArg2.pointer;
     cfg = &Player_Status;
     x   = (s16)obj->panel.field_1C.s + 2;
     col = (s16)obj->panel.field_1E.u - 2;
@@ -887,7 +891,7 @@ void func_shelter_b1_armory_8017ED94(Task* task)
     req0.glyphTable = 5;
     req0.centerMode = 0;
     req0.field_E    = 1;
-    func_8002E53C(&req0, D_shelter_b1_armory_8017D6D8);
+    Text_DrawString(&req0, D_shelter_b1_armory_8017D6D8);
 
     Text_ItoaUnsigned((u8*)digits, cfg->bp);
     Text_DrawPrompt(obj, col, y + 0x19, (u8*)digits, 0x606060, 3, 2);
@@ -900,10 +904,10 @@ void func_shelter_b1_armory_8017ED94(Task* task)
     req1.glyphTable = 5;
     req1.centerMode = 0;
     req1.field_E    = 1;
-    func_8002E53C(&req1, (char*)D_shelter_b1_armory_8017D6E4);
+    Text_DrawString(&req1, (char*)D_shelter_b1_armory_8017D6E4);
 
     p        = total;
-    scan     = &Mc_SaveData[0].carriedItems;
+    scan     = &Mc_SaveData[0].state.carriedItems;
     count    = Gp_CountScanItems(scan);
     capacity = scan->rowCount;
     Text_ItoaUnsigned((u8*)p, count);
@@ -930,7 +934,7 @@ void func_shelter_b1_armory_8017EF78(UiList* prompt, UiObject* obj)
     s32           mode;
     s32           price;
 
-    itemId = obj->owner->spawnArg1;
+    itemId = obj->owner->spawnArg1.value;
 
     req.x          = obj->panel.field_20.u + (u16)prompt->field_18;
     req.y          = obj->panel.field_22.u + (u16)prompt->field_1A;
@@ -939,13 +943,13 @@ void func_shelter_b1_armory_8017EF78(UiList* prompt, UiObject* obj)
     req.glyphTable = 0;
     req.centerMode = 0;
     req.field_E    = 1;
-    func_8002E53C(&req, D_shelter_b1_armory_80182294);
+    Text_DrawString(&req, D_shelter_b1_armory_80182294);
 
     mode = prompt->field_C;
     if (mode == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         cfg   = &Player_Status;
         price = Gp_ItemDescs[itemId].price;
-        scan  = &Mc_SaveData[0].carriedItems;
+        scan  = &Mc_SaveData[0].state.carriedItems;
         SndEvt_EnqueueType6(0x16, 0, 0);
         if (cfg->bp >= price) {
             if (Gp_CanAddItem(scan, itemId) == 0) {
@@ -955,7 +959,7 @@ void func_shelter_b1_armory_8017EF78(UiList* prompt, UiObject* obj)
                     Ui_SpawnFromDesc(&D_shelter_b1_armory_80182444, 1, 1, 1, obj);
                 }
                 obj->panel.field_0.w = 0;
-            } else if ((obj->owner->parent->spawnArg1 >> 16) == mode) {
+            } else if ((obj->owner->parent->spawnArg1.value >> 16) == mode) {
                 child = Ui_SpawnFromDesc(&D_shelter_b1_armory_801824B4, itemId, 1, 1, obj);
                 if (child != NULL) {
                     Ui_ClampDialogRect(&(child)->panel, prompt, &(obj)->panel);
@@ -982,8 +986,8 @@ void func_shelter_b1_armory_8017F18C(Task* task)
     u8*       text;
     s32       kind;
 
-    kind = task->spawnArg1;
-    obj  = task->spawnArg2;
+    kind = task->spawnArg1.value;
+    obj  = task->spawnArg2.pointer;
     switch (kind) {
         case 1:
             text = D_shelter_b1_armory_80182338;
@@ -1011,7 +1015,7 @@ void func_shelter_b1_armory_8017F18C(Task* task)
             return;
         }
         if (task->killCountdown <= 0 || Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-            ((UiObject*)task->parent->spawnArg2)->field_2E = 6;
+            ((UiObject*)task->parent->spawnArg2.pointer)->field_2E = 6;
             task->killCountdown                            = 0x7FFF;
         }
     }
@@ -1037,17 +1041,17 @@ void func_shelter_b1_armory_8017F30C(Task* task)
     s32         status;
     s16         countdown;
 
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, (char*)D_shelter_b1_armory_8017D6F4);
 
     if (task->state == 0) {
-        task->spawnArg1 = 0;
+        task->spawnArg1.value = 0;
         task->state     = task->state + 1;
     }
     if (task->state == 1) {
-        slotId          = Gp_NextMappedSlot(task->spawnArg1);
-        task->spawnArg1 = slotId;
+        slotId          = Gp_NextMappedSlot(task->spawnArg1.value);
+        task->spawnArg1.value = slotId;
         if (slotId < 0) {
             obj->field_2E = 6;
         } else {
@@ -1096,7 +1100,7 @@ void func_shelter_b1_armory_8017F30C(Task* task)
         status              = obj->panel.field_0.w;
         if (status == 1 && (countdown <= 0 || Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskConfirm) != 0)) {
             task->state     = status;
-            task->spawnArg1 = task->spawnArg1 + 1;
+            task->spawnArg1.value = task->spawnArg1.value + 1;
         }
     }
 }
@@ -1109,9 +1113,9 @@ static inline s32 _shelter_b1_armoryAddItemCount(s32 item, s32 count)
     McItemScan* scan;
 
     if ((u32)(item - 0xA0) < 0x20U) {
-        count += Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, item);
+        count += Gp_ScanStackQty(&Mc_SaveData[0].state.carriedItems, item);
     } else {
-        scan = &Mc_SaveData[0].carriedItems;
+        scan = &Mc_SaveData[0].state.carriedItems;
         rec  = Gp_GetItemTable(scan) + scan->firstRow;
         n    = scan->rowCount;
         for (i = 0; i < n; i++) {
@@ -1138,7 +1142,7 @@ void func_shelter_b1_armory_8017F5D4(Task* task)
     s32         count;
 
     item         = D_shelter_b1_armory_80182290;
-    obj          = task->spawnArg2;
+    obj          = task->spawnArg2.pointer;
     task->status = 0;
     if ((CdCmd_IsIdle() & 0xFFFF) && D_shelter_b1_armory_80182290 == Gp_GetPreviewItem()) {
         func_800C7AE8(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 2, 0x20);
@@ -1155,7 +1159,7 @@ void func_shelter_b1_armory_8017F5D4(Task* task)
         req.field_8    = 0x606060;
         req.centerMode = 0;
         req.field_E    = 1;
-        func_8002E53C(&req, D_shelter_b1_armory_80182368);
+        Text_DrawString(&req, D_shelter_b1_armory_80182368);
         count = 0;
         count = _shelter_b1_armoryAddItemCount(item, count);
         Text_DrawPrompt(obj, (s16)obj->panel.field_1E.u - 2, y + 0xA, Text_ItoaSigned(buf, count), 0x606060, 3, 2);
@@ -1191,8 +1195,8 @@ void func_shelter_b1_armory_8017F7A8(Task* task)
     s32          y;
     s32          i;
 
-    itemId = task->spawnArg1;
-    obj    = task->spawnArg2;
+    itemId = task->spawnArg1.value;
+    obj    = task->spawnArg2.pointer;
     maxQty = 1;
     price  = Gp_ItemDescs[itemId].price;
 
@@ -1207,7 +1211,7 @@ void func_shelter_b1_armory_8017F7A8(Task* task)
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
         if (gpItemStock(itemId)->perBuy != 0) {
-            held    = Gp_ScanStackQty(&Mc_SaveData[0].carriedItems, itemId);
+            held    = Gp_ScanStackQty(&Mc_SaveData[0].state.carriedItems, itemId);
             maxHeld = gpItemStock(itemId)->maxHeld;
             maxQty  = maxHeld - held;
             if (maxQty <= 0) {
@@ -1218,7 +1222,7 @@ void func_shelter_b1_armory_8017F7A8(Task* task)
             }
         }
     } else {
-        maxQty = Mc_SaveData[0].carriedItems.rowCount - Gp_CountScanItems(&Mc_SaveData[0].carriedItems);
+        maxQty = Mc_SaveData[0].state.carriedItems.rowCount - Gp_CountScanItems(&Mc_SaveData[0].state.carriedItems);
     }
 
     afford = Player_Status.bp / price;
@@ -1250,12 +1254,12 @@ void func_shelter_b1_armory_8017F7A8(Task* task)
     req.glyphTable = 5;
     req.centerMode = 2;
     req.field_E    = 1;
-    func_8002E53C(&req, D_shelter_b1_armory_8017D6D8);
+    Text_DrawString(&req, D_shelter_b1_armory_8017D6D8);
 
     Text_DrawPrompt(obj, -x, top + 0x2B, Text_ItoaSigned(buf, count * price), 0x606060, 3, 2);
 
     if (obj->panel.field_0.w == 1) {
-        parentObj = task->parent->spawnArg2;
+        parentObj = task->parent->spawnArg2.pointer;
         if (Pad_CheckButtons(0, 1, 0x3000) != 0) {
             if (task->extraState < maxQty) {
                 task->extraState = task->extraState + 1;
@@ -1269,7 +1273,7 @@ void func_shelter_b1_armory_8017F7A8(Task* task)
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             Player_Status.bp -= price * task->extraState;
             for (i = 0; i < task->extraState; i++) {
-                Gp_GiveItem(&Mc_SaveData[0].carriedItems, itemId, -1);
+                Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, itemId, -1);
             }
             SndEvt_EnqueueType6(0x16, 0, 0);
             parentObj->field_2E = 6;
@@ -1292,7 +1296,7 @@ void func_shelter_b1_armory_8017FC28(UiList* prompt, UiObject* obj)
     req.glyphTable = 0;
     req.centerMode = 0;
     req.field_E    = 1;
-    func_8002E53C(&req, D_shelter_b1_armory_801822A8);
+    Text_DrawString(&req, D_shelter_b1_armory_801822A8);
 
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
@@ -1311,7 +1315,7 @@ void func_shelter_b1_armory_8017FCE4(Task* task)
     s16       code;
 
     list          = &D_shelter_b1_armory_801823B0;
-    obj           = task->spawnArg2;
+    obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     if (task->state == 0) {
         Ui_LayoutListPanel(list, &(obj)->panel);
@@ -1330,7 +1334,7 @@ void func_shelter_b1_armory_8017FCE4(Task* task)
 
     child = task->firstChild;
     if (child != NULL) {
-        childObj = child->spawnArg2;
+        childObj = child->spawnArg2.pointer;
         code     = childObj->field_2E;
         if (code != -1) {
             if (code == 6) {
@@ -1359,12 +1363,12 @@ void func_shelter_b1_armory_8017FE0C(Task* task)
         }
         GameMain_SetFrameTiming(0);
         gGameSession->uiOpen = 1;
-        task->spawnArg2      = obj;
+        task->spawnArg2.pointer      = obj;
         task->state++;
     }
 
     if (task->state == 1) {
-        obj = task->spawnArg2;
+        obj = task->spawnArg2.pointer;
         if (obj->field_2E == -1 || obj->field_2E == 6) {
             Ui_TeardownTree(obj, obj->owner);
             task->killCountdown = 10;
@@ -1480,9 +1484,9 @@ void func_shelter_b1_armory_801800A4(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_shelter_b1_armory_80185584.msgId;
-            Mc_SaveData[0].at4.loc.warp = D_shelter_b1_armory_80185584.field_2;
-            Mc_SaveData[0].at4.loc.room = (u8)D_shelter_b1_armory_80185584.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_armory_80185584.msgId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_armory_80185584.field_2;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_armory_80185584.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -1511,13 +1515,13 @@ void func_shelter_b1_armory_80180214(Task* task)
             Display_ReleaseRef();
             D_80115768 = 0;
             Gp_MsgPlayerWeapon(0);
-            if ((u16)task->spawnArg1 == 1) {
+            if ((u16)task->spawnArg1.value == 1) {
                 SndEvt_EnqueueType6(0x540D0008, 0, 0);
             }
-            if ((u16)task->spawnArg1 == 2) {
+            if ((u16)task->spawnArg1.value == 2) {
                 SndEvt_EnqueueType6(0x540D0009, 0, 0);
             }
-            Gp_StartCapSlot(task->spawnArg1 >> 16, 0, 0);
+            Gp_StartCapSlot(task->spawnArg1.value >> 16, 0, 0);
             task->state++;
             break;
         case 1:
@@ -1526,7 +1530,7 @@ void func_shelter_b1_armory_80180214(Task* task)
             break;
         case 4:
             if (Gp_CapBusy() == 0) {
-                if ((u16)task->spawnArg1 == 2) {
+                if ((u16)task->spawnArg1.value == 2) {
                     Gp_SetItemSeenBit(0x105, 1);
                 }
                 Gp_MsgPlayerWeapon(1);
@@ -1547,8 +1551,8 @@ void func_shelter_b1_armory_8018034C(Task* task)
             gGameSession->eventState     = 1;
             gGameSession->hideHud        = 1;
             save                         = &Mc_SaveData[0];
-            view                         = save->at4.loc.view;
-            save->at4.loc.view           = 0xD;
+            view                         = save->state.at4.loc.view;
+            save->state.at4.loc.view           = 0xD;
             D_shelter_b1_armory_8018557C = view;
             Gp_MsgPlayer3F3(0);
             Gp_RunCapCmd(0x16, 0);
@@ -1566,7 +1570,7 @@ void func_shelter_b1_armory_8018034C(Task* task)
             gGameSession->hideHud    = 0;
             Gp_MsgPlayer3F3(1);
             Gp_MsgPlayerWeapon(1);
-            Mc_SaveData[0].at4.loc.view = D_shelter_b1_armory_8018557C;
+            Mc_SaveData[0].state.at4.loc.view = D_shelter_b1_armory_8018557C;
         advance:
             task->state = task->state + 1;
             break;

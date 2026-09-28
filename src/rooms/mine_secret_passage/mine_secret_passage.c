@@ -1,10 +1,4 @@
 #include "common.h"
-#include "main/stage.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/room.h"
 
 #include "gameplay/captions.h"
@@ -12,8 +6,15 @@
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/world_state.h"
 #include "main/display.h"
-#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
 
 extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
 
@@ -87,7 +88,7 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
             D_mine_secret_passage_80183440.field_0 = 0;
             D_mine_secret_passage_80183440.field_1 = 0;
             D_mine_secret_passage_80183440.field_2 = 0x1E;
-            Task_Spawn(1, 0x31, 0, (s32)&D_mine_secret_passage_80183440);
+            Task_Spawn(1, 0x31, 0, &D_mine_secret_passage_80183440);
             SndEvt_EnqueueType6(0x54080003, 0, 0);
             goto advance;
         case 5:
@@ -100,9 +101,9 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
         case 6:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = (u8)D_mine_secret_passage_80183448.field_2;
-            Mc_SaveData[0].at4.loc.warp = (u8)D_mine_secret_passage_80183448.field_4;
-            Mc_SaveData[0].at4.loc.room = (u8)D_mine_secret_passage_80183448.prefix.bytes.field_1;
+            Mc_SaveData[0].state.at4.loc.area = (u8)D_mine_secret_passage_80183448.field_2;
+            Mc_SaveData[0].state.at4.loc.warp = (u8)D_mine_secret_passage_80183448.field_4;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_mine_secret_passage_80183448.prefix.bytes.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;

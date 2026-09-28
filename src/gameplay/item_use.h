@@ -10,8 +10,8 @@
 #include "gameplay/item_pickup.h"
 #include "gameplay/room.h"
 
-#include "main/mc.h"
-#include "main/task.h"
+#include "main/mc_types.h"
+#include "main/task_types.h"
 
 /// Room bound standing in when a lookup fails: what `Gp_GetRoomBound` returns
 /// in place of a table entry, and what `Gp_CopyDefaultBound` copies out.
@@ -46,11 +46,11 @@ extern s32 D_8010F9EC;
 extern s32 D_8010F9F0;
 
 /// Per-stage `GpGiveRec` lists selected by `Gp_GrantLocationItems` when
-/// `Mc_SaveData[0].gameMode` is 0 or 2. Indexed by `GameSession.at4.loc.stage`.
+/// `Mc_SaveData[0].state.gameMode` is 0 or 2. Indexed by `GameSession.at4.loc.stage`.
 extern GpGiveRec* D_8010F9F4[];
 
 /// Per-stage `GpGiveRec` lists selected by `Gp_GrantLocationItems` when
-/// `Mc_SaveData[0].gameMode` is not 0 or 2. Indexed by `GameSession.at4.loc.stage`.
+/// `Mc_SaveData[0].state.gameMode` is not 0 or 2. Indexed by `GameSession.at4.loc.stage`.
 extern GpGiveRec* D_8010FA0C[];
 
 /// Face edge endpoint pairs walked by the grid collision helpers

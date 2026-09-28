@@ -10,6 +10,7 @@
 
 #include "main/mc.h"
 #include "main/session.h"
+#include "main/task_types.h"
 #include "main/wipsys.h"
 
 extern McItemScan D_8010D524;
@@ -72,10 +73,10 @@ void Gp_InitStarterInv(void)
     s32           flag105;
     s32           flag107;
 
-    scan                    = &Mc_SaveData[0].carriedItems;
+    scan                    = &Mc_SaveData[0].state.carriedItems;
     save                    = &Mc_SaveData[0];
-    save->itemLevelBonus[5] = 0;
-    save->itemLevelBonus[0] = 0;
+    save->state.itemLevelBonus[5] = 0;
+    save->state.itemLevelBonus[0] = 0;
     cfg                     = &Player_Status;
     switch (scan->table) {
         case 2:
@@ -85,7 +86,7 @@ void Gp_InitStarterInv(void)
             tmp = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData[0].itemRows;
+            tmp = Mc_SaveData[0].state.itemRows;
             break;
     }
     rec  = &tmp[scan->firstRow];
@@ -114,7 +115,7 @@ void Gp_InitStarterInv(void)
     scans = Gp_ScanPtrs;
     Gp_ClearScanItems(scans[1]);
     Gp_ClearScanItems(scans[2]);
-    slots = Mc_SaveData[0].weaponItems;
+    slots = Mc_SaveData[0].state.weaponItems;
     for (j = 0; j < 0x20; j++) {
         slots->ammoId    = 0;
         slots->ammoQty   = 0;

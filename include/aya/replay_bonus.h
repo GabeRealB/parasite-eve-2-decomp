@@ -4,9 +4,11 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-#include "main/ui.h"
 
 #include "gameplay/items.h"
+
+#include "main/task_types.h"
+#include "main/ui_types.h"
 
 /// Replay-bonus item-id table (`0x4E` ids, then a `0xFFFF` terminator).
 /// `func_replay_bonus_80117598` tests membership; `func_replay_bonus_80115D60`
@@ -54,7 +56,7 @@ STATIC_ASSERT_SIZEOF(ReplayBonusStream, 0x10);
 /// `func_replay_bonus_80115CA4` has to reach for the row to be the starting
 /// index — the last row's is `S32_MAX`, so it never does on its own — and
 /// `items` are the three ids `func_replay_bonus_80117484` then offers.
-/// `Mc_SaveData[0].shopTiers` (also imported as `Mc_SaveData[0].shopTiers`) holds one bit per
+/// `Mc_SaveData[0].state.shopTiers` (also imported as `Mc_SaveData[0].state.shopTiers`) holds one bit per
 /// row; all 13 bits set (`0x1FFF`) means every tier is taken.
 typedef struct ReplayBonusShopTier {
     /* 0x0 */ u32  spendThreshold;

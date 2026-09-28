@@ -3,12 +3,14 @@
 
 #include "common.h"
 
-#include <psyq/libgs.h>
-#include "main/coord.h"
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 #include "overlay.h"
 
 #include "gameplay/actor.h"
+
+#include "main/session_types.h"
 
 /// One 4-byte row of `D_energyball_80131194`, indexed by `GpEffWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the full size the ball grows

@@ -1,52 +1,143 @@
+#include "main/stage.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libpress.h>
+
 #include "common.h"
 
+#include "main/coord.h"
 #include "main/display.h"
-#include "main/mem.h"
-
-#include "main/unknown_syms.h"
+#include "display.h"
+#include "main/display_types.h"
 #include "main/fs.h"
-#include "main/gfx.h"
+#include "fs.h"
+#include "main/fs_types.h"
+#include "fs_types.h"
+#include "gfx.h"
+#include "main/mc.h"
+#include "main/mc_types.h"
+#include "main/mem.h"
+#include "mem.h"
 #include "main/pad.h"
-#include "main/stage.h"
+#include "main/pad_types.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "stage.h"
 #include "main/stream.h"
-#include "main/tmd.h"
+#include "stream.h"
 #include "main/task.h"
-
-#include "psyq/libpress.h"
-#include "main/devkit.h"
+#include "task.h"
+#include "main/task_types.h"
+#include "main/tmd.h"
+#include "main/tmd_types.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/world_collision.h"
-#include "gameplay/player_actor.h"
 #include "gameplay/loading.h"
-#include "main/mc.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/world_collision.h"
 
-static void Display_FlipOtAndDispatch(s32 arg0);
-static void Display_InvertFramebufferGray(void);
-static void Display_TaskLoadStep(Task* arg0);
-static void Display_TransitionTask(Task* arg0);
-static void Stage_FinishCdFollowUp(Task* arg0);
-static void Stage_WaitCdActivate(Task* arg0);
-static void Stage_WaitCdAndSpawn(Task* arg0);
-static void Stage_WaitCdEntry(Task* arg0);
-static void Display_DispatchTaskTable(Task* arg0);
+/// Stage / flow context (Stage_Ctx → bss Stage_Context, size 0x38).
+typedef struct _StageCtx {
+    /* 0x00 */ TaskDesc* field_0; // task desc table for spawn
+    /* 0x04 */ s32       field_4; // spawn arg
+    /* 0x08 */ s32       field_8; // spawn arg
+    /* 0x0C */ u32       field_C;
+    /* 0x10 */ byte      unknown_10;
+    /* 0x11 */ u8        field_11;
+    /* 0x12 */ u8        field_12; // flow gate
+    /* 0x13 */ u8        field_13;
+    /* 0x14 */ u8        field_14;
+    /* 0x15 */ u8        field_15;
+    /* 0x16 */ byte      unknown_16;
+    /* 0x17 */ u8        field_17; // flow gate
+    /* 0x18 */ u8        field_18;
+    /* 0x19 */ u8        field_19; // flag bits (bit0/1)
+    /* 0x1A */ u8        field_1a;
+    /* 0x1B */ byte      unknown_1b;
+    /* 0x1C */ u32       field_1c;    // flag word
+    /* 0x20 */ s32       field_20;
+    /* 0x24 */ s32       field_24;    // last gDisplayState.frameBuffer
+    /* 0x28 */ s32       field_28;    // step counter
+    /* 0x2C */ u8        field_2C[8]; // CDF load param block
+    /* 0x34 */ u8        field_34[4]; // CDF load param block
+} StageCtx;
+STATIC_ASSERT_SIZEOF(StageCtx, 0x38);
 
-static StageCtx      D_8007A320;
-static s32           D_8007A358;
-static u16           D_8007A35C;
-static u16           D_8007A35E;
-static void*         D_8007A360;
-static u8*           Mdec_DecodeBase; // resolved decode base (Mdec_ResolveStreamBuffer)
-static CdCmd58Entry* Stage_CdEntry;   // matched CdCmd_Queue.field_58 entry
-static PadRemapState D_8007A370;
+static StageCtx Stage_Context;
+
+static s32 D_8007A358;
+
+static u16 D_8007A35C;
+
+static u16 D_8007A35E;
+
+static void* D_8007A360;
+
+static u8* Mdec_DecodeBase;
+
+static CdCmd58Entry* Stage_CdEntry;
+
+static PadRemapState Pad_DefaultRemapState;
 
 /// Active stage/flow context pointer.
-static StageCtx* Stage_Ctx      = &D_8007A320;
-static TaskDesc  D_8006269C     = { 0, 0, Display_DispatchTaskTable };
-PadRemapState*   Pad_RemapState = &D_8007A370;
-TaskDesc         D_800626AC[]   = {
+static StageCtx* Stage_Ctx;
+
+static TaskDesc Display_ModeTaskDesc;
+
+static const TaskFuncTable6 Display_TaskStates;
+
+void func_80701470(Task* arg0);
+
+static void Display_StepFadeOverlay(void);
+
+static s32 Display_TransitionLoad(Task* unused);
+
+static Task* Display_SpawnFromMode(void);
+
+static void Display_TransitionTask(Task* task);
+
+static void Display_FlipOtAndDispatch(s32 unused);
+
+static void Display_InvertFramebufferGray(void);
+
+/// Transition kinds 3 and 7: same field_1c 0x40000000 handshake as
+/// Stage_BeginTransition, with StageCtx::field_11 fixed to 3 and 7.
+static s32 Stage_BeginTransitionKind3(void);
+
+static void Stage_SetModeAndFlip(u8 arg0);
+
+static void Stage_WaitCdActivate(Task* task);
+
+static void Stage_WaitCdAndSpawn(Task* task);
+
+static void Display_TaskLoadStep(Task* task);
+
+static void Stage_WaitCdEntry(Task* task);
+
+static void Stage_FinishCdFollowUp(Task* task);
+
+static void Display_DispatchTaskTable(Task* task);
+
+static __inline__ void mdecFinishDecode(void);
+
+/// field_202 state machine: start DCT, apply work-lists / image chunks, complete.
+static void Mdec_ProcessDecode(void);
+
+static void Mdec_DecodeToVram(void);
+
+static void Mdec_StripCallback(void);
+
+// resolved decode base (Mdec_ResolveStreamBuffer)
+// matched CdCmd_Queue.field_58 entry
+
+/// Active stage/flow context pointer.
+static StageCtx* Stage_Ctx            = &Stage_Context;
+static TaskDesc  Display_ModeTaskDesc = { 0, 0, Display_DispatchTaskTable };
+PadRemapState*   Pad_RemapState       = &Pad_DefaultRemapState;
+TaskDesc         D_800626AC[]         = {
     { 0, 0xC0, taskKill },
     { 0, 0xC0, Task_KillMaybeSpawn },
     { 0, 0xC0, taskKill },
@@ -142,7 +233,7 @@ static void Display_StepFadeOverlay(void)
     }
 }
 
-static s32 Display_TransitionLoad(Task* arg0)
+static s32 Display_TransitionLoad(Task* unused)
 {
     RECT rect;
     s32  temp_v1;
@@ -282,7 +373,7 @@ block_end:
     return ret;
 }
 
-static void Display_TransitionTask(Task* arg0)
+static void Display_TransitionTask(Task* task)
 {
     u32          flags;
     s32          state;
@@ -305,12 +396,12 @@ static void Display_TransitionTask(Task* arg0)
                 gDisplayState.at100.flags.flipMode = 2;
                 Mem_ConfigureAuxHeap(gGameSession->at4.loc.stage, gGameSession->at4.loc.area);
                 if (!(Stage_Ctx->field_1c & 0x10000000)) {
-                    (gameGetPtrSlot(1))->spawnArg1 = (u8)gGameSession->at4.loc.view;
+                    (gameGetPtrSlot(1))->spawnArg1.value = (u8)gGameSession->at4.loc.view;
                     ResetGraph(1);
                     Gpu_ClearOTag(0);
                     Gpu_ClearOTag(1);
                     Mem_InitAux();
-                    Mc_SaveData[0].at4.loc.view = gGameSession->at4.loc.view;
+                    Mc_SaveData[0].state.at4.loc.view = gGameSession->at4.loc.view;
                     Pad_SetCooldown(0);
                     Gp_SpawnCurView(2);
                     gGameSession->viewReady = 0;
@@ -331,7 +422,7 @@ static void Display_TransitionTask(Task* arg0)
                         f11           = g->field_11;
                         ed->viewReady = 0;
                         if (f11 == 0) {
-                            arg0->killCountdown = flag;
+                            task->killCountdown = flag;
                             Stage_Ctx->field_28 = Stage_Ctx->field_28 + 2;
                         } else {
                             Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
@@ -345,13 +436,13 @@ static void Display_TransitionTask(Task* arg0)
                 Display_FlipOtAndDispatch(0);
                 Stage_Ctx->field_19                = Stage_Ctx->field_19 | 0x80;
                 gDisplayState.at100.flags.flipMode = gDisplayState.at100.flags.flipMode | 0x10;
-                arg0->killCountdown                = 3;
+                task->killCountdown                = 3;
                 Stage_Ctx->field_28                = Stage_Ctx->field_28 + 1;
                 break;
             case 3:
                 gDisplayState.at100.flags.flipMode = 2;
-                arg0->killCountdown                = arg0->killCountdown - 1;
-                if (arg0->killCountdown == 0) {
+                task->killCountdown                = task->killCountdown - 1;
+                if (task->killCountdown == 0) {
                     Gpu_ResetGraphAndOt();
                     Gfx_StoreImageSlot(gGameSession->at4.loc.stage, gGameSession->at4.loc.area,
                                        gDisplayState.frameBuffer, 0x10000);
@@ -359,8 +450,8 @@ static void Display_TransitionTask(Task* arg0)
                     Stage_Ctx->field_12 = 0;
                     if ((s32)Stage_Ctx->field_1c < 0) {
                         Pad_ClearCooldown(0);
-                        arg0->state = arg0->state + 1;
-                        Display_TaskLoadStep(arg0);
+                        task->state = task->state + 1;
+                        Display_TaskLoadStep(task);
                         return;
                     }
                     Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
@@ -377,10 +468,10 @@ static void Display_TransitionTask(Task* arg0)
                 break;
         }
     } else if (flags & 0x08000000) {
-        Display_TransitionLoad(arg0);
+        Display_TransitionLoad(task);
     } else if ((s32)flags < 0) {
-        arg0->state = arg0->state + 1;
-        Display_TaskLoadStep(arg0);
+        task->state = task->state + 1;
+        Display_TaskLoadStep(task);
     } else if (flags & 0x20000000) {
         Gfx_StoreImageSlot(gGameSession->at4.loc.stage, gGameSession->at4.loc.area, gDisplayState.frameBuffer,
                            0x10000);
@@ -392,7 +483,7 @@ static void Display_TransitionTask(Task* arg0)
     }
 }
 
-static void Display_FlipOtAndDispatch(s32 arg0)
+static void Display_FlipOtAndDispatch(s32 unused)
 {
     DisplayState* temp;
     u_long*       saved;
@@ -484,7 +575,7 @@ void Stage_InitOtAndSpawn(void)
     temp->at100.flags.flipMode = 2;
     temp->frameBuffer          = temp->otBuffer ^ 1;
     Task_InitList(&gTaskDisplayList);
-    Task_SpawnFromTable(&D_8006269C, 0, 0, 0);
+    Task_SpawnFromTable(&Display_ModeTaskDesc, 0, 0, 0);
 }
 
 s32 Stage_SetEndingFlag(void)
@@ -654,7 +745,7 @@ static s32 Stage_BeginTransitionKind3(void)
     return 0;
 }
 
-s32 Display_InitModeObj(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 Display_InitModeObj(TaskDesc* descriptor, s32 arg1, s32 arg2, s32 arg3)
 {
     StageCtx* temp;
 
@@ -665,7 +756,7 @@ s32 Display_InitModeObj(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
     MEM_CLEAR(Stage_Ctx, sizeof(StageCtx));
 
     temp          = Stage_Ctx;
-    temp->field_0 = arg0;
+    temp->field_0 = descriptor;
     temp->field_4 = arg1;
     temp->field_8 = arg2;
     temp->field_C = arg3;
@@ -679,7 +770,7 @@ s32 Display_InitModeObj(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-u8 Stage_GetModeByte12(void)
+s32 Stage_GetModeByte12(void)
 {
     return Stage_Ctx->field_12;
 }
@@ -701,29 +792,29 @@ void Stage_ResetFade(void)
     Stage_Ctx->field_1a = 0xFF;
 }
 
-static void Stage_WaitCdActivate(Task* arg0)
+static void Stage_WaitCdActivate(Task* task)
 {
     Pad_SetCooldown(0);
     if (CdCmd_ActivatePhase2() != 0) {
-        arg0->state += 1;
+        task->state += 1;
     } else {
         Pad_States[0].cooldown = 1;
         Display_SpawnFromMode();
-        arg0->state += 2;
+        task->state += 2;
     }
 }
 
-static void Stage_WaitCdAndSpawn(Task* arg0)
+static void Stage_WaitCdAndSpawn(Task* task)
 {
     Pad_SetCooldown(0);
-    if (func_8001D82C() != 0) {
+    if (CdCmd_IsIdleOrOverlayPending() != 0) {
         Pad_States[0].cooldown = 1;
         Display_SpawnFromMode();
-        arg0->state += 1;
+        task->state += 1;
     }
 }
 
-static void Display_TaskLoadStep(Task* arg0)
+static void Display_TaskLoadStep(Task* task)
 {
     u32 temp_v1;
 
@@ -742,34 +833,34 @@ static void Display_TaskLoadStep(Task* arg0)
         Gp_AllocSprtLists();
     }
     CdCmd_EnqueueLoadFile(0, 0, 4);
-    arg0->state = (s32)(arg0->state + 1);
-    Stage_WaitCdEntry(arg0);
+    task->state = (s32)(task->state + 1);
+    Stage_WaitCdEntry(task);
 }
 
-static void Stage_WaitCdEntry(Task* arg0)
+static void Stage_WaitCdEntry(Task* task)
 {
-    if (func_8001D82C() != 0) {
-        arg0->state += 1;
+    if (CdCmd_IsIdleOrOverlayPending() != 0) {
+        task->state += 1;
     }
 }
 
-static void Stage_FinishCdFollowUp(Task* arg0)
+static void Stage_FinishCdFollowUp(Task* task)
 {
     if (CdCmd_EnqueueFollowUp() != 0) {
         gDisplayState.displayOwner            = 0;
         gDisplayState.pendingMode             = 0;
         gDisplayState.at100.flags.imageSource = 1;
         Display_SetAutoClear(-1, 0, 0);
-        Task_CallExit(arg0);
+        Task_CallExit(task);
     }
 }
 
-static void Display_DispatchTaskTable(Task* arg0)
+static void Display_DispatchTaskTable(Task* task)
 {
     TaskFuncTable6 sp;
 
     sp = Display_TaskStates;
-    sp.funcs[arg0->state](arg0);
+    sp.funcs[task->state](task);
     Display_StepFadeOverlay();
 }
 
@@ -817,34 +908,34 @@ success:
     type          = Stage_CdEntry->field_34;
     switch (type) {
         case 0:
-            base = p->field_184;
+            base = p->decodeBuffer;
             goto store_base;
         case 1:
-            Mdec_DecodeBase = (u8*)D_8005C36C;
+            Mdec_DecodeBase = (u8*)Fs_ActorLoadBase0;
             if (p->field_190->field_1A == 1) {
-                Mdec_DecodeBase = (u8*)D_8005C36C + 0x11000;
+                Mdec_DecodeBase = (u8*)Fs_ActorLoadBase0 + 0x11000;
             }
-            if (p->field_190->field_3 == 2) {
+            if (p->field_190->bufferKind == 2) {
                 Mdec_DecodeBase = Mdec_DecodeBase + p->field_190->field_1E;
             }
             gGameSession->field_7C = 0;
             break;
         case 2:
-            Mdec_DecodeBase = (u8*)D_8005C370;
+            Mdec_DecodeBase = (u8*)Fs_ActorLoadBase1;
             if (p->field_190->field_1A == 2) {
-                Mdec_DecodeBase = (u8*)D_8005C370 + 0x11000;
+                Mdec_DecodeBase = (u8*)Fs_ActorLoadBase1 + 0x11000;
             }
-            if (p->field_190->field_3 == 3) {
+            if (p->field_190->bufferKind == 3) {
                 Mdec_DecodeBase = Mdec_DecodeBase + p->field_190->field_1E;
             }
             gGameSession->field_7E = 0;
             break;
         case 3:
-            Mdec_DecodeBase = (u8*)D_8005C374;
+            Mdec_DecodeBase = (u8*)Fs_ActorLoadBase2;
             if (p->field_190->field_1A == 3) {
-                Mdec_DecodeBase = (u8*)D_8005C374 + 0x11000;
+                Mdec_DecodeBase = (u8*)Fs_ActorLoadBase2 + 0x11000;
             }
-            if (p->field_190->field_3 == 4) {
+            if (p->field_190->bufferKind == 4) {
                 Mdec_DecodeBase = Mdec_DecodeBase + p->field_190->field_1E;
             }
             gGameSession->field_80 = 0;
@@ -862,8 +953,6 @@ success:
     p->field_202 = 0;
     D_8007A360   = Mdec_DecodeBase + offset;
 }
-
-static void Mdec_StripCallback(void);
 
 static __inline__ void mdecFinishDecode(void)
 {
@@ -894,7 +983,7 @@ static void Mdec_ProcessDecode(void)
                 D_8007A358 = 0;
                 Gpu_ResetGraphAndOt();
                 if (Stage_CdEntry->field_34 == 0) {
-                    p->field_188 = (s32)p->field_194;
+                    p->decodeBufferBytes = p->nextDecodeBufferBytes;
                 }
                 mdecFinishDecode();
             }
@@ -955,9 +1044,9 @@ static void Mdec_ProcessDecode(void)
                 }
                 p->field_21C = 1;
                 if (Stage_CdEntry->field_34 == 0) {
-                    p->field_188 = (s32)p->field_194;
+                    p->decodeBufferBytes = p->nextDecodeBufferBytes;
                 }
-                if (p->field_190->field_3 != 0) {
+                if (p->field_190->bufferKind != 0) {
                     Mem_CopyUnaligned(&Mdec_DecodeBase[Stage_CdEntry->field_1C], p->field_1A4,
                                       Stage_CdEntry->field_38);
                 }
@@ -966,7 +1055,7 @@ static void Mdec_ProcessDecode(void)
                 D_8007A358 = 0;
                 Gpu_ResetGraphAndOt();
                 if (Stage_CdEntry->field_34 == 0) {
-                    p->field_188 = (s32)p->field_194;
+                    p->decodeBufferBytes = p->nextDecodeBufferBytes;
                 }
                 mdecFinishDecode();
             }
@@ -1094,7 +1183,7 @@ static void Mdec_StripCallback(void)
     }
 }
 
-void Stage_TaskExit(Task* arg0)
+void Stage_TaskExit(Task* task)
 {
-    Task_CallExit(arg0);
+    Task_CallExit(task);
 }

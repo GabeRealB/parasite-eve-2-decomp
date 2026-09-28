@@ -3,10 +3,11 @@
 
 #include "common.h"
 
-#include "main/task.h"
-
 #include "gameplay/actor.h"
 #include "gameplay/animation.h"
+
+#include "main/session_types.h"
+#include "main/task_types.h"
 
 /// Status flags at `ActorsShared80168d3cWork` + 0xEC, read through two
 /// widths: guards test bit 0 as a halfword and then bits 0x102 as a word

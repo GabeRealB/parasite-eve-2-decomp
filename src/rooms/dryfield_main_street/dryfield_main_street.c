@@ -6,15 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/abs.h>
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -34,8 +25,23 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/loading.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "gameplay/scene.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// Descriptor of the room's own event task, which the message handler spawns.
 extern TaskDesc D_dryfield_main_street_80180E7C;
@@ -125,7 +131,7 @@ void func_dryfield_main_street_8017D600(Task* arg0)
                     D_dryfield_main_street_8018560C.field_0 = 0;
                     D_dryfield_main_street_8018560C.field_1 = 0;
                     D_dryfield_main_street_8018560C.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, (s32)&D_dryfield_main_street_8018560C);
+                    Task_Spawn(1, 0x31, 0, &D_dryfield_main_street_8018560C);
                 }
                 arg0->state++;
             }
@@ -146,9 +152,9 @@ void func_dryfield_main_street_8017D600(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_dryfield_main_street_80185614.msgId;
-            Mc_SaveData[0].at4.loc.warp = D_dryfield_main_street_80185614.field_2;
-            Mc_SaveData[0].at4.loc.room = D_dryfield_main_street_80185614.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_main_street_80185614.msgId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_main_street_80185614.field_2;
+            Mc_SaveData[0].state.at4.loc.room = D_dryfield_main_street_80185614.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -253,9 +259,9 @@ void func_dryfield_main_street_8017D8FC(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_dryfield_main_street_80185624.msgId;
-            Mc_SaveData[0].at4.loc.warp = D_dryfield_main_street_80185624.field_2;
-            Mc_SaveData[0].at4.loc.room = (u8)D_dryfield_main_street_80185624.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_main_street_80185624.msgId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_main_street_80185624.field_2;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_main_street_80185624.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -602,7 +608,7 @@ void func_dryfield_main_street_8017E354(s32 arg0)
     if (arg0 < 0) {
         goto kill;
     }
-    t->spawnArg1 = arg0;
+    t->spawnArg1.value = arg0;
     return;
 kill:
     taskKill(D_dryfield_main_street_80185630);
@@ -620,7 +626,7 @@ void func_dryfield_main_street_8017E3A8(Task* task)
 
     if (D_801156F9 == 0) {
         if (task->state == 0) {
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 tick                = task->killCountdown + 0x100;
                 task->killCountdown = tick;
                 if ((s16)tick >= 0x1001) {
@@ -665,7 +671,7 @@ static void func_dryfield_main_street_8017E4B0(Task* task)
     }
     Gp_State1C->roomEffectMode = D_dryfield_main_street_80181B94[(Gp_GetViewIndex() & 0xFF) - 1];
     if ((Gp_GetViewIndex() & 0xFF) == 8) {
-        if (task->spawnArg1 != (Gp_GetViewIndex() & 0xFF)) {
+        if (task->spawnArg1.value != (Gp_GetViewIndex() & 0xFF)) {
             for (i = 0; i < 0x30; i++) {
                 D_dryfield_main_street_80181BA4.vx = DRYFIELD_MAIN_STREET_RAND() % 300 - 0x4A1;
                 D_dryfield_main_street_80181BA4.vy = DRYFIELD_MAIN_STREET_RAND() % 600 - 0x4E7;
@@ -681,7 +687,7 @@ static void func_dryfield_main_street_8017E4B0(Task* task)
                         &D_dryfield_main_street_80181BA4);
         }
     }
-    task->spawnArg1 = Gp_GetViewIndex() & 0xFF;
+    task->spawnArg1.value = Gp_GetViewIndex() & 0xFF;
 }
 
 /// A spark the room spawns: each frame it draws tile `index` of the 5-wide
@@ -693,7 +699,7 @@ static void func_dryfield_main_street_8017E4B0(Task* task)
 /// advances; after tile 9 the spark releases itself.
 static void func_dryfield_main_street_8017E830(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2;
+    GpEffWork* work  = task->spawnArg2.pointer;
     GpCoord*   coord = task->extra.tmd->coords;
     s32        vz;
     s16        f2a;
@@ -702,12 +708,12 @@ static void func_dryfield_main_street_8017E830(Task* task)
 
     work->age++;
     if (task->state == 0) {
-        work->scale = task->spawnArg1 & 0xFFF;
+        work->scale = task->spawnArg1.value & 0xFFF;
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         work->angle = (Gp_LcgState >> 16) & 0xFFF;
 
-        if (task->spawnArg1 & 0xF000) {
-            work->period = (task->spawnArg1 >> 12) & 0x7;
+        if (task->spawnArg1.value & 0xF000) {
+            work->period = (task->spawnArg1.value >> 12) & 0x7;
         } else {
             work->period = 1;
         }
@@ -715,8 +721,8 @@ static void func_dryfield_main_street_8017E830(Task* task)
         work->age   = 0;
         task->state = 1;
 
-        if (task->spawnArg1 & 0xFF0000) {
-            f2a = (task->spawnArg1 >> 16) & 0xFF;
+        if (task->spawnArg1.value & 0xFF0000) {
+            f2a = (task->spawnArg1.value >> 16) & 0xFF;
         } else {
             f2a = 0x40;
         }
@@ -845,7 +851,7 @@ static void func_dryfield_main_street_8017EEE8(Task* task)
     GpCoord*   coord;
     u8         rgb[3];
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -858,13 +864,13 @@ static void func_dryfield_main_street_8017EEE8(Task* task)
             case 0:
                 work->scale = 0;
                 work->angle = 0x80;
-                work->step  = 0x100 / task->spawnArg1;
+                work->step  = 0x100 / task->spawnArg1.value;
                 task->state = 1;
                 break;
             case 1:
                 work->scale += work->step;
                 work->angle += work->step;
-                task->spawnArg1--;
+                task->spawnArg1.value--;
                 rgb[0] = work->scale;
                 rgb[1] = work->scale >> 2;
                 rgb[2] = work->scale >> 1;
@@ -874,7 +880,7 @@ static void func_dryfield_main_street_8017EEE8(Task* task)
                 rgb[2] >>= 1;
                 func_dryfield_main_street_8017F5B8(coord, (s16)((u16)work->angle * 2), rgb);
                 func_dryfield_main_street_8017F18C(coord, (s16)(0x300 - (u16)work->angle * 2), 0x80, rgb);
-                if (task->spawnArg1 == 0) {
+                if (task->spawnArg1.value == 0) {
                     work->scale = 0xFF;
                     task->state = 2;
                     rgb[0]      = work->scale;
@@ -1029,7 +1035,7 @@ static void func_dryfield_main_street_8017F94C(Task* task)
     s32        i;
 
     coords   = (GpCoord*)task->work;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
@@ -1102,7 +1108,7 @@ static void func_dryfield_main_street_8017F94C(Task* task)
                     Gp_UpdateCoord(dst);
                 }
                 func_dryfield_main_street_8017FE3C(coords, &coords[8], work->age & 7, 0x123);
-                if (work->age == task->spawnArg1 && work->age != 0) {
+                if (work->age == task->spawnArg1.value && work->age != 0) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
@@ -1225,7 +1231,7 @@ static void func_dryfield_main_street_80180234(Task* task)
     u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
-    work     = (GpEffWork*)task->spawnArg2;
+    work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -1240,7 +1246,7 @@ static void func_dryfield_main_street_80180234(Task* task)
     switch (task->state) {
         case 0:
             Gp_SpawnEff(0x60076, objCoord, 0x400, NULL);
-            if (task->spawnArg1 != 0) {
+            if (task->spawnArg1.value != 0) {
                 Gp_SpawnEff(0x60070, objCoord, 0x80004600, NULL);
                 task->state = 1;
             } else {

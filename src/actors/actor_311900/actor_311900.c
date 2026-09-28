@@ -1,22 +1,26 @@
 #include "common.h"
 
-#include <psyq/libgte.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/collision.h"
 #include "gameplay/display.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/loading.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/enemy.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/task_types.h"
+#include "overlay.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
 /// Work block allocated by the spawn state `func_actor_311900_8016228C`
 /// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot -- that
@@ -235,7 +239,7 @@ void func_actor_311900_8016222C(Task* task)
     GpEnemy*              enemy;
     GpEnemyTaskFuncTable3 sp;
 
-    enemy = task->spawnArg2;
+    enemy = task->spawnArg2.pointer;
     sp    = D_actor_311900_80161E24;
     sp.funcs[task->state](enemy, task);
 }
@@ -328,7 +332,7 @@ void func_actor_311900_8016249C(Task* task)
     GpEnemyTaskFuncTable3 sp;
 
     sp = D_actor_311900_80161E30;
-    sp.funcs[task->state](task->spawnArg2, task);
+    sp.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
 /// The `D_actor_311900_80161E30` spawn handler -- the actor's second setup
@@ -391,7 +395,7 @@ static void func_actor_311900_801625F0(GpEnemy* enemy, Task* task)
 /// `arg0->coord`'s rotation with `Gfx_MatrixCol2`, normalizes it with
 /// `VectorNormalSS`, scales it by the step on the GTE, adds it to
 /// `arg0->coord.t` and clears `arg0->flg`. Returns the step, or 0 having
-/// touched nothing while the game is paused (`Mc_SaveData[0].field_5C1 == 1`) or when the
+/// touched nothing while the game is paused (`Mc_SaveData[0].state.field_5C1 == 1`) or when the
 /// step is zero. `arg0` is the per-part `GpCoord` the caller takes from
 /// `TmdObject::coords`.
 ///
@@ -405,7 +409,7 @@ static s32 func_actor_311900_80162658(GpCoord* arg0, s16 arg1)
     SVECTOR* vec;
     SVECTOR* gte;
 
-    if (Mc_SaveData[0].field_5C1 == 1) {
+    if (Mc_SaveData[0].state.field_5C1 == 1) {
         return 0;
     }
     head                  = SCRATCH_HEAD(SVECTOR);

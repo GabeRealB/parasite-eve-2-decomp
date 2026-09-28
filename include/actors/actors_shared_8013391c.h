@@ -2,9 +2,10 @@
 #define ACTORS_SHARED_8013391C_H
 
 #include "common.h"
-#include "main/task.h"
 
 #include "gameplay/message.h"
+
+#include "main/task_types.h"
 
 /// Work block the enemies carrying this body reach as `task->work`, which is
 /// not a `TaskIdMap` here. The carriers allocate blocks of different sizes, so

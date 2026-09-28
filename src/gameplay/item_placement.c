@@ -11,12 +11,11 @@
 #include "gameplay/scene_runtime.h"
 #include "scene_runtime.h"
 
-#include "main/coord.h"
+#include "gameplay/damage.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
+#include "main/task_types.h"
 
 static inline s32 _gpGetCurBit2Flag(s32 arg0);
 
@@ -222,7 +221,7 @@ static void Gp_SpawnPlaceById(u16 arg0)
     GpBit2Rec*  place;
     u16         id;
 
-    sess  = &Mc_SaveData[0].at4.loc;
+    sess  = &Mc_SaveData[0].state.at4.loc;
     lists = Gp_Bit2Banks[sess->stage].field_0;
     if (lists == NULL) {
         return;

@@ -8,11 +8,6 @@
 #include <psyq/abs.h>
 
 #include "actors/actor.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/world_collision.h"
@@ -22,8 +17,21 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/damage.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/geometry.h"
+#include "gameplay/message.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/task_types.h"
+#include "main/tmd.h"
+#include "overlay.h"
+#include <psyq/memory.h>
 
 /// Dual-width view of the animation rate in the work block. The message
 /// handler `func_actor_210600_8014B770` arms it as one halfword, while the
@@ -133,7 +141,7 @@ static void func_actor_210600_80149E30(GpCoord* coord, s16 yaw)
 /// coordinate's world position from it; the last such push is kept in the
 /// scratch block, and its length is scaled down to 0x100 when longer. Returns
 /// whether any record of those kinds was met. Does nothing, returning 0, while
-/// `Mc_SaveData[0].field_5C1` or the session's `viewReady` is 1.
+/// `Mc_SaveData[0].state.field_5C1` or the session's `viewReady` is 1.
 static s32 func_actor_210600_8014A13C(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
@@ -141,7 +149,7 @@ static s32 func_actor_210600_8014A13C(GpCoord* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (Mc_SaveData[0].field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                      = 0;
@@ -191,14 +199,14 @@ static s32 func_actor_210600_8014A13C(GpCoord* coord, GpRec18* recs, s16 count)
 /// apart cancel each other; each bearing left steps `coord` 10 units away from
 /// it, the total XZ step accumulating in `pos`. Returns whether a kind 0x10000
 /// record was among them; returns 0 at once while the session's `viewReady`
-/// or `Mc_SaveData[0].field_5C1` is 1.
+/// or `Mc_SaveData[0].state.field_5C1` is 1.
 static s32 func_actor_210600_8014A484(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
     s16                  diff;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData[0].field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.field_5C1 == 1) {
         return 0;
     }
 
@@ -732,7 +740,7 @@ void func_actor_210600_8014BA3C(Task* arg0)
     Actor210600DispatchCtx sp;
 
     sp.table = D_actor_210600_80149E24;
-    sp.table.funcs[arg0->state](arg0->spawnArg2, arg0);
+    sp.table.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
 /// A second copy of `func_actor_210600_80149E30`; the package carries both.
@@ -760,7 +768,7 @@ static s32 func_actor_210600_8014BDA4(GpCoord* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (Mc_SaveData[0].field_5C1 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                      = 0;
@@ -811,7 +819,7 @@ static s32 func_actor_210600_8014C0EC(GpCoord* coord, GpRec18* recs, s16 count, 
     OverlayAvoidScratch* s;
     s16                  diff;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData[0].field_5C1 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.field_5C1 == 1) {
         return 0;
     }
 

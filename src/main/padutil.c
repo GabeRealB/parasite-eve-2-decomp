@@ -1,7 +1,13 @@
-#include "common.h"
-
-#include "main/unknown_syms.h"
 #include "main/pad.h"
+
+#include "types.h"
+
+#include "main/display.h"
+#include "main/display_types.h"
+#include "gameflow.h"
+#include "pad.h"
+#include "main/pad_types.h"
+#include "pad_types.h"
 
 s32 Pad_CheckButtons(s32 arg0, s32 arg1, s32 arg2)
 {

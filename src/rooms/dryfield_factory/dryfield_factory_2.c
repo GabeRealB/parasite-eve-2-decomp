@@ -1,20 +1,12 @@
 #include "common.h"
-#include "main/display.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/dryfield_factory.h"
 #include "rooms/dryfield_night_factory.h"
 #include "rooms/room_common.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include <psyq/libgpu.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
 #include "gameplay/captions.h"
 #include "gameplay/direction_input.h"
@@ -23,8 +15,20 @@
 #include "gameplay/item_menu.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
-#include "main/fs.h"
+
+#include "gameplay/action_prompt.h"
+#include "gameplay/sprites.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 /// The room script task's work block as the prompt-spawning state reads it:
 /// `promptKind` is the display mode forwarded to `func_800D4E78`, read signed.
@@ -183,9 +187,9 @@ static void func_dryfield_factory_80180DE8(Task* task, s16 step)
                 if (!(GameFlag_GetNibble(0x49) & 2)) {
                     GameFlag_SetNibble(0x49, GameFlag_GetNibble(0x49) | 2);
                     if (GameFlag_GetNibble(0x47) == 0) {
-                        Mc_SaveData[0].at4.loc.view = 0x12;
+                        Mc_SaveData[0].state.at4.loc.view = 0x12;
                     } else {
-                        Mc_SaveData[0].at4.loc.view = 0x13;
+                        Mc_SaveData[0].state.at4.loc.view = 0x13;
                     }
                     state = 6;
                 } else {
@@ -203,9 +207,9 @@ static void func_dryfield_factory_80180DE8(Task* task, s16 step)
                 if (GameFlag_GetNibble(0x49) & 2) {
                     GameFlag_SetNibble(0x49, GameFlag_GetNibble(0x49) & ~2);
                     if (GameFlag_GetNibble(0x47) == 0) {
-                        Mc_SaveData[0].at4.loc.view = 0x12;
+                        Mc_SaveData[0].state.at4.loc.view = 0x12;
                     } else {
-                        Mc_SaveData[0].at4.loc.view = 0x13;
+                        Mc_SaveData[0].state.at4.loc.view = 0x13;
                     }
                     state = 6;
                 } else {
@@ -222,9 +226,9 @@ static void func_dryfield_factory_80180DE8(Task* task, s16 step)
                 SndEvt_EnqueueType6(id | 9, 0, 0);
                 GameFlag_SetNibble(0x49, GameFlag_GetNibble(0x49) ^ 1);
                 if (GameFlag_GetNibble(0x47) == 0) {
-                    Mc_SaveData[0].at4.loc.view = 0x12;
+                    Mc_SaveData[0].state.at4.loc.view = 0x12;
                 } else {
-                    Mc_SaveData[0].at4.loc.view = 0x13;
+                    Mc_SaveData[0].state.at4.loc.view = 0x13;
                 }
                 state       = 6;
                 task->state = state;
@@ -294,7 +298,7 @@ static void func_dryfield_factory_801810D8(Task* task)
     u16*              statep;
     u16*              heldp;
 
-    switch (task->spawnArg1) {
+    switch (task->spawnArg1.value) {
         case 1:
             first = 0;
             count = 1;
@@ -531,13 +535,13 @@ static void func_dryfield_factory_8018182C(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2 = Task_SpawnFromTable(D_dryfield_factory_80186E88, 0, 1, 0);
+    task->spawnArg2.pointer = Task_SpawnFromTable(D_dryfield_factory_80186E88, 0, 1, 0);
     task->work      = (TaskIdMap*)work;
     task->msgTable  = D_dryfield_factory_80186EA0;
     if (GameFlag_GetNibble(0x48) == 0) {
-        Mc_SaveData[0].at4.loc.view = 0xC;
+        Mc_SaveData[0].state.at4.loc.view = 0xC;
     } else {
-        Mc_SaveData[0].at4.loc.view = 5;
+        Mc_SaveData[0].state.at4.loc.view = 5;
     }
     task->state++;
     Display_AcquireRef();
@@ -607,9 +611,9 @@ static void func_dryfield_factory_80181A24(Task* arg0)
     gGameSession->eventState    = 0;
     gGameSession->hideHud       = 0;
     gGameSession->cutsceneHold  = 0;
-    Mc_SaveData[0].at4.loc.view = 3;
+    Mc_SaveData[0].state.at4.loc.view = 3;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
-    taskKill((Task*)arg0->spawnArg2);
+    taskKill((Task*)arg0->spawnArg2.pointer);
     Task_RequestKill(arg0, 0);
 }
 
@@ -628,9 +632,9 @@ static void func_dryfield_factory_80181AB8(Task* task)
     prompt->mode     = 0;
     if (work->field_A != 0) {
         if (GameFlag_GetNibble(0x48) == 0) {
-            Mc_SaveData[0].at4.loc.view = 0xC;
+            Mc_SaveData[0].state.at4.loc.view = 0xC;
         } else {
-            Mc_SaveData[0].at4.loc.view = 5;
+            Mc_SaveData[0].state.at4.loc.view = 5;
         }
         work->field_8 = 0xA;
         work->field_A = 0;

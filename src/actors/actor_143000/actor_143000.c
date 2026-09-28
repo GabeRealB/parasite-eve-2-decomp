@@ -4,13 +4,6 @@
 #include <psyq/rand.h>
 
 #include "actors/actor_143000.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "psyq/strings.h"
 #include "rooms/room_common.h"
 
@@ -19,8 +12,18 @@
 #include "gameplay/display.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/action_prompt.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// Work block of the actor's callback task. `promptKind` is the picked hotspot's
 /// prompt display mode, copied from its `Actor143000Rect::field_A` by
@@ -132,7 +135,7 @@ static void func_actor_143000_80131F80(Task* task)
     u16*              statep;
     u16*              heldp;
 
-    switch (task->spawnArg1) {
+    switch (task->spawnArg1.value) {
         case 1:
             first = 0;
             count = 1;
@@ -305,10 +308,10 @@ static void func_actor_143000_801324C8(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->spawnArg2             = Task_SpawnFromTable(&D_actor_143000_80134558, 0, 1, 0);
+    arg0->spawnArg2.pointer             = Task_SpawnFromTable(&D_actor_143000_80134558, 0, 1, 0);
     arg0->work                  = (TaskIdMap*)work;
-    temp_a0                     = Mc_SaveData[0].at4.loc.view;
-    Mc_SaveData[0].at4.loc.view = 0xB;
+    temp_a0                     = Mc_SaveData[0].state.at4.loc.view;
+    Mc_SaveData[0].state.at4.loc.view = 0xB;
     D_actor_143000_80135C0C     = temp_a0;
     arg0->state                += 1;
     work->field_4               = 0;
@@ -362,7 +365,7 @@ static void func_actor_143000_801325F0(Task* arg0)
         return;
     }
     prompt->targetId = 0x80;
-    if (Mc_SaveData[0].demoScene == 9) {
+    if (Mc_SaveData[0].state.demoScene == 9) {
         func_actor_143000_80133C2C();
     }
     work->field_2 = 0;
@@ -462,7 +465,7 @@ static const TaskFuncTable11 D_actor_143000_80131E84 = { {
 } };
 
 /// The codes `func_actor_143000_80132A04` accepts; the second only while
-/// `Mc_SaveData[0].demoScene` is non-zero.
+/// `Mc_SaveData[0].state.demoScene` is non-zero.
 static const char D_actor_143000_80131EB0[] = "A3EILM2S2Y";
 static const char D_actor_143000_80131EBC[] = "YSD";
 
@@ -474,7 +477,7 @@ static void func_actor_143000_80132A04(Task* arg0)
     if (arg0->killCountdown == 0) {
         s32 var_s2 = 0;
 
-        if ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EB0) == 0) || ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EBC) == 0) && (Mc_SaveData[0].demoScene != 0))) {
+        if ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EB0) == 0) || ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EBC) == 0) && (Mc_SaveData[0].state.demoScene != 0))) {
             var_s2 = 1;
         }
         temp_s0->field_C = var_s2;
@@ -514,7 +517,7 @@ static void func_actor_143000_80132A04(Task* arg0)
                 D_actor_143000_80135C08.field_1 = 0;
                 D_actor_143000_80135C08.field_2 = 0xF;
                 arg0->killCountdown             = 0xF;
-                Task_Spawn(1, 0x31, 0, (s32)&D_actor_143000_80135C08);
+                Task_Spawn(1, 0x31, 0, &D_actor_143000_80135C08);
                 break;
         }
     } else {
@@ -696,7 +699,7 @@ static void func_actor_143000_80132D10(Task* arg0)
 
 /// Outlines the hotspot rect `rect` in (`r`, `g`, `b`) with four flat
 /// `LINE_F2` edges linked into `gGpuCurrentOt[1]`. Only reached while
-/// `Mc_SaveData[0].demoScene` or `Mc_SaveData[0].demoScene` is 9, to show the hotspot rects.
+/// `Mc_SaveData[0].state.demoScene` or `Mc_SaveData[0].state.demoScene` is 9, to show the hotspot rects.
 static void func_actor_143000_80133334(Actor143000Rect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
@@ -862,12 +865,12 @@ static void func_actor_143000_80133800(Task* arg0)
         gGameSession->eventState    = 0;
         gGameSession->hideHud       = 0;
         Gp_StateF0.field_4          = 0;
-        Mc_SaveData[0].at4.loc.view = D_actor_143000_80135C0C;
+        Mc_SaveData[0].state.at4.loc.view = D_actor_143000_80135C0C;
         Gp_MsgPlayer3F3(1);
     } else {
-        Task_SpawnFromTable(&D_actor_143000_801350B0, 1, 0, (s32)&D_actor_143000_80135C08);
+        Task_SpawnFromTable(&D_actor_143000_801350B0, 1, 0, &D_actor_143000_80135C08);
     }
-    taskKill((Task*)arg0->spawnArg2);
+    taskKill((Task*)arg0->spawnArg2.pointer);
     Task_RequestKill(arg0, work->field_C);
 }
 
@@ -943,7 +946,7 @@ static s32 func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y)
     if (p->field_8 != -1) {
         do {
             if (x >= p->x && x < p->x + p->w && y >= p->y && y < p->y + p->h) {
-                if (Mc_SaveData[0].demoScene == 9) {
+                if (Mc_SaveData[0].state.demoScene == 9) {
                     func_actor_143000_80133334(p, 0, 0, 0);
                 }
                 p->field_B = 1;
@@ -951,7 +954,7 @@ static s32 func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y)
                     result = p->field_8;
                 }
             } else {
-                if (Mc_SaveData[0].demoScene == 9) {
+                if (Mc_SaveData[0].state.demoScene == 9) {
                     func_actor_143000_80133334(p, 0xFF, 0, 0);
                 }
                 p->field_B = 0;
@@ -998,7 +1001,7 @@ static void func_actor_143000_80133C90(Task* task)
 
 void func_actor_143000_80133CF0(Task* arg0)
 {
-    Actor143000CaptureArgs* p = arg0->spawnArg2;
+    Actor143000CaptureArgs* p = arg0->spawnArg2.pointer;
     RECT                    r;
     RECT                    r2;
     s32                     n;

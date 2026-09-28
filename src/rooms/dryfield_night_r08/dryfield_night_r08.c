@@ -1,14 +1,16 @@
 #include "common.h"
-#include "main/fs.h"
-#include "main/session.h"
-#include "main/task.h"
 #include "rooms/room.h"
 
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/scene_runtime.h"
+
+#include "gameplay/evs.h"
+#include "main/fs.h"
 #include "main/mc.h"
+#include "main/session.h"
+#include "main/task.h"
 
 extern s32 D_80133898;
 extern s32 D_801341E0;
@@ -46,15 +48,15 @@ s32 func_dryfield_night_r08_8017D628(void)
 }
 
 /// The room task's set-up state: publishes the room's message table, claims
-/// pointer slot 7, places the stream buffer 0x20000 bytes into `D_8005C370`
-/// and, unless `Mc_SaveData[0].demoScene` is 9, passes `D_80133898` and `D_801341E0` to
+/// pointer slot 7, places the stream buffer 0x20000 bytes into `Fs_ActorLoadBase1`
+/// and, unless `Mc_SaveData[0].state.demoScene` is 9, passes `D_80133898` and `D_801341E0` to
 /// `func_800E8634`. Then advances to the idle state.
 static void func_dryfield_night_r08_8017D630(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_r08_80180544;
     Game_SetPtrSlot(arg0, 7);
-    Gp_SetStreamBuf((u8*)D_8005C370 + 0x20000);
-    if (Mc_SaveData[0].demoScene != 9) {
+    Gp_SetStreamBuf((u8*)Fs_ActorLoadBase1 + 0x20000);
+    if (Mc_SaveData[0].state.demoScene != 9) {
         func_800E8634(&D_80133898, 0, &D_801341E0);
     }
     arg0->state = (s32)(arg0->state + 1);

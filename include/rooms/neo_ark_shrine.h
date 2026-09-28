@@ -6,9 +6,9 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-#include "main/task.h"
 #include "rooms/room_common.h"
+
+#include "main/task_types.h"
 
 /// A pair of 16-bit coordinates used by the shrine's sliding-tile puzzle: the
 /// screen position of a tile's quad, or the texture origin it samples from.

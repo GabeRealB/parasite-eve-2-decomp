@@ -1,24 +1,97 @@
+#include "sound.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libspu.h>
+
 #include "common.h"
 
-#include "main/unknown_syms.h"
-#include "main/cdaudio.h"
+#include "cdaudio.h"
+#include "sound_types.h"
 
-static void Spu_ApplyReverbConfig(void);
-static void Spu_KeyOnClearOff(u32 voiceIdx);
+typedef struct _SpuReverbConfig {
+    u32           enableVoices;
+    u32           disableVoices;
+    u32           reverbMode;
+    u32           isDirty;
+    SpuReverbAttr attr;
+} SpuReverbConfig;
+STATIC_ASSERT_SIZEOF(SpuReverbConfig, 0x24);
+
+typedef struct _SpuVoiceState {
+    /* 0x000 */ u32              reverbVoiceStatus;
+    /* 0x004 */ u32              field_4[24];   // age / score for voice steal
+    /* 0x064 */ u8               field_64[24];  // state (0/3 ≈ free-ish)
+    /* 0x07C */ u8               field_7c[24];  // key-on staging (5 on note-on)
+    /* 0x094 */ s8               field_94[24];  // occupied (0 free, 1 busy)
+    /* 0x0AC */ u32              field_ac[24];  // alloc priority
+    /* 0x10C */ SpuVoiceCallback field_10c[24]; // cleared on release
+    /* 0x16C */ void*            field_16c[24]; // cleared on release
+    /* 0x1CC */ u32              field_1cc;
+    /* 0x1D0 */ u32              field_1d0;     // key-on related mask
+} SpuVoiceState;
+STATIC_ASSERT_SIZEOF(SpuVoiceState, 0x1D4);
+
+typedef struct _SpuLVoiceTable {
+    /* 0x000 */ s16           count;         // active attr count
+    /* 0x002 */ SpuLVoiceAttr attrs[24];
+    /* 0x664 */ u8            field_664[24]; // per-voice flags
+} SpuLVoiceTable;
+STATIC_ASSERT_SIZEOF(SpuLVoiceTable, 0x67C);
+
+/// 4-byte entry at Spu_VoiceRanges (see Spu_SetVoiceRange).
+typedef struct _SpuVoiceRange {
+    /* 0x0 */ s16 first;
+    /* 0x2 */ s16 count;
+} SpuVoiceRange;
+STATIC_ASSERT_SIZEOF(SpuVoiceRange, 0x4);
+
+/// Ring buffer of 4 AsyncCbEntry callback slots (AsyncCb_Queue, size 0x54).
+/// field_0 = readIdx; field_1 = writeIdx.
+typedef struct _AsyncCbQueue {
+    /* 0x00 */ s8           field_0; // readIdx
+    /* 0x01 */ s8           field_1; // writeIdx
+    /* 0x02 */ u8           pad_2[2];
+    /* 0x04 */ AsyncCbEntry entries[4];
+} AsyncCbQueue;
+STATIC_ASSERT_SIZEOF(AsyncCbQueue, 0x54);
 
 /// The SPU ADPCM block uploaded to SPU address 0x7B440 at start-up.
-static AsyncCbQueue  AsyncCb_Queue;
+static AsyncCbQueue AsyncCb_Queue;
+
 static SpuVoiceState Spu_VoiceState;
+
 /// Unreferenced.
-static u8              D_8007E510[8];
-static SpuLVoiceTable  Spu_LVoiceTable;
-static SpuVoiceRange   Spu_VoiceRanges[4];
-static u32             Spu_KeyOnMask;
-static u32             Spu_KeyOnMaskExtra;
-static u32             Spu_KeyOffMask;
+static u8 D_8007E510[8];
+
+static SpuLVoiceTable Spu_LVoiceTable;
+
+static SpuVoiceRange Spu_VoiceRanges[4];
+
+static u32 Spu_KeyOnMask;
+
+static u32 Spu_KeyOnMaskExtra;
+
+static u32 Spu_KeyOffMask;
+
 static SpuReverbConfig Spu_ReverbCfg;
 
-static u8 D_80068184[] = {
+static u8 Spu_InitialAdpcmBlock[];
+
+static inline s32 Spu_ReleaseVoiceSlotInline(u32 voiceIdx);
+
+static inline s32 Spu_GetVoiceRefInline(s8 voiceIdx, SpuVoiceRef* ref);
+
+static void Spu_QueryReverbVoices(void);
+
+static void Spu_SetReverbMode(u32 mode);
+
+static bool Spu_ReverbVoiceIsEnabled(u32 voiceIdx);
+
+static void Spu_ApplyReverbConfig(void);
+
+static void Spu_KeyOnClearOff(u32 voiceIdx);
+
+static u8 Spu_InitialAdpcmBlock[] = {
 #include "assets/spu_voice_block.inc"
 };
 
@@ -75,7 +148,7 @@ void AsyncCb_Reset(void)
     } while (i < 0x15U);
 }
 
-s16 func_8004DE18(AsyncCbEntry* arg0)
+s16 AsyncCb_Enqueue(AsyncCbEntry* callbacks)
 {
     AsyncCbEntry* entry;
     s32           next;
@@ -93,9 +166,9 @@ s16 func_8004DE18(AsyncCbEntry* arg0)
         return 0;
     } else {
         entry                 = &AsyncCb_Queue.entries[writeIdx];
-        entry->field_8        = arg0->field_8;
-        entry->field_C        = arg0->field_C;
-        entry->field_10       = arg0->field_10;
+        entry->field_8        = callbacks->field_8;
+        entry->field_C        = callbacks->field_C;
+        entry->field_10       = callbacks->field_10;
         entry->field_0.word  |= 1;
         entry->field_0.word  &= ~4;
         entry->field_0.word  &= ~8;
@@ -131,7 +204,7 @@ void Spu_InitVoices(void)
 
     spuAddr = 0x7B440;
     SpuSetTransferStartAddr(spuAddr);
-    SpuWrite(D_80068184, 0x30U);
+    SpuWrite(Spu_InitialAdpcmBlock, 0x30U);
     SpuIsTransferCompleted(1);
 
     ptr                = (s32*)&Spu_LVoiceTable;
@@ -310,7 +383,7 @@ static inline s32 Spu_GetVoiceRefInline(s8 voiceIdx, SpuVoiceRef* ref)
     }
 }
 
-void func_8004E200(void)
+void Spu_TickVoices(void)
 {
     SpuVoiceRef      ref;
     SpuVoiceState*   base;
@@ -625,7 +698,7 @@ u16 Spu_CalcVolume(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     offset = 0;
     hi     = temp & 0xFFFF;
     do {
-        base = D_80068BB8;
+        base = Spu_SemitonePitchTable;
         hi >>= 8;
         if (hi != 0) {
             offset = hi << 1;
@@ -633,7 +706,7 @@ u16 Spu_CalcVolume(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     } while (0);
     /* The table is indexed by a byte offset: shifting the index inside the
      * branch is what the original does, and indexing `base` moves the shift. */
-    lo = ((u32) * (u16*)((u8*)base + offset) * (u32)D_80068C78[lo]) >> 8;
+    lo = ((u32) * (u16*)((u8*)base + offset) * (u32)Spu_FinePitchTable[lo]) >> 8;
     if ((lo & 0xFFFF) >= 0x4000) {
         lo = 0x3FFF;
     }

@@ -5,11 +5,6 @@
 
 #include "actors/actor.h"
 #include "actors/actor_205200.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/attachments.h"
@@ -23,8 +18,21 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/damage.h"
+#include "gameplay/effects.h"
+#include "gameplay/enemy.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
 #include "main/gamemain.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task_types.h"
 #include "main/wipsys.h"
 
 /// Work block of the actor's own task, allocated by its spawn handler
@@ -182,7 +190,7 @@ static void func_actor_205200_8014BD4C(Task* arg0)
     }
     for (i = 0; i < 3; i++) {
         if ((work->field_49C[i].key & 0xFFFF0000) == 0x20000) {
-            func_800DA6E8(&((GpEnemy*)arg0->spawnArg2)->node, 0, 0);
+            func_800DA6E8(&((GpEnemy*)arg0->spawnArg2.pointer)->node, 0, 0);
             switch (Gp_GetIdParam0(work->field_49C[i].key) & 0xFFFF) {
                 case 1:
                     found = 1;
@@ -317,7 +325,7 @@ static void func_actor_205200_8014C0C0(Task* arg0)
                 work->field_58A = 1;
                 work->field_58C = 0;
                 Gp_SpawnPadLerp(0xF, 0xFF, 0x80);
-                sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 7;
+                sound = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 7;
                 SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 scratch->dir.vx = 0;
                 scratch->dir.vy = -1000;
@@ -351,10 +359,10 @@ static void func_actor_205200_8014C0C0(Task* arg0)
             }
             if ((s16)work->field_58C == 0x10) {
                 if (work->field_596 == 0) {
-                    sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x55180002;
+                    sound = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x55180002;
                     SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 } else {
-                    sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x55190003;
+                    sound = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x55190003;
                     SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 }
             }
@@ -392,7 +400,7 @@ static void func_actor_205200_8014C540(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = D_actor_205200_80149E30;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
 static void func_actor_205200_8014C59C(GpEnemy* arg0, Task* arg1)
@@ -544,7 +552,7 @@ static void func_actor_205200_8014C87C(Task* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2, &vec, 0, 0);
+    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
 /// Draws the ground quad under the actor at its attach coordinate's world

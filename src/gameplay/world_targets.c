@@ -30,7 +30,8 @@
 #include "gameplay/world_state.h"
 #include "world_state.h"
 
-#include "main/coord.h"
+#include "aya/aya.h"
+#include "gameplay/damage.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mc.h"
@@ -38,10 +39,9 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/sound.h"
-#include "main/task.h"
 #include "main/text.h"
-#include "main/tmd.h"
 #include "main/ui.h"
+#include <psyq/stdio.h>
 
 /// 0x38-byte scratch from `G_SCRATCH_HEAD` used by `Gp_ScanLockNodes`.
 /// `src` is the actor's `coord.t` (lowered by 1000 on Y) before
@@ -454,10 +454,10 @@ static void Gp_UpdateLockSlots(void)
 
         req.x       = x14;
         req.field_E = 0;
-        func_8002E53C(reqp, Text_ItoaSigned(bufp, val));
+        Text_DrawString(reqp, Text_ItoaSigned(bufp, val));
         req.x       = x14;
         req.field_E = 4;
-        func_8002E53C(reqp, Text_ItoaSigned(bufp, val));
+        Text_DrawString(reqp, Text_ItoaSigned(bufp, val));
 
         rect.x = x - 0x10;
         rect.y = y - 8;
@@ -789,7 +789,7 @@ s32 Gp_GrantLocationItems(McItemScan* arg0)
     area  = loc->area;
     sub   = loc->place;
     key   = (stage << 24) | (area << 16) | (sub << 8);
-    mode  = Mc_SaveData[0].gameMode;
+    mode  = Mc_SaveData[0].state.gameMode;
     if ((mode == 0) || (mode == 2)) {
         rec = D_8010F9F4[stage];
     } else {
@@ -911,10 +911,10 @@ void Gp_InitStateF0(void)
         p->field_2B = 0;
     } else {
         save        = &Mc_SaveData[0];
-        val         = (u8)save->gameMode;
+        val         = (u8)save->state.gameMode;
         p->field_2B = val;
         if (val == 0) {
-            if (save->clearCount != 0) {
+            if (save->state.clearCount != 0) {
                 p->field_2B = 4;
             }
         }
@@ -963,7 +963,7 @@ void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1)
                 SndEvt_EnqueueType2(0, 0xB4);
             }
         }
-        rec = ((GpEnemy*)arg0->spawnArg2)->param;
+        rec = ((GpEnemy*)arg0->spawnArg2.pointer)->param;
         if (rec != NULL) {
             q            = &Gp_StateF0;
             q->field_8  += rec->exp;

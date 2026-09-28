@@ -1,20 +1,21 @@
 #include "common.h"
 
+#include "rooms/dryfield_gas_station.h"
+#include "rooms/room.h"
+
+#include "gameplay/display.h"
+#include "gameplay/hud_sprites.h"
+
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
-#include "main/sound.h"
+#include "main/stage.h"
 #include "main/stream.h"
 #include "main/task.h"
-
-#include "rooms/dryfield_gas_station.h"
-#include "rooms/room.h"
-
-#include "gameplay/display.h"
-#include "gameplay/hud_sprites.h"
+#include "overlay.h"
 
 /// Work block the gas station's shaft sequencer (`func_dryfield_gas_station_801802C0`)
 /// allocates as 4 bytes in its state 0 and hangs off `Task::work` (0x1C) for
@@ -26,7 +27,6 @@ typedef struct DgsCutsceneSlot {
 } DgsCutsceneSlot;
 STATIC_ASSERT_SIZEOF(DgsCutsceneSlot, 0x4);
 
-extern void     Stage_RequestFromAreaTable(s32 arg0);
 extern TaskDesc D_dryfield_gas_station_80181E7C[];
 extern TaskDesc D_dryfield_gas_station_8018312C[];
 
@@ -74,13 +74,13 @@ L_case2:
         return;
     }
     task->killCountdown = 0;
-    task->spawnArg1     = 0;
+    task->spawnArg1.value     = 0;
     SetDispMask(1);
     goto advance;
 
 L_case3:
     if (++task->killCountdown == 0x186) {
-        task->spawnArg1 = 1;
+        task->spawnArg1.value = 1;
         Stage_RequestFromAreaTable(0xA);
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
@@ -90,7 +90,7 @@ L_case3:
     if (Pad_CheckFlag800() == 0) {
         return;
     }
-    if (task->spawnArg1 == 0) {
+    if (task->spawnArg1.value == 0) {
         Stage_RequestFromAreaTable(0xA);
     }
     SetDispMask(0);
@@ -142,9 +142,9 @@ void func_dryfield_gas_station_801801E4(Task* arg0)
             /* fallthrough */
         case 1:
             Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
-            fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1);
-            fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1);
-            fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1);
+            fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1.value);
+            fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1.value);
+            fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1.value);
             if (fade->r >= 0) {
                 return;
             }

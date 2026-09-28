@@ -1,18 +1,10 @@
 #include "common.h"
-#include "main/sound.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "weapons/m4a1_pyke.h"
 
 #include "gameplay/actor_render.h"
@@ -25,8 +17,21 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/animation.h"
+#include "gameplay/effects.h"
+#include "gameplay/light.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 static void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness);
 static void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang);
@@ -65,7 +70,7 @@ static void func_m4a1_pyke_8011D1F8(Task* task)
     GpEffWork*    eff;
     u32           ang;
 
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     base  = &Gp_RoomCoords[1];
     light = &base->data.coord;
@@ -94,7 +99,7 @@ static void func_m4a1_pyke_8011D1F8(Task* task)
             task->state = 1;
             break;
         case 1:
-            switch (task->spawnArg1) {
+            switch (task->spawnArg1.value) {
                 case 0:
                     break;
                 case 1:
@@ -147,10 +152,10 @@ static void func_m4a1_pyke_8011D1F8(Task* task)
                     light->flg = 0;
                     break;
                 case 3:
-                    task->spawnArg1 = 1;
+                    task->spawnArg1.value = 1;
                     break;
                 case 4:
-                    task->spawnArg1 = 0;
+                    task->spawnArg1.value = 0;
                     break;
                 case 5:
                     Gp_ReleaseState1CMem(work, task);
@@ -267,7 +272,7 @@ static void func_m4a1_pyke_8011D7D4(Task* task)
     u32           ang3;
 
     beam  = (M4a1PykeBeam*)task->work;
-    work  = task->spawnArg2;
+    work  = task->spawnArg2.pointer;
     fade  = Gp_State1C->eventState;
     coord = task->extra.tmd->coords;
     if (fade >= 4) {
@@ -297,13 +302,13 @@ static void func_m4a1_pyke_8011D7D4(Task* task)
             work->move.vx = 0;
             ang0          = Gp_LcgState * 5 + 0x71357911;
             Gp_LcgState   = ang0;
-            work->move.vy = (u16)task->spawnArg1 - ((ang0 >> 16) & 0x3F);
+            work->move.vy = (u16)task->spawnArg1.value - ((ang0 >> 16) & 0x3F);
             work->move.vz = 0;
             gte_SetRotMatrix(&coord->coord);
             gte_ldv0(&work->move);
             gte_rtv0();
             gte_stsv(&work->move);
-            work->scale        = (u16)task->spawnArg1 + 0x180;
+            work->scale        = (u16)task->spawnArg1.value + 0x180;
             ang1               = Gp_LcgState * 5 + 0x71357911;
             work->angle        = (ang1 >> 16) & 0xFFF;
             task->state        = 1;
@@ -533,7 +538,7 @@ static void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
 static void func_m4a1_pyke_8011E4AC(Task* task)
 {
     GpObj* obj = task->work;
-    void*  mem = task->spawnArg2;
+    void*  mem = task->spawnArg2.pointer;
 
     if (obj != NULL) {
         Gp_UnlinkObj(obj);
@@ -607,7 +612,7 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0)
                 actor->field_979 = 0x1C;
                 actor->field_93E = 0x14;
                 if (beam != NULL) {
-                    beam->spawnArg1 = 2;
+                    beam->spawnArg1.value = 2;
                 }
                 Gp_ConsumeSlotQty(0x9B, 0x101);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201C0005, 1);
@@ -661,7 +666,7 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0)
                     beam             = actor->field_914;
                     actor->field_95E = 6;
                     if (beam != NULL) {
-                        beam->spawnArg1 = spent != 0 ? 3 : 4;
+                        beam->spawnArg1.value = spent != 0 ? 3 : 4;
                     }
                     SndEvt_EnqueueType7(0x201C0005, 1);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xF, 0, 2);
@@ -674,7 +679,7 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0)
             if (actor->field_979 != 0) {
                 actor->field_979--;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].characterId][1], 0, 0) == 0 ||
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0 ||
                 ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
                 actor->field_940 = 0xC;
                 func_80106550(arg0);

@@ -16,12 +16,12 @@
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "main/coord.h"
+#include "gameplay/damage.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
-#include "main/task.h"
+#include "main/task_types.h"
 
 /// 0x28-byte scratch from `G_SCRATCH_HEAD` used by `Gp_FindNearestSlot`.
 /// `local` is the collider's `end1` plus `GpObj.pos`,
@@ -968,7 +968,7 @@ void Gp_CommitObj4CSave(void)
         if (node->field_4B != 0) {
             node->field_4B = 0;
             if ((u8)gGameSession->at4.loc.view == node->field_48) {
-                Mc_SaveData[0].at4.loc.view = node->field_49;
+                Mc_SaveData[0].state.at4.loc.view = node->field_49;
             }
         }
     }

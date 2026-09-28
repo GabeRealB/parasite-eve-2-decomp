@@ -4,11 +4,12 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-#include "main/gfx.h"
-#include "main/mem.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/effects.h"
+
+#include "main/session_types.h"
+#include "main/task_types.h"
 
 /// Work block of the actor `func_actor_521100_80131E8C` spawns:
 /// `memCalloc(0x6C0, 0)`, hung off `Task::work`. It holds the model's

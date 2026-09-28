@@ -4,8 +4,10 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-#include "main/task.h"
 #include "overlay.h"
+
+#include "main/task_types.h"
+#include "main/tmd_types.h"
 
 /// A scripted event a room starts in answer to a message. The room's message
 /// handler builds the record, and if the event has not happened yet it copies
@@ -42,7 +44,7 @@ STATIC_ASSERT_SIZEOF(RoomCutsceneRec, 0x18);
 
 /// One row of a shop's price ladder, a table of thirteen in the room's data.
 /// The row's three items join the shop's stock once the row's bit is set in
-/// `Mc_SaveData[0].shopTiers`. The rooms read only `items`; the leading word grows
+/// `Mc_SaveData[0].state.shopTiers`. The rooms read only `items`; the leading word grows
 /// row by row up to `S32_MAX` in the last, which reads as the spend that
 /// unlocks the row, but nothing here confirms it.
 typedef struct RoomShopTier {

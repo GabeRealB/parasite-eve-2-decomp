@@ -1,11 +1,6 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b1_north_maintenance_walkway.h"
@@ -16,8 +11,15 @@
 #include "gameplay/loading.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/sprites.h"
+#include "gameplay/world_state.h"
 #include "main/display.h"
-#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 extern GpMsgEntry D_shelter_b1_north_maintenance_walkway_80184A84[];
 extern TaskDesc   D_shelter_b1_north_maintenance_walkway_80184AAC[];
@@ -82,7 +84,7 @@ void func_shelter_b1_north_maintenance_walkway_8017D60C(Task* arg0)
                     D_shelter_b1_north_maintenance_walkway_80185B6C.field_0 = 0;
                     D_shelter_b1_north_maintenance_walkway_80185B6C.field_1 = 0;
                     D_shelter_b1_north_maintenance_walkway_80185B6C.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, (s32)&D_shelter_b1_north_maintenance_walkway_80185B6C);
+                    Task_Spawn(1, 0x31, 0, &D_shelter_b1_north_maintenance_walkway_80185B6C);
                 }
                 arg0->state++;
             }
@@ -103,9 +105,9 @@ void func_shelter_b1_north_maintenance_walkway_8017D60C(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_shelter_b1_north_maintenance_walkway_80185B74.msgId;
-            Mc_SaveData[0].at4.loc.warp = D_shelter_b1_north_maintenance_walkway_80185B74.field_2;
-            Mc_SaveData[0].at4.loc.room = (u8)D_shelter_b1_north_maintenance_walkway_80185B74.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_north_maintenance_walkway_80185B74.msgId;
+            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_north_maintenance_walkway_80185B74.field_2;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_north_maintenance_walkway_80185B74.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

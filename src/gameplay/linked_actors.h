@@ -5,7 +5,7 @@
 
 #include "attachment_state.h"
 
-#include "main/session.h"
+#include "main/session_types.h"
 
 /// Head of the list of enemies the lock-on system tracks; `Gp_ResetLinkState`
 /// empties it.

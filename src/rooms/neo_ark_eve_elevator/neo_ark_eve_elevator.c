@@ -1,13 +1,14 @@
 #include "common.h"
-#include "main/fs.h"
-#include "main/session.h"
-#include "main/task.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
+
+#include "main/fs.h"
+#include "main/session.h"
+#include "main/task.h"
 
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 

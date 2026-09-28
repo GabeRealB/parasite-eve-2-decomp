@@ -2,11 +2,6 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 #include "pe/necrosis.h"
 
 #include "gameplay/actor_render.h"
@@ -16,9 +11,19 @@
 #include "gameplay/pad_script.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
-#include "main/fs.h"
+
+#include "gameplay/actor.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/effects.h"
+#include "gameplay/scene.h"
+#include "main/display.h"
 #include "main/gamemain.h"
-#include "main/gfx.h"
+#include "main/gfx_types.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
 /// Per-level tuning for the necrosis burst: rows are PE levels 1-3, selected
 /// by `index`. `field_0` is the `Gp_SpawnEff` draw parameter; `field_2` is
@@ -60,7 +65,7 @@ static void func_necrosis_8012EF34(Task* arg0)
     s16           fade;
 
     work     = (NecrosisWork*)arg0->work;
-    mem      = arg0->spawnArg2;
+    mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.tmd->coords;
     old      = mem->age;
     tick     = old + 1;
@@ -187,7 +192,7 @@ static void func_necrosis_8012F52C(Task* arg0)
     GpCoord*   coord;
     GpEffWork* spawned;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->fadeState != 0) {
         return;
@@ -195,7 +200,7 @@ static void func_necrosis_8012F52C(Task* arg0)
 
     mem->age = mem->age + 1;
     if (arg0->state == 0) {
-        mem->scale  = arg0->spawnArg1 & 0xFFF;
+        mem->scale  = arg0->spawnArg1.value & 0xFFF;
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         mem->angle  = (Gp_LcgState >> 16) & 0xFFF;
         mem->period = mem->scale - 0x100;
@@ -293,7 +298,7 @@ static void func_necrosis_8012FAF8(Task* arg0)
     s32        var_v1;
     u16        temp_v0;
 
-    mem   = arg0->spawnArg2;
+    mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->fadeState != 0) {
         return;
@@ -303,7 +308,7 @@ static void func_necrosis_8012FAF8(Task* arg0)
     switch (arg0->state) {
         case 0:
             mem->age     = 0;
-            temp_v0      = arg0->spawnArg1;
+            temp_v0      = arg0->spawnArg1.value;
             mem->period  = temp_v0 & 0xFFF;
             rng1         = (Gp_LcgState * 5) + 0x71357911;
             mem->scale   = ((u32)rng1 >> 16) & 0xFFF;

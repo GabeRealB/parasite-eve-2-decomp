@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 extern TaskDesc D_acropolis_cafeteria_80184178;
 

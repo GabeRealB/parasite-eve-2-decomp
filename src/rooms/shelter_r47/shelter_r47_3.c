@@ -4,14 +4,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_r47.h"
 
@@ -21,7 +13,19 @@
 #include "gameplay/item_menu.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/loading.h"
-#include "main/fs.h"
+
+#include "gameplay/action_prompt.h"
+#include "main/display.h"
+#include "main/gameflow.h"
+#include "main/gfx.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "overlay.h"
 
 /// Hotspot tables of the second cap script; `spawnArg1` 2 selects the second.
 extern OverlayHotspot D_shelter_r47_8018739C[];
@@ -100,11 +104,11 @@ static void func_shelter_r47_8018431C(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2 = Task_SpawnFromTable(&D_shelter_r47_8018760C, 0, 1, 0);
+    task->spawnArg2.pointer = Task_SpawnFromTable(&D_shelter_r47_8018760C, 0, 1, 0);
     task->work      = (void*)state;
     task->state    += 1;
     Display_AcquireRef();
-    state->hotspots = task->spawnArg1 == 2 ? D_shelter_r47_801873D8 : D_shelter_r47_8018739C;
+    state->hotspots = task->spawnArg1.value == 2 ? D_shelter_r47_801873D8 : D_shelter_r47_8018739C;
     do {
     } while (0);
     for (hs = state->hotspots; hs->id != -1; hs++) {
@@ -120,7 +124,7 @@ static void func_shelter_r47_8018431C(Task* task)
     spriteX                    = -0x9C;
     do {
     } while (0);
-    view                        = Mc_SaveData[0].at4.loc.view;
+    view                        = Mc_SaveData[0].state.at4.loc.view;
     state->field_20             = -0x104;
     state->field_E              = quadW;
     state->field_10             = quadH;
@@ -128,8 +132,8 @@ static void func_shelter_r47_8018431C(Task* task)
     state->field_18             = quad2H;
     state->field_1E             = spriteX;
     state->field_29             = view;
-    Mc_SaveData[0].at4.loc.view = 0x25;
-    if ((arg = task->spawnArg1) == 1 || arg == 2) {
+    Mc_SaveData[0].state.at4.loc.view = 0x25;
+    if ((arg = task->spawnArg1.value) == 1 || arg == 2) {
         state->fade     = 0xFF;
         level           = (u8)state->fade;
         state->field_A  = quadW;
@@ -377,7 +381,7 @@ static void func_shelter_r47_80184AE0(Task* task)
     u16*              statep;
     u16*              heldp;
 
-    switch (task->spawnArg1) {
+    switch (task->spawnArg1.value) {
         case 1:
             first = 0;
             count = 1;
@@ -567,7 +571,7 @@ static void func_shelter_r47_80185098(Task* task)
     state->fade = fade;
     if ((s16)fade >= 0x100) {
         state->fade = 0xFF;
-        if (task->spawnArg1 != 1) {
+        if (task->spawnArg1.value != 1) {
             Gp_MsgPlayerWeapon(1);
         }
         Gp_MsgPlayer3F3(1);
@@ -576,7 +580,7 @@ static void func_shelter_r47_80185098(Task* task)
             gGameSession->eventState = 0;
         }
         gGameSession->cutsceneHold = 0;
-        taskKill((Task*)task->spawnArg2);
+        taskKill((Task*)task->spawnArg2.pointer);
         Task_RequestKill(task, 0);
     }
     SndEvt_EnqueueType7(0x542F0005, 1);
@@ -692,11 +696,11 @@ static void func_shelter_r47_80185510(Task* task)
     Gp_MsgPlayer3F3(1);
     SndEvt_EnqueueType7(0x542F0005, 1);
     Display_ReleaseRef();
-    Mc_SaveData[0].at4.loc.view = state->field_29;
+    Mc_SaveData[0].state.at4.loc.view = state->field_29;
     gGameSession->eventState    = 0;
     gGameSession->hideHud       = 0;
     gGameSession->cutsceneHold  = 0;
-    taskKill((Task*)task->spawnArg2);
+    taskKill((Task*)task->spawnArg2.pointer);
     Task_RequestKill(task, 0);
 }
 
@@ -716,14 +720,14 @@ static void func_shelter_r47_801855B8(Task* task)
                 if (state->field_1C < 0) {
                     state->field_1C = 4;
                 }
-                Mc_SaveData[0].at4.loc.view = D_shelter_r47_801873FC[state->field_1C];
+                Mc_SaveData[0].state.at4.loc.view = D_shelter_r47_801873FC[state->field_1C];
                 break;
             case 3:
                 state->field_1C++;
                 if (state->field_1C >= 5) {
                     state->field_1C = 0;
                 }
-                Mc_SaveData[0].at4.loc.view = D_shelter_r47_801873FC[state->field_1C];
+                Mc_SaveData[0].state.at4.loc.view = D_shelter_r47_801873FC[state->field_1C];
                 break;
         }
         task->state++;

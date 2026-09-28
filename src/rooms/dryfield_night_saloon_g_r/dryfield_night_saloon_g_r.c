@@ -4,22 +4,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gamemain.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/tmd.h"
-#include "main/ui.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8018055c.h"
@@ -36,9 +20,24 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/world_targets.h"
 
-extern void func_8002E53C(TextDrawReq* req, u8* text);
-
-extern s16 D_8007A396;
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "gameplay/world_state.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/loadui.h"
+#include "main/mc.h"
+#include "main/pad.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
 
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.
@@ -49,7 +48,7 @@ extern u8           D_dryfield_night_saloon_g_r_80188FB4;
 /// Descriptor of the event task `func_dryfield_night_saloon_g_r_8017DA04`.
 extern TaskDesc D_dryfield_night_saloon_g_r_8017F90C;
 
-/// Saved `Mc_SaveData[0].at4.loc.view` (area id), restored when the cutscene ends.
+/// Saved `Mc_SaveData[0].state.at4.loc.view` (area id), restored when the cutscene ends.
 extern u8 D_dryfield_night_saloon_g_r_80188FA4;
 
 extern GpMsgEntry D_dryfield_night_saloon_g_r_8017F918[];
@@ -215,9 +214,9 @@ void func_dryfield_night_saloon_g_r_8017DA04(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].at4.loc.area = D_dryfield_night_saloon_g_r_80188FAC.msgId;
-            Mc_SaveData[0].at4.loc.warp = D_dryfield_night_saloon_g_r_80188FAC.field_2;
-            Mc_SaveData[0].at4.loc.room = (u8)D_dryfield_night_saloon_g_r_80188FAC.field_3;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_saloon_g_r_80188FAC.msgId;
+            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_saloon_g_r_80188FAC.field_2;
+            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_saloon_g_r_80188FAC.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -231,7 +230,7 @@ void func_dryfield_night_saloon_g_r_8017DA04(Task* task)
 static const TaskFuncTable3 D_dryfield_night_saloon_g_r_8017D5DC = {
     { func_dryfield_night_saloon_g_r_8017DF90, func_dryfield_night_saloon_g_r_8017E040, taskKill },
 };
-/// Room cutscene task: case 0 saves the area id, forces `Mc_SaveData[0].at4.loc.view`
+/// Room cutscene task: case 0 saves the area id, forces `Mc_SaveData[0].state.at4.loc.view`
 /// to 0xC, raises the script halt flags and starts cap command 0x13; the
 /// following states wait for the cap to go idle, then start the jukebox task,
 /// and case 4 restores the area id and kills the task.
@@ -246,8 +245,8 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
             gGameSession->hideHud                = 1;
             Gp_StateF0.field_4                   = 2;
             save                                 = &Mc_SaveData[0];
-            temp                                 = save->at4.loc.view;
-            save->at4.loc.view                   = 0xC;
+            temp                                 = save->state.at4.loc.view;
+            save->state.at4.loc.view                   = 0xC;
             D_dryfield_night_saloon_g_r_80188FA4 = temp;
             Gp_MsgPlayer3F3(0);
             Gp_RunCapCmd(0x13, 0);
@@ -271,7 +270,7 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
             gGameSession->hideHud       = 0;
             D_80114D08                  = 0xA;
             Gp_StateF0.field_4          = 0;
-            Mc_SaveData[0].at4.loc.view = D_dryfield_night_saloon_g_r_80188FA4;
+            Mc_SaveData[0].state.at4.loc.view = D_dryfield_night_saloon_g_r_80188FA4;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             break;
@@ -469,10 +468,10 @@ void func_dryfield_night_saloon_g_r_8017E050(Task* task)
 }
 
 /// Cutscene script callback: stores `arg0` as the session's room and in the
-/// main-executable byte `Mc_SaveData[0].at4.loc.room`.
+/// main-executable byte `Mc_SaveData[0].state.at4.loc.room`.
 void func_dryfield_night_saloon_g_r_8017E0A8(u8 arg0)
 {
-    Mc_SaveData[0].at4.loc.room = arg0;
+    Mc_SaveData[0].state.at4.loc.room = arg0;
     gGameSession->at4.loc.room  = arg0;
 }
 
@@ -492,8 +491,8 @@ void func_dryfield_night_saloon_g_r_8017E0C0(UiList* prompt, UiObject* obj)
     menu = D_dryfield_night_saloon_g_r_8017D870;
 
     list = 4;
-    if (Mc_SaveData[0].clearCount != 0) {
-        list = Mc_SaveData[0].gameMode;
+    if (Mc_SaveData[0].state.clearCount != 0) {
+        list = Mc_SaveData[0].state.gameMode;
     }
     if (Gp_IsDebugAttachRoom() == 0) {
         list += 5;
@@ -507,12 +506,12 @@ void func_dryfield_night_saloon_g_r_8017E0C0(UiList* prompt, UiObject* obj)
     menu.req.glyphTable = 4;
     menu.req.field_E    = 1;
     menu.req.centerMode = 0;
-    func_8002E53C(&menu.req, course->name);
+    Text_DrawString(&menu.req, course->name);
 
     mode = prompt->field_C;
     if (mode == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            if (obj->owner->spawnArg1 != prompt->field_8) {
+            if (obj->owner->spawnArg1.value != prompt->field_8) {
                 SndEvt_EnqueueType6(0x16, 0, 0);
                 if (obj->owner->status != course->id) {
                     SndEvt_EnqueueType2(0, 0x3C);
@@ -520,7 +519,7 @@ void func_dryfield_night_saloon_g_r_8017E0C0(UiList* prompt, UiObject* obj)
                     obj->owner->status = course->id;
                     CdCmd_DropPending();
                 }
-                obj->owner->spawnArg1 = prompt->field_8;
+                obj->owner->spawnArg1.value = prompt->field_8;
             }
         }
     }
@@ -543,13 +542,13 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
     s32       state;
     u8        ready;
 
-    obj  = task->spawnArg2;
+    obj  = task->spawnArg2.pointer;
     menu = &D_dryfield_night_saloon_g_r_80185028;
 
     obj->field_2E = 0;
     Ui_DrawText(&(obj)->panel, D_dryfield_night_saloon_g_r_8017D898);
     if (task->state == 0) {
-        task->spawnArg1 = -1;
+        task->spawnArg1.value = -1;
         if (Gp_IsDebugAttachRoom() == 0) {
             menu->field_4 = 4;
         } else {
@@ -647,12 +646,12 @@ void func_dryfield_night_saloon_g_r_8017E564(Task* task)
         }
         GameMain_SetFrameTiming(0);
         gGameSession->uiOpen = 1;
-        task->spawnArg2      = obj;
+        task->spawnArg2.pointer      = obj;
         task->state++;
     }
 
     if (task->state == 1) {
-        obj = task->spawnArg2;
+        obj = task->spawnArg2.pointer;
         if (obj->field_2E == -1 || obj->field_2E == 6) {
             Ui_TeardownTree(obj, obj->owner);
             task->killCountdown = 10;

@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 /// 8-byte spawn point in the absolute tables `D_8018B74C` (map 0x427) and
 /// `D_801874C4` (map 0x428), indexed by bits 8..11 of the 0x2C00 message

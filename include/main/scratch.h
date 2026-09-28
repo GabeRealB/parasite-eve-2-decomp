@@ -1,5 +1,5 @@
-#ifndef SCRATCH_H
-#define SCRATCH_H
+#ifndef MAIN_SCRATCH_H
+#define MAIN_SCRATCH_H
 
 #include "common.h"
 
@@ -12,8 +12,7 @@
 /// constant, and GCC keeps it in a register across the load and the store only
 /// when the expression is written in the function itself. Inlined from a
 /// function body, the same update is addressed twice and scheduled differently.
-#define G_SCRATCH_HEAD         PSX_SCRATCH_ADDR(0x3FC)
-#define GameResetScratchHead() *(void**)G_SCRATCH_HEAD = G_SCRATCH_HEAD
+#define G_SCRATCH_HEAD PSX_SCRATCH_ADDR(0x3FC)
 
 /// The stack pointer seen as a `type*`: reads the top block, or, assigned,
 /// moves the top to a block the caller computed.
@@ -37,11 +36,14 @@
 
 /// `SCRATCH_HEAD`, `SCRATCH_PUSH` and `SCRATCH_POP` through such a local.
 #define SCRATCH_HEAD_AT(head, type) (*(type**)(head))
+
 #define SCRATCH_PUSH_AT(head, type) (*(type**)(head) -= 1)
-#define SCRATCH_POP_AT(head, type)  (*(type**)(head) += 1)
+
+#define SCRATCH_POP_AT(head, type) (*(type**)(head) += 1)
 
 /// `SCRATCH_PUSH_BYTES` / `SCRATCH_POP_BYTES` through such a local.
 #define SCRATCH_PUSH_BYTES_AT(head, n) (*(void**)(head) = (u8*)*(void**)(head) - (n))
-#define SCRATCH_POP_BYTES_AT(head, n)  (*(void**)(head) = (u8*)*(void**)(head) + (n))
 
-#endif
+#define SCRATCH_POP_BYTES_AT(head, n) (*(void**)(head) = (u8*)*(void**)(head) + (n))
+
+#endif // MAIN_SCRATCH_H

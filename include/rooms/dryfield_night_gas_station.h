@@ -6,9 +6,9 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "main/coord.h"
-#include "main/task.h"
-#include "main/ui.h"
+
+#include "main/task_types.h"
+#include "main/ui_types.h"
 
 /// The block the room's effect task carries as its `spawnArg2`.
 /// `func_dryfield_night_gas_station_80180E9C` keeps the spawn offset it hands

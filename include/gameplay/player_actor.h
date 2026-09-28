@@ -11,12 +11,12 @@
 #include "gameplay/message.h"
 
 #include "main/coord.h"
-#include "main/session.h"
-#include "main/task.h"
+#include "main/session_types.h"
+#include "main/task_types.h"
 
 struct GpCoord;
 
-/// 2-wide rows indexed by `Mc_SaveData[0].characterId`. `Gp_PlayerMode2StateB` passes
+/// 2-wide rows indexed by `Mc_SaveData[0].state.characterId`. `Gp_PlayerMode2StateB` passes
 /// `D_80112E04[field_22][1]` to `func_80105894`.
 extern u8 D_80112E04[][2];
 

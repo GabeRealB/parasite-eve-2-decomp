@@ -18,17 +18,16 @@
 #include "gameplay/player_state.h"
 #include "gameplay/room.h"
 
+#include "mapui/stage_tables.h"
+
 #include "main/display.h"
 #include "main/mc.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
-#include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
-
-#include "mapui/stage_tables.h"
 
 MATRIX Gp_DefaultMtx;
 
@@ -128,7 +127,7 @@ static s32 Gp_ApplyItemUse(McItemRec* arg0)
         if ((u32)(id - 0x80) < 0x20U) {
             if (actor->field_954 != 2) {
                 rec       = NULL;
-                scanEquip = &Mc_SaveData[0].carriedItems;
+                scanEquip = &Mc_SaveData[0].state.carriedItems;
                 prevId    = cfg->weapon + 0x7F;
 
                 cfg->weapon = id - 0x7F;
@@ -178,12 +177,12 @@ static s32 Gp_ApplyItemUse(McItemRec* arg0)
             }
 
             if (relId != 0 && relId != 0xFF) {
-                scanQty = &Mc_SaveData[0].carriedItems;
+                scanQty = &Mc_SaveData[0].state.carriedItems;
                 qty     = Gp_ScanStackQty(scanQty, relId);
                 qty    -= Gp_CountEquippedRelated(scanQty, relId);
             }
             if (qty > 0) {
-                scanRel = &Mc_SaveData[0].carriedItems;
+                scanRel = &Mc_SaveData[0].state.carriedItems;
                 hit     = NULL;
                 table   = Gp_GetItemTable(scanRel);
                 i       = 0;
@@ -198,7 +197,7 @@ static s32 Gp_ApplyItemUse(McItemRec* arg0)
                 found = hit;
                 if (found != NULL && found->attachSlot == 0) {
                     slotNum  = -1;
-                    scanFree = &Mc_SaveData[0].carriedItems;
+                    scanFree = &Mc_SaveData[0].state.carriedItems;
                     Gp_GetItemTable(scanFree);
                     for (k = 0; k < 3; k++) {
                         avail = 1;
@@ -220,7 +219,7 @@ static s32 Gp_ApplyItemUse(McItemRec* arg0)
                     }
 
                     if (slotNum == -1) {
-                        scanId = &Mc_SaveData[0].carriedItems;
+                        scanId = &Mc_SaveData[0].state.carriedItems;
                         hit    = NULL;
                         table  = Gp_GetItemTable(scanId);
                         i      = 0;
@@ -266,8 +265,8 @@ static s32 Gp_ApplyItemUse(McItemRec* arg0)
                         }
                         break;
                     case 0x3C:
-                        if ((u32)Mc_SaveData[0].hpBonus < 0xFAU) {
-                            Mc_SaveData[0].hpBonus += 5;
+                        if ((u32)Mc_SaveData[0].state.hpBonus < 0xFAU) {
+                            Mc_SaveData[0].state.hpBonus += 5;
                         }
                         Gp_RecalcMaxHp();
                         Gp_HealPending = 1;
@@ -368,7 +367,7 @@ static s32 Gp_ItemIsUnusable(s32 arg0, McItemRec* arg1)
         if ((u32)(arg0 - 0x80) < 0x20U) {
             ret = 0;
         } else if ((u32)(arg0 - 0xA0) < 0x20U) {
-            scan = &Mc_SaveData[0].carriedItems;
+            scan = &Mc_SaveData[0].state.carriedItems;
             val  = arg1->qty - Gp_CountEquippedRelated(scan, arg0);
             if (val > 0) {
                 if (Gp_EquipRelatedItem(scan, cfg->weapon + 0x7F, arg0, 0) == 0) {
@@ -468,7 +467,7 @@ void func_800D6334(Task* task)
 
     scan                               = NULL;
     armor                              = Player_Status.armor + 0x5F;
-    panel                              = task->spawnArg2;
+    panel                              = task->spawnArg2.pointer;
     panel->field_2E                    = 0;
     panel->panel.bounds.unsignedRect.y = 0x1C - gDisplayState.vramYOffset;
     Ui_InsetLayout(&(panel)->panel, 0, 0, 0);
@@ -489,7 +488,7 @@ void func_800D6334(Task* task)
         selectedSlot = D_8010F884;
         selectedX    = x + selectedSlot * 13;
         firstRec     = NULL;
-        firstScan    = &Mc_SaveData[0].carriedItems;
+        firstScan    = &Mc_SaveData[0].state.carriedItems;
         firstTable   = Gp_GetItemTable(firstScan);
         firstI       = 0;
         firstTable   = &firstTable[firstScan->firstRow];
@@ -511,7 +510,7 @@ void func_800D6334(Task* task)
             name.glyphTable = 0;
             name.centerMode = 0;
             name.field_E    = 1;
-            func_8002E53C(&name, (u8*)Gp_GetItemText(item, 0, 0));
+            Text_DrawString(&name, (u8*)Gp_GetItemText(item, 0, 0));
             Gp_DrawStackLeft(panel, x - 15, y + 16, selected, 0x606060, 0);
         } else {
             item = 0;
@@ -527,7 +526,7 @@ void func_800D6334(Task* task)
         for (slot = 0; slot < Gp_GetModLevel(armor); slot++, selectedX += 13) {
             if (slot != D_8010F884) {
                 selected = NULL;
-                scan     = &Mc_SaveData[0].carriedItems;
+                scan     = &Mc_SaveData[0].state.carriedItems;
                 table    = Gp_GetItemTable(scan);
                 i        = 0;
                 table    = &table[scan->firstRow];
@@ -558,13 +557,13 @@ void func_800D6334(Task* task)
     label.glyphTable = 5;
     label.centerMode = 0;
     label.field_E    = 1;
-    func_8002E53C(&label, (u8*)D_80097448);
+    Text_DrawString(&label, (u8*)D_80097448);
     if (panel->panel.field_0.w == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm)) {
             if (usable == 1) {
                 useSlot  = D_8010F884;
                 useRec   = NULL;
-                useScan  = &Mc_SaveData[0].carriedItems;
+                useScan  = &Mc_SaveData[0].state.carriedItems;
                 useTable = Gp_GetItemTable(useScan);
                 useI     = 0;
                 useTable = &useTable[useScan->firstRow];
@@ -627,7 +626,7 @@ s32 Gp_FlushPendingRelated(s32 arg0, s32 arg1)
         val = -val;
     }
     Gp_PendingRelatedId = 0;
-    return Gp_EquipRelatedItem(&Mc_SaveData[0].carriedItems, arg0, val, -1);
+    return Gp_EquipRelatedItem(&Mc_SaveData[0].state.carriedItems, arg0, val, -1);
 }
 
 McItemRec* Gp_FindItemById(s32 arg0)
@@ -639,7 +638,7 @@ McItemRec* Gp_FindItemById(s32 arg0)
     McItemRec*  rec;
 
     rec   = NULL;
-    scan  = &Mc_SaveData[0].carriedItems;
+    scan  = &Mc_SaveData[0].state.carriedItems;
     table = Gp_GetItemTable(scan);
     i     = 0;
     table = &table[scan->firstRow];
@@ -662,7 +661,7 @@ static McItemRec* Gp_FindItemByKind(s32 arg0)
     McItemRec*  rec;
 
     rec   = NULL;
-    scan  = &Mc_SaveData[0].carriedItems;
+    scan  = &Mc_SaveData[0].state.carriedItems;
     table = Gp_GetItemTable(scan);
     i     = 0;
     table = &table[scan->firstRow];
@@ -704,7 +703,7 @@ void Gp_DrawWeaponLabel(Task* arg0)
     s32      x;
     s32      y;
 
-    panel                = arg0->spawnArg2;
+    panel                = arg0->spawnArg2.pointer;
     panel->bounds.rect.y = 0x1C - gDisplayState.vramYOffset;
     Ui_InsetLayout(panel, NULL, NULL, 0);
     x = (s16)panel->field_1C.u;

@@ -5,18 +5,8 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "main/gfxgte.h"
 
 #include "actors/actor.h"
-#include "main/fs.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
@@ -29,9 +19,25 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/attachment_state.h"
+#include "gameplay/enemy.h"
+#include "gameplay/evs.h"
+#include "gameplay/world_state.h"
 #include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflow.h"
+#include "main/gfx.h"
+#include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 #include "main/wipsys.h"
+#include "overlay.h"
 
 /// Per-instance work block for the overlay's model actor.
 ///
@@ -221,9 +227,9 @@ void func_actor_342000_8016201C(Task* arg0)
             taskKill(arg0);
         } else {
             Mem_Set(mtx, 0, 0x44);
-            mtx->field_40 = (Task*)arg0->spawnArg2;
+            mtx->field_40 = (Task*)arg0->spawnArg2.pointer;
             extra->flags  = 0;
-            if (arg0->spawnArg1 != 0) {
+            if (arg0->spawnArg1.value != 0) {
                 extra->otOffset = 0x1F;
             }
             arg0->extra.tmd->coords->sub = &gGfxViewCoord;
@@ -304,7 +310,7 @@ static void func_actor_342000_80162158(Task* arg0)
     }
     w = work;
     Mem_Set(w, 0, 0x2AC);
-    w->field_298    = (Task*)arg0->spawnArg2;
+    w->field_298    = (Task*)arg0->spawnArg2.pointer;
     extra->lightMtx = &w->light;
     extra->colorMtx = &w->color;
     arg0->msgTable  = D_actor_342000_801648E8;
@@ -315,7 +321,7 @@ static void func_actor_342000_80162158(Task* arg0)
         }
     }
     Gp_SetTmdBytes(extra, (s8)rec->tpage, (s8)rec->clut);
-    switch (arg0->spawnArg1) {
+    switch (arg0->spawnArg1.value) {
         case 0:
             w->field_2A4 = &gGfxViewCoord;
             Actor342000_InitCoord(arg0, w);
@@ -353,7 +359,7 @@ static void func_actor_342000_80162158(Task* arg0)
             }
             break;
         default:
-            w->field_2A4 = &w->field_298->extra.tmd->coords[D_actor_342000_80164900[arg0->spawnArg1].pad];
+            w->field_2A4 = &w->field_298->extra.tmd->coords[D_actor_342000_80164900[arg0->spawnArg1.value].pad];
             Actor342000_InitCoord(arg0, w);
             break;
     }
@@ -383,9 +389,9 @@ void func_actor_342000_801625D8(Task* arg0)
             func_actor_342000_80162158(arg0);
             work              = (Actor342000Work*)arg0->work;
             coord             = arg0->extra.tmd->coords;
-            coord->coord.t[0] = D_actor_342000_80164900[arg0->spawnArg1].vx;
-            coord->coord.t[1] = D_actor_342000_80164900[arg0->spawnArg1].vy;
-            coord->coord.t[2] = D_actor_342000_80164900[arg0->spawnArg1].vz;
+            coord->coord.t[0] = D_actor_342000_80164900[arg0->spawnArg1.value].vx;
+            coord->coord.t[1] = D_actor_342000_80164900[arg0->spawnArg1.value].vy;
+            coord->coord.t[2] = D_actor_342000_80164900[arg0->spawnArg1.value].vz;
             coord->flg        = 0;
             arg0->state      += 1;
             break;
@@ -461,7 +467,7 @@ void func_actor_342000_801628C8(Task* arg0)
 }
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
-/// base weapon id, `Mc_SaveData[0].characterId` selects the alternate animation block.
+/// base weapon id, `Mc_SaveData[0].state.characterId` selects the alternate animation block.
 
 /// Animation payload of the 0x3F4 messages sent to the slot-3 task.
 extern u8 D_actor_342000_801647E8[];
@@ -540,7 +546,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             s32 anim;
 
             weaponId            = Player_Status.weapon;
-            anim                = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.animBlock.index = anim;
             msg.field_4         = 1;
             msg.field_8         = 0;
@@ -562,7 +568,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             s32 anim;
 
             weaponId            = Player_Status.weapon;
-            anim                = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.animBlock.index = anim;
             msg.field_4         = 1;
             msg.field_8         = 1;
@@ -731,7 +737,7 @@ static void func_actor_342000_80162F28(Task* arg0)
         case 0:
             break;
         case 4:
-            Mc_SaveData[0].at4.loc.view = 8;
+            Mc_SaveData[0].state.at4.loc.view = 8;
             work->field_64              = Task_Spawn(1, 0x2D, 0x10, 0);
             break;
         case 5:
@@ -758,7 +764,7 @@ static void func_actor_342000_80162F28(Task* arg0)
             Gp_DispatchMsgPtr(work->field_60, 0x7D4, &work->field_0[1], 0);
             return;
         case 7:
-            Mc_SaveData[0].at4.loc.view = work->field_78;
+            Mc_SaveData[0].state.at4.loc.view = work->field_78;
             break;
         case 8:
             switch ((u16)work->field_72) {
@@ -848,7 +854,7 @@ static inline void Actor342000_SetMode(s16 arg0)
 static inline void Actor342000_EnterArea(void)
 {
     gGameSession->at4.loc.room   = 7;
-    Mc_SaveData[0].at4.loc.room  = 7;
+    Mc_SaveData[0].state.at4.loc.room  = 7;
     gGameSession->eventRoomIndex = 6;
     gGameSession->field_133      = 1;
     gGameSession->roomObjsDirty  = 1;
@@ -860,7 +866,7 @@ static inline void Actor342000_EnterArea(void)
 /// actors (a spawn with `GameSession::skipEventIntro` set skips to state 4);
 /// states 1..10 spawn the script tasks, seed the placements and run the timed
 /// hand-off to area 0x21, and state 11 kills the task. `SOFT_BARRIER()` keeps
-/// state 7's `Mc_SaveData[0].at4.loc.view` store ahead of the state load, as in retail.
+/// state 7's `Mc_SaveData[0].state.at4.loc.view` store ahead of the state load, as in retail.
 void func_actor_342000_8016382C(Task* arg0)
 {
     GpCmdArg              msg;
@@ -903,19 +909,19 @@ void func_actor_342000_8016382C(Task* arg0)
                 msg.from.loc.area  = gGameSession->at4.loc.area;
                 msg.command        = 0;
                 Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
-                work->field_5C = Task_SpawnFromTable(&D_actor_342000_80164FF8, 8, 0, (s32)arg0);
-                work->field_60 = Task_SpawnFromTable(&D_actor_342000_80164FF8, 9, 0, (s32)arg0);
+                work->field_5C = Task_SpawnFromTable(&D_actor_342000_80164FF8, 8, 0, arg0);
+                work->field_60 = Task_SpawnFromTable(&D_actor_342000_80164FF8, 9, 0, arg0);
                 goto next;
             }
-            work->field_5C = Task_SpawnFromTable(&D_actor_342000_80164FF8, 8, 1, (s32)arg0);
-            work->field_60 = Task_SpawnFromTable(&D_actor_342000_80164FF8, 9, 1, (s32)arg0);
+            work->field_5C = Task_SpawnFromTable(&D_actor_342000_80164FF8, 8, 1, arg0);
+            work->field_60 = Task_SpawnFromTable(&D_actor_342000_80164FF8, 9, 1, arg0);
             func_80180FE4(0x17, 0, 0x3C);
             arg0->state = 4;
             break;
         case 1:
-            work->field_50 = Task_SpawnFromTable(&D_actor_342000_80164FF8, 2, 0, (s32)arg0);
+            work->field_50 = Task_SpawnFromTable(&D_actor_342000_80164FF8, 2, 0, arg0);
             for (i = 0; i < 5; i++) {
-                child = Task_SpawnFromTable(&D_actor_342000_80164FF8, i + 3, i + 1, (s32)work->field_50);
+                child = Task_SpawnFromTable(&D_actor_342000_80164FF8, i + 3, i + 1, work->field_50);
                 if (i == 0) {
                     work->field_54 = child;
                 }
@@ -962,12 +968,12 @@ void func_actor_342000_8016382C(Task* arg0)
             timer               = (u16)arg0->killCountdown + 1;
             arg0->killCountdown = timer;
             if (timer >= 2) {
-                Mc_SaveData[0].at4.loc.view = 0x21;
+                Mc_SaveData[0].state.at4.loc.view = 0x21;
                 goto next;
             }
             break;
         case 7:
-            Mc_SaveData[0].at4.loc.view = 0x21;
+            Mc_SaveData[0].state.at4.loc.view = 0x21;
             arg0->killCountdown         = 0;
             arg0->state++;
             break;
@@ -1038,9 +1044,9 @@ void func_actor_342000_80163EAC(Task* arg0)
             /* fallthrough */
         case 1:
             Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
-            fade->r -= (u16)arg0->spawnArg1;
-            fade->g -= (u16)arg0->spawnArg1;
-            fade->b -= (u16)arg0->spawnArg1;
+            fade->r -= (u16)arg0->spawnArg1.value;
+            fade->g -= (u16)arg0->spawnArg1.value;
+            fade->b -= (u16)arg0->spawnArg1.value;
             if (fade->r < 0) {
                 taskKill(arg0);
             }
@@ -1133,7 +1139,7 @@ void func_actor_342000_80164110(Task* arg0, s32 arg1, GpCmdArg* arg2, GpXformArg
 void func_actor_342000_80164154(void)
 {
     gGameSession->at4.loc.room   = 7;
-    Mc_SaveData[0].at4.loc.room  = 7;
+    Mc_SaveData[0].state.at4.loc.room  = 7;
     gGameSession->eventRoomIndex = 6;
     gGameSession->field_133      = 1;
     gGameSession->roomObjsDirty  = 1;
@@ -1207,7 +1213,7 @@ void func_actor_342000_801642F4(void)
         Gp_StateF0.prefix.bytes.field_2 = 0;
         Gp_StateF0.prefix.bytes.field_3 = 0;
         gGameSession->flowFlags        |= 0x80;
-        Mc_SaveData[0].sceneEvent       = 0xD;
+        Mc_SaveData[0].state.sceneEvent       = 0xD;
         work->field_7C                  = 1;
     }
 }
@@ -1236,7 +1242,7 @@ void func_actor_342000_8016439C(void)
     Gp_DispatchMsgPtr(work->field_48, 0x3E9, &D_actor_342000_80164948, 0);
     func_8018507C();
     weaponId            = Player_Status.weapon;
-    anim                = (Mc_SaveData[0].characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    anim                = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = anim;
     msg.field_4         = 1;
     msg.field_8         = 0;

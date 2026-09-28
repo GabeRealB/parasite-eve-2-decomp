@@ -6,7 +6,7 @@
 #include "attachment_state.h"
 #include "hud.h"
 
-#include "main/task.h"
+#include "main/task_types.h"
 
 void Gp_PlayClockState2(Task* arg0);
 
