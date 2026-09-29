@@ -26,7 +26,14 @@
 /// @return Element count.
 #define ARRAY_SIZE(arr) (s32)(sizeof(arr) / sizeof((arr)[0]))
 
-#define OFFSET_OF(st, m) ((size_t)&(((st*)0)->m))
+/// Byte offset of an embedded member from the start of its aggregate, as `size_t`.
+///
+/// `type` must be a complete struct or union type; `member` must be addressable.
+/// Nested dot paths and array subscripts are supported; subscripts must be in
+/// bounds. Bit-fields and paths through stored pointers are not supported.
+/// Constant subscripts give a layout constant usable in `STATIC_ASSERT`; each
+/// nonconstant subscript is evaluated once. The member's storage is not read.
+#define OFFSET_OF(type, member) ((size_t)&(((type*)0)->member))
 
 /// The `type` object that `ptr`, a pointer to its `member`, lies inside: for
 /// code that holds a pointer to an embedded part, such as a list link, and
