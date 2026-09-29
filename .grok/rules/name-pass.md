@@ -157,6 +157,20 @@ part of the acceptance test rather than as advice.
   truncation behavior. Do not change an algorithm or retained behavior because
   it looks like a bug. If the rename tool cannot address a local, make a scoped
   edit after checking shadowing and report the old/new spelling.
+- **Look for the helpers the original was written with.** When the item is a
+  function, a long body often inlines smaller operations the original
+  developers wrote once and reused, and a construct kept only to force a match
+  is often one of them expanded by hand. Where a run of statements inside the
+  item does one nameable thing - unlinking a node, packing a colour, stepping
+  an animation cursor - try it as a `static inline` function or block-scoped
+  macro in the item's own file, and keep it only if the function still
+  matches. Test both forms, since they compile differently. Only a non-trivial
+  sequence earns a helper: one wrapping a single expression, assignment or call
+  adds a name to look up without explaining anything, so leave those inline.
+  When the same sequence also appears in other functions, do not extract it
+  across them - that is code other steps own, and a shared helper's name and
+  home are a decision of their own. Record it as a `followup` naming the
+  sequence and the functions it appears in.
 - **Use the cast backlog.** The brief supplies relevant prior findings when
   available. Follow old/new names through `local/renames.tsv`; do not rerun
   historical mutation scripts. Run `tools/check_pointer_casts.py` and
