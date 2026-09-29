@@ -526,11 +526,26 @@ create_worker() {
     [[ -e "$ROOT/$rel" ]] || continue
     rm -rf "$wt/$rel"; ln -sfn "$ROOT/$rel" "$wt/$rel"
   done
-  # The machine-local directory is a copy, not a link: the worklist and the step
-  # ledger belong to the driver, and a worker regenerating them would be
-  # rewriting the plan it was handed.
+  # The machine-local directory's files are copied, not linked: the worklist and
+  # the step ledger belong to the driver, and a worker regenerating them would
+  # be rewriting the plan it was handed. So is the naming pass's own directory,
+  # which a worker writes its reviews and verification into; its build cache is
+  # left out, since a worker fills its own. Every other directory is linked -
+  # they are archives and tool state measured in gigabytes, which a copy per
+  # worker multiplies.
   mkdir -p "$wt/local"
-  cp -a "$ROOT/local/." "$wt/local/" 2>/dev/null || true
+  find "$ROOT/local" -mindepth 1 -maxdepth 1 -type f -exec cp -a -t "$wt/local/" {} + 2>/dev/null || true
+  for rel in "$ROOT"/local/*/ "$ROOT"/local/.[!.]*/; do
+    [[ -d "$rel" ]] || continue
+    rel="$(basename "$rel")"
+    if [[ "$rel" == name-pass ]]; then
+      mkdir -p "$wt/local/name-pass"
+      find "$ROOT/local/name-pass" -mindepth 1 -maxdepth 1 ! -name objdiff-build \
+        -exec cp -a -t "$wt/local/name-pass/" {} + 2>/dev/null || true
+    else
+      ln -sfn "$ROOT/local/$rel" "$wt/local/$rel"
+    fi
+  done
   for rel in asm build linkers; do
     [[ -d "$ROOT/$rel" ]] || continue
     cp -a --reflink=auto "$ROOT/$rel" "$wt/$rel" 2>/dev/null \
