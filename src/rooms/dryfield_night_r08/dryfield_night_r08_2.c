@@ -447,7 +447,7 @@ static void func_dryfield_night_r08_8017DB4C(SVECTOR* arg0, s32 arg1, s32 arg2, 
         block->r0 = r0;
         block->r1 = r1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -473,7 +473,7 @@ static void func_dryfield_night_r08_8017DB4C(SVECTOR* arg0, s32 arg1, s32 arg2, 
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -493,7 +493,7 @@ static void func_dryfield_night_r08_8017DB4C(SVECTOR* arg0, s32 arg1, s32 arg2, 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
             t3             = ang - 0x1000;
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             t              = ang - 0x1000;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
@@ -541,7 +541,7 @@ static void func_dryfield_night_r08_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
     gte_stsxy(&block->sx);
@@ -666,7 +666,7 @@ static void func_dryfield_night_r08_8017E854(GfxCoord* arg0, s32 arg1, s32 arg2,
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -720,7 +720,7 @@ static void func_dryfield_night_r08_8017EC80(GfxCoord* arg0, s16 arg1, u8* rgb)
         block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -909,7 +909,7 @@ static void func_dryfield_night_r08_8017F504(GfxCoord* arg0, GfxCoord* arg1, s16
             lo             = (fade - 9) & 0xFF;
             r2             = lo * (arg3 >> 8);
             g2             = lo * ((arg3 >> 4) & 3);
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             blk->otz       = blk->otz + 1;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 8);
@@ -1053,7 +1053,7 @@ static void func_dryfield_night_r08_8017FB84(GfxCoord* arg0, s16 arg1, u8* arg2)
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1074,7 +1074,7 @@ static void func_dryfield_night_r08_8017FB84(GfxCoord* arg0, s16 arg1, u8* arg2)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1097,7 +1097,7 @@ static void func_dryfield_night_r08_8017FB84(GfxCoord* arg0, s16 arg1, u8* arg2)
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1118,7 +1118,7 @@ static void func_dryfield_night_r08_8017FB84(GfxCoord* arg0, s16 arg1, u8* arg2)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

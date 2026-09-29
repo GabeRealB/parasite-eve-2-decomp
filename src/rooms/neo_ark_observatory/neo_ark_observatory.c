@@ -2202,8 +2202,8 @@ static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s1
                 gte_stszotz(&blk->otz);
                 blk->otz++;
                 ds             = &gDisplayState;
-                prim           = (POLY_G4*)gGpuPrimCursor;
-                gGpuPrimCursor = (u8*)(prim + 1);
+                prim           = gGpuPrimCursor;
+                gGpuPrimCursor = prim + 1;
                 setPolyG4(prim);
                 setRGB0(prim, level, level, level);
                 setRGB1(prim, level >> 1, level >> 1, level >> 1);
@@ -2267,7 +2267,7 @@ static void func_neo_ark_observatory_80180A0C(SVECTOR* arg0, s32 arg1, s32 arg2)
         b             = blend | ((arg2 & 0xF) << 4);
         block->radius = arg1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

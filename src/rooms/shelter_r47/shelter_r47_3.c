@@ -1883,7 +1883,7 @@ static void func_shelter_r47_8018489C(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
@@ -1895,7 +1895,7 @@ static void func_shelter_r47_8018489C(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -1907,7 +1907,7 @@ static void func_shelter_r47_8018489C(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -1919,7 +1919,7 @@ static void func_shelter_r47_8018489C(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
@@ -2092,7 +2092,7 @@ static void func_shelter_r47_80184F40(s32 x, s32 y, s32 variant)
         return;
     }
 
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
 
     px       = x - 2;
@@ -2466,7 +2466,7 @@ static void func_shelter_r47_80185A4C(SVECTOR* arg0, s32 arg1, s32 arg2)
         b             = blend | ((arg2 & 0xF) << 4);
         block->radius = arg1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2538,7 +2538,7 @@ static void func_shelter_r47_80185DEC(SVECTOR* arg0, s32 arg1, s32 arg2)
         pulse         = sine / 34 + 0x78;
         block->radius = radius;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2564,7 +2564,7 @@ static void func_shelter_r47_80185DEC(SVECTOR* arg0, s32 arg1, s32 arg2)
 
         i = 0;
         do {
-            line           = (LINE_G3*)gGpuPrimCursor;
+            line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineG3(line);
             setRGB0(line, 0, 0, 0);
@@ -2633,7 +2633,7 @@ static void func_shelter_r47_80186260(SVECTOR* arg0, s32 arg1, s32 arg2)
         color         = pulse / 34 + 0x78;
         block->rInner = (size * 8) / ((RoomDraw05Scratch*)(head - 0x14))->otz;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             half = (s16)color >> 1;
@@ -2655,7 +2655,7 @@ static void func_shelter_r47_80186260(SVECTOR* arg0, s32 arg1, s32 arg2)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2679,7 +2679,7 @@ static void func_shelter_r47_80186260(SVECTOR* arg0, s32 arg1, s32 arg2)
         color = half;
         ang   = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2700,7 +2700,7 @@ static void func_shelter_r47_80186260(SVECTOR* arg0, s32 arg1, s32 arg2)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

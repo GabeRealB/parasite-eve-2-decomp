@@ -6015,14 +6015,14 @@ the other saves. `Room_Draw39` is the worked example (99.79% `reorder=1` ->
 
 ```c
 ang  = (s16)arg3;
-prim = (POLY_FT4*)gGpuPrimCursor;
+prim = gGpuPrimCursor;
 ```
 
 the shifts win the ready list and `lui` lands two insns late (`sll`/`sra`/`lui`/
 `lw`/`move a0`). Swap them:
 
 ```c
-prim = (POLY_FT4*)gGpuPrimCursor;
+prim = gGpuPrimCursor;
 ang  = (s16)arg3;
 ```
 
@@ -18595,15 +18595,15 @@ still naturally places the live-across-branch value in free `$a1`, and the late
 `mask_hi` assignment keeps the correct `lui` schedule. `Ui_DrawCaret` is the
 example (shares the dual-use OT pattern with `Ui_DrawFlatCaret`).
 
-## Oversize prim advance via a larger sibling type
+## Oversize prim advance using the reservation's size
 
 When the buffer cursor advances by more bytes than `sizeof` the prim being
-written (e.g. POLY_F3 is `0x14` but the target does `addiu …, 0x1C`), cast
-through a same-header type of the right size for the `+ 1` step:
+written (e.g. POLY_F3 is `0x14` but the target does `addiu …, 0x1C`), use
+a byte view and `sizeof` the larger reservation, keeping the written packet's type:
 
 ```c
-p          = (POLY_F3*)gGpuPrimCursor;
-gGpuPrimCursor = (POLY_G3*)p + 1; /* +0x1C */
+p          = gGpuPrimCursor;
+gGpuPrimCursor = (u8*)p + sizeof(POLY_G3); /* +0x1C */
 ```
 
 Avoid raw `(u8*)p + 0x1C`.
@@ -19065,7 +19065,7 @@ p->x0 = temp;
 
     f20  = arg0->field_20;          /* lhu into $v0 before cursor update */
     next = (s32)(p + 1);
-    gGpuPrimCursor = (u8*)next; /* addiu/sw via $v1; frees $a1 */
+    gGpuPrimCursor = next; /* addiu/sw via $v1; frees $a1 */
     ur   = 0x6F;                    /* li a1,0x6F */
     temp = f20 + arg2;
     arg2 = 0x68;                    /* li a2,0x68 — reuses arg reg */
@@ -19098,7 +19098,7 @@ if (arg1 < arg2) {
     s32          base;   /* s32 avoids sll/sra sign-extend on left = base-3 */
 
     xoff = arg3;         /* delay-slot move v1,a3 */
-    p    = (POLY_FT4*)gGpuPrimCursor;
+    p    = gGpuPrimCursor;
     base = arg0->field_20 + xoff;
     left = base - 3;
     temp = base + 5;
@@ -19111,7 +19111,7 @@ if (arg1 < arg2) {
 
         f22 = arg0->field_22;
         next = (s32)(p + 1);
-        gGpuPrimCursor = (u8*)next;
+        gGpuPrimCursor = next;
         ur = 0x77;
         ul = 0x70;       /* early li a2,0x70 (reg free after t2 save) */
         /* … p->u0 = ul; p->u2 = ul; … */
@@ -22329,7 +22329,7 @@ tw = 0x140;
 asm volatile("" : "+r"(tw));
 sp.w = tw;
 sp.h = 0xF0;
-p = (DR_AREA*)gGpuPrimCursor;
+p = gGpuPrimCursor;
 ```
 
 The `+r` barrier forces `li` to complete before any following `lui`, so delay-slot
@@ -34411,7 +34411,7 @@ x1   = 0xA0;
 yTop = -0x78;
 yBot = 0x78;
 
-p          = (POLY_F4*)gGpuPrimCursor;
+p          = gGpuPrimCursor;
 gGpuPrimCursor = p + 1;
 setPolyF4(p);
 setRGB0(p, arg0[0], arg0[1], arg0[2]);
@@ -36931,7 +36931,7 @@ steals `$v0` from `otz++`. Barrier after the cursor, then keep both
 values live with `+r`:
 
 ```c
-prim       = (POLY_FT4*)gGpuPrimCursor;
+prim       = gGpuPrimCursor;
 gGpuPrimCursor = prim + 1;
 __asm__ volatile("" ::: "memory");
 len  = 9;
@@ -38566,7 +38566,7 @@ variable actually stored:
 ```c
 vTop = 0xB8;                 /* early: crosses the gte_stszotz "memory" asm */
 block->otz++;
-prim       = (POLY_FT4*)gGpuPrimCursor;
+prim       = gGpuPrimCursor;
 gGpuPrimCursor = prim + 1;
 __asm__ volatile("" ::: "memory");
 ...
@@ -46343,7 +46343,7 @@ size, not separate defects.
 The fix is the form every matched drawing body in the tree already uses:
 
 ```c
-tile           = (TILE *)gGpuPrimCursor;
+tile           = gGpuPrimCursor;
 gGpuPrimCursor = tile + 1;
 SetTile(tile);
 /* ...field writes... */
@@ -59416,7 +59416,7 @@ Giving that one value its own local restored the tie-break and matched:
 ```c
 SCHED_BARRIER();
 t3   = ang + 0x800;          /* not `t = ang + 0x800;` */
-prim = (POLY_G4*)gGpuPrimCursor;
+prim = gGpuPrimCursor;
 SOFT_BARRIER();
 t              = t3;
 gGpuPrimCursor = prim + 1;
@@ -59467,7 +59467,7 @@ four-wedge body, so the seed carried `Room_Draw05`'s reused `u`:
 ```c
 do {
     u              = ang - 0x400;
-    prim           = (POLY_G4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     ...
     u        = ang + 0x400;   /* second use  */
     ...
@@ -59696,7 +59696,7 @@ The give-up seed for `Room_Draw21` had already been round the loop described in
 first slot. What it did about it was pin the loop variable:
 
 ```c
-prim           = (POLY_G4*)gGpuPrimCursor;
+prim           = gGpuPrimCursor;
 TOUCH_REG(ang);
 u              = ang - 0x400;
 gGpuPrimCursor = prim + 1;

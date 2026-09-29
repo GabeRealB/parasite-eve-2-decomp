@@ -1398,7 +1398,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&((RoomShaftScratch*)(head - 0x14))->vec);
         gte_rtps();
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
@@ -1610,7 +1610,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
                     key.loc.view           = view;
                     slot                   = Stream_GetSlot(Stream_FindSlotByKey((u8*)&key) & 0xFFFF);
 
-                    p              = (SPRT*)gGpuPrimCursor;
+                    p              = gGpuPrimCursor;
                     gGpuPrimCursor = p + 1;
                     setlen(p, 4);
                     setcode(p, 0x65);

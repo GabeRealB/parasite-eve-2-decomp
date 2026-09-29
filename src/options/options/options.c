@@ -836,7 +836,7 @@ static void func_options_801D4D0C(Task* task)
         last.uvs       = Options_KeyIconUvs;
         w              = 0xF;
         h              = 0xF;
-        p              = (SPRT*)gGpuPrimCursor;
+        p              = gGpuPrimCursor;
         gGpuPrimCursor = p + 1;
         p->y0          = y - 0xF;
         p->x0          = x;

@@ -591,7 +591,7 @@ static void func_hypervelocity_8011DF34(GfxCoord* coord, s16 age, s16 spin, s32 
         if (sc->flag >= 0) {
             gte_stszotz(&sc->otz);
             sc->otz++;
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
             prim->tpage = 0x2A;
@@ -645,7 +645,7 @@ static void func_hypervelocity_8011E494(GfxCoord* coord, s16 age, s16 spin, s16 
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
         setSemiTrans(prim, 1);
@@ -723,7 +723,7 @@ static void func_hypervelocity_8011E8A0(GfxCoord* ground, s32 spin)
     if (flag >= 0) {
         gte_stszotz(&otz);
         otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
@@ -838,7 +838,7 @@ static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8
         if (sc->flag >= 0) {
             gte_stszotz(&sc->otz);
             sc->otz++;
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
             setRGB0(prim, rgb[0], rgb[1], rgb[2]);

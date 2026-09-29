@@ -207,7 +207,7 @@ static void func_m4a1_bayonet_8011D69C(s16 slot, s16 flags)
         blk->v[3].vz = (u16)b->workm.t[2];
         gte_ldv0(&blk->v[0]);
         gte_rtps();
-        prim           = (POLY_G4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG4(prim);
         gte_stsxy(&prim->x0);

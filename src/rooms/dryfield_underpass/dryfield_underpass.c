@@ -1067,7 +1067,7 @@ static void func_dryfield_underpass_8017DB20(GfxCoord* arg0, SVECTOR* arg1, s32 
     gte_ldv0(&((RoomShaftScratch*)(head - 0x14))->vec);
     gte_rtps();
 
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);

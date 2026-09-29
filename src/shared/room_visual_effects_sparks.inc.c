@@ -67,7 +67,7 @@ static void RoomFx_DrawTwinTrail(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 a
             lo             = (fade - 9) & 0xFF;
             r2             = lo * (arg3 >> 8);
             g2             = lo * ((arg3 >> 4) & 3);
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             blk->otz       = blk->otz + 1;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 8);

@@ -599,7 +599,7 @@ static void func_dryfield_night_motel_lobby_80180064(RoomRect* rect, u8 r, u8 g,
 {
     LINE_F2* line;
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
@@ -611,7 +611,7 @@ static void func_dryfield_night_motel_lobby_80180064(RoomRect* rect, u8 r, u8 g,
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -623,7 +623,7 @@ static void func_dryfield_night_motel_lobby_80180064(RoomRect* rect, u8 r, u8 g,
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -635,7 +635,7 @@ static void func_dryfield_night_motel_lobby_80180064(RoomRect* rect, u8 r, u8 g,
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;

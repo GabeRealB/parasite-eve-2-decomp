@@ -933,7 +933,7 @@ static void Gp_DrawPeGauge(GpIdMapC* arg0, s32 arg1, s32 arg2)
     n = Gp_GetAttachParam(3);
     if (Gp_StateC08.field_5 < 0xD) {
         if (Gp_StateC08.field_2 > 0) {
-            tile           = (TILE*)gGpuPrimCursor;
+            tile           = gGpuPrimCursor;
             gGpuPrimCursor = tile + 1;
             tile->x0       = arg1 + 0x18;
             tile->y0       = arg2 + 0x21;
@@ -949,7 +949,7 @@ static void Gp_DrawPeGauge(GpIdMapC* arg0, s32 arg1, s32 arg2)
             n = 0xB;
         }
 
-        sp             = (SPRT_16*)gGpuPrimCursor;
+        sp             = gGpuPrimCursor;
         gGpuPrimCursor = sp + 1;
         sp->x0         = arg1 + 0x15;
         sp->y0         = arg2 + 0x1D;
@@ -960,7 +960,7 @@ static void Gp_DrawPeGauge(GpIdMapC* arg0, s32 arg1, s32 arg2)
         setcode(sp, 0x77);
         addPrim(gGpuCurrentOt - 2, sp);
 
-        sp2            = (SPRT_16*)gGpuPrimCursor;
+        sp2            = gGpuPrimCursor;
         gGpuPrimCursor = sp2 + 1;
         sp2->x0        = n + arg1 + 0x13;
         sp2->y0        = arg2 + 0x1D;
@@ -971,7 +971,7 @@ static void Gp_DrawPeGauge(GpIdMapC* arg0, s32 arg1, s32 arg2)
         setcode(sp2, 0x77);
         addPrim(gGpuCurrentOt - 2, sp2);
 
-        poly           = (POLY_FT4*)gGpuPrimCursor;
+        poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
         poly->x0       = arg1 + 0x1D;
         poly->y0       = arg2 + 0x1D;
@@ -1338,7 +1338,7 @@ void Gp_HudTask(GpIdMapC* arg0)
     cfg   = &Player_Status;
     ds    = &gDisplayState;
     if (ds->demoScene != DISPLAY_DEMO_NONE) {
-        poly           = (POLY_FT4*)gGpuPrimCursor;
+        poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
         poly->x2       = 0x16;
         poly->x0       = 0x16;
@@ -1362,7 +1362,7 @@ void Gp_HudTask(GpIdMapC* arg0)
         setcode(poly, 0x2D);
         addPrim(gGpuCurrentOt - 5, poly);
 
-        poly           = (POLY_FT4*)gGpuPrimCursor;
+        poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
         poly->x2       = 0x16;
         poly->x0       = 0x16;

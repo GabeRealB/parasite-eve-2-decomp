@@ -147,7 +147,7 @@ static __inline__ void Gp_LinkRingSeg(GpCircleScratch* sc)
 {
     LINE_F2* prim;
 
-    prim                     = (LINE_F2*)gGpuPrimCursor;
+    prim                     = gGpuPrimCursor;
     gGpuPrimCursor           = prim + 1;
     PRIM_COLOR_WORD(prim, 0) = PRIM_RGBC(0, 0xc0, 0x40, 0);
     PRIM_XY_WORD(prim, 0)    = *(u32*)&sc->sxyPrev;
@@ -525,7 +525,7 @@ void func_800A57B0(GpIdMapC* arg0)
                 w2 = 0x25;
             }
             if (w1 > 0) {
-                tile           = (TILE*)gGpuPrimCursor;
+                tile           = gGpuPrimCursor;
                 gGpuPrimCursor = tile + 1;
                 tile->x0       = x + 5;
                 tile->y0       = y + 0xE;
@@ -537,7 +537,7 @@ void func_800A57B0(GpIdMapC* arg0)
                 addPrim(gGpuCurrentOt - 2, tile);
             }
             if (w2 - w1 > 0) {
-                tile           = (TILE*)gGpuPrimCursor;
+                tile           = gGpuPrimCursor;
                 gGpuPrimCursor = tile + 1;
                 {
                     s32 tileX = w1 + 5;
@@ -574,7 +574,7 @@ void func_800A57B0(GpIdMapC* arg0)
         }
     }
     if (w1 > 0) {
-        tile           = (TILE*)gGpuPrimCursor;
+        tile           = gGpuPrimCursor;
         gGpuPrimCursor = tile + 1;
         tile->x0       = x + 0x30;
         tile->y0       = y + 0xE;
@@ -586,7 +586,7 @@ void func_800A57B0(GpIdMapC* arg0)
         addPrim(gGpuCurrentOt - 2, tile);
     }
     if (w2 - w1 > 0) {
-        tile           = (TILE*)gGpuPrimCursor;
+        tile           = gGpuPrimCursor;
         gGpuPrimCursor = tile + 1;
         {
             s32 tileX = w1 + 0x30;
@@ -608,7 +608,7 @@ void func_800A57B0(GpIdMapC* arg0)
         s32 right = x + 0x23;
         s32 y3    = y + 0x13;
 
-        sp1            = (SPRT*)gGpuPrimCursor;
+        sp1            = gGpuPrimCursor;
         gGpuPrimCursor = sp1 + 1;
         sp1->x0        = left;
         sp1->y0        = yb;
@@ -619,7 +619,7 @@ void func_800A57B0(GpIdMapC* arg0)
         setcode(sp1, 0x75);
         addPrim(gGpuCurrentOt - 2, sp1);
 
-        sp1            = (SPRT*)gGpuPrimCursor;
+        sp1            = gGpuPrimCursor;
         gGpuPrimCursor = sp1 + 1;
         sp1->x0        = right;
         sp1->y0        = yb;
@@ -630,7 +630,7 @@ void func_800A57B0(GpIdMapC* arg0)
         setcode(sp1, 0x75);
         addPrim(gGpuCurrentOt - 2, sp1);
 
-        poly1          = (POLY_FT4*)gGpuPrimCursor;
+        poly1          = gGpuPrimCursor;
         gGpuPrimCursor = poly1 + 1;
         poly1->x2      = x + 0xC;
         poly1->x0      = x + 0xC;
@@ -654,7 +654,7 @@ void func_800A57B0(GpIdMapC* arg0)
         setcode(poly1, 0x2D);
         addPrim(gGpuCurrentOt - 2, poly1);
 
-        sp3            = (SPRT*)gGpuPrimCursor;
+        sp3            = gGpuPrimCursor;
         sp3->x0        = left;
         gGpuPrimCursor = sp3 + 1;
         sp3->y0        = yb;
@@ -666,7 +666,7 @@ void func_800A57B0(GpIdMapC* arg0)
         setcode(sp3, 0x75);
         addPrim(gGpuCurrentOt - 2, sp3);
 
-        sp3            = (SPRT*)gGpuPrimCursor;
+        sp3            = gGpuPrimCursor;
         sp3->x0        = right;
         gGpuPrimCursor = sp3 + 1;
         sp3->u0        = 0xA8;
@@ -678,7 +678,7 @@ void func_800A57B0(GpIdMapC* arg0)
         sp3->clut = clut;
         addPrim(gGpuCurrentOt - 2, sp3);
 
-        poly2          = (POLY_FT4*)gGpuPrimCursor;
+        poly2          = gGpuPrimCursor;
         gGpuPrimCursor = poly2 + 1;
         poly2->x2      = x + 0x37;
         poly2->x0      = x + 0x37;
@@ -732,7 +732,7 @@ void func_800A57B0(GpIdMapC* arg0)
         for (i = 0; i < 7; i++) {
             flags = statusBits.bits;
             if (cfg->peStateFlags & flags[i]) {
-                sp5            = (SPRT*)gGpuPrimCursor;
+                sp5            = gGpuPrimCursor;
                 gGpuPrimCursor = sp5 + 1;
                 sp5->x0        = iconX;
                 iconX         += 0xD;
@@ -765,7 +765,7 @@ void func_800A63B4(s32 arg0, s32 arg1, s32 arg2)
 
     otIdx          = 0;
     arg0          -= 6;
-    p              = (SPRT_8*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     arg1          -= 8;
     gGpuPrimCursor = p + 1;
     p->x0          = arg0;

@@ -577,12 +577,12 @@ void func_actor_342100_80161E70(Task* arg0)
             }
             break;
     }
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 1);
     addPrim(&gGpuCurrentOt[1023], stp);
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[0], stp);
     SCRATCH_POP(OverlayWaveScratch);
@@ -654,7 +654,7 @@ void func_actor_342100_80162748(Task* arg0)
             }
             break;
         case 5:
-            tile           = (TILE*)gGpuPrimCursor;
+            tile           = gGpuPrimCursor;
             gGpuPrimCursor = tile + 1;
             setlen(tile, 3);
             setcode(tile, 0x60);

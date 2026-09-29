@@ -68,7 +68,7 @@ void func_aya_20900_8011578C(Task* arg0)
         return;
     }
 
-    p              = (TILE*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     color          = ~(u8)arg0->killCountdown;
     gGpuPrimCursor = p + 1;
     setlen(p, 3);
@@ -98,7 +98,7 @@ static void func_aya_20900_80115948(void)
     s16       h;
 
     x              = -0x3C;
-    p              = (POLY_FT4*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     setlen(p, 9);
     setcode(p, 0x2D);
@@ -188,7 +188,7 @@ static s32 func_aya_20900_80115A14(Task* arg0)
         func_aya_20900_80115948();
     }
 
-    p              = (TILE*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     color          = (u8)work->fade;
     gGpuPrimCursor = p + 1;
     setlen(p, 3);

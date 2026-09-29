@@ -182,7 +182,7 @@ static void flareDrawSparkQuad(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
         setSemiTrans(prim, 1);

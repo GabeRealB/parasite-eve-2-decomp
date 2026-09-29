@@ -101,7 +101,7 @@ static void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
     u32             tpage;
 
     i              = 0;
-    dest           = (GpTpageSprt*)gGpuPrimCursor;
+    dest           = gGpuPrimCursor;
     elem           = arg0 + arg1->field_0;
     gGpuPrimCursor = dest + arg1->field_2;
     if (arg1->field_2 != 0) {
@@ -397,7 +397,7 @@ static void func_800AD024(void)
             if (gDisplayState.drawBuffer != 0) {
                 rect.y += 0x110;
             }
-            prim           = (DR_AREA*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             SetDrawArea(prim, &rect);
             addPrim(&gGpuCurrentOt[0x3FF], prim);
@@ -409,7 +409,7 @@ static void func_800AD024(void)
             rect.x         = 0;
             rect.w         = 0x140;
             rect.h         = 0xF0;
-            prim           = (DR_AREA*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             SetDrawArea(prim, &rect);
             addPrim((&gGpuCurrentOt[((((u32)area->depth << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), prim);

@@ -1395,7 +1395,7 @@ static void Actor00400_Fn005DC(GfxCoord* arg0, u16 arg1, u16 arg2, s32 arg3)
     if (blk->flag >= 0) {
         gte_stszotz(copy);
         ((GpEffFlareScratch*)(head - 0x1C))->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2F;
@@ -1601,7 +1601,7 @@ static void Actor00400_Fn00E3C(Task* actor, s16 firstJoint, s16 secondJoint, s16
                                  &s->screen2, &s->screen3, &s->perspective, &s->flags);
         if (s->flags >= 0) {
             poly           = gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)poly + 0x28;
+            gGpuPrimCursor = poly + 1;
             setlen(poly, 9);
             poly->code            = 0x2E;
             PRIM_XY_WORD(poly, 0) = s->screen0;
@@ -2654,7 +2654,7 @@ static void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corn
                              &s->perspective, &s->flags);
     if (s->flags >= 0) {
         poly           = gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)poly + 0x28;
+        gGpuPrimCursor = poly + 1;
         setlen(poly, 9);
         poly->code            = 0x2E;
         PRIM_XY_WORD(poly, 0) = s->screen0;

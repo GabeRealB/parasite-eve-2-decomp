@@ -575,7 +575,7 @@ static void func_neo_ark_garden_8017EFB8(SVECTOR* arg0, s16 arg1, s32 arg2)
         pulse         = sine / 34 + 0x78;
         block->radius = radius;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -601,7 +601,7 @@ static void func_neo_ark_garden_8017EFB8(SVECTOR* arg0, s16 arg1, s32 arg2)
 
         i = 0;
         do {
-            line           = (LINE_G3*)gGpuPrimCursor;
+            line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineG3(line);
             setRGB0(line, 0, 0, 0);
@@ -662,7 +662,7 @@ static void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2D);
@@ -903,7 +903,7 @@ static void func_neo_ark_garden_8017FF0C(GfxCoord* arg0, s32 arg1, s32 arg2, s32
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
@@ -965,7 +965,7 @@ static void func_neo_ark_garden_80180190(GfxCoord* arg0, s32 arg1, s32 arg2, u8*
         block->inner = ((s16)arg1 * 64) / block->otz;
         block->outer = ((s16)outer * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang = next) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1019,7 +1019,7 @@ static void func_neo_ark_garden_801805B4(GfxCoord* arg0, s16 arg1, u8* rgb)
         block->step = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1155,7 +1155,7 @@ static void func_neo_ark_garden_80180AF4(GfxCoord* coord, s16 size)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2EU;
@@ -1187,7 +1187,7 @@ static void func_neo_ark_garden_80180AF4(GfxCoord* coord, s16 size)
         addPrim(
             GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2F;
@@ -1268,7 +1268,7 @@ static void func_neo_ark_garden_80181020(GfxCoord* arg0, s32 arg1)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);

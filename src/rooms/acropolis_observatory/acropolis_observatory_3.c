@@ -1035,7 +1035,7 @@ void func_acropolis_observatory_8017E424(Task* arg0)
         if (blk->otz < 0x10) {
             blk->otz = 0x10;
         }
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);

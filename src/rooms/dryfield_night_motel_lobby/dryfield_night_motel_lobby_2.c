@@ -561,8 +561,8 @@ void func_dryfield_night_motel_lobby_801802A8(Task* task)
     if (work->field_7 == 0) {
         for (i = 0; i < 7; i++) {
             digit          = D_dryfield_night_motel_lobby_801844D8[i];
-            p              = (POLY_FT4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(p + 1);
+            p              = gGpuPrimCursor;
+            gGpuPrimCursor = p + 1;
             setPolyFT4(p);
             if (digit == 0xA) {
                 p->u0 = 0;
@@ -877,7 +877,7 @@ static void func_dryfield_night_motel_lobby_80180C20(s32 x, s32 y, s32 variant)
         return;
     }
 
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
 
     px       = x - 2;
@@ -1174,7 +1174,7 @@ static void func_dryfield_night_motel_lobby_80181404(SVECTOR* arg0, s32 arg1, s3
         pulse         = sine / 34 + 0x78;
         block->radius = radius;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1200,7 +1200,7 @@ static void func_dryfield_night_motel_lobby_80181404(SVECTOR* arg0, s32 arg1, s3
 
         i = 0;
         do {
-            line           = (LINE_G3*)gGpuPrimCursor;
+            line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineG3(line);
             setRGB0(line, 0, 0, 0);
@@ -1270,7 +1270,7 @@ static void func_dryfield_night_motel_lobby_80181878(SVECTOR* arg0, s32 arg1, s3
         color         = pulse / 34 + 0x78;
         block->rInner = (size * 8) / ((RoomDraw05Scratch*)(head - 0x14))->otz;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             half = (s16)color >> 1;
@@ -1292,7 +1292,7 @@ static void func_dryfield_night_motel_lobby_80181878(SVECTOR* arg0, s32 arg1, s3
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1316,7 +1316,7 @@ static void func_dryfield_night_motel_lobby_80181878(SVECTOR* arg0, s32 arg1, s3
         color = half;
         ang   = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1337,7 +1337,7 @@ static void func_dryfield_night_motel_lobby_80181878(SVECTOR* arg0, s32 arg1, s3
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1385,7 +1385,7 @@ static void func_dryfield_night_motel_lobby_80182200(SVECTOR* arg0, s32 arg1, s3
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);

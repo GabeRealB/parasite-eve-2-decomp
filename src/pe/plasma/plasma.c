@@ -278,7 +278,7 @@ static void func_plasma_8012F568(GpEffWork* arg0, GfxCoord* arg1, s32 arg2)
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
             setRGB0(prim, *(u8*)&arg0->scale, *(u8*)&arg0->scale, *(u8*)&arg0->scale);
@@ -335,7 +335,7 @@ static void func_plasma_8012FB10(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
         block->inner = ((s16)arg1 * 64) / block->otz;
         block->outer = ((s16)outer * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang = next) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

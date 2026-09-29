@@ -2591,7 +2591,7 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&(head - 1)->vec);
     gte_rtps();
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
@@ -2891,7 +2891,7 @@ static void func_dryfield_toilet_8017EE18(GfxCoord* arg0, s32 arg1, s32 arg2, s3
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
@@ -2951,7 +2951,7 @@ static void func_dryfield_toilet_8017F09C(GfxCoord* arg0, s32 arg1, s32 arg2, u8
         block->inner = ((s16)arg1 * 64) / block->otz;
         block->outer = ((s16)outer * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang = next) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2999,7 +2999,7 @@ static void func_dryfield_toilet_8017F4C0(GfxCoord* arg0, s32 arg1, u8* rgb)
         block->otz++;
         block->step = ((s16)arg1 * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -3133,7 +3133,7 @@ static void func_dryfield_toilet_8017FA00(GfxCoord* coord, s16 size)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2EU;
@@ -3165,7 +3165,7 @@ static void func_dryfield_toilet_8017FA00(GfxCoord* coord, s16 size)
         addPrim(
             GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2F;
@@ -3246,7 +3246,7 @@ static void func_dryfield_toilet_8017FF2C(GfxCoord* arg0, s32 arg1)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);

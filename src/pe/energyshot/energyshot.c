@@ -307,7 +307,7 @@ static void func_energyshot_8012F750(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_G3*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG3(prim);
         setRGB0(prim, rgb[0], rgb[1], rgb[2]);
@@ -396,7 +396,7 @@ static void func_energyshot_8012FA50(GfxCoord* arg0, s16 arg1, s16 arg2, u8* arg
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
             setRGB0(prim, arg3[0], arg3[1], arg3[2]);

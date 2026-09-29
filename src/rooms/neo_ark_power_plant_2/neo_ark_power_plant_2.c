@@ -974,7 +974,7 @@ static void func_neo_ark_power_plant_2_8017DA54(SVECTOR* arg0, s32 arg1, s32 arg
         b             = blend | ((arg2 & 0xF) << 4);
         block->radius = arg1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1101,7 +1101,7 @@ static void func_neo_ark_power_plant_2_8017E098(GfxCoord* arg0, s32 arg1, s32 ar
         block->rOuter = ((s16)arg1 * 64) / block->otz;
         block->rInner = ((s16)outer * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang = next) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1154,7 +1154,7 @@ static void func_neo_ark_power_plant_2_8017E4C4(GfxCoord* arg0, s16 arg1, u8* rg
         block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1346,7 +1346,7 @@ static void func_neo_ark_power_plant_2_8017ED48(GfxCoord* arg0, GfxCoord* arg1, 
             lo             = (fade - 9) & 0xFF;
             r2             = lo * (arg3 >> 8);
             g2             = lo * ((arg3 >> 4) & 3);
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             blk->otz       = blk->otz + 1;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 8);
@@ -1489,7 +1489,7 @@ static void func_neo_ark_power_plant_2_8017F3C8(GfxCoord* arg0, s16 arg1, u8* ar
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1510,7 +1510,7 @@ static void func_neo_ark_power_plant_2_8017F3C8(GfxCoord* arg0, s16 arg1, u8* ar
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1533,7 +1533,7 @@ static void func_neo_ark_power_plant_2_8017F3C8(GfxCoord* arg0, s16 arg1, u8* ar
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1554,7 +1554,7 @@ static void func_neo_ark_power_plant_2_8017F3C8(GfxCoord* arg0, s16 arg1, u8* ar
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

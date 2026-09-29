@@ -1083,8 +1083,8 @@ void func_shelter_b4_reservoir_8017D650(Task* arg0)
             tpage1 = getTPage(2, 0, 128, gDisplayState.drawBuffer << 8);
             for (j = -1; j < 29; j++) {
                 for (k = 0; k < 10; k++) {
-                    p              = (POLY_FT4*)gGpuPrimCursor;
-                    gGpuPrimCursor = (u8*)(p + 1);
+                    p              = gGpuPrimCursor;
+                    gGpuPrimCursor = p + 1;
                     setPolyFT4(p);
                     if (D_shelter_b4_reservoir_80187504->blend == ANIMATION_BLEND_RESET) {
                         setShadeTex(p, 1);
@@ -1149,12 +1149,12 @@ void func_shelter_b4_reservoir_8017D650(Task* arg0)
             }
             break;
     }
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 1);
     addPrim(&gGpuCurrentOt[1023], stp);
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[0], stp);
 }
@@ -2053,7 +2053,7 @@ static void func_shelter_b4_reservoir_80180530(GfxCoord* arg0, s32 arg1, s32 arg
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
@@ -2248,7 +2248,7 @@ static void func_shelter_b4_reservoir_80180D20(GfxCoord* arg0, s32 arg1, s32 arg
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         ang            = (s16)arg3;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -2299,7 +2299,7 @@ static void func_shelter_b4_reservoir_8018110C(GfxCoord* arg0, s16 arg1, s16 arg
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -2418,7 +2418,7 @@ static void func_shelter_b4_reservoir_80181668(GfxCoord* coord, u16 frame, s16 s
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -2521,7 +2521,7 @@ static void func_shelter_b4_reservoir_801818F0(SVECTOR* arg0, s32 arg1, s32 arg2
                 angStart = ang;
                 limit    = ang + 0x800;
                 do {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -2543,7 +2543,7 @@ static void func_shelter_b4_reservoir_801818F0(SVECTOR* arg0, s32 arg1, s32 arg2
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
                     conn           = angStart + ((ang - angStart) * 2);
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -2562,7 +2562,7 @@ static void func_shelter_b4_reservoir_801818F0(SVECTOR* arg0, s32 arg1, s32 arg2
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
                     t3             = ang + 0x800;
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     t              = t3;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
@@ -2651,7 +2651,7 @@ static void func_shelter_b4_reservoir_80182134(SVECTOR* arg0, s32 arg1, s32 arg2
         b             = blend + ((arg2 & 0xF) << 4);
         block->rInner = inner;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             hr = (u8)r >> 1;
@@ -2675,7 +2675,7 @@ static void func_shelter_b4_reservoir_80182134(SVECTOR* arg0, s32 arg1, s32 arg2
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2702,7 +2702,7 @@ static void func_shelter_b4_reservoir_80182134(SVECTOR* arg0, s32 arg1, s32 arg2
         b   = (u8)hb;
         do {
             ua             = ang - 0x400;
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2722,7 +2722,7 @@ static void func_shelter_b4_reservoir_80182134(SVECTOR* arg0, s32 arg1, s32 arg2
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2965,7 +2965,7 @@ static void func_shelter_b4_reservoir_80183298(GfxCoord* arg0, s32 arg1, s32 arg
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
@@ -3026,7 +3026,7 @@ static void func_shelter_b4_reservoir_8018351C(GfxCoord* arg0, s32 arg1, s32 arg
         block->inner = ((s16)arg1 * 64) / block->otz;
         block->outer = ((s16)outer * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang = next) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -3075,7 +3075,7 @@ static void func_shelter_b4_reservoir_80183940(GfxCoord* arg0, s32 arg1, u8* rgb
         block->otz++;
         block->step = ((s16)arg1 * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -3208,7 +3208,7 @@ static void func_shelter_b4_reservoir_80183E80(GfxCoord* coord, s16 size)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2EU;
@@ -3240,7 +3240,7 @@ static void func_shelter_b4_reservoir_80183E80(GfxCoord* coord, s16 size)
         addPrim(
             GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2F;
@@ -3321,7 +3321,7 @@ static void func_shelter_b4_reservoir_801843AC(GfxCoord* arg0, s32 arg1)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);

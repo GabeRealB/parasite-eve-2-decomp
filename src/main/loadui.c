@@ -219,8 +219,8 @@ static void Prim_DrawLoadingSprt(void)
     DR_TPAGE* dr;
     u8        mode;
 
-    p              = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(p + 1);
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setlen(p, 4);
     setcode(p, 0x67);
     p->clut = GetClut(0, 0xFF);
@@ -255,8 +255,8 @@ static void Prim_DrawLoadingSprt(void)
 
     addPrim(gGpuCurrentOt - 0x10, p);
 
-    dr             = (DR_TPAGE*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(dr + 1);
+    dr             = gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
     setDrawTPage(dr, 0, 0, 0xF);
     addPrim(gGpuCurrentOt - 0x10, dr);
 }

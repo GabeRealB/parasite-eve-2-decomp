@@ -528,7 +528,7 @@ static void func_pyrokinesis_8012FC34(GfxCoord* arg0, s16 arg1, s16 arg2)
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, red, grn, blu);
@@ -578,7 +578,7 @@ static void func_pyrokinesis_80130130(GfxCoord* arg0, s16 arg1, s16 arg2)
         block->otz++;
         block->step = (arg1 * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -642,7 +642,7 @@ static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1)
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
@@ -710,7 +710,7 @@ static void func_pyrokinesis_80130848(GfxCoord* arg0, s32 arg1, s32 arg2, s32 ar
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         ang = (s16)arg3;
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -825,7 +825,7 @@ static void func_pyrokinesis_80130DC0(GfxCoord* arg0, s16 arg1, s16 arg2, s16 ar
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
         setSemiTrans(prim, 1);
@@ -951,7 +951,7 @@ static void func_pyrokinesis_801312B4(GfxCoord* arg0, s16 arg1, s32 arg2, s16 ar
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, arg3, arg3 >> 1, arg3 >> 2);
@@ -1050,7 +1050,7 @@ static void func_pyrokinesis_80131784(GfxCoord* arg0, s16 arg1, s32 arg2, s32 ar
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
             prim->tpage = 0x2A;

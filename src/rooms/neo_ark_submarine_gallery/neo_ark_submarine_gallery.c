@@ -962,7 +962,7 @@ static s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1)
         p2.vz = (rcos(ang) * arg0) >> 12;
         otz   = RotTransPers3(&p0, &p1, &p2, &sxy0, &sxy1, &sxy2, &p, &flag);
         if (flag >= 0) {
-            prim           = (POLY_G3*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG3(prim);
             setRGB0(prim, 0xFF, 0, 0);
@@ -973,7 +973,7 @@ static s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1)
             PRIM_XY_WORD(prim, 1) = sxy1;
             PRIM_XY_WORD(prim, 2) = sxy2;
             addPrim(&gGpuCurrentOt[(otz >> 4) + 0x18], prim);
-            dr             = (DR_MODE*)gGpuPrimCursor;
+            dr             = gGpuPrimCursor;
             gGpuPrimCursor = dr + 1;
             setDrawTPage(dr, 0, 0, 0x2A);
             addPrim(&gGpuCurrentOt[(otz >> 4) + 0x18], dr);

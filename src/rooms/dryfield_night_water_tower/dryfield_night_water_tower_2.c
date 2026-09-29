@@ -1000,7 +1000,7 @@ static void func_dryfield_night_water_tower_8017DC70(SVECTOR* arg0, s32 arg1)
                 angStart = ang;
                 limit    = angEnd;
                 do {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -1022,7 +1022,7 @@ static void func_dryfield_night_water_tower_8017DC70(SVECTOR* arg0, s32 arg1)
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
                     conn           = angStart + ((ang - angStart) * 2);
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -1041,7 +1041,7 @@ static void func_dryfield_night_water_tower_8017DC70(SVECTOR* arg0, s32 arg1)
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
 
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     t3             = ang + 0x800;
                     t              = t3;
                     gGpuPrimCursor = prim + 1;
@@ -1093,7 +1093,7 @@ static void func_dryfield_night_water_tower_8017E458(SVECTOR* arg0, s32 arg1, s3
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);

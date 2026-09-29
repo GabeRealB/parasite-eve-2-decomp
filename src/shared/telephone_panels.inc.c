@@ -127,7 +127,7 @@ static void Telephone_DrawGauge(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32
     s16      bottom;
 
     if ((arg5 != 0) && (arg3 >= 2)) {
-        prim           = (POLY_G4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         x              = arg0->field_20.u + arg1 + 1;
         prim->x2       = x;
         prim->x0       = x;

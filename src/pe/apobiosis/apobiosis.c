@@ -286,7 +286,7 @@ static void func_apobiosis_8012F808(s16 bright)
 {
     POLY_F4* prim;
 
-    prim           = (POLY_F4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyF4(prim);
     if ((u16)(Gp_StateC08.field_0 % 10U) - 1 == 2 && (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) == 0) {
@@ -341,7 +341,7 @@ static void func_apobiosis_8012F9D0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
         block->inner = ((s16)arg1 * 64) / block->otz;
         block->outer = ((s16)outer * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang = next) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -490,7 +490,7 @@ static void func_apobiosis_8013017C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
         setSemiTrans(prim, 1);
@@ -571,7 +571,7 @@ static void func_apobiosis_80130630(GfxCoord* arg0, SVECTOR* arg1, s16 arg2, s16
         gte_stsxy(&block->sx1);
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2F);

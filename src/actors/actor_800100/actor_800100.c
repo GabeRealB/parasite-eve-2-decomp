@@ -1215,7 +1215,7 @@ static void func_actor_800100_80162264(VECTOR3* pos, u16 frame, s32 brightness)
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -1433,7 +1433,7 @@ static void func_actor_800100_80162A14(VECTOR3* pos, u16 frame, u16 width, s16 a
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz     = block->otz + 1;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -1516,7 +1516,7 @@ static void func_actor_800100_80162E90(VECTOR3* pos, s32 width)
     if (flag >= 0) {
         gte_stszotz(&otz);
         otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
@@ -3524,7 +3524,7 @@ static void func_actor_800100_8016666C(GfxCoord* arg0, s16 arg1)
     gte_stszotz(&blk->otz);
 
     if (((Actor800100LineScratch*)newhead)->otz >= 0x20) {
-        prim           = (LINE_G2*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setLineG2(prim);
         prim->x0 = ((Actor800100LineScratch*)(head - sizeof(Actor800100LineScratch)))->sxy0.vx;
@@ -3597,7 +3597,7 @@ static void func_actor_800100_801668C0(GfxCoord* arg0)
     gte_ldv0(&blk->v[0]);
     gte_rtps();
 
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
 

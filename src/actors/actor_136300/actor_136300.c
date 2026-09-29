@@ -1469,8 +1469,8 @@ void func_actor_136300_80131E40(Task* arg0)
             tpage1 = getTPage(2, 0, 128, gDisplayState.drawBuffer << 8);
             for (j = -1; j < 29; j++) {
                 for (k = 0; k < 10; k++) {
-                    p              = (POLY_FT4*)gGpuPrimCursor;
-                    gGpuPrimCursor = (u8*)(p + 1);
+                    p              = gGpuPrimCursor;
+                    gGpuPrimCursor = p + 1;
                     setPolyFT4(p);
                     if (D_actor_136300_8013C888->blend == ANIMATION_BLEND_RESET) {
                         setShadeTex(p, 1);
@@ -1535,12 +1535,12 @@ void func_actor_136300_80131E40(Task* arg0)
             }
             break;
     }
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 1);
     addPrim(&gGpuCurrentOt[1023], stp);
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[0], stp);
 }

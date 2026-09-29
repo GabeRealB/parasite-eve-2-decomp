@@ -433,7 +433,7 @@ static void func_actor_143000_801323E0(s32 x, s32 y, s32 variant)
         return;
     }
 
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
 
     px       = x - 2;
@@ -563,7 +563,7 @@ static void func_actor_143000_801325F0(Task* arg0)
             if (p->field_B != 0) {
                 if (p->field_8 != 3) {
                     if (p->field_8 == 5) {
-                        prim           = (POLY_FT4*)gGpuPrimCursor;
+                        prim           = gGpuPrimCursor;
                         gGpuPrimCursor = prim + 1;
                         SetPolyFT4(prim);
                         setShadeTex(prim, 1);
@@ -582,7 +582,7 @@ static void func_actor_143000_801325F0(Task* arg0)
                         addPrim(&gGpuCurrentOt[0x3FE], prim);
                     }
                 } else {
-                    prim           = (POLY_FT4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     SetPolyFT4(prim);
                     setShadeTex(prim, 1);
@@ -768,8 +768,8 @@ static void func_actor_143000_80132D10(Task* arg0)
         v              = 0xB8;
         u1             = u + 8;
         v1             = v + 8;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(prim + 1);
+        prim           = gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         SetPolyFT4(prim);
         setXY4(prim, x1, y, x1 + 8, y, x1, y1, x1 + 8, y1);
         setUV4(prim, u, v, u1, v, u, v1, u1, v1);
@@ -782,8 +782,8 @@ static void func_actor_143000_80132D10(Task* arg0)
     if (work->field_10 != 0x14 && arg0->state != 7) {
         u              = 0x60;
         v              = 0xB8;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(prim + 1);
+        prim           = gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         SetPolyFT4(prim);
         setXYWH(prim, x1, y, 8, 8);
         setUVWH(prim, u, v, 8, 8);
@@ -802,8 +802,8 @@ static void func_actor_143000_80132D10(Task* arg0)
         sx             = -0x78;
         sy             = -0x48;
         sv             = (work->field_12 - 1) * 0x10;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(prim + 1);
+        prim           = gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         SetPolyFT4(prim);
         setXYWH(prim, sx, sy, y1, 0x10);
         setUVWH(prim, 0, sv, y1, 0x10);
@@ -825,8 +825,8 @@ static void func_actor_143000_80132D10(Task* arg0)
             v    = 0xA0;
             clut = 0x3DC4;
         }
-        prim           = (POLY_FT4*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(prim + 1);
+        prim           = gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         SetPolyFT4(prim);
         setXY4(prim, sx, sy, x1, sy, sx, y1, x1, y1);
         setUVWH(prim, u, v, 0x40, 0x18);
@@ -842,8 +842,8 @@ static void func_actor_143000_80132D10(Task* arg0)
     sv             = D_actor_143000_80134570[(D_actor_143000_80135C04 / 16) % 16] * 0x18 - 0x60;
     v1             = sv + 0x18;
     clut           = 0x3DC7;
-    prim           = (POLY_FT4*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(prim + 1);
+    prim           = gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     SetPolyFT4(prim);
     setXY4(prim, sx, sy, x1, sy, sx, y1, x1, y1);
     setUV4(prim, 0, sv, 0x30, sv, 0, v1, 0x30, v1);
@@ -871,7 +871,7 @@ static void func_actor_143000_80133334(Actor143000Rect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
@@ -883,7 +883,7 @@ static void func_actor_143000_80133334(Actor143000Rect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -895,7 +895,7 @@ static void func_actor_143000_80133334(Actor143000Rect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -907,7 +907,7 @@ static void func_actor_143000_80133334(Actor143000Rect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;

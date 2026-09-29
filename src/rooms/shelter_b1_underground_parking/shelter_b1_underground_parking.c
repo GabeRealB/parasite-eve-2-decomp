@@ -2594,7 +2594,7 @@ static void func_shelter_b1_underground_parking_80183958(RoomRect* rect, u8 r, u
 {
     LINE_F2* line;
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
@@ -2606,7 +2606,7 @@ static void func_shelter_b1_underground_parking_80183958(RoomRect* rect, u8 r, u
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -2618,7 +2618,7 @@ static void func_shelter_b1_underground_parking_80183958(RoomRect* rect, u8 r, u
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -2630,7 +2630,7 @@ static void func_shelter_b1_underground_parking_80183958(RoomRect* rect, u8 r, u
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
@@ -2815,7 +2815,7 @@ static void func_shelter_b1_underground_parking_8018414C(s32 x, s32 y, s32 varia
         return;
     }
 
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
 
     px       = x - 2;
@@ -3228,7 +3228,7 @@ static void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1
         block->r0 = r0;
         block->r1 = r1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -3254,7 +3254,7 @@ static void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -3274,7 +3274,7 @@ static void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
             t3             = ang - 0x1000;
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             t              = ang - 0x1000;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
@@ -3368,7 +3368,7 @@ static void func_shelter_b1_underground_parking_8018543C(SVECTOR* worldPoint, s3
         block->radius = radius;
         // Build four glow wedges and quantize their shared camera depth.
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -3419,7 +3419,7 @@ static void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radiu
     do {
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -3495,7 +3495,7 @@ static void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1
         pulse         = sine / 34 + 0x78;
         block->radius = radius;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -3521,7 +3521,7 @@ static void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1
 
         i = 0;
         do {
-            line           = (LINE_G3*)gGpuPrimCursor;
+            line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineG3(line);
             setRGB0(line, 0, 0, 0);
@@ -3590,7 +3590,7 @@ static void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1
         color         = pulse / 34 + 0x78;
         block->rInner = (size * 8) / ((RoomDraw05Scratch*)(head - 0x14))->otz;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             half = (s16)color >> 1;
@@ -3612,7 +3612,7 @@ static void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -3636,7 +3636,7 @@ static void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1
         color = half;
         ang   = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -3657,7 +3657,7 @@ static void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

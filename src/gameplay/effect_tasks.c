@@ -768,7 +768,7 @@ void Gp_EffSprTask34(Task* arg0)
         if (block->flag >= 0) {
             gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
             block->otz     = block->otz + 1;
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2F);
@@ -852,7 +852,7 @@ void Gp_EffSprTask72(Task* arg0)
         if (block->flag >= 0) {
             gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
             block->otz     = block->otz + 1;
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2F);
@@ -960,7 +960,7 @@ void Gp_EffLineTaskA3(Task* arg0)
             if (block->flag >= 0) {
                 gte_stszotz(&((GpEffLineScratch*)(head - 0x20))->otz);
                 block->otz     = block->otz + 1;
-                prim           = (LINE_G2*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setlen(prim, 4);
                 setcode(prim, 0x50);
@@ -1019,7 +1019,7 @@ static void Gp_DrawEffSprite6C(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -1106,7 +1106,7 @@ void Gp_EffSprTask35(Task* arg0)
         gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
             gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2F);
@@ -1212,7 +1212,7 @@ void Gp_EffSprTask6F(Task* arg0)
         gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
             gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2F);
@@ -1682,7 +1682,7 @@ void Gp_EffTileTaskA4(Task* arg0)
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         block->otz     = block->otz + 1;
-        prim           = (TILE*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 3);
         setcode(prim, 0x60);
@@ -1773,7 +1773,7 @@ static void Gp_DrawEffSprite3B(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz     = block->otz + 1;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -1909,7 +1909,7 @@ void Gp_EffSprTask5C(Task* arg0)
         if (block->flag >= 0) {
             gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
             block->otz     = block->otz + 1;
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2C);
@@ -2092,7 +2092,7 @@ void func_800F289C(Task* arg0)
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2F);
@@ -2167,7 +2167,7 @@ void Gp_EffSprTask76(Task* arg0)
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         block->otz     = block->otz + 1;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
@@ -2288,7 +2288,7 @@ void Gp_EffSprTask7C(Task* arg0)
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz     = block->otz + 1;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
@@ -2671,7 +2671,7 @@ void Gp_EffLineTask92(Task* arg0)
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
-            prim           = (LINE_F2*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             block->otz     = block->otz + 1;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 3);
@@ -2771,7 +2771,7 @@ static void Gp_DrawEffShard(GfxCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
         b         = arg2 * (arg3 & 0xF);
         ang       = 0;
         do {
-            quad           = (POLY_G4*)gGpuPrimCursor;
+            quad           = gGpuPrimCursor;
             gGpuPrimCursor = quad + 1;
             setlen(quad, 8);
             setcode(quad, 0x38);
@@ -2807,7 +2807,7 @@ static void Gp_DrawEffShard(GfxCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
             ang       = 0;
             do {
                 rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                tri               = (POLY_G3*)gGpuPrimCursor;
+                tri               = gGpuPrimCursor;
                 gGpuPrimCursor    = tri + 1;
                 setlen(tri, 6);
                 setcode(tri, 0x30);
@@ -2897,7 +2897,7 @@ void Gp_EffSprTask9E(Task* arg0)
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         block->otz    += 0x80;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
@@ -2997,7 +2997,7 @@ void Gp_EffSprTask54(Task* arg0)
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
@@ -3077,7 +3077,7 @@ void Gp_DrawEffSprite7C(GfxCoord* arg0, s32 arg1, u32 arg2)
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
@@ -3141,7 +3141,7 @@ void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade)
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2C);

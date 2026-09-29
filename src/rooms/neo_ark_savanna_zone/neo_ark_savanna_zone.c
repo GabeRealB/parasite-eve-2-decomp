@@ -702,7 +702,7 @@ static void func_neo_ark_savanna_zone_8017DCB0(GfxCoord* arg0, s32 arg1, s32 arg
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -756,7 +756,7 @@ static void func_neo_ark_savanna_zone_8017E0DC(GfxCoord* arg0, s16 arg1, u8* rgb
         block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -948,7 +948,7 @@ static void func_neo_ark_savanna_zone_8017E960(GfxCoord* arg0, GfxCoord* arg1, s
             r2             = lo * (arg3 >> 8);
             g2             = lo * ((arg3 >> 4) & 3);
             b2             = lo * (arg3 & 3);
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             prim->r0 = r;
@@ -1087,7 +1087,7 @@ static void func_neo_ark_savanna_zone_8017EFE0(GfxCoord* arg0, s16 arg1, u8* arg
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1108,7 +1108,7 @@ static void func_neo_ark_savanna_zone_8017EFE0(GfxCoord* arg0, s16 arg1, u8* arg
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1131,7 +1131,7 @@ static void func_neo_ark_savanna_zone_8017EFE0(GfxCoord* arg0, s16 arg1, u8* arg
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1152,7 +1152,7 @@ static void func_neo_ark_savanna_zone_8017EFE0(GfxCoord* arg0, s16 arg1, u8* arg
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

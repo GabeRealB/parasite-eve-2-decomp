@@ -401,7 +401,7 @@ void func_actor_143000_801342F8(s32 x, s32 y, u16* codes, s32 index, s32 active)
                 Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &D_actor_143000_801350D4.data.arguments[5].source.index, 0);
             }
         }
-        prim           = (POLY_F4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyF4(prim);
         setRGB0(prim, 0, 0x7C, 0x2C);

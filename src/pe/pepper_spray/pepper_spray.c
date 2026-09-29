@@ -145,7 +145,7 @@ static void func_pepper_spray_8012F21C(GfxCoord* arg0, s16 arg1, s16 arg2)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((GpEffFlareScratch*)(head - 0x1C))->vec);
     gte_rtps();
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
     gte_stsxy(&((GpEffFlareScratch*)(head - 0x1C))->sx);
@@ -256,7 +256,7 @@ static void func_pepper_spray_8012F634(GfxCoord* arg0, s16 arg1, s16 arg2)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[0]);
     gte_rtps();
-    prim           = (POLY_G4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyG4(prim);
     gte_stsxy(&prim->x0);

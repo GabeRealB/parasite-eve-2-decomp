@@ -1147,7 +1147,7 @@ void func_actor_535700_80131E24(Task* task)
     TILE* tile;
 
     if (D_actor_535700_80146840 != 0) {
-        tile           = (TILE*)gGpuPrimCursor;
+        tile           = gGpuPrimCursor;
         gGpuPrimCursor = tile + 1;
         SetTile(tile);
         tile->r0 = 0;

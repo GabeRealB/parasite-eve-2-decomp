@@ -33,7 +33,7 @@ static void RoomFx_DrawBurstStar(GfxCoord* arg0, s16 arg1, u8* arg2)
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -54,7 +54,7 @@ static void RoomFx_DrawBurstStar(GfxCoord* arg0, s16 arg1, u8* arg2)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -77,7 +77,7 @@ static void RoomFx_DrawBurstStar(GfxCoord* arg0, s16 arg1, u8* arg2)
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -98,7 +98,7 @@ static void RoomFx_DrawBurstStar(GfxCoord* arg0, s16 arg1, u8* arg2)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

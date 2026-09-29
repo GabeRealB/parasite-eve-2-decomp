@@ -2132,7 +2132,7 @@ static void func_mist_shooting_gallery_80182294(GfxCoord* coord, s16 arg1, s16 a
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -2205,7 +2205,7 @@ static void func_mist_shooting_gallery_801826C4(GfxCoord* coord, SVECTOR* arg1, 
         gte_stsxy(&((MistShootingGalleryBeamScratch*)(head - 0x20))->sxy1);
         gte_stflg(&((MistShootingGalleryBeamScratch*)(head - 0x20))->flag);
         if (block->flag >= 0) {
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2F);
@@ -3257,7 +3257,7 @@ static void func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2)
     SPRT*     p;
     DR_TPAGE* dr;
 
-    p              = (SPRT*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     p->w           = 0xF;
     p->h           = 0x13;
@@ -3282,7 +3282,7 @@ static void func_mist_shooting_gallery_801847D4(u8 arg0)
     TILE*     p;
     DR_TPAGE* dr;
 
-    p              = (TILE*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     p->x0          = -0xA8;
     p->y0          = -0x7C;

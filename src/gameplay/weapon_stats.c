@@ -303,7 +303,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 if (i == two2) {
                     swap = list == &D_8010E9A4;
                 }
-                p              = (SPRT*)gGpuPrimCursor;
+                p              = gGpuPrimCursor;
                 p->x0          = arg0->panel.field_20.u + xCopy;
                 p->y0          = arg0->panel.field_22.u + y + 5;
                 val            = 8;

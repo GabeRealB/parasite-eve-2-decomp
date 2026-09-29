@@ -553,7 +553,7 @@ static void func_lifedrain_801301AC(GfxCoord* arg0, s16 arg1, s16 arg2)
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         prim->tpage    = 0x2A;
         prim->clut     = 0x42C5;
@@ -584,7 +584,7 @@ static void func_lifedrain_801301AC(GfxCoord* arg0, s16 arg1, s16 arg2)
         prim->y2    = y;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         prim->tpage    = 0x29;
         prim->clut     = ((u32)(((arg1 & 1) * 0x10) + 0x100) >> 4) | 0x4300;
@@ -649,7 +649,7 @@ static void func_lifedrain_801305C0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_G3*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG3(prim);
         setRGB0(prim, rgb[0], rgb[1], rgb[2]);

@@ -279,7 +279,7 @@ static void func_shelter_b1_pod_service_gantry_8017DF70(GfxCoord* arg0, u16 arg1
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -353,7 +353,7 @@ static void func_shelter_b1_pod_service_gantry_8017E400(GfxCoord* arg0, u16 arg1
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -554,7 +554,7 @@ static void func_shelter_b1_pod_service_gantry_8017ED3C(GfxCoord* coord, u16 tex
     gte_stflg(&((_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block)))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&depthBlock->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         angle          = spinAngle;
         gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
@@ -621,7 +621,7 @@ static void func_shelter_b1_pod_service_gantry_8017F160(GfxCoord* arg0, u16 arg1
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -708,7 +708,7 @@ void func_shelter_b1_pod_service_gantry_8017F450(GfxCoord* arg0, s32 arg1, s32 a
         arg3        = blend + ((arg3 & 0xF) << 4);
         block->step = arg2;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

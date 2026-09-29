@@ -919,7 +919,7 @@ static void func_shelter_b2_elevator_hall_8017DFB8(SVECTOR* arg0, s32 arg1, s32 
                 angStart = ang;
                 limit    = ang + 0x800;
                 do {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -941,7 +941,7 @@ static void func_shelter_b2_elevator_hall_8017DFB8(SVECTOR* arg0, s32 arg1, s32 
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
                     conn           = angStart + ((ang - angStart) * 2);
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -960,7 +960,7 @@ static void func_shelter_b2_elevator_hall_8017DFB8(SVECTOR* arg0, s32 arg1, s32 
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
                     t3             = ang + 0x800;
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     t              = t3;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
@@ -1052,7 +1052,7 @@ static void func_shelter_b2_elevator_hall_8017E7FC(SVECTOR* arg0, s32 arg1, s32 
         block->rInner = rInner;
         ang           = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             rh = (u8)r >> 1;
@@ -1076,7 +1076,7 @@ static void func_shelter_b2_elevator_hall_8017E7FC(SVECTOR* arg0, s32 arg1, s32 
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1102,7 +1102,7 @@ static void func_shelter_b2_elevator_hall_8017E7FC(SVECTOR* arg0, s32 arg1, s32 
         b   = (u8)bh;
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1121,7 +1121,7 @@ static void func_shelter_b2_elevator_hall_8017E7FC(SVECTOR* arg0, s32 arg1, s32 
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1258,7 +1258,7 @@ static void func_shelter_b2_elevator_hall_8017F4A4(GfxCoord* arg0, u16 arg1, u16
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
@@ -1323,7 +1323,7 @@ static void func_shelter_b2_elevator_hall_8017F768(GfxCoord* arg0, s32 arg1, s32
         block->rOuter = ((s16)arg1 * 64) / block->otz;
         block->rInner = ((s16)outer * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang = next) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1376,7 +1376,7 @@ static void func_shelter_b2_elevator_hall_8017FB8C(GfxCoord* arg0, s16 arg1, u8*
         block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1587,7 +1587,7 @@ static void func_shelter_b2_elevator_hall_80180464(GfxCoord* coord, s16 size)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2EU;
@@ -1619,7 +1619,7 @@ static void func_shelter_b2_elevator_hall_80180464(GfxCoord* coord, s16 size)
         addPrim(
             GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2F;
@@ -1700,7 +1700,7 @@ static void func_shelter_b2_elevator_hall_80180990(GfxCoord* arg0, s32 arg1)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
@@ -1766,7 +1766,7 @@ static void func_shelter_b2_elevator_hall_80180D08(GfxCoord* arg0, s16 arg1, u8*
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1787,7 +1787,7 @@ static void func_shelter_b2_elevator_hall_80180D08(GfxCoord* arg0, s16 arg1, u8*
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1810,7 +1810,7 @@ static void func_shelter_b2_elevator_hall_80180D08(GfxCoord* arg0, s16 arg1, u8*
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1831,7 +1831,7 @@ static void func_shelter_b2_elevator_hall_80180D08(GfxCoord* arg0, s16 arg1, u8*
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1986,7 +1986,7 @@ static void func_shelter_b2_elevator_hall_80181AA0(GfxCoord* arg0, s32 arg1, s32
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2038,7 +2038,7 @@ static void func_shelter_b2_elevator_hall_80181ECC(GfxCoord* arg0, s16 arg1, u8*
         block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2221,7 +2221,7 @@ static void func_shelter_b2_elevator_hall_80182750(GfxCoord* arg0, GfxCoord* arg
             lo             = (fade - 9) & 0xFF;
             r2             = lo * (arg3 >> 8);
             g2             = lo * ((arg3 >> 4) & 3);
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             blk->otz       = blk->otz + 1;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 8);
@@ -2354,7 +2354,7 @@ static void func_shelter_b2_elevator_hall_80182DD0(GfxCoord* arg0, s16 arg1, u8*
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2375,7 +2375,7 @@ static void func_shelter_b2_elevator_hall_80182DD0(GfxCoord* arg0, s16 arg1, u8*
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2398,7 +2398,7 @@ static void func_shelter_b2_elevator_hall_80182DD0(GfxCoord* arg0, s16 arg1, u8*
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2419,7 +2419,7 @@ static void func_shelter_b2_elevator_hall_80182DD0(GfxCoord* arg0, s16 arg1, u8*
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

@@ -646,7 +646,7 @@ static void func_shelter_b1_armory_80180934(SVECTOR* arg0, s32 arg1, s32 arg2, s
         block->r0 = r0;
         block->r1 = r1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -672,7 +672,7 @@ static void func_shelter_b1_armory_80180934(SVECTOR* arg0, s32 arg1, s32 arg2, s
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -692,7 +692,7 @@ static void func_shelter_b1_armory_80180934(SVECTOR* arg0, s32 arg1, s32 arg2, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
             t3             = ang - 0x1000;
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             t              = ang - 0x1000;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
@@ -784,7 +784,7 @@ static void func_shelter_b1_armory_8018111C(SVECTOR* worldPoint, s32 radiusScale
         block->radius = radius;
         // Build four glow wedges and quantize their shared camera depth.
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -872,7 +872,7 @@ static void func_shelter_b1_armory_801814C0(SVECTOR* arg0, s32 arg1, s32 arg2)
         block->rInner = rInner;
         ang           = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             rh = (u8)r >> 1;
@@ -896,7 +896,7 @@ static void func_shelter_b1_armory_801814C0(SVECTOR* arg0, s32 arg1, s32 arg2)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -922,7 +922,7 @@ static void func_shelter_b1_armory_801814C0(SVECTOR* arg0, s32 arg1, s32 arg2)
         b   = (u8)bh;
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -941,7 +941,7 @@ static void func_shelter_b1_armory_801814C0(SVECTOR* arg0, s32 arg1, s32 arg2)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

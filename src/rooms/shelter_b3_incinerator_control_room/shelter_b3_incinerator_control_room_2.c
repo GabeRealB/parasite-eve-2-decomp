@@ -453,7 +453,7 @@ static void func_shelter_b3_incinerator_control_room_8017FEB4(SVECTOR* arg0, s32
                 angStart = ang;
                 limit    = ang + 0x800;
                 do {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -475,7 +475,7 @@ static void func_shelter_b3_incinerator_control_room_8017FEB4(SVECTOR* arg0, s32
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
                     conn           = angStart + ((ang - angStart) * 2);
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -494,7 +494,7 @@ static void func_shelter_b3_incinerator_control_room_8017FEB4(SVECTOR* arg0, s32
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
                     t3             = ang + 0x800;
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     t              = t3;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
@@ -569,7 +569,7 @@ static void func_shelter_b3_incinerator_control_room_801806F8(SVECTOR* arg0, s32
         pulse         = sine / 34 + 0x78;
         block->radius = radius;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -595,7 +595,7 @@ static void func_shelter_b3_incinerator_control_room_801806F8(SVECTOR* arg0, s32
 
         i = 0;
         do {
-            line           = (LINE_G3*)gGpuPrimCursor;
+            line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineG3(line);
             setRGB0(line, 0, 0, 0);
@@ -664,7 +664,7 @@ static void func_shelter_b3_incinerator_control_room_80180B6C(SVECTOR* arg0, s32
         color         = pulse / 34 + 0x78;
         block->rInner = (size * 8) / ((RoomDraw05Scratch*)(head - 0x14))->otz;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             half = (s16)color >> 1;
@@ -686,7 +686,7 @@ static void func_shelter_b3_incinerator_control_room_80180B6C(SVECTOR* arg0, s32
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -710,7 +710,7 @@ static void func_shelter_b3_incinerator_control_room_80180B6C(SVECTOR* arg0, s32
         color = half;
         ang   = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -731,7 +731,7 @@ static void func_shelter_b3_incinerator_control_room_80180B6C(SVECTOR* arg0, s32
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

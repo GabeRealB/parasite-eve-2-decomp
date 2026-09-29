@@ -1785,7 +1785,7 @@ static void func_dryfield_water_hole_8017E410(GfxCoord* arg0, SVECTOR* arg1, SVE
         block->r0 = r0;
         block->r1 = r1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1806,7 +1806,7 @@ static void func_dryfield_water_hole_8017E410(GfxCoord* arg0, SVECTOR* arg1, SVE
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1825,7 +1825,7 @@ static void func_dryfield_water_hole_8017E410(GfxCoord* arg0, SVECTOR* arg1, SVE
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1940,7 +1940,7 @@ static void func_dryfield_water_hole_8017EDE4(GfxCoord* arg0, s32 arg1, s32 arg2
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);

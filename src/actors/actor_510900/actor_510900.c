@@ -1458,8 +1458,8 @@ void func_actor_510900_80132D4C(Task* arg0)
         gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
             gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-            prim           = (POLY_FT4*)gGpuPrimCursor;
-            gGpuPrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2C);
             if (arg0->state == 0) {
@@ -1563,7 +1563,7 @@ void func_actor_510900_801332EC(Task* arg0)
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2C);
@@ -1659,7 +1659,7 @@ void func_actor_510900_8013371C(Task* arg0)
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2C);
@@ -1759,7 +1759,7 @@ void func_actor_510900_80133C84(Task* arg0)
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2C);
@@ -1945,7 +1945,7 @@ void func_actor_510900_80134284(Task* arg0)
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
             gte_stszotz(&block->otz1);
-            prim           = (LINE_F2*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 3);
             setcode(prim, 0x40);
@@ -2151,7 +2151,7 @@ static void func_actor_510900_80134C90(GfxCoord* arg0, u16 arg1, s16 arg2, s16 a
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz     = block->otz + 1;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);

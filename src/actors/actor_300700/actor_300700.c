@@ -817,7 +817,7 @@ static void func_actor_300700_80162EFC(Task* arg0)
         v->vx += x;
         v->vy += y;
     }
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2E);

@@ -597,7 +597,7 @@ static void func_neo_ark_north_promenade_8017DA7C(GfxCoord* arg0, u16 arg1, u16 
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
@@ -663,7 +663,7 @@ static void func_neo_ark_north_promenade_8017DD40(GfxCoord* arg0, s32 arg1, s32 
         block->rOuter = ((s16)arg1 * 64) / block->otz;
         block->rInner = ((s16)outer * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang = next) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -716,7 +716,7 @@ static void func_neo_ark_north_promenade_8017E164(GfxCoord* arg0, s16 arg1, u8* 
         block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -936,7 +936,7 @@ static void func_neo_ark_north_promenade_8017EA3C(GfxCoord* coord, s16 size)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2EU;
@@ -968,7 +968,7 @@ static void func_neo_ark_north_promenade_8017EA3C(GfxCoord* coord, s16 size)
         addPrim(
             GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2F;
@@ -1049,7 +1049,7 @@ static void func_neo_ark_north_promenade_8017EF68(GfxCoord* arg0, s32 arg1)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
@@ -1116,7 +1116,7 @@ static void func_neo_ark_north_promenade_8017F2E0(GfxCoord* arg0, s16 arg1, u8* 
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1137,7 +1137,7 @@ static void func_neo_ark_north_promenade_8017F2E0(GfxCoord* arg0, s16 arg1, u8* 
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1160,7 +1160,7 @@ static void func_neo_ark_north_promenade_8017F2E0(GfxCoord* arg0, s16 arg1, u8* 
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1181,7 +1181,7 @@ static void func_neo_ark_north_promenade_8017F2E0(GfxCoord* arg0, s16 arg1, u8* 
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1344,7 +1344,7 @@ static void func_neo_ark_north_promenade_80180078(GfxCoord* arg0, s32 arg1, s32 
         block->rOuter = ((s16)arg1 * 64) / block->otz;
         block->rInner = ((s16)outer * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang = next) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1397,7 +1397,7 @@ static void func_neo_ark_north_promenade_801804A4(GfxCoord* arg0, s16 arg1, u8* 
         block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1589,7 +1589,7 @@ static void func_neo_ark_north_promenade_80180D28(GfxCoord* arg0, GfxCoord* arg1
             lo             = (fade - 9) & 0xFF;
             r2             = lo * (arg3 >> 8);
             g2             = lo * ((arg3 >> 4) & 3);
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             blk->otz       = blk->otz + 1;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 8);
@@ -1731,7 +1731,7 @@ static void func_neo_ark_north_promenade_801813A8(GfxCoord* arg0, s16 arg1, u8* 
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1752,7 +1752,7 @@ static void func_neo_ark_north_promenade_801813A8(GfxCoord* arg0, s16 arg1, u8* 
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1775,7 +1775,7 @@ static void func_neo_ark_north_promenade_801813A8(GfxCoord* arg0, s16 arg1, u8* 
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1796,7 +1796,7 @@ static void func_neo_ark_north_promenade_801813A8(GfxCoord* arg0, s16 arg1, u8* 
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

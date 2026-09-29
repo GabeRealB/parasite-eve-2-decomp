@@ -1736,7 +1736,7 @@ static void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1)
                 angStart = ang;
                 limit    = angEnd;
                 do {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -1758,7 +1758,7 @@ static void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1)
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
                     conn           = angStart + ((ang - angStart) * 2);
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -1777,7 +1777,7 @@ static void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1)
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
 
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     t3             = ang + 0x800;
                     t              = t3;
                     gGpuPrimCursor = prim + 1;
@@ -1898,7 +1898,7 @@ static void func_dryfield_night_water_hole_8017F3A8(GfxCoord* arg0, s32 arg1, s3
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
@@ -2095,7 +2095,7 @@ static void func_dryfield_night_water_hole_8017FB98(GfxCoord* arg0, s32 arg1, s3
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         ang            = (s16)arg3;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -2155,7 +2155,7 @@ static void func_dryfield_night_water_hole_8017FF84(GfxCoord* arg0, s32 arg1, s3
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);

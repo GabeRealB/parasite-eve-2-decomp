@@ -1970,7 +1970,7 @@ static void Actor02600_Fn02954(Task* actor, s32 frame)
         radius                 = (s32)(Actor02600_D08A98[frame] * 0x300) / depth;
         poly                   = gGpuPrimCursor;
         screen                 = s->sxy;
-        gGpuPrimCursor         = (u8*)poly + 0x28;
+        gGpuPrimCursor         = poly + 1;
         x                      = screen & 0xFFFF;
         y                      = screen >> 0x10;
         left                   = x - radius;
@@ -2065,7 +2065,7 @@ static void Actor02600_Fn02C94(Task* actor)
         return;
     }
     line           = gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)line + sizeof(LINE_G2);
+    gGpuPrimCursor = line + 1;
     screen1        = s->screen;
     setLineG2(line);
     setSemiTrans(line, 1);
@@ -2089,7 +2089,7 @@ static void Actor02600_Fn02C94(Task* actor)
     }
     addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), line);
     page           = gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)page + sizeof(DR_TPAGE);
+    gGpuPrimCursor = page + 1;
     setlen(page, 1);
     page->code[0] = 0xE1000620;
     addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), page);

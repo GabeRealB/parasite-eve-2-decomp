@@ -1348,8 +1348,8 @@ void func_actor_206100_80149ED0(Task* task)
             tpage1 = getTPage(2, 0, 128, gDisplayState.drawBuffer << 8);
             for (j = -1; j < 29; j++) {
                 for (k = 0; k < 10; k++) {
-                    p              = (POLY_FT4*)gGpuPrimCursor;
-                    gGpuPrimCursor = (u8*)(p + 1);
+                    p              = gGpuPrimCursor;
+                    gGpuPrimCursor = p + 1;
                     setPolyFT4(p);
                     if (D_actor_206100_80158BA8->blend == 0) {
                         setShadeTex(p, 1);
@@ -1414,12 +1414,12 @@ void func_actor_206100_80149ED0(Task* task)
             }
             break;
     }
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 1);
     addPrim(&gGpuCurrentOt[1023], stp);
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[0], stp);
 }
@@ -1531,7 +1531,7 @@ static void func_actor_206100_8014AB3C(GfxCoord* arg0, u16 arg1, u16 arg2, s32 a
     if (blk->flag >= 0) {
         gte_stszotz(copy);
         ((GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch)))->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2F;

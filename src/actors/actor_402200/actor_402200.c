@@ -3255,8 +3255,8 @@ static void func_actor_402200_80136184(Task* arg0)
         sc->y[4] = sc->y[0] + (((sc->norm.vx * 3) >> 3) / sc->z);
         sc->y[5] = sc->y[1] + (((sc->norm.vx * 3) >> 3) / sc->z);
         for (j = 0; j < 2; j++) {
-            poly           = (POLY_G4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(poly + 1);
+            poly           = gGpuPrimCursor;
+            gGpuPrimCursor = poly + 1;
             setlen(poly, 8);
             poly->code = 0x3A;
             poly->x0   = sc->x[D_actor_402200_80154178[j][0]];
@@ -3273,8 +3273,8 @@ static void func_actor_402200_80136184(Task* arg0)
             setRGB3(poly, 0, 0, 0);
             addPrim((&gGpuCurrentOt[((((u32)(sc->z << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
         }
-        line           = (LINE_F2*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(line + 1);
+        line           = gGpuPrimCursor;
+        gGpuPrimCursor = line + 1;
         setlen(line, 3);
         line->code = 0x42;
         line->x0   = sc->x[0];
@@ -3283,8 +3283,8 @@ static void func_actor_402200_80136184(Task* arg0)
         line->y1   = sc->y[1];
         setRGB0(line, 0xFF, 0, 0);
         addPrim((&gGpuCurrentOt[((((u32)(sc->z << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), line);
-        tp             = (DR_TPAGE*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(tp + 1);
+        tp             = gGpuPrimCursor;
+        gGpuPrimCursor = tp + 1;
         setlen(tp, 1);
         tp->code[0] = 0xE1000620;
         addPrim((&gGpuCurrentOt[((((u32)(sc->z << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), tp);
@@ -3439,8 +3439,8 @@ static void func_actor_402200_80136D9C(s32 otz)
     extra          = Gp_GetViewSprtExtra();
     scratch        = SCRATCH_PUSH(ActorsDrawScratch);
     scratch->otz   = otz;
-    area           = (DR_AREA*)gGpuPrimCursor;
-    gGpuPrimCursor = (DR_TPAGE*)(area + 1);
+    area           = gGpuPrimCursor;
+    gGpuPrimCursor = area + 1;
     if (extra != NULL && ((extra->depth << gDisplayState.otDepthShift) & 0x3FFF) >> 4 < scratch->otz) {
         scratch->rect    = extra->rect;
         scratch->rect.y += gDisplayState.drawBuffer * 0x110;
@@ -3454,21 +3454,21 @@ static void func_actor_402200_80136D9C(s32 otz)
     SetDrawArea(area, clip);
     addPrim(&gGpuCurrentOt[scratch->otz], area);
 
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (DR_TPAGE*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[scratch->otz], stp);
 
     ofs             = scratch->ofs;
-    off             = (DR_OFFSET*)gGpuPrimCursor;
-    gGpuPrimCursor  = (DR_TPAGE*)(off + 1);
+    off             = gGpuPrimCursor;
+    gGpuPrimCursor  = off + 1;
     scratch->ofs[0] = 0xA0;
     scratch->ofs[1] = gDisplayState.drawBuffer * 0x110 + 0x78;
     SetDrawOffset(off, ofs);
     addPrim(&gGpuCurrentOt[scratch->otz], off);
 
-    sprt           = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor = (DR_TPAGE*)(sprt + 1);
+    sprt           = gGpuPrimCursor;
+    gGpuPrimCursor = sprt + 1;
     sprt->x0       = -0xA0;
     sprt->y0       = -0x78;
     sprt->w        = 0xA0;
@@ -3484,8 +3484,8 @@ static void func_actor_402200_80136D9C(s32 otz)
     setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0, gDisplayState.drawBuffer << 8));
     addPrim(&gGpuCurrentOt[scratch->otz], tpage);
 
-    sprt           = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor = (DR_TPAGE*)(sprt + 1);
+    sprt           = gGpuPrimCursor;
+    gGpuPrimCursor = sprt + 1;
     sprt->x0       = 0;
     sprt->y0       = -0x78;
     sprt->w        = 0xA0;
@@ -3501,8 +3501,8 @@ static void func_actor_402200_80136D9C(s32 otz)
     setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0x80, gDisplayState.drawBuffer << 8));
     addPrim(&gGpuCurrentOt[scratch->otz], tpage);
 
-    tile           = (TILE*)gGpuPrimCursor;
-    gGpuPrimCursor = (DR_TPAGE*)(tile + 1);
+    tile           = gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
     setlen(tile, 3);
     setcode(tile, 0x60);
     tile->b0 = 2;
@@ -3514,20 +3514,20 @@ static void func_actor_402200_80136D9C(s32 otz)
     tile->h  = 0xF0;
     addPrim(&gGpuCurrentOt[scratch->otz], tile);
 
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (DR_TPAGE*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 1);
     addPrim(&gGpuCurrentOt[scratch->otz], stp);
 
-    off             = (DR_OFFSET*)gGpuPrimCursor;
-    gGpuPrimCursor  = (DR_TPAGE*)(off + 1);
+    off             = gGpuPrimCursor;
+    gGpuPrimCursor  = off + 1;
     scratch->ofs[0] = 0x260;
     scratch->ofs[1] = 0x178;
     SetDrawOffset(off, ofs);
     addPrim(&gGpuCurrentOt[scratch->otz], off);
 
-    area            = (DR_AREA*)gGpuPrimCursor;
-    gGpuPrimCursor  = (DR_TPAGE*)(area + 1);
+    area            = gGpuPrimCursor;
+    gGpuPrimCursor  = area + 1;
     scratch->rect.x = 0x1C0;
     scratch->rect.y = 0x100;
     scratch->rect.w = 0x140;

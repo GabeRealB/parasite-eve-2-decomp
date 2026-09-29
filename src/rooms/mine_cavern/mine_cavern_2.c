@@ -2398,7 +2398,7 @@ static void func_mine_cavern_8017E774(SVECTOR* arg0, s32 arg1, s32 arg2)
                 angStart = ang;
                 limit    = ang + 0x800;
                 do {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -2420,7 +2420,7 @@ static void func_mine_cavern_8017E774(SVECTOR* arg0, s32 arg1, s32 arg2)
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
                     conn           = angStart + ((ang - angStart) * 2);
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -2439,7 +2439,7 @@ static void func_mine_cavern_8017E774(SVECTOR* arg0, s32 arg1, s32 arg2)
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
                     t3             = ang + 0x800;
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     t              = t3;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
@@ -2492,7 +2492,7 @@ static void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
         idx         = (s16)arg1;
@@ -2633,7 +2633,7 @@ static void func_mine_cavern_8017F50C(GfxCoord* arg0, u16 arg1, u16 arg2, u16 ar
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
@@ -2699,7 +2699,7 @@ static void func_mine_cavern_8017F7D0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rg
         block->rOuter = ((s16)arg1 * 64) / block->otz;
         block->rInner = ((s16)outer * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang = next) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2753,7 +2753,7 @@ static void func_mine_cavern_8017FBF4(GfxCoord* arg0, s16 arg1, u8* rgb)
         block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2981,7 +2981,7 @@ static void func_mine_cavern_801804CC(GfxCoord* coord, s16 size)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2EU;
@@ -3013,7 +3013,7 @@ static void func_mine_cavern_801804CC(GfxCoord* coord, s16 size)
         addPrim(
             GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2F;
@@ -3094,7 +3094,7 @@ static void func_mine_cavern_801809F8(GfxCoord* arg0, s32 arg1)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
@@ -3161,7 +3161,7 @@ static void func_mine_cavern_80180D70(GfxCoord* arg0, s16 arg1, u8* arg2)
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -3182,7 +3182,7 @@ static void func_mine_cavern_80180D70(GfxCoord* arg0, s16 arg1, u8* arg2)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -3205,7 +3205,7 @@ static void func_mine_cavern_80180D70(GfxCoord* arg0, s16 arg1, u8* arg2)
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -3226,7 +3226,7 @@ static void func_mine_cavern_80180D70(GfxCoord* arg0, s16 arg1, u8* arg2)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -3365,8 +3365,9 @@ static void func_mine_cavern_80181864(void)
            reserves a POLY_GT3 and a DR_MODE for them, so the cursor steps by
            the larger types. */
         for (i = 0; i < 8; i++) {
-            prim           = (POLY_G3*)gGpuPrimCursor;
-            gGpuPrimCursor = (POLY_GT3*)prim + 1;
+            prim = gGpuPrimCursor;
+            // Preserve the textured-triangle-sized reservation for this gouraud packet.
+            gGpuPrimCursor = (u8*)prim + sizeof(POLY_GT3);
             setPolyG3(prim);
             prim->r0 = MineCavernGlowByte8018E350[0];
             prim->g0 = MineCavernGlowByte8018E351[0];
@@ -3385,8 +3386,9 @@ static void func_mine_cavern_80181864(void)
             prim->x2 = x + ((rsin(i * 0x200 + 0x200) * radius) >> shift);
             prim->y2 = y + ((rcos(i * 0x200 + 0x200) * radius) >> shift);
             addPrim(&gGpuCurrentOt[otz >> 4], prim);
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = (DR_MODE*)dr + 1;
+            dr = gGpuPrimCursor;
+            // Preserve the draw-mode-sized reservation for this texture-page packet.
+            gGpuPrimCursor = (u8*)dr + sizeof(DR_MODE);
             setDrawTPage(dr, 0, 0, 0x2A);
             addPrim(&gGpuCurrentOt[otz >> 4], dr);
         }
@@ -3477,8 +3479,9 @@ static void func_mine_cavern_80181D80(s16 point)
            reserves a POLY_GT3 and a DR_MODE for them, so the cursor steps by
            the larger types. */
         for (i = 0; i < 8; i++) {
-            prim           = (POLY_G3*)gGpuPrimCursor;
-            gGpuPrimCursor = (POLY_GT3*)prim + 1;
+            prim = gGpuPrimCursor;
+            // Preserve the textured-triangle-sized reservation for this gouraud packet.
+            gGpuPrimCursor = (u8*)prim + sizeof(POLY_GT3);
             setPolyG3(prim);
             prim->r0 = MineCavernGlowByte8018E358[0];
             prim->g0 = MineCavernGlowByte8018E359[0];
@@ -3497,8 +3500,9 @@ static void func_mine_cavern_80181D80(s16 point)
             prim->x2 = x + ((rsin(i * 0x200 + 0x200) * radius) >> 12);
             prim->y2 = y + ((rcos(i * 0x200 + 0x200) * radius) >> 12);
             addPrim(&gGpuCurrentOt[otz >> 4], prim);
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = (DR_MODE*)dr + 1;
+            dr = gGpuPrimCursor;
+            // Preserve the draw-mode-sized reservation for this texture-page packet.
+            gGpuPrimCursor = (u8*)dr + sizeof(DR_MODE);
             setDrawTPage(dr, 0, 0, 0x2A);
             addPrim(&gGpuCurrentOt[otz >> 4], dr);
         }
@@ -3585,7 +3589,7 @@ static void func_mine_cavern_80182454(void)
     flags = GameFlag_GetNibble(0xE2);
     count = 0;
 
-    poly           = (POLY_F4*)gGpuPrimCursor;
+    poly           = gGpuPrimCursor;
     gGpuPrimCursor = poly + 1;
     setlen(poly, 5);
     setcode(poly, 0x2A);
@@ -3610,7 +3614,7 @@ static void func_mine_cavern_80182454(void)
     poly->y3 = 0x78;
     addPrim(gGpuCurrentOt, poly);
 
-    dr             = (DR_MODE*)gGpuPrimCursor;
+    dr             = gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE100004A;

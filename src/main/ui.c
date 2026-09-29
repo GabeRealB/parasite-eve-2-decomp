@@ -533,7 +533,7 @@ static void Ui_DrawWindowBorder(RECT* rect, s32 arg1, s32 arg2)
     s32       val;
     s32       t;
 
-    p  = (POLY_GT4*)gGpuPrimCursor;
+    p  = gGpuPrimCursor;
     p2 = p + 1;
 
     p->x0 = p->x2 = rect->x;
@@ -542,13 +542,13 @@ static void Ui_DrawWindowBorder(RECT* rect, s32 arg1, s32 arg2)
     p2->y0 = p2->y1 = p->y0 = p->y1 = rect->y + rect->h;
     p2->y2 = p2->y3 = p->y2 = p->y3 = rect->y;
 
-    gGpuPrimCursor = (u8*)(p + 2);
+    gGpuPrimCursor = p + 2;
     if (p->x0 >= p2->x0 || p->y0 <= p->y2) {
         return;
     }
 
-    dr             = (DR_MODE*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(dr + 1);
+    dr             = gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
 
     sp10.w = sp10.h = 0xFF;
     sp10.x = sp10.y = 0;
@@ -643,8 +643,8 @@ static void Ui_DrawWindowBorder(RECT* rect, s32 arg1, s32 arg2)
         addPrim(gGpuCurrentOt + arg2, p2);
     }
 
-    dr             = (DR_MODE*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(dr + 1);
+    dr             = gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
     setRECT(&sp10, 0, 0, 0x20, 0x20);
     setTexWindow(dr, &sp10);
     addPrim(gGpuCurrentOt + arg2, dr);
@@ -664,10 +664,10 @@ static void Ui_DrawPanelFrame(UiPanel* panel, RECT* outer, RECT* inner, s32 unus
     u16       y;
     u8        color;
 
-    packet.small = (SPRT_8*)gGpuPrimCursor;
+    packet.small = gGpuPrimCursor;
     outer->w++;
     outer->h++;
-    gGpuPrimCursor     = (u8*)(packet.small + 1);
+    gGpuPrimCursor     = packet.small + 1;
     packet.small->x0   = outer->x;
     packet.small->y0   = outer->y;
     packet.small->u0   = 0;
@@ -677,8 +677,8 @@ static void Ui_DrawPanelFrame(UiPanel* panel, RECT* outer, RECT* inner, s32 unus
     setcode(packet.small, 0x75);
     addPrim(gGpuCurrentOt + (s16)panel->field_14.u + 3, packet.small);
 
-    packet.normal     = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor    = (u8*)(packet.normal + 1);
+    packet.normal     = gGpuPrimCursor;
+    gGpuPrimCursor    = packet.normal + 1;
     packet.normal->x0 = outer->x + outer->w - 8;
     if (packet.normal->x0 > outer->x) {
         packet.normal->y0   = outer->y;
@@ -690,8 +690,8 @@ static void Ui_DrawPanelFrame(UiPanel* panel, RECT* outer, RECT* inner, s32 unus
         addPrim(gGpuCurrentOt + (s16)panel->field_14.u + 3, packet.normal);
     }
 
-    packet.normal     = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor    = (u8*)(packet.normal + 1);
+    packet.normal     = gGpuPrimCursor;
+    gGpuPrimCursor    = packet.normal + 1;
     packet.normal->x0 = outer->x;
     packet.normal->y0 = outer->y + outer->h - 8;
     if (outer->y < packet.normal->y0) {
@@ -703,8 +703,8 @@ static void Ui_DrawPanelFrame(UiPanel* panel, RECT* outer, RECT* inner, s32 unus
         addPrim(gGpuCurrentOt + (s16)panel->field_14.u + 3, packet.normal);
     }
 
-    packet.normal     = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor    = (u8*)(packet.normal + 1);
+    packet.normal     = gGpuPrimCursor;
+    gGpuPrimCursor    = packet.normal + 1;
     packet.normal->x0 = outer->x + outer->w - 8;
     packet.normal->y0 = outer->y + outer->h - 8;
     if (outer->y < packet.normal->y0 && packet.normal->x0 > outer->x) {
@@ -716,8 +716,8 @@ static void Ui_DrawPanelFrame(UiPanel* panel, RECT* outer, RECT* inner, s32 unus
         addPrim(gGpuCurrentOt + (s16)panel->field_14.u + 3, packet.normal);
     }
 
-    p              = (POLY_FT4*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(p + 1);
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     x              = outer->x + 8;
     p->x2          = x;
     p->x0          = x;
@@ -739,8 +739,8 @@ static void Ui_DrawPanelFrame(UiPanel* panel, RECT* outer, RECT* inner, s32 unus
         addPrim(gGpuCurrentOt + (s16)panel->field_14.u + 3, p);
     }
 
-    p              = (POLY_FT4*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(p + 1);
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     x              = outer->x + 8;
     p->x2          = x;
     p->x0          = x;
@@ -762,8 +762,8 @@ static void Ui_DrawPanelFrame(UiPanel* panel, RECT* outer, RECT* inner, s32 unus
         addPrim(gGpuCurrentOt + (s16)panel->field_14.u + 3, p);
     }
 
-    p              = (POLY_FT4*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(p + 1);
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     x              = outer->x;
     p->x2          = x;
     p->x0          = x;
@@ -785,8 +785,8 @@ static void Ui_DrawPanelFrame(UiPanel* panel, RECT* outer, RECT* inner, s32 unus
         addPrim(gGpuCurrentOt + (s16)panel->field_14.u + 3, p);
     }
 
-    p              = (POLY_FT4*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(p + 1);
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     t              = outer->x + outer->w;
     x              = t - 8;
     p->x2          = x;
@@ -809,8 +809,8 @@ static void Ui_DrawPanelFrame(UiPanel* panel, RECT* outer, RECT* inner, s32 unus
     }
     Ui_DrawWindowBorder(inner, panel->field_4, (s16)panel->field_14.u + 3);
     if (panel->field_4 & 0x20000) {
-        tile           = (TILE*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(tile + 1);
+        tile           = gGpuPrimCursor;
+        gGpuPrimCursor = tile + 1;
         color          = (9 - panel->field_16) * 8;
         tile->b0       = color;
         tile->g0       = color;
@@ -823,7 +823,7 @@ static void Ui_DrawPanelFrame(UiPanel* panel, RECT* outer, RECT* inner, s32 unus
         setcode(tile, 0x62);
         addPrim(gGpuCurrentOt + (s16)panel->field_14.u + 3, tile);
         dr             = gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(dr + 1);
+        gGpuPrimCursor = dr + 1;
         setlen(dr, 1);
         dr->code[0] = 0xE1000240;
         addPrim(gGpuCurrentOt + (s16)panel->field_14.u + 3, dr);
@@ -844,8 +844,8 @@ static void Ui_DrawPanel(UiPanel* panel, RECT* arg1, RECT* arg2, s32 arg3)
         if (arg3 != 0) {
             DR_AREA* p;
 
-            p              = (DR_AREA*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(p + 1);
+            p              = gGpuPrimCursor;
+            gGpuPrimCursor = p + 1;
             setRECT(&sp10, arg2->x + 0xA0, arg2->y + 0x78, arg2->w, arg2->h);
             sp10.y += gDisplayState.drawBuffer * 0x110;
             SetDrawArea(p, &sp10);
@@ -855,15 +855,15 @@ static void Ui_DrawPanel(UiPanel* panel, RECT* arg1, RECT* arg2, s32 arg3)
         if (arg3 != 0) {
             DR_AREA* p;
 
-            p              = (DR_AREA*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(p + 1);
+            p              = gGpuPrimCursor;
+            gGpuPrimCursor = p + 1;
             setRECT(&sp18, 0, gDisplayState.drawBuffer * 0x110, 0x140, 0xF0);
             SetDrawArea(p, &sp18);
             addPrim(gGpuCurrentOt + (s16)panel->field_14.u + 1, p);
         }
         if (panel->field_4 & 0x10000) {
-            poly           = (POLY_F4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(poly + 1);
+            poly           = gGpuPrimCursor;
+            gGpuPrimCursor = poly + 1;
             setlen(poly, 5);
             setcode(poly, 0x2A);
             poly->b0 = 0;
@@ -884,7 +884,7 @@ static void Ui_DrawPanel(UiPanel* panel, RECT* arg1, RECT* arg2, s32 arg3)
             addPrim(gGpuCurrentOt + (s16)panel->field_14.u, poly);
 
             dr             = gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(dr + 1);
+            gGpuPrimCursor = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000200;
             addPrim(gGpuCurrentOt + (s16)panel->field_14.u, dr);
@@ -917,8 +917,8 @@ static void Ui_SetupClip(UiPanel* panel)
     panel->field_20.u = sp18.x - panel->field_1C.u;
     panel->field_22.u = sp18.y - panel->field_18.u;
 
-    p              = (DR_AREA*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(p + 1);
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     sp10.x         = 0;
     sp10.w         = 0;
     sp10.h         = 0;
@@ -926,8 +926,8 @@ static void Ui_SetupClip(UiPanel* panel)
     SetDrawArea(p, &sp10);
     addPrim(gGpuCurrentOt + (s16)panel->field_14.u + 3, p);
 
-    p              = (DR_AREA*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(p + 1);
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     sp10.x         = 0;
     sp10.w         = 0x140;
     sp10.h         = 0xF0;
@@ -1162,8 +1162,8 @@ static void Ui_SetListClip(UiList* list, UiPanel* panel, s32 arg2)
 
     if (arg2 == 0) {
         for (i = 0; i < 2; i++) {
-            p              = (DR_AREA*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(p + 1);
+            p              = gGpuPrimCursor;
+            gGpuPrimCursor = p + 1;
             sp10.x         = panel->field_20.u + (panel->field_1C.u + 0xA0);
             temp           = panel->field_22.u + (panel->field_18.u + 0x78) + (gDisplayState.drawBuffer * 0x110);
             sp10.y         = temp;
@@ -1177,8 +1177,8 @@ static void Ui_SetListClip(UiList* list, UiPanel* panel, s32 arg2)
         }
     } else {
         for (i = 0; i < 2; i++) {
-            p              = (DR_AREA*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(p + 1);
+            p              = gGpuPrimCursor;
+            gGpuPrimCursor = p + 1;
             sp10.w         = 0x140;
             sp10.x         = 0;
             sp10.h         = 0xF0;
@@ -1201,8 +1201,8 @@ static void Ui_DrawCursor(UiPanel* panel, s32 arg1, s32 arg2)
 
     n = (u32)gDisplayState.vsyncCount >> 3;
     if (panel->field_0.w != 0) {
-        p              = (SPRT_8*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(p + 1);
+        p              = gGpuPrimCursor;
+        gGpuPrimCursor = p + 1;
         p->x0          = panel->field_20.u + arg1 - 8;
         y              = panel->field_22.u;
         p->clut        = 0x3C0A;
@@ -1220,7 +1220,7 @@ static void Ui_DrawCursor(UiPanel* panel, s32 arg1, s32 arg2)
         p->v0 = t;
         addPrim(gGpuCurrentOt + 4, p);
         dr             = gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(dr + 1);
+        gGpuPrimCursor = dr + 1;
         setDrawTPage(dr, 0, 1, 0x1E);
         addPrim(gGpuCurrentOt + 4, dr);
     }
@@ -1234,8 +1234,8 @@ static void Ui_DrawCaret(UiList* list, UiPanel* panel, s32 arg2)
     s32      y0;
     u16      t;
 
-    p              = (POLY_G3*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(p + 1);
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setPolyG3(p);
 
     x     = panel->bounds.rect.x + panel->bounds.rect.w - 5;
@@ -1411,8 +1411,8 @@ static inline void _uiFillTile(UiPanel* panel, s32 x, s32 y, s32 w, s32 h, u32 c
     s32   top;
 
     if (color != 0 && w >= 2) {
-        p                     = (TILE*)gGpuPrimCursor;
-        gGpuPrimCursor        = (u8*)(p + 1);
+        p                     = gGpuPrimCursor;
+        gGpuPrimCursor        = p + 1;
         p->x0                 = panel->field_20.u + x + 1;
         top                   = panel->field_22.u;
         p->w                  = w - 1;
@@ -1432,12 +1432,12 @@ void Ui_DrawBeveledRect(UiPanel* panel, s32 x, s32 y, s32 width, s32 height, u32
 
     _uiFillTile(panel, x, y, width, height, color);
 
-    l                     = (LINE_F3*)gGpuPrimCursor;
+    l                     = gGpuPrimCursor;
     l->x2                 = panel->field_20.u + x + 1;
     t                     = panel->field_20.u + (x + width);
     l->x1                 = t;
     l->x0                 = t;
-    gGpuPrimCursor        = (u8*)(l + 1);
+    gGpuPrimCursor        = l + 1;
     l->y0                 = panel->field_22.u + y;
     t                     = panel->field_22.u + (y + height);
     l->y2                 = t;
@@ -1446,12 +1446,12 @@ void Ui_DrawBeveledRect(UiPanel* panel, s32 x, s32 y, s32 width, s32 height, u32
     setLineF3(l);
     addPrim(gGpuCurrentOt + (s16)panel->field_14.u + 1, l);
 
-    l                     = (LINE_F3*)gGpuPrimCursor;
+    l                     = gGpuPrimCursor;
     t                     = panel->field_20.u + x;
     l->x1                 = t;
     l->x2                 = t;
     l->x0                 = panel->field_20.u + (x + width) - 1;
-    gGpuPrimCursor        = (u8*)(l + 1);
+    gGpuPrimCursor        = l + 1;
     t                     = panel->field_22.u + y;
     l->y1                 = t;
     l->y0                 = t;
@@ -1793,9 +1793,9 @@ void Ui_DrawHBar(UiPanel* panel, s32 arg1, s32 arg2, s32 arg3)
     s32       y;
 
     if (arg1 < arg2) {
-        p     = (POLY_FT4*)gGpuPrimCursor;
+        p     = gGpuPrimCursor;
         p->x0 = p->x2  = panel->field_20.u + arg1;
-        gGpuPrimCursor = (u8*)(p + 1);
+        gGpuPrimCursor = p + 1;
         p->x1 = p->x3 = panel->field_20.u + arg2;
         y             = panel->field_22.u + arg3;
         p->y0 = p->y1 = y - 4;
@@ -1815,11 +1815,11 @@ void Ui_DrawVBar(UiPanel* panel, s32 arg1, s32 arg2, s32 arg3)
     s32       x;
 
     if (arg1 < arg2) {
-        p     = (POLY_FT4*)gGpuPrimCursor;
+        p     = gGpuPrimCursor;
         x     = panel->field_20.u + arg3;
         p->x0 = p->x2 = x - 3;
         p->x1 = p->x3  = x + 5;
-        gGpuPrimCursor = (u8*)(p + 1);
+        gGpuPrimCursor = p + 1;
         p->y0 = p->y1 = panel->field_22.u + arg1;
         p->y2 = p->y3 = panel->field_22.u + arg2;
         setUV4(p, 0x70, 0x50, 0x77, 0x50, 0x70, 0x57, 0x77, 0x57);
@@ -1850,7 +1850,7 @@ static void Ui_DrawTextUnderline(UiPanel* panel, s32 x, s32 y, char* arg3, s32 a
     req.field_E    = 0;
     Text_DrawString(&req, (u8*)arg3);
 
-    p     = (POLY_F4*)gGpuPrimCursor;
+    p     = gGpuPrimCursor;
     p->x0 = p->x2 = x;
     textX         = req.x;
     // The original reservation is larger than the flat packet written here.
@@ -2473,7 +2473,7 @@ void Ui_InsertDrawTPage(s32 arg0, s32 arg1)
     DR_TPAGE* p;
 
     p              = gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(p + 1);
+    gGpuPrimCursor = p + 1;
     setDrawTPage(p, 0, 1, 0x1E | ((arg1 & 3) << 5));
     addPrim(gGpuCurrentOt + arg0, p);
 }
@@ -2496,8 +2496,8 @@ void Ui_AllocTile(UiPanel* panel, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 ar
     color = arg5;
 
     if ((color != 0) && (arg3 >= 2)) {
-        p                     = (TILE*)gGpuPrimCursor;
-        gGpuPrimCursor        = (u8*)(p + 1);
+        p                     = gGpuPrimCursor;
+        gGpuPrimCursor        = p + 1;
         p->x0                 = panel->field_20.u + arg1 + 1;
         y                     = panel->field_22.u;
         p->w                  = arg3 - 1;
@@ -2723,7 +2723,7 @@ void Ui_DrawFlatCaret(UiPanel* panel, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     u16      t;
     u_long*  ot;
 
-    p     = (POLY_F3*)gGpuPrimCursor;
+    p     = gGpuPrimCursor;
     t     = panel->field_20.u + arg1;
     p->x2 = t;
     p->x1 = t;

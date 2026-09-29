@@ -1712,7 +1712,7 @@ void Gp_DrawFadeQuad(u8* arg0, s32 arg1)
     yTop  = -0x78;
     yBot  = 0x78;
 
-    p              = (POLY_F4*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     setPolyF4(p);
     setRGB0(p, arg0[0], arg0[1], arg0[2]);
@@ -1757,7 +1757,7 @@ void Gp_DrawArc(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
         block->inner = ((s16)arg1 * 64) / block->otz;
         block->outer = (((s16)arg1 + (s16)arg2) * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang += 0x100) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1809,7 +1809,7 @@ void Gp_DrawRing(GfxCoord* arg0, s32 arg1, u8* rgb)
         block->otz++;
         block->step = ((s16)arg1 * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1862,7 +1862,7 @@ void Gp_DrawFxQuad(GfxCoord* arg0, u16 arg1, s16 arg2, u16 arg3)
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
         setSemiTrans(prim, 1);
@@ -1917,7 +1917,7 @@ void func_800EB6E8(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
         setSemiTrans(prim, 1);
@@ -1992,7 +1992,7 @@ void Gp_DrawBand(GfxCoord* arg0, s16 arg1, u8* rgb)
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, rgb[0], rgb[1], rgb[2]);
@@ -2075,7 +2075,7 @@ void Gp_DrawBandEx(GfxCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, rgb[0], rgb[1], rgb[2]);

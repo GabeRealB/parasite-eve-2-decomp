@@ -261,7 +261,7 @@ static void func_m4a1_hammer_8011D904(long* arg0, u16 arg1, u16 arg2, s16 arg3)
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -366,7 +366,7 @@ static void func_m4a1_hammer_8011DE60(GfxCoord* arg0, s16 arg1, s16 arg2, s16 ar
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -438,7 +438,7 @@ static void func_m4a1_hammer_8011E29C(GfxCoord* coord, SVECTOR* arg1, s32 arg2, 
         gte_stflg(&((M4a1HammerTrailScratch*)(head - 0x20))->flag);
         if (block->flag >= 0) {
             block->otz++;
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2F);

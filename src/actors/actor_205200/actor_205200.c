@@ -430,12 +430,12 @@ void func_actor_205200_80149E54(Task* arg0)
             }
             break;
     }
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 1);
     addPrim(&gGpuCurrentOt[1023], stp);
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[0], stp);
     SCRATCH_POP(OverlayWaveScratch);

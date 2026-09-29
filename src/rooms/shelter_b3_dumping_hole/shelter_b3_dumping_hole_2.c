@@ -2084,8 +2084,8 @@ static u16 func_shelter_b3_dumping_hole_8017DA00(GfxCoord* coord, s16 w, s16 h, 
     if (off) {
         return 1;
     }
-    prim           = (POLY_FT4*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(prim + 1);
+    prim           = gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2F);
     hw = w * scale / 4096;
@@ -2261,8 +2261,8 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
         taskKill(arg0);
         return;
     }
-    prim           = (POLY_FT4*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(prim + 1);
+    prim           = gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
     setSemiTrans(prim, 1);
     prim->r0 = prim->g0 = prim->b0 = 0x20;
@@ -3126,7 +3126,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
                 x[i] = sxy;
                 y[i] = sxy >> 16;
             }
-            prim           = (POLY_G3*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG3(prim);
             setRGB0(prim, 0x10, 0x10, 0x10);
@@ -4308,7 +4308,7 @@ static void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 a
                 angStart = ang;
                 limit    = ang + 0x800;
                 do {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -4330,7 +4330,7 @@ static void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 a
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
                     conn           = angStart + ((ang - angStart) * 2);
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -4349,7 +4349,7 @@ static void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 a
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
                     t3             = ang + 0x800;
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     t              = t3;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
@@ -4418,7 +4418,7 @@ static void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 a
         b             = blend | ((arg2 & 0xF) << 4);
         block->radius = arg1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -4635,7 +4635,7 @@ static void func_shelter_b3_dumping_hole_8018596C(GfxCoord* arg0, u16 arg1, s16 
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -4707,7 +4707,7 @@ static void func_shelter_b3_dumping_hole_80185DCC(GfxCoord* arg0, u16 arg1, s16 
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -4901,7 +4901,7 @@ static void func_shelter_b3_dumping_hole_801866CC(GfxCoord* arg0, u16 arg1, s16 
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         ang            = arg3;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -4962,7 +4962,7 @@ static void func_shelter_b3_dumping_hole_80186AB8(GfxCoord* arg0, s32 arg1, s32 
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);

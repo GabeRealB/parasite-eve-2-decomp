@@ -513,8 +513,8 @@ static void func_dryfield_night_souvenir_shop_8017D6B4(GfxCoord* coord, s16 arg1
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&blk->v[0]);
         gte_rtps();
-        prim           = (POLY_G4*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(prim + 1);
+        prim           = gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setPolyG4(prim);
         gte_stsxy(&prim->x0);
         gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
@@ -560,8 +560,8 @@ static void func_dryfield_night_souvenir_shop_8017D6B4(GfxCoord* coord, s16 arg1
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);
     gte_rtps();
-    prim           = (POLY_G4*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(prim + 1);
+    prim           = gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setPolyG4(prim);
     gte_stsxy(&prim->x0);
     gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);

@@ -1544,7 +1544,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec);
         gte_rtps();
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
@@ -1727,7 +1727,7 @@ static void func_acropolis_forked_road_8017EC70(GfxCoord* coord, s32 arg1, s16 a
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);
     gte_rtps();
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
@@ -1851,7 +1851,7 @@ static void func_acropolis_forked_road_8017F224(GfxCoord* arg0, s32 arg1, s32 ar
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1904,7 +1904,7 @@ static void func_acropolis_forked_road_8017F650(GfxCoord* arg0, s16 arg1, u8* rg
         block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2096,7 +2096,7 @@ static void func_acropolis_forked_road_8017FED4(GfxCoord* arg0, GfxCoord* arg1, 
             lo             = (fade - 9) & 0xFF;
             r2             = lo * (arg3 >> 8);
             g2             = lo * ((arg3 >> 4) & 3);
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             blk->otz       = blk->otz + 1;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 8);
@@ -2238,7 +2238,7 @@ static void func_acropolis_forked_road_80180554(GfxCoord* arg0, s16 arg1, u8* ar
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2259,7 +2259,7 @@ static void func_acropolis_forked_road_80180554(GfxCoord* arg0, s16 arg1, u8* ar
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2282,7 +2282,7 @@ static void func_acropolis_forked_road_80180554(GfxCoord* arg0, s16 arg1, u8* ar
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2303,7 +2303,7 @@ static void func_acropolis_forked_road_80180554(GfxCoord* arg0, s16 arg1, u8* ar
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

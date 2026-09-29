@@ -898,7 +898,7 @@ static void func_dryfield_night_underpass_8017D9B4(SVECTOR* arg0, s32 arg1, s32 
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);

@@ -1082,8 +1082,8 @@ void func_acropolis_fire_escape_80180154(Task* task)
             block->radius  = (((task->spawnArg1.value >> 8) & 0xFF) * 0x600) / block->otz;
             block->radius2 = (((task->spawnArg1.value >> 8) & 0xFF) * 0xC0) / block->otz;
             for (i = 0; i < 0x10; i += 2) {
-                prim           = (POLY_G4*)gGpuPrimCursor;
-                gGpuPrimCursor = (u8*)(prim + 1);
+                prim           = gGpuPrimCursor;
+                gGpuPrimCursor = prim + 1;
                 setlen(prim, 8);
                 setcode(prim, 0x38);
                 setRGB0(prim, 0, 0, 0);
@@ -1101,8 +1101,8 @@ void func_acropolis_fire_escape_80180154(Task* task)
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
                 Gp_AddTpageShift(prim, 1, block->otz);
 
-                prim           = (POLY_G4*)gGpuPrimCursor;
-                gGpuPrimCursor = (u8*)(prim + 1);
+                prim           = gGpuPrimCursor;
+                gGpuPrimCursor = prim + 1;
                 setlen(prim, 8);
                 setcode(prim, 0x38);
                 setRGB0(prim, 0, 0, 0);
@@ -1120,8 +1120,8 @@ void func_acropolis_fire_escape_80180154(Task* task)
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
                 Gp_AddTpageShift(prim, 1, block->otz);
 
-                prim           = (POLY_G4*)gGpuPrimCursor;
-                gGpuPrimCursor = (u8*)(prim + 1);
+                prim           = gGpuPrimCursor;
+                gGpuPrimCursor = prim + 1;
                 setlen(prim, 8);
                 setcode(prim, 0x38);
                 setRGB0(prim, 0, 0, 0);
@@ -1207,7 +1207,7 @@ void func_acropolis_fire_escape_80180B20(Task* task)
             blk->radius2 = (((task->spawnArg1.value >> 8) & 0xFF) << 7) / blk->otz;
             for (i = 0; i < 0x10; i += 2) {
                 ampSi          = amp;
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setPolyG4(prim);
                 setRGB0(prim, 0, 0, 0);
@@ -1226,7 +1226,7 @@ void func_acropolis_fire_escape_80180B20(Task* task)
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
 
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setPolyG4(prim);
                 setRGB0(prim, 0, 0, 0);
@@ -1248,7 +1248,7 @@ void func_acropolis_fire_escape_80180B20(Task* task)
             ampHalf = amp >> 1;
             for (i = 2; i < 0x10; i += 8) {
                 do {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -1279,7 +1279,7 @@ void func_acropolis_fire_escape_80180B20(Task* task)
                     SOFT_TOUCH_REG_USE(prim, z);
                     Gp_AddTpageShift((P_TAG*)prim, 1, z);
 
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -1306,7 +1306,7 @@ void func_acropolis_fire_escape_80180B20(Task* task)
             blk->radius  = (((level >> 8) & 0xFF) << 9) / blk->otz;
             blk->radius2 = (((task->spawnArg1.value >> 8) & 0xFF) << 9) / blk->otz;
             for (i = 0; i < 2; i++) {
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setPolyG4(prim);
                 setRGB0(prim, 0, 0, 0);
@@ -1324,7 +1324,7 @@ void func_acropolis_fire_escape_80180B20(Task* task)
             }
             if (task->spawnArg1.value & 0x10000000) {
                 for (i = 0; i < 2; i++) {
-                    line           = (LINE_G3*)gGpuPrimCursor;
+                    line           = gGpuPrimCursor;
                     gGpuPrimCursor = line + 1;
                     setLineG3(line);
                     setRGB0(line, 0, 0, 0);

@@ -413,7 +413,7 @@ static void func_actor_341300_80161E84(void)
                 x[j] = sxy[j];
                 y[j] = sxy[j] >> 16;
             }
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2D);
@@ -768,7 +768,7 @@ void func_actor_341300_80162878(Task* arg0)
                 x[i] = sxy;
                 y[i] = sxy >> 16;
             }
-            prim           = (POLY_G3*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG3(prim);
             prim->r0 = prim->g0 = prim->b0 = 0x10;
@@ -930,7 +930,7 @@ void func_actor_341300_801631D4(Task* arg0)
                 x[i] = sxy;
                 y[i] = sxy >> 16;
             }
-            prim           = (POLY_G3*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG3(prim);
             prim->r0 = prim->g0 = prim->b0 = 0x10;

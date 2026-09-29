@@ -626,7 +626,7 @@ static void func_shelter_1f_vehicular_airlock_8017DC80(SVECTOR* arg0, s32 arg1, 
         block->r0 = r0;
         block->r1 = r1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -652,7 +652,7 @@ static void func_shelter_1f_vehicular_airlock_8017DC80(SVECTOR* arg0, s32 arg1, 
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -672,7 +672,7 @@ static void func_shelter_1f_vehicular_airlock_8017DC80(SVECTOR* arg0, s32 arg1, 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
             t3             = ang - 0x1000;
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             t              = ang - 0x1000;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
@@ -764,7 +764,7 @@ static void func_shelter_1f_vehicular_airlock_8017E468(SVECTOR* worldPoint, s32 
         block->radius = radius;
         // Build four glow wedges and quantize their shared camera depth.
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -843,7 +843,7 @@ static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, 
         i                = 0;
         block->halfWidth = radius;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -869,7 +869,7 @@ static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, 
 
         i = 0;
         do {
-            line           = (LINE_G3*)gGpuPrimCursor;
+            line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineG3(line);
             setRGB0(line, 0, 0, 0);
@@ -992,7 +992,7 @@ static void func_shelter_1f_vehicular_airlock_8017EF60(GfxCoord* arg0, s32 arg1,
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1046,7 +1046,7 @@ static void func_shelter_1f_vehicular_airlock_8017F38C(GfxCoord* arg0, s16 arg1,
         block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1236,7 +1236,7 @@ static void func_shelter_1f_vehicular_airlock_8017FC10(GfxCoord* arg0, GfxCoord*
             lo             = (fade - 9) & 0xFF;
             r2             = lo * (arg3 >> 8);
             g2             = lo * ((arg3 >> 4) & 3);
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             blk->otz       = blk->otz + 1;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 8);
@@ -1378,7 +1378,7 @@ static void func_shelter_1f_vehicular_airlock_80180290(GfxCoord* arg0, s16 arg1,
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1399,7 +1399,7 @@ static void func_shelter_1f_vehicular_airlock_80180290(GfxCoord* arg0, s16 arg1,
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1422,7 +1422,7 @@ static void func_shelter_1f_vehicular_airlock_80180290(GfxCoord* arg0, s16 arg1,
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1443,7 +1443,7 @@ static void func_shelter_1f_vehicular_airlock_80180290(GfxCoord* arg0, s16 arg1,
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

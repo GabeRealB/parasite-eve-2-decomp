@@ -1011,7 +1011,7 @@ static void func_mine_refuge_80180014(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
         idx         = (s16)arg1;
@@ -1079,7 +1079,7 @@ static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
         pulse       = sine / 34 + 0x78;
         block->step = radius;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1105,7 +1105,7 @@ static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
 
         i = 0;
         do {
-            line           = (LINE_G3*)gGpuPrimCursor;
+            line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineG3(line);
             setRGB0(line, 0, 0, 0);
@@ -1171,7 +1171,7 @@ static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
         block->rInner = (size * 8) / block->otz;
         color         = pulse / 34 + 0x78;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             half = (s16)color >> 1;
@@ -1193,7 +1193,7 @@ static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1217,7 +1217,7 @@ static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
         color = half;
         ang   = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1238,7 +1238,7 @@ static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1310,7 +1310,7 @@ static void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2)
         do {
             ang = 0;
             do {
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setPolyG4(prim);
                 setRGB0(prim, 0, 0, 0);

@@ -16872,8 +16872,8 @@ void func_actor_303600_80161E60(Task* task)
     TILE*     p;
     DR_TPAGE* dr;
 
-    p              = (TILE*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(p + 1);
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setlen(p, 3);
     setcode(p, 0x60);
     p->r0 = 0;
@@ -16885,8 +16885,8 @@ void func_actor_303600_80161E60(Task* task)
     p->h  = 0xF0;
     addPrim(gGpuCurrentOt - 0xF, p);
 
-    dr             = (DR_TPAGE*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(dr + 1);
+    dr             = gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
     setDrawTPage(dr, 0, 1, 0);
     addPrim(gGpuCurrentOt - 0xF, dr);
 }

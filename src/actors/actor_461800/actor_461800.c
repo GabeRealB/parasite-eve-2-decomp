@@ -992,7 +992,7 @@ void func_actor_461800_80132048(Task* task)
             task->killCountdown = 90;
             break;
     }
-    tile           = (TILE*)gGpuPrimCursor;
+    tile           = gGpuPrimCursor;
     gGpuPrimCursor = tile + 1;
     c              = (task->killCountdown * 0xFF) / 90;
     setlen(tile, 3);

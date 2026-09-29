@@ -524,7 +524,7 @@ static void func_dryfield_night_back_street_8017D920(SVECTOR* arg0, s32 arg1)
                 angStart = ang;
                 limit    = angEnd;
                 do {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -546,7 +546,7 @@ static void func_dryfield_night_back_street_8017D920(SVECTOR* arg0, s32 arg1)
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
                     conn           = angStart + ((ang - angStart) * 2);
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -565,7 +565,7 @@ static void func_dryfield_night_back_street_8017D920(SVECTOR* arg0, s32 arg1)
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
 
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     t3             = ang + 0x800;
                     t              = t3;
                     gGpuPrimCursor = prim + 1;
@@ -617,7 +617,7 @@ static void func_dryfield_night_back_street_8017E108(SVECTOR* arg0, s32 arg1, s3
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
@@ -746,7 +746,7 @@ static void func_dryfield_night_back_street_8017E634(GfxCoord* arg0, s32 arg1, s
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -799,7 +799,7 @@ static void func_dryfield_night_back_street_8017EA60(GfxCoord* arg0, s16 arg1, u
         block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -990,7 +990,7 @@ static void func_dryfield_night_back_street_8017F2E4(GfxCoord* arg0, GfxCoord* a
             lo             = (fade - 9) & 0xFF;
             r2             = lo * (arg3 >> 8);
             g2             = lo * ((arg3 >> 4) & 3);
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             blk->otz       = blk->otz + 1;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 8);
@@ -1132,7 +1132,7 @@ static void func_dryfield_night_back_street_8017F964(GfxCoord* arg0, s16 arg1, u
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1153,7 +1153,7 @@ static void func_dryfield_night_back_street_8017F964(GfxCoord* arg0, s16 arg1, u
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1176,7 +1176,7 @@ static void func_dryfield_night_back_street_8017F964(GfxCoord* arg0, s16 arg1, u
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1197,7 +1197,7 @@ static void func_dryfield_night_back_street_8017F964(GfxCoord* arg0, s16 arg1, u
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

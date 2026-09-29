@@ -1311,7 +1311,7 @@ static void func_mist_r18_8017DBB8(s32 shade, s32 arg1)
 
     x              = -0x96;
     y              = -0x5A;
-    sprt           = (SPRT*)gGpuPrimCursor;
+    sprt           = gGpuPrimCursor;
     gGpuPrimCursor = sprt + 1;
     setSprt(sprt);
     if (shade == 0) {
@@ -1328,7 +1328,7 @@ static void func_mist_r18_8017DBB8(s32 shade, s32 arg1)
 
     x              = -0x22;
     y              = 0x36;
-    sprt           = (SPRT*)gGpuPrimCursor;
+    sprt           = gGpuPrimCursor;
     gGpuPrimCursor = sprt + 1;
     setSprt(sprt);
     if (shade == 0) {
@@ -1369,12 +1369,12 @@ static void func_mist_r18_8017DD7C(Task* task)
         y = 0x110;
     }
 
-    stp            = (DR_STP*)gGpuPrimCursor;
+    stp            = gGpuPrimCursor;
     gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(gGpuCurrentOt + 8, stp);
 
-    mv             = (DR_MOVE*)gGpuPrimCursor;
+    mv             = gGpuPrimCursor;
     gGpuPrimCursor = mv + 1;
     rect.x         = x;
     rect.y         = y;
@@ -1383,7 +1383,7 @@ static void func_mist_r18_8017DD7C(Task* task)
     SetDrawMove(mv, &rect, 0x340, 0);
     addPrim(gGpuCurrentOt + 8, mv);
 
-    mv             = (DR_MOVE*)gGpuPrimCursor;
+    mv             = gGpuPrimCursor;
     gGpuPrimCursor = mv + 1;
     rect.x         = x + 0xC0;
     rect.y         = y;
@@ -1392,7 +1392,7 @@ static void func_mist_r18_8017DD7C(Task* task)
     SetDrawMove(mv, &rect, 0x280, 0x100);
     addPrim(gGpuCurrentOt + 8, mv);
 
-    stp            = (DR_STP*)gGpuPrimCursor;
+    stp            = gGpuPrimCursor;
     gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 1);
     addPrim(gGpuCurrentOt + 8, stp);
@@ -1422,7 +1422,7 @@ static void func_mist_r18_8017DF80(s32 shade)
         v      = 0x10;
     }
 
-    p              = (SPRT*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     setSprt(p);
     p->r0   = shade;
@@ -1438,7 +1438,7 @@ static void func_mist_r18_8017DF80(s32 shade)
     addPrim(gGpuCurrentOt + 8, p);
     func_mist_r18_8017E994(0, tpageY);
 
-    p              = (SPRT*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     setSprt(p);
     p->r0   = shade;
@@ -1461,7 +1461,7 @@ static void func_mist_r18_8017E144(s16 shade)
 {
     SPRT* p;
 
-    p              = (SPRT*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     setSprt(p);
     setSemiTrans(p, 1);
@@ -1478,7 +1478,7 @@ static void func_mist_r18_8017E144(s16 shade)
     addPrim(gGpuCurrentOt + 8, p);
     func_mist_r18_8017E994(0x340, 0);
 
-    p              = (SPRT*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     setSprt(p);
     setSemiTrans(p, 1);
@@ -1572,7 +1572,7 @@ static void func_mist_r18_8017E448(MistR18Sprite* sprite)
 {
     TILE* tile;
 
-    tile           = (TILE*)gGpuPrimCursor;
+    tile           = gGpuPrimCursor;
     gGpuPrimCursor = tile + 1;
     setTile(tile);
     if (sprite->semiTrans == 0) {
@@ -1599,7 +1599,7 @@ static void func_mist_r18_8017E534(MistR18Sprite* sprite, u32 clutX, s32 clutY)
     SPRT* p;
     u8    v;
 
-    p              = (SPRT*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     SetSprt(p);
     if (sprite->semiTrans == 0) {

@@ -2205,7 +2205,7 @@ static void func_acropolis_security_room_8017DE80(RoomRect* rect, u8 r, u8 g, u8
 {
     LINE_F2* line;
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
@@ -2217,7 +2217,7 @@ static void func_acropolis_security_room_8017DE80(RoomRect* rect, u8 r, u8 g, u8
     line->b0 = b;
     addPrim(gGpuCurrentOt + 3, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -2229,7 +2229,7 @@ static void func_acropolis_security_room_8017DE80(RoomRect* rect, u8 r, u8 g, u8
     line->b0 = b;
     addPrim(gGpuCurrentOt + 3, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -2241,7 +2241,7 @@ static void func_acropolis_security_room_8017DE80(RoomRect* rect, u8 r, u8 g, u8
     line->b0 = b;
     addPrim(gGpuCurrentOt + 3, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
@@ -2270,7 +2270,7 @@ static void func_acropolis_security_room_8017E0C4(s16 id)
 
     if (id >= 0) {
         c              = id & 0x7F;
-        poly           = (POLY_F4*)gGpuPrimCursor;
+        poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
         setlen(poly, 5);
         setcode(poly, 0x2A);
@@ -2287,14 +2287,14 @@ static void func_acropolis_security_room_8017E0C4(s16 id)
         poly->y3 = 0x3C;
         addPrim(gGpuCurrentOt + 0xC, poly);
 
-        dr             = (DR_MODE*)gGpuPrimCursor;
+        dr             = gGpuPrimCursor;
         gGpuPrimCursor = dr + 1;
         setlen(dr, 1);
         dr->code[0] = 0xE100002A;
         addPrim(gGpuCurrentOt + 0xC, dr);
     } else {
         c              = (~id + 1) & 0xFF;
-        poly           = (POLY_F4*)gGpuPrimCursor;
+        poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
         setlen(poly, 5);
         setcode(poly, 0x2A);
@@ -2311,14 +2311,14 @@ static void func_acropolis_security_room_8017E0C4(s16 id)
         poly->y3 = 0x3C;
         addPrim(gGpuCurrentOt + 0xC, poly);
 
-        dr             = (DR_MODE*)gGpuPrimCursor;
+        dr             = gGpuPrimCursor;
         gGpuPrimCursor = dr + 1;
         setlen(dr, 1);
         dr->code[0] = 0xE100004A;
         addPrim(gGpuCurrentOt + 0xC, dr);
     }
 
-    poly           = (POLY_F4*)gGpuPrimCursor;
+    poly           = gGpuPrimCursor;
     gGpuPrimCursor = poly + 1;
     setlen(poly, 5);
     setcode(poly, 0x28);
@@ -2335,7 +2335,7 @@ static void func_acropolis_security_room_8017E0C4(s16 id)
     poly->y3 = 0x38;
     addPrim(gGpuCurrentOt + 0xB, poly);
 
-    dr             = (DR_MODE*)gGpuPrimCursor;
+    dr             = gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE100000A;
@@ -2353,7 +2353,7 @@ static void func_acropolis_security_room_8017E37C(Task* task)
     DR_MODE*        dr;
     s16             y;
 
-    tile           = (TILE*)gGpuPrimCursor;
+    tile           = gGpuPrimCursor;
     work           = (AsrMonitorWork*)task->work;
     gGpuPrimCursor = tile + 1;
     setlen(tile, 3);
@@ -2367,7 +2367,7 @@ static void func_acropolis_security_room_8017E37C(Task* task)
     tile->h  = y;
     tile->y0 = y;
     addPrim(gGpuCurrentOt + 0xE, tile);
-    dr             = (DR_MODE*)gGpuPrimCursor;
+    dr             = gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE100000A;
@@ -2545,7 +2545,7 @@ static void func_acropolis_security_room_8017E8F0(s32 x, s32 y, s32 variant)
         return;
     }
 
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
 
     px       = x - 2;
@@ -2823,7 +2823,7 @@ static void func_acropolis_security_room_8017EF78(RoomRect* rect, u8 r, u8 g, u8
 {
     LINE_F2* line;
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
@@ -2835,7 +2835,7 @@ static void func_acropolis_security_room_8017EF78(RoomRect* rect, u8 r, u8 g, u8
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -2847,7 +2847,7 @@ static void func_acropolis_security_room_8017EF78(RoomRect* rect, u8 r, u8 g, u8
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -2859,7 +2859,7 @@ static void func_acropolis_security_room_8017EF78(RoomRect* rect, u8 r, u8 g, u8
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
@@ -3120,7 +3120,7 @@ static void func_acropolis_security_room_8017F8E0(s32 x, s32 y, s32 variant)
         return;
     }
 
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
 
     px       = x - 2;
@@ -3756,7 +3756,7 @@ static void func_acropolis_security_room_80180A78(Task* task)
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->a);
         gte_rtps();
-        prim           = (LINE_F2*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setLineF2(prim);
         gte_stsxy(&prim->x0);
@@ -3797,7 +3797,7 @@ void func_acropolis_security_room_80180E34(Task* arg0)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
 
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
     mem->scale  = arg0->spawnArg1.value & 3;
@@ -3885,7 +3885,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
     gte_ldv0(&blk->v[0]);
     gte_rtps();
 
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
     gte_stsxy(&prim->x0);
@@ -4003,7 +4003,7 @@ void func_acropolis_security_room_801817A4(Task* task)
         lum           = ((Gp_LcgState >> 16) & 0x70) + 0x40;
         scratch->step = 0xC00 / scratch->otz;
         for (i = 0; i < 2; i++) {
-            quad           = (POLY_G4*)gGpuPrimCursor;
+            quad           = gGpuPrimCursor;
             gGpuPrimCursor = quad + 1;
             setPolyG4(quad);
             setRGB0(quad, 0, 0, 0);
@@ -4019,7 +4019,7 @@ void func_acropolis_security_room_801817A4(Task* task)
             Gp_AddTpageShift((P_TAG*)quad, 1, scratch->otz);
         }
         for (i = 0; i < 2; i++) {
-            line           = (LINE_G3*)gGpuPrimCursor;
+            line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineG3(line);
             setRGB0(line, 0, 0, 0);

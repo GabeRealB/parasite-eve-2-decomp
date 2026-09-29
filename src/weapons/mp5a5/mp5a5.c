@@ -178,7 +178,7 @@ static void func_mp5a5_8011D468(GfxCoord* arg0, s16 arg1, s16 arg2)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((OverlaySpriteScratch*)(head - 0x18))->vec);
     gte_rtps();
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
@@ -291,7 +291,7 @@ static void func_mp5a5_8011D864(GfxCoord* arg0, s16 arg1, s16 arg2)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((WeaponQuadScratch*)(head - 0x24))->v[0]);
     gte_rtps();
-    prim           = (POLY_G4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyG4(prim);
     gte_stsxy(&prim->x0);

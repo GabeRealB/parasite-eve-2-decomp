@@ -567,7 +567,7 @@ static void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s3
         b             = blend | ((arg2 & 0xF) << 4);
         block->radius = arg1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -688,7 +688,7 @@ static void func_shelter_b1_golem_freezer_1_8017E254(GfxCoord* coord, u16 arg1, 
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         if (block->otz >= 0x41) {
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             ang            = arg3;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);

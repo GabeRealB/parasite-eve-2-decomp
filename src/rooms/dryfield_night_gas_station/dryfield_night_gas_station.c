@@ -2923,7 +2923,7 @@ static void func_dryfield_night_gas_station_8017FD80(s32 arg0)
         val            = 0xA;
         x0             = sxy;
         y0             = sxy >> 16;
-        tile           = (TILE*)gGpuPrimCursor;
+        tile           = gGpuPrimCursor;
         gGpuPrimCursor = tile + 1;
         setTile(tile);
         setSemiTrans(tile, 1);
@@ -2937,7 +2937,7 @@ static void func_dryfield_night_gas_station_8017FD80(s32 arg0)
         gGpuPrimCursor = dr + 1;
         setDrawTPage(dr, 1, 0, 0x25);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)val << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), dr);
-        tile1          = (TILE_1*)gGpuPrimCursor;
+        tile1          = gGpuPrimCursor;
         gGpuPrimCursor = tile1 + 1;
         setTile1(tile1);
         setSemiTrans(tile1, 1);
@@ -2967,7 +2967,7 @@ static void func_dryfield_night_gas_station_8017FD80(s32 arg0)
         pos.vz += 0x1F4;
         RotTransPers(&pos, &sxy, &p, &flag);
         x2             = sxy;
-        line           = (LINE_G2*)gGpuPrimCursor;
+        line           = gGpuPrimCursor;
         gGpuPrimCursor = line + 1;
         setLineG2(line);
         setSemiTrans(line, 1);
@@ -3043,7 +3043,7 @@ static void func_dryfield_night_gas_station_801802EC(s32 arg0)
     x1 = sxy;
     y1 = sxy >> 16;
     if (flag0 >= 0 && flag1 >= 0) {
-        line           = (LINE_G2*)gGpuPrimCursor;
+        line           = gGpuPrimCursor;
         gGpuPrimCursor = line + 1;
         setLineG2(line);
         setSemiTrans(line, 1);
@@ -3591,7 +3591,7 @@ static void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s3
                 angStart = ang;
                 limit    = ang + 0x800;
                 do {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -3613,7 +3613,7 @@ static void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s3
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
                     conn           = angStart + ((ang - angStart) * 2);
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -3632,7 +3632,7 @@ static void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s3
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
                     t3             = ang + 0x800;
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     t              = t3;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
@@ -3684,7 +3684,7 @@ static void func_dryfield_night_gas_station_80181AF8(SVECTOR* arg0, s32 arg1, s3
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
@@ -3811,7 +3811,7 @@ static void func_dryfield_night_gas_station_80182024(GfxCoord* arg0, s32 arg1, s
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -3865,7 +3865,7 @@ static void func_dryfield_night_gas_station_80182450(GfxCoord* arg0, s16 arg1, u
         block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -4051,7 +4051,7 @@ static void func_dryfield_night_gas_station_80182CD4(GfxCoord* arg0, GfxCoord* a
             lo             = (fade - 9) & 0xFF;
             r2             = lo * (arg3 >> 8);
             g2             = lo * ((arg3 >> 4) & 3);
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             blk->otz       = blk->otz + 1;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 8);
@@ -4189,7 +4189,7 @@ static void func_dryfield_night_gas_station_80183354(GfxCoord* arg0, s16 arg1, u
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -4210,7 +4210,7 @@ static void func_dryfield_night_gas_station_80183354(GfxCoord* arg0, s16 arg1, u
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -4233,7 +4233,7 @@ static void func_dryfield_night_gas_station_80183354(GfxCoord* arg0, s16 arg1, u
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -4254,7 +4254,7 @@ static void func_dryfield_night_gas_station_80183354(GfxCoord* arg0, s16 arg1, u
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

@@ -353,7 +353,7 @@ void func_800C5F70(Task* arg0)
                 x       = obj->panel.field_1C.s + 2;
                 if (spriteCount != 0) {
                     do {
-                        sprt           = (SPRT*)gGpuPrimCursor;
+                        sprt           = gGpuPrimCursor;
                         gGpuPrimCursor = sprt + 1;
                         sprt->x0       = x;
                         sprt->y0       = y - 8;
@@ -951,7 +951,7 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
         gte_stsv(&vec);
     }
     if (!(arg3 & 0x100)) {
-        p              = (POLY_FT4*)gGpuPrimCursor;
+        p              = gGpuPrimCursor;
         gGpuPrimCursor = p + 1;
         setlen(p, 9);
         setcode(p, 0x2D);

@@ -33,7 +33,7 @@ static void RoomFx_DrawFlashRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -86,7 +86,7 @@ static void RoomFx_DrawFlashDisc(GfxCoord* arg0, s16 arg1, u8* rgb)
         block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

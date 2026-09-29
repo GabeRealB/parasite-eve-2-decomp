@@ -2651,8 +2651,8 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
     }
     if (blackout != 0) {
-        tile           = (TILE*)gGpuPrimCursor;
-        gGpuPrimCursor = (void*)(tile + 1);
+        tile           = gGpuPrimCursor;
+        gGpuPrimCursor = tile + 1;
         SetTile(tile);
         tile->x0 = -0xA0;
         tile->y0 = -0x80;

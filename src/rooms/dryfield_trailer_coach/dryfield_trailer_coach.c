@@ -2090,7 +2090,7 @@ static void func_dryfield_trailer_coach_801829A8(GfxCoord* arg0, SVECTOR* arg1, 
         block->halfWidth = ((s16)arg3 << 5) / ((RoomShaftScratch*)(head - 0x14))->otz;
         color            = pulse / 34 + 0x78;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2111,7 +2111,7 @@ static void func_dryfield_trailer_coach_801829A8(GfxCoord* arg0, SVECTOR* arg1, 
 
         i = 0;
         do {
-            line           = (LINE_G3*)gGpuPrimCursor;
+            line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineG3(line);
             setRGB0(line, 0, 0, 0);
@@ -2196,7 +2196,7 @@ static void func_dryfield_trailer_coach_80182EB4(GfxCoord* coord, SVECTOR* data,
         half          = work >> 17;
         block->rInner = (size * 8) / ((RoomGlowScratch*)(head - 0x18))->otz;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2217,7 +2217,7 @@ static void func_dryfield_trailer_coach_80182EB4(GfxCoord* coord, SVECTOR* data,
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2241,7 +2241,7 @@ static void func_dryfield_trailer_coach_80182EB4(GfxCoord* coord, SVECTOR* data,
         color = (s16)color >> 1;
         ang   = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2262,7 +2262,7 @@ static void func_dryfield_trailer_coach_80182EB4(GfxCoord* coord, SVECTOR* data,
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

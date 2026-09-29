@@ -477,7 +477,7 @@ static void func_energyball_8012FFD0(GfxCoord* arg0, s16 arg1, s16 arg2)
         block->otz++;
         block->step = (arg1 * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -528,7 +528,7 @@ static void func_energyball_8013035C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
         if (arg1 & 1) {
@@ -606,7 +606,7 @@ static void func_energyball_801307D4(GfxCoord* arg0, s32 arg1)
     if (flag >= 0) {
         gte_stszotz(&otz);
         otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
@@ -700,7 +700,7 @@ static void func_energyball_80130B54(GfxCoord* arg0, s16 arg1, s16 arg2)
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
             prim->tpage = 0x2A;

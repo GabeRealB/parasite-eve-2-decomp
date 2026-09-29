@@ -511,7 +511,7 @@ static void func_neo_ark_woodland_path_8017F154(GfxCoord* arg0, s32 arg1, s16 ar
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
@@ -633,7 +633,7 @@ static void func_neo_ark_woodland_path_8017F5F4(GfxCoord* arg0, s32 arg1, s32 ar
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
@@ -829,7 +829,7 @@ static void func_neo_ark_woodland_path_8017FDE4(GfxCoord* arg0, s32 arg1, s32 ar
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         ang            = (s16)arg3;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -889,7 +889,7 @@ static void func_neo_ark_woodland_path_801801D0(GfxCoord* arg0, s32 arg1, s32 ar
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);

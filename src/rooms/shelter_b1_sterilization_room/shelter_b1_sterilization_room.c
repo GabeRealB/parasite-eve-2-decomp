@@ -1109,12 +1109,12 @@ static void func_shelter_b1_sterilization_room_80180828(Task* task)
         y = 0x110;
     }
 
-    stp            = (DR_STP*)gGpuPrimCursor;
+    stp            = gGpuPrimCursor;
     gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(gGpuCurrentOt + 8, stp);
 
-    mv             = (DR_MOVE*)gGpuPrimCursor;
+    mv             = gGpuPrimCursor;
     gGpuPrimCursor = mv + 1;
     rect.x         = x;
     rect.y         = y;
@@ -1123,7 +1123,7 @@ static void func_shelter_b1_sterilization_room_80180828(Task* task)
     SetDrawMove(mv, &rect, 0x340, 0);
     addPrim(gGpuCurrentOt + 8, mv);
 
-    mv             = (DR_MOVE*)gGpuPrimCursor;
+    mv             = gGpuPrimCursor;
     gGpuPrimCursor = mv + 1;
     rect.x         = x + 0xC0;
     rect.y         = y;
@@ -1132,7 +1132,7 @@ static void func_shelter_b1_sterilization_room_80180828(Task* task)
     SetDrawMove(mv, &rect, 0x180, 0x100);
     addPrim(gGpuCurrentOt + 8, mv);
 
-    stp            = (DR_STP*)gGpuPrimCursor;
+    stp            = gGpuPrimCursor;
     gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 1);
     addPrim(gGpuCurrentOt + 8, stp);
@@ -1160,7 +1160,7 @@ static void func_shelter_b1_sterilization_room_80180A2C(s32 shade)
         v      = 0x10;
     }
 
-    p              = (SPRT*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     setSprt(p);
     p->r0   = shade;
@@ -1176,7 +1176,7 @@ static void func_shelter_b1_sterilization_room_80180A2C(s32 shade)
     addPrim(gGpuCurrentOt + 8, p);
     func_shelter_b1_sterilization_room_80181308(0, tpageY);
 
-    p              = (SPRT*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     setSprt(p);
     p->r0   = shade;
@@ -1199,7 +1199,7 @@ static void func_shelter_b1_sterilization_room_80180BF0(s32 shade)
 {
     SPRT* p;
 
-    p              = (SPRT*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     setSprt(p);
     setSemiTrans(p, 1);
@@ -1216,7 +1216,7 @@ static void func_shelter_b1_sterilization_room_80180BF0(s32 shade)
     addPrim(gGpuCurrentOt + 8, p);
     func_shelter_b1_sterilization_room_80181308(0x340, 0);
 
-    p              = (SPRT*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     setSprt(p);
     setSemiTrans(p, 1);

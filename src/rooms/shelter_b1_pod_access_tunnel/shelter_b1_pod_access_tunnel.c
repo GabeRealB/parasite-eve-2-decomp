@@ -1340,8 +1340,8 @@ static void func_shelter_b1_pod_access_tunnel_8017E048(Task* task)
         }
     }
 
-    p              = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(p + 1);
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setSprt(p);
     p->x0 = -0xA0;
     p->y0 = -0x78;
@@ -1354,8 +1354,8 @@ static void func_shelter_b1_pod_access_tunnel_8017E048(Task* task)
     addPrim(gGpuCurrentOt + 1023, p);
     func_shelter_b1_pod_access_tunnel_8017E66C(0x340, 0);
 
-    p              = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(p + 1);
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setSprt(p);
     p->x0 = 0x60;
     p->y0 = -0x78;
@@ -1368,8 +1368,8 @@ static void func_shelter_b1_pod_access_tunnel_8017E048(Task* task)
     addPrim(gGpuCurrentOt + 1023, p);
     func_shelter_b1_pod_access_tunnel_8017E66C(0x3C0, 0);
 
-    p              = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(p + 1);
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setSprt(p);
     p->x0 = -0xA0;
     p->w  = 0x100;
@@ -1382,8 +1382,8 @@ static void func_shelter_b1_pod_access_tunnel_8017E048(Task* task)
     addPrim(gGpuCurrentOt + 1023, p);
     func_shelter_b1_pod_access_tunnel_8017E66C(0x240, 0x100);
 
-    p              = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(p + 1);
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setSprt(p);
     p->x0 = 0x60;
     p->w  = 0x40;
@@ -1629,7 +1629,7 @@ static void func_shelter_b1_pod_access_tunnel_8017E8F4(SVECTOR* arg0, s32 arg1, 
                 angStart = ang;
                 limit    = ang + 0x800;
                 do {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -1651,7 +1651,7 @@ static void func_shelter_b1_pod_access_tunnel_8017E8F4(SVECTOR* arg0, s32 arg1, 
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
                     conn           = angStart + ((ang - angStart) * 2);
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -1670,7 +1670,7 @@ static void func_shelter_b1_pod_access_tunnel_8017E8F4(SVECTOR* arg0, s32 arg1, 
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
                     t3             = ang + 0x800;
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     t              = t3;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
@@ -1798,7 +1798,7 @@ static void func_shelter_b1_pod_access_tunnel_8017F3DC(GfxCoord* arg0, s32 arg1,
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1851,7 +1851,7 @@ static void func_shelter_b1_pod_access_tunnel_8017F808(GfxCoord* arg0, s16 arg1,
         block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2043,7 +2043,7 @@ static void func_shelter_b1_pod_access_tunnel_8018008C(GfxCoord* arg0, GfxCoord*
             lo             = (fade - 9) & 0xFF;
             r2             = lo * (arg3 >> 8);
             g2             = lo * ((arg3 >> 4) & 3);
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             blk->otz       = blk->otz + 1;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 8);
@@ -2185,7 +2185,7 @@ static void func_shelter_b1_pod_access_tunnel_8018070C(GfxCoord* arg0, s16 arg1,
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2206,7 +2206,7 @@ static void func_shelter_b1_pod_access_tunnel_8018070C(GfxCoord* arg0, s16 arg1,
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2229,7 +2229,7 @@ static void func_shelter_b1_pod_access_tunnel_8018070C(GfxCoord* arg0, s16 arg1,
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2250,7 +2250,7 @@ static void func_shelter_b1_pod_access_tunnel_8018070C(GfxCoord* arg0, s16 arg1,
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

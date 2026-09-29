@@ -867,7 +867,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017DEC4(SVECTOR* arg0, s3
         block->r0 = r0;
         block->r1 = r1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -893,7 +893,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017DEC4(SVECTOR* arg0, s3
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -913,7 +913,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017DEC4(SVECTOR* arg0, s3
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
             t3             = ang - 0x1000;
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             t              = ang - 0x1000;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
@@ -969,7 +969,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017E640(SVECTOR* arg0, s1
         ang           = 0;
         block->radius = radius;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1096,7 +1096,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017EC40(GfxCoord* arg0, s
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1149,7 +1149,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017F06C(GfxCoord* arg0, s
         block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1341,7 +1341,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017F8F0(GfxCoord* arg0, G
             lo             = (fade - 9) & 0xFF;
             r2             = lo * (arg3 >> 8);
             g2             = lo * ((arg3 >> 4) & 3);
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             blk->otz       = blk->otz + 1;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 8);
@@ -1483,7 +1483,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017FF70(GfxCoord* arg0, s
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1504,7 +1504,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017FF70(GfxCoord* arg0, s
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1527,7 +1527,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017FF70(GfxCoord* arg0, s
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1548,7 +1548,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017FF70(GfxCoord* arg0, s
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1787,7 +1787,7 @@ static void func_shelter_b2_south_maintenance_walkway_801810AC(GfxCoord* arg0, s
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
@@ -1849,7 +1849,7 @@ static void func_shelter_b2_south_maintenance_walkway_80181330(GfxCoord* arg0, s
         block->inner = ((s16)arg1 * 64) / block->otz;
         block->outer = ((s16)outer * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang = next) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1901,7 +1901,7 @@ static void func_shelter_b2_south_maintenance_walkway_80181754(GfxCoord* arg0, s
         block->step = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2035,7 +2035,7 @@ static void func_shelter_b2_south_maintenance_walkway_80181C94(GfxCoord* coord, 
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2EU;
@@ -2067,7 +2067,7 @@ static void func_shelter_b2_south_maintenance_walkway_80181C94(GfxCoord* coord, 
         addPrim(
             GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2F;
@@ -2148,7 +2148,7 @@ static void func_shelter_b2_south_maintenance_walkway_801821C0(GfxCoord* arg0, s
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);

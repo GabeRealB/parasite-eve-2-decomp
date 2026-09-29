@@ -857,7 +857,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
             blk->rInner                            = 0x1800 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
 
             for (a = 0; a < 0x1000; a += 0x200) {
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setlen(prim, 8);
                 setcode(prim, 0x38);
@@ -880,7 +880,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
 
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setlen(prim, 8);
                 setcode(prim, 0x38);
@@ -904,7 +904,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
             lvl = half;
             for (a = 0x200; a < 0x1000; a += 0x800) {
                 d              = a - 0x400;
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setlen(prim, 8);
                 setcode(prim, 0x38);
@@ -925,7 +925,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
 
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setlen(prim, 8);
                 setcode(prim, 0x38);
@@ -1033,7 +1033,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
         gte_stflg(&((AhlpFlareScratch*)(head - 0x1C))->flag);
         if (blk->flag >= 0) {
             gte_stszotz(&((AhlpFlareScratch*)(head - 0x1C))->otz);
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
             if (arg0->spawnArg1.value == 1) {
@@ -1263,7 +1263,7 @@ static void func_acropolis_helicopter_landing_pad_80180664(GfxCoord* coord)
     gte_stflg(&((AhlpSparkScratch*)(head - 0x20))->flag);
     if (blk->flag >= 0) {
         gte_stszotz(&((AhlpSparkScratch*)(head - 0x20))->otz);
-        prim           = (LINE_F2*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setLineF2(prim);
         setRGB0(prim, tmp >> 1, lvl, 0xFF);
@@ -1337,7 +1337,7 @@ void func_acropolis_helicopter_landing_pad_80180A64(GfxCoord* coord)
     gte_stflg(&((AhlpSparkScratch*)(head - 0x20))->flag);
     if (blk->flag >= 0) {
         gte_stszotz(&((AhlpSparkScratch*)(head - 0x20))->otz);
-        prim           = (LINE_F2*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setLineF2(prim);
         setRGB0(prim, tmp >> 1, lvl, 0xFF);
@@ -1477,7 +1477,7 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
         gte_stflg(&((AhlpFlareScratch*)(head - 0x1C))->flag);
         if (blk->flag >= 0) {
             gte_stszotz(&((AhlpFlareScratch*)(head - 0x1C))->otz);
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
             span = mem->step * 6;

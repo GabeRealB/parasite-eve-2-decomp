@@ -1187,12 +1187,12 @@ void func_shelter_b3_garbage_incinerator_8017E7D0(Task* arg0)
             }
             break;
     }
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 1);
     addPrim(&gGpuCurrentOt[1023], stp);
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[0], stp);
     SCRATCH_POP(OverlayWaveScratch);
@@ -1264,7 +1264,7 @@ void func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0)
             }
             break;
         case 5:
-            tile           = (TILE*)gGpuPrimCursor;
+            tile           = gGpuPrimCursor;
             gGpuPrimCursor = tile + 1;
             setlen(tile, 3);
             setcode(tile, 0x60);

@@ -360,7 +360,7 @@ static void Actor02400_Fn00064(GfxCoord* coord, s16 size)
     gte_stflg(&sc->flag);
     if (sc->flag >= 0) {
         gte_stszotz(&sc->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         sc->otz        = (s32)(sc->otz + 1);
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -393,7 +393,7 @@ static void Actor02400_Fn00064(GfxCoord* coord, s16 size)
         addPrim(
             GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2F;
@@ -471,7 +471,7 @@ static void Actor02400_Fn005BC(GfxCoord* arg0, s32 arg1)
         if (flag >= 0) {
             gte_stszotz(&otz);
             otz++;
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2C);

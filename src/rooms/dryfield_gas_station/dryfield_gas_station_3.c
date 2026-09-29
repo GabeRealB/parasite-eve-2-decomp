@@ -898,7 +898,7 @@ static void func_dryfield_gas_station_80180B4C(GfxCoord* arg0, SVECTOR* arg1, s3
         block->halfWidth = ((s16)arg3 << 5) / ((RoomShaftScratch*)(head - 0x14))->otz;
         color            = pulse / 34 + 0x78;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -919,7 +919,7 @@ static void func_dryfield_gas_station_80180B4C(GfxCoord* arg0, SVECTOR* arg1, s3
 
         i = 0;
         do {
-            line           = (LINE_G3*)gGpuPrimCursor;
+            line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineG3(line);
             setRGB0(line, 0, 0, 0);
@@ -995,7 +995,7 @@ static void func_dryfield_gas_station_80181058(GfxCoord* coord, SVECTOR* data, s
         color         = pulse / 34 + 0x78;
         block->rInner = (size * 8) / ((RoomGlowScratch*)(head - 0x18))->otz;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             half = (s16)color >> 1;
@@ -1017,7 +1017,7 @@ static void func_dryfield_gas_station_80181058(GfxCoord* coord, SVECTOR* data, s
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1041,7 +1041,7 @@ static void func_dryfield_gas_station_80181058(GfxCoord* coord, SVECTOR* data, s
         color = half;
         ang   = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1062,7 +1062,7 @@ static void func_dryfield_gas_station_80181058(GfxCoord* coord, SVECTOR* data, s
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

@@ -3783,8 +3783,9 @@ static void func_actor_403000_801327B0(GfxCoord* coord, SVECTOR* pos, s32 arg2)
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         radius      = (s32)(((Gp_LcgState >> 16) & 0xF) + 0x1E) * 0x160 / (otz * 4);
         for (i = 0; i < 8; i++) {
-            prim           = (POLY_G3*)gGpuPrimCursor;
-            gGpuPrimCursor = (POLY_GT3*)prim + 1;
+            prim = gGpuPrimCursor;
+            // Preserve the textured-triangle-sized reservation for this gouraud packet.
+            gGpuPrimCursor = (u8*)prim + sizeof(POLY_GT3);
             setPolyG3(prim);
             setRGB0(prim, 0xFF, 0x60, 0x60);
             setRGB1(prim, 0xF, 8, 8);
@@ -3797,8 +3798,9 @@ static void func_actor_403000_801327B0(GfxCoord* coord, SVECTOR* pos, s32 arg2)
             prim->x2 = x + ((rsin(i * 0x200 + 0x200) * radius) >> 12);
             prim->y2 = y + ((rcos(i * 0x200 + 0x200) * radius) >> 12);
             addPrim(&gGpuCurrentOt[(otz - 6) >> 4], prim);
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = (DR_MODE*)dr + 1;
+            dr = gGpuPrimCursor;
+            // Preserve the draw-mode-sized reservation for this texture-page packet.
+            gGpuPrimCursor = (u8*)dr + sizeof(DR_MODE);
             setDrawTPage(dr, 0, 0, 0x2A);
             addPrim(&gGpuCurrentOt[(otz - 6) >> 4], dr);
         }
@@ -3871,8 +3873,8 @@ static void func_actor_403000_80132AE0(GfxCoord* parent)
     D_actor_403000_80158DF0[0].vy = scratch->pos.vy;
     D_actor_403000_80158DF0[0].vz = scratch->pos.vz;
     for (i = 0; i < 18; i++) {
-        prim           = (POLY_FT4*)gGpuPrimCursor;
-        gGpuPrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
         gte_ldv0(&D_actor_403000_80158DF0[i]);

@@ -1098,7 +1098,7 @@ static void Gp_DrawMapCursor(Task* arg0)
     base          = rec->field_6;
     pos->y        = base + off;
 
-    p              = (SPRT_16*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     ang            = (rsin(gDisplayState.loopCount << 6) + 0x1000) >> 5;
     if (ang == 0x100) {
@@ -1154,7 +1154,7 @@ static void func_800D0614(Task* arg0)
     DR_TPAGE*       dr;
 
     obj                          = arg0->spawnArg2.pointer;
-    p                            = (POLY_FT4*)gGpuPrimCursor;
+    p                            = gGpuPrimCursor;
     pos                          = (GpMapCursorPos*)(SCRATCH_HEAD(u8) - 0x1C);
     SCRATCH_HEAD(GpMapCursorPos) = pos;
     gGpuPrimCursor               = p + 1;
@@ -1179,7 +1179,7 @@ static void func_800D0614(Task* arg0)
     addPrim(&gGpuCurrentOt[obj->panel.field_14.s + 2], p);
     SCRATCH_POP_BYTES(0x1C);
 
-    sprt           = (SPRT*)gGpuPrimCursor;
+    sprt           = gGpuPrimCursor;
     gGpuPrimCursor = sprt + 1;
     setlen(sprt, 4);
     setcode(sprt, 0x67);
@@ -1354,7 +1354,7 @@ static void func_800D0C34(Task* arg0)
             pos->field_12  = 0;
             pos->field_10  = 0;
             pos->x         = icons[i].x;
-            p              = (SPRT_16*)gGpuPrimCursor;
+            p              = gGpuPrimCursor;
             gGpuPrimCursor = p + 1;
             pos->y         = icons[i].y;
             setlen(p, 3);
@@ -1427,7 +1427,7 @@ static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
             pos->field_6   = 0;
             pos->field_4   = 0;
             pos->x         = icons[i].x;
-            p              = (SPRT_16*)gGpuPrimCursor;
+            p              = gGpuPrimCursor;
             gGpuPrimCursor = p + 1;
             pos->y         = icons[i].y;
             if (icons[i].field_2 == 2) {
@@ -1599,7 +1599,7 @@ static void func_800D15D0(Task* arg0)
         }
         ret = func_800D1434((u8)i, flagIds[(u8)i]);
         if (ret == 1) {
-            p              = (SPRT*)gGpuPrimCursor;
+            p              = gGpuPrimCursor;
             gGpuPrimCursor = p + 1;
             lum            = (rsin(gDisplayState.loopCount << 5) + 0x1000) >> 5;
             if (lum == 0x100) {
@@ -1635,7 +1635,7 @@ static void func_800D15D0(Task* arg0)
         }
         ret = func_800D1434((u8)i, flagIds[(u8)i]);
         if (ret == 1) {
-            p              = (SPRT*)gGpuPrimCursor;
+            p              = gGpuPrimCursor;
             gGpuPrimCursor = p + 1;
             lum            = (rsin(gDisplayState.loopCount << 5) + 0x1000) >> 5;
             if (lum == 0x100) {
@@ -2604,7 +2604,7 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
             }
         }
         color              = 0x606060;
-        p                  = (SPRT*)gGpuPrimCursor;
+        p                  = gGpuPrimCursor;
         p->y0              = (arg0->panel.field_22.u + arg4) - 0xC;
         prev               = rawPrev & 0xFFFF;
         loc.req.x          = arg0->panel.field_20.u + x;
@@ -2871,7 +2871,7 @@ static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
     tw.y           = 0;
     tw.x           = 0;
     scratch        = SCRATCH_PUSH(GpMapMarkScratch);
-    dr             = (DR_MODE*)gGpuPrimCursor;
+    dr             = gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
     tw.h           = 0xFF;
     tw.w           = 0xFF;
@@ -2893,7 +2893,7 @@ static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
                     SVECTOR*  vert;
 
                     vert           = (SVECTOR*)(verts + (((u16*)cur)[0] & 0xFFF8));
-                    p4             = (POLY_FT4*)gGpuPrimCursor;
+                    p4             = gGpuPrimCursor;
                     gGpuPrimCursor = p4 + 1;
                     gte_lddp(dp);
                     gte_ldsv(vert);
@@ -2997,7 +2997,7 @@ static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
                     SVECTOR*  vert;
 
                     vert           = (SVECTOR*)(verts + (((u16*)cur)[0] & 0xFFF8));
-                    p3             = (POLY_FT3*)gGpuPrimCursor;
+                    p3             = gGpuPrimCursor;
                     gGpuPrimCursor = p3 + 1;
                     gte_lddp(dp);
                     gte_ldsv(vert);
@@ -3083,7 +3083,7 @@ static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
             }
         }
     }
-    dr             = (DR_MODE*)gGpuPrimCursor;
+    dr             = gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
     tw.x           = 0;
     tw.y           = 0;

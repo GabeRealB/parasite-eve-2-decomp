@@ -2424,7 +2424,7 @@ static void Actor00700_Fn0305C(Task* arg0)
         v->vx += x;
         v->vy += y;
     }
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2E);

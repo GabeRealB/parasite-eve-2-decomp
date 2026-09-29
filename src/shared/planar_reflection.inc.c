@@ -411,64 +411,64 @@ static void Reflection_UpdatePlayer(Task* task)
         u16  ofs[2];
         RECT rect;
 
-        work->field_4   = 0;
-        drArea          = (DR_AREA*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_AREA);
-        rect.x          = 0;
-        rect.y          = gDisplayState.drawBuffer * 0x110;
-        rect.w          = 0x140;
-        rect.h          = 0xF0;
+        work->field_4  = 0;
+        drArea         = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_AREA);
+        rect.x         = 0;
+        rect.y         = gDisplayState.drawBuffer * 0x110;
+        rect.w         = 0x140;
+        rect.h         = 0xF0;
         SetDrawArea(drArea, &rect);
         addPrim(&gGpuCurrentOt[0x3FF], drArea);
 
-        drStp           = (DR_STP*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_STP);
+        drStp          = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_STP);
         SetDrawStp(drStp, 0);
         addPrim(&gGpuCurrentOt[0x3FF], drStp);
 
-        drOffset        = (DR_OFFSET*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_OFFSET);
-        ofs[0]          = 0xA0;
-        ofs[1]          = gDisplayState.drawBuffer * 0x110 + 0x78;
+        drOffset       = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_OFFSET);
+        ofs[0]         = 0xA0;
+        ofs[1]         = gDisplayState.drawBuffer * 0x110 + 0x78;
         SetDrawOffset(drOffset, ofs);
         addPrim(&gGpuCurrentOt[0x3FF], drOffset);
 
-        sprt            = (SPRT*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(SPRT);
-        sprt->x0        = -0xA0;
-        sprt->y0        = -0x78;
-        sprt->w         = 0xA0;
-        sprt->h         = 0xF0;
-        sprt->u0        = 0;
-        sprt->v0        = gDisplayState.drawBuffer << 4;
+        sprt           = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(SPRT);
+        sprt->x0       = -0xA0;
+        sprt->y0       = -0x78;
+        sprt->w        = 0xA0;
+        sprt->h        = 0xF0;
+        sprt->u0       = 0;
+        sprt->v0       = gDisplayState.drawBuffer << 4;
         setlen(sprt, 4);
         setcode(sprt, 0x65);
         addPrim(&gGpuCurrentOt[0x3FF], sprt);
 
-        tpage           = (DR_TPAGE*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_TPAGE);
+        tpage          = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
         setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0, gDisplayState.drawBuffer << 8));
         addPrim(&gGpuCurrentOt[0x3FF], tpage);
 
-        sprt            = (SPRT*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(SPRT);
-        sprt->x0        = 0;
-        sprt->y0        = -0x78;
-        sprt->w         = 0xA0;
-        sprt->h         = 0xF0;
-        sprt->u0        = 0x20;
-        sprt->v0        = gDisplayState.drawBuffer << 4;
+        sprt           = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(SPRT);
+        sprt->x0       = 0;
+        sprt->y0       = -0x78;
+        sprt->w        = 0xA0;
+        sprt->h        = 0xF0;
+        sprt->u0       = 0x20;
+        sprt->v0       = gDisplayState.drawBuffer << 4;
         setlen(sprt, 4);
         setcode(sprt, 0x65);
         addPrim(&gGpuCurrentOt[0x3FF], sprt);
 
-        tpage           = (DR_TPAGE*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_TPAGE);
+        tpage          = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
         setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0x80, gDisplayState.drawBuffer << 8));
         addPrim(&gGpuCurrentOt[0x3FF], tpage);
 
-        tile            = (TILE*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(TILE);
+        tile           = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(TILE);
         setlen(tile, 3);
         setcode(tile, 0x60);
         tile->x0 = -0xA0;
@@ -479,24 +479,24 @@ static void Reflection_UpdatePlayer(Task* task)
         tile->h             = 0xF0;
         addPrim(&gGpuCurrentOt[0x3FF], tile);
 
-        drStp           = (DR_STP*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_STP);
+        drStp          = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_STP);
         SetDrawStp(drStp, 1);
         addPrim(&gGpuCurrentOt[0x3FF], drStp);
 
-        drOffset        = (DR_OFFSET*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_OFFSET);
-        ofs[0]          = width + 0xA0;
-        ofs[1]          = 0x178;
+        drOffset       = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_OFFSET);
+        ofs[0]         = width + 0xA0;
+        ofs[1]         = 0x178;
         SetDrawOffset(drOffset, ofs);
         addPrim(&gGpuCurrentOt[0x3FF], drOffset);
 
-        drArea          = (DR_AREA*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_AREA);
-        rect.x          = width;
-        rect.y          = 0x100;
-        rect.w          = 0x140;
-        rect.h          = 0xF0;
+        drArea         = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_AREA);
+        rect.x         = width;
+        rect.y         = 0x100;
+        rect.w         = 0x140;
+        rect.h         = 0xF0;
         SetDrawArea(drArea, &rect);
         addPrim(&gGpuCurrentOt[0x3FF], drArea);
     }
@@ -588,16 +588,16 @@ static void Reflection_UpdatePlayer(Task* task)
                 work->field_A0[0] < extent->right) {
                 DR_TPAGE* mode;
 
-                mode            = (DR_TPAGE*)gGpuPrimCursor;
-                texX            = extent->left + (u16)(width + 0xA0);
-                extent->texX    = texX & 0xFFC0;
-                gGpuPrimCursor += sizeof(DR_TPAGE);
+                mode           = gGpuPrimCursor;
+                texX           = extent->left + (u16)(width + 0xA0);
+                extent->texX   = texX & 0xFFC0;
+                gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
                 setDrawTPage(mode, 0, 1, 0);
                 addPrim(&gGpuCurrentOt[(((extent->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
                         mode);
                 for (layer = work->field_8; layer < 3; layer++) {
-                    poly            = (POLY_FT4*)gGpuPrimCursor;
-                    gGpuPrimCursor += sizeof(POLY_FT4);
+                    poly           = gGpuPrimCursor;
+                    gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(POLY_FT4);
                     setPolyFT4(poly);
                     setSemiTrans(poly, 1);
                     if (work->field_8 == 1) {
@@ -618,8 +618,8 @@ static void Reflection_UpdatePlayer(Task* task)
                     addPrim(&gGpuCurrentOt[(((extent->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
                             poly);
                 }
-                mode            = (DR_TPAGE*)gGpuPrimCursor;
-                gGpuPrimCursor += sizeof(DR_TPAGE);
+                mode           = gGpuPrimCursor;
+                gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
                 setDrawTPage(mode, 0, 0, 0);
                 addPrim(&gGpuCurrentOt[(((extent->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
                         mode);

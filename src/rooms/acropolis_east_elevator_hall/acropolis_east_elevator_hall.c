@@ -824,7 +824,7 @@ void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
         red              = level;
         block->halfWidth = (((RoomShaftArg*)&arg0->spawnArg1.value)->height << 9) / block->otz;
         for (i = 0; i < 2; i++) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -871,7 +871,7 @@ static void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomMoteScratch*)(head - 0xC))->vec);
     gte_rtps();
-    prim           = (TILE_1*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setTile1(prim);
     gte_stsxy(&prim->x0);

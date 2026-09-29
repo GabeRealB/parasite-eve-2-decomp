@@ -304,7 +304,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     tp->code[0] = 0xE100023E;
     addPrim(gGpuCurrentOt - 3, tp);
     if (mode == 1) {
-        sp             = (SPRT*)gGpuPrimCursor;
+        sp             = gGpuPrimCursor;
         gGpuPrimCursor = sp + 1;
         sp->x0         = x + 0xD;
         sp->y0         = y + 0xC;
@@ -317,7 +317,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
         setcode(sp, 0x65);
         addPrim(gGpuCurrentOt - 2, sp);
     }
-    poly                     = (POLY_GT4*)gGpuPrimCursor;
+    poly                     = gGpuPrimCursor;
     gGpuPrimCursor           = poly + 1;
     PRIM_COLOR_WORD(poly, 2) = PRIM_RGBC(0xc0, 0xc0, 0xc0, 0);
     PRIM_COLOR_WORD(poly, 3) = PRIM_RGBC(0x80, 0x80, 0x80, 0);
@@ -333,7 +333,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     poly->y0 = poly->y1 = y;
     addPrim(gGpuCurrentOt - 2, poly);
     if (arg0->field_16 != -1) {
-        sp2            = (SPRT*)gGpuPrimCursor;
+        sp2            = gGpuPrimCursor;
         gGpuPrimCursor = sp2 + 1;
         sp2->x0        = x + 0xD;
         sp2->y0        = y + 0xC;
@@ -462,7 +462,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         }
 
         if (w > 0) {
-            tile           = (TILE*)gGpuPrimCursor;
+            tile           = gGpuPrimCursor;
             gGpuPrimCursor = tile + 1;
             if (span < w) {
                 w = span;
@@ -481,7 +481,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
             addPrim(gGpuCurrentOt - 2, tile);
         }
 
-        sp             = (SPRT*)gGpuPrimCursor;
+        sp             = gGpuPrimCursor;
         gGpuPrimCursor = sp + 1;
         sp->x0         = x + 4;
         sp->u0         = 0x98;
@@ -492,7 +492,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         setcode(sp, 0x75);
         addPrim(gGpuCurrentOt - 2, sp);
 
-        sp             = (SPRT*)gGpuPrimCursor;
+        sp             = gGpuPrimCursor;
         gGpuPrimCursor = sp + 1;
         right          = (span + x) - 2;
         sp->x0         = right;
@@ -504,7 +504,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         setcode(sp, 0x75);
         addPrim(gGpuCurrentOt - 2, sp);
 
-        poly           = (POLY_FT4*)gGpuPrimCursor;
+        poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
         poly->x0 = poly->x2 = x + 0xC;
         poly->x1 = poly->x3 = right;

@@ -747,7 +747,7 @@ static s32 func_actor_135600_80131E68(GfxCoord* coord, s32 arg1)
     }
 
     if (p >= 0) {
-        poly           = (POLY_F4*)gGpuPrimCursor;
+        poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
         setlen(poly, 5);
         setcode(poly, 0x2A);

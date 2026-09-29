@@ -37,7 +37,7 @@ static void RoomFx_DrawFlyingSpark(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
@@ -99,7 +99,7 @@ static void RoomFx_DrawFlyingRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
         block->inner = ((s16)arg1 * 64) / block->otz;
         block->outer = ((s16)outer * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang = next) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -147,7 +147,7 @@ static void RoomFx_DrawFlyingDisc(GfxCoord* arg0, s32 arg1, u8* rgb)
         block->otz++;
         block->step = ((s16)arg1 * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

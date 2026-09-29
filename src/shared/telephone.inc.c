@@ -395,7 +395,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
     barW  = barW + 2;
     barX  = avail - barW;
     if (barW >= 2) {
-        prim                     = (POLY_G4*)gGpuPrimCursor;
+        prim                     = gGpuPrimCursor;
         tx                       = arg1->panel.field_20.u + barX + 1;
         prim->x2                 = tx;
         prim->x0                 = tx;

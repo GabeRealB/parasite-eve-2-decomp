@@ -1925,7 +1925,7 @@ static void func_actor_141000_80131E94(Task* arg0, Actor141000Point* arg1, s32 a
         b              = quad[1];
         c              = quad[2];
         d              = quad[3];
-        poly           = (POLY_G4*)gGpuPrimCursor;
+        poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
         setlen(poly, 8);
         poly->code = 0x3A;
@@ -1962,7 +1962,7 @@ static void func_actor_141000_80131E94(Task* arg0, Actor141000Point* arg1, s32 a
         b              = quad[1];
         c              = quad[2];
         d              = quad[3];
-        poly           = (POLY_G4*)gGpuPrimCursor;
+        poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
         setlen(poly, 8);
         poly->code = 0x3A;

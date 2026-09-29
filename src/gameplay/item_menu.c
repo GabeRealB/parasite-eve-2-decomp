@@ -1148,7 +1148,7 @@ void func_800BDF6C(Task* task)
     half      = halfWidth;
     Ui_DrawFlatCaret(&(obj)->panel, caretX, caretY, 0x606060, 1);
     Ui_DrawFlatCaret(&(obj)->panel, caretX, panelY + 0x1E, 0x606060, 0);
-    line                     = (LINE_F2*)gGpuPrimCursor;
+    line                     = gGpuPrimCursor;
     gGpuPrimCursor           = line + 1;
     PRIM_COLOR_WORD(line, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
     coord                    = obj->panel.field_20.u + caretX;
@@ -1696,7 +1696,7 @@ void Gp_FadeTileTask(Task* arg0)
         otIdx = 0x3F;
     }
 
-    tile           = (TILE*)gGpuPrimCursor;
+    tile           = gGpuPrimCursor;
     gGpuPrimCursor = tile + 1;
     setlen(tile, 3);
     setcode(tile, 0x62);
@@ -1717,7 +1717,7 @@ void Gp_FadeTileTask(Task* arg0)
     }
 
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((otIdx << 2)), tile);
-    dr             = (DR_TPAGE*)gGpuPrimCursor;
+    dr             = gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000640;

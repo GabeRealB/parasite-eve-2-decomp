@@ -542,8 +542,8 @@ static void func_shelter_r47_80181F14(Task* task, s16 y)
     c    = *p;
     if (c != 0xFF) {
         func_shelter_r47_80180F38(c - 0x9D, y, 0x14);
-        poly           = (POLY_FT4*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(poly + 1);
+        poly           = gGpuPrimCursor;
+        gGpuPrimCursor = poly + 1;
         setPolyFT4(poly);
         setUVWH(poly, 0x48, 0xB9, 0x2C, 0xE);
         poly->tpage = 0xD;
@@ -567,9 +567,9 @@ static void func_shelter_r47_801820C0(s16 arg0)
     GpTpageSprt* p;
     SPRT*        sprt;
 
-    p              = (GpTpageSprt*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     sprt           = &p->sprt;
-    gGpuPrimCursor = (u8*)(p + 1);
+    gGpuPrimCursor = p + 1;
     setlen(&p->tpage, 1);
     setlen(&p->sprt, 4);
     p->tpage.code[0] = 0xE1000096;
@@ -585,9 +585,9 @@ static void func_shelter_r47_801820C0(s16 arg0)
     sprt->code |= 1;
     addPrim(&gGpuCurrentOt[12], p);
 
-    p              = (GpTpageSprt*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     sprt           = &p->sprt;
-    gGpuPrimCursor = (u8*)(p + 1);
+    gGpuPrimCursor = p + 1;
     setlen(&p->tpage, 1);
     setlen(&p->sprt, 4);
     p->tpage.code[0] = 0xE1000098;
@@ -603,9 +603,9 @@ static void func_shelter_r47_801820C0(s16 arg0)
     sprt->code |= 1;
     addPrim(&gGpuCurrentOt[12], p);
 
-    p              = (GpTpageSprt*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     sprt           = &p->sprt;
-    gGpuPrimCursor = (u8*)(p + 1);
+    gGpuPrimCursor = p + 1;
     setlen(&p->tpage, 1);
     setlen(&p->sprt, 4);
     p->tpage.code[0] = 0xE100008E;
@@ -816,7 +816,7 @@ static void func_shelter_r47_801828D0(s32 x, s32 y, s32 variant)
         return;
     }
 
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
 
     px       = x - 2;
@@ -1315,8 +1315,8 @@ static void func_shelter_r47_80183484(Task* task)
     if (state->field_1C != 3) {
         if (state->field_2A != 1 && state->field_1C == 0 && Gp_HasCollectedBit(0x12D) != 0) {
             shade         += 0x30;
-            p              = (POLY_FT4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(p + 1);
+            p              = gGpuPrimCursor;
+            gGpuPrimCursor = p + 1;
             setPolyFT4(p);
             setUV4(p, 0x58, 0x20, 0x60, 0x20, 0x58, 0x28, 0x60, 0x28);
             p->tpage = 0x2F;
@@ -1328,9 +1328,9 @@ static void func_shelter_r47_80183484(Task* task)
         }
         while (mark->stage != 0xFF) {
             if (_shelterR47IsAreaMarked(mark->stage, mark->area)) {
-                p              = (POLY_FT4*)gGpuPrimCursor;
+                p              = gGpuPrimCursor;
                 shade         += 0x30;
-                gGpuPrimCursor = (u8*)(p + 1);
+                gGpuPrimCursor = p + 1;
                 setPolyFT4(p);
                 setUV4(p, 0x50, 0x20, 0x58, 0x20, 0x50, 0x28, 0x58, 0x28);
                 setRGB0(p, shade, shade, shade);
@@ -1351,9 +1351,9 @@ static void func_shelter_r47_80183484(Task* task)
         if (GameFlag_GetNibble(0xDF) == 1) {
             while (mark->stage != 0xFF) {
                 if (_shelterR47IsAreaMarked(mark->stage, mark->area)) {
-                    p              = (POLY_FT4*)gGpuPrimCursor;
+                    p              = gGpuPrimCursor;
                     shade         += 0x30;
-                    gGpuPrimCursor = (u8*)(p + 1);
+                    gGpuPrimCursor = p + 1;
                     setPolyFT4(p);
                     setUV4(p, 0x50, 0x20, 0x58, 0x20, 0x50, 0x28, 0x58, 0x28);
                     setRGB0(p, shade, shade, shade);
@@ -1370,8 +1370,8 @@ static void func_shelter_r47_80183484(Task* task)
             if (shade == 0) {
                 SndEvt_EnqueueType6(0x542F0005, 0, 0);
             }
-            p              = (POLY_FT4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(p + 1);
+            p              = gGpuPrimCursor;
+            gGpuPrimCursor = p + 1;
             setPolyFT4(p);
             setUV4(p, 0, 0, 0xE8, 0, 0, 0xCE, 0xE8, 0xCE);
             p->tpage = 0x36;
@@ -1404,8 +1404,8 @@ void func_shelter_r47_80183B84(Task* task)
         state->field_2B = 1;
     }
 
-    p              = (POLY_FT4*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(p + 1);
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setPolyFT4(p);
     setUV4(p, 0, 0, 0xE8, 0, 0, 0xCE, 0xE8, 0xCE);
     p->tpage = 0x2D;
@@ -1415,10 +1415,10 @@ void func_shelter_r47_80183B84(Task* task)
            state->field_A - 0x4D, state->field_C - 0x67);
     addPrim(&gGpuCurrentOt[12], p);
 
-    p                = (POLY_FT4*)gGpuPrimCursor;
+    p                = gGpuPrimCursor;
     state->field_12 += (state->field_16 - state->field_12) >> 2;
     state->field_14 += (state->field_18 - state->field_14) >> 2;
-    gGpuPrimCursor   = (u8*)(p + 1);
+    gGpuPrimCursor   = p + 1;
     setPolyFT4(p);
     setUV4(p, 0, 0, 0x50, 0, 0, 0x60, 0x50, 0x60);
     p->tpage = 0x2E;
@@ -1434,8 +1434,8 @@ void func_shelter_r47_80183E24(void)
     GpTpageSprt* p;
     SPRT*        sprt;
 
-    p              = (GpTpageSprt*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(p + 1);
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setlen(&p->tpage, 1);
     setlen(&p->sprt, 4);
     p->tpage.code[0] = 0xE100002F;
@@ -1458,8 +1458,8 @@ void func_shelter_r47_80183F0C(void)
     GpTpageSprt* p;
     SPRT*        sprt;
 
-    p              = (GpTpageSprt*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(p + 1);
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setlen(&p->tpage, 1);
     setlen(&p->sprt, 4);
     p->tpage.code[0] = 0xE100002F;
@@ -1483,10 +1483,10 @@ void func_shelter_r47_80183FF4(Task* task, s16 arg1)
     SPRT*             sprt;
     ShelterR47State2* state;
 
-    p                = (GpTpageSprt*)gGpuPrimCursor;
+    p                = gGpuPrimCursor;
     state            = (ShelterR47State2*)task->work;
     sprt             = &p->sprt;
-    gGpuPrimCursor   = (u8*)(p + 1);
+    gGpuPrimCursor   = p + 1;
     state->field_20 += (state->field_1E - state->field_20) >> 2;
     setlen(&p->tpage, 1);
     setlen(&p->sprt, 4);
@@ -1510,10 +1510,10 @@ void func_shelter_r47_80184124(Task* task, s16 arg1)
     SPRT*             sprt;
     ShelterR47State2* state;
 
-    p              = (GpTpageSprt*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     state          = (ShelterR47State2*)task->work;
     sprt           = &p->sprt;
-    gGpuPrimCursor = (u8*)(p + 1);
+    gGpuPrimCursor = p + 1;
     setlen(&p->tpage, 1);
     setlen(&p->sprt, 4);
     p->tpage.code[0] = 0xE100002F;
@@ -1529,9 +1529,9 @@ void func_shelter_r47_80184124(Task* task, s16 arg1)
     sprt->h     = 8;
     addPrim(&gGpuCurrentOt[11], p);
 
-    p                = (GpTpageSprt*)gGpuPrimCursor;
+    p                = gGpuPrimCursor;
     sprt             = &p->sprt;
-    gGpuPrimCursor   = (u8*)(p + 1);
+    gGpuPrimCursor   = p + 1;
     p->tpage.code[0] = 0xE100002F;
     setlen(&p->tpage, 1);
     setlen(&p->sprt, 4);

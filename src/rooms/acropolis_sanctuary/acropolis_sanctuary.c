@@ -2083,7 +2083,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);
     gte_rtps();
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
@@ -2306,7 +2306,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv3(&blk->v[0], &blk->v[1], &blk->v[2]);
     gte_rtpt();
-    prim           = (POLY_FT3*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 7);
     setcode(prim, 0x24);
@@ -2419,7 +2419,7 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&blk->vec);
         gte_rtps();
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);

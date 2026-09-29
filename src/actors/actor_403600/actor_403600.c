@@ -956,8 +956,8 @@ void func_actor_403600_801320F8(s32 otz)
     extra          = Gp_GetViewSprtExtra();
     scratch        = SCRATCH_PUSH(ActorsDrawScratch);
     scratch->otz   = otz;
-    area           = (DR_AREA*)gGpuPrimCursor;
-    gGpuPrimCursor = (DR_TPAGE*)(area + 1);
+    area           = gGpuPrimCursor;
+    gGpuPrimCursor = area + 1;
     if (extra != NULL && ((extra->depth << gDisplayState.otDepthShift) & 0x3FFF) >> 4 < scratch->otz) {
         scratch->rect    = extra->rect;
         scratch->rect.y += gDisplayState.drawBuffer * 0x110;
@@ -971,21 +971,21 @@ void func_actor_403600_801320F8(s32 otz)
     SetDrawArea(area, clip);
     addPrim(&gGpuCurrentOt[scratch->otz], area);
 
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (DR_TPAGE*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[scratch->otz], stp);
 
     ofs             = scratch->ofs;
-    off             = (DR_OFFSET*)gGpuPrimCursor;
-    gGpuPrimCursor  = (DR_TPAGE*)(off + 1);
+    off             = gGpuPrimCursor;
+    gGpuPrimCursor  = off + 1;
     scratch->ofs[0] = 0xA0;
     scratch->ofs[1] = gDisplayState.drawBuffer * 0x110 + 0x78;
     SetDrawOffset(off, ofs);
     addPrim(&gGpuCurrentOt[scratch->otz], off);
 
-    sprt           = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor = (DR_TPAGE*)(sprt + 1);
+    sprt           = gGpuPrimCursor;
+    gGpuPrimCursor = sprt + 1;
     sprt->x0       = -0xA0;
     sprt->y0       = -0x78;
     sprt->w        = 0xA0;
@@ -1001,8 +1001,8 @@ void func_actor_403600_801320F8(s32 otz)
     setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0, gDisplayState.drawBuffer << 8));
     addPrim(&gGpuCurrentOt[scratch->otz], tpage);
 
-    sprt           = (SPRT*)gGpuPrimCursor;
-    gGpuPrimCursor = (DR_TPAGE*)(sprt + 1);
+    sprt           = gGpuPrimCursor;
+    gGpuPrimCursor = sprt + 1;
     sprt->x0       = 0;
     sprt->y0       = -0x78;
     sprt->w        = 0xA0;
@@ -1018,8 +1018,8 @@ void func_actor_403600_801320F8(s32 otz)
     setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0x80, gDisplayState.drawBuffer << 8));
     addPrim(&gGpuCurrentOt[scratch->otz], tpage);
 
-    tile           = (TILE*)gGpuPrimCursor;
-    gGpuPrimCursor = (DR_TPAGE*)(tile + 1);
+    tile           = gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
     setlen(tile, 3);
     setcode(tile, 0x60);
     tile->b0 = 2;
@@ -1031,20 +1031,20 @@ void func_actor_403600_801320F8(s32 otz)
     tile->h  = 0xF0;
     addPrim(&gGpuCurrentOt[scratch->otz], tile);
 
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (DR_TPAGE*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 1);
     addPrim(&gGpuCurrentOt[scratch->otz], stp);
 
-    off             = (DR_OFFSET*)gGpuPrimCursor;
-    gGpuPrimCursor  = (DR_TPAGE*)(off + 1);
+    off             = gGpuPrimCursor;
+    gGpuPrimCursor  = off + 1;
     scratch->ofs[0] = 0x260;
     scratch->ofs[1] = 0x178;
     SetDrawOffset(off, ofs);
     addPrim(&gGpuCurrentOt[scratch->otz], off);
 
-    area            = (DR_AREA*)gGpuPrimCursor;
-    gGpuPrimCursor  = (DR_TPAGE*)(area + 1);
+    area            = gGpuPrimCursor;
+    gGpuPrimCursor  = area + 1;
     scratch->rect.x = 0x1C0;
     scratch->rect.y = 0x100;
     scratch->rect.w = 0x140;
@@ -1273,8 +1273,8 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor4
         setlen(tile, 3);
         PRIM_COLOR_WORD(tile, 0) = PRIM_RGBC(0xC0, 0x60, 0x20, 0);
         tile->code               = 0x62;
-        draw_mode                = (DR_TPAGE*)gGpuPrimCursor;
-        gGpuPrimCursor           = (u8*)(draw_mode + 1);
+        draw_mode                = gGpuPrimCursor;
+        gGpuPrimCursor           = draw_mode + 1;
         addPrim(gGpuCurrentOt - 1, tile);
         setDrawTPage(draw_mode, 0, 1, 0x20);
         addPrim(gGpuCurrentOt - 1, draw_mode);

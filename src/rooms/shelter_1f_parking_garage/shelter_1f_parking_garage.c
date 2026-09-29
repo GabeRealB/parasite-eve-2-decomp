@@ -842,7 +842,7 @@ static void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32
         block->r0 = r0;
         block->r1 = r1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -868,7 +868,7 @@ static void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -888,7 +888,7 @@ static void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
             t3             = ang - 0x1000;
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             t              = ang - 0x1000;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
@@ -981,7 +981,7 @@ static void func_shelter_1f_parking_garage_8017E868(SVECTOR* worldPoint, s32 rad
         block->radius = radius;
         // Build four glow wedges and quantize their shared camera depth.
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1112,7 +1112,7 @@ static void func_shelter_1f_parking_garage_8017EEB0(GfxCoord* arg0, s32 arg1, s3
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1167,7 +1167,7 @@ static void func_shelter_1f_parking_garage_8017F2DC(GfxCoord* arg0, s16 arg1, u8
         block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1361,7 +1361,7 @@ static void func_shelter_1f_parking_garage_8017FB60(GfxCoord* arg0, GfxCoord* ar
             lo             = (fade - 9) & 0xFF;
             r2             = lo * (arg3 >> 8);
             g2             = lo * ((arg3 >> 4) & 3);
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             blk->otz       = blk->otz + 1;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 8);
@@ -1505,7 +1505,7 @@ static void func_shelter_1f_parking_garage_801801E0(GfxCoord* arg0, s16 arg1, u8
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1526,7 +1526,7 @@ static void func_shelter_1f_parking_garage_801801E0(GfxCoord* arg0, s16 arg1, u8
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1549,7 +1549,7 @@ static void func_shelter_1f_parking_garage_801801E0(GfxCoord* arg0, s16 arg1, u8
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1570,7 +1570,7 @@ static void func_shelter_1f_parking_garage_801801E0(GfxCoord* arg0, s16 arg1, u8
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

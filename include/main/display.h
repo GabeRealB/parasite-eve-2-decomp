@@ -64,14 +64,21 @@ extern GpuOtBuf Gpu_OtBuffers[2];
 
 extern GsOT Gpu_OrderingTables[2];
 
-/// The primitive buffer allocation cursor.
+/// Next free address in the selected frame's GPU packet arena.
 ///
-/// Drawing code writes its packets straight into the primitive buffer and
-/// advances this pointer past what it took, so the cursor is the whole
-/// allocation state of the buffer. Nothing is freed within a frame, and the
-/// buffer comes back whole when the next frame resets the cursor to the start
-/// of the half it draws from.
-extern u8* gGpuPrimCursor;
+/// The arena holds mixed primitive and draw-command packets, including merged
+/// packets. Borrow this address as the packet's type and advance it by the full
+/// reservation, which can exceed the packet written. Byte offsets require a
+/// byte-pointer view; there is no common packet stride. Reservations must remain
+/// word-aligned and fit in the selected half; allocation does not check capacity.
+///
+/// The game loop selects a half of `Gpu_PrimHeapBase`, whose total byte capacity
+/// is `Gpu_PrimHeapSize`. Task-owned presentation instead selects a half of its
+/// configured arena (the 0x6000-byte static arena or 0x10000-byte heap arena).
+/// Display code resets the cursor before drawing; packets remain borrowed until
+/// GPU drawing completes and that half is reused. Consumers must not free them
+/// or retain the cursor across display/frame changes.
+extern void* gGpuPrimCursor;
 
 void Gpu_ClearOTag(s16 tableIdx);
 

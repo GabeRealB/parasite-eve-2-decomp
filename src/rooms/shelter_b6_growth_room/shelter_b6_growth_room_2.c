@@ -599,7 +599,7 @@ static void func_shelter_b6_growth_room_8017E0A8(SVECTOR* arg0, s32 arg1, s32 ar
         b             = blend | ((arg2 & 0xF) << 4);
         block->radius = arg1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -629,8 +629,8 @@ static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1)
 {
     POLY_G4* prim;
 
-    prim           = (POLY_G4*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(prim + 1);
+    prim           = gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setPolyG4(prim);
     setRGB0(prim, 0, 0, 0);
     setRGB1(prim, 0, 0, 0);
@@ -743,8 +743,8 @@ static void func_shelter_b6_growth_room_8017E7F0(GfxCoord* coord, u16 arg1, s16 
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         if (block->otz >= 0x41) {
-            prim           = (POLY_FT4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(prim + 1);
+            prim           = gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2C);
             prim->tpage = 0x2C;
@@ -873,8 +873,8 @@ static void func_shelter_b6_growth_room_8017ED28(GfxCoord* coord, u16 arg1, s16 
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         if (block->otz >= 0x41) {
-            prim           = (POLY_FT4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(prim + 1);
+            prim           = gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2F);
             prim->tpage = 0x2B;

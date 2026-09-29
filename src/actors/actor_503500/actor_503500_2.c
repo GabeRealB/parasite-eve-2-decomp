@@ -1774,7 +1774,7 @@ void func_actor_503500_80132990(Task* task)
                 break;
         }
     }
-    tile           = (TILE*)gGpuPrimCursor;
+    tile           = gGpuPrimCursor;
     gGpuPrimCursor = tile + 1;
     setTile(tile);
     SetSemiTrans(tile, 1);

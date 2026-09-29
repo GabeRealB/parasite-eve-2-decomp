@@ -2600,7 +2600,7 @@ static void func_actor_421600_80132EC0(Task* actor, s16 firstJoint, s16 secondJo
                                  &s->screen2, &s->screen3, &s->perspective, &s->flags);
         if (s->flags >= 0) {
             poly           = gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(poly + 1);
+            gGpuPrimCursor = poly + 1;
             setlen(poly, 9);
             poly->code            = 0x2E;
             PRIM_XY_WORD(poly, 0) = s->screen0;

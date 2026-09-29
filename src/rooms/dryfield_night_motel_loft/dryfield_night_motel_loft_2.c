@@ -563,7 +563,7 @@ static void func_dryfield_night_motel_loft_8017DE14(SVECTOR* arg0, s32 arg1, s32
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
     gte_stsxy(&block->sx);
@@ -733,8 +733,8 @@ static void func_dryfield_night_motel_loft_8017E540(GfxCoord* coord, s16 scale, 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv3(&blk->v[0], &blk->v[1], &blk->v[2]);
     gte_rtpt();
-    prim           = (POLY_F3*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(prim + 1);
+    prim           = gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setPolyF3(prim);
     gte_stsxy3(&prim->x0, &prim->x1, &prim->x2);
     gte_stflg(&blk->flag);

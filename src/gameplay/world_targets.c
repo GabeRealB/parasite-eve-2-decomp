@@ -164,7 +164,7 @@ void Gp_DrawTargetCursor(void)
             }
             block->sy     -= gDisplayState.vramYOffset;
             frame          = gDisplayState.animFrame % 24 / 3;
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             if (easing == 1) {
                 prim->x0 = prim->x2 = block->sx - 8;

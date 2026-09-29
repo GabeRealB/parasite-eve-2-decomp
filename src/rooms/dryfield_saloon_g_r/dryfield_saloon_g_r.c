@@ -1003,7 +1003,7 @@ static void func_dryfield_saloon_g_r_8017DBB4(GfxCoord* arg0, SVECTOR* arg1, s32
     gte_ldv0(&((RoomShaftScratch*)(head - 0x14))->vec);
     gte_rtps();
 
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
@@ -1135,7 +1135,7 @@ static void func_dryfield_saloon_g_r_8017DEC4(GfxCoord* coord)
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->rootA);
         gte_rtps();
-        prim           = (POLY_G4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG4(prim);
         gte_stsxy(&prim->x0);
@@ -1234,7 +1234,7 @@ static void func_dryfield_saloon_g_r_8017E430(GfxCoord* arg0, SVECTOR* arg1, SVE
         block->r0 = r0;
         block->r1 = r1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1255,7 +1255,7 @@ static void func_dryfield_saloon_g_r_8017E430(GfxCoord* arg0, SVECTOR* arg1, SVE
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1274,7 +1274,7 @@ static void func_dryfield_saloon_g_r_8017E430(GfxCoord* arg0, SVECTOR* arg1, SVE
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

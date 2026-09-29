@@ -176,7 +176,7 @@ static void Title_DrawSpriteRow(s32 y, s32 v, s32 color)
     u8        c;
 
     c                     = color;
-    p                     = (SPRT*)gGpuPrimCursor;
+    p                     = gGpuPrimCursor;
     gGpuPrimCursor        = p + 1;
     p->x0                 = -0x80;
     p->w                  = 0x100;
@@ -211,7 +211,7 @@ static void Title_MenuTask(Task* task)
                 TILE*     tile;
                 DR_TPAGE* tpage;
 
-                tile           = (TILE*)gGpuPrimCursor;
+                tile           = gGpuPrimCursor;
                 gGpuPrimCursor = tile + 1;
                 setlen(tile, 3);
                 setcode(tile, 0x60);
@@ -250,7 +250,7 @@ static void Title_MenuTask(Task* task)
         DR_TPAGE* tpage;
         s32       color;
 
-        tile           = (TILE*)gGpuPrimCursor;
+        tile           = gGpuPrimCursor;
         gGpuPrimCursor = tile + 1;
         setlen(tile, 3);
         setcode(tile, 0x62);

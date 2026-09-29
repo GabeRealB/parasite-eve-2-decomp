@@ -205,8 +205,8 @@ static s32 CapCaption_DrawText(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
     x       = CapCaption_CenterLineX(arg0, 0) - 0xA0;
     y       = (u16)CapCaption_Data_8015E65E - 0x78;
 
-    bg             = (POLY_G4*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(bg + 1);
+    bg             = gGpuPrimCursor;
+    gGpuPrimCursor = bg + 1;
     setlen(bg, 8);
     setcode(bg, 0x3A);
     setRGB0(bg, 0, 0, 0);
@@ -222,20 +222,20 @@ static s32 CapCaption_DrawText(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
     bg->x3 = (u16)CapCaption_Data_8015E65C - CapCaption_Data_8015E65C * 2 + 0xAB;
     bg->y3 = ((u16)CapCaption_Data_8015E660 - 0x77) - gDisplayState.vramYOffset - (u16)CapCaption_Data_8015E664 + (u16)CapCaption_Data_8015E664;
     addPrim(&gGpuCurrentOt[3], bg);
-    bg2            = (POLY_G4*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(bg2 + 1);
+    bg2            = gGpuPrimCursor;
+    gGpuPrimCursor = bg2 + 1;
     *bg2           = *bg;
     addPrim(&gGpuCurrentOt[3], bg2);
-    dm             = (DR_MODE*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(dm + 1);
+    dm             = gGpuPrimCursor;
+    gGpuPrimCursor = dm + 1;
     setlen(dm, 1);
     dm->code[0] = 0xE100020A;
     addPrim(&gGpuCurrentOt[3], dm);
 
     body = text;
     if (title & 0xFF) {
-        ft             = (POLY_FT4*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(ft + 1);
+        ft             = gGpuPrimCursor;
+        gGpuPrimCursor = ft + 1;
         setlen(ft, 9);
         setcode(ft, 0x2D);
         title      = title - 1;
@@ -291,8 +291,8 @@ static s32 CapCaption_DrawText(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
             continue;
         } else if ((code & 0xFF00) == 0x8400) {
             icon           = &D_8010FB70[code & 0xFF];
-            ft             = (POLY_FT4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(ft + 1);
+            ft             = gGpuPrimCursor;
+            gGpuPrimCursor = ft + 1;
             setlen(ft, 9);
             setcode(ft, 0x2D);
             ft->clut  = 0x3C00;
@@ -322,8 +322,8 @@ static s32 CapCaption_DrawText(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
             palette        = (shifted >> 26) & 3;
             code           = code & 0x3FF;
             glyphY         = y - gDisplayState.vramYOffset;
-            gt             = (POLY_GT4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(gt + 1);
+            gt             = gGpuPrimCursor;
+            gGpuPrimCursor = gt + 1;
             setcode(gt, 0x3C);
             setlen(gt, 12);
             setShadeTex(gt, 1);
@@ -351,8 +351,8 @@ static s32 CapCaption_DrawText(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
             gt->u3    = CapCaption_Data_8015E654[code & 0x3FF].u + CapCaption_Data_8015E654[code & 0x3FF].w;
             gt->v3    = CapCaption_Data_8015E654[code & 0x3FF].v + CapCaption_Data_8015E654[code & 0x3FF].h;
             addPrim(&gGpuCurrentOt[2], gt);
-            gt2            = (POLY_GT4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(gt2 + 1);
+            gt2            = gGpuPrimCursor;
+            gGpuPrimCursor = gt2 + 1;
             *gt2           = *gt;
             gt2->tpage     = getTPage(0, 2, CapCaption_Data_801544EC, CapCaption_Data_801544EE);
             addPrim(&gGpuCurrentOt[2], gt2);
@@ -413,7 +413,7 @@ static void CapCaption_DrawCaret(void)
         CapCaption_Data_8015E66C[0] -= 1;
         return;
     }
-    prim           = (POLY_G3*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyG3(prim);
     c1 = (CapCaption_Data_801545E4 << 7) / 15;

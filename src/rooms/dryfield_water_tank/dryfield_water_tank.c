@@ -1456,7 +1456,7 @@ void func_dryfield_water_tank_8017E220(Task* arg0)
         case 1:
             r              = fade->r;
             g              = fade->g;
-            tile           = (TILE*)gGpuPrimCursor;
+            tile           = gGpuPrimCursor;
             gGpuPrimCursor = tile + 1;
             setlen(tile, 3);
             setcode(tile, 0x62);

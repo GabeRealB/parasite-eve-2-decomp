@@ -169,10 +169,10 @@ void func_neo_ark_r31_8017D5D0(Task* task)
     for (x = 0; x < 0x140; x += 0xA0) {
         sx = x - 0xA0;
         for (y = 0; y < 0xF0; y += 0xF0) {
-            sy              = y - 0x78;
-            poly            = (POLY_FT4*)gGpuPrimCursor;
-            gGpuPrimCursor += sizeof(POLY_FT4);
-            poly->tpage     = getTPage(2, 0, x & ~0x3F, buf << 8);
+            sy             = y - 0x78;
+            poly           = gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(POLY_FT4);
+            poly->tpage    = getTPage(2, 0, x & ~0x3F, buf << 8);
             poly->y0 = poly->y1 = sy;
             poly->v0 = poly->v1 = (y + (buf << 4)) + gDisplayState.vramYOffset;
             if (poly->v0 < 0x10) {
@@ -199,12 +199,12 @@ void func_neo_ark_r31_8017D5D0(Task* task)
             addPrim(gGpuCurrentOt + otz, poly);
         }
     }
-    stp             = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor += sizeof(DR_STP);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_STP);
     SetDrawStp(stp, 0);
     addPrim(gGpuCurrentOt + otz, stp);
-    stp             = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor += sizeof(DR_STP);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_STP);
     SetDrawStp(stp, 1);
     addPrim(gGpuCurrentOt + 0x3FF, stp);
 }

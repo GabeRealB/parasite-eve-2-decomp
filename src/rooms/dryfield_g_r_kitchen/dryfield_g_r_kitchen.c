@@ -544,7 +544,7 @@ static void func_dryfield_g_r_kitchen_8017D9FC(GfxCoord* arg0, SVECTOR* arg1, SV
         block->r0 = r0;
         block->r1 = r1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -565,7 +565,7 @@ static void func_dryfield_g_r_kitchen_8017D9FC(GfxCoord* arg0, SVECTOR* arg1, SV
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -584,7 +584,7 @@ static void func_dryfield_g_r_kitchen_8017D9FC(GfxCoord* arg0, SVECTOR* arg1, SV
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -681,7 +681,7 @@ static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SV
         block->r0 = r0;
         block->r1 = r1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -701,7 +701,7 @@ static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SV
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -720,7 +720,7 @@ static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SV
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

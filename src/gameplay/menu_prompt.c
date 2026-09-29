@@ -297,7 +297,7 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         kind = 7;
     }
 
-    p              = (POLY_FT4*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     p->x2 = p->x0 = arg0->panel.field_20.u + arg1;
     p->x1 = p->x3 = p->x0 + 0xE;
@@ -331,7 +331,7 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     }
     addPrim(gGpuCurrentOt + arg0->panel.field_14.s + 1, p);
     if (flag3 != 0) {
-        q                     = (TILE*)gGpuPrimCursor;
+        q                     = gGpuPrimCursor;
         q->x0                 = p->x0 - 1;
         q->y0                 = p->y0 - 1;
         q->w                  = p->x1 - p->x0 + 2;
@@ -348,7 +348,7 @@ static void func_800C0B98(UiList* arg0, UiObject* arg1, u32 arg2)
 {
     SPRT* p;
 
-    p              = (SPRT*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     p->x0          = (u16)arg0->field_18 + arg1->panel.field_20.u;
     p->y0          = (u16)arg0->field_1A + arg1->panel.field_22.u - 0xF;
@@ -442,7 +442,7 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
             bar = max;
         }
         if (bar > 0) {
-            tile                     = (TILE*)gGpuPrimCursor;
+            tile                     = gGpuPrimCursor;
             gGpuPrimCursor           = tile + 1;
             tile->x0                 = arg1 + 1;
             tile->y0                 = arg3 - 1;
@@ -456,7 +456,7 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
         arg3 = arg3 - 4;
         clut = 0x3C0B;
 
-        sp             = (SPRT*)gGpuPrimCursor;
+        sp             = gGpuPrimCursor;
         gGpuPrimCursor = sp + 1;
         sp->x0         = arg1;
         sp->y0         = arg3;
@@ -467,7 +467,7 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
         setcode(sp, 0x75);
         addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, sp);
 
-        sp             = (SPRT*)gGpuPrimCursor;
+        sp             = gGpuPrimCursor;
         gGpuPrimCursor = sp + 1;
         right          = (arg1 + span) - 8;
         sp->x0         = right;
@@ -479,7 +479,7 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
         setcode(sp, 0x75);
         addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, sp);
 
-        poly           = (POLY_FT4*)gGpuPrimCursor;
+        poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
         poly->x2       = arg1 + 8;
         poly->x0       = arg1 + 8;
@@ -679,7 +679,7 @@ void Gp_HpMpBarTask(Task* arg0)
         arg0->state         = arg0->state + 1;
     }
     color          = 0x606060;
-    p              = (SPRT*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     p->x0          = obj->panel.field_20.u + obj->panel.field_1E.u - 0x72;
     {
@@ -698,7 +698,7 @@ void Gp_HpMpBarTask(Task* arg0)
     }
     Ui_InsertDrawTPage(obj->panel.field_14.s + 1, 0);
 
-    poly           = (POLY_FT4*)gGpuPrimCursor;
+    poly           = gGpuPrimCursor;
     x              = obj->panel.bounds.unsignedRect.x + obj->panel.bounds.unsignedRect.w;
     right          = x - 1;
     x              = x - 0x32;
@@ -902,7 +902,7 @@ void Gp_PeGridPanelTask(Task* arg0)
     }
 
     for (iconCol = 0; iconCol < 4; iconCol++) {
-        p              = (SPRT*)gGpuPrimCursor;
+        p              = gGpuPrimCursor;
         gGpuPrimCursor = p + 1;
         setlen(p, 4);
         PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
@@ -928,7 +928,7 @@ void Gp_PeGridPanelTask(Task* arg0)
                 }
             }
             if ((row != 0) || (show != 0)) {
-                p              = (SPRT*)gGpuPrimCursor;
+                p              = gGpuPrimCursor;
                 gGpuPrimCursor = p + 1;
                 p->x0          = obj->panel.field_20.u + startX + iconCol * colStep;
                 capY           = obj->panel.field_22.u + panelY - markOff;
@@ -1072,7 +1072,7 @@ void func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     s32         textY;
     s32         color;
 
-    p              = (SPRT*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     p->x0          = arg0->panel.field_20.u + arg1 + 0x6C;
     y              = arg0->panel.field_22.u;

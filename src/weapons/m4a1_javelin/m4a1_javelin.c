@@ -369,7 +369,7 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
             g   = rgb & 0xF0;
             b   = (color & 0xF) * 0x10;
             sc->otz1++;
-            line           = (LINE_F2*)gGpuPrimCursor;
+            line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineF2(line);
             tint = ((u8)gDisplayState.animFrame & 1) * 0x10;
@@ -393,7 +393,7 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
                 D_m4a1_javelin_8012EB60 = angle;
                 D_m4a1_javelin_8012EB64 = 0;
                 for (i = (s16)angle; i < (s16)angle + 0x800; i += 0x400) {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -420,7 +420,7 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
             }
             if (flags & 1) {
                 for (i = (s16)angle; i < (s16)angle + 0x800; i += 0x400) {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -443,7 +443,7 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
                 }
             }
             for (i = (s16)angle; i < (s16)angle + 0x800; i += 0x400) {
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 bodyAng        = (s16)angle + ((i - (s16)angle) * 2);
                 setPolyG4(prim);
@@ -522,7 +522,7 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
     gte_stszotz(&((OverlayPointPairScratch*)head)[-1].otz1);
 
     sc->otz1++;
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     dither = (gDisplayState.animFrame & 1) * 8;
@@ -546,7 +546,7 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
         D_m4a1_javelin_8012EB62 = ang;
         D_m4a1_javelin_8012EB66 = 0;
         for (i = (s16)ang; i < (s16)ang + 0x800; i += 0x400) {
-            poly           = (POLY_G4*)gGpuPrimCursor;
+            poly           = gGpuPrimCursor;
             gGpuPrimCursor = poly + 1;
             setPolyG4(poly);
             setRGB0(poly, 0, 0, 0);
@@ -570,7 +570,7 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
 
     if (flags & 1) {
         for (i = (s16)ang; i < (s16)ang + 0x800; i += 0x400) {
-            poly           = (POLY_G4*)gGpuPrimCursor;
+            poly           = gGpuPrimCursor;
             gGpuPrimCursor = poly + 1;
             setPolyG4(poly);
             setRGB0(poly, 0, 0, 0);
@@ -591,7 +591,7 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
     }
 
     for (i = (s16)ang; i < (s16)ang + 0x800; i += 0x400) {
-        poly           = (POLY_G4*)gGpuPrimCursor;
+        poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
         setPolyG4(poly);
         setRGB0(poly, 0, 0, 0);
@@ -653,7 +653,7 @@ static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
         if (sc->flag >= 0) {
             gte_stszotz(&sc->otz1);
             sc->otz1++;
-            line           = (LINE_G2*)gGpuPrimCursor;
+            line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineG2(line);
             setRGB0(line, brightness >> 2, brightness >> 1, brightness);
@@ -703,7 +703,7 @@ static void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
         setSemiTrans(prim, 1);

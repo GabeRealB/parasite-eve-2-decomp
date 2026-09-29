@@ -2196,7 +2196,7 @@ static void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s
         b             = blend + ((arg2 & 0xF) << 4);
         block->radius = arg1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2403,7 +2403,7 @@ static void func_shelter_b3_garbage_incinerator_80182AB8(GfxCoord* arg0, u16 arg
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -2468,7 +2468,7 @@ static void func_shelter_b3_garbage_incinerator_80182F18(GfxCoord* arg0, u16 arg
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -2649,7 +2649,7 @@ static void func_shelter_b3_garbage_incinerator_801837F8(GfxCoord* arg0, u16 arg
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         ang            = arg3;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -2710,7 +2710,7 @@ static void func_shelter_b3_garbage_incinerator_80183BE4(GfxCoord* arg0, s32 arg
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -2767,7 +2767,7 @@ static void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s
         ang           = 0;
         block->radius = arg1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2852,7 +2852,7 @@ static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1
         block->rOuter = (arg1 * 64) / block->otz;
         block->rInner = (arg1 * 8) / block->otz;
         for (ang = start; ang < start + 0x1000; ang = t2) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2873,7 +2873,7 @@ static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2898,7 +2898,7 @@ static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1
         b = (u8)b >> 1;
         for (ang = start + 0x200; ang < start + 0x1000; ang = uc) {
             ua             = ang - 0x400;
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2918,7 +2918,7 @@ static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

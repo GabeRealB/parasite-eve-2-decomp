@@ -2659,7 +2659,7 @@ static void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
     ot = (u32*)((u8*)gGpuCurrentOt + (((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) - 30;
     pt = pts;
     for (i = 0; i < 15; i++, pt++) {
-        prim           = (POLY_G3*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG3(prim);
         setSemiTrans(prim, 1);
@@ -2680,7 +2680,7 @@ static void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
         prim->b2 = rgb[2];
         addPrim(ot, prim);
     }
-    prim           = (POLY_G3*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyG3(prim);
     setSemiTrans(prim, 1);

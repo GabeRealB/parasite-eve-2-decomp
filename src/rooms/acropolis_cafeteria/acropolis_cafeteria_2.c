@@ -1113,7 +1113,7 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
             gte_SetRotMatrix(&GsWSMATRIX);
             gte_ldv0(&head[-1].vec);
             gte_rtps();
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setcode(prim, 0x2C);
             setlen(prim, mode);
@@ -1441,7 +1441,7 @@ static void func_acropolis_cafeteria_8017FBEC(GfxCoord* arg0, s32 arg1, s32 arg2
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1495,7 +1495,7 @@ static void func_acropolis_cafeteria_80180018(GfxCoord* arg0, s16 arg1, u8* rgb)
         block->radius = (arg1 * 64) / otz;
 
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1681,7 +1681,7 @@ static void func_acropolis_cafeteria_8018089C(GfxCoord* arg0, GfxCoord* arg1, s1
             lo             = (fade - 9) & 0xFF;
             r2             = lo * (arg3 >> 8);
             g2             = lo * ((arg3 >> 4) & 3);
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             blk->otz       = blk->otz + 1;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 8);
@@ -1819,7 +1819,7 @@ static void func_acropolis_cafeteria_80180F1C(GfxCoord* arg0, s16 arg1, u8* arg2
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1840,7 +1840,7 @@ static void func_acropolis_cafeteria_80180F1C(GfxCoord* arg0, s16 arg1, u8* arg2
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1863,7 +1863,7 @@ static void func_acropolis_cafeteria_80180F1C(GfxCoord* arg0, s16 arg1, u8* arg2
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1884,7 +1884,7 @@ static void func_acropolis_cafeteria_80180F1C(GfxCoord* arg0, s16 arg1, u8* arg2
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

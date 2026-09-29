@@ -574,7 +574,7 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
         ret = 1;
     }
 
-    bg             = (POLY_G4*)gGpuPrimCursor;
+    bg             = gGpuPrimCursor;
     gGpuPrimCursor = bg + 1;
     setlen(bg, 8);
     setcode(bg, 0x3A);
@@ -591,18 +591,18 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
     bg->x3 = (u16)D_801155B2 - D_801155B2 * 2 + 0xAE;
     bg->y3 = 0x59 - gDisplayState.vramYOffset;
     addPrim(&gGpuCurrentOt[3], bg);
-    bg2            = (POLY_G4*)gGpuPrimCursor;
+    bg2            = gGpuPrimCursor;
     gGpuPrimCursor = bg2 + 1;
     *bg2           = *bg;
     addPrim(&gGpuCurrentOt[3], bg2);
-    dm             = (DR_MODE*)gGpuPrimCursor;
+    dm             = gGpuPrimCursor;
     gGpuPrimCursor = dm + 1;
     setlen(dm, 1);
     dm->code[0] = 0xE100020A;
     addPrim(&gGpuCurrentOt[3], dm);
 
     if (title) {
-        ft             = (POLY_FT4*)gGpuPrimCursor;
+        ft             = gGpuPrimCursor;
         gGpuPrimCursor = ft + 1;
         setlen(ft, 9);
         setcode(ft, 0x2D);
@@ -726,7 +726,7 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                 continue;
             } else if ((code & 0xFF00) == 0x8400) {
                 icon           = &D_8010FB70[code & 0xFF];
-                ft             = (POLY_FT4*)gGpuPrimCursor;
+                ft             = gGpuPrimCursor;
                 gGpuPrimCursor = ft + 1;
                 setlen(ft, 9);
                 setcode(ft, 0x2D);
@@ -758,7 +758,7 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                 palette        = ((s16)code >> 10) & 3;
                 code           = code & 0x3FF;
                 glyphY         = y - gDisplayState.vramYOffset;
-                gt             = (POLY_GT4*)gGpuPrimCursor;
+                gt             = gGpuPrimCursor;
                 gGpuPrimCursor = gt + 1;
                 setlen(gt, 12);
                 setcode(gt, 0x3C);
@@ -792,7 +792,7 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                 gt->u3    = Gp_CapGlyphs[(s16)code].u + Gp_CapGlyphs[(s16)code].w;
                 gt->v3    = Gp_CapGlyphs[(s16)code].v + Gp_CapGlyphs[(s16)code].h;
                 addPrim(&gGpuCurrentOt[2], gt);
-                gt2            = (POLY_GT4*)gGpuPrimCursor;
+                gt2            = gGpuPrimCursor;
                 gGpuPrimCursor = gt2 + 1;
                 *gt2           = *gt;
                 gt2->tpage     = getTPage(0, 2, D_80115654, D_80115656);
@@ -828,7 +828,7 @@ void func_800E62C0(void)
         if (D_80115659 != 0) {
             D_80115659--;
         }
-        p              = (POLY_G3*)gGpuPrimCursor;
+        p              = gGpuPrimCursor;
         gGpuPrimCursor = p + 1;
         i              = D_801155C0;
         choices        = D_801155D0;
@@ -923,7 +923,7 @@ void Gp_DrawCapCaret(s32 unusedX, s32 unusedY)
         return;
     }
 
-    p              = (POLY_G3*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     setPolyG3(p);
 

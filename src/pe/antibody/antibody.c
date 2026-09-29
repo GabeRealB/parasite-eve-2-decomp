@@ -447,7 +447,7 @@ static void func_antibody_8012FBB0(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -518,7 +518,7 @@ static void func_antibody_8012FFEC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         block->otz     = block->otz + 1;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -600,7 +600,7 @@ static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2)
         gte_stsxy(&((AntibodyArcScratch*)(head - 0x28))->sx1);
         gte_stflg(&((AntibodyArcScratch*)(head - 0x28))->flag);
         if (block->flag >= 0) {
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2F);
@@ -664,7 +664,7 @@ static void func_antibody_801308D4(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_G3*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG3(prim);
         setRGB0(prim, rgb[0], rgb[1], rgb[2]);

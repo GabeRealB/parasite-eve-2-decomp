@@ -374,63 +374,63 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
 
     copyPending = cfg->copyPending;
     if (copyPending == 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-        drArea          = (DR_AREA*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_AREA);
-        rect.x          = 0;
-        rect.y          = gDisplayState.drawBuffer * 0x110;
-        rect.w          = 0x140;
-        rect.h          = 0xF0;
+        drArea         = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_AREA);
+        rect.x         = 0;
+        rect.y         = gDisplayState.drawBuffer * 0x110;
+        rect.w         = 0x140;
+        rect.h         = 0xF0;
         SetDrawArea(drArea, &rect);
         addPrim(&gGpuCurrentOt[0x3FF], drArea);
 
-        drStp           = (DR_STP*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_STP);
+        drStp          = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_STP);
         SetDrawStp(drStp, 0);
         addPrim(&gGpuCurrentOt[0x3FF], drStp);
 
-        drOffset        = (DR_OFFSET*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_OFFSET);
-        ofs[0]          = 0xA0;
-        ofs[1]          = gDisplayState.drawBuffer * 0x110 + 0x78;
+        drOffset       = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_OFFSET);
+        ofs[0]         = 0xA0;
+        ofs[1]         = gDisplayState.drawBuffer * 0x110 + 0x78;
         SetDrawOffset(drOffset, ofs);
         addPrim(&gGpuCurrentOt[0x3FF], drOffset);
 
-        sprt            = (SPRT*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(SPRT);
-        sprt->x0        = -0xA0;
-        sprt->y0        = -0x78;
-        sprt->w         = 0xA0;
-        sprt->h         = 0xF0;
-        sprt->u0        = 0;
-        sprt->v0        = gDisplayState.drawBuffer << 4;
+        sprt           = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(SPRT);
+        sprt->x0       = -0xA0;
+        sprt->y0       = -0x78;
+        sprt->w        = 0xA0;
+        sprt->h        = 0xF0;
+        sprt->u0       = 0;
+        sprt->v0       = gDisplayState.drawBuffer << 4;
         setlen(sprt, 4);
         setcode(sprt, 0x65);
         addPrim(&gGpuCurrentOt[0x3FF], sprt);
 
-        tpage           = (DR_TPAGE*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_TPAGE);
+        tpage          = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
         setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0, gDisplayState.drawBuffer << 8));
         addPrim(&gGpuCurrentOt[0x3FF], tpage);
 
-        sprt            = (SPRT*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(SPRT);
-        sprt->x0        = 0;
-        sprt->y0        = -0x78;
-        sprt->w         = 0xA0;
-        sprt->h         = 0xF0;
-        sprt->u0        = 0x20;
-        sprt->v0        = gDisplayState.drawBuffer << 4;
+        sprt           = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(SPRT);
+        sprt->x0       = 0;
+        sprt->y0       = -0x78;
+        sprt->w        = 0xA0;
+        sprt->h        = 0xF0;
+        sprt->u0       = 0x20;
+        sprt->v0       = gDisplayState.drawBuffer << 4;
         setlen(sprt, 4);
         setcode(sprt, 0x65);
         addPrim(&gGpuCurrentOt[0x3FF], sprt);
 
-        tpage           = (DR_TPAGE*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_TPAGE);
+        tpage          = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
         setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0x80, gDisplayState.drawBuffer << 8));
         addPrim(&gGpuCurrentOt[0x3FF], tpage);
 
-        tile            = (TILE*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(TILE);
+        tile           = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(TILE);
         setlen(tile, 3);
         setcode(tile, 0x60);
         tile->x0 = -0xA0;
@@ -441,24 +441,24 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
         tile->h             = 0xF0;
         addPrim(&gGpuCurrentOt[0x3FF], tile);
 
-        drStp           = (DR_STP*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_STP);
+        drStp          = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_STP);
         SetDrawStp(drStp, 1);
         addPrim(&gGpuCurrentOt[0x3FF], drStp);
 
-        drOffset        = (DR_OFFSET*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_OFFSET);
-        ofs[0]          = cfg->stripX + 0xA0;
-        ofs[1]          = 0x178;
+        drOffset       = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_OFFSET);
+        ofs[0]         = cfg->stripX + 0xA0;
+        ofs[1]         = 0x178;
         SetDrawOffset(drOffset, ofs);
         addPrim(&gGpuCurrentOt[0x3FF], drOffset);
 
-        drArea          = (DR_AREA*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_AREA);
-        rect.x          = cfg->stripX;
-        rect.y          = 0x100;
-        rect.w          = 0x140;
-        rect.h          = 0xF0;
+        drArea         = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_AREA);
+        rect.x         = cfg->stripX;
+        rect.y         = 0x100;
+        rect.w         = 0x140;
+        rect.h         = 0xF0;
         SetDrawArea(drArea, &rect);
         addPrim(&gGpuCurrentOt[0x3FF], drArea);
 
@@ -540,17 +540,17 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
                 work->clip[0] < scratch->right) {
                 DR_TPAGE* mode;
 
-                mode            = (DR_TPAGE*)gGpuPrimCursor;
-                texBase         = cfg->stripX + 0xA0;
-                texX            = scratch->left + texBase;
-                scratch->texX   = texX & 0xFFC0;
-                gGpuPrimCursor += sizeof(DR_TPAGE);
+                mode           = gGpuPrimCursor;
+                texBase        = cfg->stripX + 0xA0;
+                texX           = scratch->left + texBase;
+                scratch->texX  = texX & 0xFFC0;
+                gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
                 setDrawTPage(mode, 0, 1, 0);
                 addPrim(&gGpuCurrentOt[(((scratch->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + model->otOffset - 15],
                         mode);
                 for (layer = cfg->firstLayer; layer < 3; layer++) {
-                    poly            = (POLY_FT4*)gGpuPrimCursor;
-                    gGpuPrimCursor += sizeof(POLY_FT4);
+                    poly           = gGpuPrimCursor;
+                    gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(POLY_FT4);
                     setPolyFT4(poly);
                     setSemiTrans(poly, 1);
                     if (cfg->firstLayer == 1) {
@@ -571,8 +571,8 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
                     addPrim(&gGpuCurrentOt[(((scratch->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + model->otOffset - 15],
                             poly);
                 }
-                mode            = (DR_TPAGE*)gGpuPrimCursor;
-                gGpuPrimCursor += sizeof(DR_TPAGE);
+                mode           = gGpuPrimCursor;
+                gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
                 setDrawTPage(mode, 0, 0, 0);
                 addPrim(&gGpuCurrentOt[(((scratch->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + model->otOffset - 15],
                         mode);

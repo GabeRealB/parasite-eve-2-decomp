@@ -940,7 +940,7 @@ static void func_dryfield_breezeway_8017E948(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
@@ -952,7 +952,7 @@ static void func_dryfield_breezeway_8017E948(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -964,7 +964,7 @@ static void func_dryfield_breezeway_8017E948(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -976,7 +976,7 @@ static void func_dryfield_breezeway_8017E948(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
@@ -1233,7 +1233,7 @@ static void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, DbwVec* arg2, D
     far1.vz = 0;
     RotTransSV(&far1, (SVECTOR*)&corner3, &flag);
 
-    p              = (POLY_FT4*)gGpuPrimCursor;
+    p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     setPolyFT4(p);
     p->tpage = 0x8E;
@@ -1434,7 +1434,7 @@ static void func_dryfield_breezeway_8017F998(s32 x, s32 y, s32 variant)
         return;
     }
 
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
 
     px       = x - 2;
@@ -1795,7 +1795,7 @@ static void func_dryfield_breezeway_8018034C(GfxCoord* coord, u8* data, s32 arg2
         block->halfWidth = ((s16)arg3 << 5) / ((RoomShaftScratch*)(head - 0x14))->otz;
         color            = pulse / 34 + 0x78;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1816,7 +1816,7 @@ static void func_dryfield_breezeway_8018034C(GfxCoord* coord, u8* data, s32 arg2
 
         i = 0;
         do {
-            line           = (LINE_G3*)gGpuPrimCursor;
+            line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineG3(line);
             setRGB0(line, 0, 0, 0);
@@ -1885,7 +1885,7 @@ static void func_dryfield_breezeway_80180858(GfxCoord* coord, u8* data, s32 arg2
         color         = pulse / 34 + 0x78;
         block->rInner = (size * 8) / ((RoomGlowScratch*)(head - 0x18))->otz;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             half = (s16)color >> 1;
@@ -1907,7 +1907,7 @@ static void func_dryfield_breezeway_80180858(GfxCoord* coord, u8* data, s32 arg2
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1931,7 +1931,7 @@ static void func_dryfield_breezeway_80180858(GfxCoord* coord, u8* data, s32 arg2
         color = (u16)half;
         ang   = 0x200;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1952,7 +1952,7 @@ static void func_dryfield_breezeway_80180858(GfxCoord* coord, u8* data, s32 arg2
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -2152,7 +2152,7 @@ static void func_dryfield_breezeway_80181938(Task* task, u8* color)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);

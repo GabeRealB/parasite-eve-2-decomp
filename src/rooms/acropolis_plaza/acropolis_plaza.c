@@ -2899,7 +2899,7 @@ void func_acropolis_plaza_8017D8AC(Task* arg0)
         case 1:
             r              = fade->r;
             g              = fade->g;
-            tile           = (TILE*)gGpuPrimCursor;
+            tile           = gGpuPrimCursor;
             gGpuPrimCursor = tile + 1;
             setlen(tile, 3);
             setcode(tile, 0x62);
@@ -2965,7 +2965,7 @@ void func_acropolis_plaza_8017DA58(Task* arg0)
         case 1:
             r              = fade->r;
             g              = fade->g;
-            tile           = (TILE*)gGpuPrimCursor;
+            tile           = gGpuPrimCursor;
             gGpuPrimCursor = tile + 1;
             setlen(tile, 3);
             setcode(tile, 0x62);
@@ -4242,7 +4242,7 @@ void func_acropolis_plaza_8017FF18(Task* task)
 {
     TILE* tile;
 
-    tile           = (TILE*)gGpuPrimCursor;
+    tile           = gGpuPrimCursor;
     gGpuPrimCursor = tile + 1;
     SetTile(tile);
     tile->b0 = 0;
@@ -4254,7 +4254,7 @@ void func_acropolis_plaza_8017FF18(Task* task)
     tile->h  = 0x18;
     addPrim(gGpuCurrentOt + 3, tile);
 
-    tile           = (TILE*)gGpuPrimCursor;
+    tile           = gGpuPrimCursor;
     gGpuPrimCursor = tile + 1;
     SetTile(tile);
     tile->b0 = 0;
@@ -4460,7 +4460,7 @@ void func_acropolis_plaza_801802C0(Task* task)
             red            = (s32)(red << 16) >> 18;
             green          = (s32)(green << 16) >> 18;
             blue           = (s32)(blue << 16) >> 18;
-            tri            = (POLY_G3*)gGpuPrimCursor;
+            tri            = gGpuPrimCursor;
             gGpuPrimCursor = tri + 1;
             setPolyG3(tri);
             setRGB0(tri, (s16)red * 3, (s16)green * 3, (s16)blue * 3);
@@ -4475,7 +4475,7 @@ void func_acropolis_plaza_801802C0(Task* task)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), tri);
             Gp_AddTpageShift((P_TAG*)tri, 1, blk->otz);
             for (; i < 2; i++) {
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setPolyG4(prim);
                 setRGB0(prim, 0, 0, 0);
@@ -4498,7 +4498,7 @@ void func_acropolis_plaza_801802C0(Task* task)
             green   <<= 1;
             blue    <<= 1;
             for (i = 0; i < 0x10; i += 2) {
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setPolyG4(prim);
                 setRGB0(prim, 0, 0, 0);
@@ -4554,7 +4554,7 @@ void func_acropolis_plaza_801802C0(Task* task)
             if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
                 blk->half = 0x10000 / blk->otz;
                 for (i = 0; i < 0x10; i += 2) {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -4633,7 +4633,7 @@ void func_acropolis_plaza_801811D0(Task* task)
             }
             blk->half = 0xA000 / blk->otz;
             for (i = 0; i < 0x10; i += 2) {
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setPolyG4(prim);
                 setRGB0(prim, 0, 0, 0);
@@ -4657,7 +4657,7 @@ void func_acropolis_plaza_801811D0(Task* task)
             green    <<= 1;
             blue     <<= 1;
             for (i = 3; i < 0x10; i += 8) {
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setPolyG4(prim);
                 setRGB0(prim, 0, 0, 0);
@@ -4674,7 +4674,7 @@ void func_acropolis_plaza_801811D0(Task* task)
                 prim->y3 = blk->sy + ((blk->inner * D_acropolis_plaza_801987E0[i + 4]) >> 11);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setPolyG4(prim);
                 setRGB0(prim, 0, 0, 0);
@@ -4730,7 +4730,7 @@ void func_acropolis_plaza_801811D0(Task* task)
             if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
                 blk->half = 0x10000 / blk->otz;
                 for (i = 0; i < 0x10; i += 2) {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -4802,7 +4802,7 @@ void func_acropolis_plaza_80182054(Task* task)
                 blk->half = 0x8000 / blk->otz;
             }
             for (i = 0; i < 0x10; i += 2) {
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setPolyG4(prim);
                 setRGB0(prim, 0, 0, 0);

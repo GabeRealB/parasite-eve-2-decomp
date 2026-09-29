@@ -463,7 +463,7 @@ static void func_shelter_b2_pod_bottom_8017DECC(GfxCoord* arg0, u16 arg1, s16 ar
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -535,7 +535,7 @@ static void func_shelter_b2_pod_bottom_8017E334(GfxCoord* arg0, u16 arg1, s16 ar
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -635,7 +635,7 @@ static void func_shelter_b2_pod_bottom_8017E788(GfxCoord* coord, s16 arg1, s16 a
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, red, grn, blu);
@@ -794,7 +794,7 @@ static void func_shelter_b2_pod_bottom_8017EEAC(GpEffWork* work, GfxCoord* coord
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
-            prim           = (POLY_FT4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
             setRGB0(prim, *(u8*)&work->scale, *(u8*)&work->scale, *(u8*)&work->scale);
@@ -942,7 +942,7 @@ static void func_shelter_b2_pod_bottom_8017F994(GfxCoord* coord, s32 arg1, u8* r
             s32 mid;
             s32 next;
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -963,7 +963,7 @@ static void func_shelter_b2_pod_bottom_8017F994(GfxCoord* coord, s32 arg1, u8* r
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -989,7 +989,7 @@ static void func_shelter_b2_pod_bottom_8017F994(GfxCoord* coord, s32 arg1, u8* r
             s32 next;
             s32 far;
 
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1144,7 +1144,7 @@ static void func_shelter_b2_pod_bottom_801805A0(GfxCoord* arg0, s32 arg1, s32 ar
     gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        prim           = (POLY_G3*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG3(prim);
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
@@ -1286,7 +1286,7 @@ static void func_shelter_b2_pod_bottom_80180A4C(GfxCoord* coord, s16 radius, SVE
             gte_stflg(&block->flag);
             if (block->flag >= 0) {
                 gte_stszotz(&block->otz);
-                prim           = (POLY_F4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setPolyF4(prim);
                 setRGB0(prim, 0xFF, 0xFF, 0xFF);
@@ -1404,7 +1404,7 @@ static void func_shelter_b2_pod_bottom_8018101C(GfxCoord* coord, s16 size, u16 c
                     angStart = ang;
                     limit    = ang + 0x800;
                     do {
-                        prim           = (POLY_G4*)gGpuPrimCursor;
+                        prim           = gGpuPrimCursor;
                         gGpuPrimCursor = prim + 1;
                         setPolyG4(prim);
                         setRGB0(prim, 0, 0, 0);
@@ -1423,7 +1423,7 @@ static void func_shelter_b2_pod_bottom_8018101C(GfxCoord* coord, s16 size, u16 c
                                 prim);
                         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
 
-                        prim           = (POLY_G4*)gGpuPrimCursor;
+                        prim           = gGpuPrimCursor;
                         gGpuPrimCursor = prim + 1;
                         setPolyG4(prim);
                         setRGB0(prim, 0, 0, 0);
@@ -1443,7 +1443,7 @@ static void func_shelter_b2_pod_bottom_8018101C(GfxCoord* coord, s16 size, u16 c
                                 prim);
                         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-                        prim           = (POLY_G4*)gGpuPrimCursor;
+                        prim           = gGpuPrimCursor;
                         mid            = angStart + (ang - angStart) * 2;
                         gGpuPrimCursor = prim + 1;
                         setPolyG4(prim);

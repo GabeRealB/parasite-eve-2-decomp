@@ -1195,8 +1195,8 @@ s32 func_shelter_r47_8018097C(Task* task)
         }
     }
     for (i = 0; i < 0x20; i++) {
-        tri            = (POLY_G3*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(tri + 1);
+        tri            = gGpuPrimCursor;
+        gGpuPrimCursor = tri + 1;
         setPolyG3(tri);
         setRGB0(tri, work->field_3A, work->field_3C, work->field_3E);
         setRGB1(tri, work->field_40, work->field_40, work->field_40);
@@ -1211,8 +1211,8 @@ s32 func_shelter_r47_8018097C(Task* task)
         tri->x2 = rsin(angle) >> 4;
         tri->y2 = rcos(angle) >> 4;
         addPrim(&gGpuCurrentOt[11], tri);
-        mode           = (DR_MODE*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(mode + 1);
+        mode           = gGpuPrimCursor;
+        gGpuPrimCursor = mode + 1;
         setlen(mode, 1);
         mode->code[0] = 0xE100004A;
         addPrim(&gGpuCurrentOt[11], mode);
@@ -1263,8 +1263,8 @@ s32 func_shelter_r47_80180C48(Task* task)
         }
     }
     for (i = 0; i < 0x20; i++) {
-        tri            = (POLY_G3*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(tri + 1);
+        tri            = gGpuPrimCursor;
+        gGpuPrimCursor = tri + 1;
         setPolyG3(tri);
         setRGB0(tri, work->field_40, work->field_40, work->field_40);
         setRGB1(tri, work->field_3A, work->field_3C, work->field_3E);
@@ -1279,8 +1279,8 @@ s32 func_shelter_r47_80180C48(Task* task)
         tri->x2 = rsin(angle) >> 4;
         tri->y2 = rcos(angle) >> 4;
         addPrim(&gGpuCurrentOt[11], tri);
-        mode           = (DR_MODE*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(mode + 1);
+        mode           = gGpuPrimCursor;
+        gGpuPrimCursor = mode + 1;
         setlen(mode, 1);
         mode->code[0] = 0xE100004A;
         addPrim(&gGpuCurrentOt[11], mode);
@@ -1301,8 +1301,8 @@ void func_shelter_r47_80180F38(s16 x, s16 y, s16 id)
         return;
     }
     while (g->clutX != 0xFFFF) {
-        p              = (POLY_FT4*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(p + 1);
+        p              = gGpuPrimCursor;
+        gGpuPrimCursor = p + 1;
         setPolyFT4(p);
         setUVWH(p, g->u, g->v, g->w, g->h);
         p->tpage = 0xD;
@@ -1320,7 +1320,7 @@ static void func_shelter_r47_80181148(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
@@ -1332,7 +1332,7 @@ static void func_shelter_r47_80181148(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -1344,7 +1344,7 @@ static void func_shelter_r47_80181148(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -1356,7 +1356,7 @@ static void func_shelter_r47_80181148(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;

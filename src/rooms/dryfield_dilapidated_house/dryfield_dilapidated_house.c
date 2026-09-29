@@ -1786,8 +1786,8 @@ void func_dryfield_dilapidated_house_8017D64C(Task* arg0)
             tpage1 = getTPage(2, 0, 128, gDisplayState.drawBuffer << 8);
             for (j = -1; j < 29; j++) {
                 for (k = 0; k < 10; k++) {
-                    p              = (POLY_FT4*)gGpuPrimCursor;
-                    gGpuPrimCursor = (u8*)(p + 1);
+                    p              = gGpuPrimCursor;
+                    gGpuPrimCursor = p + 1;
                     setPolyFT4(p);
                     if (D_dryfield_dilapidated_house_80189B74->blend == ANIMATION_BLEND_RESET) {
                         setShadeTex(p, 1);
@@ -1852,12 +1852,12 @@ void func_dryfield_dilapidated_house_8017D64C(Task* arg0)
             }
             break;
     }
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 1);
     addPrim(&gGpuCurrentOt[1023], stp);
-    stp            = (DR_STP*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(stp + 1);
+    stp            = gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[0], stp);
 }
@@ -2006,7 +2006,7 @@ void func_dryfield_dilapidated_house_8017E144(Task* task)
                 break;
         }
         if (var_s1 != 0) {
-            tile           = (TILE*)gGpuPrimCursor;
+            tile           = gGpuPrimCursor;
             gGpuPrimCursor = tile + 1;
             SetTile(tile);
             tile->x0 = -0xA0;
@@ -2455,7 +2455,7 @@ static void func_dryfield_dilapidated_house_8017EBB8(Task* task)
         gte_stdp(&sc.dp);
         gte_stflg(&sc.flag);
         gte_stszotz(&sc.otz);
-        line           = (LINE_F2*)gGpuPrimCursor;
+        line           = gGpuPrimCursor;
         sx             = sc.sxy;
         sy             = sc.sxy >> 16;
         gGpuPrimCursor = line + 1;
@@ -2471,7 +2471,7 @@ static void func_dryfield_dilapidated_house_8017EBB8(Task* task)
         line->y1 = y1;
         addPrim(gGpuCurrentOt + 10, line);
 
-        line           = (LINE_F2*)gGpuPrimCursor;
+        line           = gGpuPrimCursor;
         gGpuPrimCursor = line + 1;
         setLineF2(line);
         setRGB0(line, 0xFF, 0, 0);
@@ -2527,7 +2527,7 @@ static void func_dryfield_dilapidated_house_8017EE58(Task* task)
         sx.vx = sxy;
         sy.vx = sxy >> 16;
 
-        line           = (LINE_F2*)gGpuPrimCursor;
+        line           = gGpuPrimCursor;
         gGpuPrimCursor = line + 1;
         setLineF2(line);
         setRGB0(line, 0, 0xFF, 0);
@@ -2537,7 +2537,7 @@ static void func_dryfield_dilapidated_house_8017EE58(Task* task)
         line->y1 = sy.vx + 1;
         addPrim(gGpuCurrentOt + 10, line);
 
-        line           = (LINE_F2*)gGpuPrimCursor;
+        line           = gGpuPrimCursor;
         gGpuPrimCursor = line + 1;
         setLineF2(line);
         setRGB0(line, 0, 0xFF, 0);
@@ -2570,7 +2570,7 @@ static void func_dryfield_dilapidated_house_8017EE58(Task* task)
         sx.vx = sxy;
         sy.vx = sxy >> 16;
 
-        line           = (LINE_F2*)gGpuPrimCursor;
+        line           = gGpuPrimCursor;
         gGpuPrimCursor = line + 1;
         setLineF2(line);
         setRGB0(line, 0, 0, 0xFF);
@@ -2580,7 +2580,7 @@ static void func_dryfield_dilapidated_house_8017EE58(Task* task)
         line->y1 = sy.vx + 1;
         addPrim(gGpuCurrentOt + 10, line);
 
-        line           = (LINE_F2*)gGpuPrimCursor;
+        line           = gGpuPrimCursor;
         gGpuPrimCursor = line + 1;
         setLineF2(line);
         setRGB0(line, 0, 0, 0xFF);
@@ -2647,7 +2647,7 @@ static void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts,
         b              = quad[1];
         c              = quad[2];
         d              = quad[3];
-        poly           = (POLY_G4*)gGpuPrimCursor;
+        poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
         setlen(poly, 8);
         poly->code = 0x3A;
@@ -2684,7 +2684,7 @@ static void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts,
         b              = quad[1];
         c              = quad[2];
         d              = quad[3];
-        poly           = (POLY_G4*)gGpuPrimCursor;
+        poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
         setlen(poly, 8);
         poly->code = 0x3A;
@@ -2898,8 +2898,8 @@ static void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts)
     c1.g = 0;
     c1.b = 0;
     for (i = 0; i < 16; i++) {
-        prim           = (POLY_G4*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(prim + 1);
+        prim           = gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 8);
         setcode(prim, 0x3A);
         prim->r0 = c0.r;
@@ -2929,8 +2929,8 @@ static void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts)
             xy[6] = sxy[16];
         }
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sz[i] << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 4, prim);
-        tp             = (DR_TPAGE*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(tp + 1);
+        tp             = gGpuPrimCursor;
+        gGpuPrimCursor = tp + 1;
         setlen(tp, 1);
         tp->code[0] = 0xE1000465;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sz[i] << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 4, tp);
@@ -3482,7 +3482,7 @@ static void func_dryfield_dilapidated_house_801815E8(GfxCoord* coord, s16 arg1)
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&blk->v[0]);
         gte_rtps();
-        prim           = (POLY_G4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG4(prim);
         gte_stsxy(&prim->x0);
@@ -3529,7 +3529,7 @@ static void func_dryfield_dilapidated_house_801815E8(GfxCoord* coord, s16 arg1)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);
     gte_rtps();
-    prim           = (POLY_G4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyG4(prim);
     gte_stsxy(&prim->x0);
@@ -3692,7 +3692,7 @@ static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
         blk->v[3].vz = (u16)b->workm.t[2];
         gte_ldv0(&blk->v[0]);
         gte_rtps();
-        prim           = (POLY_G4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG4(prim);
         gte_stsxy(&prim->x0);
@@ -3882,7 +3882,7 @@ static void func_dryfield_dilapidated_house_80182A18(GfxCoord* arg0, s16 arg1, s
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, red, grn, blu);
@@ -3933,7 +3933,7 @@ static void func_dryfield_dilapidated_house_80182F14(GfxCoord* arg0, s16 arg1, s
         block->otz++;
         block->step = (arg1 * 64) / block->otz;
         for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -3977,7 +3977,7 @@ static void func_dryfield_dilapidated_house_801832A8(GfxCoord* arg0, s16 arg1, s
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
     gte_stsxy(&block->sx);
@@ -4075,7 +4075,7 @@ static void func_dryfield_dilapidated_house_80183728(GfxCoord* arg0, s16 arg1, s
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, arg3, arg3 >> 1, arg3 >> 2);

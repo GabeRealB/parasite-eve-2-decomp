@@ -2437,7 +2437,7 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
             DR_TPAGE* dr;
             u8        color;
 
-            p              = (TILE*)gGpuPrimCursor;
+            p              = gGpuPrimCursor;
             color          = ~(u8)arg0->killCountdown;
             gGpuPrimCursor = p + 1;
             setlen(p, 3);
@@ -2483,7 +2483,7 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
             DR_TPAGE* dr;
             u8        color;
 
-            p              = (TILE*)gGpuPrimCursor;
+            p              = gGpuPrimCursor;
             color          = (u8)arg0->killCountdown;
             gGpuPrimCursor = p + 1;
             setlen(p, 3);
@@ -2770,7 +2770,7 @@ static void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg
                 angStart = ang;
                 limit    = ang + 0x800;
                 do {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -2792,7 +2792,7 @@ static void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
                     conn           = angStart + ((ang - angStart) * 2);
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -2811,7 +2811,7 @@ static void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
                     t3             = ang + 0x800;
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     t              = t3;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
@@ -2880,7 +2880,7 @@ static void func_mist_shooting_gallery_80181CC4(SVECTOR* arg0, s32 arg1, s32 arg
         b             = blend | ((arg2 & 0xF) << 4);
         block->radius = arg1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);

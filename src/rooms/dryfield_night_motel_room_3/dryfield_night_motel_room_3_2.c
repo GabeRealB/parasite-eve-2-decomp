@@ -1385,7 +1385,7 @@ static void func_dryfield_night_motel_room_3_8017D738(SVECTOR* arg0, s32 arg1, s
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    prim           = (POLY_FT4*)gGpuPrimCursor;
+    prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
     gte_stsxy(&block->sx);

@@ -522,7 +522,7 @@ static void func_neo_ark_shrine_8017DD38(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
@@ -534,7 +534,7 @@ static void func_neo_ark_shrine_8017DD38(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -546,7 +546,7 @@ static void func_neo_ark_shrine_8017DD38(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
@@ -558,7 +558,7 @@ static void func_neo_ark_shrine_8017DD38(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)gGpuPrimCursor;
+    line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
@@ -602,8 +602,8 @@ void func_neo_ark_shrine_8017DF7C(void)
             D_neo_ark_shrine_8018688C[tile].y = D_neo_ark_shrine_801868CC[tile].y;
         }
         if (tile != 0) {
-            prim           = (POLY_FT4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(prim + 1);
+            prim           = gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
             setUVWH(prim, D_neo_ark_shrine_801825AC[tile].x, D_neo_ark_shrine_801825AC[tile].y, 0x20, 0x20);
             prim->tpage = 0x8D;

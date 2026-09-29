@@ -990,8 +990,8 @@ static void func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, S
         v1.vy  = v3.vy;
         v3.vy += step;
         if (flag >= 0) {
-            poly           = (POLY_G4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(poly + 1);
+            poly           = gGpuPrimCursor;
+            gGpuPrimCursor = poly + 1;
             setlen(poly, 8);
             setcode(poly, 0x3A);
             PRIM_XY_WORD(poly, 0) = sxy0;
@@ -1012,8 +1012,8 @@ static void func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, S
             poly->g3              = c2;
             poly->b3              = c2;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), poly);
-            dr             = (DR_MODE*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(dr + 1);
+            dr             = gGpuPrimCursor;
+            gGpuPrimCursor = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE100002A;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), dr);

@@ -1083,7 +1083,7 @@ static void func_neo_ark_submarine_gallery_8017F3DC(GfxCoord* arg0, s32 arg1, s3
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
@@ -1281,7 +1281,7 @@ static void func_neo_ark_submarine_gallery_8017FBCC(GfxCoord* arg0, s32 arg1, s3
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         ang            = (s16)arg3;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -1341,7 +1341,7 @@ static void func_neo_ark_submarine_gallery_8017FFB8(GfxCoord* arg0, s32 arg1, s3
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim           = (POLY_FT4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
@@ -1439,7 +1439,7 @@ static void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32
                 angStart = ang;
                 limit    = ang + 0x800;
                 do {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -1461,7 +1461,7 @@ static void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
                     conn           = angStart + ((ang - angStart) * 2);
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -1480,7 +1480,7 @@ static void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
                     t3             = ang + 0x800;
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     t              = t3;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
@@ -1555,7 +1555,7 @@ static void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32
         b             = blend | ((arg2 & 0xF) << 4);
         block->radius = arg1;
         do {
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
@@ -1644,7 +1644,7 @@ static void func_neo_ark_submarine_gallery_80180E80(GfxCoord* coord, s16 arg1)
         gte_stflg(&blk->flag);
         if (blk->flag >= 0) {
             gte_stszotz(&blk->otz);
-            prim           = (POLY_G4*)gGpuPrimCursor;
+            prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, shade, shade, shade);
@@ -1702,7 +1702,7 @@ static void func_neo_ark_submarine_gallery_80180E80(GfxCoord* coord, s16 arg1)
     gte_stflg(&blk->flag);
     if (blk->flag >= 0) {
         gte_stszotz(&blk->otz);
-        prim           = (POLY_G4*)gGpuPrimCursor;
+        prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG4(prim);
         setRGB0(prim, shade, shade, shade);

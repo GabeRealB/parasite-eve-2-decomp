@@ -1591,7 +1591,7 @@ void func_acropolis_square_80181DD0(Task* task)
     x = D_acropolis_square_801888A0;
     for (i = 0; i < 3; i++) {
         tpageX         = 0x1C0 + i * 0x80;
-        p              = (SPRT*)gGpuPrimCursor;
+        p              = gGpuPrimCursor;
         gGpuPrimCursor = p + 1;
         setlen(p, 4);
         setcode(p, 0x65);
@@ -1843,7 +1843,7 @@ void func_acropolis_square_801825DC(Task* task)
             blk->rInner = (height * 0xC0) / blk->otz;
             for (i = 0; i < 0x10; i += 2) {
                 ampSi          = amp;
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setPolyG4(prim);
                 setRGB0(prim, 0, 0, 0);
@@ -1862,7 +1862,7 @@ void func_acropolis_square_801825DC(Task* task)
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
 
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setPolyG4(prim);
                 setRGB0(prim, 0, 0, 0);
@@ -1884,7 +1884,7 @@ void func_acropolis_square_801825DC(Task* task)
             ampHalf = amp >> 1;
             for (i = 2; i < 0x10; i += 8) {
                 do {
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -1915,7 +1915,7 @@ void func_acropolis_square_801825DC(Task* task)
                     SOFT_TOUCH_REG_USE(prim, z);
                     Gp_AddTpageShift((P_TAG*)prim, 1, z);
 
-                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
@@ -1941,7 +1941,7 @@ void func_acropolis_square_801825DC(Task* task)
         } else {
             blk->rOuter = (((level >> 8) & 0xFF) << 9) / blk->otz;
             for (i = 0; i < 2; i++) {
-                prim           = (POLY_G4*)gGpuPrimCursor;
+                prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setPolyG4(prim);
                 setRGB0(prim, 0, 0, 0);
@@ -1959,7 +1959,7 @@ void func_acropolis_square_801825DC(Task* task)
             }
             if (task->spawnArg1.value & 0x10000000) {
                 for (i = 0; i < 2; i++) {
-                    line           = (LINE_G3*)gGpuPrimCursor;
+                    line           = gGpuPrimCursor;
                     gGpuPrimCursor = line + 1;
                     setLineG3(line);
                     setRGB0(line, 0, 0, 0);

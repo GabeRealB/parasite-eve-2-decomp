@@ -1355,7 +1355,7 @@ static void func_actor_450200_80132368(s32 x, s32 tpageX, s32 clutY, s32 semiTra
     s32      i;
 
     for (i = 0; i < 2; i++) {
-        p              = (SPRT*)gGpuPrimCursor;
+        p              = gGpuPrimCursor;
         gGpuPrimCursor = p + 1;
         setSprt(p);
         setShadeTex(p, shadeTex);
@@ -1372,7 +1372,7 @@ static void func_actor_450200_80132368(s32 x, s32 tpageX, s32 clutY, s32 semiTra
         p->clut = GetClut(0, clutY);
         addPrim(&gGpuCurrentOt[0x3FE], p);
 
-        dr             = (DR_MODE*)gGpuPrimCursor;
+        dr             = gGpuPrimCursor;
         gGpuPrimCursor = dr + 1;
         setDrawTPage(dr, 0, 1, getTPage(1, 1, tpageX, 0x100));
         addPrim(&gGpuCurrentOt[0x3FE], dr);
