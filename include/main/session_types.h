@@ -14,13 +14,6 @@ struct GpAnimSet;
 struct GpLinkNode;
 struct Task;
 
-/// 8 raw bytes of a record, for the places where the block is copied as
-/// bytes and no field is named. `GameLoc.raw` is the arm that gives the
-/// location cell its width, and the byte view its callers hand on.
-typedef struct {
-    u8 data[8];
-} GBytes8;
-
 /// Location selector shared by the live session, saved state and world lookups.
 ///
 /// The six unsigned bytes select parts of the location. `view` is
@@ -44,13 +37,15 @@ typedef struct {
 } GameLocationKey;
 STATIC_ASSERT_SIZEOF(GameLocationKey, 0x6);
 
-/// Eight-byte location cell copied between the live session and saved state.
+/// Eight-byte location cell shared by the live session and saved state.
 ///
-/// `loc` holds the six location selectors. `raw` covers the whole cell,
-/// including its last two bytes, whose roles are unproven.
-typedef union {
-    GameLocationKey loc;
-    GBytes8         raw;
+/// Whole-cell copies preserve the two bytes following the six-byte key;
+/// their role is unproven. The cell is byte-aligned. Stream lookups borrow a
+/// byte view of the cell and read only its leading view and room bytes;
+/// a local copy can replace the view byte with a stream identifier.
+typedef struct {
+    GameLocationKey loc;          // Place key; leading view and room also select streams
+    u8        unknown_6[2]; // Retained by whole-cell copies; role unproven
 } GameLoc;
 STATIC_ASSERT_SIZEOF(GameLoc, 8);
 

@@ -32,6 +32,9 @@ extern void* Fs_ActorLoadBase1;
 
 extern void* Fs_ActorLoadBase2;
 
+/// Starts STR playback; `paramB[0]` is a stream-slot index (0..14).
+enum { CD_COMMAND_PLAY_STREAM = 0x61 };
+
 s32 CdCmd_Enqueue(s32 cmd, u8* paramA, u8* paramB);
 
 void CdCmd_EnqueueReplace(s32 cmd, u8* paramA, u8* paramB);

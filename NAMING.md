@@ -531,16 +531,16 @@ and pick the form from how the bytes are used:
   member**, as long as the fields live on that nested type. `GameSession.at4.loc`
   is this case: `&session->at4.loc` is the 6-byte key passed into lookups, and
   `session->at4.loc.stage` is the same bytes field by field.
-- A union of the aggregate beside a parallel byte struct only when both
-  spellings have to exist at the same nesting level (anonymous members do not
-  work here).
+- A byte view alone does not require a union. Cast the aggregate's address to
+  a byte pointer for APIs that read its representation, and copy the complete
+  aggregate when the transfer includes bytes beyond its interpreted fields.
 - A fixed set of bits rather than fields — see the bitfield rule above, which is
   the same idea one level down.
 
 ```c
-typedef struct GameSession {
+typedef struct {
     s8 field_0;
-    union { GameLocationKey loc; GBytes8 raw; } at4;  /* at4.loc.view / at4.loc.stage */
+    GameLoc at4;  /* at4.loc.view / at4.loc.stage */
     ...
 ```
 
@@ -573,7 +573,11 @@ allocation without implying another interpretation. Read the accesses before
 choosing an aggregate or union. Where both views are justified, use named members:
 
 ```c
-union { GameLocationKey loc; GBytes8 raw; } at4;   /* session->at4.loc.stage, session->at4.raw */
+/* A stream descriptor key is compared as a word or matched by group and id. */
+union {
+    s32 word;
+    struct { u16 group; u16 id; } parts;
+} key;
 ```
 
 Do not introduce a union just to hide a cast or satisfy an audit. Casts may also

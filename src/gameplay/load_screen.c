@@ -208,7 +208,7 @@ void Gp_BeginSessionTask(Task* arg0)
     one = 1;
     Mem_Init();
     CdCmd_ActivatePhase1();
-    gGameSession->at4.raw     = Mc_SaveData[0].state.at4.raw;
+    gGameSession->at4         = Mc_SaveData[0].state.at4;
     gGameSession->sprtVariant = ds->spriteVariant;
     queue->field_20A          = one;
     if ((arg0->spawnArg1.value & 0xF) == 0) {

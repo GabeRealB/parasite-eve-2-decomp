@@ -343,8 +343,8 @@ void func_shelter_1f_guardroom_8017D8D8(Task* arg0)
         case 0:
             func_shelter_1f_guardroom_8017D9CC(0);
             queue->field_1EA = 1;
-            slotParam[0]     = Stream_FindSlot(gGameSession->at4.raw.data, 0, 0);
-            CdCmd_Enqueue(0x61, 0, slotParam);
+            slotParam[0]     = Stream_FindSlot((u8*)&gGameSession->at4, 0, 0);
+            CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
             arg0->state++;
             break;
         case 1:

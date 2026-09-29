@@ -7451,7 +7451,7 @@ typedef struct {
 ```
 
 `s16 data[9]` is the same size/alignment and also works, but the mixed
-layout matches the existing `GBytes4`/`GBytes8` "unaligned word chunks +
+layout matches the existing `GBytes4`/`GameLoc` "unaligned word chunks +
 remainder" pattern. A word-aligned `MATRIX` assignment uses `lw`/`sw`
 instead of `lwl`/`lwr`.
 
@@ -12244,7 +12244,7 @@ local pointer on A (`&Spu_KeyOnMaskExtra`) and three inline `~channel` uses — 
 mis-scheduled before the `sb`; using `channel = ~channel` with the pointer
 falls back to ~70%.
 
-## Unaligned 8-byte copy via nested `u8[8]` struct assignment
+## Unaligned 8-byte copy via nested byte-aligned cell assignment
 
 When the target copies 8 bytes with `lwl`/`lwr`/`swl`/`swr` pairs (not
 `lw`/`sw`), both sides are being treated as alignment-1. Two traps:
@@ -12257,14 +12257,18 @@ When the target copies 8 bytes with `lwl`/`lwr`/`swl`/`swr` pairs (not
    the right unaligned ops but with base `obj+4` and offsets `0`/`3`/`4`/`7`.
    The target keeps the *object* base and uses offsets `4`/`7`/`8`/`0xB`.
 
-Match by assigning a nested `u8[8]` field that lives at offset 4 inside an
-overlay of the whole object:
+Match by assigning a nested 8-byte, byte-aligned cell that lives at offset 4
+inside the owning object:
 
 ```c
 typedef struct { u8 data[8]; } GBytes8;
 typedef union { GameLocationKey loc; GBytes8 raw; } GameLoc;   /* GameSession.at4 */
+typedef struct {
+    GpAreaKey loc;
+    u8 unknown_6[2];
+} GameLoc;   /* GameSession.at4 */
 
-dst->at4.raw = src->at4.raw;
+dst->at4 = src->at4;
 ```
 
 `GameFlow_CopySaveIds` is the pure example (`gGameSession` ← `Mc_SaveData`).
@@ -23385,7 +23389,7 @@ arg setup before `D_800691DE = 1` (absolute alias of `CdCmd_Queue.field_23E`).
 `Title_DemoStreamTask` is the pure example.
 
 The trigger is a basic-block split, not the call itself. The identical
-`slot = Stream_FindSlot(key.raw.data, 0, 0); slotParam[0] = slot;
+`slot = Stream_FindSlot((u8*)&key, 0, 0); slotParam[0] = slot;
 CdCmd_Enqueue(0x61, 0, slotParam);` sequence matches with no pins when the
 preceding `key.loc.view = 0x64;` is unconditional, because the whole case body
 is one block and `sched2` sinks the `sb` past the arg setup. Add an `if/else`

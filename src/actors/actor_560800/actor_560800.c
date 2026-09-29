@@ -4202,8 +4202,8 @@ void func_actor_560800_801321A0(Task* task)
             } else {
                 key.loc.view = 0x64;
             }
-            slotParam[0] = Stream_FindSlot(key.raw.data, 0, 0);
-            CdCmd_Enqueue(0x61, 0, slotParam);
+            slotParam[0] = Stream_FindSlot((u8*)&key, 0, 0);
+            CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
             task->state++;
             break;
         case 2:

@@ -194,7 +194,7 @@ static void CdCmd_HandleStreamDecode(void)
     if (cmd >= 0x63) {
         return;
     }
-    if (cmd < 0x61) {
+    if (cmd < CD_COMMAND_PLAY_STREAM) {
         return;
     }
     switch (state->step) {
@@ -217,11 +217,11 @@ static void CdCmd_HandleStreamDecode(void)
                 CdFlush();
             }
             entry = &state->entries[state->readIdx];
-            if (entry->cmd == 0x61) {
+            if (entry->cmd == CD_COMMAND_PLAY_STREAM) {
                 D_8005EAEC = 0;
                 D_8005EAEE = 0;
             } else if (entry->cmd == 0x62) {
-                entry->cmd = 0x61;
+                entry->cmd = CD_COMMAND_PLAY_STREAM;
             }
             if ((s16)Stream_InitializePlayback(idB0 & 0xFFFF) != 0) {
                 p                = &CdCmd_Queue;

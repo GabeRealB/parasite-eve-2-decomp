@@ -323,9 +323,9 @@ void GameFlow_DispatchTable5(Task* task)
 
 static void GameFlow_CopySaveIds(Task* task)
 {
-    gGameSession->at4.raw = Mc_SaveData[0].state.at4.raw;
-    D_8007A394            = 0;
-    task->state           = task->state + 1;
+    gGameSession->at4 = Mc_SaveData[0].state.at4;
+    D_8007A394        = 0;
+    task->state       = task->state + 1;
 }
 
 static void GameFlow_EnqueueDefaultLoad(Task* task)

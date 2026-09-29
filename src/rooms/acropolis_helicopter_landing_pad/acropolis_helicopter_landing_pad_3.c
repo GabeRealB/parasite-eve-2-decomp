@@ -657,9 +657,9 @@ L_case0:
 L_case1:
     key          = gGameSession->at4;
     key.loc.view = 0x64;
-    slot         = Stream_FindSlot(key.raw.data, 0, 0);
+    slot         = Stream_FindSlot((u8*)&key, 0, 0);
     slotParam[0] = slot;
-    CdCmd_Enqueue(0x61, 0, slotParam);
+    CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
     goto advance;
 
 L_case2:
