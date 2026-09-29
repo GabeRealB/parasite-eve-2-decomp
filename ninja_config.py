@@ -223,6 +223,7 @@ LIB_SPLAT_EXT = TOOLS_DIR / "splat_ext" / "libsrc.py"
 GEN_ASSET_INC = TOOLS_DIR / "gen_asset_inc.py"
 GEN_MODEL_INC = TOOLS_DIR / "gen_model_inc.py"
 GEN_ANIMATION_INC = TOOLS_DIR / "gen_animation_inc.py"
+GEN_COLLISION_INC = TOOLS_DIR / "gen_collision_inc.py"
 
 
 def asset_includes(version: str) -> list[tuple[Path, Path, int]]:
@@ -285,6 +286,31 @@ def animation_includes(version: str) -> list[tuple[Path, list[Path], int, int]]:
             outputs = [BUILD_DIR / "include" / "assets" / f"{prefix}_{part['name']}.inc"
                        for part in parts]
             out.append((raw, outputs, resource["load"], source))
+    return out
+
+
+def collision_includes(version: str) -> list[tuple[Path, list[Path], int, int, list[str]]]:
+    """Typed initializer inputs for collision grids embedded in C data."""
+    from tools.gen_collision_inc import components
+    from tools.gen_overlay_configs import declared_collisions
+
+    manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
+    out = []
+    for grid in declared_collisions(manifest):
+        if not grid["in_c"]:
+            continue
+        raw = ASSETS_DIR / version / "pe2pkg" / f"{grid['package']}.pe2pkg"
+        parts = components(raw.read_bytes(), grid["load"], grid["source"])
+        prefix = f"{grid['package']}_collision_{grid['source']:05X}"
+        outputs = [BUILD_DIR / "include" / "assets" / f"{prefix}_{part['name']}.inc" for part in parts]
+        out.append((raw, outputs, grid["load"], grid["source"], []))
+    from tools.gen_collision_inc import patch_pieces
+    from tools.gen_overlay_configs import declared_collision_patches
+    for patch in declared_collision_patches(manifest):
+        raw = ASSETS_DIR / version / "pe2pkg" / f"{patch['package']}.pe2pkg"
+        outputs = [BUILD_DIR / "include" / "assets" / f"{patch['package']}_collision_{part['offset']:05X}.inc"
+                   for part in patch_pieces(patch["offset"], patch["pieces"])]
+        out.append((raw, outputs, patch["load"], patch["offset"], patch["pieces"]))
     return out
 
 
@@ -1124,6 +1150,11 @@ def ninja_build(
         command=f"{PYTHON} {GEN_MODEL_INC} $in $load $source {BUILD_DIR / 'include' / 'assets'}",
     )
     ninja_rules_file.rule(
+        "collision-inc",
+        description="collision-inc $in $source",
+        command=f"{PYTHON} {GEN_COLLISION_INC} $in $load $source {BUILD_DIR / 'include' / 'assets'} $pieces",
+    )
+    ninja_rules_file.rule(
         "animation-inc",
         description="animation-inc $in $source",
         command=f"{PYTHON} {GEN_ANIMATION_INC} $in $load $source {BUILD_DIR / 'include' / 'assets'}",
@@ -1159,6 +1190,15 @@ def ninja_build(
                 outputs=[str(inc) for inc in outputs], rule="model-inc", inputs=str(raw),
                 implicit=[str(GEN_MODEL_INC), str(TOOLS_DIR / "peassets" / "pkg_model.py")],
                 variables={"load": hex(load), "source": hex(source)},
+            )
+        ASSET_INC_OUTPUTS.extend(str(inc) for inc in outputs)
+    for raw, outputs, load, source, pieces in collision_includes(version):
+        for writer in asset_writers:
+            writer.build(
+                outputs=[str(inc) for inc in outputs], rule="collision-inc", inputs=str(raw),
+                implicit=[str(GEN_COLLISION_INC)],
+                variables={"load": hex(load), "source": hex(source),
+                           "pieces": " ".join(f"'{p}'" for p in pieces)},
             )
         ASSET_INC_OUTPUTS.extend(str(inc) for inc in outputs)
     for raw, outputs, load, source in animation_includes(version):

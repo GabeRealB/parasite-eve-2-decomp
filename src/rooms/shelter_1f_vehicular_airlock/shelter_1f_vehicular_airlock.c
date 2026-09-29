@@ -198,151 +198,26 @@ GpWarpRec D_shelter_1f_vehicular_airlock_8018211C[3] = {
 };
 
 SVECTOR D_shelter_1f_vehicular_airlock_801821C4[10] = {
-    { 0, -4096, 0, 0 },
-    { 0, -1206, 3914, 0 },
-    { 0, 3881, -1308, 0 },
-    { 0, 1659, 3745, 0 },
-    { 0, -1208, -3914, 0 },
-    { 0, 1659, -3745, 0 },
-    { 0, 3881, 1308, 0 },
-    { 4096, 0, 0, 0 },
-    { -4096, 0, 0, 0 },
-    { 1295, 0, -3886, 0 },
+#include "assets/shelter_1f_vehicular_airlock_collision_04E78_normals.inc"
 };
 
 SVECTOR D_shelter_1f_vehicular_airlock_80182214[33] = {
-    { -0x2CEC, 0, 2000, 0 },
-    { -1500, 0, 2000, 0 },
-    { -1500, 0, -2000, 0 },
-    { -0x2CEC, 0, -2000, 0 },
-    { -0x2CEC, 1, -1992, 0 },
-    { -1500, 1, -1992, 0 },
-    { -1500, -1654, -2502, 0 },
-    { -0x2CEC, -1654, -2502, 0 },
-    { -0x2CEC, -3905, 0, 0 },
-    { -1500, -3905, 0, 0 },
-    { -1500, -3309, 1769, 0 },
-    { -0x2CEC, -3309, 1769, 0 },
-    { -1500, -3309, -1769, 0 },
-    { -0x2CEC, -3309, -1769, 0 },
-    { -0x2CEC, -1654, 2502, 0 },
-    { -1500, -1654, 2502, 0 },
-    { -1500, 1, 1991, 0 },
-    { -0x2CEC, 1, 1991, 0 },
-    { -0x2904, -6000, 6250, 0 },
-    { -0x2904, 0, 6250, 0 },
-    { -0x2904, 0, -2850, 0 },
-    { -0x2904, -6000, -2850, 0 },
-    { -1500, 0, 3000, 0 },
-    { -1500, -6000, 3000, 0 },
-    { -1500, -6000, -3000, 0 },
-    { -1500, 0, -3000, 0 },
-    { -0x2904, -1360, 2500, 0 },
-    { -7500, -1360, 2500, 0 },
-    { -7500, -1360, 1380, 0 },
-    { -0x2904, -1360, 380, 0 },
-    { -0x2904, 0, 380, 0 },
-    { -7500, 0, 1380, 0 },
-    { -7500, 0, 2080, 0 },
+#include "assets/shelter_1f_vehicular_airlock_collision_04E78_verts.inc"
 };
 
 GpGridFace D_shelter_1f_vehicular_airlock_8018231C[12] = {
-    { { 1, 2, 0, 3 }, 0, 1 },
-    { { 5, 6, 4, 7 }, 1, 0 },
-    { { 9, 10, 8, 11 }, 2, 0 },
-    { { 6, 12, 7, 13 }, 3, 0 },
-    { { 15, 16, 14, 17 }, 4, 0 },
-    { { 10, 15, 11, 14 }, 5, 0 },
-    { { 12, 9, 13, 8 }, 6, 0 },
-    { { 19, 20, 18, 21 }, 7, 0 },
-    { { 23, 24, 22, 25 }, 8, 0 },
-    { { 27, 28, 26, 29 }, 0, 0 },
-    { { 29, 28, 30, 31 }, 9, 0 },
-    { { 28, 27, 31, 32 }, 7, 0 },
+#include "assets/shelter_1f_vehicular_airlock_collision_04E78_faces.inc"
 };
 
-s16 D_shelter_1f_vehicular_airlock_801823AC[10] = {
-    0,
-    1,
-    2,
-    3,
-    5,
-    6,
-    7,
-    9,
-    10,
-    -1,
+s16 D_shelter_1f_vehicular_airlock_801823AC[52] = {
+#include "assets/shelter_1f_vehicular_airlock_collision_04E78_cells.inc"
 };
 
-s16 D_shelter_1f_vehicular_airlock_801823C0[9] = {
-    0,
-    2,
-    4,
-    5,
-    7,
-    9,
-    10,
-    11,
-    -1,
-};
-
-s16 D_shelter_1f_vehicular_airlock_801823D4[2] = {
-    7,
-    -1,
-};
-
-s16 D_shelter_1f_vehicular_airlock_801823D8[7] = {
-    0,
-    1,
-    2,
-    3,
-    5,
-    6,
-    -1,
-};
-
-s16 D_shelter_1f_vehicular_airlock_801823E8[8] = {
-    0,
-    2,
-    4,
-    5,
-    9,
-    10,
-    11,
-    -1,
-};
-
-s16 D_shelter_1f_vehicular_airlock_801823F8[8] = {
-    0,
-    1,
-    2,
-    3,
-    5,
-    6,
-    8,
-    -1,
-};
-
-s16 D_shelter_1f_vehicular_airlock_80182408[6] = {
-    0,
-    2,
-    4,
-    5,
-    8,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_shelter_1f_vehicular_airlock_801823AC[i])
 s16* D_shelter_1f_vehicular_airlock_80182414[9] = {
-    D_shelter_1f_vehicular_airlock_801823AC,
-    D_shelter_1f_vehicular_airlock_801823C0,
-    D_shelter_1f_vehicular_airlock_801823D4,
-    D_shelter_1f_vehicular_airlock_801823D8,
-    D_shelter_1f_vehicular_airlock_801823E8,
-    NULL,
-    D_shelter_1f_vehicular_airlock_801823F8,
-    D_shelter_1f_vehicular_airlock_80182408,
-    NULL,
+#include "assets/shelter_1f_vehicular_airlock_collision_04E78_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_1f_vehicular_airlock_80182438[1] = {
     { NULL, D_shelter_1f_vehicular_airlock_801821C4, D_shelter_1f_vehicular_airlock_80182214, D_shelter_1f_vehicular_airlock_8018231C, D_shelter_1f_vehicular_airlock_80182414, 0x2CEC, 3000, 3, 3, 4000, 12 },

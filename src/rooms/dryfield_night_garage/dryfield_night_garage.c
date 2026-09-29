@@ -215,80 +215,50 @@ GpEvsCmd D_dryfield_night_garage_80181C7C[4] = {
 };
 
 SVECTOR D_dryfield_night_garage_80181CDC[4] = {
-    { -4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
-    { 4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
+#include "assets/dryfield_night_garage_collision_047BC_normals.inc"
 };
 
 SVECTOR D_dryfield_night_garage_80181CFC[8] = {
-    { -722, 250, 250, 0 },
-    { -722, -250, 250, 0 },
-    { -722, -250, -250, 0 },
-    { -722, 250, -250, 0 },
-    { 1002, -250, -250, 0 },
-    { 1002, 250, -250, 0 },
-    { 1002, -250, 250, 0 },
-    { 1002, 250, 250, 0 },
+#include "assets/dryfield_night_garage_collision_047BC_verts.inc"
 };
 
 GpGridFace D_dryfield_night_garage_80181D3C[4] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 2, 4, 3, 5 }, 1, 0 },
-    { { 4, 6, 5, 7 }, 2, 0 },
-    { { 6, 1, 7, 0 }, 3, 0 },
+#include "assets/dryfield_night_garage_collision_047BC_faces.inc"
 };
 
-s16 D_dryfield_night_garage_80181D6C[5] = {
-    0,
-    1,
-    2,
-    3,
-    -1,
+s16 D_dryfield_night_garage_80181D6C[6] = {
+#include "assets/dryfield_night_garage_collision_047BC_cells.inc"
 };
 
+#define GRID_CELL(i) (&D_dryfield_night_garage_80181D6C[i])
 s16* D_dryfield_night_garage_80181D78[1] = {
-    D_dryfield_night_garage_80181D6C,
+#include "assets/dryfield_night_garage_collision_047BC_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_dryfield_night_garage_80181D7C = { NULL, D_dryfield_night_garage_80181CDC, D_dryfield_night_garage_80181CFC, D_dryfield_night_garage_80181D3C, D_dryfield_night_garage_80181D78, 722, 250, 1, 1, 4000, 4 };
 
 SVECTOR D_dryfield_night_garage_80181DA0[4] = {
-    { -4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
-    { 4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
+#include "assets/dryfield_night_garage_collision_04880_normals.inc"
 };
 
 SVECTOR D_dryfield_night_garage_80181DC0[8] = {
-    { 1900, 33, 5590, 0 },
-    { 1900, -1726, 5590, 0 },
-    { 1900, -1726, 4890, 0 },
-    { 1900, 33, 4890, 0 },
-    { 2560, -1726, 4890, 0 },
-    { 2560, 33, 4890, 0 },
-    { 2560, -1726, 5590, 0 },
-    { 2560, 33, 5590, 0 },
+#include "assets/dryfield_night_garage_collision_04880_verts.inc"
 };
 
 GpGridFace D_dryfield_night_garage_80181E00[4] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 2, 4, 3, 5 }, 1, 0 },
-    { { 4, 6, 5, 7 }, 2, 0 },
-    { { 6, 1, 7, 0 }, 3, 0 },
+#include "assets/dryfield_night_garage_collision_04880_faces.inc"
 };
 
-s16 D_dryfield_night_garage_80181E30[5] = {
-    0,
-    1,
-    2,
-    3,
-    -1,
+s16 D_dryfield_night_garage_80181E30[6] = {
+#include "assets/dryfield_night_garage_collision_04880_cells.inc"
 };
 
+#define GRID_CELL(i) (&D_dryfield_night_garage_80181E30[i])
 s16* D_dryfield_night_garage_80181E3C[1] = {
-    D_dryfield_night_garage_80181E30,
+#include "assets/dryfield_night_garage_collision_04880_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_dryfield_night_garage_80181E40 = { NULL, D_dryfield_night_garage_80181DA0, D_dryfield_night_garage_80181DC0, D_dryfield_night_garage_80181E00, D_dryfield_night_garage_80181E3C, -1900, -4890, 1, 1, 4000, 4 };
 

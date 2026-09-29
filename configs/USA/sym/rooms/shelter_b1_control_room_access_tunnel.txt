@@ -10,7 +10,6 @@ D_shelter_b1_control_room_access_tunnel_80181F78 = 0x80181F78; // size:0x30 defi
 D_shelter_b1_control_room_access_tunnel_80181FA8 = 0x80181FA8; // size:0x60 defined:True
 D_shelter_b1_control_room_access_tunnel_80182008 = 0x80182008; // size:0x48 defined:True
 D_shelter_b1_control_room_access_tunnel_80182050 = 0x80182050; // size:0xC defined:True
-D_shelter_b1_control_room_access_tunnel_8018205C = 0x8018205C; // size:0xC defined:True
 D_shelter_b1_control_room_access_tunnel_80182068 = 0x80182068; // size:0x8 defined:True
 D_shelter_b1_control_room_access_tunnel_80182070 = 0x80182070; // size:0x24 defined:True
 D_shelter_b1_control_room_access_tunnel_80182094 = 0x80182094; // size:0x6C defined:True

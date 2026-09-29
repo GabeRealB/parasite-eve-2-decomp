@@ -549,49 +549,26 @@ SVECTOR D_actor_503500_8016EF58[7] = {
 };
 
 SVECTOR D_actor_503500_8016EF90[4] = {
-    { -3994, -895, -143, 0 },
-    { 0, 0, -4096, 0 },
-    { 3988, -924, -148, 0 },
-    { 0, 0, 4096, 0 },
+#include "assets/actor_503500_collision_3D21C_normals.inc"
 };
 
 SVECTOR D_actor_503500_8016EFB0[8] = {
-    { -2393, 1597, 1084, 0 },
-    { -801, -5505, 1084, 0 },
-    { -801, -5091, -1502, 0 },
-    { -2393, 1597, -1502, 0 },
-    { 780, -5091, -1502, 0 },
-    { 2328, 1597, -1502, 0 },
-    { 780, -5505, 1084, 0 },
-    { 2328, 1597, 1084, 0 },
+#include "assets/actor_503500_collision_3D21C_verts.inc"
 };
 
 GpGridFace D_actor_503500_8016EFF0[4] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 2, 4, 3, 5 }, 1, 0 },
-    { { 4, 6, 5, 7 }, 2, 0 },
-    { { 6, 1, 7, 0 }, 3, 0 },
+#include "assets/actor_503500_collision_3D21C_faces.inc"
 };
 
-s16 D_actor_503500_8016F020[5] = {
-    0,
-    1,
-    2,
-    3,
-    -1,
+s16 D_actor_503500_8016F020[10] = {
+#include "assets/actor_503500_collision_3D21C_cells.inc"
 };
 
-s16 D_actor_503500_8016F02C[4] = {
-    1,
-    2,
-    3,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_actor_503500_8016F020[i])
 s16* D_actor_503500_8016F034[2] = {
-    D_actor_503500_8016F020,
-    D_actor_503500_8016F02C,
+#include "assets/actor_503500_collision_3D21C_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_actor_503500_8016F03C = { NULL, D_actor_503500_8016EF90, D_actor_503500_8016EFB0, D_actor_503500_8016EFF0, D_actor_503500_8016F034, 2393, 1502, 2, 1, 4000, 4 };
 

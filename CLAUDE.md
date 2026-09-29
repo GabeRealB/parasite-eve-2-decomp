@@ -604,6 +604,13 @@ settled asset categories are **fonts** (glyph pixels *and* glyph metrics),
 Collision geometry is a room's grid - normals, vertices, faces and per-cell face
 lists - which describes a shape the way a model does; the manifest cuts it out as
 a `collision` object with its `GpGridParams` header as a `collisionSource`.
+Where a C unit owns the grid (`in_c = true`), the arrays keep their C
+declarations but take their initializers from includes that
+`tools/gen_collision_inc.py` writes from the package, after checking the grid's
+layout against its header; the table's entries are `GRID_CELL(i)`, which the
+including source defines as an index into its cell lists. Headerless geometry
+that code copies into a live grid is a `collisionPatch`, declared by its
+`pieces`.
 Camera views are not assets: a view is a matrix and a position, data like any
 placement. The known embedded ones:
 

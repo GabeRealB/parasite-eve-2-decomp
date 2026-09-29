@@ -736,64 +736,50 @@ GpMsgEntry D_mist_shooting_gallery_801850E8[5] = {
 };
 
 SVECTOR D_mist_shooting_gallery_80185110[3] = {
-    { -4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
-    { 0, 0, 4096, 0 },
+#include "assets/mist_shooting_gallery_collision_07BD8_normals.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80185128[8] = {
-    { -0x28B9, 20, 5090, 0 },
-    { -0x28B9, -1490, 5090, 0 },
-    { -0x28B9, -1490, 4925, 0 },
-    { -0x28B9, 20, 4925, 0 },
-    { -9970, -1490, 4925, 0 },
-    { -9970, 20, 4925, 0 },
-    { -9970, 20, 5090, 0 },
-    { -9970, -1490, 5090, 0 },
+#include "assets/mist_shooting_gallery_collision_07BD8_verts.inc"
 };
 
 GpGridFace D_mist_shooting_gallery_80185168[3] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 2, 4, 3, 5 }, 1, 0 },
-    { { 7, 1, 6, 0 }, 2, 0 },
+#include "assets/mist_shooting_gallery_collision_07BD8_faces.inc"
 };
 
 s16 D_mist_shooting_gallery_8018518C[4] = {
-    0,
-    1,
-    2,
-    -1,
+#include "assets/mist_shooting_gallery_collision_07BD8_cells.inc"
 };
 
+#define GRID_CELL(i) (&D_mist_shooting_gallery_8018518C[i])
 s16* D_mist_shooting_gallery_80185194[1] = {
-    D_mist_shooting_gallery_8018518C,
+#include "assets/mist_shooting_gallery_collision_07BD8_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_mist_shooting_gallery_80185198 = { NULL, D_mist_shooting_gallery_80185110, D_mist_shooting_gallery_80185128, D_mist_shooting_gallery_80185168, D_mist_shooting_gallery_80185194, 0x28B9, -4925, 1, 1, 4000, 3 };
 
 SVECTOR D_mist_shooting_gallery_801851BC[1] = {
-    { 4096, 0, 0, 0 },
+#include "assets/mist_shooting_gallery_collision_07C38_normals.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_801851C4[4] = {
-    { -6500, -2960, 6320, 0 },
-    { -6500, 10, 6320, 0 },
-    { -6500, 10, 3680, 0 },
-    { -6500, -2960, 3680, 0 },
+#include "assets/mist_shooting_gallery_collision_07C38_verts.inc"
 };
 
 GpGridFace D_mist_shooting_gallery_801851E4[1] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
+#include "assets/mist_shooting_gallery_collision_07C38_faces.inc"
 };
 
 s16 D_mist_shooting_gallery_801851F0[2] = {
-    0,
-    -1,
+#include "assets/mist_shooting_gallery_collision_07C38_cells.inc"
 };
 
+#define GRID_CELL(i) (&D_mist_shooting_gallery_801851F0[i])
 s16* D_mist_shooting_gallery_801851F4[1] = {
-    D_mist_shooting_gallery_801851F0,
+#include "assets/mist_shooting_gallery_collision_07C38_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_mist_shooting_gallery_801851F8 = { NULL, D_mist_shooting_gallery_801851BC, D_mist_shooting_gallery_801851C4, D_mist_shooting_gallery_801851E4, D_mist_shooting_gallery_801851F4, 6500, -3680, 1, 1, 4000, 1 };
 

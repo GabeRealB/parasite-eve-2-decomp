@@ -31,7 +31,6 @@ D_acropolis_security_room_80183A28 = 0x80183A28; // size:0x58 defined:True
 D_acropolis_security_room_80183A80 = 0x80183A80; // size:0x190 defined:True
 D_acropolis_security_room_80183C10 = 0x80183C10; // size:0x120 defined:True
 D_acropolis_security_room_80183D30 = 0x80183D30; // size:0x30 defined:True
-D_acropolis_security_room_80183D60 = 0x80183D60; // size:0x2A defined:True
 D_acropolis_security_room_80183D8C = 0x80183D8C; // size:0x8 defined:True
 D_acropolis_security_room_80183D94 = 0x80183D94; // size:0x24 defined:True
 D_acropolis_security_room_80183DB8 = 0x80183DB8; // size:0x130 defined:True

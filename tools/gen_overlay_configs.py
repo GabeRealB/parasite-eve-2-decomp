@@ -266,6 +266,82 @@ def declared_animations(manifest: dict) -> list[dict]:
     return rows
 
 
+def declared_collisions(manifest: dict) -> list[dict]:
+    """Collision grids, one row per package: the grid's first array and its header."""
+    rows = []
+    for family, spec in manifest.items():
+        if not isinstance(spec, dict) or "overlays" not in spec:
+            continue
+        slot_addr = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
+        for name, slot, entry in slot_packages(spec):
+            load = slot_addr.get(slot.get("slot"), int(spec["load_addr"]))
+            objects = slot.get("objects") or entry["objects"]
+            for i, obj in enumerate(objects):
+                if obj.get("kind") == "collisionSource":
+                    rows.append(dict(
+                        family=family, package=name, load=load,
+                        grid=int(str(objects[i - 1]["at"]), 16),
+                        source=int(str(obj["at"]), 16),
+                        in_c=bool(obj.get("in_c")),
+                    ))
+    return rows
+
+
+def declared_collision_patches(manifest: dict) -> list[dict]:
+    """Collision patches: headerless runs of grid arrays that code copies into a live grid."""
+    rows = []
+    for family, spec in manifest.items():
+        if not isinstance(spec, dict) or "overlays" not in spec:
+            continue
+        slot_addr = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
+        for name, slot, entry in slot_packages(spec):
+            load = slot_addr.get(slot.get("slot"), int(spec["load_addr"]))
+            for obj in slot.get("objects") or entry["objects"]:
+                if obj.get("kind") == "collisionPatch":
+                    rows.append(dict(family=family, package=name, load=load,
+                                     offset=int(str(obj["at"]), 16), pieces=list(obj["pieces"]),
+                                     in_c=bool(obj.get("in_c"))))
+    return rows
+
+
+def check_collision_records(name: str, objects: list[dict], data: bytes, load: int) -> None:
+    """Every `collision` object is exactly the grid its `collisionSource` header describes."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from gen_collision_inc import HEADER_SIZE, components
+
+    kinds = [(obj.get("kind"), int(str(obj["at"]), 16) if "at" in obj else None) for obj in objects]
+    for i, (kind, at) in enumerate(kinds):
+        if kind == "collisionPatch":
+            from gen_collision_inc import patch_pieces
+            if not objects[i].get("in_c"):
+                raise SystemExit(f"{name}: collisionPatch at 0x{at:X} is only supported in C")
+            try:
+                parts = patch_pieces(at, list(objects[i]["pieces"]))
+            except ValueError as e:
+                raise SystemExit(f"{name}: {e}")
+            check_c_data_owner(name, objects, at, parts[-1]["offset"] + parts[-1]["size"], len(data))
+            continue
+        if kind == "collision" and (i + 1 >= len(kinds) or kinds[i + 1][0] != "collisionSource"):
+            raise SystemExit(f"{name}: collision at 0x{at:X} is not followed by its collisionSource")
+        if kind != "collisionSource":
+            continue
+        if i == 0 or kinds[i - 1][0] != "collision":
+            raise SystemExit(f"{name}: collisionSource at 0x{at:X} does not follow a collision")
+        try:
+            parts = components(data, load, at)
+        except ValueError as e:
+            raise SystemExit(f"{name}: {e}")
+        if parts[0]["offset"] != kinds[i - 1][1]:
+            raise SystemExit(f"{name}: the grid header at 0x{at:X} describes a grid at "
+                             f"0x{parts[0]['offset']:X}, not the declared 0x{kinds[i - 1][1]:X}")
+        if bool(objects[i - 1].get("in_c")) != bool(objects[i].get("in_c")):
+            raise SystemExit(f"{name}: a grid and its header at 0x{at:X} must both be C or both be assembly")
+        if objects[i].get("in_c"):
+            # The arrays and the header may belong to different units.
+            check_c_data_owner(name, objects, kinds[i - 1][1], at, len(data))
+            check_c_data_owner(name, objects, at, at + HEADER_SIZE, len(data))
+
+
 def object_subsegments(
     name: str, family: str, objects: list[dict], data: bytes, load: int, pkg_id: int,
     entry_name: str | None = None, defines: dict | None = None,
@@ -284,11 +360,12 @@ def object_subsegments(
     """
     check_model_records(name, objects, data, load)
     check_animation_records(name, objects, data, load)
+    check_collision_records(name, objects, data, load)
     lines: list[str] = []
     for obj in objects:
         kind = obj.get("kind")
         if obj.get("in_c"):
-            if kind not in ("model", "modelSource", "animation", "collision", "collisionSource"):
+            if kind not in ("model", "modelSource", "animation", "collision", "collisionSource", "collisionPatch"):
                 raise SystemExit(f"{name}: in_c is only supported for model, animation, and collision declarations")
             continue
         if kind == "packageId":

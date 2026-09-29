@@ -276,83 +276,26 @@ GpWarpRec D_neo_ark_forest_zone_801820C4[3] = {
 };
 
 SVECTOR D_neo_ark_forest_zone_8018216C[6] = {
-    { 4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
-    { -4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
-    { 0, -4096, 0, 0 },
-    { 0, 4096, 0, 0 },
+#include "assets/neo_ark_forest_zone_collision_04CB4_normals.inc"
 };
 
 SVECTOR D_neo_ark_forest_zone_8018219C[8] = {
-    { -8000, -5000, 1300, 0 },
-    { -8000, 0, 1300, 0 },
-    { -8000, 0, -1300, 0 },
-    { -8000, -5000, -1300, 0 },
-    { 0x2710, 0, -1300, 0 },
-    { 0x2710, -5000, -1300, 0 },
-    { 0x2710, 0, 1300, 0 },
-    { 0x2710, -5000, 1300, 0 },
+#include "assets/neo_ark_forest_zone_collision_04CB4_verts.inc"
 };
 
 GpGridFace D_neo_ark_forest_zone_801821DC[6] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 2, 4, 3, 5 }, 1, 0 },
-    { { 4, 6, 5, 7 }, 2, 0 },
-    { { 6, 1, 7, 0 }, 3, 0 },
-    { { 6, 4, 1, 2 }, 4, 1 },
-    { { 0, 3, 7, 5 }, 5, 0 },
+#include "assets/neo_ark_forest_zone_collision_04CB4_faces.inc"
 };
 
-s16 D_neo_ark_forest_zone_80182224[6] = {
-    0,
-    1,
-    3,
-    4,
-    5,
-    -1,
+s16 D_neo_ark_forest_zone_80182224[30] = {
+#include "assets/neo_ark_forest_zone_collision_04CB4_cells.inc"
 };
 
-s16 D_neo_ark_forest_zone_80182230[5] = {
-    1,
-    3,
-    4,
-    5,
-    -1,
-};
-
-s16 D_neo_ark_forest_zone_8018223C[5] = {
-    1,
-    3,
-    4,
-    5,
-    -1,
-};
-
-s16 D_neo_ark_forest_zone_80182248[5] = {
-    1,
-    3,
-    4,
-    5,
-    -1,
-};
-
-s16 D_neo_ark_forest_zone_80182254[6] = {
-    1,
-    2,
-    3,
-    4,
-    5,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_neo_ark_forest_zone_80182224[i])
 s16* D_neo_ark_forest_zone_80182260[5] = {
-    D_neo_ark_forest_zone_80182224,
-    D_neo_ark_forest_zone_80182230,
-    D_neo_ark_forest_zone_8018223C,
-    D_neo_ark_forest_zone_80182248,
-    D_neo_ark_forest_zone_80182254,
+#include "assets/neo_ark_forest_zone_collision_04CB4_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_neo_ark_forest_zone_80182274[1] = {
     { NULL, D_neo_ark_forest_zone_8018216C, D_neo_ark_forest_zone_8018219C, D_neo_ark_forest_zone_801821DC, D_neo_ark_forest_zone_80182260, 8000, 1300, 5, 1, 4000, 6 },

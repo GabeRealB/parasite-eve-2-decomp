@@ -302,76 +302,26 @@ GpWarpRec D_shelter_r36_8017E9C4[2] = {
 };
 
 SVECTOR D_shelter_r36_8017EA34[1] = {
-    { 0, -4096, 0, 0 },
+#include "assets/shelter_r36_collision_014F0_normals.inc"
 };
 
 SVECTOR D_shelter_r36_8017EA3C[4] = {
-    { -4000, 0, 4000, 0 },
-    { 4000, 0, 4000, 0 },
-    { 4000, 0, -4000, 0 },
-    { -4000, 0, -4000, 0 },
+#include "assets/shelter_r36_collision_014F0_verts.inc"
 };
 
 GpGridFace D_shelter_r36_8017EA5C[1] = {
-    { { 1, 2, 0, 3 }, 0, 1 },
+#include "assets/shelter_r36_collision_014F0_faces.inc"
 };
 
-s16 D_shelter_r36_8017EA68[2] = {
-    0,
-    -1,
+s16 D_shelter_r36_8017EA68[18] = {
+#include "assets/shelter_r36_collision_014F0_cells.inc"
 };
 
-s16 D_shelter_r36_8017EA6C[2] = {
-    0,
-    -1,
-};
-
-s16 D_shelter_r36_8017EA70[2] = {
-    0,
-    -1,
-};
-
-s16 D_shelter_r36_8017EA74[2] = {
-    0,
-    -1,
-};
-
-s16 D_shelter_r36_8017EA78[2] = {
-    0,
-    -1,
-};
-
-s16 D_shelter_r36_8017EA7C[2] = {
-    0,
-    -1,
-};
-
-s16 D_shelter_r36_8017EA80[2] = {
-    0,
-    -1,
-};
-
-s16 D_shelter_r36_8017EA84[2] = {
-    0,
-    -1,
-};
-
-s16 D_shelter_r36_8017EA88[2] = {
-    0,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_shelter_r36_8017EA68[i])
 s16* D_shelter_r36_8017EA8C[9] = {
-    D_shelter_r36_8017EA68,
-    D_shelter_r36_8017EA6C,
-    D_shelter_r36_8017EA70,
-    D_shelter_r36_8017EA74,
-    D_shelter_r36_8017EA78,
-    D_shelter_r36_8017EA7C,
-    D_shelter_r36_8017EA80,
-    D_shelter_r36_8017EA84,
-    D_shelter_r36_8017EA88,
+#include "assets/shelter_r36_collision_014F0_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_r36_8017EAB0 = { NULL, D_shelter_r36_8017EA34, D_shelter_r36_8017EA3C, D_shelter_r36_8017EA5C, D_shelter_r36_8017EA8C, 4000, 4000, 3, 3, 4000, 1 };
 

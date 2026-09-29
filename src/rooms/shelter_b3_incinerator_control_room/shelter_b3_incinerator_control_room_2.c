@@ -96,161 +96,26 @@ GpWarpRec D_shelter_b3_incinerator_control_room_8018192C[4] = {
 };
 
 SVECTOR D_shelter_b3_incinerator_control_room_80181A0C[10] = {
-    { 4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
-    { -4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
-    { 2256, -3419, 0, 0 },
-    { -2336, 3364, 0, 0 },
-    { 0, -4096, 0, 0 },
-    { 0, 4096, 0, 0 },
-    { 3681, 0, -1798, 0 },
-    { -2397, 0, 3321, 0 },
+#include "assets/shelter_b3_incinerator_control_room_collision_04700_normals.inc"
 };
 
 SVECTOR D_shelter_b3_incinerator_control_room_80181A5C[27] = {
-    { -6742, -3000, 3500, 0 },
-    { -6742, 0, 3500, 0 },
-    { -6742, 0, -3500, 0 },
-    { -6742, -3000, -3500, 0 },
-    { 6880, 3800, -3500, 0 },
-    { 6880, 1000, -3500, 0 },
-    { 1120, -3000, -3500, 0 },
-    { 1120, 0, -3500, 0 },
-    { -4172, -3000, -2206, 0 },
-    { -4172, 0, -2206, 0 },
-    { -4172, 0, 3500, 0 },
-    { -4172, -3000, 3500, 0 },
-    { 6880, 3800, -2206, 0 },
-    { 1120, 0, -2206, 0 },
-    { 6880, 1000, -2206, 0 },
-    { 1120, -3000, -2206, 0 },
-    { 1120, -3000, -2103, 0 },
-    { 1120, 0, -3500, 0 },
-    { 1120, 0, -2103, 0 },
-    { -4400, 50, -1056, 0 },
-    { -4400, -3281, -1056, 0 },
-    { -4400, -3281, -2501, 0 },
-    { -4400, 50, -2501, 0 },
-    { -3593, -3281, -2501, 0 },
-    { -3593, 50, -2501, 0 },
-    { -2064, -3281, 629, 0 },
-    { -2064, 50, 629, 0 },
+#include "assets/shelter_b3_incinerator_control_room_collision_04700_verts.inc"
 };
 
 GpGridFace D_shelter_b3_incinerator_control_room_80181B34[19] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 5, 6, 4, 7 }, 1, 0 },
-    { { 9, 10, 8, 11 }, 2, 0 },
-    { { 10, 1, 11, 0 }, 3, 0 },
-    { { 4, 7, 12, 13 }, 4, 0 },
-    { { 5, 14, 6, 15 }, 5, 0 },
-    { { 12, 13, 14, 15 }, 3, 0 },
-    { { 13, 9, 15, 8 }, 3, 0 },
-    { { 2, 1, 9, 10 }, 6, 1 },
-    { { 8, 11, 3, 0 }, 7, 0 },
-    { { 6, 3, 7, 2 }, 1, 0 },
-    { { 15, 8, 6, 3 }, 7, 0 },
-    { { 7, 2, 13, 9 }, 6, 1 },
-    { { 5, 4, 14, 12 }, 2, 0 },
-    { { 6, 17, 16, 18 }, 2, 3 },
-    { { 20, 21, 19, 22 }, 2, 0 },
-    { { 21, 23, 22, 24 }, 3, 0 },
-    { { 23, 25, 24, 26 }, 8, 0 },
-    { { 25, 20, 26, 19 }, 9, 0 },
+#include "assets/shelter_b3_incinerator_control_room_collision_04700_faces.inc"
 };
 
-s16 D_shelter_b3_incinerator_control_room_80181C18[13] = {
-    0,
-    2,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    15,
-    16,
-    17,
-    18,
-    -1,
+s16 D_shelter_b3_incinerator_control_room_80181C18[68] = {
+#include "assets/shelter_b3_incinerator_control_room_collision_04700_cells.inc"
 };
 
-s16 D_shelter_b3_incinerator_control_room_80181C34[9] = {
-    0,
-    2,
-    3,
-    8,
-    9,
-    15,
-    17,
-    18,
-    -1,
-};
-
-s16 D_shelter_b3_incinerator_control_room_80181C48[17] = {
-    1,
-    2,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    14,
-    15,
-    16,
-    17,
-    18,
-    -1,
-};
-
-s16 D_shelter_b3_incinerator_control_room_80181C6C[7] = {
-    2,
-    3,
-    8,
-    9,
-    17,
-    18,
-    -1,
-};
-
-s16 D_shelter_b3_incinerator_control_room_80181C7C[11] = {
-    1,
-    4,
-    5,
-    6,
-    7,
-    10,
-    11,
-    12,
-    13,
-    14,
-    -1,
-};
-
-s16 D_shelter_b3_incinerator_control_room_80181C94[6] = {
-    1,
-    4,
-    5,
-    6,
-    13,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_shelter_b3_incinerator_control_room_80181C18[i])
 s16* D_shelter_b3_incinerator_control_room_80181CA0[8] = {
-    D_shelter_b3_incinerator_control_room_80181C18,
-    D_shelter_b3_incinerator_control_room_80181C34,
-    D_shelter_b3_incinerator_control_room_80181C48,
-    D_shelter_b3_incinerator_control_room_80181C6C,
-    D_shelter_b3_incinerator_control_room_80181C7C,
-    NULL,
-    D_shelter_b3_incinerator_control_room_80181C94,
-    NULL,
+#include "assets/shelter_b3_incinerator_control_room_collision_04700_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_b3_incinerator_control_room_80181CC0 = { NULL, D_shelter_b3_incinerator_control_room_80181A0C, D_shelter_b3_incinerator_control_room_80181A5C, D_shelter_b3_incinerator_control_room_80181B34, D_shelter_b3_incinerator_control_room_80181CA0, 6742, 3500, 4, 2, 4000, 19 };
 

@@ -130,103 +130,26 @@ GpWarpRec D_dryfield_g_r_kitchen_8017EC48[2] = {
 };
 
 SVECTOR D_dryfield_g_r_kitchen_8017ECB8[6] = {
-    { 0, 4096, 0, 0 },
-    { 0, 0, 4096, 0 },
-    { 4096, 0, 0, 0 },
-    { 0, -4096, 0, 0 },
-    { -4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
+#include "assets/dryfield_g_r_kitchen_collision_01900_normals.inc"
 };
 
 SVECTOR D_dryfield_g_r_kitchen_8017ECE8[26] = {
-    { 1500, -2900, 3000, 0 },
-    { -1500, -2900, 3000, 0 },
-    { -1500, -2900, -3000, 0 },
-    { 1500, -2900, -3000, 0 },
-    { -800, -600, 1300, 0 },
-    { -1800, -600, 1300, 0 },
-    { -1800, 200, 1300, 0 },
-    { -800, 200, 1300, 0 },
-    { -800, -600, -2300, 0 },
-    { -800, -600, 400, 0 },
-    { -800, 200, 400, 0 },
-    { -800, 200, -2300, 0 },
-    { -1800, -600, 400, 0 },
-    { 900, -600, 3600, 0 },
-    { 900, -3400, 3600, 0 },
-    { 900, -3400, -2300, 0 },
-    { 900, -600, -2300, 0 },
-    { -800, -3400, -2300, 0 },
-    { -1500, 0, 3000, 0 },
-    { 1500, 0, 3000, 0 },
-    { 1500, 0, -3000, 0 },
-    { -1500, 0, -3000, 0 },
-    { -800, -3400, 400, 0 },
-    { -1800, -3400, 400, 0 },
-    { 900, 200, -2300, 0 },
-    { 900, 200, 3600, 0 },
+#include "assets/dryfield_g_r_kitchen_collision_01900_verts.inc"
 };
 
 GpGridFace D_dryfield_g_r_kitchen_8017EDB8[16] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 5, 6, 4, 7 }, 1, 0 },
-    { { 9, 10, 8, 11 }, 2, 0 },
-    { { 5, 4, 12, 9 }, 3, 0 },
-    { { 14, 15, 13, 16 }, 4, 0 },
-    { { 16, 15, 8, 17 }, 1, 0 },
-    { { 4, 7, 9, 10 }, 2, 0 },
-    { { 19, 20, 18, 21 }, 3, 1 },
-    { { 9, 22, 12, 23 }, 1, 0 },
-    { { 8, 17, 9, 22 }, 2, 0 },
-    { { 8, 11, 16, 24 }, 1, 0 },
-    { { 16, 24, 13, 25 }, 4, 0 },
-    { { 19, 18, 0, 1 }, 5, 0 },
-    { { 18, 21, 1, 2 }, 2, 0 },
-    { { 21, 20, 2, 3 }, 1, 0 },
-    { { 20, 19, 3, 0 }, 4, 0 },
+#include "assets/dryfield_g_r_kitchen_collision_01900_faces.inc"
 };
 
-s16 D_dryfield_g_r_kitchen_8017EE78[17] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    -1,
+s16 D_dryfield_g_r_kitchen_8017EE78[32] = {
+#include "assets/dryfield_g_r_kitchen_collision_01900_cells.inc"
 };
 
-s16 D_dryfield_g_r_kitchen_8017EE9C[14] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    6,
-    7,
-    8,
-    9,
-    11,
-    12,
-    13,
-    15,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_dryfield_g_r_kitchen_8017EE78[i])
 s16* D_dryfield_g_r_kitchen_8017EEB8[2] = {
-    D_dryfield_g_r_kitchen_8017EE78,
-    D_dryfield_g_r_kitchen_8017EE9C,
+#include "assets/dryfield_g_r_kitchen_collision_01900_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_dryfield_g_r_kitchen_8017EEC0[1] = {
     { NULL, D_dryfield_g_r_kitchen_8017ECB8, D_dryfield_g_r_kitchen_8017ECE8, D_dryfield_g_r_kitchen_8017EDB8, D_dryfield_g_r_kitchen_8017EEB8, 1800, 3000, 1, 2, 4000, 16 },

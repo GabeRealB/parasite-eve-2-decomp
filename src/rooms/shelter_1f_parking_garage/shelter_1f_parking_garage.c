@@ -170,212 +170,26 @@ GpWarpRec D_shelter_1f_parking_garage_80180C84[2] = {
 };
 
 SVECTOR D_shelter_1f_parking_garage_80180CF4[11] = {
-    { 0, -4096, 0, 0 },
-    { 0, -1206, 3914, 0 },
-    { 0, 3881, -1308, 0 },
-    { 0, 1659, 3745, 0 },
-    { 0, -1208, -3914, 0 },
-    { 0, 1659, -3745, 0 },
-    { 0, 3881, 1308, 0 },
-    { -4096, 0, 0, 0 },
-    { 4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
-    { 0, 0, 4096, 0 },
+#include "assets/shelter_1f_parking_garage_collision_03A28_normals.inc"
 };
 
 SVECTOR D_shelter_1f_parking_garage_80180D4C[34] = {
-    { -500, 0, 2000, 0 },
-    { 0x2CEC, 0, 2000, 0 },
-    { 0x2CEC, 0, -2000, 0 },
-    { -500, 0, -2000, 0 },
-    { -500, 1, -1992, 0 },
-    { 0x2CEC, 1, -1992, 0 },
-    { 0x2CEC, -1654, -2502, 0 },
-    { -500, -1654, -2502, 0 },
-    { -500, -3905, 0, 0 },
-    { 0x2CEC, -3905, 0, 0 },
-    { 0x2CEC, -3309, 1769, 0 },
-    { -500, -3309, 1769, 0 },
-    { 0x2CEC, -3309, -1769, 0 },
-    { -500, -3309, -1769, 0 },
-    { -500, -1654, 2502, 0 },
-    { 0x2CEC, -1654, 2502, 0 },
-    { 0x2CEC, 1, 1991, 0 },
-    { -500, 1, 1991, 0 },
-    { 0x2904, 0, 6250, 0 },
-    { 0x2904, -6000, 6250, 0 },
-    { 0x2904, -6000, -6250, 0 },
-    { 0x2904, 0, -6250, 0 },
-    { -500, 0, -3000, 0 },
-    { -500, -6000, -3000, 0 },
-    { -500, -6000, 3000, 0 },
-    { -500, 0, 3000, 0 },
-    { 6405, 0, 840, 0 },
-    { 6405, -1680, 840, 0 },
-    { 6405, -1680, -840, 0 },
-    { 6405, 0, -840, 0 },
-    { 0x2959, -1680, -840, 0 },
-    { 0x2959, 0, -840, 0 },
-    { 0x2959, -1680, 840, 0 },
-    { 0x2959, 0, 840, 0 },
+#include "assets/shelter_1f_parking_garage_collision_03A28_verts.inc"
 };
 
 GpGridFace D_shelter_1f_parking_garage_80180E5C[13] = {
-    { { 1, 2, 0, 3 }, 0, 1 },
-    { { 5, 6, 4, 7 }, 1, 0 },
-    { { 9, 10, 8, 11 }, 2, 0 },
-    { { 6, 12, 7, 13 }, 3, 0 },
-    { { 15, 16, 14, 17 }, 4, 0 },
-    { { 10, 15, 11, 14 }, 5, 0 },
-    { { 12, 9, 13, 8 }, 6, 0 },
-    { { 19, 20, 18, 21 }, 7, 0 },
-    { { 23, 24, 22, 25 }, 8, 0 },
-    { { 27, 28, 26, 29 }, 7, 0 },
-    { { 28, 30, 29, 31 }, 9, 0 },
-    { { 32, 30, 27, 28 }, 0, 0 },
-    { { 32, 27, 33, 26 }, 10, 0 },
+#include "assets/shelter_1f_parking_garage_collision_03A28_faces.inc"
 };
 
-s16 D_shelter_1f_parking_garage_80180EF8[6] = {
-    0,
-    1,
-    3,
-    6,
-    8,
-    -1,
+s16 D_shelter_1f_parking_garage_80180EF8[88] = {
+#include "assets/shelter_1f_parking_garage_collision_03A28_cells.inc"
 };
 
-s16 D_shelter_1f_parking_garage_80180F04[9] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    8,
-    -1,
-};
-
-s16 D_shelter_1f_parking_garage_80180F18[6] = {
-    0,
-    2,
-    4,
-    5,
-    8,
-    -1,
-};
-
-s16 D_shelter_1f_parking_garage_80180F24[5] = {
-    0,
-    1,
-    3,
-    6,
-    -1,
-};
-
-s16 D_shelter_1f_parking_garage_80180F30[12] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    9,
-    10,
-    11,
-    12,
-    -1,
-};
-
-s16 D_shelter_1f_parking_garage_80180F48[5] = {
-    0,
-    2,
-    4,
-    5,
-    -1,
-};
-
-s16 D_shelter_1f_parking_garage_80180F54[6] = {
-    0,
-    1,
-    3,
-    6,
-    7,
-    -1,
-};
-
-s16 D_shelter_1f_parking_garage_80180F60[12] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    10,
-    11,
-    12,
-    -1,
-};
-
-s16 D_shelter_1f_parking_garage_80180F78[6] = {
-    0,
-    2,
-    4,
-    5,
-    7,
-    -1,
-};
-
-s16 D_shelter_1f_parking_garage_80180F84[2] = {
-    7,
-    -1,
-};
-
-s16 D_shelter_1f_parking_garage_80180F88[3] = {
-    1,
-    3,
-    -1,
-};
-
-s16 D_shelter_1f_parking_garage_80180F90[6] = {
-    0,
-    1,
-    2,
-    3,
-    6,
-    -1,
-};
-
-s16 D_shelter_1f_parking_garage_80180F9C[5] = {
-    0,
-    2,
-    4,
-    5,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_shelter_1f_parking_garage_80180EF8[i])
 s16* D_shelter_1f_parking_garage_80180FA8[16] = {
-    D_shelter_1f_parking_garage_80180EF8,
-    D_shelter_1f_parking_garage_80180F04,
-    D_shelter_1f_parking_garage_80180F18,
-    NULL,
-    D_shelter_1f_parking_garage_80180F24,
-    D_shelter_1f_parking_garage_80180F30,
-    D_shelter_1f_parking_garage_80180F48,
-    NULL,
-    D_shelter_1f_parking_garage_80180F54,
-    D_shelter_1f_parking_garage_80180F60,
-    D_shelter_1f_parking_garage_80180F78,
-    D_shelter_1f_parking_garage_80180F84,
-    D_shelter_1f_parking_garage_80180F88,
-    D_shelter_1f_parking_garage_80180F90,
-    D_shelter_1f_parking_garage_80180F9C,
-    NULL,
+#include "assets/shelter_1f_parking_garage_collision_03A28_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_1f_parking_garage_80180FE8[1] = {
     { NULL, D_shelter_1f_parking_garage_80180CF4, D_shelter_1f_parking_garage_80180D4C, D_shelter_1f_parking_garage_80180E5C, D_shelter_1f_parking_garage_80180FA8, 500, 6250, 4, 4, 4000, 13 },

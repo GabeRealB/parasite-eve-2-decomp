@@ -50,159 +50,26 @@ GpWarpRec D_shelter_1f_heliport_s4_8017D700[1] = {
 };
 
 SVECTOR D_shelter_1f_heliport_s4_8017D738[7] = {
-    { 0, 0, -4096, 0 },
-    { -4096, 0, 0, 0 },
-    { -2896, 0, 2896, 0 },
-    { 0, 0, 4096, 0 },
-    { 4096, 0, 0, 0 },
-    { 0, -4096, 0, 0 },
-    { 4096, 0, 0, 0 },
+#include "assets/shelter_1f_heliport_s4_collision_00408_normals.inc"
 };
 
 SVECTOR D_shelter_1f_heliport_s4_8017D770[34] = {
-    { 3000, 0, 6000, 0 },
-    { 3000, -3000, 6000, 0 },
-    { 9000, -3000, 6000, 0 },
-    { 9000, 0, 6000, 0 },
-    { 3000, 0, 8000, 0 },
-    { 3000, -3000, 8000, 0 },
-    { 9500, -3000, 6000, 0 },
-    { 9500, 0, 6000, 0 },
-    { 9000, -3000, 0, 0 },
-    { 9000, 0, 0, 0 },
-    { 9500, 0, 500, 0 },
-    { 9500, -3000, 500, 0 },
-    { 9000, -3000, -2000, 0 },
-    { 9000, 0, -2000, 0 },
-    { 9000, 0, 0, 0 },
-    { 9000, -3000, 0, 0 },
-    { 7000, -3000, -2000, 0 },
-    { 7000, 0, -2000, 0 },
-    { 7000, -3000, 1000, 0 },
-    { 7000, 0, 1000, 0 },
-    { 0, -3000, 1000, 0 },
-    { 0, 0, 1000, 0 },
-    { 0, 0, 0, 0 },
-    { 9000, 0, 0, 0 },
-    { 0, 0, -2000, 0 },
-    { 9000, 0, 7000, 0 },
-    { 0x2710, 0, 7000, 0 },
-    { 0x2710, 0, 0, 0 },
-    { 0, 0, 7000, 0 },
-    { 0, 0, 8000, 0 },
-    { 9000, 0, 8000, 0 },
-    { 0, -3000, 8000, 0 },
-    { 0, 0, 8000, 0 },
-    { 0, -3000, 8000, 0 },
+#include "assets/shelter_1f_heliport_s4_collision_00408_verts.inc"
 };
 
 GpGridFace D_shelter_1f_heliport_s4_8017D880[15] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 5, 1, 4, 0 }, 1, 0 },
-    { { 7, 3, 6, 2 }, 0, 0 },
-    { { 9, 10, 8, 11 }, 2, 0 },
-    { { 10, 7, 11, 6 }, 1, 0 },
-    { { 13, 14, 12, 15 }, 1, 0 },
-    { { 17, 13, 16, 12 }, 3, 0 },
-    { { 16, 18, 17, 19 }, 4, 0 },
-    { { 18, 20, 19, 21 }, 3, 0 },
-    { { 23, 13, 22, 24 }, 5, 0 },
-    { { 25, 26, 23, 27 }, 5, 0 },
-    { { 22, 28, 23, 25 }, 5, 0 },
-    { { 29, 30, 28, 25 }, 5, 0 },
-    { { 20, 31, 21, 29 }, 6, 0 },
-    { { 33, 5, 32, 4 }, 0, 0 },
+#include "assets/shelter_1f_heliport_s4_collision_00408_faces.inc"
 };
 
-s16 D_shelter_1f_heliport_s4_8017D934[5] = {
-    8,
-    9,
-    11,
-    13,
-    -1,
+s16 D_shelter_1f_heliport_s4_8017D934[56] = {
+#include "assets/shelter_1f_heliport_s4_collision_00408_cells.inc"
 };
 
-s16 D_shelter_1f_heliport_s4_8017D940[5] = {
-    0,
-    1,
-    11,
-    13,
-    -1,
-};
-
-s16 D_shelter_1f_heliport_s4_8017D94C[7] = {
-    0,
-    1,
-    11,
-    12,
-    13,
-    14,
-    -1,
-};
-
-s16 D_shelter_1f_heliport_s4_8017D95C[6] = {
-    6,
-    7,
-    8,
-    9,
-    11,
-    -1,
-};
-
-s16 D_shelter_1f_heliport_s4_8017D968[3] = {
-    0,
-    11,
-    -1,
-};
-
-s16 D_shelter_1f_heliport_s4_8017D970[4] = {
-    0,
-    11,
-    12,
-    -1,
-};
-
-s16 D_shelter_1f_heliport_s4_8017D978[8] = {
-    3,
-    4,
-    5,
-    6,
-    9,
-    10,
-    11,
-    -1,
-};
-
-s16 D_shelter_1f_heliport_s4_8017D988[6] = {
-    0,
-    2,
-    4,
-    10,
-    11,
-    -1,
-};
-
-s16 D_shelter_1f_heliport_s4_8017D994[7] = {
-    0,
-    2,
-    4,
-    10,
-    11,
-    12,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_shelter_1f_heliport_s4_8017D934[i])
 s16* D_shelter_1f_heliport_s4_8017D9A4[9] = {
-    D_shelter_1f_heliport_s4_8017D934,
-    D_shelter_1f_heliport_s4_8017D940,
-    D_shelter_1f_heliport_s4_8017D94C,
-    D_shelter_1f_heliport_s4_8017D95C,
-    D_shelter_1f_heliport_s4_8017D968,
-    D_shelter_1f_heliport_s4_8017D970,
-    D_shelter_1f_heliport_s4_8017D978,
-    D_shelter_1f_heliport_s4_8017D988,
-    D_shelter_1f_heliport_s4_8017D994,
+#include "assets/shelter_1f_heliport_s4_collision_00408_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_1f_heliport_s4_8017D9C8 = { NULL, D_shelter_1f_heliport_s4_8017D738, D_shelter_1f_heliport_s4_8017D770, D_shelter_1f_heliport_s4_8017D880, D_shelter_1f_heliport_s4_8017D9A4, 0, 2000, 3, 3, 4000, 15 };
 

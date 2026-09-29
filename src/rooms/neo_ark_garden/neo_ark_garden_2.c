@@ -118,158 +118,26 @@ GpWarpRec D_neo_ark_garden_8018142C[3] = {
 };
 
 SVECTOR D_neo_ark_garden_801814D4[5] = {
-    { 4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
-    { -4096, 0, 0, 0 },
-    { 0, -4096, 0, 0 },
-    { 0, 0, 4096, 0 },
+#include "assets/neo_ark_garden_collision_04104_normals.inc"
 };
 
 SVECTOR D_neo_ark_garden_801814FC[22] = {
-    { -4800, -1000, -0x2FA8, 0 },
-    { -4800, 0, -0x2FA8, 0 },
-    { -4800, 0, -0x3778, 0 },
-    { -4800, -1000, -0x3778, 0 },
-    { -1200, -1000, -0x2FA8, 0 },
-    { -1200, 0, -0x2FA8, 0 },
-    { -1200, -1000, -0x3778, 0 },
-    { -1200, 0, -0x3778, 0 },
-    { 1800, -1000, -0x3778, 0 },
-    { 1800, 0, -0x3778, 0 },
-    { -8800, 0, -0x3778, 0 },
-    { -8800, -1000, -0x3778, 0 },
-    { -0x2710, 0, -0x4E20, 0 },
-    { -0x2710, 0, -0x2AF8, 0 },
-    { 3000, 0, -0x2AF8, 0 },
-    { 3000, 0, -0x4E20, 0 },
-    { -8800, -3000, -0x3778, 0 },
-    { -8800, 0, -0x4A38, 0 },
-    { -8800, -3000, -0x4A38, 0 },
-    { 1800, 0, -0x4A38, 0 },
-    { 1800, -3000, -0x4A38, 0 },
-    { 1800, -3000, -0x3778, 0 },
+#include "assets/neo_ark_garden_collision_04104_verts.inc"
 };
 
 GpGridFace D_neo_ark_garden_801815AC[9] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 4, 5, 0, 1 }, 1, 0 },
-    { { 7, 5, 6, 4 }, 2, 0 },
-    { { 6, 8, 7, 9 }, 1, 0 },
-    { { 2, 10, 3, 11 }, 1, 0 },
-    { { 13, 14, 12, 15 }, 3, 4 },
-    { { 10, 17, 16, 18 }, 0, 0 },
-    { { 17, 19, 18, 20 }, 4, 0 },
-    { { 19, 9, 20, 21 }, 2, 0 },
+#include "assets/neo_ark_garden_collision_04104_faces.inc"
 };
 
-s16 D_neo_ark_garden_80181618[5] = {
-    4,
-    5,
-    6,
-    7,
-    -1,
+s16 D_neo_ark_garden_80181618[62] = {
+#include "assets/neo_ark_garden_collision_04104_cells.inc"
 };
 
-s16 D_neo_ark_garden_80181624[6] = {
-    0,
-    1,
-    4,
-    5,
-    6,
-    -1,
-};
-
-s16 D_neo_ark_garden_80181630[4] = {
-    0,
-    1,
-    5,
-    -1,
-};
-
-s16 D_neo_ark_garden_80181638[5] = {
-    0,
-    4,
-    5,
-    7,
-    -1,
-};
-
-s16 D_neo_ark_garden_80181644[7] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    -1,
-};
-
-s16 D_neo_ark_garden_80181654[5] = {
-    0,
-    1,
-    2,
-    5,
-    -1,
-};
-
-s16 D_neo_ark_garden_80181660[6] = {
-    2,
-    3,
-    5,
-    7,
-    8,
-    -1,
-};
-
-s16 D_neo_ark_garden_8018166C[6] = {
-    1,
-    2,
-    3,
-    5,
-    8,
-    -1,
-};
-
-s16 D_neo_ark_garden_80181678[4] = {
-    1,
-    2,
-    5,
-    -1,
-};
-
-s16 D_neo_ark_garden_80181680[4] = {
-    5,
-    7,
-    8,
-    -1,
-};
-
-s16 D_neo_ark_garden_80181688[4] = {
-    3,
-    5,
-    8,
-    -1,
-};
-
-s16 D_neo_ark_garden_80181690[2] = {
-    5,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_neo_ark_garden_80181618[i])
 s16* D_neo_ark_garden_80181694[12] = {
-    D_neo_ark_garden_80181618,
-    D_neo_ark_garden_80181624,
-    D_neo_ark_garden_80181630,
-    D_neo_ark_garden_80181638,
-    D_neo_ark_garden_80181644,
-    D_neo_ark_garden_80181654,
-    D_neo_ark_garden_80181660,
-    D_neo_ark_garden_8018166C,
-    D_neo_ark_garden_80181678,
-    D_neo_ark_garden_80181680,
-    D_neo_ark_garden_80181688,
-    D_neo_ark_garden_80181690,
+#include "assets/neo_ark_garden_collision_04104_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_neo_ark_garden_801816C4[1] = {
     { NULL, D_neo_ark_garden_801814D4, D_neo_ark_garden_801814FC, D_neo_ark_garden_801815AC, D_neo_ark_garden_80181694, 0x2710, 0x4E20, 4, 3, 4000, 9 },

@@ -979,94 +979,26 @@ GpWarpRec D_mist_r18_8018662C[1] = {
 };
 
 SVECTOR D_mist_r18_80186664[1] = {
-    { 0, -4096, 0, 0 },
+#include "assets/mist_r18_collision_09138_normals.inc"
 };
 
 SVECTOR D_mist_r18_8018666C[4] = {
-    { -7000, 0, 6000, 0 },
-    { 7000, 0, 6000, 0 },
-    { 7000, 0, -5000, 0 },
-    { -7000, 0, -5000, 0 },
+#include "assets/mist_r18_collision_09138_verts.inc"
 };
 
 GpGridFace D_mist_r18_8018668C[1] = {
-    { { 1, 2, 0, 3 }, 0, 1 },
+#include "assets/mist_r18_collision_09138_faces.inc"
 };
 
-s16 D_mist_r18_80186698[2] = {
-    0,
-    -1,
+s16 D_mist_r18_80186698[24] = {
+#include "assets/mist_r18_collision_09138_cells.inc"
 };
 
-s16 D_mist_r18_8018669C[2] = {
-    0,
-    -1,
-};
-
-s16 D_mist_r18_801866A0[2] = {
-    0,
-    -1,
-};
-
-s16 D_mist_r18_801866A4[2] = {
-    0,
-    -1,
-};
-
-s16 D_mist_r18_801866A8[2] = {
-    0,
-    -1,
-};
-
-s16 D_mist_r18_801866AC[2] = {
-    0,
-    -1,
-};
-
-s16 D_mist_r18_801866B0[2] = {
-    0,
-    -1,
-};
-
-s16 D_mist_r18_801866B4[2] = {
-    0,
-    -1,
-};
-
-s16 D_mist_r18_801866B8[2] = {
-    0,
-    -1,
-};
-
-s16 D_mist_r18_801866BC[2] = {
-    0,
-    -1,
-};
-
-s16 D_mist_r18_801866C0[2] = {
-    0,
-    -1,
-};
-
-s16 D_mist_r18_801866C4[2] = {
-    0,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_mist_r18_80186698[i])
 s16* D_mist_r18_801866C8[12] = {
-    D_mist_r18_80186698,
-    D_mist_r18_8018669C,
-    D_mist_r18_801866A0,
-    D_mist_r18_801866A4,
-    D_mist_r18_801866A8,
-    D_mist_r18_801866AC,
-    D_mist_r18_801866B0,
-    D_mist_r18_801866B4,
-    D_mist_r18_801866B8,
-    D_mist_r18_801866BC,
-    D_mist_r18_801866C0,
-    D_mist_r18_801866C4,
+#include "assets/mist_r18_collision_09138_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_mist_r18_801866F8[1] = {
     { NULL, D_mist_r18_80186664, D_mist_r18_8018666C, D_mist_r18_8018668C, D_mist_r18_801866C8, 7000, 5000, 4, 3, 4000, 1 },

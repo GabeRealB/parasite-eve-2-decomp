@@ -120,200 +120,26 @@ GpWarpRec D_shelter_b2_north_maintenance_walkway_80183C64[2] = {
 };
 
 SVECTOR D_shelter_b2_north_maintenance_walkway_80183CD4[14] = {
-    { 0, 4096, 0, 0 },
-    { 2613, -3154, 0, 0 },
-    { -2704, -3077, 0, 0 },
-    { 0, 862, 4004, 0 },
-    { 0, 0, 4096, 0 },
-    { 0, 774, -4022, 0 },
-    { 0, 0, -4096, 0 },
-    { 0, -3154, 2613, 0 },
-    { 0, -3077, -2704, 0 },
-    { -4022, 774, 0, 0 },
-    { -4096, 0, 0, 0 },
-    { 4004, 862, 0, 0 },
-    { 4096, 0, 0, 0 },
-    { 0, -4096, 0, 0 },
+#include "assets/shelter_b2_north_maintenance_walkway_collision_06A5C_normals.inc"
 };
 
 SVECTOR D_shelter_b2_north_maintenance_walkway_80183D44[38] = {
-    { 2930, -2600, 4900, 0 },
-    { 1090, -2600, 3120, 0 },
-    { 1090, -2600, -4930, 0 },
-    { 2930, -2600, -4930, 0 },
-    { 810, -1300, 2840, 0 },
-    { 1160, -1010, 3190, 0 },
-    { 1160, -1010, -4930, 0 },
-    { 810, -1300, -4930, 0 },
-    { 3180, -1300, -4930, 0 },
-    { 2850, -1010, -4930, 0 },
-    { 2850, -1010, 4820, 0 },
-    { 3180, -1300, 5150, 0 },
-    { -2870, -2600, 4900, 0 },
-    { -2870, -2600, 3120, 0 },
-    { -2870, -1300, 2840, 0 },
-    { 1160, 0, 3190, 0 },
-    { -2870, -1010, 3190, 0 },
-    { -2870, 0, 3190, 0 },
-    { -2870, -1300, 5150, 0 },
-    { 2850, 0, 4820, 0 },
-    { -2870, 0, 4820, 0 },
-    { -2870, -1010, 4820, 0 },
-    { 2850, 0, -4930, 0 },
-    { 1160, 0, -4930, 0 },
-    { 1065, 0, 3098, 0 },
-    { 2935, 0, 4902, 0 },
-    { 2935, 0, -4937, 0 },
-    { 1065, 0, -4937, 0 },
-    { -2872, 0, 3098, 0 },
-    { -2872, 0, 4902, 0 },
-    { -2870, 150, 2700, 0 },
-    { -2870, -2690, 2700, 0 },
-    { -2870, -2690, 5300, 0 },
-    { -2870, 150, 5300, 0 },
-    { 3330, 150, -4930, 0 },
-    { 3330, -2690, -4930, 0 },
-    { 730, -2690, -4930, 0 },
-    { 730, 150, -4930, 0 },
+#include "assets/shelter_b2_north_maintenance_walkway_collision_06A5C_verts.inc"
 };
 
 GpGridFace D_shelter_b2_north_maintenance_walkway_80183E74[18] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 5, 6, 4, 7 }, 1, 0 },
-    { { 9, 10, 8, 11 }, 2, 0 },
-    { { 0, 12, 1, 13 }, 0, 0 },
-    { { 1, 13, 4, 14 }, 3, 0 },
-    { { 5, 16, 15, 17 }, 4, 0 },
-    { { 12, 0, 18, 11 }, 5, 0 },
-    { { 19, 20, 10, 21 }, 6, 0 },
-    { { 4, 14, 5, 16 }, 7, 0 },
-    { { 10, 21, 11, 18 }, 8, 0 },
-    { { 0, 3, 11, 8 }, 9, 0 },
-    { { 22, 19, 9, 10 }, 10, 0 },
-    { { 2, 1, 7, 4 }, 11, 0 },
-    { { 15, 23, 5, 6 }, 12, 0 },
-    { { 25, 26, 24, 27 }, 13, 1 },
-    { { 24, 28, 25, 29 }, 13, 1 },
-    { { 31, 32, 30, 33 }, 12, 0 },
-    { { 35, 36, 34, 37 }, 4, 0 },
+#include "assets/shelter_b2_north_maintenance_walkway_collision_06A5C_faces.inc"
 };
 
-s16 D_shelter_b2_north_maintenance_walkway_80183F4C[10] = {
-    0,
-    1,
-    2,
-    10,
-    11,
-    12,
-    13,
-    14,
-    17,
-    -1,
+s16 D_shelter_b2_north_maintenance_walkway_80183F4C[92] = {
+#include "assets/shelter_b2_north_maintenance_walkway_collision_06A5C_cells.inc"
 };
 
-s16 D_shelter_b2_north_maintenance_walkway_80183F60[18] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    -1,
-};
-
-s16 D_shelter_b2_north_maintenance_walkway_80183F84[18] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    -1,
-};
-
-s16 D_shelter_b2_north_maintenance_walkway_80183FA8[10] = {
-    0,
-    1,
-    2,
-    10,
-    11,
-    12,
-    13,
-    14,
-    17,
-    -1,
-};
-
-s16 D_shelter_b2_north_maintenance_walkway_80183FBC[17] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    -1,
-};
-
-s16 D_shelter_b2_north_maintenance_walkway_80183FE0[17] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_shelter_b2_north_maintenance_walkway_80183F4C[i])
 s16* D_shelter_b2_north_maintenance_walkway_80184004[6] = {
-    D_shelter_b2_north_maintenance_walkway_80183F4C,
-    D_shelter_b2_north_maintenance_walkway_80183F60,
-    D_shelter_b2_north_maintenance_walkway_80183F84,
-    D_shelter_b2_north_maintenance_walkway_80183FA8,
-    D_shelter_b2_north_maintenance_walkway_80183FBC,
-    D_shelter_b2_north_maintenance_walkway_80183FE0,
+#include "assets/shelter_b2_north_maintenance_walkway_collision_06A5C_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_b2_north_maintenance_walkway_8018401C = { NULL, D_shelter_b2_north_maintenance_walkway_80183CD4, D_shelter_b2_north_maintenance_walkway_80183D44, D_shelter_b2_north_maintenance_walkway_80183E74, D_shelter_b2_north_maintenance_walkway_80184004, 2872, 4937, 2, 3, 4000, 18 };
 

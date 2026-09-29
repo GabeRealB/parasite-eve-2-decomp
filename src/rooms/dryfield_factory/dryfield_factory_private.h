@@ -35,24 +35,6 @@ extern GpGridParams D_dryfield_factory_80186E04;
 
 extern TaskDesc D_dryfield_factory_80186E94[1];
 
-extern SVECTOR D_dryfield_factory_80187008[28];
-
-extern SVECTOR D_dryfield_factory_801870E8[170];
-
-extern GpGridFace D_dryfield_factory_80187638[72];
-
-extern s16 D_dryfield_factory_80187998[44];
-
-extern s16 D_dryfield_factory_801879F0[58];
-
-extern s16 D_dryfield_factory_80187A64[35];
-
-extern s16 D_dryfield_factory_80187AAC[16];
-
-extern s16 D_dryfield_factory_80187ACC[32];
-
-extern s16 D_dryfield_factory_80187B0C[48];
-
 // Callbacks referenced by the overlay's shared data tables.
 void func_dryfield_factory_8017D85C(Task*);
 

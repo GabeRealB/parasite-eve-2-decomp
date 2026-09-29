@@ -230,71 +230,26 @@ GpWarpRec D_neo_ark_r26_8017E0EC[1] = {
 };
 
 SVECTOR D_neo_ark_r26_8017E124[1] = {
-    { 0, -4096, 0, 0 },
+#include "assets/neo_ark_r26_collision_00BDC_normals.inc"
 };
 
 SVECTOR D_neo_ark_r26_8017E12C[4] = {
-    { -4000, 0, 4000, 0 },
-    { 4000, 0, 4000, 0 },
-    { 4000, 0, -4000, 0 },
-    { -4000, 0, -4000, 0 },
+#include "assets/neo_ark_r26_collision_00BDC_verts.inc"
 };
 
 GpGridFace D_neo_ark_r26_8017E14C[1] = {
-    { { 1, 2, 0, 3 }, 0, 1 },
+#include "assets/neo_ark_r26_collision_00BDC_faces.inc"
 };
 
-s16 D_neo_ark_r26_8017E158[2] = {
-    0,
-    -1,
+s16 D_neo_ark_r26_8017E158[16] = {
+#include "assets/neo_ark_r26_collision_00BDC_cells.inc"
 };
 
-s16 D_neo_ark_r26_8017E15C[2] = {
-    0,
-    -1,
-};
-
-s16 D_neo_ark_r26_8017E160[2] = {
-    0,
-    -1,
-};
-
-s16 D_neo_ark_r26_8017E164[2] = {
-    0,
-    -1,
-};
-
-s16 D_neo_ark_r26_8017E168[2] = {
-    0,
-    -1,
-};
-
-s16 D_neo_ark_r26_8017E16C[2] = {
-    0,
-    -1,
-};
-
-s16 D_neo_ark_r26_8017E170[2] = {
-    0,
-    -1,
-};
-
-s16 D_neo_ark_r26_8017E174[2] = {
-    0,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_neo_ark_r26_8017E158[i])
 s16* D_neo_ark_r26_8017E178[9] = {
-    D_neo_ark_r26_8017E158,
-    D_neo_ark_r26_8017E15C,
-    D_neo_ark_r26_8017E160,
-    D_neo_ark_r26_8017E164,
-    D_neo_ark_r26_8017E168,
-    D_neo_ark_r26_8017E16C,
-    D_neo_ark_r26_8017E170,
-    D_neo_ark_r26_8017E174,
-    NULL,
+#include "assets/neo_ark_r26_collision_00BDC_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_neo_ark_r26_8017E19C[1] = {
     { NULL, D_neo_ark_r26_8017E124, D_neo_ark_r26_8017E12C, D_neo_ark_r26_8017E14C, D_neo_ark_r26_8017E178, 4000, 4000, 3, 3, 4000, 1 },

@@ -75,19 +75,12 @@ D_dryfield_factory_80187008 = 0x80187008; // size:0xE0 defined:True
 D_dryfield_factory_801870E8 = 0x801870E8; // size:0x550 defined:True
 D_dryfield_factory_80187638 = 0x80187638; // size:0x360 defined:True
 D_dryfield_factory_80187998 = 0x80187998; // size:0x58 defined:True
-D_dryfield_factory_801879F0 = 0x801879F0; // size:0x74 defined:True
-D_dryfield_factory_80187A64 = 0x80187A64; // size:0x46 defined:True
-D_dryfield_factory_80187AAC = 0x80187AAC; // size:0x20 defined:True
-D_dryfield_factory_80187ACC = 0x80187ACC; // size:0x40 defined:True
-D_dryfield_factory_80187B0C = 0x80187B0C; // size:0x60 defined:True
 D_dryfield_night_factory_80186EA0 = 0x80186EA0; // absolute:True owner=dryfield_night_factory
 D_dryfield_factory_80186E88 = 0x80186E88; // size:0xC defined:True
 D_dryfield_factory_80186E94 = 0x80186E94; // size:0xC defined:True
 D_dryfield_factory_80186EA0 = 0x80186EA0; // rom:0x98E0 size:0x10 defined:True
 D_dryfield_night_factory_80186DE0 = 0x80186DE0; // absolute:True owner=dryfield_night_factory
 D_dryfield_night_factory_80187BF0 = 0x80187BF0; // absolute:True owner=dryfield_night_factory
-D_dryfield_factory_80187B6C = 0x80187B6C; // size:0x46 defined:True
-D_dryfield_factory_80187BB4 = 0x80187BB4; // size:0x24 defined:True
 D_dryfield_factory_80187BD8 = 0x80187BD8; // size:0x20 defined:True
 D_dryfield_factory_801826B0 = 0x801826B0; // size:0xC defined:True
 D_dryfield_factory_801826BC = 0x801826BC; // size:0x18 defined:True
@@ -114,14 +107,12 @@ D_dryfield_factory_80186C8C = 0x80186C8C; // size:0x20 defined:True
 D_dryfield_factory_80186CAC = 0x80186CAC; // size:0x40 defined:True
 D_dryfield_factory_80186CEC = 0x80186CEC; // size:0x30 defined:True
 D_dryfield_factory_80186D1C = 0x80186D1C; // size:0xA defined:True
-D_dryfield_factory_80186D28 = 0x80186D28; // size:0x8 defined:True
 D_dryfield_factory_80186D30 = 0x80186D30; // size:0x8 defined:True
 D_dryfield_factory_80186D38 = 0x80186D38; // size:0x24 defined:True
 D_dryfield_factory_80186D5C = 0x80186D5C; // size:0x20 defined:True
 D_dryfield_factory_80186D7C = 0x80186D7C; // size:0x40 defined:True
 D_dryfield_factory_80186DBC = 0x80186DBC; // size:0x30 defined:True
 D_dryfield_factory_80186DEC = 0x80186DEC; // size:0x8 defined:True
-D_dryfield_factory_80186DF4 = 0x80186DF4; // size:0x8 defined:True
 D_dryfield_factory_80186DFC = 0x80186DFC; // size:0x8 defined:True
 D_dryfield_factory_80186E04 = 0x80186E04; // size:0x24 defined:True
 D_dryfield_factory_80186E28 = 0x80186E28; // size:0x60 defined:True

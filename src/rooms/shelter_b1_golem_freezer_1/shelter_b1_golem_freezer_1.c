@@ -80,28 +80,26 @@ s16 D_shelter_b1_golem_freezer_1_8017E6D0[3] = {
 };
 
 SVECTOR D_shelter_b1_golem_freezer_1_8017E6D8[1] = {
-    { -1404, 0, 3848, 0 },
+#include "assets/shelter_b1_golem_freezer_1_collision_01154_normals.inc"
 };
 
 SVECTOR D_shelter_b1_golem_freezer_1_8017E6E0[4] = {
-    { 592, 500, 918, 0 },
-    { 592, -873, 918, 0 },
-    { -679, -873, 454, 0 },
-    { -679, 500, 454, 0 },
+#include "assets/shelter_b1_golem_freezer_1_collision_01154_verts.inc"
 };
 
 GpGridFace D_shelter_b1_golem_freezer_1_8017E700[1] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
+#include "assets/shelter_b1_golem_freezer_1_collision_01154_faces.inc"
 };
 
 s16 D_shelter_b1_golem_freezer_1_8017E70C[2] = {
-    0,
-    -1,
+#include "assets/shelter_b1_golem_freezer_1_collision_01154_cells.inc"
 };
 
+#define GRID_CELL(i) (&D_shelter_b1_golem_freezer_1_8017E70C[i])
 s16* D_shelter_b1_golem_freezer_1_8017E710[1] = {
-    D_shelter_b1_golem_freezer_1_8017E70C,
+#include "assets/shelter_b1_golem_freezer_1_collision_01154_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_b1_golem_freezer_1_8017E714 = { NULL, D_shelter_b1_golem_freezer_1_8017E6D8, D_shelter_b1_golem_freezer_1_8017E6E0, D_shelter_b1_golem_freezer_1_8017E700, D_shelter_b1_golem_freezer_1_8017E710, 679, -454, 1, 1, 4000, 1 };
 
@@ -136,97 +134,26 @@ GpWarpRec D_shelter_b1_golem_freezer_1_8017E798[1] = {
 };
 
 SVECTOR D_shelter_b1_golem_freezer_1_8017E7D0[9] = {
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
-    { -4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
-    { 0, -4096, 0, 0 },
+#include "assets/shelter_b1_golem_freezer_1_collision_01400_normals.inc"
 };
 
 SVECTOR D_shelter_b1_golem_freezer_1_8017E818[28] = {
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 470, -3429, 1440, 0 },
-    { 470, 0, 1440, 0 },
-    { 470, 0, 280, 0 },
-    { 470, -3429, 280, 0 },
-    { 7180, 0, 280, 0 },
-    { 7180, -3429, 280, 0 },
-    { 7180, 0, 2240, 0 },
-    { 7180, -3429, 2240, 0 },
-    { 5500, -3429, 1440, 0 },
-    { 5500, 0, 1440, 0 },
-    { 5500, 0, 2240, 0 },
-    { 5500, -3429, 2240, 0 },
+#include "assets/shelter_b1_golem_freezer_1_collision_01400_verts.inc"
 };
 
 GpGridFace D_shelter_b1_golem_freezer_1_8017E8F8[12] = {
-    { { 0, 0, 0, 0 }, 0, 0 },
-    { { 0, 0, 0, 0 }, 0, 0 },
-    { { 0, 0, 0, 0 }, 0, 0 },
-    { { 0, 0, 0, 0 }, 0, 0 },
-    { { 17, 18, 16, 19 }, 4, 0 },
-    { { 18, 20, 19, 21 }, 5, 0 },
-    { { 20, 22, 21, 23 }, 6, 0 },
-    { { 25, 17, 24, 16 }, 7, 0 },
-    { { 25, 26, 20, 22 }, 8, 1 },
-    { { 26, 27, 22, 23 }, 7, 0 },
-    { { 25, 24, 26, 27 }, 4, 0 },
-    { { 20, 18, 25, 17 }, 8, 1 },
+#include "assets/shelter_b1_golem_freezer_1_collision_01400_faces.inc"
 };
 
-s16 D_shelter_b1_golem_freezer_1_8017E988[12] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    7,
-    8,
-    9,
-    10,
-    11,
-    -1,
+s16 D_shelter_b1_golem_freezer_1_8017E988[24] = {
+#include "assets/shelter_b1_golem_freezer_1_collision_01400_cells.inc"
 };
 
-s16 D_shelter_b1_golem_freezer_1_8017E9A0[12] = {
-    0,
-    1,
-    2,
-    3,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_shelter_b1_golem_freezer_1_8017E988[i])
 s16* D_shelter_b1_golem_freezer_1_8017E9B8[2] = {
-    D_shelter_b1_golem_freezer_1_8017E988,
-    D_shelter_b1_golem_freezer_1_8017E9A0,
+#include "assets/shelter_b1_golem_freezer_1_collision_01400_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_b1_golem_freezer_1_8017E9C0 = { NULL, D_shelter_b1_golem_freezer_1_8017E7D0, D_shelter_b1_golem_freezer_1_8017E818, D_shelter_b1_golem_freezer_1_8017E8F8, D_shelter_b1_golem_freezer_1_8017E9B8, -470, -280, 2, 1, 4000, 12 };
 

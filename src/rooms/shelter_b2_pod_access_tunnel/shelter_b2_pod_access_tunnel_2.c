@@ -217,169 +217,26 @@ GpWarpRec D_shelter_b2_pod_access_tunnel_80183E30[3] = {
 };
 
 SVECTOR D_shelter_b2_pod_access_tunnel_80183ED8[5] = {
-    { 0, 0, 4096, 0 },
-    { 0, 0, -4096, 0 },
-    { -4096, 0, 0, 0 },
-    { 4096, 0, 0, 0 },
-    { 0, -4096, 0, 0 },
+#include "assets/shelter_b2_pod_access_tunnel_collision_06BF4_normals.inc"
 };
 
 SVECTOR D_shelter_b2_pod_access_tunnel_80183F00[40] = {
-    { 3750, 0, -3000, 0 },
-    { 3750, -3224, -3000, 0 },
-    { 3000, -3224, -3000, 0 },
-    { 3000, 0, -3000, 0 },
-    { 5750, -3224, -3000, 0 },
-    { 5750, 0, -3000, 0 },
-    { 750, -3200, -750, 0 },
-    { 6450, -3200, -750, 0 },
-    { 6450, 100, -750, 0 },
-    { 750, 100, -750, 0 },
-    { 2750, 100, -0x2B8E, 0 },
-    { 2750, 100, -2750, 0 },
-    { 2750, -3200, -2750, 0 },
-    { 2750, -3200, -0x2B8E, 0 },
-    { 6389, 100, -2750, 0 },
-    { 6389, -3200, -2750, 0 },
-    { 3000, -3224, -0x2AF8, 0 },
-    { 3000, 0, -0x2AF8, 0 },
-    { 500, -3224, -500, 0 },
-    { 500, 0, -500, 0 },
-    { 500, 0, -3000, 0 },
-    { 500, -3224, -3000, 0 },
-    { 500, 0, -0x2AF8, 0 },
-    { 500, -3224, -0x2AF8, 0 },
-    { 6250, 0, -3000, 0 },
-    { 6250, -3224, -3000, 0 },
-    { 750, -3200, -0x2B8E, 0 },
-    { 750, 100, -0x2B8E, 0 },
-    { 3000, -3224, -500, 0 },
-    { 3000, 0, -500, 0 },
-    { 6250, 0, -500, 0 },
-    { 6250, -3224, -500, 0 },
-    { 3000, 0, -3000, 0 },
-    { 3000, 0, -0x2AF8, 0 },
-    { 500, 0, -0x2AF8, 0 },
-    { 500, 0, -3000, 0 },
-    { 3000, 0, -500, 0 },
-    { 6300, 0, -500, 0 },
-    { 6300, 0, -3000, 0 },
-    { 500, 0, -500, 0 },
+#include "assets/shelter_b2_pod_access_tunnel_collision_06BF4_verts.inc"
 };
 
 GpGridFace D_shelter_b2_pod_access_tunnel_80184040[17] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 1, 0, 4, 5 }, 0, 0 },
-    { { 7, 8, 6, 9 }, 1, 0 },
-    { { 11, 12, 10, 13 }, 2, 0 },
-    { { 15, 12, 14, 11 }, 0, 0 },
-    { { 17, 3, 16, 2 }, 2, 0 },
-    { { 19, 20, 18, 21 }, 3, 0 },
-    { { 20, 22, 21, 23 }, 3, 0 },
-    { { 5, 24, 4, 25 }, 0, 0 },
-    { { 6, 9, 26, 27 }, 3, 0 },
-    { { 22, 17, 23, 16 }, 0, 0 },
-    { { 29, 19, 28, 18 }, 1, 0 },
-    { { 24, 30, 25, 31 }, 2, 0 },
-    { { 30, 29, 31, 28 }, 1, 0 },
-    { { 33, 34, 32, 35 }, 4, 3 },
-    { { 37, 38, 36, 32 }, 4, 3 },
-    { { 36, 32, 39, 35 }, 4, 3 },
+#include "assets/shelter_b2_pod_access_tunnel_collision_06BF4_faces.inc"
 };
 
-s16 D_shelter_b2_pod_access_tunnel_8018410C[7] = {
-    3,
-    5,
-    7,
-    9,
-    10,
-    14,
-    -1,
+s16 D_shelter_b2_pod_access_tunnel_8018410C[72] = {
+#include "assets/shelter_b2_pod_access_tunnel_collision_06BF4_cells.inc"
 };
 
-s16 D_shelter_b2_pod_access_tunnel_8018411C[13] = {
-    0,
-    1,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    14,
-    15,
-    16,
-    -1,
-};
-
-s16 D_shelter_b2_pod_access_tunnel_80184138[17] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    -1,
-};
-
-s16 D_shelter_b2_pod_access_tunnel_8018415C[5] = {
-    3,
-    5,
-    10,
-    14,
-    -1,
-};
-
-s16 D_shelter_b2_pod_access_tunnel_80184168[11] = {
-    0,
-    1,
-    3,
-    4,
-    5,
-    8,
-    12,
-    14,
-    15,
-    16,
-    -1,
-};
-
-s16 D_shelter_b2_pod_access_tunnel_80184180[14] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    8,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_shelter_b2_pod_access_tunnel_8018410C[i])
 s16* D_shelter_b2_pod_access_tunnel_8018419C[6] = {
-    D_shelter_b2_pod_access_tunnel_8018410C,
-    D_shelter_b2_pod_access_tunnel_8018411C,
-    D_shelter_b2_pod_access_tunnel_80184138,
-    D_shelter_b2_pod_access_tunnel_8018415C,
-    D_shelter_b2_pod_access_tunnel_80184168,
-    D_shelter_b2_pod_access_tunnel_80184180,
+#include "assets/shelter_b2_pod_access_tunnel_collision_06BF4_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_b2_pod_access_tunnel_801841B4[1] = {
     { NULL, D_shelter_b2_pod_access_tunnel_80183ED8, D_shelter_b2_pod_access_tunnel_80183F00, D_shelter_b2_pod_access_tunnel_80184040, D_shelter_b2_pod_access_tunnel_8018419C, -500, 0x2B8E, 2, 3, 4000, 17 },

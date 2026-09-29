@@ -85,75 +85,27 @@ static s32  func_dryfield_factory_801806B0(Task* task);
 
 extern s16* D_dryfield_factory_80187BD8[8];
 
-s16 D_dryfield_factory_80187B6C[35] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    8,
-    9,
-    11,
-    13,
-    14,
-    16,
-    17,
-    18,
-    19,
-    22,
-    23,
-    25,
-    26,
-    27,
-    30,
-    31,
-    35,
-    36,
-    38,
-    39,
-    40,
-    43,
-    45,
-    46,
-    48,
-    56,
-    59,
-    -1,
+SVECTOR D_dryfield_factory_80187008[28] = {
+#include "assets/dryfield_factory_collision_0A638_normals.inc"
 };
 
-s16 D_dryfield_factory_80187BB4[18] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    9,
-    14,
-    17,
-    18,
-    25,
-    30,
-    31,
-    35,
-    36,
-    45,
-    48,
-    -1,
+SVECTOR D_dryfield_factory_801870E8[170] = {
+#include "assets/dryfield_factory_collision_0A638_verts.inc"
 };
 
+GpGridFace D_dryfield_factory_80187638[72] = {
+#include "assets/dryfield_factory_collision_0A638_faces.inc"
+};
+
+s16 D_dryfield_factory_80187998[288] = {
+#include "assets/dryfield_factory_collision_0A638_cells.inc"
+};
+
+#define GRID_CELL(i) (&D_dryfield_factory_80187998[i])
 s16* D_dryfield_factory_80187BD8[8] = {
-    D_dryfield_factory_80187998,
-    D_dryfield_factory_801879F0,
-    D_dryfield_factory_80187A64,
-    D_dryfield_factory_80187AAC,
-    D_dryfield_factory_80187ACC,
-    D_dryfield_factory_80187B0C,
-    D_dryfield_factory_80187B6C,
-    D_dryfield_factory_80187BB4,
+#include "assets/dryfield_factory_collision_0A638_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_dryfield_factory_80187BF8 = { NULL, D_dryfield_factory_80187008, D_dryfield_factory_801870E8, D_dryfield_factory_80187638, D_dryfield_factory_80187BD8, 444, 222, 2, 4, 4000, 72 };
 

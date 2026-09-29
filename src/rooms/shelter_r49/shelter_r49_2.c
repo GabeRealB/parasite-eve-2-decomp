@@ -65,28 +65,26 @@ GpWarpRec D_shelter_r49_8017DA38[1] = {
 };
 
 SVECTOR D_shelter_r49_8017DA70[1] = {
-    { 0, -4096, 0, 0 },
+#include "assets/shelter_r49_collision_004EC_normals.inc"
 };
 
 SVECTOR D_shelter_r49_8017DA78[4] = {
-    { -4000, 0, 4000, 0 },
-    { 4000, 0, 4000, 0 },
-    { 4000, 0, -4000, 0 },
-    { -4000, 0, -4000, 0 },
+#include "assets/shelter_r49_collision_004EC_verts.inc"
 };
 
 GpGridFace D_shelter_r49_8017DA98[1] = {
-    { { 1, 2, 0, 3 }, 0, 1 },
+#include "assets/shelter_r49_collision_004EC_faces.inc"
 };
 
 s16 D_shelter_r49_8017DAA4[2] = {
-    0,
-    -1,
+#include "assets/shelter_r49_collision_004EC_cells.inc"
 };
 
+#define GRID_CELL(i) (&D_shelter_r49_8017DAA4[i])
 s16* D_shelter_r49_8017DAA8[1] = {
-    D_shelter_r49_8017DAA4,
+#include "assets/shelter_r49_collision_004EC_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_r49_8017DAAC[1] = {
     { NULL, D_shelter_r49_8017DA70, D_shelter_r49_8017DA78, D_shelter_r49_8017DA98, D_shelter_r49_8017DAA8, 4000, 4000, 1, 1, 0x7530, 1 },

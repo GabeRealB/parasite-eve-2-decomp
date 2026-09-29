@@ -152,139 +152,26 @@ GpWarpRec D_shelter_1f_bulwark_801803D0[2] = {
 };
 
 SVECTOR D_shelter_1f_bulwark_80180440[6] = {
-    { 4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
-    { -4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
-    { 0, -4096, 0, 0 },
-    { 0, 4096, 0, 0 },
+#include "assets/shelter_1f_bulwark_collision_03088_normals.inc"
 };
 
 SVECTOR D_shelter_1f_bulwark_80180470[22] = {
-    { -4250, -6000, 3500, 0 },
-    { -4250, 0, 3500, 0 },
-    { -4250, 0, -3500, 0 },
-    { -4250, -6000, -3500, 0 },
-    { 4250, 0, -3500, 0 },
-    { 4250, -6000, -3500, 0 },
-    { 4250, 0, 3500, 0 },
-    { 4250, -6000, 3500, 0 },
-    { -1840, 0, -1580, 0 },
-    { -1840, -1980, -1580, 0 },
-    { -1840, -1980, -3500, 0 },
-    { -1840, 0, -3500, 0 },
-    { 4270, -1980, -1580, 0 },
-    { 4270, -1980, -3500, 0 },
-    { 4270, 0, -1580, 0 },
-    { -1100, 20, 3500, 0 },
-    { -1100, -1980, 3500, 0 },
-    { -1100, -1980, 1370, 0 },
-    { -1100, 20, 1370, 0 },
-    { 4250, -1980, 1370, 0 },
-    { 4250, 20, 1370, 0 },
-    { 4250, -1980, 3500, 0 },
+#include "assets/shelter_1f_bulwark_collision_03088_verts.inc"
 };
 
 GpGridFace D_shelter_1f_bulwark_80180520[12] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 2, 4, 3, 5 }, 1, 0 },
-    { { 4, 6, 5, 7 }, 2, 0 },
-    { { 6, 1, 7, 0 }, 3, 0 },
-    { { 6, 4, 1, 2 }, 4, 1 },
-    { { 0, 3, 7, 5 }, 5, 0 },
-    { { 9, 10, 8, 11 }, 2, 0 },
-    { { 12, 13, 9, 10 }, 4, 0 },
-    { { 12, 9, 14, 8 }, 1, 0 },
-    { { 16, 17, 15, 18 }, 2, 0 },
-    { { 17, 19, 18, 20 }, 3, 0 },
-    { { 21, 19, 16, 17 }, 4, 0 },
+#include "assets/shelter_1f_bulwark_collision_03088_faces.inc"
 };
 
-s16 D_shelter_1f_bulwark_801805B0[11] = {
-    0,
-    1,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    -1,
+s16 D_shelter_1f_bulwark_801805B0[64] = {
+#include "assets/shelter_1f_bulwark_collision_03088_cells.inc"
 };
 
-s16 D_shelter_1f_bulwark_801805C8[11] = {
-    0,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    -1,
-};
-
-s16 D_shelter_1f_bulwark_801805E0[11] = {
-    1,
-    2,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    -1,
-};
-
-s16 D_shelter_1f_bulwark_801805F8[10] = {
-    2,
-    3,
-    4,
-    5,
-    7,
-    8,
-    9,
-    10,
-    11,
-    -1,
-};
-
-s16 D_shelter_1f_bulwark_8018060C[9] = {
-    1,
-    2,
-    4,
-    5,
-    7,
-    8,
-    10,
-    11,
-    -1,
-};
-
-s16 D_shelter_1f_bulwark_80180620[7] = {
-    2,
-    3,
-    4,
-    5,
-    10,
-    11,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_shelter_1f_bulwark_801805B0[i])
 s16* D_shelter_1f_bulwark_80180630[6] = {
-    D_shelter_1f_bulwark_801805B0,
-    D_shelter_1f_bulwark_801805C8,
-    D_shelter_1f_bulwark_801805E0,
-    D_shelter_1f_bulwark_801805F8,
-    D_shelter_1f_bulwark_8018060C,
-    D_shelter_1f_bulwark_80180620,
+#include "assets/shelter_1f_bulwark_collision_03088_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_1f_bulwark_80180648[1] = {
     { NULL, D_shelter_1f_bulwark_80180440, D_shelter_1f_bulwark_80180470, D_shelter_1f_bulwark_80180520, D_shelter_1f_bulwark_80180630, 4250, 3500, 3, 2, 4000, 12 },

@@ -12,7 +12,6 @@ D_dryfield_night_g_r_kitchen_8017E34C = 0x8017E34C; // size:0x30 defined:True
 D_dryfield_night_g_r_kitchen_8017E37C = 0x8017E37C; // size:0xD0 defined:True
 D_dryfield_night_g_r_kitchen_8017E44C = 0x8017E44C; // size:0xC0 defined:True
 D_dryfield_night_g_r_kitchen_8017E50C = 0x8017E50C; // size:0x22 defined:True
-D_dryfield_night_g_r_kitchen_8017E530 = 0x8017E530; // size:0x1C defined:True
 D_dryfield_night_g_r_kitchen_8017E54C = 0x8017E54C; // size:0x8 defined:True
 D_dryfield_night_g_r_kitchen_8017E554 = 0x8017E554; // size:0x24 defined:True
 D_dryfield_night_g_r_kitchen_8017E578 = 0x8017E578; // size:0x6C defined:True

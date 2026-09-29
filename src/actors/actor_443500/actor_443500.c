@@ -2802,33 +2802,26 @@ Actor443500MessageEntry D_actor_443500_80158754[4] = {
 };
 
 SVECTOR D_actor_443500_80158774[2] = {
-    { -4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
+#include "assets/actor_443500_collision_269B8_normals.inc"
 };
 
 SVECTOR D_actor_443500_80158784[6] = {
-    { 0x3EF8, 150, 6131, 0 },
-    { 0x3EF8, -1762, 6131, 0 },
-    { 0x3EF8, -1762, 5156, 0 },
-    { 0x3EF8, 150, 5156, 0 },
-    { 0x40E6, 150, 6131, 0 },
-    { 0x40E6, -1762, 6131, 0 },
+#include "assets/actor_443500_collision_269B8_verts.inc"
 };
 
 GpGridFace D_actor_443500_801587B4[2] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 5, 1, 4, 0 }, 1, 0 },
+#include "assets/actor_443500_collision_269B8_faces.inc"
 };
 
-s16 D_actor_443500_801587CC[3] = {
-    0,
-    1,
-    -1,
+s16 D_actor_443500_801587CC[4] = {
+#include "assets/actor_443500_collision_269B8_cells.inc"
 };
 
+#define GRID_CELL(i) (&D_actor_443500_801587CC[i])
 s16* D_actor_443500_801587D4[1] = {
-    D_actor_443500_801587CC,
+#include "assets/actor_443500_collision_269B8_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_actor_443500_801587D8 = { NULL, D_actor_443500_80158774, D_actor_443500_80158784, D_actor_443500_801587B4, D_actor_443500_801587D4, -0x3EF8, -5156, 1, 1, 4000, 2 };
 

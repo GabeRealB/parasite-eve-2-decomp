@@ -619,139 +619,26 @@ GpWarpRec D_acropolis_west_elevator_hall_80185044[2] = {
 };
 
 SVECTOR D_acropolis_west_elevator_hall_801850B4[7] = {
-    { -501, 0, 4065, 0 },
-    { 0, 0, -4096, 0 },
-    { 2914, 0, -2878, 0 },
-    { 0, -4096, 0, 0 },
-    { 4096, 0, 0, 0 },
-    { -4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
+#include "assets/acropolis_west_elevator_hall_collision_07D3C_normals.inc"
 };
 
 SVECTOR D_acropolis_west_elevator_hall_801850EC[29] = {
-    { -3590, -3000, -2000, 0 },
-    { -3590, 0, -2000, 0 },
-    { 5500, 0, -880, 0 },
-    { 5500, -3000, -880, 0 },
-    { 2170, -3000, 3020, 0 },
-    { 5500, -3000, 3020, 0 },
-    { 5500, 0, 3020, 0 },
-    { 2170, 0, 3020, 0 },
-    { 1380, 0, 2220, 0 },
-    { 1380, -3000, 2220, 0 },
-    { -1190, -1000, -2000, 0 },
-    { -3590, -1000, -2000, 0 },
-    { -3590, -1000, -1020, 0 },
-    { -1190, -1000, -1020, 0 },
-    { -1190, 0, -1020, 0 },
-    { -1190, 0, -2000, 0 },
-    { -3590, 0, -1020, 0 },
-    { -5480, -3000, 2220, 0 },
-    { 5500, 0, -2000, 0 },
-    { -5480, 0, -2000, 0 },
-    { -5480, 0, 3020, 0 },
-    { 5500, 0, 3020, 0 },
-    { -5480, -3000, -2000, 0 },
-    { -5480, 0, 2220, 0 },
-    { -5480, 0, 2220, 0 },
-    { -1200, 0, -1600, 0 },
-    { -200, 0, -1600, 0 },
-    { -200, -1000, -1600, 0 },
-    { -1200, -1000, -1600, 0 },
+#include "assets/acropolis_west_elevator_hall_collision_07D3C_verts.inc"
 };
 
 GpGridFace D_acropolis_west_elevator_hall_801851D4[14] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 5, 6, 4, 7 }, 1, 0 },
-    { { 8, 9, 7, 4 }, 2, 0 },
-    { { 11, 12, 10, 13 }, 3, 0 },
-    { { 14, 15, 13, 10 }, 4, 0 },
-    { { 12, 11, 16, 1 }, 5, 0 },
-    { { 17, 9, 8, 0xFFFF }, 1, 0 },
-    { { 19, 20, 18, 21 }, 3, 3 },
-    { { 17, 23, 22, 19 }, 4, 0 },
-    { { 2, 6, 3, 5 }, 5, 0 },
-    { { 16, 14, 12, 13 }, 6, 0 },
-    { { 0, 22, 1, 19 }, 6, 0 },
-    { { 8, 24, 9, 17 }, 1, 0 },
-    { { 26, 27, 25, 28 }, 6, 0 },
+#include "assets/acropolis_west_elevator_hall_collision_07D3C_faces.inc"
 };
 
-s16 D_acropolis_west_elevator_hall_8018527C[12] = {
-    0,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    10,
-    11,
-    12,
-    13,
-    -1,
+s16 D_acropolis_west_elevator_hall_8018527C[52] = {
+#include "assets/acropolis_west_elevator_hall_collision_07D3C_cells.inc"
 };
 
-s16 D_acropolis_west_elevator_hall_80185294[5] = {
-    6,
-    7,
-    8,
-    12,
-    -1,
-};
-
-s16 D_acropolis_west_elevator_hall_801852A0[11] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    6,
-    7,
-    10,
-    12,
-    13,
-    -1,
-};
-
-s16 D_acropolis_west_elevator_hall_801852B8[6] = {
-    1,
-    2,
-    6,
-    7,
-    12,
-    -1,
-};
-
-s16 D_acropolis_west_elevator_hall_801852C4[8] = {
-    0,
-    1,
-    2,
-    6,
-    7,
-    9,
-    12,
-    -1,
-};
-
-s16 D_acropolis_west_elevator_hall_801852D4[7] = {
-    1,
-    2,
-    6,
-    7,
-    9,
-    12,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_acropolis_west_elevator_hall_8018527C[i])
 s16* D_acropolis_west_elevator_hall_801852E4[6] = {
-    D_acropolis_west_elevator_hall_8018527C,
-    D_acropolis_west_elevator_hall_80185294,
-    D_acropolis_west_elevator_hall_801852A0,
-    D_acropolis_west_elevator_hall_801852B8,
-    D_acropolis_west_elevator_hall_801852C4,
-    D_acropolis_west_elevator_hall_801852D4,
+#include "assets/acropolis_west_elevator_hall_collision_07D3C_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_acropolis_west_elevator_hall_801852FC[1] = {
     { NULL, D_acropolis_west_elevator_hall_801850B4, D_acropolis_west_elevator_hall_801850EC, D_acropolis_west_elevator_hall_801851D4, D_acropolis_west_elevator_hall_801852E4, 5480, 2000, 3, 2, 4000, 14 },

@@ -11,7 +11,6 @@ D_dryfield_night_toilet_8017DB08 = 0x8017DB08; // size:0x38 defined:True
 D_dryfield_night_toilet_8017DB40 = 0x8017DB40; // size:0x120 defined:True
 D_dryfield_night_toilet_8017DC60 = 0x8017DC60; // size:0xD8 defined:True
 D_dryfield_night_toilet_8017DD38 = 0x8017DD38; // size:0x26 defined:True
-D_dryfield_night_toilet_8017DD60 = 0x8017DD60; // size:0x20 defined:True
 D_dryfield_night_toilet_8017DD80 = 0x8017DD80; // size:0x8 defined:True
 D_dryfield_night_toilet_8017DD88 = 0x8017DD88; // size:0x24 defined:True
 D_dryfield_night_toilet_8017DDAC = 0x8017DDAC; // size:0x144 defined:True

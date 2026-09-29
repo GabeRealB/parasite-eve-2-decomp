@@ -627,94 +627,26 @@ GpWarpRec D_shelter_b1_pod_access_tunnel_80183A1C[3] = {
 };
 
 SVECTOR D_shelter_b1_pod_access_tunnel_80183AC4[6] = {
-    { 4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
-    { -4096, 0, 0, 0 },
-    { 0, -4096, 0, 0 },
-    { 0, 4096, 0, 0 },
-    { 0, 0, -4096, 0 },
+#include "assets/shelter_b1_pod_access_tunnel_collision_06664_normals.inc"
 };
 
 SVECTOR D_shelter_b1_pod_access_tunnel_80183AF4[12] = {
-    { 750, -3200, -750, 0 },
-    { 750, 0, -750, 0 },
-    { 750, 0, -6500, 0 },
-    { 750, -3200, -6500, 0 },
-    { 2750, 0, -6500, 0 },
-    { 2750, -3200, -6500, 0 },
-    { 2750, 0, -2750, 0 },
-    { 2750, -3200, -2750, 0 },
-    { 7250, -3200, -2750, 0 },
-    { 7250, 0, -2750, 0 },
-    { 7250, 0, -750, 0 },
-    { 7250, -3200, -750, 0 },
+#include "assets/shelter_b1_pod_access_tunnel_collision_06664_verts.inc"
 };
 
 GpGridFace D_shelter_b1_pod_access_tunnel_80183B54[10] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 2, 4, 3, 5 }, 1, 0 },
-    { { 4, 6, 5, 7 }, 2, 0 },
-    { { 9, 10, 8, 11 }, 2, 0 },
-    { { 6, 4, 1, 2 }, 3, 2 },
-    { { 0, 3, 7, 5 }, 4, 0 },
-    { { 10, 9, 1, 6 }, 3, 2 },
-    { { 8, 11, 7, 0 }, 4, 0 },
-    { { 9, 8, 6, 7 }, 1, 0 },
-    { { 11, 10, 0, 1 }, 5, 0 },
+#include "assets/shelter_b1_pod_access_tunnel_collision_06664_faces.inc"
 };
 
-s16 D_shelter_b1_pod_access_tunnel_80183BCC[10] = {
-    0,
-    1,
-    2,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    -1,
+s16 D_shelter_b1_pod_access_tunnel_80183BCC[36] = {
+#include "assets/shelter_b1_pod_access_tunnel_collision_06664_cells.inc"
 };
 
-s16 D_shelter_b1_pod_access_tunnel_80183BE0[9] = {
-    0,
-    2,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    -1,
-};
-
-s16 D_shelter_b1_pod_access_tunnel_80183BF4[9] = {
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    -1,
-};
-
-s16 D_shelter_b1_pod_access_tunnel_80183C08[6] = {
-    3,
-    6,
-    7,
-    8,
-    9,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_shelter_b1_pod_access_tunnel_80183BCC[i])
 s16* D_shelter_b1_pod_access_tunnel_80183C14[4] = {
-    D_shelter_b1_pod_access_tunnel_80183BCC,
-    D_shelter_b1_pod_access_tunnel_80183BE0,
-    D_shelter_b1_pod_access_tunnel_80183BF4,
-    D_shelter_b1_pod_access_tunnel_80183C08,
+#include "assets/shelter_b1_pod_access_tunnel_collision_06664_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_b1_pod_access_tunnel_80183C24 = { NULL, D_shelter_b1_pod_access_tunnel_80183AC4, D_shelter_b1_pod_access_tunnel_80183AF4, D_shelter_b1_pod_access_tunnel_80183B54, D_shelter_b1_pod_access_tunnel_80183C14, -750, 6500, 2, 2, 4000, 10 };
 

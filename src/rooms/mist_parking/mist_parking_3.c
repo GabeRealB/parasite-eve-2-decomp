@@ -45,33 +45,26 @@ TaskDesc D_mist_parking_8018FC24[2] = {
 GpXformArg D_mist_parking_8018FC3C = { { 2105, -910, -3460, 0 }, { 20, 1081, 0, 0 } };
 
 SVECTOR D_mist_parking_8018FC54[2] = {
-    { -4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
+#include "assets/mist_parking_collision_126F8_normals.inc"
 };
 
 SVECTOR D_mist_parking_8018FC64[6] = {
-    { 4800, 100, -5558, 0 },
-    { 4800, -1463, -5558, 0 },
-    { 4800, -1463, -6558, 0 },
-    { 4800, 100, -6558, 0 },
-    { 5800, 100, -5558, 0 },
-    { 5800, -1463, -5558, 0 },
+#include "assets/mist_parking_collision_126F8_verts.inc"
 };
 
 GpGridFace D_mist_parking_8018FC94[2] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 5, 1, 4, 0 }, 1, 0 },
+#include "assets/mist_parking_collision_126F8_faces.inc"
 };
 
-s16 D_mist_parking_8018FCAC[3] = {
-    0,
-    1,
-    -1,
+s16 D_mist_parking_8018FCAC[4] = {
+#include "assets/mist_parking_collision_126F8_cells.inc"
 };
 
+#define GRID_CELL(i) (&D_mist_parking_8018FCAC[i])
 s16* D_mist_parking_8018FCB4[1] = {
-    D_mist_parking_8018FCAC,
+#include "assets/mist_parking_collision_126F8_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_mist_parking_8018FCB8 = { NULL, D_mist_parking_8018FC54, D_mist_parking_8018FC64, D_mist_parking_8018FC94, D_mist_parking_8018FCB4, -4800, 6558, 1, 1, 4000, 2 };
 

@@ -70,28 +70,26 @@ DryfieldToiletMessageEntry D_dryfield_toilet_801802A4[6] = {
 s32 D_dryfield_toilet_801802D4 = 4098;
 
 SVECTOR D_dryfield_toilet_801802D8[1] = {
-    { 0, 0, 4096, 0 },
+#include "assets/dryfield_toilet_collision_02D54_normals.inc"
 };
 
 SVECTOR D_dryfield_toilet_801802E0[4] = {
-    { -830, 80, -590, 0 },
-    { -830, -2010, -590, 0 },
-    { -2250, -2010, -590, 0 },
-    { -2250, 80, -590, 0 },
+#include "assets/dryfield_toilet_collision_02D54_verts.inc"
 };
 
 GpGridFace D_dryfield_toilet_80180300[1] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
+#include "assets/dryfield_toilet_collision_02D54_faces.inc"
 };
 
 s16 D_dryfield_toilet_8018030C[2] = {
-    0,
-    -1,
+#include "assets/dryfield_toilet_collision_02D54_cells.inc"
 };
 
+#define GRID_CELL(i) (&D_dryfield_toilet_8018030C[i])
 s16* D_dryfield_toilet_80180310[1] = {
-    D_dryfield_toilet_8018030C,
+#include "assets/dryfield_toilet_collision_02D54_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_dryfield_toilet_80180314 = { NULL, D_dryfield_toilet_801802D8, D_dryfield_toilet_801802E0, D_dryfield_toilet_80180300, D_dryfield_toilet_80180310, 2250, 590, 1, 1, 4000, 1 };
 

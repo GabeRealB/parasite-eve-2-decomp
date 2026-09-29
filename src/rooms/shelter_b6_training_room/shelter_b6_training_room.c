@@ -71,172 +71,26 @@ GpWarpRec D_shelter_b6_training_room_80184420[2] = {
 };
 
 SVECTOR D_shelter_b6_training_room_80184490[7] = {
-    { -4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
-    { 4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
-    { 0, -4096, 0, 0 },
-    { 0, 4096, 0, 0 },
-    { 4096, 0, 0, 0 },
+#include "assets/shelter_b6_training_room_collision_07174_normals.inc"
 };
 
 SVECTOR D_shelter_b6_training_room_801844C8[22] = {
-    { 5000, -5000, 750, 0 },
-    { 5000, 0, 750, 0 },
-    { 5000, 0, 0x2904, 0 },
-    { 5000, -5000, 0x2904, 0 },
-    { 0, -5000, 0x2904, 0 },
-    { 1500, 0, 0x2904, 0 },
-    { 0, 0, 0x2904, 0 },
-    { 0, 0, 750, 0 },
-    { 0, -5000, 750, 0 },
-    { 3500, 0, 750, 0 },
-    { 1500, 0, 750, 0 },
-    { 3500, 0, 0x2904, 0 },
-    { 3000, 0, 750, 0 },
-    { 3000, 0, 0x2904, 0 },
-    { 2000, 0, 750, 0 },
-    { 2000, 0, 0x2904, 0 },
-    { 0, 0, 9750, 0 },
-    { 0, -2000, 9750, 0 },
-    { 3000, -2000, 9750, 0 },
-    { 3000, 0, 9750, 0 },
-    { 3000, -2000, 0x2904, 0 },
-    { 0, -2000, 0x2904, 0 },
+#include "assets/shelter_b6_training_room_collision_07174_verts.inc"
 };
 
 GpGridFace D_shelter_b6_training_room_80184578[21] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 4, 5, 6, 0xFFFF }, 1, 0 },
-    { { 6, 7, 4, 8 }, 2, 0 },
-    { { 0, 9, 1, 0xFFFF }, 3, 0 },
-    { { 10, 7, 5, 6 }, 4, 1 },
-    { { 0, 3, 8, 4 }, 5, 0 },
-    { { 11, 2, 9, 1 }, 4, 1 },
-    { { 9, 12, 11, 13 }, 4, 2 },
-    { { 15, 13, 14, 12 }, 4, 1 },
-    { { 5, 15, 10, 14 }, 4, 2 },
-    { { 10, 8, 7, 0xFFFF }, 3, 0 },
-    { { 14, 8, 10, 0xFFFF }, 3, 0 },
-    { { 0, 8, 12, 14 }, 3, 0 },
-    { { 0, 12, 9, 0xFFFF }, 3, 0 },
-    { { 11, 3, 2, 0xFFFF }, 1, 0 },
-    { { 13, 3, 11, 0xFFFF }, 1, 0 },
-    { { 4, 3, 15, 13 }, 1, 0 },
-    { { 5, 4, 15, 0xFFFF }, 1, 0 },
-    { { 17, 18, 16, 19 }, 1, 0 },
-    { { 18, 20, 19, 13 }, 6, 0 },
-    { { 17, 21, 18, 20 }, 4, 0 },
+#include "assets/shelter_b6_training_room_collision_07174_faces.inc"
 };
 
-s16 D_shelter_b6_training_room_80184674[14] = {
-    0,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    -1,
+s16 D_shelter_b6_training_room_80184674[84] = {
+#include "assets/shelter_b6_training_room_collision_07174_cells.inc"
 };
 
-s16 D_shelter_b6_training_room_80184690[17] = {
-    0,
-    1,
-    2,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    14,
-    15,
-    16,
-    17,
-    18,
-    19,
-    20,
-    -1,
-};
-
-s16 D_shelter_b6_training_room_801846B4[17] = {
-    0,
-    1,
-    2,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    14,
-    15,
-    16,
-    17,
-    18,
-    19,
-    20,
-    -1,
-};
-
-s16 D_shelter_b6_training_room_801846D8[10] = {
-    0,
-    3,
-    5,
-    6,
-    7,
-    8,
-    9,
-    12,
-    13,
-    -1,
-};
-
-s16 D_shelter_b6_training_room_801846EC[10] = {
-    0,
-    5,
-    6,
-    7,
-    8,
-    9,
-    14,
-    15,
-    16,
-    -1,
-};
-
-s16 D_shelter_b6_training_room_80184700[14] = {
-    0,
-    5,
-    6,
-    7,
-    8,
-    9,
-    14,
-    15,
-    16,
-    17,
-    18,
-    19,
-    20,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_shelter_b6_training_room_80184674[i])
 s16* D_shelter_b6_training_room_8018471C[6] = {
-    D_shelter_b6_training_room_80184674,
-    D_shelter_b6_training_room_80184690,
-    D_shelter_b6_training_room_801846B4,
-    D_shelter_b6_training_room_801846D8,
-    D_shelter_b6_training_room_801846EC,
-    D_shelter_b6_training_room_80184700,
+#include "assets/shelter_b6_training_room_collision_07174_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_b6_training_room_80184734 = { NULL, D_shelter_b6_training_room_80184490, D_shelter_b6_training_room_801844C8, D_shelter_b6_training_room_80184578, D_shelter_b6_training_room_8018471C, 0, -750, 2, 3, 4000, 21 };
 

@@ -112,165 +112,26 @@ GpWarpRec D_dryfield_night_cellar_8017DB34[1] = {
 };
 
 SVECTOR D_dryfield_night_cellar_8017DB6C[7] = {
-    { -4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
-    { 4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
-    { 0, -4096, 0, 0 },
-    { -3010, 0, -2778, 0 },
-    { 0, 4096, 0, 0 },
+#include "assets/dryfield_night_cellar_collision_008A0_normals.inc"
 };
 
 SVECTOR D_dryfield_night_cellar_8017DBA4[39] = {
-    { 6000, 0, 3300, 0 },
-    { 6000, -700, 3300, 0 },
-    { 6000, -700, 1300, 0 },
-    { 6000, 0, 1300, 0 },
-    { 8450, -700, 1300, 0 },
-    { 8450, 0, 1300, 0 },
-    { 8450, -700, 3300, 0 },
-    { 8450, 0, 3300, 0 },
-    { 0, 0, 4500, 0 },
-    { 0, -2500, 4500, 0 },
-    { 0x2904, -2500, 4500, 0 },
-    { 0x2904, 0, 4500, 0 },
-    { 1000, 0, 3600, 0 },
-    { 1000, -2500, 3600, 0 },
-    { 2500, -2500, 3600, 0 },
-    { 2500, 0, 3600, 0 },
-    { 0x2904, 0, 0, 0 },
-    { 0x2904, -2500, 0, 0 },
-    { 0, -2500, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 3500, 0, 1000, 0 },
-    { 3500, -2500, 1000, 0 },
-    { 3500, -2500, 4500, 0 },
-    { 3500, 0, 4500, 0 },
-    { 0x2710, 0, 1000, 0 },
-    { 0x2710, -2000, 1000, 0 },
-    { 0x2710, -2000, 0, 0 },
-    { 0x2710, 0, 0, 0 },
-    { 2500, 0, 1000, 0 },
-    { 2500, -2500, 1000, 0 },
-    { 9300, 0, 4500, 0 },
-    { 9300, -2500, 4500, 0 },
-    { 0x2904, -2500, 3200, 0 },
-    { 0x2904, 0, 3200, 0 },
-    { 0x2904, -2000, 1000, 0 },
-    { 0x2904, -2000, 0, 0 },
-    { 0x2904, 0, 1000, 0 },
-    { 1000, 0, 0, 0 },
-    { 1000, -2500, 0, 0 },
+#include "assets/dryfield_night_cellar_collision_008A0_verts.inc"
 };
 
 GpGridFace D_dryfield_night_cellar_8017DCDC[20] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 2, 4, 3, 5 }, 1, 0 },
-    { { 4, 6, 5, 7 }, 2, 0 },
-    { { 6, 1, 7, 0 }, 3, 0 },
-    { { 6, 4, 1, 2 }, 4, 0 },
-    { { 9, 10, 8, 11 }, 1, 0 },
-    { { 13, 14, 12, 15 }, 1, 0 },
-    { { 17, 18, 16, 19 }, 3, 0 },
-    { { 21, 22, 20, 23 }, 2, 0 },
-    { { 25, 26, 24, 27 }, 0, 0 },
-    { { 29, 21, 28, 20 }, 1, 0 },
-    { { 31, 32, 30, 33 }, 5, 0 },
-    { { 18, 9, 19, 8 }, 2, 0 },
-    { { 10, 17, 11, 16 }, 0, 0 },
-    { { 9, 18, 10, 17 }, 6, 0 },
-    { { 34, 35, 25, 26 }, 4, 0 },
-    { { 34, 25, 36, 24 }, 3, 0 },
-    { { 14, 29, 15, 28 }, 0, 0 },
-    { { 11, 16, 8, 19 }, 4, 1 },
-    { { 38, 13, 37, 12 }, 2, 0 },
+#include "assets/dryfield_night_cellar_collision_008A0_faces.inc"
 };
 
-s16 D_dryfield_night_cellar_8017DDCC[11] = {
-    5,
-    6,
-    7,
-    8,
-    10,
-    12,
-    14,
-    17,
-    18,
-    19,
-    -1,
+s16 D_dryfield_night_cellar_8017DDCC[62] = {
+#include "assets/dryfield_night_cellar_collision_008A0_cells.inc"
 };
 
-s16 D_dryfield_night_cellar_8017DDE4[9] = {
-    5,
-    6,
-    8,
-    12,
-    14,
-    17,
-    18,
-    19,
-    -1,
-};
-
-s16 D_dryfield_night_cellar_8017DDF8[12] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    7,
-    8,
-    10,
-    14,
-    18,
-    -1,
-};
-
-s16 D_dryfield_night_cellar_8017DE10[7] = {
-    0,
-    3,
-    4,
-    5,
-    14,
-    18,
-    -1,
-};
-
-s16 D_dryfield_night_cellar_8017DE20[14] = {
-    1,
-    2,
-    3,
-    4,
-    5,
-    7,
-    9,
-    11,
-    13,
-    14,
-    15,
-    16,
-    18,
-    -1,
-};
-
-s16 D_dryfield_night_cellar_8017DE3C[6] = {
-    5,
-    11,
-    13,
-    14,
-    18,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_dryfield_night_cellar_8017DDCC[i])
 s16* D_dryfield_night_cellar_8017DE48[6] = {
-    D_dryfield_night_cellar_8017DDCC,
-    D_dryfield_night_cellar_8017DDE4,
-    D_dryfield_night_cellar_8017DDF8,
-    D_dryfield_night_cellar_8017DE10,
-    D_dryfield_night_cellar_8017DE20,
-    D_dryfield_night_cellar_8017DE3C,
+#include "assets/dryfield_night_cellar_collision_008A0_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_dryfield_night_cellar_8017DE60[1] = {
     { NULL, D_dryfield_night_cellar_8017DB6C, D_dryfield_night_cellar_8017DBA4, D_dryfield_night_cellar_8017DCDC, D_dryfield_night_cellar_8017DE48, 0, 0, 3, 2, 4000, 20 },

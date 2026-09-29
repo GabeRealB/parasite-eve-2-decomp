@@ -69,60 +69,26 @@ GpWarpRec D_shelter_b1_control_room_access_tunnel_80181F08[2] = {
 };
 
 SVECTOR D_shelter_b1_control_room_access_tunnel_80181F78[6] = {
-    { 4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
-    { -4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
-    { 0, 4096, 0, 0 },
-    { 0, -4096, 0, 0 },
+#include "assets/shelter_b1_control_room_access_tunnel_collision_04AB0_normals.inc"
 };
 
 SVECTOR D_shelter_b1_control_room_access_tunnel_80181FA8[12] = {
-    { 361, -2305, 949, 0 },
-    { 361, -25, 949, 0 },
-    { 361, -25, -797, 0 },
-    { 361, -2305, -797, 0 },
-    { 6101, -25, -797, 0 },
-    { 6101, -2305, -797, 0 },
-    { 6101, -25, 949, 0 },
-    { 6101, -2305, 949, 0 },
-    { 106, -25, 1543, 0 },
-    { 6355, -25, 1543, 0 },
-    { 6355, -25, -1242, 0 },
-    { 106, -25, -1242, 0 },
+#include "assets/shelter_b1_control_room_access_tunnel_collision_04AB0_verts.inc"
 };
 
 GpGridFace D_shelter_b1_control_room_access_tunnel_80182008[6] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 2, 4, 3, 5 }, 1, 0 },
-    { { 4, 6, 5, 7 }, 2, 0 },
-    { { 6, 1, 7, 0 }, 3, 0 },
-    { { 0, 3, 7, 5 }, 4, 0 },
-    { { 9, 10, 8, 11 }, 5, 1 },
+#include "assets/shelter_b1_control_room_access_tunnel_collision_04AB0_faces.inc"
 };
 
-s16 D_shelter_b1_control_room_access_tunnel_80182050[6] = {
-    0,
-    1,
-    3,
-    4,
-    5,
-    -1,
+s16 D_shelter_b1_control_room_access_tunnel_80182050[12] = {
+#include "assets/shelter_b1_control_room_access_tunnel_collision_04AB0_cells.inc"
 };
 
-s16 D_shelter_b1_control_room_access_tunnel_8018205C[6] = {
-    1,
-    2,
-    3,
-    4,
-    5,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_shelter_b1_control_room_access_tunnel_80182050[i])
 s16* D_shelter_b1_control_room_access_tunnel_80182068[2] = {
-    D_shelter_b1_control_room_access_tunnel_80182050,
-    D_shelter_b1_control_room_access_tunnel_8018205C,
+#include "assets/shelter_b1_control_room_access_tunnel_collision_04AB0_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_b1_control_room_access_tunnel_80182070 = { NULL, D_shelter_b1_control_room_access_tunnel_80181F78, D_shelter_b1_control_room_access_tunnel_80181FA8, D_shelter_b1_control_room_access_tunnel_80182008, D_shelter_b1_control_room_access_tunnel_80182068, -106, 1242, 2, 1, 4000, 6 };
 

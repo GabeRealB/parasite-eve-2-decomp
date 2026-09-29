@@ -17,7 +17,6 @@ D_dryfield_toilet_80181184 = 0x80181184; // size:0x38 defined:True
 D_dryfield_toilet_801811BC = 0x801811BC; // size:0x130 defined:True
 D_dryfield_toilet_801812EC = 0x801812EC; // size:0xCC defined:True
 D_dryfield_toilet_801813B8 = 0x801813B8; // size:0x24 defined:True
-D_dryfield_toilet_801813DC = 0x801813DC; // size:0x1E defined:True
 D_dryfield_toilet_801813FC = 0x801813FC; // size:0x8 defined:True
 D_8010CAF8 = 0x8010CAF8; // absolute:True
 D_dryfield_toilet_80181404 = 0x80181404; // size:0x24 defined:True

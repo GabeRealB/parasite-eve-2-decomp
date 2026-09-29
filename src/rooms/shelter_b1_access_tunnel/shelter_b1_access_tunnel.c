@@ -176,161 +176,26 @@ GpWarpRec D_shelter_b1_access_tunnel_8017E7EC[4] = {
 };
 
 SVECTOR D_shelter_b1_access_tunnel_8017E8CC[6] = {
-    { 4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
-    { -4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
-    { 0, -4096, 0, 0 },
-    { 3446, 0, 2214, 0 },
+#include "assets/shelter_b1_access_tunnel_collision_01564_normals.inc"
 };
 
 SVECTOR D_shelter_b1_access_tunnel_8017E8FC[24] = {
-    { 9200, -2669, 4065, 0 },
-    { 9200, 0, 4065, 0 },
-    { 9200, 0, 670, 0 },
-    { 9200, -2669, 670, 0 },
-    { 0x2AF8, 0, 670, 0 },
-    { 0x2AF8, -2669, 670, 0 },
-    { 0x2AF8, -2669, 4065, 0 },
-    { 0x2AF8, 0, 4065, 0 },
-    { 0x2AF8, 0, 9000, 0 },
-    { 0x2AF8, -2669, 9000, 0 },
-    { 7180, -2669, 9000, 0 },
-    { 7180, 0, 9000, 0 },
-    { 10, 0, 9000, 0 },
-    { 10, -2669, 9000, 0 },
-    { 7180, 0, 7210, 0 },
-    { 10, 0, 7210, 0 },
-    { 7180, -2669, 7210, 0 },
-    { 9200, 0, 7210, 0 },
-    { 9200, -2669, 7210, 0 },
-    { 10, -2669, 7210, 0 },
-    { 7180, -2669, 7210, 0 },
-    { 7180, 0, 7210, 0 },
-    { 9200, 0, 4065, 0 },
-    { 9200, -2669, 4065, 0 },
+#include "assets/shelter_b1_access_tunnel_collision_01564_verts.inc"
 };
 
 GpGridFace D_shelter_b1_access_tunnel_8017E9BC[15] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 2, 4, 3, 5 }, 1, 0 },
-    { { 7, 8, 6, 9 }, 2, 0 },
-    { { 11, 12, 10, 13 }, 3, 0 },
-    { { 14, 15, 11, 12 }, 4, 1 },
-    { { 14, 17, 16, 18 }, 1, 2 },
-    { { 15, 19, 12, 13 }, 0, 0 },
-    { { 7, 4, 1, 2 }, 4, 1 },
-    { { 0, 18, 1, 17 }, 0, 2 },
-    { { 16, 19, 14, 15 }, 1, 0 },
-    { { 1, 17, 7, 8 }, 4, 1 },
-    { { 11, 8, 14, 17 }, 4, 1 },
-    { { 10, 9, 11, 8 }, 3, 0 },
-    { { 6, 5, 7, 4 }, 2, 0 },
-    { { 21, 22, 20, 23 }, 5, 1 },
+#include "assets/shelter_b1_access_tunnel_collision_01564_faces.inc"
 };
 
-s16 D_shelter_b1_access_tunnel_8017EA70[5] = {
-    3,
-    4,
-    6,
-    9,
-    -1,
+s16 D_shelter_b1_access_tunnel_8017EA70[72] = {
+#include "assets/shelter_b1_access_tunnel_collision_01564_cells.inc"
 };
 
-s16 D_shelter_b1_access_tunnel_8017EA7C[5] = {
-    3,
-    4,
-    6,
-    9,
-    -1,
-};
-
-s16 D_shelter_b1_access_tunnel_8017EA88[7] = {
-    0,
-    1,
-    7,
-    8,
-    10,
-    14,
-    -1,
-};
-
-s16 D_shelter_b1_access_tunnel_8017EA98[10] = {
-    3,
-    4,
-    5,
-    8,
-    9,
-    10,
-    11,
-    12,
-    14,
-    -1,
-};
-
-s16 D_shelter_b1_access_tunnel_8017EAAC[8] = {
-    3,
-    4,
-    5,
-    9,
-    11,
-    12,
-    14,
-    -1,
-};
-
-s16 D_shelter_b1_access_tunnel_8017EABC[9] = {
-    0,
-    1,
-    2,
-    7,
-    8,
-    10,
-    13,
-    14,
-    -1,
-};
-
-s16 D_shelter_b1_access_tunnel_8017EAD0[14] = {
-    0,
-    2,
-    3,
-    4,
-    5,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    -1,
-};
-
-s16 D_shelter_b1_access_tunnel_8017EAEC[9] = {
-    2,
-    3,
-    4,
-    5,
-    8,
-    10,
-    11,
-    12,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_shelter_b1_access_tunnel_8017EA70[i])
 s16* D_shelter_b1_access_tunnel_8017EB00[9] = {
-    NULL,
-    D_shelter_b1_access_tunnel_8017EA70,
-    D_shelter_b1_access_tunnel_8017EA7C,
-    D_shelter_b1_access_tunnel_8017EA88,
-    D_shelter_b1_access_tunnel_8017EA98,
-    D_shelter_b1_access_tunnel_8017EAAC,
-    D_shelter_b1_access_tunnel_8017EABC,
-    D_shelter_b1_access_tunnel_8017EAD0,
-    D_shelter_b1_access_tunnel_8017EAEC,
+#include "assets/shelter_b1_access_tunnel_collision_01564_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_b1_access_tunnel_8017EB24 = { NULL, D_shelter_b1_access_tunnel_8017E8CC, D_shelter_b1_access_tunnel_8017E8FC, D_shelter_b1_access_tunnel_8017E9BC, D_shelter_b1_access_tunnel_8017EB00, -10, -670, 3, 3, 4000, 15 };
 

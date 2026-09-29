@@ -290,85 +290,26 @@ GpWarpRec D_shelter_b6_corridor_8017F8BC[2] = {
 };
 
 SVECTOR D_shelter_b6_corridor_8017F92C[6] = {
-    { 4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
-    { -4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
-    { 0, -4096, 0, 0 },
-    { 0, 4096, 0, 0 },
+#include "assets/shelter_b6_corridor_collision_024D0_normals.inc"
 };
 
 SVECTOR D_shelter_b6_corridor_8017F95C[12] = {
-    { 0, -3500, -1350, 0 },
-    { 0, 0, -750, 0 },
-    { 0, 0, -1350, 0 },
-    { 9000, 0, -1350, 0 },
-    { 9000, -3500, -1350, 0 },
-    { 9000, -3500, 1350, 0 },
-    { 9000, 0, 775, 0 },
-    { 9000, 0, 1350, 0 },
-    { 0, 0, 1350, 0 },
-    { 0, -3500, 1350, 0 },
-    { 9000, 0, -750, 0 },
-    { 0, 0, 775, 0 },
+#include "assets/shelter_b6_corridor_collision_024D0_verts.inc"
 };
 
 GpGridFace D_shelter_b6_corridor_8017F9BC[12] = {
-    { { 0, 1, 2, 0xFFFF }, 0, 0 },
-    { { 2, 3, 0, 4 }, 1, 0 },
-    { { 5, 6, 7, 0xFFFF }, 2, 0 },
-    { { 7, 8, 5, 9 }, 3, 0 },
-    { { 10, 3, 1, 2 }, 4, 2 },
-    { { 9, 0, 5, 4 }, 5, 0 },
-    { { 11, 8, 6, 7 }, 4, 2 },
-    { { 1, 11, 10, 6 }, 4, 1 },
-    { { 10, 4, 3, 0xFFFF }, 2, 0 },
-    { { 5, 4, 6, 10 }, 2, 0 },
-    { { 11, 9, 8, 0xFFFF }, 0, 0 },
-    { { 0, 9, 1, 11 }, 0, 0 },
+#include "assets/shelter_b6_corridor_collision_024D0_faces.inc"
 };
 
-s16 D_shelter_b6_corridor_8017FA4C[10] = {
-    0,
-    1,
-    3,
-    4,
-    5,
-    6,
-    7,
-    10,
-    11,
-    -1,
+s16 D_shelter_b6_corridor_8017FA4C[28] = {
+#include "assets/shelter_b6_corridor_collision_024D0_cells.inc"
 };
 
-s16 D_shelter_b6_corridor_8017FA60[7] = {
-    1,
-    3,
-    4,
-    5,
-    6,
-    7,
-    -1,
-};
-
-s16 D_shelter_b6_corridor_8017FA70[10] = {
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_shelter_b6_corridor_8017FA4C[i])
 s16* D_shelter_b6_corridor_8017FA84[3] = {
-    D_shelter_b6_corridor_8017FA4C,
-    D_shelter_b6_corridor_8017FA60,
-    D_shelter_b6_corridor_8017FA70,
+#include "assets/shelter_b6_corridor_collision_024D0_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_b6_corridor_8017FA90 = { NULL, D_shelter_b6_corridor_8017F92C, D_shelter_b6_corridor_8017F95C, D_shelter_b6_corridor_8017F9BC, D_shelter_b6_corridor_8017FA84, 0, 1350, 3, 1, 4000, 12 };
 

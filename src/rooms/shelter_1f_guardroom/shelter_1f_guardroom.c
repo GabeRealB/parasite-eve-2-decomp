@@ -96,58 +96,26 @@ GpWarpRec D_shelter_1f_guardroom_8017DA98[1] = {
 };
 
 SVECTOR D_shelter_1f_guardroom_8017DAD0[7] = {
-    { 4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
-    { -4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
-    { 0, -4096, 0, 0 },
-    { 0, 4096, 0, 0 },
-    { 3240, 0, -2506, 0 },
+#include "assets/shelter_1f_guardroom_collision_00630_normals.inc"
 };
 
 SVECTOR D_shelter_1f_guardroom_8017DB08[14] = {
-    { -0x2904, -2500, -3000, 0 },
-    { -0x2904, 0, -3000, 0 },
-    { -0x2904, 0, -4500, 0 },
-    { -0x2904, -2500, -4500, 0 },
-    { -6720, 0, -4500, 0 },
-    { -6720, -2500, -4500, 0 },
-    { -6720, 0, -3000, 0 },
-    { -6720, -2500, -3000, 0 },
-    { -8522, 0, -3298, 0 },
-    { -8522, -2500, -3298, 0 },
-    { -8290, -2500, -2998, 0 },
-    { -8290, 0, -2998, 0 },
-    { -0x2902, 0, -3298, 0 },
-    { -0x2902, -2500, -3298, 0 },
+#include "assets/shelter_1f_guardroom_collision_00630_verts.inc"
 };
 
 GpGridFace D_shelter_1f_guardroom_8017DB78[8] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 2, 4, 3, 5 }, 1, 0 },
-    { { 4, 6, 5, 7 }, 2, 0 },
-    { { 6, 1, 7, 0 }, 3, 0 },
-    { { 6, 4, 1, 2 }, 4, 1 },
-    { { 0, 3, 7, 5 }, 5, 0 },
-    { { 9, 10, 8, 11 }, 6, 0 },
-    { { 13, 9, 12, 8 }, 3, 0 },
+#include "assets/shelter_1f_guardroom_collision_00630_faces.inc"
 };
 
-s16 D_shelter_1f_guardroom_8017DBD8[9] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    -1,
+s16 D_shelter_1f_guardroom_8017DBD8[10] = {
+#include "assets/shelter_1f_guardroom_collision_00630_cells.inc"
 };
 
+#define GRID_CELL(i) (&D_shelter_1f_guardroom_8017DBD8[i])
 s16* D_shelter_1f_guardroom_8017DBEC[1] = {
-    D_shelter_1f_guardroom_8017DBD8,
+#include "assets/shelter_1f_guardroom_collision_00630_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_1f_guardroom_8017DBF0[1] = {
     { NULL, D_shelter_1f_guardroom_8017DAD0, D_shelter_1f_guardroom_8017DB08, D_shelter_1f_guardroom_8017DB78, D_shelter_1f_guardroom_8017DBEC, 0x2904, 4500, 1, 1, 4000, 8 },

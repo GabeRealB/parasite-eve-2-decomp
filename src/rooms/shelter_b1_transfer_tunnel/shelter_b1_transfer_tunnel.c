@@ -150,88 +150,26 @@ GpWarpRec D_shelter_b1_transfer_tunnel_8018295C[2] = {
 };
 
 SVECTOR D_shelter_b1_transfer_tunnel_801829CC[6] = {
-    { 4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
-    { -4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
-    { 0, 4096, 0, 0 },
-    { 0, -4096, 0, 0 },
+#include "assets/shelter_b1_transfer_tunnel_collision_0552C_normals.inc"
 };
 
 SVECTOR D_shelter_b1_transfer_tunnel_801829FC[12] = {
-    { 363, -2143, 977, 0 },
-    { 363, 1000, 977, 0 },
-    { 363, 1000, -807, 0 },
-    { 363, -2143, -807, 0 },
-    { 6836, 1000, -807, 0 },
-    { 6836, -2143, -807, 0 },
-    { 6836, 1000, 977, 0 },
-    { 6836, -2143, 977, 0 },
-    { -642, 0, 2339, 0 },
-    { 8024, 0, 2339, 0 },
-    { 8024, 0, -1736, 0 },
-    { -642, 0, -1736, 0 },
+#include "assets/shelter_b1_transfer_tunnel_collision_0552C_verts.inc"
 };
 
 GpGridFace D_shelter_b1_transfer_tunnel_80182A5C[6] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 2, 4, 3, 5 }, 1, 0 },
-    { { 4, 6, 5, 7 }, 2, 0 },
-    { { 6, 1, 7, 0 }, 3, 0 },
-    { { 0, 3, 7, 5 }, 4, 0 },
-    { { 9, 10, 8, 11 }, 5, 1 },
+#include "assets/shelter_b1_transfer_tunnel_collision_0552C_faces.inc"
 };
 
-s16 D_shelter_b1_transfer_tunnel_80182AA4[6] = {
-    0,
-    1,
-    3,
-    4,
-    5,
-    -1,
+s16 D_shelter_b1_transfer_tunnel_80182AA4[24] = {
+#include "assets/shelter_b1_transfer_tunnel_collision_0552C_cells.inc"
 };
 
-s16 D_shelter_b1_transfer_tunnel_80182AB0[2] = {
-    5,
-    -1,
-};
-
-s16 D_shelter_b1_transfer_tunnel_80182AB4[6] = {
-    1,
-    2,
-    3,
-    4,
-    5,
-    -1,
-};
-
-s16 D_shelter_b1_transfer_tunnel_80182AC0[2] = {
-    5,
-    -1,
-};
-
-s16 D_shelter_b1_transfer_tunnel_80182AC4[6] = {
-    1,
-    2,
-    3,
-    4,
-    5,
-    -1,
-};
-
-s16 D_shelter_b1_transfer_tunnel_80182AD0[2] = {
-    5,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_shelter_b1_transfer_tunnel_80182AA4[i])
 s16* D_shelter_b1_transfer_tunnel_80182AD4[6] = {
-    D_shelter_b1_transfer_tunnel_80182AA4,
-    D_shelter_b1_transfer_tunnel_80182AB0,
-    D_shelter_b1_transfer_tunnel_80182AB4,
-    D_shelter_b1_transfer_tunnel_80182AC0,
-    D_shelter_b1_transfer_tunnel_80182AC4,
-    D_shelter_b1_transfer_tunnel_80182AD0,
+#include "assets/shelter_b1_transfer_tunnel_collision_0552C_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_b1_transfer_tunnel_80182AEC = { NULL, D_shelter_b1_transfer_tunnel_801829CC, D_shelter_b1_transfer_tunnel_801829FC, D_shelter_b1_transfer_tunnel_80182A5C, D_shelter_b1_transfer_tunnel_80182AD4, 642, 1736, 3, 2, 4000, 6 };
 

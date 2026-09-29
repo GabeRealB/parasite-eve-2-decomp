@@ -11,7 +11,6 @@ D_acropolis_hallway_8017E358 = 0x8017E358; // size:0x50 defined:True
 D_acropolis_hallway_8017E3A8 = 0x8017E3A8; // size:0x118 defined:True
 D_acropolis_hallway_8017E4C0 = 0x8017E4C0; // size:0xCC defined:True
 D_acropolis_hallway_8017E58C = 0x8017E58C; // size:0x22 defined:True
-D_acropolis_hallway_8017E5B0 = 0x8017E5B0; // size:0x18 defined:True
 D_acropolis_hallway_8017E5C8 = 0x8017E5C8; // size:0x8 defined:True
 D_acropolis_hallway_8017E5D0 = 0x8017E5D0; // size:0x24 defined:True
 D_acropolis_hallway_8017E5F4 = 0x8017E5F4; // size:0x130 defined:True

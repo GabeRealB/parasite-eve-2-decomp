@@ -126,91 +126,26 @@ GpWarpRec D_neo_ark_savanna_zone_8017FA04[2] = {
 };
 
 SVECTOR D_neo_ark_savanna_zone_8017FA74[5] = {
-    { 4096, 0, 0, 0 },
-    { 0, 0, 4096, 0 },
-    { -4096, 0, 0, 0 },
-    { 0, 0, -4096, 0 },
-    { 0, -4096, 0, 0 },
+#include "assets/neo_ark_savanna_zone_collision_02610_normals.inc"
 };
 
 SVECTOR D_neo_ark_savanna_zone_8017FA9C[12] = {
-    { -50, -3950, 2950, 0 },
-    { -50, 50, 2950, 0 },
-    { -50, 50, -50, 0 },
-    { -50, -3950, -50, 0 },
-    { 0x367E, -3950, -50, 0 },
-    { 0x2A8A, 50, -50, 0 },
-    { 0x367E, 50, -50, 0 },
-    { 0x367E, 50, 2950, 0 },
-    { 0x367E, -3950, 2950, 0 },
-    { 5710, 50, 2950, 0 },
-    { 0x29E0, 50, 2950, 0 },
-    { 5450, 50, -50, 0 },
+#include "assets/neo_ark_savanna_zone_collision_02610_verts.inc"
 };
 
 GpGridFace D_neo_ark_savanna_zone_8017FAFC[11] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 4, 5, 6, 0xFFFF }, 1, 0 },
-    { { 6, 7, 4, 8 }, 2, 0 },
-    { { 0, 9, 1, 0xFFFF }, 3, 1 },
-    { { 10, 7, 5, 6 }, 4, 2 },
-    { { 0, 8, 9, 10 }, 3, 1 },
-    { { 11, 2, 9, 1 }, 4, 2 },
-    { { 9, 10, 11, 5 }, 4, 3 },
-    { { 10, 8, 7, 0xFFFF }, 3, 1 },
-    { { 11, 3, 2, 0xFFFF }, 1, 0 },
-    { { 11, 5, 3, 4 }, 1, 0 },
+#include "assets/neo_ark_savanna_zone_collision_02610_faces.inc"
 };
 
-s16 D_neo_ark_savanna_zone_8017FB80[8] = {
-    0,
-    3,
-    5,
-    6,
-    7,
-    9,
-    10,
-    -1,
+s16 D_neo_ark_savanna_zone_8017FB80[32] = {
+#include "assets/neo_ark_savanna_zone_collision_02610_cells.inc"
 };
 
-s16 D_neo_ark_savanna_zone_8017FB90[7] = {
-    3,
-    5,
-    6,
-    7,
-    9,
-    10,
-    -1,
-};
-
-s16 D_neo_ark_savanna_zone_8017FBA0[8] = {
-    1,
-    2,
-    4,
-    5,
-    7,
-    8,
-    10,
-    -1,
-};
-
-s16 D_neo_ark_savanna_zone_8017FBB0[8] = {
-    1,
-    2,
-    4,
-    5,
-    7,
-    8,
-    10,
-    -1,
-};
-
+#define GRID_CELL(i) (&D_neo_ark_savanna_zone_8017FB80[i])
 s16* D_neo_ark_savanna_zone_8017FBC0[4] = {
-    D_neo_ark_savanna_zone_8017FB80,
-    D_neo_ark_savanna_zone_8017FB90,
-    D_neo_ark_savanna_zone_8017FBA0,
-    D_neo_ark_savanna_zone_8017FBB0,
+#include "assets/neo_ark_savanna_zone_collision_02610_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_neo_ark_savanna_zone_8017FBD0[1] = {
     { NULL, D_neo_ark_savanna_zone_8017FA74, D_neo_ark_savanna_zone_8017FA9C, D_neo_ark_savanna_zone_8017FAFC, D_neo_ark_savanna_zone_8017FBC0, 50, 50, 4, 1, 4000, 11 },

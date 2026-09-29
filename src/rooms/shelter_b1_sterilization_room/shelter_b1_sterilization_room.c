@@ -250,41 +250,26 @@ s32 D_shelter_b1_sterilization_room_80184E7C = 0x11004;
 s16 D_shelter_b1_sterilization_room_80184E80[3] = { 0 };
 
 SVECTOR D_shelter_b1_sterilization_room_80184E88[4] = {
-    { -3836, 0, 1436, 0 },
-    { -1108, 0, -3943, 0 },
-    { 4054, 0, 582, 0 },
-    { 0, 0, 4096, 0 },
+#include "assets/shelter_b1_sterilization_room_collision_07968_normals.inc"
 };
 
 SVECTOR D_shelter_b1_sterilization_room_80184EA8[8] = {
-    { -268, 500, 747, 0 },
-    { -268, -932, 747, 0 },
-    { -641, -932, -248, 0 },
-    { -641, 500, -248, 0 },
-    { 399, -932, -540, 0 },
-    { 399, 500, -540, 0 },
-    { 214, -932, 747, 0 },
-    { 214, 500, 747, 0 },
+#include "assets/shelter_b1_sterilization_room_collision_07968_verts.inc"
 };
 
 GpGridFace D_shelter_b1_sterilization_room_80184EE8[4] = {
-    { { 1, 2, 0, 3 }, 0, 0 },
-    { { 2, 4, 3, 5 }, 1, 0 },
-    { { 4, 6, 5, 7 }, 2, 0 },
-    { { 6, 1, 7, 0 }, 3, 0 },
+#include "assets/shelter_b1_sterilization_room_collision_07968_faces.inc"
 };
 
-s16 D_shelter_b1_sterilization_room_80184F18[5] = {
-    0,
-    1,
-    2,
-    3,
-    -1,
+s16 D_shelter_b1_sterilization_room_80184F18[6] = {
+#include "assets/shelter_b1_sterilization_room_collision_07968_cells.inc"
 };
 
+#define GRID_CELL(i) (&D_shelter_b1_sterilization_room_80184F18[i])
 s16* D_shelter_b1_sterilization_room_80184F24[1] = {
-    D_shelter_b1_sterilization_room_80184F18,
+#include "assets/shelter_b1_sterilization_room_collision_07968_table.inc"
 };
+#undef GRID_CELL
 
 GpGridParams D_shelter_b1_sterilization_room_80184F28 = { NULL, D_shelter_b1_sterilization_room_80184E88, D_shelter_b1_sterilization_room_80184EA8, D_shelter_b1_sterilization_room_80184EE8, D_shelter_b1_sterilization_room_80184F24, 641, 540, 1, 1, 4000, 4 };
 
