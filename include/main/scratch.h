@@ -3,16 +3,22 @@
 
 #include "common.h"
 
+/// Byte offset of the scratch stack's 32-bit cursor in scratchpad RAM.
+enum { SCRATCH_STACK_HEAD_BYTE_OFFSET = 0x3FC };
+
 /// The scratch-pad stack: temporary blocks carved off the top of the
 /// PlayStation's 1 KB scratch pad, which grows downward from the pointer kept
 /// in its last word. A function takes a block by moving that pointer down by
 /// the block's size and gives it back by moving it up again, in reverse order.
+/// The cursor must be initialized and suitably aligned, with enough free space
+/// for every nested reservation. Released blocks must not survive another
+/// scratch allocation.
 ///
 /// These are macros, not inline functions: the stack pointer's address is a
 /// constant, and GCC keeps it in a register across the load and the store only
 /// when the expression is written in the function itself. Inlined from a
 /// function body, the same update is addressed twice and scheduled differently.
-#define G_SCRATCH_HEAD PSX_SCRATCH_ADDR(0x3FC)
+#define G_SCRATCH_HEAD PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)
 
 /// The stack pointer seen as a `type*`: reads the top block, or, assigned,
 /// moves the top to a block the caller computed.

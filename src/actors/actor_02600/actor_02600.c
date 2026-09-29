@@ -951,12 +951,12 @@ static void Actor02600_Fn00754(Task* arg0)
     VECTOR*          delta;
     VECTOR*          scratchEnd;
 
-    scratchEnd                         = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC);
-    delta                              = scratchEnd - 1;
-    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = delta;
-    work                               = arg0->work;
-    state                              = work->field_39C;
-    coord                              = arg0->extra.tmd->coords;
+    scratchEnd                                                                = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
+    delta                                                                     = scratchEnd - 1;
+    *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = delta;
+    work                                                                      = arg0->work;
+    state                                                                     = work->field_39C;
+    coord                                                                     = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
             scratchEnd[-1].vx = (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
@@ -985,7 +985,7 @@ static void Actor02600_Fn00754(Task* arg0)
             }
             break;
     }
-    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
+    *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) + 1;
 }
 
 static void Actor02600_Fn00914(Task* arg0)
@@ -1002,20 +1002,20 @@ static void Actor02600_Fn00914(Task* arg0)
     VECTOR*          delta;
     VECTOR*          scratchEnd;
 
-    scratchEnd                         = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC);
-    coord                              = arg0->extra.tmd->coords;
-    delta                              = scratchEnd - 1;
-    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = delta;
-    work                               = arg0->work;
-    work->field_3A2                    = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;
-    scratchEnd[-1].vx                  = (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
-    delta->vy                          = 0;
-    dz                                 = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-    delta->vz                          = dz;
-    dx                                 = scratchEnd[-1].vx;
-    distance                           = SquareRoot0((dx * dx) + (dz * dz));
-    angle                              = (u16)work->field_3A2 - (ratan2((s32)(s16)scratchEnd[-1].vx, (s32)(s16)delta->vz) & 0xFFF);
-    magnitude                          = __builtin_abs((s32)angle);
+    scratchEnd                                                                = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
+    coord                                                                     = arg0->extra.tmd->coords;
+    delta                                                                     = scratchEnd - 1;
+    *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = delta;
+    work                                                                      = arg0->work;
+    work->field_3A2                                                           = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;
+    scratchEnd[-1].vx                                                         = (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
+    delta->vy                                                                 = 0;
+    dz                                                                        = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    delta->vz                                                                 = dz;
+    dx                                                                        = scratchEnd[-1].vx;
+    distance                                                                  = SquareRoot0((dx * dx) + (dz * dz));
+    angle                                                                     = (u16)work->field_3A2 - (ratan2((s32)(s16)scratchEnd[-1].vx, (s32)(s16)delta->vz) & 0xFFF);
+    magnitude                                                                 = __builtin_abs((s32)angle);
     if (magnitude < 0x800) {
         difference = magnitude;
     } else {
@@ -1032,7 +1032,7 @@ static void Actor02600_Fn00914(Task* arg0)
         work->field_392 = 4;
         Gp_ArmStateF0(1);
     }
-    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
+    *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) + 1;
 }
 
 static void Actor02600_Fn00A94(Task* actor)
@@ -1051,14 +1051,14 @@ static void Actor02600_Fn00A94(Task* actor)
     VECTOR*          delta;
     VECTOR*          scratchEnd;
 
-    scratchEnd                         = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC);
-    delta                              = scratchEnd - 1;
-    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = delta;
-    coord                              = actor->extra.tmd->coords;
-    work                               = actor->work;
-    state                              = work->field_39C;
-    sessionFlags                       = GP_LOC_WORD(gGameSession->at4.loc);
-    value                              = 0;
+    scratchEnd                                                                = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
+    delta                                                                     = scratchEnd - 1;
+    *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = delta;
+    coord                                                                     = actor->extra.tmd->coords;
+    work                                                                      = actor->work;
+    state                                                                     = work->field_39C;
+    sessionFlags                                                              = GP_LOC_WORD(gGameSession->at4.loc);
+    value                                                                     = 0;
     switch (state) {
         case 0:
             if (work->field_3C6 == 0) {
@@ -1165,7 +1165,7 @@ static void Actor02600_Fn00A94(Task* actor)
             break;
     }
     Actor02600_Fn02C94(actor);
-    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
+    *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) + 1;
 }
 
 static void Actor02600_Fn00FA0(Task* arg0)
@@ -1185,12 +1185,12 @@ static void Actor02600_Fn00FA0(Task* arg0)
     ActorFaceScratch* delta;
     ActorFaceScratch* scratchEnd;
 
-    scratchEnd                                   = *(ActorFaceScratch**)PSX_SCRATCH_ADDR(0x3FC);
-    delta                                        = scratchEnd - 1;
-    *(ActorFaceScratch**)PSX_SCRATCH_ADDR(0x3FC) = delta;
-    work                                         = arg0->work;
-    state                                        = work->field_39C;
-    coord                                        = arg0->extra.tmd->coords;
+    scratchEnd                                                                          = *(ActorFaceScratch**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
+    delta                                                                               = scratchEnd - 1;
+    *(ActorFaceScratch**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = delta;
+    work                                                                                = arg0->work;
+    state                                                                               = work->field_39C;
+    coord                                                                               = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
             work->field_3C8 = 0;
@@ -1492,8 +1492,8 @@ static void Actor02600_Fn01B30(Task* arg0)
     obj        = arg0->extra.tmd;
     work       = arg0->work;
     ctx        = arg0->spawnArg2.pointer;
-    scratchEnd = *(SVECTOR**)PSX_SCRATCH_ADDR(0x3FC);
-    velocity   = (*(SVECTOR**)PSX_SCRATCH_ADDR(0x3FC) = scratchEnd - 1);
+    scratchEnd = *(SVECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
+    velocity   = (*(SVECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = scratchEnd - 1);
     state      = work->field_39C;
     coord      = obj->coords;
     one        = 1;
@@ -1603,7 +1603,7 @@ static void Actor02600_Fn01B30(Task* arg0)
             }
             break;
     }
-    *(SVECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(SVECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
+    *(SVECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = *(SVECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) + 1;
 }
 
 /// Status-effect step, run every frame while `field_3B0` is set. `field_3B2`
@@ -1949,16 +1949,16 @@ static void Actor02600_Fn02954(Task* actor, s32 frame)
     ActorSpriteUv*    uv;
     SVECTOR*          projection;
 
-    scratchEnd                     = (ActorQuadScratch*)*(u8**)PSX_SCRATCH_ADDR(0x3FC);
-    coord                          = actor->extra.tmd->coords;
-    actor                          = actor->parent;
-    texture                        = actor->extra.tmd;
-    scratchEnd[-1].v[0].vx         = (u16)coord->workm.t[0];
-    s                              = scratchEnd - 1;
-    s->v[0].vy                     = (u16)coord->workm.t[1];
-    *(u8**)PSX_SCRATCH_ADDR(0x3FC) = (u8*)s;
-    s->v[0].vz                     = (u16)coord->workm.t[2];
-    projection                     = &s->v[0];
+    scratchEnd                                                            = (ActorQuadScratch*)*(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
+    coord                                                                 = actor->extra.tmd->coords;
+    actor                                                                 = actor->parent;
+    texture                                                               = actor->extra.tmd;
+    scratchEnd[-1].v[0].vx                                                = (u16)coord->workm.t[0];
+    s                                                                     = scratchEnd - 1;
+    s->v[0].vy                                                            = (u16)coord->workm.t[1];
+    *(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = (u8*)s;
+    s->v[0].vz                                                            = (u16)coord->workm.t[2];
+    projection                                                            = &s->v[0];
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_ldv0(projection);
@@ -2014,7 +2014,7 @@ static void Actor02600_Fn02954(Task* actor, s32 frame)
         poly->y3    = (u16)s->v[3].vy;
         addPrim((&gGpuCurrentOt[((((u32)(s->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]), poly);
     }
-    *(u8**)PSX_SCRATCH_ADDR(0x3FC) += 0x28;
+    *(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += 0x28;
 }
 
 /// Draws a vertical semi-transparent gouraud line in the space of the matrix
@@ -2033,7 +2033,7 @@ static void Actor02600_Fn02C94(Task* actor)
     s32                     screen;
     s32                     screen1;
 
-    s              = (Actor105500LineScratch*)(*(u8**)PSX_SCRATCH_ADDR(0x3FC) -= sizeof(Actor105500LineScratch));
+    s              = (Actor105500LineScratch*)(*(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) -= sizeof(Actor105500LineScratch));
     work           = actor->work;
     s->position.vx = 0;
     s->position.vy = work->field_3A0 - 0x352;
@@ -2045,7 +2045,7 @@ static void Actor02600_Fn02C94(Task* actor)
     gte_stsxy(&s->screen);
     gte_stszotz(&s->depth);
     if (s->depth < 30) {
-        *(u8**)PSX_SCRATCH_ADDR(0x3FC) += sizeof(Actor105500LineScratch);
+        *(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += sizeof(Actor105500LineScratch);
         return;
     }
     screen         = s->screen;
@@ -2061,7 +2061,7 @@ static void Actor02600_Fn02C94(Task* actor)
     gte_stsxy(&s->screen);
     gte_stszotz(&s->depth);
     if (s->depth < 30) {
-        *(u8**)PSX_SCRATCH_ADDR(0x3FC) += sizeof(Actor105500LineScratch);
+        *(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += sizeof(Actor105500LineScratch);
         return;
     }
     line           = gGpuPrimCursor;
@@ -2093,7 +2093,7 @@ static void Actor02600_Fn02C94(Task* actor)
     setlen(page, 1);
     page->code[0] = 0xE1000620;
     addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]), page);
-    *(u8**)PSX_SCRATCH_ADDR(0x3FC) += sizeof(Actor105500LineScratch);
+    *(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += sizeof(Actor105500LineScratch);
 }
 
 /// Spawn handler: allocates the actor's work block, links the four `GpObj`

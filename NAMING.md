@@ -258,6 +258,12 @@ requires them, and include only the interface actually used.
 
 ### Resident executable
 
+Platform memory helpers in `include/decomp/common.h` describe fixed PlayStation
+hardware regions and use the full `PLAYSTATION_` macro prefix. They provide byte
+addresses, not allocation or ownership. The scratch stack in
+`include/main/scratch.h` manages temporary blocks within that region; its slot
+offset constants use `SCRATCH_STACK_`.
+
 Source basenames in this table are relative to `src/main/`. Multiple prefixes
 in a row identify different responsibilities in the same source group.
 

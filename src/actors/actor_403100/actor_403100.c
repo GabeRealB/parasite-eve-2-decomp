@@ -3769,10 +3769,10 @@ static void func_actor_403100_801328DC(Task* arg0)
     MATRIX*   rotation;
     MATRIX*   dest;
 
-    root                                = arg0->extra.tmd->coords;
-    *(MATRIX**)PSX_SCRATCH_ADDR(0x3FC) -= 1;
-    rotation                            = *(MATRIX**)PSX_SCRATCH_ADDR(0x3FC);
-    joint                               = &root[5];
+    root                                                                       = arg0->extra.tmd->coords;
+    *(MATRIX**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) -= 1;
+    rotation                                                                   = *(MATRIX**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
+    joint                                                                      = &root[5];
     Actor403100_AccumulateRotation(joint, rotation, root);
     RotMatrixX(D_actor_403100_80155808->field_604, rotation);
     RotMatrixY(D_actor_403100_80155808->field_608, rotation);
@@ -3789,7 +3789,7 @@ static void func_actor_403100_801328DC(Task* arg0)
     dest->m[2][2]       = rotation->m[2][2];
     joint->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(joint);
-    *(MATRIX**)PSX_SCRATCH_ADDR(0x3FC) += 1;
+    *(MATRIX**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += 1;
 }
 static void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height)
 {

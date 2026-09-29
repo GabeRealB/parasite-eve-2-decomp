@@ -2137,16 +2137,16 @@ same pointer into a longer-lived name (the then-branch's `obj`) put
 `2ed06392880968e696c8979c58fa8bac1b3a12904e77d48ee813ac2318a098c6`,
 assembly `cc92dcc0a02e4a854ddffbcc551f4934fb6c4b196b3520df4e34096972a318b7`.
 
-## Hoist `PSX_SCRATCH` before a call-containing region to swap `$s3`/`$s4`
+## Hoist `PLAYSTATION_SCRATCHPAD_BASE` before a call-containing region to swap `$s3`/`$s4`
 
 A scale constant (`0x1194`) and the scratch-head pointer compete for `$s3`/`$s4`
-after `ratan2` / `Gfx_RotMatrixY` / `ScaleMatrix`. Loading `PSX_SCRATCH` inside
+after `ratan2` / `Gfx_RotMatrixY` / `ScaleMatrix`. Loading `PLAYSTATION_SCRATCHPAD_BASE` inside
 the matrix block gives the pointer `$s3`. Assigning it to a local *before* a
 switch that contains calls lengthens that range so the constant outranks it and
 takes `$s3`:
 
 ```c
-scratch_base = PSX_SCRATCH; /* before if (timer < N), which contains jals */
+scratch_base = PLAYSTATION_SCRATCHPAD_BASE; /* before if (timer < N), which contains jals */
 ...
 head = scratch_base;
 head = *(u8**)(head + 0x3FC);
@@ -17526,7 +17526,7 @@ layout-matching type (e.g. `FlatLight`) instead of including libgs.
 
 ## Scratch-head light direction: 0x18 block, SVECTOR at +0x10
 
-`G_SCRATCH_HEAD` (`PSX_SCRATCH_ADDR(0x3FC)`) is a downward-growing arena pointer.
+`G_SCRATCH_HEAD` (`PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)`) is a downward-growing arena pointer.
 Helpers that call `Gfx_NormalizeLightDir` to normalize a light direction use:
 
 ```c
@@ -17546,7 +17546,7 @@ directions go in MATRIX **rows** (`m[id][0/1/2] = -dir`).
 
 ## A 0x18 scratch block is not a `VECTOR*`
 
-The same `PSX_SCRATCH_ADDR(0x3FC)` arena also carries 0x18-byte blocks holding a
+The same `PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)` arena also carries 0x18-byte blocks holding a
 `VECTOR` followed by an `SVECTOR`. `VECTOR` is 0x10 bytes (`long vx, vy, vz,
 pad`), so `VECTOR* scratchEnd; delta = scratchEnd - 1;` decrements by 0x10 and
 the target's `addiu $s4, $s5, -0x18` cannot come out. Reuse the source overlay's
@@ -17559,7 +17559,7 @@ typedef struct ActorFaceScratch {
 } ActorFaceScratch;
 STATIC_ASSERT_SIZEOF(ActorFaceScratch, 0x18);
 
-scratchEnd = *(ActorFaceScratch**)PSX_SCRATCH_ADDR(0x3FC);
+scratchEnd = *(ActorFaceScratch**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
 delta      = scratchEnd - 1;                  /* -0x18 */
 delta->vec.vz = ...;                          /* +0x08 */
 ```
@@ -38969,7 +38969,7 @@ a later store. When the target instead uses `lui reg, 0x1F80` followed by
 `lw reg, 0x3FC(reg)`, preserve the address decomposition as two statements:
 
 ```c
-head = PSX_SCRATCH;
+head = PLAYSTATION_SCRATCHPAD_BASE;
 head = *(u8**)(head + 0x3FC);
 ```
 
@@ -79034,10 +79034,10 @@ decrement and *copies* out of it, which is what the sibling source spells with a
 function-scope pin:
 
 ```c
-scratchEnd                          = *(SVECTOR**)PSX_SCRATCH_ADDR(0x3FC);
+scratchEnd                          = *(SVECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
 allocated                           = scratchEnd - 1;
 rotation                            = allocated;
-*(SVECTOR**)PSX_SCRATCH_ADDR(0x3FC) = allocated;
+*(SVECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = allocated;
 ```
 
 with `register SVECTOR* allocated asm("v1");`. With the pin the decrement lands
@@ -110504,15 +110504,16 @@ So keep the three addresses *unequal as values* until they fold. Each spelling
 must reach `0x1F8003FC` from a different value:
 
 ```c
-    u8*  head;
-    u32  spad_a;
-    u32  spad_b;
+    OverlayRangeScratch* savedScratchHead;
+    u8* scratchBase;
+    u8* scratchRestoreBase;
 
-    head   = *(void**)G_SCRATCH_HEAD;              /* folded constant  */
-    spad_a = (u32)PSX_SCRATCH;                     /* 0x1F800000 + 0x3FC */
-    *(void**)((u8*)spad_a + 0x3FC) = blk;
-    spad_b = (u32)PSX_SCRATCH + 0x3F8;             /* 0x1F8003F8 + 0x4 */
-    *(void**)((u8*)spad_b + 0x4)   = head;
+    savedScratchHead = SCRATCH_HEAD(OverlayRangeScratch); /* folded constant */
+    scratchBase = PLAYSTATION_SCRATCHPAD_BASE;            /* 0x1F800000 + 0x3FC */
+    *(OverlayRangeScratch**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = rangeScratch;
+    scratchRestoreBase = PLAYSTATION_SCRATCHPAD_BASE +
+        (SCRATCH_STACK_HEAD_BYTE_OFFSET - sizeof(void*)); /* 0x1F8003F8 + 0x4 */
+    *(OverlayRangeScratch**)(scratchRestoreBase + sizeof(void*)) = savedScratchHead;
 ```
 
 Every pseudo now has two references, reload rematerialises each constant into
@@ -112759,38 +112760,39 @@ change alone.
 `(plus (const_int 0x1F800000) (const_int 0x3FC))` in the MEM operand. `cse`
 produces exactly that when it substitutes a *register that it knows holds*
 `0x1F800000` into the address — and the register must not itself be allocated.
-A function-scoped `u8* base = PSX_SCRATCH;` is a `reg/v` user variable with a
+A function-scoped `u8* scratchBase = PLAYSTATION_SCRATCHPAD_BASE;` is a `reg/v` user variable with a
 long live range, so `global_alloc` gives it a register and the accesses become
 `0x3fc(sN)`. What works is a copy that dies at the access:
 
 ```c
-base = PSX_SCRATCH;               /* short-lived copy of the constant */
-slot = *(u8**)(base + 0x3FC);     /* the rest of the function reads slot */
+scratchBase = PLAYSTATION_SCRATCHPAD_BASE; /* short-lived copy of the constant */
+savedVectorHead = *(u8**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET);
 ...
-base = PSX_SCRATCH;               /* fresh copy for the store */
-*(SVECTOR**)(base + 0x3FC) = v;
-base = slot;                      /* the assignment that kills it */
+scratchBase = PLAYSTATION_SCRATCHPAD_BASE; /* fresh copy for the store */
+*(SVECTOR**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = movementDirection;
+scratchBase = savedVectorHead;           /* the assignment that kills it */
 ```
 
-The `base = slot;` lines matter: without something overwriting the copy, `cse`
+The `scratchBase = savedVectorHead;` lines matter: without something overwriting the copy, `cse`
 merges all the copies into one long-lived pseudo and the hoist comes back
 (base_5, base_6, base_16 all regress). With them, each copy has a one-to-two
 instruction live range, `reload` expands the constant per use, and the access
 shapes fall out as `lui r,0x1f80` + `0x3fc(r)` / `0x3fc($at)`.
 
-**Split the scratch locals per block too.** One `slot`/`base`/`next` shared by
+**Split the scratch locals per block too.** One `savedVectorHead`/`scratchBase`/`releasedVectorHead` shared by
 two scratch blocks becomes one pseudo spanning both, which retail keeps in
 different registers (`$s1` for the first block, `$s2` for the second). Giving
-each block its own variable — `slot`/`base`/`next` and `slot2`/`base2`/`next2`,
+each block its own variable — `savedVectorHead`/`scratchBase`/`releasedVectorHead` and
+`savedCollisionHead`/`collisionScratchBase`/`releasedCollisionHead`,
 `coord`/`root` for the two coordinate reads — is worth 92.7% -> 95.1% -> 98.5%.
 GCC will not split them for you: a shared local is one pseudo, and its live
 range covers the whole middle of the function.
 
 **Copy the record pointer again when the target does.** Retail's second scratch
 block computes the record (`addiu v0,s2,-0x14`) and then copies it
-(`move s1,v0`), i.e. the source keeps a `blk`/`s` pair like the matched
-`func_actor_401300_80132C78`. Adding `s = blk;` and putting the trailing
-reads/writes through `s` reproduces the pair and the exact 253-instruction
+(`move s1,v0`), i.e. the source keeps a `collisionScratch`/`resolvedStep` pair like the matched
+`func_actor_401300_80132C78`. Adding `resolvedStep = collisionScratch;` and putting the trailing
+reads/writes through `resolvedStep` reproduces the pair and the exact 253-instruction
 count: 98.5% -> 99.0% (`base_25`).
 
 **What is left.** The tick's final `field_68 & 1` arm has two comparisons
@@ -113038,7 +113040,7 @@ reach the shape, because no unpinned spelling of an explicit temp keeps the
 pair. Reach for the reserve idiom, not a pin.
 
 Note the contrast with the `func_actor_356100_801668FC` entry above: that
-function needed the `PSX_SCRATCH` address kept unfolded per use. Here the plain
+function needed the `PLAYSTATION_SCRATCHPAD_BASE` address kept unfolded per use. Here the plain
 `G_SCRATCH_HEAD` macro produced retail's `lui at,0x1f80` + `0x3fc($at)` store
 shape with no `base`/`slot` splitting at all — the address was never hoisted,
 because the two blocks that use it are short and the value dies at each use.
@@ -113091,7 +113093,7 @@ turn = (ActorTurnScratch*)(*(u32*)G_SCRATCH_HEAD -= 0xC);
 
 The store the expression performs *is* the reservation, so no separate
 `*(T**)G_SCRATCH_HEAD = turn;` statement may follow. `G_SCRATCH_HEAD` is
-`PSX_SCRATCH_ADDR(0x3FC)`; cast the slot to `u32*` (or the block's own type, as
+`PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)`; cast the slot to `u32*` (or the block's own type, as
 `func_actor_401300_80134BA4` does with `sc = (SVECTOR*)(*(u32*)G_SCRATCH_HEAD
 -= 8);`) and the size of the type supplies the byte count. Writing the head
 into a local first, or splitting it as `tmp = head - N; turn = tmp;`, both
@@ -114457,7 +114459,7 @@ scratch-word addresses (`lui $s4,(0x1F8003FC>>16)` + `lw
 $s4,(0x1F8003FC&0xFFFF)($s4)` for the load, `lui $at,...` + `sw ...` for the
 store, twice more for the bump). Writing the load as the literal
 `*(void**)G_SCRATCH_HEAD` and the store/bump through a base *variable*
-(`pad = PSX_SCRATCH; *(void**)(pad + 0x3FC) = blk;`) reproduces the load
+(`pad = PLAYSTATION_SCRATCHPAD_BASE; *(void**)(pad + SCRATCH_STACK_HEAD_BYTE_OFFSET) = blk;`) reproduces the load
 exactly — its pseudo has one use, never reaches local-alloc, and the address
 comes out inline with the load's destination register doubling as the base —
 while the store/bump's single three-use `(plus (reg pad) (const 0x3FC))`

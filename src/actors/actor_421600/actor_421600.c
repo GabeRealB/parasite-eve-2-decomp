@@ -2158,7 +2158,7 @@ static s32                                  func_actor_421600_80132310(GfxCoord*
 static s32                                  func_actor_421600_8013285C(GfxCoord* coord, GpRec18* movement, s16 arg2);
 static void                                 func_actor_421600_80132EC0(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade);
 static s32                                  func_actor_421600_80133334(GfxCoord* arg0);
-static void                                 func_actor_421600_80133444(GfxCoord* arg0);
+static void                                 func_actor_421600_80133444(GfxCoord* coord);
 static s32                                  func_actor_421600_801335BC(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
 static void                                 func_actor_421600_80133B30(Task* arg0);
 static s32                                  func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work);
@@ -2182,7 +2182,7 @@ static void                                 func_actor_421600_8013848C(Task* arg
 static void                                 func_actor_421600_80138750(Task* arg0);
 static void                                 func_actor_421600_80138D24(Task* arg0);
 static void                                 func_actor_421600_8013903C(Task* arg0);
-static void                                 func_actor_421600_801392A8(Task* arg0);
+static void                                 func_actor_421600_801392A8(Task* actor);
 static void                                 func_actor_421600_8013947C(Task* arg0);
 static void                                 func_actor_421600_80139718(Task* arg0);
 static void                                 func_actor_421600_8013A404(Task* arg0);
@@ -2660,47 +2660,48 @@ static s32 func_actor_421600_80133334(GfxCoord* arg0)
     return 0;
 }
 
-static void func_actor_421600_80133444(GfxCoord* arg0)
+static void func_actor_421600_80133444(GfxCoord* coord)
 {
     SVECTOR              vec;
-    SVECTOR*             dir;
-    OverlayRangeScratch* blk;
-    OverlayRangeScratch* head;
+    SVECTOR*             direction;
+    OverlayRangeScratch* rangeScratch;
+    OverlayRangeScratch* savedScratchHead;
     s32                  outside;
-    u8*                  spad_a;
-    u8*                  spad_b;
+    u8*                  scratchBase;
+    u8*                  scratchRestoreBase;
 
-    if ((u32)(arg0->coord.t[0] - 0x1F5) < 0x3E7) {
-        if (arg0->coord.t[2] < 0x1F4) {
-            if (arg0->coord.t[2] < -0x1F4) {
-                head                      = SCRATCH_HEAD(OverlayRangeScratch);
-                blk                       = head - 1;
-                spad_a                    = (u8*)PSX_SCRATCH;
-                *(void**)(spad_a + 0x3FC) = blk;
-                vec.vx                    = (u16)arg0->coord.t[0] - 0x3E8;
-                vec.vy                    = 0;
-                vec.vz                    = (u16)arg0->coord.t[2] + 1;
-                blk->dx                   = vec.vx;
-                dir                       = &vec;
-                blk->dz                   = dir->vz;
-                blk->r                    = 0x2D0;
-                blk->dx                   = blk->dx * blk->dx;
-                blk->dz                   = blk->dz * blk->dz;
-                blk->r                    = blk->r * blk->r;
-                spad_b                    = (u8*)PSX_SCRATCH + 0x3F8;
-                *(void**)(spad_b + 0x4)   = head;
-                outside                   = blk->dx + blk->dz >= blk->r;
+    if ((u32)(coord->coord.t[0] - 0x1F5) < 0x3E7) {
+        if (coord->coord.t[2] < 0x1F4) {
+            if (coord->coord.t[2] < -0x1F4) {
+                // Reserve squared-distance operands, then release them before the test.
+                savedScratchHead                                                       = SCRATCH_HEAD(OverlayRangeScratch);
+                rangeScratch                                                           = savedScratchHead - 1;
+                scratchBase                                                            = PLAYSTATION_SCRATCHPAD_BASE;
+                *(OverlayRangeScratch**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = rangeScratch;
+                vec.vx                                                                 = (u16)coord->coord.t[0] - 0x3E8;
+                vec.vy                                                                 = 0;
+                vec.vz                                                                 = (u16)coord->coord.t[2] + 1;
+                rangeScratch->dx                                                       = vec.vx;
+                direction                                                              = &vec;
+                rangeScratch->dz                                                       = direction->vz;
+                rangeScratch->r                                                        = 0x2D0;
+                rangeScratch->dx                                                       = rangeScratch->dx * rangeScratch->dx;
+                rangeScratch->dz                                                       = rangeScratch->dz * rangeScratch->dz;
+                rangeScratch->r                                                        = rangeScratch->r * rangeScratch->r;
+                scratchRestoreBase                                                     = PLAYSTATION_SCRATCHPAD_BASE + (SCRATCH_STACK_HEAD_BYTE_OFFSET - sizeof(void*));
+                *(OverlayRangeScratch**)(scratchRestoreBase + sizeof(void*))           = savedScratchHead;
+                outside                                                                = rangeScratch->dx + rangeScratch->dz >= rangeScratch->r;
                 if (outside != 0) {
                     return;
                 }
-                VectorNormalSS(dir, dir);
+                VectorNormalSS(direction, direction);
                 gte_lddp(0x2BC);
-                gte_ldsv(dir);
+                gte_ldsv(direction);
                 gte_gpf12();
-                gte_stsv(dir);
-                arg0->coord.t[0]   = vec.vx + 0x3E8;
-                arg0->coord.t[2]   = vec.vz;
-                arg0->composeStamp = GRAPHICS_COORD_DIRTY;
+                gte_stsv(direction);
+                coord->coord.t[0] = vec.vx + 0x3E8;
+                coord->coord.t[2] = vec.vz;
+                coord->composeStamp        = GRAPHICS_COORD_DIRTY;
             }
         }
     }
@@ -5168,27 +5169,27 @@ static void func_actor_421600_8013903C(Task* arg0)
 /// reports a hit, and again when the squared XZ offset from `Player_Status.coordMtx` is
 /// under the squared 0x5DC radius, so the actor only takes the state while the
 /// player is close. Ends by clearing the model's `composeStamp`.
-static void func_actor_421600_801392A8(Task* arg0)
+static void func_actor_421600_801392A8(Task* actor)
 {
     Actor421600Work*     work;
-    GpEnemy*             ctx;
+    GpEnemy*             enemy;
     TmdObject*           obj;
     GfxCoord*            coord;
     MATRIX*              target;
-    OverlayRangeScratch* head;
-    OverlayRangeScratch* blk;
+    OverlayRangeScratch* savedScratchHead;
+    OverlayRangeScratch* rangeScratch;
     SVECTOR              vec;
-    SVECTOR*             dir;
-    u8*                  spad_a;
-    u8*                  spad_b;
+    SVECTOR*             direction;
+    u8*                  scratchBase;
+    u8*                  scratchRestoreBase;
     s32                  outside;
 
-    work = arg0->work;
+    work = actor->work;
     if (work->field_4 != 0) {
-        ctx                     = arg0->spawnArg2.pointer;
-        obj                     = arg0->extra.tmd;
-        ctx->node.state.b.flags = 0;
-        obj->flags              = 0;
+        enemy                     = actor->spawnArg2.pointer;
+        obj                       = actor->extra.tmd;
+        enemy->node.state.b.flags = 0;
+        obj->flags                = 0;
         Tmd_AllocBuffers(obj);
         work->field_8EC.radius = 0x19C;
         work->field_828        = 2;
@@ -5196,35 +5197,36 @@ static void func_actor_421600_801392A8(Task* arg0)
         work->field_82A        = 0;
         work->field_82E        = 7;
         work->field_B6C.flags |= 0x4000;
-        func_actor_421600_80134604(arg0);
+        func_actor_421600_80134604(actor);
     }
-    func_actor_421600_80134604(arg0);
-    if (((func_actor_421600_80132310(arg0->extra.tmd->coords, &work->field_90C, 0xC, &vec) << 0x10) != 0) || ((func_actor_421600_80132310(arg0->extra.tmd->coords, &work->field_A4C, 0xC, &vec) << 0x10) != 0)) {
+    func_actor_421600_80134604(actor);
+    if (((func_actor_421600_80132310(actor->extra.tmd->coords, &work->field_90C, 0xC, &vec) << 0x10) != 0) || ((func_actor_421600_80132310(actor->extra.tmd->coords, &work->field_A4C, 0xC, &vec) << 0x10) != 0)) {
         work->field_0 = 0x22;
     }
-    target                    = Player_Status.coordMtx;
-    coord                     = arg0->extra.tmd->coords;
-    vec.vx                    = (u16)target->t[0] - (u16)coord->coord.t[0];
-    dir                       = &vec;
-    dir->vy                   = (u16)target->t[1] - (u16)coord->coord.t[1];
-    dir->vz                   = (u16)target->t[2] - (u16)coord->coord.t[2];
-    head                      = SCRATCH_HEAD(OverlayRangeScratch);
-    blk                       = head - 1;
-    spad_a                    = (u8*)PSX_SCRATCH;
-    *(void**)(spad_a + 0x3FC) = blk;
-    blk->dx                   = vec.vx;
-    blk->dz                   = dir->vz;
-    blk->r                    = 0x5DC;
-    blk->dx                   = blk->dx * blk->dx;
-    blk->dz                   = blk->dz * blk->dz;
-    blk->r                    = blk->r * blk->r;
-    spad_b                    = (u8*)PSX_SCRATCH + 0x3F8;
-    *(void**)(spad_b + 0x4)   = head;
-    outside                   = blk->dx + blk->dz >= blk->r;
+    target        = Player_Status.coordMtx;
+    coord         = actor->extra.tmd->coords;
+    vec.vx        = (u16)target->t[0] - (u16)coord->coord.t[0];
+    direction     = &vec;
+    direction->vy = (u16)target->t[1] - (u16)coord->coord.t[1];
+    direction->vz = (u16)target->t[2] - (u16)coord->coord.t[2];
+    // Reserve squared-distance operands; no allocation intervenes after release.
+    savedScratchHead                                                       = SCRATCH_HEAD(OverlayRangeScratch);
+    rangeScratch                                                           = savedScratchHead - 1;
+    scratchBase                                                            = PLAYSTATION_SCRATCHPAD_BASE;
+    *(OverlayRangeScratch**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = rangeScratch;
+    rangeScratch->dx                                                       = vec.vx;
+    rangeScratch->dz                                                       = direction->vz;
+    rangeScratch->r                                                        = 0x5DC;
+    rangeScratch->dx                                                       = rangeScratch->dx * rangeScratch->dx;
+    rangeScratch->dz                                                       = rangeScratch->dz * rangeScratch->dz;
+    rangeScratch->r                                                        = rangeScratch->r * rangeScratch->r;
+    scratchRestoreBase                                                     = PLAYSTATION_SCRATCHPAD_BASE + (SCRATCH_STACK_HEAD_BYTE_OFFSET - sizeof(void*));
+    *(OverlayRangeScratch**)(scratchRestoreBase + sizeof(void*))           = savedScratchHead;
+    outside                                                                = rangeScratch->dx + rangeScratch->dz >= rangeScratch->r;
     if (outside == 0) {
         work->field_0 = 0x22;
     }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Death / respawn tick: re-arms the model buffers and the 0x828 motion block,

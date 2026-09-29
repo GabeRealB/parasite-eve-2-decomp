@@ -829,12 +829,12 @@ static void Actor02400_Fn01420(Task* task)
     VECTOR*         delta;
     VECTOR*         scratchEnd;
 
-    scratchEnd                         = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC);
-    delta                              = scratchEnd - 1;
-    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = delta;
-    work                               = task->work;
-    coord                              = task->extra.tmd->coords;
-    flag                               = 0;
+    scratchEnd                                                                = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
+    delta                                                                     = scratchEnd - 1;
+    *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = delta;
+    work                                                                      = task->work;
+    coord                                                                     = task->extra.tmd->coords;
+    flag                                                                      = 0;
     if (--work->field_140 < 0) {
         random          = (Gp_LcgState * 5) + 0x71357911;
         work->field_140 = (random >> 0x10) & 0xF;
@@ -863,7 +863,7 @@ static void Actor02400_Fn01420(Task* task)
         work->field_140 = 0;
         Gp_ArmStateF0(1);
     }
-    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) += 1;
+    *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += 1;
 }
 
 /// Mode 1, awake: phase 0 turns to face the player and phase 1 rests, each
@@ -886,12 +886,12 @@ static void Actor02400_Fn01590(Task* task)
     ActorFaceScratch* scratch;
     ActorFaceScratch* scratchEnd;
 
-    scratchEnd                                   = *(ActorFaceScratch**)PSX_SCRATCH_ADDR(0x3FC);
-    *(ActorFaceScratch**)PSX_SCRATCH_ADDR(0x3FC) = scratchEnd - 1;
-    scratch                                      = scratchEnd - 1;
-    work                                         = task->work;
-    coord                                        = task->extra.tmd->coords;
-    limit                                        = 0x1000;
+    scratchEnd                                                                          = *(ActorFaceScratch**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
+    *(ActorFaceScratch**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = scratchEnd - 1;
+    scratch                                                                             = scratchEnd - 1;
+    work                                                                                = task->work;
+    coord                                                                               = task->extra.tmd->coords;
+    limit                                                                               = 0x1000;
     switch (work->field_13E) {
         case 0:
             scratchEnd[-1].delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
@@ -995,7 +995,7 @@ static void Actor02400_Fn01590(Task* task)
             Task_Reparent(task, *eff);
         }
     }
-    *(ActorFaceScratch**)PSX_SCRATCH_ADDR(0x3FC) += 1;
+    *(ActorFaceScratch**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += 1;
 }
 
 /// Mode 2, recoiling: phase 0 raises `field_134` for up to 7 frames (cut short
@@ -1073,12 +1073,12 @@ static void Actor02400_Fn01B90(Task* task)
     VECTOR*         delta;
     VECTOR*         scratchEnd;
 
-    scratchEnd                         = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC);
-    delta                              = scratchEnd - 1;
-    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = delta;
-    work                               = task->work;
-    coord                              = task->extra.tmd->coords;
-    flags                              = 0;
+    scratchEnd                                                                = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
+    delta                                                                     = scratchEnd - 1;
+    *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = delta;
+    work                                                                      = task->work;
+    coord                                                                     = task->extra.tmd->coords;
+    flags                                                                     = 0;
     switch (work->field_13E) {
         case 0:
             work->field_13A = 0;
@@ -1166,7 +1166,7 @@ static void Actor02400_Fn01B90(Task* task)
             }
             break;
     }
-    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) += 1;
+    *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += 1;
 }
 
 /// Mode 5, stunned: shrinks the scale toward its floor, sets the held effect

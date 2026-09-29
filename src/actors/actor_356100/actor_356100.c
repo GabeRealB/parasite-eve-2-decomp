@@ -934,7 +934,7 @@ static void func_actor_356100_80165B30(Task* arg0);
 static void func_actor_356100_80166018(Task* arg0);
 
 /// Tick that hands `func_800E0C10` the `field_A58` collision record.
-static void func_actor_356100_801668FC(Task* arg0);
+static void func_actor_356100_801668FC(Task* actor);
 
 /// Tick that dispatches message 0x3F1 and clears the `field_B68` latch.
 static void func_actor_356100_8016A550(Task* arg0);
@@ -2042,98 +2042,105 @@ static void func_actor_356100_801666B4(Task* arg0)
     }
 }
 
-static void func_actor_356100_801668FC(Task* arg0)
+static void func_actor_356100_801668FC(Task* actor)
 {
+    enum { FIXED_16_FRACTION_MASK = 0xFFFF };
+
     Actor356100Work*  work;
     GpEnemy*          enemy;
-    PlayerStatus*     cfg;
-    McSaveData*       save;
-    GfxCoord*         coord;
-    GfxCoord*         root;
-    u8*               base;
-    u8*               base2;
-    u8*               slot;
-    u8*               slot2;
-    SVECTOR*          v;
-    SVECTOR*          next;
-    OverlayDeltaFlag* next2;
-    OverlayDeltaFlag* blk;
-    OverlayDeltaFlag* s;
-    s32               val;
-    s32               mode;
+    PlayerStatus*     playerStatus;
+    McSaveData*       saveData;
+    GfxCoord*          coord;
+    GfxCoord*          root;
+    u8*               scratchBase;
+    u8*               collisionScratchBase;
+    u8*               savedVectorHead;
+    u8*               savedCollisionHead;
+    SVECTOR*          movementDirection;
+    SVECTOR*          releasedVectorHead;
+    OverlayDeltaFlag* releasedCollisionHead;
+    OverlayDeltaFlag* collisionScratch;
+    OverlayDeltaFlag* resolvedStep;
+    s32               deltaWord;
+    // Matching constraint: preserve the state-selection register across the byte load.
+    register s32 nextState asm("v0");
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    cfg   = &Player_Status;
+    work         = actor->work;
+    enemy        = actor->spawnArg2.pointer;
+    playerStatus = &Player_Status;
     if (work->field_4 != 0) {
         work->field_982 = 0x10;
         work->field_97E = 7;
         work->field_978 = 2;
-        func_actor_356100_80163508(arg0);
+        func_actor_356100_80163508(actor);
         D_actor_356100_80173244.field_4 = 3;
-        if (cfg->hp > 0) {
+        if (playerStatus->hp > 0) {
             Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &D_actor_356100_80173244, 0);
         }
         work->field_6 = 0;
     } else if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0 &&
-               cfg->hp > 0 && work->field_B68 == 1) {
+               playerStatus->hp > 0 && work->field_B68 == 1) {
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
         work->field_B68 = 0;
     }
     if ((u32)(work->field_5A & 0x3FF) - 0x10 < 7U) {
-        save  = &Mc_SaveData[0];
-        coord = arg0->extra.tmd->coords;
-        if (save->state.field_5C1 != 1) {
-            base                       = PSX_SCRATCH;
-            slot                       = *(u8**)(base + 0x3FC);
-            base                       = slot;
-            v                          = (SVECTOR*)(slot - 8);
-            base                       = PSX_SCRATCH;
-            *(SVECTOR**)(base + 0x3FC) = v;
-            base                       = slot;
-            Gfx_MatrixCol2(&coord->coord, v);
-            VectorNormalSS(v, v);
+        saveData = &Mc_SaveData[0];
+        coord    = actor->extra.tmd->coords;
+        if (saveData->state.field_5C1 != 1) {
+            // Move back along the local Z axis using a temporary direction.
+            // Reassign the address temporary to retain per-access absolute addressing.
+            scratchBase                                                = PLAYSTATION_SCRATCHPAD_BASE;
+            savedVectorHead                                            = *(u8**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET);
+            scratchBase                                                = savedVectorHead;
+            movementDirection                                          = (SVECTOR*)(savedVectorHead - sizeof(SVECTOR));
+            scratchBase                                                = PLAYSTATION_SCRATCHPAD_BASE;
+            *(SVECTOR**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = movementDirection;
+            scratchBase                                                = savedVectorHead;
+            Gfx_MatrixCol2(&coord->coord, movementDirection);
+            VectorNormalSS(movementDirection, movementDirection);
             gte_lddp(-0x78);
-            gte_ldsv(v);
+            gte_ldsv(movementDirection);
             gte_gpf12();
-            gte_stsv(v);
-            coord->coord.t[0]         += ((SVECTOR*)(slot - 8))->vx;
-            coord->coord.t[1]         += v->vy;
-            coord->coord.t[2]         += v->vz;
-            coord->composeStamp        = GRAPHICS_COORD_DIRTY;
-            base                       = PSX_SCRATCH;
-            next                       = (*(SVECTOR**)(base + 0x3FC) + 1);
-            base                       = slot;
-            base                       = PSX_SCRATCH;
-            *(SVECTOR**)(base + 0x3FC) = next;
-            base                       = slot;
+            gte_stsv(movementDirection);
+            coord->coord.t[0]                                         += movementDirection->vx;
+            coord->coord.t[1]                                         += movementDirection->vy;
+            coord->coord.t[2]                                         += movementDirection->vz;
+            coord->composeStamp                                                 = GRAPHICS_COORD_DIRTY;
+            scratchBase                                                = PLAYSTATION_SCRATCHPAD_BASE;
+            releasedVectorHead                                         = (*(SVECTOR**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) + 1);
+            scratchBase                                                = savedVectorHead;
+            scratchBase                                                = PLAYSTATION_SCRATCHPAD_BASE;
+            *(SVECTOR**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = releasedVectorHead;
+            scratchBase                                                = savedVectorHead;
         }
-        root = arg0->extra.tmd->coords;
-        if (save->state.field_5C1 != 1) {
-            base2                                = PSX_SCRATCH;
-            slot2                                = *(u8**)(base2 + 0x3FC);
-            base2                                = slot2;
-            blk                                  = (OverlayDeltaFlag*)(slot2 - 0x14);
-            base2                                = PSX_SCRATCH;
-            *(OverlayDeltaFlag**)(base2 + 0x3FC) = blk;
-            base2                                = slot2;
-            s                                    = blk;
-            blk->moved                           = 0;
-            if (func_800E0C10(&work->field_A58, &blk->delta, 3, NULL) != 0) {
-                root->coord.t[0] += ((OverlayDeltaFlag*)(slot2 - 0x14))->delta.vx.h.hi;
-                root->coord.t[1] += blk->delta.vy.h.hi;
-                root->coord.t[2] += blk->delta.vz.h.hi;
-                val               = ((OverlayDeltaFlag*)(slot2 - 0x14))->delta.vx.w;
-                if ((val & 0xFFFF) != 0) {
-                    if (val > 0) {
+        root = actor->extra.tmd->coords;
+        if (saveData->state.field_5C1 != 1) {
+            // Apply the 16.16 integer halves, then a signed X/Z step for fractions.
+            collisionScratchBase                                                         = PLAYSTATION_SCRATCHPAD_BASE;
+            savedCollisionHead                                                           = *(u8**)(collisionScratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET);
+            collisionScratchBase                                                         = savedCollisionHead;
+            collisionScratch                                                             = (OverlayDeltaFlag*)(savedCollisionHead - sizeof(OverlayDeltaFlag));
+            collisionScratchBase                                                         = PLAYSTATION_SCRATCHPAD_BASE;
+            *(OverlayDeltaFlag**)(collisionScratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = collisionScratch;
+            collisionScratchBase                                                         = savedCollisionHead;
+
+            resolvedStep            = collisionScratch;
+            collisionScratch->moved = 0;
+            if (func_800E0C10(&work->field_A58, &collisionScratch->delta, 3, NULL) != 0) {
+                root->coord.t[0] += ((OverlayDeltaFlag*)savedCollisionHead)[-1].delta.vx.h.hi;
+                root->coord.t[1] += collisionScratch->delta.vy.h.hi;
+                root->coord.t[2] += collisionScratch->delta.vz.h.hi;
+                deltaWord         = collisionScratch->delta.vx.w;
+                if ((deltaWord & FIXED_16_FRACTION_MASK) != 0) {
+                    if (deltaWord > 0) {
                         root->coord.t[0]++;
                     } else {
                         root->coord.t[0]--;
                     }
                 }
-                val = s->delta.vz.w;
-                if ((val & 0xFFFF) != 0) {
-                    if (val > 0) {
+                deltaWord = resolvedStep->delta.vz.w;
+                if ((deltaWord & FIXED_16_FRACTION_MASK) != 0) {
+                    if (deltaWord > 0) {
                         root->coord.t[2]++;
                     } else {
                         root->coord.t[2]--;
@@ -2141,30 +2148,29 @@ static void func_actor_356100_801668FC(Task* arg0)
                 }
             }
             root->coord.t[1] += 0x10;
-            if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-                s->moved = 1;
+            if (resolvedStep->delta.vx.w != 0 || resolvedStep->delta.vz.w != 0) {
+                resolvedStep->moved = 1;
             }
-            base2                                = PSX_SCRATCH;
-            next2                                = (*(OverlayDeltaFlag**)(base2 + 0x3FC) + 1);
-            base2                                = slot2;
-            base2                                = PSX_SCRATCH;
-            *(OverlayDeltaFlag**)(base2 + 0x3FC) = next2;
-            base2                                = slot2;
+            collisionScratchBase                                                         = PLAYSTATION_SCRATCHPAD_BASE;
+            releasedCollisionHead                                                        = (*(OverlayDeltaFlag**)(collisionScratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) + 1);
+            collisionScratchBase                                                         = savedCollisionHead;
+            collisionScratchBase                                                         = PLAYSTATION_SCRATCHPAD_BASE;
+            *(OverlayDeltaFlag**)(collisionScratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = releasedCollisionHead;
+            collisionScratchBase                                                         = savedCollisionHead;
         }
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    func_actor_356100_80163508(arg0);
+    func_actor_356100_80163508(actor);
     if (work->field_68 & 1) {
-        mode = 1;
+        nextState = 1;
 
-        val = enemy->node.state.b.targeted;
-        if (val != mode) {
-            mode = 6;
+        if (enemy->node.state.b.targeted != nextState) {
+            nextState = 6;
         } else {
-            mode = 0xA;
+            nextState = 0xA;
         }
-        work->field_0 = mode;
-        if (cfg->hp > 0 && work->field_B68 == 1) {
+        work->field_0 = nextState;
+        if (playerStatus->hp > 0 && work->field_B68 == 1) {
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
             work->field_B68 = 0;
         }

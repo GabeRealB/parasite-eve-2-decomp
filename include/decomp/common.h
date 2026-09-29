@@ -7,9 +7,18 @@
 
 #define PAD_RODATA()
 
-#define PSX_SCRATCH ((void*)0x1F800000)
+/// Byte-addressable base of the PlayStation's 1 KiB CPU scratchpad RAM.
+///
+/// Storage is shared; callers manage the lifetime and alignment of their data.
+/// This address does not reserve a block or read the scratch-stack cursor.
+#define PLAYSTATION_SCRATCHPAD_BASE ((u8*)0x1F800000)
 
-#define PSX_SCRATCH_ADDR(offset) ((void*)(((u8*)PSX_SCRATCH) + (offset)))
+/// Scratchpad address at `byteOffset` bytes from its base, evaluated once.
+///
+/// `byteOffset` must be in [0, 0x400]; 0x400 is the one-past-end address.
+/// Accesses must fit within the RAM and satisfy the chosen type's alignment.
+/// Returns `void*` so callers can select a typed view of the shared storage.
+#define PLAYSTATION_SCRATCHPAD_ADDRESS(byteOffset) ((void*)(PLAYSTATION_SCRATCHPAD_BASE + (byteOffset)))
 
 /// Computes the size of an array.
 ///
