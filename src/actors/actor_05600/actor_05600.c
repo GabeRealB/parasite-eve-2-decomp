@@ -2610,7 +2610,7 @@ static void Actor05600_Fn02950(Task* arg0, SVECTOR* arg1, SVECTOR* arg2)
             poly->r3 = 0;
             poly->g3 = 0;
             poly->b3 = 0;
-            addPrim((&gGpuCurrentOt[((((u32)(depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]), poly);
+            addPrim((&gGpuCurrentOt[((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
         }
         line           = gGpuPrimCursor;
         gGpuPrimCursor = (u8*)line + sizeof(LINE_F2);
@@ -2623,12 +2623,12 @@ static void Actor05600_Fn02950(Task* arg0, SVECTOR* arg1, SVECTOR* arg2)
         line->r0 = 0xFF;
         line->g0 = 0;
         line->b0 = 0;
-        addPrim((&gGpuCurrentOt[((((u32)(depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]), line);
+        addPrim((&gGpuCurrentOt[((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), line);
         page           = gGpuPrimCursor;
         gGpuPrimCursor = (u8*)page + sizeof(DR_TPAGE);
         setlen(page, 1);
         page->code[0] = 0xE1000620;
-        addPrim((&gGpuCurrentOt[((((u32)(depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]), page);
+        addPrim((&gGpuCurrentOt[((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), page);
         s->prev  = s->cur;
         s->prevZ = s->curZ;
     }

@@ -871,7 +871,7 @@ static void func_dryfield_warehouse_8017E414(GfxCoord* coord, s16 arg1)
         setRGB1(prim, shade, shade, shade);
         setRGB2(prim, 0, 0, 0);
         setRGB3(prim, 0, 0, 0);
-        addPrim(Gpu_OtEntryAtByteOffset((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     }
@@ -918,7 +918,7 @@ static void func_dryfield_warehouse_8017E414(GfxCoord* coord, s16 arg1)
     setRGB1(prim, shade, shade, shade);
     setRGB2(prim, shade, shade, shade);
     setRGB3(prim, shade, shade, shade);
-    addPrim(Gpu_OtEntryAtByteOffset((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     SCRATCH_POP(RoomQuadScratch);
 }
@@ -1006,7 +1006,7 @@ static void func_dryfield_warehouse_8017ED34(GfxCoord* coord, s16 arg1, s16 arg2
         setRGB1(prim, level, level, level);
         setRGB2(prim, 0, 0, 0);
         setRGB3(prim, 0, 0, 0);
-        addPrim(Gpu_OtEntryAtByteOffset((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     }

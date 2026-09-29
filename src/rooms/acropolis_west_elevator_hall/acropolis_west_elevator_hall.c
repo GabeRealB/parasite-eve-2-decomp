@@ -1239,7 +1239,7 @@ void func_acropolis_west_elevator_hall_8017FAE8(Task* arg0)
             prim->x3            = block->sx + block->halfWidth;
             prim->y0 = prim->y2 = prim->y3 = block->sy;
             prim->y1                       = (block->sy - block->halfWidth) + block->halfWidth * (i + i);
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
@@ -1257,17 +1257,17 @@ void func_acropolis_west_elevator_hall_8017FE18(Task* task)
     RECT     rect;
     DR_MOVE* mv;
     void*    mem;
-    s32      otz;
-    s32      ofs;
+    s32      otIndex;
+    s32      otByteOffset;
     s32      i;
     s32      base;
     s32      x;
     s32      y;
     s32      t;
 
-    mem  = task->spawnArg2.pointer;
-    base = gDisplayState.drawBuffer * 0x110 + 0x50;
-    otz  = 0x72;
+    mem     = task->spawnArg2.pointer;
+    base    = gDisplayState.drawBuffer * 0x110 + 0x50;
+    otIndex = 0x72;
 
     for (i = 0; i < 0x52; i++) {
         y  = i;
@@ -1288,11 +1288,11 @@ void func_acropolis_west_elevator_hall_8017FE18(Task* task)
         gGpuPrimCursor = mv + 1;
         SetDrawMove(mv, &rect, 0x50, i + base);
 
-        ofs = otz << 2;
+        otByteOffset = otIndex << 2;
         {
-            u_long* ot = ((u_long*)((ofs) + (uintptr)gGpuCurrentOt));
+            u_long* ot = ((u_long*)((otByteOffset) + (uintptr)gGpuCurrentOt));
             setaddr(mv, getaddr(ot));
-            *ot = (*ot & 0xFF000000) | ((u_long)mv & 0xFFFFFF);
+            *ot = (*ot & GPU_DMA_PACKET_LENGTH_MASK) | ((u_long)mv & GPU_DMA_LINK_ADDRESS_MASK);
         }
     }
 
@@ -1356,7 +1356,7 @@ void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
         prim->x1 = prim->x3 = block->sx + (u16)block->halfWidth;
         prim->y0 = prim->y1 = block->sy - (u16)block->halfWidth;
         prim->y2 = prim->y3 = block->sy + (u16)block->halfWidth;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)((RoomShaftScratch*)(head - 0x14))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((RoomShaftScratch*)(head - 0x14))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x14);

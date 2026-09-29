@@ -315,7 +315,7 @@ static void func_combustion_8012F5EC(GfxCoord* arg0, s16 arg1, s16 arg2)
         y           = (u16)block->sy + (u16)block->step;
         prim->y3    = y;
         prim->y2    = y;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x18);
@@ -484,7 +484,7 @@ static void func_combustion_8012FB14(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -546,7 +546,7 @@ static void func_combustion_8012FF0C(GfxCoord* arg0, s32 arg1, s16 arg2)
         y           = (u16)block->sy + (u16)block->step;
         prim->y3    = y;
         prim->y2    = y;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x18);
@@ -610,7 +610,7 @@ static void func_combustion_80130184(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP(GpFxQuadScratch);
@@ -688,7 +688,7 @@ static void func_combustion_801305F8(GfxCoord* arg0, s16 arg1, s16 arg2)
         y           = (u16)block->sy + (u16)block->step;
         prim->y3    = y;
         prim->y2    = y;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x18);

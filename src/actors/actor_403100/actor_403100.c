@@ -3892,7 +3892,7 @@ static void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoi
             PRIM_XY_WORD(poly, 3) = screen3;
             setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
             setRGB0(poly, 0xFF, 0xFF, 0xFF);
-            addPrim((&gGpuCurrentOt[((((u32)(depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]), poly);
+            addPrim((&gGpuCurrentOt[((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
         }
     }
 }
@@ -7559,7 +7559,7 @@ static void func_actor_403100_8013C008(s16 arg0, s16 arg1)
         poly->y2   = arg1 + (entry->y + entry->h);
         poly->x3   = arg0 + (entry->x + entry->w);
         poly->y3   = arg1 + (entry->y + entry->h);
-        addPrim((&gGpuCurrentOt[((((u32)(entry->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]), poly);
+        addPrim((&gGpuCurrentOt[((((u32)(entry->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
     }
 }
 static void func_actor_403100_8013C214(Task* arg0)

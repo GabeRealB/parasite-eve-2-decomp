@@ -127,9 +127,9 @@ static void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
             i++;
             sprt->packed.size = cur->size.packed;
             elem++;
-            dest->tpage.tag = (dest->tpage.tag & maskHi) | (*Gpu_OtEntryAtByteOffset(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC)) & mask);
-            *Gpu_OtEntryAtByteOffset(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC)) =
-                (*Gpu_OtEntryAtByteOffset(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC)) & maskHi) | ((u32)dest & mask);
+            dest->tpage.tag = (dest->tpage.tag & maskHi) | (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)cur->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & mask);
+            *GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)cur->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) =
+                (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)cur->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & maskHi) | ((u32)dest & mask);
             dest++;
             cur++;
         } while (i < arg1->field_2);
@@ -412,7 +412,7 @@ static void func_800AD024(void)
             prim           = (DR_AREA*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             SetDrawArea(prim, &rect);
-            addPrim((&gGpuCurrentOt[((((u32)area->depth << gDisplayState.otDepthShift) >> 2 & 0xFFC)) / sizeof(*gGpuCurrentOt)]), prim);
+            addPrim((&gGpuCurrentOt[((((u32)area->depth << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), prim);
         }
     }
 }

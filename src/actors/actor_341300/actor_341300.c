@@ -429,7 +429,7 @@ static void func_actor_341300_80161E84(void)
             setRGB0(prim, 0x80, 0x80, 0x80);
             prim->clut  = 0x3E00;
             prim->tpage = 0x97;
-            addPrim(Gpu_OtEntryAtByteOffset((((u32)(otz[i] << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(otz[i] << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
         }
     }
 }

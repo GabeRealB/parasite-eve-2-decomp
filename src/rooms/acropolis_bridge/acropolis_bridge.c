@@ -4331,7 +4331,7 @@ void func_acropolis_bridge_801812F4(Task* task)
         prim->x1 = prim->x3 = blk->sxy.vx + blk->dx;
         prim->y0 = prim->y1 = blk->sxy.vy - blk->dx;
         prim->y2 = prim->y3 = blk->sxy.vy + blk->dx;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
 
         prim           = (POLY_FT4*)gGpuPrimCursor;
@@ -4368,7 +4368,7 @@ void func_acropolis_bridge_801812F4(Task* task)
         prim->x2    = blk->sxy.vx - blk->dx;
         prim->y1    = blk->sxy.vy - blk->dy;
         prim->y2    = blk->sxy.vy + blk->dy;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x18);
@@ -4450,7 +4450,7 @@ void func_acropolis_bridge_801819C8(Task* task)
         col         = ((u32)Gp_LcgState >> 16) & 0xF;
         setRGB0(prim, col, col, col);
         setSemiTrans(prim, 1);
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP(AcropolisBridgeQuadScratch);
@@ -4521,7 +4521,7 @@ void func_acropolis_bridge_80181D28(Task* task)
         prim->x1 = prim->x3 = blk->sxy.vx + blk->half;
         prim->y0 = prim->y1 = blk->sxy.vy - blk->half;
         prim->y2 = prim->y3 = blk->sxy.vy + blk->half;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP(RoomGlowSpriteScratch);
@@ -4629,7 +4629,7 @@ void func_acropolis_bridge_80182394(Task* task)
     gte_stszotz(&depth->otz);
     if (((RoomMoteScratch*)(head - 0xC))->otz >= 0x11) {
         setRGB0(prim, work->scale >> 1, work->scale, work->scale);
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)((RoomMoteScratch*)(head - 0xC))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((RoomMoteScratch*)(head - 0xC))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 0, ((RoomMoteScratch*)(head - 0xC))->otz);
         work->move.vy += 6;
@@ -4731,7 +4731,7 @@ static void func_acropolis_bridge_801827EC(GfxCoord* coord, s32 arg1, s16 arg2)
         setRGB0(prim, arg2, arg2, arg2);
         prim->clut = 0x43D1;
         setSemiTrans(prim, 1);
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP(OverlayFlaggedQuadScratch);
@@ -4943,7 +4943,7 @@ static void func_acropolis_bridge_80182F8C(GfxCoord* coord, u16 frame, s16 size,
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
 
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)((AcropolisBridgeSpriteScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((AcropolisBridgeSpriteScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP_BYTES_AT(scratch, sizeof(AcropolisBridgeSpriteScratch));
@@ -5015,7 +5015,7 @@ static void func_acropolis_bridge_801833A0(GfxCoord* coord, u16 frame, s16 size)
         prim->y0 = prim->y1 = block->sy - (u16)block->d - (block->d >> 1);
         prim->y2 = prim->y3 = block->sy + (block->d >> 1);
 
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)((AcropolisBridgeDebrisScratch*)(head - 0x18))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((AcropolisBridgeDebrisScratch*)(head - 0x18))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP_BYTES_AT(scratch, sizeof(AcropolisBridgeDebrisScratch));
@@ -5110,7 +5110,7 @@ static void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
             prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -5130,7 +5130,7 @@ static void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
             prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
             ang      = t2;
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
@@ -5157,7 +5157,7 @@ static void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->rInner * rsin(ub)) >> 13);
             prim->y3 = block->sy + ((block->rInner * rcos(ub)) >> 13);
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -5178,7 +5178,7 @@ static void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->x3 = block->sx + ((block->rInner * rsin(uc)) >> 12);
             prim->y3 = block->sy + ((block->rInner * rcos(uc)) >> 12);
             ang      = uc;
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);

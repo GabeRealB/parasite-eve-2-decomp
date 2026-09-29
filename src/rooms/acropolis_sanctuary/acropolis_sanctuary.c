@@ -2142,7 +2142,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
                    D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_0;
         prim->v3 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].col +
                    D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_2;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP_BYTES(0x28);
@@ -2324,7 +2324,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
         prim->u2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].row;
         prim->v2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].col +
                    ((D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_2 * mem->angle) >> 12);
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     coord->coord.t[0] += mem->move.vx;
@@ -2452,7 +2452,7 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
             y              = blk->sy + (u16)blk->halfWidth;
             prim->y3       = y;
             prim->y2       = y;
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
         SCRATCH_POP_BYTES(0x14);

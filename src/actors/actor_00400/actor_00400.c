@@ -1418,7 +1418,7 @@ static void Actor00400_Fn005DC(GfxCoord* arg0, u16 arg1, u16 arg2, s32 arg3)
         prim->x2 = blk->sx - (u16)blk->dx;
         prim->y1 = blk->sy - (u16)blk->dy;
         prim->y2 = blk->sy + (u16)blk->dy;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP_BYTES_AT(scratch, sizeof(GpEffFlareScratch));
@@ -1612,7 +1612,7 @@ static void Actor00400_Fn00E3C(Task* actor, s16 firstJoint, s16 secondJoint, s16
             poly->tpage = 0x48;
             poly->clut  = 0x4283;
             setRGB0(poly, shade, shade, shade);
-            addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]), poly);
+            addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
         }
         SCRATCH_POP_BYTES(sizeof(ActorBeamScratch));
     }
@@ -2665,7 +2665,7 @@ static void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corn
         poly->tpage = 0x48;
         poly->clut  = 0x4283;
         setRGB0(poly, shade >> 1, shade, shade);
-        addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]), poly);
+        addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
     }
     SCRATCH_POP_BYTES(sizeof(Actor100400TextQuadScratch));
 }

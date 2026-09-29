@@ -3767,8 +3767,8 @@ static void func_acropolis_security_room_80180A78(Task* task)
         gte_stszotz(&blk->otz);
         if (((AsrBeamScratch*)(head - 0x14))->otz > 0x10) {
             setRGB0(prim, 0x10, 0x10, 0x10);
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)((AsrBeamScratch*)(head - 0x14))->otz << gDisplayState.otDepthShift) >> 2) &
-                                             0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((AsrBeamScratch*)(head - 0x14))->otz << gDisplayState.otDepthShift) >> 2) &
+                                                             GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 2, ((AsrBeamScratch*)(head - 0x14))->otz);
         }
@@ -3826,7 +3826,7 @@ void func_acropolis_security_room_80180E34(Task* arg0)
     y           = cy + 0x3F;
     prim->y3    = y;
     prim->y2    = y;
-    addPrim(Gpu_OtEntryAtByteOffset(((((u32)0x30 << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)0x30 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
@@ -3905,7 +3905,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
         prim->tpage = 0x2D;
         prim->clut  = 0x4390;
         prim->code |= 1;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
     SCRATCH_POP(RoomQuadScratch);
 

@@ -11,17 +11,34 @@
 #include "main/display_types.h"
 #include "main/task_types.h"
 
-/// The ordering table the frame being built is linked into.
+/// Base for linking primitives into the ordering table currently being built.
 ///
-/// Drawing is dispatched as tasks that take no ordering table of their own, so
-/// the code building a frame publishes the table it wants filled here and puts
-/// the previous value back afterwards. Primitives are linked at an index from
-/// this base, which is not always the table's own start.
+/// Each entry is a packed 32-bit GPU DMA tag. Indices count tags.
+/// The normal frame path selects one of two 1088-tag buffers and advances this
+/// base by 32 tags; indices -32 through 1055 then lie within that buffer. Depth
+/// sorting uses indices 0 through 1023, and negative indices reach the reserved
+/// foreground tags. Other display paths select the start of a 64- or 1024-tag
+/// table instead, so callers must use indices within the selected table.
+///
+/// Drawing tasks borrow this base during dispatch. A nested display pass saves
+/// and restores it; consumers must not retain it across frame/table changes or
+/// free it. The display code owns and clears the backing storage before drawing.
 extern u_long* gGpuCurrentOt;
 
-/// Resolve an aligned byte offset from depth quantization to an OT tag.
-/// Callers supply a multiple of sizeof(u_long), within the current table.
-#define Gpu_OtEntryAtByteOffset(byteOffset) (&gGpuCurrentOt[(byteOffset) / sizeof(u_long)])
+/// Aligned byte-offset mask for the 1024 depth-sorted tags (0 through 4092 bytes).
+enum { GPU_ORDERING_TABLE_DEPTH_BYTE_MASK = 0xFFC };
+
+/// Tag bits for the next packet's 24-bit DMA address and the packet's word count.
+enum { GPU_DMA_LINK_ADDRESS_MASK  = 0xFFFFFF,
+       GPU_DMA_PACKET_LENGTH_MASK = 0xFF000000 };
+
+/// Resolves a nonnegative, tag-aligned byte offset relative to `gGpuCurrentOt`.
+///
+/// The offset is evaluated once and must address a tag in the selected table.
+/// This macro captures the current base; it neither clamps nor masks the offset.
+/// `addPrim` evaluates its OT argument twice, so its callers need side-effect-free
+/// offsets even when they use this helper.
+#define GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(byteOffset) (&gGpuCurrentOt[(byteOffset) / sizeof(*gGpuCurrentOt)])
 
 /// Vertex `n`'s colour word: `rn`, `gn`, `bn`, then the primitive's `code` for
 /// vertex 0 and a pad byte for the others. Build a constant with `PRIM_RGBC`.

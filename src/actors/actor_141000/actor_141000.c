@@ -1949,12 +1949,12 @@ static void func_actor_141000_80131E94(Task* arg0, Actor141000Point* arg1, s32 a
         poly->y2   = arg1[c].field_2;
         poly->x3   = arg1[d].field_0;
         poly->y3   = arg1[d].field_2;
-        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]) - 20, poly);
+        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) - 20, poly);
         tpage          = gGpuPrimCursor;
         gGpuPrimCursor = tpage + 1;
         setlen(tpage, 1);
         tpage->code[0] = 0xE1000425;
-        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]) - 20, tpage);
+        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) - 20, tpage);
         quad += 4;
     }
     for (i = 6; i < 16; i++) {
@@ -1986,12 +1986,12 @@ static void func_actor_141000_80131E94(Task* arg0, Actor141000Point* arg1, s32 a
         poly->y2   = arg1[c].field_2;
         poly->x3   = arg1[d].field_0;
         poly->y3   = arg1[d].field_2;
-        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]) - 20, poly);
+        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) - 20, poly);
         tpage          = gGpuPrimCursor;
         gGpuPrimCursor = tpage + 1;
         setlen(tpage, 1);
         tpage->code[0] = 0xE1000425;
-        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]) - 20, tpage);
+        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) - 20, tpage);
         quad += 4;
     }
 }

@@ -154,7 +154,7 @@ static __inline__ void Gp_LinkRingSeg(GpCircleScratch* sc)
     PRIM_XY_WORD(prim, 1)    = *(u32*)&sc->sxy;
     setlen(prim, 3);
     setcode(prim, 0x40);
-    addPrim(Gpu_OtEntryAtByteOffset(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
 }
 

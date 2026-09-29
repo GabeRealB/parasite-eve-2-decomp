@@ -1869,7 +1869,7 @@ static void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoi
                 poly->g0 = col >> 1;
                 poly->b0 = shade;
             }
-            addPrim((&gGpuCurrentOt[((((u32)(depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]), poly);
+            addPrim((&gGpuCurrentOt[((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
         }
     }
 }

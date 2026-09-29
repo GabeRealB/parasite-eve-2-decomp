@@ -1507,7 +1507,7 @@ void func_actor_510900_80132D4C(Task* arg0)
             x           = block->sy + (u16)block->dy;
             prim->y3    = x;
             prim->y2    = x;
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             if (coord->coord.t[1] < 0 && (mem->age & 1)) {
                 hit.parent       = coord->parent;
@@ -1610,7 +1610,7 @@ void func_actor_510900_801332EC(Task* arg0)
             x           = block->sy + (u16)block->dy;
             prim->y3    = x;
             prim->y2    = x;
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
         SCRATCH_POP(GpFxQuadScratch);
@@ -1711,7 +1711,7 @@ void func_actor_510900_8013371C(Task* arg0)
             x           = block->sy + (u16)block->dy;
             prim->y3    = x;
             prim->y2    = x;
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
         SCRATCH_POP(GpFxQuadScratch);
@@ -1803,7 +1803,7 @@ void func_actor_510900_80133C84(Task* arg0)
             x           = block->sy + (u16)block->dy;
             prim->y3    = x;
             prim->y2    = x;
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
         SCRATCH_POP(GpFxQuadScratch);
@@ -1957,7 +1957,7 @@ void func_actor_510900_80134284(Task* arg0)
             prim->y0 = (u16)block->sxy0.vy;
             prim->x1 = (u16)block->sxy1.vx;
             prim->y1 = (u16)block->sxy1.vy;
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)((block->otz0 + block->otz1) >> 1) << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((block->otz0 + block->otz1) >> 1) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz0 + block->otz1) >> 1);
         }
@@ -2181,7 +2181,7 @@ static void func_actor_510900_80134C90(GfxCoord* arg0, u16 arg1, s16 arg2, s16 a
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP_BYTES_AT(scratch, 0x1C);

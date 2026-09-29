@@ -12,7 +12,7 @@
 
 #define GPU_OT_END_PRIM 0xFFFFFF
 
-extern u_long Gpu_OtTags[2 * GPU_OT_ENTRIES];
+extern u_long Gpu_OtTags[2 * GPU_ORDERING_TABLE_BUFFER_ENTRIES];
 
 extern u8* Gpu_SysPrimCursor;
 
@@ -46,7 +46,7 @@ void Display_SetPrimBufSmall(void);
 
 /// Makes buffer `buf`'s ordering table the current one: clears it, terminates
 /// it, and leaves the current-table pointer past the entries reserved at its
-/// start.
+/// start. `buf` is the display-buffer index (0 or 1).
 static inline void gpuBeginOt(s32 buf)
 {
     // Declared here, not relied on from above, because the unit defining these
@@ -55,11 +55,12 @@ static inline void gpuBeginOt(s32 buf)
     extern u_long  Gpu_OtTags[];
     u_long*        ot;
 
-    gGpuCurrentOt = Gpu_OtTags + buf * GPU_OT_ENTRIES;
-    ClearOTagR(gGpuCurrentOt, GPU_OT_ENTRIES);
+    // Clear the reverse DMA chain before drawing tasks borrow its depth base.
+    gGpuCurrentOt = Gpu_OtTags + buf * GPU_ORDERING_TABLE_BUFFER_ENTRIES;
+    ClearOTagR(gGpuCurrentOt, GPU_ORDERING_TABLE_BUFFER_ENTRIES);
     ot            = gGpuCurrentOt;
     *ot           = GPU_OT_END_PRIM;
-    gGpuCurrentOt = ot + 0x20;
+    gGpuCurrentOt = ot + GPU_ORDERING_TABLE_RESERVED_ENTRIES;
 }
 
 #endif // MAIN_PRIVATE_DISPLAY_H

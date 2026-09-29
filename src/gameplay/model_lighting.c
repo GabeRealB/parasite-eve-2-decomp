@@ -561,8 +561,8 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     setlen(&poly[1], len);
                     setcode(&poly[1], 0x34);
                     gte_stotz(&ws->gteResult);
-                    addPrim((&ws->ot[(((((u32)ws->gteResult << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*ws->ot)]), &poly[0]);
-                    addPrim((&ws->ot[(((((u32)ws->gteResult << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*ws->ot)]), &poly[1]);
+                    addPrim((&ws->ot[(((((u32)ws->gteResult << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]), &poly[0]);
+                    addPrim((&ws->ot[(((((u32)ws->gteResult << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]), &poly[1]);
                 }
             }
             poly += 2;
@@ -635,12 +635,12 @@ u32* gpDrawStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* st
                     setcode(&poly[1], code);
                     poly[0].tpage |= 0x20;
                     gte_stotz(opz);
-                    poly[0].tag = (poly[0].tag & maskHi) | (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC)) / sizeof(*ws->ot)]) & mask);
-                    *(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC)) / sizeof(*ws->ot)]) =
-                        (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC)) / sizeof(*ws->ot)]) & maskHi) | ((u32)&poly[0] & mask);
-                    poly[1].tag = (poly[1].tag & maskHi) | (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC)) / sizeof(*ws->ot)]) & mask);
-                    *(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC)) / sizeof(*ws->ot)]) =
-                        (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC)) / sizeof(*ws->ot)]) & maskHi) | ((u32)&poly[1] & mask);
+                    poly[0].tag = (poly[0].tag & maskHi) | (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) & mask);
+                    *(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) =
+                        (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) & maskHi) | ((u32)&poly[0] & mask);
+                    poly[1].tag = (poly[1].tag & maskHi) | (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) & mask);
+                    *(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) =
+                        (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) & maskHi) | ((u32)&poly[1] & mask);
                 }
             }
             poly   += 2;
@@ -735,12 +735,12 @@ u32* gpDrawStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* st
                         setlen(&poly[1], len);
                         setcode(&poly[1], code);
                         gte_stotz(opz);
-                        poly[0].tag = (poly[0].tag & maskHi) | (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC)) / sizeof(*ws->ot)]) & mask);
-                        *(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC)) / sizeof(*ws->ot)]) =
-                            (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC)) / sizeof(*ws->ot)]) & maskHi) | ((u32)&poly[0] & mask);
-                        poly[1].tag = (poly[1].tag & maskHi) | (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC)) / sizeof(*ws->ot)]) & mask);
-                        *(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC)) / sizeof(*ws->ot)]) =
-                            (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC)) / sizeof(*ws->ot)]) & maskHi) | ((u32)&poly[1] & mask);
+                        poly[0].tag = (poly[0].tag & maskHi) | (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) & mask);
+                        *(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) =
+                            (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) & maskHi) | ((u32)&poly[0] & mask);
+                        poly[1].tag = (poly[1].tag & maskHi) | (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) & mask);
+                        *(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) =
+                            (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) & maskHi) | ((u32)&poly[1] & mask);
                     }
                 }
             }
@@ -1050,8 +1050,8 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     setlen(&poly[1], len);
                     setcode(&poly[1], 0x3C);
                     gte_stotz(opz);
-                    addPrim((&ws->ot[(((((u32)ws->gteResult << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*ws->ot)]), &poly[0]);
-                    addPrim((&ws->ot[(((((u32)ws->gteResult << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*ws->ot)]), &poly[1]);
+                    addPrim((&ws->ot[(((((u32)ws->gteResult << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]), &poly[0]);
+                    addPrim((&ws->ot[(((((u32)ws->gteResult << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]), &poly[1]);
                 }
             }
         skip:

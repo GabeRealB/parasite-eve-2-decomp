@@ -1433,10 +1433,10 @@ void func_acropolis_fountain_8017DD44(Task* task)
             y              = blk->sy + (u16)blk->halfWidth;
             prim->y3       = y;
             prim->y2       = y;
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)((RoomShaftScratch*)(head - 0x14))->otz
-                                               << gDisplayState.otDepthShift) >>
-                                              2) &
-                                             0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((RoomShaftScratch*)(head - 0x14))->otz
+                                                               << gDisplayState.otDepthShift) >>
+                                                              2) &
+                                                             GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
         SCRATCH_POP_BYTES(0x14);

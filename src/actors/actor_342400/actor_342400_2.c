@@ -947,7 +947,7 @@ static void func_actor_342400_80163354(Task* task, s16 firstJoint, s16 secondJoi
             poly->tpage = 0x48;
             poly->clut  = 0x4283;
             setRGB0(poly, shade, shade, shade);
-            addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]), poly);
+            addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
         }
         SCRATCH_POP_BYTES(sizeof(ActorsShared80163354Scratch));
     }

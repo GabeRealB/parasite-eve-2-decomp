@@ -1840,7 +1840,7 @@ static void func_actor_400600_80132294(Task* task, s16 firstJoint, s16 secondJoi
             poly->tpage = 0x48;
             poly->clut  = 0x4283;
             setRGB0(poly, shade, shade, shade);
-            addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]), poly);
+            addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
         }
         SCRATCH_POP_BYTES(sizeof(ActorBeamScratch));
     }
@@ -4402,7 +4402,7 @@ static void func_actor_400600_801383E4(SVECTOR* arg0, SVECTOR* arg1, s16 width, 
         poly->tpage = 0x48;
         poly->clut  = 0x4283;
         setRGB0(poly, shade, shade, shade);
-        addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]), poly);
+        addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
     }
     SCRATCH_POP_BYTES(sizeof(Actor400600QuadScratch));
 }

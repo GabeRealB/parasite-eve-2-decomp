@@ -1554,7 +1554,7 @@ static void func_actor_206100_8014AB3C(GfxCoord* arg0, u16 arg1, u16 arg2, s32 a
         prim->x2 = blk->sx - (u16)blk->dx;
         prim->y1 = blk->sy - (u16)blk->dy;
         prim->y2 = blk->sy + (u16)blk->dy;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)((GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch)))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch)))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP_BYTES_AT(scratch, sizeof(GpEffFlareScratch));

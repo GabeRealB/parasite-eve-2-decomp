@@ -922,6 +922,15 @@ static u32*        func_actor_403600_801379B4(TmdScratchModelBlock* ws, s32 flag
 static u32*        func_actor_403600_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 static u32*        func_actor_403600_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+/// Links primitive `p` at the head of ordering-table entry `ot` through tag words.
+///
+/// `ot` points to one `u_long` tag and `p` to a packet with a tag word. Both
+/// arguments must be side-effect-free: each is evaluated repeatedly. The link
+/// preserves each tag's packet length and stores only the low 24 address bits.
+#define ACTOR_403600_LINK_PRIMITIVE(ot, p)                                                     \
+    ((p)->tag = ((p)->tag & GPU_DMA_PACKET_LENGTH_MASK) | (*(ot) & GPU_DMA_LINK_ADDRESS_MASK), \
+     *(ot)    = (*(ot) & GPU_DMA_PACKET_LENGTH_MASK) | ((u32)(p) & GPU_DMA_LINK_ADDRESS_MASK))
+
 /// Links, at ordering-table depth `otz`, the primitives that copy the frame
 /// drawn so far into the 320x240 VRAM rectangle at (0x1C0, 0x100). Linked at
 /// one slot they run in reverse: the draw area and offset move to that
@@ -1505,13 +1514,6 @@ void func_actor_403600_80134288(Task* arg0)
 }
 static const SVECTOR D_actor_403600_80131E24 = { -100, 700, -280, 0 };
 
-/// Links primitive `p` at the head of ordering-table entry `ot`, as `addPrim`
-/// does, but by masking the two tag words directly instead of through its
-/// bitfields.
-#define _ACTOR403600_LINK_PRIM(ot, p)                         \
-    ((p)->tag = ((p)->tag & 0xFF000000) | (*(ot) & 0xFFFFFF), \
-     *(ot)    = (*(ot) & 0xFF000000) | ((u32)(p) & 0xFFFFFF))
-
 void func_actor_403600_80134398(Task* arg0)
 {
     MATRIX*                gteValue1;
@@ -1919,7 +1921,7 @@ block_22:
                             ((POLY_FT4*)shared)->code = 0x2E;
                             ((POLY_FT4*)shared)->u3   = temp_v1_12;
                             ((POLY_FT4*)shared)->u1   = temp_v1_12;
-                            addPrim(((u_long*)((((((u32)scratch->otz << ds->otDepthShift) >> 2) & 0xFFC)) + (uintptr)gGpuCurrentOt)),
+                            addPrim(((u_long*)((((((u32)scratch->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
                                     (POLY_FT4*)shared);
                         }
                     } else if (var_s4 >= (var_fp - 4)) {
@@ -1972,8 +1974,8 @@ block_22:
                         setlen((POLY_FT4*)shared, 9);
                         PRIM_COLOR_WORD(((POLY_FT4*)shared), 0) = temp_v1_13;
                         ((POLY_FT4*)shared)->code               = 0x2E;
-                        _ACTOR403600_LINK_PRIM((u32*)(((((u32)scratch->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
-                                               (POLY_FT4*)shared);
+                        ACTOR_403600_LINK_PRIMITIVE((u_long*)(((((u32)scratch->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK) + (s32)gGpuCurrentOt),
+                                                    (POLY_FT4*)shared);
                     }
                 }
                 var_s4 += sp28;

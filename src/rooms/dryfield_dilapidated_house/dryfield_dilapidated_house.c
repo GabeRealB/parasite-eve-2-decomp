@@ -2671,12 +2671,12 @@ static void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts,
         poly->y2   = verts[c].vy;
         poly->x3   = verts[d].vx;
         poly->y3   = verts[d].vy;
-        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]) + 3, poly);
+        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) + 3, poly);
         tpage          = gGpuPrimCursor;
         gGpuPrimCursor = tpage + 1;
         setlen(tpage, 1);
         tpage->code[0] = 0xE1000425;
-        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]) + 3, tpage);
+        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) + 3, tpage);
         quad += 4;
     }
     for (i = 6; i < 16; i++) {
@@ -2708,12 +2708,12 @@ static void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts,
         poly->y2   = verts[c].vy;
         poly->x3   = verts[d].vx;
         poly->y3   = verts[d].vy;
-        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]) + 3, poly);
+        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) + 3, poly);
         tpage          = gGpuPrimCursor;
         gGpuPrimCursor = tpage + 1;
         setlen(tpage, 1);
         tpage->code[0] = 0xE1000465;
-        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]) + 3, tpage);
+        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) + 3, tpage);
         quad += 4;
     }
 }
@@ -2928,12 +2928,12 @@ static void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts)
             xy[4] = sxy[31];
             xy[6] = sxy[16];
         }
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)sz[i] << gDisplayState.otDepthShift) >> 2) & 0xFFC)) + 4, prim);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sz[i] << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 4, prim);
         tp             = (DR_TPAGE*)gGpuPrimCursor;
         gGpuPrimCursor = (u8*)(tp + 1);
         setlen(tp, 1);
         tp->code[0] = 0xE1000465;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)sz[i] << gDisplayState.otDepthShift) >> 2) & 0xFFC)) + 4, tp);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sz[i] << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 4, tp);
     }
 }
 
@@ -3494,7 +3494,7 @@ static void func_dryfield_dilapidated_house_801815E8(GfxCoord* coord, s16 arg1)
         setRGB1(prim, shade, shade, shade);
         setRGB2(prim, 0, 0, 0);
         setRGB3(prim, 0, 0, 0);
-        addPrim(Gpu_OtEntryAtByteOffset((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     }
@@ -3541,7 +3541,7 @@ static void func_dryfield_dilapidated_house_801815E8(GfxCoord* coord, s16 arg1)
     setRGB1(prim, shade, shade, shade);
     setRGB2(prim, shade, shade, shade);
     setRGB3(prim, shade, shade, shade);
-    addPrim(Gpu_OtEntryAtByteOffset((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     SCRATCH_POP(RoomQuadScratch);
 }
@@ -3708,7 +3708,7 @@ static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
             setRGB1(prim, hi * (flags >> 8), hi * ((flags >> 4) & 3), hi * (flags & 3));
             setRGB2(prim, lo * (flags >> 8), lo * ((flags >> 4) & 3), lo * (flags & 3));
             setRGB3(prim, lo * (flags >> 8), lo * ((flags >> 4) & 3), lo * (flags & 3));
-            addPrim(Gpu_OtEntryAtByteOffset((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
         }
@@ -3897,7 +3897,7 @@ static void func_dryfield_dilapidated_house_80182A18(GfxCoord* arg0, s16 arg1, s
             prim->y2 = (u16)block->sxy2.vy;
             prim->x3 = (u16)block->sxy3.vx;
             prim->y3 = (u16)block->sxy3.vy;
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
@@ -3948,7 +3948,7 @@ static void func_dryfield_dilapidated_house_80182F14(GfxCoord* arg0, s16 arg1, s
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->step * rsin(ang + 0x200)) >> 12);
             prim->y3 = block->sy + ((block->step * rcos(ang + 0x200)) >> 12);
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
@@ -4010,7 +4010,7 @@ static void func_dryfield_dilapidated_house_801832A8(GfxCoord* arg0, s16 arg1, s
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
         prim->y2  = block->sy + (u16)block->dy;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP(GpFxQuadScratch);
@@ -4090,7 +4090,7 @@ static void func_dryfield_dilapidated_house_80183728(GfxCoord* arg0, s16 arg1, s
             prim->y2 = block->sxy2.vy;
             prim->x3 = block->sxy3.vx;
             prim->y3 = block->sxy3.vy;
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }

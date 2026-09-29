@@ -836,7 +836,7 @@ void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
             prim->x3            = block->sx + block->halfWidth;
             prim->y0 = prim->y2 = prim->y3 = block->sy;
             prim->y1                       = (block->sy - block->halfWidth) + block->halfWidth * (i + i);
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
@@ -878,7 +878,7 @@ static void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
     gte_stszotz(&depth->otz);
     if (((RoomMoteScratch*)(head - 0xC))->otz >= 0x11) {
         setRGB0(prim, 0x80, 0x80, 0x80);
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)((RoomMoteScratch*)(head - 0xC))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((RoomMoteScratch*)(head - 0xC))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, ((RoomMoteScratch*)(head - 0xC))->otz);
     }

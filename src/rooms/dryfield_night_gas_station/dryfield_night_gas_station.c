@@ -2932,11 +2932,11 @@ static void func_dryfield_night_gas_station_8017FD80(s32 arg0)
         setRGB0(tile, 0x80, 0, 0);
         tile->w = 3;
         tile->h = 3;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)val << gDisplayState.otDepthShift) >> 2) & 0xFFC)), tile);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)val << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), tile);
         dr             = gGpuPrimCursor;
         gGpuPrimCursor = dr + 1;
         setDrawTPage(dr, 1, 0, 0x25);
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)val << gDisplayState.otDepthShift) >> 2) & 0xFFC)), dr);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)val << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), dr);
         tile1          = (TILE_1*)gGpuPrimCursor;
         gGpuPrimCursor = tile1 + 1;
         setTile1(tile1);
@@ -2944,7 +2944,7 @@ static void func_dryfield_night_gas_station_8017FD80(s32 arg0)
         tile1->x0 = x0;
         tile1->y0 = y0;
         setRGB0(tile1, 0xFF, 0, 0);
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)val << gDisplayState.otDepthShift) >> 2) & 0xFFC)), tile1);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)val << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), tile1);
 
         mtx.ident.m00_m01 = one;
         mtx.ident.m02_m10 = 0;
@@ -2978,11 +2978,11 @@ static void func_dryfield_night_gas_station_8017FD80(s32 arg0)
         setRGB1(line, rand() % 60 + 0x50, 0, 0);
         val = 0xA;
         setRGB0(line, 0, 0, 0);
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)val << gDisplayState.otDepthShift) >> 2) & 0xFFC)), line);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)val << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), line);
         dr             = gGpuPrimCursor;
         gGpuPrimCursor = dr + 1;
         setDrawTPage(dr, 1, 0, 0x25);
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)val << gDisplayState.otDepthShift) >> 2) & 0xFFC)), dr);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)val << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), dr);
     }
 }
 
@@ -3053,11 +3053,11 @@ static void func_dryfield_night_gas_station_801802EC(s32 arg0)
         line->y1 = y1;
         setRGB0(line, rand() % 100 - 0x7E, 0, 0);
         setRGB1(line, 0, 0, 0);
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)0xA << gDisplayState.otDepthShift) >> 2) & 0xFFC)), line);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)0xA << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), line);
         dr             = gGpuPrimCursor;
         gGpuPrimCursor = dr + 1;
         setDrawTPage(dr, 1, 0, 0x25);
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)0xA << gDisplayState.otDepthShift) >> 2) & 0xFFC)), dr);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)0xA << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), dr);
     }
 }
 
@@ -3608,7 +3608,7 @@ static void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s3
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
                     prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -3628,7 +3628,7 @@ static void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s3
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx1;
                     prim->y3 = block->sy1;
-                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
                     t3             = ang + 0x800;
@@ -3650,7 +3650,7 @@ static void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s3
                     prim->y2 = block->sy1;
                     prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
                     prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
                     ang = t2;
@@ -3708,7 +3708,7 @@ static void func_dryfield_night_gas_station_80181AF8(SVECTOR* arg0, s32 arg1, s3
         xy            = block->sy + (u16)block->radius;
         prim->y3      = xy;
         prim->y2      = xy;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP(RoomDraw13Scratch);
@@ -3828,7 +3828,7 @@ static void func_dryfield_night_gas_station_80182024(GfxCoord* arg0, s32 arg1, s
             prim->x3 = block->sx + ((block->rInner * rsin(t)) >> 12);
             prim->y3 = block->sy + ((block->rInner * rcos(t)) >> 12);
             ang      = t;
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
@@ -3880,7 +3880,7 @@ static void func_dryfield_night_gas_station_80182450(GfxCoord* arg0, s16 arg1, u
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->radius * rsin(ang + 0x200)) >> 12);
             prim->y3 = block->sy + ((block->radius * rcos(ang + 0x200)) >> 12);
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
@@ -4077,7 +4077,7 @@ static void func_dryfield_night_gas_station_80182CD4(GfxCoord* arg0, GfxCoord* a
             prim->y2 = blk->sy2;
             prim->x3 = blk->sx3;
             prim->y3 = blk->sy3;
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
         }
@@ -4206,7 +4206,7 @@ static void func_dryfield_night_gas_station_80183354(GfxCoord* arg0, s16 arg1, u
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
             prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -4226,7 +4226,7 @@ static void func_dryfield_night_gas_station_80183354(GfxCoord* arg0, s16 arg1, u
             prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
             prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
             ang      = t2;
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
@@ -4250,7 +4250,7 @@ static void func_dryfield_night_gas_station_80183354(GfxCoord* arg0, s16 arg1, u
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 13);
             prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -4271,7 +4271,7 @@ static void func_dryfield_night_gas_station_80183354(GfxCoord* arg0, s16 arg1, u
             prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 12);
             prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 12);
             ang      = u;
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);

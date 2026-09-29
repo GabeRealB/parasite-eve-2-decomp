@@ -233,13 +233,13 @@ static void func_shelter_b4_lower_sewer_8017D72C(Task* task)
                 poly->r3              = 0x20;
                 poly->g3              = 0x20;
                 poly->b3              = 0x20;
-                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt) + 1]),
+                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt) + 1]),
                         poly);
                 dr                                = (DR_MODE*)D_shelter_b4_lower_sewer_80183E14;
                 D_shelter_b4_lower_sewer_80183E14 = (u8*)(dr + 1);
                 setlen(dr, 1);
                 dr->code[0] = 0xE100004A;
-                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt) + 1]),
+                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt) + 1]),
                         dr);
             }
         }
@@ -280,13 +280,13 @@ static void func_shelter_b4_lower_sewer_8017D72C(Task* task)
                 poly->r1              = 0x20;
                 poly->g1              = 0x20;
                 poly->b1              = 0x20;
-                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt) + 1]),
+                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt) + 1]),
                         poly);
                 dr                                = (DR_MODE*)D_shelter_b4_lower_sewer_80183E14;
                 D_shelter_b4_lower_sewer_80183E14 = (u8*)(dr + 1);
                 setlen(dr, 1);
                 dr->code[0] = 0xE100004A;
-                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt) + 1]),
+                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt) + 1]),
                         dr);
             }
         }
@@ -367,13 +367,13 @@ static void func_shelter_b4_lower_sewer_8017DE8C(Task* task)
                 poly->r3              = 0x20;
                 poly->g3              = 0x20;
                 poly->b3              = 0x20;
-                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt) + 1]),
+                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt) + 1]),
                         poly);
                 dr                                = (DR_MODE*)D_shelter_b4_lower_sewer_80183E14;
                 D_shelter_b4_lower_sewer_80183E14 = (u8*)(dr + 1);
                 setlen(dr, 1);
                 dr->code[0] = 0xE100004A;
-                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt) + 1]),
+                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt) + 1]),
                         dr);
             }
         }

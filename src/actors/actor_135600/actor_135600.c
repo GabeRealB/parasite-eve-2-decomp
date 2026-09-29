@@ -760,13 +760,13 @@ static s32 func_actor_135600_80131E68(GfxCoord* coord, s32 arg1)
         poly->y2 = quad[2].vy;
         poly->x3 = quad[3].vx;
         poly->y3 = quad[3].vy;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)) - 2, poly);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) - 2, poly);
 
         tpage          = gGpuPrimCursor;
         gGpuPrimCursor = tpage + 1;
         setlen(tpage, 1);
         tpage->code[0] = 0xE1000465;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)) - 2, tpage);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) - 2, tpage);
     }
     return rot;
 }

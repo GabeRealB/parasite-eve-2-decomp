@@ -1716,12 +1716,12 @@ void Gp_FadeTileTask(Task* arg0)
         tile->r0 = color;
     }
 
-    addPrim(Gpu_OtEntryAtByteOffset((otIdx << 2)), tile);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((otIdx << 2)), tile);
     dr             = (DR_TPAGE*)gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000640;
-    addPrim(Gpu_OtEntryAtByteOffset((otIdx << 2)), dr);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((otIdx << 2)), dr);
 
     if ((flag == 0) && (arg0->killCountdown <= 0)) {
         if (arg0->spawnArg1.value == 4) {

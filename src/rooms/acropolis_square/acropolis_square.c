@@ -1808,7 +1808,7 @@ void func_acropolis_square_801825DC(Task* task)
     u8               cyan;
     s32              z;
     s32              shift;
-    u32              depth;
+    u32              otByteOffset;
     u32              tag;
     u_long*          ot;
 
@@ -1858,7 +1858,7 @@ void func_acropolis_square_801825DC(Task* task)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->rOuter * D_acropolis_square_80183B68[i + 6]) >> 12);
                 prim->y3 = blk->sy + ((blk->rOuter * D_acropolis_square_80183B68[i + 2]) >> 12);
-                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
 
@@ -1877,7 +1877,7 @@ void func_acropolis_square_801825DC(Task* task)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->rOuter * D_acropolis_square_80183B68[i + 6]) >> 13);
                 prim->y3 = blk->sy + ((blk->rOuter * D_acropolis_square_80183B68[i + 2]) >> 13);
-                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
@@ -1893,20 +1893,20 @@ void func_acropolis_square_801825DC(Task* task)
                     cyan = flip * ampHalf;
                     setRGB2(prim, red, cyan, cyan);
                     setRGB3(prim, 0, 0, 0);
-                    prim->x0 = blk->sx + ((blk->rInner * D_acropolis_square_80183B68[i]) >> 12);
-                    prim->y0 = blk->sy + ((blk->rInner * D_acropolis_square_80183B68[i - 4]) >> 12);
-                    prim->x1 = blk->sx + ((blk->rOuter * D_acropolis_square_80183B68[i + 4]) >> 11);
-                    prim->y1 = blk->sy + ((blk->rOuter * D_acropolis_square_80183B68[i]) >> 11);
-                    prim->x2 = blk->sx;
-                    prim->y2 = blk->sy;
-                    prim->x3 = blk->sx + ((blk->rInner * D_acropolis_square_80183B68[i + 8]) >> 12);
-                    prim->y3 = blk->sy + ((blk->rInner * D_acropolis_square_80183B68[i + 4]) >> 12);
-                    shift    = gDisplayState.otDepthShift;
-                    depth    = (((u32)blk->otz << shift) >> 2) & 0xFFC;
-                    __asm__("" : "+r"(depth) : "r"(shift), "m"(gDisplayState.otDepthShift));
-                    setaddr(prim, getaddr(((u_long*)((depth) + (uintptr)gGpuCurrentOt))));
-                    ot  = ((u_long*)((((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) + (uintptr)gGpuCurrentOt));
-                    tag = (*ot & 0xFF000000) | ((u32)prim & 0xFFFFFF);
+                    prim->x0     = blk->sx + ((blk->rInner * D_acropolis_square_80183B68[i]) >> 12);
+                    prim->y0     = blk->sy + ((blk->rInner * D_acropolis_square_80183B68[i - 4]) >> 12);
+                    prim->x1     = blk->sx + ((blk->rOuter * D_acropolis_square_80183B68[i + 4]) >> 11);
+                    prim->y1     = blk->sy + ((blk->rOuter * D_acropolis_square_80183B68[i]) >> 11);
+                    prim->x2     = blk->sx;
+                    prim->y2     = blk->sy;
+                    prim->x3     = blk->sx + ((blk->rInner * D_acropolis_square_80183B68[i + 8]) >> 12);
+                    prim->y3     = blk->sy + ((blk->rInner * D_acropolis_square_80183B68[i + 4]) >> 12);
+                    shift        = gDisplayState.otDepthShift;
+                    otByteOffset = (((u32)blk->otz << shift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK;
+                    __asm__("" : "+r"(otByteOffset) : "r"(shift), "m"(gDisplayState.otDepthShift));
+                    setaddr(prim, getaddr(((u_long*)((otByteOffset) + (uintptr)gGpuCurrentOt))));
+                    ot  = ((u_long*)((((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt));
+                    tag = (*ot & GPU_DMA_PACKET_LENGTH_MASK) | ((u32)prim & GPU_DMA_LINK_ADDRESS_MASK);
                     *ot = tag;
                     z   = blk->otz;
                     SOFT_TOUCH_REG(z);
@@ -1931,7 +1931,7 @@ void func_acropolis_square_801825DC(Task* task)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->rInner * D_acropolis_square_80183B68[i + 0xC]) >> 13);
                 prim->y3 = blk->sy + ((blk->rInner * D_acropolis_square_80183B68[i + 8]) >> 13);
-                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
                 z = blk->otz;
                 __asm__("" : "+r"(z) : "r"(red), "r"(&D_acropolis_square_80183B68[i]));
@@ -1953,7 +1953,7 @@ void func_acropolis_square_801825DC(Task* task)
                 prim->x3            = blk->sx + blk->rOuter;
                 prim->y0 = prim->y2 = prim->y3 = blk->sy;
                 prim->y1                       = (blk->sy - blk->rOuter) + blk->rOuter * (i + i);
-                addPrim(((u_long*)((((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) + (uintptr)gGpuCurrentOt)),
+                addPrim(((u_long*)((((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
@@ -1971,7 +1971,7 @@ void func_acropolis_square_801825DC(Task* task)
                     line->y1 = blk->sy;
                     line->x2 = blk->sx - blk->rOuter * (i * 3 - 1);
                     line->y2 = blk->sy + blk->rOuter * (i + 1);
-                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             line);
                     Gp_AddTpageShift((P_TAG*)line, 1, blk->otz);
                 }

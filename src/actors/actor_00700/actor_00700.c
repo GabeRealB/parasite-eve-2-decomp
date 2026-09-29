@@ -2449,7 +2449,7 @@ static void Actor00700_Fn0305C(Task* arg0)
     prim->y2    = sc->v[2].vy;
     prim->x3    = sc->v[3].vx;
     prim->y3    = sc->v[3].vy;
-    addPrim((&gGpuCurrentOt[(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]), prim);
+    addPrim((&gGpuCurrentOt[(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), prim);
     SCRATCH_POP_BYTES(0x28);
 }
 

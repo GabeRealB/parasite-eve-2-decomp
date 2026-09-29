@@ -12353,7 +12353,7 @@ gGpuCurrentOt = ot[temp->field_118].org;
 ```
 
 `Gpu_InitOt` is the reference: sets both `Gpu_OrderingTables` slots to depth `0xA`
-with `Gpu_OtTags` / `+ GPU_OT_ENTRIES`, clears the active buffer
+with `Gpu_OtTags` / `+ GPU_ORDERING_TABLE_BUFFER_ENTRIES`, clears the active buffer
 (`gDisplayState.frameBuffer`), then points `gGpuCurrentOt` at the OT base.
 
 ## Delay `i = 0` until after a special-case rewrite of the same constant
@@ -22246,9 +22246,9 @@ end-prim write so the `%hi` is only live in that block:
 
 ```c
 {
-    u_long* ot = Gpu_OtTags + flip * GPU_OT_ENTRIES;
+    u_long* ot = Gpu_OtTags + flip * GPU_ORDERING_TABLE_BUFFER_ENTRIES;
     gGpuCurrentOt = ot;
-    ClearOTagR(ot, GPU_OT_ENTRIES);
+    ClearOTagR(ot, GPU_ORDERING_TABLE_BUFFER_ENTRIES);
 }
 {
     u_long* p = gGpuCurrentOt;

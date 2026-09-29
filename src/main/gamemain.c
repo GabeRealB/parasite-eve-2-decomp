@@ -58,7 +58,7 @@ static DR_TPAGE D_8006EC28;
 
 volatile u8 D_8006EC30;
 
-u_long Gpu_OtTags[2 * GPU_OT_ENTRIES];
+u_long Gpu_OtTags[2 * GPU_ORDERING_TABLE_BUFFER_ENTRIES];
 
 volatile u8 D_80070E38;
 
@@ -596,8 +596,8 @@ void GameMain_SetFrameTiming(s32 timingMode)
 
 void Gpu_ClearOTag(s16 tableIdx)
 {
-    u_long* tableStart = Gpu_OtTags + tableIdx * GPU_OT_ENTRIES;
-    ClearOTagR(tableStart, GPU_OT_ENTRIES);
+    u_long* tableStart = Gpu_OtTags + tableIdx * GPU_ORDERING_TABLE_BUFFER_ENTRIES;
+    ClearOTagR(tableStart, GPU_ORDERING_TABLE_BUFFER_ENTRIES);
     *tableStart = GPU_OT_END_PRIM;
 }
 
@@ -621,14 +621,14 @@ static void Gfx_InitGraph(void)
     InitGeom();
 
     otCtx            = Gpu_OtBuffers;
-    depth            = 0xA;
+    depth            = GPU_ORDERING_TABLE_DEPTH_BITS;
     otCtx->depth     = depth;
     ot               = Gpu_OtTags;
-    otCtx->lastTag   = ot + GPU_OT_ENTRIES - 1;
+    otCtx->lastTag   = ot + GPU_ORDERING_TABLE_BUFFER_ENTRIES - 1;
     otCtx->ot        = ot;
     otCtx[1].depth   = depth;
-    otCtx[1].ot      = ot + GPU_OT_ENTRIES;
-    otCtx[1].lastTag = ot + 2 * GPU_OT_ENTRIES - 1;
+    otCtx[1].ot      = ot + GPU_ORDERING_TABLE_BUFFER_ENTRIES;
+    otCtx[1].lastTag = ot + 2 * GPU_ORDERING_TABLE_BUFFER_ENTRIES - 1;
     GameMain_SpawnBootTask();
     Gfx_InitCoordinateTrees();
     Gpu_InitDefaultLights();

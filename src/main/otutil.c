@@ -40,7 +40,7 @@ TaskNode gTaskDisplayList;
 
 static s32 Display_HoldMode;
 
-static u_long Gpu_SmallOtTags[0x80];
+static u_long Gpu_SmallOtTags[2 * GPU_SMALL_ORDERING_TABLE_ENTRIES];
 
 #include "main/display.h"
 #include "task.h"
@@ -346,9 +346,9 @@ static void Display_FlipOtAlt(void)
     saved          = gGpuCurrentOt;
     buf            = temp->otBuffer ^ 1;
     temp->otBuffer = buf;
-    gGpuCurrentOt  = Gpu_OtTags + buf * GPU_OT_ENTRIES;
+    gGpuCurrentOt  = Gpu_OtTags + buf * GPU_ORDERING_TABLE_BUFFER_ENTRIES;
     Gpu_ClearOTag(temp->otBuffer);
-    gGpuCurrentOt = gGpuCurrentOt + 0x20;
+    gGpuCurrentOt = gGpuCurrentOt + GPU_ORDERING_TABLE_RESERVED_ENTRIES;
     Task_ExecListFiltered(&gTaskDefaultList, 0x62);
     Gp_DrawActorTmdFlagged(&Gpu_OtBuffers[temp->otBuffer]);
     gGpuCurrentOt                = saved;
@@ -362,10 +362,10 @@ void Gpu_InitOt(void)
     u_long*       org;
 
     ot           = Gpu_OrderingTables;
-    ot->length   = 0xA;
+    ot->length   = GPU_ORDERING_TABLE_DEPTH_BITS;
     ot->org      = Gpu_OtTags;
-    ot[1].length = 0xA;
-    ot[1].org    = Gpu_OtTags + GPU_OT_ENTRIES;
+    ot[1].length = GPU_ORDERING_TABLE_DEPTH_BITS;
+    ot[1].org    = Gpu_OtTags + GPU_ORDERING_TABLE_BUFFER_ENTRIES;
     temp         = &gDisplayState;
     GsClearOt(0, 0, &ot[temp->frameBuffer]);
     org           = ot[temp->frameBuffer].org;

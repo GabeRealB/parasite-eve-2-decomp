@@ -4472,7 +4472,7 @@ void func_acropolis_plaza_801802C0(Task* task)
             tri->y1 = (blk->screen[1] >> 16);
             tri->x2 = (u16)blk->screen[2];
             tri->y2 = (blk->screen[2] >> 16);
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), tri);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), tri);
             Gp_AddTpageShift((P_TAG*)tri, 1, blk->otz);
             for (; i < 2; i++) {
                 prim           = (POLY_G4*)gGpuPrimCursor;
@@ -4490,7 +4490,7 @@ void func_acropolis_plaza_801802C0(Task* task)
                 prim->y2 = (blk->screen[i + 3] >> 16);
                 prim->x3 = (u16)blk->screen[i + 5];
                 prim->y3 = (blk->screen[i + 5] >> 16);
-                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
             blk->half = 0xC000 / blk->otz;
@@ -4513,7 +4513,7 @@ void func_acropolis_plaza_801802C0(Task* task)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
                 prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
-                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
         }
@@ -4569,7 +4569,7 @@ void func_acropolis_plaza_801802C0(Task* task)
                     prim->y2 = blk->sy;
                     prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
                     prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
-                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
                 }
             }
@@ -4648,7 +4648,7 @@ void func_acropolis_plaza_801811D0(Task* task)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
                 prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
-                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
             blk->half  = 0x8000 / blk->otz;
@@ -4672,7 +4672,7 @@ void func_acropolis_plaza_801811D0(Task* task)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->inner * D_acropolis_plaza_801987E0[i + 8]) >> 11);
                 prim->y3 = blk->sy + ((blk->inner * D_acropolis_plaza_801987E0[i + 4]) >> 11);
-                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
                 prim           = (POLY_G4*)gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
@@ -4689,7 +4689,7 @@ void func_acropolis_plaza_801811D0(Task* task)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->inner * D_acropolis_plaza_801987E0[i + 12]) >> 12);
                 prim->y3 = blk->sy + ((blk->inner * D_acropolis_plaza_801987E0[i + 8]) >> 12);
-                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
         }
@@ -4745,7 +4745,7 @@ void func_acropolis_plaza_801811D0(Task* task)
                     prim->y2 = blk->sy;
                     prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
                     prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
-                    addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
                 }
             }
@@ -4817,7 +4817,7 @@ void func_acropolis_plaza_80182054(Task* task)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
                 prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
-                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)), prim);
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
         }

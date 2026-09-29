@@ -228,7 +228,7 @@ static void func_inferno_8012F3EC(s16 arg0)
     p->y2 = yBot - ds->vramYOffset;
     p->x3 = x1;
     p->y3 = yBot - ds->vramYOffset;
-    addPrim(Gpu_OtEntryAtByteOffset(((((u32)z << ds->otDepthShift) >> 2) & 0xFFC)), p);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)z << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), p);
     Gp_AddTpageShift((P_TAG*)p, 1, z);
 }
 
@@ -458,7 +458,7 @@ static void func_inferno_8012F978(GpEffWork* mem, GfxCoord* coord, s32 kind, Inf
             prim->y2 = block->sxy2 >> 16;
             prim->x3 = block->sxy3;
             prim->y3 = block->sxy3 >> 16;
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
     }
@@ -557,7 +557,7 @@ static void func_inferno_8012FF34(GpEffWork* mem, GfxCoord* coord, s32 kind, Inf
             prim->y2 = block->sxy2 >> 16;
             prim->x3 = block->sxy3;
             prim->y3 = block->sxy3 >> 16;
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
     }
