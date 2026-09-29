@@ -416,7 +416,7 @@ tree_changes() {
 run_agent() {
   local dir="$1" brief="$2" log="$3" term="$4"
   local -a cmd
-  local stream=0
+  local stream=0 formatter=tools/stream_format.py
   case "$CLI" in
     claude)
       # Plain `claude -p` prints only the final result, so a step looks frozen
@@ -443,19 +443,26 @@ run_agent() {
       cmd+=(-p "$brief")
       ;;
     codex)
+      # Plain `codex exec` writes the worktree's cumulative diff after every
+      # event, and a step touching a long file grew one worker's log to 850 MB.
+      # Its JSON events go through the formatter the matching vacuum uses.
       cmd=("${LAUNCH_CMD[@]}" exec --dangerously-bypass-approvals-and-sandbox
-           ${MODEL:+--model "$MODEL"} --cd "$dir" "$brief")
+           ${MODEL:+--model "$MODEL"} --cd "$dir")
+      if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
+        cmd+=(--json); stream=1; formatter=tools/codex_format.py
+      fi
+      cmd+=("$brief")
       ;;
     *) echo "unknown api: $CLI" >&2; return 2 ;;
   esac
   if (( stream )); then
     if (( term )); then
       ( cd "$dir" && "${cmd[@]}" ) \
-        | python3 tools/stream_format.py ${VACUUM_STREAM_QUIET:+--quiet-text} \
+        | python3 "$formatter" ${VACUUM_STREAM_QUIET:+--quiet-text} \
         | tee -a "$log"
     else
       ( cd "$dir" && "${cmd[@]}" ) \
-        | python3 tools/stream_format.py ${VACUUM_STREAM_QUIET:+--quiet-text} \
+        | python3 "$formatter" ${VACUUM_STREAM_QUIET:+--quiet-text} \
         >>"$log" 2>&1
     fi
   elif (( term )); then
