@@ -1777,7 +1777,7 @@ void func_actor_121300_80131EB0(Task* arg0)
             D_actor_121300_8013D414        = arg0->spawnArg2.pointer;
             D_actor_121300_8013D414->frame = 0;
             D_actor_121300_8013D414->state = 0;
-            Display_ClampField126(-8);
+            displaySetShakeY(DISPLAY_SHAKE_MIN);
             arg0->state++;
             break;
         case 1:
@@ -1797,7 +1797,7 @@ void func_actor_121300_80131EB0(Task* arg0)
                     break;
                 case 2:
                     taskKill(arg0);
-                    Display_ClampField126(0);
+                    displaySetShakeY(0);
                     break;
             }
             D_actor_121300_8013BBE4 = D_actor_121300_8013D414->frame * D_actor_121300_8013D414->scale / D_actor_121300_8013D414->span;
@@ -2622,7 +2622,7 @@ void func_actor_121300_80133D98(Task* arg0)
     state = arg0->state;
     switch (state) {
         case 0:
-            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
+            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 weaponId                    = Player_Status.weapon;
                 anim                        = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 scratch.msg.animBlock.index = anim;
@@ -2659,7 +2659,7 @@ void func_actor_121300_80133D98(Task* arg0)
             Mc_SaveData[0].state.at4.loc.stage = state;
             Mc_SaveData[0].state.at4.loc.area  = 9;
             Mc_SaveData[0].state.at4.loc.warp  = state;
-            gDisplayState.roomVariant          = 1;
+            gDisplayState.spriteVariant        = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             return;

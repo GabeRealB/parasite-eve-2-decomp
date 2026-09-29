@@ -2815,7 +2815,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             if (Gp_CapBusy() != 0) {
                 break;
             }
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0 || Player_Status.coordMtx->t[0] < 0x36B1) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE || Player_Status.coordMtx->t[0] < 0x36B1) {
                 break;
             }
             w2 = (DumpingHoleEntity*)arg0->work;
@@ -3331,9 +3331,9 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                     break;
             }
             if (gDisplayState.animFrame & 1) {
-                Display_ClampField126(1);
+                displaySetShakeY(1);
             } else {
-                Display_ClampField126(-1);
+                displaySetShakeY(-1);
             }
             return;
         case 3:
@@ -3349,7 +3349,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             loc3                    = &buf2.loc;
             loc3->command           = 0xB;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, loc3, 0x7DB);
-            Display_ClampField126(0);
+            displaySetShakeY(0);
             work->state = 0;
             return;
         case 4:
@@ -3440,7 +3440,7 @@ void func_shelter_b3_dumping_hole_80181430(void)
     desc.command                             = 0x13;
     Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &desc, 0x7DB);
 
-    Display_ClampField126(0);
+    displaySetShakeY(0);
     Gp_DispatchMsg(ent->field_84, 0x7D5, 1, 0);
     Gp_DispatchMsg(ent->field_80, 0x3F3, 1, 0);
 
@@ -3463,7 +3463,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
 
     switch (task->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             obj        = task->extra.tmd;
@@ -3612,11 +3612,11 @@ void func_shelter_b3_dumping_hole_80181A48(Task* arg0)
             if (--arg0->killCountdown < 0) {
                 arg0->state += 1;
             }
-            Display_ClampField126(arg0->spawnArg1.value);
+            displaySetShakeY(arg0->spawnArg1.value);
             arg0->spawnArg1.value = -arg0->spawnArg1.value;
             break;
         default:
-            Display_ClampField126(0);
+            displaySetShakeY(0);
             taskKill(arg0);
             break;
     }

@@ -1730,7 +1730,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
         if (obj != NULL) {
             D_mist_shooting_gallery_8018E0C0 = cfg->bp;
             D_mist_shooting_gallery_8018E0BC = cfg->exp;
-            GameMain_SetFrameTiming(0);
+            GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             task->spawnArg2.pointer = obj;
             task->state             = task->state + 1;
         }
@@ -1790,7 +1790,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
         task->killCountdown = task->killCountdown - 1;
         if (task->killCountdown < 0) {
             Task_CallExit(task);
-            GameMain_SetFrameTiming(1);
+            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             Wip_UiHolder = NULL;
             Stage_SetEndingFlag();
         }
@@ -2359,7 +2359,7 @@ void func_mist_shooting_gallery_80180A00(Task* task)
         if (obj == NULL) {
             return;
         }
-        GameMain_SetFrameTiming(0);
+        GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         gGameSession->uiOpen    = 1;
         task->spawnArg2.pointer = obj;
         task->state++;
@@ -2377,7 +2377,7 @@ void func_mist_shooting_gallery_80180A00(Task* task)
     if (task->state == 2) {
         task->killCountdown--;
         if (task->killCountdown <= 0) {
-            GameMain_SetFrameTiming(1);
+            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gGameSession->uiOpen = 0;
             taskKill(task);
             Stage_ReleasePrimBuf();
@@ -2425,8 +2425,8 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
 
         case 1:
             if (CdCmd_IsIdle() & 0xFFFF) {
-                gDisplayState.at100.flags.imageSource = 1;
-                arg0->killCountdown                   = 0;
+                gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
+                arg0->killCountdown                     = 0;
                 arg0->state++;
                 return;
             }
@@ -2514,7 +2514,7 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
         }
 
         case 5:
-            gDisplayState.at100.flags.imageSource = 0;
+            gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             taskKill(arg0);
             Display_ResetHeapWrapper();
             return;
@@ -2595,7 +2595,7 @@ L_case5:
     if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
         return;
     }
-    gDisplayState.at100.flags.imageSource = 1;
+    gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
     Mem_Set(Fs_ImgBuffers, 0, 0x25800);
     taskKill(task);
     Display_ResetHeapWrapper();
@@ -2611,14 +2611,14 @@ void func_mist_shooting_gallery_801810D8(Task* task)
                 return;
             }
             Display_SpawnWithOt(D_mist_shooting_gallery_80185384, 2, 0, 0);
-            gDisplayState.at100.flags.flipMode = 0;
+            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_FULL;
             Gp_SpawnViewTasks();
         case 1:
             task->state = task->state + 1;
             return;
         case 2:
             Display_SpawnWithOt(D_mist_shooting_gallery_80185384, 1, 0, 0);
-            gDisplayState.at100.flags.flipMode = 1;
+            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
             Gp_SpawnViewTasks();
             taskKill(task);
             return;

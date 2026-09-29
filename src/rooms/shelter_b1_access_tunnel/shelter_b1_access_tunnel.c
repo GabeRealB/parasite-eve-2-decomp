@@ -636,7 +636,7 @@ void func_shelter_b1_access_tunnel_8017D760(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_access_tunnel_8017FF54.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_access_tunnel_8017FF54.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_access_tunnel_8017FF54.field_3;
@@ -687,7 +687,7 @@ void func_shelter_b1_access_tunnel_8017D8D0(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_access_tunnel_8017FF64.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_access_tunnel_8017FF64.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_b1_access_tunnel_8017FF64.field_3;

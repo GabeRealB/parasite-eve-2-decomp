@@ -5,6 +5,7 @@
 #include <psyq/libapi.h>
 #include <psyq/libcd.h>
 #include <psyq/libspu.h>
+#include <psyq/libetc.h>
 
 #include "common.h"
 
@@ -2055,12 +2056,12 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
                             if ((s8)(u8)regionState->mtsPeriod == 5) {
                                 chunkSectors          = 0x18;
                                 regionState->ringHalf = 0x2770;
-                                if (gDisplayState.region == 1) {
+                                if (gDisplayState.region == MODE_PAL) {
                                     chunkSectors = 0x14;
                                 }
                             } else {
                                 regionState->ringHalf = 0x4ED0;
-                                if (gDisplayState.region == 1) {
+                                if (gDisplayState.region == MODE_PAL) {
                                     chunkSectors = 0x28;
                                 }
                             }

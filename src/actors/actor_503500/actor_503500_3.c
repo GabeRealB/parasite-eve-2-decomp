@@ -538,7 +538,7 @@ static s32 func_actor_503500_80133684(Task* arg0)
         if ((((GameActor*)(gameGetPtrSlot(3))->work)->field_954 != 2) &&
             (Player_Status.hp > 0) && (Gp_StateC08.field_A != 1)) {
             ret = 1;
-            if (gDisplayState.pendingMode == 0) {
+            if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
                 work->field_774 |= 8;
                 /* `ret` has to be dead across the call for GCC to keep it in
@@ -992,7 +992,7 @@ static void func_actor_503500_80134408(Task* arg0)
         case 1:
             if (++work->field_7BC >= 0x1F &&
                 ((GameActor*)(gameGetPtrSlot(3))->work)->field_954 != 2 &&
-                Player_Status.hp > 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == 0) {
+                Player_Status.hp > 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
                 SndEvt_EnqueueType7(0x40230010, 0x2D);
                 work->field_7DA = work->field_7DA + 1;

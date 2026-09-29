@@ -129,8 +129,8 @@ s32 LoadUi_PollDiskSwap(void)
             SndEvt_EnqueueType2(0, 8);
             SndEvt_EnqueueType7(0x80000000, 0x78);
             SndEvt_EnqueueType7(0x60010001, 0x78);
-            gDisplayState.gameMode                = 0xFF;
-            gDisplayState.at100.flags.imageSource = 0;
+            gDisplayState.gameMode                  = DISPLAY_GAME_MODAL;
+            gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             if (D_8007A393 == 1) {
                 CdCmd_EnqueueLoadFile(1, 0x3C, 3);
                 D_8007A392 = 0;
@@ -146,7 +146,7 @@ s32 LoadUi_PollDiskSwap(void)
         case 1:
             if (CdCmd_IsIdle()) {
                 Fs_StopCd();
-                gDisplayState.at100.flags.imageSource = 1;
+                gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
                 D_8007A394++;
             }
             return 0xFF;
@@ -203,9 +203,9 @@ s32 LoadUi_PollDiskSwap(void)
         case 5:
             D_8007A390--;
             if (D_8007A390 == 0) {
-                gDisplayState.at100.flags.imageSource = 0;
-                gDisplayState.gameMode                = 0;
-                queue->field_244                      = 0;
+                gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
+                gDisplayState.gameMode                  = DISPLAY_GAME_ACTIVE;
+                queue->field_244                        = 0;
                 break;
             }
             return 0xFF;

@@ -1314,7 +1314,7 @@ void func_actor_206100_80149ED0(Task* task)
             D_actor_206100_80158BA8        = task->spawnArg2.pointer;
             D_actor_206100_80158BA8->frame = 0;
             D_actor_206100_80158BA8->state = 0;
-            Display_ClampField126(-8);
+            displaySetShakeY(DISPLAY_SHAKE_MIN);
             task->state++;
             break;
         case 1:
@@ -1334,7 +1334,7 @@ void func_actor_206100_80149ED0(Task* task)
                     break;
                 case 2:
                     taskKill(task);
-                    Display_ClampField126(0);
+                    displaySetShakeY(0);
                     break;
             }
             D_actor_206100_80158B08 = D_actor_206100_80158BA8->frame * D_actor_206100_80158BA8->scale / D_actor_206100_80158BA8->span;

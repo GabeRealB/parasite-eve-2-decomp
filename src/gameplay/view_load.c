@@ -59,14 +59,14 @@ void Gp_ViewBeginLoad(Task* task)
     sess = &gGameSession->at4.loc;
     q    = &CdCmd_Queue;
     if (task->spawnArg1.value != 0) {
-        gDisplayState.at100.flags.flipMode = 2;
+        gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
     }
     ds = &gDisplayState;
     if (ds->otBuffer == ds->frameBuffer) {
         DrawSync(0);
         SetDrawStp(&D_80114C50, 0);
         DrawPrim(&D_80114C50);
-        ds->at100.flags.flipMode = 2;
+        ds->control.flags.flipMode = DISPLAY_FLIP_HOLD;
         if (q->field_214 != 0) {
             Mdec_ResolveStreamBuffer(&gGameSession->at4.loc.view);
             task->state = 5;

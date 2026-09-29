@@ -1711,7 +1711,7 @@ extern GfxCoord D_dryfield_dilapidated_house_8018A060[8];
 /// 10 by 30 grid of textured quads whose corners are pushed around by sine
 /// waves. The first frame gives every column and row edge a random phase
 /// offset and speed, takes its context from `spawnArg2` and passes -8 to
-/// `Display_ClampField126`. Afterwards the context's mode ramps the strength
+/// `displaySetShakeY`. Afterwards the context's mode ramps the strength
 /// up to its limit (mode 0), back down to zero and on to mode 2 (mode 1), or
 /// ends the task and passes 0 back (mode 2); the displacement is the ramp's
 /// share of the context's peak. A non-zero tint flag shades the quads with the
@@ -1752,7 +1752,7 @@ void func_dryfield_dilapidated_house_8017D64C(Task* arg0)
             D_dryfield_dilapidated_house_80189B74        = arg0->spawnArg2.pointer;
             D_dryfield_dilapidated_house_80189B74->frame = 0;
             D_dryfield_dilapidated_house_80189B74->state = 0;
-            Display_ClampField126(-8);
+            displaySetShakeY(DISPLAY_SHAKE_MIN);
             arg0->state++;
             break;
         case 1:
@@ -1772,7 +1772,7 @@ void func_dryfield_dilapidated_house_8017D64C(Task* arg0)
                     break;
                 case 2:
                     taskKill(arg0);
-                    Display_ClampField126(0);
+                    displaySetShakeY(0);
                     break;
             }
             D_dryfield_dilapidated_house_80183E60 = D_dryfield_dilapidated_house_80189B74->frame * D_dryfield_dilapidated_house_80189B74->scale / D_dryfield_dilapidated_house_80189B74->span;
@@ -1871,7 +1871,7 @@ void func_dryfield_dilapidated_house_8017D64C(Task* arg0)
 /// from the block's duration, picks the strip origin's y out of `gDisplayState`
 /// (`field_1f` non-zero selects 0, clear selects 0x110) and hands the twenty
 /// 0x1E00-byte strips of `Fs_ImgBuffers` to `StoreImage` -- or, while the buffer
-/// is being read back (`field_112` is negative), only the single flat
+/// is being read back (`gDisplayState.debugMode` is negative), only the single flat
 /// `D_dryfield_dilapidated_house_80183E7C` rectangle -- and then marks the
 /// display busy in `field_104`. State 1 waits for the transfer with `DrawSync`
 /// and runs the desaturating invert. State 2 counts the duration down in
@@ -1894,7 +1894,7 @@ void func_dryfield_dilapidated_house_8017DE88(Task* task)
                 } else {
                     D_dryfield_dilapidated_house_80183E84.y = 0x110;
                 }
-                if (gDisplayState.field_112 < 0) {
+                if (gDisplayState.debugMode < 0) {
                     StoreImage(&D_dryfield_dilapidated_house_80183E7C, Fs_ImgBuffers->words);
                 } else {
                     strip = Fs_ImgBuffers->words;
@@ -1946,14 +1946,14 @@ static void func_dryfield_dilapidated_house_8017E014(Task* task)
         } else if ((D_dryfield_dilapidated_house_80183EFC == 2) &&
                    (Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0)) {
             if (Gp_StateC08.field_A != 1) {
-                if (gDisplayState.pendingMode == 0) {
+                if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                     D_dryfield_dilapidated_house_80183EFC += 1;
                     Task_SpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 3, 0, 0);
                 }
             }
         }
     }
-    if ((gDisplayState.field_112 != 0) && (Gp_LookupSlot4(1) != 0)) {
+    if ((gDisplayState.debugMode != 0) && (Gp_LookupSlot4(1) != 0)) {
         func_80724608(Gp_LookupSlot4(1), -0x8C, 0xA, "AUNT");
         func_80724608(gameGetPtrSlot(3), -0x8C, 0x14, "Player");
     }
@@ -2084,7 +2084,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
                 Mc_SaveData[0].state.at4.loc.warp  = 1;
                 Mc_SaveData[0].state.at4.loc.room  = 1;
                 Mc_SaveData[0].state.at4.loc.area  = 8;
-                gDisplayState.roomVariant          = 1;
+                gDisplayState.spriteVariant        = 1;
                 Task_Spawn(0, 0x11, 0, 0);
             }
             taskKill(task);
@@ -2246,7 +2246,7 @@ void func_dryfield_dilapidated_house_8017E780(Task* arg0)
             if (D_dryfield_dilapidated_house_80189B6C & 1) {
                 var_a0 = -var_a0;
             }
-            Display_ClampField126((s8)var_a0);
+            displaySetShakeY((s8)var_a0);
             temp_v0                               = D_dryfield_dilapidated_house_80189B6C - 1;
             D_dryfield_dilapidated_house_80189B6C = temp_v0;
             if (temp_v0 == 0) {

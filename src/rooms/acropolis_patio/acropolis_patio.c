@@ -1725,7 +1725,7 @@ void func_acropolis_patio_8017DA5C(Task* task)
             }
             SndEvt_EnqueueType7(0x80000000, 0);
             Mc_SaveData[0].state.at4.loc.area = 4;
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.warp = D_acropolis_patio_80187064;
             Mc_SaveData[0].state.at4.loc.room = D_acropolis_patio_80187065;
             Task_Spawn(0, 0x11, 0, 0);

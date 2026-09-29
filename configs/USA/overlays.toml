@@ -1132,7 +1132,7 @@ objects = [
 ]
 
 [rooms.overlays.acropolis_cafeteria]
-label = "code starts at 0xEC; GCC hoisted the gDisplayState.field_112 load above the stack prologue at 0xF4"
+label = "code starts at 0xEC; GCC hoisted the gDisplayState.debugMode load above the stack prologue at 0xF4"
 id = 288
 text = ["0xEC", "0x54E8"]
 objects = [

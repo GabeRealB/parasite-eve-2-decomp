@@ -4,6 +4,7 @@
 #include <psyq/kernel.h>
 #include <psyq/libapi.h>
 #include <psyq/libspu.h>
+#include <psyq/libetc.h>
 
 #include "common.h"
 
@@ -384,7 +385,7 @@ setup_events:
         D58028_SpuTimerEnabled = false;
     }
 
-    if (gDisplayState.region == 1) {
+    if (gDisplayState.region == MODE_PAL) {
         D_800680A4 = 0;
         D_8007E0CC = 0;
         SetRCnt(RCntCNT0, 0xffff, RCntMdINTR | RCntMdSC);
@@ -480,7 +481,7 @@ void Audio_IrqFrameWork(void)
         AudioTick_Process();
         Spu_FlushVoiceUpdates();
         D_800680BC += 1;
-        if (gDisplayState.region == 1) {
+        if (gDisplayState.region == MODE_PAL) {
             D_8007E0CC = 6;
             ResetRCnt(RCntCNT0);
             D_800680A4 = 1;

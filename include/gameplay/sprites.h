@@ -10,7 +10,7 @@
 /// 8-byte command record. `GpSprtRec.field_4` points at a 0xFFFF-terminated
 /// list of these. `Gp_ViewSprtCmdEmpty` returns whether `field_2` is zero; when it
 /// is, `Gp_LinkViewSprts` skips the first record, otherwise it clears
-/// `gDisplayState.at100.flags.imageSource`. `field_0` is the start index into
+/// `gDisplayState.control.flags.imageSource`. `field_0` is the start index into
 /// `GpSprtRec.field_0`; `field_2` is the count. `field_4` nonzero skips
 /// OT-linking each prim. `field_5` nonzero skips `Gp_LinkSprtCmd` and
 /// `Gp_SetSprtShadeBits`.

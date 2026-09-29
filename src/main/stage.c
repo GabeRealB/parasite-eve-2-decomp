@@ -172,7 +172,7 @@ static void Display_StepFadeOverlay(void)
         return;
     }
 
-    if (gDisplayState.at100.flags.flipMode != 2) {
+    if (gDisplayState.control.flags.flipMode != DISPLAY_FLIP_HOLD) {
         temp = (s8)p->field_18;
         if (temp != 0) {
             product = temp * gDisplayState.frameTicks;
@@ -256,8 +256,8 @@ case0:
     Stage_Ctx->field_24        = gDisplayState.frameBuffer;
     gDisplayState.keepGraphics = 1;
     Gfx_LoadImageSlot(gGameSession->at4.loc.stage, gGameSession->at4.loc.area, gDisplayState.frameBuffer);
-    gDisplayState.at100.flags.flipMode = 2;
-    Stage_Ctx->field_28                = Stage_Ctx->field_28 + 1;
+    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
+    Stage_Ctx->field_28                  = Stage_Ctx->field_28 + 1;
     goto end;
 case1:
     if (CdCmd_IsIdle() & 0xFFFF) {
@@ -285,9 +285,9 @@ case2:
     }
     goto end;
 case3:
-    gDisplayState.at100.flags.flipMode    = 1;
-    gDisplayState.at100.flags.imageSource = 2;
-    Stage_Ctx->field_28                   = Stage_Ctx->field_28 + 1;
+    gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
+    gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_TRANSITION_STRIPS;
+    Stage_Ctx->field_28                     = Stage_Ctx->field_28 + 1;
 default_case:
     SetDispMask(1);
     Stage_Ctx->field_1c = Stage_Ctx->field_1c & 0xF7FFFFFF;
@@ -336,11 +336,11 @@ static Task* Display_SpawnFromMode(void)
     block_case13:
         Stage_Ctx->field_15 = 1;
         if (Stage_Ctx->field_C == 3) {
-            gDisplayState.at100.flags.flipMode    = 2;
-            gDisplayState.at100.flags.imageSource = 0;
+            gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_HOLD;
+            gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
         } else {
-            gDisplayState.at100.flags.flipMode    = 0;
-            gDisplayState.at100.flags.imageSource = 1;
+            gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_FULL;
+            gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
         }
     } else {
         goto block_end;
@@ -355,12 +355,12 @@ block_default:
         Display_InvertFramebufferGray();
     }
     Mem_InitAux();
-    gDisplayState.at100.flags.flipMode    = 1;
-    gDisplayState.at100.flags.imageSource = 3;
-    slot                                  = gameGetPtrSlot(3);
-    obj                                   = (GameActor*)slot->work;
-    flag                                  = obj->field_984 & 1;
-    ptr                                   = slot->extra.tmd->coords;
+    gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
+    gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_ROOM_SLOT;
+    slot                                    = gameGetPtrSlot(3);
+    obj                                     = (GameActor*)slot->work;
+    flag                                    = obj->field_984 & 1;
+    ptr                                     = slot->extra.tmd->coords;
     if (flag) {
         func_801011D0(ptr, obj->field_88[0].field_8, 6, &obj->field_930);
     }
@@ -388,10 +388,10 @@ static void Display_TransitionTask(Task* task)
         state               = Stage_Ctx->field_28;
         switch (state) {
             case 0:
-                Stage_Ctx->field_24                = gDisplayState.frameBuffer;
-                gGameSession->at4.loc.view         = Stage_Ctx->field_20;
-                Stage_Ctx->field_C                 = 0;
-                gDisplayState.at100.flags.flipMode = 2;
+                Stage_Ctx->field_24                  = gDisplayState.frameBuffer;
+                gGameSession->at4.loc.view           = Stage_Ctx->field_20;
+                Stage_Ctx->field_C                   = 0;
+                gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
                 Mem_ConfigureAuxHeap(gGameSession->at4.loc.stage, gGameSession->at4.loc.area);
                 if (!(Stage_Ctx->field_1c & 0x10000000)) {
                     (gameGetPtrSlot(1))->spawnArg1.value = (u8)gGameSession->at4.loc.view;
@@ -432,14 +432,14 @@ static void Display_TransitionTask(Task* task)
             case 2:
                 gDisplayState.otBuffer = gDisplayState.frameBuffer;
                 Display_FlipOtAndDispatch(0);
-                Stage_Ctx->field_19                = Stage_Ctx->field_19 | 0x80;
-                gDisplayState.at100.flags.flipMode = gDisplayState.at100.flags.flipMode | 0x10;
-                task->killCountdown                = 3;
-                Stage_Ctx->field_28                = Stage_Ctx->field_28 + 1;
+                Stage_Ctx->field_19                  = Stage_Ctx->field_19 | 0x80;
+                gDisplayState.control.flags.flipMode = gDisplayState.control.flags.flipMode | DISPLAY_FLIP_SKIP_TASK_OT;
+                task->killCountdown                  = 3;
+                Stage_Ctx->field_28                  = Stage_Ctx->field_28 + 1;
                 break;
             case 3:
-                gDisplayState.at100.flags.flipMode = 2;
-                task->killCountdown                = task->killCountdown - 1;
+                gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
+                task->killCountdown                  = task->killCountdown - 1;
                 if (task->killCountdown == 0) {
                     Gpu_ResetGraphAndOt();
                     Gfx_StoreImageSlot(gGameSession->at4.loc.stage, gGameSession->at4.loc.area,
@@ -456,9 +456,9 @@ static void Display_TransitionTask(Task* task)
                 }
                 break;
             case 4:
-                gDisplayState.at100.flags.flipMode    = 1;
-                gDisplayState.at100.flags.imageSource = 3;
-                Stage_Ctx->field_28                   = Stage_Ctx->field_28 + 1;
+                gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
+                gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_ROOM_SLOT;
+                Stage_Ctx->field_28                     = Stage_Ctx->field_28 + 1;
                 break;
             case 5:
                 Pad_ClearCooldown(0);
@@ -493,9 +493,9 @@ static void Display_FlipOtAndDispatch(s32 unused)
     buf            = temp->otBuffer ^ 1;
     temp->otBuffer = buf;
     gpuBeginOt(buf);
-    temp->at100.flags.flipMode = 0;
-    temp->drawBuffer           = (u8)temp->frameBuffer;
-    mode                       = Stage_Ctx->field_11;
+    temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
+    temp->drawBuffer             = temp->frameBuffer;
+    mode                         = Stage_Ctx->field_11;
     switch (mode) {
         case 3:
         case 0x20:
@@ -568,10 +568,10 @@ void Stage_InitOtAndSpawn(void)
     DisplayState* temp;
 
     Gpu_InitOtSmall();
-    temp                       = &gDisplayState;
-    temp->displayOwner         = 1;
-    temp->at100.flags.flipMode = 2;
-    temp->frameBuffer          = temp->otBuffer ^ 1;
+    temp                         = &gDisplayState;
+    temp->displayOwner           = DISPLAY_OWNER_TRANSITION;
+    temp->control.flags.flipMode = DISPLAY_FLIP_HOLD;
+    temp->frameBuffer            = temp->otBuffer ^ 1;
     Task_InitList(&gTaskDisplayList);
     Task_SpawnFromTable(&Display_ModeTaskDesc, 0, 0, 0);
 }
@@ -702,22 +702,22 @@ void Display_SetDrawMode(s32 arg0)
 {
     switch (arg0) {
         case 0:
-            gDisplayState.at100.flags.flipMode    = 1;
-            gDisplayState.at100.flags.imageSource = 0;
+            gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
+            gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             Display_SetAutoClear(0, 0, 0);
             return;
         case 1:
-            gDisplayState.at100.flags.flipMode    = (u8)arg0;
-            gDisplayState.at100.flags.imageSource = 3;
+            gDisplayState.control.flags.flipMode    = (u8)arg0;
+            gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_ROOM_SLOT;
             Display_SetAutoClear(-1, 0, 0);
             return;
         case 2:
-            gDisplayState.at100.flags.flipMode    = 1;
-            gDisplayState.at100.flags.imageSource = 2;
+            gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
+            gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_TRANSITION_STRIPS;
             Display_SetAutoClear(-1, 0, 0);
             return;
         case 3:
-            gDisplayState.at100.flags.flipMode = 2;
+            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
             return;
     }
 }
@@ -747,7 +747,7 @@ Task* Display_InitModeObj(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, s32
 {
     StageCtx* temp;
 
-    if (gDisplayState.pendingMode != 0) {
+    if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
         return 0;
     }
 
@@ -764,7 +764,7 @@ Task* Display_InitModeObj(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, s32
         }
     }
     Stage_Ctx->field_1a       = 0xFF;
-    gDisplayState.pendingMode = 0x81;
+    gDisplayState.pendingMode = DISPLAY_MODE_DESCRIPTOR;
     return 0;
 }
 
@@ -816,8 +816,8 @@ static void Display_TaskLoadStep(Task* task)
 {
     u32 temp_v1;
 
-    gDisplayState.at100.flags.flipMode = 2;
-    temp_v1                            = Stage_Ctx->field_C;
+    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
+    temp_v1                              = Stage_Ctx->field_C;
     if (temp_v1 < 5U) {
         if (temp_v1 < 3U) {
             if (temp_v1 != 1) {
@@ -845,9 +845,9 @@ static void Stage_WaitCdEntry(Task* task)
 static void Stage_FinishCdFollowUp(Task* task)
 {
     if (CdCmd_EnqueueFollowUp() != 0) {
-        gDisplayState.displayOwner            = 0;
-        gDisplayState.pendingMode             = 0;
-        gDisplayState.at100.flags.imageSource = 1;
+        gDisplayState.displayOwner              = DISPLAY_OWNER_GAME_LOOP;
+        gDisplayState.pendingMode               = DISPLAY_MODE_NONE;
+        gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
         Display_SetAutoClear(-1, 0, 0);
         Task_CallExit(task);
     }
@@ -1040,7 +1040,7 @@ static void Mdec_ProcessDecode(void)
                         D5B498_8006C234 = 0;
                     }
                 }
-                p->field_21C = 1;
+                p->imageLayout = FILE_SYSTEM_IMAGE_STRIPS;
                 if (Stage_CdEntry->field_34 == 0) {
                     p->decodeBufferBytes = p->nextDecodeBufferBytes;
                 }
@@ -1114,8 +1114,8 @@ static void Mdec_DecodeToVram(void)
                 } else {
                     ClearImage(&rect, 0, 0, 0);
                 }
-                p->field_21C = 0;
-                q            = &CdCmd_Queue;
+                p->imageLayout = FILE_SYSTEM_IMAGE_CONTIGUOUS;
+                q              = &CdCmd_Queue;
                 if (gDisplayState.keepGraphics == 0) {
                     Tmd_AllocMissingBuffers();
                 }

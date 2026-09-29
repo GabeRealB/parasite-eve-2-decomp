@@ -2190,7 +2190,7 @@ void func_actor_460200_80131E24(Task* task)
                 } else {
                     D_actor_460200_80135E14.y = 0x110;
                 }
-                if (gDisplayState.field_112 < 0) {
+                if (gDisplayState.debugMode < 0) {
                     StoreImage(&D_actor_460200_80135E0C, Fs_ImgBuffers->words);
                 } else {
                     strip = Fs_ImgBuffers->words;

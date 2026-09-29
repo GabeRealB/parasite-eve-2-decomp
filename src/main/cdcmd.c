@@ -201,7 +201,7 @@ static void CdCmd_HandleStreamDecode(void)
         case 0:
             if (state->busy == 0) {
                 state->busy          = 1;
-                gDisplayState.cdBusy = 0xFF;
+                gDisplayState.cdBusy = DISPLAY_CD_BUSY;
             }
             ret = CdCmd_PollStatus(0, 0);
             if (ret != 1) {
@@ -230,12 +230,12 @@ static void CdCmd_HandleStreamDecode(void)
                 state->field_1F4 = 1;
                 if (busy != 0) {
                     p->busy              = 0;
-                    gDisplayState.cdBusy = 0;
+                    gDisplayState.cdBusy = DISPLAY_CD_IDLE;
                 }
-                p->step      = 0;
-                p->field_1fc = 0;
-                p->field_222 = 0;
-                p->field_242 = 0;
+                p->step           = 0;
+                p->field_1fc      = 0;
+                p->pausePlayClock = 0;
+                p->field_242      = 0;
                 if (p->readIdx != p->writeIdx) {
                     p->entries[p->readIdx].cmd = 0;
                     p->readIdx                 = p->readIdx + 1;
@@ -253,12 +253,12 @@ static void CdCmd_HandleStreamDecode(void)
                 p = &CdCmd_Queue;
                 if (p->busy != 0) {
                     p->busy              = 0;
-                    gDisplayState.cdBusy = 0;
+                    gDisplayState.cdBusy = DISPLAY_CD_IDLE;
                 }
-                p->step      = 0;
-                p->field_1fc = 0;
-                p->field_222 = 0;
-                p->field_242 = 0;
+                p->step           = 0;
+                p->field_1fc      = 0;
+                p->pausePlayClock = 0;
+                p->field_242      = 0;
                 if (p->readIdx != p->writeIdx) {
                     p->entries[p->readIdx].cmd = 0;
                     p->readIdx                 = p->readIdx + 1;
@@ -289,11 +289,11 @@ static void CdCmd_HandleFileLoad(void)
             p = &CdCmd_Queue;
             {
                 s32 busy;
-                busy             = p->busy;
-                state->field_222 = 1;
+                busy                  = p->busy;
+                state->pausePlayClock = 1;
                 if (busy == 0) {
                     p->busy              = 1;
-                    gDisplayState.cdBusy = 0xFF;
+                    gDisplayState.cdBusy = DISPLAY_CD_BUSY;
                 }
             }
             ret = CdCmd_PollStatus(0, 0);
@@ -461,12 +461,12 @@ static void CdCmd_HandleFileLoad(void)
                     p = &CdCmd_Queue;
                     if (p->busy != 0) {
                         p->busy              = 0;
-                        gDisplayState.cdBusy = 0;
+                        gDisplayState.cdBusy = DISPLAY_CD_IDLE;
                     }
-                    p->step      = 0;
-                    p->field_1fc = 0;
-                    p->field_222 = 0;
-                    p->field_242 = 0;
+                    p->step           = 0;
+                    p->field_1fc      = 0;
+                    p->pausePlayClock = 0;
+                    p->field_242      = 0;
                     if (p->readIdx != p->writeIdx) {
                         p->entries[p->readIdx].cmd = 0;
                         p->readIdx                 = p->readIdx + 1;
@@ -530,7 +530,7 @@ static void CdCmd_HandleMount(void)
                 case 0:
                     if (state->busy == 0) {
                         state->busy          = 1;
-                        gDisplayState.cdBusy = 0xFF;
+                        gDisplayState.cdBusy = DISPLAY_CD_BUSY;
                     }
                     Fs_SelectStage(field5 & 0xFF);
                     goto increment_step;
@@ -607,12 +607,12 @@ static void CdCmd_HandleMount(void)
         cleanup:
             if (state->busy != 0) {
                 state->busy          = 0;
-                gDisplayState.cdBusy = 0;
+                gDisplayState.cdBusy = DISPLAY_CD_IDLE;
             }
-            state->step      = 0;
-            state->field_1fc = 0;
-            state->field_222 = 0;
-            state->field_242 = 0;
+            state->step           = 0;
+            state->field_1fc      = 0;
+            state->pausePlayClock = 0;
+            state->field_242      = 0;
             if (state->readIdx != state->writeIdx) {
                 (state->entries + state->readIdx)->cmd = 0;
                 state->readIdx                         = state->readIdx + 1;
@@ -732,12 +732,12 @@ static void CdCmd_ProcessPhase1(void)
                 q = &CdCmd_Queue;
                 if (q->busy != 0) {
                     q->busy              = 0;
-                    gDisplayState.cdBusy = 0;
+                    gDisplayState.cdBusy = DISPLAY_CD_IDLE;
                 }
-                q->step      = 0;
-                q->field_1fc = 0;
-                q->field_222 = 0;
-                q->field_242 = 0;
+                q->step           = 0;
+                q->field_1fc      = 0;
+                q->pausePlayClock = 0;
+                q->field_242      = 0;
                 if (q->readIdx != q->writeIdx) {
                     q->entries[q->readIdx].cmd = 0;
                     q->readIdx                 = q->readIdx + 1;
@@ -790,12 +790,12 @@ static void CdCmd_ProcessPhase1(void)
                 Gp_RestoreStreamRng();
                 if (p->busy != 0) {
                     p->busy              = 0;
-                    gDisplayState.cdBusy = 0;
+                    gDisplayState.cdBusy = DISPLAY_CD_IDLE;
                 }
-                p->step      = 0;
-                p->field_1fc = 0;
-                p->field_222 = 0;
-                p->field_242 = 0;
+                p->step           = 0;
+                p->field_1fc      = 0;
+                p->pausePlayClock = 0;
+                p->field_242      = 0;
                 if (p->readIdx != p->writeIdx) {
                     p->entries[p->readIdx].cmd = 0;
                     p->readIdx                 = p->readIdx + 1;
@@ -911,7 +911,7 @@ static void CdCmd_ProcessPhase2(void)
                 p->field_1d2 = 0;
                 if (p2->busy != 0) {
                     p2->busy             = 0;
-                    gDisplayState.cdBusy = 0;
+                    gDisplayState.cdBusy = DISPLAY_CD_IDLE;
                 }
                 Mem_Set(p2, 0, 0x40);
                 p2->writeIdx  = 0;
@@ -1290,7 +1290,7 @@ void CdCmd_SetBusy(void)
 {
     if (CdCmd_Queue.busy == 0) {
         CdCmd_Queue.busy     = 1;
-        gDisplayState.cdBusy = 0xFF;
+        gDisplayState.cdBusy = DISPLAY_CD_BUSY;
     }
 }
 
@@ -1298,7 +1298,7 @@ void CdCmd_ClearBusy(void)
 {
     if (CdCmd_Queue.busy != 0) {
         CdCmd_Queue.busy     = 0;
-        gDisplayState.cdBusy = 0;
+        gDisplayState.cdBusy = DISPLAY_CD_IDLE;
     }
 }
 
@@ -1353,12 +1353,12 @@ void CdCmd_AdvanceRead(void)
     state = &CdCmd_Queue;
     if (state->busy != 0) {
         state->busy          = 0;
-        gDisplayState.cdBusy = 0;
+        gDisplayState.cdBusy = DISPLAY_CD_IDLE;
     }
-    state->step      = 0;
-    state->field_1fc = 0;
-    state->field_222 = 0;
-    state->field_242 = 0;
+    state->step           = 0;
+    state->field_1fc      = 0;
+    state->pausePlayClock = 0;
+    state->field_242      = 0;
     if (state->readIdx != state->writeIdx) {
         state->entries[state->readIdx].cmd = 0;
         state->readIdx                     = state->readIdx + 1;

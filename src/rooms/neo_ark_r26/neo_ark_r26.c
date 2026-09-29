@@ -445,7 +445,7 @@ static void func_neo_ark_r26_8017D6A4(Task* arg0);
 static void func_neo_ark_r26_8017D710(Task* task);
 
 /// Script callback: unless attract demo 9 is playing, points the save's
-/// location at stage 5, area 0x1C, warp 1, room 1, sets `gDisplayState.roomVariant`, spawns
+/// location at stage 5, area 0x1C, warp 1, room 1, sets `gDisplayState.spriteVariant`, spawns
 /// task 0x11 and starts loading that location.
 void func_neo_ark_r26_8017D5D0(void)
 {
@@ -454,7 +454,7 @@ void func_neo_ark_r26_8017D5D0(void)
         Mc_SaveData[0].state.at4.loc.area  = 0x1C;
         Mc_SaveData[0].state.at4.loc.warp  = 1;
         Mc_SaveData[0].state.at4.loc.room  = 1;
-        gDisplayState.roomVariant          = 1;
+        gDisplayState.spriteVariant        = 1;
         Task_Spawn(0, 0x11, 0, 0);
         Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 1);
     }

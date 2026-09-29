@@ -1831,7 +1831,7 @@ static void func_actor_215100_8014A398(void)
                 (D_80115768 == 0) && (coord->coord.t[0] < -0x1806)) {
                 z = coord->coord.t[2];
                 if (z < 0x1644) {
-                    if ((z >= 0x10CD) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
+                    if ((z >= 0x10CD) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                         facing = (u16)actor->field_52 & 0xFFF;
                         if (Pad_CheckButtons(0, 0, 0x1000) != 0) {
                             if ((u32)(facing - 0xA01) < 0x3FFU) {
@@ -1919,7 +1919,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
                 Gp_ClearInventory();
                 gGameSession->hideHud = 1;
                 SndEvt_EnqueueType6(0x51140005, 0, 0);
-                gDisplayState.roomVariant         = 1;
+                gDisplayState.spriteVariant       = 1;
                 Mc_SaveData[0].state.at4.loc.area = D_actor_215100_8015E678.field_0;
                 Mc_SaveData[0].state.at4.loc.warp = D_actor_215100_8015E678.field_2;
                 Mc_SaveData[0].state.at4.loc.room = D_actor_215100_8015E678.field_3;

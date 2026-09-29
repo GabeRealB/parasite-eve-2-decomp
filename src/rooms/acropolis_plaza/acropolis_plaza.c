@@ -4332,7 +4332,7 @@ void func_acropolis_plaza_80180054(Task* task)
             Mc_SaveData[0].state.at4.loc.warp  = 1;
             Mc_SaveData[0].state.at4.loc.area  = 0x11;
             Mc_SaveData[0].state.at4.loc.room  = 1;
-            gDisplayState.roomVariant          = 1;
+            gDisplayState.spriteVariant        = 1;
             Gp_EnqueueHeldWeaponCd();
             SndEvt_EnqueueType7(0x80000000, 0);
             Task_Spawn(0, 0x11, 0, 0);
@@ -4345,7 +4345,7 @@ void func_acropolis_plaza_80180054(Task* task)
 void func_acropolis_plaza_80180270(Task* arg0)
 {
     Display_SpawnWithOt(D_acropolis_plaza_80183824, 0xA, 0, 0);
-    gDisplayState.at100.flags.flipMode = 1;
+    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }

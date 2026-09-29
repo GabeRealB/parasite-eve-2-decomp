@@ -2461,7 +2461,7 @@ static inline s32 _acropolisCafeteriaAnswer(RoomEventMsg* in, RoomEventMsg* out)
 
 static void func_acropolis_cafeteria_8017D6AC(Task* task)
 {
-    if (gDisplayState.field_112 != 0) {
+    if (gDisplayState.debugMode != 0) {
         func_80724608(gameGetPtrSlot(3), -0x8C, -0x32, (void*)CafeteriaPlayerLabel);
         func_807245E4(gameGetPtrSlot(3));
     }
@@ -2594,7 +2594,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 8:
             blackout = 1;
-            if (gDisplayState.field_112 != -1) {
+            if (gDisplayState.debugMode != -1) {
                 Task_SpawnFromTable(D_acropolis_cafeteria_80184178, 0, 0, 0);
             }
             task->state = 14;
@@ -2617,13 +2617,13 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 18:
             if (Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0 && Player_Status.hp > 0 && Gp_StateC08.field_A != 1 &&
-                gDisplayState.pendingMode == 0) {
+                gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 Gp_MsgPlayerWeapon(0);
                 task->state += 1;
             }
             break;
         case 19:
-            Display_ClampField126(0);
+            displaySetShakeY(0);
             func_800E8634(D_acropolis_cafeteria_8018330C, 0, D_acropolis_cafeteria_801834D4);
             task->state += 1;
             break;
@@ -2730,7 +2730,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             Mc_SaveData[0].state.at4.loc.area  = 3;
             Mc_SaveData[0].state.at4.loc.warp  = 3;
             Mc_SaveData[0].state.at4.loc.room  = 3;
-            gDisplayState.roomVariant          = 1;
+            gDisplayState.spriteVariant        = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

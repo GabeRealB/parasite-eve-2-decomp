@@ -305,7 +305,7 @@ void func_actor_205200_80149E54(Task* arg0)
             D_actor_205200_80156814        = arg0->spawnArg2.pointer;
             D_actor_205200_80156814->frame = 0;
             D_actor_205200_80156814->state = 0;
-            Display_ClampField126(-8);
+            displaySetShakeY(DISPLAY_SHAKE_MIN);
             for (i = 0; i < 2; i++) {
                 tpage0 = getTPage(2, 0, 0, i << 8);
                 tpage1 = getTPage(2, 0, 128, i << 8);
@@ -375,7 +375,7 @@ void func_actor_205200_80149E54(Task* arg0)
                     break;
                 case 2:
                     taskKill(arg0);
-                    Display_ClampField126(0);
+                    displaySetShakeY(0);
                     break;
             }
             D_actor_205200_8014CA5C = D_actor_205200_80156814->frame * D_actor_205200_80156814->scale / D_actor_205200_80156814->span;

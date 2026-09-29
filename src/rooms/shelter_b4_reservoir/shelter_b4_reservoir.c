@@ -1008,7 +1008,7 @@ static void func_shelter_b4_reservoir_8017E8EC(Task* task);
 /// 10 by 30 grid of textured quads whose corners are pushed around by sine
 /// waves. The first frame gives every column and row edge a random phase
 /// offset and speed, takes its context from `spawnArg2` and passes -8 to
-/// `Display_ClampField126`. Afterwards the context's mode ramps the strength
+/// `displaySetShakeY`. Afterwards the context's mode ramps the strength
 /// up to its limit (mode 0), back down to zero and on to mode 2 (mode 1), or
 /// ends the task and passes 0 back (mode 2); the displacement is the ramp's
 /// share of the context's peak. A non-zero tint flag shades the quads with the context's
@@ -1049,7 +1049,7 @@ void func_shelter_b4_reservoir_8017D650(Task* arg0)
             D_shelter_b4_reservoir_80187504        = arg0->spawnArg2.pointer;
             D_shelter_b4_reservoir_80187504->frame = 0;
             D_shelter_b4_reservoir_80187504->state = 0;
-            Display_ClampField126(-8);
+            displaySetShakeY(DISPLAY_SHAKE_MIN);
             arg0->state++;
             break;
         case 1:
@@ -1069,7 +1069,7 @@ void func_shelter_b4_reservoir_8017D650(Task* arg0)
                     break;
                 case 2:
                     taskKill(arg0);
-                    Display_ClampField126(0);
+                    displaySetShakeY(0);
                     break;
             }
             D_shelter_b4_reservoir_8018473C = D_shelter_b4_reservoir_80187504->frame * D_shelter_b4_reservoir_80187504->scale / D_shelter_b4_reservoir_80187504->span;
@@ -1261,7 +1261,7 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
             }
             break;
         case 5:
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b4_reservoir_80187508.field_2;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b4_reservoir_80187508.field_4;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_b4_reservoir_80187508.prefix.bytes.field_1;

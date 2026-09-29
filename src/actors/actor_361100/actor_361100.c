@@ -1460,11 +1460,11 @@ void func_actor_361100_80162A54(Task* arg0)
     countdown             = arg0->spawnArg1.value - 1;
     arg0->spawnArg1.value = countdown;
     if (countdown > 0) {
-        Display_ClampField126((countdown & 1) ? 0 : -1);
+        displaySetShakeY((countdown & 1) ? 0 : -1);
         Gp_SpawnScript18(D_actor_361100_80166AD0, &D_actor_361100_80166AD8);
     }
     if ((arg0->spawnArg1.value <= 0) || (gGameSession->evtSkipped != 0)) {
-        Display_ClampField126(0);
+        displaySetShakeY(0);
         taskKill(arg0);
     }
 }

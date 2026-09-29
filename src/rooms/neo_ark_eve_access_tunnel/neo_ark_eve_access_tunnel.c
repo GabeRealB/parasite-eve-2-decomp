@@ -559,7 +559,7 @@ void func_neo_ark_eve_access_tunnel_8017D810(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.roomVariant          = 1;
+            gDisplayState.spriteVariant        = 1;
             Mc_SaveData[0].state.at4.loc.stage = D_neo_ark_eve_access_tunnel_801807A8.stage;
             Mc_SaveData[0].state.at4.loc.area  = D_neo_ark_eve_access_tunnel_801807A8.area;
             Mc_SaveData[0].state.at4.loc.warp  = D_neo_ark_eve_access_tunnel_801807A8.warp;
@@ -679,7 +679,7 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             task->state++;
             return;
         case 4:
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_neo_ark_eve_access_tunnel_801807A0.field_2;
             Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_eve_access_tunnel_801807A0.field_4;
             Mc_SaveData[0].state.at4.loc.room = D_neo_ark_eve_access_tunnel_801807A0.prefix.bytes.field_1;

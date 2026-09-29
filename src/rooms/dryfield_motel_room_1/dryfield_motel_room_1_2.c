@@ -1151,7 +1151,7 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
+            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 func_dryfield_motel_room_1_8017DC2C(arg0);
                 weaponId                = Player_Status.weapon;
                 anim                    = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;

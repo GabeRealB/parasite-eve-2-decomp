@@ -190,7 +190,7 @@ typedef struct AcsSpriteLevels {
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
 /// `gDisplayState.pendingMode` and `Gp_StateC08.field_A` gate the cutscene task's setup (the latter is
 /// the cutscene/among-us mode flag) and `Mc_SaveData[0].state.characterId` picks which of the two
-/// weapon-id bases that record uses. `gDisplayState.roomVariant` is set to 1 alongside the
+/// weapon-id bases that record uses. `gDisplayState.spriteVariant` is set to 1 alongside the
 /// save writes when the task hands off to task 0x11, the same way the fountain
 /// and helicopter-pad rooms set it.
 
@@ -1778,7 +1778,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
     state = arg0->state;
     switch (state) {
         case 0:
-            if (Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == 0) {
+            if (Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 work       = memCalloc(0xC, 0);
                 arg0->work = (TaskIdMap*)work;
                 if (work == NULL) {
@@ -1811,7 +1811,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 Mc_SaveData[0].state.at4.loc.stage = 1;
                 Mc_SaveData[0].state.at4.loc.warp  = 2;
                 Mc_SaveData[0].state.at4.loc.room  = 1;
-                gDisplayState.roomVariant          = 1;
+                gDisplayState.spriteVariant        = 1;
                 Task_Spawn(0, 0x11, 0, 0);
                 taskKill(arg0);
                 break;

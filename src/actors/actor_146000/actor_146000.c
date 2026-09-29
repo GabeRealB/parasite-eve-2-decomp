@@ -589,7 +589,7 @@ void func_actor_146000_80131E24(Task* arg0)
             Gp_ApplyAreaRecs(D_dryfield_night_water_hole_80183618);
             Mc_SaveData[0].state.at4.loc.area = 0x19;
             Mc_SaveData[0].state.at4.loc.room = state;
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

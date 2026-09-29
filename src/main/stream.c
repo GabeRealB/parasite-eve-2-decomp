@@ -345,7 +345,7 @@ u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
             Mem_SetActiveAuxHeap(1);
         }
         Tmd_AllocMissingBuffers();
-        if (gDisplayState.videoMode == 1) {
+        if (gDisplayState.videoMode == DISPLAY_VIDEO_STREAMING) {
             CdCmd_BuildVlcIfStream();
             CdCmd_SelectMdecBuffer();
         }
@@ -422,9 +422,9 @@ u32 Stream_InitializePlayback(u32 slotIndex)
         queue->field_1EA = 1;
         _streamClearDisplayBuffers(&clearRect);
         if (D_8006AC14 == 1) {
-            Display_SetMode(0xF010);
+            Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_RGB24 | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
         } else {
-            Display_SetMode(0xD010);
+            Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
         }
         gDisplayState.mdecActive = 1;
         DecDCTvlcBuild(D_8006AC38);
@@ -470,7 +470,7 @@ s32 CdCmd_StopMdec(s32 arg0)
                     rect.y = 0x110;
                     ClearImage(&rect, 0, 0, 0);
                 }
-                Display_SetMode(0xD010);
+                Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
             }
             p->field_1E6             = 0;
             gDisplayState.mdecActive = 0;
@@ -852,7 +852,7 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
                     ClearImage(&scratch.rect, 0, 0, 0);
                     scratch.rect.y = 0x110;
                     ClearImage(&scratch.rect, 0, 0, 0);
-                    Display_SetMode(0xD010);
+                    Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
                 }
                 stop->field_1E6          = 0;
                 gDisplayState.mdecActive = 0;
@@ -869,7 +869,7 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
             if ((s16)CdCmd_StopMdec(0) != 0) {
                 if (D_8006AC14 != 0) {
                     if (D_8006AC14 == 1) {
-                        Display_SetMode(0xF010);
+                        Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_RGB24 | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
                     }
                     gDisplayState.mdecActive = 1;
                 }
@@ -990,7 +990,7 @@ void Mem_AllocAuxWithImages(s16 arg0)
     Gpu_ResetGraphAndOt();
     Mem_SetActiveAuxHeap(0);
     Mem_InitAux();
-    if (gDisplayState.videoMode == 0) {
+    if (gDisplayState.videoMode == DISPLAY_VIDEO_NORMAL) {
         D_8006AC40 = Mem_Malloc(0x4A800, 1);
     } else {
         D_8006AC40 = Mem_Malloc(0x45400, 1);

@@ -835,7 +835,7 @@ void func_shelter_b4_water_supply_8017D650(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.roomVariant          = 1;
+            gDisplayState.spriteVariant        = 1;
             Mc_SaveData[0].state.at4.loc.stage = D_shelter_b4_water_supply_80184E44.stage;
             Mc_SaveData[0].state.at4.loc.area  = D_shelter_b4_water_supply_80184E44.area;
             Mc_SaveData[0].state.at4.loc.warp  = D_shelter_b4_water_supply_80184E44.warp;
@@ -902,7 +902,7 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
             }
             break;
         case 5:
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b4_water_supply_80184E3C.field_2;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b4_water_supply_80184E3C.field_4;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_b4_water_supply_80184E3C.prefix.bytes.field_1;

@@ -42,7 +42,7 @@ void Pad_PostEvent(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     u8        idx;
 
     p = &Pad_States[arg0];
-    if (gDisplayState.demoScene != 0) {
+    if (gDisplayState.demoScene != DISPLAY_DEMO_NONE) {
         return;
     }
 

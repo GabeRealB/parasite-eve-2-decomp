@@ -707,7 +707,7 @@ void func_dryfield_garage_8017D74C(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_garage_80180224.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_garage_80180224.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_garage_80180224.field_3;

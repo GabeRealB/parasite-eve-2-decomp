@@ -432,7 +432,7 @@ void func_actor_150400_80131ECC(void)
         Mc_SaveData[0].state.at4.loc.area  = 0x21;
         Mc_SaveData[0].state.at4.loc.warp  = 4;
         Mc_SaveData[0].state.at4.loc.room  = 1;
-        gDisplayState.roomVariant          = 1;
+        gDisplayState.spriteVariant        = 1;
         Task_Spawn(0, 0x11, 0, 0);
         Gp_RestoreStreamRng();
     }

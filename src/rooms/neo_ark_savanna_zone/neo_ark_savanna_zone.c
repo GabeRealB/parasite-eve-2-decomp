@@ -469,7 +469,7 @@ void func_neo_ark_savanna_zone_8017D5E4(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_neo_ark_savanna_zone_80180990.prefix.bytes.field_0;
             Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_savanna_zone_80180990.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_neo_ark_savanna_zone_80180990.field_3;

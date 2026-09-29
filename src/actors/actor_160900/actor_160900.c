@@ -1049,7 +1049,7 @@ void func_actor_160900_80131EB0(Task* arg0)
             D_actor_160900_8013FBB0        = arg0->spawnArg2.pointer;
             D_actor_160900_8013FBB0->frame = 0;
             D_actor_160900_8013FBB0->state = 0;
-            Display_ClampField126(-8);
+            displaySetShakeY(DISPLAY_SHAKE_MIN);
             arg0->state++;
             break;
         case 1:
@@ -1069,7 +1069,7 @@ void func_actor_160900_80131EB0(Task* arg0)
                     break;
                 case 2:
                     taskKill(arg0);
-                    Display_ClampField126(0);
+                    displaySetShakeY(0);
                     break;
             }
             D_actor_160900_8013F194 = D_actor_160900_8013FBB0->frame * D_actor_160900_8013FBB0->scale / D_actor_160900_8013FBB0->span;
@@ -2084,7 +2084,7 @@ void func_actor_160900_8013418C(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             work       = (Actor160900Work*)Mem_Malloc(0x68, 0);

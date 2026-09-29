@@ -32,85 +32,86 @@ static const u16 Display_HeightTable[] = {
     0x1E0,
 };
 
-void Display_SetMode(s32 arg0)
+void Display_SetMode(s32 modeBits)
 {
     DisplayState* ds;
-    u32           temp_s5;
-    u32           temp_s4;
-    s32           temp_s3;
-    char          temp_s0;
-    s32           temp_s1;
-    DisplayState* new_var;
-    s8            var_s7;
-    u32           temp_v0_2;
+    u32           widthPixels;
+    u32           heightPixels;
+    s32           envHeight;
+    char          widthStagingByte;
+    s32           secondBufferY;
+    DisplayState* stateAlias;
+    s8            interlaced;
+    u32           halfHeight;
 
-    if (!(arg0 & 0xFFFF)) {
-        arg0 = 0x1010;
+    if (!(modeBits & 0xFFFF)) {
+        modeBits = DISPLAY_SETUP_DEFAULT;
     }
-    var_s7     = (arg0 & 0xF00) != 0;
-    ds         = &gDisplayState;
-    temp_s5    = Display_WidthTable[(u32)(arg0 & 0xF0) >> 4];
-    temp_s4    = Display_HeightTable[arg0 & 0xF];
-    ds->width  = temp_s5;
-    ds->height = temp_s4;
+    interlaced   = (modeBits & DISPLAY_SETUP_INTERLACE_MASK) != 0;
+    ds           = &gDisplayState;
+    widthPixels  = Display_WidthTable[(u32)(modeBits & DISPLAY_SETUP_WIDTH_MASK) >> 4];
+    heightPixels = Display_HeightTable[modeBits & DISPLAY_SETUP_HEIGHT_MASK];
+    ds->width    = widthPixels;
+    ds->height   = heightPixels;
     if (Mc_SaveData[0].state.interlace != 0) {
-        var_s7 = 1;
+        interlaced = 1;
     }
-    temp_s3       = temp_s4 & 0xFFFF;
-    ds->interlace = var_s7;
-    new_var       = ds;
-    if (temp_s3 != 0x1E0) {
-        SetDefDrawEnv(&ds->drawEnv[0], 0, 0, (temp_s0 = temp_s5, temp_s5 & 0xFFFF), temp_s3);
-        temp_s1 = temp_s3 + 0x20;
-        SetDefDispEnv(&ds->dispEnv[0], 0, temp_s1, temp_s5 & 0xFFFF, temp_s3);
-        SetDefDrawEnv(&ds->drawEnv[1], 0, temp_s1, temp_s5 & 0xFFFF, temp_s3);
-        SetDefDispEnv(&ds->dispEnv[1], 0, 0, temp_s5 & 0xFFFF, temp_s3);
-        if (arg0 & 0x2000) {
+    envHeight     = heightPixels & 0xFFFF;
+    ds->interlace = interlaced;
+    stateAlias    = ds;
+    // A 480-line setup shares one VRAM area; shorter frames alternate vertically.
+    if (envHeight != 0x1E0) {
+        SetDefDrawEnv(&ds->drawEnv[0], 0, 0, (widthStagingByte = widthPixels, widthPixels & 0xFFFF), envHeight);
+        secondBufferY = envHeight + 0x20;
+        SetDefDispEnv(&ds->dispEnv[0], 0, secondBufferY, widthPixels & 0xFFFF, envHeight);
+        SetDefDrawEnv(&ds->drawEnv[1], 0, secondBufferY, widthPixels & 0xFFFF, envHeight);
+        SetDefDispEnv(&ds->dispEnv[1], 0, 0, widthPixels & 0xFFFF, envHeight);
+        if (modeBits & DISPLAY_SETUP_RGB24) {
             ds->dispEnv[1].isrgb24 = 1;
             ds->dispEnv[0].isrgb24 = 1;
         } else {
             ds->dispEnv[1].isrgb24 = 0;
             ds->dispEnv[0].isrgb24 = 0;
         }
-        gDisplayState.drawEnv[1].ofs[0] = temp_s5 >> 1;
-        gDisplayState.drawEnv[0].ofs[0] = temp_s5 >> 1;
-        temp_v0_2                       = temp_s4 >> 1;
-        gDisplayState.drawEnv[0].ofs[1] = temp_v0_2;
-        gDisplayState.drawEnv[1].ofs[1] = (temp_s4 + temp_v0_2) + 0x20;
-        gDisplayState.drawEnv[1].clip.y = temp_s4 + 0x20;
+        gDisplayState.drawEnv[1].ofs[0] = widthPixels >> 1;
+        gDisplayState.drawEnv[0].ofs[0] = widthPixels >> 1;
+        halfHeight                      = heightPixels >> 1;
+        gDisplayState.drawEnv[0].ofs[1] = halfHeight;
+        gDisplayState.drawEnv[1].ofs[1] = (heightPixels + halfHeight) + 0x20;
+        gDisplayState.drawEnv[1].clip.y = heightPixels + 0x20;
         gDisplayState.drawEnv[1].clip.x = 0;
         gDisplayState.drawEnv[0].clip.x = 0;
         gDisplayState.drawEnv[0].clip.y = 0;
-        gDisplayState.drawEnv[1].clip.w = temp_s5;
-        gDisplayState.drawEnv[0].clip.w = temp_s5;
-        gDisplayState.drawEnv[1].clip.h = temp_s4;
-        gDisplayState.drawEnv[0].clip.h = temp_s4;
+        gDisplayState.drawEnv[1].clip.w = widthPixels;
+        gDisplayState.drawEnv[0].clip.w = widthPixels;
+        gDisplayState.drawEnv[1].clip.h = heightPixels;
+        gDisplayState.drawEnv[0].clip.h = heightPixels;
         gDisplayState.drawEnv[1].dfe    = 1;
         gDisplayState.drawEnv[0].dfe    = 1;
     } else {
-        SetDefDrawEnv(&ds->drawEnv[0], 0, 0, (temp_s0 = temp_s5, temp_s5 & 0xFFFF), temp_s3);
-        SetDefDispEnv(&ds->dispEnv[0], 0, 0, temp_s5 & 0xFFFF, temp_s3);
-        SetDefDrawEnv(&new_var->drawEnv[1], 0, 0, temp_s5 & 0xFFFF, temp_s3);
-        SetDefDispEnv(&ds->dispEnv[1], 0, 0, temp_s5 & 0xFFFF, temp_s3);
-        temp_s0               = (temp_s5 & 0xFFFF) >> 1;
-        ds->drawEnv[1].ofs[0] = (temp_s5 & 0xFFFF) >> 1;
-        ds->drawEnv[0].ofs[0] = (temp_s5 & 0xFFFF) >> 1;
+        SetDefDrawEnv(&ds->drawEnv[0], 0, 0, (widthStagingByte = widthPixels, widthPixels & 0xFFFF), envHeight);
+        SetDefDispEnv(&ds->dispEnv[0], 0, 0, widthPixels & 0xFFFF, envHeight);
+        SetDefDrawEnv(&stateAlias->drawEnv[1], 0, 0, widthPixels & 0xFFFF, envHeight);
+        SetDefDispEnv(&ds->dispEnv[1], 0, 0, widthPixels & 0xFFFF, envHeight);
+        widthStagingByte      = (widthPixels & 0xFFFF) >> 1;
+        ds->drawEnv[1].ofs[0] = (widthPixels & 0xFFFF) >> 1;
+        ds->drawEnv[0].ofs[0] = (widthPixels & 0xFFFF) >> 1;
         ds->drawEnv[1].ofs[1] = 0xF0;
         ds->drawEnv[0].ofs[1] = 0xF0;
         ds->drawEnv[1].clip.x = 0;
         ds->drawEnv[0].clip.x = 0;
         ds->drawEnv[1].clip.y = 0;
         ds->drawEnv[0].clip.y = 0;
-        ds->drawEnv[1].clip.w = temp_s5;
-        ds->drawEnv[0].clip.w = temp_s5;
-        ds->drawEnv[1].clip.h = temp_s4;
-        ds->drawEnv[0].clip.h = temp_s4;
+        ds->drawEnv[1].clip.w = widthPixels;
+        ds->drawEnv[0].clip.w = widthPixels;
+        ds->drawEnv[1].clip.h = heightPixels;
+        ds->drawEnv[0].clip.h = heightPixels;
         ds->drawEnv[1].dfe    = 0;
         ds->drawEnv[0].dfe    = 0;
     }
     gDisplayState.drawEnv[1].dtd = 1;
     gDisplayState.drawEnv[0].dtd = 1;
-    if (arg0 & 0x4000) {
+    if (modeBits & DISPLAY_SETUP_NO_CLEAR) {
         gDisplayState.drawEnv[1].isbg = 0;
         gDisplayState.drawEnv[0].isbg = 0;
     } else {
@@ -123,9 +124,9 @@ void Display_SetMode(s32 arg0)
         gDisplayState.drawEnv[1].b0   = 0;
         gDisplayState.drawEnv[0].b0   = 0;
     }
-    gDisplayState.dispEnv[1].isinter = var_s7;
-    gDisplayState.dispEnv[0].isinter = var_s7;
-    if (!(arg0 & 0x8000)) {
+    gDisplayState.dispEnv[1].isinter = interlaced;
+    gDisplayState.dispEnv[0].isinter = interlaced;
+    if (!(modeBits & DISPLAY_SETUP_KEEP_VIEW)) {
         Gfx_InitCoordinateTrees();
         Gpu_InitDefaultLights();
     }
@@ -150,18 +151,18 @@ void Display_SetAutoClear(s32 arg0, s32 arg1, s32 arg2)
 
 static void Display_SetModeDefault(void)
 {
-    Display_SetMode(0x1010);
+    Display_SetMode(DISPLAY_SETUP_DEFAULT);
 }
 
-void Display_ClampField126(s8 arg0)
+void displaySetShakeY(s8 offsetY)
 {
-    s8 val;
+    s8 clampedY;
 
-    val = arg0;
-    if (arg0 >= 8) {
-        val = 8;
-    } else if (arg0 < -7) {
-        val = -8;
+    clampedY = offsetY;
+    if (offsetY >= DISPLAY_SHAKE_MAX) {
+        clampedY = DISPLAY_SHAKE_MAX;
+    } else if (offsetY < DISPLAY_SHAKE_MIN + 1) {
+        clampedY = DISPLAY_SHAKE_MIN;
     }
-    gDisplayState.shakeY = val;
+    gDisplayState.shakeY = clampedY;
 }

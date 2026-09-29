@@ -117,7 +117,7 @@ void func_800AA548(s32 arg0)
     Gp_LoadRoomParams();
     gGameSession->cutsceneHold = 0;
     Gp_ResetMenuLock();
-    Display_ClampField126(0);
+    displaySetShakeY(0);
     Task_Spawn(0, 0x1D, 0, 0);
     Task_Spawn(0, 0x1A, 0, 0);
     Game_SetPtrSlot(Task_Spawn(4, 5, 0, 0), 9);
@@ -129,7 +129,7 @@ void func_800AA548(s32 arg0)
     stage = sess->stage;
     warp  = sess->warp;
     rec   = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
-    if (!(gDisplayState.at100.word & 0xFFFF00)) {
+    if (!(gDisplayState.control.word & DISPLAY_ROOM_START_KEEP_VIEW_MASK)) {
         if (((GP_LOC_WORD(gGameSession->at4.loc) & ~0xFF) == GP_LOC_KEY(3, 24, 2, 0)) && (gGameSession->at4.loc.warp == 2)) {
             Mc_SaveData[0].state.at4.loc.view = gGameSession->at4.loc.view = 2;
         } else {
@@ -138,7 +138,7 @@ void func_800AA548(s32 arg0)
     }
     Gp_ActorSlots[0] = NULL;
     Gp_ActorSlots[1] = NULL;
-    if (gDisplayState.at100.flags.pendingPlayerPos == 1) {
+    if (gDisplayState.control.flags.pendingPlayerPos == 1) {
         pos                      = &(&Player_Status)[Mc_SaveData[0].state.characterId - 1].pos;
         D_80114CB0.words.field_0 = (s32)pos->yaw;
         D_80114CB0.words.field_4 = (s32)pos->x;
@@ -148,7 +148,7 @@ void func_800AA548(s32 arg0)
         flags.field_2            = 0;
         Gp_SpawnPlayer(&D_80114CB0.actor, Mc_SaveData[0].state.characterId & 0xFFFF, 0, &flags);
         Gp_SetupCompanionActor(&rec.companion.actor, &flags.field_0);
-        gDisplayState.at100.flags.pendingPlayerPos = 0;
+        gDisplayState.control.flags.pendingPlayerPos = 0;
     } else {
         playerId      = (u8)Mc_SaveData[0].state.characterId;
         flags.field_0 = 1;
@@ -209,15 +209,15 @@ void Gp_BeginSessionTask(Task* arg0)
     Mem_Init();
     CdCmd_ActivatePhase1();
     gGameSession->at4.raw     = Mc_SaveData[0].state.at4.raw;
-    gGameSession->sprtVariant = ds->roomVariant;
+    gGameSession->sprtVariant = ds->spriteVariant;
     queue->field_20A          = one;
     if ((arg0->spawnArg1.value & 0xF) == 0) {
         MoveImage(
-            (RECT*)&gDisplayState.dispEnv[ds->drawBuffer ^ 1],
+            &gDisplayState.dispEnv[ds->drawBuffer ^ 1].disp,
             ds->dispEnv[ds->drawBuffer].disp.x,
             ds->dispEnv[ds->drawBuffer].disp.y);
-        ds->at100.flags.imageSource = 0;
-        Display_SetMode(0xD010);
+        ds->control.flags.imageSource = DISPLAY_IMAGE_NONE;
+        Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
     }
     Task_Spawn(0, 0x1C, arg0->spawnArg1.value & 0xF, 0);
     ds->skipDraw     = 0;
@@ -621,7 +621,7 @@ static void Gp_InitStageVisit(GpAreaKey* arg0)
         bank->visitedAreas[0] = 0;
         bank->visitedAreas[1] = 0;
         Gp_ApplyBit2Bank(arg0->stage);
-        if (gDisplayState.field_112 != 0) {
+        if (gDisplayState.debugMode != 0) {
             func_80724748(arg0);
         }
     }

@@ -1832,7 +1832,7 @@ void func_800CE188(Task* arg0)
 {
     arg0->killCountdown--;
     if (arg0->killCountdown <= 0) {
-        GameMain_SetFrameTiming(1);
+        GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
         arg0->killCountdown = 1;
         arg0->state         = arg0->state + 1;
     }

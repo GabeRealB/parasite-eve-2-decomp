@@ -46,7 +46,7 @@ static void func_acropolis_observatory_8017D8AC(Task* task);
 ///
 /// Message 9 (the telescope) and message 0xB (the door) both answer with a
 /// `field_2` refusal code — 5 and 1 respectively — while the disc has no stream
-/// file open (`gDisplayState.field_112 < 0 || D_8006AC30.sector == 0`) or the message's
+/// file open (`gDisplayState.debugMode < 0 || D_8006AC30.sector == 0`) or the message's
 /// nibble is not in the state that lets it run once. The first pass through
 /// each also advances that nibble, so the refusal only shows on later visits.
 /// `field_5` non-zero means "report only", which suppresses both the nibble
@@ -57,7 +57,7 @@ s32 func_acropolis_observatory_8017D618(Task* arg0, s32 arg1, RoomEventMsg* in, 
 
     *out = *in;
     if (in->prefix.packed == 9 && in->field_5 == 0) {
-        if (gDisplayState.field_112 < 0 || D_8006AC30.sector == 0) {
+        if (gDisplayState.debugMode < 0 || D_8006AC30.sector == 0) {
             out->field_2 = 5;
         }
         if (GameFlag_GetNibble(0x25) == 0) {
@@ -72,7 +72,7 @@ s32 func_acropolis_observatory_8017D618(Task* arg0, s32 arg1, RoomEventMsg* in, 
         }
     }
     if (in->prefix.packed == 0xB) {
-        if (gDisplayState.field_112 < 0 || D_8006AC30.sector == 0) {
+        if (gDisplayState.debugMode < 0 || D_8006AC30.sector == 0) {
             if (in->field_5 == 0) {
                 out->field_2 = 1;
             }

@@ -132,9 +132,9 @@ static s32 func_aya_20900_80115A14(Task* arg0)
                 work->index += 1;
             } else {
                 Mem_Set(Fs_ImgBuffers, 0, 0x25800);
-                gDisplayState.at100.flags.imageSource = 1;
-                work->fade                            = 0xFF;
-                work->index                           = 2;
+                gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
+                work->fade                              = 0xFF;
+                work->index                             = 2;
             }
             break;
         case 1:
@@ -142,9 +142,9 @@ static s32 func_aya_20900_80115A14(Task* arg0)
             work->fade = fade;
             if ((s16)fade >= 0xFF) {
                 Mem_Set(Fs_ImgBuffers, 0, 0x25800);
-                gDisplayState.at100.flags.imageSource = 1;
-                work->fade                            = 0xFF;
-                work->index                          += 1;
+                gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
+                work->fade                              = 0xFF;
+                work->index                            += 1;
             }
             showLogo = 0;
             break;
@@ -178,7 +178,7 @@ static s32 func_aya_20900_80115A14(Task* arg0)
             fade       = work->fade + 8;
             work->fade = fade;
             if ((s16)fade >= 0xFF) {
-                gDisplayState.at100.flags.imageSource = 0;
+                gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
                 return 1;
             }
             break;

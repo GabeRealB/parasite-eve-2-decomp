@@ -281,7 +281,7 @@ void Fs_BeginBootLoad(u8* arg0, s16 arg1)
     D5B498_8006ACC0       = arg1;
 
     Mem_Set(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
-    GameMain_SetFrameTiming(1);
+    GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
     Fs_BootLoadPhase = 0;
 }
 
@@ -330,10 +330,10 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                     goto setup_and_load;
                 }
                 if (req[0] == 0) {
-                    gDisplayState.videoMode = 1;
+                    gDisplayState.videoMode = DISPLAY_VIDEO_STREAMING;
                 }
                 if (req[0] == 1) {
-                    gDisplayState.videoMode = 0;
+                    gDisplayState.videoMode = DISPLAY_VIDEO_NORMAL;
                 }
                 sector = Fs_FileOffsetsCat0[req[0]] + Fs_StageCdfSectors[0];
                 goto setup_and_load;

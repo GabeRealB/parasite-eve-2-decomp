@@ -403,7 +403,7 @@ void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
     if (arg0 == 0) {
         return;
     }
-    if (gDisplayState.field_112 == -1) {
+    if (gDisplayState.debugMode == -1) {
         if (Mc_SaveData[0].state.demoScene != 0xC) {
             return;
         }

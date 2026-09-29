@@ -2461,12 +2461,12 @@ void func_dryfield_night_dilapidated_house_8017DB20(Task* task)
 }
 
 /// Entry 0 of the room's two-entry descriptor table: spawns entry 1, the
-/// stream-playing task, with an ordering table, sets `gDisplayState.at100.flags.flipMode`, spawns the
+/// stream-playing task, with an ordering table, sets `gDisplayState.control.flags.flipMode`, spawns the
 /// view tasks and kills itself.
 void func_dryfield_night_dilapidated_house_8017DCE0(Task* arg0)
 {
     Display_SpawnWithOt(D_dryfield_night_dilapidated_house_801872B4, 1, 0, 0);
-    gDisplayState.at100.flags.flipMode = 1;
+    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }

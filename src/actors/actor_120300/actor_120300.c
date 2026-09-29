@@ -2052,7 +2052,7 @@ void func_actor_120300_801337C4(Task* arg0)
     work  = (Actor120300Work*)arg0->work;
     switch (state) {
         case 0:
-            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
+            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 func_actor_120300_801335D8(arg0);
                 work = (Actor120300Work*)arg0->work;
                 if (GameFlag_GetNibble(0x2D) != 0) {

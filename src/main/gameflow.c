@@ -132,27 +132,27 @@ void GameFlow_StateByField34(Task* task)
     if (task->spawnArg1.value == 2) {
         if (task->state == 0) {
             Pad_SetCooldown(0);
-            if (gDisplayState.demoScene == 0) {
+            if (gDisplayState.demoScene == DISPLAY_DEMO_NONE) {
                 gDisplayState.demoScene = 1;
             }
-            if (gDisplayState.demoScene < 0x10) {
+            if (gDisplayState.demoScene < DISPLAY_DEMO_FIXED_REPLAY) {
                 Title_EnqueueDemoScene(gDisplayState.demoScene - 1);
             }
             task->state = task->state + 1;
         }
         if (CdCmd_IsIdle() != 0) {
-            if (gDisplayState.roomVariant == 0) {
-                gDisplayState.roomVariant = 1;
+            if (gDisplayState.spriteVariant == 0) {
+                gDisplayState.spriteVariant = 1;
             }
             Title_RestoreDemoCard();
             MEM_CLEAR(gGameSession, sizeof(GameSession));
-            gDisplayState.at100.flags.pendingPlayerPos = 0;
-            gDisplayState.gameRunning                  = 0;
-            gGameSession->applySavePlace               = 1;
-            gGameSession->field_80                     = 0;
+            gDisplayState.control.flags.pendingPlayerPos = 0;
+            gDisplayState.gameRunning                    = 0;
+            gGameSession->applySavePlace                 = 1;
+            gGameSession->field_80                       = 0;
             Snd_SetMutedVolumes(1);
-            gDisplayState.at100.flags.pendingPlayerPos = 0;
-            gDisplayState.stopTaskWalk                 = 1;
+            gDisplayState.control.flags.pendingPlayerPos = 0;
+            gDisplayState.stopTaskWalk                   = 1;
             taskKill(task);
             Task_ResetDefaultList();
             Tmd_InitLists();
@@ -160,27 +160,27 @@ void GameFlow_StateByField34(Task* task)
             Task_Spawn(0, 9, 0, 0);
         }
     } else {
-        gDisplayState.demoScene = 0;
+        gDisplayState.demoScene = DISPLAY_DEMO_NONE;
         Pad_SetCooldown(0);
         if (task->spawnArg1.value == 0) {
             saved = Mc_SaveData[0].state.vibration;
             MEM_CLEAR(gGameSession, sizeof(GameSession));
-            gDisplayState.at100.flags.pendingPlayerPos = 0;
-            gDisplayState.gameRunning                  = 1;
-            p->field_248                               = 1;
-            p->field_244                               = 1;
-            Wip_SysFlags.field_4                       = 1;
+            gDisplayState.control.flags.pendingPlayerPos = 0;
+            gDisplayState.gameRunning                    = 1;
+            p->field_248                                 = 1;
+            p->field_244                                 = 1;
+            Wip_SysFlags.field_4                         = 1;
             Mc_InitBufferSlots();
             Mc_SaveData[0].state.vibration = saved;
             task->state                    = task->state + 1;
         } else {
             MEM_CLEAR(gGameSession, sizeof(GameSession));
-            gDisplayState.gameRunning                  = 1;
-            gDisplayState.at100.flags.pendingPlayerPos = 0;
-            p->field_248                               = 1;
-            p->field_244                               = 1;
-            Wip_SysFlags.field_4                       = 1;
-            gGameSession->applySavePlace               = 1;
+            gDisplayState.gameRunning                    = 1;
+            gDisplayState.control.flags.pendingPlayerPos = 0;
+            p->field_248                                 = 1;
+            p->field_244                                 = 1;
+            Wip_SysFlags.field_4                         = 1;
+            gGameSession->applySavePlace                 = 1;
         }
         gDisplayState.stopTaskWalk = 1;
         taskKill(task);
@@ -221,7 +221,7 @@ void Game_ClearSession(void)
 {
 
     MEM_CLEAR(gGameSession, sizeof(GameSession));
-    gDisplayState.at100.flags.pendingPlayerPos = 0;
+    gDisplayState.control.flags.pendingPlayerPos = 0;
 }
 
 static void GameFlow_InitSystems(void)
@@ -240,11 +240,11 @@ static void Game_ResetSessionAndBuffers(Task* task)
     p     = &CdCmd_Queue;
     saved = Mc_SaveData[0].state.vibration;
     MEM_CLEAR(gGameSession, sizeof(GameSession));
-    gDisplayState.at100.flags.pendingPlayerPos = 0;
-    gDisplayState.gameRunning                  = 1;
-    p->field_248                               = 1;
-    p->field_244                               = 1;
-    Wip_SysFlags.field_4                       = 1;
+    gDisplayState.control.flags.pendingPlayerPos = 0;
+    gDisplayState.gameRunning                    = 1;
+    p->field_248                                 = 1;
+    p->field_244                                 = 1;
+    Wip_SysFlags.field_4                         = 1;
     Mc_InitBufferSlots();
     do {
         Mc_SaveData[0].state.vibration = saved;
@@ -256,11 +256,11 @@ static void GameFlow_SpawnMenu(Task* task)
 {
     void* temp_v0;
 
-    GameMain_SetFrameTiming(0);
+    GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
     temp_v0                 = Ui_SpawnFromDesc(Mc_TaskDescriptors, 0, 1, 0, 0);
     task->spawnArg2.pointer = temp_v0;
     if (temp_v0 != 0) {
-        gDisplayState.gameMode = 0xFF;
+        gDisplayState.gameMode = DISPLAY_GAME_MODAL;
         gGameSession->uiOpen   = 1;
         task->killCountdown    = 0x10;
         task->state            = task->state + 1;
@@ -274,7 +274,7 @@ static void GameFlow_WaitMenuDone(Task* task)
     obj = task->spawnArg2.pointer;
     if (obj->field_2E == -1) {
         Ui_TeardownTree(obj, obj->owner);
-        gDisplayState.gameMode = 0;
+        gDisplayState.gameMode = DISPLAY_GAME_ACTIVE;
         gGameSession->uiOpen   = 0;
         if (Mc_SaveData[0].state.soundMode == 1) {
             CdVol_SetMixMode(0);
@@ -299,9 +299,9 @@ static void GameFlow_CountdownAdvance(Task* task)
 
 static void GameFlow_SpawnMainWhenReady(Task* task)
 {
-    if (gDisplayState.at100.flags.pendingPlayerPos == 0) {
+    if (gDisplayState.control.flags.pendingPlayerPos == 0) {
         Task_Spawn(0, 2, 0, 0);
-        Display_SetMode(0x5010);
+        Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR);
         taskKill(task);
         return;
     }
@@ -593,7 +593,7 @@ void Pad_UpdatePort0(void)
 
             if (i == 0) {
                 if (Pad_RemapState->field_8 != 0) {
-                    if (ds->displayOwner == 0) {
+                    if (ds->displayOwner == DISPLAY_OWNER_GAME_LOOP) {
                         pad->field_52 = 0;
                         pad->field_50 = 0;
                         pad->field_56 = 0;

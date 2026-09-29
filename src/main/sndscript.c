@@ -3,6 +3,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/abs.h>
 #include <psyq/libspu.h>
+#include <psyq/libetc.h>
 
 #include "common.h"
 
@@ -1256,7 +1257,7 @@ void SndVoice_KeyOffMatching(void)
 /// one when the display region is 1.
 static inline void _sndScriptAdvanceClock(SndScript* script)
 {
-    script->field_8 += (gDisplayState.region == 1 ? 0x9999 : 0x10000);
+    script->field_8 += (gDisplayState.region == MODE_PAL ? 0x9999 : 0x10000);
 }
 
 /// Decides whether a note plays with reverb, from its own level against a
@@ -2041,7 +2042,7 @@ static s32 SndVoice_Tick(SndVoice* voice)
         }
     } else {
         if (temp <= 0x7FFFFFFE) {
-            if (gDisplayState.region == 1) {
+            if (gDisplayState.region == MODE_PAL) {
                 voice->field_4 = temp + 0xFFFF6667;
             } else {
                 voice->field_4 = temp + 0xFFFF0000;

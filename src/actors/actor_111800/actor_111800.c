@@ -465,7 +465,7 @@ void func_actor_111800_8013251C(Task* task)
     work  = (Actor111800Work*)task->work;
     switch (state) {
         case 0:
-            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
+            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 func_actor_111800_80132390(task);
                 task->state += 1;
                 break;

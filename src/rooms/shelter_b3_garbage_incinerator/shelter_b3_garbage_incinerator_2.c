@@ -669,7 +669,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 break;
             }
             SndEvt_EnqueueType6(0x5428000D, 0, 0);
@@ -1062,7 +1062,7 @@ void func_shelter_b3_garbage_incinerator_8017E7D0(Task* arg0)
             D_shelter_b3_garbage_incinerator_8018FC38        = arg0->spawnArg2.pointer;
             D_shelter_b3_garbage_incinerator_8018FC38->frame = 0;
             D_shelter_b3_garbage_incinerator_8018FC38->state = 0;
-            Display_ClampField126(-8);
+            displaySetShakeY(DISPLAY_SHAKE_MIN);
             for (i = 0; i < 2; i++) {
                 tpage0 = getTPage(2, 0, 0, i << 8);
                 tpage1 = getTPage(2, 0, 128, i << 8);
@@ -1132,7 +1132,7 @@ void func_shelter_b3_garbage_incinerator_8017E7D0(Task* arg0)
                     break;
                 case 2:
                     taskKill(arg0);
-                    Display_ClampField126(0);
+                    displaySetShakeY(0);
                     break;
             }
             D_shelter_b3_garbage_incinerator_80185BC4 = D_shelter_b3_garbage_incinerator_8018FC38->frame * D_shelter_b3_garbage_incinerator_8018FC38->scale / D_shelter_b3_garbage_incinerator_8018FC38->span;
@@ -1256,7 +1256,7 @@ void func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0)
             if ((s16)work->g >= 0x100) {
                 parent             = (GarbageIncineratorWork*)((Task*)arg0->spawnArg2.pointer)->work;
                 parent->wave.state = 2;
-                Display_SetMode(0xD010);
+                Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
                 Mem_Set(Fs_ImgBuffers, 0xFF, 0x25800);
                 work->b     = 0xFF;
                 work->g     = 0xFF;
@@ -1434,7 +1434,7 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
     }
     switch (arg0->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             work       = Mem_Malloc(0x40, false);

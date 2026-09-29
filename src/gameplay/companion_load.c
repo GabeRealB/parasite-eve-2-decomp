@@ -278,7 +278,7 @@ void Gp_MarkAreaVisited(GpAreaKey* arg0)
     save = &Mc_SaveData[0];
     if ((((s8)save->state.visitFlags >> arg0->stage) & 1) == 0) {
         save->state.visitFlags |= 1 << arg0->stage;
-        if (gDisplayState.field_112 != 0) {
+        if (gDisplayState.debugMode != 0) {
             func_80724E2C();
         }
     }
@@ -314,11 +314,11 @@ void Gp_SessionState1(Task* task)
 
     ds             = &gDisplayState;
     ds->skipDraw   = 1;
-    ds->holdState |= 0x80;
+    ds->holdState |= DISPLAY_HOLD_ACTIVE;
     temp           = task->spawnArg1.value & 0xF;
     if (temp != 0) {
         if (temp == 1) {
-            ds->at100.flags.imageSource = 0;
+            ds->control.flags.imageSource = DISPLAY_IMAGE_NONE;
         }
     }
     task->state++;
@@ -363,7 +363,7 @@ void Gp_LoadFinishTask(Task* task)
             func_800AA548(0);
         }
         gDisplayState.holdCount  = 0;
-        gDisplayState.holdState &= 0x7F;
+        gDisplayState.holdState &= DISPLAY_HOLD_MODE_MASK;
         Display_AcquireRef();
         Task_Spawn(0, 0x21, 0, 0);
         if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 5, 0, 0)) {
@@ -382,11 +382,11 @@ void Gp_LoadStateTask(Task* task)
     sp = Gp_LoadStateFns;
     Pad_SetCooldown(0);
     ds = &gDisplayState;
-    if (ds->demoScene != 0) {
+    if (ds->demoScene != DISPLAY_DEMO_NONE) {
         if (Pad_ReadButtonsInv(0) & 0x800) {
             if (CdCmd_IsIdle() & 0xFFFF) {
                 Wip_SysFlags.field_4 = 1;
-                ds->gameMode         = 1;
+                ds->gameMode         = DISPLAY_GAME_RESTART;
                 return;
             }
         }

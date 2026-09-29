@@ -108,7 +108,7 @@ void Gp_AreaEnterTask(Task* arg0)
                 }
             }
         }
-        GameMain_SetFrameTiming(0);
+        GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         arg0->state++;
     } else if (arg0->state == 1) {
         session = gGameSession;
@@ -164,7 +164,7 @@ void Gp_AreaEnterTask(Task* arg0)
     if (arg0->state >= 0x11) {
         if (gStageMusicLoadState == 0xFF) {
             if (CdCmd_IsIdle() & 0xFFFF) {
-                GameMain_SetFrameTiming(1);
+                GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
                 SndEvt_EnqueueType9(0xD);
                 taskKill(arg0);
                 Stage_ReleasePrimBuf();

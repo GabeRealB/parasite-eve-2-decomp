@@ -228,7 +228,7 @@ resumeView:
                     if (D_80115688 == 0) {
                         Mc_SaveData[0].state.at4.loc.view = view;
                         D_801155BB                        = 1;
-                        if (gDisplayState.field_112 != 0) {
+                        if (gDisplayState.debugMode != 0) {
                             if (D_8011564A == -1) {
                                 D_8011564A = 0;
                             }
@@ -889,13 +889,13 @@ void Gp_CapExit(Task* arg0)
         Mc_SaveData[0].state.at4.loc.view = D_8011566C;
         Gp_MsgPlayer3F3(1);
         Gp_MsgAlly3F3(1);
-        if (gDisplayState.field_112 != 0) {
+        if (gDisplayState.debugMode != 0) {
             func_8072455C(D_8011564A, D_8011566C);
             goto block_11;
         }
     } else {
     block_11:
-        if (gDisplayState.field_112 != 0 && D_801156F4.overlays != 0) {
+        if (gDisplayState.debugMode != 0 && D_801156F4.overlays != 0) {
             sprintf(
                 buf, Gp_StrEvsFmt, D_801156F4.overlays->field_0, D_801156F4.overlays->field_2,
                 D_801156F4.overlays->field_4);
@@ -1166,7 +1166,7 @@ void Gp_LoadCapFile(s32 arg0)
     for (i = 0; i < 50; i++) {
         if (D_8006C338[i].field_0 == 3) {
             if (count == arg0) {
-                if (gDisplayState.field_112 != 0) {
+                if (gDisplayState.debugMode != 0) {
                     func_80724714();
                 }
                 Gp_CapFile = D_8006C338[i].field_4;

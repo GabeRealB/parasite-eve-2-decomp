@@ -394,7 +394,7 @@ void Gp_MenuRootTask(Task* arg0)
         case 0: {
             PlayerStatus* cfg;
 
-            GameMain_SetFrameTiming(0);
+            GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             D_80114D88 = 0;
             SndEvt_EnqueueTypeD();
             Gp_ClearPreviewItems();
@@ -429,7 +429,7 @@ void Gp_MenuRootTask(Task* arg0)
             if (arg0->killCountdown > 0) {
                 return;
             }
-            gDisplayState.at100.flags.flipMode = 2;
+            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
             Stage_InitOtOnce();
             Stage_InitPrimBufOnce();
             arg0->state += 5;
@@ -440,8 +440,8 @@ void Gp_MenuRootTask(Task* arg0)
             UiObject*     obj;
             s32           arg;
 
-            disp                       = &gDisplayState;
-            disp->at100.flags.flipMode = 2;
+            disp                         = &gDisplayState;
+            disp->control.flags.flipMode = DISPLAY_FLIP_HOLD;
             if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
                 return;
             }
@@ -455,8 +455,8 @@ void Gp_MenuRootTask(Task* arg0)
             ClearImage(&rect, 0, 0, 0);
             DrawSync(0);
             Mem_InitAux();
-            if (disp->demoScene != 0) {
-                disp->gameMode = 1;
+            if (disp->demoScene != DISPLAY_DEMO_NONE) {
+                disp->gameMode = DISPLAY_GAME_RESTART;
                 break;
             }
             arg = arg0->spawnArg1.value;
@@ -486,8 +486,8 @@ void Gp_MenuRootTask(Task* arg0)
             break;
         }
         case 0x1E:
-            gDisplayState.at100.flags.flipMode = 1;
-            arg0->state                       += 0xA;
+            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
+            arg0->state                         += 0xA;
         case 0x28: {
             UiObject* obj;
 
@@ -527,7 +527,7 @@ void Gp_MenuRootTask(Task* arg0)
                 if (d->frameBuffer != d->otBuffer) {
                     return;
                 }
-                d->at100.flags.flipMode = 2;
+                d->control.flags.flipMode = DISPLAY_FLIP_HOLD;
                 Stage_ReleasePrimBuf();
             }
             Mem_ConfigureAuxHeap(gGameSession->at4.loc.stage, gGameSession->at4.loc.area);
@@ -595,7 +595,7 @@ void Gp_MenuRootTask(Task* arg0)
                 *flag = 0;
                 Task_SetActiveList(prev);
             }
-            GameMain_SetFrameTiming(1);
+            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gDisplayState.keepGraphics = 0;
             gGameSession->uiOpen       = 0;
             Gpu_ResetGraphAndOt();
@@ -657,7 +657,7 @@ static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
             Ui_SetState4(arg0, arg0->owner);
             arg1->killCountdown = 0x10;
             *map                = 0;
-            GameMain_SetFrameTiming(0);
+            GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             arg1->state = arg1->state + 1;
             if (arg0->field_2C == 0x101) {
                 SndEvt_EnqueueType6(4, 0, 0);

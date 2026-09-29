@@ -739,7 +739,7 @@ s32 D_actor_142900_801382AC;
 
 void func_actor_142900_80131E24(Task* arg0)
 {
-    extern void Display_ClampField126();
+    extern void displaySetShakeY();
     s32         var_a0;
 
     if (D_actor_142900_801382AC == 2) {
@@ -759,10 +759,10 @@ void func_actor_142900_80131E24(Task* arg0)
         }
     }
     if (D_actor_142900_801382AC == 0) {
-        Display_ClampField126(0);
+        displaySetShakeY(0);
         taskKill(arg0);
     } else {
-        Display_ClampField126(var_a0);
+        displaySetShakeY(var_a0);
     }
 }
 
@@ -774,7 +774,7 @@ void func_actor_142900_80131F5C(void)
         Mc_SaveData[0].state.at4.loc.area = 0x1B;
         Mc_SaveData[0].state.at4.loc.warp = 2;
         Mc_SaveData[0].state.at4.loc.room = 1;
-        gDisplayState.roomVariant         = 1;
+        gDisplayState.spriteVariant       = 1;
         Task_Spawn(0, 0x11, 0, 0);
     }
 }

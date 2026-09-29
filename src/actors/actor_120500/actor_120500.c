@@ -107,7 +107,7 @@ extern Actor120500MessageEntry D_actor_120500_80138408[2];
 
 /// Flags the tick checks before bringing the actor up (`Gp_StateC08.field_A` /
 /// `gDisplayState.pendingMode`), and the one it raises alongside the view tasks
-/// (`gDisplayState.at100.flags.flipMode`).
+/// (`gDisplayState.control.flags.flipMode`).
 
 /// Animation-set table handed to the task in pointer slot 3 as message 0x3F4's
 /// `GpAnimArg::animBlock`; the messages select sets 0, 1 and 2 of it.
@@ -578,7 +578,7 @@ static void func_actor_120500_801322A0(Task* arg0)
 /// clear. Request code 1 at 0x4C0 allocates the model's buffers, spawns the
 /// fade from black and places the actor with its own placement record. At
 /// 0x4C8, code 1 spawns the fade to black and code 2 sends message 0x3F3,
-/// spawns the streamed sequence, raises `gDisplayState.at100.flags.flipMode` and spawns the view
+/// spawns the streamed sequence, raises `gDisplayState.control.flags.flipMode` and spawns the view
 /// tasks. The model's part-1 translation goes to `func_800D7A9C` last.
 ///
 /// The request 0x4C8 dispatch is written with gotos: the labels reproduce
@@ -597,7 +597,7 @@ void func_actor_120500_8013241C(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == 0) {
+            if (Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 func_actor_120500_801322A0(arg0);
                 anim = Player_Status.weapon;
                 if (Mc_SaveData[0].state.characterId == 1) {
@@ -676,7 +676,7 @@ do_4C8_case1:
 do_4C8_case2:
     Gp_DispatchMsg(w->field_4B4, 0x3F3, 2, 0);
     Display_SpawnWithOt(D_actor_120500_80138418, 0, 0, 0);
-    gDisplayState.at100.flags.flipMode = 1;
+    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
 clear_4C8:
     w->field_4C8 = 0;

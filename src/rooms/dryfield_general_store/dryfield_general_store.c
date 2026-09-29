@@ -1661,7 +1661,7 @@ void func_dryfield_general_store_8017D764(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_general_store_80185700.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_general_store_80185700.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_general_store_80185700.field_3;
@@ -1765,7 +1765,7 @@ s32 func_dryfield_general_store_8017D8D4(Task* arg0, s32 arg1, RoomEventMsg* in,
 ///
 /// State 5 is the commit: it queues sound event 0x80000000, points the save's
 /// location at area 0x26 with the two latched script arguments as its warp
-/// point and room, raises `gDisplayState.roomVariant` and spawns helper task 0x11.
+/// point and room, raises `gDisplayState.spriteVariant` and spawns helper task 0x11.
 ///
 /// Every arm that is finished with the task, state 5's and the cut-short arm of
 /// state 4's, leaves through the shared `taskKill` below the switch.
@@ -1810,7 +1810,7 @@ void func_dryfield_general_store_8017DAC0(Task* arg0)
             Mc_SaveData[0].state.at4.loc.area = 0x26;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_general_store_80185709;
             Mc_SaveData[0].state.at4.loc.room = D_dryfield_general_store_8018570A;
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Task_Spawn(0, 0x11, 0, 0);
             break;
         default:

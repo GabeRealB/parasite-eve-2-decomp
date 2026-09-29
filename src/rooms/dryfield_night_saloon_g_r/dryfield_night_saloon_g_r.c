@@ -1942,7 +1942,7 @@ void func_dryfield_night_saloon_g_r_8017DA04(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_saloon_g_r_80188FAC.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_saloon_g_r_80188FAC.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_saloon_g_r_80188FAC.field_3;
@@ -2373,7 +2373,7 @@ void func_dryfield_night_saloon_g_r_8017E564(Task* task)
         if (obj == NULL) {
             return;
         }
-        GameMain_SetFrameTiming(0);
+        GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         gGameSession->uiOpen    = 1;
         task->spawnArg2.pointer = obj;
         task->state++;
@@ -2391,7 +2391,7 @@ void func_dryfield_night_saloon_g_r_8017E564(Task* task)
     if (task->state == 2) {
         task->killCountdown--;
         if (task->killCountdown <= 0) {
-            GameMain_SetFrameTiming(1);
+            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gGameSession->uiOpen = 0;
             taskKill(task);
             Stage_ReleasePrimBuf();

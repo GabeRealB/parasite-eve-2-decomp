@@ -284,7 +284,7 @@ void func_shelter_r49_8017D8D8(Task* arg0)
     switch (arg0->state) {
         case 0:
             Display_SpawnWithOt(D_shelter_r49_8017DA00, 1, 0, 0);
-            gDisplayState.at100.flags.flipMode = 1;
+            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
             Gp_SpawnViewTasks();
             arg0->state = arg0->state + 1;
             break;
@@ -298,7 +298,7 @@ void func_shelter_r49_8017D8D8(Task* arg0)
             Mc_SaveData[0].state.at4.loc.area  = 7;
             Mc_SaveData[0].state.at4.loc.warp  = 1;
             Mc_SaveData[0].state.at4.loc.room  = 1;
-            gDisplayState.roomVariant          = 1;
+            gDisplayState.spriteVariant        = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

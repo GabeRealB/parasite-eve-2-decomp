@@ -781,7 +781,7 @@ void Mc_InitBufferSlots(void)
         slot++;
     } while (slot < base + 9);
 
-    gDisplayState.roomVariant = 1;
+    gDisplayState.spriteVariant = 1;
     Mc_InitDualBankBuffers();
 
     Mc_SaveData[0].state.vibration    = 0;
@@ -2218,8 +2218,8 @@ static void Mc_StateVerifyFinish(Task* task, McWork* work)
     if (work->field_24 == 0) {
         if (_mcVerifySlotChecksums() && _mcVerifyFirstByteChecksum()) {
             Game_ClearEd68();
-            gDisplayState.at100.flags.pendingPlayerPos = 1;
-            task->state                                = 3;
+            gDisplayState.control.flags.pendingPlayerPos = 1;
+            task->state                                  = 3;
         } else {
             Mc_InitBufferSlots();
             task->state = 0x19;
@@ -3606,14 +3606,14 @@ void Mc_DispatchStateTable(Task* task)
 
 static void Mc_StateInitWorkDefaults(Task* task, McWork* work)
 {
-    work->field_0                              = 0x10;
-    work->promptId                             = 0x8;
-    work->field_A20                            = 1;
-    work->field_4                              = 0;
-    work->buffer                               = 0;
-    work->field_C                              = 0;
-    gDisplayState.at100.flags.pendingPlayerPos = 0;
-    task->state                               += 1;
+    work->field_0                                = 0x10;
+    work->promptId                               = 0x8;
+    work->field_A20                              = 1;
+    work->field_4                                = 0;
+    work->buffer                                 = 0;
+    work->field_C                                = 0;
+    gDisplayState.control.flags.pendingPlayerPos = 0;
+    task->state                                 += 1;
 }
 
 static void Mc_StateSetOpenDefaults(Task* task, McWork* work)

@@ -1965,7 +1965,7 @@ away.
 ## `A ? 1 : 0` into an `s8` call folds; if/else around the call plus polarity swap keeps `bnez`
 
 `fold-const.c` turns `A ? 1 : 0` into `A` when the COND and the arms share a
-type, so `Display_ClampField126((count & 1) ? 1 : 0)` becomes `count & 1`
+type, so `displaySetShakeY((count & 1) ? 1 : 0)` becomes `count & 1`
 passed in `$a0`. That also keeps `&global` live across the `jal` in a saved
 register. The 0 / -1 sibling (`func_actor_361100_80162A54`) does not fold,
 because `-1` is not `integer_onep`.
@@ -1975,9 +1975,9 @@ Write the 0 / 1 choice as two calls and let jump cross-jump the `jal`:
 ```c
 cur = (u16)*p; /* s32: keeps lhu; `(u16)*p & 1` as the arg narrows to lbu */
 if ((cur & 1) == 0) {
-    Display_ClampField126(0);
+    displaySetShakeY(0);
 } else {
-    Display_ClampField126(1);
+    displaySetShakeY(1);
 }
 ```
 
@@ -8392,8 +8392,8 @@ jr    ra
 `jal` delay slots (target has `nop` after `D_800680C0 = 0`).
 
 `D_8006EC30` / `D_80070E38` are the same shape for the draw path: main-line
-`Display_FrameFlipDraw` writes them (copies of `gDisplayState.at100.flags.imageSource` /
-`field_103`) and the VSync callback `Display_VSyncCallback` → `Display_FlipDraw` reads
+`Display_FrameFlipDraw` writes them (copies of `gDisplayState.control.flags.imageSource` /
+`gDisplayState.control.flags.flipMode`) and the VSync callback `Display_VSyncCallback` → `Display_FlipDraw` reads
 them. Without `volatile`:
 
 - successive `if (D_8006EC30 == …)` arms CSE the load (target reloads via a
@@ -8407,7 +8407,7 @@ store in the `jal ExitCriticalSection` / `jal Display_FlipDraw` delay slot.
 Keep the global `volatile` and store through a non-volatile lvalue:
 
 ```c
-*(u8*)&D_8006EC30 = temp->field_100; /* fills jal delay slot */
+*(u8*)&D_8006EC30 = temp->control.flags.imageSource; /* fills jal delay slot */
 ExitCriticalSection();
 ```
 
@@ -12802,7 +12802,7 @@ offsets, wrong CSE (~85%). Write the accesses by name:
 ```c
 PutDrawEnv(&gDisplayState.drawEnv[arg0]);
 PutDispEnv(&gDisplayState.dispEnv[arg0]);
-if (gDisplayState.at100.flags.imageSource != 0) { ... }
+if (gDisplayState.control.flags.imageSource != 0) { ... }
 if (gDisplayState.skipDraw == 0) { ... }
 ```
 
@@ -18233,7 +18233,7 @@ if (work->field_2C == 1) {
 (and other pins for later reuse of `$s0`/`$s1`) so the prologue is
 `sw s3; sw s2; move s2,a1` with `move s3,a0` in the first `bne` delay slot.
 
-## `field_222 = 1` in the delay of `bnez busy` (dual base pointers)
+## `pausePlayClock = 1` in the delay of `bnez busy` (dual base pointers)
 
 When the target does:
 
@@ -18241,20 +18241,20 @@ When the target does:
 lh   v0, busy(a0)     /* p = &Queue reloaded into a0 */
 li   v1, 1
 bnez v0, skip
- sh  v1, field_222(s0) /* always; state lives in s0 */
+ sh  v1, pausePlayClock(s0) /* always; state lives in s0 */
 sh   v1, busy(a0)
 ```
 
-writing `state->field_222 = 1; if (p->busy == 0) p->busy = 1;` stores
-`field_222` *before* the load. Force the load first with a temporary, then
-assign `field_222` (still before the if body so the store can fill the
+writing `state->pausePlayClock = 1; if (p->busy == 0) p->busy = 1;` stores
+`pausePlayClock` *before* the load. Force the load first with a temporary, then
+assign `pausePlayClock` (still before the if body so the store can fill the
 branch delay):
 
 ```c
 p = &CdCmd_Queue;
 {
     s32 busy = p->busy;
-    state->field_222 = 1;
+    state->pausePlayClock = 1;
     if (busy == 0) {
         p->busy = 1;
         gDisplayState.cdBusy = 0xFF;
@@ -18263,7 +18263,7 @@ p = &CdCmd_Queue;
 ```
 
 `CdCmd_HandleFileLoad` is the pure example. The two bases (`s0` for `state`, `a0` for
-the reloaded `p`) are required so `field_222` and `busy` use different
+the reloaded `p`) are required so `pausePlayClock` and `busy` use different
 addressing.
 
 ## Rematerialize `CdlDiskError` so it is not pinned in `$sN`
@@ -19766,7 +19766,7 @@ if (cur < 0x101) {
     D_8006ACB4 = next + arg0;
     ret = 0;
 } else {
-    /* ClearImage both buffers; field_100 = 0 */
+    /* ClearImage both buffers; gDisplayState.control.flags.imageSource = 0 */
     ret = 1;
 }
 return ret;
@@ -19787,7 +19787,7 @@ register s32 ret asm("v0");
 ```
 
 so the delay slot is `move v0,zero` and the done path is `li v0,1` /
-`lui v1,%hi(gDisplayState)` / `sb zero,field_100`.
+`lui v1,%hi(gDisplayState)` / `sb zero,control.flags.imageSource`.
 
 ## Pin width constant to `$t7` when `index` should land in `$t6`
 
@@ -21563,25 +21563,25 @@ When the target schedules `andi s0, sN, 0xffff` *after* `a0`/`a1`/`a2` setup
 for a call (just before `move a3, s0`), a plain
 
 ```c
-temp_s0 = temp_s5 & 0xFFFF;
-SetDefDrawEnv(p, 0, 0, temp_s0, h);
+widthStagingByte = widthPixels & 0xFFFF;
+SetDefDrawEnv(p, 0, 0, widthStagingByte, h);
 ```
 
-with `u32 temp_s0` hoists the `andi` *before* the `addiu a0`. Declaring
-`temp_s0` as `char` and writing the width as a comma expression forces the late
+with `u32 widthStagingByte` hoists the `andi` *before* the `addiu a0`. Declaring
+`widthStagingByte` as `char` and writing the width as a comma expression forces the late
 schedule while still emitting `andi …, 0xffff` for the actual argument:
 
 ```c
-char temp_s0;
+char widthStagingByte;
 
-SetDefDrawEnv(p, 0, 0, (temp_s0 = temp_s5, temp_s5 & 0xFFFF), h);
+SetDefDrawEnv(p, 0, 0, (widthStagingByte = widthPixels, widthPixels & 0xFFFF), h);
 /* later args reuse the same expression so CSE keeps $s0: */
-SetDefDispEnv(q, 0, y, temp_s5 & 0xFFFF, h);
+SetDefDispEnv(q, 0, y, widthPixels & 0xFFFF, h);
 ```
 
-`temp_s0 = temp_s5 & 0xFFFF` alone on a `char` becomes `andi …, 0xff`. The
+`widthStagingByte = widthPixels & 0xFFFF` alone on a `char` becomes `andi …, 0xff`. The
 comma form evaluates the full-width mask for the call while the dummy `char`
-store reshuffles the scheduler. A second local pointer alias (`new_var = ds`)
+store reshuffles the scheduler. A second local pointer alias (`stateAlias = ds`)
 used on one call site can also be required to keep the register set stable.
 `Display_SetMode` is the pure example.
 
@@ -23585,7 +23585,7 @@ compare promotes with `lbu` + `sll 24`. Assign the cast into an `s32`:
 s32 flag;
 
 flag = (s8)ds->field_122;
-ds->field_103 = 2;
+ds->control.flags.flipMode = 2;
 if (flag == 0) {
     /* calls */
 }
@@ -23806,7 +23806,7 @@ Inlining `memFree(index->spawnArg2)` after the decrement is the 83% form.
 
 ## `s32 val = func(); byte_global = val` rematerialises same-`%hi` store
 
-`gDisplayState` and `D_80071068` (`gDisplayState.at100.flags.imageSource`) share `%hi ==
+`gDisplayState` and `D_80071068` (`gDisplayState.control.flags.imageSource`) share `%hi ==
 0x8007`. Taking `&gDisplayState` into a local and then writing
 
 ```c
@@ -29611,7 +29611,7 @@ hi     = scaled * hi;
 `lui %hi(Gp_LcgState)` hoist) and emits `subu v0` / `mult v0, a0`.
 
 Take `val = hi >> 16` before the sign flip. Passing pinned `hi` to
-`Display_ClampField126` (s8) becomes `sll v1, v1, 24; sra a0, v1, 24`.
+`displaySetShakeY` (s8) becomes `sll v1, v1, 24; sra a0, v1, 24`.
 The unpinned dest keeps `sll a0, v1, 24`. Odd path is `val = ABS(val)`;
 even is `tmp = ABS(val); val = -tmp` so even stays copy-abs
 (`move v0, v1; negu v0; negu v1, v0`).
@@ -45853,7 +45853,7 @@ needs its own run) gives the reason as one line of priorities:
 from conflicting with a non-in-struct reference at a fixed one, so the scalar
 load loses its two predecessors, `priority()` drops to 1, and sched1's ready
 list hoists it to the head of the block. Reading the same addresses as
-`gDisplayState.drawBuffer` / `gDisplayState.skipDraw` / `gDisplayState.field_112` - the struct the game
+`gDisplayState.drawBuffer` / `gDisplayState.skipDraw` / `gDisplayState.debugMode` - the struct the game
 declares for them, based at 0x80070F68, so the field offsets *are* the symbols
 0x80070F87 / 0x8007106C / 0x8007107A - keeps the dependence and is exact:
 99.343% on the scratch scorer, `regs=13`, instructions 99/99.
@@ -64850,7 +64850,7 @@ state-exit branch delay slots. The final unpinned seed is `base_12.c`.
 `func_acropolis_cafeteria_8017D6B4` matched its 19-instruction scratch target
 with an uninitialized local for the incoming `$v0`. The actual callback entry
 was eight bytes earlier: the words at `8017D6AC` were `lui v0,0x8007` /
-`lh v0,0x107A(v0)`, reading `gDisplayState.field_112`. The room task table
+`lh v0,0x107A(v0)`, reading `gDisplayState.debugMode`. The room task table
 pointed at that earlier address. Restore those instructions to `.text` with
 `text = [0xEC, 0x54E8]`; ordinary C using the existing display field then
 matches the full 21-instruction body. Remove only the obsolete instruction
@@ -82788,7 +82788,7 @@ v = 0;
 if (!(count & 1)) {
     v = -1;
 }
-Display_ClampField126(v); /* sll $a0,$a0,24; jal; sra $a0,$a0,24 */
+displaySetShakeY(v); /* sll $a0,$a0,24; jal; sra $a0,$a0,24 */
 ```
 
 The ABI passes the argument in SImode, so GCC converts the register-born
@@ -82800,7 +82800,7 @@ Writing the selection as a ternary whose arms are both constants folds the
 conversion away entirely:
 
 ```c
-Display_ClampField126((count & 1) ? 0 : -1);
+displaySetShakeY((count & 1) ? 0 : -1);
 ```
 
 That is `move $a0,$zero` in the `bnez` delay, `li $a0,-1` on the fall-through,
@@ -117694,7 +117694,7 @@ scalar, so sched1 hoisted its `lui`/`lbu` above the struct stores that open the
 case, and that `lui` (non-trapping) was eligible for the slot. In the target the
 case opens with `lhu $v0, 0($a0)` - a memory load, which `may_trap_p` keeps out
 of an unannulled slot - so the slot stays empty. Naming the globals as the
-struct fields they are (`gDisplayState.drawBuffer` / `gDisplayState.skipDraw` / `gDisplayState.field_112`)
+struct fields they are (`gDisplayState.drawBuffer` / `gDisplayState.skipDraw` / `gDisplayState.debugMode`)
 restores the aliasing edge and took the function straight to a match; the other
 slot differences followed from the layout.
 
@@ -128303,8 +128303,8 @@ Inputs: `base_6.i`
 `5cf3885a51647b8b632550bfd225a9bfc1af43c696739733fb01b1508d5d131e` (100.000%).
 ## A narrow prototype parameter sign-extends at *every* call site; a block-scope old-style declaration is what removes it (func_actor_142900_80131E24, 2026-09-17)
 
-The caller-side complement of the `s16`/`s32` parameter entry above. `Display_ClampField126`
-is declared `void Display_ClampField126(s8 index)` in `include/main/display.h`, and it
+The caller-side complement of the `s16`/`s32` parameter entry above. `displaySetShakeY`
+is declared `void displaySetShakeY(s8 offsetY)` in `include/main/display.h`, and it
 sign-extends that byte on *entry* (`sll a0,a0,24; sra a0,a0,24`), so a caller that hands it
 a full SImode value behaves identically. GCC emits the call-site conversion anyway. The mips
 port defines `PROMOTE_PROTOTYPES` (`config/mips/mips.h`), so `convert_arguments`
@@ -128331,7 +128331,7 @@ the prototype and hides it from that call.
 ```c
 void func_actor_142900_80131E24(Task* arg0)
 {
-    extern void Display_ClampField126();   /* no prototype here -> no conversion */
+    extern void displaySetShakeY();   /* no prototype here -> no conversion */
     s32         var_a0;
 ```
 

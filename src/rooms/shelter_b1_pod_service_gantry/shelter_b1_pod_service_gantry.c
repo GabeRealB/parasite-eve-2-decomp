@@ -1561,7 +1561,7 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             Mc_SaveData[0].state.at4.loc.area  = 0x11;
             Mc_SaveData[0].state.at4.loc.warp  = 2;
             Mc_SaveData[0].state.at4.loc.room  = 1;
-            gDisplayState.roomVariant          = 1;
+            gDisplayState.spriteVariant        = 1;
             Task_Spawn(0, 0x11, 0, 0);
         case 2:
         next:

@@ -113,9 +113,9 @@ static void func_replay_bonus_80117194(Task* arg0)
                 arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_801191C4, 2, 1, 1, NULL);
                 break;
             case 6:
-                GameMain_SetFrameTiming(0);
+                GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
                 func_replay_bonus_80116EC0();
-                gDisplayState.gameMode  = 0xFF;
+                gDisplayState.gameMode  = DISPLAY_GAME_MODAL;
                 arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_800611E4, 0, 1, 1, NULL);
                 break;
             case 7:
@@ -349,7 +349,7 @@ static void func_replay_bonus_80117848(Task* arg0)
     arg0->killCountdown = timer;
     if ((s16)timer >= 0x78) {
         gGameSession->uiOpen = 1;
-        GameMain_SetFrameTiming(0);
+        GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         CdCmd_EnqueueLoadFile(1, 0x3E, 3);
         arg0->state = arg0->state + 1;
     }
@@ -370,10 +370,10 @@ static void func_replay_bonus_80117924(Task* arg0)
 
     arg0->killCountdown = remaining;
     if ((s16)remaining < 0) {
-        gDisplayState.gameMode = 0;
+        gDisplayState.gameMode = DISPLAY_GAME_ACTIVE;
         gGameSession->uiOpen   = 0;
         Task_CallExit(arg0);
-        gDisplayState.gameMode = 1;
+        gDisplayState.gameMode = DISPLAY_GAME_RESTART;
     }
 }
 
@@ -398,6 +398,10 @@ void func_replay_bonus_8011797C(Task* arg0)
 
 void func_replay_bonus_80117A08(Task* arg0)
 {
+    enum {
+        DISPLAY_SETUP_INTERLACED_640X480 = 0x1141,
+    };
+
     RECT               rect;
     s32                temp_a1;
     s32                temp_v1_2;
@@ -420,9 +424,9 @@ void func_replay_bonus_80117A08(Task* arg0)
             D_replay_bonus_80119225        = 0;
             D_replay_bonus_801192BC->table = temp_v0;
             func_replay_bonus_80118F00(0);
-            GameMain_SetFrameTiming(0);
+            GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             SetDispMask(1);
-            Display_SetMode(0x1141);
+            Display_SetMode(DISPLAY_SETUP_INTERLACED_640X480);
             rect.x = 0x280;
             rect.w = 0xF0;
             rect.y = 0;
@@ -430,10 +434,10 @@ void func_replay_bonus_80117A08(Task* arg0)
             ClearImage(&rect, 0, 0, 0);
             rect.y = 0x100;
             ClearImage(&rect, 0, 0, 0);
-            D_replay_bonus_801192A4               = -0x1E0;
-            gDisplayState.at100.flags.imageSource = 0;
-            D_replay_bonus_801192B0               = 0;
-            arg0->killCountdown                   = D_replay_bonus_80119294->hold0 * 6;
+            D_replay_bonus_801192A4                 = -0x1E0;
+            gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
+            D_replay_bonus_801192B0                 = 0;
+            arg0->killCountdown                     = D_replay_bonus_80119294->hold0 * 6;
             CdCmd_StartOverlay(0U, 1U, 0xBU);
             CdCmd_EnqueueOverlay82();
             goto advance;
@@ -505,7 +509,7 @@ void func_replay_bonus_80117A08(Task* arg0)
         case 21:
             Gp_RestoreStreamRng();
             memFree(D_replay_bonus_801192BC);
-            Display_SetMode(0x1010);
+            Display_SetMode(DISPLAY_SETUP_DEFAULT);
             goto advance;
         case 24:
             func_800B2968();

@@ -290,7 +290,7 @@ gear to an actor, then rewrites `parent` and TMD coord links.
 ### Banks 3, 4, 5, 8, 10, 14
 
 Placeholder slots plus a few overlay or shared-TMD callbacks. Bank 5 type `1`
-is `Task_KillMaybeSpawn` (`taskutil.c`): on `gDisplayState.field_112` it
+is `Task_KillMaybeSpawn` (`taskutil.c`): on `gDisplayState.debugMode` it
 spawns `D_80725C54[0]` (overlay desc) then kills itself.
 
 ---

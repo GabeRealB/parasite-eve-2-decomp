@@ -1225,11 +1225,11 @@ void func_actor_335800_80162588(Task* arg0)
         if ((temp_v1 & 2) && !(arg0->killCountdown & 1)) {
             var_a0 = -1;
         }
-        Display_ClampField126(var_a0);
+        displaySetShakeY(var_a0);
         arg0->killCountdown += 1;
         return;
     }
-    Display_ClampField126(0);
+    displaySetShakeY(0);
     taskKill(arg0);
 }
 

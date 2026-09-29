@@ -373,7 +373,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
     }
 
     copyPending = cfg->copyPending;
-    if (copyPending == 1 && gDisplayState.pendingMode == 0) {
+    if (copyPending == 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
         drArea          = (DR_AREA*)gGpuPrimCursor;
         gGpuPrimCursor += sizeof(DR_AREA);
         rect.x          = 0;

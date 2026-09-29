@@ -1,5 +1,6 @@
 #include <psyq/sys/types.h>
 #include <psyq/libspu.h>
+#include <psyq/libetc.h>
 
 #include "common.h"
 
@@ -1217,12 +1218,12 @@ static void Midi_DriveTrack(MidiSong* song, MidiTrack* track)
     u8  status;
 
     temp = track->field_38 + (song->field_4 + song->field_5) * song->ticksPerQuarter;
-    if (gDisplayState.region == 1) {
+    if (gDisplayState.region == MODE_PAL) {
         quot = temp / 6000U;
     } else {
         quot = temp / 3600U;
     }
-    if (gDisplayState.region == 1) {
+    if (gDisplayState.region == MODE_PAL) {
         rem = temp % 6000U;
     } else {
         rem = temp % 3600U;

@@ -119,12 +119,12 @@ kill:
 }
 
 /// One-shot task: spawns the stream player, the second entry of the room's
-/// descriptor pair, as the display's owning task, sets `gDisplayState.at100.flags.flipMode`, spawns
+/// descriptor pair, as the display's owning task, sets `gDisplayState.control.flags.flipMode`, spawns
 /// the view tasks and kills itself.
 void func_shelter_b6_training_room_8017DD98(Task* arg0)
 {
     Display_SpawnWithOt(D_shelter_b6_training_room_8018431C, 1, 0, 0);
-    gDisplayState.at100.flags.flipMode = 1;
+    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }

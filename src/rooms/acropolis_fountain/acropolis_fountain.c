@@ -149,7 +149,7 @@ void func_acropolis_fountain_8017D868(Task* task)
             Mc_SaveData[0].state.at4.loc.area = 3;
             Mc_SaveData[0].state.at4.loc.room = 3;
             Mc_SaveData[0].state.at4.loc.warp = D_acropolis_fountain_80183BB0;
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Task_Spawn(0, 0x11, 0, 0);
             GameFlag_SetNibble(0, 5);
             taskKill(task);

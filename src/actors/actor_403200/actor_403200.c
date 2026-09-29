@@ -5621,7 +5621,7 @@ static const GpEnemyTaskFuncTable4 D_actor_403200_80131F28 = {
 /// Screen-shake driver for the enemy task: `func_actor_403200_8013FB54` writes a
 /// level into `field_EAC`, and a change from the armed level in `field_EAD`
 /// starts a shake of 5, 10 or 22 frames -- any other level is ignored. Each tick
-/// spends one frame and drives `Display_ClampField126` off the frame counter's
+/// spends one frame and drives `displaySetShakeY` off the frame counter's
 /// low bits, so level 1 alternates 0 / 2, level 2 walks a four-frame 0 / 2 / 3 / 2
 /// pattern and level 3 an eight-frame ramp that peaks at 4. The shake clears
 /// itself once the counter runs out. Same body as
@@ -5655,7 +5655,7 @@ static void func_actor_403200_80138284(Task* arg0)
     }
 
     if (work->field_EAE == 0) {
-        Display_ClampField126(0);
+        displaySetShakeY(0);
         work->field_EAC = 0;
         work->field_EAD = 0;
         return;
@@ -5670,7 +5670,7 @@ static void func_actor_403200_80138284(Task* arg0)
             } else {
                 work->field_EAF = 2;
             }
-            Display_ClampField126(work->field_EAF);
+            displaySetShakeY(work->field_EAF);
             break;
 
         case 2:
@@ -5689,7 +5689,7 @@ static void func_actor_403200_80138284(Task* arg0)
                     work->field_EAF = 2;
                     break;
             }
-            Display_ClampField126(work->field_EAF);
+            displaySetShakeY(work->field_EAF);
             break;
 
         case 3:
@@ -5712,12 +5712,12 @@ static void func_actor_403200_80138284(Task* arg0)
                     work->field_EAF = 0;
                     break;
             }
-            Display_ClampField126(work->field_EAF);
+            displaySetShakeY(work->field_EAF);
             break;
 
         case 0:
         default:
-            Display_ClampField126(0);
+            displaySetShakeY(0);
             break;
     }
 }

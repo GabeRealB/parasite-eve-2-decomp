@@ -1181,7 +1181,7 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
 
     if (Gp_StateC08.field_A == 0 && Gp_StateC08.field_E == 0) {
         ok = hudSwapReady();
-        if ((ok != 0 && (gGameSession->padPrev & 0x10) && gDisplayState.pendingMode == 0 &&
+        if ((ok != 0 && (gGameSession->padPrev & 0x10) && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
              !(Gp_StateC08.field_6 & 1)) ||
             (Gp_StateC08.field_6 & 0x10)) {
             Gp_StateC08.field_9  = 1;
@@ -1337,7 +1337,7 @@ void Gp_HudTask(GpIdMapC* arg0)
     kind &= GP_LOC_STAGE_AREA;
     cfg   = &Player_Status;
     ds    = &gDisplayState;
-    if (ds->demoScene != 0) {
+    if (ds->demoScene != DISPLAY_DEMO_NONE) {
         poly           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
         poly->x2       = 0x16;
@@ -1393,7 +1393,7 @@ void Gp_HudTask(GpIdMapC* arg0)
     b             = arg0->field_14;
     arg0->field_D = 0;
     if (b != 0) {
-        if (ds->pendingMode == 0) {
+        if (ds->pendingMode == DISPLAY_MODE_NONE) {
             if (ds->holdState >= 0) {
                 ds->pendingMode = b;
             }
@@ -1416,7 +1416,7 @@ void Gp_HudTask(GpIdMapC* arg0)
             goto after;
         }
         if (Gp_StateC08.field_A != 0) {
-            if (d2->demoScene == 0) {
+            if (d2->demoScene == DISPLAY_DEMO_NONE) {
                 goto after;
             }
         }
@@ -1432,7 +1432,7 @@ void Gp_HudTask(GpIdMapC* arg0)
         if (Gp_StateF0.prefix.bytes.field_1 != 0) {
             goto after;
         }
-        if (d2->pendingMode != 0) {
+        if (d2->pendingMode != DISPLAY_MODE_NONE) {
             goto after;
         }
         if (Pad_CheckButtons(0, 1, 0x800) != 0) {
@@ -1513,11 +1513,11 @@ after:
     {
         DisplayState* d3;
 
-        c08          = &Gp_StateC08;
-        d3           = &gDisplayState;
-        c08->field_3 = 0;
-        d3->loadBusy = 1;
-        state        = arg0->field_0;
+        c08                         = &Gp_StateC08;
+        d3                          = &gDisplayState;
+        c08->field_3                = 0;
+        d3->suppressDisconnectPause = 1;
+        state                       = arg0->field_0;
         if (state != 1) {
             goto other;
         }
@@ -1540,9 +1540,9 @@ after:
             goto tail;
         }
         if (sub == state) {
-            f0           = &Gp_StateF0;
-            b            = f0->prefix.bytes.field_1;
-            d3->loadBusy = 0;
+            f0                          = &Gp_StateF0;
+            b                           = f0->prefix.bytes.field_1;
+            d3->suppressDisconnectPause = 0;
             if (b != 0) {
                 if (f0->field_4 == 0) {
                     f0->prefix.bytes.field_1 = b - 1;
@@ -1694,8 +1694,8 @@ after:
                 }
             }
             d4 = &gDisplayState;
-            if (d4->demoScene != 0) {
-                d4->gameMode = 1;
+            if (d4->demoScene != DISPLAY_DEMO_NONE) {
+                d4->gameMode = DISPLAY_GAME_RESTART;
             zero:
                 arg0->field_4 = 0;
                 arg0->field_0 = 0;

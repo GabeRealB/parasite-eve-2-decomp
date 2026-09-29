@@ -173,7 +173,7 @@ void func_shelter_b1_north_maintenance_walkway_8017D60C(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_north_maintenance_walkway_80185B74.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_north_maintenance_walkway_80185B74.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_north_maintenance_walkway_80185B74.field_3;
@@ -239,7 +239,7 @@ void func_shelter_b1_north_maintenance_walkway_8017D918(Task* arg0)
             break;
         case 2:
             if (arg0->killCountdown == 0) {
-                if (gDisplayState.pendingMode == 0) {
+                if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                     Gp_SpawnIfCapIdle(1, 0);
                     taskKill(arg0);
                 }

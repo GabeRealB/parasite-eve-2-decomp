@@ -850,7 +850,7 @@ void func_actor_450900_8013235C(Task* task)
             Mc_SaveData[0].state.at4.loc.warp  = 3;
             Mc_SaveData[0].state.companionType = 0;
             Mc_SaveData[0].state.at4.loc.room  = 1;
-            gDisplayState.roomVariant          = 1;
+            gDisplayState.spriteVariant        = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Gp_RestoreStreamRng();
             taskKill(task);

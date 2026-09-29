@@ -914,7 +914,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
     work = (AobSceneWork*)task->work;
     switch (task->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             blk        = memCalloc(8, 0);

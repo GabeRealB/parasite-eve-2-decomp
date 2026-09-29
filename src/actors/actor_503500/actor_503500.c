@@ -895,9 +895,9 @@ static void func_actor_503500_8013223C(Task* arg0)
             if (!(enemy->placeKey & 0xF)) {
                 if (work->field_40 & 1) {
                     Gp_SpawnScript18(D_actor_503500_801468A8, D_actor_503500_801468B0);
-                    Display_ClampField126(-1);
+                    displaySetShakeY(-1);
                 } else {
-                    Display_ClampField126(0);
+                    displaySetShakeY(0);
                 }
             }
             work->field_40++;
@@ -905,16 +905,16 @@ static void func_actor_503500_8013223C(Task* arg0)
             work->field_40 = 0;
             work->field_45 = 0;
             if (!(enemy->placeKey & 0xF)) {
-                Display_ClampField126(0);
+                displaySetShakeY(0);
             }
         }
     } else if (work->field_40 > 0) {
         if (!(enemy->placeKey & 0xF)) {
             if (work->field_40 & 1) {
                 Gp_SpawnScript18(D_actor_503500_801468A8, D_actor_503500_801468B0);
-                Display_ClampField126(-1);
+                displaySetShakeY(-1);
             } else {
-                Display_ClampField126(0);
+                displaySetShakeY(0);
             }
         }
         work->field_40--;
@@ -1040,7 +1040,7 @@ s32 func_actor_503500_80132664(Task* task, s32 arg1, GpCmdArg* msg)
         case 0:
             work->field_45 = 0;
             work->field_40 = 0;
-            Display_ClampField126(0);
+            displaySetShakeY(0);
             break;
         case 1:
             work->field_45            = 1;

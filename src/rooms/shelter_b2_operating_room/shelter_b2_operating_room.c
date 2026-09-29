@@ -1032,7 +1032,7 @@ void func_shelter_b2_operating_room_8017D78C(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_operating_room_8018421C.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_operating_room_8018421C.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_operating_room_8018421C.field_3;
@@ -1083,7 +1083,7 @@ void func_shelter_b2_operating_room_8017D8FC(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_operating_room_8018422C.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_operating_room_8018422C.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_b2_operating_room_8018422C.field_3;

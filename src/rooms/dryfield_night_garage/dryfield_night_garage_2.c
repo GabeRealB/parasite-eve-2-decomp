@@ -1148,12 +1148,12 @@ void func_dryfield_night_garage_80180CEC(Task* arg0)
 }
 
 /// Spawns `D_dryfield_night_garage_80183380` with an ordering table, passing
-/// on the task's `spawnArg1`, sets `gDisplayState.at100.flags.flipMode`, spawns the view tasks and
+/// on the task's `spawnArg1`, sets `gDisplayState.control.flags.flipMode`, spawns the view tasks and
 /// kills itself.
 void func_dryfield_night_garage_80180D4C(Task* arg0)
 {
     Display_SpawnWithOt(D_dryfield_night_garage_80183380, 1, arg0->spawnArg1.value, 0);
-    gDisplayState.at100.flags.flipMode = 1;
+    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }

@@ -491,17 +491,17 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
     } else {
         p->decodeBufferBytes = 0;
     }
-    p->field_23A = 0;
-    p->field_21E = 0;
-    p->field_218 = 0;
-    p->field_21C = 0;
-    streamType   = slot->field_18;
-    seed         = Gp_LcgState;
-    *D_80114D14  = 0;
-    p->field_238 = streamType;
-    p->field_1A8 = seed;
-    p->field_1AC = rand();
-    Gp_LcgState  = 0;
+    p->field_23A   = 0;
+    p->field_21E   = 0;
+    p->field_218   = 0;
+    p->imageLayout = FILE_SYSTEM_IMAGE_CONTIGUOUS;
+    streamType     = slot->field_18;
+    seed           = Gp_LcgState;
+    *D_80114D14    = 0;
+    p->field_238   = streamType;
+    p->field_1A8   = seed;
+    p->field_1AC   = rand();
+    Gp_LcgState    = 0;
     srand(1);
     D_80114D20 = 0xFFFF;
     return i;
@@ -1025,9 +1025,9 @@ static void Gp_StartStageLoad(Task* task)
     s32           fileId;
 
     if (Midi_IsBusy(0) == 0) {
-        gDisplayState.loadBusy = 1;
-        i                      = 0;
-        table                  = D_8006C338;
+        gDisplayState.suppressDisconnectPause = 1;
+        i                                     = 0;
+        table                                 = D_8006C338;
         do {
             table[(u8)i].field_0 = 0;
             i++;
@@ -1054,7 +1054,7 @@ static void Gp_StartStageLoad(Task* task)
 static void Gp_FinishStageLoad(Task* task)
 {
     if (CdCmd_IsIdle() & 0xFFFF) {
-        gDisplayState.at100.flags.imageSource = 1;
+        gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
         if (gGameSession->restartMode == 0xFF) {
             Task_SpawnFromTable(D_8011922C, 0, 0, 0);
             taskKill(task);
@@ -1072,10 +1072,10 @@ static void Gp_StageLoadState2(Task* task)
     DisplayState* ds;
 
     if (Task_PollKill(task->spawnArg2.pointer, &out) != 0) {
-        ds                  = &gDisplayState;
-        task->killCountdown = 0;
-        ds->gameMode        = 1;
-        ds->loadBusy        = 0;
+        ds                          = &gDisplayState;
+        task->killCountdown         = 0;
+        ds->gameMode                = DISPLAY_GAME_RESTART;
+        ds->suppressDisconnectPause = 0;
         taskKill(task);
     }
 }

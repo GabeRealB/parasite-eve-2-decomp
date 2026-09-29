@@ -750,7 +750,7 @@ static void func_actor_310100_80161F80(Task* task)
 }
 
 /// Spawn tick of the actor task, registered as its task state handler: states 1
-/// and 2 — and state 0, which first parks `gDisplayState.at100.flags.flipMode` at 2 — only step the
+/// and 2 — and state 0, which first parks `gDisplayState.control.flags.flipMode` at 2 — only step the
 /// state, and state 3 spawns the display model. `spawnArg1` picks which one:
 /// `D_actor_310100_80179920` with display id 0x6D, or `D_actor_310100_801798FC`
 /// with 0x6C. It then walks the nested area place list for the record carrying
@@ -770,7 +770,7 @@ void func_actor_310100_801620FC(Task* task)
     work = (Actor310100Work*)((Task*)task->spawnArg2.pointer)->work;
     switch (task->state) {
         case 0:
-            gDisplayState.at100.flags.flipMode = 2;
+            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
             /* fallthrough */
         case 1:
         case 2:
@@ -813,7 +813,7 @@ void func_actor_310100_801620FC(Task* task)
 }
 
 /// Second spawn tick of the actor task: states 1 and 2 — and state 0, which
-/// first parks `gDisplayState.at100.flags.flipMode` at 2 — only step the state, and state 3 spawns the
+/// first parks `gDisplayState.control.flags.flipMode` at 2 — only step the state, and state 3 spawns the
 /// display model on the default list: `D_actor_310100_80179920` with display id
 /// 0x6D for `spawnArg1` 0, `D_actor_310100_801798FC` with 0x6C for 1, both at
 /// table index 2 with `arg2` 5 and 7. It then walks the nested area place list
@@ -834,7 +834,7 @@ void func_actor_310100_80162284(Task* task)
     work = (Actor310100Work*)((Task*)task->spawnArg2.pointer)->work;
     switch (task->state) {
         case 0:
-            gDisplayState.at100.flags.flipMode = 2;
+            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
             /* fallthrough */
         case 1:
         case 2:

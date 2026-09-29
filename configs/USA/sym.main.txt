@@ -1344,7 +1344,7 @@ ratan2                      = 0x8003D9C8;
 Display_SetMode               = 0x8003DB48; // type:func
 Display_SetAutoClear               = 0x8003DE14; // type:func
 Display_SetModeDefault               = 0x8003DE58; // type:func
-Display_ClampField126               = 0x8003DE78; // type:func
+displaySetShakeY               = 0x8003DE78; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x2E650   VA: 0x8003DEB0   subsegment: o, libgpu/e03
@@ -2846,7 +2846,7 @@ Gp_LcgState                  = 0x80070F60;
 gGpuPrimCursor              = 0x80071190;
 Gpu_SysPrimCursor           = 0x80070EE0;
 Gpu_PrimBufStatic           = 0x800740E0;
-Gpu_PrimBufBase             = 0x8007A0E0;
+_gGpuDisplayPrimBufferBase             = 0x8007A0E0;
 gGfxViewCoord               = 0x80070F10; // type:GfxCoord size:0x50
 Gfx_ViewWorldMtx            = 0x80070F34;
 gGfxViewRotCoord            = 0x80070E40; // type:GfxCoord size:0x50
@@ -3145,7 +3145,7 @@ Mem_UnusedDevKitEndPointer = 0x8005C378;
 
 CdCmd_MapHeapSizes = 0x8005DCB4;
 
-Gpu_PrimBufferBytes = 0x8007A0E4;
+_gGpuDisplayPrimBufferBytes = 0x8007A0E4;
 
 Display_HoldMode = 0x8007A118;
 

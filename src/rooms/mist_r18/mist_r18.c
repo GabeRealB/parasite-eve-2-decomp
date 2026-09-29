@@ -1231,7 +1231,7 @@ static void func_mist_r18_8017D960(Task* task)
 {
     s32 state;
 
-    if ((gGameSession->eventState == 0) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
+    if ((gGameSession->eventState == 0) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
         state = D_mist_r18_80186E9C;
         if (state == 1) {
             func_800E8634(D_mist_r18_80185EBC, 0, D_mist_r18_80186564);
@@ -1790,7 +1790,7 @@ void func_mist_r18_8017EB48(void)
     Mc_SaveData[0].state.at4.loc.area  = 0x13;
     Mc_SaveData[0].state.at4.loc.warp  = 3;
     Mc_SaveData[0].state.at4.loc.room  = 3;
-    gDisplayState.roomVariant          = 1;
+    gDisplayState.spriteVariant        = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
 }

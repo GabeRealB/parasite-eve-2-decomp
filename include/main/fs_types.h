@@ -44,6 +44,12 @@ typedef struct _CdCmd58Entry {
 } CdCmd58Entry;
 STATIC_ASSERT_SIZEOF(CdCmd58Entry, 0x3C);
 
+/// Layout of the decoded room image consumed by the display uploader.
+enum {
+    FILE_SYSTEM_IMAGE_CONTIGUOUS = 0,
+    FILE_SYSTEM_IMAGE_STRIPS     = 1,
+};
+
 /// Global CD / asset load command queue (`CdCmd_Queue`).
 typedef struct _CdCmdQueue {
     CdCmdEntry   entries[8];
@@ -101,17 +107,17 @@ typedef struct _CdCmdQueue {
     u16          field_210; // 0x210 — set when Stream_FindSlot succeeds (Gp_ViewBeginLoad)
     u16          field_212;
     u16          field_214;
-    u16          field_216; // 0x216 — non-zero enables buffer setup in CdCmd_SetupMdecBuffers
-    u16          field_218; // 0x218 — non-zero blocks Mdec_ResolveStreamBuffer success path
+    u16          field_216;      // 0x216 — non-zero enables buffer setup in CdCmd_SetupMdecBuffers
+    u16          field_218;      // 0x218 — non-zero blocks Mdec_ResolveStreamBuffer success path
     s16          field_21A;
-    u16          field_21C; // image transfer mode for Display_LoadImageStrips (0 / 1)
-    u16          field_21E; // 0x21E — DecDCTvlcBuild done flag
+    u16          imageLayout;    // Room image layout (0 contiguous 320x240, 1 twenty 16x240 strips)
+    u16          field_21E;      // 0x21E — DecDCTvlcBuild done flag
     byte         unknown_220[0x2];
-    u16          field_222;
+    u16          pausePlayClock; // Nonzero pauses the play clock during CD file loads
     u16          field_224;
-    u16          field_226; // sub-state for CdCmd_RecoverDisk disk recovery
+    u16          field_226;      // sub-state for CdCmd_RecoverDisk disk recovery
     u16          field_228;
-    u16          field_22A; // DecDCTin mode for Mdec_DecodeToVram
+    u16          field_22A;      // DecDCTin mode for Mdec_DecodeToVram
     u16          field_22C;
     u16          field_22E;
     u16          field_230;

@@ -715,9 +715,9 @@ static const char D_acropolis_east_elevator_hall_8017D5E0[8] = "Player\0\x0F";
 
 static void func_acropolis_east_elevator_hall_8017F4E8(Task* task)
 {
-    if (gDisplayState.field_112 != 0) {
+    if (gDisplayState.debugMode != 0) {
         func_807245E4(gameGetPtrSlot(3));
-        if (gDisplayState.field_112 != 0) {
+        if (gDisplayState.debugMode != 0) {
             func_80724608(gameGetPtrSlot(3), -0x8C, -0x32, &D_acropolis_east_elevator_hall_8017D5E0);
         }
     }

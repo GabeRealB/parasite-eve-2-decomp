@@ -986,7 +986,7 @@ void func_acropolis_cafeteria_8017E658(Task* arg0)
 void func_acropolis_cafeteria_8017E6B8(Task* arg0)
 {
     Display_SpawnWithOt(D_acropolis_cafeteria_80184178, 2, 0, 0);
-    gDisplayState.at100.flags.flipMode = 1;
+    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }

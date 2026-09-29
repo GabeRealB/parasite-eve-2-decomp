@@ -100,7 +100,7 @@ void func_800AD6BC(void)
             D_80114D08 = 0xA;
         }
     }
-    if (gDisplayState.pendingMode != 0) {
+    if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
         D_80114D08 = 0xA;
     }
     if (D_80114CF8 == 0) {
@@ -119,7 +119,7 @@ void func_800AD6BC(void)
                 flags       = Gp_DirFlags;
                 mask        = flags & 0x8000;
                 if (Gp_StateF0.prefix.bytes.field_1 == 0) {
-                    if (mask && (gDisplayState.pendingMode == 0) && !(gGameSession->padPrev & 0x10)) {
+                    if (mask && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && !(gGameSession->padPrev & 0x10)) {
                         if (!(flags & 0x4000)) {
                             D_80114CF8 = 1;
                         } else if (Gp_StateF0.prefix.bytes.field_0 != 1) {

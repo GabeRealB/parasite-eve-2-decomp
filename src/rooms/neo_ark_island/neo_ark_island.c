@@ -1302,7 +1302,7 @@ void func_neo_ark_island_8017E844(Task* arg0)
             return;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_neo_ark_island_80184008.field_2;
             Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_island_80184008.field_4;
             Mc_SaveData[0].state.at4.loc.room = D_neo_ark_island_80184008.prefix.bytes.field_1;

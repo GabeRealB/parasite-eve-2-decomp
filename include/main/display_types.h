@@ -7,69 +7,161 @@
 
 #include "common.h"
 
-/// The display pipeline: the two framebuffer/draw environment pairs, the clocks
-/// the game animates from, and the flags that decide what each vblank does.
+/// Presentation path selected by `DisplayState::displayOwner`.
+enum {
+    DISPLAY_OWNER_GAME_LOOP  = 0,
+    DISPLAY_OWNER_TRANSITION = 1,
+    DISPLAY_OWNER_TASK       = 2,
+};
+
+/// Main-loop reset and modal-screen states, stored as a byte.
+enum {
+    DISPLAY_GAME_ACTIVE  = 0,
+    DISPLAY_GAME_RESTART = 1,
+    DISPLAY_GAME_MODAL   = 0xFF,
+};
+
+/// Presentation routine selected by the VSync callback.
+enum {
+    DISPLAY_VSYNC_GAME = 0,
+    DISPLAY_VSYNC_TASK = 1,
+};
+
+/// Full presentation uploads strips for nonzero sources; task-only uses 2 or 3.
+enum {
+    DISPLAY_IMAGE_NONE              = 0,
+    DISPLAY_IMAGE_STRIPS            = 1,
+    DISPLAY_IMAGE_TRANSITION_STRIPS = 2,
+    DISPLAY_IMAGE_ROOM_SLOT         = 3,
+};
+
+/// Low-nibble presentation modes and the flag suppressing the task ordering table.
+enum {
+    DISPLAY_FLIP_FULL         = 0,
+    DISPLAY_FLIP_TASK_ONLY    = 1,
+    DISPLAY_FLIP_HOLD         = 2,
+    DISPLAY_FLIP_MODE_MASK    = 0xF,
+    DISPLAY_FLIP_SKIP_TASK_OT = 0x10,
+};
+
+/// Hold bit and preserved low bits; initial setup holds with every bit set.
+enum {
+    DISPLAY_HOLD_ACTIVE    = 0x80,
+    DISPLAY_HOLD_MODE_MASK = 0x7F,
+    DISPLAY_HOLD_INITIAL   = -1,
+};
+
+/// Pending requests; high-bit sentinel requests bypass the normal display-hold gate.
+enum {
+    DISPLAY_MODE_NONE       = 0,
+    DISPLAY_MODE_MENU_FIRST = 0x20,
+    DISPLAY_MODE_MENU_LIMIT = 0x80,
+    DISPLAY_MODE_DESCRIPTOR = 0x81,
+    DISPLAY_MODE_BARE_OT    = 0xFF,
+};
+
+/// CD-command latch values used to block reset while work is active.
+enum {
+    DISPLAY_CD_IDLE = 0,
+    DISPLAY_CD_BUSY = 0xFF,
+};
+
+/// Resource and heap layout selected by the image loader.
+enum {
+    DISPLAY_VIDEO_NORMAL    = 0,
+    DISPLAY_VIDEO_STREAMING = 1,
+};
+
+/// Demo selector values outside the numbered scene range.
+enum {
+    DISPLAY_DEMO_NONE         = 0,
+    DISPLAY_DEMO_FIXED_REPLAY = 0x10,
+};
+
+/// Packed screen setup: width index in bits 4..7, height index in bits 0..3.
+enum {
+    DISPLAY_SETUP_WIDTH_MASK     = 0xF0,
+    DISPLAY_SETUP_HEIGHT_MASK    = 0xF,
+    DISPLAY_SETUP_INTERLACE_MASK = 0xF00,
+    DISPLAY_SETUP_RGB24          = 0x2000,
+    DISPLAY_SETUP_NO_CLEAR       = 0x4000,
+    DISPLAY_SETUP_KEEP_VIEW      = 0x8000,
+    DISPLAY_SETUP_DEFAULT        = 0x1010,
+};
+
+/// The packed room-start bytes that preserve the saved view instead of the warp's default.
+enum {
+    DISPLAY_ROOM_START_KEEP_VIEW_MASK = 0x00FFFF00,
+};
+
+/// Signed pixel limits accepted by the vertical screen-shake request.
+enum {
+    DISPLAY_SHAKE_MIN = -8,
+    DISPLAY_SHAKE_MAX = 8,
+};
+
+/// Resident frame presentation, clocks and controls shared by all overlays.
 ///
-/// Frames alternate between two buffers, and three fields record which one is
-/// current — `drawBuffer` for the game, `otBuffer` for the ordering tables and
-/// `frameBuffer` for the flip. Comparing them is how the code tells whether the
-/// flip has caught up with the frame it has just built.
+/// Buffer indices are 0 or 1. Game rendering builds `otBuffer`; tasks that own
+/// presentation and the movie decoder advance `frameBuffer`. `drawBuffer`
+/// selects the primitive half and environments exposed to drawing consumers.
+/// The clocks reset at initialization and when deterministic replay begins.
+/// Unknown storage retains its observed extent without asserting a role.
 typedef struct {
-    s32     frameCount;   // Vblanks elapsed while the game owns the display; the frame timestamp gameplay reads
-    s32     gameTick;     // 1/60-second game time, accumulated for the play clock; stops advancing while a CD command runs
-    u32     animFrame;    // Frames rendered since the last reset; the phase effect animation advances from
-    s32     vsyncCount;   // Vblanks since the display was set up, counted even while another screen owns it
-    s32     field_10;     // Advanced with `gameTick` but never paused; no reader in this tree, role unproven
-    s32     loopCount;    // Main-loop iterations since the last reset, counted even when no frame is rendered
-    u16     width;        // Active framebuffer width in pixels
-    s16     height;       // Active framebuffer height in pixels
-    u8      interlace;    // 1 when the display is interlaced
-    s8      holdState;    // Negative while a caller holds the display; the low bits are never written in this tree
-    s8      displayOwner; // Which path renders the frame (0 the game loop, 1 a stage transition, 2 a task spawned with its own OT)
-    u8      drawBuffer;   // Index of the frame buffer the game is building (0/1)
-    DISPENV dispEnv[2];   // Display environments, one per buffer, selected by `drawBuffer`
-    DRAWENV drawEnv[2];   // Draw environments, one per buffer, selected by `drawBuffer`
-    /// The flags at 0x100. The room-start path tests all four as one word.
+    s32     frameCount;                  // Game-owned vblanks; timestamps continue during a main-loop halt
+    s32     gameTick;                    // Nominal 60-Hz play-clock ticks; CD file loads pause this counter
+    u32     animFrame;                   // Game frames begun; animation phase wraps as an unsigned counter
+    s32     vsyncCount;                  // All vblanks since the clocks were reset, including modal presentation
+    s32     loopTicks;                   // One tick per non-halted loop plus game-frame pacing ticks; CD work does not pause it
+    s32     loopCount;                   // Non-halted main-loop iterations, including task-owned presentation
+    u16     width;                       // Configured framebuffer width in pixels
+    s16     height;                      // Configured framebuffer height in pixels
+    u8      interlace;                   // Requested interlace, including the saved override (0 off, 1 on)
+    s8      holdState;                   // Bit 7 blocks menu requests; low bits are preserved and their role is unproven
+    s8      displayOwner;                // Presentation path (0 game loop, 1 transition, 2 independent task list)
+    u8      drawBuffer;                  // Buffer exposed to drawing consumers (0/1); held frames can retain the old value
+    DISPENV dispEnv[2];                  // Display areas paired with the opposite draw area in non-interlaced double buffering
+    DRAWENV drawEnv[2];                  // Drawing areas and coordinate origins for each buffer
     union {
-        u32 word;                // the four flags as one word
+        u32 word;                        // Packed byte view; room setup tests the two middle bytes together
         struct {
-            u8 imageSource;      // What the flip uploads into the current framebuffer (0 nothing, 1/2 image strips, 3 the room's stored image slot)
-            u8 pendingPlayerPos; // 1: the next room setup puts the player where the save data says, not at the room's own start
-            u8 unknown_102;
-            s8 flipMode;         // What the next vblank flip does (0 upload and draw, 1 draw only, 2 hold the displayed frame, 3 upload the room's image slot; bit 4 suppresses the draw)
+            u8 imageSource;              // Background source (0 none, 1 strips, 2 transition strips, 3 room image slot)
+            u8 pendingPlayerPos;         // Restore the saved player transform at the next room start (0 no, 1 yes)
+            u8 unknown_102;              // Included in the room-start view-preservation test; role unproven
+            s8 flipMode;                 // Low nibble: 0 both OTs, 1 task OT, 2 hold; 0x10 suppresses the task OT
         } flags;
-    } at100;
-    u16         skipDraw;       // Nonzero: flip the frame without drawing the ordering table
-    u16         mdecActive;     // Nonzero while an MDEC stream owns the display; such a frame is neither flipped nor synced
-    volatile u8 vsyncFlag;      // (0 the VSync callback performs the standard flip, 1 it takes the flip mode's path)
-    s8          vramYOffset;    // Vertical offset of both draw environments, in pixels
-    u8          frameTicks;     // 1/60-second units one rendered frame advances (1, 2 or 3)
-    u8          stopTaskWalk;   // A task raises this to end the active-list walk once it returns
-    byte        unknown_10c;
-    u8          pendingMode;    // Display mode id for the next frame (0 none, 0x20-0x7F a mode-table entry, 0xFF a bare ordering-table setup)
-    u16         roomVariant;    // Variant of the stage's room tables, copied into the session when a room is set up
-    u16         screenDistance; // Projection distance of the current view, loaded into GTE H
-    s16         field_112;      // Guards calls into the debug module; nothing in this tree writes it, so those paths are dead. Role unproven
-    s32         otBuffer;       // Index of the ordering table being built (0/1)
-    s32         frameBuffer;    // Index of the frame buffer the flip is on; the flip and the alternate display paths toggle it
-    byte        unknown_11c;
-    u8          holdCount;      // Outstanding display holds; the hold clears when the count reaches zero
-    u8          gameMode;       // (0 running, 1 start or restart requested, 0xFF a menu owns the display)
-    byte        unknown_11f;
-    s16         field_120;      // Set once at display init; no reader in this tree, role unproven
-    s8          keepGraphics;   // Nonzero stops a display reset from reallocating the room's model and sprite buffers
-    s8          skipTeardown;   // Nonzero: skip the per-type teardown when a task is freed
-    u16         region;         // Video standard the sound and CD code is timed for (0 NTSC 60 Hz, 1 PAL 50 Hz)
-    s8          shakeY;         // Vertical screen offset for the next frame, clamped to ±8 and copied into `vramYOffset`
-    byte        unknown_127;
-    u8          otDepthShift;   // Bits a depth value is shifted by to become an ordering-table entry offset
-    byte        unknown_129;
-    u16         videoMode;      // Display setup to use (0 the normal one, 1 the one streaming video needs)
-    u16         demoScene;      // Demo being played back (0 normal play, 1-0xF a demo scene, 0x10 the attract loop)
-    u8          gameRunning;    // 1 once a new game or a load has started; enables the soft-reset combo
-    u8          loadBusy;       // Nonzero while a stage load is in progress; suppresses the loading screen
-    u8          cdBusy;         // Nonzero while a CD command is being processed; suppresses the re-init of the game
-    byte        unknown_131[7];
+    } control;                           // Presentation and room-start controls with byte and packed-word accesses
+    u16         skipDraw;                // Nonzero suppresses the game OT during normal presentation
+    u16         mdecActive;              // Nonzero lets the decoder advance buffers and skips the task-loop GPU wait
+    volatile u8 vsyncFlag;               // VSync presentation path (0 game, 1 task-owned)
+    s8          vramYOffset;             // Applied vertical screen shake in pixels; image uploads crop to this offset
+    u8          frameTicks;              // Nominal 60-Hz animation step per game frame (1, 2 or 3); separate from gameTick
+    u8          stopTaskWalk;            // Task-list request (0 continue, 1 stop after the current callback)
+    byte        unknown_10c;             // Role unproven; no direct access
+    u8          pendingMode;             // Request (0 none, 0x20-0x7F menu, 0x81 descriptor task, 0xFF bare OT)
+    u16         spriteVariant;           // Next session's 1-based sprite-table/CD resource variant (0 unset; USA selects 1)
+    u16         screenDistance;          // Low 16 bits of the view's projection distance, the value held in GTE H
+    s16         debugMode;               // 0 disables external debug hooks; nonzero enables them; negative-mode meaning unproven
+    s32         otBuffer;                // Game ordering-table and primitive-buffer half being built (0/1)
+    s32         frameBuffer;             // Task-owned or movie framebuffer selector (0/1); compared with game buffer selectors
+    byte        unknown_11c;             // Role unproven; no direct access
+    u8          holdCount;               // Outstanding display holds; balanced acquire/release clears bit 7 at zero
+    u8          gameMode;                // Main-loop state (0 active, 1 reinitialize, 0xFF modal screen)
+    byte        unknown_11f;             // Role unproven; no direct access
+    s16         field_120;               // Initialized to 1; no reader, role and signedness unproven
+    s8          keepGraphics;            // Preserve resident room graphics during modal display and decode paths
+    s8          skipTeardown;            // Nonzero skips per-task-type destruction when freeing a task
+    u16         region;                  // Timing standard for audio and CD (0 NTSC/60 Hz, 1 PAL/50 Hz)
+    s8          shakeY;                  // Requested vertical screen shake in pixels, clamped to [-8, 8]
+    byte        unknown_127;             // Role unproven; no direct access
+    u8          otDepthShift;            // Left shift of camera depth before ordering-table quantization (observed 0, 1, 3)
+    byte        unknown_129;             // Role unproven; no direct access
+    u16         videoMode;               // Image/heap setup selector (0 normal, 1 streaming-video setup)
+    u16         demoScene;               // Replay source (0 live play, 1-0xF numbered scene, 0x10 fixed development-memory replay)
+    u8          gameRunning;             // Nonzero enables soft reset and disconnected-controller pause checks
+    u8          suppressDisconnectPause; // Nonzero blocks the disconnected-controller pause screen during loads or HUD effects
+    u8          cdBusy;                  // CD-command processing latch (0 idle, 0xFF busy); blocks main-loop reinitialization
+    byte        unknown_131[7];          // Role and subdivision unproven; retained within the full-state clear
 } DisplayState;
 STATIC_ASSERT_SIZEOF(DisplayState, 0x138);
 

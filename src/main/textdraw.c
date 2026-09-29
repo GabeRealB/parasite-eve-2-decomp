@@ -1031,7 +1031,7 @@ static void Text_UiTaskCallback(Task* task)
 static void Text_BootTask(Task* task)
 {
     Text_LoadClutImages();
-    Display_SetMode(0x1010);
+    Display_SetMode(DISPLAY_SETUP_DEFAULT);
     Game_ClearSession();
     Task_SpawnFromTable(Title_TaskDescs, 0, 0, 0);
     taskKill(task);

@@ -782,9 +782,9 @@ void Gp_FinishLoadWait(Task* task)
         Display_ResetHeapWrapper();
     } else {
         if (task->spawnArg1.value == 1) {
-            gDisplayState.at100.flags.flipMode = 1;
+            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
         }
-        gDisplayState.at100.flags.imageSource = 2;
+        gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_TRANSITION_STRIPS;
         Task_Spawn(0, 0x17, 0, 0);
         gGameSession->viewReady = 1;
         taskKill(task);
@@ -832,7 +832,7 @@ static void Gp_ReloadAtLoc(s32 arg0)
     slot->spawnArg1.value             = (u8)arg0;
     Pad_SetCooldown(0);
     Gp_SpawnCurView(1);
-    gDisplayState.at100.flags.imageSource = 1;
+    gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
     Task_Spawn(0, 0x1E, 0, 0);
 }
 
@@ -856,9 +856,9 @@ void Gp_SetupSprtDisplay(Task* task)
     DisplayState* ds;
     s32           flag;
 
-    ds                       = &gDisplayState;
-    flag                     = ds->keepGraphics;
-    ds->at100.flags.flipMode = 2;
+    ds                         = &gDisplayState;
+    flag                       = ds->keepGraphics;
+    ds->control.flags.flipMode = DISPLAY_FLIP_HOLD;
     if (flag == 0) {
         Gpu_ResetGraphAndOt();
         Tmd_AllocMissingBuffers();

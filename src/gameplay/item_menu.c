@@ -1639,15 +1639,15 @@ void Gp_PublishItemObj(Task* arg0)
         Gp_PubItemReady = 1;
         Gp_PubItemQty   = count;
     }
-    GameMain_SetFrameTiming(0);
+    GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
     Wip_UiHolder        = NULL;
     arg0->killCountdown = 1;
     arg0->state         = arg0->state + 1;
 }
 
 /// Fullscreen semi-trans TILE fade. `spawnArg1` 0/2 count down from 7/8;
-/// 4 also counts down once `gDisplayState.at100.flags.imageSource == 2`; 5 and other
-/// values count up and write `field_100` / `field_103` on completion.
+/// 4 also counts down once `gDisplayState.control.flags.imageSource == 2`; 5 and other
+/// values count up and write `gDisplayState.control.flags.imageSource` / `gDisplayState.control.flags.flipMode` on completion.
 void Gp_FadeTileTask(Task* arg0)
 {
     s32       flag;
@@ -1660,9 +1660,9 @@ void Gp_FadeTileTask(Task* arg0)
     flag = 0;
     if (arg0->state == 0) {
         if (arg0->spawnArg1.value == 0) {
-            GameMain_SetFrameTiming(1);
-            gDisplayState.at100.flags.flipMode = 0;
-            arg0->killCountdown                = 7;
+            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
+            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_FULL;
+            arg0->killCountdown                  = 7;
         } else if ((arg0->spawnArg1.value == 2) || (arg0->spawnArg1.value == 4)) {
             arg0->killCountdown = 8;
         } else {
@@ -1672,10 +1672,10 @@ void Gp_FadeTileTask(Task* arg0)
     }
 
     if (arg0->spawnArg1.value == 4) {
-        if (gDisplayState.at100.flags.imageSource == 2) {
+        if (gDisplayState.control.flags.imageSource == DISPLAY_IMAGE_TRANSITION_STRIPS) {
             arg0->killCountdown--;
         } else {
-            GameMain_SetFrameTiming(1);
+            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
         }
     } else if ((arg0->spawnArg1.value == 0) || (arg0->spawnArg1.value == 2)) {
         flag = 0;
@@ -1724,16 +1724,16 @@ void Gp_FadeTileTask(Task* arg0)
 
     if ((flag == 0) && (arg0->killCountdown <= 0)) {
         if (arg0->spawnArg1.value == 4) {
-            GameMain_SetFrameTiming(0);
+            GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         }
         taskKill(arg0);
     } else if (flag == 1) {
         if (arg0->killCountdown >= 8) {
             if (arg0->spawnArg1.value == 5) {
-                gDisplayState.at100.flags.imageSource = 0;
+                gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             } else {
-                gDisplayState.at100.flags.flipMode = flag;
-                GameMain_SetFrameTiming(0);
+                gDisplayState.control.flags.flipMode = flag;
+                GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             }
             taskKill(arg0);
         }

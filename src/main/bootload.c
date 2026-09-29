@@ -1367,7 +1367,7 @@ static s32 Fade_StepIn(s16 arg0)
         ClearImage(&rect, 0, 0, 0);
         rect.y = 0x110;
         ClearImage(&rect, 0, 0, 0);
-        gDisplayState.at100.flags.imageSource = 0;
+        gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
         return 1;
     }
     D_8006ACB4 += arg0;
@@ -1380,7 +1380,7 @@ static void Fade_StartWhite(void)
     DR_TPAGE* dr;
     u8        color;
 
-    Display_SetMode(0xD010);
+    Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
     SetDispMask(1);
 
     D_8006ACB4        = 0xFF;
@@ -1411,10 +1411,10 @@ static s32 Fade_StepOut(s32 arg0)
     u8        color;
     s16       val;
 
-    gDisplayState.at100.flags.imageSource = 1;
-    color                                 = *(volatile u8*)&D_8006ACB4;
-    p                                     = (TILE*)Gpu_SysPrimCursor;
-    Gpu_SysPrimCursor                     = (u8*)(p + 1);
+    gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
+    color                                   = *(volatile u8*)&D_8006ACB4;
+    p                                       = (TILE*)Gpu_SysPrimCursor;
+    Gpu_SysPrimCursor                       = (u8*)(p + 1);
     setlen(p, 3);
     setcode(p, 0x62);
     p->r0 = color;
@@ -1844,7 +1844,7 @@ void Fs_SetupBootLoad(void)
     ClearImage(r, 0, 0, 0);
     r->y = 0x110;
     ClearImage(r, 0, 0, 0);
-    gDisplayState.at100.flags.imageSource = 0;
+    gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
     SetDispMask(0);
     sp10[3]             = 0;
     sp10[2]             = 0;

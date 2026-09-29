@@ -3491,7 +3491,7 @@ static void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
                     if (pad->field_A == 1) {
                         break;
                     }
-                    if (gDisplayState.pendingMode != 0) {
+                    if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                         break;
                     }
                     pad->field_6 |= 1;

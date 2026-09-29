@@ -654,7 +654,7 @@ void func_shelter_1f_heliport_8017FF08(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_heliport_80182CA8.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_heliport_80182CA8.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_heliport_80182CA8.field_3;

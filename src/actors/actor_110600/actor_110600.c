@@ -408,7 +408,7 @@ static void func_actor_110600_80138D7C(Task* arg0);
 s32 func_actor_110600_80133E48(Task* task, s32 arg1, GpXformArg* placement);
 
 /// Five-frame shake counter. Incremented each call, wraps at 5, and drives
-/// `Display_ClampField126` with the low bit (0 or 1). Returns 1 on wrap.
+/// `displaySetShakeY` with the low bit (0 or 1). Returns 1 on wrap.
 extern s16 D_actor_110600_8014865C;
 static s32 func_actor_110600_80138900(void);
 
@@ -2663,11 +2663,11 @@ static __inline__ s32 Actor110600_TickShake(void)
     if (D_actor_110600_8014865C == 5)
         D_actor_110600_8014865C = 0;
     if (!(D_actor_110600_8014865C & 1))
-        Display_ClampField126(0);
+        displaySetShakeY(0);
     else
-        Display_ClampField126(1);
+        displaySetShakeY(1);
     if (D_actor_110600_8014865C == 0) {
-        Display_ClampField126(0);
+        displaySetShakeY(0);
         return 1;
     }
     return 0;
@@ -3087,7 +3087,7 @@ static void func_actor_110600_80136210(Task* arg0)
             work->field_8B8.coord  = arg0->extra.tmd->coords + 2;
             work->field_8A4        = 0;
             work->field_8A2        = 0;
-            Display_ClampField126(0);
+            displaySetShakeY(0);
         } else {
             pan = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
             SndEvt_EnqueueType6(0x401D0007, (s32)pan, (s32)(s8)gpGetObjDepth(arg0->extra.tmd->coords));
@@ -4302,7 +4302,7 @@ static void func_actor_110600_801387F4(Task* task)
         Gp_UnlinkObj(&work->field_950);
         enemy->recs = 0;
     }
-    Display_ClampField126(0);
+    displaySetShakeY(0);
     Gp_DestroyEnemy(enemy, task);
 }
 
@@ -4335,14 +4335,14 @@ static s32 func_actor_110600_80138900(void)
     }
     cur = (u16)*p;
     if ((cur & 1) == 0) {
-        Display_ClampField126(0);
+        displaySetShakeY(0);
     } else {
-        Display_ClampField126(1);
+        displaySetShakeY(1);
     }
     if (D_actor_110600_8014865C != 0) {
         return 0;
     }
-    Display_ClampField126(0);
+    displaySetShakeY(0);
     return 1;
 }
 

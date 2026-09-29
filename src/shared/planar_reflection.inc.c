@@ -407,7 +407,7 @@ static void Reflection_UpdatePlayer(Task* task)
     }
 
     copyPending = work->field_4;
-    if (copyPending == 1 && task->spawnArg1.value == 0 && !(area == 1 && view == 0xF) && gDisplayState.pendingMode == 0) {
+    if (copyPending == 1 && task->spawnArg1.value == 0 && !(area == 1 && view == 0xF) && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
         u16  ofs[2];
         RECT rect;
 

@@ -163,7 +163,7 @@ void func_dryfield_night_general_store_8017D794(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_general_store_801858BC.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_general_store_801858BC.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_general_store_801858BC.field_3;
@@ -259,7 +259,7 @@ s32 func_dryfield_night_general_store_8017D904(Task* arg0, s32 arg1, RoomEventMs
 /// cutscene - `Gp_StateF0.field_4` cleared, stage sound 0x5203000E, the saved stage
 /// byte written to `Mc_SaveData[0].state.at4.loc.view` and the weapon messages re-enabled. State 5
 /// queues sound event 0x80000000, points the save's location at area 0x26
-/// with the latched warp point and room, raises `gDisplayState.roomVariant` and spawns
+/// with the latched warp point and room, raises `gDisplayState.spriteVariant` and spawns
 /// helper task 0x11. Both finishing arms kill the task.
 void func_dryfield_night_general_store_8017DAF0(Task* arg0)
 {
@@ -302,7 +302,7 @@ void func_dryfield_night_general_store_8017DAF0(Task* arg0)
             Mc_SaveData[0].state.at4.loc.area = 0x26;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_general_store_801858C5;
             Mc_SaveData[0].state.at4.loc.room = D_dryfield_night_general_store_801858C6;
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Task_Spawn(0, 0x11, 0, 0);
             break;
         default:

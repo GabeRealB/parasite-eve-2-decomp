@@ -1716,12 +1716,12 @@ void func_dryfield_junk_yard_8017DC54(s8 arg0)
     Mc_SaveData[0].state.sceneEvent = arg0;
 }
 
-/// State 1 of the room task: once `gDisplayState.field_112` is non-zero and a slot-0xA
+/// State 1 of the room task: once `gDisplayState.debugMode` is non-zero and a slot-0xA
 /// task exists, calls `func_80724608` on that task with the `"DOG"` name. The
 /// state never advances, so it repeats every frame.
 static void func_dryfield_junk_yard_8017DC60(Task* task)
 {
-    if ((gDisplayState.field_112 != 0) && (gameGetPtrSlot(0xA) != 0)) {
+    if ((gDisplayState.debugMode != 0) && (gameGetPtrSlot(0xA) != 0)) {
         func_80724608(gameGetPtrSlot(0xA), -0x8C, 0xA, D_dryfield_junk_yard_8017D5D0);
     }
 }

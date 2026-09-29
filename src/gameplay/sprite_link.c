@@ -76,7 +76,7 @@ void Gp_LinkViewSprts(void)
     if (rec->field_2 == 0) {
         rec++;
     } else {
-        ds->at100.flags.imageSource = 0;
+        ds->control.flags.imageSource = DISPLAY_IMAGE_NONE;
     }
     if (rec->field_0 != 0xFFFF) {
         do {
@@ -502,7 +502,7 @@ void func_800AD50C(Task* task)
     if (gGameSession->freezeRoomObjs == 0) {
         funcs.funcs[task->state](task);
     } else {
-        gDisplayState.at100.flags.imageSource = 0;
+        gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
     }
 }
 
@@ -527,7 +527,7 @@ static void func_800AD620(Task* task)
 
     val = Gp_ViewSprtCmdEmpty();
     do {
-        gDisplayState.at100.flags.imageSource = val;
+        gDisplayState.control.flags.imageSource = val;
     } while (0);
     task->state++;
 }
@@ -538,10 +538,10 @@ static void func_800AD65C(Task* task)
     s32           val;
 
     ds = &gDisplayState;
-    if ((ds->displayOwner != 2) && (ds->skipDraw == 0)) {
+    if ((ds->displayOwner != DISPLAY_OWNER_TASK) && (ds->skipDraw == 0)) {
         Gp_LinkViewSprts();
     } else {
-        val                                   = Gp_ViewSprtCmdEmpty();
-        gDisplayState.at100.flags.imageSource = val;
+        val                                     = Gp_ViewSprtCmdEmpty();
+        gDisplayState.control.flags.imageSource = val;
     }
 }

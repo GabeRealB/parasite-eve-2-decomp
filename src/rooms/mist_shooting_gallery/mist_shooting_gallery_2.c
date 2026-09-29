@@ -2613,7 +2613,7 @@ static void func_mist_shooting_gallery_8018341C(Task* arg0)
             work->field_04++;
         case 1:
             if (work->field_0A <= 0) {
-                if (gDisplayState.pendingMode == 0) {
+                if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                     func_mist_shooting_gallery_80184BB8(0x13, work->field_20, 0x8E0);
                     step = work->field_20;
                     if (step == 3) {
@@ -2631,7 +2631,7 @@ static void func_mist_shooting_gallery_8018341C(Task* arg0)
         case 2:
             if ((u8)gGameSession->at4.loc.view == 0x12) {
                 if (work->field_0A <= 0) {
-                    if (gDisplayState.pendingMode == 0) {
+                    if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                         work->field_0A = 1;
                         work->field_04++;
                         func_mist_shooting_gallery_80184BB8(0x13, bonus + 4, 0x8E0);
@@ -2642,7 +2642,7 @@ static void func_mist_shooting_gallery_8018341C(Task* arg0)
             }
             break;
         case 3:
-            if (gDisplayState.pendingMode == 0) {
+            if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 work->field_1F = 0;
                 work->field_20 = 8;
                 work->field_04++;
@@ -2793,7 +2793,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
             work->field_04++;
         case 1:
             if (work->field_0A <= 0) {
-                if (gDisplayState.pendingMode == 0) {
+                if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                     func_mist_shooting_gallery_80184BB8(0x14, 0, 0x8E0);
                     work->field_0A = 0xF;
                     D_80115768     = 0;
@@ -2806,7 +2806,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
         case 2:
             if ((u8)gGameSession->at4.loc.view == 0x12) {
                 if (work->field_0A <= 0) {
-                    if (gDisplayState.pendingMode == 0) {
+                    if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                         work->field_0A = 1;
                         work->field_04++;
                         func_mist_shooting_gallery_80184BB8(0x14, 7, 0x8E0);
@@ -2976,7 +2976,7 @@ static void func_mist_shooting_gallery_80183E78(Task* arg0)
             work->field_04++;
         case 1:
             if (work->field_0A <= 0) {
-                if (gDisplayState.pendingMode == 0) {
+                if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                     func_mist_shooting_gallery_80184BB8(0x15, 0, 0x8E0);
                     work->field_0A = 0xF;
                     D_80115768     = 0;
@@ -2991,7 +2991,7 @@ static void func_mist_shooting_gallery_80183E78(Task* arg0)
                 break;
             }
             if (work->field_0A <= 0) {
-                if (gDisplayState.pendingMode == 0) {
+                if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                     work->field_0A = 1;
                     work->field_04++;
                     func_mist_shooting_gallery_80184BB8(0x15, 7, 0x8E0);

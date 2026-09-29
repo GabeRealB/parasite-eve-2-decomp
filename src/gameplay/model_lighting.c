@@ -2482,7 +2482,7 @@ void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1)
     }
 
     offset = (u8*)Gp_ReplayCursor - (u8*)Fs_ActorLoadBase2;
-    if (gDisplayState.demoScene == 0x10) {
+    if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
         offset = (u8*)Gp_ReplayCursor - (u8*)0x80600100;
     }
     if (offset <= 0x17FDF) {
@@ -2531,14 +2531,14 @@ void Gp_InitPlayClock(Task* task)
         return;
     }
     Gp_ResetHudFx(&rec->extra);
-    GameMain_SetFrameTiming(1);
+    GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
     task->work   = (TaskIdMap*)rec;
     rec->field_0 = Mc_SaveData[0].state.playTime / 60;
     rec->field_4 = Mc_SaveData[0].state.playTime % 60;
     ds           = &gDisplayState;
     rec->field_8 = ds->gameTick;
     func_800B25B0();
-    if (ds->demoScene != 0) {
+    if (ds->demoScene != DISPLAY_DEMO_NONE) {
         srand(1);
         ds->animFrame            = 0;
         gDisplayState.frameCount = 0;
@@ -2546,8 +2546,8 @@ void Gp_InitPlayClock(Task* task)
         ds->gameTick             = 0;
         ds->loopCount            = 0;
         ds->vsyncCount           = 0;
-        ds->field_10             = 0;
-        if (ds->demoScene == 0x10) {
+        ds->loopTicks            = 0;
+        if (ds->demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
             Gp_ReplayCursor = (u16*)0x80600E4C;
         } else {
             Gp_ReplayCursor = (u16*)((u8*)Fs_ActorLoadBase2 + 0xD4C);
@@ -2735,7 +2735,7 @@ void Gp_RestartSessionTask(Task* arg0)
         rect.h = 0x200;
         ClearImage(&rect, 0, 0, 0);
         DrawSync(0);
-        ds->at100.flags.imageSource = 0;
+        ds->control.flags.imageSource = DISPLAY_IMAGE_NONE;
     }
     memset(&gGameSession->at4.loc.view, 0, 8);
     Mem_ConfigureAuxHeap(0, 0);

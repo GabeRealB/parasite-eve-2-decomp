@@ -7,7 +7,7 @@
 #include <psyq/libetc.h>
 #include <psyq/libgs.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "boot.h"
 #include "main/display_types.h"
@@ -28,9 +28,11 @@
 /* Define BSS before API headers to preserve first-declaration order. */
 u8 Gpu_PrimBufStatic[0x6000];
 
-static void* Gpu_PrimBufBase;
+/// Byte arena supplying both halves of task-owned presentation primitives.
+static u8* _gGpuDisplayPrimBufferBase;
 
-static s32 Gpu_PrimBufferBytes;
+/// Total arena capacity in bytes, split evenly between the two frame buffers.
+static s32 _gGpuDisplayPrimBufferBytes;
 
 GsOT Gpu_OrderingTables[2];
 
@@ -56,66 +58,68 @@ static void Display_FlipOtAlt(void);
 
 static TaskDesc Display_MenuTaskDesc = { 0, 0xC0, Gp_MenuRootTask };
 
-s32 Display_FrameFlipDraw(GpuOtBuf* otBufs, s32 arg1, s32 unused3)
+s32 Display_FrameFlipDraw(GpuOtBuf* otBufs, s32 frameStart, s32 unused3)
 {
-    DisplayState* temp;
-    GsOT*         ot;
-    u_long*       saved;
-    u_long*       org;
-    s32           size;
-    s32           neg1;
+    DisplayState* display;
+    GsOT*         orderingTables;
+    u_long*       savedOt;
+    u_long*       firstTag;
+    s32           halfBytes;
+    s32           noPendingFlip;
 
-    temp = &gDisplayState;
-    if (temp->mdecActive == 0) {
-        temp->frameBuffer ^= 1;
+    display = &gDisplayState;
+    if (display->mdecActive == 0) {
+        display->frameBuffer ^= 1;
     }
-    if (temp->at100.flags.flipMode != 2) {
-        temp->drawBuffer = (u8)temp->frameBuffer;
+    if (display->control.flags.flipMode != DISPLAY_FLIP_HOLD) {
+        display->drawBuffer = display->frameBuffer;
     }
-    ot = Gpu_OrderingTables;
-    GsClearOt(0, 0, &ot[temp->frameBuffer]);
-    org            = ot[temp->frameBuffer].org;
-    size           = Gpu_PrimBufferBytes;
-    *org           = GPU_OT_END_PRIM;
-    size          /= 2;
-    saved          = gGpuCurrentOt;
-    gGpuCurrentOt  = ot[temp->frameBuffer].org;
-    gGpuPrimCursor = (u8*)Gpu_PrimBufBase + temp->frameBuffer * size;
+    orderingTables = Gpu_OrderingTables;
+    GsClearOt(0, 0, &orderingTables[display->frameBuffer]);
+    firstTag       = orderingTables[display->frameBuffer].org;
+    halfBytes      = _gGpuDisplayPrimBufferBytes;
+    *firstTag      = GPU_OT_END_PRIM;
+    halfBytes     /= 2;
+    savedOt        = gGpuCurrentOt;
+    gGpuCurrentOt  = orderingTables[display->frameBuffer].org;
+    gGpuPrimCursor = _gGpuDisplayPrimBufferBase + display->frameBuffer * halfBytes;
     Task_ExecList(&gTaskDisplayList);
     Boot_DispatchCdCmd();
-    if (temp->mdecActive == 0) {
+    if (display->mdecActive == 0) {
         DrawSync(0);
     }
-    if (((VSync(1) - arg1) & 0x7FFF) < D_8005EC6C) {
+    if (((VSync(1) - frameStart) & 0x7FFF) < D_8005EC6C) {
         EnterCriticalSection();
-        temp->vsyncFlag     = 1;
-        Display_PendingFlip = temp->frameBuffer;
-        D_80070E38          = temp->at100.flags.flipMode;
-        *(u8*)&D_8006EC30   = temp->at100.flags.imageSource;
+        display->vsyncFlag  = DISPLAY_VSYNC_TASK;
+        Display_PendingFlip = display->frameBuffer;
+        // Snapshot presentation controls for the interrupt-side flip.
+        D_80070E38 = display->control.flags.flipMode;
+        // This non-volatile store must remain eligible for the following call delay slot.
+        *(u8*)&D_8006EC30 = display->control.flags.imageSource;
         ExitCriticalSection();
         VSync(D_8005EC68);
-        neg1 = -1;
-        if (Display_PendingFlip != neg1) {
+        noPendingFlip = -1;
+        if (Display_PendingFlip != noPendingFlip) {
             D_8005EC78 = 0;
-            arg1       = VSync(1) & 0x7FFF;
-            Display_FlipDraw(temp->frameBuffer);
-            Display_PendingFlip = neg1;
+            frameStart = VSync(1) & 0x7FFF;
+            Display_FlipDraw(display->frameBuffer);
+            Display_PendingFlip = noPendingFlip;
         } else {
             D_8005EC78 = D_8005EC74;
-            arg1       = -D_8005EC74;
+            frameStart = -D_8005EC74;
         }
     } else {
         D_8005EC78          = 0;
-        arg1                = VSync(1) & 0x7FFF;
-        temp->vsyncFlag     = 1;
+        frameStart          = VSync(1) & 0x7FFF;
+        display->vsyncFlag  = DISPLAY_VSYNC_TASK;
         Display_PendingFlip = -2;
-        D_80070E38          = temp->at100.flags.flipMode;
-        *(u8*)&D_8006EC30   = temp->at100.flags.imageSource;
-        Display_FlipDraw(temp->frameBuffer);
+        D_80070E38          = display->control.flags.flipMode;
+        *(u8*)&D_8006EC30   = display->control.flags.imageSource;
+        Display_FlipDraw(display->frameBuffer);
         Display_PendingFlip = -1;
     }
-    gGpuCurrentOt = saved;
-    return arg1;
+    gGpuCurrentOt = savedOt;
+    return frameStart;
 }
 
 Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
@@ -127,22 +131,22 @@ Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, TaskSpawnArg arg2, TaskSpawnA
 
     temp = &gDisplayState;
     ret  = NULL;
-    if (temp->displayOwner == 0) {
-        ot                  = Gpu_OrderingTables;
-        ot->length          = 6;
-        ot->org             = Gpu_SmallOtTags;
-        ot[1].length        = 6;
-        ot[1].org           = Gpu_SmallOtTags + 0x40;
-        Gpu_PrimBufBase     = Gpu_PrimBufStatic;
-        Gpu_PrimBufferBytes = 0x6000;
-        temp->frameBuffer   = temp->drawBuffer ^ 1;
-        saved               = Task_GetActiveList();
+    if (temp->displayOwner == DISPLAY_OWNER_GAME_LOOP) {
+        ot                          = Gpu_OrderingTables;
+        ot->length                  = 6;
+        ot->org                     = Gpu_SmallOtTags;
+        ot[1].length                = 6;
+        ot[1].org                   = Gpu_SmallOtTags + ARRAY_SIZE(Gpu_SmallOtTags) / 2;
+        _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
+        _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);
+        temp->frameBuffer           = temp->drawBuffer ^ 1;
+        saved                       = Task_GetActiveList();
         Task_InitList(&gTaskDisplayList);
         ret = Task_Spawn(arg0, arg1, arg2, arg3);
         if (ret != NULL) {
-            temp->pendingMode          = 0xFF;
-            temp->displayOwner         = 2;
-            temp->at100.flags.flipMode = 0;
+            temp->pendingMode            = DISPLAY_MODE_BARE_OT;
+            temp->displayOwner           = DISPLAY_OWNER_TASK;
+            temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
         }
         Task_SetActiveList(saved);
     }
@@ -158,22 +162,22 @@ Task* Display_SpawnWithOt(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, Tas
 
     temp = &gDisplayState;
     ret  = NULL;
-    if (temp->displayOwner == 0) {
-        ot                  = Gpu_OrderingTables;
-        ot->length          = 6;
-        ot->org             = Gpu_SmallOtTags;
-        ot[1].length        = 6;
-        ot[1].org           = Gpu_SmallOtTags + 0x40;
-        Gpu_PrimBufBase     = Gpu_PrimBufStatic;
-        Gpu_PrimBufferBytes = 0x6000;
-        temp->frameBuffer   = temp->drawBuffer ^ 1;
-        saved               = Task_GetActiveList();
+    if (temp->displayOwner == DISPLAY_OWNER_GAME_LOOP) {
+        ot                          = Gpu_OrderingTables;
+        ot->length                  = 6;
+        ot->org                     = Gpu_SmallOtTags;
+        ot[1].length                = 6;
+        ot[1].org                   = Gpu_SmallOtTags + ARRAY_SIZE(Gpu_SmallOtTags) / 2;
+        _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
+        _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);
+        temp->frameBuffer           = temp->drawBuffer ^ 1;
+        saved                       = Task_GetActiveList();
         Task_InitList(&gTaskDisplayList);
         ret = Task_SpawnFromTable(descriptor, arg1, arg2, arg3);
         if (ret != NULL) {
-            temp->pendingMode          = 0xFF;
-            temp->displayOwner         = 2;
-            temp->at100.flags.flipMode = 0;
+            temp->pendingMode            = DISPLAY_MODE_BARE_OT;
+            temp->displayOwner           = DISPLAY_OWNER_TASK;
+            temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
         }
         Task_SetActiveList(saved);
     }
@@ -222,37 +226,37 @@ static void Display_FlipOt(void)
     gpuBeginOt(buf);
     Gp_LinkViewSprts();
     Gp_DrawActorTmdActive(&Gpu_OtBuffers[temp->otBuffer]);
-    gGpuCurrentOt              = saved;
-    temp->at100.flags.flipMode = 0;
+    gGpuCurrentOt                = saved;
+    temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
 }
 
 void Display_AcquireRef(void)
 {
-    DisplayState* temp;
+    DisplayState* display;
 
-    temp = &gDisplayState;
-    if (temp->holdState >= 0) {
-        temp->holdState |= 0x80;
-        temp->holdCount  = 1;
+    display = &gDisplayState;
+    if (display->holdState >= 0) {
+        display->holdState |= DISPLAY_HOLD_ACTIVE;
+        display->holdCount  = 1;
     } else {
-        temp->holdCount++;
+        display->holdCount++;
     }
 }
 
 void Display_ReleaseRef(void)
 {
-    DisplayState* temp;
-    u8            val;
+    DisplayState* display;
+    u8            remainingHolds;
 
-    temp = &gDisplayState;
-    if (temp->holdState >= 0) {
-        temp->holdCount = 0;
+    display = &gDisplayState;
+    if (display->holdState >= 0) {
+        display->holdCount = 0;
     } else {
-        val             = temp->holdCount - 1;
-        temp->holdCount = val;
-        if (val == 0) {
-            temp->holdState &= 0x7F;
-            temp->holdCount  = 0;
+        remainingHolds     = display->holdCount - 1;
+        display->holdCount = remainingHolds;
+        if (remainingHolds == 0) {
+            display->holdState &= DISPLAY_HOLD_MODE_MASK;
+            display->holdCount  = 0;
         }
     }
 }
@@ -284,27 +288,27 @@ void Gpu_InitOtSmall(void)
 {
     GsOT* ot;
 
-    ot                  = Gpu_OrderingTables;
-    ot->length          = 6;
-    ot->org             = Gpu_SmallOtTags;
-    ot[1].length        = 6;
-    ot[1].org           = Gpu_SmallOtTags + 0x40;
-    Gpu_PrimBufBase     = Gpu_PrimBufStatic;
-    Gpu_PrimBufferBytes = 0x6000;
+    ot                          = Gpu_OrderingTables;
+    ot->length                  = 6;
+    ot->org                     = Gpu_SmallOtTags;
+    ot[1].length                = 6;
+    ot[1].org                   = Gpu_SmallOtTags + ARRAY_SIZE(Gpu_SmallOtTags) / 2;
+    _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
+    _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);
 }
 
 s32 Display_DispatchModeId(s32 arg0)
 {
-    if (arg0 >= 0x20) {
-        if (arg0 < 0x80) {
-            gDisplayState.pendingMode = 0;
+    if (arg0 >= DISPLAY_MODE_MENU_FIRST) {
+        if (arg0 < DISPLAY_MODE_MENU_LIMIT) {
+            gDisplayState.pendingMode = DISPLAY_MODE_NONE;
             if (arg0 != 0x43) {
                 Display_InitModeObj(&Display_MenuTaskDesc, arg0, 0, 0);
             } else {
                 Display_InitModeObj(&Display_MenuTaskDesc, 0x43, 0, 0);
             }
             gDisplayState.pendingMode = arg0;
-            if (gDisplayState.demoScene != 0) {
+            if (gDisplayState.demoScene != DISPLAY_DEMO_NONE) {
                 Stage_SetFadeMax(0xFF);
                 Stage_SetFadeRate(0, 0, 0x10, 1);
             } else if (arg0 != 0x42) {
@@ -328,8 +332,8 @@ static void Display_ResetHeapFromSession(void)
 
     temp = gGameSession;
     Mem_ConfigureAuxHeap(temp->at4.loc.stage, temp->at4.loc.area);
-    gDisplayState.displayOwner = 0;
-    gDisplayState.pendingMode  = 0;
+    gDisplayState.displayOwner = DISPLAY_OWNER_GAME_LOOP;
+    gDisplayState.pendingMode  = DISPLAY_MODE_NONE;
 }
 
 static void Display_FlipOtAlt(void)
@@ -347,8 +351,8 @@ static void Display_FlipOtAlt(void)
     gGpuCurrentOt = gGpuCurrentOt + 0x20;
     Task_ExecListFiltered(&gTaskDefaultList, 0x62);
     Gp_DrawActorTmdFlagged(&Gpu_OtBuffers[temp->otBuffer]);
-    gGpuCurrentOt              = saved;
-    temp->at100.flags.flipMode = 0;
+    gGpuCurrentOt                = saved;
+    temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
 }
 
 void Gpu_InitOt(void)
@@ -371,12 +375,12 @@ void Gpu_InitOt(void)
 
 void Display_SetPrimBufLarge(void)
 {
-    Gpu_PrimBufferBytes = 0x10000;
-    Gpu_PrimBufBase     = Gpu_PrimHeapBase;
+    _gGpuDisplayPrimBufferBytes = 0x10000;
+    _gGpuDisplayPrimBufferBase  = Gpu_PrimHeapBase;
 }
 
 void Display_SetPrimBufSmall(void)
 {
-    Gpu_PrimBufBase     = Gpu_PrimBufStatic;
-    Gpu_PrimBufferBytes = 0x6000;
+    _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
+    _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);
 }

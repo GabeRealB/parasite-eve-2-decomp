@@ -28,14 +28,17 @@ void Gpu_InitOtSmall(void);
 
 void Gpu_InitOt(void);
 
-/// Renders a frame whose tasks own the display. Only `arg1`, the loop's frame
-/// start, is read; the caller also passes the OT buffers and the current buffer.
-s32 Display_FrameFlipDraw(GpuOtBuf* otBufs, s32 arg1, s32 unused3);
+/// Build and present the task-owned frame, restoring the caller's current OT.
+///
+/// `frameStart` is the VSync(1) horizontal-line counter origin; the return is
+/// the next origin, possibly negative to compensate for callback time.
+/// The OT-buffer and buffer-index arguments are retained and unused.
+s32 Display_FrameFlipDraw(GpuOtBuf* otBufs, s32 frameStart, s32 unused3);
 
 s32 Display_DispatchModeId(s32 arg0);
 
 /// Put draw/disp env and optionally transfer framebuffer strips (gamemain.c).
-void Display_FlipDraw(s32 arg0);
+void Display_FlipDraw(s32 bufferIndex);
 
 void Display_SetPrimBufLarge(void);
 

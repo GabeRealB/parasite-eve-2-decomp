@@ -5734,7 +5734,7 @@ void func_actor_560800_80135D54(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             func_actor_560800_80135BD8(arg0);
@@ -5784,7 +5784,7 @@ void func_actor_560800_80135D54(Task* arg0)
 void func_actor_560800_80135F50(Task* arg0)
 {
     Display_SpawnWithOt(D_actor_560800_8016EA28, 1, arg0->spawnArg1.value, 0);
-    gDisplayState.at100.flags.flipMode = 1;
+    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }
@@ -6047,7 +6047,7 @@ void func_actor_560800_80136678(s32 arg0)
 }
 
 /// Task state handler for the second spawn mode: states 1 and 2 — and state 0,
-/// which first parks `gDisplayState.at100.flags.flipMode` at 2 — only step the state, and state 3 runs
+/// which first parks `gDisplayState.control.flags.flipMode` at 2 — only step the state, and state 3 runs
 /// the hand-off. That hand-off copies a 64x256 VRAM strip from (0x380, 0) to
 /// (0x200, 0x100), the same shape `func_actor_560800_80136548` uses for the
 /// other strip, then re-loads the chunk at `D_8006C45C` with
@@ -6063,7 +6063,7 @@ void func_actor_560800_801366B0(Task* arg0)
     work = (Actor560800Work*)D_actor_560800_8017578C->work;
     switch (arg0->state) {
         case 0:
-            gDisplayState.at100.flags.flipMode = 2;
+            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
             /* fallthrough */
         case 1:
         case 2:
@@ -6181,7 +6181,7 @@ void func_actor_560800_80136930(s32 arg0)
 void func_actor_560800_801369A0(void)
 {
     Display_SpawnWithOt(D_actor_560800_801718F0, 0xD, 0, 0);
-    gDisplayState.at100.flags.flipMode = 2;
+    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
     Gp_SpawnViewTasks();
 }
 

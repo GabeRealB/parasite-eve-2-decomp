@@ -4430,7 +4430,7 @@ void func_actor_503500_80143AC0(Task* arg0)
             // An s32 temp: passed straight to the s8 parameter, the masked
             // expression is shortened into a byte load of the frame counter.
             shake = (gDisplayState.animFrame ^ 1) & 1;
-            Display_ClampField126(shake);
+            displaySetShakeY(shake);
             arg0->state++;
         case 1:
             vec.vx = 0;
@@ -4467,10 +4467,10 @@ void func_actor_503500_80143AC0(Task* arg0)
             }
             if (work->field_36 > 0) {
                 shake = (gDisplayState.animFrame ^ 1) & 1;
-                Display_ClampField126(shake);
+                displaySetShakeY(shake);
                 work->field_36--;
             } else {
-                Display_ClampField126(0);
+                displaySetShakeY(0);
             }
             break;
         case 2:

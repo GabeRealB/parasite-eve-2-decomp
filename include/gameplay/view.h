@@ -49,14 +49,13 @@ typedef union _GpSpawnTransform {
 } GpSpawnTransform;
 STATIC_ASSERT_SIZEOF(GpSpawnTransform, 0x10);
 
-/// 0x24-byte camera/view record in tables pointed to by `Gp_ViewTables`.
-/// Indexed 1-based by `Gp_GetViewIndex()`. `mtx` rotation is copied to
-/// `gGfxViewRotCoord.coord` and translation to `gGfxViewCoord.coord.t` by `Gp_LoadStageView` /
-/// `Gp_ApplyView` / `Gp_ApplyViewTask`; `field_20` is `lhu` into
-/// `gDisplayState.screenDistance` and `lw` into GTE H (`gte_SetGeomScreen`).
-typedef struct _GpViewRec {
-    /* 0x00 */ MATRIX mtx;
-    /* 0x20 */ u32    field_20;
+/// Camera transform and projection distance for a view.
+///
+/// View indices are 1-based. The projection distance is supplied as a word to
+/// GTE H; `DisplayState::screenDistance` retains its low 16 bits.
+typedef struct {
+    MATRIX mtx;            // Camera transform copied into the view coordinate nodes
+    u32    screenDistance; // Projection distance; GTE H uses the low 16 bits
 } GpViewRec;
 STATIC_ASSERT_SIZEOF(GpViewRec, 0x24);
 

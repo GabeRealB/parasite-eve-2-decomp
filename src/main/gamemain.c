@@ -37,6 +37,17 @@
 #include "main/tmd.h"
 #include "main/wipsys_types.h"
 
+enum {
+    DISPLAY_BACKGROUND_WIDTH           = 320,
+    DISPLAY_BACKGROUND_HEIGHT          = 240,
+    DISPLAY_BACKGROUND_BUFFER_STRIDE   = 272,
+    DISPLAY_BACKGROUND_ROW_BYTES       = 640,
+    DISPLAY_BACKGROUND_STRIP_WIDTH     = 16,
+    DISPLAY_BACKGROUND_STRIP_ROW_BYTES = 32,
+    DISPLAY_BACKGROUND_STRIP_BYTES     = 7680,
+    DISPLAY_BACKGROUND_STRIP_COUNT     = 20U,
+};
+
 #define GameResetScratchHead() *(void**)G_SCRATCH_HEAD = G_SCRATCH_HEAD
 
 /* Define BSS before API headers to preserve first-declaration order. */
@@ -156,19 +167,19 @@ static void GameMain_Init(void)
     Gfx_InitGraph();
 
     Mem_Set(&gDisplayState, 0, sizeof(gDisplayState));
-    gDisplayState.field_120                    = 1;
-    gDisplayState.region                       = 0;
-    gDisplayState.at100.flags.pendingPlayerPos = 0;
-    gDisplayState.holdState                    = -1;
-    gDisplayState.displayOwner                 = 0;
-    gDisplayState.pendingMode                  = 0;
-    gDisplayState.frameCount                   = 0;
-    gDisplayState.gameTick                     = 0;
-    gDisplayState.animFrame                    = 0;
-    gDisplayState.vsyncCount                   = 0;
-    gDisplayState.field_10                     = 0;
-    gDisplayState.loopCount                    = 0;
-    GameMain_SetFrameTiming(0);
+    gDisplayState.field_120                      = 1;
+    gDisplayState.region                         = MODE_NTSC;
+    gDisplayState.control.flags.pendingPlayerPos = 0;
+    gDisplayState.holdState                      = DISPLAY_HOLD_INITIAL;
+    gDisplayState.displayOwner                   = DISPLAY_OWNER_GAME_LOOP;
+    gDisplayState.pendingMode                    = DISPLAY_MODE_NONE;
+    gDisplayState.frameCount                     = 0;
+    gDisplayState.gameTick                       = 0;
+    gDisplayState.animFrame                      = 0;
+    gDisplayState.vsyncCount                     = 0;
+    gDisplayState.loopTicks                      = 0;
+    gDisplayState.loopCount                      = 0;
+    GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
 
     Display_PendingFlip = 0;
     Gpu_ClearOTag(0);
@@ -180,35 +191,35 @@ static void GameMain_Init(void)
 
     flag                     = 1;
     gDisplayState.drawBuffer = flag;
-    Display_SetMode(0x1010);
+    Display_SetMode(DISPLAY_SETUP_DEFAULT);
     Mem_Set(Pad_RemapState, 0, 0x1C);
 }
 
-void Display_FlipDraw(s32 arg0)
+void Display_FlipDraw(s32 bufferIndex)
 {
     s32 mode;
-    u8  saved;
+    u8  savedDrawBuffer;
 
-    mode = D_80070E38 & 0xF;
-    if (mode != 2) {
-        PutDrawEnv(&gDisplayState.drawEnv[arg0]);
-        PutDispEnv(&gDisplayState.dispEnv[arg0]);
-        if (mode == 0) {
-            if (D_8006EC30 != 0) {
-                Display_LoadImageStrips(arg0);
-                saved                    = gDisplayState.drawBuffer;
-                gDisplayState.drawBuffer = arg0;
+    mode = D_80070E38 & DISPLAY_FLIP_MODE_MASK;
+    if (mode != DISPLAY_FLIP_HOLD) {
+        PutDrawEnv(&gDisplayState.drawEnv[bufferIndex]);
+        PutDispEnv(&gDisplayState.dispEnv[bufferIndex]);
+        if (mode == DISPLAY_FLIP_FULL) {
+            if (D_8006EC30 != DISPLAY_IMAGE_NONE) {
+                Display_LoadImageStrips(bufferIndex);
+                savedDrawBuffer          = gDisplayState.drawBuffer;
+                gDisplayState.drawBuffer = bufferIndex;
                 Stream_PresentFrame();
-                gDisplayState.drawBuffer = saved;
+                gDisplayState.drawBuffer = savedDrawBuffer;
             }
             DrawOTag(Gpu_OtBuffers[gDisplayState.otBuffer].lastTag);
-        } else if (D_8006EC30 == 2) {
-            Display_LoadImageStrips(arg0);
-        } else if (D_8006EC30 == 3) {
-            Gfx_LoadImageSlot(gGameSession->at4.loc.stage, gGameSession->at4.loc.area, arg0);
+        } else if (D_8006EC30 == DISPLAY_IMAGE_TRANSITION_STRIPS) {
+            Display_LoadImageStrips(bufferIndex);
+        } else if (D_8006EC30 == DISPLAY_IMAGE_ROOM_SLOT) {
+            Gfx_LoadImageSlot(gGameSession->at4.loc.stage, gGameSession->at4.loc.area, bufferIndex);
         }
-        if ((s8)D_80070E38 < 0x10) {
-            DrawOTag(Gpu_OrderingTables[arg0].tag);
+        if ((s8)D_80070E38 < DISPLAY_FLIP_SKIP_TASK_OT) {
+            DrawOTag(Gpu_OrderingTables[bufferIndex].tag);
         }
     }
 }
@@ -220,7 +231,7 @@ static inline void _displayPresentFrame(s32 buf)
 {
     PutDrawEnv(&gDisplayState.drawEnv[buf]);
     PutDispEnv(&gDisplayState.dispEnv[buf]);
-    if (gDisplayState.at100.flags.imageSource != 0) {
+    if (gDisplayState.control.flags.imageSource != DISPLAY_IMAGE_NONE) {
         Display_LoadImageStrips(buf);
     }
     Stream_PresentFrame();
@@ -237,17 +248,17 @@ static void Display_VSyncCallback(void)
     start = VSync(1);
     if (Display_PendingFlip >= 0) {
         if (((start & 0xFFFF) + D_8005EC78) > (D_8005EC6C >> 1)) {
-            if (gDisplayState.vsyncFlag == 0) {
+            if (gDisplayState.vsyncFlag == DISPLAY_VSYNC_GAME) {
                 _displayPresentFrame(Display_PendingFlip);
                 Display_PendingFlip = -1;
-            } else if (gDisplayState.vsyncFlag == 1) {
+            } else if (gDisplayState.vsyncFlag == DISPLAY_VSYNC_TASK) {
                 Display_FlipDraw(Display_PendingFlip);
                 Display_PendingFlip = -1;
             }
         }
     }
     D_80070F64 -= 1;
-    if (gDisplayState.displayOwner == 0) {
+    if (gDisplayState.displayOwner == DISPLAY_OWNER_GAME_LOOP) {
         gDisplayState.frameCount += 1;
     }
     gDisplayState.vsyncCount += 1;
@@ -271,7 +282,7 @@ static inline s32 _gameMainPauseBlocked(void)
     blocked = 0;
     if (CdCmd_Queue.field_244 != 0 && !(GameMain_HaltFlags & 8)) {
         blocked = 1;
-    } else if (gDisplayState.vsyncFlag == 1 && gDisplayState.at100.flags.flipMode == 2) {
+    } else if (gDisplayState.vsyncFlag == DISPLAY_VSYNC_TASK && gDisplayState.control.flags.flipMode == DISPLAY_FLIP_HOLD) {
         blocked = 1;
     } else if (Fs_CdOpStatus != 0xFF) {
         blocked = 1;
@@ -359,19 +370,19 @@ static inline s32 _gameMainPaceToStream(s32 start, s32 elapsed)
 
 static void GameMain_Loop(void)
 {
-    CdCmdQueue* cq;
-    s32         start;
-    s32         buf;
-    s32         elapsed;
-    s8          shake;
+    CdCmdQueue* cdQueue;
+    s32         frameStart;
+    s32         gameBuffer;
+    s32         elapsedLines;
+    s8          pendingShakeY;
 
-    start                  = 0;
+    frameStart             = 0;
     GameMain_HaltFlags     = 0;
     gDisplayState.otBuffer = gDisplayState.drawBuffer;
 
     for (;;) {
-        if (gDisplayState.gameMode == 1 ||
-            (gDisplayState.gameMode == 0 && gDisplayState.cdBusy == 0 && gDisplayState.gameRunning != 0 &&
+        if (gDisplayState.gameMode == DISPLAY_GAME_RESTART ||
+            (gDisplayState.gameMode == DISPLAY_GAME_ACTIVE && gDisplayState.cdBusy == DISPLAY_CD_IDLE && gDisplayState.gameRunning != 0 &&
              Pad_CheckSpecialCombo() != 0)) {
             GameMain_Init();
             GameMain_HaltFlags = 0;
@@ -380,7 +391,7 @@ static void GameMain_Loop(void)
         Pad_UpdatePort0();
 
         if (Pad_States[0].status == 0xFF && Pad_States[0].cooldown == 0 && gDisplayState.gameRunning != 0 &&
-            gDisplayState.loadBusy == 0 && gDisplayState.gameMode == 0) {
+            gDisplayState.suppressDisconnectPause == 0 && gDisplayState.gameMode == DISPLAY_GAME_ACTIVE) {
             GameMain_ShowLoading(1);
         } else if (GameMain_HaltFlags & 2) {
             SndEvt_EnqueueTypeE();
@@ -391,39 +402,40 @@ static void GameMain_Loop(void)
 
         if (GameMain_HaltFlags != 0 && !_gameMainPauseBlocked()) {
             VSync(0);
-            start = VSync(1) & 0x7FFF;
+            frameStart = VSync(1) & 0x7FFF;
             Boot_DispatchCdCmd();
             continue;
         }
 
+        // Clocks differ: CD file loads freeze play time, while paced loop time continues.
         gDisplayState.loopCount++;
-        gDisplayState.field_10++;
-        if (gDisplayState.displayOwner == 0 && gDisplayState.pendingMode != 0 &&
-            ((s8)gDisplayState.pendingMode < 0 || gDisplayState.holdState >= 0)) {
+        gDisplayState.loopTicks++;
+        if (gDisplayState.displayOwner == DISPLAY_OWNER_GAME_LOOP && gDisplayState.pendingMode != DISPLAY_MODE_NONE &&
+            ((s8)gDisplayState.pendingMode < DISPLAY_MODE_NONE || gDisplayState.holdState >= 0)) {
             Display_DispatchModeId(gDisplayState.pendingMode);
         }
-        if (gDisplayState.displayOwner != 0) {
-            start = Display_FrameFlipDraw(Gpu_OtBuffers, start, gDisplayState.otBuffer);
+        if (gDisplayState.displayOwner != DISPLAY_OWNER_GAME_LOOP) {
+            frameStart = Display_FrameFlipDraw(Gpu_OtBuffers, frameStart, gDisplayState.otBuffer);
             continue;
         }
 
-        buf                       = gDisplayState.otBuffer ^ 1;
-        gDisplayState.pendingMode = 0;
-        cq                        = &CdCmd_Queue;
-        gDisplayState.otBuffer    = buf;
+        gameBuffer                = gDisplayState.otBuffer ^ 1;
+        gDisplayState.pendingMode = DISPLAY_MODE_NONE;
+        cdQueue                   = &CdCmd_Queue;
+        gDisplayState.otBuffer    = gameBuffer;
         gDisplayState.drawBuffer  = gDisplayState.otBuffer;
         gDisplayState.animFrame++;
-        if (cq->field_222 == 0) {
+        if (cdQueue->pausePlayClock == 0) {
             gDisplayState.gameTick += 1 + (D_8005EC68 >> 1);
         }
-        gDisplayState.field_10 += D_8005EC68 >> 1;
-        gpuBeginOt(buf);
+        gDisplayState.loopTicks += D_8005EC68 >> 1;
+        gpuBeginOt(gameBuffer);
 
-        Gpu_SysPrimCursor = Gpu_PrimBufStatic + gDisplayState.otBuffer * 0x3000;
+        Gpu_SysPrimCursor = Gpu_PrimBufStatic + gDisplayState.otBuffer * (s32)(sizeof(Gpu_PrimBufStatic) / 2);
         gGpuPrimCursor    = Gpu_PrimHeapBase + gDisplayState.otBuffer * (Gpu_PrimHeapSize >> 1);
         Task_ExecDefaultList();
 
-        if (gDisplayState.displayOwner != 0) {
+        if (gDisplayState.displayOwner != DISPLAY_OWNER_GAME_LOOP) {
             continue;
         }
 
@@ -434,39 +446,39 @@ static void GameMain_Loop(void)
             VSync(0);
             ResetGraph(1);
             _displayPresentFrame(gDisplayState.otBuffer);
-            start = 0;
+            frameStart = 0;
             continue;
         }
 
         DrawSync(0);
-        elapsed = _gameMainPaceToStream(start, (VSync(1) - start) & 0x7FFF);
+        elapsedLines = _gameMainPaceToStream(frameStart, (VSync(1) - frameStart) & 0x7FFF);
 
-        if (elapsed < D_8005EC6C) {
-            gDisplayState.vsyncFlag = 0;
+        if (elapsedLines < D_8005EC6C) {
+            gDisplayState.vsyncFlag = DISPLAY_VSYNC_GAME;
             Display_PendingFlip     = gDisplayState.otBuffer;
             VSync(D_8005EC68);
             if (Display_PendingFlip != -1) {
                 D_8005EC78 = 0;
-                start      = VSync(1) & 0x7FFF;
+                frameStart = VSync(1) & 0x7FFF;
                 _displayPresentFrame(gDisplayState.otBuffer);
                 Display_PendingFlip = -1;
             } else {
                 D_8005EC78 = D_8005EC74;
-                start      = -D_8005EC74;
+                frameStart = -D_8005EC74;
             }
         } else {
-            gDisplayState.vsyncFlag = 0;
+            gDisplayState.vsyncFlag = DISPLAY_VSYNC_GAME;
             Display_PendingFlip     = -2;
             D_8005EC78              = 0;
-            start                   = VSync(1) & 0x7FFF;
+            frameStart              = VSync(1) & 0x7FFF;
             _displayPresentFrame(gDisplayState.otBuffer);
             Display_PendingFlip = -1;
         }
 
-        shake                           = gDisplayState.shakeY;
-        gDisplayState.vramYOffset       = shake;
-        gDisplayState.drawEnv[0].ofs[1] = shake + 0x78;
-        gDisplayState.drawEnv[1].ofs[1] = shake + 0x188;
+        pendingShakeY                   = gDisplayState.shakeY;
+        gDisplayState.vramYOffset       = pendingShakeY;
+        gDisplayState.drawEnv[0].ofs[1] = pendingShakeY + 0x78;
+        gDisplayState.drawEnv[1].ofs[1] = pendingShakeY + 0x188;
     }
 }
 
@@ -498,78 +510,87 @@ void Gfx_InitCoordinateTrees(void)
     gfxSetRotIdentity(&GsWSMATRIX);
 }
 
-void Display_LoadImageStrips(s32 arg0)
+void Display_LoadImageStrips(s32 bufferIndex)
 {
     RECT rect;
-    s32  var_s0;
-    s32  var_s1;
-    s32  temp_v1;
-    s32  field;
-    s8   yoff;
+    s32  bufferY = bufferIndex;
+    s32  stripIndex;
+    s32  sourceRowOffsetBytes;
+    s32  stripIndex16;
+    s32  offsetY;
+    s8   offsetYByte;
 
-    if (CdCmd_Queue.field_21C == 0) {
+    // Crop contiguous pixels at the top or bottom without extending the image workspace.
+    if (CdCmd_Queue.imageLayout == FILE_SYSTEM_IMAGE_CONTIGUOUS) {
         if (gDisplayState.vramYOffset >= 0) {
-            if (arg0 != 0) {
-                rect.y = gDisplayState.vramYOffset + 0x110;
+            if (bufferIndex != 0) {
+                rect.y = gDisplayState.vramYOffset + DISPLAY_BACKGROUND_BUFFER_STRIDE;
             } else {
                 rect.y = gDisplayState.vramYOffset;
             }
             rect.x = 0;
-            rect.w = 0x140;
-            rect.h = 0xF0 - gDisplayState.vramYOffset;
-            LoadImage(&rect, (u_long*)Fs_ImgBuffers);
+            rect.w = DISPLAY_BACKGROUND_WIDTH;
+            rect.h = DISPLAY_BACKGROUND_HEIGHT - gDisplayState.vramYOffset;
+            LoadImage(&rect, Fs_ImgBuffers->words);
             return;
         }
-        if (arg0 == 0) {
+        if (bufferIndex == 0) {
             rect.y = 0;
         } else {
-            rect.y = 0x110;
+            rect.y = DISPLAY_BACKGROUND_BUFFER_STRIDE;
         }
-        rect.x = 0;
-        rect.w = 0x140;
-        yoff   = gDisplayState.vramYOffset;
-        rect.h = yoff + 0xF0;
-        LoadImage(&rect, (u_long*)((u8*)Fs_ImgBuffers + ((-yoff) * 0x280)));
+        rect.x      = 0;
+        rect.w      = DISPLAY_BACKGROUND_WIDTH;
+        offsetYByte = gDisplayState.vramYOffset;
+        rect.h      = offsetYByte + DISPLAY_BACKGROUND_HEIGHT;
+        LoadImage(&rect, (u_long*)((u8*)Fs_ImgBuffers + ((-offsetYByte) * DISPLAY_BACKGROUND_ROW_BYTES)));
         return;
     }
-    var_s1 = 0;
-    if (CdCmd_Queue.field_21C == 1) {
-        arg0  *= 0x110;
-        rect.w = 0x10;
-        field  = gDisplayState.vramYOffset;
-        rect.y = arg0;
-        rect.h = 0xF0;
-        if (field > 0) {
-            rect.h -= field;
-            rect.y  = arg0 + field;
-        } else if (field < 0) {
-            var_s1 = (-field) * 0x20;
-            rect.h = field + 0xF0;
+    sourceRowOffsetBytes = 0;
+    // Strips are 16 pixels wide and occupy 7680 bytes each in loader order.
+    if (CdCmd_Queue.imageLayout == FILE_SYSTEM_IMAGE_STRIPS) {
+        bufferY *= DISPLAY_BACKGROUND_BUFFER_STRIDE;
+        rect.w   = DISPLAY_BACKGROUND_STRIP_WIDTH;
+        offsetY  = gDisplayState.vramYOffset;
+        rect.y   = bufferY;
+        rect.h   = DISPLAY_BACKGROUND_HEIGHT;
+        if (offsetY > 0) {
+            rect.h -= offsetY;
+            rect.y  = bufferY + offsetY;
+        } else if (offsetY < 0) {
+            sourceRowOffsetBytes = (-offsetY) * DISPLAY_BACKGROUND_STRIP_ROW_BYTES;
+            rect.h               = offsetY + DISPLAY_BACKGROUND_HEIGHT;
         }
-        var_s0 = 0;
+        stripIndex = 0;
         do {
-            temp_v1 = var_s0 & 0xFFFF;
-            rect.x  = temp_v1 * 0x10;
-            LoadImage(&rect, (u_long*)((u8*)Fs_ImgBuffers + (temp_v1 * 0x1E00) + var_s1));
-            var_s0++;
-        } while ((u32)(var_s0 & 0xFFFF) < 0x14U);
+            stripIndex16 = stripIndex & 0xFFFF;
+            rect.x       = stripIndex16 * DISPLAY_BACKGROUND_STRIP_WIDTH;
+            LoadImage(&rect, (u_long*)((u8*)Fs_ImgBuffers + (stripIndex16 * DISPLAY_BACKGROUND_STRIP_BYTES) + sourceRowOffsetBytes));
+            stripIndex++;
+        } while ((u32)(stripIndex & 0xFFFF) < DISPLAY_BACKGROUND_STRIP_COUNT);
     }
 }
 
-void GameMain_SetFrameTiming(s32 arg0)
+void GameMain_SetFrameTiming(s32 timingMode)
 {
-    if (arg0 == 0) {
+    enum {
+        DISPLAY_FRAME_LINES_ONE   = 262,
+        DISPLAY_FRAME_LINES_TWO   = 525,
+        DISPLAY_FRAME_LINES_THREE = 787,
+    };
+
+    if (timingMode == DISPLAY_TIMING_EVERY_VBLANK) {
         gDisplayState.frameTicks = 1;
         D_8005EC68               = 0;
-        D_8005EC6C               = 0x106;
-    } else if (arg0 == 1) {
+        D_8005EC6C               = DISPLAY_FRAME_LINES_ONE;
+    } else if (timingMode == DISPLAY_TIMING_TWO_VBLANKS) {
         gDisplayState.frameTicks = 2;
         D_8005EC68               = 2;
-        D_8005EC6C               = 0x20D;
-    } else if (arg0 == 2) {
+        D_8005EC6C               = DISPLAY_FRAME_LINES_TWO;
+    } else if (timingMode == DISPLAY_TIMING_THREE_VBLANKS) {
         gDisplayState.frameTicks = 3;
         D_8005EC68               = 3;
-        D_8005EC6C               = 0x313;
+        D_8005EC6C               = DISPLAY_FRAME_LINES_THREE;
     }
 }
 
@@ -611,7 +632,7 @@ static void Gfx_InitGraph(void)
     GameMain_SpawnBootTask();
     Gfx_InitCoordinateTrees();
     Gpu_InitDefaultLights();
-    gDisplayState.at100.flags.imageSource = 0;
+    gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
 }
 
 static void GameMain_SpawnBootTask(void)
@@ -627,7 +648,7 @@ static void Display_PutEnvAndDraw(s32 arg0)
 {
     PutDrawEnv(&gDisplayState.drawEnv[arg0]);
     PutDispEnv(&gDisplayState.dispEnv[arg0]);
-    if (gDisplayState.at100.flags.imageSource != 0) {
+    if (gDisplayState.control.flags.imageSource != DISPLAY_IMAGE_NONE) {
         Display_LoadImageStrips(arg0);
     }
     Stream_PresentFrame();

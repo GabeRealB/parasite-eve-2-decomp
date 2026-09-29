@@ -166,7 +166,7 @@ void Gp_UpdatePadInput(void)
     Gp_PadSuppressRise = ~Gp_PadSuppressPrev & Gp_PadSuppressMask;
     Gp_PadSuppressFall = Gp_PadSuppressPrev & ~Gp_PadSuppressMask;
     Gp_PadSuppressPrev = Gp_PadSuppressMask;
-    if (gDisplayState.demoScene == 0) {
+    if (gDisplayState.demoScene == DISPLAY_DEMO_NONE) {
         if (Gp_PadSuppressRise & 0x900) {
             Display_AcquireRef();
             Gp_PadSuppressRefs++;

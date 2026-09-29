@@ -1238,7 +1238,7 @@ static void Shop_SessionTask(Task* task)
         if (obj == NULL) {
             return;
         }
-        GameMain_SetFrameTiming(0);
+        GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         gGameSession->uiOpen    = 1;
         task->spawnArg2.pointer = obj;
         task->state++;
@@ -1256,7 +1256,7 @@ static void Shop_SessionTask(Task* task)
     if (task->state == 2) {
         task->killCountdown--;
         if (task->killCountdown <= 0) {
-            GameMain_SetFrameTiming(1);
+            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gGameSession->uiOpen = 0;
             taskKill(task);
             Stage_ReleasePrimBuf();

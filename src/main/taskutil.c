@@ -11,7 +11,7 @@ extern u8 D_80725C54[];
 
 void Task_KillMaybeSpawn(Task* task)
 {
-    if (gDisplayState.field_112 != 0) {
+    if (gDisplayState.debugMode != 0) {
         Task_SpawnFromTable((TaskDesc*)&D_80725C54, 0, 0, 0);
     }
     taskKill(task);

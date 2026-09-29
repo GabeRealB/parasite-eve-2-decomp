@@ -93,7 +93,7 @@ void Gp_InitCapTask(Task* task)
 
 void Gp_CapTaskState1(Task* task)
 {
-    if (gDisplayState.field_112 != 0) {
+    if (gDisplayState.debugMode != 0) {
         func_80724120();
         func_80724324();
     }

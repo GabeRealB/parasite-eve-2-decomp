@@ -1067,7 +1067,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
             switch (idx) {
                 case 0:
                     Display_SpawnWithOt(D_dryfield_water_tank_80180764, 1, 0, 0);
-                    gDisplayState.at100.flags.flipMode = 1;
+                    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
                     Gp_SpawnViewTasks();
                     work->field_6++;
                     return;
@@ -1132,7 +1132,7 @@ void func_dryfield_water_tank_8017E9F8(Task* task)
     return;
 
 L_case0:
-    if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
+    if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
         work       = Mem_Malloc(0xC, false);
         task->work = (TaskIdMap*)work;
         if (work == NULL) {

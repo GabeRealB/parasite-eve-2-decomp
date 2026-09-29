@@ -218,7 +218,7 @@ void func_800C5F70(Task* arg0)
             Ui_DrawText(&(obj)->panel, Gp_StrSpecs);
         }
         if (obj->panel.field_8 == 2) {
-            GameMain_SetFrameTiming(1);
+            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
         }
         state = arg0->state;
         if (state == 2) {
@@ -617,10 +617,10 @@ void func_800C5F70(Task* arg0)
                 if (!(arg0->spawnArg1.value & 0x20000)) {
                     SndEvt_EnqueueType6(4, 0, 0);
                 }
-                GameMain_SetFrameTiming(0);
+                GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
                 obj->field_2E = 6;
             } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-                GameMain_SetFrameTiming(0);
+                GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
                 obj->field_2E = -1;
             }
         }

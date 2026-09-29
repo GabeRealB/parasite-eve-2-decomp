@@ -358,7 +358,7 @@ static void func_shelter_b1_underground_parking_8018390C(void);
 static void func_shelter_b1_underground_parking_801848A4(void);
 static void func_shelter_b1_underground_parking_8018491C(void);
 static s32  func_shelter_b1_underground_parking_80184964(OverlayHotspot* table, s16 x, s16 y);
-static void func_shelter_b1_underground_parking_8018543C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b1_underground_parking_8018543C(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
 static void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radius, s16 color);
 static void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1, s32 arg2);
@@ -1733,7 +1733,7 @@ void func_shelter_b1_underground_parking_80181FE4(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.roomVariant          = 1;
+            gDisplayState.spriteVariant        = 1;
             Mc_SaveData[0].state.at4.loc.stage = D_shelter_b1_underground_parking_8018D77C.stage;
             Mc_SaveData[0].state.at4.loc.area  = D_shelter_b1_underground_parking_8018D77C.area;
             Mc_SaveData[0].state.at4.loc.warp  = D_shelter_b1_underground_parking_8018D77C.warp;
@@ -1960,7 +1960,7 @@ static void func_shelter_b1_underground_parking_801826C0(Task* roomTask)
         (coord->coord.t[0] < -0x1266)) {
         z = coord->coord.t[2];
         if (z < 0x7D0) {
-            if ((z >= -0x7CF) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
+            if ((z >= -0x7CF) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 facing = (u16)actor->field_52 & 0xFFF;
                 if (Pad_CheckButtons(0, 0, 0x1000) != 0) {
                     if ((u32)(facing - 0xA01) < 0x3FFU) {
@@ -3302,26 +3302,38 @@ static void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1
     SCRATCH_POP_BYTES(0x18);
 }
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, if
+/// Projects the world-space point `worldPoint` through `gGfxViewCoord.workm` and, if
 /// the resulting OTZ is at least 0x11, queues four gouraud `POLY_G4` wedges
-/// around the projected centre. `arg1` is a signed half-extent; the on-screen
-/// radius is `(s16)arg1 * 64 / otz`. `arg2` scales the inner vertex by the
+/// around the projected centre. `radiusScale` is a signed half-extent; the on-screen
+/// radius is `(s16)radiusScale * 64 / otz`. `packedColor` scales the inner vertex by the
 /// frame-counter blend byte `((field_8 & 1) * 8 | 0x20)`: red is
-/// `blend * ((arg2 << 16) >> 24)`, green `blend * (((arg2 << 16) >> 20) & 1)`,
-/// blue `blend * (arg2 & 1)`.
-static void func_shelter_b1_underground_parking_8018543C(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// `blend * ((packedColor << 16) >> 24)`, green `blend * (((packedColor << 16) >> 20) & 1)`,
+/// blue `blend * (packedColor & 1)`.
+///
+/// `worldPoint` uses world coordinates; `radiusScale` is narrowed to signed 16 bits
+/// before division by camera depth/4. Angles use 4096 units per turn and the
+/// trigonometric coordinates use a 12-bit fractional scale. Colour bytes wrap.
+static void func_shelter_b1_underground_parking_8018543C(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor)
 {
+    enum {
+        ROOM_VISUAL_EFFECTS_GLOW_MIN_DEPTH       = 17,
+        ROOM_VISUAL_EFFECTS_GLOW_BRIGHTNESS_BASE = 0x20,
+        ROOM_VISUAL_EFFECTS_GLOW_BRIGHTNESS_STEP = 8,
+        ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT      = 12,
+        ROOM_VISUAL_EFFECTS_GLOW_FULL_TURN       = 0x1000,
+    };
+
     u8*                head;
     RoomDraw25Scratch* block;
     POLY_G4*           prim;
-    u8*                ds_ptr;
+    DisplayState*      displayBase;
     DisplayState*      ds;
     s32                radius;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                packed;
-    u8                 blend;
+    s32                angle;
+    s32                halfStepAngle;
+    s32                nextAngle;
+    s32                shiftedColor;
+    u8                 brightness;
     u8                 r;
     u8                 g;
     u8                 b;
@@ -3332,27 +3344,29 @@ static void func_shelter_b1_underground_parking_8018543C(SVECTOR* arg0, s32 arg1
 
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
-        tmp     = (*scratch = head - 0xC);
+        tmp     = (*scratch = head - sizeof(*block));
         block   = (RoomDraw25Scratch*)tmp;
     }
 
+    // Project the world point before allocating its glow packets.
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
+    gte_ldv0(worldPoint);
     gte_rtps();
-    gte_stsxy(&((RoomDraw25Scratch*)(head - 0xC))->sx);
+    gte_stsxy(&((RoomDraw25Scratch*)(head - sizeof(*block)))->sx);
     gte_stszotz(&block->otz);
-    if (((RoomDraw25Scratch*)(head - 0xC))->otz >= 0x11) {
-        radius        = ((s16)arg1 * 64) / ((RoomDraw25Scratch*)(head - 0xC))->otz;
-        ds_ptr        = (u8*)&gDisplayState;
-        packed        = arg2 << 16;
-        blend         = (((u8)((DisplayState*)ds_ptr)->animFrame & 1) * 8) | 0x20;
-        r             = blend * (packed >> 24);
-        g             = blend * ((packed >> 20) & 1);
-        b             = blend * (arg2 & 1);
-        ang           = 0;
-        ds            = (DisplayState*)ds_ptr;
+    if (((RoomDraw25Scratch*)(head - sizeof(*block)))->otz >= ROOM_VISUAL_EFFECTS_GLOW_MIN_DEPTH) {
+        radius        = ((s16)radiusScale * 64) / ((RoomDraw25Scratch*)(head - sizeof(*block)))->otz;
+        displayBase   = &gDisplayState;
+        shiftedColor  = packedColor << 16;
+        brightness    = (((u8)displayBase->animFrame & 1) * ROOM_VISUAL_EFFECTS_GLOW_BRIGHTNESS_STEP) | ROOM_VISUAL_EFFECTS_GLOW_BRIGHTNESS_BASE;
+        r             = brightness * (shiftedColor >> 24);
+        g             = brightness * ((shiftedColor >> 20) & 1);
+        b             = brightness * (packedColor & 1);
+        angle         = 0;
+        ds            = displayBase;
         block->radius = radius;
+        // Build four glow wedges and quantize their shared camera depth.
         do {
             prim           = (POLY_G4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -3361,23 +3375,23 @@ static void func_shelter_b1_underground_parking_8018543C(SVECTOR* arg0, s32 arg1
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, r, g, b);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
-            ang      = t2;
+            prim->x0      = block->sx + ((block->radius * rsin(angle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
+            halfStepAngle = angle + 0x200;
+            prim->y0      = block->sy + ((block->radius * rcos(angle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
+            prim->x1      = block->sx + ((block->radius * rsin(halfStepAngle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
+            prim->y1      = block->sy + ((block->radius * rcos(halfStepAngle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
+            nextAngle     = angle + 0x400;
+            prim->x2      = block->sx;
+            prim->y2      = block->sy;
+            prim->x3      = block->sx + ((block->radius * rsin(nextAngle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
+            prim->y3      = block->sy + ((block->radius * rcos(nextAngle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
+            angle         = nextAngle;
             addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
+        } while (angle < ROOM_VISUAL_EFFECTS_GLOW_FULL_TURN);
     }
-    SCRATCH_POP_BYTES(0xC);
+    SCRATCH_POP_BYTES(sizeof(*block));
 }
 
 static void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radius, s16 color)

@@ -2030,7 +2030,7 @@ static s32 func_actor_136100_80133904(Task* task)
     if (ready == 0 || Gp_StateC08.field_A == 1) {
         return 0;
     }
-    if (gDisplayState.pendingMode != 0) {
+    if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
         return 0;
     }
     if ((s8)evtKind == 0x12 && work->field_4E4 == 0) {
@@ -2252,7 +2252,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 if (Gp_StateC08.field_A == 1) {
                     return;
                 }
-                if (gDisplayState.pendingMode != 0) {
+                if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                     return;
                 }
                 func_actor_136100_SendWeaponRec(arg0, 1, 1, 0xA);
@@ -2267,7 +2267,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 if (Gp_StateC08.field_A == 1) {
                     return;
                 }
-                if (gDisplayState.pendingMode != 0) {
+                if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                     return;
                 }
                 func_actor_136100_SendWeaponRec(arg0, 1, 1, 0xA);

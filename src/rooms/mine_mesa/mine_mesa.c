@@ -2629,7 +2629,7 @@ void func_mine_mesa_8017D670(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_mine_mesa_80189B40.prefix.bytes.field_0;
             Mc_SaveData[0].state.at4.loc.warp = D_mine_mesa_80189B40.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_mine_mesa_80189B40.field_3;
@@ -2908,7 +2908,7 @@ void func_mine_mesa_8017DFC4(Task* arg0)
 void func_mine_mesa_8017E024(Task* arg0)
 {
     Display_SpawnWithOt(D_mine_mesa_80181990, 1, 0, 0);
-    gDisplayState.at100.flags.flipMode = 1;
+    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }

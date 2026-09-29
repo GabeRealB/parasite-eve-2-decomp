@@ -722,7 +722,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
 
     switch (task->state) {
         case 0:
-            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
+            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 work       = Mem_Malloc(0x10, false);
                 task->work = (TaskIdMap*)work;
                 if (work == NULL) {

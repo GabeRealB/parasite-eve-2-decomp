@@ -707,27 +707,27 @@ void Gp_ResetHudFx(GpIdMapC* arg0)
     GpStateBE8*   be8;
     GpStateC08*   p;
 
-    cfg                     = &Player_Status;
-    be8                     = &Gp_HpMpWork;
-    be8->field_0            = cfg->hp;
-    be8->field_4            = cfg->mp;
-    arg0->field_16          = -1;
-    arg0->field_18          = 0;
-    p                       = &Gp_StateC08;
-    p->field_10             = 0;
-    p->field_C              = 0;
-    p->field_12             = 0;
-    p->field_D              = 0;
-    p->field_E              = 0;
-    p->field_14             = 0;
-    p->field_F              = 0;
-    p->field_16             = 0;
-    p->field_17             = 0;
-    p->field_A              = 0;
-    gGameSession->field_126 = 0;
-    Gp_ItemGrantCooldown    = 0;
-    gDisplayState.loadBusy  = 1;
-    p->field_6             &= ~2;
+    cfg                                   = &Player_Status;
+    be8                                   = &Gp_HpMpWork;
+    be8->field_0                          = cfg->hp;
+    be8->field_4                          = cfg->mp;
+    arg0->field_16                        = -1;
+    arg0->field_18                        = 0;
+    p                                     = &Gp_StateC08;
+    p->field_10                           = 0;
+    p->field_C                            = 0;
+    p->field_12                           = 0;
+    p->field_D                            = 0;
+    p->field_E                            = 0;
+    p->field_14                           = 0;
+    p->field_F                            = 0;
+    p->field_16                           = 0;
+    p->field_17                           = 0;
+    p->field_A                            = 0;
+    gGameSession->field_126               = 0;
+    Gp_ItemGrantCooldown                  = 0;
+    gDisplayState.suppressDisconnectPause = 1;
+    p->field_6                           &= ~2;
 }
 
 static void Gp_StartPadReplay(void)
@@ -742,8 +742,8 @@ static void Gp_StartPadReplay(void)
     ds->gameTick             = 0;
     ds->loopCount            = 0;
     ds->vsyncCount           = 0;
-    ds->field_10             = 0;
-    if (ds->demoScene == 0x10) {
+    ds->loopTicks            = 0;
+    if (ds->demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
         Gp_ReplayCursor = (u16*)0x80600E4C;
     } else {
         Gp_ReplayCursor = (u16*)((u8*)Fs_ActorLoadBase2 + 0xD4C);
@@ -884,7 +884,7 @@ void Gp_TriggerPeIfArmed(void)
         if (gGameSession->field_126 == 0) {
             Gp_TriggerPeState(1, 0xFF);
             Gp_PulseState1C80();
-            gDisplayState.loadBusy = 0;
+            gDisplayState.suppressDisconnectPause = 0;
             Display_InitModeObj(&D_8010CABC, 1, 0, 0x102);
         }
     }
@@ -1295,6 +1295,7 @@ void Gp_LoadStageView(void)
     c1    = &Gfx_ViewOffsetCoord;
     rec   = gpViewAt(recs, idx);
 
+    // Keep rotation and translation in their separate camera coordinate nodes.
     *(GBytes18*)rot = *(GBytes18*)(rec - 1);
     *trans          = *(VECTOR3*)&(rec - 1)->mtx.t;
 
@@ -1304,8 +1305,8 @@ void Gp_LoadStageView(void)
     c1->coord.t[1] = 0;
     c1->coord.t[2] = 0;
 
-    gDisplayState.screenDistance = rec->field_20;
-    gte_SetGeomScreen(rec->field_20);
+    gDisplayState.screenDistance = rec->screenDistance;
+    gte_SetGeomScreen(rec->screenDistance);
     gte_SetGeomOffset(0, 0);
 
     Gfx_ViewOffsetCoord.composeStamp                  = GRAPHICS_COORD_DIRTY;
@@ -1347,6 +1348,7 @@ void Gp_ApplyView(GpViewRec* arg0)
     trans = MATRIX_TRANS(&gGfxViewCoord.coord);
     c1    = &Gfx_ViewOffsetCoord;
 
+    // Keep rotation and translation in their separate camera coordinate nodes.
     *(GBytes18*)rot = *(GBytes18*)arg0;
     *trans          = *MATRIX_TRANS(&arg0->mtx);
 
@@ -1354,8 +1356,8 @@ void Gp_ApplyView(GpViewRec* arg0)
     c1->coord.t[1] = 0;
     c1->coord.t[2] = 0;
 
-    gDisplayState.screenDistance = arg0->field_20;
-    gte_SetGeomScreen(arg0->field_20);
+    gDisplayState.screenDistance = arg0->screenDistance;
+    gte_SetGeomScreen(arg0->screenDistance);
     gte_SetGeomOffset(0, 0);
 
     Gfx_ViewOffsetCoord.composeStamp                  = GRAPHICS_COORD_DIRTY;
@@ -1435,6 +1437,7 @@ void Gp_ApplyViewTask(Task* task)
     c1    = &Gfx_ViewOffsetCoord;
     rec   = task->spawnArg2.pointer;
 
+    // Keep rotation and translation in their separate camera coordinate nodes.
     *(GBytes18*)rot = *(GBytes18*)rec;
     *trans          = *MATRIX_TRANS(&rec->mtx);
 
@@ -1442,8 +1445,8 @@ void Gp_ApplyViewTask(Task* task)
     c1->coord.t[1] = 0;
     c1->coord.t[2] = 0;
 
-    gDisplayState.screenDistance = rec->field_20;
-    gte_SetGeomScreen(rec->field_20);
+    gDisplayState.screenDistance = rec->screenDistance;
+    gte_SetGeomScreen(rec->screenDistance);
     gte_SetGeomOffset(0, 0);
 
     Gfx_ViewOffsetCoord.composeStamp                  = GRAPHICS_COORD_DIRTY;

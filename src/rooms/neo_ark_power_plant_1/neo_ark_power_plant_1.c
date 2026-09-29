@@ -106,7 +106,7 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
         if (slot != 0) {
             if (Gp_DispatchMsg(slot, 0x7D6, 0, 0) == 0) {
                 if (Gp_StateC08.field_A != 1) {
-                    if (gDisplayState.pendingMode == 0) {
+                    if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                         GameFlag_SetNibble(0xDE, 1);
                         GameFlag_SetNibble(0xF6, 1);
                         GameFlag_SetNibble(0x1B2, 0);

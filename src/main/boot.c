@@ -120,7 +120,7 @@ void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1)
     size_t        temp;
 
     entries = Gfx_ImageSlotTables[arg0];
-    if ((gDisplayState.videoMode == 0) || (arg0 == 0)) {
+    if ((gDisplayState.videoMode == DISPLAY_VIDEO_NORMAL) || (arg0 == 0)) {
         Mem_AuxRegionBase  = (u8*)0x80179950;
         Mem_AuxRegionBytes = 0x836B0;
         Gpu_PrimHeapBase   = (u8*)0x80179950;
@@ -159,12 +159,12 @@ void Boot_LoadInitialFile(Task* task)
     queue = &CdCmd_Queue;
     switch (task->state) {
         case 0:
-            Display_SetMode(0xD010);
+            Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
             modeParam[0] = CdlModeSpeed | CdlModeSize1;
             CdControlB(CdlSetmode, modeParam, NULL);
             SetDispMask(0);
             Fs_ScanIsoDirectory(1);
-            gDisplayState.at100.flags.imageSource = 1;
+            gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
             CdCmd_Enqueue(0x55, NULL, NULL);
             Mem_ConfigureAuxHeap(0, 0);
             while (queue->field_1FE != 0xFF) {
@@ -224,7 +224,7 @@ void Boot_LoadInitialFile(Task* task)
             Task_Spawn(0, 0xD, 0, 0);
             taskKill(task);
             SetDispMask(1);
-            gDisplayState.field_112 = 0;
+            gDisplayState.debugMode = 0;
             break;
     }
 }
@@ -355,7 +355,7 @@ void Boot_LoadTask(Task* task)
                 Mem_ConfigureAuxHeap(0, 0);
                 Task_SpawnFromTable(Title_TaskDescs, 0, 0, 0);
                 taskKill(task);
-                gDisplayState.field_112 = 0;
+                gDisplayState.debugMode = 0;
             }
             return;
     }

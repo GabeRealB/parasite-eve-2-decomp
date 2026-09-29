@@ -2018,7 +2018,7 @@ static void func_actor_105100_80134284(GpEnemy* arg0, Task* arg1)
         case 2:
             flag = work->field_5BA;
             if ((flag == 1) && (((GameActor*)player->work)->field_954 != 2) && (Gp_StateC08.field_A != flag) &&
-                (gDisplayState.pendingMode == 0)) {
+                (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
                 work->field_5BA = 0;
             }

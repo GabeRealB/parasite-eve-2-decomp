@@ -931,7 +931,7 @@ static const TaskFuncTable3 D_neo_ark_submarine_tunnel_8017D614 = {
 /// 10 by 30 grid of textured quads whose corners are pushed around by sine
 /// waves. The first frame gives every column and row edge a random phase
 /// offset and speed, takes its context from `spawnArg2` and passes -8 to
-/// `Display_ClampField126`. Afterwards the context's mode ramps the strength
+/// `displaySetShakeY`. Afterwards the context's mode ramps the strength
 /// up to its limit (mode 0), back down to zero and on to mode 2 (mode 1), or
 /// ends the task and passes 0 back (mode 2); the displacement is the ramp's
 /// share of the context's peak. A non-zero tint flag shades the quads with the
@@ -972,7 +972,7 @@ void func_neo_ark_submarine_tunnel_8017E828(Task* arg0)
             D_neo_ark_submarine_tunnel_8018790C        = arg0->spawnArg2.pointer;
             D_neo_ark_submarine_tunnel_8018790C->frame = 0;
             D_neo_ark_submarine_tunnel_8018790C->state = 0;
-            Display_ClampField126(-8);
+            displaySetShakeY(DISPLAY_SHAKE_MIN);
             arg0->state++;
             break;
         case 1:
@@ -992,7 +992,7 @@ void func_neo_ark_submarine_tunnel_8017E828(Task* arg0)
                     break;
                 case 2:
                     taskKill(arg0);
-                    Display_ClampField126(0);
+                    displaySetShakeY(0);
                     break;
             }
             D_neo_ark_submarine_tunnel_80181A4C = D_neo_ark_submarine_tunnel_8018790C->frame * D_neo_ark_submarine_tunnel_8018790C->scale / D_neo_ark_submarine_tunnel_8018790C->span;

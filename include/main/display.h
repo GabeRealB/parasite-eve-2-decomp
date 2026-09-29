@@ -58,9 +58,18 @@ extern u8* gGpuPrimCursor;
 
 void Gpu_ClearOTag(s16 tableIdx);
 
-void Display_SetMode(s32 arg0);
+/// Configure the two draw/display environments from packed setup bits.
+///
+/// Width index (bits 4..7) must be 0..4 for 256/320/384/512/640 pixels; height
+/// index (bits 0..3) must be 0..1 for 240/480 lines. Any bit in 8..11 requests
+/// interlace, and the saved interlace preference can also enable it. Other
+/// options are DISPLAY_SETUP_* flags; zero low 16 bits selects the default.
+void Display_SetMode(s32 modeBits);
 
-void Display_ClampField126(s8 arg0);
+/// Request vertical screen shake in signed pixels, clamped to [-8, 8].
+///
+/// The game loop applies the request after presenting its current frame.
+void displaySetShakeY(s8 offsetY);
 
 Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3);
 
@@ -73,14 +82,21 @@ Task* Display_InitModeObj(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, s32
 
 void Gpu_ResetGraphAndOt(void);
 
-/// LoadImage strips from Fs_ImgBuffers into the active display buffer.
-void Display_LoadImageStrips(s32 arg0);
+/// Upload the room background into buffer 0 or 1, cropped by the applied shake.
+///
+/// The CD loader selects a contiguous 320x240 image or twenty 16x240 strips.
+/// Source offsets are bytes and remain word-aligned for the GPU transfer.
+void Display_LoadImageStrips(s32 bufferIndex);
 
 /// Mem heap reset via session (otutil.c wrapper around Display_ResetHeapFromSession).
 void Display_ResetHeapWrapper(void);
 
+/// Acquire a display hold that blocks normal menu-mode requests.
 void Display_AcquireRef(void);
 
+/// Release a matching acquisition; the final release unblocks menu requests.
+///
+/// Acquisitions and releases must be balanced; the count is stored in a byte.
 void Display_ReleaseRef(void);
 
 #endif // MAIN_DISPLAY_H

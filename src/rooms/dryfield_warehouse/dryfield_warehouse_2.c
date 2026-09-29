@@ -680,7 +680,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
+            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 work       = Mem_Malloc(0x10, false);
                 arg0->work = (TaskIdMap*)work;
                 if (work == NULL) {

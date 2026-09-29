@@ -55,7 +55,7 @@ void func_800B65B0(Task* task)
 
     work = task->spawnArg2.pointer;
     if (task->state == 0) {
-        GameMain_SetFrameTiming(0);
+        GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         if (Gp_LookupBit2Item(work->field_0) == 0) {
             work->field_3 = 0;
             work->field_2 = 1;
@@ -81,7 +81,7 @@ void func_800B65B0(Task* task)
                 } else if ((s16)angle < -0x800) {
                     p->yaw = angle + 0x1000;
                 }
-                gDisplayState.gameMode = 0xFF;
+                gDisplayState.gameMode = DISPLAY_GAME_MODAL;
                 cfg                    = &Player_Status;
                 save                   = &Mc_SaveData[0];
                 save->state.playerExp  = cfg->exp;
@@ -150,9 +150,9 @@ void func_800B65B0(Task* task)
         task->state++;
     } else if (task->state == 0x11) {
         if (--task->killCountdown <= 0) {
-            GameMain_SetFrameTiming(1);
+            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             work->field_2          = 1;
-            gDisplayState.gameMode = 0;
+            gDisplayState.gameMode = DISPLAY_GAME_ACTIVE;
             Stage_ReleasePrimBuf();
             taskKill(task);
         }

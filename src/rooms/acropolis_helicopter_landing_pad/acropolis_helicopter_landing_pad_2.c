@@ -935,7 +935,7 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
             Mc_SaveData[0].state.at4.loc.area  = 0x12;
             Mc_SaveData[0].state.at4.loc.warp  = 1;
             Mc_SaveData[0].state.at4.loc.room  = 1;
-            gDisplayState.roomVariant          = 1;
+            gDisplayState.spriteVariant        = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Display_ReleaseRef();
             taskKill(arg0);
@@ -1217,7 +1217,7 @@ void func_acropolis_helicopter_landing_pad_8017E81C(Task* arg0)
             break;
         case 1:
             if (lo < arg0->spawnArg1.value) {
-                Display_ClampField126(0);
+                displaySetShakeY(0);
                 taskKill(arg0);
             } else {
                 val         = lo - ABS(arg0->spawnArg1.value);
@@ -1229,7 +1229,7 @@ void func_acropolis_helicopter_landing_pad_8017E81C(Task* arg0)
                 } else {
                     val = -ABS(val);
                 }
-                Display_ClampField126(val);
+                displaySetShakeY(val);
                 arg0->spawnArg1.value++;
             }
             break;

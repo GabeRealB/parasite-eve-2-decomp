@@ -4503,7 +4503,7 @@ static void func_actor_403600_80140B4C(GpEnemy* enemy, Task* actor)
     for (i = 0; i < 3; i++) {
         D_actor_403600_80160700.mtx.t[i] = key->pos[i];
     }
-    D_actor_403600_80160700.field_20 = 0x149;
+    D_actor_403600_80160700.screenDistance = 0x149;
     Gp_TrySpawnViewTask(&D_actor_403600_80160700);
     func_actor_403600_80141F58(&work->field_4B8, (s16)work->field_744);
     work->field_77C++;
@@ -4696,12 +4696,12 @@ static void func_actor_403600_801414FC(Task* arg0)
         } else {
             brightness = rsin(gDisplayState.animFrame << 9) << 0xC;
         }
-        Display_ClampField126((s8)(brightness >> 0x18));
+        displaySetShakeY((s8)(brightness >> 0x18));
         countdown       = (u16)work->field_764 - 1;
         work->field_764 = countdown;
         if ((countdown << 0x10) <= 0) {
             work->field_766 = 0;
-            Display_ClampField126(0);
+            displaySetShakeY(0);
         }
     }
 }

@@ -1295,7 +1295,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             Mc_SaveData[0].state.at4.loc.area  = 0xA;
             Mc_SaveData[0].state.at4.loc.warp  = 4;
             Mc_SaveData[0].state.at4.loc.room  = 1;
-            gDisplayState.roomVariant          = 1;
+            gDisplayState.spriteVariant        = 1;
             Task_Spawn(0, 0x11, 0, 0);
             gGameSession->padScriptFlags &= 0x7F;
             taskKill(task);

@@ -1826,7 +1826,7 @@ static void func_800D1F90(Task* arg0)
     UiObject* obj;
 
     obj = arg0->spawnArg2.pointer;
-    GameMain_SetFrameTiming(1);
+    GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
     arg0->killCountdown   = 4;
     obj->panel.field_16   = 0;
     arg0->spawnArg1.value = 0;
@@ -2827,7 +2827,7 @@ void Gp_MapScreenTask(Task* arg0)
             obj->panel.bounds.unsignedRect.y = (u16)D_80114E90;
         }
         Stage_InitPrimBufOnce();
-        GameMain_SetFrameTiming(0);
+        GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         gGameSession->uiOpen = 1;
         D_80114E88           = 0;
         arg0->state          = arg0->state + 1;
@@ -2840,7 +2840,7 @@ void Gp_MapScreenTask(Task* arg0)
     } else {
         arg0->killCountdown--;
         if (arg0->killCountdown <= 0) {
-            GameMain_SetFrameTiming(1);
+            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gGameSession->uiOpen = 0;
             taskKill(arg0);
             Stage_ReleasePrimBuf();

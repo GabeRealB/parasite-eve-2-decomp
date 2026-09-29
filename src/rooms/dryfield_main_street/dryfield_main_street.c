@@ -1027,7 +1027,7 @@ void func_dryfield_main_street_8017D600(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_main_street_80185614.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_main_street_80185614.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_dryfield_main_street_80185614.field_3;
@@ -1134,7 +1134,7 @@ void func_dryfield_main_street_8017D8FC(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_main_street_80185624.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_main_street_80185624.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_main_street_80185624.field_3;

@@ -1215,7 +1215,7 @@ void func_dryfield_night_water_hole_8017D7E8(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.roomVariant          = 1;
+            gDisplayState.spriteVariant        = 1;
             Mc_SaveData[0].state.at4.loc.stage = D_dryfield_night_water_hole_80183630.stage;
             Mc_SaveData[0].state.at4.loc.area  = D_dryfield_night_water_hole_80183630.area;
             Mc_SaveData[0].state.at4.loc.warp  = D_dryfield_night_water_hole_80183630.warp;

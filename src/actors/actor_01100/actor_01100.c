@@ -3417,7 +3417,7 @@ static void Actor01100_Fn05678(
     if (((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
         actor  = gameGetPtrSlot(3)->work;
         status = &Player_Status;
-        if ((actor->field_954 != 2) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0) && (status->hp > 0)) {
+        if ((actor->field_954 != 2) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && (status->hp > 0)) {
             Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
             work->field_BC8 = 1;
         }

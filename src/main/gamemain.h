@@ -3,9 +3,10 @@
 
 #include "types.h"
 
-// Display/CD timing flags shared with the VSync path (GameMain_ShowLoading / GameMain_Loop).
+/// VSync wait mode (0 next blank, 2 two blanks, 3 three blanks); also drives play-clock pacing.
 extern s32 D_8005EC68;
 
+/// Frame budget in VSync(1) horizontal-line counts, separate from animation ticks.
 extern s32 D_8005EC6C;
 
 extern volatile s32 Display_PendingFlip;

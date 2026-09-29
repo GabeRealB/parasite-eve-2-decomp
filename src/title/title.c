@@ -131,10 +131,10 @@ static void Title_InitTask(Task* arg0)
     DisplayState* ds;
     TitleWork*    work;
 
-    flag                        = 1;
-    ds                          = &gDisplayState;
-    ds->at100.flags.imageSource = 0;
-    Wip_UiHolder                = NULL;
+    flag                          = 1;
+    ds                            = &gDisplayState;
+    ds->control.flags.imageSource = DISPLAY_IMAGE_NONE;
+    Wip_UiHolder                  = NULL;
     if (arg0->spawnArg1.value < 0) {
         flag                   = 0;
         arg0->spawnArg1.value &= 0x7FFFFFFF;
@@ -154,11 +154,11 @@ static void Title_InitTask(Task* arg0)
             work->selection = 3;
         }
         Text_LoadClutImages();
-        Display_SetMode(0x9010);
-        ds->holdState               = -1;
-        work->timer                 = -0x10;
-        ds->at100.flags.imageSource = 1;
-        if (ds->field_112 != 0) {
+        Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_KEEP_VIEW);
+        ds->holdState                 = DISPLAY_HOLD_INITIAL;
+        work->timer                   = -0x10;
+        ds->control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
+        if (ds->debugMode != 0) {
             func_807246B4();
         }
         CdCmd_EnqueueLoadFile(1, 0, 0);
@@ -237,9 +237,9 @@ static void Title_MenuTask(Task* task)
                 gDisplayState.demoScene = gDisplayState.demoScene % 3 + 1;
                 printf(Title_DemoStartMsg);
                 Task_Spawn(0, 3, 2, 0);
-                gDisplayState.at100.flags.imageSource = 0;
+                gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             } else {
-                gDisplayState.gameMode = 1;
+                gDisplayState.gameMode = DISPLAY_GAME_RESTART;
             }
         }
         return;
@@ -314,7 +314,7 @@ static void Title_MenuTask(Task* task)
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | 0x800) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
             Task_Spawn(0, Title_MenuSpawnIds[work->selection], 0, 0);
-            gDisplayState.at100.flags.imageSource = 0;
+            gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             Task_CallExit(task);
         }
     } else {
@@ -332,7 +332,7 @@ static void Title_MenuTask(Task* task)
 }
 
 /// Restore demo card / save banks from Fs_ActorLoadBase2 (or 0x80600100 when
-/// gDisplayState.demoScene == 0x10).
+/// gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY).
 /// Preserves Mc_SaveData[0].state.vibration / field_23 across the bulk copy.
 void Title_RestoreDemoCard(void)
 {
@@ -347,7 +347,7 @@ void Title_RestoreDemoCard(void)
     bank        = 0;
     saveField23 = Mc_SaveData[0].state.demoScene;
     saveField21 = Mc_SaveData[0].state.vibration;
-    if (gDisplayState.demoScene == 0x10) {
+    if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
         src = (u8*)0x80600100;
     }
     printf(Title_DemoCardRestoreMsg, Mc_SaveData[0].state.at4.loc.stage, Mc_SaveData[0].state.at4.loc.area);
@@ -384,7 +384,7 @@ void Title_RestoreDemoCard(void)
     Mc_SaveData[0].state.demoScene = saveField23;
     Mc_SaveData[0].state.vibration = saveField21;
     if (Fs_StageCdfIsAvailable(Mc_SaveData[0].state.at4.loc.stage) != 1) {
-        gDisplayState.gameMode = 1;
+        gDisplayState.gameMode = DISPLAY_GAME_RESTART;
     }
     printf(Title_DemoCardRestoreMsg, Mc_SaveData[0].state.at4.loc.stage, Mc_SaveData[0].state.at4.loc.area);
 }
@@ -393,7 +393,7 @@ static void Title_FlagAdvanceTask(Task* arg0)
 {
     s32* p = &arg0->state;
 
-    gDisplayState.at100.flags.imageSource = 1;
+    gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
     (*p)++;
 }
 
@@ -469,7 +469,7 @@ void Title_DemoStreamTask(Task* task)
             break;
         case 5:
             if (CdCmd_IsIdle()) {
-                Display_SetMode(0xD010);
+                Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
                 task->state++;
             }
             break;
@@ -477,7 +477,7 @@ void Title_DemoStreamTask(Task* task)
             Stream_ResetRestoreState();
             Display_LoadImageStrips(gDisplayState.drawBuffer);
             Display_LoadImageStrips(gDisplayState.drawBuffer ^ 1);
-            gDisplayState.at100.flags.imageSource = 1;
+            gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
             task->state++;
             break;
         case 7:
@@ -499,15 +499,15 @@ void Title_BootTask(Task* arg0)
     task = arg0;
     switch (task->state) {
         case 0:
-            gDisplayState.at100.flags.imageSource = 0;
-            Title_SkipFadeFlag                    = 1;
-            if ((gDisplayState.field_112 < 0) || (Wip_SysFlags.field_4 != 0)) {
+            gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
+            Title_SkipFadeFlag                      = 1;
+            if ((gDisplayState.debugMode < 0) || (Wip_SysFlags.field_4 != 0)) {
                 next               = 6;
                 Title_SkipFadeFlag = 0;
             } else {
                 Display_SpawnWithOt(Title_TaskDescs, 1, 0, 0);
-                gDisplayState.at100.flags.flipMode = 1;
-                next                               = task->state + 1;
+                gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
+                next                                 = task->state + 1;
             }
             task->state = next;
             return;

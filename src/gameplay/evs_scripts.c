@@ -179,11 +179,11 @@ static void Gp_ScriptTaskState1(Task* arg0)
         return;
     }
 
-    if (gDisplayState.demoScene != 0 && Pad_CheckFlag800() != 0 && gDisplayState.pendingMode == 0) {
-        gDisplayState.gameMode = 1;
+    if (gDisplayState.demoScene != DISPLAY_DEMO_NONE && Pad_CheckFlag800() != 0 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
+        gDisplayState.gameMode = DISPLAY_GAME_RESTART;
     }
 
-    if (Pad_CheckFlag800() != 0 && D_801156D0.address != 0 && gDisplayState.pendingMode == 0 && D_801156F0 == 0) {
+    if (Pad_CheckFlag800() != 0 && D_801156D0.address != 0 && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_801156F0 == 0) {
         if (D_801156F4.overlays != NULL) {
             CdCmd_CancelReplaceAndActivate();
         }
@@ -773,7 +773,7 @@ void func_800E8888(Task* arg0)
 /// Screen-shake task. `spawnArg2` is a packed s32: low byte is the
 /// duration bound (counter runs `-lo` .. `+lo`); `>> 8` is amplitude.
 /// Each frame an LCG (`Gp_LcgState`) scales the remaining count into
-/// `Display_ClampField126`, flipping sign on `spawnArg1` parity.
+/// `displaySetShakeY`, flipping sign on `spawnArg1` parity.
 void Gp_ShakeTask(Task* arg0)
 {
     s32 packed;
@@ -791,7 +791,7 @@ void Gp_ShakeTask(Task* arg0)
             break;
         case 1:
             if (lo < arg0->spawnArg1.value) {
-                Display_ClampField126(0);
+                displaySetShakeY(0);
                 taskKill(arg0);
             } else {
                 val         = lo - ABS(arg0->spawnArg1.value);
@@ -803,7 +803,7 @@ void Gp_ShakeTask(Task* arg0)
                 } else {
                     val = -ABS(val);
                 }
-                Display_ClampField126(val);
+                displaySetShakeY(val);
                 arg0->spawnArg1.value++;
             }
             break;

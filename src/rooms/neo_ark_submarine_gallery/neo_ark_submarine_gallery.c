@@ -834,7 +834,7 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             }
             break;
         case 5:
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_neo_ark_submarine_gallery_80185924.field_2;
             Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_submarine_gallery_80185924.field_4;
             Mc_SaveData[0].state.at4.loc.room = D_neo_ark_submarine_gallery_80185924.prefix.bytes.field_1;

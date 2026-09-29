@@ -295,7 +295,7 @@ void func_shelter_b1_armory_801800A4(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_armory_80185584.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_armory_80185584.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_armory_80185584.field_3;

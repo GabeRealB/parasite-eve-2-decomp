@@ -163,7 +163,7 @@ static void Telephone_SaveRow(UiList* prompt, UiObject* obj)
     sel = prompt->field_C;
     if (sel == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0 && CdCmd_IsIdle() != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
-        gDisplayState.gameMode = 0xFF;
+        gDisplayState.gameMode = DISPLAY_GAME_MODAL;
         Ui_SpawnFromDesc(&D_800611E4, 1, 0, 0, obj);
         obj->panel.field_0.w = 0;
         obj->field_2E        = 6;

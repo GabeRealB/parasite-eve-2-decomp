@@ -524,7 +524,7 @@ static void func_shelter_b6_corridor_8017E12C(Task* task);
 
 /// Task that ripples the whole screen. On its first frame it gives each of the
 /// 9 column and 30 row edges a random phase offset and speed, takes its
-/// context from `spawnArg2`, passes -8 to `Display_ClampField126` and builds
+/// context from `spawnArg2`, passes -8 to `displaySetShakeY` and builds
 /// two 8 by 30 grids of `POLY_FT4`s sampling the two frame-buffer halves,
 /// tinted with the context's colour when its tint flag is set. Afterwards the
 /// context's mode ramps the strength up to its limit (mode 0), back down to
@@ -586,7 +586,7 @@ void func_shelter_b6_corridor_8017D5D0(Task* arg0)
             D_shelter_b6_corridor_80180568        = arg0->spawnArg2.pointer;
             D_shelter_b6_corridor_80180568->frame = 0;
             D_shelter_b6_corridor_80180568->state = 0;
-            Display_ClampField126(-8);
+            displaySetShakeY(DISPLAY_SHAKE_MIN);
             for (i = 0; i < 2; i++) {
                 tpage0 = getTPage(2, 0, 0, i << 8);
                 tpage1 = getTPage(2, 0, 128, i << 8);
@@ -656,7 +656,7 @@ void func_shelter_b6_corridor_8017D5D0(Task* arg0)
                     break;
                 case 2:
                     taskKill(arg0);
-                    Display_ClampField126(0);
+                    displaySetShakeY(0);
                     break;
             }
             D_shelter_b6_corridor_8017EF20 = D_shelter_b6_corridor_80180568->frame * D_shelter_b6_corridor_80180568->scale / D_shelter_b6_corridor_80180568->span;

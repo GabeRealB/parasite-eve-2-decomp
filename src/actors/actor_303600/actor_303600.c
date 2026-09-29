@@ -129,7 +129,7 @@ extern GpEvsCmd D_actor_303600_80162AF0[];
 extern GpEvsCmd D_actor_303600_80162DD8[];
 
 /// Main-executable globals with no module header yet: a `Gp_StateC08.field_A` of 1 or a
-/// live `gDisplayState.pendingMode` both mean a cutscene is already up, and `gDisplayState.roomVariant` is the
+/// live `gDisplayState.pendingMode` both mean a cutscene is already up, and `gDisplayState.spriteVariant` is the
 /// latch state 2 below sets alongside `Mc_SaveData`.
 
 static void func_actor_303600_80162850(Task* task);
@@ -16978,7 +16978,7 @@ static void func_actor_303600_80161F40(Task* arg0)
 /// overlay's two cutscene script blocks to `func_800E8634`. State 2 waits for
 /// the session's `eventState` to clear -- the cutscene having finished -- and then
 /// sets the saved location in `Mc_SaveData` to stage 5, area 0x1F, warp 1,
-/// room 1, raises the `gDisplayState.roomVariant` latch, starts the stage-0 type-0x11 task and
+/// room 1, raises the `gDisplayState.spriteVariant` latch, starts the stage-0 type-0x11 task and
 /// kills itself; while the cutscene is still up it steps the state machine
 /// instead.
 void func_actor_303600_8016216C(Task* arg0)
@@ -16987,7 +16987,7 @@ void func_actor_303600_8016216C(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             work       = (Actor303600Work*)Mem_Malloc(0x10, 0);
@@ -17012,7 +17012,7 @@ void func_actor_303600_8016216C(Task* arg0)
                 Mc_SaveData[0].state.at4.loc.area  = 0x1F;
                 Mc_SaveData[0].state.at4.loc.warp  = 1;
                 Mc_SaveData[0].state.at4.loc.room  = 1;
-                gDisplayState.roomVariant          = 1;
+                gDisplayState.spriteVariant        = 1;
                 Task_Spawn(0, 0x11, 0x10, 0);
                 taskKill(arg0);
                 break;

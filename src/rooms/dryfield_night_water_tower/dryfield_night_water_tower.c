@@ -146,7 +146,7 @@ void func_dryfield_night_water_tower_8017D770(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_water_tower_80182C50.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_water_tower_80182C50.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_water_tower_80182C50.field_3;

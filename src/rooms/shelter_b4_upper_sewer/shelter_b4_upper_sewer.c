@@ -890,7 +890,7 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
             }
             break;
         case 5:
-            gDisplayState.roomVariant         = 1;
+            gDisplayState.spriteVariant       = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b4_upper_sewer_80188D24.field_2;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b4_upper_sewer_80188D24.field_4;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_b4_upper_sewer_80188D24.prefix.bytes.field_1;

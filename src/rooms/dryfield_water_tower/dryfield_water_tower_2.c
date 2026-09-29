@@ -2469,7 +2469,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             state->field_58++;
 
         case 3:
-            if (Gp_TakePendingObj4C(&objId, &objA, &objB) != 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == 0 &&
+            if (Gp_TakePendingObj4C(&objId, &objA, &objB) != 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
                 (objId & 0x7FFF) == 5 && (reason = (s8)objA) == 2) {
                 Gp_UnlinkObj4A(0, (D_dryfield_water_tower_80186A84 + 6));
                 state->field_68 = Gp_FindViewIndex(9);
@@ -2563,7 +2563,7 @@ static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
             if (Gp_StateC08.field_A == 1) {
                 break;
             }
-            if (gDisplayState.pendingMode != 0) {
+            if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return 0;
             }
             func_800E8634(D_dryfield_water_tower_801820B0, 0, D_dryfield_water_tower_80182248);
@@ -3038,7 +3038,7 @@ void func_dryfield_water_tower_8017FD64(Task* task)
     }
     switch (task->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             weaponId            = Player_Status.weapon;

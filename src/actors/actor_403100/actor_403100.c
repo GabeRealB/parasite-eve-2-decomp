@@ -4219,10 +4219,10 @@ static void func_actor_403100_801339EC(Task* arg0)
         } else {
             brightness = rsin(gDisplayState.animFrame << 9) << 12;
         }
-        Display_ClampField126((s8)(brightness >> 24));
+        displaySetShakeY((s8)(brightness >> 24));
         D_actor_403100_80155808->field_5FE = (u16)D_actor_403100_80155808->field_5FE - 1;
     } else {
-        Display_ClampField126(0);
+        displaySetShakeY(0);
     }
 }
 static void func_actor_403100_80133C94(Task* task)
@@ -4633,10 +4633,10 @@ static void func_actor_403100_80134D50(Task* arg0)
         } else {
             brightness = rsin(gDisplayState.animFrame << 9) << 12;
         }
-        Display_ClampField126((s8)(brightness >> 24));
+        displaySetShakeY((s8)(brightness >> 24));
         D_actor_403100_80155808->field_5FE = (u16)D_actor_403100_80155808->field_5FE - 1;
     } else {
-        Display_ClampField126(0);
+        displaySetShakeY(0);
     }
     timer = D_actor_403100_80155808->field_658;
     if (timer >= 0) {
@@ -5433,10 +5433,10 @@ static void func_actor_403100_80136830(Task* arg0)
                 } else {
                     flash = rsin(gDisplayState.animFrame << 9) << 0xC;
                 }
-                Display_ClampField126(flash >> 0x18);
+                displaySetShakeY(flash >> 0x18);
                 D_actor_403100_80155808->field_5FE = (s16)((u16)D_actor_403100_80155808->field_5FE - 1);
             } else {
-                Display_ClampField126(0);
+                displaySetShakeY(0);
             }
             func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->field_61C);
             _actor403100SetRootYaw(arg0);

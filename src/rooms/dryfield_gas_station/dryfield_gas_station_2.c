@@ -194,7 +194,7 @@ L_case0:
         return;
     }
     Display_SpawnWithOt(D_dryfield_gas_station_80181E7C, 1, 0, 0);
-    gDisplayState.at100.flags.flipMode = 1;
+    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
     goto advance;
 
