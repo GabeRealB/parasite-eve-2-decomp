@@ -1351,6 +1351,10 @@ static inline u8* _midiNoteOff(s32 status, u8* data, MidiSong* song)
 
 static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
 {
+    enum {
+        SOUND_BANK_VOLUME_FRACTION_BITS = 7,
+        SOUND_BANK_PAN_CENTER           = 64
+    };
     s16           priorities[2];
     SpuVoiceRef   ref;
     u8            channel;
@@ -1383,7 +1387,7 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
         group   = &song->groups[program];
         key     = arg1[1];
         note    = Snd_GetNote(song->bank, program, 0);
-        for (layer = 0; layer < group->noteCount; layer++, note++) {
+        for (layer = 0; layer < group->layerCount; layer++, note++) {
             priority = note->priority;
             if (key >= note->keyMin && note->keyMax >= key) {
                 if (priority == 0) {
@@ -1403,8 +1407,8 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
                     slot->channel     = channel;
                     slot->velocity    = velocity;
                     slot->key         = key;
-                    slot->volumeScale = (group->volume * note->volume) >> 7;
-                    pan               = group->pan + note->pan - 0x40;
+                    slot->volumeScale = (group->volume * note->volume) >> SOUND_BANK_VOLUME_FRACTION_BITS;
+                    pan               = group->pan + note->pan - SOUND_BANK_PAN_CENTER;
                     if (pan < 0x80) {
                         if (pan >= 0) {
                             slot->pan = pan;
@@ -1760,7 +1764,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
                 src = arg0 + 5;
                 dst = tmp->heapBlock;
             }
-            count = (state->payload.header.noteCount * 5) + state->payload.header.groupCount;
+            count = (state->payload.header.noteCount * 5) + state->payload.header.groupCount * (s32)(sizeof(*state->bank->groups) / sizeof(*dst));
             i     = 0;
             if (count != 0) {
                 do {

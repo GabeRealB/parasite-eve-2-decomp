@@ -201,16 +201,16 @@ typedef struct _SndLoadState {
 } SndLoadState;
 STATIC_ASSERT_SIZEOF(SndLoadState, 0x30);
 
-/// One MIDI program's group of note layers in a sound bank.
+/// A sound-bank program's layer count and shared volume and pan controls.
 ///
-/// A bank holds an array of these indexed by program number; the groups tile the
-/// bank's `SndNote` table, so the running sum of their lengths is the index table
-/// that resolves a program to its first note.
+/// Records are indexed by program number, below the bank's `groupCount`.
+/// Each describes a consecutive run of `SndNote` layers; their counts must sum
+/// to the bank's `noteCount`. The bank owns this table until it is released.
 typedef struct {
-    u8 noteCount; // `SndNote` entries this program's group covers
-    u8 field_1;   // no reader in this tree, so the role is unproven
-    u8 volume;    // volume scale multiplied into the note's (0-127)
-    u8 pan;       // pan offset added to the note's (0x40 = centre)
+    u8 layerCount; // Number of consecutive `SndNote` layers in this program
+    u8 field_1;    // Serialized byte with no individual reader; role unproven
+    u8 volume;     // Unsigned Q7 gain; layer volume is multiplied by this / 128
+    u8 pan;        // Added to layer pan with 64 removed; 64 leaves layer pan unchanged
 } SndBankGroup;
 STATIC_ASSERT_SIZEOF(SndBankGroup, 0x4);
 

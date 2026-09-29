@@ -428,7 +428,7 @@ SndBank* Snd_AllocBank(SndBankPayload* payload)
         bank = &Snd_Banks[slot];
         Snd_FreeBank(bank);
 
-        size = (payload->noteCount * 5 + payload->groupCount) * 4 + payload->groupCount * 2;
+        size = (payload->noteCount * 5 + payload->groupCount * (s32)(sizeof(*bank->groups) / sizeof(u32))) * 4 + payload->groupCount * 2;
 
         switch (payload->bankId & 0xF000) {
             case 0x2000:
@@ -455,8 +455,8 @@ SndBank* Snd_AllocBank(SndBankPayload* payload)
     }
 
     heap             = bank->heapBlock;
-    bank->groups     = (SndBankGroup*)heap;
-    heap            += payload->groupCount * 4;
+    bank->groups     = bank->heapBlock;
+    heap            += payload->groupCount * (s32)sizeof(*bank->groups);
     bank->notes      = (SndNote*)heap;
     bank->groupIndex = (u16*)(heap + payload->noteCount * 0x14);
     return bank;
@@ -553,13 +553,13 @@ SndBank* Snd_FindBank(u16 bankId)
 void Snd_BuildGroupIndex(SndBank* bank)
 {
     u16*          table;
-    SndBankGroup* data;
+    SndBankGroup* group;
     s32           i;
     u8            count;
 
     table = bank->groupIndex;
     if (table != NULL) {
-        data   = bank->groups;
+        group  = bank->groups;
         *table = 0;
         count  = bank->groupCount;
         table++;
@@ -568,8 +568,8 @@ void Snd_BuildGroupIndex(SndBank* bank)
             i = count - 2;
             if (i != -1) {
                 do {
-                    *table = table[-1] + data->noteCount;
-                    data++;
+                    *table = table[-1] + group->layerCount;
+                    group++;
                     i--;
                     table++;
                 } while (i != -1);
