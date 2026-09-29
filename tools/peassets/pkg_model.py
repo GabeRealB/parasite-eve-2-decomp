@@ -109,10 +109,10 @@ BONE_SIZE = 0x24
 def read_skeleton(data: bytes, base: int, src_off: int) -> dict | None:
     """The rest pose behind a `TmdSource`, or None when it does not resolve.
 
-    ``TmdSource`` carries the whole skeleton (see `include/main/tmd.h`):
+    ``TmdSource`` carries the whole skeleton (see `include/main/tmd_types.h`):
     ``+0x0C`` the part count, ``+0x10`` a table of how many vertices each part
-    owns - the vertex array is grouped by part, and the counts sum to the
-    array length - and ``+0x1C`` one 0x24-byte bone per part holding a rest
+    owns (``partVertexCounts``) - these groups need not exhaust the complete
+    vertex array - and ``+0x1C`` one 0x24-byte bone per part holding a rest
     rotation (identity on disc), a translation from the parent, and the parent
     index. Composing those the way ``_gpUpdateCoordTree`` does is what turns a
     pile of part-local geometry into a standing character.
@@ -204,7 +204,7 @@ def read_source(data: bytes, base: int, off: int) -> dict:
         raise ValueError(f"0x{off:X}: init flag is 0x{flag:X}, not 0 as on disc")
     if not 1 <= parts <= MAX_PARTS:
         raise ValueError(f"0x{off:X}: part count {parts}")
-    for what, va in (("partVerts", partverts), ("verts", verts), ("norms", norms),
+    for what, va in (("partVertexCounts", partverts), ("verts", verts), ("norms", norms),
                      ("skeleton", skel), ("stream", raw_va)):
         if not base <= va < base + off:
             raise ValueError(f"0x{off:X}: {what} 0x{va:08X} is not before the record")

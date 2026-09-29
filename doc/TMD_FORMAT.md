@@ -17,7 +17,7 @@ and animation sit together.
 |------|----------------|
 | Stream walk + opcode switches | `src/main/tmd.c` (`Tmd_InitSourceStream`, `tmdProcessStream`) |
 | Early-image handlers | `src/main/hasm/Tmd_StreamHandlers_Ops.s` |
-| Container types | `include/main/tmd.h` (`TmdSource`, `TmdObject`) |
+| Container types | `include/main/tmd_types.h` (`TmdSource`, `TmdObject`) |
 | Attach path | `src/gameplay/model_objects.c` (`Gp_AttachTmd`), `src/main/task.c` |
 | Locate / carve streams | `tools/peassets/pkg_model.py` |
 
@@ -40,8 +40,11 @@ through `TaskDesc.arg.model`:
 
 ```text
 TmdSource (0x24 bytes; handlersResolved is 0 on disc, set to 1 after first use)
+  +0x00  s32     handlersResolved (0 unresolved, 1 resolved)
+  +0x04  s32     bufferHalfBytes: byte capacity of one primitive-buffer half
+  +0x08  s32     preXformRegionBytes: first-region capacity / second-region offset
   +0x0C  s32     part count
-  +0x10  u32  -> vertex count per part
+  +0x10  u32  -> partVertexCounts: vertex count per part, read-only metadata
   +0x14  u32  -> vertex array   8 bytes per entry (SVECTOR-shaped)
   +0x18  u32  -> normal array   same shape
   +0x1C  u32  -> skeleton      36 bytes per entry (TmdBone)
@@ -50,6 +53,18 @@ TmdSource (0x24 bytes; handlersResolved is 0 on disc, set to 1 after first use)
 
 `tmdProcessStream` copies those into its scratch as `ws->verts` (vertices)
 and `ws->normals` (normals); the handlers index off them.
+
+Each object allocates two `bufferHalfBytes` halves. The first
+`preXformRegionBytes` bytes of each half hold pre-transformed primitives; the
+remaining bytes hold primitives transformed directly when drawn. These fields
+are buffer capacities, not serialized stream lengths. The half size must fit
+the object's u16 cache, and the first region cannot exceed it.
+
+Objects borrow the source record, geometry and stream. Geometry can be morphed
+in place, and resolving the stream writes its handler slots. The skeleton is
+copied only during creation. Stream-only sources may have NULL geometry and
+vertex-count pointers; a model without normals can instead point `normals` at
+the empty array boundary. Commands must not access absent geometry.
 
 A model is laid out contiguously with the record last, so the counts fall out
 of the gaps:
@@ -117,9 +132,10 @@ are plainly a head, an upper arm, a forearm, a thigh, a shin and a foot.
 
 Two consequences:
 
-* **The part count is the bone count.** `obj->field_30` is the number of
-  separators plus one, and it is derivable offline by counting them — which is
-  the per-model bone count §6 lists as the blocker on decoding the pose banks.
+* **The part count is the bone count.** `TmdSource.partCount` is the number of
+  skeleton entries, not the number of stream groups. Packaged streams have
+  `partCount + 1` group terminators: one per skeleton part and one for a final
+  group that can draw pre-transformed primitives without another matrix load.
   `aya_10200` is 19, the Kyle body 20, `actor_100300` 19. Parts with no
   geometry are joints.
 * **The rest pose ships in the `TmdSource`.** The runtime matrices live in
@@ -130,8 +146,8 @@ Two consequences:
 
   | Field | Meaning |
   |---|---|
-  | `partCount` (`+0x0C`) | part count — what `TmdObject.field_30` is set from |
-  | `partVerts` (`+0x10`) | `partCount` x u32: how many vertices each part owns |
+  | `partCount` (`+0x0C`) | number of skeleton entries, copied to `TmdObject.partCount` |
+  | `partVertexCounts` (`+0x10`) | `partCount` x u32: how many vertices each part owns |
   | `skeleton` (`+0x1C`) | `partCount` x `TmdBone` (0x24 bytes) — the rest pose |
 
   `TmdBone.local` is a `MATRIX` — a 3x3 rest rotation (identity on disc,
@@ -140,9 +156,12 @@ Two consequences:
   its own index and initially attaches to the view coordinate. `Tmd_Create`
   copies the matrices into `TmdObject.coords`, so animation changes the runtime
   pose while the source skeleton remains unchanged.
-  The `partVerts` counts sum exactly to the vertex-array length (352 for
-  `aya_10200`, 300 for the Kyle body), so the vertex array is grouped
-  by part and each vertex's bone is known.
+  The `partVertexCounts` table describes the part-local vertex groups (352
+  entries in total for `aya_10200`, 300 for the Kyle body). It does not prove
+  the complete array extent: the tables in `actor_110300`, `actor_110800` and
+  one `actor_311900` source sum to 357 while their vertex arrays contain 360
+  entries. Use the established asset boundaries for total geometry lengths;
+  neither total length is stored in `TmdSource`.
 
   Composing those through the parent the way `_gpUpdateCoordTree` does —
   `workm.m = parent.workm.m * coord.m`, `workm.t = parent.workm.m * coord.t +

@@ -24,27 +24,46 @@ typedef struct {
 } TmdBone;
 STATIC_ASSERT_SIZEOF(TmdBone, 0x24);
 
-/// Model geometry, packet stream, and initial per-part transform hierarchy.
+/// Shared geometry, command stream and initial hierarchy for a TMD model.
 ///
-/// Packaged sources reference arrays in the same image. A `TmdObject` borrows
-/// the source geometry and stream and owns its decoded buffers and mutable
-/// per-part coordinate array.
+/// Objects borrow this record, its geometry and its stream; keep them alive
+/// until all referring objects are released. Creation copies the `partCount`
+/// skeleton entries into each object's mutable coordinates. Geometry remains
+/// writable for morphing, and handler resolution rewrites the stream in place.
 ///
-/// The record is not all read-only. The packet stream is resolved to handlers
-/// in place the first time the model is used, and `handlersResolved` is how the
-/// record says that has happened.
+/// Each object's primitive buffer has two `bufferHalfBytes` halves. Within a
+/// half, pre-transformed primitives occupy the first `preXformRegionBytes`
+/// bytes and directly transformed primitives follow. These are capacities,
+/// not stream lengths; require 0 <= preXformRegionBytes <= bufferHalfBytes <=
+/// 65535 because the object caches the half size in a u16.
+///
+/// `partVertexCounts` describes the part-local vertex groups, but does not
+/// establish the complete vertex-array extent. Neither geometry array's total
+/// length is stored here. A stream-only source may omit both arrays and the
+/// count table; commands must only reference geometry that is present.
+///
+/// Command headers contain an opcode, a draw-handler slot and a packed word
+/// `(elementCount << 16) | elementStrideWords`, followed by the elements.
+/// `TMD_STREAM_PART_END` closes a group and `TMD_STREAM_END` ends the stream.
 typedef struct {
-    s32            handlersResolved; // Zero as shipped, set once the packet stream has been resolved to handlers
-    s32            halfSize;         // Size of one half of the model's buffer in bytes; the object allocates both halves together
-    s32            firstRegionSize;  // Size of the first of a half's two prim regions, i.e. the offset the second starts at
-    s32            partCount;        // Parts the model is divided into; one bone each
-    u32*           partVerts;        // Vertex count per part, summing to the vertex array's length
-    SVECTOR*       verts;            // Vertices, grouped by part
-    SVECTOR*       normals;          // Normals, indexed independently of the vertices
-    const TmdBone* skeleton;         // Initial pose: partCount entries, copied during creation and never changed through this pointer
-    u32*           stream;           // Packet stream, the drawing instructions for the model's parts
+    s32            handlersResolved;    // Handler slots (0 unresolved, 1 resolved); geometry and opcodes remain writable
+    s32            bufferHalfBytes;     // Byte capacity of one primitive-buffer half; both halves are allocated together
+    s32            preXformRegionBytes; // Byte capacity of the first region, also the second region's offset within a half
+    s32            partCount;           // Number of initial transforms and runtime coordinates; stream may have a final pre-transformed group
+    const u32*     partVertexCounts;    // Part-local vertex counts: partCount entries when present, NULL for stream-only sources
+    SVECTOR*       verts;               // Writable vertices in integer part-local coordinates
+    SVECTOR*       normals;             // Writable normals, indexed independently of the vertices
+    const TmdBone* skeleton;            // Initial pose: partCount entries, read only during object creation
+    u32*           stream;              // Writable command words: opcode, handler slot, packed count/word stride, then elements
 } TmdSource;
 STATIC_ASSERT_SIZEOF(TmdSource, 0x24);
+
+/// Word markers in `TmdSource.stream`; the final group may use pre-transformed
+/// primitives without another skeleton entry.
+enum {
+    TMD_STREAM_PART_END = -2, // End of a command group; advance the part coordinate
+    TMD_STREAM_END      = -1  // End of the complete stream
+};
 
 /// Intrusive link for an attached model or 2D-display body, also used as a
 /// list's sentinel head.

@@ -45,6 +45,11 @@ typedef union {
 STATIC_ASSERT_SIZEOF(TmdStreamWord, 4);
 
 enum {
+    TMD_SOURCE_HANDLERS_UNRESOLVED = 0,
+    TMD_SOURCE_HANDLERS_RESOLVED   = 1
+};
+
+enum {
     TMD_CREATE_SKIP_AUTO_BUFFER = 1,    // Creation bit: defer allocation and skip missing-buffer recovery
     TMD_OBJECT_SKIP_AUTO_BUFFER = 4,    // Object state: skip missing-buffer recovery
     TMD_OBJECT_HIDDEN           = 0x80, // Exclude from the active-node draw pass
@@ -104,7 +109,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
     u32                    tmp;
 
     stream = (TmdStreamWord*)src->stream;
-    if (src->handlersResolved == 0) {
+    if (src->handlersResolved == TMD_SOURCE_HANDLERS_UNRESOLVED) {
         tmp  = GAME_LOCATION_WORD(gGameSession->at4.loc);
         tmp  = (tmp & GAME_LOCATION_STAGE_AREA_MASK) ^ GAME_LOCATION_KEY(2, 16, 0, 0);
         flag = tmp < 1;
@@ -309,19 +314,19 @@ static void Tmd_InitSourceStream(TmdSource* src)
             id      = stream->value;
 
             while (1) {
-                if (id != -2U) {
+                if (id != TMD_STREAM_PART_END) {
                     break;
                 }
                 stream++;
             read_id:
                 id = stream->value;
-                if (id == -1U) {
+                if (id == TMD_STREAM_END) {
                     goto done;
                 }
             }
         }
     done:
-        src->handlersResolved = 1;
+        src->handlersResolved = TMD_SOURCE_HANDLERS_RESOLVED;
     }
 }
 
@@ -358,7 +363,7 @@ void tmdProcessStream(TmdObject* obj)
         ws->primWrite = (u8*)buf + obj->halfSize;
     }
     ws->preXformWrite = ws->primWrite;
-    ws->primWrite     = ws->primWrite + src->firstRegionSize;
+    ws->primWrite     = ws->primWrite + src->preXformRegionBytes;
     obj->bufferIndex ^= 1;
     ws->verts         = obj->source->verts;
     ws->normals       = obj->source->normals;
@@ -494,13 +499,13 @@ void tmdProcessStream(TmdObject* obj)
         id             = *stream;
 
         while (1) {
-            if (id != -2U) {
+            if (id != TMD_STREAM_PART_END) {
                 break;
             }
             stream++;
         read_id:
             id = *stream;
-            if (id == -1U) {
+            if (id == TMD_STREAM_END) {
                 goto done;
             }
         }
@@ -525,7 +530,7 @@ TmdObject* Tmd_Create(TmdSource* src, s32 bufferFlags)
         obj->coords      = PARENT_OF(obj, TmdAllocation, object)->coords;
         obj->bufferIndex = 0;
         coord            = obj->coords;
-        obj->halfSize    = src->halfSize;
+        obj->halfSize    = src->bufferHalfBytes;
         obj->lightMtx    = &GsLIGHTWSMATRIX;
         obj->colorMtx    = &D_80074080;
         obj->tpage       = 0;
@@ -546,7 +551,7 @@ TmdObject* Tmd_Create(TmdSource* src, s32 bufferFlags)
         }
         obj->buffer = NULL;
         if (bufferFlags == 0) {
-            buffer = memCalloc(src->halfSize * TMD_BUFFER_HALF_COUNT, 1);
+            buffer = memCalloc(src->bufferHalfBytes * TMD_BUFFER_HALF_COUNT, 1);
             if (buffer != NULL) {
                 obj->buffer = buffer;
                 // Initialize both buffer halves before the first draw.
@@ -593,7 +598,7 @@ static void Tmd_SetupDraw(TmdObject* obj)
         ws->primWrite = (u8*)bufptr + obj->halfSize;
     }
     ws->preXformWrite = ws->primWrite;
-    ws->primWrite     = ws->primWrite + obj->source->firstRegionSize;
+    ws->primWrite     = ws->primWrite + obj->source->preXformRegionBytes;
     obj->bufferIndex ^= 1;
     ws->verts         = obj->source->verts;
     ot                = gGpuCurrentOt;
@@ -643,7 +648,7 @@ s32 Tmd_AllocBuffers(TmdObject* obj)
 
     result = 0;
     if (obj->buffer == NULL) {
-        mem         = memCalloc(obj->source->halfSize * TMD_BUFFER_HALF_COUNT, 1);
+        mem         = memCalloc(obj->source->bufferHalfBytes * TMD_BUFFER_HALF_COUNT, 1);
         obj->buffer = mem;
         if (mem != NULL) {
             obj->bufferIndex = 0;
@@ -665,7 +670,7 @@ static s32 Tmd_SumBufferBytes(void)
     node   = PARENT_OF(gTmdList.next, TmdObject, link);
     while (node != NULL) {
         if (node->buffer != NULL) {
-            result += node->source->halfSize * TMD_BUFFER_HALF_COUNT;
+            result += node->source->bufferHalfBytes * TMD_BUFFER_HALF_COUNT;
         }
         node = PARENT_OF(node->link.next, TmdObject, link);
     }
@@ -681,8 +686,8 @@ static void Tmd_RewriteOpcodes(TmdSource* src)
     u32  stop;
 
     stream = src->stream;
-    if (*stream != -1U) {
-        stop = -2;
+    if (*stream != TMD_STREAM_END) {
+        stop = TMD_STREAM_PART_END;
         do {
             if (*stream != stop) {
                 do {
@@ -722,10 +727,10 @@ static void Tmd_RewriteOpcodes(TmdSource* src)
                     lo   = dims & 0xFFFF;
                     stream++;
                     stream += (dims >> 16) * lo;
-                } while (*stream != -2U);
+                } while (*stream != TMD_STREAM_PART_END);
             }
             stream++;
-        } while (*stream != -1U);
+        } while (*stream != TMD_STREAM_END);
     }
 }
 
@@ -793,7 +798,7 @@ void Tmd_AllocMissingBuffers(void)
     while (node != NULL) {
         if (node->buffer == NULL) {
             if (!(node->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-                mem = memCalloc(node->source->halfSize * TMD_BUFFER_HALF_COUNT, 1);
+                mem = memCalloc(node->source->bufferHalfBytes * TMD_BUFFER_HALF_COUNT, 1);
                 if (mem != NULL) {
                     node->buffer      = mem;
                     node->bufferIndex = 0;
@@ -814,7 +819,7 @@ void Tmd_AllocNodeBuffers(Task* task)
     node = PARENT_OF(gTmdList.next, TmdObject, link);
     while (node != NULL) {
         if (node->buffer == NULL) {
-            mem = memCalloc(node->source->halfSize * TMD_BUFFER_HALF_COUNT, 1);
+            mem = memCalloc(node->source->bufferHalfBytes * TMD_BUFFER_HALF_COUNT, 1);
             if (mem != NULL) {
                 node->buffer      = mem;
                 node->bufferIndex = 0;
