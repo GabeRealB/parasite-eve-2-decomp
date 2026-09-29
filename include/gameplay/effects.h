@@ -140,28 +140,6 @@ typedef struct _GpEffUv8 {
 } GpEffUv8;
 STATIC_ASSERT_SIZEOF(GpEffUv8, 8);
 
-/// Overlay of `Task::spawnArg1` for `Gp_EffSprTask46` / `Gp_EffCtlTaskC1` /
-/// `Gp_EffCtlTaskF4`. `Gp_EffSprTask46` uses `field_0 & 0xFFF` as the target
-/// scale and `field_2 & 0xF` as the draw parameter; the parent word's
-/// `0x20000000` / `0x10000000` bits pick the start state. `Gp_EffCtlTaskC1`
-/// uses the parent word's low 12 bits as a Z rotation and `field_2 & 3` as
-/// an index into `D_80112C6C`. `Gp_EffCtlTaskF4` copies `field_0 & 0xFFF` to
-/// `GpEffWork.angle` and `field_0 & 0xF000` to `period`.
-typedef struct _GpEffSpawnArg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ s16 field_2;
-} GpEffSpawnArg;
-STATIC_ASSERT_SIZEOF(GpEffSpawnArg, 4);
-
-/// Overlay of `Task::spawnArg1` when the high byte is an `lb` nibble.
-/// `Gp_EffSprTask5C` copies `field_3 & 0xF` into `GpEffWork.index`.
-typedef struct _GpEffSpawnArgHi {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u8  pad_2;
-    /* 0x3 */ s8  field_3;
-} GpEffSpawnArgHi;
-STATIC_ASSERT_SIZEOF(GpEffSpawnArgHi, 4);
-
 /// One corner of the unit quad in `D_80111E38`: a signed XZ pair scaled by
 /// the caller's half-size before being rotated into world space.
 typedef struct _GpQuadCorner {

@@ -2330,7 +2330,7 @@ void func_shelter_b2_main_corridor_8017EF24(Task* task)
         work->age++;
         if (task->state == 0) {
             work->scale = 0x40;
-            work->angle = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
+            work->angle = task->spawnArg1.halves.low & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2451,7 +2451,7 @@ void func_shelter_b2_main_corridor_8017F3AC(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            work->scale = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
+            work->scale = task->spawnArg1.halves.low & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
             if (task->spawnArg1.value & 0xF000) {
@@ -2473,7 +2473,7 @@ void func_shelter_b2_main_corridor_8017F3AC(Task* task)
                     level = 0x40;
                 }
                 work->step = level;
-                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1.value)->field_3;
+                kind       = task->spawnArg1.signedBytes[3];
                 switch (kind & 0xF) {
                     case 0:
                         work->step = 0;

@@ -2043,7 +2043,7 @@ void func_actor_510900_8013482C(Task* arg0)
     if (arg0->state == 0) {
         scale = 0x300;
         if (arg0->spawnArg1.value & 0xFFF) {
-            scale = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0 & 0xFFF;
+            scale = arg0->spawnArg1.halves.low & 0xFFF;
         }
         eff->scale  = scale;
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -2055,7 +2055,7 @@ void func_actor_510900_8013482C(Task* arg0)
         }
         eff->period = step;
         eff->step   = (s32)((u16)eff->scale << 16) >> 23;
-        tmp         = ((GpEffSpawnArgHi*)&arg0->spawnArg1.value)->field_3;
+        tmp         = arg0->spawnArg1.signedBytes[3];
         eff->index  = tmp & 0xF;
         if (eff->index != 0) {
             Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;

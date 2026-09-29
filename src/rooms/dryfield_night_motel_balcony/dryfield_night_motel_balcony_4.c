@@ -3584,7 +3584,7 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
             rot->m11_m12  = 0x1000;
             rot->m20_m21  = 0;
             rot->m22      = 0x1000;
-            work->pos.vx  = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
+            work->pos.vx  = task->spawnArg1.halves.low & 0xFFF;
             work->scale   = 0xA0;
             Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
             work->index   = ((u32)Gp_LcgState >> 16) & 7;

@@ -1381,7 +1381,7 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            base                   = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_2;
+            base                   = task->spawnArg1.halves.high;
             work->scale            = ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF) + 0x180) + base;
             work->angle            = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFFF;
             task->spawnArg1.value &= 0xFFF;

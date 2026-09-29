@@ -222,7 +222,7 @@ extern s32 D_80112B94[];
 extern u16 D_80112B28[];
 
 /// 4 packed RGB-nibble colors. `Gp_EffCtlTaskC1` indexes with
-/// `GpEffSpawnArg.field_2 & 3` and stores the halfword in `GpEffWork.period`.
+/// `TaskSpawnArg::halves.high & 3` and stores the halfword in `GpEffWork.period`.
 extern u16 D_80112C6C[];
 
 /// u8 Task_Spawn type bases. `func_80104258` indexes
@@ -1318,9 +1318,9 @@ void Gp_EffSprTask46(Task* arg0)
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            mem->angle          = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0 & 0xFFF;
-            param               = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-            mem->step           = param & 0xF;
+            mem->angle = arg0->spawnArg1.halves.low & 0xFFF;
+            param      = arg0->spawnArg1.halves.high;
+            mem->step  = param & 0xF;
             if (arg0->spawnArg1.value & 0x20000000) {
                 mem->period = 0x80;
                 mem->scale  = mem->angle;
@@ -1637,7 +1637,7 @@ void Gp_EffSprTask55(Task* arg0)
                     temp = 1;
                 }
                 mem->period   = temp;
-                pal           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                pal           = arg0->spawnArg1.halves.high;
                 mem->step     = pal & 3;
                 mem->index    = (arg0->spawnArg1.value >> 28) & 1;
                 mem->move.vx += ((mem->angle & 0xF) * rsin(mem->angle)) >> 12;
@@ -1760,7 +1760,7 @@ void Gp_EffSprTask42(Task* arg0)
                     temp = 1;
                 }
                 mem->period  = temp;
-                pal          = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                pal          = arg0->spawnArg1.halves.high;
                 mem->step    = pal & 3;
                 mem->move.vy = mem->move.vy - 0x18;
                 if (arg0->spawnArg1.value & 0x100000) {
@@ -1893,16 +1893,16 @@ void Gp_EffCtlTask9B(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (flag < 4) {
         if (arg0->state == 0) {
-            coord->parent       = mem->parent;
-            coord->coord.t[0]   = mem->pos.vx;
-            coord->coord.t[1]   = mem->pos.vy;
-            coord->coord.t[2]   = mem->pos.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            arg0->state         = 1;
-            mem->scale          = ((u16)arg0->spawnArg1.value * 3u) >> 4;
-            temp                = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-            mem->angle          = temp;
-            mem->period         = temp << 2;
+            coord->parent        = mem->parent;
+            coord->coord.t[0] = mem->pos.vx;
+            coord->coord.t[1] = mem->pos.vy;
+            coord->coord.t[2] = mem->pos.vz;
+            coord->composeStamp        = GRAPHICS_COORD_DIRTY;
+            arg0->state       = 1;
+            mem->scale        = ((u16)arg0->spawnArg1.value * 3u) >> 4;
+            temp              = arg0->spawnArg1.halves.high;
+            mem->angle        = temp;
+            mem->period       = temp << 2;
             if ((mem->pos.vx | mem->pos.vy | mem->pos.vz) == 0) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 mem->pos.vx = (((u32)Gp_LcgState >> 16) & 0xFFF) - 0x800;
@@ -1968,7 +1968,7 @@ void Gp_EffSprTask30(Task* arg0)
             rot->m22     = 0x1000;
             rot->m02_m10 = 0;
             rot->m20_m21 = 0;
-            mem->pos.vx  = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0 & 0xFFF;
+            mem->pos.vx  = arg0->spawnArg1.halves.low & 0xFFF;
             mem->scale   = 0x100;
             Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
             mem->pos.vy  = ((u32)Gp_LcgState >> 16) & 7;
@@ -1993,7 +1993,7 @@ void Gp_EffSprTask30(Task* arg0)
             VectorNormalSS(&mem->move, &mem->move);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            sub                   = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+            sub                   = arg0->spawnArg1.halves.high;
             arg0->state           = 1;
             arg0->spawnArg1.value = sub & 3;
             return;
@@ -2667,12 +2667,12 @@ void Gp_EffCtlTaskC1(Task* arg0)
 
     if (arg0->state == 0) {
         Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1.value & 0xFFF, 0);
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        mem->scale          = 0x80;
-        mem->angle          = 0x100;
-        idx                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-        mem->period         = D_80112C6C[idx & 3];
-        arg0->state         = 1;
+        coord->composeStamp  = GRAPHICS_COORD_DIRTY;
+        mem->scale  = 0x80;
+        mem->angle  = 0x100;
+        idx         = arg0->spawnArg1.halves.high;
+        mem->period = D_80112C6C[idx & 3];
+        arg0->state = 1;
     }
 
     Gp_UpdateCoord(coord);
@@ -2839,9 +2839,9 @@ void Gp_EffCtlTaskF4(Task* arg0)
         mem->move.vy = 0xFFF0 - (((u32)Gp_LcgState >> 16) & 0x3F);
         Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
         mem->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-        mem->angle   = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0 & 0xFFF;
+        mem->angle   = arg0->spawnArg1.halves.low & 0xFFF;
         arg0->state  = 1;
-        mem->period  = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0 & 0xF000;
+        mem->period  = arg0->spawnArg1.halves.low & 0xF000;
     }
 
     y                   = coord->coord.t[1] + mem->move.vy;
@@ -3377,7 +3377,7 @@ void Gp_EffSprTaskA7(Task* arg0)
     if (arg0->state == 0) {
         rng                  = Gp_LcgState * 5 + 0x71357911;
         mem->scale           = ((u32)rng >> 16) & 0xFFF;
-        mem->angle           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0 & 0xFFF;
+        mem->angle           = arg0->spawnArg1.halves.low & 0xFFF;
         parent               = mem->parent;
         mem->move.vy         = -(mem->scale & 7);
         one                  = ONE;
@@ -3609,8 +3609,8 @@ void Gp_EffCtlTask7F(Task* arg0)
         coord->coord.t[2]    = mem->pos.vz;
         coord->composeStamp  = GRAPHICS_COORD_DIRTY;
         arg0->state          = 1;
-        mem->scale           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
-        temp                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+        mem->scale           = arg0->spawnArg1.halves.low;
+        temp                 = arg0->spawnArg1.halves.high;
         step                 = temp;
         mem->index           = temp;
         if (step != 1) {
@@ -3683,16 +3683,16 @@ void Gp_EffCtlTaskE3(Task* arg0)
         Gp_ReleaseState1CMem(mem, arg0);
     } else {
         if (arg0->state == 0) {
-            coord->parent       = mem->parent;
-            coord->coord.t[0]   = mem->pos.vx;
-            coord->coord.t[1]   = mem->pos.vy;
-            coord->coord.t[2]   = mem->pos.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            arg0->state         = 1;
-            mem->scale          = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
-            temp                = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-            mem->angle          = temp;
-            mem->period         = temp << 2;
+            coord->parent        = mem->parent;
+            coord->coord.t[0] = mem->pos.vx;
+            coord->coord.t[1] = mem->pos.vy;
+            coord->coord.t[2] = mem->pos.vz;
+            coord->composeStamp        = GRAPHICS_COORD_DIRTY;
+            arg0->state       = 1;
+            mem->scale        = arg0->spawnArg1.halves.low;
+            temp              = arg0->spawnArg1.halves.high;
+            mem->angle        = temp;
+            mem->period       = temp << 2;
         }
         Gp_UpdateCoord(coord);
         if (Gp_State1C->eventState != 0) {
@@ -3739,7 +3739,7 @@ void Gp_EffSprTask80(Task* arg0)
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             mem->scale  = amt;
             mem->angle  = ((u32)Gp_LcgState >> 16) % 12 + 12;
-            flag2       = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+            flag2       = arg0->spawnArg1.halves.high;
             if (flag2 & 1) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 rnd         = (u32)Gp_LcgState >> 16;
@@ -3964,7 +3964,7 @@ void Gp_EffSprTask3F(Task* arg0)
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 mem->angle  = ((u32)Gp_LcgState >> 16) & 0xFFF;
                 mem->scale  = temp;
-                sub         = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                sub         = arg0->spawnArg1.halves.high;
                 mem->index  = sub & 1;
                 if (mem->index != 0) {
                     rot                 = (GpMtxWords*)&coord->coord;
@@ -4088,10 +4088,10 @@ void func_800FF710(Task* arg0)
             arg0->state          = 1;
             lcg                  = old * 5 + k;
             mem->index           = ((u32)lcg >> 16) & 0xFFF;
-            temp                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
+            temp                 = arg0->spawnArg1.halves.low;
             Gp_LcgState          = lcg;
             mem->scale           = temp;
-            temp2                = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+            temp2                = arg0->spawnArg1.halves.high;
             mem->step            = ((s16)temp >> 10) + 1;
             mem->angle           = temp2;
             mem->period          = temp2 << 2;
@@ -4182,7 +4182,7 @@ void Gp_EffSprTaskE0(Task* arg0)
                 mem->scale  = temp + (((u32)Gp_LcgState >> 16) & 0xFF);
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 mem->angle  = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                pal         = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                pal         = arg0->spawnArg1.halves.high;
                 mem->step   = pal;
                 arg0->state = 1;
             }
@@ -4266,7 +4266,7 @@ void Gp_EffSprTaskE1(Task* arg0)
             mem->scale  = temp + (((u32)Gp_LcgState >> 16) & 0xFF);
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             mem->angle  = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            pal         = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+            pal         = arg0->spawnArg1.halves.high;
             mem->step   = pal;
             arg0->state++;
         }

@@ -60,6 +60,14 @@
 
 #include "rooms/rooms_shared_8018055c.h"
 
+// Relocated CAP file slots selected by commands 5..8 and 0x21..0x22.
+enum {
+    MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS       = 1,
+    MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS      = 3,
+    MIST_SHOOTING_GALLERY_CAP_TEXTURE_X_LOW_COMMANDS  = 0x300,
+    MIST_SHOOTING_GALLERY_CAP_TEXTURE_X_HIGH_COMMANDS = 0x2C0
+};
+
 #define D_mist_shooting_gallery_80185570 (D_mist_shooting_gallery_80185550 + 4)
 #define D_mist_shooting_gallery_801855C0 (D_mist_shooting_gallery_80185550 + 14)
 #define D_mist_shooting_gallery_801855F0 (D_mist_shooting_gallery_80185550 + 20)
@@ -269,7 +277,7 @@ void              func_mist_shooting_gallery_8017F128(Task*);
 void              func_mist_shooting_gallery_8017F6C8(Task*);
 void              func_mist_shooting_gallery_8017F98C(UiList*, UiObject*);
 void              func_mist_shooting_gallery_8017FAE8(Task*);
-void              func_mist_shooting_gallery_8017FDD0(Task*);
+void              func_mist_shooting_gallery_8017FDD0(Task* task);
 
 static const char D_mist_shooting_gallery_8017D5E0[12];
 static const char D_mist_shooting_gallery_8017D5EC[16];
@@ -1887,34 +1895,35 @@ static void func_mist_shooting_gallery_8017FD40(Task* task)
     }
     func_8014A398();
 }
-void func_mist_shooting_gallery_8017FDD0(Task* arg0)
+void func_mist_shooting_gallery_8017FDD0(Task* task)
 {
-    s16 var_a0;
+    s16 texturePageX;
 
-    switch (arg0->state) {
+    switch (task->state) {
         case 0:
             Gp_CapFile = 0;
-            if (arg0->spawnArg2.pointer == (void*)3) {
-                Gp_LoadCapFile(3);
-                var_a0 = 0x2C0;
+            // Select the relocated CAP file and its VRAM texture-page origin.
+            if (task->spawnArg2.value == MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS) {
+                Gp_LoadCapFile(MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS);
+                texturePageX = MIST_SHOOTING_GALLERY_CAP_TEXTURE_X_HIGH_COMMANDS;
             } else {
-                Gp_LoadCapFile(1);
-                var_a0 = 0x300;
+                Gp_LoadCapFile(MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS);
+                texturePageX = MIST_SHOOTING_GALLERY_CAP_TEXTURE_X_LOW_COMMANDS;
             }
-            func_800E6D4C(var_a0, 0);
-            Gp_RunCapCmd(arg0->spawnArg1.value, 0);
+            func_800E6D4C(texturePageX, 0);
+            Gp_RunCapCmd(task->spawnArg1.value, 0);
             goto block_inc;
         case 1:
             if (Gp_CapBusy() != 0) {
                 return;
             }
         block_inc:
-            arg0->state += 1;
+            task->state += 1;
             return;
         case 2:
             Gp_MsgPlayerWeapon(1);
             Gp_ResetCap();
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }
@@ -1996,12 +2005,12 @@ s32 func_mist_shooting_gallery_80180000(Task* arg0, s32 arg1, s32 arg2, GpMessag
             if (arg2 < 0x23) {
                 if (arg2 >= 0x21) {
                     Gp_MsgPlayerWeapon(0);
-                    Task_SpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, arg2, 3);
+                    Task_SpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, arg2, MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS);
                 }
             }
         } else {
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, arg2, 1);
+            Task_SpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, arg2, MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS);
         }
     }
     return 0;

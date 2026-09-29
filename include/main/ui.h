@@ -18,7 +18,13 @@ extern UiObject* D_80067634;
 
 UiObject* Ui_SpawnTextBlock(TextBlockDesc* descriptor, s32 unused2, s32 unused3, s32 unused4);
 
-UiObject* Ui_SpawnFromDesc(UiObjectDesc* descriptor, TaskSpawnArg arg1, s32 arg2, s32 arg3, UiObject* object);
+/// Spawns a UI object and its task, optionally as a child of `parent`.
+///
+/// Copies `spawnArg1` into the task without copying pointed-to storage; that
+/// storage must live as long as the descriptor's callback uses it. `controlMode`
+/// initializes the panel's control state and `animationTicks` its signed 16-bit
+/// counter in frame ticks. Returns NULL if either allocation fails.
+UiObject* Ui_SpawnFromDesc(UiObjectDesc* descriptor, TaskSpawnArg spawnArg1, s32 controlMode, s32 animationTicks, UiObject* parent);
 
 void Ui_SizeFromText(UiPanel* panel, u8* arg1, s32 arg2, s32 arg3);
 

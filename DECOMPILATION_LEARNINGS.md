@@ -40273,7 +40273,7 @@ the clut math. Combined with the `s32` `uv` load it becomes `lh` /
 `li a0, 0x50` / `sb`, matching the target. Same pattern for the second
 V pair with `t = 0x77`. `Gp_EffSprTaskE0` is the example.
 
-Copying `GpEffSpawnArg.field_2` (s16) straight into `GpEffWork.step`
+Copying `TaskSpawnArg::halves.high` (s16) straight into `GpEffWork.step`
 (s16) also emits `lhu`; assign through an `s32` local first to get `lh`.
 
 ## Hoist the `gte_ldv0` alias above the init block to get a callee-saved register
@@ -41332,7 +41332,7 @@ byte. Assigning the byte to an `s8` local and immediately `& 0xF` lets GCC
 
 ```c
 s32 tmp;
-tmp           = ((GpEffSpawnArgHi*)&arg0->spawnArg1)->field_3; /* lb */
+tmp           = arg0->spawnArg1.signedBytes[3]; /* lb */
 mem->field_20 = tmp & 0xF;                                    /* andi */
 ```
 
@@ -48424,7 +48424,7 @@ Assigning an `s8` struct field straight into an `s16` field expands as a QImode
 move plus a widening pair:
 
 ```c
-mem->field_2A = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+mem->field_2A = task->spawnArg1.signedBytes[3];
 ```
 ```
 lbu  v0,0x37(s2)      # movqi_internal2
@@ -48437,7 +48437,7 @@ Routing the value through an `s32` local turns it into a single
 `extendqisi2_insn`, which is what the target uses:
 
 ```c
-life          = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+life          = task->spawnArg1.signedBytes[3];
 mem->field_2A = life;
 ```
 ```
@@ -48446,12 +48446,12 @@ sh   v0,0x2a(s0)
 ```
 
 The same trick works for `s16` fields that need `lh` rather than `lhu`
-(`func_dryfield_motel_balcony_8017EA00`, `GpEffSpawnArg::field_2`).
+(`func_dryfield_motel_balcony_8017EA00`, `TaskSpawnArg::halves.high`).
 
 Do **not** build a pointer to the byte block first
-(`RoomSpawnBytes* p = (RoomSpawnBytes*)&task->spawnArg1;`): that materialises
+(`s8* bytes = task->spawnArg1.signedBytes;`): that materialises
 `addiu a3,s2,0x34` and switches every access to `n(a3)`, where the target uses
-`0x36(s2)` / `0x37(s2)` off the task pointer. Write the cast inline at each
+`0x36(s2)` / `0x37(s2)` off the task pointer. Access the task's byte member directly at each
 use and GCC folds the constant offset.
 
 ## A state `switch` that falls through to the epilogue needs an explicit `default:`
@@ -66428,7 +66428,7 @@ the `added_sets_2` PARALLEL is not recognised and the `addiu` stays.
 
 ## `func_800F289C`: split spawn-loop expression temporaries before constraining scratch registers
 
-The archived unpinned seed scored 98.959%. Loading `GpEffSpawnArgHi.field_3`
+The archived unpinned seed scored 98.959%. Loading `TaskSpawnArg::signedBytes[3]`
 into an `s32` before masking its low nibble preserves the target `lb`; assigning
 the masked expression straight into an `s16` emits `lbu`.
 
@@ -138731,11 +138731,11 @@ sets bit 1 (`ori code, 2`).
 ## Sign-extending sub-word loads from a shift of the word; `move` before a double store is a ternary (func_dryfield_r08_8017D8B4, 2026-09-23)
 
 **Symptom.** Reading `Task::spawnArg1`'s high half and top byte through the
-`GpEffSpawnArg`/`GpEffSpawnArgHi` overlays gave `lhu 0x36` / `lbu 0x37` where
+`TaskSpawnArg::halves`/`TaskSpawnArg::signedBytes` views gave `lhu 0x36` / `lbu 0x37` where
 the target has `lh` / `lb`: the mask (`& 0x7000`, `& 0xF`) lets GCC prove the
 sign bits dead, and a store into a `u16` field narrows the whole expression.
-**Fix.** Shift the word instead - `(task->spawnArg1 >> 16) & 0x7000` and
-`(task->spawnArg1 >> 24) & 0xF`. Combine turns the shift of a memory word into
+**Fix.** Shift the word instead - `(task->spawnArg1.value >> 16) & 0x7000` and
+`(task->spawnArg1.value >> 24) & 0xF`. Combine turns the shift of a memory word into
 a sign extraction and emits `lh` / `lb` at the right byte offset, with no local.
 
 **Symptom.** `li a0,1` ... `move v0,a0` / `bgez` / `sw v0,0x30` (delay) /
@@ -140333,7 +140333,7 @@ A room message handler returns `0` at its common exit, but one early path jumps 
 Target: `andi v0,0xff; addiu v0,0x180; addu v0,v0,v1` with `v1 = lh 0x36(s1)`. Written as `mask + 0x180 + hi`, fold moves the constant outermost (`addu` then `addiu`). `(u16)(mask + 0x180) + hi` keeps the inner sum, but the result still lands in the field's register (`addu v1,v1,v0`): the plus is `(subreg:SI (reg:HI)) + reg`, and the subreg sorts first. Reading the field into an `s32` local in its own statement makes it a plain SImode pseudo, the operands swap, and the sum reuses the mask's register. That was the last 2%:
 
 ```c
-base           = ((GpEffSpawnArg*)&task->spawnArg1)->field_2;   /* s32 base */
+base           = task->spawnArg1.halves.high;   /* s32 base */
 work->field_24 = (u16)((rand8) + 0x180) + base;
 ```
 

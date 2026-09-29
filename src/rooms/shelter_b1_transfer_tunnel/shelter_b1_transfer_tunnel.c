@@ -880,9 +880,9 @@ void func_shelter_b1_transfer_tunnel_8017F050(Task* arg0)
                 coord->coord.t[2]   = mem->pos.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
-                shift                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                shift                 = arg0->spawnArg1.halves.high;
                 mem->index            = shift;
-                arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
+                arg0->spawnArg1.value = arg0->spawnArg1.halves.low;
                 arg0->state           = 1;
                 mem->step             = 0x100 / arg0->spawnArg1.value;
                 return;

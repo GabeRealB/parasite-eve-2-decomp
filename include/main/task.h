@@ -29,9 +29,7 @@ Task* Task_Spawn(s32 bank, TaskSpawnArg type, TaskSpawnArg arg2, TaskSpawnArg ar
 
 static __inline__ Task* Task_SpawnPtr(s32 bank, s32 type, s32 arg2, const void* data)
 {
-    TaskSpawnArg arg;
-    arg.constPointer = data;
-    return Task_Spawn(bank, type, arg2, arg);
+    return Task_Spawn(bank, type, arg2, data);
 }
 
 Task* Task_SpawnOnDefaultList(TaskDesc* table, s32 idx, TaskSpawnArg arg2, TaskSpawnArg arg3);

@@ -1122,7 +1122,7 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
             if (head[-1].otz > 16 && work->age == 0) {
                 Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
                 work->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                work->angle   = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
+                work->angle   = task->spawnArg1.halves.low & 0xFFF;
                 work->move.vx = 0;
                 Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
                 work->move.vy = (((u32)Gp_LcgState >> 16) & 0xF) + 4;

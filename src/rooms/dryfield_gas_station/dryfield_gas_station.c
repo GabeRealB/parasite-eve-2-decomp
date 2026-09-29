@@ -501,8 +501,6 @@ s32 func_dryfield_gas_station_8017FD4C(void)
 /// not 1, otherwise the spawned task.
 s32 func_dryfield_gas_station_8017FD54(s32 arg0, s32 arg1, s32 arg2)
 {
-    TaskSpawnArg result;
-
     if (arg2 == 1) {
         if (GameFlag_GetNibble(0x16B) == 0) {
             GameFlag_SetNibble(0x16B, 1);
@@ -520,8 +518,7 @@ s32 func_dryfield_gas_station_8017FD54(s32 arg0, s32 arg1, s32 arg2)
         D_dryfield_gas_station_80184BD8.field_8  = 0x52010007;
         D_dryfield_gas_station_80184BD8.field_10 = 0x52010008;
         D_dryfield_gas_station_80184BD8.field_C  = 0x52010010;
-        result.pointer                           = Task_SpawnFromTable(D_dryfield_gas_station_80181E18, 0, 2, &D_dryfield_gas_station_80184BD8);
-        return result.value;
+        return (s32)Task_SpawnFromTable(D_dryfield_gas_station_80181E18, 0, 2, &D_dryfield_gas_station_80184BD8);
     }
     return 1;
 }

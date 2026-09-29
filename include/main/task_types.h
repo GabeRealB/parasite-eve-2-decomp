@@ -107,15 +107,39 @@ typedef struct _TaskIdMap {
 } TaskIdMap;
 STATIC_ASSERT_SIZEOF(TaskIdMap, 0x8);
 
-/// One task argument word: a value or an object pointer, selected by the task
-/// type. Transparent-union calls preserve the original one-register ABI.
-typedef union TaskSpawnArg {
-    s32           value;
-    u32           unsignedValue;
-    long          signedWord;
-    unsigned long unsignedWord;
-    void*         pointer;
-    const void*   constPointer;
+/// Halfword view of a packed task argument on the little-endian PS1.
+///
+/// The receiving task assigns the units and meaning of each half.
+typedef struct {
+    u16 low;  // Low 16 bits, read as an unsigned value
+    s16 high; // High 16 bits, read as a signed value
+} TaskArgHalves;
+STATIC_ASSERT_SIZEOF(TaskArgHalves, 4);
+
+/// An untagged 32-bit task argument, interpreted by the receiving task or helper.
+///
+/// Spawn helpers copy payload words into `Task::spawnArg1` or `Task::spawnArg2`;
+/// a descriptor selector may instead be a table index or a descriptor pointer.
+/// Callbacks may subsequently update their payloads as state. A packed argument
+/// can be read through `halves` or `signedBytes`, whose byte indices run from
+/// least to most significant on the PS1. Units, flags and sentinels belong to
+/// the individual callback's contract.
+///
+/// Pointer payloads refer to storage rather than copying it. The receiving
+/// callback determines its lifetime and whether it must be released; the task
+/// scheduler only copies the argument word. The transparent union accepts the
+/// scalar and pointer forms at calls while retaining the one-register ABI.
+/// Keep `value` first for that ABI, and the distinct `long` members to accept
+/// SDK word types even though they are also 32 bits.
+typedef union {
+    s32           value;          // Signed value or packed argument bits
+    u32           unsignedValue;  // Unsigned view of the same bits
+    long          signedWord;     // Accepts signed long arguments at calls
+    unsigned long unsignedWord;   // Accepts unsigned long arguments at calls
+    void*         pointer;        // Object pointer, interpreted by the receiving callback
+    const void*   constPointer;   // Accepts pointers to const objects at calls
+    TaskArgHalves halves;         // Unsigned low half and signed high half
+    s8            signedBytes[4]; // Signed byte view of the complete argument word
 } TaskSpawnArg __attribute__((transparent_union));
 STATIC_ASSERT_SIZEOF(TaskSpawnArg, 4);
 
