@@ -98,14 +98,14 @@ static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
 
 void Gp_DrawTargetCursor(void)
 {
-    GpLinkNode*    node;
-    GameSession*   sess;
-    _GpPanScratch* block;
-    POLY_FT4*      prim;
-    s32            easing;
-    s32            frame;
-    s32            u;
-    s32            v;
+    GpLinkNode*                  node;
+    GameSession*                 sess;
+    WorldCoordProjectionScratch* projection;
+    POLY_FT4*                    prim;
+    s32                          easing;
+    s32                          frame;
+    s32                          u;
+    s32                          v;
 
     node = Gp_LinkList;
     if (Pad_RemapState->field_A != 0) {
@@ -130,15 +130,16 @@ void Gp_DrawTargetCursor(void)
     }
     for (; node != NULL; node = node->next) {
         if (node->state.b.targeted != 0 && !(node->state.b.flags & 1)) {
-            easing        = 0;
-            block         = SCRATCH_PUSH(_GpPanScratch);
-            block->vec.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
-            block->vec.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
-            block->vec.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
+            easing               = 0;
+            projection           = SCRATCH_PUSH(WorldCoordProjectionScratch);
+            projection->point.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
+            projection->point.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
+            projection->point.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
             Gp_UpdateCoord(GP_NODE_ENEMY(node)->coord);
             gte_SetRotMatrix(&GP_NODE_ENEMY(node)->coord->workm);
             gte_SetTransMatrix(&GP_NODE_ENEMY(node)->coord->workm);
-            gte_RotTransPers(&block->vec, &block->sx, &block->dp, &block->flag, &block->otz);
+            gte_RotTransPers(&projection->point, &projection->screen, &projection->depthCue,
+                             &projection->projectionFlags, &projection->orderingDepth);
             if (D_80115260 != node) {
                 if (D_80115260 == NULL) {
                     D_80115264 = 0xFF;
@@ -148,34 +149,35 @@ void Gp_DrawTargetCursor(void)
                 D_80115260 = node;
             }
             if (D_80115264 < 5) {
-                D_8010F9EC += ((block->sx << 8) - D_8010F9EC) >> 1;
-                D_8010F9F0 += ((block->sy << 8) - D_8010F9F0) >> 1;
-                if (block->sx == (D_8010F9EC >> 8) && block->sy == (D_8010F9F0 >> 8)) {
+                D_8010F9EC += ((projection->screen.vx << 8) - D_8010F9EC) >> 1;
+                D_8010F9F0 += ((projection->screen.vy << 8) - D_8010F9F0) >> 1;
+                if (projection->screen.vx == (D_8010F9EC >> 8) && projection->screen.vy == (D_8010F9F0 >> 8)) {
                     D_80115264 = 0xFF;
                 } else {
                     D_80115264++;
                 }
-                easing    = 1;
-                block->sx = D_8010F9EC >> 8;
-                block->sy = D_8010F9F0 >> 8;
+                easing                = 1;
+                projection->screen.vx = D_8010F9EC >> 8;
+                projection->screen.vy = D_8010F9F0 >> 8;
             } else {
-                D_8010F9EC = block->sx << 8;
-                D_8010F9F0 = block->sy << 8;
+                D_8010F9EC = projection->screen.vx << 8;
+                D_8010F9F0 = projection->screen.vy << 8;
             }
-            block->sy     -= gDisplayState.vramYOffset;
-            frame          = gDisplayState.animFrame % 24 / 3;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
+            // Convert the eased projection to the cursor's display coordinates.
+            projection->screen.vy -= gDisplayState.vramYOffset;
+            frame                  = gDisplayState.animFrame % 24 / 3;
+            prim                   = gGpuPrimCursor;
+            gGpuPrimCursor         = prim + 1;
             if (easing == 1) {
-                prim->x0 = prim->x2 = block->sx - 8;
-                prim->x1 = prim->x3 = block->sx + 8;
-                prim->y0 = prim->y1 = block->sy - 8;
-                prim->y2 = prim->y3 = block->sy + 8;
+                prim->x0 = prim->x2 = projection->screen.vx - 8;
+                prim->x1 = prim->x3 = projection->screen.vx + 8;
+                prim->y0 = prim->y1 = projection->screen.vy - 8;
+                prim->y2 = prim->y3 = projection->screen.vy + 8;
             } else {
-                prim->x0 = prim->x2 = block->sx - 0x10;
-                prim->x1 = prim->x3 = block->sx + 0x10;
-                prim->y0 = prim->y1 = block->sy - 0x10;
-                prim->y2 = prim->y3 = block->sy + 0x10;
+                prim->x0 = prim->x2 = projection->screen.vx - 0x10;
+                prim->x1 = prim->x3 = projection->screen.vx + 0x10;
+                prim->y0 = prim->y1 = projection->screen.vy - 0x10;
+                prim->y2 = prim->y3 = projection->screen.vy + 0x10;
             }
             u = (frame & 3) << 5;
             v = (frame >> 2) << 5;
@@ -185,7 +187,7 @@ void Gp_DrawTargetCursor(void)
             setlen(prim, 9);
             setcode(prim, 0x2F);
             addPrim(gGpuCurrentOt, prim);
-            SCRATCH_POP(_GpPanScratch);
+            SCRATCH_POP(WorldCoordProjectionScratch);
             break;
         }
     }

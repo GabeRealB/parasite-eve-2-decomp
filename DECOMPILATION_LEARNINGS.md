@@ -31779,9 +31779,9 @@ if (item != Gp_PreviewItems[0]) {
 
 `Gp_DrawCollectedRow` is the example.
 
-## Copy `&block->vec` after the scratch store so `ldv0` uses `$v0`
+## Copy `&projection->point` after the scratch store so `ldv0` uses `$v0`
 
-A 0x18-byte scratch alloc that then zeroes `block->vec` and `gte_ldv0`s it
+A 0x18-byte scratch alloc that then zeroes `projection->point` and `gte_ldv0`s it
 wants the block pointer copied into `$v0` right after the stack-head store:
 
 ```
@@ -31793,12 +31793,12 @@ lwc2   $0, 0(v0)
 lwc2   $1, 4(v0)
 ```
 
-`gte_ldv0(&block->vec)` alone keeps the pointer in `$a1`. Take a second
-local immediately after `*scratch = block`:
+`gte_ldv0(&projection->point)` alone keeps the pointer in `$a1`. Take a second
+local immediately after `*scratch = projection`:
 
 ```c
-*scratch = block;
-vec      = &block->vec;
+*scratch   = projection;
+inputPoint = &projection->point;
 ```
 
 `Gp_GetObjPan` is the example.
@@ -31873,8 +31873,8 @@ target wants a nop delay, a `j` after the work, and a standalone
 `move a0, zero`. Write the work in the true arm:
 
 ```c
-if (block->flag >= 0) {
-    ret = -block->sx / 10;
+if (projection->projectionFlags >= 0) {
+    ret = -projection->screen.vx / 10;
 } else {
     ret = 0;
 }
@@ -116222,7 +116222,7 @@ it is the *other* argument that keeps a `workm.t[]` read. Two `reorder`-only
 leftovers, both in the `jal`'s neighbourhood, took it 98.07% -> 98.71% -> 100%
 with block topology and instruction counts matching throughout:
 
-- The `sw <vec>, 0(<scratchptr>)` the entry above ("Copy `&block->vec` after the
+- The `sw <vec>, 0(<scratchptr>)` the entry above ("Copy `&projection->point` after the
   scratch store") places before or after the last `vec` field store has a
   **third** position: written between the `vy` and `vz` stores it is emitted
   between the `vy` store and the `vz` subtraction, which is what frees the `vz`
@@ -134926,7 +134926,7 @@ macro body is the place to edit - true only when the name is spelled *in* the
 body. The common shape here spells it in the argument, since the `gte_*` store
 macros take the address of a struct field:
 
-    gte_stdp(&((_GpPanScratch*)(head - 0x18))->dp);
+    gte_stdp(&scratchEnd[-1].depthCue);
 
 There the invocation is the place, and the edit count printed at the end of the
 run counts none of them: a rename of a type used only this way can report nine

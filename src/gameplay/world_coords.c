@@ -1043,20 +1043,20 @@ static inline void _gpSetColorMtx(MATRIX* mtx, s16 r, s16 g, s16 b)
 
 static void Gp_DebugPanTask(Task* arg0)
 {
-    Task*          slot;
-    Task*          work;
-    PlayerStatus*  cfg;
-    TmdObject*     extra;
-    GfxCoord*      coord;
-    GameActor*     actor;
-    GameActor*     actor2;
-    MATRIX*        mtx;
-    _GpPanScratch* block;
-    SVECTOR*       vecp;
-    VECTOR         vec;
-    TextDrawReq    req;
-    s32            i;
-    s32            val;
+    Task*                        slot;
+    Task*                        work;
+    PlayerStatus*                cfg;
+    TmdObject*                   extra;
+    GfxCoord*                    coord;
+    GameActor*                   actor;
+    GameActor*                   actor2;
+    MATRIX*                      mtx;
+    WorldCoordProjectionScratch* projection;
+    SVECTOR*                     inputPoint;
+    VECTOR                       vec;
+    TextDrawReq                  req;
+    s32                          i;
+    s32                          val;
 
     slot = gameGetPtrSlot(3);
     cfg  = &Player_Status;
@@ -1072,27 +1072,28 @@ static void Gp_DebugPanTask(Task* arg0)
     vec.vz = coord->workm.t[2];
 
     if (Pad_RemapState->field_1 == 0x13) {
-        SCRATCH_PUSH(_GpPanScratch);
-        block               = SCRATCH_HEAD(_GpPanScratch);
+        SCRATCH_PUSH(WorldCoordProjectionScratch);
+        projection          = SCRATCH_HEAD(WorldCoordProjectionScratch);
         D_80760618->field_1 = 1;
         func_800D7A9C(extra, &vec, 0, 3);
         func_800D78A4(&vec, &D_80760618->field_24);
-        vecp                = &block->vec;
+        inputPoint          = &projection->point;
         D_80760618->field_1 = 0;
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_SetTransMatrix(&GsWSMATRIX);
-        block->vec.vx = vec.vx;
-        block->vec.vy = vec.vy;
-        block->vec.vz = vec.vz;
-        gte_ldv0(vecp);
+        // Project the sampled position to place the debug light readout.
+        projection->point.vx = vec.vx;
+        projection->point.vy = vec.vy;
+        projection->point.vz = vec.vz;
+        gte_ldv0(inputPoint);
         gte_rtps();
-        gte_stsxy(&block->sx);
-        gte_stdp(&block->dp);
-        gte_stflg(&block->flag);
-        gte_stszotz(&block->otz);
-        if (block->flag >= 0) {
-            req.x          = block->sx;
-            req.y          = block->sy;
+        gte_stsxy(&projection->screen);
+        gte_stdp(&projection->depthCue);
+        gte_stflg(&projection->projectionFlags);
+        gte_stszotz(&projection->orderingDepth);
+        if (projection->projectionFlags >= 0) {
+            req.x          = projection->screen.vx;
+            req.y          = projection->screen.vy;
             req.otIndex    = 4;
             req.field_8    = 0x37A78;
             req.glyphTable = 0;
@@ -1100,7 +1101,7 @@ static void Gp_DebugPanTask(Task* arg0)
             req.field_E    = 0;
             Text_DrawString(&req, (u8*)D_8009745C);
         }
-        SCRATCH_POP(_GpPanScratch);
+        SCRATCH_POP(WorldCoordProjectionScratch);
     } else {
         func_800D7A9C(extra, &vec, 0, 3);
         if (D_80114F28 != 0) {
@@ -1388,38 +1389,39 @@ s32 gpGetObjDepth(GfxCoord* coord)
 
 s32 Gp_GetObjPan(GfxCoord* coord)
 {
-    u8*            head;
-    _GpPanScratch* block;
-    SVECTOR*       vec;
-    s32            ret;
+    WorldCoordProjectionScratch* scratchEnd;
+    WorldCoordProjectionScratch* projection;
+    SVECTOR*                     inputPoint;
+    s32                          ret;
 
-    head                        = SCRATCH_HEAD(u8);
-    block                       = (_GpPanScratch*)(head - 0x18);
-    SCRATCH_HEAD(_GpPanScratch) = block;
-    vec                         = &block->vec;
+    scratchEnd                                = SCRATCH_HEAD(WorldCoordProjectionScratch);
+    projection                                = scratchEnd - 1;
+    SCRATCH_HEAD(WorldCoordProjectionScratch) = projection;
+    inputPoint                                = &projection->point;
     gte_SetRotMatrix(&coord->workm);
     gte_SetTransMatrix(&coord->workm);
-    block->vec.vz = 0;
-    block->vec.vy = 0;
-    block->vec.vx = 0;
-    gte_ldv0(vec);
+    // Project the coordinate's local origin through its composed view matrix.
+    projection->point.vz = 0;
+    projection->point.vy = 0;
+    projection->point.vx = 0;
+    gte_ldv0(inputPoint);
     gte_rtps();
-    gte_stsxy(&((_GpPanScratch*)(head - 0x18))->sx);
-    gte_stdp(&((_GpPanScratch*)(head - 0x18))->dp);
-    gte_stflg(&((_GpPanScratch*)(head - 0x18))->flag);
-    gte_stszotz(&((_GpPanScratch*)(head - 0x18))->otz);
-    if (block->flag >= 0) {
-        if (block->sx >= 0xA0) {
-            block->sx = 0x9F;
+    gte_stsxy(&scratchEnd[-1].screen);
+    gte_stdp(&scratchEnd[-1].depthCue);
+    gte_stflg(&scratchEnd[-1].projectionFlags);
+    gte_stszotz(&scratchEnd[-1].orderingDepth);
+    if (projection->projectionFlags >= 0) {
+        if (projection->screen.vx >= 0xA0) {
+            projection->screen.vx = 0x9F;
         }
-        if (block->sx < -0x9F) {
-            block->sx = -0xA0;
+        if (projection->screen.vx < -0x9F) {
+            projection->screen.vx = -0xA0;
         }
-        ret = -block->sx / 10;
+        ret = -projection->screen.vx / 10;
     } else {
         ret = 0;
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(WorldCoordProjectionScratch);
     return -ret;
 }
 

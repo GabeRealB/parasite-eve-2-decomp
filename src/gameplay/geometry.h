@@ -15,19 +15,18 @@ typedef struct _GpPosXZ {
 } GpPosXZ;
 STATIC_ASSERT_SIZEOF(GpPosXZ, 8);
 
-/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `Gp_GetObjPan`,
-/// `Gp_DebugPanTask` and `Gp_DrawTargetCursor`: one world point projected to
-/// the screen, with the depth the projection returned kept beside the screen
-/// position. `GpPerspScratch` is the shorter block a projection carves when
-/// the screen position is not kept in it.
+/// Scratch-stack workspace for a 3D point and its screen projection.
+///
+/// The caller supplies the GTE rotation and translation matrices. The screen
+/// position may then be clamped or eased for presentation. Reserve the complete
+/// record on the scratch stack; none of its members survive the matching pop.
 typedef struct {
-    SVECTOR vec;  // the point projected, in the space of the matrix the GTE holds
-    s32     dp;   // depth-cue coefficient of the projection (`gte_stdp`)
-    s32     flag; // projection status (`gte_stflg`); a negative value leaves no usable position
-    s32     otz;  // distance of the point (`gte_stszotz`, `SZ3 >> 2`)
-    s16     sx;   // screen X the point landed on (`gte_stsxy`)
-    s16     sy;   // screen Y the point landed on
-} _GpPanScratch;
-STATIC_ASSERT_SIZEOF(_GpPanScratch, 0x18);
+    SVECTOR point;           // Input point in the current GTE matrices' coordinate space
+    s32     depthCue;        // GTE IR0 depth-cue coefficient, with 12 fractional bits
+    s32     projectionFlags; // GTE FLAG bits; negative when the summary error bit is set
+    s32     orderingDepth;   // Quarter camera-space depth from SZ3 (0..16383)
+    DVECTOR screen;          // Signed screen pixels; X/Y are written together by the GTE
+} WorldCoordProjectionScratch;
+STATIC_ASSERT_SIZEOF(WorldCoordProjectionScratch, 0x18);
 
 #endif // GAMEPLAY_PRIVATE_GEOMETRY_H
