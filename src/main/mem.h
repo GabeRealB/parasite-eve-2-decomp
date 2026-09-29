@@ -16,15 +16,14 @@
         }                                                \
     }
 
-/// Base address of the primary heap, the region allocations are served from
-/// while the primary heap is the active one.
+/// Base of the fixed primary heap used by the resident allocation wrappers.
 ///
-/// The primary heap is a fixed part of the game's memory map: it is the RAM
-/// below the area the overlays are loaded into, so a loaded overlay never
-/// covers it. Its extent is therefore the `G_HEAP_SIZE` constant, where the
-/// auxiliary heaps take both a base and an extent that are set at runtime as
-/// the images backing them are loaded.
-extern u8* gMemHeap;
+/// The writable RAM region [0x80083800, 0x80093780) contains 0xFF80 bytes,
+/// including PsyQ heap3 bookkeeping. `Mem_Init` initializes it before use.
+/// Allocations with `auxHeap == false` and releases through `memFree` use this
+/// heap. Its base stays fixed for the program's lifetime while the allocator's
+/// free-list cursor moves within it; the storage belongs to the allocator.
+extern void* gMemPrimaryHeapBase;
 
 /// Pointer to the auxiliary heap.
 extern u8* GAuxHeap;

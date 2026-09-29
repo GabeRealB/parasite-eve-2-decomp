@@ -132074,8 +132074,8 @@ The base it is pointed at is storage rather than an immediate, so the target
 loads it:
 
 ```
-lui  $v0, %hi(gMemHeap)
-lw   $v1, %lo(gMemHeap)($v0)
+lui  $v0, %hi(gMemPrimaryHeapBase)
+lw   $v1, %lo(gMemPrimaryHeapBase)($v0)
 sw   $v1, %lo(_freep)($v0)
 ```
 
@@ -132094,7 +132094,7 @@ reads a base and the size beside it as one unit is reading the pair as the game
 wrote it, not two unrelated globals.
 
 The primary heap, though, keeps its two halves in two different forms, and the
-target says so: `Mem_Init` loads the base from `gMemHeap` and passes the extent
+target says so: `Mem_Init` loads the base from `gMemPrimaryHeapBase` and passes the extent
 as an immediate (`ori $a1, $zero, 0xFF80`). So the extent is a macro beside the
 declaration rather than a variable beside the pointer, and folding the pair into
 one heap descriptor — which reads better — does not match: the extent becomes a

@@ -16,8 +16,8 @@
 /// `malloc3` and `free3` work inside one heap at a time, and a block has to be
 /// released to the heap it came from, so the heap in play is set before each
 /// operation rather than once at start-up. The primary heap is the fixed
-/// region at `gMemHeap`; the auxiliary heap is the region `gMemActiveAuxHeap`
-/// currently points at.
+/// region at `gMemPrimaryHeapBase`; the auxiliary heap is the region
+/// `gMemActiveAuxHeap` currently points at.
 ///
 /// @param auxHeap If `true`, the auxiliary heap becomes the active one,
 ///                otherwise the primary heap.
@@ -163,8 +163,8 @@ end:
 /// `malloc3` and `free3` work inside one heap at a time, and a block has to be
 /// released to the heap it came from, so the heap in play is set before each
 /// operation rather than once at start-up. The primary heap is the fixed
-/// region at `gMemHeap`; the auxiliary heap is the region `gMemActiveAuxHeap`
-/// currently points at.
+/// region at `gMemPrimaryHeapBase`; the auxiliary heap is the region
+/// `gMemActiveAuxHeap` currently points at.
 ///
 /// @param auxHeap If `true`, the auxiliary heap becomes the active one,
 ///                otherwise the primary heap.
@@ -173,7 +173,7 @@ static void memSetActiveHeap(bool auxHeap)
     if (auxHeap == true) {
         _freep = gMemActiveAuxHeap;
     } else {
-        _freep = gMemHeap;
+        _freep = gMemPrimaryHeapBase;
     }
 }
 
@@ -184,7 +184,7 @@ void* Mem_Malloc(size_t size, bool auxHeap)
     if (auxHeap == true) {
         _freep = gMemActiveAuxHeap;
     } else {
-        _freep = gMemHeap;
+        _freep = gMemPrimaryHeapBase;
     }
 
     ptr = malloc3(size);
@@ -196,7 +196,7 @@ void* Mem_Malloc(size_t size, bool auxHeap)
 
 void memFree(void* ptr)
 {
-    _freep = gMemHeap;
+    _freep = gMemPrimaryHeapBase;
     free3(ptr);
 }
 
@@ -205,7 +205,7 @@ void memFreeFromHeap(void* ptr, bool auxHeap)
     if (auxHeap == true) {
         _freep = gMemActiveAuxHeap;
     } else {
-        _freep = gMemHeap;
+        _freep = gMemPrimaryHeapBase;
     }
     free3(ptr);
 }
@@ -218,7 +218,7 @@ void Mem_InitAux(void)
 void Mem_Init()
 {
     InitHeap3((ulong*)gMemActiveAuxHeap, GActiveAuxHeapSize);
-    InitHeap3((ulong*)gMemHeap, G_HEAP_SIZE);
+    InitHeap3(gMemPrimaryHeapBase, G_HEAP_SIZE);
 }
 
 // The rom contains an empty function that is never called.

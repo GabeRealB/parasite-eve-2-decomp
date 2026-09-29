@@ -19,11 +19,8 @@ int main(void);
 // seem to be inserted by the linker.
 static u32 GStackBase = 0x801fff00;
 
-// Base of the primary heap. The word sits at an address the game's memory map
-// fixes, and this unit's `.data` is the one the split places there, so the
-// definition stays here rather than beside the wrappers in mem.c that read it;
-// moving it means re-attributing that subsegment. `mem.h` documents the symbol.
-u8* gMemHeap = (u8*)0x80083800;
+// Keep the heap-base word in main's fixed .data subsegment.
+void* gMemPrimaryHeapBase = (void*)0x80083800;
 
 // BSS symbols (GAuxHeap … CdCmd_Queue … Mem_AuxRegionBytes) live in the `main` bss
 // split (asm/USA/main/data/main.bss.s) so layout matches the retail binary.
